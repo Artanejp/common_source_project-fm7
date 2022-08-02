@@ -34,8 +34,14 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 	glv = MainWindow->getGraphicsView();
 	p_osd = o;
 	csp_logger = logger;
-	using_flags = NULL;
-	if(p_osd != NULL) using_flags = p_osd->get_config_flags();
+	p_config = nullptr;
+	using_flags.reset();
+	if(p_osd != nullptr) {
+		using_flags = p_osd->get_config_flags();
+		if(using_flags.get() != nullptr) {
+			p_config = using_flags->get_config_ptr();
+		}
+	}
 	screen = QGuiApplication::primaryScreen();
 
 	is_shared_glcontext = false;
@@ -55,8 +61,8 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
 	use_separate_thread_draw = true;
-	if(using_flags->get_config_ptr() != NULL) {
-		use_separate_thread_draw = using_flags->get_config_ptr()->use_separate_thread_draw;
+	if(p_config != nullptr) {
+		use_separate_thread_draw = p_config->use_separate_thread_draw;
 	}
 	rec_frame_width = 640;
 	rec_frame_height = 480;
@@ -90,8 +96,11 @@ DrawThreadClass::~DrawThreadClass()
 void DrawThreadClass::do_start_draw_thread(void)
 {
 	bool _separate = false;
-	if(using_flags->get_config_ptr() != NULL) {
-		if(using_flags->get_config_ptr()->use_separate_thread_draw) {
+	if(p_config == nullptr) {
+		p_config = using_flags->get_config_ptr();
+	}
+	if(p_config != nullptr) {
+		if(p_config->use_separate_thread_draw) {
 			_separate = true;
 		}
 	}
@@ -116,7 +125,7 @@ void DrawThreadClass::do_set_frames_per_second(double fps)
 void DrawThreadClass::doDrawMain(bool flag)
 {
 	//req_map_screen_texture();
-//	if(p_osd == NULL) return;
+	if(p_osd == nullptr) return;
 	p_osd->do_decode_movie(1);
 	if(flag) {
 		draw_frames = p_osd->draw_screen();

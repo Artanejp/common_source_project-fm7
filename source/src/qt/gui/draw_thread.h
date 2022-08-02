@@ -29,6 +29,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	Q_OBJECT
  private:
 	OSD_BASE *p_osd;
+	config_t *p_config; 
 	Ui_MainWindowBase *MainWindow;
 	GLDrawClass *glv;
 	

@@ -199,10 +199,10 @@ private:
 
 
 protected:
-	EmuThreadClass *parent_thread;
-	sdl_snddata_t snddata;
-	USING_FLAGS *using_flags;
-	config_t *p_config;
+	EmuThreadClass		*parent_thread;
+	sdl_snddata_t		snddata;
+	USING_FLAGS			*using_flags;
+	config_t			*p_config;
 	std::shared_ptr<CSP_Logger> p_logger;
 	
 	QOpenGLContext *glContext;
