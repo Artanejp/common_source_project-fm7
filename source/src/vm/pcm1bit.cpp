@@ -6,9 +6,15 @@
 
 	[ 1bit PCM ]
 */
-
 #include "pcm1bit.h"
 #include "../types/util_sound.h"
+#if defined(_WIN32)
+	#define _USE_MATH_DEFINES
+	#include <math.h>
+#endif
+#if !defined(M_PI)
+	#define M_PI 3.14159265358979323846
+#endif
 
 void PCM1BIT::initialize()
 {

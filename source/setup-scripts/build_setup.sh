@@ -161,10 +161,11 @@ else
 fi
 case "${TOOLCHAIN_TYPE}" in
 	llvm* | llvm )
-		if [ __x__"${TOOLCHAIN_VERSION}" = __x__ ] ; then
-			TOOLCHAIN_VERSION=12
+		if [ __x__"${TOOLCHAIN_VERSION}" != __x__ ] ; then
+		    CMAKE_OPTS+=(-DCMAKE_CSP_LLVM_VERSION=${TOOLCHAIN_VERSION})
+		else
+		    CMAKE_OPTS+=(-UCMAKE_CSP_LLVM_VERSION)
 		fi
-		CMAKE_OPTS+=(-DCMAKE_CSP_LLVM_VERSION=${TOOLCHAIN_VERSION})
 		;;
 	gcc* | gcc )
 		if [ __x__"${TOOLCHAIN_VERSION}" = __x__ ] ; then

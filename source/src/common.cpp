@@ -30,6 +30,10 @@
 #else
 	#include <time.h>
 #endif
+
+#if defined(_WIN32)
+	#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 #include "common.h"
 #include "fileio.h"
@@ -2318,6 +2322,9 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 }
 
 // From https://en.wikipedia.org/wiki/High-pass_filter
+#if !defined(M_PI)
+	#define M_PI 3.14159265358979323846
+#endif
 void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_freq, int hpf_freq, int samples, double quality, bool is_add)
 {
 	if(src == NULL) return;

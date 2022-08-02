@@ -13,11 +13,7 @@ __NARG=""
 
 if [ "$4" = "--build-threads" ]; then
    : ${CORES:="$5"}
-   __NARG="${__NARG} --build-threads $5"
-fi
-if [ "$6" = "--workload" ]; then
-   : ${WORKLOADS:="$7"}
-   __NARG="${__NARG} --workload $7"
+   __NARG="--build-threads $5"
 fi
 
 export PATH=$NATIVE/bin:$PATH

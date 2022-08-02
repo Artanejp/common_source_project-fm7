@@ -1,0 +1,316 @@
+diff -urN orig/qt-everywhere-src-5.15.4/config_sample.5.15.sh new/qt-everywhere-src-5.15.4/config_sample.5.15.sh
+--- orig/qt-everywhere-src-5.15.4/config_sample.5.15.sh	1970-01-01 09:00:00.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/config_sample.5.15.sh	2022-08-01 04:14:29.507674266 +0900
+@@ -0,0 +1,108 @@
++#!/bin/sh
++
++DIRECTX_ARCH=x86
++#DIRECCX_ARCH=x64
++
++SDK_PREFIX="/usr/local/i586-mingw-msvc"
++SDK_PREFIX_DIRECTX="/usr/local/i586-mingw-msvc/DirectX_June_2010"
++
++VULKAN_SDK="${SDK_PREFIX}"
++LLVM_INSTALL_DIR="/opt/llvm-mingw"
++
++ADDITIONAL_FLAGS=""
++BUILD_WITH_VULKAN=1
++
++#export PATH="$PATH:~/src/fxc2"
++export PATH="${LLVM_INSTALL_DIR}/bin:$PATH:$SDK_PREFIX"
++export PATH="$PATH:$SDK_PREFIX/bin"
++export PATH="$PATH:$SDK_PREFIX/lib"
++export PATH="$PATH:$SDK_PREFIX_DIRECTX/Utilities/bin/${DIRECTX_ARCH}"
++export PATH="$PATH:$SDK_PREFIX_DIRECTX/Developer Runtime/${DIRECTX_ARCH}"
++export PATH="$PATH:$VULKAN_SDK/bin"
++
++export PKG_CONFIG_LIBDIR=${SDK_PREFIX}/lib
++export PKG_CONFIG_PATH=${SDK_PREFIX}/lib/pkgconfig
++export PKG_CONFIG_SYSROOT_DIR=${SDK_PREFIX}
++#export QMAKE_DXSDK_DIR=${SDK_PREFIX}/DirectX_June_2010/
++
++if [ ${BUILD_WITH_VULKAN} -ne 0 ] ; then
++   ADDITIONAL_FLAGS="${ADDITIONAL_FLAGS} \
++            -device-option VULKAN_PREFIX=$VULKAN_SDK \
++	    -device-option QMAKE_INCDIR_VULKAN=$VULKAN_SDK/include \
++	    -device-option QMAKE_LIBDIR_VULKAN=$VULKAN_SDK/lib \
++	    -I $VULKAN_SDK/include \
++	    -I $VULKAN_SDK/include/vulkan \
++	    -L $VULKAN_SDK/lib \
++	    -L $VULKAN_SDK/bin \
++	    -vulkan "
++fi
++
++#wine ./qtbase/configure.exe \
++./configure \
++	    -release \
++            -opensource -confirm-license \
++	    -device-option CROSS_COMPILE=i686-w64-mingw32- \
++	    -optimized-tools \
++            -platform linux-g++ \
++            -prefix ${SDK_PREFIX}/Qt5.15/mingw_90x \
++	    -xplatform win32-clang-g++ \
++	    -qt-libpng \
++	    -qt-libjpeg \
++	    -qt-freetype \
++	    -device-option LLVM_INSTALL_DIR="${LLVM_INSTALL_DIR}" \
++	    -I ${SDK_PREFIX}/include \
++	    -I ${SDK_PREFIX}/include/SDL2 \
++	    -L ${SDK_PREFIX}/lib \
++	    -L ${SDK_PREFIX}/bin \
++	    -I ${SDK_PREFIX_DIRECTX}/Include \
++	    -L ${SDK_PREFIX_DIRECTX}/Lib/${DIRECTX_ARCH} \
++	    -L ${LLVM_INSTALL_DIR}/i686-w64-mingw32/lib \
++	    -I ${LLVM_INSTALL_DIR}/i686-w64-mingw32/include \
++	    -device-option SDL_PREFIX=$SDK_PREFIX \
++	    -device-option SDL2_PREFIX=$SDK_PREFIX \
++	    -device-option LIBS_SDL2+=SDLmain \
++	    -device-option ICU_PREFIX=$SDK_PREFIX \
++	    -device-option LIBS_OPENGL_ES2+=GLESv2 \
++	    -device-option LIBS_OPENGL_ES2+=EGL \
++	    -device-option LIBEGL_NAME=EGL.dll \
++	    -device-option LIBGLESV2_NAME=GLESv2.dll \
++	    -device-option OPENGL_ES2_PREFIX=$SDK_PREFIX \
++	    -device-option QMAKE_DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
++	    -device-option DXSDK_DIR=${SDK_PREFIX_DIRECTX} \
++	    -device-option QSG_RHI=1 \
++	    -device-option QMAKE_CFLAGS="-fno-builtin-stpcpy" \
++	    -device-option QMAKE_CXXFLAGS="-fno-builtin-stpcpy" \
++	    \
++	    -D"stpcpy\(d,s\)=__builtin_stpcpy\(d,s\)" \
++	    -D"_aligned_malloc\(s,a\)=__mingw_aligned_malloc\(s,a\)" \
++	    -D"_aligned_free\(m\)=__mingw_aligned_free\(m\)" \
++	    -D"_aligned_offset_realloc\(m,s,a,o\)=__mingw_aligned_offset_realloc\(m,s,a,o\)" \
++	    -D"_aligned_realloc\(m,s,o\)=__mingw_aligned_realloc\(m,s,o\)" \
++	    \
++	    -device-option QMAKE_LFLAGS="-lc++abi -lunwind -lssp" \
++	    \
++	    -opengl dynamic \
++	    \
++	    -no-eglfs \
++	    -no-evr \
++	    -no-d3d12 \
++	    -feature-direct3d9 \
++	    -feature-dxguid \
++	    -feature-direct3d11 \
++            -pkg-config \
++	    -icu \
++	    -skip qtactiveqt \
++	    -skip qtlocation \
++	    -skip qtwebglplugin \
++	    -skip qtwebengine \
++	    -skip qtwebview \
++	    -skip qtconnectivity \
++	    -c++std c++17 \
++	    -nomake tests \
++	    ${ADDITIONAL_FLAGS} \
++	    $@ 
++
++#	    -c++std c++17 \
++#	    -angle \
++#	    -device-option QMAKE_INCDIR_OPENGL_ES2="${SDK_PREFIX}/Angle/include" \
++#	    -device-option QMAKE_LIBDIR_OPENGL_ES2="${SDK_PREFIX}/Angle/lib" \
+diff -urN orig/qt-everywhere-src-5.15.4/make_cross.sh new/qt-everywhere-src-5.15.4/make_cross.sh
+--- orig/qt-everywhere-src-5.15.4/make_cross.sh	1970-01-01 09:00:00.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/make_cross.sh	2022-08-01 04:39:59.013650570 +0900
+@@ -0,0 +1,20 @@
++#!/bin/sh
++
++export LLVM_INSTALL_DIR="/opt/llvm-mingw"
++export __QT_SDK_PREFIX="/usr/local/i586-mingw-msvc"
++export __CROSS_ARCH=i686-w64-mingw32-
++export __QT_SDK_PREFIX_DIRECTX="/usr/local/i586-mingw-msvc/DirectX_June_2010"
++
++export PATH="${LLVM_INSTALL_DIR}/bin:\
++            $PATH:\
++	    ${__QT_SDK_PREFIX}/bin:\
++            ${__QT_SDK_PREFIX_DIRECTX}/Developer Runtime/x86 \
++            "
++
++export PKG_CONFIG_LIBDIR=${__QT_SDK_PREFIX}/lib
++
++#taskset 0xfbe make CROSS_COMPILE=i686-w64-mingw32- PKG_CONFIG_LIBDIR=/usr/i686-w64-mingw32/lib $@ 2>&1 
++make \
++     CROSS_COMPILE=${__CROSS_ARCH} \
++     PKG_CONFIG_LIBDIR=${PKG_CONFIG_LIBDIR} \
++     $@ 2>&1 
+\ ファイル末尾に改行がありません
+diff -urN orig/qt-everywhere-src-5.15.4/qtgamepad/config.tests/sdl/main.cpp new/qt-everywhere-src-5.15.4/qtgamepad/config.tests/sdl/main.cpp
+--- orig/qt-everywhere-src-5.15.4/qtgamepad/config.tests/sdl/main.cpp	2022-04-07 21:22:03.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtgamepad/config.tests/sdl/main.cpp	2022-08-01 03:55:46.646832938 +0900
+@@ -34,6 +34,8 @@
+ **
+ ****************************************************************************/
+ 
++#include <windows.h>
++#include <tchar.h>
+ #include <SDL.h>
+ #include <SDL_gamecontroller.h>
+ 
+@@ -43,3 +45,12 @@
+     SDL_Quit();
+     return 0;
+ }
++
++int WINAPI WinMain(
++		     HINSTANCE hCurInst,
++		     HINSTANCE hPrevInst,
++		     LPSTR lpsCmdLine,
++		     int nCmdShow)
++{
++  return  main(0, NULL);
++}
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/multimedia/configure.json new/qt-everywhere-src-5.15.4/qtmultimedia/src/multimedia/configure.json
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/multimedia/configure.json	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/multimedia/configure.json	2022-08-01 04:23:49.501888103 +0900
+@@ -144,7 +144,7 @@
+             "label": "WMF",
+             "test": "wmf",
+             "sources": [
+-                { "libs": "-lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32 -lMf -lMfuuid -lMfplat -lPropsys" }
++                { "libs": "-lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32 -lmf -lmfuuid -lmfplat -lpropsys" }
+             ]
+         }
+     },
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/plugins.pro new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/plugins.pro
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/plugins.pro	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/plugins.pro	2022-08-01 12:42:40.542288943 +0900
+@@ -35,7 +35,8 @@
+                windowsaudio
+ 
+     qtConfig(directshow): SUBDIRS += directshow
+-    qtConfig(wmf): SUBDIRS += wmf
++    # ToDo: Available to build WMF plugin with cross LLVM 14. 20220801 K.Ohta
++#    qtConfig(wmf): SUBDIRS += wmf
+ }
+ 
+ 
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wasapi/wasapi.pro new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wasapi/wasapi.pro
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wasapi/wasapi.pro	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wasapi/wasapi.pro	2022-08-01 04:34:04.812252840 +0900
+@@ -18,11 +18,11 @@
+ OTHER_FILES += \
+     wasapi.json
+ 
+-LIBS += Mmdevapi.lib
++LIBS += -lmmdevapi
+ 
+ win32-* {
+     DEFINES += CLASSIC_APP_BUILD
+-    LIBS += runtimeobject.lib
++    LIBS += -lruntimeobject
+ }
+ 
+ PLUGIN_TYPE = audio
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfaudiodecodercontrol.cpp new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfaudiodecodercontrol.cpp
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfaudiodecodercontrol.cpp	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfaudiodecodercontrol.cpp	2022-08-01 11:23:09.006193889 +0900
+@@ -37,7 +37,7 @@
+ **
+ ****************************************************************************/
+ 
+-#include "Wmcodecdsp.h"
++#include "wmcodecdsp.h"
+ #include "mfaudiodecodercontrol.h"
+ 
+ MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfdecodersourcereader.h new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfdecodersourcereader.h
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfdecodersourcereader.h	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/decoder/mfdecodersourcereader.h	2022-08-01 11:23:47.530488522 +0900
+@@ -41,7 +41,7 @@
+ #define MFDECODERSOURCEREADER_H
+ #include <mfapi.h>
+ #include <mfidl.h>
+-#include <Mfreadwrite.h>
++#include <mfreadwrite.h>
+ 
+ #include <QtCore/qobject.h>
+ #include <QtCore/qmutex.h>
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.cpp new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.cpp
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.cpp	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.cpp	2022-08-01 11:21:33.337462332 +0900
+@@ -43,7 +43,7 @@
+ 
+ #include "mfmetadatacontrol.h"
+ #include "mfplayerservice.h"
+-#include "Propkey.h"
++#include "propkey.h"
+ 
+ //#define DEBUG_MEDIAFOUNDATION
+ 
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.h new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.h
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.h	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfmetadatacontrol.h	2022-08-01 11:35:18.543777628 +0900
+@@ -41,7 +41,7 @@
+ #define MFMETADATACONTROL_H
+ 
+ #include <qmetadatareadercontrol.h>
+-#include "Mfidl.h"
++#include "mfidl.h"
+ 
+ QT_USE_NAMESPACE
+ 
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfplayercontrol.cpp new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfplayercontrol.cpp
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfplayercontrol.cpp	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfplayercontrol.cpp	2022-08-01 11:16:03.806926847 +0900
+@@ -38,7 +38,7 @@
+ ****************************************************************************/
+ 
+ #include "mfplayercontrol.h"
+-#include <qtcore/qdebug.h>
++#include <QtCore/qdebug.h>
+ 
+ //#define DEBUG_MEDIAFOUNDATION
+ 
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mftvideo.cpp new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mftvideo.cpp
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mftvideo.cpp	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mftvideo.cpp	2022-08-01 11:22:15.333783448 +0900
+@@ -43,7 +43,7 @@
+ #include <mferror.h>
+ #include <strmif.h>
+ #include <uuids.h>
+-#include <InitGuid.h>
++#include <initguid.h>
+ #include <d3d9.h>
+ #include <qdebug.h>
+ 
+diff -urN orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfvideorenderercontrol.cpp new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfvideorenderercontrol.cpp
+--- orig/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfvideorenderercontrol.cpp	2022-04-07 21:22:10.000000000 +0900
++++ new/qt-everywhere-src-5.15.4/qtmultimedia/src/plugins/wmf/player/mfvideorenderercontrol.cpp	2022-08-01 11:58:37.214463094 +0900
+@@ -44,13 +44,13 @@
+ 
+ #include <qabstractvideosurface.h>
+ #include <qvideosurfaceformat.h>
+-#include <qtcore/qtimer.h>
+-#include <qtcore/qmutex.h>
+-#include <qtcore/qcoreevent.h>
+-#include <qtcore/qcoreapplication.h>
+-#include <qtcore/qthread.h>
++#include <QtCore/qtimer.h>
++#include <QtCore/qmutex.h>
++#include <QtCore/qcoreevent.h>
++#include <QtCore/qcoreapplication.h>
++#include <QtCore/qthread.h>
+ #include "guiddef.h"
+-#include <qtcore/qdebug.h>
++#include <QtCore/qdebug.h>
+ #include <QtMultimedia/private/qmediaopenglhelper_p.h>
+ 
+ //#define DEBUG_MEDIAFOUNDATION
+@@ -120,6 +120,7 @@
+     MIDL_INTERFACE("a3ff32de-1031-438a-8b47-82f8acda59b7")
+     IMarker : public IUnknown
+     {
++     public:
+         virtual STDMETHODIMP GetMarkerType(MFSTREAMSINK_MARKER_TYPE *pType) = 0;
+         virtual STDMETHODIMP GetMarkerValue(PROPVARIANT *pvar) = 0;
+         virtual STDMETHODIMP GetContext(PROPVARIANT *pvar) = 0;
+@@ -904,7 +905,7 @@
+             MFTIME m_time;
+         };
+ 
+-    protected:
++    public:
+         void customEvent(QEvent *event)
+         {
+             QMutexLocker locker(&m_mutex);

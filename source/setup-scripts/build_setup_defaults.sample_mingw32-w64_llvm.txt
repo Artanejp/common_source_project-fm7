@@ -1,0 +1,14 @@
+# Copy this to CURRENT_DIR/build_setup_defaults.txt .
+BUILD_TYPE=Release
+TOOLCHAIN_TYPE=llvm
+TOOLCHAIN_VERSION=""
+
+CROSS_BUILD_TYPE=mingw
+CROSS_LIBS_PREFIX=/usr/local/i586-mingw-msvc
+
+USE_QT6=0
+USE_LTO=0
+USE_CXX20=1
+
+
+
