@@ -519,7 +519,7 @@ void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_d(ppx, 8);
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
 
-	tmp_d = tmp_d >> 5;
+	tmp_d >>= 5;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
@@ -541,7 +541,7 @@ void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_d(ppx, 8);
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
 
-	tmp_d = tmp_d >> 5;
+	tmp_d >>= 5;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		tmp_dd[i] = dpalette_pixel_green[tmp_d[i]];
@@ -671,8 +671,8 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 		tmp_b = tmp_b | vpp1;
 		tmp_b = tmp_b | vpp2;
 		tmp_b = tmp_b | vpp3;
-		tmp_g = tmp_g << 4;
-		tmp_b = tmp_b >> 4;
+		tmp_g <<= 4;
+		tmp_b >>= 4;
 	}
 	
 	pixels = tmp_b;
