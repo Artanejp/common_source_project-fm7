@@ -729,6 +729,7 @@ public:
 	bool get_direct_load_mzt(int drive);
 	virtual bool GetPowerState(void);
 	void set_logger(std::shared_ptr<CSP_Logger> logger) { csp_logger = logger; }
+	std::shared_ptr<CSP_Logger> get_logger() { return csp_logger; }
 
 	virtual QString get_system_version();
 	virtual QString get_build_date();

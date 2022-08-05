@@ -23,8 +23,6 @@
 #include <QProcessEnvironment>
 #include <QCommandLineParser>
 
-#include <memory>
-
 #include "common.h"
 #include "fileio.h"
 #include "config.h"
@@ -54,11 +52,6 @@
 EMU* emu;
 //QApplication *GuiMain = NULL;
 extern config_t config;
-#if defined(CSP_OS_WINDOWS)
-std::shared_ptr<CSP_Logger> DLL_PREFIX_I csp_logger;
-#else
-extern std::shared_ptr<CSP_Logger> csp_logger;
-#endif
 
 // Start to define MainWindow.
 class META_MainWindow *rMainWindow;
@@ -1149,9 +1142,8 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	config.dipswitch |= dipsw_onbits;
 }
 
-void OpeningMessage(std::string archstr)
+void OpeningMessage(std::shared_ptr<CSP_Logger>p_logger, std::string archstr)
 {
-	std::shared_ptr<CSP_Logger>p_logger = csp_logger;
 	p_logger->set_emu_vm_name(DEVICE_NAME); // Write to syslog, console
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Start Common Source Project '%s'", my_procname.c_str());
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
@@ -1178,10 +1170,10 @@ void OpeningMessage(std::string archstr)
 	}
 }
 
-void SetupSDL(void)
+void SetupSDL(std::shared_ptr<CSP_Logger>p_logger)
 {
 	QStringList _el = _envvers.toStringList();
-	std::shared_ptr<CSP_Logger>p_logger = csp_logger;
+
 	if(_el.size() > 0) {
 		for(int i = 0; i < _el.size(); i++) {
 			QString _s = _el.at(i);
@@ -1213,11 +1205,12 @@ void SetupSDL(void)
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Audio subsystem was initialised.");
 }
 
+extern void DLL_PREFIX_I set_debug_logger(std::shared_ptr<CSP_Logger> p);
 
-void SetupLogger(QObject *parent, std::string emustr, int _size)
+void SetupLogger(std::shared_ptr<CSP_Logger> csp_logger, QObject *parent, std::string emustr, int _size)
 {
 
-	csp_logger.reset(new CSP_Logger(parent, config.log_to_syslog, config.log_to_console, emustr.c_str())); // Write to syslog, console
+	csp_logger->set_emu_vm_name((const char *)(emustr.c_str()));
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
 	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
@@ -1243,8 +1236,8 @@ int MainLoop(int argc, char *argv[])
 	std::string cfgstr(CONFIG_NAME);
 	std::string delim;
 	QString emudesc;
-
 	setup_logs();
+
 #if defined(Q_OS_WIN)
 	delim = "\\";
 #else
@@ -1252,7 +1245,6 @@ int MainLoop(int argc, char *argv[])
 #endif
 	
 	QApplication *GuiMain = NULL;
-	
 	GuiMain = new QApplication(argc, argv);
 	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
     QCommandLineParser cmdparser;
@@ -1282,10 +1274,12 @@ int MainLoop(int argc, char *argv[])
 
 	_envvers = QProcessEnvironment::systemEnvironment();
 
-	SetupLogger(GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
-	OpeningMessage(archstr);
-	SetupSDL();
-	std::shared_ptr<CSP_Logger>p_logger = csp_logger;
+	std::shared_ptr<CSP_Logger>p_logger = std::shared_ptr<CSP_Logger>(new CSP_Logger(GuiMain, config.log_to_syslog, config.log_to_console, emustr.c_str()));
+	set_debug_logger(p_logger);	
+	SetupLogger(p_logger, GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
+	OpeningMessage(p_logger, archstr);
+	SetupSDL(p_logger);
+
 
 	/*
 	 * Into Qt's Loop.

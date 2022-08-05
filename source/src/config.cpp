@@ -11,13 +11,11 @@
 #include <string>
 #include <vector>
 #include "fileio.h"
-#include "csp_logger.h"
+
 #include "qt_main.h"
 # if defined(Q_OS_WIN)
 # include <windows.h>
 # endif
-extern std::shared_ptr<CSP_Logger> csp_logger;
-
 #endif
 
 #include <stdlib.h>
@@ -649,7 +647,6 @@ void load_config(const _TCHAR *config_path)
 		config.state_log_to_recording = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);;
 
 		config.virtual_media_position = MyGetPrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
-		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Read config done.");
 	#endif
 }
 		
@@ -992,7 +989,6 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);
 		
 		MyWritePrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
-		//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Write config done.");
 	#endif	
 }
 

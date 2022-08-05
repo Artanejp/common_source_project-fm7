@@ -40,6 +40,8 @@ class FIFO;
 class FILEIO;
 
 #if defined(OSD_QT)
+class CSP_Logger;
+
 class CSP_Debugger;
 class CSP_DebuggerThread;
 
@@ -61,7 +63,9 @@ typedef struct {
 class DLL_PREFIX EMU_TEMPLATE {
 protected:
 	OSD_BASE* osd;
-
+#if defined(OSD_QT)
+	std::shared_ptr<CSP_Logger> csp_logger;
+#endif
 	_TCHAR app_path[_MAX_PATH];
 	// misc
 	int sound_frequency, sound_latency;
@@ -105,7 +109,7 @@ public:
 	// initialize
 	// ---------------------------------------
 #if defined(OSD_QT)
-	EMU_TEMPLATE(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<USING_FLAGS> p)
+	EMU_TEMPLATE(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<CSP_Logger> p_logger, std::shared_ptr<USING_FLAGS> p)
 #elif defined(OSD_WIN32)
  	EMU_TEMPLATE(HWND hwnd, HINSTANCE hinst)
 #else
@@ -152,6 +156,7 @@ public:
 		}
 		
 #if defined(OSD_QT)
+		csp_logger = p_logger;
 		debugger_thread_id = (pthread_t)0;
 		hDebugger = NULL;
 #elif defined(OSD_WIN32)

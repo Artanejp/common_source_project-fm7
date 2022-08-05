@@ -13,8 +13,6 @@
 # include <windows.h>
 # endif
 #include <memory>
-extern std::shared_ptr<CSP_Logger> csp_logger;
-
 #endif
 
 //#include <stdlib.h>

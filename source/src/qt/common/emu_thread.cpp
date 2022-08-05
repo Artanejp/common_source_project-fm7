@@ -31,12 +31,12 @@
 #define MAX_SKIP_FRAMES 10
 
 extern EMU *emu;
-extern CSP_Logger *csp_logger;
+
 EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent)
 	: EmuThreadClassBase(rootWindow, p, parent)
 {
 //	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), using_flags);
-	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), p);
+	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), rootWindow->get_logger(), p);
 	p_emu = emu;
 	p_osd = emu->get_osd();
 	p->set_emu(emu);
@@ -176,8 +176,9 @@ void EmuThreadClass::doWork(const QString &params)
 	//key_down_queue.clear();
 	clear_key_queue();
 	bool half_count = false;
+	std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
+
 	if(using_flags.get() != nullptr) {
-	
 	for(int i = 0; i < using_flags->get_max_qd(); i++) qd_text[i].clear();
 	for(int i = 0; i < using_flags->get_max_drive(); i++) {
 		fd_text[i].clear();
@@ -558,6 +559,7 @@ void EmuThreadClass::doWork(const QString &params)
 	} while(1);
 _exit:
 	//emit quit_draw_thread();
+	
 	if(csp_logger != NULL) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 							  "EmuThread : EXIT");

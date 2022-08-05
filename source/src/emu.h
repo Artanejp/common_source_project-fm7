@@ -45,9 +45,9 @@
 
 class VM;
 class VM_TEMPLATE;
-class EMU;
 class FIFO;
 class FILEIO;
+class CSP_Logger;
 /*
 #ifdef USE_DEBUGGER
 typedef struct {
@@ -103,7 +103,7 @@ public:
 	// initialize
 	// ----------------------------------------
 #if defined(OSD_QT)
-	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<USING_FLAGS> p);
+	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<CSP_Logger> p_logger, std::shared_ptr<USING_FLAGS> p);
 #elif defined(OSD_WIN32)
 	EMU(HWND hwnd, HINSTANCE hinst);
 #else

@@ -14,9 +14,6 @@
 #include "./device.h"
 #if defined(_USE_QT)
 #include <memory>
-#include "../qt/gui/csp_logger.h"
-extern DLL_PREFIX_I std::shared_ptr<CSP_Logger> csp_logger;
-#endif
 
 DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm(parent_vm), emu(parent_emu)
 {
@@ -25,7 +22,7 @@ DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm(parent_vm)
 
 	osd = emu->get_osd();
 #if defined(_USE_QT)
-	p_logger = csp_logger;
+	p_logger = osd->get_logger();
 #endif	
 	memset(this_device_name, 0x00, sizeof(this_device_name));
 	strncpy(this_device_name, "Base Device", 128 - 1);

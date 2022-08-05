@@ -35,11 +35,10 @@ static const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 //extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
 #include <memory>
-extern std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 #if defined(_USE_QT)
-EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<USING_FLAGS> p) : EMU_TEMPLATE(hwnd, hinst, p)
+EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<CSP_Logger> p_logger, std::shared_ptr<USING_FLAGS> p) : EMU_TEMPLATE(hwnd, hinst, p_logger, p)
 #elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst) : EMU_TEMPLATE(hwnd, hinst)
 #else

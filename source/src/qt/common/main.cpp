@@ -24,11 +24,6 @@
 
 // emulation core
 #include <memory>
-#if defined(CSP_OS_WINDOWS)
-std::shared_ptr<CSP_Logger> DLL_PREFIX_I csp_logger;
-#else
-extern std::shared_ptr<CSP_Logger> csp_logger;
-#endif
 
 // Start to define MainWindow.
 extern class META_MainWindow *rMainWindow;
@@ -37,15 +32,15 @@ extern int   MainLoop(int argc, char *argv[]);
 
 #include <QApplication>
 #include <qapplication.h>
-#if defined(Q_OS_WIN)
-//DLL_PREFIX_I void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-extern DLL_PREFIX void _resource_init(void);
-extern DLL_PREFIX void _resource_free(void);
-#else
-extern void CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-extern void _resource_init(void);
-extern void _resource_free(void);
-#endif
+extern DLL_PREFIX_I void _resource_init(void);
+extern DLL_PREFIX_I void _resource_free(void);
+
+static std::shared_ptr<CSP_Logger> __logger;
+void DLL_PREFIX set_debug_logger(std::shared_ptr<CSP_Logger> p)
+{
+	__logger = p;
+}
+
 void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
 	QString msg_type;
@@ -96,22 +91,20 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 	nmsg_l1.append(" (Function: ");
 	nmsg_l1.append(context.function);
 	nmsg_l1.append(" )");
-	if(csp_logger.get() != nullptr) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
+	if(__logger.get() != nullptr) {
+		__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
+		__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
 	} else {
 		fprintf(stderr,"%s\n", nmsg_l1.toLocal8Bit().constData());
 		fprintf(stderr, "%s\n", nmsg_l2.toLocal8Bit().constData());
 	}		
 	} else {
-		if(csp_logger.get() != NULL) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, msgString.toLocal8Bit().constData());
-	} else {
-		fprintf(stderr, "%s\n", msgString.toLocal8Bit().constData());
-	}		
+		if(__logger.get() != nullptr) {
+			__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, msgString.toLocal8Bit().constData());
+		} else {
+			fprintf(stderr, "%s\n", msgString.toLocal8Bit().constData());
+		}
 	}
-   
-    
 }
 
 int main(int argc, char *argv[])
@@ -120,12 +113,12 @@ int main(int argc, char *argv[])
 	/*
 	 * Get current DIR
 	 */
-	csp_logger.reset();
 /*
  * アプリケーション初期化
  */
 	_resource_init();
-
+	__logger.reset();
+	
 	const char *_p_backtrace = "\n  at line %{line} of %{file} (Thread %{threadid}: function %{function}\nBacktrace:\n %{backtrace depth=15 separator=\"\n \" }";
 	QString _s_backtrace = QString::fromUtf8(_p_backtrace);
 	QString _s_basicpattern = QString::fromUtf8("%{message}");
@@ -141,13 +134,8 @@ int main(int argc, char *argv[])
 	
 	qSetMessagePattern(_msgpattern);
 	qInstallMessageHandler(CSP_DebugHandler);
-//	printf("argc: %d\n", argc);
-//	for(int i = 0; i < argc; i++) {
-//		printf("argv[%d]=%s\n", i, argv[i]);
-//	}
 	nErrorCode = MainLoop(argc, argv);
 	_resource_free();
-	//if(csp_logger != NULL) delete csp_logger;
 	
 	return nErrorCode;
 }
