@@ -20,7 +20,7 @@ class META_MainWindow : public Ui_MainWindow {
 	void retranslateUi(void);
   
  public:
-	META_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
+	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
 public slots:
 

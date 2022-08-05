@@ -16,7 +16,7 @@
 #include "menu_cmt.h"
 #include "menu_flags.h"
 
-//extern USING_FLAGS *using_flags;
+//extern std::shared_ptr<USING_FLAGS> using_flags;
 void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 {
 	QString ext_play;

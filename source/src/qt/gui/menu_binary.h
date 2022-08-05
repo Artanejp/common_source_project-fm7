@@ -21,7 +21,7 @@ protected:
 
 	QMenu *menu_history_save;
 public:
-	Menu_BinaryClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
+	Menu_BinaryClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_BinaryClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

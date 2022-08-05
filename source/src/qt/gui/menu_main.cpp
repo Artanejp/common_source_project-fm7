@@ -64,7 +64,7 @@ void DLL_PREFIX _resource_free(void)
 	Q_CLEANUP_RESOURCE(commontexts);
 }
 
-Ui_MainWindowBase::Ui_MainWindowBase(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : QMainWindow(parent)
+Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : QMainWindow(parent)
 {
 	csp_logger = logger;
 	using_flags = p;
@@ -101,7 +101,6 @@ Ui_MainWindowBase::~Ui_MainWindowBase()
 	graphicsView->releaseKeyboard();
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
 	if(driveData != NULL) delete driveData;
-	delete using_flags;
 }
 
 QMenu  *Ui_MainWindowBase::createMenuNode(QMenuBar *parent, QString objname)

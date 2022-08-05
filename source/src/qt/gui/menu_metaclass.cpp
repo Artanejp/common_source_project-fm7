@@ -21,7 +21,7 @@
 #include "commonclasses.h"
 #include "qt_main.h"
 
-Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : QMenu(root_entry)
+Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : QMenu(root_entry)
 {
 	QString tmps;
 	int ii;

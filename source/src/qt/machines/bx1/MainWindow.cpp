@@ -68,7 +68,7 @@ void META_MainWindow::retranslateUi(void)
 
 
 
-META_MainWindow::META_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
+META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {
 	for(int i = 0; i < 4; i++) {
 		action_DipSWs[i] = NULL;

@@ -18,6 +18,7 @@
 #include "common.h"
 #include "config.h"
 #include "menu_flags.h"
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 class DLL_PREFIX Action_Control: public QAction {
@@ -28,7 +29,7 @@ protected:
 	QString bindString;
 public:
 	//Object_Menu_Control *binds;
-	Action_Control (QObject *parent, USING_FLAGS *p) : QAction(parent) {
+	Action_Control (QObject *parent, std::shared_ptr<USING_FLAGS> p) : QAction(parent) {
 		//binds = new Object_Menu_Control(parent, p);
 		bindString.clear();
 	}

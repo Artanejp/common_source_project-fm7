@@ -64,7 +64,7 @@ protected:
 	void set_features(void);
 	void set_device_name(int id, char *name);
 public:
-	OSD(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger);
+	OSD(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger);
 	~OSD();
 	void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	void release();

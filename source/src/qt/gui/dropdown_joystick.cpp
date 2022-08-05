@@ -15,7 +15,7 @@
 #include "joy_thread.h"
 
 
-CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *p,JoyThreadClass *joy) : QWidget(parent)
+CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p,JoyThreadClass *joy) : QWidget(parent)
 {
 	p_wid = parent;
 	using_flags = p;

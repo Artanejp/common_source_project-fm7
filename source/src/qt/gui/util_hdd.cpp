@@ -17,7 +17,7 @@
 
 #include "menu_flags.h"
 
-//extern USING_FLAGS *using_flags;
+//extern std::shared_ptr<USING_FLAGS> using_flags;
 //extern class EMU *emu;
 
 

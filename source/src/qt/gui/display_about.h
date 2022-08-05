@@ -16,6 +16,7 @@
 #include <QString>
 
 #include "common.h"
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 class USING_FLAGS;
@@ -24,7 +25,7 @@ class DLL_PREFIX Dlg_AboutCSP : public QWidget
 {
 	Q_OBJECT
 protected:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	QWidget *parent_widget;
 
 	QTextBrowser *TextBox;
@@ -36,7 +37,7 @@ protected:
 	QVBoxLayout *VBox;
 	QString renderer;
 public:
-	Dlg_AboutCSP(USING_FLAGS *p, QString rendererString = QString::fromUtf8(""), QWidget *parent = 0);
+	Dlg_AboutCSP(std::shared_ptr<USING_FLAGS> p, QString rendererString = QString::fromUtf8(""), QWidget *parent = 0);
 	~Dlg_AboutCSP();
 	
 };

@@ -50,7 +50,7 @@ protected:
 	config_t *p_config;
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	CSP_DialogMovie *p_window;
 	
 	int video_bitrate;
@@ -58,7 +58,7 @@ protected:
 	int video_minq;
 	int video_maxq;
 public:
-	CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, USING_FLAGS *p, QWidget *parent = NULL);
+	CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, std::shared_ptr<USING_FLAGS> p, QWidget *parent = NULL);
 	~CSP_TabMovieMPEG4();
 	void do_set_codecs(void);
 public slots:

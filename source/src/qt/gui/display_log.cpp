@@ -122,7 +122,7 @@ void Dlg_LogViewer::resizeEvent(QResizeEvent *event)
 }
 
 
-Dlg_LogViewer::Dlg_LogViewer(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
+Dlg_LogViewer::Dlg_LogViewer(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent, QString _domain, uint32_t level) : QWidget(parent)
 {
 #if QT_VERSION >= 0x051400
 	lock_mutex = new QRecursiveMutex();

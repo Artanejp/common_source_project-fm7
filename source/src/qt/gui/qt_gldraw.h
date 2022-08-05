@@ -42,7 +42,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	Q_OBJECT
  private:
 	std::shared_ptr<CSP_Logger> csp_logger;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 	
 	bool enable_mouse;
@@ -77,8 +77,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	CSP_DrawItem *draw_item;
 
 public:
-
-	GLDrawClass(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
+	GLDrawClass(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
 	~GLDrawClass();
 	GLDraw_Tmpl *extfunc;
 	

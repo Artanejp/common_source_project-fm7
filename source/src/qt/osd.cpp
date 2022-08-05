@@ -23,7 +23,7 @@
 #include "osd.h"
 #include "config.h"
 
-OSD::OSD(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger) : OSD_BASE(p, logger)
+OSD::OSD(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger) : OSD_BASE(p, logger)
 {
 	//p_config = using_flags->get_config_ptr();
 	p_config = &config;

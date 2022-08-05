@@ -5,6 +5,7 @@
 #include "config.h"
 
 #include <QWidget>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -19,7 +20,7 @@ class Ui_MouseDialog : public QWidget {
 	Q_OBJECT
 	
 protected:
-	USING_FLAGS* using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t* p_config;
 	QGridLayout* layout;
 	QLabel* label_slider1;
@@ -29,7 +30,7 @@ protected:
 	
 	int sensitivity;
 public:
-	Ui_MouseDialog(USING_FLAGS *p, QWidget *parent = NULL);
+	Ui_MouseDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent = NULL);
 	~Ui_MouseDialog();
 public slots:
 	void do_set_value(int val);

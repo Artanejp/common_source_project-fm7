@@ -476,7 +476,7 @@ private:
 	// About Status bar
 	int Calc_OSD_Wfactor(void);
 protected:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 	std::shared_ptr<CSP_Logger> csp_logger;
 
@@ -684,7 +684,7 @@ protected:
 	QMenu  *createMenuNode(QMenu *parent, QString objname = QString::fromUtf8(""));
 
 public:
-	Ui_MainWindowBase(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
+	Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
 
 	// Initializer : using from InitContext.

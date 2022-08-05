@@ -38,9 +38,7 @@
 #include <QVector3D>
 #include <QVector4D>
 
-//extern USING_FLAGS *using_flags;
-
-GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
+GLDraw_ES_2::GLDraw_ES_2(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
 	ringing_phase = 0.0f;
 #if defined(__LITTLE_ENDIAN__)

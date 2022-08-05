@@ -41,7 +41,6 @@ class META_MainWindow;
 class EMU;
 class QWaitCondition;
 class USING_FLAGS;
-
 QT_BEGIN_NAMESPACE
 
 class EmuThreadClass : public EmuThreadClassBase {
@@ -55,7 +54,7 @@ protected:
 	void saveState();
 	
 public:
-	EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent = 0);
+	EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClass();
 	void run() { doWork("");}
 	int get_interval(void);

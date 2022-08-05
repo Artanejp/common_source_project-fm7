@@ -26,7 +26,7 @@
 
 extern DLL_PREFIX_I std::string cpp_confdir;
 
-JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, USING_FLAGS *pflags, config_t *cfg, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent) : QThread(parent)
 {
 	//int i, j;
 	int i;

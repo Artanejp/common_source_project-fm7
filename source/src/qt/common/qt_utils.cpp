@@ -23,6 +23,8 @@
 #include <QProcessEnvironment>
 #include <QCommandLineParser>
 
+#include <memory>
+
 #include "common.h"
 #include "fileio.h"
 #include "config.h"
@@ -1274,7 +1276,7 @@ int MainLoop(int argc, char *argv[])
 	archstr = "ia32";
 #endif
 	emustr = emustr + cfgstr;
-	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
+	std::shared_ptr<USING_FLAGS> using_flags = std::shared_ptr<USING_FLAGS>(new USING_FLAGS_EXT(&config));
 	cmdparser.process(arglist);
 	ProcessCmdLine(&cmdparser, &virtualMediaList);
 

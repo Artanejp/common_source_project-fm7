@@ -33,6 +33,7 @@
 #include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "config.h"
+#include <memory>
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -82,7 +83,7 @@ protected:
 	
 	uint32_t key_mod;
 
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 	
 	QWaitCondition *drawCond;
@@ -223,7 +224,7 @@ protected:
 	};
 
 public:
-	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent = 0);
+	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClassBase();
 	virtual void run() {};
 	void set_tape_play(bool);

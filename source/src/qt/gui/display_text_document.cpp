@@ -16,7 +16,7 @@
 #include "menu_flags.h"
 
 
-Dlg_BrowseText::Dlg_BrowseText(QString fname, USING_FLAGS *p, bool internal, QWidget *parent) : QWidget(parent)
+Dlg_BrowseText::Dlg_BrowseText(QString fname, std::shared_ptr<USING_FLAGS> p, bool internal, QWidget *parent) : QWidget(parent)
 {
 	QByteArray tmps;
 	QFile f_desc;

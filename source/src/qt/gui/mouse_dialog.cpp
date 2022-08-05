@@ -17,7 +17,7 @@
 
 #include "menu_flags.h"
 
-Ui_MouseDialog::Ui_MouseDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
+Ui_MouseDialog::Ui_MouseDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent) : QWidget(0)
 {
 	using_flags = p;
 	p_config = p->get_config_ptr();

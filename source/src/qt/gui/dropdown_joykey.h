@@ -12,6 +12,8 @@
 #include <QStringList>
 #include <QString>
 #include <QGridLayout>
+#include <memory>
+
 #include "config.h"
 #include "common.h"
 #include "menu_flags.h"
@@ -28,12 +30,12 @@ protected:
 	QWidget *p_wid;
 	QWidget *window;
 	QGridLayout *layout;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 
 	QLabel *label_button[12];
 	CSP_DropDownJoykeyButton *js_button[12];
 public:
-	CSP_DropDownJoykey(QWidget *parent, QStringList *lst, USING_FLAGS *p);
+	CSP_DropDownJoykey(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p);
 	~CSP_DropDownJoykey();
 
 public slots:

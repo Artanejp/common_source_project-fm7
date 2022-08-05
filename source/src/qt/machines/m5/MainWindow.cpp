@@ -37,7 +37,7 @@ void META_MainWindow::retranslateUi(void)
 } // retranslateUi
 
 
-META_MainWindow::META_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
+META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {
 	setupUI_Emu();
 	retranslateUi();

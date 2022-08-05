@@ -18,7 +18,7 @@
 
 //extern USING_FLAGS *using_flags;
 
-Dlg_AboutCSP::Dlg_AboutCSP(USING_FLAGS *p, QString rendererString, QWidget *parent) : QWidget(NULL)
+Dlg_AboutCSP::Dlg_AboutCSP(std::shared_ptr<USING_FLAGS> p, QString rendererString, QWidget *parent) : QWidget(NULL)
 {
 	QByteArray tmps;
 	QFile f_credits(":/credits.html");

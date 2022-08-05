@@ -103,7 +103,7 @@ public:
 	// initialize
 	// ----------------------------------------
 #if defined(OSD_QT)
-	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p);
+	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<USING_FLAGS> p);
 #elif defined(OSD_WIN32)
 	EMU(HWND hwnd, HINSTANCE hinst);
 #else

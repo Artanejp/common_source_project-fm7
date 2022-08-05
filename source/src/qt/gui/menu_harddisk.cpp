@@ -14,7 +14,7 @@
 //#include "emu.h"
 
 
-Menu_HDDClass::Menu_HDDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
+Menu_HDDClass::Menu_HDDClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 }
 

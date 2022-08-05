@@ -21,6 +21,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <memory>
 
 #include "common.h"
 #include "config.h"
@@ -38,13 +39,13 @@ class DLL_PREFIX Ui_SndSliderObject : public QSlider
 {
 	Q_OBJECT
 private:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	
 	QWidget *parent_widget;
 	config_t *p_config;
 	int bind_num;
 public:
-	Ui_SndSliderObject(USING_FLAGS *p, Qt::Orientation orientation, QWidget *parent, int num = 0);
+	Ui_SndSliderObject(std::shared_ptr<USING_FLAGS> p, Qt::Orientation orientation, QWidget *parent, int num = 0);
 	~Ui_SndSliderObject();
 public slots:
 	void setValue(int volume);
@@ -68,7 +69,7 @@ private:
 	QWidget *parent_widget;
 	QGridLayout *MasterLayout;
 protected:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
@@ -83,7 +84,7 @@ protected:
 	QPushButton *ResetBalance[32];
 	QPushButton *closeButton;
 public:
-	Ui_SoundDialog(USING_FLAGS *p, QWidget *parent = 0);
+	Ui_SoundDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0);
 	~Ui_SoundDialog();
 	void setDeviceLabel(int num, QString s);
 	void setSliderVisible(int num, bool flag);

@@ -61,7 +61,7 @@ protected:
 	virtual void set_osd_vertex(int xbit);
 
 public:
-	GLDraw_2_0(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
+	GLDraw_2_0(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_2_0();
 
 	virtual void initGLObjects();

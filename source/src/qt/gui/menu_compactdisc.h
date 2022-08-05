@@ -17,7 +17,7 @@ class DLL_PREFIX Menu_CompactDiscClass: public Menu_MetaClass {
 protected:
 	Action_Control *action_swap_byteorder;
 public:
-	Menu_CompactDiscClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
+	Menu_CompactDiscClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_CompactDiscClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

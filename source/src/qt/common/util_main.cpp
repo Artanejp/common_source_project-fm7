@@ -24,7 +24,7 @@
 #include "qt_main.h"
 #include "menu_flags.h"
 
-Ui_MainWindow::Ui_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindowBase(p, logger, parent)
+Ui_MainWindow::Ui_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindowBase(p, logger, parent)
 {
 }
 
@@ -43,6 +43,7 @@ void Ui_MainWindow::set_window(int mode)
 {
 	//	static LONG style = WS_VISIBLE;
 
+	if(using_flags.get() == nullptr) return;
 	if(mode >= 0 && mode < using_flags->get_screen_mode_num()) {
 		if(mode >= screen_mode_count) return;
 		// window

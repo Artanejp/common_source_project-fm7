@@ -18,7 +18,6 @@ class EmuThreadClassBase;
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
 #endif
-//extern 	USING_FLAGS *using_flags;
 
 class Ui_MainWindow : public Ui_MainWindowBase
 {
@@ -26,7 +25,7 @@ class Ui_MainWindow : public Ui_MainWindowBase
 protected:
 	
 public:
-	Ui_MainWindow(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
+	Ui_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindow();
 
 	void set_window(int mode);

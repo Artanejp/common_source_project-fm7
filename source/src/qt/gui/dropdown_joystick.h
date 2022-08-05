@@ -13,6 +13,8 @@
 #include <QStringList>
 #include <QString>
 #include <QHBoxLayout>
+#include <memory>
+
 #include "config.h"
 #include "common.h"
 #include "menu_flags.h"
@@ -30,12 +32,12 @@ protected:
 	QWidget *p_wid;
 	QWidget *window;
 	QHBoxLayout *layout;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	
 	QTabWidget *tabBox;
 	CSP_DropDownJSPage *pages[4];
 public:
-	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, USING_FLAGS *p, JoyThreadClass *joy);
+	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p, JoyThreadClass *joy);
 	~CSP_DropDownJoysticks();
 
 public slots:

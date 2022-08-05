@@ -13,6 +13,7 @@
 #include <QMenu>
 #include <QIcon>
 #include <QVariant>
+#include <memory>
 
 #include "common.h"
 #include "config.h"
@@ -41,7 +42,7 @@ class DLL_PREFIX Menu_MetaClass : public QMenu {
 private:
 
 protected:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	QWidget *p_wid;
 	QMenuBar *menu_root;
 	EMU_TEMPLATE *p_emu;
@@ -88,7 +89,7 @@ protected:
 	QStringList history;
 	QStringList inner_media_list;
 public:
-	Menu_MetaClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
+	Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_MetaClass();
 
 	virtual void create_pulldown_menu_device_sub(void);

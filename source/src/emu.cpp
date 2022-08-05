@@ -39,7 +39,7 @@ extern std::shared_ptr<CSP_Logger> csp_logger;
 #endif
 
 #if defined(_USE_QT)
-EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p) : EMU_TEMPLATE(hwnd, hinst, p)
+EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<USING_FLAGS> p) : EMU_TEMPLATE(hwnd, hinst, p)
 #elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst) : EMU_TEMPLATE(hwnd, hinst)
 #else

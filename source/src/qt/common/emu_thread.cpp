@@ -32,10 +32,11 @@
 
 extern EMU *emu;
 extern CSP_Logger *csp_logger;
-EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, USING_FLAGS *p, QObject *parent)
+EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent)
 	: EmuThreadClassBase(rootWindow, p, parent)
 {
-	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), using_flags);
+//	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), using_flags);
+	emu = new EMU((Ui_MainWindow *)rootWindow, rootWindow->getGraphicsView(), p);
 	p_emu = emu;
 	p_osd = emu->get_osd();
 	p->set_emu(emu);
@@ -92,6 +93,7 @@ void EmuThreadClass::resetEmu()
 
 void EmuThreadClass::specialResetEmu(int num)
 {
+	if(using_flags.get() == nullptr) return;
 	if(using_flags->is_use_special_reset()) {
 		p_emu->special_reset(num);
 	}
@@ -99,6 +101,7 @@ void EmuThreadClass::specialResetEmu(int num)
 
 void EmuThreadClass::loadState()
 {
+	if(using_flags.get() == nullptr) return;
 	if(!(using_flags->is_use_state())) return;
 
 	if(!lStateFile.isEmpty()) {
@@ -109,6 +112,7 @@ void EmuThreadClass::loadState()
 
 void EmuThreadClass::saveState()
 {
+	if(using_flags.get() == nullptr) return;
 	if(!(using_flags->is_use_state())) return;
 
 	if(!sStateFile.isEmpty()) {
@@ -172,6 +176,8 @@ void EmuThreadClass::doWork(const QString &params)
 	//key_down_queue.clear();
 	clear_key_queue();
 	bool half_count = false;
+	if(using_flags.get() != nullptr) {
+	
 	for(int i = 0; i < using_flags->get_max_qd(); i++) qd_text[i].clear();
 	for(int i = 0; i < using_flags->get_max_drive(); i++) {
 		fd_text[i].clear();
@@ -194,7 +200,7 @@ void EmuThreadClass::doWork(const QString &params)
 		hdd_lamp[i].clear();
 	}
 	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
-
+	}
 	_queue_begin = parse_command_queue(virtualMediaList, 0);
 	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
 	
@@ -213,6 +219,8 @@ void EmuThreadClass::doWork(const QString &params)
 			queue_fixed_cpu = -1;
 		}
 		if(first) {
+			if(using_flags.get() != nullptr) {
+
 			if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
 			for(int ii = 0; ii < using_flags->get_max_drive(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
@@ -228,6 +236,7 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			
 			first = false;
+			}
 		}
 		interval = 0;
 		sleep_period = 0;
@@ -256,6 +265,7 @@ void EmuThreadClass::doWork(const QString &params)
 				bSaveStateReq = false;
 			}
 
+			if(using_flags.get() != nullptr) {
 			if(using_flags->is_use_minimum_rendering()) {
 				if((vert_line_bak != config.opengl_scanline_vert) ||
 				   (horiz_line_bak != config.opengl_scanline_horiz) ||
@@ -266,7 +276,7 @@ void EmuThreadClass::doWork(const QString &params)
 				gl_crt_filter_bak = config.use_opengl_filters;
 				opengl_filter_num_bak = config.opengl_filter_num;
 			}
-
+			}
 			if(bStartRecordSoundReq != false) {
 				p_emu->start_record_sound();
 				bStartRecordSoundReq = false;
@@ -358,6 +368,7 @@ void EmuThreadClass::doWork(const QString &params)
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			// After frame, delayed open
+			if(using_flags.get() != nullptr) {
 			for(int i = 0; i < using_flags->get_max_drive(); i++) {
 				if(fd_open_wait_count[i] > 0) {
 					fd_open_wait_count[i] -= run_frames;
@@ -369,13 +380,18 @@ void EmuThreadClass::doWork(const QString &params)
 					}
 				}
 			}
+			}
 			if(!(half_count)) {
+				if(using_flags.get() != nullptr) {
 				if(using_flags->is_use_minimum_rendering()) {
 #if defined(USE_MINIMUM_RENDERING)
 					req_draw |= p_emu->is_screen_changed();
 #else
 					req_draw = true;
 #endif
+				} else {
+					req_draw = true;
+				}
 				} else {
 					req_draw = true;
 				}

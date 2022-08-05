@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QWidget>
 #include <QFont>
+#include <memory>
 
 #include "common.h"
 
@@ -75,7 +76,7 @@ protected:
 	QTimer *UpdateTimer;
 	QPushButton *FontDlgButton;
 
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 
 #if QT_VERSION >= 0x051400
 	QRecursiveMutex *lock_mutex;
@@ -83,7 +84,7 @@ protected:
 	QMutex *lock_mutex;
 #endif
 public:
-	Dlg_LogViewer(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
+	Dlg_LogViewer(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent, QString _domain = QString::fromUtf8(""), uint32_t _level = 0xffffffff);
 	~Dlg_LogViewer();
 	virtual void resizeEvent(QResizeEvent *event);
 

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <QWidget>
+#include <memory>
 
 class QGridLayout;
 class QLabel;
@@ -17,7 +18,7 @@ class CSP_MemoryDialog : public QWidget {
 	Q_OBJECT
 protected:
 	config_t* p_config;
-	USING_FLAGS* using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	QWidget *p_wid;
 	
 	int _min;
@@ -35,7 +36,7 @@ protected:
 	QPushButton *close_button;
 	
 public:
-	CSP_MemoryDialog(USING_FLAGS *p, QWidget *parent);
+	CSP_MemoryDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent);
 	~CSP_MemoryDialog();
 
 public slots:

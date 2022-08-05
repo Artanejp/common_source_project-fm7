@@ -14,7 +14,7 @@
 #include "../avio/movie_saver.h"
 #include "../../config.h"
 
-CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, USING_FLAGS *p, QWidget *parent) : QWidget(parent)
+CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, std::shared_ptr<USING_FLAGS> p, QWidget *parent) : QWidget(parent)
 {
 	p_wid = parent;
 	p_movie = ms;

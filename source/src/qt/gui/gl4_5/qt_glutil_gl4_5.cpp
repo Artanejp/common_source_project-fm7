@@ -45,7 +45,7 @@
 
 //extern USING_FLAGS *using_flags;
 
-GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
+GLDraw_4_5::GLDraw_4_5(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : GLDraw_Tmpl(parent, p, logger, emu)
 {
 	ringing_phase = 0.0f;
 	pixel_width = 0;

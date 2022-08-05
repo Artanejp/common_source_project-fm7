@@ -10,9 +10,7 @@
 #include "sound_dialog.h"
 #include "menu_flags.h"
 
-//extern USING_FLAGS *using_flags;
-
-Ui_SndSliderObject::Ui_SndSliderObject(USING_FLAGS *p, Qt::Orientation orientation, QWidget *parent, int num)
+Ui_SndSliderObject::Ui_SndSliderObject(std::shared_ptr<USING_FLAGS> p, Qt::Orientation orientation, QWidget *parent, int num)
 	: QSlider(orientation, parent)
 {
 	using_flags = p;
@@ -96,7 +94,7 @@ void Ui_SndSliderObject::resetBalanceValue()
 	this->setLevelValue(0);
 }
 
-Ui_SoundDialog::Ui_SoundDialog(USING_FLAGS *p, QWidget *parent) : QWidget(0)
+Ui_SoundDialog::Ui_SoundDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent) : QWidget(0)
 {
 	using_flags = p;
 	p_config = p->get_config_ptr();

@@ -6,7 +6,7 @@
 #include "menu_flags.h"
 #include "config.h"
 
-CSP_DropDownJSPage::CSP_DropDownJSPage(USING_FLAGS *pp, QWidget *parent, QStringList *lst, int jsnum)
+CSP_DropDownJSPage::CSP_DropDownJSPage(std::shared_ptr<USING_FLAGS> pp, QWidget *parent, QStringList *lst, int jsnum)
 {
 	int i;
 	QString nm;

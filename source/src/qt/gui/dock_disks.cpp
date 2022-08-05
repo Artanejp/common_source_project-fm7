@@ -154,7 +154,7 @@ void CSP_LabelVirtualDevice::setPixmapIndicator(QPixmap p)
 }
 
 
-CSP_DockDisks::CSP_DockDisks(QWidget *parent, USING_FLAGS *p) :  QWidget(parent)
+CSP_DockDisks::CSP_DockDisks(QWidget *parent, std::shared_ptr<USING_FLAGS> p) :  QWidget(parent)
 {
 	QString ns, ms;
 	const float font_pt = 14.0f;

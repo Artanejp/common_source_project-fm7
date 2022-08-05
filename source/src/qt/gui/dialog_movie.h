@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QSize>
 #include <QWidget>
+#include <memory>
 
 #include "common.h"
 
@@ -46,10 +47,10 @@ private:
 protected:
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	
 public:
-	CSP_DialogMovie(MOVIE_SAVER *ms, USING_FLAGS *p, QWidget *parent = NULL);
+	CSP_DialogMovie(MOVIE_SAVER *ms, std::shared_ptr<USING_FLAGS> p, QWidget *parent = NULL);
 	~CSP_DialogMovie();
 public slots:
 	void do_set_codecs(void);

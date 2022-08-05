@@ -9,6 +9,7 @@
 #include <QString>
 #include <QStringList>
 #include <QPixmap>
+#include <memory>
 
 class QLabel;
 class QGridLayout;
@@ -75,7 +76,7 @@ public slots:
 class CSP_DockDisks : public QWidget {
 	Q_OBJECT
 private:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	//QHBoxLayout *HBox;
 	QGridLayout *HVBox;
 	CSP_LabelVirtualDevice *pBinary[8];
@@ -93,7 +94,7 @@ private:
 	int initial_height;
 	int base_width;
 public:
-	CSP_DockDisks(QWidget *parent, USING_FLAGS *p);
+	CSP_DockDisks(QWidget *parent, std::shared_ptr<USING_FLAGS> p);
 	~CSP_DockDisks();
 
 public slots:

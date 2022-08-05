@@ -16,7 +16,7 @@
 #include "dropdown_joykey.h"
 #include "dropdown_joykeybutton.h"
 
-CSP_DropDownJoykey::CSP_DropDownJoykey(QWidget *parent, QStringList *lst, USING_FLAGS *p) : QWidget(parent)
+CSP_DropDownJoykey::CSP_DropDownJoykey(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p) : QWidget(parent)
 {
 	p_wid = parent;
 	using_flags = p;

@@ -15,7 +15,7 @@
 //#include "emu.h"
 
 
-Menu_CompactDiscClass::Menu_CompactDiscClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
+Menu_CompactDiscClass::Menu_CompactDiscClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 	use_write_protect = false;
 	use_d88_menus = false;

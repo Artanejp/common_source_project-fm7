@@ -11,7 +11,7 @@
 #include "dropdown_jsbutton.h"
 #include "menu_flags.h"
 
-CSP_DropDownJSButton::CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent, QStringList *lst, int jsnum, int button_num) : QWidget(parent)
+CSP_DropDownJSButton::CSP_DropDownJSButton(std::shared_ptr<USING_FLAGS> p, QWidget *parent, QStringList *lst, int jsnum, int button_num) : QWidget(parent)
 {
 	config_t *p_config;
 	p_wid = parent;

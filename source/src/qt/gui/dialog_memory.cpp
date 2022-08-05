@@ -17,7 +17,7 @@
 #include "config.h"
 #include "menu_flags.h"
 
-CSP_MemoryDialog::CSP_MemoryDialog(USING_FLAGS *p, QWidget *parent) : QWidget(parent)
+CSP_MemoryDialog::CSP_MemoryDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent) : QWidget(parent)
 {
 	p_wid = parent;
 	using_flags = p;

@@ -89,7 +89,6 @@ class CSP_KeyTables;
 class USING_FLAGS;
 class CSP_logger;
 
-
 class QOpenGLContext;
 class MIDI_REDIRECTOR;
 class SIO_REDIRECTOR;
@@ -201,7 +200,7 @@ private:
 protected:
 	EmuThreadClass		*parent_thread;
 	sdl_snddata_t		snddata;
-	USING_FLAGS			*using_flags;
+	std::shared_ptr<USING_FLAGS>			using_flags;
 	config_t			*p_config;
 	std::shared_ptr<CSP_Logger> p_logger;
 	
@@ -402,7 +401,7 @@ protected:
 	virtual void update_input_mouse();
 
 public:
-	OSD_BASE(USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger);
+	OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger);
 	~OSD_BASE();
 	
 	// common
@@ -697,7 +696,7 @@ public:
 	virtual uint64_t get_vm_current_clock_uint64() { return 0;}
 	
 
-	USING_FLAGS *get_config_flags(void) { return using_flags; }
+	std::shared_ptr<USING_FLAGS> get_config_flags(void) { return using_flags; }
 
 	// Special
 	std::shared_ptr<CSP_Logger> get_logger(void) { return p_logger; }

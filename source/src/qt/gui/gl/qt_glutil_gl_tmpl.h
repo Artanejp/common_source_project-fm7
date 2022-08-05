@@ -185,7 +185,7 @@ protected:
 	EMU_TEMPLATE* p_emu;
 	GLDrawClass *p_wid;
 	
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	QImage *imgptr;
 	std::shared_ptr<CSP_Logger> csp_logger;
 	config_t *p_config;
@@ -384,7 +384,7 @@ protected:
 	virtual void set_osd_vertex(int xbit) { }
 
 public:
-	GLDraw_Tmpl(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
+	GLDraw_Tmpl(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_Tmpl();
 	virtual void initGLObjects() {}
 	virtual void initFBO(void) {}

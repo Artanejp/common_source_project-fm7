@@ -16,7 +16,7 @@ class DLL_PREFIX Menu_LaserdiscClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 public:
-	Menu_LaserdiscClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
+	Menu_LaserdiscClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_LaserdiscClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

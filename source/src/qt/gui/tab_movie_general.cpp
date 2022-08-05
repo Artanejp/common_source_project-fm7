@@ -18,7 +18,7 @@
 
 //extern USING_FLAGS *using_flags;
 
-CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, USING_FLAGS *p, QWidget *parent) : QWidget(parent)
+CSP_TabMovieGeneral::CSP_TabMovieGeneral(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window, std::shared_ptr<USING_FLAGS> p, QWidget *parent) : QWidget(parent)
 {
 	using_flags = p;
 	p_config = p->get_config_ptr();

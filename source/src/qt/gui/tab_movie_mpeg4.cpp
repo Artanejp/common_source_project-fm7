@@ -14,7 +14,7 @@
 #include "../../config.h"
 #include "menu_flags.h"
 
-CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window,  USING_FLAGS *p, QWidget *parent) : QWidget(parent)
+CSP_TabMovieMPEG4::CSP_TabMovieMPEG4(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window,  std::shared_ptr<USING_FLAGS> p, QWidget *parent) : QWidget(parent)
 {
 	QString tmps;
 	using_flags = p;

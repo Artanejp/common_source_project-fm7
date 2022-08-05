@@ -42,7 +42,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	
 	EMU_TEMPLATE *p_emu;
 	OSD_BASE *p_osd;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 	QStringList joydb;
 	QString default_assign;
@@ -68,7 +68,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU_TEMPLATE *p, USING_FLAGS *pflags, config_t *cfg, QObject *parent = 0);
+	JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU_TEMPLATE *p) {

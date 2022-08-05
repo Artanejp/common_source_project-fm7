@@ -13,6 +13,7 @@
 #include <QComboBox>
 #include <QWidget>
 #include <QHBoxLayout>
+#include <memory>
 
 #include "dropdown_keytables.h"
 
@@ -27,9 +28,9 @@ protected:
 	
 	int bind_button;
 	int bind_jsnum;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 public:
-	CSP_DropDownJSButton(USING_FLAGS *p, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0, int button_num = 0);
+	CSP_DropDownJSButton(std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, QStringList *lst = 0, int jsnum = 0, int button_num = 0);
 	~CSP_DropDownJSButton();
 public slots:
 	void do_select(int index);

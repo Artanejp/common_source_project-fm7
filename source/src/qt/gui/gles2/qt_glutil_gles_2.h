@@ -90,7 +90,7 @@ protected:
 
 	virtual QOpenGLTexture *createMainTexture(QImage *img);
 public:
-	GLDraw_ES_2(GLDrawClass *parent, USING_FLAGS *p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
+	GLDraw_ES_2(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_ES_2();
 	void drawButtons(void);
 	virtual void initGLObjects();

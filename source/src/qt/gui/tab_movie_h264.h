@@ -66,7 +66,7 @@ protected:
 	QWidget *p_wid;
 	MOVIE_SAVER *p_movie;
 	CSP_DialogMovie *p_window;
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	
 	int video_bitrate;
 	int video_bframes;
@@ -75,7 +75,7 @@ protected:
 	int video_minq;
 	int video_maxq;
 public:
-	CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window,  USING_FLAGS *p, QWidget *parent = NULL);
+	CSP_TabMovieH264(MOVIE_SAVER *ms, CSP_DialogMovie *parent_window,  std::shared_ptr<USING_FLAGS> p, QWidget *parent = NULL);
 	~CSP_TabMovieH264();
 	void do_set_codecs(void);
 public slots:

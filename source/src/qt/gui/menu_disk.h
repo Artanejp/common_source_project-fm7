@@ -23,7 +23,7 @@ protected:
 	QIcon icon_floppy;
 	bool type_mask[6];
 public:
-	Menu_FDClass(QMenuBar *root_entry, QString desc, USING_FLAGS *p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
+	Menu_FDClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_FDClass();
 	void create_pulldown_menu_device_sub();
 	void connect_menu_device_sub(void);

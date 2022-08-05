@@ -15,6 +15,7 @@
 
 //#include "vm/vm_template.h"
 #if defined(_USE_QT)
+#include <memory>
 #include <pthread.h>
 #define OSD_QT
 #elif defined(_USE_SDL)
@@ -104,7 +105,7 @@ public:
 	// initialize
 	// ---------------------------------------
 #if defined(OSD_QT)
-	EMU_TEMPLATE(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p)
+	EMU_TEMPLATE(class Ui_MainWindow *hwnd, GLDrawClass *hinst, std::shared_ptr<USING_FLAGS> p)
 #elif defined(OSD_WIN32)
  	EMU_TEMPLATE(HWND hwnd, HINSTANCE hinst)
 #else

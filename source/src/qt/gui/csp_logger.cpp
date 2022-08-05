@@ -241,7 +241,6 @@ void CSP_Logger::reset(void)
 	}
 }
 
-//extern class USING_FLAGS *using_flags;
 void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 {
 	int flags = 0;
