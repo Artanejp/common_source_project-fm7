@@ -513,6 +513,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		m_audioOutputSink->start(m_audioOutput);
 	#endif
+		elapsed_us_before_rendered = 0;
 		sound_us_before_rendered = 0;
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND,
@@ -1214,16 +1215,16 @@ void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
-	
+
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink>sink_ptr = m_audioOutputSink;
+	#else
+	std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
+	#endif	
 	now_mute = false;
 	if(sound_ok) {
 		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "Sink->bytesFree() = %d", m_audioOutputSink->bytesFree());	
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-		std::shared_ptr<QAudioSink>sink_ptr = m_audioOutputSink;
-	#else
-		std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
-	#endif	
-		//const int64_t sound_us_now = (int64_t)(sink_ptr->elapsedUSecs());
+		const int64_t elapsed_us_now = (int64_t)(sink_ptr->elapsedUSecs());
 		const int64_t sound_us_now = (int64_t)(sink_ptr->processedUSecs());
 		const int64_t  _period_usec = (((int64_t)sound_samples * (int64_t)10000) / (int64_t)sound_rate) * 100;
 		int64_t _diff = sound_us_now - (int64_t)sound_us_before_rendered;
@@ -1231,22 +1232,28 @@ void OSD_BASE::update_sound(int* extra_frames)
 			// For uS overflow
 			_diff = sound_us_now + (INT64_MAX - (int64_t)sound_us_before_rendered + 1);
 		}
-		//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, "update_sound(): _diff=%lld _period_usec=%lld", _diff, _period_usec);
+		int64_t _diff2 = elapsed_us_now - (int64_t)elapsed_us_before_rendered;
+		if((_diff2 < 0) && ((INT64_MAX - (int64_t)elapsed_us_before_rendered + 1) <= _period_usec)) {
+			// For uS overflow
+			_diff2 = elapsed_us_now + (INT64_MAX - (int64_t)elapsed_us_before_rendered + 1);
+		}
+
 		int now_mixed_ptr = 0;
 		if(vm != nullptr) {
 			now_mixed_ptr = vm->get_sound_buffer_ptr();
 		}
-		if((sound_started) && (_diff < (_period_usec - 5000))) { // 2mSec
+		if((sound_started) && (_diff2 < (_period_usec - 2000))) { // 2mSec
 			return;
 		}  
-		if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
+//		if((sound_started) && (_diff2 < (_period_usec - 5000))) { // 5mSec
+//			if((sound_started) && (_diff < (_period_usec - 0))) { // 2mSec
+//				return;
+//			}
+//		}  
+//		if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
 			// Render even emulate 100% of latency when remain seconds is less than 2m Sec.
-			return;
-		}
-		//if((sound_started) && (_diff < (_period_usec - 2000))) { // 2mSec
-		//	return;
-		//}
-	
+//			return;
+//		}
 		qint64 left = 0;
 		qint64 _size = sound_samples * 2 * sizeof(int16_t) * 4;
 		if(m_audioOutput != nullptr) {
@@ -1264,8 +1271,18 @@ void OSD_BASE::update_sound(int* extra_frames)
 				m_audioOutput->reset();
 		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 				sink_ptr->start(m_audioOutput);
+				sound_us_before_rendered = 0;
 		#endif
-
+				elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
+				sound_us_before_rendered = sink_ptr->processedUSecs();
+			} else {
+				if(_diff2 > (_period_usec * 2)) {
+					sink_ptr->suspend();
+					m_audioOutput->reset();
+					sink_ptr->resume();
+					elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
+					sound_us_before_rendered = sink_ptr->processedUSecs();
+				}
 			}
 			sound_started = true;
 		}
@@ -1306,7 +1323,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 
 				qint64 _result = m_audioOutput->write((const char *)sound_buffer, _count * sizeof(int16_t));
 				sound_us_before_rendered = sink_ptr->processedUSecs();
-				//sound_us_before_rendered = sink_ptr->elapsedUSecs();
+				elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
 			}
 		}
 	}
@@ -1325,6 +1342,8 @@ void OSD_BASE::mute_sound()
 		case QAudio::ActiveState:
 		case QAudio::IdleState:
 			sink_ptr->suspend();
+			sound_us_before_rendered = 0;
+			elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
 			break;
 		default:
 			break;
@@ -1349,6 +1368,7 @@ void OSD_BASE::stop_sound()
 		case QAudio::IdleState:
 		case QAudio::SuspendedState:
 			sink_ptr->stop();
+			sound_us_before_rendered = 0;
 			break;
 		default:
 			break;

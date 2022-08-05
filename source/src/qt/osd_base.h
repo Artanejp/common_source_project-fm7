@@ -176,6 +176,7 @@ class DLL_PREFIX OSD_BASE : public  QObject
 	Q_OBJECT
 private:
 	qint64 sound_us_before_rendered;
+	qint64 elapsed_us_before_rendered;
 	SOUND_BUFFER_QT *m_audioOutput;
 	SOUND_BUFFER_QT *m_audioInput;
 	
