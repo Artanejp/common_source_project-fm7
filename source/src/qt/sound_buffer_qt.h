@@ -11,7 +11,8 @@ class DLL_PREFIX SOUND_BUFFER_QT : public QIODevice
     Q_OBJECT
 	
 protected:	
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>>m_buffer;
+	//std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>>m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>>m_buffer;
 public:
 	SOUND_BUFFER_QT(uint64_t depth = 0, QObject *parent = nullptr);
 	~SOUND_BUFFER_QT();
