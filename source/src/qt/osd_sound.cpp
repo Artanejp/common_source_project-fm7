@@ -1223,7 +1223,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 	#else
 		std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
 	#endif	
-		const int64_t sound_us_now = (int64_t)(sink_ptr->elapsedUSecs());
+		//const int64_t sound_us_now = (int64_t)(sink_ptr->elapsedUSecs());
+		const int64_t sound_us_now = (int64_t)(sink_ptr->processedUSecs());
 		const int64_t  _period_usec = (((int64_t)sound_samples * (int64_t)10000) / (int64_t)sound_rate) * 100;
 		int64_t _diff = sound_us_now - (int64_t)sound_us_before_rendered;
 		if((_diff < 0) && ((INT64_MAX - (int64_t)sound_us_before_rendered + 1) <= _period_usec)) {
@@ -1304,7 +1305,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 				int _count = sound_samples * 2;
 
 				qint64 _result = m_audioOutput->write((const char *)sound_buffer, _count * sizeof(int16_t));
-				sound_us_before_rendered = sink_ptr->elapsedUSecs();
+				sound_us_before_rendered = sink_ptr->processedUSecs();
+				//sound_us_before_rendered = sink_ptr->elapsedUSecs();
 			}
 		}
 	}
