@@ -45,7 +45,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	int rec_frame_height;
 	
  protected:
-	USING_FLAGS *using_flags;
+	std::shared_ptr<USING_FLAGS> using_flags;
 	QScreen *screen;
 	int draw_frames;
 	bool bRunThread;

@@ -37,7 +37,7 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 	p_config = nullptr;
 	using_flags.reset();
 	if(p_osd != nullptr) {
-		using_flags = p_osd->get_config_flags();
+		using_flags = std::shared_ptr<USING_FLAGS>(p_osd->get_config_flags());
 		if(using_flags.get() != nullptr) {
 			p_config = using_flags->get_config_ptr();
 		}
@@ -97,7 +97,9 @@ void DrawThreadClass::do_start_draw_thread(void)
 {
 	bool _separate = false;
 	if(p_config == nullptr) {
-		p_config = using_flags->get_config_ptr();
+		if(using_flags.get() != nullptr) {
+			p_config = using_flags->get_config_ptr();
+		}
 	}
 	if(p_config != nullptr) {
 		if(p_config->use_separate_thread_draw) {
