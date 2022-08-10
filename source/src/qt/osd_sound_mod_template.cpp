@@ -34,17 +34,26 @@ SOUND_OUTPUT_MODULE_BASE::SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
 		QString tmpname = QString::fromUtf8(device_name);
 		m_device_name = tmpname.toStdString();
 	}
-	if(initialize_driver()) {
-		m_device_name = set_device_sound((const _TCHAR*)m_device_name.c_str(), m_rate, m_channels, m_latency_ms);
-	}
+	m_config_ok = false;
 }
 
 SOUND_OUTPUT_MODULE_BASE::~SOUND_OUTPUT_MODULE_BASE()
 {
-	release_driver();
+	if(m_config_ok.load()) {
+		release_driver();
+	}
+	m_config_ok = false;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::do_send_log(imt level, int domain, const _TCHAR* str, int maxlen)
+void SOUND_OUTPUT_MODULE_BASE::request_to_release()
+{
+	if(m_config_ok.load()) {
+		m_config_ok = !(release_driver());
+	}
+	emit sig_released(!(m_config_ok.load()));
+}
+
+bool SOUND_OUTPUT_MODULE_BASE::do_send_log(int level, int domain, const _TCHAR* str, int maxlen)
 {
 	__UNLIKELY_IF((str == nullptr) || (maxlen <= 0)) return false;
 	__UNLIKELY_IF(strlen(str) <= 0) return false;

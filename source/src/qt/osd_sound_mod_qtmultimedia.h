@@ -26,14 +26,13 @@ class DLL_PREFIX SOUND_OUTPUT_MODULE_QTMULTIMEDIA
 	Q_OBJECT
 protected:
 	QAudioFormat m_audioOutputFormat;
-	std::shared_ptr<SOUND_BUFFER_QT> m_audioOutput;
-	qint64       m_samples;
+	std::shared_ptr<SOUND_BUFFER_QT>	m_audioOutput;
+	std::atomic<int64_t>				m_samples;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	QAudioSink   *m_audioOutputSink;
+	std::shared_ptr<QAudioSink>			m_audioOutputSink;
 	QAudioDevice m_audioOutputDevice;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QAudioOutput *m_audioOutputSink;
-
+	std::shared_ptr<QAudioOutput>		m_audioOutputSink;
 	QAudioDeviceInfo m_audioOutputDevice;
 #endif	
 	

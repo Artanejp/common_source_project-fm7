@@ -39,6 +39,9 @@ protected:
 	std::atomic<int>	m_loglevel;
 	std::atomic<int>	m_logdomain;
 	std::string			m_device_name;
+	
+	bool				m_initialized;
+	
 public:
 	SOUND_OUTPUT_MODULE_BASE(
 		OSD_BASE *parent,
@@ -127,6 +130,7 @@ public slot:
 		}
 		return false;
 	}
+	void request_to_release();
 	virtual const std::string set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms)
 	{
 		return std::string(_T("Empty Device"));
@@ -182,7 +186,9 @@ signals:
 	// Notify updating devices list to UI. size, current_device_number, need_to_reconfig 
 	void sig_notify_update_devices_list(int, int, bool);
 	// notify device changed status, true = success.
-	void sig_notify_changed_device_status(bool)
+	void sig_notify_changed_device_status(bool);
+	// notify completed to release sound driver.
+	void sig_released(bool);		
 };
 
 QT_END_NAMESPACE
