@@ -59,6 +59,7 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	icon_write_enabled = QIcon();
 	setToolTipsVisible(true);
 
+	
 	connect(this, SIGNAL(sig_emu_update_config()), p_wid, SLOT(do_emu_update_config()));
 	
 	tmps = QString::fromUtf8("%1").arg(drv + base_drv);
@@ -183,11 +184,10 @@ void Menu_MetaClass::do_select_inner_media(int num)
 	}
 }
 
-
 void Menu_MetaClass::do_open_dialog()
 {
-	CSP_DiskDialog dlg;
-	
+	CSP_DiskDialog dlg(this);
+
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
 		char app[PATH_MAX];
@@ -214,7 +214,7 @@ void Menu_MetaClass::do_open_dialog()
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
 	dlg.setWindowTitle(tmps);
-	
+
 	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_disk(QString))); 
 	QObject::connect(dlg.param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
 
@@ -284,7 +284,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 	_tmp_ins.setValue(tmp);
 	action_insert->setData(_tmp_ins);
 	
-	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()));
+	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()), Qt::QueuedConnection);
 	action_insert->setIcon(icon_insert);
 	
 	action_eject = new Action_Control(p_wid, using_flags);

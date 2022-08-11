@@ -58,7 +58,7 @@ void Menu_HDDClass::retranslate_pulldown_menu_device_sub(void)
 void Menu_HDDClass::do_open_dialog_create_hd()
 {
 	CSP_CreateHardDiskDialog dlg(media_drive, 512, 15, 4, 1024);
-	
+
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
 		char app[PATH_MAX];

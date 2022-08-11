@@ -13,6 +13,7 @@
 #include <QMenu>
 #include <QIcon>
 #include <QVariant>
+
 #include <memory>
 
 #include "common.h"
