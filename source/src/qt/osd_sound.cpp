@@ -1272,16 +1272,25 @@ void OSD_BASE::update_sound(int* extra_frames)
 		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 				sink_ptr->start(m_audioOutput);
 				sound_us_before_rendered = 0;
+		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+				sound_us_before_rendered = sink_ptr->processedUSecs();
 		#endif
 				elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
-				sound_us_before_rendered = sink_ptr->processedUSecs();
 			} else {
 				if(_diff2 > (_period_usec * 2)) {
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 					sink_ptr->suspend();
+					sink_ptr->reset();
 					m_audioOutput->reset();
-					sink_ptr->resume();
+					sink_ptr->start(m_audioOutput);
+					elapsed_us_before_rendered = 0;
+					sound_us_before_rendered = 0;
+		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+					m_audioOutput->reset();
+					//sink_ptr->resume();
 					elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
 					sound_us_before_rendered = sink_ptr->processedUSecs();
+		#endif					
 				}
 			}
 			sound_started = true;
@@ -1337,20 +1346,18 @@ void OSD_BASE::mute_sound()
 	#else
 		std::shared_ptr<QAudioOutput>sink_ptr = m_audioOutputSink;
 	#endif	
-
-		switch(sink_ptr->state()) {
-		case QAudio::ActiveState:
-		case QAudio::IdleState:
-			sink_ptr->suspend();
-			sound_us_before_rendered = 0;
-			elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
-			break;
-		default:
-			break;
-		}
+		size_t _samples = sound_samples * 2 * 4;
 		if(m_audioOutput != nullptr) {
+			int16_t* p = new int16_t[_samples];
 			m_audioOutput->reset();
+			if(p != nullptr) {
+				memset(p, 0x00, sizeof(int16_t) * _samples);
+				qint64 _result = m_audioOutput->write((const char *)p, _samples * sizeof(int16_t));
+				delete[] p;
+			}
 		}
+		sound_us_before_rendered = sink_ptr->processedUSecs();
+		elapsed_us_before_rendered = sink_ptr->elapsedUSecs();
 	}
 	now_mute = true;
 }
@@ -1368,6 +1375,7 @@ void OSD_BASE::stop_sound()
 		case QAudio::IdleState:
 		case QAudio::SuspendedState:
 			sink_ptr->stop();
+			sink_ptr->reset();
 			sound_us_before_rendered = 0;
 			break;
 		default:
