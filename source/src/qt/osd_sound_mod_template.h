@@ -98,6 +98,9 @@ public:
 	}
 	virtual void release_driver()
 	{
+		// Maybe You should:
+		// Stop driver,
+		// then, m_fileio.reset() @ driver (not this).
 	}
 	
 	int64_t update_sound(void* datasrc, int samples);
