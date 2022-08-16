@@ -26,169 +26,233 @@ class DLL_PREFIX SOUND_OUTPUT_MODULE_BASE : public QObject
 {
 	Q_OBJECT
 protected:
-	OSD_BASE    *m_OSD;
-	std::shared_ptr<USING_FLAGS> m_using_flags;
-	std::shared_ptr<CSP_Logger>  m_logger;
-
-	std::atomic_bool    m_config_ok;
-	std::atomic<void *> m_extconfig;
-	std::atomic<int>	m_rate;
-	std::atomic<int>	m_channels;
-	std::atomic<int>	m_latency_ms;
-	std::recursive_mutex             m_locker;
-	std::atomic<int>	m_loglevel;
-	std::atomic<int>	m_logdomain;
-	std::string			m_device_name;
+	OSD*								m_OSD;
+	std::shared_ptr<SOUND_BUFFER_QT>	m_fileio;
+	std::shared_ptr<USING_FLAGS>		m_using_flags;
 	
-	bool				m_initialized;
-	
-public:
-	SOUND_OUTPUT_MODULE_BASE(
-		OSD_BASE *parent,
-		_TCHAR* device_name,
-		const std::shared_ptr<CSP_Logger> logger,
-		const std::shared_ptr<USING_FLAGS> pflags,
-		int base_rate = 48000,
-		int base_latency_ms = 100,
-		int base_channels = 2,
-		void *extra_config_values = nullptr);
-	~SOUND_OUTPUT_MODULE_BASE();
+	std::atomic<bool>					m_config_ok;
 
-	virtual bool initialize_driver() { return true; }
-	virtual bool release_driver() { return true; }
-	int get_sound_rate()
+	int64_t								m_chunk_bytes;
+	int64_t								m_buffer_bytes;
+	
+	int									m_rate;
+	int									m_latency_ms;
+	int									m_channels;
+	size_t								m_wordsize;
+	std::atomic<void*>					m_extconfig_ptr;
+	std::atomic<int>					m_extconfig_bytes;
+	std::atomic<int>					m_loglevel;
+	std::atomic<int>					m_logdomain;
+
+	virtual void update_driver_fileio()
 	{
-		return m_rate.load();
+		release_driver_fileio();
+		// Update driver side of fileio by m_fileio;
+		//connect(m_fileio.get(), SIGNAL(bytesWritten(qint64)), real_driver, SLOT, QObject::DirectConnection);
+		//connect(m_fileio.get(), SIGNAL(aboutToClose()), real_driver, SLOT, QObject::DirectConnection);
+		// Optional:
+		// connect(m_fileio.get(), SIGNAL(readyRead()), real_driver, SLOT, QObject::DirectConnection);
 	}
-	int get_latency()
+
+	virtual void release_driver_fileio()
 	{
-		return m_latency_ms.load();
+		// Maybe disconnect some signals via m_fileio.
 	}
-	int get_channels()
-	{
-		return m_channels.load();
-	}
-	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms)
-	{
-		return true;
-	}
+	
 	template <class... Args>
 		bool debug_log(Args... args)
 	{
-		_TCHAR buf[512] = {0};
+		_TCHAR buf[1024];
+		memset(buf, 0x00, sizeof(buf));
 		my_sprintf_s(buf, sizeof(buf) - 1, args);
-		return do_send_log(m_loglevel.load(), m_logdomain.load(), (const _TCHAR*)buf, (sizeof(buf) / sizeof(_TCHAR)) - 1);
+
+		return do_send_log(m_loglevel.load(), m_logdomain.load(),
+						   QString::fromUtf8(buf, sizeof(buf)));
 	}
-	template <class... Args>
-		bool debug_log(imt level, int domain, Args... args)
+	
+public:
+	SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
+							 SOUND_BUFFER_QT* deviceIO = nullptr,
+							 int base_rate = 48000,
+							 int base_latency_ms = 100,
+							 int base_channels = 2,
+							 void *extra_config_values = nullptr);
+	~SOUND_OUTPUT_MODULE_BASE();
+
+	std::recursive_timed_mutex				m_locker;
+
+	virtual void initialize_driver()
 	{
-		_TCHAR buf[512] = {0};
-		my_sprintf_s(buf, sizeof(buf) - 1, args);
-		return do_send_log(level, domain, (const _TCHAR*)buf, (sizeof(buf) / sizeof(_TCHAR)) - 1);
+		// AT LEAST:
+		// connect(this, SIGNAL(sig_start_audio()), ..., QObject::QueuedConnection);
+		// connect(this, SIGNAL(sig_pause_audio()), ..., QObject::QueuedConnection);
+		// connect(this, SIGNAL(sig_resume_audio()), ..., QObject::QueuedConnection);
+		// connect(this, SIGNAL(sig_close_audio()), ..., QObject::QueuedConnection);
+		// connect(this, SIGNAL(sig_discard_audio()), ..., QObject::QueuedConnection);
+		// connect(this, SIGNAL(sig_released(bool)), ..., QObject::QueuedConnection);
+		// connect(this, SIGNAL(sig_req_open_sound(int, int, QString)), ..., QObject::QueuedConnection);
+
+		// For Logging
+		// connect(real_driver, SIGNAL(sig_log(QString)), this, SLOT(do_send_log(QString)), QObject::QueuedConnection);
+		// connect(real_driver, SIGNAL(sig_log(int, int, QString)), this, SLOT(do_send_log(int, int, QString)), QObject::QueuedConnection);
+	}
+	virtual void release_driver()
+	{
+	}
+	
+	int64_t update_sound(void* datasrc, int samples);
+	
+	std::shared_ptr<QIODevice> set_io_device(QIODevice *p);
+	std::shared_ptr<QIODevice> set_io_device(std::shared_ptr<QIODevice> ps);
+	std::shared_ptr<QIODevice> get_io_device()
+	{
+		return m_fileio;
+	}
+	bool is_io_device_exists();
+	
+	virtual uint64_t wrote_data_to()
+	{
+		return 0;
+	}
+	virtual int64_t driver_elapsed_usec()
+	{
+		return 0;
+	}
+	virtual int64_t driver_processed_usec()
+	{
+		return 0;
 	}
 	bool config_ok()
 	{
 		return m_config_ok.load();
 	}
+	
+	int64_t get_buffer_bytes();
+	int64_t get_chunk_bytes();
+	int get_latency_ms();
+	int get_channels();
+	int get_sample_rate();
+	size_t get_word_size();
+	void get_buffer_parameters(int& channels, int& rate, int& latency_ms,
+							   size_t& word_size, int& chunk_bytes, int& buffer_bytes);
+	virtual int64_t get_bytes_available();
+	virtual int64_t get_bytes_left();
+	
+	virtual SOUND_OUTPUT_MODULE_BASE* get_real_driver()
+	{
+		return dynamic_cast<SOUND_OUTPUT_MODULE_BASE>this;
+	}
+
 	virtual std::list<std::string> get_sound_devices_list()
 	{
 		static std::list<std::string> dummy_list;
 		return dummy_list;
 	}
-	const _TCHAR* get_current_device_name()
+	
+	virtual const _TCHAR* get_sound_device_name(int num)
 	{
-		return (const _TCHAR*)(m_device_name.c_str());
+		return (const _TCHAR*)nullptr;
 	}
+	virtual const _TCHAR* get_current_device_name()
+	{
+		return (const _TCHAR*)(_T("Empty"));
+	}
+	
 	virtual void set_logger(const std::shared_ptr<CSP_Logger> logger);
 	virtual void set_system_flags(const std::shared_ptr<USING_FLAGS> p);
-
+	void* get_extra_config_ptr()
+	{
+		return m_extconfig_ptr.load();
+	}
+	int get_extra_config_bytes()
+	{
+		return m_extconfig_bytes.load();
+	}
+	virtual bool set_extra_config(void* p, int bytes);
+	virtual bool modify_extra_config(void* p, int& bytes);
 public slot:
-	bool update_rate(int& rate)
-	{
-		return reconfig_sound(rate, m_channels, m_latency_ms);
-	}
-	bool update_latency(int& latency_ms)
-	{
-		return reconfig_sound(m_rate, m_channels, latency_ms);
-	}
-	bool update_channels(int& channels)
-	{
-		return reconfig_sound(rate, m_channels, m_latency_ms);
-	}
-	bool reconfig_sound(int& rate, int& channels, int& latency_ms)
-	{
-		// ToDo
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		if((rate != m_rate.load()) || (channels != m_channels.load()) || (latency_ms != m_latency_ms.load())) {
-			if(real_reconfig_sound(rate, channels, latency_ms)) {
-				m_rate = rate;
-				m_channels = channels;
-				m_latency_ms = latency_ms;
-				m_config_ok = true;
-				return true;
-			}
-		}
-		return false;
-	}
-	void request_to_release();
-	virtual const std::string set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms)
-	{
-		return std::string(_T("Empty Device"));
-	}
-	virtual bool do_send_log(imt level, int domain, const _TCHAR* str, int maxlen);
-	virtual void do_set_device_by_name(QString) {};
-	virtual void do_set_device_by_number(int) {};
-	virtual void do_set_device_from_sender_object(void) {};
+	virtual void update_config() {}
+	virtual void update_extra_config() {}
 	
-	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples) {}
-	virtual void release_sound() {}
+	bool start();
+	bool pause();
+	bool resume();
+	bool stop();
+	bool discard();
 
-	virtual void update_sound(int* extra_frames) {}
-
-	virtual void mute_sound() {}
-	virtual void stop_sound() {}
-
-	// *PURE* SLOTS
-	virtual void do_start_recording_sound() {}
-	virtual void do_stop_recording_sound() {}
-	virtual void do_restart_recording_sound() {}
-	virtual void do_request_capture_sound(int ch) {}
-	
-	virtual void set_osd(OSD_BASE* p);
-	virtual void update_extra_config(void* p);
-	virtual int result_opening_external_file();
-	{
-		return 0;
-	}
-	virtual int64_t wrote_data_to()
-	{
-		return 0;
-	}
-	virtual bool result_closing_external_file()
+	virtual void reset_to_defalut() {} 
+	virtual void set_volume(double level) {}
+	virtual bool is_running_sound()
 	{
 		return true;
 	}
+	bool update_rate(int rate)
+	{
+		return reconfig_sound(rate, m_channels);
+	}
+	bool update_channels(int channels)
+	{
+		return reconfig_sound(m_rate, channels);
+	}
+	bool update_latency(int latency_ms, bool fortce = false);
+	bool reconfig_sound(int rate, int channels);
+	void request_to_release();
+	
+	virtual bool do_send_log(int level, int domain, QString _str);
+	virtual bool do_send_log(int level, int domain, const _TCHAR* _str, int maxlen);
+	virtual bool do_send_log(const _TCHAR* str, int maxlen)
+	{
+		do_send_log(m_loglevel.load(), m_logdomain.load(), _str, maxlen);
+	}
+	virtual bool do_send_log(const QString _str)
+	{
+		do_send_log(m_loglevel.load(), m_logdomain.load(), _str);
+	}
+	
+	virtual void do_set_device_by_name(QString name) {};
+	virtual void do_set_device_by_name(const _TCHAR *name)
+	{
+		if(name != nullptr) {
+			do_set_device_by_name(QString::fromUtf8(name));
+		}
+	}
+	virtual void do_set_device_by_name(const _TCHAR *name, int maxlen)
+	{
+		if((name != nullptr) && (maxlen > 0)) {
+			do_set_device_by_name(QString::fromUtf8(name, maxlen));
+		}
+	}
+	virtual void do_set_device_by_number(int) {};
+	
+	// This set device by device-name having QAction (as QObject).
+	virtual void do_set_device_by_name(void);
+	virtual void do_set_device_by_number(void);
+
+	// From real driver: notify to update sound devices list.
+	virtual void do_update_device_list() {}
+	
+	virtual void set_osd(OSD_BASE* p);
+
 signals:
 	// loglevel, logdomain, message
 	void sig_send_log(int, int, QString);
 	// rate, channels, path
 	void sig_req_open_sound(int, int, QString);
+	//
+	void sig_start_audio();
+	void sig_pause_audio();
+	void sig_resume_audio();
+	void sig_close_audio();
+	void sig_discard_audio();
 	// 
-	void sig_req_close_sound();
-	// samples, channel, data
-	void sig_send_output_sound_data(int64_t, int, int16_t[]);
-	// update device list for ui
-	void sig_clear_sound_device();
-	// add/update device, number and name. If number < 0 append.
-	void sig_add_sound_device_name(int, QString);
-	// Send current device number and name to UI. 
-	void sig_send_current_device_description(int, QString);
-	// Notify updating devices list to UI. size, current_device_number, need_to_reconfig 
-	void sig_notify_update_devices_list(int, int, bool);
-	// notify device changed status, true = success.
-	void sig_notify_changed_device_status(bool);
 	// notify completed to release sound driver.
-	void sig_released(bool);		
+	void sig_released(bool);
+	// To UI: notify reset sound device list.
+	void sig_reset_sound_device_list();
+	// To UI: notify update sound device list #arg1 to #arg2.
+	void sig_set_sound_device(int, QString);
+	// To UI: notify adding sound device list #arg1.
+	void sig_add_sound_device(QString);
 };
 
 QT_END_NAMESPACE

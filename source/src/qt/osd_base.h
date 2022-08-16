@@ -695,10 +695,8 @@ public:
 	void debug_log(int level, int domain_num, char *strbuf);
 	virtual double get_vm_current_usec() { return 0.0; }
 	virtual uint64_t get_vm_current_clock_uint64() { return 0;}
-	
 
 	std::shared_ptr<USING_FLAGS> get_config_flags(void) { return using_flags; }
-
 	// Special
 	std::shared_ptr<CSP_Logger> get_logger(void) { return p_logger; }
 	virtual bool set_glview(GLDrawClass *glv) { /* Dummy */ return false;}
