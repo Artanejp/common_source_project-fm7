@@ -451,34 +451,48 @@ void OSD_BASE::release_sound()
 void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 #if 0
+
+	int latency_ms = (samples * 1000) / rate;
 	std::shared_ptr<SOUND_OUTPUT_MODULE_BASE>out_driver = m_output_driver;
-	disconnect(this, SIGNAL(sig_set_volume(double)), nullptr, nullptr);
-	disconnect(this, SIGNAL(sig_snd_reset_to_default()), nullptr, nullptr);
 	
 	if(out_driver.get() != nullptr) {
-		int latency_ms = (samples * 1000) / rate;
-		if(out_driver->reconfig_sound(rate, 2)) { // ToDo: Channels.
-			out_driver->update_latency(latency_ms, true);
-			rate = out_driver->get_sample_rate();
-			latency_ms = out_driver->get_latency_ms();
-			samples = (latency_ms * 1000) / rate;
+		disconnect(out_driver.get());
+		if((out_driver->get_latency_ms() != latency_ms) || (out_driver->get_sample_rate() != rate)) {
+			if(out_driver->reconfig_sound(rate, 2)) { // ToDo: Channels.
+				out_driver->update_latency(latency_ms, true);
+				rate = out_driver->get_sample_rate();
+				latency_ms = out_driver->get_latency_ms();
+				samples = (latency_ms * 1000) / rate;
+			}
+			sound_us_before_rendered = out_driver->driver_processed_usec();
+			elapsed_us_before_rendered = out_driver->driver_elapsed_usec();
 		}
-		sound_us_before_rendered = out_driver->driver_processed_usec();
-		elapsed_us_before_rendered = out_driver->driver_elapsed_usec();
-		
-		connect(this, SIGNAL(sig_snd_set_volume(double)), out_driver->get_real_driver(), SLOT(set_volume(double)));
-		connect(this, SIGNAL(sig_snd_reset_to_default()), out_driver->get_real_driver(), SLOT(reset_to_default()));
-		
-		connect(this, SIGNAL(sig_snd_request_to_release()), out_driver.get(), SLOT(request_to_release()));
-		
+		//sound_us_before_rendered = out_driver->driver_processed_usec();
+		//elapsed_us_before_rendered = out_driver->driver_elapsed_usec();
+	} else {
+		sound_us_before_rendered = 0;
+		elapsed_us_before_rendered = 0;
+		// ToDo:
+		m_output_driver.reset(new SOUND_OUTPUT_MODULE_BASE(this,
+														   nullptr,
+														   rate, latency_ms, 2,
+														   nullptr, 0));
+		out_driver = m_output_driver;		
+	}
+
+	if(out_driver.get() != nullptr) {
+		rate = out_driver->get_sample_rate();
+		latency_ms = out_driver->get_latency_ms();
+		samples = (latency_ms * 1000) / rate;
 		//connect(this, SIGNAL(sig_snd_update_rate(int)), out_driver.get(), SLOT(update_rate(int)), Qt::QueuedConnection);
 		//connect(this, SIGNAL(sig_snd_update_channels(int)), out_driver.get(), SLOT(update_channels(int)), Qt::QueuedConnection);
 		//connect(this, SIGNAL(sig_snd_update_latency(int)), out_driver.get(), SLOT(update_latency(int)), Qt::QueuedConnection);
 		//connect(this, SIGNAL(sig_snd_update_latency(int, bool)), out_driver.get(), SLOT(update_latency(int, bool)), Qt::QueuedConnection);
 		//connect(this, SIGNAL(sig_snd_reconfig(int, int)), out_driver.get(), SLOT(reconfig_sound(int, int)), Qt::QueuedConnection);
-	} else {
-		sound_us_before_rendered = 0;
-		elapsed_us_before_rendered = 0;
+		connect(this, SIGNAL(sig_snd_set_volume(double)), out_driver.get(), SLOT(set_volume(double)));
+		connect(this, SIGNAL(sig_snd_reset_to_default()), out_driver.get(), SLOT(reset_to_default()));
+		connect(this, SIGNAL(sig_snd_request_to_release()), out_driver.get(), SLOT(request_to_release()));
+		
 	}
 #else	
 	// ToDo: Sound Input
@@ -608,9 +622,13 @@ void OSD_BASE::release_sound()
 	sound_exit = true;
 	sound_initialized = false;
 #if 0
-	m_output_driver->stop();
-	m_output_driver->reset_to_default();
-	disconnect(this, nullptr, m_output_driver.get(), nullptr);
+	if(m_output_driver.get() != nullptr) {
+		m_output_driver->stop();
+		m_output_driver->reset_to_default();
+		disconnect(m_output_driver.get());
+	}
+	m_output_driver.reset();
+
 #else	
 	m_audioOutputSink->stop();
 	m_audioOutputSink->disconnect();

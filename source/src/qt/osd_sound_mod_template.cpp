@@ -6,13 +6,15 @@ SOUND_OUTPUT_MODULE_BASE::SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
 												   int base_rate,
 												   int base_latency_ms,
 												   int base_channels,
-												   void *extra_config_values)
+												   void *extra_config_values,
+												   int extra_config_bytes)
 	: 
 	  m_config_ok(false),
 	  m_rate(base_rate),
 	  m_latency_ms(base_latency_ms),
 	  m_channels(base_channels),
-	  m_extconfig(extra_config_values),
+	  m_extconfig_ptr(extra_config_values),
+	  m_extconfig_bytes(extra_config_bytes),
 	  m_wordsize(sizeof(int16_t)),
 	  QObject(qobject_cast<QObject*>parent)
 {
@@ -164,7 +166,11 @@ bool SOUND_OUTPUT_MODULE_BASE::start()
 	bool _stat = false;
 	
 	if(q.get() != nullptr) {
-		_stat = q->open(QIODeviceBase::Write | QIODeviceBase::Unbuffered);
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		_stat = q->open(QIODeviceBase::ReadWrite | QIODeviceBase::Truncate | QIODeviceBase::Unbuffered);
+		#else
+		_stat = q->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
+		#endif		
 		update_driver_fileio();
 	}	
 	if(_stat) {

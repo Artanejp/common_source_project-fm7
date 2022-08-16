@@ -76,7 +76,9 @@ public:
 							 int base_rate = 48000,
 							 int base_latency_ms = 100,
 							 int base_channels = 2,
-							 void *extra_config_values = nullptr);
+							 void *extra_config_values = nullptr,
+							 int extra_config_bytes = 0);
+	
 	~SOUND_OUTPUT_MODULE_BASE();
 
 	std::recursive_timed_mutex				m_locker;
