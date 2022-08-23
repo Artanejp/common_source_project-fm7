@@ -22,7 +22,9 @@ class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
 
-class DLL_PREFIX SOUND_OUTPUT_MODULE_BASE : public QObject
+namespace SOUND_OUTPUT_MODULE {
+
+class DLL_PREFIX M_BASE : public QObject
 {
 	Q_OBJECT
 protected:
@@ -31,9 +33,12 @@ protected:
 	std::shared_ptr<USING_FLAGS>		m_using_flags;
 	
 	std::atomic<bool>					m_config_ok;
+	std::atomic<bool>					m_prev_driver_started;
 
 	int64_t								m_chunk_bytes;
 	int64_t								m_buffer_bytes;
+	int64_t								m_before_rendered;
+	int									m_samples;
 	
 	int									m_rate;
 	int									m_latency_ms;
@@ -46,7 +51,6 @@ protected:
 
 	virtual void update_driver_fileio()
 	{
-		release_driver_fileio();
 		// Update driver side of fileio by m_fileio;
 		//connect(m_fileio.get(), SIGNAL(bytesWritten(qint64)), real_driver, SLOT, QObject::DirectConnection);
 		//connect(m_fileio.get(), SIGNAL(aboutToClose()), real_driver, SLOT, QObject::DirectConnection);
@@ -56,6 +60,11 @@ protected:
 
 	virtual void release_driver_fileio()
 	{
+		if(m_fileio.get() != nullptr) {
+			m_fileio->close();
+			disconnect(m_fileio.get(), nullptr, this, nullptr);
+			disconnect(this, nullptr, m_fileio.get(), nullptr);
+		}
 		// Maybe disconnect some signals via m_fileio.
 	}
 	
@@ -71,7 +80,7 @@ protected:
 	}
 	
 public:
-	SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
+	M_BASE(OSD_BASE *parent,
 							 SOUND_BUFFER_QT* deviceIO = nullptr,
 							 int base_rate = 48000,
 							 int base_latency_ms = 100,
@@ -79,10 +88,12 @@ public:
 							 void *extra_config_values = nullptr,
 							 int extra_config_bytes = 0);
 	
-	~SOUND_OUTPUT_MODULE_BASE();
+	~M_BASE();
 
 	std::recursive_timed_mutex				m_locker;
 
+	virtual bool wait_driver_started(int64_t timeout_msec = INT64_MIN);
+	virtual bool wait_driver_stopped(int64_t timeout_msec = INT64_MIN);
 	virtual void initialize_driver()
 	{
 		// AT LEAST:
@@ -134,6 +145,7 @@ public:
 	
 	int64_t get_buffer_bytes();
 	int64_t get_chunk_bytes();
+	int get_sample_count() { return m_samples.load(); }
 	int get_latency_ms();
 	int get_channels();
 	int get_sample_rate();
@@ -143,9 +155,9 @@ public:
 	virtual int64_t get_bytes_available();
 	virtual int64_t get_bytes_left();
 	
-	virtual SOUND_OUTPUT_MODULE_BASE* get_real_driver()
+	virtual M_BASE* get_real_driver()
 	{
-		return dynamic_cast<SOUND_OUTPUT_MODULE_BASE>this;
+		return dynamic_cast<SOUND_OUTPUT_MODULE::M_BASE>this;
 	}
 
 	virtual std::list<std::string> get_sound_devices_list()
@@ -186,7 +198,8 @@ public slot:
 	bool discard();
 
 	virtual void reset_to_defalut() {} 
-	virtual void set_volume(double level) {}
+	virtual void set_volume(double level);
+	virtual void set_volume(int level);
 	virtual bool is_running_sound()
 	{
 		return true;
@@ -249,6 +262,8 @@ signals:
 	void sig_resume_audio();
 	void sig_close_audio();
 	void sig_discard_audio();
+
+	void sig_set_volume(double);
 	// 
 	// notify completed to release sound driver.
 	void sig_released(bool);
@@ -259,6 +274,7 @@ signals:
 	// To UI: notify adding sound device list #arg1.
 	void sig_add_sound_device(QString);
 };
-
+}
+	
 QT_END_NAMESPACE
 

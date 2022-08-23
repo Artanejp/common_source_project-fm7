@@ -1,7 +1,8 @@
 #include <./osd_sound_mod_template.h>
 
+namespace SOUND_OUTPUT_MODULE {
 
-SOUND_OUTPUT_MODULE_BASE::SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
+M_BASE::M_BASE(OSD_BASE *parent,
 												   SOUND_BUFFER_QT* deviceIO,
 												   int base_rate,
 												   int base_latency_ms,
@@ -16,6 +17,9 @@ SOUND_OUTPUT_MODULE_BASE::SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
 	  m_extconfig_ptr(extra_config_values),
 	  m_extconfig_bytes(extra_config_bytes),
 	  m_wordsize(sizeof(int16_t)),
+	  m_prev_started(false),
+	  m_before_rendered(0),
+	  m_samples(0),
 	  QObject(qobject_cast<QObject*>parent)
 {
 	m_device.clear();
@@ -43,7 +47,7 @@ SOUND_OUTPUT_MODULE_BASE::SOUND_OUTPUT_MODULE_BASE(OSD_BASE *parent,
 	initialize_driver();
 }
 
-SOUND_OUTPUT_MODULE_BASE::~SOUND_OUTPUT_MODULE_BASE()
+M_BASE::~M_BASE()
 {
 	if(m_config_ok.load()) {
 		release_driver();
@@ -54,7 +58,7 @@ SOUND_OUTPUT_MODULE_BASE::~SOUND_OUTPUT_MODULE_BASE()
 }
 
 
-void SOUND_OUTPUT_MODULE_BASE::request_to_release()
+void M_BASE::request_to_release()
 {
 	if(m_config_ok.load()) {
 		m_config_ok = !(release_driver());
@@ -62,7 +66,53 @@ void SOUND_OUTPUT_MODULE_BASE::request_to_release()
 	emit sig_released(!(m_config_ok.load()));
 }
 
-std::shared_ptr<QIODevice> SOUND_OUTPUT_MODULE_BASE::set_io_device(QIODevice *p)
+bool M_BASE::wait_driver_started(int64_t timeout_msec)
+{
+	bool _r = m_prev_started.load();
+	if(_r) {
+		return true;
+	}
+	bool _infinite = (timeout_msec == INT64_MIN);
+	
+	while((timeout_msec >= 4) || (_infinite)) {
+		if(!(m_prev_started.is_lock_free())) {
+			QThread::msleep(4);
+		} else {
+			_r = m_prev_started.load();
+			if(_r) {
+				return true;
+			}
+			QThread::msleep(4);
+		}
+		timeout_msec -= 4;
+	}
+	return _r;
+}
+
+bool M_BASE::wait_driver_stopped(int64_t timeout_msec)
+{
+	bool _r = m_prev_started.load();
+	if(!(_r)) {
+		return true;
+	}
+	bool _infinite = (timeout_msec == INT64_MIN);
+	
+	while((timeout_msec >= 4) || (_infinite)) {
+		if(!(m_prev_started.is_lock_free())) {
+			QThread::msleep(4);
+		} else {
+			_r = m_prev_started.load();
+			if(!(_r)) {
+				return true;
+			}
+			QThread::msleep(4);
+		}
+		timeout_msec -= 4;
+	}
+	return !(_r);
+}
+
+std::shared_ptr<QIODevice> M_BASE::set_io_device(QIODevice *p)
 {
 	
 	bool _f = is_running_sound();
@@ -82,7 +132,7 @@ std::shared_ptr<QIODevice> SOUND_OUTPUT_MODULE_BASE::set_io_device(QIODevice *p)
 	return m_fileio;
 }
 
-std::shared_ptr<QIODevice> SOUND_OUTPUT_MODULE_BASE::set_io_device(std::shared_ptr<QIODevice> ps)
+std::shared_ptr<QIODevice> M_BASE::set_io_device(std::shared_ptr<QIODevice> ps)
 {
 	bool _f = is_running_sound();
 	if(m_fileio.get() != nullptr) {
@@ -98,7 +148,7 @@ std::shared_ptr<QIODevice> SOUND_OUTPUT_MODULE_BASE::set_io_device(std::shared_p
 }
 
 
-bool SOUND_OUTPUT_MODULE_BASE::update_latency(int latency_ms, bool force)
+bool M_BASE::update_latency(int latency_ms, bool force)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(latency_ms <= 0) {
@@ -127,7 +177,7 @@ bool SOUND_OUTPUT_MODULE_BASE::update_latency(int latency_ms, bool force)
 }
 
 
-bool SOUND_OUTPUT_MODULE_BASE::reconfig_sound(int rate, int channels)
+bool M_BASE::reconfig_sound(int rate, int channels)
 {
 	// ToDo
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -142,7 +192,79 @@ bool SOUND_OUTPUT_MODULE_BASE::reconfig_sound(int rate, int channels)
 	return false;
 }
 
-int64_t SOUND_OUTPUT_MODULE_BASE::update_sound(void* datasrc, int samples)
+
+void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	if(samples <= 0) return;
+	if(rate <= 0) rate = 8000; // OK?
+	
+	int _latency_ms = (samples * 1000) / rate;
+	int channels = m_channels;
+	if(real_reconfig_sound(rate, channels, _latency_ms)) {
+		sound_ok = true;
+		m_initialized = true;
+		if(p_config != nullptr) {
+			set_volume((int)(p_config->general_sound_level));
+		}
+
+		debug_log("initialize_sound() : Success. Sample rate=%d samples=%d", m_rate.load(), m_samples.load());
+	} else {
+		sound_ok = false;
+		m_initialized = false;
+		debug_log("initialize_sound() : Failed.");
+	}
+	if(presented_rate != nullptr) {
+		*presented_rate = m_rate.load();
+	}
+	if(presented_samples != nullptr) {
+		*presented_samples = m_samples.load();
+	}
+}
+	
+void M_BASE::release_sound()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	sound_ok = false;
+	m_initialized = false;
+	
+	if(m_fileio.get() != nullptr) {
+		if(m_fileio->isOpen()) {
+			m_fileio->close();
+		}
+	}
+	m_driver_fileio.reset();
+	m_fileio.reset();
+}
+
+bool M_BASE::check_elapsed_to_render()
+{
+	const int64_t sound_us_now = driver_elapsed_usec();
+	const int64_t  _period_usec = ((m_samples.load() * (int64_t)10000) / (int64_t)m_rate.load()) * 100;
+	int64_t _diff = sound_us_now - m_before_rendered;
+	if((_diff < 0) && (((INT64_MAX - m_before_rendered) + 1) <= _period_usec)) {
+			// For uS overflow
+		_diff = sound_us_now + (INT64_MAX - m_before_rendered + 1);
+	}
+	if(_diff < (_period_usec - 1000)) {
+		return false;
+	}
+	return true;
+}
+
+void M_BASE::update_render_point_usec()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	m_before_rendered = driver_elapsed_usec();
+}
+
+bool M_BASE::check_enough_to_render()
+{
+	int64_t _left = get_bytes_left();
+	return ((m_chunk_bytes <= _left) ? true : false);
+}
+
+int64_t M_BASE::update_sound(void* datasrc, int samples)
 {
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;	
 
@@ -157,12 +279,15 @@ int64_t SOUND_OUTPUT_MODULE_BASE::update_sound(void* datasrc, int samples)
 	return -1;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::start()
+
+bool M_BASE::start()
 {
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;
 	if(is_running_sound()) { // ToDo: STOP
 		stop();
+		wait_driver_stopped(1000);
 	}
+	
 	bool _stat = false;
 	
 	if(q.get() != nullptr) {
@@ -177,12 +302,13 @@ bool SOUND_OUTPUT_MODULE_BASE::start()
 		QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_start_audio()));
 		if(isSignalConnected(_sig)) {
 			emit sig_start_audio();
+			wait_driver_started(1000);
 		}
 	}
 	return _stat;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::pause()
+bool M_BASE::pause()
 {
 	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_pause_audio()));
 	if(isSignalConnected(_sig)) {
@@ -192,7 +318,7 @@ bool SOUND_OUTPUT_MODULE_BASE::pause()
 	return false;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::resume()
+bool M_BASE::resume()
 {
 	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_resume_audio()));
 	if(isSignalConnected(_sig)) {
@@ -202,16 +328,16 @@ bool SOUND_OUTPUT_MODULE_BASE::resume()
 	return false;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::stop()
+bool M_BASE::stop()
 {
 	bool _stat = false;
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_close_audio()));
+	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_stop_audio()));
 	if(isSignalConnected(_sig)) {
-		emit sig_close_audio();
+		emit sig_stop_audio();
 		_stat = true;
+		wait_driver_stopped(1000);
 	}
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;
-
 	if(q.get() != nullptr) {
 		if(q->isOpen()) {
 			q->close();
@@ -221,21 +347,36 @@ bool SOUND_OUTPUT_MODULE_BASE::stop()
 	return false;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::discard()
+bool M_BASE::discard()
 {
-//	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-//	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
-//	if(q.get() != nullptr) {
-		QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_discard_audio()));
-		if(isSignalConnected(_sig)) {
-			emit sig_discard_audio();
-			return true;
-		}
-//	}
+	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_discard_audio()));
+	if(isSignalConnected(_sig)) {
+		emit sig_discard_audio();
+		return true;
+	}
 	return false;
 }
 
-void SOUND_OUTPUT_MODULE_BASE::do_set_device_by_name(void)
+void M_BASE::set_volume(double level)
+{
+	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_volume(double)));
+	if(isSignalConnected(_sig)) {
+		emit sig_set_volume(level);
+	}
+}
+
+void M_BASE::set_volume(int level)
+{
+	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_volume(double)));
+	level = std::min(std::max(level, (int)INT16_MIN), (int)INT16_MAX);
+	double xlevel = ((double)(level + INT16_MAX)) / ((double)UINT16_MAX);
+	if(isSignalConnected(_sig)) {
+		emit sig_set_volume(xlevel);
+	}
+}
+	
+	
+void M_BASE::do_set_device_by_name(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
@@ -243,7 +384,7 @@ void SOUND_OUTPUT_MODULE_BASE::do_set_device_by_name(void)
 	do_set_device_by_name(_id);
 }
 
-void SOUND_OUTPUT_MODULE_BASE::do_set_device_by_number(void)
+void M_BASE::do_set_device_by_number(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
@@ -252,7 +393,7 @@ void SOUND_OUTPUT_MODULE_BASE::do_set_device_by_number(void)
 }
 
 
-bool SOUND_OUTPUT_MODULE_BASE::do_send_log(int level, int domain, const _TCHAR* _str, int maxlen)
+bool M_BASE::do_send_log(int level, int domain, const _TCHAR* _str, int maxlen)
 {
 	__UNLIKELY_IF((_str == nullptr) || (maxlen <= 0)) return false;
 	__UNLIKELY_IF(strlen(_str) <= 0) return false;
@@ -272,7 +413,7 @@ bool SOUND_OUTPUT_MODULE_BASE::do_send_log(int level, int domain, const _TCHAR* 
 	return false;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::do_send_log(int level, int domain, const QString _str)
+bool M_BASE::do_send_log(int level, int domain, const QString _str)
 {
 	__UNLIKELY_IF(str.isEmpty()) return false;
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -285,7 +426,7 @@ bool SOUND_OUTPUT_MODULE_BASE::do_send_log(int level, int domain, const QString 
 }
 
 
-void SOUND_OUTPUT_MODULE_BASE::set_logger(const std::shared_ptr<CSP_Logger> logger)
+void M_BASE::set_logger(const std::shared_ptr<CSP_Logger> logger)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(m_logger.get() != nullptr) {
@@ -299,7 +440,7 @@ void SOUND_OUTPUT_MODULE_BASE::set_logger(const std::shared_ptr<CSP_Logger> logg
 	}
 }
 
-void SOUND_OUTPUT_MODULE_BASE::set_osd(OSD_BASE* p)
+void M_BASE::set_osd(OSD_BASE* p)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(p != nullptr) {
@@ -316,13 +457,13 @@ void SOUND_OUTPUT_MODULE_BASE::set_osd(OSD_BASE* p)
 	}
 }
 
-void SOUND_OUTPUT_MODULE_BASE::set_system_flags(const std::shared_ptr<USING_FLAGS> p)
+void M_BASE::set_system_flags(const std::shared_ptr<USING_FLAGS> p)
 {
 	m_using_flags = p;
 	update_config();
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::set_extra_config(void* p, int bytes)
+bool M_BASE::set_extra_config(void* p, int bytes)
 {
 	if((p == nullptr) || (bytes <= 0)) {
 		return false;
@@ -334,7 +475,7 @@ bool SOUND_OUTPUT_MODULE_BASE::set_extra_config(void* p, int bytes)
 	return true;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::modify_extra_config(void* p, int& bytes)
+bool M_BASE::modify_extra_config(void* p, int& bytes)
 {
 	if((p == nullptr) || (bytes <= 0)) {
 		return false;
@@ -350,7 +491,7 @@ bool SOUND_OUTPUT_MODULE_BASE::modify_extra_config(void* p, int& bytes)
 	return true;
 }
 
-bool SOUND_OUTPUT_MODULE_BASE::is_io_device_exists()
+bool M_BASE::is_io_device_exists()
 {
 	std::shared_ptr<QIODevice> p = m_fileio;
 	if(p.get() != nullptr) {
@@ -359,43 +500,43 @@ bool SOUND_OUTPUT_MODULE_BASE::is_io_device_exists()
 	return false;
 }
 
-int64_t SOUND_OUTPUT_MODULE_BASE::get_buffer_bytes()
+int64_t M_BASE::get_buffer_bytes()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	return m_buffer_bytes;
 }
 
-int64_t SOUND_OUTPUT_MODULE_BASE::get_chunk_bytes()
+int64_t M_BASE::get_chunk_bytes()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	return m_chunk_bytes;
 }
 
-int SOUND_OUTPUT_MODULE_BASE::get_latency_ms()
+int M_BASE::get_latency_ms()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	return m_latency_ms;
 }
 	
-int SOUND_OUTPUT_MODULE_BASE::get_channels()
+int M_BASE::get_channels()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	return m_channels;
 }
 
-int SOUND_OUTPUT_MODULE_BASE::get_sample_rate()
+int M_BASE::get_sample_rate()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	return m_rate;
 }
 
-size_t SOUND_OUTPUT_MODULE_BASE::get_word_size()
+size_t M_BASE::get_word_size()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	return m_wordsize;
 }
 
-void SOUND_OUTPUT_MODULE_BASE::get_buffer_parameters(int& channels, int& rate,
+void M_BASE::get_buffer_parameters(int& channels, int& rate,
 													 int& latency_ms, size_t& word_size,
 													 int& chunk_bytes, int& buffer_bytes)
 {
@@ -408,7 +549,7 @@ void SOUND_OUTPUT_MODULE_BASE::get_buffer_parameters(int& channels, int& rate,
 	buffer_bytes = m_buffer_bytes;
 }
 
-int64_t SOUND_OUTPUT_MODULE_BASE::get_bytes_available()
+int64_t M_BASE::get_bytes_available()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> p = m_fileio;
@@ -418,7 +559,7 @@ int64_t SOUND_OUTPUT_MODULE_BASE::get_bytes_available()
 	return 0;
 }
 
-int64_t SOUND_OUTPUT_MODULE_BASE::get_bytes_left()
+int64_t M_BASE::get_bytes_left()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> p = m_fileio;
@@ -429,4 +570,5 @@ int64_t SOUND_OUTPUT_MODULE_BASE::get_bytes_left()
 		return n;
 	}
 	return 0;
+}
 }
