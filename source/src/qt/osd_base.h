@@ -773,6 +773,10 @@ signals:
 	int sig_movie_pause(bool);
 	int sig_movie_seek_frame(bool, int);
 
+	int sig_set_sound_device(QString);
+	int sig_set_sound_volume(double);
+	int sig_set_sound_volume(int);
+
 	int sig_update_device_node_name(int id, const _TCHAR *name);
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);

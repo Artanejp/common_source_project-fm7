@@ -5,19 +5,21 @@ using namespace SOUND_OUTPUT_MODULE;
 
 M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 		OSD_BASE *parent,
-		_TCHAR* device_name,
+		SOUND_BUFFER_QT* deviceIO,
 		int base_rate,
 		int base_latency_ms,
 		int base_channels,
-		void *extra_configvalues)
+		void *extra_config_values,
+		int extra_config_bytes )
 		:
 	M_BASE(
 		parent,
-		device_name,
+		deviceIO,
 		base_rate,
 		base_latency_ms,
 		base_channels,
-		extra_configvalues)
+		extra_configvalues,
+		extra_config_bytes )
 {
 	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()), Qt::QueuedConnection);
@@ -26,8 +28,12 @@ M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 	connect(this, SIGNAL(sig_discard_audio()),  this, SLOT(do_discard_sound()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_set_volume(double)),  this, SLOT(do_sound_volume(double)), Qt::QueuedConnection);
 
+	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
+	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
+	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
+
 	if(initialize_driver()) {
-		m_device_name = set_device_sound((const _TCHAR*)m_device_name.c_str(), m_rate, m_channels, m_latency_ms);
+		m_device_name = set_device_sound(_T("Default"), m_rate, m_channels, m_latency_ms);
 		m_config_ok = true;
 	}
 
@@ -230,8 +236,16 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 			m_audioOutputFormat = desired;
 			m_channels = dest_device.channelsCount();
 			m_rate = dest_device.sampleRate();
+			QString _tmpname;
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+			_tmpname = m_audioOutputDevice.description();
+		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+			_tmpname = m_audioOutputDevice.deviceName();
+		#endif
+			m_device_name = _tmpname.toLocal8Bit().toStdString();
 			m_config_ok = true;
 		} else {
+			m_device_name.clear();
 			m_config_ok = false;
 		}
 	} else if(m_audioOutputSink->state() != QAudio::StoppedState) {

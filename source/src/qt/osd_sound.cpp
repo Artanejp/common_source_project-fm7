@@ -547,18 +547,18 @@ void OSD_BASE::release_sound()
 
 void OSD_BASE::do_update_master_volume(int level)
 {
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		sound_drv->set_volume(level);
+	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_sound_volume(int)));
+	if(isSignalConnected(_sig)) {
+		emit sig_set_sound_volume(level);
 	}
 }
 
 void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 {
 	if(device_name.isEmpty()) return;
-	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_device(QString)));
+	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_sound_device(QString)));
 	if(isSignalConnected(_sig)) {
-		emit sig_set_device(device_name);
+		emit sig_set_sound_device(device_name);
 	}
 }
 
@@ -741,7 +741,7 @@ void OSD_BASE::release_sound()
 	// release Qt Multimedia sound
 	sound_exit = true;
 	sound_initialized = false;
-#if 0
+#if 1
 	if(m_output_driver.get() != nullptr) {
 		m_output_driver->stop();
 		m_output_driver->reset_to_default();
@@ -782,9 +782,9 @@ void OSD_BASE::do_update_master_volume(int level)
 	//std::lock_guard<std::recursive_timed_mutex> l(vm_mutex);
 	double _ll = (double)(level + INT16_MAX) / 65535.0;
 #if 0
-	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_volume(double)));
+	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_sound_volume(double)));
 	if(isSignalConnected(_sig)) {
-		emit sig_set_volume(_ll);
+		emit sig_set_sound_volume(_ll);
 	}
 #else
 	m_audioOutputSink->setVolume(_ll);
