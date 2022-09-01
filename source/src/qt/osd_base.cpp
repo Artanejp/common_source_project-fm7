@@ -48,30 +48,41 @@
 #include "gui/dock_disks.h"
 #include "../vm/vm_template.h"
 
+#include "./osd_sound_mod_qtmultimedia.h"
+
 OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger) : QObject(0)
 {
 	using_flags = p;
 	locked_vm = false;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	#if 1  /* Note: Below are new sound driver. */
+	m_sound_drv.reset(
+		new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
+												 nullptr,
+												 48000,
+												 100,
+												 2,
+												 nullptr,
+												 0));
+	#else /* Note: */
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
 	//m_audioOutputSink = std::shared_ptr<QAudioSink>(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
 	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
 	m_audioInputSource.reset();
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
 	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
 
 	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
 	m_audioInputSource.reset();
-#endif
+		#endif
 	//m_audioOutputSink->moveToThread(this->thread());
 	m_audioOutput = nullptr;
 	m_audioInput = nullptr;
 	sound_initialized = false;
 	sound_us_before_rendered = 0;
-	
+	#endif /* END Note: */
 	device_node_list.clear();
 	max_vm_nodes = 0;
 	p_logger = logger;

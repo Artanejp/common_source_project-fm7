@@ -92,6 +92,9 @@ class CSP_logger;
 class QOpenGLContext;
 class MIDI_REDIRECTOR;
 class SIO_REDIRECTOR;
+namespace SOUND_OUTPUT_MODULE {
+	class M_BASE;
+}
 
 QT_BEGIN_NAMESPACE
 
@@ -175,6 +178,9 @@ class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
 private:
+	#if 1 /* Note: Below are new sound driver. */
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE> m_sound_driver;
+	#else /* Note */
 	qint64 sound_us_before_rendered;
 	qint64 elapsed_us_before_rendered;
 	SOUND_BUFFER_QT *m_audioOutput;
@@ -183,20 +189,20 @@ private:
 	QAudioFormat m_audioOutputFormat;
 	QAudioFormat m_audioInputFormat;
 	
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink> m_audioOutputSink;
 	std::shared_ptr<QAudioSource> m_audioInputSource;
 	
 	QAudioDevice m_audioOutputDevice;
 	QAudioDevice m_audioInputDevice;
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	std::shared_ptr<QAudioOutput> m_audioOutputSink;
 	std::shared_ptr<QAudioInput> m_audioInputSource;
 
 	QAudioDeviceInfo m_audioOutputDevice;
 	QAudioDeviceInfo m_audioInputDevice;
-#endif	
-
+		#endif	
+	#endif
 
 protected:
 	EmuThreadClass		*parent_thread;

@@ -20,8 +20,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class DLL_PREFIX SOUND_OUTPUT_MODULE_QTMULTIMEDIA
-	: public SOUND_OUTPUT_MODULE_BASE
+namespace SOUND_OUTPUT_MODULE {
+class DLL_PREFIX M_QT_MULTIMEDIA
+	: public M_BASE
 {
 	Q_OBJECT
 protected:
@@ -37,7 +38,7 @@ protected:
 #endif	
 	
 public:
-	SOUND_OUTPUT_MODULE_QTMULTIMEDIA(
+	M_QT_MULTIMEDIA(
 		OSD_BASE *parent,
 		USING_FLAGS *pflags,
 		CSP_Logger *logger,

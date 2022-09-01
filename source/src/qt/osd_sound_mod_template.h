@@ -23,7 +23,6 @@ class USING_FLAGS;
 class CSP_Logger;
 
 namespace SOUND_OUTPUT_MODULE {
-
 class DLL_PREFIX M_BASE : public QObject
 {
 	Q_OBJECT
@@ -187,7 +186,7 @@ public:
 	}
 	virtual bool set_extra_config(void* p, int bytes);
 	virtual bool modify_extra_config(void* p, int& bytes);
-public slot:
+public slots:
 	virtual void update_config() {}
 	virtual void update_extra_config() {}
 	
@@ -275,6 +274,6 @@ signals:
 	void sig_add_sound_device(QString);
 };
 }
-	
 QT_END_NAMESPACE
+	
 

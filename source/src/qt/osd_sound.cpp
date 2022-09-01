@@ -206,166 +206,6 @@ int OSD_BASE::get_sound_device_num()
 	return sound_device_list.count();
 }
 
-#if 0 /* Note: Below are new sound driver. */
-void OSD_BASE::update_sound(int* extra_frames)
-{
-	*extra_frames = 0;
-	
-	now_mute = false;
-	if(sound_ok) {
-		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-		if(sound_drv.get() == nullptr) {
-			return;
-		}
-		int sound_samples = sound_drv->get_sample_count();
-		
-		int now_mixed_ptr = 0;
-		if(vm != nullptr) {
-			now_mixed_ptr = vm->get_sound_buffer_ptr();
-		}
-
-		if(now_mixed_ptr < ((sound_samples * 90) / 100)) {
-			// Render even emulate 95% of latency when remain seconds is less than 2m Sec.
-			return;
-		}
-		if((sound_started) && sound_drv->check_elapsed_to_render()) {
-			return;
-		}
-		if(!(sound_drv->check_enough_to_render())) {
-			return;
-		}		   
-		// Input
-		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
-		if(sound_buffer == nullptr) {
-			return;
-		}
-		if(!(sound_started)) {
-			sound_drv->start();
-		}
-		sound_started = true;
-
-		if(now_record_sound || now_record_video) {
-			if(sound_samples > rec_sound_buffer_ptr) {
-				int samples = sound_samples - rec_sound_buffer_ptr;
-				int length = samples * sizeof(int16_t) * 2; // stereo
-				rec_sound_bytes += length;
-				if(now_record_video) {
-					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
-					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
-				}
-				// record sound
-				if(now_record_sound) {
-					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
-				}
-				//if(now_record_video) {
-				//	// sync video recording
-				//	static double frames = 0;
-				//	static int prev_samples = -1;
-				//	static double prev_fps = -1;
-				//	double fps = this->vm_frame_rate();
-				//	frames = fps * (double)samples / (double)sound_rate;
-				//}
-				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
-				rec_sound_buffer_ptr += samples;
-				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
-			}
-		}
-		//if(sound_initialized) return;
-		if(p_config != nullptr) {
-			snd_drv->set_volume((int)(p_config->general_sound_level));
-		}
-		// ToDo: Convert sound format.
-		int64_t _result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
-		sound_drv->update_render_point_usec();
-	}
-}
-
-void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
-{
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		sound_drv->initialize_sound(rate, samples, presented_rate, presented_samples);
-	}
-}
-void OSD_BASE::release_sound()
-{
-	// ToDo: Sound Input
-	// release Qt Multimedia sound
-	sound_exit = true;
-	sound_initialized = false;
-	sound_ok = false;
-	
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		sound_drv->release_sound();
-	}
-}
-
-void OSD_BASE::do_update_master_volume(int level)
-{
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		sound_drv->set_volume(level);
-	}
-}
-
-void OSD_BASE::do_set_host_sound_output_device(QString device_name)
-{
-	if(device_name.isEmpty()) return;
-	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_device(QString)));
-	if(isSignalConnected(_sig)) {
-		emit sig_set_device(device_name);
-	}
-}
-
-const _TCHAR *OSD_BASE::get_sound_device_name(int num)
-{
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		return sound_drv->get_sound_device_name(num);
-	}
-	return (const _TCHAR *)nullptr;
-}
-void OSD_BASE::get_sound_device_list()
-{
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		sound_device_list = sound_frv->get_sound_devices_list();
-	} else {
-		sound_device_list.clear();
-	}
-}
-void OSD_BASE::mute_sound()
-{
-	if(!now_mute && sound_ok) {
-		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-		if(sound_drv.get() != nullptr) {
-			sound_drv->mute_sound();
-		}
-		now_mute = true;
-	}
-}
-void OSD_BASE::stop_sound()
-{
-	if(sound_ok && sound_started) {
-		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-		if(sound_drv.get() != nullptr) {
-			sound_drv->stop_sound();
-		}
-		sound_started = false;
-	}
-}
-
-int OSD_BASE::get_sound_rate()
-{
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
-	if(sound_drv.get() != nullptr) {
-		return sound_drv->get_sample_rate();
-	}
-	return 0;
-}
-
-#endif  /* END Note */
 
 
 #if 0
@@ -609,6 +449,168 @@ void OSD_BASE::release_sound()
 	// stop recording
 }
 #else
+	#if 1 /* Note: Below are new sound driver. */
+	#include "./osd_sound_mod_template.h"
+void OSD_BASE::update_sound(int* extra_frames)
+{
+	*extra_frames = 0;
+	
+	now_mute = false;
+	if(sound_ok) {
+		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+		if(sound_drv.get() == nullptr) {
+			return;
+		}
+		int sound_samples = sound_drv->get_sample_count();
+		
+		int now_mixed_ptr = 0;
+		if(vm != nullptr) {
+			now_mixed_ptr = vm->get_sound_buffer_ptr();
+		}
+
+		if(now_mixed_ptr < ((sound_samples * 90) / 100)) {
+			// Render even emulate 95% of latency when remain seconds is less than 2m Sec.
+			return;
+		}
+		if((sound_started) && sound_drv->check_elapsed_to_render()) {
+			return;
+		}
+		if(!(sound_drv->check_enough_to_render())) {
+			return;
+		}		   
+		// Input
+		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		if(sound_buffer == nullptr) {
+			return;
+		}
+		if(!(sound_started)) {
+			sound_drv->start();
+		}
+		sound_started = true;
+
+		if(now_record_sound || now_record_video) {
+			if(sound_samples > rec_sound_buffer_ptr) {
+				int samples = sound_samples - rec_sound_buffer_ptr;
+				int length = samples * sizeof(int16_t) * 2; // stereo
+				rec_sound_bytes += length;
+				if(now_record_video) {
+					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
+					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
+				}
+				// record sound
+				if(now_record_sound) {
+					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
+				}
+				//if(now_record_video) {
+				//	// sync video recording
+				//	static double frames = 0;
+				//	static int prev_samples = -1;
+				//	static double prev_fps = -1;
+				//	double fps = this->vm_frame_rate();
+				//	frames = fps * (double)samples / (double)sound_rate;
+				//}
+				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
+				rec_sound_buffer_ptr += samples;
+				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
+			}
+		}
+		//if(sound_initialized) return;
+		if(p_config != nullptr) {
+			snd_drv->set_volume((int)(p_config->general_sound_level));
+		}
+		// ToDo: Convert sound format.
+		int64_t _result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
+		sound_drv->update_render_point_usec();
+	}
+}
+
+void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
+{
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+	if(sound_drv.get() != nullptr) {
+		sound_drv->initialize_sound(rate, samples, presented_rate, presented_samples);
+	}
+}
+void OSD_BASE::release_sound()
+{
+	// ToDo: Sound Input
+	// release Qt Multimedia sound
+	sound_exit = true;
+	sound_initialized = false;
+	sound_ok = false;
+	
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+	if(sound_drv.get() != nullptr) {
+		sound_drv->release_sound();
+	}
+}
+
+void OSD_BASE::do_update_master_volume(int level)
+{
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+	if(sound_drv.get() != nullptr) {
+		sound_drv->set_volume(level);
+	}
+}
+
+void OSD_BASE::do_set_host_sound_output_device(QString device_name)
+{
+	if(device_name.isEmpty()) return;
+	static const QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_device(QString)));
+	if(isSignalConnected(_sig)) {
+		emit sig_set_device(device_name);
+	}
+}
+
+const _TCHAR *OSD_BASE::get_sound_device_name(int num)
+{
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+	if(sound_drv.get() != nullptr) {
+		return sound_drv->get_sound_device_name(num);
+	}
+	return (const _TCHAR *)nullptr;
+}
+void OSD_BASE::get_sound_device_list()
+{
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+	if(sound_drv.get() != nullptr) {
+		sound_device_list = sound_frv->get_sound_devices_list();
+	} else {
+		sound_device_list.clear();
+	}
+}
+void OSD_BASE::mute_sound()
+{
+	if(!now_mute && sound_ok) {
+		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+		if(sound_drv.get() != nullptr) {
+			sound_drv->mute_sound();
+		}
+		now_mute = true;
+	}
+}
+void OSD_BASE::stop_sound()
+{
+	if(sound_ok && sound_started) {
+		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+		if(sound_drv.get() != nullptr) {
+			sound_drv->stop_sound();
+		}
+		sound_started = false;
+	}
+}
+
+int OSD_BASE::get_sound_rate()
+{
+	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_drv;
+	if(sound_drv.get() != nullptr) {
+		return sound_drv->get_sample_rate();
+	}
+	return 0;
+}
+
+	#else  /* Note */
+
 // QT_Multimedia
 #include <QtMultimedia>
 void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
@@ -912,7 +914,7 @@ void OSD_BASE::get_sound_device_list()
 	#endif
 #endif
 }
-		
+	#endif   /* END Note */		
 #endif
 void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2)
 {
