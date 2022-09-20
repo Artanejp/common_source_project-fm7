@@ -55,7 +55,7 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	using_flags = p;
 	locked_vm = false;
 	#if 1  /* Note: Below are new sound driver. */
-	m_sound_drv.reset(
+	m_sound_driver.reset(
 		new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
 												 nullptr,
 												 48000,

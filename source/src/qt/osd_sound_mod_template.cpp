@@ -1,4 +1,12 @@
-#include <./osd_sound_mod_template.h>
+#include <QMetaMethod>
+#include <QAction>
+
+#include "./gui/csp_logger.h"
+#include "./osd_base.h"
+#include "./sound_buffer_qt.h"
+#include "./osd_sound_mod_template.h"
+
+#include "./gui/menu_flags.h"
 
 namespace SOUND_OUTPUT_MODULE {
 
@@ -20,9 +28,9 @@ M_BASE::M_BASE(OSD_BASE *parent,
 	  m_prev_started(false),
 	  m_before_rendered(0),
 	  m_samples(0),
-	  QObject(qobject_cast<QObject*>parent)
+	  m_mute(false),
+	  QObject(qobject_cast<QObject*>(parent))
 {
-	m_device.clear();
 
 	m_logger.reset();
 	m_using_flags.reset();
@@ -35,14 +43,13 @@ M_BASE::M_BASE(OSD_BASE *parent,
 	} else {
 		if(m_channels < 1) m_channels = 1;
 		if(m_rate < 1000) m_rate = 1000;
-		m_chunk_bytes = ((qint64)(m_channels * m_wordsize * latency_ms) * (quint64)m_rate) / 1000;
+		m_chunk_bytes = ((qint64)(m_channels * m_wordsize * m_latency_ms) * (quint64)m_rate) / 1000;
 		m_buffer_bytes = m_chunk_bytes * 4;
 		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes, this));
 	}
 	
 	m_loglevel = CSP_LOG_INFO;
 	m_logdomain = CSP_LOG_TYPE_SOUND;
-	m_device_name.clear();
 	
 	initialize_driver();
 }
@@ -112,7 +119,7 @@ bool M_BASE::wait_driver_stopped(int64_t timeout_msec)
 	return !(_r);
 }
 
-std::shared_ptr<QIODevice> M_BASE::set_io_device(QIODevice *p)
+std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(SOUND_BUFFER_QT *p)
 {
 	
 	bool _f = is_running_sound();
@@ -132,7 +139,7 @@ std::shared_ptr<QIODevice> M_BASE::set_io_device(QIODevice *p)
 	return m_fileio;
 }
 
-std::shared_ptr<QIODevice> M_BASE::set_io_device(std::shared_ptr<QIODevice> ps)
+std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(std::shared_ptr<SOUND_BUFFER_QT> ps)
 {
 	bool _f = is_running_sound();
 	if(m_fileio.get() != nullptr) {
@@ -182,7 +189,7 @@ bool M_BASE::reconfig_sound(int rate, int channels)
 	// ToDo
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if((rate != m_rate) || (channels != m_channels)) {
-		if(real_reconfig_sound(rate, channels)) {
+		if(real_reconfig_sound(rate, channels, m_latency_ms)) {
 			m_rate = rate;
 			m_channels = channels;
 			m_config_ok = update_latency(m_latency_ms, true);
@@ -192,7 +199,28 @@ bool M_BASE::reconfig_sound(int rate, int channels)
 	return false;
 }
 
+bool M_BASE::release_driver_fileio()
+{
+	if(m_fileio.get() != nullptr) {
+		m_fileio->close();
+		disconnect(m_fileio.get(), nullptr, this, nullptr);
+		disconnect(this, nullptr, m_fileio.get(), nullptr);
+		return true;
+	}
+		// Maybe disconnect some signals via m_fileio.
+	return false;
+}
 
+	
+bool M_BASE::real_reconfig_sound(int& rate,int& channels,int& latency_ms)
+{
+	if((rate <= 0) || (channels < 1) || (latency_ms < 10)) {
+		return false;
+	}
+	return true;
+}
+
+	
 void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -202,32 +230,31 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 	int _latency_ms = (samples * 1000) / rate;
 	int channels = m_channels;
 	if(real_reconfig_sound(rate, channels, _latency_ms)) {
-		sound_ok = true;
-		m_initialized = true;
-		if(p_config != nullptr) {
-			set_volume((int)(p_config->general_sound_level));
+		m_config_ok = true;
+		if(m_using_flags.get() != nullptr) {
+			config_t* p_config = m_using_flags->get_config_ptr();
+			if(p_config != nullptr) {
+				set_volume((int)(p_config->general_sound_level));
+			}
 		}
 
-		debug_log("initialize_sound() : Success. Sample rate=%d samples=%d", m_rate.load(), m_samples.load());
+		debug_log("initialize_sound() : Success. Sample rate=%d samples=%d", m_rate, m_samples);
 	} else {
-		sound_ok = false;
-		m_initialized = false;
+		m_config_ok = false;
 		debug_log("initialize_sound() : Failed.");
 	}
 	if(presented_rate != nullptr) {
-		*presented_rate = m_rate.load();
+		*presented_rate = m_rate;
 	}
 	if(presented_samples != nullptr) {
-		*presented_samples = m_samples.load();
+		*presented_samples = m_samples;
 	}
 }
 	
 void M_BASE::release_sound()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	sound_ok = false;
-	m_initialized = false;
-	
+	m_config_ok = false;
 	if(m_fileio.get() != nullptr) {
 		if(m_fileio->isOpen()) {
 			m_fileio->close();
@@ -240,7 +267,9 @@ void M_BASE::release_sound()
 bool M_BASE::check_elapsed_to_render()
 {
 	const int64_t sound_us_now = driver_elapsed_usec();
-	const int64_t  _period_usec = ((m_samples.load() * (int64_t)10000) / (int64_t)m_rate.load()) * 100;
+	if(m_rate <= 0) return false;
+	
+	const int64_t  _period_usec = ((m_samples * (int64_t)10000) / (int64_t)m_rate) * 100;
 	int64_t _diff = sound_us_now - m_before_rendered;
 	if((_diff < 0) && (((INT64_MAX - m_before_rendered) + 1) <= _period_usec)) {
 			// For uS overflow
@@ -299,44 +328,30 @@ bool M_BASE::start()
 		update_driver_fileio();
 	}	
 	if(_stat) {
-		QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_start_audio()));
-		if(isSignalConnected(_sig)) {
-			emit sig_start_audio();
-			wait_driver_started(1000);
-		}
+		emit sig_start_audio();
+		return wait_driver_started(1000);
 	}
 	return _stat;
 }
 
 bool M_BASE::pause()
 {
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_pause_audio()));
-	if(isSignalConnected(_sig)) {
-		emit sig_pause_audio();
-		return true;
-	}
-	return false;
+	emit sig_pause_audio();
+	return true;
 }
 
 bool M_BASE::resume()
 {
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_resume_audio()));
-	if(isSignalConnected(_sig)) {
-		emit sig_resume_audio();
-		return true;
-	}
-	return false;
+	emit sig_resume_audio();
+	return true;
 }
 
 bool M_BASE::stop()
 {
 	bool _stat = false;
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_stop_audio()));
-	if(isSignalConnected(_sig)) {
-		emit sig_stop_audio();
-		_stat = true;
-		wait_driver_stopped(1000);
-	}
+	emit sig_stop_audio();
+	_stat = wait_driver_stopped(1000);
+	
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;
 	if(q.get() != nullptr) {
 		if(q->isOpen()) {
@@ -349,32 +364,30 @@ bool M_BASE::stop()
 
 bool M_BASE::discard()
 {
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_discard_audio()));
-	if(isSignalConnected(_sig)) {
-		emit sig_discard_audio();
-		return true;
-	}
-	return false;
+	emit sig_discard_audio();
+	return true;
 }
 
 void M_BASE::set_volume(double level)
 {
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_volume(double)));
-	if(isSignalConnected(_sig)) {
-		emit sig_set_volume(level);
-	}
+	emit sig_set_volume(level);
 }
 
 void M_BASE::set_volume(int level)
 {
-	QMetaMethod _sig = QMetaMethod::fromSignal(SIGNAL(sig_set_volume(double)));
+
 	level = std::min(std::max(level, (int)INT16_MIN), (int)INT16_MAX);
 	double xlevel = ((double)(level + INT16_MAX)) / ((double)UINT16_MAX);
-	if(isSignalConnected(_sig)) {
-		emit sig_set_volume(xlevel);
-	}
+	emit sig_set_volume(xlevel);
 }
 	
+void M_BASE::mute_sound()
+{
+}
+
+void M_BASE::stop_sound()
+{
+}
 	
 void M_BASE::do_set_device_by_name(void)
 {
@@ -398,31 +411,18 @@ bool M_BASE::do_send_log(int level, int domain, const _TCHAR* _str, int maxlen)
 	__UNLIKELY_IF((_str == nullptr) || (maxlen <= 0)) return false;
 	__UNLIKELY_IF(strlen(_str) <= 0) return false;
 	
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	__LIKELY_IF(isSignalConnected(SIGNAL(sig_send_log(int, int, const _TCHAR*, int)))) {
-		emit sig_send_log(level, domain, _str, maxlen);
-		return true;
-	}
-	
 	QString s = QString::fromUtf8(_str, maxlen);
-	
-	__LIKELY_IF(isSignalConnected(SIGNAL(sig_send_log(int, int, QString)))) {
-		emit sig_send_log(level, domain, s);
-		return true;
-	}
-	return false;
+	emit sig_send_log(level, domain, s);
+	return true;
 }
 
 bool M_BASE::do_send_log(int level, int domain, const QString _str)
 {
-	__UNLIKELY_IF(str.isEmpty()) return false;
+	__UNLIKELY_IF(_str.isEmpty()) return false;
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	
-	__LIKELY_IF(isSignalConnected(SIGNAL(sig_send_log(int, int, QString)))) {
-		emit sig_send_log(level, domain, _str);
-		return true;
-	}
-	return false;
+	emit sig_send_log(level, domain, _str);
+	return true;
 }
 
 
@@ -493,7 +493,7 @@ bool M_BASE::modify_extra_config(void* p, int& bytes)
 
 bool M_BASE::is_io_device_exists()
 {
-	std::shared_ptr<QIODevice> p = m_fileio;
+	std::shared_ptr<SOUND_BUFFER_QT> p = m_fileio;
 	if(p.get() != nullptr) {
 		return true;
 	}

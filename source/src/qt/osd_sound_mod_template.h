@@ -14,10 +14,10 @@
 #include <memory>
 
 #include "../common.h"
-#include "./sound_buffer_qt.h"
 
 QT_BEGIN_NAMESPACE
 
+class SOUND_BUFFER_QT;
 class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
@@ -27,12 +27,15 @@ class DLL_PREFIX M_BASE : public QObject
 {
 	Q_OBJECT
 protected:
-	OSD*								m_OSD;
+	OSD_BASE*							m_OSD;
 	std::shared_ptr<SOUND_BUFFER_QT>	m_fileio;
+	std::shared_ptr<SOUND_BUFFER_QT>	m_driver_fileio;
 	std::shared_ptr<USING_FLAGS>		m_using_flags;
+	std::shared_ptr<CSP_Logger>			m_logger;
 	
 	std::atomic<bool>					m_config_ok;
-	std::atomic<bool>					m_prev_driver_started;
+	std::atomic<bool>					m_prev_started;
+	std::atomic<bool>					m_mute;
 
 	int64_t								m_chunk_bytes;
 	int64_t								m_buffer_bytes;
@@ -57,26 +60,23 @@ protected:
 		// connect(m_fileio.get(), SIGNAL(readyRead()), real_driver, SLOT, QObject::DirectConnection);
 	}
 
-	virtual void release_driver_fileio()
-	{
-		if(m_fileio.get() != nullptr) {
-			m_fileio->close();
-			disconnect(m_fileio.get(), nullptr, this, nullptr);
-			disconnect(this, nullptr, m_fileio.get(), nullptr);
-		}
-		// Maybe disconnect some signals via m_fileio.
-	}
+	// Maybe disconnect some signals via m_fileio.
+	virtual bool release_driver_fileio();
+	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms);
 	
-	template <class... Args>
-		bool debug_log(Args... args)
+	bool debug_log(const _TCHAR *_fmt, ...)
 	{
-		_TCHAR buf[1024];
-		memset(buf, 0x00, sizeof(buf));
-		my_sprintf_s(buf, sizeof(buf) - 1, args);
+		_TCHAR buf[1024] = {0};
+
+		va_list ap;
+		va_start(ap, _fmt);
+		int result = vsnprintf(buf, (sizeof(buf) / sizeof(_TCHAR)), _fmt, ap);
+		va_end(ap);
 
 		return do_send_log(m_loglevel.load(), m_logdomain.load(),
 						   QString::fromUtf8(buf, sizeof(buf)));
 	}
+	
 	
 public:
 	M_BASE(OSD_BASE *parent,
@@ -93,7 +93,7 @@ public:
 
 	virtual bool wait_driver_started(int64_t timeout_msec = INT64_MIN);
 	virtual bool wait_driver_stopped(int64_t timeout_msec = INT64_MIN);
-	virtual void initialize_driver()
+	virtual bool initialize_driver()
 	{
 		// AT LEAST:
 		// connect(this, SIGNAL(sig_start_audio()), ..., QObject::QueuedConnection);
@@ -107,19 +107,21 @@ public:
 		// For Logging
 		// connect(real_driver, SIGNAL(sig_log(QString)), this, SLOT(do_send_log(QString)), QObject::QueuedConnection);
 		// connect(real_driver, SIGNAL(sig_log(int, int, QString)), this, SLOT(do_send_log(int, int, QString)), QObject::QueuedConnection);
+		return true;
 	}
-	virtual void release_driver()
+	virtual bool release_driver()
 	{
 		// Maybe You should:
 		// Stop driver,
 		// then, m_fileio.reset() @ driver (not this).
+		return true;
 	}
 	
-	int64_t update_sound(void* datasrc, int samples);
+	virtual int64_t update_sound(void* datasrc, int samples);
 	
-	std::shared_ptr<QIODevice> set_io_device(QIODevice *p);
-	std::shared_ptr<QIODevice> set_io_device(std::shared_ptr<QIODevice> ps);
-	std::shared_ptr<QIODevice> get_io_device()
+	std::shared_ptr<SOUND_BUFFER_QT> set_io_device(SOUND_BUFFER_QT *p);
+	std::shared_ptr<SOUND_BUFFER_QT> set_io_device(std::shared_ptr<SOUND_BUFFER_QT> ps);
+	std::shared_ptr<SOUND_BUFFER_QT> get_io_device()
 	{
 		return m_fileio;
 	}
@@ -137,6 +139,10 @@ public:
 	{
 		return 0;
 	}
+	virtual bool check_elapsed_to_render();
+	virtual void update_render_point_usec();
+	virtual bool check_enough_to_render();
+	
 	bool config_ok()
 	{
 		return m_config_ok.load();
@@ -144,7 +150,7 @@ public:
 	
 	int64_t get_buffer_bytes();
 	int64_t get_chunk_bytes();
-	int get_sample_count() { return m_samples.load(); }
+	int get_sample_count() { return m_samples; }
 	int get_latency_ms();
 	int get_channels();
 	int get_sample_rate();
@@ -156,7 +162,7 @@ public:
 	
 	virtual M_BASE* get_real_driver()
 	{
-		return dynamic_cast<SOUND_OUTPUT_MODULE::M_BASE>this;
+		return dynamic_cast<SOUND_OUTPUT_MODULE::M_BASE*>(this);
 	}
 
 	virtual std::list<std::string> get_sound_devices_list()
@@ -187,6 +193,12 @@ public:
 	virtual bool set_extra_config(void* p, int bytes);
 	virtual bool modify_extra_config(void* p, int& bytes);
 public slots:
+	
+	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
+	virtual void release_sound();
+	virtual void mute_sound();
+	virtual void stop_sound();
+	
 	virtual void update_config() {}
 	virtual void update_extra_config() {}
 	
@@ -217,13 +229,13 @@ public slots:
 	
 	virtual bool do_send_log(int level, int domain, QString _str);
 	virtual bool do_send_log(int level, int domain, const _TCHAR* _str, int maxlen);
-	virtual bool do_send_log(const _TCHAR* str, int maxlen)
+	virtual bool do_send_log(const _TCHAR* _str, int maxlen)
 	{
-		do_send_log(m_loglevel.load(), m_logdomain.load(), _str, maxlen);
+		return do_send_log(m_loglevel.load(), m_logdomain.load(), _str, maxlen);
 	}
 	virtual bool do_send_log(const QString _str)
 	{
-		do_send_log(m_loglevel.load(), m_logdomain.load(), _str);
+		return do_send_log(m_loglevel.load(), m_logdomain.load(), _str);
 	}
 	
 	virtual void do_set_device_by_name(QString name) {};
@@ -253,10 +265,12 @@ public slots:
 signals:
 	// loglevel, logdomain, message
 	void sig_send_log(int, int, QString);
+	void sig_send_log(int, int, const _TCHAR*, int);
 	// rate, channels, path
 	void sig_req_open_sound(int, int, QString);
 	//
 	void sig_start_audio();
+	void sig_stop_audio();
 	void sig_pause_audio();
 	void sig_resume_audio();
 	void sig_close_audio();
