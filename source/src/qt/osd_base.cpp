@@ -96,9 +96,10 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 												 2,
 												 nullptr,
 												 0));
-
-	#endif	/* END Note: */
 	get_sound_device_list();
+	#else
+	m_sound_driver.reset();
+	#endif	/* END Note: */
 }
 
 OSD_BASE::~OSD_BASE()

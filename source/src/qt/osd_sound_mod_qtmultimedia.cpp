@@ -1,3 +1,5 @@
+#include "./config.h"
+#include "./gui/menu_flags.h"
 #include "./osd_base.h"
 #include "./sound_buffer_qt.h"
 #include "./osd_sound_mod_qtmultimedia.h"
@@ -24,6 +26,8 @@ M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 		extra_config_values,
 		extra_config_bytes )
 {
+	m_classname = "SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA";
+	
 	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_pause_audio()),  this, SLOT(do_sound_suspend()), Qt::QueuedConnection);
@@ -36,7 +40,14 @@ M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
 
 	if(initialize_driver()) {
-		m_device_name = set_device_sound(_T("Default"), m_rate, m_channels, m_latency_ms);
+		QString _drv = QString::fromUtf8("Default");
+		config_t* _ccp = get_config_ptr();
+		if(_ccp != nullptr) {
+			if(strlen(_ccp->sound_device_name) > 0) {
+				_drv = QString::fromUtf8(_ccp->sound_device_name);
+			}
+		}
+		m_device_name = set_device_sound(_drv.toUtf8().constData(), m_rate, m_channels, m_latency_ms);
 		m_config_ok = true;
 	}
 
@@ -50,19 +61,19 @@ void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 {
 	switch(newState) {
 	case QAudio::ActiveState:
-		debug_log(_T("AUDIO:ACTIVE"));
+		__debug_log_func(_T("AUDIO:ACTIVE"));
 		break;
 	case QAudio::IdleState:
-		debug_log(_T("AUDIO:IDLE"));
+		__debug_log_func(_T("AUDIO:IDLE"));
 		//if(m_audioOutputSink != nullptr) {
 		//	m_audioOutputSink->stop();
 		//}
 		break;
 	case QAudio::StoppedState:
-		debug_log(_T("AUDIO:STOP"));
+		__debug_log_func(_T("AUDIO:STOP"));
 		break;
 	case QAudio::SuspendedState:
-		debug_log(_T("AUDIO:SUSPEND"));
+		__debug_log_func(_T("AUDIO:SUSPEND"));
 		break;
 	}
 }
@@ -175,7 +186,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	}
 	m_fileio.reset(new SOUND_BUFFER_QT(m_samples * (qint64)m_channels * sizeof(int16_t) * 4));
 	m_driver_fileio = m_fileio;
-	debug_log(_T("M_QT_MULTIMEDIA::%s status=%s"), __func__ , (m_config_ok) ? _T("OK") : _T("NG"));
+	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
 	return result;
 }
 
@@ -215,7 +226,7 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 #endif
 		}
 	}
-	debug_log(_T("M_QT_MULTIMEDIA::%s desired_driver=%s using=%s"), __func__ , driver_name, dest_device.description().toLocal8Bit().constData());
+	__debug_log_func(_T("desired_driver=%s using=%s"), driver_name, dest_device.description().toLocal8Bit().constData());
 	
 	bool req_reinit = false;
 	if(dest_device != m_audioOutputDevice) {
@@ -284,7 +295,7 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 			m_latency_ms = latency_ms;
 		}
 	}
-	if((req_restart) && (m_audioOutputSink.get() != nullptr)) {
+	if(/*(req_restart) && */(m_audioOutputSink.get() != nullptr)) {
 		update_driver_fileio();
 		emit sig_start_audio();
 	}
@@ -307,7 +318,7 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 	if((rate != m_rate) || (_samples != m_samples)) {
 		m_device_name = set_device_sound((const _TCHAR *)(m_device_name.c_str()), rate, channels, latency_ms);
 	}
-	if(m_config_ok.load()) {
+//	if(m_config_ok.load()) {
 		std::shared_ptr<SOUND_BUFFER_QT> sp = m_fileio;
 		if(sp.get() != nullptr) {
 			if(!(sp->isOpen())) {
@@ -317,10 +328,10 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 				sp->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
 #endif
 			}
-			m_config_ok = m_prev_started = m_mute = false;
+			m_prev_started = m_mute = false;
 			sp->reset();
 		}
-	}
+//	}
 	
 	if((rate <= 0) || (latency_ms <= 0)) {
 		rate = 48000;
@@ -365,11 +376,12 @@ void M_QT_MULTIMEDIA::do_sound_start()
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	std::shared_ptr<QAudioOutput> p = m_audioOutputSink;
 #endif
-//	if(m_driver_fileio.get() != nullptr) {
-//		m_driver_fileio->reset();
-//	}
+	if(m_driver_fileio.get() != nullptr) {
+		m_driver_fileio->reset();
+	}
 	if(p.get() != nullptr) {
 		p->start(m_driver_fileio.get());
+		__debug_log_func("GO. fileio=%0llx", m_driver_fileio.get());
 	}
 	m_prev_started = true;
 }

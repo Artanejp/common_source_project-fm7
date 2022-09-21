@@ -5,7 +5,6 @@
 #include "./osd_base.h"
 #include "./sound_buffer_qt.h"
 #include "./osd_sound_mod_template.h"
-
 #include "./gui/menu_flags.h"
 
 namespace SOUND_OUTPUT_MODULE {
@@ -29,6 +28,7 @@ M_BASE::M_BASE(OSD_BASE *parent,
 	  m_before_rendered(0),
 	  m_samples(0),
 	  m_mute(false),
+	  m_classname("SOUND_OUTPUT_MODULE::M_BASE"),
 	  QObject(qobject_cast<QObject*>(parent))
 {
 
@@ -50,7 +50,7 @@ M_BASE::M_BASE(OSD_BASE *parent,
 	
 	m_loglevel = CSP_LOG_INFO;
 	m_logdomain = CSP_LOG_TYPE_SOUND;
-	debug_log(_T("%s: Initializing"));
+	__debug_log_func(_T("Initializing"));
 	
 	initialize_driver();
 }
@@ -65,7 +65,41 @@ M_BASE::~M_BASE()
 	m_config_ok = false;
 }
 
+bool M_BASE::debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...)
+{
+	_TCHAR buf[768] = {0};
+	va_list ap;
+	va_start(ap, _fmt);
+	int result = vsnprintf(buf, (sizeof(buf) / sizeof(_TCHAR)), _fmt, ap);
+	va_end(ap);
 
+	QString _tmps;
+	bool _stat = (_funcname != nullptr);
+	if(_stat) {
+		_stat = strlen(_funcname);
+	}
+	__LIKELY_IF(_stat) {
+		_tmps = QString::fromUtf8("::") + QString::fromUtf8(_funcname) + QString::fromUtf8("(): ");
+		_tmps = QString::fromStdString(m_classname) + _tmps + QString::fromUtf8(buf, sizeof(buf));
+	} else {
+		_tmps = QString::fromUtf8(buf, sizeof(buf));
+	}
+	return do_send_log(m_loglevel.load(), m_logdomain.load(), _tmps);
+}
+
+bool M_BASE::debug_log(const _TCHAR *_fmt, ...)
+{
+	_TCHAR buf[768] = {0};
+	va_list ap;
+	va_start(ap, _fmt);
+	int result = vsnprintf(buf, (sizeof(buf) / sizeof(_TCHAR)), _fmt, ap);
+	va_end(ap);
+
+	QString _tmps;
+	_tmps = QString::fromUtf8(buf, sizeof(buf));
+	return do_send_log(m_loglevel.load(), m_logdomain.load(), _tmps);
+}
+	
 void M_BASE::request_to_release()
 {
 	if(m_config_ok.load()) {
@@ -232,17 +266,14 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 	int channels = m_channels;
 	if(real_reconfig_sound(rate, channels, _latency_ms)) {
 		m_config_ok = true;
-		if(m_using_flags.get() != nullptr) {
-			config_t* p_config = m_using_flags->get_config_ptr();
-			if(p_config != nullptr) {
-				set_volume((int)(p_config->general_sound_level));
-			}
+		config_t* p_config = get_config_ptr();
+		if(p_config != nullptr) {
+			set_volume((int)(p_config->general_sound_level));
 		}
-
-		debug_log("initialize_sound() : Success. Sample rate=%d samples=%d", m_rate, m_samples);
+		__debug_log_func("Success. Sample rate=%d samples=%d", m_rate, m_samples);
 	} else {
 		m_config_ok = false;
-		debug_log("initialize_sound() : Failed.");
+		__debug_log_func("Failed.");
 	}
 	if(presented_rate != nullptr) {
 		*presented_rate = m_rate;
@@ -282,6 +313,16 @@ bool M_BASE::check_elapsed_to_render()
 	return true;
 }
 
+config_t* M_BASE::get_config_ptr()
+{
+	config_t* _np = nullptr;
+	std::shared_ptr<USING_FLAGS> _cp = m_using_flags;
+	if(_cp.get() != nullptr) {
+		_np = _cp->get_config_ptr();
+	}
+	return _np;
+}
+
 void M_BASE::update_render_point_usec()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -297,7 +338,7 @@ bool M_BASE::check_enough_to_render()
 int64_t M_BASE::update_sound(void* datasrc, int samples)
 {
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;	
-
+	__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
 	if(q.get() == nullptr) return -1;
 	
 	if(samples > 0) {
@@ -436,8 +477,8 @@ void M_BASE::set_logger(const std::shared_ptr<CSP_Logger> logger)
 	m_logger = logger;
 	if(m_logger.get() != nullptr) {
 		connect(this, SIGNAL(sig_send_log(int, int, QString)),
-				m_logger.get(), SLOT(do_send_log(int, int, QString)),
-				Qt::QueuedConnection);
+				m_logger.get(), SLOT(do_debug_log(int, int, QString))
+				,Qt::QueuedConnection);
 	}
 }
 

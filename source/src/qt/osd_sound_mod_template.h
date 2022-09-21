@@ -12,8 +12,10 @@
 #include <QObject>
 #include <mutex>
 #include <memory>
+#include <string>
 
 #include "../common.h"
+#include "./config.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -22,12 +24,16 @@ class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
 
+#define __debug_log_func(...) debug_log_func(__func__, __VA_ARGS__)
+
 namespace SOUND_OUTPUT_MODULE {
 class DLL_PREFIX M_BASE : public QObject
 {
 	Q_OBJECT
 protected:
 	OSD_BASE*							m_OSD;
+	std::string							m_classname;
+	
 	std::shared_ptr<SOUND_BUFFER_QT>	m_fileio;
 	std::shared_ptr<SOUND_BUFFER_QT>	m_driver_fileio;
 	std::shared_ptr<USING_FLAGS>		m_using_flags;
@@ -63,20 +69,11 @@ protected:
 	// Maybe disconnect some signals via m_fileio.
 	virtual bool release_driver_fileio();
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms);
-	
-	bool debug_log(const _TCHAR *_fmt, ...)
-	{
-		_TCHAR buf[1024] = {0};
 
-		va_list ap;
-		va_start(ap, _fmt);
-		int result = vsnprintf(buf, (sizeof(buf) / sizeof(_TCHAR)), _fmt, ap);
-		va_end(ap);
-
-		return do_send_log(m_loglevel.load(), m_logdomain.load(),
-						   QString::fromUtf8(buf, sizeof(buf)));
-	}
+	config_t*					 get_config_ptr();
 	
+	bool debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...);
+	bool debug_log(const _TCHAR *_fmt, ...);
 	
 public:
 	M_BASE(OSD_BASE *parent,
@@ -105,8 +102,8 @@ public:
 		// connect(this, SIGNAL(sig_req_open_sound(int, int, QString)), ..., QObject::QueuedConnection);
 
 		// For Logging
-		// connect(real_driver, SIGNAL(sig_log(QString)), this, SLOT(do_send_log(QString)), QObject::QueuedConnection);
-		// connect(real_driver, SIGNAL(sig_log(int, int, QString)), this, SLOT(do_send_log(int, int, QString)), QObject::QueuedConnection);
+		// connect(real_driver, SIGNAL(sig_log(QString)), this, SLOT(do_debug_log(QString)), QObject::QueuedConnection);
+		// connect(real_driver, SIGNAL(sig_log(int, int, QString)), this, SLOT(do_debug_log(int, int, QString)), QObject::QueuedConnection);
 		return true;
 	}
 	virtual bool release_driver()

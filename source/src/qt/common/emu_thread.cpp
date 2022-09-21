@@ -63,7 +63,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 
 	p_osd->setParent(this);
-	p_osd->moveToThread(this);
+	//p_osd->moveToThread(this);
 }
 
 EmuThreadClass::~EmuThreadClass()
