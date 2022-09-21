@@ -50,6 +50,7 @@ M_BASE::M_BASE(OSD_BASE *parent,
 	
 	m_loglevel = CSP_LOG_INFO;
 	m_logdomain = CSP_LOG_TYPE_SOUND;
+	debug_log(_T("%s: Initializing"));
 	
 	initialize_driver();
 }

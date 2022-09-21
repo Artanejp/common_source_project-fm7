@@ -175,7 +175,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	}
 	m_fileio.reset(new SOUND_BUFFER_QT(m_samples * (qint64)m_channels * sizeof(int16_t) * 4));
 	m_driver_fileio = m_fileio;
-	
+	debug_log(_T("M_QT_MULTIMEDIA::%s status=%s"), __func__ , (m_config_ok) ? _T("OK") : _T("NG"));
 	return result;
 }
 
@@ -215,6 +215,8 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 #endif
 		}
 	}
+	debug_log(_T("M_QT_MULTIMEDIA::%s desired_driver=%s using=%s"), __func__ , driver_name, dest_device.description().toLocal8Bit().constData());
+	
 	bool req_reinit = false;
 	if(dest_device != m_audioOutputDevice) {
 		req_reinit = true;
@@ -253,6 +255,7 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 		#endif
 			m_device_name = _tmpname.toLocal8Bit().toStdString();
 			m_config_ok = true;
+			req_restart = true;
 		} else {
 			m_device_name.clear();
 			m_config_ok = false;

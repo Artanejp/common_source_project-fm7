@@ -54,29 +54,19 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 {
 	using_flags = p;
 	locked_vm = false;
-	#if 1  /* Note: Below are new sound driver. */
-	m_sound_driver.reset(
-		new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
-												 nullptr,
-												 48000,
-												 100,
-												 2,
-												 nullptr,
-												 0));
-	#else /* Note: */
+	#if 0  /* Note: Below are new sound driver. */
 		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 	m_audioInputDevice  = QMediaDevices::defaultAudioInput();
 	//m_audioOutputSink = std::shared_ptr<QAudioSink>(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
 	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
-	m_audioInputSource.reset();
 		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
 	m_audioInputDevice  = QAudioDeviceInfo::defaultInputDevice();
 
 	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputDevice.preferredFormat()));
-	m_audioInputSource.reset();
 		#endif
+	m_audioInputSource.reset();
 	//m_audioOutputSink->moveToThread(this->thread());
 	m_audioOutput = nullptr;
 	m_audioInput = nullptr;
@@ -97,6 +87,17 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	is_glcontext_shared = false;
 	glContext = NULL;
 
+	#if 1  /* Note: Below are new sound driver. */
+	m_sound_driver.reset(
+		new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
+												 nullptr,
+												 48000,
+												 100,
+												 2,
+												 nullptr,
+												 0));
+
+	#endif	/* END Note: */
 	get_sound_device_list();
 }
 

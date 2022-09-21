@@ -451,6 +451,7 @@ void OSD_BASE::release_sound()
 #else
 	#if 1 /* Note: Below are new sound driver. */
 	#include "./osd_sound_mod_template.h"
+//#include "./osd_sound_mod_qtmultimedia.h"
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
