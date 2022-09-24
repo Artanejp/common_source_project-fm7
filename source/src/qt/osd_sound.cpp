@@ -458,27 +458,27 @@ void OSD_BASE::update_sound(int* extra_frames)
 	
 	now_mute = false;
 	if(sound_ok) {
+		// Get sound driver 
 		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
 		if(sound_drv.get() == nullptr) {
 			return;
 		}
-		int sound_samples = sound_drv->get_sample_count();
 		
+		// Check enough to render accumlated
+		// source (= by VM) rendering data.
+		int sound_samples = sound_drv->get_sample_count();
 		int now_mixed_ptr = 0;
 		if(vm != nullptr) {
 			now_mixed_ptr = vm->get_sound_buffer_ptr();
 		}
-
 		if(now_mixed_ptr < ((sound_samples * 90) / 100)) {
-			// Render even emulate 95% of latency when remain seconds is less than 2m Sec.
+			// Render even emulate 90% of latency when remain seconds is less than 2m Sec.
 			return;
 		}
-		if((sound_started) && sound_drv->check_elapsed_to_render()) {
+		// Check driver elapsed by real time. 
+		if((sound_started) && !(sound_drv->check_elapsed_to_render())) {
 			return;
 		}
-		if(!(sound_drv->check_enough_to_render())) {
-			return;
-		}		   
 		// Input
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
 		if(sound_buffer == nullptr) {
@@ -520,6 +520,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 			sound_drv->set_volume((int)(p_config->general_sound_level));
 		}
 		// ToDo: Convert sound format.
+		if(!(sound_drv->check_enough_to_render())) {
+			// Buffer underflow.
+			return;
+		}		   
 		int64_t _result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
 		debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 				  _T("OSD::%s() : sound result=%d"), __func__, _result);

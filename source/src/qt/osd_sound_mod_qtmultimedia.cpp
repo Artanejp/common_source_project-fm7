@@ -228,7 +228,7 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 	}
 	__debug_log_func(_T("desired_driver=%s using=%s"), driver_name, dest_device.description().toLocal8Bit().constData());
 	
-	bool req_reinit = false;
+	bool req_reinit = !(m_config_ok.load());
 	if(dest_device != m_audioOutputDevice) {
 		req_reinit = true;
 	} else {

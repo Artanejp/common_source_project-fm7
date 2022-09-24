@@ -301,11 +301,14 @@ bool M_BASE::check_elapsed_to_render()
 	const int64_t sound_us_now = driver_elapsed_usec();
 	if(m_rate <= 0) return false;
 	
-	const int64_t  _period_usec = ((m_samples * (int64_t)10000) / (int64_t)m_rate) * 100;
+	const int64_t  _period_usec = m_latency_ms * 1000;
 	int64_t _diff = sound_us_now - m_before_rendered;
-	if((_diff < 0) && (((INT64_MAX - m_before_rendered) + 1) <= _period_usec)) {
+	if((_diff < 0) && ((INT64_MAX - m_before_rendered) <= _period_usec))  {
 			// For uS overflow
-		_diff = sound_us_now + (INT64_MAX - m_before_rendered + 1);
+		_diff = sound_us_now + (INT64_MAX - m_before_rendered);
+	}
+	if(_diff < 0) {
+		_diff = 0;
 	}
 	if(_diff < (_period_usec - 1000)) {
 		return false;
@@ -332,7 +335,7 @@ void M_BASE::update_render_point_usec()
 bool M_BASE::check_enough_to_render()
 {
 	int64_t _left = get_bytes_left();
-	return ((m_chunk_bytes <= _left) ? true : false);
+	return ((m_chunk_bytes < _left) ? true : false);
 }
 
 int64_t M_BASE::update_sound(void* datasrc, int samples)
