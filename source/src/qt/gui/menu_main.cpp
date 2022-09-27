@@ -90,14 +90,8 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 Ui_MainWindowBase::~Ui_MainWindowBase()
 {
 	// May need delete items via QVector.
-	if(!(action_HostSoundDevice.empty())) {
-		for(auto ix = action_HostSoundDevice.begin(); ix != action_HostSoundDevice.end(); ++ix) {
-			if((*ix) != nullptr) {
-				(*ix)->disconnect();
-				delete *ix;
-			}
-		}
-	}
+	do_clear_sound_output_list();
+	
 	graphicsView->releaseKeyboard();
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
 	if(driveData != NULL) delete driveData;

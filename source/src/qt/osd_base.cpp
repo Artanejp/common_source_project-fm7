@@ -87,7 +87,7 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	is_glcontext_shared = false;
 	glContext = NULL;
 
-	#if 1  /* Note: Below are new sound driver. */
+	#if 0  /* Note: Below are new sound driver. */
 	m_sound_driver.reset(
 		new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
 												 nullptr,
@@ -96,7 +96,8 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 												 2,
 												 nullptr,
 												 0));
-	get_sound_device_list();
+	init_sound_device_list();
+	emit sig_update_sound_output_list();
 	#else
 	m_sound_driver.reset();
 	#endif	/* END Note: */

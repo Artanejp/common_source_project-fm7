@@ -48,6 +48,7 @@ M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 			}
 		}
 		m_device_name = set_device_sound(_drv.toUtf8().constData(), m_rate, m_channels, m_latency_ms);
+		//it sig_set_sound_device(m_device_name);
 		m_config_ok = true;
 	}
 
@@ -185,18 +186,36 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 		m_samples = 4800;
 	}
 	m_fileio.reset(new SOUND_BUFFER_QT(m_samples * (qint64)m_channels * sizeof(int16_t) * 4));
-	m_driver_fileio = m_fileio;
+	update_driver_fileio();
+
 	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
 	return result;
 }
 
-const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms)
+
+std::list<std::string> M_QT_MULTIMEDIA::get_sound_devices_list()
 {
-	if(m_audioOutputSink.get() == nullptr) {
-		return (const std::string)(std::string(""));
+	devices_name_list.clear();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QList<QAudioDevice> _list = QMediaDevices::audioOutputs();
+	for(auto i = _list.begin(); i != _list.end(); ++i) {
+		devices_name_list.push_back((*i).description().toStdString());
 	}
-	
-	QString _name = QString::fromUtf8(driver_name);
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	QList<QAudioDeviceInfo> _list = QAudioDeviceInfo::audioOutputs();
+	for(auto i = _list.begin(); i != _list.end(); ++i) {
+		devices_name_list.push_back((*i).deviceName().toStdString());
+	}
+#endif	
+	return devices_name_list;
+}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+QAudioDevice M_QT_MULTIMEDIA::get_device_by_name(QString driver_name)
+#else
+QAudioDeviceInfo M_QT_MULTIMEDIA::get_device_by_name(QString driver_name)
+#endif
+{
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QList<QAudioDevice> _list = QMediaDevices::audioOutputs();
 	QAudioDevice dest_device = m_audioOutputDevice;
@@ -205,7 +224,7 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 	QAudioDeviceInfo dest_device = m_audioOutputDevice;
 #endif
 	
-	if(_name == QString::fromUtf8("Default")) {
+	if((driver_name == QString::fromUtf8("Default")) || (driver_name.isEmpty())) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		dest_device = QMediaDevices::defaultAudioOutput();
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -214,38 +233,80 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 	} else {
 		for(auto i = _list.begin(); i != _list.end(); ++i) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-			if((*i).description().compare(_name) == 0) {
+			if((*i).description().compare(driver_name) == 0) {
 				dest_device = *i;
 				break;
 			}
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			if((*i).deviceName().compare(_name) == 0) {
+			if((*i).deviceName().compare(driver_name) == 0) {
 				dest_device = *i;
 				break;
 			}
 #endif
 		}
 	}
-	__debug_log_func(_T("desired_driver=%s using=%s"), driver_name, dest_device.description().toLocal8Bit().constData());
+	QString dest_device_name;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	dest_device_name = dest_device.description();
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	dest_device_name = dest_device.deviceName();
+#endif
 	
-	bool req_reinit = !(m_config_ok.load());
-	if(dest_device != m_audioOutputDevice) {
-		req_reinit = true;
-	} else {
+	__debug_log_func(_T("desired_driver=%s using=%s"), driver_name.toLocal8Bit().constData(), dest_device_name.toLocal8Bit().constData());
+
+	return dest_device;
+}
+	
+void M_QT_MULTIMEDIA::do_set_device_by_name(QString driver_name)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QAudioDevice dest_device = get_device_by_name(driver_name);
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	QAudioDeviceInfo dest_device = get_device_by_name(driver_name);
+#endif
+	setup_device(dest_device, m_rate, m_channels, m_latency_ms, true);
+}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+void M_QT_MULTIMEDIA::setup_device(QAudioDevice dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit)
+#else
+void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit)
+#endif
+{
+	if(dest_device.isNull()) return; // None initialize if NULL.
+	
+	QAudioFormat desired = dest_device.preferredFormat();
+	set_audio_format(dest_device, desired, channels, rate);
+
+	if((m_audioOutputDevice.isNull()) || (m_audioOutputDevice != dest_device)) {
+		force_reinit = true;
+	}
+	bool force_req_reinit = false;
+	if(m_latency_ms != latency_ms) {
+		force_req_reinit = true;
+	}
+	
+	if(m_audioOutputSink.get() != nullptr) {
 		if((m_audioOutputSink->format().channelCount() != channels) ||
 		   (m_audioOutputSink->format().sampleRate() != rate)) {
-			req_reinit = true;
+			force_req_reinit = true;
 		}
+	} else {
+		force_reinit = true;
 	}
-	bool req_restart = false;
-	if(req_reinit) {
-		m_audioOutputSink->disconnect();
-		if(m_audioOutputSink->state() != QAudio::StoppedState) {
-			m_audioOutputSink->stop();
-			req_restart = true;
+
+	
+	if((force_reinit) || (force_req_reinit)) {
+		if(m_audioOutputSink.get() != nullptr) {
+			m_audioOutputSink->disconnect();
+			if(m_audioOutputSink->state() != QAudio::StoppedState) {
+				m_audioOutputSink->stop();
+				wait_driver_stopped(1000);
+			}
 		}
-		QAudioFormat desired = dest_device.preferredFormat();
-		set_audio_format(dest_device, desired, channels, rate);
+		
+		m_audioOutputDevice = dest_device;
+		m_audioOutputFormat = desired;
 		
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		m_audioOutputSink.reset(new QAudioSink(dest_device, desired, this));
@@ -254,10 +315,8 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 #endif
 		if(m_audioOutputSink.get() != nullptr) {
 			connect(m_audioOutputSink.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
-			m_audioOutputDevice = dest_device;
-			m_audioOutputFormat = desired;
-			m_channels = m_audioOutputSink->format().channelCount();
-			m_rate = m_audioOutputSink->format().sampleRate();
+			channels = m_audioOutputSink->format().channelCount();
+			rate = m_audioOutputSink->format().sampleRate();
 			QString _tmpname;
 		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 			_tmpname = m_audioOutputDevice.description();
@@ -265,40 +324,78 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 			_tmpname = m_audioOutputDevice.deviceName();
 		#endif
 			m_device_name = _tmpname.toLocal8Bit().toStdString();
+			config_t* _ccp = get_config_ptr();
+			if(_ccp != nullptr) {
+				memset(_ccp->sound_device_name, 0x00, sizeof(_ccp->sound_device_name));
+				my_tcscpy_s(_ccp->sound_device_name, (sizeof(_ccp->sound_device_name) / sizeof(_TCHAR)) - 1, _tmpname.toUtf8().constData());
+			}
+			
+			//emit sig_set_sound_device(m_device_name);
+			
 			m_config_ok = true;
-			req_restart = true;
+			
+			int64_t _samples =
+				((int64_t)rate * latency_ms) / 1000;
+			if(_samples < 100) _samples = 100;
+			
+			if(m_fileio.get() == nullptr) {
+				m_fileio.reset(new SOUND_BUFFER_QT(_samples * (qint64)channels * sizeof(int16_t) * 4));
+				m_config_ok = (m_fileio.get() != nullptr);
+			} else {
+				if(m_fileio->isOpen()) {
+					m_fileio->close();
+				}
+				m_config_ok =  m_fileio->resize(_samples * channels * sizeof(int16_t) * 4);
+			}
+			if(m_config_ok.load()) {
+				m_samples = _samples;
+				m_latency_ms = latency_ms;
+				m_rate = rate;
+				m_channels = channels;
+				real_reconfig_sound(m_rate, m_channels, m_latency_ms);
+			}
 		} else {
 			m_device_name.clear();
 			m_config_ok = false;
-		}
-	} else if(m_audioOutputSink->state() != QAudio::StoppedState) {
-		if(m_latency_ms != latency_ms) {
-			m_audioOutputSink->stop();
-			req_restart = true;
-		}
-	}
-
-	if((req_reinit) || (m_latency_ms != latency_ms)) {
-		int64_t _samples =
-			((int64_t)m_rate * m_latency_ms) / 1000;
-		if(m_fileio.get() == nullptr) {
-			m_fileio.reset(new SOUND_BUFFER_QT(m_samples * (qint64)m_channels * sizeof(int16_t) * 4));
-			m_config_ok = (m_fileio.get() != nullptr);
-		} else {
-			if(m_fileio->isOpen()) {
-				m_fileio->close();
+			
+			int64_t _samples =
+				((int64_t)rate * latency_ms) / 1000;
+			if(_samples < 100) _samples = 100;
+			if(m_fileio.get() != nullptr) {
+				if(m_fileio->isOpen()) {
+					m_fileio->close();
+				}
+				m_fileio.reset();
 			}
-			m_config_ok =  m_fileio->resize(_samples * channels * sizeof(int16_t) * 4);
-		}
-		if(m_config_ok.load()) {
 			m_samples = _samples;
 			m_latency_ms = latency_ms;
+			m_rate = rate;
+			m_channels = channels;
 		}
 	}
-	if(/*(req_restart) && */(m_audioOutputSink.get() != nullptr)) {
+	if(m_audioOutputSink.get() != nullptr) {
 		update_driver_fileio();
 		emit sig_start_audio();
 	}
+}
+
+const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms)
+{
+	if(driver_name == nullptr) {
+		return (const std::string)(std::string(""));
+	}
+	if(strlen(driver_name) <= 0) {
+		return (const std::string)(std::string(""));
+	}
+	
+	QString _name = QString::fromUtf8(driver_name);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QAudioDevice dest_device = get_device_by_name(_name);
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	QAudioDeviceInfo dest_device = get_device_by_name(_name);
+#endif
+	setup_device(dest_device, rate, channels, latency_ms, false);
+	
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	return m_audioOutputDevice.description().toStdString();
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -315,22 +412,23 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 	}
 
 	int64_t _samples = (rate * latency_ms) / 1000;
-	if((rate != m_rate) || (_samples != m_samples)) {
+	if((rate != m_rate) || (_samples != m_samples) || (m_latency_ms != latency_ms)) {
 		m_device_name = set_device_sound((const _TCHAR *)(m_device_name.c_str()), rate, channels, latency_ms);
+		//emit sig_set_sound_device(m_device_name);
 	}
 //	if(m_config_ok.load()) {
-		std::shared_ptr<SOUND_BUFFER_QT> sp = m_fileio;
-		if(sp.get() != nullptr) {
-			if(!(sp->isOpen())) {
+	std::shared_ptr<SOUND_BUFFER_QT> sp = m_fileio;
+	if(sp.get() != nullptr) {
+		if(!(sp->isOpen())) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				sp->open(QIODeviceBase::ReadWrite | QIODeviceBase::Truncate | QIODeviceBase::Unbuffered);
+			sp->open(QIODeviceBase::ReadWrite | QIODeviceBase::Truncate | QIODeviceBase::Unbuffered);
 #else
-				sp->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
+			sp->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
 #endif
-			}
-			m_prev_started = m_mute = false;
-			sp->reset();
 		}
+		m_prev_started = m_mute = false;
+		sp->reset();
+	}
 //	}
 	
 	if((rate <= 0) || (latency_ms <= 0)) {

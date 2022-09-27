@@ -341,7 +341,7 @@ bool M_BASE::check_enough_to_render()
 int64_t M_BASE::update_sound(void* datasrc, int samples)
 {
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;	
-	__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
+	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
 	if(q.get() == nullptr) return -1;
 	
 	if(samples > 0) {

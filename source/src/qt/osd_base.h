@@ -326,7 +326,7 @@ protected:
 	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
 	static void audio_callback(void *udata, Uint8 *stream, int len);
 	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
-	virtual void get_sound_device_list();
+	virtual void init_sound_device_list();
 
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
@@ -564,6 +564,10 @@ public:
 
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
+	QStringList  get_sound_device_list()
+	{
+		return sound_device_list;
+	}
 	
 	int get_sound_device_num();
 	
@@ -776,6 +780,10 @@ signals:
 	int sig_set_sound_device(QString);
 	int sig_set_sound_volume(double);
 	int sig_set_sound_volume(int);
+
+	int sig_update_sound_output_list();
+	int sig_clear_sound_output_list();
+	int sig_append_sound_output_list(QString);
 
 	int sig_update_device_node_name(int id, const _TCHAR *name);
 	int sig_enable_mouse(void);

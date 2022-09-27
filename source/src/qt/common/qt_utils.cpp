@@ -1341,6 +1341,10 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)(emu->get_osd()), SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
 
+	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_sound_output_list()), rMainWindow, SLOT(do_update_sound_output_list()));
+	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_clear_sound_output_list()), rMainWindow, SLOT(do_clear_sound_output_list()));
+	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_append_sound_output_list(QString)), rMainWindow, SLOT(do_append_sound_output_list(QString)));
+					 
 	QObject::connect(rMainWindow, SIGNAL(sig_update_master_volume(int)), (OSD*)(emu->get_osd()), SLOT(do_update_master_volume(int)));
 	
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),

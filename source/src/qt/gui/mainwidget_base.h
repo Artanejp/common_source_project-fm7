@@ -924,8 +924,11 @@ public slots:
 	void do_set_single_dipswitch(bool f);
 	void do_set_single_dipswitch_negative(bool f);
 	void do_set_multi_dipswitch();
-	void do_update_sound_output_list();
 	
+	void do_clear_sound_output_list();
+	void do_update_sound_output_list();
+	void do_append_sound_output_list(QString _name);
+
 	void do_start_emu_thread();
 	void do_start_draw_thread();
 signals:

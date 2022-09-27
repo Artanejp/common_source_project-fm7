@@ -222,7 +222,7 @@ const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 	return (const _TCHAR*)(_n.constData());
 }
 
-void OSD_BASE::get_sound_device_list()
+void OSD_BASE::init_sound_device_list()
 {
 	sound_device_list.clear();
 #if defined(USE_SDL2)
@@ -525,8 +525,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 			return;
 		}		   
 		int64_t _result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
-		debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-				  _T("OSD::%s() : sound result=%d"), __func__, _result);
+		//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+		//		  _T("OSD::%s() : sound result=%d"), __func__, _result);
 		sound_drv->update_render_point_usec();
 	}
 }
@@ -535,15 +535,16 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 {
 	// If sound driver hasn't initialized, initialize.
 	if(m_sound_driver.get() == nullptr) {
-			m_sound_driver.reset(
-				new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
-														 nullptr,
-														 rate,
-														 (samples * 1000) / rate,
-														 2,
-														 nullptr,
-														 0));
-			get_sound_device_list();
+		m_sound_driver.reset(
+			new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
+													 nullptr,
+													 rate,
+													 (samples * 1000) / rate,
+													 2,
+													 nullptr,
+													 0));
+		init_sound_device_list();
+		emit sig_update_sound_output_list();
 	}
 	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
 	
@@ -587,14 +588,19 @@ const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 	}
 	return (const _TCHAR *)nullptr;
 }
-void OSD_BASE::get_sound_device_list()
+
+void OSD_BASE::init_sound_device_list()
 {
 	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
 	sound_device_list.clear();
 	if(sound_drv.get() != nullptr) {
 		std::list<std::string> _l = sound_drv->get_sound_devices_list();
+		int _xi = 1;
 		for(auto s = _l.begin(); s != _l.end(); ++s) {
 			sound_device_list.append(QString::fromStdString(*s));
+			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+					  "SOUND DEVICE#%03d %s", _xi, (*s).c_str());
+			_xi++;
 		}
 	}
 }

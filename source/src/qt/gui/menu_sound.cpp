@@ -22,11 +22,8 @@
 // WIP: Will move to another file
 const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 
-void Ui_MainWindowBase::do_update_sound_output_list(void)
+void Ui_MainWindowBase::do_clear_sound_output_list(void)
 {
-	if((p_config == nullptr) || (using_flags == nullptr)) return;
-	int _match = -1;
-	QString matched_devname = QString::fromUtf8("Default");
 	if(!(action_HostSoundDevice.empty())) {
 		for(auto ix = action_HostSoundDevice.begin(); ix != action_HostSoundDevice.end(); ++ix) {
 			if((*ix) != nullptr) {
@@ -39,42 +36,48 @@ void Ui_MainWindowBase::do_update_sound_output_list(void)
 		}
 	}
 	action_HostSoundDevice.clear();
-	action_HostSoundDevice.append(new Action_Control(this, using_flags));
-	action_HostSoundDevice[0]->setChecked(true);
-	action_HostSoundDevice[0]->setObjectName(QString::fromUtf8("action_HostSoundDevice0"));
-	action_HostSoundDevice[0]->setCheckable(true);
-	actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[0]);
-	menuSound_HostDevices->addAction(action_HostSoundDevice[0]);
-	connect(action_HostSoundDevice[0], SIGNAL(triggered()),
-			this, SLOT(do_set_host_sound_output_device()));
-	do_set_host_sound_name(0, QString::fromUtf8("Default"));
+}
 
+void Ui_MainWindowBase::do_append_sound_output_list(QString _name)
+{
+	int nums = action_HostSoundDevice.size();
+	if(nums < 0) nums = 0;
+	QString tmps = QString::fromUtf8("action_HostSoundDevice") + QString::number(nums);
+	
+	action_HostSoundDevice.append(new Action_Control(this, using_flags));
+	action_HostSoundDevice[nums]->setChecked(false);
+	action_HostSoundDevice[nums]->setObjectName(tmps);
+	action_HostSoundDevice[nums]->setCheckable(true);
+	actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[nums]);
+	menuSound_HostDevices->addAction(action_HostSoundDevice[nums]);
+
+	do_set_host_sound_name(nums, _name);
+	connect(action_HostSoundDevice[nums], SIGNAL(triggered()),
+			this, SLOT(do_set_host_sound_output_device()));
+
+}
+
+void Ui_MainWindowBase::do_update_sound_output_list(void)
+{
+	if((p_config == nullptr) || (using_flags == nullptr)) return;
+	int _match = -1;
+	QString matched_devname = QString::fromUtf8("Default");
+	
+	do_clear_sound_output_list();
+
+	do_append_sound_output_list(QString::fromUtf8("Default"));
+	
 	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
-	_setname.truncate(1023);
+	int i = 0;
 	if(using_flags->get_osd() != nullptr) {
-		int devs_count = using_flags->get_osd()->get_sound_device_num();
-		for(int i = 0; i < devs_count; i++) {
-			const _TCHAR* sp = using_flags->get_sound_device_name(i);
-			QString sname;
-			sname.clear();
-			if(sp != NULL) {
-				sname = QString::fromUtf8(sp);
-				sname.truncate(1023);
-			}
-			if(sname == _setname) {
+		QStringList _l =  using_flags->get_osd()->get_sound_device_list();
+		for(auto p = _l.begin(); p != _l.end(); ++p) {
+			do_append_sound_output_list((*p));
+			if((*p) == _setname) {
 				_match = i + 1;
-				matched_devname = sname;
+				matched_devname = (*p);
 			}
-			action_HostSoundDevice.append(new Action_Control(this, using_flags));
-			QString tmps;
-			tmps.setNum(i + 1);
-			action_HostSoundDevice[i + 1]->setObjectName(QString::fromUtf8("action_HostSoundDevice") + tmps);
-			action_HostSoundDevice[i + 1]->setCheckable(true);
-			actionGroup_Sound_HostDevices->addAction(action_HostSoundDevice[i + 1]);
-			menuSound_HostDevices->addAction(action_HostSoundDevice[i + 1]);
-			connect(action_HostSoundDevice[i + 1], SIGNAL(triggered()),
-					this, SLOT(do_set_host_sound_output_device()));
-			do_set_host_sound_name(i + 1, sname);
+			i++;
 		}
 		if(_match > 0) {
 			action_HostSoundDevice[_match]->setChecked(true);
@@ -90,11 +93,13 @@ void Ui_MainWindowBase::do_set_host_sound_output_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString _name = cp->data().value<QString>();
+	
 	if(p_config != nullptr) {
-		QString _old = QString::fromLocal8Bit(p_config->sound_device_name, 1023);
-		_name.truncate(1023);
-		if(/*(_old != _name) &&*/ !(_name.isEmpty())) {
-			my_tcscpy_s(p_config->sound_device_name, 1023, _name.toLocal8Bit().constData());
+		size_t ssize = sizeof(p_config->sound_device_name) / sizeof(_TCHAR);
+		_name.truncate(ssize - 1);
+		if(!(_name.isEmpty())) {
+			memset(p_config->sound_device_name, 0x00, sizeof(p_config->sound_device_name));
+			my_tcscpy_s(p_config->sound_device_name, ssize - 1, _name.toLocal8Bit().constData());
 			emit sig_osd_sound_output_device(_name);
 		}
 	}
@@ -108,14 +113,14 @@ void Ui_MainWindowBase::do_set_host_sound_name(int num, QString s)
 	
 	if(s.isEmpty()) {
 		action_HostSoundDevice[num]->setVisible(false);
-		QVariant v = QVariant(QString::fromUtf8(""));
-		action_HostSoundDevice[num]->setData(v);
 	} else {
 		action_HostSoundDevice[num]->setVisible(true);
-		action_HostSoundDevice[num]->setText(s);
-		QVariant v = QVariant(s);
-		action_HostSoundDevice[num]->setData(v);
 	}
+	action_HostSoundDevice[num]->setText(s);
+	
+	QVariant v = QVariant(s);
+	action_HostSoundDevice[num]->setData(v);
+	
 }
 
 void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)

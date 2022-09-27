@@ -12,6 +12,7 @@
 #include "./osd_sound_mod_template.h"
 
 #include <string>
+#include <list>
 #include <QAudioFormat>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 #include <QAudioDevice>
@@ -32,6 +33,8 @@ class DLL_PREFIX M_QT_MULTIMEDIA
 protected:
 	QAudioFormat						m_audioOutputFormat;
 	std::string							m_device_name;
+	std::list<std::string>				devices_name_list;
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink>			m_audioOutputSink;
 	QAudioDevice m_audioOutputDevice;
@@ -43,6 +46,13 @@ protected:
 	virtual void set_audio_format(QAudioDeviceInfo dest_device, QAudioFormat& desired, int& channels, int& rate);
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QAudioDevice get_device_by_name(QString driver_name);
+	void setup_device(QAudioDevice dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
+#else
+	QAudioDeviceInfo get_device_by_name(QString driver_name);
+	void setup_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
+#endif
 	
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms) override;
 	virtual void update_driver_fileio() override;
@@ -65,7 +75,8 @@ public:
 	
 	virtual int64_t driver_elapsed_usec() override;
 	virtual int64_t driver_processed_usec() override;
-										  
+	virtual std::list<std::string> get_sound_devices_list() override;
+																	
 public slots:
 	virtual void release_sound() override;
 
@@ -80,6 +91,8 @@ public slots:
 	virtual void do_sound_suspend();
 	virtual void do_discard_sound();
 	virtual void do_sound_volume(double level);
-	
+
+	virtual void do_set_device_by_name(QString driver_name) override;
+
 };
 }
