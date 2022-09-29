@@ -35,6 +35,7 @@
 
 #include <ctime>
 #include <limits>
+#include <memory>
 
 #include "../config.h"
 #include "../fileio.h"
@@ -46,6 +47,8 @@
 //#include "csp_logger.h"
 #include "osd_base.h"
 #include "gui/dock_disks.h"
+#include "gui/menu_flags.h"
+
 #include "../vm/vm_template.h"
 
 #include "./osd_sound_mod_qtmultimedia.h"
@@ -133,6 +136,16 @@ QOpenGLContext *OSD_BASE::get_gl_context()
 EmuThreadClass *OSD_BASE::get_parent_handler()
 {
 	return parent_thread;
+}
+
+const _TCHAR *OSD_BASE::get_vm_device_name()
+{
+	if(using_flags != NULL) {
+		QString s = using_flags->get_device_name();
+		static QByteArray __n = s.toUtf8();
+		return (const _TCHAR*)(__n.constData());
+	}
+	return (const _TCHAR*)"";
 }
 
 void OSD_BASE::set_parent_thread(EmuThreadClass *parent)
