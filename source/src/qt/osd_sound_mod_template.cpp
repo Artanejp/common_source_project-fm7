@@ -7,6 +7,112 @@
 #include "./osd_sound_mod_template.h"
 #include "./gui/menu_flags.h"
 
+namespace SOUND_MODULE {
+
+template <class T>	
+inline int64_t convert_from_float(T s)
+{
+	int64_t tmpval = std::llound(s * ((T)INT64_MAX));
+	return tmpval;
+}
+	
+template <class T>	
+inline int32_t convert_from_float(T s)
+{
+	int32_t tmpval = std::lound(s * ((T)INT32_MAX));
+	return tmpval;
+}
+
+template <class T>	
+inline int16_t convert_from_float(T s)
+{
+	int16_t tmpval = std::lound(s * ((T)INT16_MAX));
+	return tmpval;
+}
+template <class T>	
+inline int8_t convert_from_float(T s)
+{
+	int8_t tmpval = std::lound(s * ((T)INT8_MAX));
+	return tmpval;
+}
+
+template <class T>	
+inline uint64_t convert_from_float(T s)
+{
+	uint64_t tmpval = std::llound((s * ((T)INT64_MAX)) + ((T)INT64_MAX));
+	return tmpval;
+}
+template <class T>	
+inline uint32_t convert_from_float(T s)
+{
+	uint32_t tmpval = std::lound((s * ((T)INT32_MAX)) + ((T)INT32_MAX));
+	return tmpval;
+}
+
+template <class T>	
+inline uint16_t convert_from_float(T s)
+{
+	uint16_t tmpval = std::lound((s * ((T)INT16_MAX)) + ((T)INT16_MAX));
+	return tmpval;
+}
+	
+template <class T>	
+inline uint8_t convert_from_float(T s)
+{
+	uint8_t tmpval = std::lound((s * ((T)INT8_MAX)) + ((T)INT8_MAX));
+	return tmpval;
+}
+
+template <class T>	
+inline T convert_to_float(int64_t s)
+{
+	T tmpval = ((T)s) / ((T)INT64_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(int32_t s)
+{
+	T tmpval = ((T)s) / ((T)INT32_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(int16_t s)
+{
+	T tmpval = ((T)s) / ((T)INT16_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(int8_t s)
+{
+	T tmpval = ((T)s) / ((T)INT8_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(uint64_t s)
+{
+	T tmpval = ((T)((int64_t)(s - INT64_MAX)))  / ((T)INT64_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(uint32_t s)
+{
+	T tmpval = ((T)((int32_t)(s - INT32_MAX)))  / ((T)INT32_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(uint16_t s)
+{
+	T tmpval = ((T)((int16_t)(s - INT16_MAX)))  / ((T)INT16_MAX);
+	return tmpval;
+}
+template <class T>	
+inline T convert_to_float(uint8_t s)
+{
+	T tmpval = ((T)((int8_t)(s - INT8_MAX)))  / ((T)INT8_MAX);
+	return tmpval;
+}
+	
+}
 namespace SOUND_OUTPUT_MODULE {
 
 M_BASE::M_BASE(OSD_BASE *parent,

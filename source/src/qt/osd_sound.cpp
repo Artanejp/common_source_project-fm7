@@ -51,6 +51,12 @@
 #include "./sound_buffer_qt.h"
 #include "../gui/emu_thread_tmpl.h"
 
+int OSD_BASE::get_sound_device_num()
+{
+	return sound_device_list.count();
+}
+/* SDL DRIVER: Temporally disabled */
+#if 0
 void OSD_BASE::audio_capture_callback(void *udata, Uint8 *stream, int len)
 {
 	if(len <= 0) return;
@@ -191,15 +197,6 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 }
 
 
-
-int OSD_BASE::get_sound_device_num()
-{
-	return sound_device_list.count();
-}
-
-
-
-#if 0
 const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 {
 	if(num < 0) return NULL;
@@ -439,10 +436,12 @@ void OSD_BASE::release_sound()
 	sound_buf_ptr = NULL;
 	// stop recording
 }
-#else
-	#if 1 /* Note: Below are new sound driver. */
-	#include "./osd_sound_mod_template.h"
-	#include "./osd_sound_mod_qtmultimedia.h"
+/* END SDL DRIVER: Temporally disabled */
+#endif
+
+/* Note: Below are new sound driver. */
+#include "./osd_sound_mod_template.h"
+#include "./osd_sound_mod_qtmultimedia.h"
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
@@ -624,9 +623,10 @@ int OSD_BASE::get_sound_rate()
 	}
 	return 0;
 }
-	#endif /* End Note: */
-	
-#endif
+/* End Note: */
+
+/* SDL DRIVER: Temporally disabled */
+#if 0
 void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2)
 {
 	if(dst1 == NULL) return;
@@ -908,7 +908,7 @@ void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1,
 		break;
 	}
 }
-#if 0
+
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
@@ -1111,10 +1111,18 @@ void OSD_BASE::stop_sound()
 		//sound_exit = false;
 	}
 }
+
+int OSD_BASE::get_sound_rate()
+{
+	return snd_spec_presented.freq;
+}
+
+
 void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
 {
 }
-#else
+/* END SDL DRIVER: Temporally disabled */
+#endif
 
 void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
 {
@@ -1137,7 +1145,7 @@ void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
 		break;
 	}
 }
-#endif
+
 void OSD_BASE::start_record_sound()
 {
    
@@ -1212,13 +1220,7 @@ void OSD_BASE::restart_record_sound()
 	}
 }
 
-#if 0
-int OSD_BASE::get_sound_rate()
-{
-	return snd_spec_presented.freq;
-}
-#else
-	#if 0 /* Temporally Disable  Caoptuing Sound 20220921 K.O */
+#if 0 /* Temporally Disable  Caoptuing Sound 20220921 K.O */
 int OSD_BASE::get_sound_rate()
 {
 	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>out_driver = m_output_driver;
@@ -1227,9 +1229,8 @@ int OSD_BASE::get_sound_rate()
 	}
 	return 48000;
 }
-	#endif /* Temporally Disable  Caoptuing Sound 20220921 K.O */
+#endif /* Temporally Disable  Caoptuing Sound 20220921 K.O */
 
-#endif
 
 void OSD_BASE::close_capture_sound_emu(int ch)
 {

@@ -34,6 +34,7 @@ class GLDrawClass;
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
 #endif
+
 typedef struct {
 	uint8_t **sound_buf_ptr;
 	int *sound_buffer_size;
