@@ -18,361 +18,29 @@
 #include "./config.h"
 #include "./osd_types.h"
 
+
+#if !defined(__debug_log_func)
+#define __debug_log_func(...) debug_log_func(__func__, __VA_ARGS__)
+#endif
+
+
+
 QT_BEGIN_NAMESPACE
+
 
 class SOUND_BUFFER_QT;
 class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
 
-#define __debug_log_func(...) debug_log_func(__func__, __VA_ARGS__)
-
 namespace SOUND_MODULE {
-	enum class FORMAT {
-		Unsigned_Int,
-		Signed_Int,
-		Float,
-		Double
-	};
-	enum class BYTEORDER {
-		LITTLE_ENDIAN,
-		BIG_ENDIAN
-	};
-	inline const BYTEORDER get_system_byteorder()
-	{
-		#if __LITTLE_ENDIAN__
-		return BYTEORDER::LITTLE_ENDIAN;
-		#else
-		return BYTEORDER::BIG_ENDIAN;
-		#endif
-	}
-	typedef struct {
-		FORMAT	format;
-		ENDIAN	endian;
-		size_t	word_size;
-		size_t	channels;
-	} sound_attribute;
-	inline bool check_attribute(sound_attribute a)
-	{
-		if((a.word_size == 0) || (a.word_size > 16)) return false;
-		if((a.channels == 0) || (a.channels > 8)) return false;
-		return true;
-	}
-	inline bool compare_attribute(struct sound_attribute src, struct sound_attribute dst)
-	{
-		bool _b = true;
-		_b &= (src.format == dst.format);
-		_b &= (src.endian == dst.endian);
-		_b &= (src.word_size == dst.word_size);
-		_b &= (src.channels == dst.channels);
-		return _b;
-	}
-	template <class T>
-	inline size_t swap_endian(T *src, T* dst, size_t words)
-	{
-		if(words == 0) return 0;
-		const size_t wordsize = sizeof(T);
-		T* p = src;
-		T* q = dst;
-			
-		__DECL_ALIGNED(16) T tmpbuf[8];
-		__DECL_ALIGNED(16) T dstbuf[8];
-		const size_t major_words = words / 8;
-		const size_t minor_words = words % 8;
-		
-		for(size_t i = 0; i < major_words; i++) {
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpbuf[j] = p[j];
-			}
-
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				uint8_t* pp = (uint8_t*)(&(tmpbuf[j]));
-				uint8_t* qq = (uint8_t*)(&(dstbuf[j]));
-			__DECL_VECTORIZED_LOOP
-				for(size_t k = 0; k < sizeof(T); k++) {
-					qq[k] = pp[sizeof(T) - k - 1];
-				}
-			}
-			
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				q[j] = dstbuf[j];
-			}
-			q += 8;
-			p += 8;
-		}
-		for(size_t i = 0; i < minor_words; i++) {
-			uint8_t* pp = (uint8_t*)(&(p[i]));
-			uint8_t* qq = (uint8_t*)(&(q[i]));
-			for(size_t k = 0; k < sizeof(T); k++) {
-				qq[k] = pp[sizeof(T) - k - 1];
-			}
-		}
-		return words;
-	}
-	template <class S, class D>
-	size_t inline convert_float_to_int(D* dst, S* src, size_t words)
-	{
-		if(dst == nullptr) return 0;
-		if(src == nullptr) return 0;
-		if(words == 0) return 0;
-		if((sizeof(D) < 1) || (sizeof(D) > 8)) return 0;
-		
-		__DECL_ALIGNED(16) S tmpsrc[8];
-		__DECL_ALIGNED(16) D tmpdst[8];
-		const size_t major_words = words / 8;
-		const size_t minor_words = words % 8;
-		
-		const int64_t max_tbl[8] = {INT8_MAX, INT16_MAX, INT16_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT64_MAX};
-		const S max_val = (S)(max_tbl[sizeof(D) - 1]);
-		__DECL_ALIGNED(16) S max_vals[8];
-		
-		__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			max_vals[j] = max_val;
-		}
-		
-		S* p = src;
-		D* q = dst;
-
-		for(size_t i = 0; i < major_words; i++) {
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpsrc[j] = p[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpdst[j] = (D)(tmpsrc[j] * max_vals[j]);
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				q[j] = tmpdst[j];
-			}
-			p += 8;
-			q += 8;
-		}
-		for(size_t j = 0; j < minor_words; j++) {
-			q[j] = (D)(p[j] * max_val);
-		}
-		return words;
-	}
+/* SOUND_MODULE */
+	enum class __FORMAT;
+	enum class __BYTEORDER;
 	
-	template <class S, class D>
-	size_t inline convert_float_to_unsigned_int(D* dst, S* src, size_t words)
-	{
-		if(dst == nullptr) return 0;
-		if(src == nullptr) return 0;
-		if(words == 0) return 0;
-		if((sizeof(D) < 1) || (sizeof(D) > 8)) return 0;
+	namespace OUTPUT {
+	/* SOUND_MODULE::OUTPUT */
 		
-		__DECL_ALIGNED(16) S tmpsrc[8];
-		__DECL_ALIGNED(16) D tmpdst[8];
-		const size_t major_words = words / 8;
-		const size_t minor_words = words % 8;
-		
-		const int64_t max_tbl[8] = {INT8_MAX, INT16_MAX, INT16_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT64_MAX};
-		const S max_val = (S)(max_tbl[sizeof(D) - 1]);
-		__DECL_ALIGNED(16) S max_vals[8];
-		__DECL_ALIGNED(16) S diff_vals[8] = {1.0};
-		
-	__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			max_vals[j] = max_val;
-		}
-		
-		S* p = src;
-		D* q = dst;
-
-		for(size_t i = 0; i < major_words; i++) {
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpsrc[j] = p[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpsrc[j] = tmpsrc[j] + diff_vals[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpdst[j] = (D)(tmpsrc[j] * max_vals[j]);
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				q[j] = tmpdst[j];
-			}
-			p += 8;
-			q += 8;
-		}
-		for(size_t j = 0; j < minor_words; j++) {
-			q[j] = (D)((p[j] + ((S)(1.0))) * max_val);
-		}
-		return words;
-	}
-	template <class D, class S>
-	size_t inline convert_int_to_float(D* dst, S* src, size_t words)
-	{
-		if(dst == nullptr) return 0;
-		if(src == nullptr) return ;
-		if(words == 0) return 0;
-		__DECL_ALIGNED(16) S tmpsrc[8];
-		__DECL_ALIGNED(16) D tmpdst[8];
-		const size_t major_words = words / 8;
-		const size_t minor_words = words % 8;
-		const int64_t max_tbl[8] = {INT8_MAX, INT16_MAX, INT16_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT64_MAX};
-		const D max_val = (D)(max_tbl[sizeof(S) - 1]);
-		__DECL_ALIGNED(16) D max_vals[8];
-		
-	__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			max_vals[j] = max_val;
-		}
-		
-		S* p = src;
-		D *q = dst;
-		
-		for(size_t i = 0; i < major_words; i++) {
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpsrc[j] = p[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpdst[j] = ((D)tmpsrc[j]) / max_vals[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				q[j] = tmpdst[j];
-			}
-			p += 8;
-			q += 8;
-		}
-		for(size_t i = 0; i < minor_words; i++) {
-			q[j] = (D)(p[j]) / max_val;
-		}
-		return words;
-	}
-
-	template <class D, class S>
-	size_t inline convert_unsigned_int_to_float(D* dst, S* src, size_t words)
-	{
-		if(dst == nullptr) return 0;
-		if(src == nullptr) return ;
-		if(words == 0) return 0;
-		__DECL_ALIGNED(16) S tmpsrc[8];
-		__DECL_ALIGNED(16) D tmpdst[8];
-		const size_t major_words = words / 8;
-		const size_t minor_words = words % 8;
-		const int64_t max_tbl[8] = {INT8_MAX, INT16_MAX, INT16_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT64_MAX};
-		const D max_val = (D)(max_tbl[sizeof(S) - 1]);
-		__DECL_ALIGNED(16) D max_vals[8];
-		__DECL_ALIGNED(16) D diff_vals[8] = {1.0};
-		
-	__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			max_vals[j] = max_val;
-		}
-		
-		S* p = src;
-		D *q = dst;
-		
-		for(size_t i = 0; i < major_words; i++) {
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpsrc[j] = p[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpdst[j] = ((D)tmpsrc[j]) / max_vals[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				tmpdst[j] = tmpdst[j] - diff_vals[j];
-			}
-		__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				q[j] = tmpdst[j];
-			}
-			p += 8;
-			q += 8;
-		}
-		for(size_t i = 0; i < minor_words; i++) {
-			q[j] = ((D)(p[j]) / max_val) - ((D)(1.0));
-		}
-		return words;
-	}
-	
-	template <class D, class S>	
-	size_t  DLL_PREFIX convert_sound_format_int(
-		D *dst, BYTEORDER dst_endian, size_t dst_words,
-		S *src, BYTEORDER src_endian, size_t src_words
-		)
-	{
-		if(dst == nullptr) return 0;
-		if(src == nullptr) return 0;
-		if(dst_words == 0) return 0;
-		if(src_words == 0) return 0;
-		__DECL_ALIGNED(16) S tmpsrc[8];
-		__DECL_ALIGNED(16) D tmpdst[8];
-		const size_t words = std::min(src_words, dst_words);
-		const size_t major_words = words / 8;
-		const size_t minor_words = words % 8;
-		S* p = src;
-		D* q = dst;
-		if(dst_endian == src_endian) {
-			for(size_t i = 0; i < major_words; i++) {
-			__DECL_VECTORIZED_LOOP
-				for(size_t j = 0; j < 8; j++) {
-					tmpsrc[j] = p[j];
-				}
-			__DECL_VECTORIZED_LOOP
-				for(size_t j = 0; j < 8; j++) {
-					tmpdst[j] = (D)(tmpsrc[j]);
-				}
-			__DECL_VECTORIZED_LOOP
-				for(size_t j = 0; j < 8; j++) {
-					q[j] = tmpdst[j];
-				}
-				p += 8;
-				q += 8;
-			}
-			for(size_t i = 0; i < minor_words; i++) {
-				q[i] = ((D)(p[i]));
-			}
-		} else {
-			for(size_t i = 0; i < major_words; i++) {
-			__DECL_VECTORIZED_LOOP
-				for(size_t j = 0; j < 8; j++) {
-					tmpsrc[j] = p[j];
-				}
-			__DECL_VECTORIZED_LOOP
-				for(size_t j = 0; j < 8; j++) {
-					tmpdst[j] = (D)(tmpsrc[j]);
-				}
-				if(sizeof(D) > 1) {
-					swap_endian(tmpdst, q, 8);
-				}
-				p += 8;
-				q += 8;
-			}
-			if(minor_words > 0) {
-			__DECL_VECTORIZED_LOOP
-				for(size_t i = 0; i < minor_words; i++) {
-					tmpdst[i] = ((D)(p[i]));
-				}
-				if(sizeof(D) > 1) {
-					swap_endian(tmpdst, q, minor_words);
-				}
-			}
-		}
-		return words;
-	}
-	
-}
-
-namespace SOUND_OUTPUT_MODULE {
-
 class DLL_PREFIX M_BASE : public QObject
 {
 	Q_OBJECT
@@ -497,14 +165,7 @@ public:
 	int get_latency_ms();
 	int get_channels();
 	int get_sample_rate();
-	virtual SOUND_MODULE::FORMAT get_sound_format()
-	{
-		return SOUND_MODULE::FORMAT::Signed_Int;
-	}
-	virtual SOUND_MODULE::FORMAT get_sound_format()
-	{
-		return SOUND_MODULE::FORMAT::Signed_Int;
-	}
+	virtual __FORMAT get_sound_format();
 	
 	size_t get_word_size();
 	void get_buffer_parameters(int& channels, int& rate, int& latency_ms,
@@ -514,7 +175,7 @@ public:
 	
 	virtual M_BASE* get_real_driver()
 	{
-		return dynamic_cast<SOUND_OUTPUT_MODULE::M_BASE*>(this);
+		return dynamic_cast<SOUND_MODULE::OUTPUT::M_BASE*>(this);
 	}
 
 	virtual std::list<std::string> get_sound_devices_list()
@@ -639,6 +300,9 @@ signals:
 	// To UI: notify adding sound device list #arg1.
 	void sig_add_sound_device(QString);
 };
+/* SOUND_MODULE::OUTPUT */
+}
+/* SOUND_MODULE */
 }
 QT_END_NAMESPACE
 	

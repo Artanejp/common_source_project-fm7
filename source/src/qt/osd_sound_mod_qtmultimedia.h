@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include "./osd_sound_mod_template.h"
-
 #include <string>
 #include <list>
 #include <QAudioFormat>
@@ -22,10 +20,15 @@
 #include <QAudioDeviceInfo>
 #endif	
 
+#include "./osd_sound_mod_template.h"
+
 QT_BEGIN_NAMESPACE
 
-class SOUND_BUFFER_QT;
-namespace SOUND_OUTPUT_MODULE {
+
+namespace SOUND_MODULE {
+/* SOUND_MODULE */
+	namespace OUTPUT {
+	/* SOUND_MODULE::OUTPUT */
 class DLL_PREFIX M_QT_MULTIMEDIA
 	: public M_BASE
 {
@@ -95,4 +98,9 @@ public slots:
 	virtual void do_set_device_by_name(QString driver_name) override;
 
 };
+
+/* SOUND_MODULE::OUTPUT */
+	}
+/* SOUND_MODULE */
 }
+

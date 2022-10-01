@@ -449,7 +449,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 	now_mute = false;
 	if(sound_ok) {
 		// Get sound driver 
-		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 		if(sound_drv.get() == nullptr) {
 			return;
 		}
@@ -526,7 +526,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	// If sound driver hasn't initialized, initialize.
 	if(m_sound_driver.get() == nullptr) {
 		m_sound_driver.reset(
-			new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
+			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this,
 													 nullptr,
 													 rate,
 													 (samples * 1000) / rate,
@@ -536,7 +536,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		init_sound_device_list();
 		emit sig_update_sound_output_list();
 	}
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	
 	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
@@ -553,7 +553,7 @@ void OSD_BASE::release_sound()
 	sound_initialized = false;
 	sound_ok = false;
 	
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
 		sound_drv->release_sound();
 	}
@@ -572,7 +572,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 
 const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 {
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
 		return sound_drv->get_sound_device_name(num);
 	}
@@ -581,7 +581,7 @@ const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 
 void OSD_BASE::init_sound_device_list()
 {
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	sound_device_list.clear();
 	if(sound_drv.get() != nullptr) {
 		std::list<std::string> _l = sound_drv->get_sound_devices_list();
@@ -597,7 +597,7 @@ void OSD_BASE::init_sound_device_list()
 void OSD_BASE::mute_sound()
 {
 	if(!now_mute && sound_ok) {
-		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 		if(sound_drv.get() != nullptr) {
 			sound_drv->mute_sound();
 		}
@@ -607,7 +607,7 @@ void OSD_BASE::mute_sound()
 void OSD_BASE::stop_sound()
 {
 	if(sound_ok && sound_started) {
-		std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 		if(sound_drv.get() != nullptr) {
 			sound_drv->stop_sound();
 		}
@@ -617,7 +617,7 @@ void OSD_BASE::stop_sound()
 
 int OSD_BASE::get_sound_rate()
 {
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>sound_drv = m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
 		return sound_drv->get_sample_rate();
 	}
@@ -1223,7 +1223,7 @@ void OSD_BASE::restart_record_sound()
 #if 0 /* Temporally Disable  Caoptuing Sound 20220921 K.O */
 int OSD_BASE::get_sound_rate()
 {
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE>out_driver = m_output_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>out_driver = m_output_driver;
 	if(out_driver.get() != nullptr) {
 		return out_driver->get_sample_rate();
 	}
@@ -1259,9 +1259,11 @@ bool OSD_BASE::is_capture_sound_buffer(int ch)
 }
 void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sample_type, int samples, int physical_device_num)
 {
-	if(ch < 0) return NULL;
-	if(ch >= MAX_CAPTURE_SOUNDS) return NULL;
+	if(ch < 0) return nullptr;
+	if(ch >= MAX_CAPTURE_SOUNDS) return nullptr;
 	
+	void *p = nullptr;
+#if 0	
 	close_capture_sound_emu(ch);
 	sound_capture_desc[ch].rate = rate;
 	sound_capture_desc[ch].channels = channels;
@@ -1275,7 +1277,7 @@ void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sampl
 		}
 	}
 	
-	void *p = NULL;
+
 	if(stat) {
 		switch(sample_type) {
 		case SAMPLE_TYPE_UINT8:
@@ -1302,6 +1304,7 @@ void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sampl
 	}
 	sound_capture_desc[ch].out_buffer = (uint8_t *)p;
 	sound_capturing_emu[ch] = true;
+#endif
 	return p;
 }
 	
@@ -1310,6 +1313,7 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 	if(num < 0) return false;
 	if(num >= MAX_SOUND_CAPTURE_DEVICES) return false;
 	if(sound_capture_device_list.count() <= num) return false;
+#if 0	
 	SDL_AudioSpec req;
 	SDL_AudioSpec desired;
 	req.freq = req_rate;
@@ -1389,14 +1393,17 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 			}				
 		}
 	}
+#endif
 	return true;
 }
 
 bool OSD_BASE::close_sound_capture_device(int num, bool force)
 {
 	// ToDo: Check capturing entries
+#if 0	
 	if((capturing_sound[num]) && (sound_capture_desc[num].physical_dev > 0)) {
 		SDL_CloseAudioDevice(sound_capture_desc[num].physical_dev);
 	}
+#endif
 	return true;
 }

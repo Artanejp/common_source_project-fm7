@@ -92,7 +92,7 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 
 	#if 0  /* Note: Below are new sound driver. */
 	m_sound_driver.reset(
-		new SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA(this,
+		new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this,
 												 nullptr,
 												 48000,
 												 100,

@@ -92,8 +92,10 @@ class CSP_logger;
 class QOpenGLContext;
 class MIDI_REDIRECTOR;
 class SIO_REDIRECTOR;
-namespace SOUND_OUTPUT_MODULE {
-	class M_BASE;
+namespace SOUND_MODULE {
+	namespace OUTPUT {
+		class M_BASE;
+	}
 }
 
 QT_BEGIN_NAMESPACE
@@ -179,7 +181,7 @@ class DLL_PREFIX OSD_BASE : public  QObject
 	Q_OBJECT
 private:
 	#if 1 /* Note: Below are new sound driver. */
-	std::shared_ptr<SOUND_OUTPUT_MODULE::M_BASE> m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE> m_sound_driver;
 	#else /* Note */
 	qint64 sound_us_before_rendered;
 	qint64 elapsed_us_before_rendered;
@@ -323,9 +325,11 @@ protected:
 #endif
 	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	void release_sound();
+#if 0	
 	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
 	static void audio_callback(void *udata, Uint8 *stream, int len);
 	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
+#endif
 	virtual void init_sound_device_list();
 
 	int sound_rate, sound_samples;

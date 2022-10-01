@@ -6,9 +6,12 @@
 
 #include <QMediaDevices>
 
-namespace SOUND_OUTPUT_MODULE {
-
-M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
+namespace SOUND_MODULE {
+/* SOUND_MODULE */
+	
+	namespace OUTPUT {
+	/* SOUND_MODULE */
+	M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 		OSD_BASE *parent,
 		SOUND_BUFFER_QT* deviceIO,
 		int base_rate,
@@ -26,7 +29,7 @@ M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 		extra_config_values,
 		extra_config_bytes )
 {
-	m_classname = "SOUND_OUTPUT_MODULE::M_QT_MULTIMEDIA";
+	m_classname = "SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA";
 	
 	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()), Qt::QueuedConnection);
@@ -457,7 +460,6 @@ void M_QT_MULTIMEDIA::release_sound()
 	m_audioOutputSink.reset();
 
 	M_BASE::release_sound();
-
 }
 
 bool M_QT_MULTIMEDIA::release_driver()
@@ -623,6 +625,9 @@ void M_QT_MULTIMEDIA::stop_sound()
 		}
 	}
 }
+	/* SOUND_MODULE::OUTPUT */
+	}
+/* SOUND_MODULE */
 
 }
 
