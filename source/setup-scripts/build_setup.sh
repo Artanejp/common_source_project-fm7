@@ -14,6 +14,10 @@ USE_QT6=0
 USE_LTO=1
 USE_CXX20=0
 
+BUILD_TYPE=""
+TOOLCHAIN_TYPE=gcc
+TOOLCHAIN_VERSION=
+
 declare -a SCRIPT_LIST
 declare -a COPTS
 declare -a EXE_LDOPTS
@@ -169,10 +173,11 @@ case "${TOOLCHAIN_TYPE}" in
 		fi
 		;;
 	gcc* | gcc )
-		if [ __x__"${TOOLCHAIN_VERSION}" = __x__ ] ; then
-			TOOLCHAIN_VERSION=11
+		if [ __x__"${TOOLCHAIN_VERSION}" != __x__ ] ; then
+		    CMAKE_OPTS+=(-DCMAKE_CSP_GCC_VERSION=${TOOLCHAIN_VERSION})
+		else
+		    CMAKE_OPTS+=(-UCMAKE_CSP_GCC_VERSION)
 		fi
-		CMAKE_OPTS+=(-DCMAKE_CSP_GCC_VERSION=${TOOLCHAIN_VERSION})
 		;;
 	* )
 		if [ __x__"${TOOLCHAIN_VERSION}" = __x__ ] ; then
@@ -188,15 +193,31 @@ if [ __x__"${TOOLCHAIN_NAME}" = __x__ ] ; then
 			TOOLCHAIN_SHORT_NAME="llvm"
 			;;
 		gcc* | gcc )
-			TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_gcc${TOOLCHAIN_VERSION}.cmake"
+			TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_gcc-versioned.cmake"
+			#TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_gcc${TOOLCHAIN_VERSION}.cmake"
 			TOOLCHAIN_SHORT_NAME="gcc"
 			;;
 		* )
-			TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_gcc${TOOLCHAIN_VERSION}.cmake"
+			TOOLCHAIN_NAME="${TOOLCHAIN_NAME_PREFIX}_gcc-versioned.cmake"
 			TOOLCHAIN_SHORT_NAME="gcc"
 			;;
 	esac
 fi
+
+
+case "${TOOLCHAIN_TYPE}" in
+	llvm* | llvm | gcc* | gcc )
+		if [ __x__"${CROSS_BUILD_TYPE}" != __x__ ] ; then
+			ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}${TOOLCHAIN_VERSION}.sh"
+		else
+			ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}_generic.sh"
+		fi
+		;;
+	* )
+		ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}${TOOLCHAIN_VERSION}.sh"
+		;;
+esac
+echo ${ADDITONAL_DEFINES_FILE}
 
 if [ $USE_QT6 -ne 0 ] ; then
 	CMAKE_OPTS+=(-DUSE_QT_6=ON)
@@ -215,20 +236,6 @@ if [ $USE_CXX20 -ne 0 ] ; then
 else
 	CMAKE_OPTS+=(-DCSP_BUILD_WITH_CXX20=OFF)
 fi
-
-case "${TOOLCHAIN_TYPE}" in
-	llvm* | llvm | gcc* | gcc )
-		if [ __x__"${CROSS_BUILD_TYPE}" != __x__ ] ; then
-			ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}${TOOLCHAIN_VERSION}.sh"
-		else
-			ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}_generic.sh"
-		fi
-		;;
-	* )
-		ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}${TOOLCHAIN_VERSION}.sh"
-		;;
-esac
-echo ${ADDITONAL_DEFINES_FILE}
 
 if [ __x__"${SIMD_TYPE}" = __x__ ] ; then
 	case ${TARGET_ARCH} in

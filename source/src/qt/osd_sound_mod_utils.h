@@ -7,7 +7,7 @@ namespace SOUND_MODULE {
 	
 	static inline const __BYTEORDER get_system_byteorder()
 	{
-		#if __LITTLE_ENDIAN__
+		#ifdef __LITTLE_ENDIAN__
 		return __BYTEORDER::Little;
 		#else
 		return __BYTEORDER::Big;
