@@ -17,17 +17,6 @@
 #include <QString>
 #include <QStringList>
 #include <QImage>
-#include <QAudioFormat>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-#include <QAudioDevice>
-#include <QAudioSource>
-#include <QAudioSink>
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QAudioDeviceInfo>
-#include <QAudioInput>
-#include <QAudioOutput>
-#endif	
-
 
 #include <SDL.h>
 
@@ -191,19 +180,6 @@ private:
 	QAudioFormat m_audioOutputFormat;
 	QAudioFormat m_audioInputFormat;
 	
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	std::shared_ptr<QAudioSink> m_audioOutputSink;
-	std::shared_ptr<QAudioSource> m_audioInputSource;
-	
-	QAudioDevice m_audioOutputDevice;
-	QAudioDevice m_audioInputDevice;
-		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	std::shared_ptr<QAudioOutput> m_audioOutputSink;
-	std::shared_ptr<QAudioInput> m_audioInputSource;
-
-	QAudioDeviceInfo m_audioOutputDevice;
-	QAudioDeviceInfo m_audioInputDevice;
-		#endif	
 	#endif
 
 protected:
@@ -754,9 +730,6 @@ public slots:
 
 	void do_set_host_sound_output_device(QString device_name);
 	void do_update_master_volume(int level);
-
-	void handleAudioOutputStateChanged(QAudio::State newState);
-
 
 signals:
 	int sig_update_screen(void *, bool);

@@ -326,6 +326,9 @@ bool M_BASE::check_elapsed_to_render()
 	if(_diff < (_period_usec - 1000)) {
 		return false;
 	}
+	//if(_diff < _period_usec) {
+	//	return false;
+	//}
 	return true;
 }
 

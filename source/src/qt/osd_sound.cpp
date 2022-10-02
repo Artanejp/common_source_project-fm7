@@ -34,14 +34,11 @@
 #include <SDL.h>
 
 #include "qt_main.h"
-//#include "csp_logger.h"
 #include "gui/menu_flags.h"
 
-#include <QString>
 #include <QDateTime>
-#include <QThread>
 #include <QByteArray>
-#include <QBuffer>
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QApplication>
 #endif
@@ -49,6 +46,8 @@
 #include <cstdint>
 
 #include "./sound_buffer_qt.h"
+#include "./osd_sound_mod_template.h"
+
 #include "../gui/emu_thread_tmpl.h"
 
 int OSD_BASE::get_sound_device_num()
@@ -440,7 +439,6 @@ void OSD_BASE::release_sound()
 #endif
 
 /* Note: Below are new sound driver. */
-#include "./osd_sound_mod_template.h"
 #include "./osd_sound_mod_qtmultimedia.h"
 void OSD_BASE::update_sound(int* extra_frames)
 {
@@ -457,24 +455,38 @@ void OSD_BASE::update_sound(int* extra_frames)
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
 		int sound_samples = sound_drv->get_sample_count();
-		int now_mixed_ptr = 0;
-		if(vm != nullptr) {
-			now_mixed_ptr = vm->get_sound_buffer_ptr();
-		}
-		if(now_mixed_ptr < ((sound_samples * 90) / 100)) {
-			// Render even emulate 90% of latency when remain seconds is less than 2m Sec.
-			return;
-		}
 		// Check driver elapsed by real time. 
-		if((sound_started) && !(sound_drv->check_elapsed_to_render())) {
-			return;
+		if((sound_started)
+		   && !(sound_drv->check_elapsed_to_render())
+			) {
+			int now_mixed_ptr = 0;
+			if(vm != nullptr) {
+				now_mixed_ptr = vm->get_sound_buffer_ptr();
+			}
+			if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
+				// Render even emulate 100% of latency when remain seconds is less than 2m Sec.
+				return;
+			}
 		}
 		// Input
+		int16_t* sound_buffer_tmp = nullptr; 
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		
+		int16_t* sound_real_ptr = sound_buffer;
+		
 		if(sound_buffer == nullptr) {
-			return;
+			sound_buffer_tmp = new int16_t[sound_samples * 2];
+			if(sound_buffer_tmp == nullptr) {
+				sound_drv->update_render_point_usec();
+				return;
+			}
+			memset(sound_buffer_tmp, 0x00, sound_samples * 2 * sizeof(int16_t));
+			sound_real_ptr = sound_buffer_tmp;
 		}
 		if(!(sound_started)) {
+			if(p_config != nullptr) {
+				sound_drv->set_volume((int)(p_config->general_sound_level));
+			}
 			sound_drv->start();
 		}
 		sound_started = true;
@@ -486,11 +498,11 @@ void OSD_BASE::update_sound(int* extra_frames)
 				rec_sound_bytes += length;
 				if(now_record_video) {
 					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
-					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
+					emit sig_enqueue_audio((int16_t *)(&(sound_real_ptr[rec_sound_buffer_ptr * 2])), length);
 				}
 				// record sound
 				if(now_record_sound) {
-					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
+					rec_sound_fio->Fwrite(sound_real_ptr + rec_sound_buffer_ptr * 2, length, 1);
 				}
 				//if(now_record_video) {
 				//	// sync video recording
@@ -506,18 +518,26 @@ void OSD_BASE::update_sound(int* extra_frames)
 			}
 		}
 		//if(sound_initialized) return;
-		if(p_config != nullptr) {
-			sound_drv->set_volume((int)(p_config->general_sound_level));
-		}
+		//if(p_config != nullptr) {
+		//	sound_drv->set_volume((int)(p_config->general_sound_level));
+		//}
 		// ToDo: Convert sound format.
 		if(!(sound_drv->check_enough_to_render())) {
 			// Buffer underflow.
+			sound_drv->update_render_point_usec();
 			return;
-		}		   
-		int64_t _result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
+		}
+		int64_t _result = 0;		
+		if(sound_real_ptr != nullptr) {
+			_result = sound_drv->update_sound((void*)sound_real_ptr, sound_samples);
+		}
 		//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 		//		  _T("OSD::%s() : sound result=%d"), __func__, _result);
 		sound_drv->update_render_point_usec();
+		// delete if allocated.
+		if(sound_buffer_tmp != nullptr) {
+			delete [] sound_buffer_tmp;
+		}
 	}
 }
 
@@ -535,6 +555,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 													 0));
 		init_sound_device_list();
 		emit sig_update_sound_output_list();
+		if(p_config != nullptr) {
+			m_sound_driver->set_volume((int)(p_config->general_sound_level));
+		}
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	
@@ -1118,33 +1141,8 @@ int OSD_BASE::get_sound_rate()
 }
 
 
-void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
-{
-}
 /* END SDL DRIVER: Temporally disabled */
 #endif
-
-void OSD_BASE::handleAudioOutputStateChanged(QAudio::State newState)
-{
-	switch(newState) {
-	case QAudio::ActiveState:
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:ACTIVE"));
-		break;
-	case QAudio::IdleState:
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:IDLE"));
-		//if(m_audioOutputSink != nullptr) {
-		//	m_audioOutputSink->stop();
-		//}
-		break;
-	case QAudio::StoppedState:
-		//m_audioOutput = nullptr;
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:STOP"));
-		break;
-	case QAudio::SuspendedState:
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND, _T("AUDIO:SUSPEND"));
-		break;
-	}
-}
 
 void OSD_BASE::start_record_sound()
 {

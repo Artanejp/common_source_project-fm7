@@ -11,13 +11,17 @@
 
 #include <string>
 #include <list>
+
+
 #include <QAudioFormat>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 #include <QAudioDevice>
+#include <QAudioSource>
 #include <QAudioSink>
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QAudioOutput>
 #include <QAudioDeviceInfo>
+#include <QAudioInput>
+#include <QAudioOutput>
 #endif	
 
 #include "./osd_sound_mod_template.h"
@@ -40,12 +44,14 @@ protected:
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink>			m_audioOutputSink;
-	QAudioDevice m_audioOutputDevice;
+	QAudioDevice						m_audioOutputDevice;
+	QList<QAudioDevice>					m_audioOutputsList;
 	virtual void set_audio_format(QAudioDevice dest_device, QAudioFormat& desired, int& channels, int& rate);
-	
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	std::shared_ptr<QAudioOutput>		m_audioOutputSink;
-	QAudioDeviceInfo m_audioOutputDevice;
+	QAudioDeviceInfo					m_audioOutputDevice;
+	QList<QAudioDeviceInfo>				m_audioOutputsList;
+	
 	virtual void set_audio_format(QAudioDeviceInfo dest_device, QAudioFormat& desired, int& channels, int& rate);
 #endif
 
@@ -94,7 +100,6 @@ public slots:
 	virtual void do_sound_suspend();
 	virtual void do_discard_sound();
 	virtual void do_sound_volume(double level);
-
 	virtual void do_set_device_by_name(QString driver_name) override;
 
 };
