@@ -217,7 +217,7 @@ else
 fi
 
 case "${TOOLCHAIN_TYPE}" in
-	llvm* | llvm )
+	llvm* | llvm | gcc* | gcc )
 		if [ __x__"${CROSS_BUILD_TYPE}" != __x__ ] ; then
 			ADDITONAL_DEFINES_FILE=" ${SCRIPTS_DIR}/${ADITIONAL_DEFINES_PREFIX}_${TOOLCHAIN_SHORT_NAME}${TOOLCHAIN_VERSION}.sh"
 		else
