@@ -1,14 +1,15 @@
 #include <QMetaMethod>
 #include <QAction>
 
-#include "./gui/csp_logger.h"
-#include "./osd_base.h"
-#include "./sound_buffer_qt.h"
-#include "./osd_sound_mod_template.h"
-#include "./gui/menu_flags.h"
+#include "../../gui/csp_logger.h"
+#include "../../osd_base.h"
+#include "../../gui/menu_flags.h"
 
-#include "./osd_sound_mod_consts.h"
-#include "./osd_sound_mod_utils.h"
+#include "../sound_buffer_qt.h"
+#include "../osd_sound_mod_template.h"
+
+#include "../osd_sound_mod_consts.h"
+#include "../osd_sound_mod_utils.h"
 
 namespace SOUND_MODULE {
 /* SOUND_MODULE */

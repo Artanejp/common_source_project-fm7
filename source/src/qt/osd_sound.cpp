@@ -45,8 +45,8 @@
 
 #include <cstdint>
 
-#include "./sound_buffer_qt.h"
-#include "./osd_sound_mod_template.h"
+#include "./sound-drivers/sound_buffer_qt.h"
+#include "./sound-drivers/osd_sound_mod_template.h"
 
 #include "../gui/emu_thread_tmpl.h"
 
@@ -439,7 +439,7 @@ void OSD_BASE::release_sound()
 #endif
 
 /* Note: Below are new sound driver. */
-#include "./osd_sound_mod_qtmultimedia.h"
+#include "./sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.h"
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;

@@ -1,5 +1,5 @@
 
-#include "./sound_buffer_qt.h"
+#include "../sound_buffer_qt.h"
 
 SOUND_BUFFER_QT::SOUND_BUFFER_QT(uint64_t depth, QObject *parent) : QIODevice(parent)
 {

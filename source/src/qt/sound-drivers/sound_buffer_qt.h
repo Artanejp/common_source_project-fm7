@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <QIODevice>
-#include "../fifo_templates.h"
+#include "../../fifo_templates.h"
 
 QT_BEGIN_NAMESPACE
 

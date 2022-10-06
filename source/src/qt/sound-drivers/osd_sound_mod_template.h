@@ -14,9 +14,9 @@
 #include <memory>
 #include <string>
 
-#include "../common.h"
-#include "./config.h"
-#include "./osd_types.h"
+#include "../../common.h"
+#include "../../config.h"
+#include "../osd_types.h"
 
 
 #if !defined(__debug_log_func)

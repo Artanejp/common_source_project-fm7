@@ -24,7 +24,7 @@
 #include <QAudioOutput>
 #endif	
 
-#include "./osd_sound_mod_template.h"
+#include "../osd_sound_mod_template.h"
 
 QT_BEGIN_NAMESPACE
 

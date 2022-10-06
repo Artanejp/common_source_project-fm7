@@ -1,7 +1,9 @@
-#include "./config.h"
-#include "./gui/menu_flags.h"
-#include "./osd_base.h"
-#include "./sound_buffer_qt.h"
+#include "../../../config.h"
+#include "../../gui/menu_flags.h"
+#include "../../osd_base.h"
+
+#include "../sound_buffer_qt.h"
+
 #include "./osd_sound_mod_qtmultimedia.h"
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
