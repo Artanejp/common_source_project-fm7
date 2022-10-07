@@ -6,6 +6,8 @@
 
 #include "./osd_sound_mod_qtmultimedia.h"
 
+#include <algorithm>
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 #include <QMediaDevices>
 #endif
@@ -46,17 +48,26 @@ namespace SOUND_MODULE {
 	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
 	
-	get_sound_devices_list();
-
+	initialize_sound_devices_list();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
+#endif		
 	m_device_is_default = true;
-	QString _drv = QString::fromUtf8("Default");
+	m_device_name = "Default";
+	
+	QString _drv = QString::fromStdString(m_device_name);
 	config_t* _ccp = get_config_ptr();
 	if(_ccp != nullptr) {
 		if(strlen(_ccp->sound_device_name) > 0) {
 			_drv = QString::fromUtf8(_ccp->sound_device_name);
 		}
 	}
-	m_device_name = _drv.toLocal8Bit().toStdString();
+	auto _match = std::find(devices_name_list.begin(), devices_name_list.end(), _drv.toLocal8Bit().toStdString());
+	if(_match != devices_name_list.end()) {
+		m_device_name = (*_match);
+	}
 	m_config_ok = initialize_driver();
 }
 
@@ -262,8 +273,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	return result;
 }
 
-
-std::list<std::string> M_QT_MULTIMEDIA::get_sound_devices_list()
+void M_QT_MULTIMEDIA::initialize_sound_devices_list()
 {
 	devices_name_list.clear();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -277,6 +287,10 @@ std::list<std::string> M_QT_MULTIMEDIA::get_sound_devices_list()
 		devices_name_list.push_back((*i).deviceName().toStdString());
 	}
 #endif	
+}
+
+std::list<std::string> M_QT_MULTIMEDIA::get_sound_devices_list()
+{
 	return devices_name_list;
 }
 

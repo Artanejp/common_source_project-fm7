@@ -62,7 +62,7 @@ protected:
 	QAudioDeviceInfo get_device_by_name(QString driver_name);
 	void setup_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
 #endif
-	
+	virtual void initialize_sound_devices_list();
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms) override;
 	virtual void update_driver_fileio() override;
 	virtual const std::string set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms);
