@@ -332,7 +332,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 				return;
 			}
 			update_driver_fileio();
-			real_reconfig_sound(rate, channels, latency_ms);
+			//real_reconfig_sound(rate, channels, latency_ms);
 			emit sig_start_audio();
 			return;
 		}
