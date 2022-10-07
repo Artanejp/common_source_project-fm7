@@ -41,7 +41,7 @@ protected:
 	QAudioFormat						m_audioOutputFormat;
 	std::string							m_device_name;
 	std::list<std::string>				devices_name_list;
-
+	bool								m_device_is_default;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink>			m_audioOutputSink;
 	QAudioDevice						m_audioOutputDevice;
