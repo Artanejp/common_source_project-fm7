@@ -243,9 +243,9 @@ void Menu_CMTClass::do_open_rec_dialog()
 	
 	connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_write_cmt(QString))); 
 	connect(this, SIGNAL(sig_open_write_cmt(int, QString)), p_wid, SLOT(do_open_write_cmt(int, QString))); 
-	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window())); 
-	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window())); 
-	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int))); 
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
 	
 	dialogs.append(dlg);
 	dlg->setModal(false);

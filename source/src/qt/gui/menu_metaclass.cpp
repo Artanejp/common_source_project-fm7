@@ -189,7 +189,8 @@ void Menu_MetaClass::do_close_window()
 	for(auto i = dialogs.begin(); i != dialogs.end(); ++i) {
 		if((*i) == p) {
 			dialogs.erase(i);
-			dialogs.squeeze();
+			delete p;
+			//dialogs.squeeze();
 			return;
 		}
 	}
@@ -232,9 +233,9 @@ void Menu_MetaClass::do_open_dialog()
 
 	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
 	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
-	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window())); 
-	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window())); 
-	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int))); 
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
 	
 	dialogs.append(dlg);
 	dlg->setModal(false);

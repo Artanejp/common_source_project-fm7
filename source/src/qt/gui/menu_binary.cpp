@@ -136,9 +136,9 @@ void Menu_BinaryClass::do_open_save_dialog()
 	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)),
 					 this, SLOT(do_open_media_save(int, QString)));
 	
-	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window())); 
-	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window())); 
-	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int))); 
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
 	
 	dialogs.append(dlg);
 	dlg->setModal(false);
