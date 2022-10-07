@@ -114,7 +114,7 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 
 void Menu_BinaryClass::do_open_save_dialog()
 {
-	CSP_DiskDialog dlg;
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
 	
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
@@ -123,21 +123,28 @@ void Menu_BinaryClass::do_open_save_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
-	dlg.setOption(QFileDialog::ReadOnly, false);
-	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
-	dlg.setAcceptMode(QFileDialog::AcceptSave);
-	dlg.param->setDrive(media_drive);
-	dlg.param->setPlay(false);
-	dlg.setWindowTitle(QApplication::translate("MenuMedia", "Save Binary", 0));
-	dlg.setDirectory(initial_dir);
-	dlg.setNameFilters(ext_filter);
+	dlg->setOption(QFileDialog::ReadOnly, false);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setAcceptMode(QFileDialog::AcceptSave);
+	dlg->param->setDrive(media_drive);
+	dlg->param->setPlay(false);
+	dlg->setWindowTitle(QApplication::translate("MenuMedia", "Save Binary", 0));
+	dlg->setDirectory(initial_dir);
+	dlg->setNameFilters(ext_filter);
 
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
-					 dlg.param, SLOT(_open_disk(QString))); 
-	QObject::connect(dlg.param, SIGNAL(sig_open_disk(int, QString)),
+	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
+	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)),
 					 this, SLOT(do_open_media_save(int, QString)));
-	dlg.show();
-	dlg.exec();
+	
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window())); 
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window())); 
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int))); 
+	
+	dialogs.append(dlg);
+	dlg->setModal(false);
+	
+	dlg->show();
+	//dlg.exec();
 	return;
 }
 

@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 7.3.1)
+set(THIS_LIB_VERSION 7.3.2)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h

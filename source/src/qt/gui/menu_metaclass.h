@@ -8,6 +8,7 @@
 #ifndef _CSP_QT_MENU_METACLASSES_H
 #define _CSP_QT_MENU_METACLASSES_H
 
+#include <QList>
 #include <QString>
 #include <QStringList>
 #include <QMenu>
@@ -26,6 +27,9 @@ QT_BEGIN_NAMESPACE
 class QMenuBar;
 class QAction;
 class QActionGroup;
+class QFileDialog;
+class CSP_DiskDialog;
+
 class USING_FLAGS;
 class Action_Control;
 
@@ -66,7 +70,7 @@ protected:
 	class Action_Control *action_write_protect_off;
 	class Action_Control *action_select_media_list[128];
 	class Action_Control *action_recent_list[MAX_HISTORY];
-
+	QList<CSP_DiskDialog*>   dialogs;
 	QActionGroup *action_group_recent;
 	QActionGroup *action_group_inner_media;
 	QActionGroup *action_group_protect;
@@ -124,6 +128,9 @@ public slots:
 	void do_update_inner_media_bubble(QStringList lst, int num);
 	void do_update_histories(QStringList lst);
 	void do_set_window_title(QString s);
+	void do_close_window();
+	void do_finish(int i);
+	
 signals:
 	int sig_open_media(int, QString);
 	int sig_eject_media(int);

@@ -183,10 +183,25 @@ void Menu_MetaClass::do_select_inner_media(int num)
 		}
 	}
 }
+void Menu_MetaClass::do_close_window()
+{
+	CSP_DiskDialog *p = qobject_cast<CSP_DiskDialog*>(QObject::sender());
+	for(auto i = dialogs.begin(); i != dialogs.end(); ++i) {
+		if((*i) == p) {
+			dialogs.erase(i);
+			dialogs.squeeze();
+			return;
+		}
+	}
+}
+void Menu_MetaClass::do_finish(int i)
+{
+	do_close_window();
+}
 
 void Menu_MetaClass::do_open_dialog()
 {
-	CSP_DiskDialog dlg(this);
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
 
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
@@ -195,16 +210,16 @@ void Menu_MetaClass::do_open_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
-	dlg.setOption(QFileDialog::ReadOnly, false);
-	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
-	//dlg.setAcceptMode(QFileDialog::AcceptSave);
-	dlg.setFileMode(QFileDialog::AnyFile);
-	//dlg.setLabelText(QFileDialog::Accept, QApplication::translate("MenuMedia", "Open File", 0));
+	dlg->setOption(QFileDialog::ReadOnly, false);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	//dlg->setAcceptMode(QFileDialog::AcceptSave);
+	dlg->setFileMode(QFileDialog::AnyFile);
+	//dlg->setLabelText(QFileDialog::Accept, QApplication::translate("MenuMedia", "Open File", 0));
 
-	dlg.param->setDrive(media_drive);
-	dlg.param->setPlay(true);
-	dlg.setDirectory(initial_dir);
-	dlg.setNameFilters(ext_filter);
+	dlg->param->setDrive(media_drive);
+	dlg->param->setPlay(true);
+	dlg->setDirectory(initial_dir);
+	dlg->setNameFilters(ext_filter);
 
 	QString tmps;
 	tmps = QApplication::translate("MenuMedia", "Open", 0);
@@ -213,13 +228,19 @@ void Menu_MetaClass::do_open_dialog()
 	} else {
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
-	dlg.setWindowTitle(tmps);
+	dlg->setWindowTitle(tmps);
 
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_disk(QString))); 
-	QObject::connect(dlg.param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
-
-	dlg.show();
-	dlg.exec();
+	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
+	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window())); 
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window())); 
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int))); 
+	
+	dialogs.append(dlg);
+	dlg->setModal(false);
+	//dlg->open();
+	dlg->show();
+	//dlg->exec();
 	return;
 }
 

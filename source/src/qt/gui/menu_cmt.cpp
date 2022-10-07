@@ -223,7 +223,7 @@ void Menu_CMTClass::do_add_rec_media_extension(QString ext, QString description)
 
 void Menu_CMTClass::do_open_rec_dialog()
 {
-	CSP_DiskDialog dlg;
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
 	
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
@@ -232,19 +232,25 @@ void Menu_CMTClass::do_open_rec_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
-	dlg.setOption(QFileDialog::ReadOnly, false);
-	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
-	dlg.setAcceptMode(QFileDialog::AcceptSave);
-	dlg.param->setDrive(media_drive);
-	dlg.setDirectory(initial_dir);
-	dlg.setNameFilters(ext_rec_filter);
-	dlg.setWindowTitle(desc_rec);
-	dlg.setWindowTitle(QApplication::translate("MenuMedia", "Save Tape", 0));
+	dlg->setOption(QFileDialog::ReadOnly, false);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setAcceptMode(QFileDialog::AcceptSave);
+	dlg->param->setDrive(media_drive);
+	dlg->setDirectory(initial_dir);
+	dlg->setNameFilters(ext_rec_filter);
+	dlg->setWindowTitle(desc_rec);
+	dlg->setWindowTitle(QApplication::translate("MenuMedia", "Save Tape", 0));
 	
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_write_cmt(QString))); 
-	QObject::connect(this, SIGNAL(sig_open_write_cmt(int, QString)), p_wid, SLOT(do_open_write_cmt(int, QString))); 
-	dlg.show();
-	dlg.exec();
+	connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_write_cmt(QString))); 
+	connect(this, SIGNAL(sig_open_write_cmt(int, QString)), p_wid, SLOT(do_open_write_cmt(int, QString))); 
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window())); 
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window())); 
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int))); 
+	
+	dialogs.append(dlg);
+	dlg->setModal(false);
+	dlg->show();
+
 	return;
 }
 
