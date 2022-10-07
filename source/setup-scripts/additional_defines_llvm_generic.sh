@@ -7,7 +7,7 @@ function detect_llvm_version () {
 	else
 		TEST_CC="clang-${TOOLCHAIN_VERSION}"
 	fi
-	CC_VERSION=`${TEST_CC} -dumpversion | cur -d "." -f 1`
+	CC_VERSION=`${TEST_CC} -dumpversion | cut -d "." -f 1`
 	echo "${CC_VERSION}"
 }
 
