@@ -313,6 +313,7 @@ void M_BASE::release_sound()
 bool M_BASE::check_elapsed_to_render()
 {
 	const int64_t sound_us_now = driver_elapsed_usec();
+	//const int64_t sound_us_now = driver_processed_usec();
 	if(m_rate <= 0) return false;
 	
 	const int64_t  _period_usec = m_latency_ms * 1000;
@@ -324,7 +325,7 @@ bool M_BASE::check_elapsed_to_render()
 	if(_diff < 0) {
 		_diff = 0;
 	}
-	if(_diff < (_period_usec - 1000)) {
+	if(_diff < (_period_usec - 2000)) {
 		return false;
 	}
 	//if(_diff < _period_usec) {
@@ -347,6 +348,7 @@ void M_BASE::update_render_point_usec()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_before_rendered = driver_elapsed_usec();
+	//m_before_rendered = driver_processed_usec();
 }
 
 bool M_BASE::check_enough_to_render()

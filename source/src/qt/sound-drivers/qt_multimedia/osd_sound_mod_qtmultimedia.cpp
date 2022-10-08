@@ -707,15 +707,6 @@ void M_QT_MULTIMEDIA::do_discard_sound()
 	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
 	if(q.get() != nullptr) {
 		q->reset();
-		if(m_buffer_bytes > 0) {
-			int64_t _bytes = get_buffer_bytes();
-			uint8_t *pp = new uint8_t[_bytes];
-			if(pp != nullptr) {
-				memset(pp, 0x00, _bytes);
-				q->write((const char*)pp, _bytes);
-				delete[] pp;
-			}
-		}
 	}
 }
 

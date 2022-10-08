@@ -460,11 +460,12 @@ void OSD_BASE::update_sound(int* extra_frames)
 		   && !(sound_drv->check_elapsed_to_render())
 			) {
 			int now_mixed_ptr = 0;
-			if(vm != nullptr) {
-				now_mixed_ptr = vm->get_sound_buffer_ptr();
+			if(vm == nullptr) {
+				return;
 			}
+			now_mixed_ptr = vm->get_sound_buffer_ptr();
 			if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
-				// Render even emulate 100% of latency when remain seconds is less than 2m Sec.
+				// Render even emulate 100% of latency.
 				return;
 			}
 		}
@@ -477,6 +478,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(sound_buffer == nullptr) {
 			sound_buffer_tmp = new int16_t[sound_samples * 2];
 			if(sound_buffer_tmp == nullptr) {
+				sound_drv->discard();
 				sound_drv->update_render_point_usec();
 				return;
 			}
@@ -517,13 +519,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 			}
 		}
-		//if(sound_initialized) return;
-		//if(p_config != nullptr) {
-		//	sound_drv->set_volume((int)(p_config->general_sound_level));
-		//}
 		// ToDo: Convert sound format.
 		if(!(sound_drv->check_enough_to_render())) {
 			// Buffer underflow.
+			sound_drv->discard();
 			sound_drv->update_render_point_usec();
 			return;
 		}
