@@ -564,6 +564,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
 	if(sound_drv.get() != nullptr) {
 		sound_drv->initialize_sound(rate, samples, presented_rate, presented_samples);
+		//sound_drv->update_render_point_usec();
 		sound_ok = true;
 	}
 }
@@ -577,6 +578,7 @@ void OSD_BASE::release_sound()
 	
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
+		//sound_drv->update_render_point_usec();
 		sound_drv->release_sound();
 	}
 }

@@ -492,6 +492,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 	if(m_audioOutputSink.get() != nullptr) {
 		update_driver_fileio();
 		emit sig_start_audio();
+		//update_render_point_usec();
 	}
 }
 
