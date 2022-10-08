@@ -12,6 +12,8 @@
 #include <QStyle>
 #include <QApplication>
 #include <QMenuBar>
+#include <QThreadPool>
+
 //#include "emu.h"
 //#include "vm.h"
 #include "qt_dialogs.h"
@@ -28,6 +30,7 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	
 	p_wid = parent;
 	menu_root = root_entry;
+
 	//p_emu = ep;
 	p_emu = NULL;
 	using_flags = p;
@@ -41,6 +44,7 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	object_desc.append(tmps);
 	setObjectName(object_desc);
 	
+
 	for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 		action_select_media_list[ii] = NULL;
 	}
@@ -189,7 +193,7 @@ void Menu_MetaClass::do_close_window()
 	for(auto i = dialogs.begin(); i != dialogs.end(); ++i) {
 		if((*i) == p) {
 			dialogs.erase(i);
-			delete p;
+			p->deleteLater();
 			//dialogs.squeeze();
 			return;
 		}
@@ -202,8 +206,6 @@ void Menu_MetaClass::do_finish(int i)
 
 void Menu_MetaClass::do_open_dialog()
 {
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
 		char app[PATH_MAX];
@@ -211,16 +213,17 @@ void Menu_MetaClass::do_open_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
+	
 	dlg->setOption(QFileDialog::ReadOnly, false);
 	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setFileMode(QFileDialog::AnyFile);
 	//dlg->setLabelText(QFileDialog::Accept, QApplication::translate("MenuMedia", "Open File", 0));
-
 	dlg->param->setDrive(media_drive);
 	dlg->param->setPlay(true);
-	dlg->setDirectory(initial_dir);
-	dlg->setNameFilters(ext_filter);
+	dlg->param->setDirectory(initial_dir);
+	dlg->param->setNameFilters(ext_filter);
 
 	QString tmps;
 	tmps = QApplication::translate("MenuMedia", "Open", 0);
@@ -230,18 +233,22 @@ void Menu_MetaClass::do_open_dialog()
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
 	dlg->setWindowTitle(tmps);
-
+	
 	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
 	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
 	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
 	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
-	
-	dialogs.append(dlg);
+
+	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()), Qt::QueuedConnection); 
+
 	dlg->setModal(false);
+	dialogs.append(dlg);
+	
 	//dlg->open();
 	dlg->show();
 	//dlg->exec();
+	//emit sig_show();
 	return;
 }
 

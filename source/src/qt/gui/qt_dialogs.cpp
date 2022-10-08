@@ -49,6 +49,15 @@ void CSP_DiskParams::_open_quick_disk(QString s)
 	emit sig_open_quick_disk(d, s);
 }
 
+
+void CSP_DiskDialog::open()
+{
+	setNameFilters(param->getNameFilters());
+	setDirectory(param->getDirectory());
+	QFileDialog::open();
+	//show();
+}
+
 CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidget(parent)
 {
 	__real_media_type = 0x00;
@@ -222,3 +231,4 @@ void CSP_CreateHardDiskDialog::do_update_total_size(uint64_t size)
 	QString label = QString("%1MB (%2bytes)").arg(nsize).arg(size);
 	_size_label.setText(label);
 }
+

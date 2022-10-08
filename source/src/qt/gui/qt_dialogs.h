@@ -17,6 +17,7 @@
 #include <QLabel>
 #include <QApplication>
 #include <QWindow>
+#include <QStringList>
 
 #include "qt_main.h"
 
@@ -30,6 +31,8 @@ public:
 	CSP_DiskParams(QObject *parent = 0) : QObject(parent){
 		play = true;
 		drive = 0;
+		initial_dir = QString::fromLocal8Bit("");
+		ext_filter.clear();
 	}
 	~CSP_DiskParams() {}
 	void setDrive(int num) {drive = num & 7;}
@@ -41,6 +44,10 @@ public:
 		if(play) return 1;
 		return 0;
 	}
+	void setDirectory(QString _dir) { initial_dir = _dir; }
+	QString getDirectory() { return initial_dir; }
+	void setNameFilters(QStringList _name) { ext_filter = _name; }
+	QStringList getNameFilters() { return ext_filter; }
 signals:
 	int sig_open_disk(int, QString);
 	int sig_close_disk(int);
@@ -59,6 +66,8 @@ public slots:
 private:
 	int drive;
 	bool play;
+	QString initial_dir;
+	QStringList ext_filter;
 } CSP_FileParams;
 
 typedef class CSP_DiskDialog : public QFileDialog {
@@ -71,6 +80,8 @@ public:
 	~CSP_DiskDialog() {
 		delete param;
 	}
+public slots:
+	virtual void open() override;
 } CSP_DiskDialog;
 
 class CSP_CreateDiskDialog : public QWidget {
