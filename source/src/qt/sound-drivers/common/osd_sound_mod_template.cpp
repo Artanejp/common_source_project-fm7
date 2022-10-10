@@ -43,24 +43,31 @@ namespace SOUND_MODULE {
 	m_logger.reset();
 	m_using_flags.reset();
 	set_osd(parent);
-
-	if(deviceIO != nullptr) {
-		m_fileio.reset(deviceIO);
-		m_buffer_bytes = deviceIO->size(); 
-		m_chunk_bytes =  m_buffer_bytes / 4;
-	} else {
-		if(m_channels < 1) m_channels = 1;
-		if(m_rate < 1000) m_rate = 1000;
-		m_chunk_bytes = ((qint64)(m_channels * m_wordsize * m_latency_ms) * (quint64)m_rate) / 1000;
-		m_buffer_bytes = m_chunk_bytes * 4;
+	m_fileio.reset();
+	
+	if(m_channels < 1) m_channels = 1;
+	recalc_samples(m_rate, m_latency_ms, true, false);
+	
+	bool _reinit = (deviceIO == nullptr) ? true : false;
+	if(!(_reinit)) {
+		if(deviceIO->isOpen()) {
+			deviceIO->close();
+		}
+		if(deviceIO->resize(m_buffer_bytes)) {
+			m_fileio.reset(deviceIO);
+		} else {
+			_reinit = true;
+		}
+	}
+	if(_reinit) {
 		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes, this));
 	}
-	
+	update_driver_fileio();
 	m_loglevel = CSP_LOG_INFO;
 	m_logdomain = CSP_LOG_TYPE_SOUND;
 	__debug_log_func(_T("Initializing"));
 	
-	initialize_driver();
+	//initialize_driver();
 }
 
 M_BASE::~M_BASE()
@@ -95,6 +102,67 @@ bool M_BASE::debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...)
 	return do_send_log(m_loglevel.load(), m_logdomain.load(), _tmps);
 }
 
+bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool need_resize_fileio)
+{
+	if(rate < 1000) rate = 1000;
+	if(latency_ms < 1) latency_ms = 1;
+	int64_t _samples =
+		((int64_t)rate * latency_ms) / 1000;
+	size_t _chunk_bytes = (size_t)(_samples * m_wordsize);
+	int64_t _buffer_bytes = _chunk_bytes * 2;
+	
+	bool _need_restart = false;
+	if(need_resize_fileio) {
+		bool __reinit = true;
+		if(m_fileio.get() != nullptr) {
+			if(_buffer_bytes != m_buffer_bytes) {
+				bool _is_opened = m_fileio->isOpen(); 
+				if(_is_opened) {
+					m_fileio->close();
+				}
+				__reinit = !(m_fileio->resize(_buffer_bytes));
+				update_driver_fileio();
+				_need_restart = true;
+			} else {
+				__reinit = false;
+			}
+		}
+		if(__reinit) {
+			m_fileio.reset(new SOUND_BUFFER_QT(_buffer_bytes, this));
+			update_driver_fileio();
+			_need_restart = true;
+		}
+	}
+	if(need_update) {
+		m_chunk_bytes  = _chunk_bytes;
+		m_buffer_bytes = _buffer_bytes;
+		m_samples = _samples;
+	}
+	return _need_restart;
+}
+
+bool M_BASE::reopen_fileio(bool force_reopen)
+{
+	std::shared_ptr<SOUND_BUFFER_QT> sp = m_fileio;
+	if(sp.get() != nullptr) {
+		if(force_reopen) {
+			if(sp->isOpen()) {
+				sp->close();
+			}
+		}
+		sp->reset();
+		if(!(sp->isOpen())) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			sp->open(QIODeviceBase::ReadWrite | QIODeviceBase::Truncate | QIODeviceBase::Unbuffered);
+#else
+			sp->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
+#endif
+		}
+	} else {
+		return false;
+	}
+	return sp->isOpen();
+}
 bool M_BASE::debug_log(const _TCHAR *_fmt, ...)
 {
 	_TCHAR buf[768] = {0};
@@ -177,7 +245,7 @@ std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(SOUND_BUFFER_QT *p)
 	}
 	stop();
 	if(p == nullptr) {
-		m_fileio.reset(new SOUND_BUFFER_QT(m_chunk_bytes * 4, this));
+		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes, this));
 	} else {
 		m_fileio.reset(p);
 	}
@@ -212,23 +280,11 @@ bool M_BASE::update_latency(int latency_ms, bool force)
 	}
 	if(!(force) && (m_latency_ms == latency_ms)) return true;
 	
-	m_latency_ms = latency_ms;
-	m_chunk_bytes = ((qint64)(m_channels * ((int)m_wordsize) * latency_ms) * (quint64)m_rate) / 1000;
-	m_buffer_bytes = m_chunk_bytes * 4;
-	
 	stop();
-	
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
-	if(q.get() != nullptr) {
-		q->reset();
-		if(!(q->resize(m_buffer_bytes))) {
-			q->reset();
-			m_buffer_bytes = (int64_t)(q->size());
-		}
-	} else {
-		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes, this));
+	recalc_samples(m_rate, latency_ms, true, true);
+	if(m_fileio.get() != nullptr) {
+		m_fileio->reset();
 	}
-	update_driver_fileio();
 	return (start() && (m_fileio.get() != nullptr));
 }
 
@@ -381,16 +437,9 @@ bool M_BASE::start()
 		wait_driver_stopped(1000);
 	}
 	
-	bool _stat = false;
-	
-	if(q.get() != nullptr) {
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		_stat = q->open(QIODeviceBase::ReadWrite | QIODeviceBase::Truncate | QIODeviceBase::Unbuffered);
-		#else
-		_stat = q->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
-		#endif		
-		update_driver_fileio();
-	}	
+	bool _stat = reopen_fileio(true);
+	update_driver_fileio();
+
 	if(_stat) {
 		emit sig_start_audio();
 		return wait_driver_started(1000);

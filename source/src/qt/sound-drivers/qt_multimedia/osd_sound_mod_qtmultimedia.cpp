@@ -266,7 +266,6 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	if(m_samples <= 0) {
 		m_samples = 4800;
 	}
-	m_fileio.reset(new SOUND_BUFFER_QT(m_samples * (qint64)m_channels * sizeof(int16_t) * 4));
 	update_driver_fileio();
 
 	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
@@ -453,17 +452,9 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 				memset(_ccp->sound_device_name, 0x00, sizeof(_ccp->sound_device_name));
 				my_tcscpy_s(_ccp->sound_device_name, (sizeof(_ccp->sound_device_name) / sizeof(_TCHAR)) - 1, _tmpname.toUtf8().constData());
 			}
-			
-			int64_t _samples =
-				((int64_t)rate * latency_ms) / 1000;
-			if(_samples < 100) _samples = 100;
-			
-			if(m_fileio.get() != nullptr) {
-				if(m_fileio->isOpen()) {
-					m_fileio->close();
-				}
-			}
-			m_fileio.reset(new SOUND_BUFFER_QT(_samples * (qint64)channels * sizeof(int16_t) * 4));
+
+			recalc_samples(rate, latency_ms, true, true);
+
 			m_config_ok = (m_fileio.get() != nullptr);
 				
 			if(m_config_ok.load()) {
@@ -535,31 +526,16 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 		__debug_log_func(_T("Returned Driver=\"%s\" rate=%dHz channles=%d latency=%dmSec"), m_device_name.c_str(), rate, channels, latency_ms);
 		//emit sig_set_sound_device(m_device_name);
 	}
-//	if(m_config_ok.load()) {
-	std::shared_ptr<SOUND_BUFFER_QT> sp = m_fileio;
-	if(sp.get() != nullptr) {
-		if(!(sp->isOpen())) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-			sp->open(QIODeviceBase::ReadWrite | QIODeviceBase::Truncate | QIODeviceBase::Unbuffered);
-#else
-			sp->open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered);
-#endif
-		}
-		m_prev_started = m_mute = false;
-		sp->reset();
-	}
-//	}
-	
 	if((rate <= 0) || (latency_ms <= 0)) {
 		rate = 48000;
 		latency_ms = 100;
 		channels = 2;
 		m_config_ok = false;
 	}
-	m_rate = rate;
-	m_latency_ms = latency_ms;
-	m_channels = channels;
-	m_samples = ((int64_t)rate * (int64_t)latency_ms) / 1000;
+	if(recalc_samples(rate, latency_ms, true, false)) {
+		m_prev_started = m_mute = false;
+	}
+	
 	return m_config_ok.load();
 }
 

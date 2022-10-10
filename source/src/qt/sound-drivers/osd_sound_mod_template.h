@@ -86,6 +86,11 @@ protected:
 
 	config_t*					 get_config_ptr();
 	
+	bool recalc_samples(int rate, int latency_ms,
+						bool need_update = false,
+						bool need_resize_fileio = false);
+	bool reopen_fileio(bool force_reopen = false);
+	
 	bool debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...);
 	bool debug_log(const _TCHAR *_fmt, ...);
 	
