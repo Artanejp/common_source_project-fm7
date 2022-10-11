@@ -324,7 +324,9 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 #if defined(USE_MOUSE)	// Will fix
-			emit sig_is_enable_mouse(p_emu->is_mouse_enabled());
+			// 20221011 K.O
+			// Note: Maybe not need below, cause lock-up at starting debugger.
+			//emit sig_is_enable_mouse(p_emu->is_mouse_enabled());
 #endif			
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {

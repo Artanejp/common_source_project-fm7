@@ -260,6 +260,7 @@ bool OSD_BASE::get_use_video_capture(void)
 
 void OSD_BASE::vm_key_down(int code, bool flag)
 {
+	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 
 	if(vm != NULL) {
@@ -269,6 +270,7 @@ void OSD_BASE::vm_key_down(int code, bool flag)
 
 void OSD_BASE::vm_key_up(int code)
 {
+	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 
 	if(vm != NULL) {
@@ -279,7 +281,6 @@ void OSD_BASE::vm_key_up(int code)
 void OSD_BASE::vm_reset(void)
 {
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-
 	if(vm != NULL) {
 		vm->reset();
 	}
@@ -640,8 +641,8 @@ const _TCHAR *OSD_BASE::get_lib_common_vm_version()
 
 const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
 {
-	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-
+	// ToDo: Really need to lock? 20221011 K.O
+	//std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	return vm->get_vm_git_version();
 }
 
@@ -654,15 +655,15 @@ void OSD_BASE::vm_draw_screen(void)
 
 double OSD_BASE::vm_frame_rate(void)
 {
-	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-
+	// ToDo: Really need to lock? 20221011 K.O
+	//std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	return vm->get_frame_rate();
 }
 
 Sint16* OSD_BASE::create_sound(int *extra_frames)
 {
-	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-
+	// ToDo: Really need to lock? 20221011 K.O
+	//std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 
