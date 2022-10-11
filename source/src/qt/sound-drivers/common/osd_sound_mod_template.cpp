@@ -109,7 +109,7 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	int64_t _samples =
 		((int64_t)rate * latency_ms) / 1000;
 	size_t _chunk_bytes = (size_t)(_samples * m_wordsize);
-	int64_t _buffer_bytes = _chunk_bytes * 2;
+	int64_t _buffer_bytes = _chunk_bytes * 4;
 	
 	bool _need_restart = false;
 	if(need_resize_fileio) {
@@ -388,6 +388,13 @@ bool M_BASE::check_elapsed_to_render()
 	//	return false;
 	//}
 	return true;
+}
+
+bool M_BASE::is_driver_started()
+{
+	bool _b = m_config_ok.load();
+	_b &= m_prev_started.load();
+	return _b;
 }
 
 config_t* M_BASE::get_config_ptr()

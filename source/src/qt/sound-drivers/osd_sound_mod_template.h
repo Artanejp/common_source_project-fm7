@@ -109,6 +109,7 @@ public:
 
 	virtual bool wait_driver_started(int64_t timeout_msec = INT64_MIN);
 	virtual bool wait_driver_stopped(int64_t timeout_msec = INT64_MIN);
+	virtual bool is_driver_started();
 	virtual bool initialize_driver()
 	{
 		// AT LEAST:
