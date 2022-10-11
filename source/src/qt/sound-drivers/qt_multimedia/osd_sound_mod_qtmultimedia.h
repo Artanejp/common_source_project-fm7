@@ -84,6 +84,8 @@ public:
 	
 	virtual int64_t driver_elapsed_usec() override;
 	virtual int64_t driver_processed_usec() override;
+	virtual bool is_driver_started() override;
+	
 	virtual std::list<std::string> get_sound_devices_list() override;
 																	
 public slots:
