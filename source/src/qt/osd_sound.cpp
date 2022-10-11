@@ -455,44 +455,37 @@ void OSD_BASE::update_sound(int* extra_frames)
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
 		int sound_samples = sound_drv->get_sample_count();
-		// Check driver elapsed by real time. 
-		if((sound_started)
-		   && !(sound_drv->check_elapsed_to_render())
-			) {
-			int now_mixed_ptr = 0;
-			if(vm == nullptr) {
+		// Check driver elapsed by real time.
+		if(sound_started) {
+			if(!(sound_drv->check_elapsed_to_render())) {
+#if 0
+			
+				int now_mixed_ptr = 0;
+				if(vm == nullptr) {
+					return;
+				}
+				now_mixed_ptr = vm->get_sound_buffer_ptr();
+				if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
+					// Render even emulate 100% of latency.
+					return;
+				}
+#else
 				return;
+#endif
 			}
-			now_mixed_ptr = vm->get_sound_buffer_ptr();
-			if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
-				// Render even emulate 100% of latency.
-				return;
-			}
-		}
-		// Input
-		int16_t* sound_buffer_tmp = nullptr; 
-		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
-		
-		int16_t* sound_real_ptr = sound_buffer;
-		
-		if(sound_buffer == nullptr) {
-			sound_buffer_tmp = new int16_t[sound_samples * 2];
-			if(sound_buffer_tmp == nullptr) {
-				sound_drv->discard();
-				sound_drv->update_render_point_usec();
-				return;
-			}
-			memset(sound_buffer_tmp, 0x00, sound_samples * 2 * sizeof(int16_t));
-			sound_real_ptr = sound_buffer_tmp;
-		}
-		if(!(sound_started)) {
+		} else {
+			sound_drv->start();
+			sound_started = true;
 			if(p_config != nullptr) {
 				sound_drv->set_volume((int)(p_config->general_sound_level));
 			}
-			sound_drv->start();
+			sound_drv->update_render_point_usec();
+			return;
 		}
-		sound_started = true;
-
+		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		if(sound_buffer == nullptr) {
+			return;
+		}
 		if(now_record_sound || now_record_video) {
 			if(sound_samples > rec_sound_buffer_ptr) {
 				int samples = sound_samples - rec_sound_buffer_ptr;
@@ -500,11 +493,11 @@ void OSD_BASE::update_sound(int* extra_frames)
 				rec_sound_bytes += length;
 				if(now_record_video) {
 					//AGAR_DebugLog(AGAR_LOG_DEBUG, "Push Sound %d bytes\n", length);
-					emit sig_enqueue_audio((int16_t *)(&(sound_real_ptr[rec_sound_buffer_ptr * 2])), length);
+					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
 				}
 				// record sound
 				if(now_record_sound) {
-					rec_sound_fio->Fwrite(sound_real_ptr + rec_sound_buffer_ptr * 2, length, 1);
+					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				}
 				//if(now_record_video) {
 				//	// sync video recording
@@ -527,16 +520,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 			return;
 		}
 		int64_t _result = 0;		
-		if(sound_real_ptr != nullptr) {
-			_result = sound_drv->update_sound((void*)sound_real_ptr, sound_samples);
-		}
+		_result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
 		//debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 		//		  _T("OSD::%s() : sound result=%d"), __func__, _result);
 		sound_drv->update_render_point_usec();
-		// delete if allocated.
-		if(sound_buffer_tmp != nullptr) {
-			delete [] sound_buffer_tmp;
-		}
 	}
 }
 
@@ -630,12 +617,11 @@ void OSD_BASE::mute_sound()
 }
 void OSD_BASE::stop_sound()
 {
-	if(sound_ok && sound_started) {
-		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-		if(sound_drv.get() != nullptr) {
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+	if(sound_drv.get() != nullptr) {
+		if(sound_ok && sound_drv->is_driver_started()) {
 			sound_drv->stop_sound();
 		}
-		sound_started = false;
 	}
 }
 
