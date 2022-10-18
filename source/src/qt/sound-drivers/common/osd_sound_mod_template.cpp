@@ -368,10 +368,12 @@ void M_BASE::release_sound()
 
 bool M_BASE::check_elapsed_to_render()
 {
-	const int64_t sound_us_now = driver_elapsed_usec();
 	//const int64_t sound_us_now = driver_processed_usec();
 	if(m_rate <= 0) return false;
-	
+	if(!(is_driver_started())) {
+		return false;
+	}
+	const int64_t sound_us_now = driver_elapsed_usec();
 	const int64_t  _period_usec = m_latency_ms * 1000;
 	int64_t _diff = sound_us_now - m_before_rendered;
 	if((_diff < 0) && ((INT64_MAX - m_before_rendered) <= _period_usec))  {
@@ -384,9 +386,9 @@ bool M_BASE::check_elapsed_to_render()
 	if(_diff < (_period_usec - 2000)) {
 		return false;
 	}
-	//if(_diff < _period_usec) {
-	//	return false;
-	//}
+//	if(_diff < _period_usec) {
+//		return false;
+//	}
 	return true;
 }
 
@@ -425,14 +427,17 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;	
 	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
 	if(q.get() == nullptr) return -1;
-	
+	if(!(is_driver_started()) ||  !(q->isOpen())) {
+		return -1;
+	}
+	int64_t _result = -1;
 	if(samples > 0) {
 		qint64 _size = (qint64)(samples * m_channels) * (qint64)m_wordsize;
-		return (int64_t)q->write((const char *)datasrc, _size);
+		_result = (int64_t)q->write((const char *)datasrc, _size);
 	} else if(samples < 0) {
-		return (int64_t)q->write((const char *)datasrc, m_chunk_bytes);
+		_result = (int64_t)q->write((const char *)datasrc, m_chunk_bytes);
 	}
-	return -1;
+	return _result;
 }
 
 

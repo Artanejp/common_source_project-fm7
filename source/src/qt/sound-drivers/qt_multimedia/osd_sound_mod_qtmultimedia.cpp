@@ -119,12 +119,16 @@ void M_QT_MULTIMEDIA::set_audio_format(QAudioDevice dest_device, QAudioFormat& d
 	} else if(dest_device.maximumChannelCount() < _channels) {
 		_channels = dest_device.maximumChannelCount();
 	}
-	if(dest_device.minimumSampleRate() > rate) {
-		rate = dest_device.minimumSampleRate();
-	} else if(dest_device.maximumSampleRate() < rate) {
-		rate = dest_device.maximumSampleRate();
+	int _rate = rate;
+	if(dest_device.minimumSampleRate() > _rate) {
+		_rate = dest_device.minimumSampleRate();
+	} else if(dest_device.maximumSampleRate() < _rate) {
+		_rate = dest_device.maximumSampleRate();
 	}
-	if((rate <= 0)) {
+	//if(_rate > 0) {
+	rate = _rate; // Workaround 20221018 K.O
+	//}
+	if(_rate <= 0) {
 		return;
 	}
 	if(_channels > 0) {
@@ -343,11 +347,15 @@ QAudioDeviceInfo M_QT_MULTIMEDIA::get_device_by_name(QString driver_name)
 	
 void M_QT_MULTIMEDIA::do_set_device_by_name(QString driver_name)
 {
+	if(m_device_name == driver_name.toLocal8Bit().toStdString()) {
+		return;
+	}
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QAudioDevice dest_device = get_device_by_name(driver_name);
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QAudioDeviceInfo dest_device = get_device_by_name(driver_name);
 #endif
+
 	setup_device(dest_device, m_rate, m_channels, m_latency_ms, true);
 }
 
@@ -434,7 +442,12 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		m_audioOutputSink.reset(new QAudioOutput(dest_device, desired, this));
 #endif
+		do_discard_sound();
+		m_prev_started = false;
+		m_before_rendered = 0;
+		
 		if(m_audioOutputSink.get() != nullptr) {
+			m_audioOutputSink->setBufferSize(m_chunk_bytes);
 			connect(m_audioOutputSink.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
 			channels = m_audioOutputSink->format().channelCount();
 			rate = m_audioOutputSink->format().sampleRate();
@@ -454,9 +467,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			}
 
 			recalc_samples(rate, latency_ms, true, true);
-
 			m_config_ok = (m_fileio.get() != nullptr);
-				
 			if(m_config_ok.load()) {
 				real_reconfig_sound(rate, channels, latency_ms);
 			}
@@ -522,11 +533,11 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 	}
 
 	int64_t _samples = (rate * latency_ms) / 1000;
-	if((rate != m_rate) || (_samples != m_samples) || (m_latency_ms != latency_ms)) {
+//	if((rate != m_rate) || (_samples != m_samples) || (m_latency_ms != latency_ms)) {
 		m_device_name = set_device_sound((const _TCHAR *)(m_device_name.c_str()), rate, channels, latency_ms);
 		__debug_log_func(_T("Returned Driver=\"%s\" rate=%dHz channles=%d latency=%dmSec"), m_device_name.c_str(), rate, channels, latency_ms);
 		//emit sig_set_sound_device(m_device_name);
-	}
+//	}
 	if((rate <= 0) || (latency_ms <= 0)) {
 		rate = 48000;
 		latency_ms = 100;
@@ -544,11 +555,9 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 void M_QT_MULTIMEDIA::release_sound()
 {
 //	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	
-	m_audioOutputSink->disconnect();
-
 	if(m_audioOutputSink.get() != nullptr) {
 		m_audioOutputSink->stop();
+		m_audioOutputSink->disconnect();
 	}
 	m_audioOutputSink.reset();
 
@@ -569,14 +578,24 @@ void M_QT_MULTIMEDIA::do_sound_start()
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	std::shared_ptr<QAudioOutput> p = m_audioOutputSink;
 #endif
-	if(m_driver_fileio.get() != nullptr) {
-		m_driver_fileio->reset();
+	if(p.get() == nullptr) {
+		return;
 	}
-	if(p.get() != nullptr) {
-		p->start(m_driver_fileio.get());
-		__debug_log_func("GO. fileio=%0llx", m_driver_fileio.get());
+	if((p->state() != QAudio::StoppedState) && (m_prev_started)) {
+//		update_render_point_usec();
+		return;
 	}
+	if(m_driver_fileio.get() == nullptr) {
+		//m_driver_fileio->reset();
+		return;
+	}
+	m_driver_fileio->reset();
+	p->setBufferSize(m_chunk_bytes);
+	p->start(m_driver_fileio.get());
 	update_render_point_usec();
+	__debug_log_func("GO. fileio=%0llx", m_driver_fileio.get());
+
+	//update_render_point_usec();
 	m_prev_started = true;
 }
 
@@ -591,7 +610,7 @@ void M_QT_MULTIMEDIA::do_sound_stop()
 		p->stop();
 	}
 	do_discard_sound();
-	update_render_point_usec();
+	m_before_rendered = 0;
 	m_prev_started = false;
 }
 
@@ -641,6 +660,7 @@ int64_t M_QT_MULTIMEDIA::driver_elapsed_usec()
 #endif
 	if(p.get() != nullptr) {
 		return (int64_t)(p->elapsedUSecs());
+		//return (int64_t)(p->processedUSecs());
 	}
 	return 0;
 }
