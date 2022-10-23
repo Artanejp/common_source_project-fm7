@@ -2764,23 +2764,24 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		// Note: Sync with TSUGARU.
 		// 20220127 K.O
 		//cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
-		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
-		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		if((data & 0x80) != 0) {
-//			mcu_intr = false;
-//			if(!(dma_intr)) set_intrs_force(false, false, false);
-			set_mcu_intr(false);
+			mcu_intr = false;
+			if(!(dma_intr)) {
+				write_mcuint_signals(0); // Reset interrupt request to PIC.
+			}
 		}
 		if((data & 0x40) != 0) {
-//			dma_intr = false;
-//			if(!(mcu_intr)) set_intrs_force(false, false, false);
-			set_dma_intr(false);
+			dma_intr = false;
+			if(!(mcu_intr)) {
+				write_mcuint_signals(0); // Reset interrupt request to PIC.
+			}
 		}
 		if((data & 0x04) != 0) {
 			cdrom_debug_log(_T("RESET FROM CMDREG: 04C0h"));
 			reset_device();
-//			break;
 		}
+		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
+		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		break;
 	case 0x02: // Command
 		//cdrom_debug_log(_T("PORT 04C2h <- %02X"), data);
@@ -2800,16 +2801,15 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0x04: // Param
-//		if(param_ptr >= 8) {
-//			param_ptr = 7;
-//		}
-		for(int xx = 1; xx < 8; xx++) {
-			param_queue[xx - 1] = param_queue[xx];
+		if(param_ptr >= 8) {
+			// Rotate queue
+			for(int xx = 0; xx < 7; xx++) {
+				param_queue[xx] = param_queue[xx + 1];
+			}
+			param_ptr = 7;
 		}
-//		}
-//		param_queue[param_ptr] = data;
-		param_queue[7] = data;
-//		param_ptr++;
+		param_queue[param_ptr] = data;
+		param_ptr++;
 		break;
 	case 0x06:
 		dma_transfer = ((data & 0x10) != 0) ? true : false;
@@ -2953,7 +2953,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	21
+#define STATE_VERSION	22
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {

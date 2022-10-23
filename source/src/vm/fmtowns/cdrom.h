@@ -367,7 +367,7 @@ protected:
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
-	int param_ptr;
+	uint8_t param_ptr;
 	bool command_entered;
 	bool param_filled;
 	uint8_t param_pre_queue[8];
