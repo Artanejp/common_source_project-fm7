@@ -2031,7 +2031,6 @@ void TOWNS_CDROM::reset_device()
 	cdda_start_frame = 0;
 	cdda_end_frame = 150;
 	cdda_playing_frame = 0;
-	read_sector = 0;
    
 	read_sector = 0;
 	
