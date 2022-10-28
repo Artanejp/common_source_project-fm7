@@ -1084,10 +1084,12 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	case CONFIG_RENDER_PLATFORM_OPENGL_MAIN:
 	case CONFIG_RENDER_PLATFORM_OPENGL_CORE:
 		QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
+		QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true); // Enable shared contexts.		
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
 		break;
 	case CONFIG_RENDER_PLATFORM_OPENGL_ES:
 		QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, false);
+		QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true); // Enable shared contexts.
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, true);
 		break;
 	default: // to GLES 2.1 as Default
@@ -1098,6 +1100,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 		config.render_minor_version = 1;
 		break;
 	}
+
 	SetProcCmdFD(cmdparser, _l);
 	SetProcCmdHDD(cmdparser, _l);
 	SetProcCmdQuickDisk(cmdparser, _l);
