@@ -22,9 +22,11 @@
 
 #include <list>
 #include <string>
+#include <memory>
 
 #include "../../fileio.h"
 #include "../../config.h"
+#include "../../emu_template.h"
 
 QT_BEGIN_NAMESPACE	
 
@@ -43,6 +45,8 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	Q_OBJECT
  protected:
 	config_t *p_cfg;
+	EMU_TEMPLATE* emu;
+	
 	QObject *parent_object;
 	QWidget *widget;
 	QTextEdit *text;
@@ -57,14 +61,15 @@ class DLL_PREFIX CSP_Debugger_Tmpl : public QWidget
 	QStringList complete_list;
 
 public:
-	CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent);
+	CSP_Debugger_Tmpl(EMU_TEMPLATE* p_emu, QWidget *parent = nullptr);
 	~CSP_Debugger_Tmpl();
-	//virtual void closeEvent(QCloseEvent *event);
+	debugger_thread_t debugger_thread_param;
+
 	QStringList &get_complete_list();
-	virtual void resizeEvent(QResizeEvent *event);
+	void resizeEvent(QResizeEvent *event);
+	void closeEvent(QCloseEvent *event);										 
 public slots:
 	void stop_polling();
-	void put_string(QString);
 	void cmd_clear();
 	virtual void run(void);
 	void set_string_attr(QString color, bool is_strong);
@@ -77,6 +82,11 @@ public slots:
 	void apply_complete_list();
 	void set_font(const QFont &font);
 	void rise_font_dialog();
+
+	void do_destroy_thread();
+	void put_string(QString str);
+	void call_debugger();
+
 signals:
 	void sig_put_string(QString);
 	void sig_run_command(QString);
@@ -85,6 +95,11 @@ signals:
 	void sig_call_debugger(QString);
 	void sig_close_debugger(void);
 	void sig_apply_complete_list(QStringList);
+
+	void sig_set_input_string(QString);
+	
+	void sig_stop_debugger(void);
+	void sig_run_debugger(void);
 };
 
 QT_END_NAMESPACE	

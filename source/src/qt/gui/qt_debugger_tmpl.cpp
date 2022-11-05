@@ -29,6 +29,8 @@
 #include "osd_base.h"
 #include "menu_flags.h"
 
+#include "../../vm/vm_limits.h"
+
 void CSP_Debugger_Tmpl::set_string_attr(QString color, bool is_strong)
 {
 	string_is_strong = is_strong;
@@ -38,6 +40,7 @@ void CSP_Debugger_Tmpl::set_string_attr(QString color, bool is_strong)
 		text_color.clear();
 	}
 }
+
 void CSP_Debugger_Tmpl::put_string(QString s)
 {
 	QString prefix = text_color;
@@ -118,11 +121,29 @@ void CSP_Debugger_Tmpl::apply_complete_list(void)
 	emit sig_apply_complete_list(complete_list);
 }
 
+void CSP_Debugger_Tmpl::call_debugger(void)
+{
+	emit sig_set_input_string(text_command->text());
+	cmd_clear();
+}
+
 void CSP_Debugger_Tmpl::run(void)
 {
-	connect(this, SIGNAL(sig_finished()), this, SLOT(close()));
-	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
+	if(emu == nullptr) {
+		close();
+		return;
+	}
+
+	text_color = QString::fromUtf8("<FONT COLOR=black>");
+	string_is_strong = false;
+	if(emu != nullptr) {
+		emu->open_debugger(debugger_thread_param.cpu_index);
+	} else {
+		QString mes = QApplication::translate("Debugger", "Emulator still not start\nPlease wait.", 0);
+		put_string(mes);
+	}
 }
+
 
 void CSP_Debugger_Tmpl::set_font(const QFont &font)
 {
@@ -153,11 +174,61 @@ void CSP_Debugger_Tmpl::resizeEvent(QResizeEvent *event)
 	p_cfg->debugwindow_width = width;
 }
 
-CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget(parent, Qt::Window)
+void CSP_Debugger_Tmpl::closeEvent(QCloseEvent *event)
 {
+	//emit sig_close_debugger();
+	//event->ignore();
+
+	debugger_thread_param.request_terminate = true;
+	if(emu != nullptr) {
+		VM_TEMPLATE* p_vm = debugger_thread_param.vm;
+		if(p_vm != nullptr) {
+			uint32_t cpu_index = debugger_thread_param.cpu_index;
+			if(emu->is_debugger_enabled(cpu_index)) {
+				emu->close_debugger();
+			}
+		}
+	}
+	if(event != nullptr) {
+		event->accept();
+	}
+	emit sig_finished();
+}
+
+void CSP_Debugger_Tmpl::do_destroy_thread(void)
+{
+	this->close();
+}
+
+CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(EMU_TEMPLATE* p_emu, QWidget *parent)
+	: QWidget(parent, Qt::Window),
+	  p_cfg(nullptr),																		 
+	  widget(nullptr),
+	  text(nullptr),
+	  text_command(nullptr),
+	  call_font_dialog(nullptr),
+	  VBoxWindow(nullptr),
+	  TailButtons(nullptr),
+	  emu(p_emu)
+{
+	OSD_BASE* p_osd;
+	// First.
+	parent_object = parent;
+
+	memset(&debugger_thread_param, 0x00, sizeof(debugger_thread_param));
+
+	
+	if(p_emu == nullptr) {
+		return; // OK?
+	}
+
+	p_osd = emu->get_osd();
+	if(p_osd == nullptr) {
+		return; // OK?
+	}
 	widget = this;
 	p_cfg = p_osd->get_config_flags()->get_config_ptr();
-	parent_object = parent;
+	
 	text = new QTextEdit(this);
 	text->setReadOnly(true);
 	text->setLineWrapMode(QTextEdit::WidgetWidth);
@@ -170,7 +241,6 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget
 	text_command->setEnabled(true);
 	text_command->clear();
 	call_font_dialog = new QPushButton(QApplication::translate("Debugger", "Set Font", 0),this);
-
 	
 	if(strlen(p_cfg->debugwindow_font) > 0) {
 		QFont font;
@@ -180,12 +250,22 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget
 	}
 	complete_list.clear();
 
-	connect(this, SIGNAL(sig_apply_complete_list(QStringList)), text_command, SLOT(setCompleteList(QStringList)));
+	connect(this, SIGNAL(sig_apply_complete_list(QStringList)), text_command, SLOT(setCompleteList(QStringList)), Qt::QueuedConnection);
 	connect(call_font_dialog, SIGNAL(pressed()), this, SLOT(rise_font_dialog()));
-	connect(p_osd, SIGNAL(sig_apply_dbg_completion_list()), this, SLOT(apply_complete_list()));
-	connect(p_osd, SIGNAL(sig_clear_dbg_completion_list()), this, SLOT(clear_complete_list()));
-	connect(p_osd, SIGNAL(sig_add_dbg_completion_list(_TCHAR *)), this, SLOT(add_complete_list(_TCHAR *)));
+	connect(p_osd, SIGNAL(sig_apply_dbg_completion_list()), this, SLOT(apply_complete_list()), Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_clear_dbg_completion_list()), this, SLOT(clear_complete_list()), Qt::QueuedConnection);
+	
+	connect(p_osd, SIGNAL(sig_add_dbg_completion_list(_TCHAR *)), this, SLOT(add_complete_list(_TCHAR *)), Qt::QueuedConnection);
 
+	connect(this, SIGNAL(sig_set_input_string(QString)), p_osd, SLOT(do_set_input_string(QString)), Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_close_console()), this, SLOT(do_destroy_thread()), Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_put_string_debugger(QString)), this, SLOT(put_string(QString)), Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_set_attribute_debugger(QString, bool)), this, SLOT(set_string_attr(QString, bool)), Qt::QueuedConnection);
+
+	connect(this, SIGNAL(sig_finished()), this, SLOT(close()), Qt::QueuedConnection);
+	connect(text_command, SIGNAL(editingFinished2()), this, SLOT(call_debugger()), Qt::QueuedConnection);
+	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()), Qt::QueuedConnection);
+	
 	VBoxWindow = new QVBoxLayout;
 	TailButtons = new QHBoxLayout;
 	
@@ -208,5 +288,11 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(OSD_BASE* p_osd, QWidget *parent) : QWidget
 
 CSP_Debugger_Tmpl::~CSP_Debugger_Tmpl()
 {
-	
+	if(emu != nullptr) {
+		uint32_t cpu_index = debugger_thread_param.cpu_index;
+		if(emu->is_debugger_enabled(cpu_index)) {
+			emu->close_debugger();
+		}
+	}
+	//emu.reset(); // Deallocate
 }

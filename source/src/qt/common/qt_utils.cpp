@@ -47,6 +47,7 @@
 #include "dialog_movie.h"
 #include "../avio/movie_saver.h"
 // emulation core
+#include "../../vm/vm_limits.h"
 #include "../../vm/fmgen/fmgen.h"
 
 EMU* emu;
@@ -1487,31 +1488,40 @@ void Ui_MainWindow::OnOpenDebugger()
 	if(cp == nullptr) return;
 	int no = cp->data().value<int>();
 
-	if((no < 0) || (no > 7)) return;
+	if((no < 0) || (no >= MAX_CPU)) return;
 	//emu->open_debugger(no);
 	VM *vm = static_cast<VM*>(emu->get_vm());
 
- 	if((emu->now_debugging ) || (emu->hDebugger != NULL)) /* OnCloseDebugger(); */ return;
+	// ToDo: Multiple debugger 20221105 K.O
+ 	if((emu->now_debugging ) || (emu->hDebugger.get() != nullptr)) /* OnCloseDebugger(); */ return;
 	
 	if(!(emu->now_debugging && emu->debugger_thread_param.cpu_index == no)) {
 		//emu->close_debugger();
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
 			QString windowName = QString::fromUtf8(vm->get_cpu(no)->get_device_name());
 			windowName = QString::fromUtf8("Debugger ") + windowName;
-			emu->hDebugger = new CSP_Debugger((OSD*)(emu->get_osd()), this);
+			emu->hDebugger.reset(new CSP_Debugger(emu, this));
+			if(emu->hDebugger.get() == nullptr) {
+				return;
+			}
 			QString objNameStr = QString("EmuDebugThread");
 			emu->hDebugger->setObjectName(objNameStr);
-			emu->hDebugger->debugger_thread_param.osd = (OSD*)(emu->get_osd());
+			
+			emu->hDebugger->debugger_thread_param.osd = (OSD_BASE *)(emu->get_osd());
+			emu->hDebugger->debugger_thread_param.emu = emu;
 			emu->hDebugger->debugger_thread_param.vm = vm;
 			emu->hDebugger->debugger_thread_param.cpu_index = no;
+			emu->hDebugger->debugger_thread_param.running = false;
+			emu->hDebugger->debugger_thread_param.request_terminate = false;
+			
 			emu->stop_record_sound();
 			emu->stop_record_video();
 			//emu->now_debugging = true;
-			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(doExit()));
-			connect(this, SIGNAL(destroyed()), emu->hDebugger, SLOT(do_destroy_thread()));
+			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger.get(), SLOT(doExit()));
+			connect(this, SIGNAL(destroyed()), emu->hDebugger.get(), SLOT(do_destroy_thread()));
 			//connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(close()));
-			connect(emu->hDebugger, SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
-			connect(emu->hDebugger, SIGNAL(sig_put_string(QString)), emu->hDebugger, SLOT(put_string(QString)));
+			connect(emu->hDebugger.get(), SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
+			connect(emu->hDebugger.get(), SIGNAL(sig_put_string(QString)), emu->hDebugger.get(), SLOT(put_string(QString)));
 			emu->hDebugger->show();
 			emu->hDebugger->run();
 			emu->hDebugger->setWindowTitle(windowName);
@@ -1521,9 +1531,12 @@ void Ui_MainWindow::OnOpenDebugger()
 
 void Ui_MainWindow::OnCloseDebugger(void )
 {
-
+	if(emu == nullptr) {
+		return;
+	}
 //	emu->close_debugger();
- 	if(emu->now_debugging) {
+	// ToDo: Multiple debugger 20221105 K.O
+ 	if((emu->now_debugging) && (emu->hDebugger.get() != nullptr)) {
 		if(emu->hDebugger->debugger_thread_param.running) {
 			emit quit_debugger_thread();
 			//if(!(emu->hDebugger->wait(2000))) {
@@ -1532,13 +1545,8 @@ void Ui_MainWindow::OnCloseDebugger(void )
 			//}
 		}
  	}
-	if(emu != NULL) {
-		if(emu->hDebugger != nullptr) {
-			delete emu->hDebugger;
-			emu->hDebugger = nullptr;
-		}
-		emu->now_debugging = false;
-	}
+	emu->hDebugger.reset();
+	emu->now_debugging = false;
 }
 #endif
 

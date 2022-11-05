@@ -37,7 +37,7 @@
 static FILEIO* logfile = NULL;
 static FILEIO* cmdfile = NULL;
 
-void my_printf(OSD *osd, const _TCHAR *format, ...)
+void my_printf(OSD_BASE *osd, const _TCHAR *format, ...)
 {
 	_TCHAR buffer[8192];
 	va_list ap;
@@ -52,7 +52,7 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	osd->write_console(buffer, (unsigned int)_tcslen(buffer));
 }
 
-void my_putch(OSD *osd, _TCHAR c)
+void my_putch(OSD_BASE *osd, _TCHAR c)
 {
 	if(logfile != NULL && logfile->IsOpened()) {
 		logfile->Fwrite(&c, sizeof(_TCHAR), 1);
@@ -174,7 +174,7 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	return NULL;
 }
 
-void show_break_reason(OSD *osd, DEVICE *cpu, DEVICE *target, bool hide_bp)
+void show_break_reason(OSD_BASE *osd, DEVICE *cpu, DEVICE *target, bool hide_bp)
 {
 	DEBUGGER *cpu_debugger = (DEBUGGER *)cpu->get_debugger();
 	DEBUGGER *target_debugger = (DEBUGGER *)target->get_debugger();
@@ -250,12 +250,12 @@ void show_break_reason(OSD *osd, DEVICE *cpu, DEVICE *target, bool hide_bp)
 	}
 }
 
-void set_dbg_completion_list(OSD *osd, std::list<std::string> *p)
+void set_dbg_completion_list(OSD_BASE *osd, std::list<std::string> *p)
 {
 	osd->set_dbg_completion_list(p);
 }
 
-void clear_dbg_completion_list(OSD *osd)
+void clear_dbg_completion_list(OSD_BASE *osd)
 {
 	osd->clear_dbg_completion_list();
 }
@@ -1731,7 +1731,7 @@ void EMU::open_debugger(int cpu_index)
 		close_debugger();
 		if(vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL) {
 			debugger_thread_param.emu = this;
-			debugger_thread_param.osd = (OSD*)osd;
+			debugger_thread_param.osd = (OSD_BASE*)osd;
 			debugger_thread_param.vm = vm;
 			debugger_thread_param.cpu_index = cpu_index;
 			debugger_thread_param.request_terminate = false;

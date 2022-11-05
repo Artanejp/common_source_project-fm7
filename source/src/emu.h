@@ -48,18 +48,7 @@ class VM_TEMPLATE;
 class FIFO;
 class FILEIO;
 class CSP_Logger;
-/*
-#ifdef USE_DEBUGGER
-typedef struct {
-	EMU *emu;
-	OSD *osd;
-	VM *vm;
-	int cpu_index;
-	bool running;
-	bool request_terminate;
-} debugger_thread_t;
-#endif
-*/
+
 class EMU : public EMU_TEMPLATE
 {
 protected:
@@ -297,13 +286,13 @@ public:
 	
 	// debugger
 #ifdef USE_DEBUGGER
-	void open_debugger(int cpu_index);
-	void close_debugger();
-	bool is_debugger_enabled(int cpu_index);
+	void open_debugger(int cpu_index) override;
+	void close_debugger() override;
+	bool is_debugger_enabled(int cpu_index) override;
 #endif
-	void start_waiting_in_debugger();
-	void finish_waiting_in_debugger();
-	void process_waiting_in_debugger();
+	void start_waiting_in_debugger() override;
+	void finish_waiting_in_debugger() override;
+	void process_waiting_in_debugger() override;
 	
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);

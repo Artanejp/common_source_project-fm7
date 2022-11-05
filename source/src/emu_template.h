@@ -27,19 +27,15 @@
 // oops!
 #endif
 
-#if defined(OSD_QT)
-#include "qt/osd_base.h"
-#endif
-
-class VM;
 class VM_TEMPLATE;
-class EMU;
 class EMU_TEMPLATE;
-class OSD;
+
 class FIFO;
 class FILEIO;
 
 #if defined(OSD_QT)
+#include "qt/osd_base.h"
+//class OSD_BASE;
 class CSP_Logger;
 
 class CSP_Debugger;
@@ -49,17 +45,31 @@ class USING_FLAGS;
 class GLDrawClass;
 class EmuThreadClass;
 class DrawThreadClass;
+#else
+class OSD;
 #endif
 
+//struct bitmap_t;
+
+#if defined(OSD_QT)
 typedef struct {
-	EMU *emu;
-	OSD *osd;
-	VM *vm;
+	EMU_TEMPLATE *emu;
+	OSD_BASE *osd;
+	VM_TEMPLATE *vm;
 	int cpu_index;
 	bool running;
 	bool request_terminate;
 } debugger_thread_t;
-
+#else
+typedef struct {
+	EMU_TEMPLATE *emu;
+	OSD *osd;
+	VM_TEMPLATE *vm;
+	int cpu_index;
+	bool running;
+	bool request_terminate;
+} debugger_thread_t;
+#endif
 class DLL_PREFIX EMU_TEMPLATE {
 protected:
 	OSD_BASE* osd;
@@ -158,7 +168,9 @@ public:
 #if defined(OSD_QT)
 		csp_logger = p_logger;
 		debugger_thread_id = (pthread_t)0;
-		hDebugger = NULL;
+		
+		// ToDo: Multiple debugger 20221105 K.O
+		hDebugger.reset();
 #elif defined(OSD_WIN32)
 		hDebuggerThread = (HANDLE)0;
 #else
@@ -351,15 +363,20 @@ public:
 	virtual void recv_socket_data(int ch) {}
 
 	// debugger
+	virtual void initialize_debugger() { }
+	virtual void release_debugger() { }
+	
 	virtual void open_debugger(int cpu_index) {}
 	virtual void close_debugger() {}
 	virtual bool is_debugger_enabled(int cpu_index) { return false; }
+	
 	bool now_debugging;
 	debugger_thread_t debugger_thread_param;
 
 #if defined(OSD_QT)
+	// ToDo: Multiple debugger 20221105 K.O
 	pthread_t debugger_thread_id;
-	CSP_Debugger *hDebugger;
+	std::shared_ptr<CSP_Debugger>hDebugger;
 #elif defined(OSD_WIN32)
 	HANDLE hDebuggerThread;
 #else

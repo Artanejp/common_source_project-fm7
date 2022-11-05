@@ -18,43 +18,28 @@
 #include <QCloseEvent>
 
 #include "qt_debugger_tmpl.h"
-#include "../../emu.h"
+#include "../../emu_template.h"
+
+#include "../../vm/vm_template.h"
+
 #include "../../vm/device.h"
 #include "../../vm/debugger.h"
-#include "../../vm/vm.h"
+
 #include "../../fileio.h"
 
-
 QT_BEGIN_NAMESPACE
-class OSD_BASE;
 class CSP_Debugger : public CSP_Debugger_Tmpl
 {
 	Q_OBJECT
  protected:
 
  public:
-	CSP_Debugger(OSD_BASE* p_osd, QWidget *parent);
+	CSP_Debugger(EMU_TEMPLATE* p_emu, QWidget *parent = nullptr);
 	~CSP_Debugger();
-#if defined(USE_DEBUGGER)
-	debugger_thread_t debugger_thread_param;
-#endif	
-	void closeEvent(QCloseEvent *event);
-	
+
 public slots:
 	void doExit(void);
 	void doExit2(void);
-	void call_debugger(void);
-	void run(void);
-	void do_destroy_thread(void);
-signals:
-	void sig_put_string(QString);
-	void sig_run_command(QString);
-	void sig_finished();
-	void sig_start_debugger();
-	void sig_call_debugger(QString);
-	void sig_close_debugger(void);
-	void sig_stop_debugger(void);
-	void sig_run_debugger(void);
 };
 
 QT_END_NAMESPACE	
