@@ -352,6 +352,9 @@
     <Image Include="..\src\res\fm77av40ex.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\indicator\access_green.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">
       <Filter>Resource Files</Filter>
     </Image>

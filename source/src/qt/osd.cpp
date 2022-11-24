@@ -1184,9 +1184,10 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH - 1);
 	
 	console_cmd_str.clear();
-	osd_console_opened = false;
+
 	osd_timer.start();
 
+	initialize_console();
 	initialize_input();
 	initialize_printer();
 	initialize_screen();
@@ -1198,6 +1199,7 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 
 void OSD::release()
 {
+	release_console();
 	release_input();
 	release_printer();
 	release_screen();

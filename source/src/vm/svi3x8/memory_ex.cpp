@@ -1520,7 +1520,7 @@ void MEMORY_EX::open_disk(int drv, const _TCHAR* file_path, int bank)
 //		disk[drv]->open(file_path, bank);
 		if (svi_LoadDisk(drv, (char *)file_path) > 0)
 		{
-			wd179x_InitDiskImage(drv, file_path);
+			wd179x_InitDiskImage(drv, tchar_to_char(file_path));
 			disk[drv]->inserted = true;
 			svi_UseDisk = 1;
 		}

@@ -103,6 +103,10 @@ devenv.com fp1100.vcproj /Rebuild Release
 mkdir build_xp\fp1100
 copy Release\fp1100.exe build_xp\fp1100\.
 
+devenv.com fx9000p.vcproj /Rebuild Release
+mkdir build_xp\fx9000p
+copy Release\fx9000p.exe build_xp\fx9000p\.
+
 devenv.com gamegear.vcproj /Rebuild Release
 mkdir build_xp\gamegear
 copy Release\gamegear.exe build_xp\gamegear\.

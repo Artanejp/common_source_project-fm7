@@ -481,6 +481,7 @@
     <Image Include="..\src\res\bx1\button97.png" />
     <Image Include="..\src\res\bx1\button98.png" />
     <Image Include="..\src\res\bx1\button99.png" />
+    <Image Include="..\src\res\indicator\access_green.bmp" />
     <Image Include="..\src\res\indicator\access_off.bmp" />
     <Image Include="..\src\res\indicator\access_on.bmp" />
   </ItemGroup>

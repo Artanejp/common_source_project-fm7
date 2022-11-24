@@ -55,6 +55,7 @@ void OSD::initialize_screen()
 	lpd3d9Device = NULL;
 	lpd3d9Surface = NULL;
 	lpd3d9OffscreenSurface = NULL;
+	d3d9_device_lost = false;
 #endif
 	now_record_video = false;
 	pAVIStream = NULL;
@@ -330,7 +331,7 @@ int OSD::draw_screen()
 		prev_use_d2d1 != config.use_d2d1 || prev_use_dcrender != (host_window_mode && config.show_status_bar) ||
 #endif
 #ifdef SUPPORT_D3D9
-		prev_use_d3d9 != config.use_d3d9 || prev_wait_vsync != config.wait_vsync ||
+		prev_use_d3d9 != config.use_d3d9 || prev_wait_vsync != config.wait_vsync || (prev_use_d3d9 && d3d9_device_lost) ||
 #endif
 		prev_window_width != host_window_width || prev_window_height != host_window_height
 	) {
@@ -349,6 +350,7 @@ int OSD::draw_screen()
 		} else {
 			release_d3d9();
 		}
+		d3d9_device_lost = false;
 		prev_use_d3d9 = config.use_d3d9;
 		prev_wait_vsync = config.wait_vsync;
 #endif
@@ -1355,7 +1357,7 @@ void OSD::update_d3d9_screen(int dest_x, int dest_y)
 		lpd3d9Device->UpdateSurface(lpd3d9OffscreenSurface, NULL, lpd3d9Surface, NULL);
 		lpd3d9Device->StretchRect(lpd3d9Surface, &rectSrc, lpd3d9BackSurface, &rectDst, stretch_screen ? D3DTEXF_LINEAR : D3DTEXF_POINT);
 		lpd3d9BackSurface->Release();
-		lpd3d9Device->Present(&rectWin, &rectWin, NULL, NULL);
+		if(lpd3d9Device->Present(&rectWin, &rectWin, NULL, NULL) == D3DERR_DEVICELOST) d3d9_device_lost = true;
 	}
 }
 #endif

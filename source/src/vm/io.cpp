@@ -141,13 +141,15 @@ void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma)
 	uint32_t addr2 = haddr | wr_table[laddr].addr;
 //#ifdef _IO_DEBUG_LOG
 	if(__IO_DEBUG_LOG) {
+		_TCHAR tmp[256] = {0};
 		if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
-			this->out_debug_log(_T("UNKNOWN:\t"));
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
 		}
 		if(cpu_index != 0) {
-			this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
 		}
-		this->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(cpu_index), addr, data & 0xff);
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(cpu_index), addr, data & 0xff);
+		this->out_debug_log(tmp);
 	}
 //#endif
 	if(wr_table[laddr].is_flipflop) {
@@ -166,13 +168,15 @@ uint32_t IO::read_port8(uint32_t addr, bool is_dma)
 	uint32_t val = rd_table[laddr].value_registered ? rd_table[laddr].value : is_dma ? rd_table[laddr].dev->read_dma_io8(addr2) : rd_table[laddr].dev->read_io8(addr2);
 //#ifdef _IO_DEBUG_LOG
 	if(__IO_DEBUG_LOG) {
+		_TCHAR tmp[256] = {0};
 		if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
-			this->out_debug_log(_T("UNKNOWN:\t"));
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
 		}
 		if(cpu_index != 0) {
-			this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
 		}
-		this->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), get_cpu_pc(cpu_index), addr, val & 0xff);
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN8\t%04x,%02x\n"), get_cpu_pc(cpu_index), addr, val & 0xff);
+		this->out_debug_log(tmp);
 	}
 //#endif
 	return val & 0xff;
@@ -184,13 +188,15 @@ void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma)
 	uint32_t addr2 = haddr | wr_table[laddr].addr;
 //#ifdef _IO_DEBUG_LOG
 	if(__IO_DEBUG_LOG) {
+		_TCHAR tmp[256] = {0};
 		if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
-			this->out_debug_log(_T("UNKNOWN:\t"));
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
 		}
 		if(cpu_index != 0) {
-			this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
 		}
-		this->out_debug_log(_T("%06x\tOUT16\t%04x,%04x\n"), get_cpu_pc(cpu_index), addr, data & 0xffff);
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, data & 0xffff);
+		this->out_debug_log(tmp);
 	}
 //#endif
 	if(wr_table[laddr].is_flipflop) {
@@ -209,13 +215,15 @@ uint32_t IO::read_port16(uint32_t addr, bool is_dma)
 	uint32_t val = rd_table[laddr].value_registered ? rd_table[laddr].value : is_dma ? rd_table[laddr].dev->read_dma_io16(addr2) : rd_table[laddr].dev->read_io16(addr2);
 //#ifdef _IO_DEBUG_LOG
 	if(__IO_DEBUG_LOG) {
+		_TCHAR tmp[256] = {0};
 		if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
-			this->out_debug_log(_T("UNKNOWN:\t"));
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
 		}
 		if(cpu_index != 0) {
-			this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
 		}
-		this->out_debug_log(_T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val & 0xffff);
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val & 0xffff);
+		this->out_debug_log(tmp);
 	}
 //#endif
 	return val & 0xffff;
@@ -227,13 +235,15 @@ void IO::write_port32(uint32_t addr, uint32_t data, bool is_dma)
 	uint32_t addr2 = haddr | wr_table[laddr].addr;
 //#ifdef _IO_DEBUG_LOG
 	if(__IO_DEBUG_LOG) {
+		_TCHAR tmp[256] = {0};
 		if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
-			this->out_debug_log(_T("UNKNOWN:\t"));
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
 		}
 		if(cpu_index != 0) {
-			this->out_debug_log(_T("CPU=%d\t"), cpu_index);
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
 		}
-		this->out_debug_log(_T("%06x\tOUT32\t%04x,%08x\n"), get_cpu_pc(cpu_index), addr, data);
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT32\t%04x,%08x\n"), get_cpu_pc(cpu_index), addr, data);
+		this->out_debug_log(tmp);
 	}
 //#endif
 	if(wr_table[laddr].is_flipflop) {
@@ -252,13 +262,16 @@ uint32_t IO::read_port32(uint32_t addr, bool is_dma)
 	uint32_t val = rd_table[laddr].value_registered ? rd_table[laddr].value : is_dma ? rd_table[laddr].dev->read_dma_io32(addr2) : rd_table[laddr].dev->read_io32(addr2);
 //#ifdef _IO_DEBUG_LOG
 	if(__IO_DEBUG_LOG) {
+		_TCHAR tmp[256] = {0};
 		if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
-			this->out_debug_log(_T("UNKNOWN:\t"));
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
 		}
 		if(cpu_index != 0) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
 			this->out_debug_log(_T("CPU=%d\t"), cpu_index);
 		}
-		this->out_debug_log(_T("%06x\tIN32\t%04x = %08x\n"), get_cpu_pc(cpu_index), laddr | haddr, val);
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN32\t%04x = %08x\n"), get_cpu_pc(cpu_index), laddr | haddr, val);
+		this->out_debug_log(tmp);
 	}
 //#endif
 	return val;

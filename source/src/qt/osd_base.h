@@ -24,10 +24,11 @@
 #include <string>
 #include <list>
 #include <memory>
+#include <atomic>
 
-#include "../config.h"
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
+#include "../config.h"
 #include "osd_types.h"
 
 #define N_MAX_BUTTONS 128
@@ -204,9 +205,15 @@ protected:
 	QElapsedTimer osd_timer;
 	bool locked_vm;
 	// console
+	virtual void initialize_console();	
+	virtual void release_console();
+	
 	FILE *hStdIn, *hStdOut;
 	QString console_cmd_str;
-	bool osd_console_opened;
+
+	bool use_telnet;
+	std::atomic<bool> telnet_closed;
+	std::atomic<int> console_count;
 	// input
 	void initialize_input();
 	void release_input();
@@ -459,16 +466,21 @@ public:
 	void create_date_file_name(_TCHAR *name, int length, const _TCHAR *extension);
 	_TCHAR  *get_app_path(void);
 	// common console
-	void open_console(int width, int height, const _TCHAR* title);
-	void close_console();
-	unsigned int get_console_code_page();
-	bool is_console_active();
+	virtual void open_console(int width, int height, const _TCHAR* title);
+	virtual void close_console();
+	virtual unsigned int get_console_code_page();
+	virtual bool is_console_closed();
+	
 	void set_console_text_attribute(unsigned short attr);
 	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, int length);
 	bool is_console_key_pressed(uint32_t ch);
 	void update_keyname_table(void);
-	
+	// console / telnet
+	virtual void open_telnet(const _TCHAR* title);
+	virtual void close_telnet();
+	virtual void send_telnet(const char* string);
+
 	// common input
 	void update_input();
 	void key_down(int code, bool extended, bool repeat);

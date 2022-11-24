@@ -242,6 +242,8 @@ BEGIN
             MENUITEM "5/3-inch 2D",             ID_VM_DRIVE_TYPE0
             MENUITEM "5/3-inch 2DD",            ID_VM_DRIVE_TYPE1
             MENUITEM "5/3-inch 2HD",            ID_VM_DRIVE_TYPE2
+            MENUITEM "8-inch 1S",               ID_VM_DRIVE_TYPE6
+            MENUITEM "HARD DISK",               ID_VM_DRIVE_TYPE7
         END
         POPUP "Keyboard"
         BEGIN
@@ -314,7 +316,7 @@ BEGIN
             MENUITEM "11025Hz",                 ID_SOUND_FREQ3
             MENUITEM "22050Hz",                 ID_SOUND_FREQ4
             MENUITEM "44100Hz",                 ID_SOUND_FREQ5
-            MENUITEM "48000Hz",                 ID_SOUND_FREQ6
+            MENUITEM "62500Hz",                 ID_SOUND_FREQ6
             MENUITEM "96000Hz",                 ID_SOUND_FREQ7
             MENUITEM SEPARATOR
             MENUITEM "50msec",                  ID_SOUND_LATE0
@@ -352,6 +354,7 @@ END
 
 IDI_BITMAP_ACCESS_OFF   BITMAP  DISCARDABLE     "indicator/access_off.bmp"
 IDI_BITMAP_ACCESS_ON    BITMAP  DISCARDABLE     "indicator/access_on.bmp"
+IDI_BITMAP_ACCESS_ON2   BITMAP  DISCARDABLE     "indicator/access_green.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////

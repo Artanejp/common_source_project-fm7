@@ -198,6 +198,8 @@ public:
 	virtual double get_frame_rate() { return 59.94; }
 	virtual int get_frame_interval() { return 1; }
 	virtual bool is_frame_skippable() { return false; }
+	virtual const bool is_use_state() { return false; }
+	
 	virtual int run() { return 1; }
 
 	virtual void reset() {}
@@ -371,6 +373,8 @@ public:
 	virtual bool is_debugger_enabled(int cpu_index) { return false; }
 	
 	bool now_debugging;
+	int debugger_cpu_index, debugger_target_id;
+	int request_save_state, request_load_state;
 	debugger_thread_t debugger_thread_param;
 
 #if defined(OSD_QT)
@@ -420,6 +424,7 @@ public:
 	virtual void is_floppy_disk_protected(int drv, bool value) {}
 	virtual bool is_floppy_disk_protected(int drv) { return false;}
 	virtual uint32_t is_floppy_disk_accessed() { return 0x00000000; }
+	virtual uint32_t floppy_disk_indicator_color() { return 0x00000000; }
 
 	// cartridge
 	virtual void open_cart(int drv, const _TCHAR* file_path) {}
@@ -499,6 +504,7 @@ public:
 	// state
 	virtual void save_state(const _TCHAR* file_path) {}
 	virtual void load_state(const _TCHAR* file_path) {}
+	virtual const _TCHAR *state_file_path(int num) { return (const _TCHAR*)_T("."); }
 
 };
 

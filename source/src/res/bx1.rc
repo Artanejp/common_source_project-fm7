@@ -222,6 +222,7 @@ END
 
 IDI_BITMAP_ACCESS_OFF   BITMAP  DISCARDABLE     "indicator/access_off.bmp"
 IDI_BITMAP_ACCESS_ON    BITMAP  DISCARDABLE     "indicator/access_on.bmp"
+IDI_BITMAP_ACCESS_ON2   BITMAP  DISCARDABLE     "indicator/access_green.bmp"
 IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "bx1/board.png"
 IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "bx1/button00.png"
 IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "bx1/button01.png"

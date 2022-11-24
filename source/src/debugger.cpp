@@ -317,6 +317,10 @@ void* debugger_thread(void *lpx)
 	helplist.push_back("! device <id/cpu> - select target device");
 	helplist.push_back("! cpu - enumerate debugger available cpu");
 	helplist.push_back("! cpu <id> - select target cpu");
+	if(p->emu->is_use_state()) {
+		helplist.push_back("! save_state <slot> - save state at top of next frame\n");
+		helplist.push_back("! load_state <slot> - load state\n");
+	}
 	helplist.push_back("!! <remark> - do nothing");
 
 	helplist.push_back("<value> - hexa, decimal(%%d), ascii('a')");
@@ -402,7 +406,10 @@ void* debugger_thread(void *lpx)
 	DEVICE *target = cpu;
 	DEBUGGER *target_debugger = cpu_debugger;
 	//cpu_debugger->stop_on_exception = true;
-	
+	if(p->emu->is_use_state()) {
+		p->emu->debugger_cpu_index = p->cpu_index;
+		p->emu->debugger_target_id = target->this_device_id;
+	}
 	cpu_debugger->set_context_child(NULL);
 	cpu_debugger->now_going = false;
 	cpu_debugger->now_debugging = true;
@@ -535,6 +542,10 @@ void* debugger_thread(void *lpx)
 						my_putch(p->osd, ir[i]);
 					}
 				}
+				if(p->osd->is_console_closed()) {
+					my_tcscpy_s(command, array_length(command), _T("Q"));
+					enter_done = true;
+				}
 				p->osd->sleep(10);
 			}
 		}
@@ -570,6 +581,9 @@ void* debugger_thread(void *lpx)
 					if(start_addr > end_addr) {
 						end_addr = (uint32_t)(target->get_debug_data_addr_space() - 1);
 					}
+					p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
+					my_printf(p->osd, _T("          +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F  0123456789ABCDEF\n"));
+					p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 					for(uint64_t addr = start_addr & ~0x0f; addr <= end_addr; addr++) {
 						if(addr > target->get_debug_data_addr_space() - 1) {
 							end_addr = (uint32_t)(target->get_debug_data_addr_space() - 1);
@@ -584,7 +598,7 @@ void* debugger_thread(void *lpx)
 							buffer[addr & 0x0f] = _T(' ');
 						} else {
 							uint32_t data = target->read_debug_data8((uint32_t)(addr % target->get_debug_data_addr_space()));
-							my_printf(p->osd, _T(" %02X"), data);
+							my_printf(p->osd, ((addr & 0x0f) == 8) ? _T("-%02X"): _T(" %02X"), data);
 							buffer[addr & 0x0f] = ((data >= 0x20 && data <= 0x7e) || (cp932 && data >= 0xa1 && data <= 0xdf)) ? data : _T('.');
 						}
 						if((addr & 0x0f) == 0x0f) {
@@ -1350,14 +1364,14 @@ RESTART_GO:
 					cpu_debugger->now_suspended = false;
 #if defined(_MSC_VER)					   
 					while(!p->request_terminate && !cpu_debugger->now_suspended && !(cpu_debugger->exception_happened && cpu_debugger->stop_on_exception)) {
-						if(p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active()) {
+						if(p->osd->is_console_key_pressed(VK_ESCAPE)) {
 							break;
 						}
 						p->osd->sleep(10);
 					}
 #elif defined(OSD_QT)
 					while(!p->request_terminate && !cpu_debugger->now_suspended && !(cpu_debugger->exception_happened && cpu_debugger->stop_on_exception)) {
-						if(p->osd->console_input_string() != NULL && p->osd->is_console_active()) {
+						if(p->osd->console_input_string() != NULL) {
 							p->osd->clear_console_input_string();
 							break;
 						}
@@ -1474,7 +1488,7 @@ RESTART_GO:
 							bool restart = cpu_debugger->restartable();
 							cpu_debugger->clear_hit();
 							if(!restart) break;
-						} else if(p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active()) {
+						} else if(p->osd->is_console_key_pressed(VK_ESCAPE)) {
 							break;
 						}
 					}
@@ -1579,6 +1593,10 @@ RESTART_GO:
 								cpu_debugger->set_context_child(NULL);
 								target = device;
 								target_debugger = (DEBUGGER *)target->get_debugger();
+								if(p->emu->is_use_state()) {
+									p->emu->debugger_target_id = target->this_device_id;
+								}
+
 								if(target_debugger != NULL) {
 									if(target != cpu) {
 										target_debugger->now_device_debugging = true;
@@ -1598,8 +1616,9 @@ RESTART_GO:
 					}
 				} else if(_tcsicmp(params[1], _T("CPU")) == 0) {
 					if(num == 2) {
-						for(DEVICE* device = p->vm->first_device; device; device = device->next_device) {
-							if(device->is_cpu() && device->get_debugger() != NULL) {
+						for(int i = 0; i < 8; i++) {
+							if(p->emu->is_debugger_enabled(i)) {
+								DEVICE* device = p->vm->get_cpu(i);
 								my_printf(p->osd, _T("ID=%02X  %s"), device->this_device_id, device->this_device_name);
 								if(device == cpu) {
 									p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
@@ -1611,7 +1630,14 @@ RESTART_GO:
 						}
 					} else if(num == 3) {
 						DEVICE *device = p->vm->get_device(my_hexatoi(NULL, params[2]));
-						if(device != NULL && device->is_cpu() && device->get_debugger() != NULL) {
+						int cpu_index = -1;
+						for(int i = 0; i < 8; i++) {
+							if(p->emu->is_debugger_enabled(i) && device == p->vm->get_cpu(i)) {
+								cpu_index = i;
+								break;
+							}
+						}
+						if(cpu_index != -1) {
 							if(device != cpu) {
 								DEBUGGER *prev_debugger = cpu_debugger;
 								cpu = device;
@@ -1625,6 +1651,10 @@ RESTART_GO:
 								}
 								target = cpu;
 								target_debugger = cpu_debugger;
+								if(p->emu->is_use_state()) {
+									p->emu->debugger_cpu_index = cpu_index;
+									p->emu->debugger_target_id = target->this_device_id;
+								}
 								wait_count = 0;
 								while(!p->request_terminate && !(cpu_debugger->now_suspended && cpu_debugger->now_waiting)) {
 									if((wait_count++) == 100) {
@@ -1651,6 +1681,87 @@ RESTART_GO:
 							}
 						} else {
 							my_printf(p->osd, _T("device not found\n"));
+						}
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if((_tcsicmp(params[1], _T("SAVE_STATE")) == 0 || _tcsicmp(params[1], _T("LOAD_STATE")) == 0) && (p->emu->is_use_state())) {
+					if(num == 3) {
+						int slot = my_hexatoi(NULL, params[2]);
+						if(slot >= 0 && slot <= 9) {
+							// request save/load state
+							p->emu->request_save_state = (_tcsicmp(params[1], _T("SAVE_STATE")) == 0) ? slot : -1;
+							p->emu->request_load_state = (_tcsicmp(params[1], _T("LOAD_STATE")) == 0) ? slot : -1;
+							cpu_debugger->store_break_points();
+							cpu_debugger->now_going = true;
+							cpu_debugger->now_suspended = false;
+							
+							// wait until save/load state is done at top of next frame
+							wait_count = 0;
+							while(!p->request_terminate && (p->emu->request_save_state != -1 || p->emu->request_load_state != -1)) {
+								if((wait_count++) == 100) {
+									p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
+									my_printf(p->osd, _T("waiting until cpu is suspended...\n"));
+								}
+								p->osd->sleep(10);
+							}
+							if(p->request_terminate) break;
+							// restore target devices and debuggers
+							if(_tcsicmp(params[1], _T("LOAD_STATE")) == 0) {
+								cpu = p->vm->get_cpu(p->emu->debugger_cpu_index);
+								cpu_debugger = (DEBUGGER *)cpu->get_debugger();
+								cpu_debugger->set_context_child(NULL);
+								target = p->vm->get_device(p->emu->debugger_target_id);
+								target_debugger = (DEBUGGER *)target->get_debugger();
+								if(target_debugger != NULL) {
+									if(target != cpu) {
+										target_debugger->now_device_debugging = true;
+										cpu_debugger->set_context_child(target_debugger);
+									} else {
+										target_debugger->now_device_debugging = false;
+									}
+								}
+							}
+							// wait until cpu is breaked
+							while(!p->request_terminate && !(cpu_debugger->now_suspended && cpu_debugger->now_waiting)) {
+								if((wait_count++) == 100) {
+									p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
+									my_printf(p->osd, _T("waiting until cpu is suspended...\n"));
+								}
+								p->osd->sleep(10);
+							}
+							if(target == cpu) {
+								dasm_addr = cpu->get_next_pc();
+							}
+							cpu_debugger->restore_break_points();
+							
+							p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
+							cpu->debug_dasm(cpu->get_pc(), buffer, array_length(buffer));
+							my_printf(p->osd, _T("done\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()), buffer);
+							
+							p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
+							if(cpu->get_debug_regs_info(buffer, array_length(buffer))) {
+								my_printf(p->osd, _T("%s\n"), buffer);
+							}
+							
+							if(target != cpu) {
+								p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
+								if(target->debug_dasm(target->get_next_pc(), buffer, array_length(buffer)) != 0) {
+									my_printf(p->osd, _T("next\t%s  %s\n"), my_get_value_and_symbol(target, _T("%08X"), target->get_next_pc()), buffer);
+								}
+								if(target->get_debug_regs_info(buffer, array_length(buffer))) {
+									my_printf(p->osd, _T("%s\n"), buffer);
+								}
+							}
+							
+							p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
+							my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
+							p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
+							cpu->debug_dasm(cpu->get_next_pc(), buffer, array_length(buffer));
+							my_printf(p->osd, _T("next\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()), buffer);
+							p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
+						} else {
+							my_printf(p->osd, _T("invalid slot number\n"));
 						}
 					} else {
 						my_printf(p->osd, _T("invalid parameter number\n"));
@@ -1717,6 +1828,10 @@ RESTART_GO:
 void EMU::initialize_debugger()
 {
 	now_debugging = false;
+//#ifdef USE_STATE
+	debugger_cpu_index = debugger_target_id = -1;
+	request_save_state = request_load_state = -1;
+//#endif
 	hDebugger = NULL;
 }
 
