@@ -8,7 +8,6 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 
-class Ui_MainWindow;
 class USING_FLAGS;
 class CSP_Logger;
 class QMenu;
