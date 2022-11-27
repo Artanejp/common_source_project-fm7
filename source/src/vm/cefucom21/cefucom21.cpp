@@ -438,12 +438,21 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		int len = (int)_tcslen(name);
 		
 		if(!state_fio->StateCheckInt32(len)) {
+			if(loading) {
+				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
 			return false;
 		}
 		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			if(loading) {
+				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
+			}
 			return false;
 		}
 		if(!device->process_state(state_fio, loading)) {
+			if(loading) {
+				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
+			}
 			return false;
 		}
 	}
