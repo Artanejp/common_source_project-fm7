@@ -84,18 +84,18 @@ using FM7::KANJIROM;
 VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 {
 	
-	first_device = last_device = NULL;
+	first_device = last_device = nullptr;
 #if defined(_FM8)
-	psg = NULL;
+	psg = nullptr;
 #else	
 # if defined(_FM77AV_VARIANTS)
-	opn[0] = opn[1] = opn[2] = NULL;
+	opn[0] = opn[1] = opn[2] = nullptr;
 # else   
-	opn[0] = opn[1] = opn[2] = NULL;
-	psg = NULL; 
+	opn[0] = opn[1] = opn[2] = nullptr;
+	psg = nullptr; 
 # endif
 #endif
-	for(int i = 0; i < 3; i++) uart[i] = NULL;
+	for(int i = 0; i < 3; i++) uart[i] = nullptr;
 	
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
@@ -117,13 +117,13 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 		g_intr_firq = new AND(this, emu);
 		g_nmi = new AND(this, emu);
 	} else {
-		z80cpu = NULL;
-		g_mainstat = NULL;
-		g_intr = NULL;
+		z80cpu = nullptr;
+		g_mainstat = nullptr;
+		g_intr = nullptr;
 
-		g_intr_irq = NULL;
-		g_intr_firq = NULL;
-		g_nmi = NULL;
+		g_intr_irq = nullptr;
+		g_intr_firq = nullptr;
+		g_nmi = nullptr;
 	}
 #endif
 #if defined(CAPABLE_JCOMMCARD)
@@ -132,9 +132,9 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 		jcommcard = new FM7_JCOMMCARD(this, emu);
 		g_jsubhalt = new AND(this, emu);
 	} else {
-		jsubcpu = NULL;
-		jcommcard = NULL;
-		g_jsubhalt = NULL;
+		jsubcpu = nullptr;
+		jcommcard = nullptr;
+		g_jsubhalt = nullptr;
 	}
 #endif
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) \
@@ -144,7 +144,7 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 #  if defined(CAPABLE_JCOMMCARD)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) uart[0] = new I8251(this, emu);
 #  endif
-	if(((config.dipswitch & FM7_DIPSW_RS232C_ON) != 0) && (uart[0] == NULL)) uart[0] = new I8251(this, emu);
+	if(((config.dipswitch & FM7_DIPSW_RS232C_ON) != 0) && (uart[0] == nullptr)) uart[0] = new I8251(this, emu);
 # endif
 	if((config.dipswitch & FM7_DIPSW_MODEM_ON) != 0) uart[1] = new I8251(this, emu);
 	if((config.dipswitch & FM7_DIPSW_MIDI_ON) != 0) uart[2] = new I8251(this, emu);
@@ -197,7 +197,7 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 #if defined(_FM8)
 	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
 #endif
-	drec = NULL;
+	drec = nullptr;
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -208,9 +208,9 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 #endif
 
 	connect_320kfdc = connect_1Mfdc = false;
-	fdc = NULL;
+	fdc = nullptr;
 #if defined(HAS_2HD)
-	fdc_2HD = NULL;
+	fdc_2HD = nullptr;
 #endif
 
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
@@ -250,7 +250,7 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
 		kanjiclass1 = new KANJIROM(this, emu, false);
 	} else {
-		kanjiclass1 = NULL;
+		kanjiclass1 = nullptr;
 	}
 #else
 	kanjiclass1 = new KANJIROM(this, emu, false);
@@ -279,14 +279,14 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	// DCD
 #endif
 #ifdef WITH_Z80
-	if(g_mainstat != NULL) {
+	if(g_mainstat != nullptr) {
 		g_mainstat->set_mask(SIG_AND_BIT_0);
 		g_mainstat->set_mask(SIG_AND_BIT_1);
 		maincpu->set_context_bus_ba(g_mainstat, SIG_AND_BIT_0, 0xffffffff);
 		maincpu->set_context_bus_bs(g_mainstat, SIG_AND_BIT_1, 0xffffffff);
 		g_mainstat->set_context_out(mainio, FM7_MAINIO_RUN_Z80, 0xffffffff);
 	}
-	if(z80cpu != NULL) {
+	if(z80cpu != nullptr) {
 		z80cpu->set_context_busack(mainio, FM7_MAINIO_RUN_6809, 0xffffffff);
 		mainio->set_context_z80cpu(z80cpu);
 	}
@@ -298,39 +298,39 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	maincpu->set_device_name(_T("MAINCPU(MC6809B)"));
 	subcpu->set_device_name(_T("SUBCPU(MC6809B)"));
 #if defined(CAPABLE_JCOMMCARD)
-	if(jsubcpu != NULL) {
+	if(jsubcpu != nullptr) {
 		jsubcpu->set_device_name(_T("J.COMM BOARD CPU(MC6809)"));
 	}
-	if(jcommcard != NULL) {
+	if(jcommcard != nullptr) {
 		jcommcard->set_device_name(_T("Japanese COMM BOARD"));
 	}
-	if(g_jsubhalt != NULL) {
+	if(g_jsubhalt != nullptr) {
 		g_jsubhalt->set_device_name(_T("J.COMM BOARD HALT(MC6809)"));
 	}
 # endif
 # ifdef WITH_Z80
-	if(z80cpu != NULL) z80cpu->set_device_name(_T("Z80 CPU BOARD"));
+	if(z80cpu != nullptr) z80cpu->set_device_name(_T("Z80 CPU BOARD"));
 # endif
-	if(fdc != NULL) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
+	if(fdc != nullptr) fdc->set_device_name(_T("MB8877 FDC(320KB)"));
 #if defined(HAS_2HD)
-	if(fdc_2HD != NULL) fdc_2HD->set_device_name(_T("MB8877 FDC(1MB/2HD)"));
+	if(fdc_2HD != nullptr) fdc_2HD->set_device_name(_T("MB8877 FDC(1MB/2HD)"));
 #endif	
-	if(uart[0] != NULL) {
+	if(uart[0] != nullptr) {
 		uart[0]->set_device_name(_T("RS-232C BOARD(I8251 SIO)"));
 	}
 # if defined(CAPABLE_JCOMMCARD)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
-		if(uart[0] != NULL) uart[0]->set_device_name(_T("J.COMM BOARD RS-232C(I8251 SIO)"));
+		if(uart[0] != nullptr) uart[0]->set_device_name(_T("J.COMM BOARD RS-232C(I8251 SIO)"));
 	}
 # elif defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM8)
-	if(uart[0] != NULL) uart[0]->set_device_name(_T("RS-232C(I8251 SIO)"));
+	if(uart[0] != nullptr) uart[0]->set_device_name(_T("RS-232C(I8251 SIO)"));
 # endif
 		
-	if(uart[1] != NULL) {
+	if(uart[1] != nullptr) {
 		uart[1]->set_device_name(_T("MODEM BOARD(I8251 SIO)"));
 	}
-	if(uart[2] != NULL) {
+	if(uart[2] != nullptr) {
 		uart[2]->set_device_name(_T("MIDI BOARD(I8251 SIO)"));
 	}
 						
@@ -350,9 +350,9 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 # if defined(_FM77AV_VARIANTS)
 	keyboard_beep->set_device_name(_T("BEEP(KEYBOARD)"));
 # endif	
-	if(kanjiclass1 != NULL) kanjiclass1->set_device_name(_T("KANJI ROM CLASS1"));
+	if(kanjiclass1 != nullptr) kanjiclass1->set_device_name(_T("KANJI ROM CLASS1"));
 # ifdef CAPABLE_KANJI_CLASS2
-	if(kanjiclass2 != NULL) kanjiclass2->set_device_name(_T("KANJI ROM CLASS2"));
+	if(kanjiclass2 != nullptr) kanjiclass2->set_device_name(_T("KANJI ROM CLASS2"));
 # endif
 # if defined(_FM8)
 	bubble_casette[0]->set_device_name(_T("BUBBLE CASETTE #0"));
@@ -366,11 +366,11 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	l4crtc->set_device_name(_T("CRTC OF 400LINES BOARD"));
 #endif
 #ifdef WITH_Z80
-	if(g_intr != NULL) g_intr->set_device_name(_T("Z80 INTR(OR)"));
-	if(g_mainstat != NULL) g_mainstat->set_device_name(_T("Z80 HALT/RUN(AND)"));
-	if(g_intr_irq != NULL) g_intr_irq->set_device_name(_T("Z80 IRQ(AND)"));
-	if(g_intr_firq != NULL) g_intr_firq->set_device_name(_T("Z80 FIRQ(AND)"));
-	if(g_nmi != NULL) g_nmi->set_device_name(_T("Z80 NMI(AND)"));
+	if(g_intr != nullptr) g_intr->set_device_name(_T("Z80 INTR(OR)"));
+	if(g_mainstat != nullptr) g_mainstat->set_device_name(_T("Z80 HALT/RUN(AND)"));
+	if(g_intr_irq != nullptr) g_intr_irq->set_device_name(_T("Z80 IRQ(AND)"));
+	if(g_intr_firq != nullptr) g_intr_firq->set_device_name(_T("Z80 FIRQ(AND)"));
+	if(g_nmi != nullptr) g_nmi->set_device_name(_T("Z80 NMI(AND)"));
 #endif
 	g_substat_display->set_device_name(_T("DISPLAY STATUS(AND)"));
 	g_substat_mainhalt->set_device_name(_T("SUBSYSTEM HALT STATUS(AND)"));
@@ -387,16 +387,6 @@ VM::~VM()
 		delete device;
 		device = next_device;
 	}
-}
-
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
 }
 
 void VM::connect_bus(void)
@@ -431,7 +421,7 @@ void VM::connect_bus(void)
 	event->set_context_cpu(subcpu,  subclock);	
    
 #ifdef WITH_Z80
-	if(z80cpu != NULL) {
+	if(z80cpu != nullptr) {
 		event->set_context_cpu(z80cpu,  4000000);
 		z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 
@@ -458,10 +448,10 @@ void VM::connect_bus(void)
 	maincpu->write_signal(SIG_CPU_HALTREQ, 0, 1);
 #endif
 #if defined(CAPABLE_JCOMMCARD)
-	if((jsubcpu != NULL) && (jcommcard != NULL)) {
+	if((jsubcpu != nullptr) && (jcommcard != nullptr)) {
 		event->set_context_cpu(jsubcpu,  JCOMMCARD_CLOCK);
 		jcommcard->set_context_cpu(jsubcpu);
-		if(g_jsubhalt != NULL) {
+		if(g_jsubhalt != nullptr) {
 			g_jsubhalt->set_mask(SIG_AND_BIT_0);
 			g_jsubhalt->set_mask(SIG_AND_BIT_1);
 		
@@ -475,7 +465,7 @@ void VM::connect_bus(void)
 	event->set_context_sound(pcm1bit);
 #if defined(_FM8)
 	event->set_context_sound(psg);
-	if(drec != NULL) event->set_context_sound(drec);
+	if(drec != nullptr) event->set_context_sound(drec);
 #else
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
@@ -484,19 +474,19 @@ void VM::connect_bus(void)
 	event->set_context_sound(psg);
 # endif
 	event->set_context_sound(drec);
-	if(fdc != NULL) {
+	if(fdc != nullptr) {
 		event->set_context_sound(fdc->get_context_noise_seek());
 		event->set_context_sound(fdc->get_context_noise_head_down());
 		event->set_context_sound(fdc->get_context_noise_head_up());
 	}
 #if defined(HAS_2HD)
-	if(fdc_2HD != NULL) {
+	if(fdc_2HD != nullptr) {
 		event->set_context_sound(fdc_2HD->get_context_noise_seek());
 		event->set_context_sound(fdc_2HD->get_context_noise_head_down());
 		event->set_context_sound(fdc_2HD->get_context_noise_head_up());
 	}
 #endif
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		event->set_context_sound(drec->get_context_noise_play());
 		event->set_context_sound(drec->get_context_noise_stop());
 		event->set_context_sound(drec->get_context_noise_fast());
@@ -526,19 +516,19 @@ void VM::connect_bus(void)
 
 #if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mainio->set_context_rs232c_dtr(g_rs232c_dtr);
-	if(uart[0] != NULL) uart[0]->set_context_dtr(g_rs232c_dtr, SIG_AND_BIT_1, 0xffffffff);
+	if(uart[0] != nullptr) uart[0]->set_context_dtr(g_rs232c_dtr, SIG_AND_BIT_1, 0xffffffff);
 #endif
-	if(uart[0] != NULL) {
+	if(uart[0] != nullptr) {
 		uart[0]->set_context_rxrdy(mainio, FM7_MAINIO_UART0_RXRDY, 0xffffffff);
 		uart[0]->set_context_txrdy(mainio, FM7_MAINIO_UART0_TXRDY, 0xffffffff);
 		uart[0]->set_context_syndet(mainio, FM7_MAINIO_UART0_SYNDET, 0xffffffff);
 	}
-	if(uart[1] != NULL) {
+	if(uart[1] != nullptr) {
 		uart[1]->set_context_rxrdy(mainio, FM7_MAINIO_MODEM_RXRDY, 0xffffffff);
 		uart[1]->set_context_txrdy(mainio, FM7_MAINIO_MODEM_TXRDY, 0xffffffff);
 		uart[1]->set_context_syndet(mainio, FM7_MAINIO_MODEM_SYNDET, 0xffffffff);
 	}
-	if(uart[2] != NULL) {
+	if(uart[2] != nullptr) {
 		uart[2]->set_context_rxrdy(mainio, FM7_MAINIO_MIDI_RXRDY, 0xffffffff);
 		uart[2]->set_context_txrdy(mainio, FM7_MAINIO_MIDI_TXRDY, 0xffffffff);
 		uart[2]->set_context_syndet(mainio, FM7_MAINIO_MIDI_SYNDET, 0xffffffff);
@@ -572,7 +562,7 @@ void VM::connect_bus(void)
 	keyboard->set_context_rxrdy(display, SIG_FM7KEY_RXRDY, 0x01);
 	keyboard->set_context_key_ack(display, SIG_FM7KEY_ACK, 0x01);
    
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->set_context_ear(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 		//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
 		mainio->set_context_datarec(drec);
@@ -622,7 +612,7 @@ void VM::connect_bus(void)
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_320kfdc) {
 #endif
-		if(fdc != NULL) {
+		if(fdc != nullptr) {
 			//FDC
 			fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
 			fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
@@ -632,7 +622,7 @@ void VM::connect_bus(void)
 	}
 #endif	
 #if defined(HAS_2HD)
-	if(connect_1Mfdc && (fdc_2HD != NULL)) {
+	if(connect_1Mfdc && (fdc_2HD != nullptr)) {
 		//FDC
 		fdc_2HD->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ_2HD, 0x1);
 		fdc_2HD->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ_2HD, 0x1);
@@ -675,10 +665,10 @@ void VM::connect_bus(void)
 	subcpu->set_context_mem(display);
 	//dummycpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #ifdef WITH_Z80
-	if(z80cpu != NULL) z80cpu->set_context_mem(mainmem);
+	if(z80cpu != nullptr) z80cpu->set_context_mem(mainmem);
 #endif
 #if defined(CAPABLE_JCOMMCARD)
-	if((jsubcpu != NULL) && (jcommcard != NULL)) {
+	if((jsubcpu != nullptr) && (jcommcard != nullptr)) {
 		jsubcpu->set_context_mem(jcommcard);
 	}
 #endif
@@ -686,36 +676,29 @@ void VM::connect_bus(void)
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 # ifdef WITH_Z80
-	if(z80cpu != NULL) z80cpu->set_context_debugger(new DEBUGGER(this, emu));
+	if(z80cpu != nullptr) z80cpu->set_context_debugger(new DEBUGGER(this, emu));
 # endif
 # if defined(CAPABLE_JCOMMCARD)
-	if(jsubcpu != NULL) {
+	if(jsubcpu != nullptr) {
 		jsubcpu->set_context_debugger(new DEBUGGER(this, emu));
 	}
 # endif
 #endif
-
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
-
-#if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
-#endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
-
+	initialize_devices();
+	
 #if defined(WITH_Z80)
-	if(g_intr_irq != NULL) g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
-	if(g_intr_firq != NULL) g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
-	if(g_nmi != NULL) g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_irq != nullptr) g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_firq != nullptr) g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_nmi != nullptr) g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
 #endif
 	// Disks
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_320kfdc) {
 #endif
-		if(fdc != NULL) {
+		if(fdc != nullptr) {
 			for(int i = 0; i < 4; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -732,7 +715,7 @@ void VM::connect_bus(void)
 #endif	
 	
 #if defined(HAS_2HD)
-	if(connect_1Mfdc && (fdc_2HD != NULL)) {
+	if(connect_1Mfdc && (fdc_2HD != nullptr)) {
 // ToDo: Implement another FDC for 1MB (2HD or 8''), this is used by FM-8 to FM-77? Not FM77AV or later? I still know this.
 		for(int i = 0; i < 2; i++) {
 			fdc_2HD->set_drive_type(i, DRIVE_TYPE_2HD);
@@ -745,9 +728,7 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
-	}
+	VM_TEMPLATE::update_config();
 	update_dipswitch();
 }
 
@@ -794,7 +775,7 @@ void VM::special_reset(int num)
 	maincpu->reset();
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	keyboard->write_signal(SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0xffffffff, 0xffffffff);
-	event->register_event(mainio, EVENT_UP_BREAK, 1000.0 * 1000.0, false, NULL);
+	event->register_event(mainio, EVENT_UP_BREAK, 1000.0 * 1000.0, false, nullptr);
 }
 
 void VM::run()
@@ -804,7 +785,29 @@ void VM::run()
 
 double VM::get_frame_rate()
 {
-	return event->get_frame_rate();
+	if(event != nullptr) {
+		return event->get_frame_rate();
+	}
+	return VM_TEMPLATE::get_frame_rate();
+}
+
+void VM::set_vm_frame_rate(double fps)
+{
+	if(event != nullptr) {
+		event->set_frames_per_sec(fps);
+	}
+}
+
+double VM::get_current_usec()
+{
+	if(event == NULL) return 0.0;
+	return event->get_current_usec();
+}
+
+uint64_t VM::get_current_clock_uint64()
+{
+		if(event == NULL) return (uint64_t)0;
+		return event->get_current_clock_uint64();
 }
 
 
@@ -824,7 +827,7 @@ DEVICE *VM::get_cpu(int index)
 #if defined(WITH_Z80)
 	else if(index == 2) {
 # if defined(CAPABLE_JCOMMCARD)
-		if(z80cpu == NULL) {
+		if(z80cpu == nullptr) {
 			return jsubcpu;
 		}
 # endif
@@ -842,7 +845,7 @@ DEVICE *VM::get_cpu(int index)
 	}
 # endif
 #endif
-	return NULL;
+	return nullptr;
 }
 #endif
 
@@ -924,7 +927,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	if(ch-- == 0) {
 		pcm1bit->set_volume(0, decibel_l, decibel_r);
 	} else if(ch-- == 0) {
-		if(drec != NULL) drec->set_volume(0, decibel_l, decibel_r);
+		if(drec != nullptr) drec->set_volume(0, decibel_l, decibel_r);
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(ch-- == 0) {
@@ -932,7 +935,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	}
 #endif
 	else if(ch-- == 0) {
-		if(fdc != NULL) {
+		if(fdc != nullptr) {
 			fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
 			fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 			fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
@@ -940,7 +943,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} 
 #if defined(HAS_2HD)
 	else if(ch-- == 0) {
-		if(fdc_2HD != NULL) {
+		if(fdc_2HD != nullptr) {
 			fdc_2HD->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
 			fdc_2HD->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 			fdc_2HD->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
@@ -948,7 +951,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} 
 #endif
 	else if(ch-- == 0) {
-		if(drec != NULL) {
+		if(drec != nullptr) {
 			drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 			drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 			drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
@@ -999,16 +1002,16 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 	if(drv < 0) return;
 #if defined(HAS_2HD)
 	if(drv < 2) {
-		if(fdc != NULL) {
+		if(fdc != nullptr) {
 			fdc->open_disk(drv, file_path, bank);
 		}
 	} else {
-		if(fdc_2HD != NULL) {
+		if(fdc_2HD != nullptr) {
 			fdc_2HD->open_disk(drv - 2, file_path, bank);
 		}
 	}
 #else
-	if(fdc != NULL) {
+	if(fdc != nullptr) {
 		fdc->open_disk(drv, file_path, bank);
 	}
 #endif
@@ -1019,12 +1022,12 @@ void VM::close_floppy_disk(int drv)
 {
 #if defined(HAS_2HD)
 	if(drv < 2) {
-		if(fdc != NULL) fdc->close_disk(drv);
+		if(fdc != nullptr) fdc->close_disk(drv);
 	} else {
-		if(fdc_2HD != NULL) fdc_2HD->close_disk(drv - 2);
+		if(fdc_2HD != nullptr) fdc_2HD->close_disk(drv - 2);
 	}		
 #else
-	if(fdc != NULL) {
+	if(fdc != nullptr) {
 		fdc->close_disk(drv);
 	}
 #endif
@@ -1033,15 +1036,15 @@ void VM::close_floppy_disk(int drv)
 bool VM::is_floppy_disk_inserted(int drv)
 {
 #if defined(HAS_2HD)
-	if((fdc != NULL) && (drv < 2)) {
+	if((fdc != nullptr) && (drv < 2)) {
 		return fdc->is_disk_inserted(drv);
-	} else if(fdc_2HD != NULL) {
+	} else if(fdc_2HD != nullptr) {
 		return fdc_2HD->is_disk_inserted(drv - 2);
 	} else {
 		return false;
 	}
 #else
-	if(fdc != NULL) {
+	if(fdc != nullptr) {
 		return fdc->is_disk_inserted(drv);
 	} else {
 		return false;
@@ -1052,13 +1055,13 @@ bool VM::is_floppy_disk_inserted(int drv)
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
 #if defined(HAS_2HD)
-	if((fdc != NULL) && (drv < 2)) {
+	if((fdc != nullptr) && (drv < 2)) {
 		fdc->is_disk_protected(drv, value);
-	} else if(fdc_2HD != NULL) {
+	} else if(fdc_2HD != nullptr) {
 		fdc_2HD->is_disk_protected(drv - 2, value);
 	}		
 #else
-	if(fdc != NULL) {
+	if(fdc != nullptr) {
 		fdc->is_disk_protected(drv, value);
 	}
 #endif
@@ -1067,15 +1070,15 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 #if defined(HAS_2HD)
-	if((fdc != NULL) && (drv < 2)) {
+	if((fdc != nullptr) && (drv < 2)) {
 		return fdc->is_disk_protected(drv);
-	} else if(fdc_2HD != NULL) {
+	} else if(fdc_2HD != nullptr) {
 		return fdc_2HD->is_disk_protected(drv);
 	} else {
 		return false;
 	}
 #else
-	if(fdc != NULL) {
+	if(fdc != nullptr) {
 		return fdc->is_disk_protected(drv);
 	} else {
 		return false;
@@ -1092,12 +1095,12 @@ uint32_t VM::is_floppy_disk_accessed()
 # if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_320kfdc) {
 # endif
-		if(fdc != NULL) v1 = fdc->read_signal(0);
+		if(fdc != nullptr) v1 = fdc->read_signal(0);
 # if defined(_FM8) || (_FM7) || (_FMNEW7)
 	}
 # endif
 	if(connect_1Mfdc) {
-		if(fdc_2HD != NULL) v2 = fdc_2HD->read_signal(0);
+		if(fdc_2HD != nullptr) v2 = fdc_2HD->read_signal(0);
 	}
 	v1 = v1 & 0x03;
 	v2 = (v2 & 0x03) << 2;
@@ -1117,7 +1120,7 @@ uint32_t VM::is_floppy_disk_accessed()
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		bool remote = drec->get_remote();
 		
 		if(drec->play_tape(file_path) && remote) {
@@ -1129,7 +1132,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		bool remote = drec->get_remote();
 		
 		if(drec->rec_tape(file_path) && remote) {
@@ -1141,7 +1144,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 
 void VM::close_tape(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		emu->lock_vm();
 		drec->close_tape();
 		emu->unlock_vm();
@@ -1151,7 +1154,7 @@ void VM::close_tape(int drv)
 
 bool VM::is_tape_inserted(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		return drec->is_tape_inserted();
 	}
 	return false;
@@ -1159,7 +1162,7 @@ bool VM::is_tape_inserted(int drv)
 
 bool VM::is_tape_playing(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		return drec->is_tape_playing();
 	}
 	return false;
@@ -1167,7 +1170,7 @@ bool VM::is_tape_playing(int drv)
 
 bool VM::is_tape_recording(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		return drec->is_tape_recording();
 	}
 	return false;
@@ -1175,7 +1178,7 @@ bool VM::is_tape_recording(int drv)
 
 int VM::get_tape_position(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		return drec->get_tape_position();
 	}
 	return 0;
@@ -1183,15 +1186,15 @@ int VM::get_tape_position(int drv)
 
 const _TCHAR* VM::get_tape_message(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		return drec->get_message();
 	}
-	return NULL;
+	return nullptr;
 }
 
 void VM::push_play(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->set_remote(false);
 		drec->set_ff_rew(0);
 		drec->set_remote(true);
@@ -1201,14 +1204,14 @@ void VM::push_play(int drv)
 
 void VM::push_stop(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->set_remote(false);
 	}
 }
 
 void VM::push_fast_forward(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->set_remote(false);
 		drec->set_ff_rew(1);
 		drec->set_remote(true);
@@ -1217,7 +1220,7 @@ void VM::push_fast_forward(int drv)
 
 void VM::push_fast_rewind(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->set_remote(false);
 		drec->set_ff_rew(-1);
 		drec->set_remote(true);
@@ -1226,120 +1229,86 @@ void VM::push_fast_rewind(int drv)
 
 void VM::push_apss_forward(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->do_apss(1);
 	}
 }
 
 void VM::push_apss_rewind(int drv)
 {
-	if(drec != NULL) {
+	if(drec != nullptr) {
 		drec->do_apss(-1);
 	}
 }
 
 bool VM::is_frame_skippable()
 {
+	if(event == nullptr) {
+		return false;
+	}
 	return event->is_frame_skippable();
 }
 
 void VM::update_dipswitch()
 {
 #if defined(WITH_Z80)
-	if(g_intr_irq != NULL) g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
-	if(g_intr_firq != NULL) g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
-	if(g_nmi != NULL) g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_irq != nullptr) g_intr_irq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_IRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_intr_firq != nullptr) g_intr_firq->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_FIRQ_ON) != 0) ? 1 : 0, 1);
+	if(g_nmi != nullptr) g_nmi->write_signal(SIG_AND_BIT_0, ((config.dipswitch & FM7_DIPSW_Z80_NMI_ON) != 0) ? 1 : 0, 1);
 #endif
 }
 
-void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
-	event->set_secondary_cpu_clock(cpu, clocks);
+void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks)
+{
+	if(event != nullptr) {
+		event->set_secondary_cpu_clock(cpu, clocks);
+	}
 }
 
 #if defined(USE_BUBBLE)
 void VM::open_bubble_casette(int drv, const _TCHAR *path, int bank)
 {
 	if((drv >= 2) || (drv < 0)) return;
-	if(bubble_casette[drv] == NULL) return;
+	if(bubble_casette[drv] == nullptr) return;
 	bubble_casette[drv]->open((_TCHAR *)path, bank);
 }
 
 void VM::close_bubble_casette(int drv)
 {
 	if((drv >= 2) || (drv < 0)) return;
-	if(bubble_casette[drv] == NULL) return;
+	if(bubble_casette[drv] == nullptr) return;
 	bubble_casette[drv]->close();
 }
 
 bool VM::is_bubble_casette_inserted(int drv)
 {
 	if((drv >= 2) || (drv < 0)) return false;
-	if(bubble_casette[drv] == NULL) return false;
+	if(bubble_casette[drv] == nullptr) return false;
 	return bubble_casette[drv]->is_bubble_inserted();
 }
 
 bool VM::is_bubble_casette_protected(int drv)
 {
 	if((drv >= 2) || (drv < 0)) return false;
-	if(bubble_casette[drv] == NULL) return false;
+	if(bubble_casette[drv] == nullptr) return false;
 	return bubble_casette[drv]->is_bubble_protected();
 }
 
 void VM::is_bubble_casette_protected(int drv, bool flag)
 {
 	if((drv >= 2) || (drv < 0)) return;
-	if(bubble_casette[drv] == NULL) return;
+	if(bubble_casette[drv] == nullptr) return;
 	bubble_casette[drv]->set_bubble_protect(flag);
 }
 #endif
-
-void VM::set_vm_frame_rate(double fps)
-{
-   if(event != NULL) event->set_frames_per_sec(fps);
-}
-
-double VM::get_current_usec()
-{
-	if(event == NULL) return 0.0;
-	return event->get_current_usec();
-}
-
-uint64_t VM::get_current_clock_uint64()
-{
-		if(event == NULL) return (uint64_t)0;
-		return event->get_current_clock_uint64();
-}
 
 #define STATE_VERSION	12
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-	
-		if(!state_fio->StateCheckInt32(len)) {
-			if(loading) {
-				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			if(loading) {
-				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
+		return false;
+	}
 	// Machine specified.
 	state_fio->StateValue(connect_320kfdc);
 	state_fio->StateValue(connect_1Mfdc);
@@ -1352,30 +1321,30 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 #ifdef SUPPORT_QUERY_PHY_KEY_NAME
 int VM::get_key_name_table_size(void)
 {
-	if(keyboard != NULL) {
+	if(keyboard != nullptr) {
 		return keyboard->get_key_name_table_size();
 	}
 	return 0;
 }
 const _TCHAR *VM::get_phy_key_name_by_scancode(uint32_t scancode)
 {
-	if(keyboard != NULL) {
+	if(keyboard != nullptr) {
 		return keyboard->get_phy_key_name_by_scancode(scancode);
 	}
-	return (const _TCHAR *)NULL;
+	return (const _TCHAR *)nullptr;
 }
 	
 const _TCHAR *VM::get_phy_key_name_by_vk(uint32_t vk)
 {
-	if(keyboard != NULL) {
+	if(keyboard != nullptr) {
 		return keyboard->get_phy_key_name_by_vk(vk);
 	}
-	return (const _TCHAR *)NULL;
+	return (const _TCHAR *)nullptr;
 }
 
 uint32_t VM::get_scancode_by_vk(uint32_t vk)
 {
-	if(keyboard != NULL) {
+	if(keyboard != nullptr) {
 		return keyboard->get_scancode_by_vk(vk);
 	}
 	return 0xffffffff;
@@ -1383,7 +1352,7 @@ uint32_t VM::get_scancode_by_vk(uint32_t vk)
 
 uint32_t VM::get_vk_by_scancode(uint32_t scancode)
 {
-	if(keyboard != NULL) {
+	if(keyboard != nullptr) {
 		return keyboard->get_vk_by_scancode(scancode);
 	}
 	return 0xffffffff;

@@ -555,92 +555,92 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
-	void special_reset(int num);
-	void run();
-	double get_frame_rate();
+	void reset() override;
+	void special_reset(int num) override;
+	void run() override;
+	double get_frame_rate() override;
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	void connect_bus(void);
 
-	void update_dipswitch(void);
+	void update_dipswitch(void) override;
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 	
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
-	void set_vm_frame_rate(double fps);
+	void set_vm_frame_rate(double fps) override;
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
-	bool get_caps_locked();
-	bool get_kana_locked();
-	uint32_t get_led_status(); 
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
+	bool get_caps_locked() override;
+	bool get_kana_locked() override;
+	uint32_t get_led_status() override; 
 	
 	// user interface
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
 	
-	void play_tape(int drv, const _TCHAR* file_path);
-	void rec_tape(int drv, const _TCHAR* file_path);
-	void close_tape(int drv);
-	bool is_tape_inserted(int drv);
-	bool is_tape_playing(int drv);
-	bool is_tape_recording(int drv);
-	int get_tape_position(int drv);
-	const _TCHAR* get_tape_message(int drv);
+	void play_tape(int drv, const _TCHAR* file_path) override;
+	void rec_tape(int drv, const _TCHAR* file_path) override;
+	void close_tape(int drv) override;
+	bool is_tape_inserted(int drv) override;
+	bool is_tape_playing(int drv) override;
+	bool is_tape_recording(int drv) override;
+	int get_tape_position(int drv) override;
+	const _TCHAR* get_tape_message(int drv) override;
 	
-	bool is_frame_skippable();
-	void push_play(int drv);
-	void push_stop(int drv);
-	void push_fast_forward(int drv);
-	void push_fast_rewind(int drv);
-	void push_apss_forward(int drv);
-	void push_apss_rewind(int drv);
-	void update_config();
+	bool is_frame_skippable() override;
+	void push_play(int drv) override;
+	void push_stop(int drv) override;
+	void push_fast_forward(int drv) override;
+	void push_fast_rewind(int drv) override;
+	void push_apss_forward(int drv) override;
+	void push_apss_rewind(int drv) override;
+	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
 
 #ifdef SUPPORT_QUERY_PHY_KEY_NAME
-	int get_key_name_table_size(void);
-	const _TCHAR *get_phy_key_name_by_scancode(uint32_t scancode);
-	const _TCHAR *get_phy_key_name_by_vk(uint32_t vk);
-	uint32_t get_scancode_by_vk(uint32_t vk);
-	uint32_t get_vk_by_scancode(uint32_t scancode);
+	int get_key_name_table_size(void) override;
+	const _TCHAR *get_phy_key_name_by_scancode(uint32_t scancode) override;
+	const _TCHAR *get_phy_key_name_by_vk(uint32_t vk) override;
+	uint32_t get_scancode_by_vk(uint32_t vk) override;
+	uint32_t get_vk_by_scancode(uint32_t scancode) override;
 #endif
 	
 #if defined(USE_BUBBLE)
-	void open_bubble_casette(int drv, const _TCHAR *path, int bank);
-	void close_bubble_casette(int drv);
-	bool is_bubble_casette_inserted(int drv);
-	bool is_bubble_casette_protected(int drv);
-	void is_bubble_casette_protected(int drv, bool flag);
+	void open_bubble_casette(int drv, const _TCHAR *path, int bank) override;
+	void close_bubble_casette(int drv) override;
+	bool is_bubble_casette_inserted(int drv) override;
+	bool is_bubble_casette_protected(int drv) override;
+	void is_bubble_casette_protected(int drv, bool flag) override;
 #endif
 #if defined(USE_DIG_RESOLUTION)
-	void get_screen_resolution(int *w, int *h);
+	void get_screen_resolution(int *w, int *h) override;
 #endif
 #if defined(USE_MINIMUM_RENDERING)	
-	bool is_screen_changed(void);
+	bool is_screen_changed(void) override;
 #endif	
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	void set_cpu_clock(DEVICE *cpu, uint32_t clocks);
+	void set_cpu_clock(DEVICE *cpu, uint32_t clocks) override;
 	// devices
-	DEVICE* get_device(int id);
+	//DEVICE* get_device(int id);
 //	DEVICE* dummy;
 //	DEVICE* first_device;
 //	DEVICE* last_device;
