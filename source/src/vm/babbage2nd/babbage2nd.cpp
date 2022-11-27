@@ -35,7 +35,7 @@ using BABBAGE2ND::KEYBOARD;
 VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
-	first_device = last_device = NULL;
+	//first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
@@ -101,49 +101,27 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
 }
 
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
 }
 
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
-}
 
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------
 
-void VM::reset()
-{
-	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-}
-
 void VM::run()
 {
-	event->drive();
+	if(event != nullptr) {
+		event->drive();
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -166,7 +144,9 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	display->draw_screen();
+	if(display != nullptr) {
+		display->draw_screen();
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -176,17 +156,25 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	event->initialize_sound(rate, samples);
+	if(event != nullptr) {
+		event->initialize_sound(rate, samples);
+	}
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	return event->create_sound(extra_frames);
+	if(event != nullptr) {
+		return event->create_sound(extra_frames);
+	}
+	return VM_TEMPLATE::create_sound(extra_frames);
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	return event->get_sound_buffer_ptr();
+	if(event != nullptr) {
+		return event->get_sound_buffer_ptr();
+	}
+	return VM_TEMPLATE::get_sound_buffer_ptr();
 }
 
 // ----------------------------------------------------------------------------
@@ -195,6 +183,7 @@ int VM::get_sound_buffer_ptr()
 
 void VM::key_down(int code, bool repeat)
 {
+	if(keyboard == nullptr) return;
 	keyboard->key_down(code);
 }
 
@@ -209,6 +198,7 @@ void VM::key_up(int code)
 
 void VM::load_binary(int drv, const _TCHAR* file_path)
 {
+	if(memory == nullptr) return;
 	if(drv == 0) {
 		memory->read_image(file_path, ram, sizeof(ram));
 	}
@@ -216,6 +206,7 @@ void VM::load_binary(int drv, const _TCHAR* file_path)
 
 void VM::save_binary(int drv, const _TCHAR* file_path)
 {
+	if(memory == nullptr) return;
 	if(drv == 0) {
 		memory->write_image(file_path, ram, sizeof(ram));
 	}
@@ -223,57 +214,35 @@ void VM::save_binary(int drv, const _TCHAR* file_path)
 
 bool VM::is_frame_skippable()
 {
-	return event->is_frame_skippable();
-}
-
-void VM::update_config()
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
+	if(event != nullptr) {
+		return event->is_frame_skippable();
 	}
+	return VM_TEMPLATE::is_frame_skippable();
 }
 
 double VM::get_current_usec()
 {
-	if(event == NULL) return 0.0;
-	return event->get_current_usec();
+	if(event != nullptr) {
+		return event->get_current_usec();
+	}
+	return VM_TEMPLATE::get_current_usec();
 }
 
 uint64_t VM::get_current_clock_uint64()
 {
-		if(event == NULL) return (uint64_t)0;
+	if(event != nullptr) {
 		return event->get_current_clock_uint64();
+	}
+	return VM_TEMPLATE::get_current_clock_uint64();
 }
 
 #define STATE_VERSION	2
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-		if(!state_fio->StateCheckInt32(len)) {
-			if(loading) {
-				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			if(loading) {
-				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
+		return false;
+	}
 	// Machine specified.
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	if(loading) {
