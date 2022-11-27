@@ -26,13 +26,14 @@ protected:
 	{
 		return m_state_version;
 	}
-	inline void set_git_repo_version(_TCHAR* p)
+	inline void set_git_repo_version(const char* p)
 	{
 		if(p != nullptr) {
 			m_git_revision = std::string(p);
 		}
 	}
-	void initialize_devices();
+	virtual void initialize_devices();
+	virtual void release_devices();
 public:
 	VM_TEMPLATE(EMU_TEMPLATE* parent_emu);
 	virtual ~VM_TEMPLATE() {} // OK?
@@ -121,6 +122,8 @@ public:
 	
 	virtual void is_floppy_disk_protected(int drv, bool value);
 	virtual bool is_floppy_disk_protected(int drv);
+	
+	virtual bool is_bubble_casette_inserted(int drv);
 	virtual void is_bubble_casette_protected(int drv, bool flag);
 	virtual bool is_bubble_casette_protected(int drv);
 	

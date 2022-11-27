@@ -23,6 +23,9 @@ VM_TEMPLATE::VM_TEMPLATE(EMU_TEMPLATE* parent_emu) :
 // drive virtual machine
 void VM_TEMPLATE::reset()
 {
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->reset();
+	}
 }
 
 void VM_TEMPLATE::special_reset(int num)
@@ -56,6 +59,16 @@ void VM_TEMPLATE::initialize_devices()
 {
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
+	}
+}
+
+void VM_TEMPLATE::release_devices()
+{
+	for(DEVICE* device = first_device; device;) {
+		DEVICE *next_device = device->next_device;
+		device->release();
+		delete device;
+		device = next_device;
 	}
 }
 
@@ -315,6 +328,11 @@ void VM_TEMPLATE::is_floppy_disk_protected(int drv, bool value)
 }
 
 bool VM_TEMPLATE::is_floppy_disk_protected(int drv)
+{
+	return false;
+}
+
+bool VM_TEMPLATE::is_bubble_casette_inserted(int drv)
 {
 	return false;
 }
