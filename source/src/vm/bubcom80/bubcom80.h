@@ -116,48 +116,47 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
-	void run();
-	double get_frame_rate();
+	void reset() override;
+	void run() override;
+	double get_frame_rate() override;
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 	
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
 	
 	// user interface
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
-	void play_tape(int drv, const _TCHAR* file_path);
-	void rec_tape(int drv, const _TCHAR* file_path);
-	void close_tape(int drv);
-	bool is_tape_inserted(int drv);
-	void open_bubble_casette(int drv, const _TCHAR *path, int bank);
-	void close_bubble_casette(int drv);
-	bool is_bubble_casette_inserted(int drv);
-	bool is_bubble_casette_protected(int drv);
-	void is_bubble_casette_protected(int drv, bool flag);
-	bool is_frame_skippable();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
+	void play_tape(int drv, const _TCHAR* file_path) override;
+	void rec_tape(int drv, const _TCHAR* file_path) override;
+	void close_tape(int drv) override;
+	bool is_tape_inserted(int drv) override;
+	void open_bubble_casette(int drv, const _TCHAR *path, int bank) override;
+	void close_bubble_casette(int drv) override;
+	bool is_bubble_casette_inserted(int drv) override;
+	bool is_bubble_casette_protected(int drv) override;
+	void is_bubble_casette_protected(int drv, bool flag) override;
+	bool is_frame_skippable() override;
 	
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 	
-	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
@@ -165,7 +164,7 @@ public:
 	// ----------------------------------------
 	
 	// devices
-	DEVICE* get_device(int id);
+	//DEVICE* get_device(int id) override;
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
