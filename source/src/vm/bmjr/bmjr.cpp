@@ -31,7 +31,7 @@ using BMJR::MEMORY;
 VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
-	first_device = last_device = NULL;
+	//first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
@@ -70,62 +70,41 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
 }
 
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
-}
-
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
+	release_devices();
 }
 
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------
 
-void VM::reset()
-{
-	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-}
 
 void VM::special_reset(int num)
 {
-	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	// reset all devices	
+	VM_TEMPLATE::reset(); // OK?
 }
 
 void VM::run()
 {
-	event->drive();
+	if(event != nullptr) {
+		event->drive();
+	}
 }
 
 double VM::get_frame_rate()
 {
-	return event->get_frame_rate();
+	if(event != nullptr) {
+		return event->get_frame_rate();
+	}
+	return VM_TEMPLATE::get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -138,7 +117,7 @@ DEVICE *VM::get_cpu(int index)
 	if(index == 0) {
 		return cpu;
 	}
-	return NULL;
+	return nullptr;
 }
 #endif
 
@@ -148,7 +127,9 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	memory->draw_screen();
+	if(memory != nullptr) {
+		memory->draw_screen();
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -158,30 +139,45 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	event->initialize_sound(rate, samples);
+	if(event != nullptr) {
+		event->initialize_sound(rate, samples);
+	}
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	return event->create_sound(extra_frames);
+	if(event != nullptr) {
+		return event->create_sound(extra_frames);
+	}
+	return VM_TEMPLATE::create_sound(extra_frames);
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	return event->get_sound_buffer_ptr();
+	if(event != nullptr) {
+		return event->get_sound_buffer_ptr();
+	}
+	return VM_TEMPLATE::get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch == 0) {
-		memory->set_volume(0, decibel_l, decibel_r);
+		if(memory != nullptr) {
+			memory->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch == 1) {
-		drec->set_volume(0, decibel_l, decibel_r);
+		if(drec != nullptr) {
+			drec->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch == 2) {
-		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
-		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
-		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+		if(drec != nullptr) {
+			// ToDo: Fixme
+			drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+			drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+			drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+		}
  	}
 }
 #endif
@@ -192,14 +188,16 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	if(!repeat) {
+	if((!repeat) && (memory != nullptr)) {
 		memory->key_down(code);
 	}
 }
 
 void VM::key_up(int code)
 {
-	memory->key_up(code);
+	if(memory != nullptr) {
+		memory->key_up(code);
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -208,6 +206,8 @@ void VM::key_up(int code)
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
+	if(drec == nullptr) return;
+	
 	bool remote = drec->get_remote();
 	
 	if(drec->play_tape(file_path) && remote) {
@@ -218,6 +218,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
+	if(drec == nullptr) return;
 	bool remote = drec->get_remote();
 	
 	if(drec->rec_tape(file_path) && remote) {
@@ -228,6 +229,8 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 
 void VM::close_tape(int drv)
 {
+	if(drec == nullptr) return;
+	
 	emu->lock_vm();
 	drec->close_tape();
 	emu->unlock_vm();
@@ -236,31 +239,47 @@ void VM::close_tape(int drv)
 
 bool VM::is_tape_inserted(int drv)
 {
-	return drec->is_tape_inserted();
+	if(drec != nullptr) {
+		return drec->is_tape_inserted();
+	}
+	return VM_TEMPLATE::is_tape_inserted(drv);
 }
 
 bool VM::is_tape_playing(int drv)
 {
-	return drec->is_tape_playing();
+	if(drec != nullptr) {
+		return drec->is_tape_playing();
+	}
+	return false;
 }
 
 bool VM::is_tape_recording(int drv)
 {
-	return drec->is_tape_recording();
+	if(drec != nullptr) {
+		return drec->is_tape_recording();
+	}
+	return VM_TEMPLATE::is_tape_recording(drv);
 }
 
 int VM::get_tape_position(int drv)
 {
-	return drec->get_tape_position();
+	if(drec != nullptr) {
+		return drec->get_tape_position();
+	}
+	return 0;
 }
 
 const _TCHAR* VM::get_tape_message(int drv)
 {
-	return drec->get_message();
+	if(drec != nullptr) {
+		return drec->get_message();
+	}
+	return _T("");
 }
 
 void VM::push_play(int drv)
 {
+	if(drec == nullptr) return;
 	drec->set_remote(false);
 	drec->set_ff_rew(0);
 	drec->set_remote(true);
@@ -268,11 +287,13 @@ void VM::push_play(int drv)
 
 void VM::push_stop(int drv)
 {
+	if(drec == nullptr) return;
 	drec->set_remote(false);
 }
 
 void VM::push_fast_forward(int drv)
 {
+	if(drec == nullptr) return;
 	drec->set_remote(false);
 	drec->set_ff_rew(1);
 	drec->set_remote(true);
@@ -280,6 +301,7 @@ void VM::push_fast_forward(int drv)
 
 void VM::push_fast_rewind(int drv)
 {
+	if(drec == nullptr) return;
 	drec->set_remote(false);
 	drec->set_ff_rew(-1);
 	drec->set_remote(true);
@@ -287,57 +309,35 @@ void VM::push_fast_rewind(int drv)
 
 bool VM::is_frame_skippable()
 {
-	return event->is_frame_skippable();
-}
-
-void VM::update_config()
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
+	if(event != nullptr) {
+		return event->is_frame_skippable();
 	}
+	return false;
 }
 
 double VM::get_current_usec()
 {
-	if(event == NULL) return 0.0;
-	return event->get_current_usec();
+	if(event != nullptr) {
+		return event->get_current_usec();
+	}
+	return VM_TEMPLATE::get_current_usec();
 }
 
 uint64_t VM::get_current_clock_uint64()
 {
-		if(event == NULL) return (uint64_t)0;
+	if(event != nullptr) {
 		return event->get_current_clock_uint64();
+	}
+	return VM_TEMPLATE::get_current_clock_uint64();
 }
 
 #define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-		if(!state_fio->StateCheckInt32(len)) {
-			if(loading) {
-				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			if(loading) {
-				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
+		return false;
+	}
 	// Machine specified.
 	if(loading) {
 		update_config();
