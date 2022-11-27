@@ -318,14 +318,14 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	if(uart[0] != nullptr) {
 		uart[0]->set_device_name(_T("RS-232C BOARD(I8251 SIO)"));
 	}
-# if defined(CAPABLE_JCOMMCARD)
+#if defined(CAPABLE_JCOMMCARD)
 	if((config.dipswitch & FM7_DIPSW_JSUBCARD_ON) != 0) {
 		if(uart[0] != nullptr) uart[0]->set_device_name(_T("J.COMM BOARD RS-232C(I8251 SIO)"));
 	}
-# elif defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || \
+#elif defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM8)
 	if(uart[0] != nullptr) uart[0]->set_device_name(_T("RS-232C(I8251 SIO)"));
-# endif
+#endif
 		
 	if(uart[1] != nullptr) {
 		uart[1]->set_device_name(_T("MODEM BOARD(I8251 SIO)"));
@@ -336,28 +336,28 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 						
 	// basic devices
 	// I/Os
-# if defined(_FM8)
+#if defined(_FM8)
 	psg->set_device_name(_T("AY-3-8910 PSG"));
-# else	
+#else
 	opn[0]->set_device_name(_T("YM2203 OPN"));
 	opn[1]->set_device_name(_T("YM2203 WHG"));
 	opn[2]->set_device_name(_T("YM2203 THG"));
-#  if !defined(_FM77AV_VARIANTS)
+	#if !defined(_FM77AV_VARIANTS)
 	psg->set_device_name(_T("AY-3-8910 PSG"));
-#  endif
+	#endif
 	pcm1bit->set_device_name(_T("BEEP"));
 	printer->set_device_name(_T("PRINTER I/F"));
-# if defined(_FM77AV_VARIANTS)
+	#if defined(_FM77AV_VARIANTS)
 	keyboard_beep->set_device_name(_T("BEEP(KEYBOARD)"));
-# endif	
+	#endif	
 	if(kanjiclass1 != nullptr) kanjiclass1->set_device_name(_T("KANJI ROM CLASS1"));
-# ifdef CAPABLE_KANJI_CLASS2
+	#ifdef CAPABLE_KANJI_CLASS2
 	if(kanjiclass2 != nullptr) kanjiclass2->set_device_name(_T("KANJI ROM CLASS2"));
-# endif
-# if defined(_FM8)
+	#endif
+	#if defined(_FM8)
 	bubble_casette[0]->set_device_name(_T("BUBBLE CASETTE #0"));
 	bubble_casette[1]->set_device_name(_T("BUBBLE CASETTE #1"));
-# endif	
+	#endif	
 #endif
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	g_rs232c_dtr->set_device_name(_T("RS232C DTR(AND)"));
@@ -381,12 +381,7 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
 }
 
 void VM::connect_bus(void)
@@ -470,9 +465,9 @@ void VM::connect_bus(void)
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
 	event->set_context_sound(opn[2]);
-# if !defined(_FM77AV_VARIANTS)
+	#if !defined(_FM77AV_VARIANTS)
 	event->set_context_sound(psg);
-# endif
+	#endif
 	event->set_context_sound(drec);
 	if(fdc != nullptr) {
 		event->set_context_sound(fdc->get_context_noise_seek());
@@ -491,9 +486,9 @@ void VM::connect_bus(void)
 		event->set_context_sound(drec->get_context_noise_stop());
 		event->set_context_sound(drec->get_context_noise_fast());
 	}
-# if defined(_FM77AV_VARIANTS)
+	#if defined(_FM77AV_VARIANTS)
 	event->set_context_sound(keyboard_beep);
-# endif
+	#endif
 #endif   
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	//event->register_vline_event(display);
@@ -634,9 +629,9 @@ void VM::connect_bus(void)
 #if defined(_FM8)	
 	mainio->set_context_psg(psg);
 #else
-# if !defined(_FM77AV_VARIANTS)
+	#if !defined(_FM77AV_VARIANTS)
 	mainio->set_context_psg(psg);
-# endif
+	#endif
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[0], 0);
 	joystick->set_context_opn(opn[0]);
@@ -675,14 +670,14 @@ void VM::connect_bus(void)
 #ifdef USE_DEBUGGER
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
-# ifdef WITH_Z80
+	#ifdef WITH_Z80
 	if(z80cpu != nullptr) z80cpu->set_context_debugger(new DEBUGGER(this, emu));
-# endif
-# if defined(CAPABLE_JCOMMCARD)
+	#endif
+	#if defined(CAPABLE_JCOMMCARD)
 	if(jsubcpu != nullptr) {
 		jsubcpu->set_context_debugger(new DEBUGGER(this, emu));
 	}
-# endif
+	#endif
 #endif
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -735,19 +730,18 @@ void VM::update_config()
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+	
 #if !defined(_FM77AV_VARIANTS) || defined(_FM8)
-# if defined(USE_AY_3_8910_AS_PSG)
+	#if defined(USE_AY_3_8910_AS_PSG)
 	psg->set_reg(0x27, 0);	// set prescaler
 	psg->set_reg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_AY_3_891X_MUTE, 0x00, 0x01); // Okay?
-# else	
+	#else	
 	psg->set_reg(0x27, 0); // stop timer
 	psg->set_reg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-#endif
+	#endif
 #endif
 #if !defined(_FM8)
 	for(int i = 0; i < 3; i++) {
@@ -780,7 +774,9 @@ void VM::special_reset(int num)
 
 void VM::run()
 {
-	event->drive();
+	if(event != nullptr) {
+		event->drive();
+	}
 }
 
 double VM::get_frame_rate()
@@ -800,14 +796,18 @@ void VM::set_vm_frame_rate(double fps)
 
 double VM::get_current_usec()
 {
-	if(event == NULL) return 0.0;
-	return event->get_current_usec();
+	if(event != nullptr) {
+		return event->get_current_usec();
+	}
+	return VM_TEMPLATE::get_current_usec();
 }
 
 uint64_t VM::get_current_clock_uint64()
 {
-		if(event == NULL) return (uint64_t)0;
+	if(event != nullptr) {
 		return event->get_current_clock_uint64();
+	}
+	return VM_TEMPLATE::get_current_clock_uint64();
 }
 
 
@@ -824,27 +824,27 @@ DEVICE *VM::get_cpu(int index)
 	} else if(index == 1) {
 		return subcpu;
 	}
-#if defined(WITH_Z80)
+	#if defined(WITH_Z80)
 	else if(index == 2) {
-# if defined(CAPABLE_JCOMMCARD)
+		#if defined(CAPABLE_JCOMMCARD)
 		if(z80cpu == nullptr) {
 			return jsubcpu;
 		}
-# endif
+		#endif
 		return z80cpu;
 	}
-# if defined(CAPABLE_JCOMMCARD)
+		#if defined(CAPABLE_JCOMMCARD)
 	else if(index == 3) {
 		return jsubcpu;
 	}
-# endif
-#else
-# if defined(CAPABLE_JCOMMCARD)
+		#endif
+	#else
+		#if defined(CAPABLE_JCOMMCARD)
 	else if(index == 2) {
 		return jsubcpu;
 	}
-# endif
-#endif
+		#endif
+	#endif
 	return nullptr;
 }
 #endif
@@ -861,43 +861,63 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	event->initialize_sound(rate, samples);
+	if(event != nullptr) {
+		event->initialize_sound(rate, samples);
+	}
 	// init sound gen
 #if defined(_FM8)
-	psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-#else	
-	opn[0]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-	opn[1]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-	opn[2]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-# if !defined(_FM77AV_VARIANTS)   
-	psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-#  if defined(USE_AY_3_8910_AS_PSG)
-	psg->set_low_pass_filter_freq(4500);
-	psg->set_high_pass_filter_freq(50);
-#  endif
-# endif
-# if defined(_FM77AV_VARIANTS)
-	keyboard_beep->initialize_sound(rate, 2400.0, 512);
-# endif
-#endif	
-	pcm1bit->initialize_sound(rate, 8000);
-	pcm1bit->set_high_pass_filter_freq(10);
-	pcm1bit->set_low_pass_filter_freq(1500);
-	
-
+	if(psg != nullptr) {
+		psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	}
+#else
+	if(opn[0] != nullptr) {
+		opn[0]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	}
+	if(opn[1] != nullptr) {
+		opn[1]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	}
+	if(opn[2] != nullptr) {
+		opn[2]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	}
+	# if !defined(_FM77AV_VARIANTS)   
+	if(psg != nullptr) {
+		psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+		#if defined(USE_AY_3_8910_AS_PSG)
+		psg->set_low_pass_filter_freq(4500);
+		psg->set_high_pass_filter_freq(50);
+		#endif
+	}
+	#endif
+	#if defined(_FM77AV_VARIANTS)
+	if(keyboard_beep != nullptr) {
+		keyboard_beep->initialize_sound(rate, 2400.0, 512);
+	}
+	# endif
+#endif
+	if(pcm1bit != nullptr) {
+		pcm1bit->initialize_sound(rate, 8000);
+		pcm1bit->set_high_pass_filter_freq(10);
+		pcm1bit->set_low_pass_filter_freq(1500);
+	}
 	//drec->initialize_sound(rate, 0);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	uint16_t* p = event->create_sound(extra_frames);
-	return p;
+	if(event != nullptr) {
+		uint16_t* p = event->create_sound(extra_frames);
+		return p;
+	}
+	return VM_TEMPLATE::create_sound(extra_frames);
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	int pos = event->get_sound_buffer_ptr();
-	return pos; 
+	if(event != nullptr) {
+		int pos = event->get_sound_buffer_ptr();
+		return pos;
+	}
+	return VM_TEMPLATE::get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -905,33 +925,53 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 #if !defined(_FM77AV_VARIANTS)
 	if(ch-- == 0) {
-		psg->set_volume(0, decibel_l, decibel_r);
-		psg->set_volume(1, decibel_l, decibel_r);
+		if(psg != nullptr) {
+			psg->set_volume(0, decibel_l, decibel_r);
+			psg->set_volume(1, decibel_l, decibel_r);
+		}
 	} else
 #endif
 #if !defined(_FM8)		
 	if(ch-- == 0) {
-		opn[0]->set_volume(0, decibel_l, decibel_r);
+		if(opn[0] != nullptr) {
+			opn[0]->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		opn[0]->set_volume(1, decibel_l, decibel_r);
+		if(opn[0] != nullptr) {
+			opn[0]->set_volume(1, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		opn[1]->set_volume(0, decibel_l, decibel_r);
+		if(opn[1] != nullptr) {
+			opn[1]->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		opn[1]->set_volume(1, decibel_l, decibel_r);
+		if(opn[1] != nullptr) {
+			opn[1]->set_volume(1, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		opn[2]->set_volume(0, decibel_l, decibel_r);
+		if(opn[2] != nullptr) {
+			opn[2]->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		opn[2]->set_volume(1, decibel_l, decibel_r);
+		if(opn[2] != nullptr) {
+			opn[2]->set_volume(1, decibel_l, decibel_r);
+		}
 	} else
 #endif	
 	if(ch-- == 0) {
-		pcm1bit->set_volume(0, decibel_l, decibel_r);
+		if(pcm1bit != nullptr) {
+			pcm1bit->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		if(drec != nullptr) drec->set_volume(0, decibel_l, decibel_r);
+		if(drec != nullptr) {
+			drec->set_volume(0, decibel_l, decibel_r);
+		}
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(ch-- == 0) {
-		keyboard_beep->set_volume(0, decibel_l, decibel_r);
+		if(keyboard_beep != nullptr) {
+			keyboard_beep->set_volume(0, decibel_l, decibel_r);
+		}
 	}
 #endif
 	else if(ch-- == 0) {
@@ -966,6 +1006,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
+	if(keyboard == nullptr) return;
 	if(!repeat) {
 		keyboard->key_down(code);
 	}
@@ -973,22 +1014,26 @@ void VM::key_down(int code, bool repeat)
 
 void VM::key_up(int code)
 {
+	if(keyboard == nullptr) return;
 	keyboard->key_up(code);
 }
 
 bool VM::get_caps_locked()
 {
+	if(keyboard == nullptr) return false;
 	return keyboard->get_caps_locked();
 }
 
 bool VM::get_kana_locked()
 {
+	if(keyboard == nullptr) return false;
 	return keyboard->get_kana_locked();
 }
 
 // Get INS status.Important with FM-7 series (^_^;
 uint32_t VM::get_led_status()
 {
+	if(keyboard == nullptr) return 0;
 	return keyboard->read_signal(SIG_FM7KEY_LED_STATUS);
 }
 
