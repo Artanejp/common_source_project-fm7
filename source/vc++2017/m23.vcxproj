@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F62D036D-7569-431B-9C55-C056A4D3145A}</ProjectGuid>
-    <RootNamespace>mycomz80a</RootNamespace>
+    <ProjectGuid>{C8ECB2A1-4C61-417E-B499-94FF8CC90187}</ProjectGuid>
+    <RootNamespace>m23</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -123,7 +123,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_MYCOMZ80A;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_M23;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -174,7 +174,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_MYCOMZ80A;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_M23;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -227,7 +227,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_MYCOMZ80A;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_M23;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -279,7 +279,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_MYCOMZ80A;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_M23;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -327,21 +327,28 @@
     <ClCompile Include="..\src\emu.cpp" />
     <ClCompile Include="..\src\fifo.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
-    <ClCompile Include="..\src\vm\datarec.cpp" />
+    <ClCompile Include="..\src\vm\am9511.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\hd46505.cpp" />
-    <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
+    <ClCompile Include="..\src\vm\m23\apu.cpp" />
+    <ClCompile Include="..\src\vm\m23\beep.cpp" />
+    <ClCompile Include="..\src\vm\m23\display.cpp" />
+    <ClCompile Include="..\src\vm\m23\floppy.cpp" />
+    <ClCompile Include="..\src\vm\m23\keyboard.cpp" />
+    <ClCompile Include="..\src\vm\m23\m23.cpp" />
+    <ClCompile Include="..\src\vm\m23\membus.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
-    <ClCompile Include="..\src\vm\msm58321.cpp" />
-    <ClCompile Include="..\src\vm\mycomz80a\display.cpp" />
-    <ClCompile Include="..\src\vm\mycomz80a\keyboard.cpp" />
-    <ClCompile Include="..\src\vm\mycomz80a\memory.cpp" />
-    <ClCompile Include="..\src\vm\mycomz80a\mycomz80a.cpp" />
+    <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
-    <ClCompile Include="..\src\vm\sn76489an.cpp" />
+    <ClCompile Include="..\src\vm\not.cpp" />
+    <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
+    <ClCompile Include="..\src\vm\z80ctc.cpp" />
+    <ClCompile Include="..\src\vm\z80dma.cpp" />
+    <ClCompile Include="..\src\vm\z80pio.cpp" />
+    <ClCompile Include="..\src\vm\z80sio.cpp" />
     <ClCompile Include="..\src\win32\osd.cpp" />
     <ClCompile Include="..\src\win32\osd_console.cpp" />
     <ClCompile Include="..\src\win32\osd_input.cpp" />
@@ -356,35 +363,41 @@
     <ClInclude Include="..\src\fifo.h" />
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\res\resource.h" />
-    <ClInclude Include="..\src\vm\datarec.h" />
-    <ClInclude Include="..\src\vm\disk.h" />
-    <ClInclude Include="..\src\vm\debugger.h" />
+    <ClInclude Include="..\src\vm\am9511.h" />
     <ClInclude Include="..\src\vm\device.h" />
+    <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\hd46505.h" />
-    <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\io.h" />
+    <ClInclude Include="..\src\vm\m23\apu.h" />
+    <ClInclude Include="..\src\vm\m23\beep.h" />
+    <ClInclude Include="..\src\vm\m23\display.h" />
+    <ClInclude Include="..\src\vm\m23\floppy.h" />
+    <ClInclude Include="..\src\vm\m23\keyboard.h" />
+    <ClInclude Include="..\src\vm\m23\m23.h" />
+    <ClInclude Include="..\src\vm\m23\membus.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
-    <ClInclude Include="..\src\vm\msm58321.h" />
-    <ClInclude Include="..\src\vm\mycomz80a\display.h" />
-    <ClInclude Include="..\src\vm\mycomz80a\keyboard.h" />
-    <ClInclude Include="..\src\vm\mycomz80a\memory.h" />
-    <ClInclude Include="..\src\vm\mycomz80a\mycomz80a.h" />
+    <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\noise.h" />
-    <ClInclude Include="..\src\vm\sn76489an.h" />
+    <ClInclude Include="..\src\vm\not.h" />
+    <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\z80.h" />
+    <ClInclude Include="..\src\vm\z80ctc.h" />
+    <ClInclude Include="..\src\vm\z80dma.h" />
+    <ClInclude Include="..\src\vm\z80pio.h" />
+    <ClInclude Include="..\src\vm\z80sio.h" />
     <ClInclude Include="..\src\win32\osd.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\indicator\access_green.bmp" />
     <Image Include="..\src\res\indicator\access_off.bmp" />
     <Image Include="..\src\res\indicator\access_on.bmp" />
-    <Image Include="..\src\res\mycomz80a.ico" />
+    <Image Include="..\src\res\m23.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\res\mycomz80a.rc">
+    <ResourceCompile Include="..\src\res\m23.rc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

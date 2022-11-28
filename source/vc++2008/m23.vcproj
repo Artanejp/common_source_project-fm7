@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="mycomz80a"
-	ProjectGUID="{F62D036D-7569-431B-9C55-C056A4D3145A}"
-	RootNamespace="mycomz80a"
+	Name="m23"
+	ProjectGUID="{26207C6A-4A3C-4BE2-A3D6-C8A2FF886A96}"
+	RootNamespace="m23"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,17 +43,17 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/mycomz80a.tlb"
+				TypeLibraryName=".\Debug/m23.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MYCOMZ80A"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_M23"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/mycomz80a.pch"
+				PrecompiledHeaderFile=".\Debug/m23.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -76,12 +76,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Debug/mycomz80a.exe"
+				OutputFile=".\Debug/m23.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				GenerateDebugInformation="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Debug/mycomz80a.pdb"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=".\Debug/m23.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -99,7 +99,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/mycomz80a.bsc"
+				OutputFile=".\Debug/m23.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -139,19 +139,19 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/mycomz80a.tlb"
+				TypeLibraryName=".\Release/m23.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MYCOMZ80A"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_M23"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				PrecompiledHeaderFile=".\Release/mycomz80a.pch"
+				PrecompiledHeaderFile=".\Release/m23.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -173,11 +173,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Release/mycomz80a.exe"
+				OutputFile=".\Release/m23.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/mycomz80a.pdb"
+				ProgramDatabaseFile=".\Release/m23.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -195,7 +195,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/mycomz80a.bsc"
+				OutputFile=".\Release/m23.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -470,7 +470,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\datarec.cpp"
+					RelativePath="..\src\vm\am9511.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -550,26 +550,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\i8255.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\src\vm\io.cpp"
 					>
 					<FileConfiguration
@@ -610,7 +590,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\msm58321.cpp"
+					RelativePath="..\src\vm\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -650,7 +630,27 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\sn76489an.cpp"
+					RelativePath="..\src\vm\not.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\pcm1bit.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -689,13 +689,93 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath="..\src\vm\z80ctc.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\z80dma.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\z80pio.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\z80sio.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 			<Filter
 				Name="VM Driver Source Files"
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\mycomz80a\display.cpp"
+					RelativePath="..\src\vm\m23\apu.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -715,7 +795,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mycomz80a\keyboard.cpp"
+					RelativePath="..\src\vm\m23\beep.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -735,7 +815,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mycomz80a\memory.cpp"
+					RelativePath="..\src\vm\m23\display.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -755,7 +835,67 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mycomz80a\mycomz80a.cpp"
+					RelativePath="..\src\vm\m23\floppy.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\m23\keyboard.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\m23\m23.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\m23\membus.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -819,7 +959,7 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\datarec.h"
+					RelativePath="..\src\vm\am9511.h"
 					>
 				</File>
 				<File
@@ -843,10 +983,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\i8255.h"
-					>
-				</File>
-				<File
 					RelativePath="..\src\vm\io.h"
 					>
 				</File>
@@ -855,7 +991,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\msm58321.h"
+					RelativePath="..\src\vm\memory.h"
 					>
 				</File>
 				<File
@@ -863,7 +999,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\sn76489an.h"
+					RelativePath="..\src\vm\not.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pcm1bit.h"
 					>
 				</File>
 				<File
@@ -878,25 +1018,53 @@
 					RelativePath="..\src\vm\z80.h"
 					>
 				</File>
+				<File
+					RelativePath="..\src\vm\z80ctc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\z80dma.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\z80pio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\z80sio.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="VM Driver Header Files"
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\mycomz80a\display.h"
+					RelativePath="..\src\vm\m23\apu.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mycomz80a\keyboard.h"
+					RelativePath="..\src\vm\m23\beep.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mycomz80a\memory.h"
+					RelativePath="..\src\vm\m23\display.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mycomz80a\mycomz80a.h"
+					RelativePath="..\src\vm\m23\floppy.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\m23\keyboard.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\m23\m23.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\m23\membus.h"
 					>
 				</File>
 			</Filter>
@@ -918,11 +1086,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\mycomz80a.ico"
+				RelativePath="..\src\res\m23.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\mycomz80a.rc"
+				RelativePath="..\src\res\m23.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

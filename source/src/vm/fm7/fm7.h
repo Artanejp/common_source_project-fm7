@@ -383,6 +383,13 @@ static const _TCHAR *joy_button_captions[] = {
 	_T("Button #2(2nd)"),
 };
 #endif
+#ifdef USE_LED_DEVICE
+static const _TCHAR *led_device_caption[] = {
+	_T("INS:"),
+	_T("KANA:"),
+	_T("CAP:"),
+};
+#endif
 
 /*
  * NOTE:

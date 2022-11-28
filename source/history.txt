@@ -1,3 +1,15 @@
+5/25/2022
+
+[WINMAIN] support showing indicator LEDs on status bar for any purposes
+
+[VM/MB8877] support ready signal
+[VM/Z80CTC] improve for timer overrun case
+[VM/Z80SIO] improve receive interrupt (thanks Mr.YAT)
+
+[M23] support SORD M23
+[MYCOMZ80A] support floppy drives and nmi signal
+
+
 5/7/2022
 
 [VM/I8080] fix issue in the case CALL/RST performed by interrupt while halted

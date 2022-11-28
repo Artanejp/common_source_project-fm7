@@ -29,6 +29,7 @@ private:
 	// output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
+	outputs_t outputs_rdy;
 	
 	// drive noise
 	NOISE* d_noise_seek;
@@ -122,6 +123,7 @@ private:
 #endif
 	void cmd_forceint();
 	void update_head_flag(int drv, bool head_load);
+	void update_ready();
 	
 	// irq/dma
 	void set_irq(bool val);
@@ -132,6 +134,7 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_rdy);
 		d_noise_seek = NULL;
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
@@ -180,6 +183,10 @@ public:
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
 	}
+	void set_context_rdy(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_rdy, device, id, mask);
+	}
 	void set_context_noise_seek(NOISE* device)
 	{
 		d_noise_seek = device;
@@ -213,6 +220,8 @@ public:
 	bool is_disk_inserted(int drv);
 	void is_disk_protected(int drv, bool value);
 	bool is_disk_protected(int drv);
+	bool is_drive_ready();
+	bool is_drive_ready(int drv);
 	uint8_t get_media_type(int drv);
 	void set_drive_type(int drv, uint8_t type);
 	uint8_t get_drive_type(int drv);

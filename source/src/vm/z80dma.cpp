@@ -14,8 +14,6 @@
 #include "debugger.h"
 #endif
 
-//#define DMA_DEBUG
-
 #define CMD_RESET				0xc3
 #define CMD_RESET_PORT_A_TIMING			0xc7
 #define CMD_RESET_PORT_B_TIMING			0xcb
@@ -152,7 +150,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 {
 	if(wr_num == 0) {
 		if((data & 0x87) == 0) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR2=%2x\n"), data);
 #endif
 			WR2 = data;
@@ -160,7 +158,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				wr_tmp[wr_num++] = GET_REGNUM(PORTB_TIMING);
 			}
 		} else if((data & 0x87) == 4) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR1=%2x\n"), data);
 #endif
 			WR1 = data;
@@ -168,7 +166,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				wr_tmp[wr_num++] = GET_REGNUM(PORTA_TIMING);
 			}
 		} else if((data & 0x80) == 0) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR0=%2x\n"), data);
 #endif
 			WR0 = data;
@@ -185,7 +183,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				wr_tmp[wr_num++] = GET_REGNUM(BLOCKLEN_H);
 			}
 		} else if((data & 0x83) == 0x80) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR3=%2x\n"), data);
 #endif
 			WR3 = data;
@@ -202,7 +200,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				update_intr();
 			}
 		} else if((data & 0x83) == 0x81) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR4=%2x\n"), data);
 #endif
 			WR4 = data;
@@ -216,7 +214,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				wr_tmp[wr_num++] = GET_REGNUM(INTERRUPT_CTRL);
 			}
 		} else if((data & 0xc7) == 0x82) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR5=%2x\n"), data);
 #endif
 			WR5 = data;
@@ -225,7 +223,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				request_intr(INT_RDY);
 			}
 		} else if((data & 0x83) == 0x83) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: WR6=%2x\n"), data);
 #endif
 			WR6 = data;
@@ -343,7 +341,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 		wr_ptr = 0;
 	} else {
 		int nreg = wr_tmp[wr_ptr];
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 		this->out_debug_log(_T("Z80DMA: WR[%d,%d]=%2x\n"), nreg >> 3, nreg & 7, data);
 #endif
 		regs.t[nreg] = data;
@@ -381,7 +379,7 @@ uint32_t Z80DMA::read_io8(uint32_t addr)
 	}
 	uint32_t data = rr_tmp[rr_ptr];
 	
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 	this->out_debug_log(_T("Z80DMA: RR[%d]=%2x\n"), rr_ptr, data);
 #endif
 	if(++rr_ptr >= rr_num) {
@@ -557,12 +555,12 @@ restart:
 		if(PORTA_IS_SOURCE) {
 			if(PORTA_MEMORY) {
 				data = read_memory(addr_a, &wait_r);
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 				this->out_debug_log(_T("Z80DMA: RAM[%4x]=%2x -> "), addr_a, data);
 #endif
 			} else {
 				data = read_ioport(addr_a, &wait_r);
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 				this->out_debug_log(_T("Z80DMA: INP(%4x)=%2x -> "), addr_a, data);
 #endif
 			}
@@ -576,12 +574,12 @@ restart:
 		} else {
 			if(PORTB_MEMORY) {
 				data = read_memory(addr_b, &wait_r);
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 				this->out_debug_log(_T("Z80DMA: RAM[%4x]=%2x -> "), addr_b, data);
 #endif
 			} else {
 				data = read_ioport(addr_b, &wait_r);
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 				this->out_debug_log(_T("Z80DMA: INP(%4x)=%2x -> "), addr_b, data);
 #endif
 			}
@@ -598,12 +596,12 @@ restart:
 		if(TRANSFER_MODE == TM_TRANSFER || TRANSFER_MODE == TM_SEARCH_TRANSFER) {
 			if(PORTA_IS_SOURCE) {
 				if(PORTB_MEMORY) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 					this->out_debug_log(_T("RAM[%4x]\n"), addr_b);
 #endif
 					write_memory(addr_b, data, &wait_w);
 				} else {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 					this->out_debug_log(_T("OUT(%4x)\n"), addr_b);
 #endif
 					write_ioport(addr_b, data, &wait_w);
@@ -617,12 +615,12 @@ restart:
 				}
 			} else {
 				if(PORTA_MEMORY) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 					this->out_debug_log(_T("RAM[%4x]\n"), addr_a);
 #endif
 					write_memory(addr_a, data, &wait_w);
 				} else {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 					this->out_debug_log(_T("OUT(%4x)\n"), addr_a);
 #endif
 					write_ioport(addr_a, data, &wait_w);
@@ -678,7 +676,7 @@ inc_ports:
 #endif
 	}
 	
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 	if(occured) {
 		this->out_debug_log(_T("Z80DMA: COUNT=%d BLOCKLEN=%d FOUND=%d\n"), upcount, blocklen, found ? 1 : 0);
 	}
@@ -686,7 +684,7 @@ inc_ports:
 	if(occured && (upcount == blocklen || found)) {
 		// auto restart
 		if(AUTO_RESTART && upcount == blocklen && !force_ready) {
-#ifdef DMA_DEBUG
+#ifdef _DMA_DEBUG_LOG
 			this->out_debug_log(_T("Z80DMA: AUTO RESTART !!!\n"));
 #endif
 			upcount = 0;

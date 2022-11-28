@@ -2572,7 +2572,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 	SetTextColor(lpDrawItem->hDC, RGB(0, 0, 0));
 	SetBkMode(lpDrawItem->hDC, TRANSPARENT);
 	
-	#if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
+	#if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_LED_DEVICE)
 	{
 		HDC hdcMem = CreateCompatibleDC(lpDrawItem->hDC);
 		HBITMAP hBitmap[3];
@@ -2654,6 +2654,19 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 					draw_left += bmp_width + 2;
 				}
 				draw_left += 8;
+			#endif
+			#ifdef USE_LED_DEVICE
+				for(int i = 0; i < USE_LED_DEVICE; i++) {
+					TextOut(lpDrawItem->hDC, draw_left, text_top, led_device_caption[i], _tcslen(led_device_caption[i]));
+					GetTextExtentPoint32(lpDrawItem->hDC, led_device_caption[i], _tcslen(led_device_caption[i]), &size);
+					draw_left += size.cx + 4;
+					int idx = (emu->get_led_status() >> i) & 1;
+					SelectObject(hdcMem, hBitmap[idx]);
+					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
+					draw_left += bmp_width + 2;
+					draw_left += 4;
+				}
+				draw_left += 4;
 			#endif
 		}
 		for(int i = 0; i < 3; i++) {

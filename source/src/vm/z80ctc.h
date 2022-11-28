@@ -25,7 +25,7 @@ private:
 	struct {
 		uint8_t control;
 		bool slope;
-		uint16_t count;
+		int16_t count;
 		uint16_t constant;
 		uint8_t vector;
 		int clocks;

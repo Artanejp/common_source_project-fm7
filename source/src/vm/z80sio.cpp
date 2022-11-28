@@ -395,6 +395,13 @@ uint32_t Z80SIO::read_io8(uint32_t addr)
 				update_intr();
 			}
 		}
+		// for polling case (thanks YAT)
+		if(!SYNC_MODE(ch)) {
+			if(port[ch].recv->empty()) {
+				int data = port[ch].rtmp->read();
+				port[ch].recv->write(data);
+			}
+		}
 		return port[ch].recv->read();
 	case 1:
 	case 3:
@@ -872,7 +879,7 @@ uint32_t Z80SIO::get_intr_ack()
 			port[ch].err_intr = false;
 			port[ch].in_service = true;
 		} else if(port[ch].recv_intr && (port[ch].wr[1] & 0x18)) {
-			port[ch].recv_intr = 0;
+//			port[ch].recv_intr = 0;	// thanks YAT
 			port[ch].in_service = true;
 		} else if(port[ch].stat_intr && (port[ch].wr[1] & 1)) {
 			port[ch].stat_intr = false;

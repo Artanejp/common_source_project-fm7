@@ -1,42 +1,55 @@
 /*
-	Japan Electronics College MYCOMZ-80A Emulator 'eMYCOMZ-80A'
+	SORD M23 Emulator 'Emu23'
 
 	Author : Takeda.Toshiya
-	Date   : 2009.05.13-
+	Date   : 2022.05.21-
 
 	[ virtual machine ]
 */
 
-#ifndef _MYCOMZ80A_H_
-#define _MYCOMZ80A_H_
+#ifndef _M23_H_
+#define _M23_H_
 
-#define DEVICE_NAME		"Japan Electronics College MYCOMZ-80A"
-#define CONFIG_NAME		"mycomz80a"
+#if defined(_M68)
+#define DEVICE_NAME		"SORD M68"
+#define CONFIG_NAME		"m68"
+#else
+#define DEVICE_NAME		"SORD M23"
+#define CONFIG_NAME		"m23"
+#endif
 
 // device informations for virtual machine
-#define FRAMES_PER_SEC		60.58
-#define LINES_PER_FRAME 	260
-#define CHARS_PER_LINE		64
-#define HD46505_CHAR_CLOCK	1008000
-#define CPU_CLOCKS		2500000
+#define FRAMES_PER_SEC		60
+#define LINES_PER_FRAME 	262
+#define CHARS_PER_LINE		114
+#define HD46505_HORIZ_FREQ	15750
+#define CPU_CLOCKS		3993600
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
-#define HAS_MB8866
 #define MAX_DRIVE		4
-#define HAS_MSM5832
+#define MEMORY_ADDR_MAX		0x10000
+#define MEMORY_BANK_SIZE	0x800
+#define IO_ADDR_MAX		0x100
+#define SINGLE_MODE_DMA
 
 // device informations for win32
+#define USE_DIPSWITCH
+#define DIPSWITCH_DEFAULT	0xff
+#define USE_DRIVE_TYPE		3
+#define DRIVE_TYPE_DEFAULT	1
 #define USE_FLOPPY_DISK		4
-#define USE_TAPE		1
 #define USE_KEY_LOCKED
-#define USE_AUTO_KEY		5
-#define USE_AUTO_KEY_RELEASE	6
-#define USE_AUTO_KEY_CAPS
+#define USE_AUTO_KEY		8
+#define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_NUMPAD
+#define USE_MONITOR_TYPE	2
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
-#define USE_SOUND_VOLUME	4
+#define USE_SOUND_VOLUME	2
+//#define USE_PRINTER
+//#define USE_PRINTER_TYPE	4
+#define USE_LED_DEVICE		4
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -46,7 +59,16 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("CMT (Signal)"), _T("Noise (CMT)"), _T("Noise (FDD)"),
+	_T("Beep"), _T("Noise (FDD)"),
+};
+#endif
+
+#ifdef USE_LED_DEVICE
+static const _TCHAR *led_device_caption[] = {
+	_T("S1:"),
+	_T("S2:"),
+	_T("SMALL:"),
+	_T("KANA:"),
 };
 #endif
 
@@ -54,41 +76,52 @@ class EMU;
 class DEVICE;
 class EVENT;
 
-class DATAREC;
+//class AM9511;
 class HD46505;
-class I8255;
 class IO;
 class MB8877;
-class MSM58321;
-class SN76489AN;
+class NOT;
 class Z80;
+class Z80CTC;
+class Z80DMA;
+class Z80PIO;
+class Z80SIO;
 
+class APU;
+class BEEP;
 class DISPLAY;
+class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class MEMBUS;
 
 class VM : public VM_TEMPLATE
 {
 protected:
 //	EMU* emu;
 	
-	// devices
+	// devices for x1
 	EVENT* event;
 	
-	DATAREC* drec;
+//	AM9511* apu;
 	HD46505* crtc;
-	I8255* pio1;
-	I8255* pio2;
-	I8255* pio3;
 	IO* io;
 	MB8877* fdc;
-	MSM58321* rtc;
-	SN76489AN* psg;
+	NOT* not_drq;
 	Z80* cpu;
+	Z80CTC* ctc;
+#ifdef _M68
+	Z80CTC* ctc2;
+#endif
+	Z80DMA* dma;
+	Z80PIO* pio;
+	Z80SIO* sio;
 	
+	APU* apu;
+	BEEP* beep;
 	DISPLAY* display;
+	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MEMBUS* memory;
 	
 public:
 	// ----------------------------------------
@@ -128,6 +161,7 @@ public:
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
+	uint32_t get_led_status();
 	
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
@@ -136,22 +170,7 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
-	void play_tape(int drv, const _TCHAR* file_path);
-	void rec_tape(int drv, const _TCHAR* file_path);
-	void close_tape(int drv);
-	bool is_tape_inserted(int drv);
-	bool is_tape_playing(int drv);
-	bool is_tape_recording(int drv);
-	int get_tape_position(int drv);
-	const _TCHAR* get_tape_message(int drv);
-	void push_play(int drv);
-	void push_stop(int drv);
-	void push_fast_forward(int drv);
-	void push_fast_rewind(int drv);
-	void push_apss_forward(int drv) {}
-	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	

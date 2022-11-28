@@ -1190,10 +1190,20 @@ static void I386OP(enter16)(i386_state *cpustate)           // Opcode 0xc8
 
 	if(level > 0)
 	{
-		for(x=1;x<level-1;x++)
+		for(x=1;x<=level-1;x++)
+		{
+			UINT32 addr;
+			if(!STACK_32BIT)
 		{
 			REG16(BP) -= 2;
-			PUSH16(cpustate,READ16(cpustate,REG16(BP)));
+				addr = REG16(BP);
+			}
+			else
+			{
+				REG32(EBP) -= 2;
+				addr = REG32(EBP);
+			}
+			PUSH16(cpustate,READ16(cpustate,i386_translate(cpustate, SS, addr, 0, 2)));
 		}
 		PUSH16(cpustate,frameptr);
 	}
@@ -2086,9 +2096,12 @@ static void I386OP(shld16_i8)(i386_state *cpustate)         // Opcode 0x0f a4
 		shift &= 31;
 		if( shift == 0 ) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (16-shift))) ? 1 : 0;
-			// ppro and above should be (dst >> (32-shift))
-			dst = (upper << (shift-16)) | (upper >> (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = cpustate->CF ^ (dst >> 15);
 			SetSZPF16(dst);
 		} else {
@@ -2107,8 +2120,12 @@ static void I386OP(shld16_i8)(i386_state *cpustate)         // Opcode 0x0f a4
 		shift &= 31;
 		if( shift == 0 ) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (16-shift))) ? 1 : 0;
-			dst = (upper << (shift-16)) | (upper >> (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = cpustate->CF ^ (dst >> 15);
 			SetSZPF16(dst);
 		} else {
@@ -2132,8 +2149,12 @@ static void I386OP(shld16_cl)(i386_state *cpustate)         // Opcode 0x0f a5
 		shift &= 31;
 		if( shift == 0 ) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (16-shift))) ? 1 : 0;
-			dst = (upper << (shift-16)) | (upper >> (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = cpustate->CF ^ (dst >> 15);
 			SetSZPF16(dst);
 		} else {
@@ -2152,8 +2173,12 @@ static void I386OP(shld16_cl)(i386_state *cpustate)         // Opcode 0x0f a5
 		shift &= 31;
 		if( shift == 0 ) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (16-shift))) ? 1 : 0;
-			dst = (upper << (shift-16)) | (upper >> (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = cpustate->CF ^ (dst >> 15);
 			SetSZPF16(dst);
 		} else {
@@ -2177,8 +2202,12 @@ static void I386OP(shrd16_i8)(i386_state *cpustate)         // Opcode 0x0f ac
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {
@@ -2197,8 +2226,12 @@ static void I386OP(shrd16_i8)(i386_state *cpustate)         // Opcode 0x0f ac
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {
@@ -2222,8 +2255,12 @@ static void I386OP(shrd16_cl)(i386_state *cpustate)         // Opcode 0x0f ad
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {
@@ -2242,8 +2279,12 @@ static void I386OP(shrd16_cl)(i386_state *cpustate)         // Opcode 0x0f ad
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {

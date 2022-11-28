@@ -13,9 +13,11 @@
 #include "../event.h"
 
 #include "../datarec.h"
+#include "../disk.h"
 #include "../hd46505.h"
 #include "../i8255.h"
 #include "../io.h"
+#include "../mb8877.h"
 #include "../msm58321.h"
 #include "../noise.h"
 #include "../sn76489an.h"
@@ -52,6 +54,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio3 = new I8255(this, emu);
 	pio3->set_device_name(_T("8255 PIO (FDC/RTC)"));
 	io = new IO(this, emu);
+	fdc = new MB8877(this, emu);	// FD1771
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	rtc = new MSM58321(this, emu);	// MSM5832
 	psg = new SN76489AN(this, emu);
 	cpu = new Z80(this, emu);
@@ -67,6 +73,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	//	00	out	system control
 	//	01	in/out	vram data
@@ -97,6 +106,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	//		pc6	out	display chr/cg (0=chr,1=cg)
 	//		pc7	out	display freq (0=80column,1=40column)
 	//	0c-0f	in/ou	pio3
+	//		pa0	in	fdc irq
+	//		pa1	in	fdc drq
+	//		pa2	in	drive select 1 (0=selected)
+	//		pa3	in	drive select 2
+	//		pa4	in	drive select 3
+	//		pa5	in	drive select 4
+	//		pa6	in	drive ready (1=ready)
 	//		pa0-6	in	fdc control
 	//		pb0-3	in/out	rtc data
 	//		pc0-3	out	rtc address
@@ -120,6 +136,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio3->set_context_port_c(rtc, SIG_MSM58321_READ, 0x20, 0);
 	pio3->set_context_port_c(rtc, SIG_MSM58321_WRITE, 0x40, 0);
 	pio3->set_context_port_c(rtc, SIG_MSM58321_CS, 0x80, 0);
+	fdc->set_context_irq(pio3, SIG_I8255_PORT_A, 0x01);
+	fdc->set_context_drq(pio3, SIG_I8255_PORT_A, 0x02);
+	fdc->set_context_rdy(pio3, SIG_I8255_PORT_A, 0x40);
 	rtc->set_context_data(pio3, SIG_I8255_PORT_B, 0x0f, 0);
 	
 	display->set_context_crtc(crtc);
@@ -127,6 +146,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard->set_context_cpu(cpu);
 	keyboard->set_context_pio1(pio1);
 	keyboard->set_context_pio2(pio2);
+	memory->set_context_cpu(cpu);
+	memory->set_context_fdc(fdc);
+	memory->set_context_pio(pio3);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
@@ -143,10 +165,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x04, 0x07, pio1);
 	io->set_iomap_range_rw(0x08, 0x0b, pio2);
 	io->set_iomap_range_rw(0x0c, 0x0f, pio3);
+	io->set_iomap_range_rw(0x10, 0x13, fdc);
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
+	}
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+		fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+		fdc->set_drive_mfm(drv, false);
 	}
 }
 
@@ -250,6 +277,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif
@@ -281,6 +312,36 @@ bool VM::get_kana_locked()
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
+
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
+{
+	fdc->open_disk(drv, file_path, bank);
+}
+
+void VM::close_floppy_disk(int drv)
+{
+	fdc->close_disk(drv);
+}
+
+bool VM::is_floppy_disk_inserted(int drv)
+{
+	return fdc->is_disk_inserted(drv);
+}
+
+void VM::is_floppy_disk_protected(int drv, bool value)
+{
+	fdc->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
 
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
@@ -373,7 +434,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

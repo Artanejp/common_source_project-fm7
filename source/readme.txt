@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								5/7/2022
+								5/25/2022
 
 --- What's this ?
 
@@ -140,6 +140,7 @@ This archive includes the all source codes of emulators listed below:
 		eSMC-70		SMC-70
 		eSMC-777	SMC-777
 	SORD
+		Emu23		M23
 		Emu5		m5
 	SPECTRAVIDEO
 		yaSVI-3x8	SVI-3x8 (by Mr.tanam)

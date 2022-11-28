@@ -210,6 +210,11 @@
 #include "jx/jx.h"
 #endif
 
+// SORD M23
+#ifdef _M23
+#include "m23/m23.h"
+#endif
+
 // SORD m5
 #ifdef _M5
 #include "m5/m5.h"
