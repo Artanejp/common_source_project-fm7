@@ -1,3 +1,8 @@
+6/8/2022
+
+[CRC80] support Computer Research CRC-80
+
+
 5/29/2022
 
 [M23/DISPLAY] add pseudo jis font image
