@@ -22,20 +22,24 @@ class TIMER : public DEVICE
 private:
 	DEVICE *d_pic;
 	
-	uint8 ctrl, status;
+	uint8_t ctrl, status;
 	void update_intr();
 	
 public:
-	TIMER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	TIMER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Timer I/F"));
+	}
 	~TIMER() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique functions
+	// unique function
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;

@@ -17,7 +17,7 @@ void FLOPPY::reset()
 	register_id = -1;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xf2:
@@ -47,8 +47,23 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 void FLOPPY::event_callback(int event_id, int err)
 {
 	// WatchDog Timer
-	emu->out_debug_log("WatchDog Timer\n");
+	this->out_debug_log(_T("WatchDog Timer\n"));
 	d_pic->write_signal(SIG_I8259_IR6, 1, 1);
 	register_id = -1;
+}
+
+#define STATE_VERSION	1
+
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(prev);
+	state_fio->StateValue(register_id);
+	return true;
 }
 

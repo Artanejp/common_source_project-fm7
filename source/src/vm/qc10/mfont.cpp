@@ -10,7 +10,6 @@
 #include "mfont.h"
 #include "../i8259.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 #define BIT_IBF	0x80
 #define BIT_ERR	2
@@ -22,7 +21,7 @@ void MFONT::initialize()
 	
 	// load multifont rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MFONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MFONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(mfont, sizeof(mfont), 1);
 		fio->Fclose();
 	}
@@ -42,7 +41,7 @@ void MFONT::release()
 	delete res;
 }
 
-void MFONT::write_io8(uint32 addr, uint32 data)
+void MFONT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xfc:
@@ -74,9 +73,9 @@ void MFONT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MFONT::read_io8(uint32 addr)
+uint32_t MFONT::read_io8(uint32_t addr)
 {
-	uint32 val;
+	uint32_t val;
 	
 	switch(addr & 0xff) {
 	case 0xfc:
@@ -91,5 +90,25 @@ uint32 MFONT::read_io8(uint32 addr)
 		return status;
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+bool MFONT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(status);
+	if(!cmd->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!res->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	return true;
 }
 

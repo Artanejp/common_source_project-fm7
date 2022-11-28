@@ -9,7 +9,6 @@
 
 #include "mz1m01.h"
 #include "../z80pio.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
@@ -35,13 +34,13 @@ void MZ1M01::initialize()
 	memset(rdmy, 0xff, sizeof(rdmy));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MZ-1M01.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1M01.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	} else {
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R08.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R08.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
@@ -59,19 +58,19 @@ void MZ1M01::reset()
 	port[0] = port[1] = 0xff;
 }
 
-void MZ1M01::write_data8(uint32 addr, uint32 data)
+void MZ1M01::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 MZ1M01::read_data8(uint32 addr)
+uint32_t MZ1M01::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
-void MZ1M01::write_io8(uint32 addr, uint32 data)
+void MZ1M01::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x7c:
@@ -89,7 +88,7 @@ void MZ1M01::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1M01::read_io8(uint32 addr)
+uint32_t MZ1M01::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x7c:
@@ -103,7 +102,7 @@ uint32 MZ1M01::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MZ1M01::write_signal(int id, uint32 data, uint32 mask)
+void MZ1M01::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MZ1M01_PORT_A) {
 		port[0] = (port[0] & ~mask) | (data & mask);
@@ -114,25 +113,16 @@ void MZ1M01::write_signal(int id, uint32 data, uint32 mask)
 
 #define STATE_VERSION	1
 
-void MZ1M01::save_state(FILEIO* state_fio)
+bool MZ1M01::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(port, sizeof(port), 1);
-}
-
-bool MZ1M01::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(port, sizeof(port), 1);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(port, sizeof(port), 1);
 	return true;
 }
 

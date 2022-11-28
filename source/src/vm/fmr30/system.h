@@ -17,17 +17,21 @@
 class SYSTEM : public DEVICE
 {
 private:
-	uint8 arr;
-	uint8 nmistat, nmimask;
+	uint8_t arr;
+	uint8_t nmistat, nmimask;
 	
 public:
-	SYSTEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SYSTEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("System I/O"));
+	}
 	~SYSTEM() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

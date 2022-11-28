@@ -10,7 +10,6 @@
 */
 
 #include "mz1r13.h"
-#include "../../fileio.h"
 
 void MZ1R13::initialize()
 {
@@ -19,12 +18,12 @@ void MZ1R13::initialize()
 	memset(dic, 0xff, sizeof(dic));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R13_KAN.ROM")), FILEIO_READ_BINARY) || 
-	   fio->Fopen(emu->bios_path(_T("KANJI2.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R13_KAN.ROM")), FILEIO_READ_BINARY) || 
+	   fio->Fopen(create_local_path(_T("KANJI2.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R13_DIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R13_DIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 	}
@@ -34,7 +33,7 @@ void MZ1R13::initialize()
 	select_kanji = true;
 }
 
-void MZ1R13::write_io8(uint32 addr, uint32 data)
+void MZ1R13::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xb8:
@@ -52,10 +51,10 @@ void MZ1R13::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1R13::read_io8(uint32 addr)
+uint32_t MZ1R13::read_io8(uint32_t addr)
 {
-	uint32 offset = (address << 1) | (addr & 1);
-	uint8 value = select_kanji ? kanji[offset & 0x1ffff] : dic[offset & 0x3fff];
+	uint32_t offset = (address << 1) | (addr & 1);
+	uint8_t value = select_kanji ? kanji[offset & 0x1ffff] : dic[offset & 0x3fff];
 	
 	switch(addr & 0xff) {
 	case 0xb9:
@@ -73,25 +72,16 @@ uint32 MZ1R13::read_io8(uint32 addr)
 
 #define STATE_VERSION	1
 
-void MZ1R13::save_state(FILEIO* state_fio)
+bool MZ1R13::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint16(address);
-	state_fio->FputBool(select_kanji);
-}
-
-bool MZ1R13::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	address = state_fio->FgetUint16();
-	select_kanji = state_fio->FgetBool();
+	state_fio->StateValue(address);
+	state_fio->StateValue(select_kanji);
 	return true;
 }
 

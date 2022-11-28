@@ -28,6 +28,10 @@
 #define SIG_I8237_MASK2	10
 #define SIG_I8237_MASK3	11
 
+#ifdef USE_DEBUGGER
+class DEBUGGER;
+#endif
+
 class I8237 : public DEVICE
 {
 private:
@@ -35,54 +39,83 @@ private:
 #ifdef SINGLE_MODE_DMA
 	DEVICE* d_dma;
 #endif
+#ifdef USE_DEBUGGER
+	DEBUGGER *d_debugger;
+#endif
 	
 	struct {
 		DEVICE* dev;
-		uint16 areg;
-		uint16 creg;
-		uint16 bareg;
-		uint16 bcreg;
-		uint8 mode;
+		uint16_t areg;
+		uint16_t creg;
+		uint16_t bareg;
+		uint16_t bcreg;
+		uint8_t mode;
 		// external bank
-		uint16 bankreg;
-		uint16 incmask;
+		uint16_t bankreg;
+		uint16_t incmask;
+		// output tc signals
+		outputs_t outputs_tc;
 	} dma[4];
 	
 	bool low_high;
-	uint8 cmd;
-	uint8 req;
-	uint8 mask;
-	uint8 tc;
-	uint32 tmp;
+	uint8_t cmd;
+	uint8_t req;
+	uint8_t mask;
+	uint8_t tc;
+	uint32_t tmp;
 	bool mode_word;
+	uint32_t addr_mask;
 	
-	void write_mem(uint32 addr, uint32 data);
-	uint32 read_mem(uint32 addr);
-	void write_io(int ch, uint32 data);
-	uint32 read_io(int ch);
+	void write_mem(uint32_t addr, uint32_t data);
+	uint32_t read_mem(uint32_t addr);
+	void write_io(int ch, uint32_t data);
+	uint32_t read_io(int ch);
 	
 public:
-	I8237(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
 			dma[i].dev = vm->dummy;
 			dma[i].bankreg = dma[i].incmask = 0;
+			initialize_output_signals(&dma[i].outputs_tc);
 		}
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
+#ifdef USE_DEBUGGER
+		d_debugger = NULL;
+#endif
 		mode_word = false;
+		addr_mask = 0xffffffff;
+		set_device_name(_T("8237 DMAC"));
 	}
 	~I8237() {}
 	
 	// common functions
+	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 	void do_dma();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	// for debug
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	void write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data16(uint32_t addr);
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+#endif
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)
@@ -105,15 +138,41 @@ public:
 	{
 		dma[3].dev = device;
 	}
+	void set_context_tc0(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+	}
+	void set_context_tc1(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[1].outputs_tc, device, id, mask);
+	}
+	void set_context_tc2(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[2].outputs_tc, device, id, mask);
+	}
+	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[3].outputs_tc, device, id, mask);
+	}
 #ifdef SINGLE_MODE_DMA
 	void set_context_child_dma(DEVICE* device)
 	{
 		d_dma = device;
 	}
 #endif
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
 	void set_mode_word(bool val)
 	{
 		mode_word = val;
+	}
+	void set_address_mask(uint32_t val)
+	{
+		addr_mask = val;
 	}
 };
 

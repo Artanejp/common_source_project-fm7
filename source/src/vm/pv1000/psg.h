@@ -17,25 +17,31 @@
 class PSG : public DEVICE
 {
 private:
-	typedef struct {
+	struct {
 		int count;
 		int period;
 		bool signal;
-	} channel_t;
-	channel_t ch[3];
+	} ch[3];
 	int diff;
+	int volume_l, volume_r;
 	
 public:
-	PSG(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PSG(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+		set_device_name(_T("PSG"));
+	}
 	~PSG() {}
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	void mix(int32* buffer, int cnt);
+	void write_io8(uint32_t addr, uint32_t data);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void init(int rate);
+	void initialize_sound(int rate);
 };
 
 #endif

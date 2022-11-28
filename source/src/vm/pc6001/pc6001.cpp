@@ -16,6 +16,7 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../disk.h"
 #include "../i8255.h"
 #include "../io.h"
 #ifdef _PC6001
@@ -24,10 +25,16 @@
 #else
 #include "../upd7752.h"
 #endif
+#include "../noise.h"
 #include "../pc6031.h"
 #include "../pc80s31k.h"
+#include "../prnfile.h"
 #include "../upd765a.h"
+#if defined(_PC6001MK2SR) || defined(_PC6601SR)
 #include "../ym2203.h"
+#else
+#include "../ay_3_891x.h"
+#endif
 #include "../z80.h"
 
 #include "../datarec.h"
@@ -42,27 +49,22 @@
 #endif
 #include "joystick.h"
 #include "memory.h"
-#include "printer.h"
-#include "psub.h"
+//#include "psub.h"
 #include "sub.h"
 #include "timer.h"
-
-#include "../../fileio.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
-	FILEIO* fio = new FILEIO();
-	support_pc80s31k = fio->IsFileExists(emu->bios_path(_T("DISK.ROM")));
+	support_pc80s31k = FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM")));
 #ifdef _PC6601SR
 	support_sub_cpu = false;
 #else
-	support_sub_cpu = fio->IsFileExists(emu->bios_path(_T(SUB_CPU_ROM_FILE_NAME)));
+	support_sub_cpu = FILEIO::IsFileExisting(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
-	delete fio;
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -71,23 +73,44 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
+	noise_seek = new NOISE(this, emu);
+	noise_head_down = new NOISE(this, emu);
+	noise_head_up = new NOISE(this, emu);
+#if defined(_PC6001MK2SR) || defined(_PC6601SR)
 	psg = new YM2203(this, emu);
+#else
+	psg = new AY_3_891X(this, emu);
+#endif
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
+	
+	if(config.printer_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else {
+		printer = dummy;
+	}
 	
 #if defined(_PC6601) || defined(_PC6601SR)
 	floppy = new FLOPPY(this, emu);
+	floppy->set_context_noise_seek(noise_seek);
+//	floppy->set_context_noise_head_down(noise_head_down);
+//	floppy->set_context_noise_head_up(noise_head_up);
 #endif
 	joystick = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
-//	printer = new PRINTER(this, emu);
 	timer = new TIMER(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
+	event->set_context_sound(noise_seek);
+	event->set_context_sound(noise_head_down);
+	event->set_context_sound(noise_head_up);
 	
-//	pio_sub->set_context_port_b(printer, SIG_PRINTER_OUT, 0xff, 0);
-//	pio_sub->set_context_port_c(printer, SIG_PRINTER_STB, 0x01, 0);
+	pio_sub->set_context_port_b(printer, SIG_PRINTER_DATA, 0xff, 0);
+	pio_sub->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x01, 0);
 	pio_sub->set_context_port_c(memory, SIG_MEMORY_PIO_PORT_C, 0x06, 0);	// CRTKILL,CGSWN
 	
 #ifdef _PC6001
@@ -96,8 +119,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display->set_context_vdp(vdp);
 	display->set_vram_ptr(memory->get_vram());
 	display->set_context_timer(timer);
-	vdp->load_font_image(emu->bios_path(_T("CGROM60.60")));
-	vdp->set_context_cpu(cpu);
+	vdp->load_font_image(create_local_path(_T("CGROM60.60")));
+//	vdp->set_context_cpu(cpu);
 	pio_sub->set_context_port_c(vdp, SIG_MC6847_ENABLE, 0x02, 0);	// CRTKILL
 #else
 	voice = new UPD7752(this, emu);
@@ -113,9 +136,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	if(support_sub_cpu) {
 		cpu_sub = new MCS48(this, emu);
+		cpu_sub->set_device_name(_T("MCS48 MCU (Sub)"));
 		sub = new SUB(this, emu);
 		drec = new DATAREC(this, emu);
+		drec->set_device_name(_T("Data Recorder (Sub)"));
+		drec->set_context_noise_play(new NOISE(this, emu));
+		drec->set_context_noise_stop(new NOISE(this, emu));
+		drec->set_context_noise_fast(new NOISE(this, emu));
 		event->set_context_cpu(cpu_sub, 8000000);
+		event->set_context_sound(drec);
+		event->set_context_sound(drec->get_context_noise_play());
+		event->set_context_sound(drec->get_context_noise_stop());
+		event->set_context_sound(drec->get_context_noise_fast());
 		cpu_sub->set_context_mem(new MCS48MEM(this, emu));
 		cpu_sub->set_context_io(sub);
 #ifdef USE_DEBUGGER
@@ -125,27 +157,33 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		sub->set_context_drec(drec);
 		sub->set_context_timer(timer);
 		pio_sub->set_context_port_c(cpu_sub, SIG_CPU_IRQ, 0x80, 0);
-		drec->set_context_out(sub, SIG_SUB_DATAREC, 1);
+		drec->set_context_ear(sub, SIG_SUB_DATAREC, 1);
 		timer->set_context_sub(sub);
-	} else {
-		psub = new PSUB(this, emu);
-		psub->set_context_pio(pio_sub);
-		psub->set_context_timer(timer);
-		timer->set_context_sub(psub);
-		cpu_sub = NULL;
+//	} else {
+//		psub = new PSUB(this, emu);
+//		psub->set_context_pio(pio_sub);
+//		psub->set_context_timer(timer);
+//		timer->set_context_sub(psub);
+//		cpu_sub = NULL;
 	}
 	if(support_pc80s31k) {
 		pio_fdd = new I8255(this, emu);
+		pio_fdd->set_device_name(_T("8255 PIO (FDD I/F)"));
 		pio_pc80s31k = new I8255(this, emu);
+		pio_pc80s31k->set_device_name(_T("8255 PIO (320KB FDD)"));
 		pc80s31k = new PC80S31K(this, emu);
+		pc80s31k->set_device_name(_T("PC-80S31K (320KB FDD)"));
 		fdc_pc80s31k = new UPD765A(this, emu);
+		fdc_pc80s31k->set_device_name(_T("uPD765A FDC (320KB FDD)"));
 		cpu_pc80s31k = new Z80(this, emu);
+		cpu_pc80s31k->set_device_name(_T("Z80 CPU (320KB FDD)"));
 		
 		event->set_context_cpu(cpu_pc80s31k, 4000000);
+		
 		pc80s31k->set_context_cpu(cpu_pc80s31k);
 		pc80s31k->set_context_fdc(fdc_pc80s31k);
 		pc80s31k->set_context_pio(pio_pc80s31k);
-		pio_fdd->set_context_port_a(pio_pc80s31k, SIG_I8255_PORT_A, 0xff, 0);
+		pio_fdd->set_context_port_a(pio_pc80s31k, SIG_I8255_PORT_B, 0xff, 0);
 		pio_fdd->set_context_port_b(pio_pc80s31k, SIG_I8255_PORT_A, 0xff, 0);
 		pio_fdd->set_context_port_c(pio_pc80s31k, SIG_I8255_PORT_C, 0x0f, 4);
 		pio_fdd->set_context_port_c(pio_pc80s31k, SIG_I8255_PORT_C, 0xf0, -4);
@@ -156,6 +194,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pio_pc80s31k->set_context_port_c(pio_fdd, SIG_I8255_PORT_C, 0xf0, -4);
 		pio_pc80s31k->clear_ports_by_cmdreg = true;
 		fdc_pc80s31k->set_context_irq(cpu_pc80s31k, SIG_CPU_IRQ, 1);
+		fdc_pc80s31k->set_context_noise_seek(noise_seek);
+		fdc_pc80s31k->set_context_noise_head_down(noise_head_down);
+		fdc_pc80s31k->set_context_noise_head_up(noise_head_up);
 		cpu_pc80s31k->set_context_mem(pc80s31k);
 		cpu_pc80s31k->set_context_io(pc80s31k);
 		cpu_pc80s31k->set_context_intr(pc80s31k);
@@ -167,6 +208,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	} else {
 		pc6031 = new PC6031(this, emu);
+		pc6031->set_context_noise_seek(noise_seek);
+//		pc6031->set_context_noise_head_down(noise_head_down);
+//		pc6031->set_context_noise_head_up(noise_head_up);
 #if defined(_PC6601) || defined(_PC6601SR)
 		floppy->set_context_ext(pc6031);
 #endif
@@ -184,8 +228,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// i/o bus
 	if(support_sub_cpu) {
 		io->set_iomap_range_rw(0x90, 0x93, sub);
-	} else {
-		io->set_iomap_range_rw(0x90, 0x93, psub);
+//	} else {
+//		io->set_iomap_range_rw(0x90, 0x93, psub);
 	}
 	io->set_iomap_alias_w(0xa0, psg, 0);			// PSG ch
 	io->set_iomap_alias_w(0xa1, psg, 1);			// PSG data
@@ -237,8 +281,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		// load rom images after cpustate is allocated
 #ifdef _PC6601SR
 #else
-		cpu_sub->load_rom_image(emu->bios_path(SUB_CPU_ROM_FILE_NAME));
+		cpu_sub->load_rom_image(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
+	}
+	int drive_num = 0;
+#if defined(_PC6601) || defined(_PC6601SR)
+	floppy->get_disk_handler(0)->drive_num = drive_num++;
+	floppy->get_disk_handler(1)->drive_num = drive_num++;
+#endif
+	if(support_pc80s31k) {
+		fdc_pc80s31k->get_disk_handler(0)->drive_num = drive_num++;
+		fdc_pc80s31k->get_disk_handler(1)->drive_num = drive_num++;
+	} else {
+		pc6031->get_disk_handler(0)->drive_num = drive_num++;
+		pc6031->get_disk_handler(1)->drive_num = drive_num++;
 	}
 }
 
@@ -323,24 +379,72 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	psg->init(rate, 4000000, samples, 0, 0);
+	psg->initialize_sound(rate, 4000000, samples, 0, 0);
+#ifndef _PC6001
+	voice->initialize_sound(rate);
+#endif
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
+}
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch-- == 0) {
+		psg->set_volume(1, decibel_l, decibel_r);
+#if !defined(_PC6001)
+	} else if(ch-- == 0) {
+		voice->set_volume(0, decibel_l, decibel_r);
+#endif
+	} else if(ch-- == 0) {
+		if(support_sub_cpu) {
+			drec->set_volume(0, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		noise_seek->set_volume(0, decibel_l, decibel_r);
+		noise_head_down->set_volume(0, decibel_l, decibel_r);
+		noise_head_up->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		if(support_sub_cpu) {
+			drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+			drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+			drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+		}
+	}
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// notify key
+// ----------------------------------------------------------------------------
+
+void VM::key_down(int code, bool repeat)
+{
+//	if(!support_sub_cpu) {
+//		psub->key_down(code);
+//	}
+}
+
+void VM::key_up(int code)
+{
+//	if(!support_sub_cpu) {
+//		psub->key_up(code);
+//	}
 }
 
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_cart(int drv, _TCHAR* file_path)
+void VM::open_cart(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memory->open_cart(file_path);
@@ -356,47 +460,33 @@ void VM::close_cart(int drv)
 	}
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
 	if(drv == 0) {
-		return memory->cart_inserted();
+		return memory->is_cart_inserted();
 	} else {
 		return false;
 	}
 }
 
-int VM::access_lamp()
-{
-	uint32 status = 0; /// fdc->read_signal(0);
-#if defined(_PC6601) || defined(_PC6601SR)
-	status = floppy->read_signal(0);
-#endif
-	if(support_pc80s31k) {
-		status |= fdc_pc80s31k->read_signal(0);
-	} else {
-		status |= pc6031->read_signal(0);
-	}
-	return status;
-}
-
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		floppy->open_disk(drv, file_path, offset);
+		floppy->open_disk(drv, file_path, bank);
 		return;
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		fdc_pc80s31k->open_disk(drv, file_path, offset);
+		fdc_pc80s31k->open_disk(drv, file_path, bank);
 	} else {
-		pc6031->open_disk(drv, file_path, offset);
+		pc6031->open_disk(drv, file_path, bank);
 	}
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
@@ -413,69 +503,208 @@ void VM::close_disk(int drv)
 	}
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->disk_inserted(drv);
+		return floppy->is_disk_inserted(drv);
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		return fdc_pc80s31k->disk_inserted(drv);
+		return fdc_pc80s31k->is_disk_inserted(drv);
 	} else {
-		return pc6031->disk_inserted(drv);
+		return pc6031->is_disk_inserted(drv);
 	}
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	if(support_sub_cpu) {
-		drec->play_tape(file_path);
-		drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+#if defined(_PC6601) || defined(_PC6601SR)
+	if(drv < 2) {
+		floppy->is_disk_protected(drv, value);
+		return;
 	} else {
-		psub->play_tape(file_path);
+		drv -= 2;
+	}
+#endif
+	if(support_pc80s31k) {
+		fdc_pc80s31k->is_disk_protected(drv, value);
+	} else {
+		pc6031->is_disk_protected(drv, value);
 	}
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	if(support_sub_cpu) {
-		sub->rec_tape(file_path);
-//		drec->rec_tape(file_path);
-//		drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+#if defined(_PC6601) || defined(_PC6601SR)
+	if(drv < 2) {
+		return floppy->is_disk_protected(drv);
 	} else {
-		psub->rec_tape(file_path);
+		drv -= 2;
+	}
+#endif
+	if(support_pc80s31k) {
+		return fdc_pc80s31k->is_disk_protected(drv);
+	} else {
+		return pc6031->is_disk_protected(drv);
 	}
 }
 
-void VM::close_tape()
+uint32_t VM::is_floppy_disk_accessed()
+{
+	uint32_t status = 0; /// fdc->read_signal(0);
+	if(support_pc80s31k) {
+		status |= fdc_pc80s31k->read_signal(0);
+	} else {
+		status |= pc6031->read_signal(0);
+	}
+#if defined(_PC6601) || defined(_PC6601SR)
+	status <<= 2;
+	status |= floppy->read_signal(0);
+#endif
+	return status;
+}
+
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	if(support_sub_cpu) {
-		if(sub->tape_inserted()) {
+		// support both p6/p6t and wav
+#if 1
+		bool remote = drec->get_remote();
+		
+		if(drec->play_tape(file_path) && remote) {
+			// if machine already sets remote on, start playing now
+			push_play(drv);
+		}
+#else
+		sub->play_tape(file_path);	// temporary
+#endif
+//	} else {
+//		// support only p6/p6t
+//		psub->play_tape(file_path);
+	}
+}
+
+void VM::rec_tape(int drv, const _TCHAR* file_path)
+{
+	if(support_sub_cpu) {
+		// support both p6/p6t and wav
+#if 0
+		bool remote = drec->get_remote();
+		
+		if(drec->rec_tape(file_path) && remote) {
+			// if machine already sets remote on, start recording now
+			push_play(drv);
+		}
+#else
+		sub->rec_tape(file_path);	// temporary
+#endif
+//	} else {
+//		// support both p6/p6t and wav
+//		psub->rec_tape(file_path);
+	}
+}
+
+void VM::close_tape(int drv)
+{
+	if(support_sub_cpu) {
+		if(sub->is_tape_inserted()) {
 			sub->close_tape();	// temporary
 		} else {
+			emu->lock_vm();
 			drec->close_tape();
-			drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
+			emu->unlock_vm();
+			drec->set_remote(false);
 		}
-	} else {
-		psub->close_tape();
+//	} else {
+//		psub->close_tape();
 	}
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
 	if(support_sub_cpu) {
-		return drec->tape_inserted() || sub->tape_inserted();
-	} else {
-		return psub->tape_inserted();
+		return drec->is_tape_inserted() || sub->is_tape_inserted();
+//	} else {
+//		return psub->is_tape_inserted();
 	}
 }
 
-bool VM::now_skip()
+bool VM::is_tape_playing(int drv)
 {
-	return event->now_skip();
+	if(support_sub_cpu) {
+		return drec->is_tape_playing();
+	} else {
+		return false;
+	}
+}
+
+bool VM::is_tape_recording(int drv)
+{
+	if(support_sub_cpu) {
+		return drec->is_tape_recording();
+	} else {
+		return false;
+	}
+}
+
+int VM::get_tape_position(int drv)
+{
+	if(support_sub_cpu) {
+		return drec->get_tape_position();
+	} else {
+		return 0;
+	}
+}
+
+const _TCHAR* VM::get_tape_message(int drv)
+{
+	if(support_sub_cpu) {
+		return drec->get_message();
+	} else {
+		return NULL;
+	}
+}
+
+void VM::push_play(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_remote(false);
+		drec->set_ff_rew(0);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_stop(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_remote(false);
+	}
+}
+
+void VM::push_fast_forward(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_remote(false);
+		drec->set_ff_rew(1);
+		drec->set_remote(true);
+	}
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	if(support_sub_cpu) {
+		drec->set_remote(false);
+		drec->set_ff_rew(-1);
+		drec->set_remote(true);
+	}
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -484,3 +713,29 @@ void VM::update_config()
 		device->update_config();
 	}
 }
+
+#define STATE_VERSION	8
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	state_fio->StateValue(sr_mode);
+	return true;
+}
+

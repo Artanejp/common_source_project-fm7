@@ -26,7 +26,7 @@ class I8251 : public DEVICE
 {
 private:
 	// i8251
-	uint8 recv, status, mode;
+	uint8_t recv, status, mode;
 	bool txen, rxen, loopback;
 	
 	// output signals
@@ -44,15 +44,16 @@ private:
 	int recv_id, send_id;
 	
 public:
-	I8251(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8251(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_out);
-		init_output_signals(&outputs_rxrdy);
-		init_output_signals(&outputs_syndet);
-		init_output_signals(&outputs_txrdy);
-		init_output_signals(&outputs_txe);
-		init_output_signals(&outputs_dtr);
-		init_output_signals(&outputs_rst);
+		initialize_output_signals(&outputs_out);
+		initialize_output_signals(&outputs_rxrdy);
+		initialize_output_signals(&outputs_syndet);
+		initialize_output_signals(&outputs_txrdy);
+		initialize_output_signals(&outputs_txe);
+		initialize_output_signals(&outputs_dtr);
+		initialize_output_signals(&outputs_rst);
+		set_device_name(_T("8251 SIO"));
 	}
 	~I8251() {}
 	
@@ -60,39 +61,38 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_out(DEVICE* device, int id)
 	{
 		register_output_signal(&outputs_out, device, id, 0xff);
 	}
-	void set_context_rxrdy(DEVICE* device, int id, uint32 mask)
+	void set_context_rxrdy(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_rxrdy, device, id, mask);
 	}
-	void set_context_syndet(DEVICE* device, int id, uint32 mask)
+	void set_context_syndet(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_syndet, device, id, mask);
 	}
-	void set_context_txrdy(DEVICE* device, int id, uint32 mask)
+	void set_context_txrdy(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_txrdy, device, id, mask);
 	}
-	void set_context_txe(DEVICE* device, int id, uint32 mask)
+	void set_context_txe(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_txe, device, id, mask);
 	}
-	void set_context_dtr(DEVICE* device, int id, uint32 mask)
+	void set_context_dtr(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_dtr, device, id, mask);
 	}
-	void set_context_rst(DEVICE* device, int id, uint32 mask)
+	void set_context_rst(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_rst, device, id, mask);
 	}

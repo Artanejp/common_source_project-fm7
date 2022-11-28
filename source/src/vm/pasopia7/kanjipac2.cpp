@@ -9,12 +9,11 @@
 */
 
 #include "kanjipac2.h"
-#include "../../fileio.h"
 
 void KANJIPAC2::initialize(int id)
 {
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
@@ -26,7 +25,7 @@ void KANJIPAC2::reset()
 	ptr = 0;
 }
 
-void KANJIPAC2::write_io8(uint32 addr, uint32 data)
+void KANJIPAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -41,8 +40,19 @@ void KANJIPAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KANJIPAC2::read_io8(uint32 addr)
+uint32_t KANJIPAC2::read_io8(uint32_t addr)
 {
 	return rom[ptr & 0x1ffff];
+}
+
+#define STATE_VERSION	1
+
+bool KANJIPAC2::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	state_fio->StateValue(ptr);
+	return true;
 }
 

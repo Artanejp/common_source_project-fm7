@@ -1,0 +1,264 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{255594e0-2e40-49f3-a388-53e33ef0ba56}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\EMU Source Files">
+      <UniqueIdentifier>{c61ac18b-a3ab-499a-9c4a-59b074d6d3ed}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Source Files\OSD Source Files">
+      <UniqueIdentifier>{63e0876f-3152-418d-a31d-16fe66ebea9c}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Source Files\VM Common Source Files">
+      <UniqueIdentifier>{b2ea3e23-5256-4293-88aa-e03f605059c1}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Source Files\VM Driver Source Files">
+      <UniqueIdentifier>{93be33a0-3763-4c6a-82b0-37263d940fea}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{9dca281a-afce-4928-9a4e-fae368643df1}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Header Files\EMU Header Files">
+      <UniqueIdentifier>{0698faa6-c541-4abc-9cec-3bf7af05707c}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\OSD Header Files">
+      <UniqueIdentifier>{b4f162cd-a90b-427a-a88e-5ad4a4468a9c}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\VM Common Header Files">
+      <UniqueIdentifier>{cb89c3b9-252f-4936-861a-db12755e33bf}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Header Files\VM Driver Header Files">
+      <UniqueIdentifier>{38da9480-efa9-4c42-a083-566802245674}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{1ea27e1b-9b6d-4b9b-b24a-b17c52ae64b7}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fifo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fileio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debugger.cpp">
+      <Filter>Source Files\EMU Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\emu.cpp">
+      <Filter>Source Files\EMU Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_console.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_input.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_screen.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_sound.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\winmain.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\datarec.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\event.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\io.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\noise.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\not.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\z80.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\z80pio.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\smb80te\memory.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\smb80te\smb80te.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fifo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fileio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\emu.h">
+      <Filter>Header Files\EMU Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\osd.h">
+      <Filter>Header Files\OSD Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\datarec.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\debugger.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\device.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\event.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\io.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\noise.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\not.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\vm.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\vm_template.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\z80.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\z80pio.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\smb80te\memory.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\smb80te\smb80te.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\res\resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\res\smb80te.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\board.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button00.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button01.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button02.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button03.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button04.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button06.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button07.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button08.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button09.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button10.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button11.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button12.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button13.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button14.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button15.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button17.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button18.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button19.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button20.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button21.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button22.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button23.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\smb80te\button24.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\res\smb80te.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

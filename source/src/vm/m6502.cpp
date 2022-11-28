@@ -9,6 +9,9 @@
 */
 
 #include "m6502.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
 
 // vectors
 #define NMI_VEC	0xfffa
@@ -77,10 +80,10 @@
 // branch relative
 
 #define BRA(cond) { \
-	int8 tmp2 = RDOPARG(); \
+	int8_t tmp2 = RDOPARG(); \
 	if(cond) { \
 		RDMEM(PCW); \
-		EAW = PCW + (int8)tmp2; \
+		EAW = PCW + (int8_t)tmp2; \
 		if(EAH != PCH) { \
 			RDMEM((PCH << 8) | EAL) ; \
 			CYCLES(1); \
@@ -214,7 +217,7 @@
 
 // write back a value from tmp to the last EA
 
-#define WB_ACC	A = (uint8)tmp;
+#define WB_ACC	A = (uint8_t)tmp;
 #define WB_EA	WRMEM(EAD, tmp)
 
 // opcodes
@@ -234,7 +237,7 @@
 		if(sum & 0xff00) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 	} \
 	SET_NZ(A)
 #else
@@ -274,18 +277,18 @@
 		if(sum & 0xff00) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 		SET_NZ(A); \
 	}
 #endif
 
 #define AND \
-	A = (uint8)(A & tmp); \
+	A = (uint8_t)(A & tmp); \
 	SET_NZ(A)
 
 #define ASL \
 	P = (P & ~F_C) | ((tmp >> 7) & F_C); \
-	tmp = (uint8)(tmp << 1); \
+	tmp = (uint8_t)(tmp << 1); \
 	SET_NZ(tmp)
 
 #define BCC BRA(!(P & F_C))
@@ -330,42 +333,42 @@
 	if(A >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(A - tmp))
+	SET_NZ((uint8_t)(A - tmp))
 #define CPX \
 	P &= ~F_C; \
 	if(X >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(X - tmp))
+	SET_NZ((uint8_t)(X - tmp))
 #define CPY \
 	P &= ~F_C; \
 	if(Y >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(Y - tmp))
+	SET_NZ((uint8_t)(Y - tmp))
 
 #define DEC \
-	tmp = (uint8)(tmp - 1); \
+	tmp = (uint8_t)(tmp - 1); \
 	SET_NZ(tmp)
 #define DEX \
-	X = (uint8)(X - 1); \
+	X = (uint8_t)(X - 1); \
 	SET_NZ(X)
 #define DEY \
-	Y = (uint8)(Y - 1); \
+	Y = (uint8_t)(Y - 1); \
 	SET_NZ(Y)
 
 #define EOR \
-	A = (uint8)(A ^ tmp); \
+	A = (uint8_t)(A ^ tmp); \
 	SET_NZ(A)
 
 #define INC \
-	tmp = (uint8)(tmp + 1); \
+	tmp = (uint8_t)(tmp + 1); \
 	SET_NZ(tmp)
 #define INX \
-	X = (uint8)(X + 1); \
+	X = (uint8_t)(X + 1); \
 	SET_NZ(X)
 #define INY \
-	Y = (uint8)(Y + 1); \
+	Y = (uint8_t)(Y + 1); \
 	SET_NZ(Y)
 
 #define JMP PCD = EAD
@@ -378,24 +381,24 @@
 	PCD = EAD
 
 #define LDA \
-	A = (uint8)tmp; \
+	A = (uint8_t)tmp; \
 	SET_NZ(A)
 #define LDX \
-	X = (uint8)tmp; \
+	X = (uint8_t)tmp; \
 	SET_NZ(X)
 #define LDY \
-	Y = (uint8)tmp; \
+	Y = (uint8_t)tmp; \
 	SET_NZ(Y)
 
 #define LSR \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)tmp >> 1; \
+	tmp = (uint8_t)tmp >> 1; \
 	SET_NZ(tmp)
 
 #define NOP
 
 #define ORA \
-	A = (uint8)(A | tmp); \
+	A = (uint8_t)(A | tmp); \
 	SET_NZ(A)
 
 #define PHA PUSH(A)
@@ -420,12 +423,12 @@
 #define ROL \
 	tmp = (tmp << 1) | (P & F_C); \
 	P = (P & ~F_C) | ((tmp >> 8) & F_C); \
-	tmp = (uint8)tmp; \
+	tmp = (uint8_t)tmp; \
 	SET_NZ(tmp)
 #define ROR \
 	tmp |= (P & F_C) << 8; \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)(tmp >> 1); \
+	tmp = (uint8_t)(tmp >> 1); \
 	SET_NZ(tmp)
 
 #define RTI \
@@ -458,7 +461,7 @@
 		if((sum & 0xff00) == 0) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 	} \
 	SET_NZ(A)
 #else
@@ -484,7 +487,7 @@
 		} \
 		if(!((A - tmp - c) & 0xff)) { \
 			P |= F_Z; \
-		}
+		} \
 		if((A - tmp - c) & 0x80) { \
 			P |= F_N; \
 		} \
@@ -499,7 +502,7 @@
 		if((sum & 0xff00) == 0) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 		SET_NZ(A); \
 	}
 #endif
@@ -531,7 +534,7 @@
 
 #define ANC \
 	P &= ~F_C; \
-	A = (uint8)(A & tmp); \
+	A = (uint8_t)(A & tmp); \
 	if(A & 0x80) { \
 		P |= F_C; \
 	} \
@@ -611,64 +614,64 @@
 	if(X >= tmp) { \
 		P |= F_C; \
 	} \
-	X = (uint8)(X - tmp); \
+	X = (uint8_t)(X - tmp); \
 	SET_NZ(X)
 
 #define AXA \
-	A = (uint8)((A | 0xee) & X & tmp); \
+	A = (uint8_t)((A | 0xee) & X & tmp); \
 	SET_NZ(A)
 
 #define DCP \
-	tmp = (uint8)(tmp - 1); \
+	tmp = (uint8_t)(tmp - 1); \
 	P &= ~F_C; \
 	if(A >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(A - tmp))
+	SET_NZ((uint8_t)(A - tmp))
 
 #define DOP RDOPARG()
 
 #define ISB \
-	tmp = (uint8)(tmp + 1); \
+	tmp = (uint8_t)(tmp + 1); \
 	SBC
 
 #define LAX \
-	A = X = (uint8)tmp; \
+	A = X = (uint8_t)tmp; \
 	SET_NZ(A)
 
 #ifdef HAS_N2A03
 #define OAL \
-	A = X = (uint8)((A | 0xff) & tmp); \
+	A = X = (uint8_t)((A | 0xff) & tmp); \
 	SET_NZ(A)
 #else
 #define OAL \
-	A = X = (uint8)((A | 0xee) & tmp); \
+	A = X = (uint8_t)((A | 0xee) & tmp); \
 	SET_NZ(A)
 #endif
 
 #define RLA \
 	tmp = (tmp << 1) | (P & F_C); \
 	P = (P & ~F_C) | ((tmp >> 8) & F_C); \
-	tmp = (uint8)tmp; \
+	tmp = (uint8_t)tmp; \
 	A &= tmp; \
 	SET_NZ(A)
 #define RRA \
 	tmp |= (P & F_C) << 8; \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)(tmp >> 1); \
+	tmp = (uint8_t)(tmp >> 1); \
 	ADC
 
 #define SAX tmp = A & X
 
 #define SLO \
 	P = (P & ~F_C) | ((tmp >> 7) & F_C); \
-	tmp = (uint8)(tmp << 1); \
+	tmp = (uint8_t)(tmp << 1); \
 	A |= tmp; \
 	SET_NZ(A)
 
 #define SRE \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)tmp >> 1; \
+	tmp = (uint8_t)tmp >> 1; \
 	A ^= tmp; \
 	SET_NZ(A)
 
@@ -697,7 +700,7 @@
 #define TOP PCW += 2
 #define KIL PCW--
 
-void M6502::OP(uint8 code)
+void M6502::OP(uint8_t code)
 {
 	int tmp;
 	
@@ -958,7 +961,9 @@ void M6502::OP(uint8 code)
 	case 0xfd: { CYCLES(4); RD_ABX_P;          SBC;            } break; /* 4 SBC ABX page penalty */
 	case 0xfe: { CYCLES(7); RD_ABX_NP; RD_EA;  INC; WB_EA;     } break; /* 7 INC ABX */
 	case 0xff: { CYCLES(7); RD_ABX_NP; RD_EA;  ISB; WB_EA;     } break; /* 7 ISB ABX */
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
+#endif
 	}
 }
 
@@ -974,7 +979,7 @@ inline void M6502::update_irq()
 		PCL = RDMEM(EAD);
 		PCH = RDMEM(EAD + 1);
 		// call back the cpuintrf to let it clear the line
-		d_pic->intr_reti();
+		d_pic->notify_intr_reti();
 		irq_state = false;
 	}
 	pending_irq = false;
@@ -986,6 +991,10 @@ void M6502::initialize()
 {
 	A = X = Y = P = 0;
 	SPD = EAD = ZPD = PCD = 0;
+#ifdef USE_DEBUGGER
+	d_mem_stored = d_mem;
+	d_debugger->set_context_mem(d_mem);
+#endif
 }
 
 void M6502::reset()
@@ -1002,36 +1011,107 @@ void M6502::reset()
 
 int M6502::run(int clock)
 {
-	// return now if BUSREQ
-	if(busreq) {
-		icount = 0;
-		return 1;
-	}
-	
-	// run cpu
 	if(clock == -1) {
-		// run only one opcode
-		icount = 0;
-		run_one_opecode();
-		return -icount;
+		if(busreq) {
+			// don't run cpu!
+#ifdef USE_DEBUGGER
+			total_icount += 1;
+#endif
+			return 1;
+		} else {
+			// run only one opcode
+			icount = 0;
+#ifdef USE_DEBUGGER
+			bool now_debugging = d_debugger->now_debugging;
+			if(now_debugging) {
+				d_debugger->check_break_points(PCW);
+				if(d_debugger->now_suspended) {
+					d_debugger->now_waiting = true;
+					emu->start_waiting_in_debugger();
+					while(d_debugger->now_debugging && d_debugger->now_suspended) {
+						emu->process_waiting_in_debugger();
+					}
+					emu->finish_waiting_in_debugger();
+					d_debugger->now_waiting = false;
+				}
+				if(d_debugger->now_debugging) {
+					d_mem = d_debugger;
+				} else {
+					now_debugging = false;
+				}
+				
+				run_one_opecode();
+				
+				if(now_debugging) {
+					if(!d_debugger->now_going) {
+						d_debugger->now_suspended = true;
+					}
+					d_mem = d_mem_stored;
+				}
+			} else {
+#endif
+				run_one_opecode();
+#ifdef USE_DEBUGGER
+			}
+#endif
+			return -icount;
+		}
 	} else {
-		// run cpu while given clocks
 		icount += clock;
 		int first_icount = icount;
 		
+		// run cpu while given clocks
 		while(icount > 0 && !busreq) {
-			run_one_opecode();
+#ifdef USE_DEBUGGER
+			bool now_debugging = d_debugger->now_debugging;
+			if(now_debugging) {
+				d_debugger->check_break_points(PCW);
+				if(d_debugger->now_suspended) {
+					d_debugger->now_waiting = true;
+					emu->start_waiting_in_debugger();
+					while(d_debugger->now_debugging && d_debugger->now_suspended) {
+						emu->process_waiting_in_debugger();
+					}
+					emu->finish_waiting_in_debugger();
+					d_debugger->now_waiting = false;
+				}
+				if(d_debugger->now_debugging) {
+					d_mem = d_debugger;
+				} else {
+					now_debugging = false;
+				}
+				
+				run_one_opecode();
+				
+				if(now_debugging) {
+					if(!d_debugger->now_going) {
+						d_debugger->now_suspended = true;
+					}
+					d_mem = d_mem_stored;
+				}
+			} else {
+#endif
+				run_one_opecode();
+#ifdef USE_DEBUGGER
+			}
+#endif
 		}
-		int passed_icount = first_icount - icount;
-		if(busreq && icount > 0) {
+		// if busreq is raised, spin cpu while remained clock
+		if(icount > 0 && busreq) {
+#ifdef USE_DEBUGGER
+			total_icount += icount;
+#endif
 			icount = 0;
 		}
-		return passed_icount;
+		return first_icount - icount;
 	}
 }
 
 void M6502::run_one_opecode()
 {
+#ifdef USE_DEBUGGER
+	int first_icount = icount;
+#endif
 	// if an irq is pending, take it now
 	if(nmi_state) {
 		EAD = NMI_VEC;
@@ -1046,8 +1126,11 @@ void M6502::run_one_opecode()
 	} else if(pending_irq) {
 		update_irq();
 	}
-	prev_pc = pc.w.l;
-	uint8 code = RDOP();
+#ifdef USE_DEBUGGER
+	d_debugger->add_cpu_trace(PCW);
+#endif
+	prev_pc = PCW;
+	uint8_t code = RDOP();
 	OP(code);
 	
 	// check if the I flag was just reset (interrupts enabled)
@@ -1059,9 +1142,12 @@ void M6502::run_one_opecode()
 	} else if(pending_irq) {
 		update_irq();
 	}
+#ifdef USE_DEBUGGER
+	total_icount += first_icount - icount;
+#endif
 }
 
-void M6502::write_signal(int id, uint32 data, uint32 mask)
+void M6502::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool state = ((data & mask) != 0);
 	
@@ -1080,5 +1166,129 @@ void M6502::write_signal(int id, uint32 data, uint32 mask)
 	} else if(id == SIG_CPU_BUSREQ) {
 		busreq = ((data & mask) != 0);
 	}
+}
+
+#ifdef USE_DEBUGGER
+void M6502::write_debug_data8(uint32_t addr, uint32_t data)
+{
+	int wait;
+	d_mem_stored->write_data8w(addr, data, &wait);
+}
+
+uint32_t M6502::read_debug_data8(uint32_t addr)
+{
+	int wait;
+	return d_mem_stored->read_data8w(addr, &wait);
+}
+
+bool M6502::write_debug_reg(const _TCHAR *reg, uint32_t data)
+{
+	if(_tcsicmp(reg, _T("PC")) == 0) {
+		PCW = data;
+	} else if(_tcsicmp(reg, _T("A")) == 0) {
+		A = data;
+	} else if(_tcsicmp(reg, _T("X")) == 0) {
+		X = data;
+	} else if(_tcsicmp(reg, _T("Y")) == 0) {
+		Y = data;
+	} else if(_tcsicmp(reg, _T("S")) == 0) {
+		S = data;
+	} else if(_tcsicmp(reg, _T("P")) == 0) {
+		P = data;
+	} else {
+		return false;
+	}
+	return true;
+}
+
+bool M6502::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	my_stprintf_s(buffer, buffer_len,
+	_T("PC = %04X  A = %02X  X = %02X  Y = %02X  S = %02X  P = %02X [%c%c%c%c%c%c%c%c]\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
+	PCW, A, X, Y, S, P,
+	(P & F_N) ? _T('N') : _T('-'), (P & F_V) ? _T('V') : _T('-'), (P & F_T) ? _T('T') : _T('-'), (P & F_B) ? _T('B') : _T('-'), 
+	(P & F_D) ? _T('D') : _T('-'), (P & F_I) ? _T('I') : _T('-'), (P & F_Z) ? _T('Z') : _T('-'), (P & F_C) ? _T('C') : _T('-'),
+	total_icount, total_icount - prev_total_icount,
+	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	prev_total_icount = total_icount;
+	return true;
+}
+
+// disassembler
+
+#define offs_t UINT16
+
+/*****************************************************************************/
+/* src/emu/devcpu.h */
+
+// CPU interface functions
+#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
+#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
+#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, oprom, d_debugger->first_symbol)
+
+/*****************************************************************************/
+/* src/emu/didisasm.h */
+
+// Disassembler constants
+const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
+const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
+const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
+const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
+const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+#include "mame/emu/cpu/m6502/6502dasm.c"
+
+int M6502::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
+{
+	uint8_t oprom[4];
+	uint8_t *opram = oprom;
+	
+	for(int i = 0; i < 4; i++) {
+		int wait;
+		oprom[i] = d_mem->read_data8w(pc + i, &wait);
+	}
+	return CPU_DISASSEMBLE_CALL(m6502) & DASMFLAG_LENGTHMASK;
+}
+#endif
+
+#define STATE_VERSION	2
+
+bool M6502::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(pc.d);
+	state_fio->StateValue(sp.d);
+	state_fio->StateValue(zp.d);
+	state_fio->StateValue(ea.d);
+	state_fio->StateValue(prev_pc);
+	state_fio->StateValue(a);
+	state_fio->StateValue(x);
+	state_fio->StateValue(y);
+	state_fio->StateValue(p);
+	state_fio->StateValue(pending_irq);
+	state_fio->StateValue(after_cli);
+	state_fio->StateValue(nmi_state);
+	state_fio->StateValue(irq_state);
+	state_fio->StateValue(so_state);
+#ifdef USE_DEBUGGER
+	state_fio->StateValue(total_icount);
+#endif
+	state_fio->StateValue(icount);
+	state_fio->StateValue(busreq);
+	
+#ifdef USE_DEBUGGER
+	// post process
+	if(loading) {
+		prev_total_icount = total_icount;
+	}
+#endif
+	return true;
 }
 

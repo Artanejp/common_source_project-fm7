@@ -18,16 +18,20 @@
 class KANJIPAC2 : public PAC2DEV
 {
 private:
-	uint8 rom[0x20000];
-	uint32 ptr;
+	uint8_t rom[0x20000];
+	uint32_t ptr;
 public:
-	KANJIPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {}
+	KANJIPAC2(VM_TEMPLATE* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Kanji ROM PAC2"));
+	}
 	~KANJIPAC2() {}
 	
 	// common functions
 	void initialize(int id);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

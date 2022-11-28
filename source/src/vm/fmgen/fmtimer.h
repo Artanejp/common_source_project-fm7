@@ -29,8 +29,7 @@ namespace FM
 		void	SetTimerB(uint data);
 		void	SetTimerControl(uint data);
 		
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 		uint8	status;
 		uint8	regtc;

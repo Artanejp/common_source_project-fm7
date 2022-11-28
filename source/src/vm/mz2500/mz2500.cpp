@@ -14,12 +14,19 @@
 
 #include "../datarec.h"
 #include "../disk.h"
+#include "../harddisk.h"
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../io.h"
 #include "../mb8877.h"
+#include "../mz1p17.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
+//#include "../pcpr201.h"
+#include "../prnfile.h"
 #include "../rp5c01.h"
+#include "../scsi_hdd.h"
+#include "../scsi_host.h"
 #include "../w3100a.h"
 #include "../ym2203.h"
 #include "../z80.h"
@@ -43,15 +50,15 @@
 #include "mz1e30.h"
 #include "mz1r13.h"
 #include "mz1r37.h"
+#include "printer.h"
+#include "serial.h"
 #include "timer.h"
-
-#include "../../fileio.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -59,14 +66,34 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	pit = new I8253(this, emu);
 	pio_i = new I8255(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
+	sasi_host = new SCSI_HOST(this, emu);
+	sasi_hdd = new SASI_HDD(this, emu);
+	sasi_hdd->set_device_name(_T("SASI Hard Disk Drive"));
+	sasi_hdd->scsi_id = 0;
+//	sasi_hdd->bytes_per_sec = 32 * 1024; // 32KB/s
+	sasi_hdd->bytes_per_sec = 3600 / 60 * 256 * 33; // 3600rpm, 256bytes x 33sectors in track (thanks Mr.Sato)
+	for(int i = 0; i < USE_HARD_DISK; i++) {
+		sasi_hdd->set_disk_handler(i, new HARDDISK(emu));
+	}
+	sasi_hdd->set_context_interface(sasi_host);
+	sasi_host->set_context_target(sasi_hdd);
 	w3100a = new W3100A(this, emu);
 	opn = new YM2203(this, emu);
+#ifdef USE_DEBUGGER
+	opn->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
 	sio = new Z80SIO(this, emu);
@@ -84,6 +111,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	mz1e30 = new MZ1E30(this, emu);
 	mz1r13 = new MZ1R13(this, emu);
 	mz1r37 = new MZ1R37(this, emu);
+	printer = new PRINTER(this, emu);
+	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
 	
 	// set contexts
@@ -91,8 +120,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(opn);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
-	drec->set_context_out(cmt, SIG_CMT_OUT, 1);
+	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);
 	drec->set_context_end(cmt, SIG_CMT_END, 1);
 	drec->set_context_top(cmt, SIG_CMT_TOP, 1);
@@ -107,12 +142,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	rtc->set_context_alarm(interrupt, SIG_INTERRUPT_RP5C15, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
+	sasi_host->set_context_irq(mz1e30, SIG_MZ1E30_IRQ, 1);
+	sasi_host->set_context_drq(mz1e30, SIG_MZ1E30_DRQ, 1);
 	opn->set_context_port_a(floppy, SIG_FLOPPY_REVERSE, 0x02, 0);
 	opn->set_context_port_a(crtc, SIG_CRTC_PALLETE, 0x04, 0);
 	opn->set_context_port_a(mouse, SIG_MOUSE_SEL, 0x08, 0);
 	pio->set_context_port_a(crtc, SIG_CRTC_COLUMN_SIZE, 0x20, 0);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x1f, 0);
-	sio->set_context_dtr1(mouse, SIG_MOUSE_DTR, 1);
+	sio->set_context_dtr(1, mouse, SIG_MOUSE_DTR, 1);
 	
 	calendar->set_context_rtc(rtc);
 	cmt->set_context_pio(pio_i);
@@ -130,6 +167,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
+	mz1e30->set_context_host(sasi_host);
+	if(config.printer_type == 0) {  
+		printer->set_context_prn(new PRNFILE(this, emu));
+	} else if(config.printer_type == 1) {
+		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
+		mz1p17->mode = MZ1P17_MODE_MZ1;
+		printer->set_context_prn(mz1p17);
+//	} else if(config.printer_type == 2) {
+//		printer->set_context_prn(new PCPR201(this, emu));
+	} else {
+		printer->set_context_prn(dummy);
+	}
+	serial->set_context_sio(sio);
 	timer->set_context_pit(pit);
 	
 	// cpu bus
@@ -149,12 +199,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// i/o bus
 	io->set_iomap_range_rw(0x60, 0x63, w3100a);
-	io->set_iomap_range_rw(0xa0, 0xa3, sio);
+	io->set_iomap_range_rw(0xa0, 0xa3, serial);
 	io->set_iomap_range_rw(0xa4, 0xa5, mz1e30);
 	io->set_iomap_range_rw(0xa8, 0xa9, mz1e30);
 	io->set_iomap_range_rw(0xac, 0xad, mz1r37);
 	io->set_iomap_single_w(0xae, crtc);
-	io->set_iomap_range_rw(0xb0, 0xb3, sio);
+	io->set_iomap_range_rw(0xb0, 0xb3, serial);
 	io->set_iomap_range_rw(0xb4, 0xb5, memory);
 	io->set_iomap_range_rw(0xb8, 0xb9, mz1r13);
 	io->set_iomap_range_rw(0xbc, 0xbf, crtc);
@@ -162,6 +212,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_rw(0xc8, 0xc9, opn);
 	io->set_iomap_single_rw(0xca, mz1e26);
 	io->set_iomap_single_rw(0xcc, calendar);
+	io->set_iomap_single_w(0xcd, serial);
 	io->set_iomap_range_w(0xce, 0xcf, memory);
 	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
 	io->set_iomap_range_w(0xdc, 0xdd, floppy);
@@ -171,6 +222,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0xef, joystick);
 	io->set_iomap_range_w(0xf0, 0xf3, timer);
 	io->set_iomap_range_rw(0xf4, 0xf7, crtc);
+	io->set_iomap_range_rw(0xfe, 0xff, printer);
 	
 	io->set_iowait_range_rw(0xc8, 0xc9, 1);
 	io->set_iowait_single_rw(0xcc, 3);
@@ -181,8 +233,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+	for(int drv = 0; drv < MAX_DRIVE; drv++) {
+//		if(config.drive_type) {
+//			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+//		} else {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+//		}
+	}
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(!(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))) {
+			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
+		}
 	}
 	monitor_type = config.monitor_type;
 }
@@ -238,6 +299,11 @@ void VM::run()
 	event->drive();
 }
 
+double VM::get_frame_rate()
+{
+	return event->get_frame_rate();
+}
+
 // ----------------------------------------------------------------------------
 // debugger
 // ----------------------------------------------------------------------------
@@ -261,12 +327,6 @@ void VM::draw_screen()
 	crtc->draw_screen();
 }
 
-int VM::access_lamp()
-{
-	uint32 status = fdc->read_signal(0) | mz1e30->read_signal(0);
-	return (status & 0x30) ? 4 : (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -277,107 +337,251 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	opn->init(rate, 2000000, samples, 0, -8);
-	pcm->init(rate, 4096);
-	drec->initialize_sound(rate, samples);
+	opn->initialize_sound(rate, 2000000, samples, 0, -8);
+	pcm->initialize_sound(rate, 4096);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		opn->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		opn->set_volume(1, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 4) {
+		drec->set_volume(1, decibel_l, decibel_r);
+	} else if(ch == 5) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 6) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // socket
 // ----------------------------------------------------------------------------
 
-void VM::network_connected(int ch)
+void VM::notify_socket_connected(int ch)
 {
-	w3100a->connected(ch);
+	w3100a->notify_connected(ch);
 }
 
-void VM::network_disconnected(int ch)
+void VM::notify_socket_disconnected(int ch)
 {
-	w3100a->disconnected(ch);
+	w3100a->notify_disconnected(ch);
 }
 
-uint8* VM::get_sendbuffer(int ch, int* size)
+uint8_t* VM::get_socket_send_buffer(int ch, int* size)
 {
-	return w3100a->get_sendbuffer(ch, size);
+	return w3100a->get_send_buffer(ch, size);
 }
 
-void VM::inc_sendbuffer_ptr(int ch, int size)
+void VM::inc_socket_send_buffer_ptr(int ch, int size)
 {
-	w3100a->inc_sendbuffer_ptr(ch, size);
+	w3100a->inc_send_buffer_ptr(ch, size);
 }
 
-uint8* VM::get_recvbuffer0(int ch, int* size0, int* size1)
+uint8_t* VM::get_socket_recv_buffer0(int ch, int* size0, int* size1)
 {
-	return w3100a->get_recvbuffer0(ch, size0, size1);
+	return w3100a->get_recv_buffer0(ch, size0, size1);
 }
 
-uint8* VM::get_recvbuffer1(int ch)
+uint8_t* VM::get_socket_recv_buffer1(int ch)
 {
-	return w3100a->get_recvbuffer1(ch);
+	return w3100a->get_recv_buffer1(ch);
 }
 
-void VM::inc_recvbuffer_ptr(int ch, int size)
+void VM::inc_socket_recv_buffer_ptr(int ch, int size)
 {
-	w3100a->inc_recvbuffer_ptr(ch, size);
+	w3100a->inc_recv_buffer_ptr(ch, size);
 }
 
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
+	
+	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+		}
+	} else if(fdc->get_media_type(drv) == MEDIA_TYPE_2D) {
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2DD) {
+			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+		}
+	}
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	bool value = drec->play_tape(file_path);
+	fdc->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
+
+void VM::open_hard_disk(int drv, const _TCHAR* file_path)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd->open(drv, file_path, 256);
+	}
+}
+
+void VM::close_hard_disk(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		sasi_hdd->close(drv);
+	}
+}
+
+bool VM::is_hard_disk_inserted(int drv)
+{
+	if(drv < USE_HARD_DISK) {
+		return sasi_hdd->mounted(drv);
+	}
+	return false;
+}
+
+uint32_t VM::is_hard_disk_accessed()
+{
+	uint32_t status = 0;
+	
+	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+		if(sasi_hdd->accessed(drv)) {
+			status |= 1 << drv;
+		}
+	}
+	return status;
+}
+
+void VM::play_tape(int drv, const _TCHAR* file_path)
+{
+	bool remote = drec->get_remote();
+	bool opened = drec->play_tape(file_path);
+	
+	if(opened && remote) {
+		// if machine already sets remote on, start playing now
+		push_play(drv);
+	}
 	cmt->close_tape();
-	cmt->play_tape(value);
+	cmt->play_tape(opened);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
-	bool value = drec->rec_tape(file_path);
+	bool remote = drec->get_remote();
+	bool opened = drec->rec_tape(file_path);
+	
+	if(opened && remote) {
+		// if machine already sets remote on, start recording now
+		push_play(drv);
+	}
 	cmt->close_tape();
-	cmt->rec_tape(value);
+	cmt->rec_tape(opened);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
+	emu->lock_vm();
 	drec->close_tape();
+	emu->unlock_vm();
+	drec->set_remote(false);
 	cmt->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::now_skip()
+bool VM::is_tape_playing(int drv)
 {
-	return event->now_skip();
+	return drec->is_tape_playing();
+}
+
+bool VM::is_tape_recording(int drv)
+{
+	return drec->is_tape_recording();
+}
+
+int VM::get_tape_position(int drv)
+{
+	return drec->get_tape_position();
+}
+
+const _TCHAR* VM::get_tape_message(int drv)
+{
+	return drec->get_message();
+}
+
+void VM::push_play(int drv)
+{
+	drec->set_remote(false);
+	drec->set_ff_rew(0);
+	drec->set_remote(true);
+}
+
+void VM::push_stop(int drv)
+{
+	drec->set_remote(false);
+}
+
+void VM::push_fast_forward(int drv)
+{
+	drec->set_remote(false);
+	drec->set_ff_rew(1);
+	drec->set_remote(true);
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	drec->set_remote(false);
+	drec->set_ff_rew(-1);
+	drec->set_remote(true);
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -387,29 +591,28 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	8
 
-void VM::save_state(FILEIO* state_fio)
+bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-	state_fio->FputInt32(monitor_type);
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
 			return false;
 		}
 	}
-	monitor_type = state_fio->FgetInt32();
+	state_fio->StateValue(monitor_type);
 	return true;
 }
 

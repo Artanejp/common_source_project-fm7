@@ -8,7 +8,6 @@
 */
 
 #include "interrupt.h"
-#include "../../fileio.h"
 
 //#define SUPPURT_CHILD_DEVICE
 
@@ -24,7 +23,7 @@ void INTERRUPT::reset()
 	select = 0;
 }
 
-void INTERRUPT::write_io8(uint32 addr, uint32 data)
+void INTERRUPT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xc6:
@@ -52,7 +51,7 @@ void INTERRUPT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void INTERRUPT::write_signal(int id, uint32 data, uint32 mask)
+void INTERRUPT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_INTERRUPT_CRTC) {
 		bool next = ((data & mask) != 0);
@@ -134,7 +133,7 @@ void INTERRUPT::update_intr()
 	}
 }
 
-uint32 INTERRUPT::intr_ack()
+uint32_t INTERRUPT::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	if(req_intr_ch != -1) {
@@ -148,13 +147,13 @@ uint32 INTERRUPT::intr_ack()
 	}
 #ifdef SUPPURT_CHILD_DEVICE
 	if(d_child) {
-		return d_child->intr_ack();
+		return d_child->get_intr_ack();
 	}
 #endif
 	return 0xff;
 }
 
-void INTERRUPT::intr_reti()
+void INTERRUPT::notify_intr_reti()
 {
 	// detect RETI
 	for(int ch = 0; ch < 4; ch++) {
@@ -166,40 +165,32 @@ void INTERRUPT::intr_reti()
 	}
 #ifdef SUPPURT_CHILD_DEVICE
 	if(d_child) {
-		d_child->intr_reti();
+		d_child->notify_intr_reti();
 	}
 #endif
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-void INTERRUPT::save_state(FILEIO* state_fio)
+bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(select);
-	state_fio->Fwrite(irq, sizeof(irq), 1);
-	state_fio->FputInt32(req_intr_ch);
-	state_fio->FputBool(iei);
-	state_fio->FputBool(oei);
-	state_fio->FputUint32(intr_bit);
-}
-
-bool INTERRUPT::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	select = state_fio->FgetUint8();
-	state_fio->Fread(irq, sizeof(irq), 1);
-	req_intr_ch = state_fio->FgetInt32();
-	iei = state_fio->FgetBool();
-	oei = state_fio->FgetBool();
-	intr_bit = state_fio->FgetUint32();
+	state_fio->StateValue(select);
+	for(int i = 0; i < array_length(irq); i++) {
+		state_fio->StateValue(irq[i].vector);
+		state_fio->StateValue(irq[i].enb_intr);
+		state_fio->StateValue(irq[i].req_intr);
+		state_fio->StateValue(irq[i].in_service);
+	}
+	state_fio->StateValue(req_intr_ch);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(oei);
+	state_fio->StateValue(intr_bit);
 	return true;
 }
 

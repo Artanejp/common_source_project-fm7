@@ -4,111 +4,97 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.09.15-
 
-	[ AY-3-8910 / YM2203 / YM2608 ]
+	[ YM2203 / YM2608 ]
 */
 
 #ifndef _YM2203_H_
 #define _YM2203_H_
-
 
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
 #include "fmgen/opna.h"
 
-#if !(defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912) || defined(HAS_AY_3_8913))
-#define HAS_YM_SERIES
-#if defined(_WIN32)
+#ifdef SUPPORT_WIN32_DLL
 #define SUPPORT_MAME_FM_DLL
-#include "fmdll/fmdll.h"
-#endif
-#endif
-
-#if defined(HAS_AY_3_8913)
-// both port a and port b are not supported
-#elif defined(HAS_AY_3_8912)
-// port b is not supported
-#define SUPPORT_YM2203_PORT_A
-#else
-#define SUPPORT_YM2203_PORT_A
-#define SUPPORT_YM2203_PORT_B
-#endif
-#if defined(SUPPORT_YM2203_PORT_A) || defined(SUPPORT_YM2203_PORT_B)
-#define SUPPORT_YM2203_PORT
+//#include "fmdll/fmdll.h"
 #endif
 
-#ifdef SUPPORT_YM2203_PORT_A
 #define SIG_YM2203_PORT_A	0
-#endif
-#ifdef SUPPORT_YM2203_PORT_B
 #define SIG_YM2203_PORT_B	1
-#endif
 #define SIG_YM2203_MUTE		2
+
+#ifdef USE_DEBUGGER
+class DEBUGGER;
+#endif
 
 class YM2203 : public DEVICE
 {
 private:
-#ifdef HAS_YM2608
-	FM::OPNA* chip;
-#else
-	FM::OPN* chip;
+#ifdef USE_DEBUGGER
+	DEBUGGER *d_debugger;
 #endif
+	FM::OPNA* opna;
+	FM::OPN* opn;
 #ifdef SUPPORT_MAME_FM_DLL
-	CFMDLL* fmdll;
+//	CFMDLL* fmdll;
 	LPVOID* dllchip;
+#endif
 	struct {
 		bool written;
-		uint8 data;
+		uint8_t data;
 	} port_log[0x200];
-#endif
+	int base_decibel_fm, base_decibel_psg;
 	
-	uint8 ch;
-#ifdef SUPPORT_YM2203_PORT
-	uint8 mode;
-#endif
-#ifdef HAS_YM2608
-	uint8 ch1, data1;
-#endif
+	uint8_t ch;
+	uint8_t fnum2;
+	uint8_t ch1, data1;
+	uint8_t fnum21;
 	
-#ifdef SUPPORT_YM2203_PORT
 	struct {
-		uint8 wreg;
-		uint8 rreg;
+		uint8_t wreg;
+		uint8_t rreg;
 		bool first;
 		// output signals
 		outputs_t outputs;
 	} port[2];
-#endif
+	uint8_t mode;
 	
 	int chip_clock;
 	bool irq_prev, mute;
 	
-	uint32 clock_prev;
-	uint32 clock_accum;
-	uint32 clock_const;
+	uint32_t clock_prev;
+	uint32_t clock_accum;
+	uint32_t clock_const;
+	int timer_event_id;
 	
-	uint32 clock_busy;
+	uint32_t clock_busy;
 	bool busy;
 	
 	void update_count();
-#ifdef HAS_YM_SERIES
+	void update_event();
+	
 	// output signals
 	outputs_t outputs_irq;
 	void update_interrupt();
-#endif
 	
 public:
-	YM2203(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	YM2203(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#ifdef SUPPORT_YM2203_PORT
 		for(int i = 0; i < 2; i++) {
-			init_output_signals(&port[i].outputs);
+			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
+		initialize_output_signals(&outputs_irq);
+		base_decibel_fm = base_decibel_psg = 0;
+		// default device type is YM2203
+		// please set is_ym2608 = true before YM2203::initializ() is called
+		is_ym2608 = false;
+#ifdef USE_DEBUGGER
+		d_debugger = NULL;
 #endif
-#ifdef HAS_YM_SERIES
-		init_output_signals(&outputs_irq);
-#endif
+//		set_device_name(_T("YM2203 OPN"));
+		this_device_name[0] = _T('\0');
 	}
 	~YM2203() {}
 	
@@ -116,36 +102,68 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
-	void mix(int32* buffer, int cnt);
+	void event_callback(int event_id, int error);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	// for debugging
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space()
+	{
+		return is_ym2608 ? 0x200 : 0x100;
+	}
+	void write_debug_data8(uint32_t addr, uint32_t data)
+	{
+		if(addr < (uint32_t)(is_ym2608 ? 0x200 : 0x100)) {
+			write_via_debugger_data8(addr, data);
+		}
+	}
+	uint32_t read_debug_data8(uint32_t addr)
+	{
+		if(addr < (uint32_t)(is_ym2608 ? 0x200 : 0x100)) {
+			return read_via_debugger_data8(addr);
+		}
+		return 0;
+	}
+#endif
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-#ifdef HAS_YM_SERIES
-	void set_context_irq(DEVICE* device, int id, uint32 mask)
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
-#endif
-#ifdef SUPPORT_YM2203_PORT_A
-	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-#endif
-#ifdef SUPPORT_YM2203_PORT_B
-	void set_context_port_b(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
 #endif
-	void init(int rate, int clock, int samples, int volf, int volp);
-	void SetReg(uint addr, uint data); // for patch
+	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
+	void set_reg(uint32_t addr, uint32_t data); // for patch
+	bool is_ym2608;
 };
 
 #endif

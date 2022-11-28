@@ -9,8 +9,16 @@
 
 #include "floppy.h"
 #include "../mb8877.h"
+#include "../disk.h"
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::reset()
+{
+	for(int i = 0; i < 4; i++) {
+		d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+	}
+}
+
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
 	case 0xdc:
@@ -21,6 +29,21 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	case 0xdd:
 		// side reg
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 1);
+		break;
+	case 0xde:
+		break;
+	case 0xdf:
+		for(int i = 0; i < 4; i++) {
+			if(data & 1) {
+				d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+			} else {
+				if(d_fdc->get_media_type(i) == MEDIA_TYPE_2DD) {
+					d_fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+				} else {
+					d_fdc->set_drive_type(i, DRIVE_TYPE_2D);
+				}
+			}
+		}
 		break;
 	}
 }

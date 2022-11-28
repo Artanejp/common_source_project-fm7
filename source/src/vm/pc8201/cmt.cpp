@@ -8,28 +8,6 @@
 */
 
 #include "cmt.h"
-#include "../../fileio.h"
-
-#pragma pack(1)
-typedef struct {
-	char id[4];
-	uint32 size;
-} wav_chunk_t;
-#pragma pack()
-
-#pragma pack(1)
-typedef struct {
-	wav_chunk_t riff_chunk;
-	char wave[4];
-	wav_chunk_t fmt_chunk;
-	uint16 format_id;
-	uint16 channels;
-	uint32 sample_rate;
-	uint32 data_speed;
-	uint16 block_size;
-	uint16 sample_bits;
-} wav_header_t;
-#pragma pack()
 
 #define SAMPLE_RATE 48000
 
@@ -51,7 +29,7 @@ void CMT::reset()
 	rec = remote = false;
 }
 
-void CMT::write_buffer(uint8 value, int samples)
+void CMT::write_buffer(uint8_t value, int samples)
 {
 	if(is_wav) {
 		for(int i = 0; i < samples; i++) {
@@ -78,7 +56,7 @@ void CMT::write_buffer(uint8 value, int samples)
 void CMT::put_signal()
 {
 	if(rec && remote) {
-		uint32 clock = passed_clock(prev_clock);
+		uint32_t clock = get_passed_clock(prev_clock);
 		if(prev_signal == 1) {
 			// 2400Hz
 			int count = (int)(1200.0 * (double)clock / (double)CPU_CLOCKS + 0.5) * 2;
@@ -99,7 +77,7 @@ void CMT::put_signal()
 	}
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
 	
@@ -107,30 +85,30 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 		if(!remote && next) {
 			// start
 			prev_signal = 0;
-			prev_clock = current_clock();
+			prev_clock = get_current_clock();
 		} else if(remote && !next) {
 			// stop
 			put_signal();
-			set_skip_frames(false);
 		}
 		remote = next;
 	} else if(id == SIG_CMT_SOD) {
 		if(remote) {
-			set_skip_frames(true);
+			request_skip_frames();
 			put_signal();
 		}
 		prev_signal = next ? 1 : -1;
-		prev_clock = current_clock();
+		prev_clock = get_current_clock();
 	}
 }
 
-void CMT::rec_tape(_TCHAR* file_path)
+void CMT::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		if(check_file_extension(file_path, _T(".wav"))) {
-			uint8 dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
+			uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
 			memset(dummy, 0, sizeof(dummy));
 			fio->Fwrite(dummy, sizeof(dummy), 1);
 			is_wav = true;
@@ -148,7 +126,7 @@ void CMT::close_tape()
 			fio->Fwrite(buffer, bufcnt, 1);
 		}
 		if(is_wav) {
-			uint32 length = fio->Ftell();
+			uint32_t length = fio->Ftell();
 			
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
@@ -175,5 +153,56 @@ void CMT::close_tape()
 		fio->Fclose();
 	}
 	is_wav = rec = false;
+}
+
+#define STATE_VERSION	1
+
+bool CMT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(is_wav);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(remote);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
+	if(loading) {
+		int length_tmp = state_fio->FgetInt32_LE();
+		if(rec) {
+			fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				state_fio->Fread(buffer_tmp, length_rw, 1);
+				if(fio->IsOpened()) {
+					fio->Fwrite(buffer_tmp, length_rw, 1);
+				}
+				length_tmp -= length_rw;
+			}
+		}
+	} else {
+		if(rec && fio->IsOpened()) {
+			int length_tmp = (int)fio->Ftell();
+			fio->Fseek(0, FILEIO_SEEK_SET);
+			state_fio->FputInt32_LE(length_tmp);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				fio->Fread(buffer_tmp, length_rw, 1);
+				state_fio->Fwrite(buffer_tmp, length_rw, 1);
+				length_tmp -= length_rw;
+			}
+		} else {
+			state_fio->FputInt32_LE(0);
+		}
+	}
+	state_fio->StateValue(bufcnt);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(prev_signal);
+	state_fio->StateValue(prev_clock);
+	return true;
 }
 

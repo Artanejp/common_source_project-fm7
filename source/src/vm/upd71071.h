@@ -19,6 +19,10 @@
 #define SIG_UPD71071_CH2	2
 #define SIG_UPD71071_CH3	3
 
+#ifdef USE_DEBUGGER
+class DEBUGGER;
+#endif
+
 class UPD71071 : public DEVICE
 {
 private:
@@ -26,22 +30,24 @@ private:
 #ifdef SINGLE_MODE_DMA
 	DEVICE* d_dma;
 #endif
+#ifdef USE_DEBUGGER
+	DEBUGGER *d_debugger;
+#endif
 	outputs_t outputs_tc;
 	
-	typedef struct {
+	struct {
 		DEVICE* dev;
-		uint32 areg, bareg;
-		uint16 creg, bcreg;
-		uint8 mode;
-	} dma_t;
-	dma_t dma[4];
+		uint32_t areg, bareg;
+		uint16_t creg, bcreg;
+		uint8_t mode;
+	} dma[4];
 	
-	uint8 b16, selch, base;
-	uint16 cmd, tmp;
-	uint8 req, sreq, mask, tc;
+	uint8_t b16, selch, base;
+	uint16_t cmd, tmp;
+	uint8_t req, sreq, mask, tc;
 	
 public:
-	UPD71071(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD71071(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
 			dma[i].dev = vm->dummy;
@@ -49,16 +55,38 @@ public:
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
-		init_output_signals(&outputs_tc);
+#ifdef USE_DEBUGGER
+		d_debugger = NULL;
+#endif
+		initialize_output_signals(&outputs_tc);
+		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
 	
 	// common functions
+	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void do_dma();
+	// for debug
+	void write_via_debugger_data8(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data8(uint32_t addr);
+	void write_via_debugger_data16(uint32_t addr, uint32_t data);
+	uint32_t read_via_debugger_data16(uint32_t addr);
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+#endif
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)
@@ -87,7 +115,13 @@ public:
 		d_dma = device;
 	}
 #endif
-	void set_context_tc(DEVICE* device, int id, uint32 mask)
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
+	void set_context_tc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tc, device, id, mask);
 	}

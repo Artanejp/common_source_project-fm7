@@ -18,14 +18,17 @@ FIFO::FIFO(int s)
 	buf = (int*)malloc(size * sizeof(int));
 	cnt = rpt = wpt = 0;
 }
+
 void FIFO::release()
 {
 	free(buf);
 }
+
 void FIFO::clear()
 {
 	cnt = rpt = wpt = 0;
 }
+
 void FIFO::write(int val)
 {
 	if(cnt < size) {
@@ -36,6 +39,7 @@ void FIFO::write(int val)
 		cnt++;
 	}
 }
+
 int FIFO::read()
 {
 	int val = 0;
@@ -48,6 +52,7 @@ int FIFO::read()
 	}
 	return val;
 }
+
 int FIFO::read_not_remove(int pt)
 {
 	if(pt >= 0 && pt < cnt) {
@@ -59,14 +64,28 @@ int FIFO::read_not_remove(int pt)
 	}
 	return 0;
 }
+
+void FIFO::write_not_push(int pt, int d)
+{
+	if(pt >= 0 && pt < cnt) {
+		pt += wpt;
+		if(pt >= size) {
+			pt -= size;
+		}
+		buf[pt] = d;
+	}
+}
+
 int FIFO::count()
 {
 	return cnt;
 }
+
 bool FIFO::full()
 {
 	return (cnt == size);
 }
+
 bool FIFO::empty()
 {
 	return (cnt == 0);
@@ -74,33 +93,18 @@ bool FIFO::empty()
 
 #define STATE_VERSION	1
 
-void FIFO::save_state(void *f)
+bool FIFO::process_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(STATE_VERSION);
-	
-	state_fio->FputInt32(size);
-	state_fio->Fwrite(buf, size * sizeof(int), 1);
-	state_fio->FputInt32(cnt);
-	state_fio->FputInt32(rpt);
-	state_fio->FputInt32(wpt);
-}
-
-bool FIFO::load_state(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != size) {
-		return false;
-	}
-	state_fio->Fread(buf, size * sizeof(int), 1);
-	cnt = state_fio->FgetInt32();
-	rpt = state_fio->FgetInt32();
-	wpt = state_fio->FgetInt32();
+	state_fio->StateValue(size);
+	state_fio->StateArray(buf, size * sizeof(int), 1);
+	state_fio->StateValue(cnt);
+	state_fio->StateValue(rpt);
+	state_fio->StateValue(wpt);
 	return true;
 }
 

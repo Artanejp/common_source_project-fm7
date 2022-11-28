@@ -23,19 +23,19 @@ static const int key_map[9][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// register event to update the key status
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	column = data;
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	return (column == 0x30) ? status[15] : (1 <= column && column <= 15) ? status[column - 1] : 0;
 }
@@ -45,7 +45,7 @@ void KEYBOARD::event_frame()
 	memset(status, 0, sizeof(status));
 	
 	for(int i = 0; i < 9; i++) {
-		uint8 val = 0;
+		uint8_t val = 0;
 		val |= key_stat[key_map[i][0]] ? 0x01 : 0;
 		val |= key_stat[key_map[i][1]] ? 0x02 : 0;
 		val |= key_stat[key_map[i][2]] ? 0x04 : 0;
@@ -85,9 +85,25 @@ void KEYBOARD::event_frame()
 	if(joy_stat[1] & 0x20) status[14] |= 0x88;	// b2
 	
 	// $30
-	uint8 total = 0;
+	uint8_t total = 0;
 	for(int i = 0; i < 15; i++) {
 		total |= status[i];
 	}
 	status[15] = total;
 }
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(status, sizeof(status), 1);
+	state_fio->StateValue(column);
+	return true;
+}
+

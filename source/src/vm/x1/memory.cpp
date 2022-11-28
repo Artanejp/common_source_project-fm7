@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2009.03.14-
@@ -15,7 +16,6 @@
 #else
 #include "../z80.h"
 #endif
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
@@ -33,11 +33,11 @@ void MEMORY::initialize()
 	
 	// load ipl
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(IPL_ROM_FILE_NAME), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(IPL_ROM_FILE_NAME), FILEIO_READ_BINARY)) {
 		// xmillenium rom
 		fio->Fread(rom, IPL_ROM_FILE_SIZE, 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, IPL_ROM_FILE_SIZE, 1);
 		fio->Fclose();
 	}
@@ -62,27 +62,27 @@ void MEMORY::reset()
 #endif
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
 #ifndef _X1TURBO_FEATURE
-uint32 MEMORY::fetch_op(uint32 addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	*wait = m1_cycle;
 	return read_data8(addr);
 }
 #endif
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	bool update_map_required = false;
 	
@@ -123,14 +123,25 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
-#ifdef _X1TURBO_FEATURE
 	switch(addr & 0xff00) {
+	case 0x1e00: // thanks Mr.Sato
+		if(romsel) {
+			romsel = 0;
+#ifdef _X1TURBO_FEATURE
+			d_pio->write_signal(SIG_I8255_PORT_B, 0x10, 0x10);
+#else
+			m1_cycle = 0;
+#endif
+			update_map();
+		}
+		break;
+#ifdef _X1TURBO_FEATURE
 	case 0xb00:
 		return bank;
-	}
 #endif
+	}
 	return 0xff;
 }
 
@@ -138,7 +149,7 @@ void MEMORY::update_map()
 {
 #ifdef _X1TURBO_FEATURE
 	if(!(bank & 0x10)) {
-		uint8 *ptr = extram + 0x8000 * (bank & 0x0f);
+		uint8_t *ptr = extram + 0x8000 * (bank & 0x0f);
 		SET_BANK(0x0000, 0x7fff, ptr, ptr);
 	} else
 #endif
@@ -151,38 +162,27 @@ void MEMORY::update_map()
 
 #define STATE_VERSION	1
 
-void MEMORY::save_state(FILEIO* state_fio)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(romsel);
+#ifdef _X1TURBO_FEATURE
+	state_fio->StateArray(extram, sizeof(extram), 1);
+	state_fio->StateValue(bank);
+#else
+	state_fio->StateValue(m1_cycle);
+#endif
 	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputUint8(romsel);
-#ifdef _X1TURBO_FEATURE
-	state_fio->Fwrite(extram, sizeof(extram), 1);
-	state_fio->FputUint8(bank);
-#else
-	state_fio->FputInt32(m1_cycle);
-#endif
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	// post process
+	if(loading) {
+		update_map();
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	romsel = state_fio->FgetUint8();
-#ifdef _X1TURBO_FEATURE
-	state_fio->Fread(extram, sizeof(extram), 1);
-	bank = state_fio->FgetUint8();
-#else
-	m1_cycle = state_fio->FgetInt32();
-#endif
-	update_map();
 	return true;
 }
 

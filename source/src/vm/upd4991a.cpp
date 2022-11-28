@@ -15,14 +15,14 @@ void UPD4991A::initialize()
 	memset(regs, 0, sizeof(regs));
 	ctrl1 = ctrl2 = mode = 0;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register event
 	register_event(this, 0, 1000000.0, true, &register_id);
 }
 
-void UPD4991A::write_io8(uint32 addr, uint32 data)
+void UPD4991A::write_io8(uint32_t addr, uint32_t data)
 {
 	addr &= 0x0f;
 	if(addr <= 12) {
@@ -34,7 +34,7 @@ void UPD4991A::write_io8(uint32 addr, uint32 data)
 		} else if(mode == 1) {
 			regs[1][addr] = data;
 		} else if(mode == 2) {
-			uint8 tmp = regs[2][addr] ^ data;
+			uint8_t tmp = regs[2][addr] ^ data;
 			regs[2][addr] = data;
 			// am/pm is changed ?
 			if(addr == 12 && (tmp & 8)) {
@@ -51,7 +51,7 @@ void UPD4991A::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD4991A::read_io8(uint32 addr)
+uint32_t UPD4991A::read_io8(uint32_t addr)
 {
 	addr &= 0x0f;
 	if(addr <= 12) {
@@ -72,7 +72,7 @@ void UPD4991A::event_callback(int event_id, int err)
 	if(cur_time.initialized) {
 		cur_time.increment();
 	} else {
-		emu->get_host_time(&cur_time);	// resync
+		get_host_time(&cur_time);	// resync
 		cur_time.initialized = true;
 	}
 	
@@ -125,3 +125,25 @@ void UPD4991A::write_to_cur_time()
 	cancel_event(this, register_id);
 	register_event(this, 0, 1000000.0, true, &register_id);
 }
+
+#define STATE_VERSION	1
+
+bool UPD4991A::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(&regs[0][0], sizeof(regs), 1);
+	state_fio->StateValue(ctrl1);
+	state_fio->StateValue(ctrl2);
+	state_fio->StateValue(mode);
+	return true;
+}
+

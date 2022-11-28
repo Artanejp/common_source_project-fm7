@@ -14,7 +14,7 @@ void MZ1E26::initialize()
 //	prev_data = 0;
 }
 
-void MZ1E26::write_data8(uint32 addr, uint32 data)
+void MZ1E26::write_data8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xca:
@@ -26,7 +26,7 @@ void MZ1E26::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1E26::read_io8(uint32 addr)
+uint32_t MZ1E26::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xca:

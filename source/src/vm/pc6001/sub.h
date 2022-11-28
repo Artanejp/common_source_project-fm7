@@ -27,30 +27,36 @@ class SUB : public DEVICE
 {
 private:
 	DEVICE *d_pio, *d_drec, *d_timer;
-	uint8* key_stat;
+	const uint8_t* key_stat;
 	int p1_out, p2_in;
 	bool drec_in, rxrdy_in;
-	bool changed;
-	void update_key();
+	bool update_key;
 	
 	FILEIO* fio;
-	bool rec, is_wav;
+	bool rec, is_wav, is_p6t;
+	_TCHAR rec_file_path[_MAX_PATH];
 	int prev_command, baud, index;
-	uint8 buffer[0x10000];
+	bool skip;
+	uint8_t buffer[0x10000];
 	
 public:
-	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SUB(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Sub System"));
+	}
 	~SUB() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	uint32 intr_ack();
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	uint32_t get_intr_ack();
 	void event_frame();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void event_callback(int event_id, int err);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)
@@ -65,9 +71,13 @@ public:
 	{
 		d_timer = device;
 	}
-	bool rec_tape(_TCHAR* file_path);
+	bool play_tape(const _TCHAR* file_path)
+	{
+		return false;
+	}
+	bool rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return rec;
 	}

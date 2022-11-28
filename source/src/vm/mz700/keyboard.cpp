@@ -31,14 +31,14 @@ static const int key_map[10][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	column = 0;
 	
 	// register event
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	column = data & 0x0f;
 	update_key();
@@ -51,7 +51,7 @@ void KEYBOARD::event_frame()
 
 void KEYBOARD::update_key()
 {
-	uint8 stat = 0xff;
+	uint8_t stat = 0xff;
 	
 	if(column < 10) {
 		for(int i = 0; i < 8; i++) {
@@ -61,5 +61,19 @@ void KEYBOARD::update_key()
 		}
 	}
 	d_pio->write_signal(SIG_I8255_PORT_B, stat, 0xff);
+}
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(column);
+	return true;
 }
 

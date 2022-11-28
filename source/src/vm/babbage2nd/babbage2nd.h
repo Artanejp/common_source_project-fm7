@@ -23,49 +23,48 @@
 #define MEMORY_BANK_SIZE	0x800
 
 // device informations for win32
-#define USE_BINARY_FILE1
-#define NOTIFY_KEY_DOWN
-#define USE_BITMAP
-#define USE_BUTTON
+#define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		21
-#define USE_LED
-#define MAX_LEDS		14
+#define MAX_DRAW_RANGES		14
+#define USE_BINARY_FILE		1
+#define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
+#include "../vm_template.h"
 
 const struct {
-	const _TCHAR* caption;
 	int x, y;
 	int width, height;
-	int font_size;
 	int code;
-} buttons[] = {
-	{_T("0"),   353, 419, 49, 49, 20, 0x30},
-	{_T("1"),   407, 419, 49, 49, 20, 0x31},
-	{_T("2"),   461, 419, 49, 49, 20, 0x32},
-	{_T("3"),   515, 419, 49, 49, 20, 0x33},
-	{_T("4"),   353, 353, 49, 49, 20, 0x34},
-	{_T("5"),   407, 353, 49, 49, 20, 0x35},
-	{_T("6"),   461, 353, 49, 49, 20, 0x36},
-	{_T("7"),   515, 353, 49, 49, 20, 0x37},
-	{_T("8"),   353, 287, 49, 49, 20, 0x38},
-	{_T("9"),   407, 287, 49, 49, 20, 0x39},
-	{_T("A"),   461, 287, 49, 49, 20, 0x41},
-	{_T("B"),   515, 287, 49, 49, 20, 0x42},
-	{_T("C"),   353, 221, 49, 49, 20, 0x43},
-	{_T("D"),   407, 221, 49, 49, 20, 0x44},
-	{_T("E"),   461, 221, 49, 49, 20, 0x45},
-	{_T("F"),   515, 221, 49, 49, 20, 0x46},
-	{_T("INC"), 575, 419, 49, 49, 16, 0x70},
-	{_T("DA"),  575, 353, 49, 49, 16, 0x71},
-	{_T("AD"),  575, 287, 49, 49, 16, 0x72},
-	{_T("GO"),  575, 221, 49, 49, 16, 0x73},
-	{_T("RES"),  36,  18, 49, 49, 16, 0x00}
+} vm_buttons[] = {
+	{353, 419, 49, 49, 0x30},	// 0
+	{407, 419, 49, 49, 0x31},	// 1
+	{461, 419, 49, 49, 0x32},	// 2
+	{515, 419, 49, 49, 0x33},	// 3
+	{353, 353, 49, 49, 0x34},	// 4
+	{407, 353, 49, 49, 0x35},	// 5
+	{461, 353, 49, 49, 0x36},	// 6
+	{515, 353, 49, 49, 0x37},	// 7
+	{353, 287, 49, 49, 0x38},	// 8
+	{407, 287, 49, 49, 0x39},	// 9
+	{461, 287, 49, 49, 0x41},	// A
+	{515, 287, 49, 49, 0x42},	// B
+	{353, 221, 49, 49, 0x43},	// C
+	{407, 221, 49, 49, 0x44},	// D
+	{461, 221, 49, 49, 0x45},	// E
+	{515, 221, 49, 49, 0x46},	// F
+	{575, 419, 49, 49, 0x70},	// INC
+	{575, 353, 49, 49, 0x71},	// DA
+	{575, 287, 49, 49, 0x72},	// AD
+	{575, 221, 49, 49, 0x73},	// GO
+	{ 36,  18, 49, 49, 0x00},	// RES
 };
 const struct {
 	int x, y;
 	int width, height;
-} leds[] = {
+} vm_ranges[] = {
 	{587,  37, 34, 58},
 	{530,  37, 34, 58},
 	{455,  37, 34, 58},
@@ -95,10 +94,10 @@ class Z80PIO;
 class DISPLAY;
 class KEYBOARD;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+//	EMU* emu;
 	
 	// devices
 	EVENT* event;
@@ -114,8 +113,8 @@ protected:
 	KEYBOARD* keyboard;
 	
 	// memory
-	uint8 rom[0x800];
-	uint8 ram[0x800];
+	uint8_t rom[0x800];
+	uint8_t ram[0x800];
 	
 public:
 	// ----------------------------------------
@@ -132,25 +131,35 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
+	
+#ifdef USE_DEBUGGER
+	// debugger
+	DEVICE *get_cpu(int index);
+#endif
 	
 	// draw screen
 	void draw_screen();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	uint16_t* create_sound(int* extra_frames);
+	int get_sound_buffer_ptr();
 	
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	
 	// user interface
-	void load_binary(int drv, _TCHAR* file_path);
-	void save_binary(int drv, _TCHAR* file_path);
-	bool now_skip();
+	void load_binary(int drv, const _TCHAR* file_path);
+	void save_binary(int drv, const _TCHAR* file_path);
+	bool is_frame_skippable();
 	
 	void update_config();
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device
@@ -158,9 +167,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+//	DEVICE* dummy;
+//	DEVICE* first_device;
+//	DEVICE* last_device;
 };
 
 #endif

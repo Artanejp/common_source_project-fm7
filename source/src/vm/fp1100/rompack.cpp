@@ -8,21 +8,20 @@
 */
 
 #include "rompack.h"
-#include "../../fileio.h"
 
 void ROMPACK::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("ROMPACK.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("ROMPACK.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
 	delete fio;
 }
 
-uint32 ROMPACK::read_io8(uint32 addr)
+uint32_t ROMPACK::read_io8(uint32_t addr)
 {
 	if(addr < 0x8000) {
 		return rom[addr];

@@ -14,24 +14,27 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SYSTEM_TC2O
+#define SIG_SYSTEM_TC2O	0
 
 class SYSTEM : public DEVICE
 {
 private:
 	DEVICE *d_pcm, *d_pit;
 	
-	uint8 status;
+	uint8_t status;
 	
 public:
-	SYSTEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SYSTEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("System I/O"));
+	}
 	~SYSTEM() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_pcm(DEVICE* device)

@@ -44,7 +44,7 @@ void HD63484::reset()
 	ch = fifo_ptr = 0;
 }
 
-void HD63484::write_io8(uint32 addr, uint32 data)
+void HD63484::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0:
@@ -53,7 +53,7 @@ void HD63484::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 HD63484::read_io8(uint32 addr)
+uint32_t HD63484::read_io8(uint32_t addr)
 {
 	switch(addr & 3) {
 	case 0:
@@ -64,7 +64,7 @@ uint32 HD63484::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void HD63484::write_io16(uint32 addr, uint32 data)
+void HD63484::write_io16(uint32_t addr, uint32_t data)
 {
 	if(addr & 2) {
 		// data
@@ -83,7 +83,7 @@ void HD63484::write_io16(uint32 addr, uint32 data)
 	}
 }
 
-uint32 HD63484::read_io16(uint32 addr)
+uint32_t HD63484::read_io16(uint32_t addr)
 {
 	if(addr & 2) {
 		// data
@@ -164,7 +164,7 @@ void HD63484::process_cmd()
 			} else if(fifo[0] == 0x80d) {
 				rwp = (rwp & 0xff000) | ((fifo[1] & 0xfff0) >> 4);
 			} else {
-				emu->out_debug_log(_T("HD63484: unsupported register\n"));
+				this->out_debug_log(_T("HD63484: unsupported register\n"));
 			}
 		} else if((fifo[0] & 0xfff0) == 0x1800) {
 			// WPTN
@@ -215,41 +215,41 @@ void HD63484::process_cmd()
 			cpy = fifo[2];
 		} else if(fifo[0] == 0x8400) {
 			// RMOVE
-			cpx += (int16)fifo[1];
-			cpy += (int16)fifo[2];
+			cpx += (int16_t)fifo[1];
+			cpy += (int16_t)fifo[2];
 		} else if((fifo[0] & 0xff00) == 0x8800) {
 			// ALINE
 			line(cpx, cpy, fifo[1], fifo[2], fifo[0] & 0xff);
-			cpx = (int16)fifo[1];
-			cpy = (int16)fifo[2];
+			cpx = (int16_t)fifo[1];
+			cpy = (int16_t)fifo[2];
 		} else if((fifo[0] & 0xff00) == 0x8c00) {
 			// RLINE
-			line(cpx, cpy, cpx + (int16)fifo[1], cpy + (int16)fifo[2], fifo[0] & 0xff);
-			cpx += (int16)fifo[1];
-			cpy += (int16)fifo[2];
+			line(cpx, cpy, cpx + (int16_t)fifo[1], cpy + (int16_t)fifo[2], fifo[0] & 0xff);
+			cpx += (int16_t)fifo[1];
+			cpy += (int16_t)fifo[2];
 		} else if((fifo[0] & 0xfff8) == 0x9000) {
 			// ARCT
-			line(cpx, cpy, (int16)fifo[1], cpy, fifo[0] & 0xff);
-			line((int16)fifo[1], cpy, (int16)fifo[1], (int16)fifo[2], fifo[0] & 0xff);
-			line((int16)fifo[1], (int16)fifo[2], cpx, (int16)fifo[2], fifo[0] & 0xff);
-			line(cpx, (int16)fifo[2], cpx, cpy, fifo[0] & 0xff);
-			cpx = (int16)fifo[1];
-			cpy = (int16)fifo[2];
+			line(cpx, cpy, (int16_t)fifo[1], cpy, fifo[0] & 0xff);
+			line((int16_t)fifo[1], cpy, (int16_t)fifo[1], (int16_t)fifo[2], fifo[0] & 0xff);
+			line((int16_t)fifo[1], (int16_t)fifo[2], cpx, (int16_t)fifo[2], fifo[0] & 0xff);
+			line(cpx, (int16_t)fifo[2], cpx, cpy, fifo[0] & 0xff);
+			cpx = (int16_t)fifo[1];
+			cpy = (int16_t)fifo[2];
 		} else if((fifo[0] & 0xfff8) == 0x9400) {
 			// RRCT
-			line(cpx, cpy, cpx + (int16)fifo[1], cpy, fifo[0] & 0xff);
-			line(cpx + (int16)fifo[1], cpy, cpx + (int16)fifo[1], cpy + (int16)fifo[2], fifo[0] & 0xff);
-			line(cpx + (int16)fifo[1], cpy + (int16)fifo[2], cpx, cpy + (int16)fifo[2], fifo[0] & 0xff);
-			line(cpx, cpy + (int16)fifo[2], cpx, cpy, fifo[0] & 0xff);
-			cpx += (int16)fifo[1];
-			cpy += (int16)fifo[2];
+			line(cpx, cpy, cpx + (int16_t)fifo[1], cpy, fifo[0] & 0xff);
+			line(cpx + (int16_t)fifo[1], cpy, cpx + (int16_t)fifo[1], cpy + (int16_t)fifo[2], fifo[0] & 0xff);
+			line(cpx + (int16_t)fifo[1], cpy + (int16_t)fifo[2], cpx, cpy + (int16_t)fifo[2], fifo[0] & 0xff);
+			line(cpx, cpy + (int16_t)fifo[2], cpx, cpy, fifo[0] & 0xff);
+			cpx += (int16_t)fifo[1];
+			cpy += (int16_t)fifo[2];
 		} else if((fifo[0] & 0xfff8) == 0xa400) {
 			// RPLG  added
 			int sx = cpx;
 			int sy = cpy;
 			for(int nseg = 0; nseg < fifo[1]; nseg++) {
-				int ex = sx + (int16)fifo[2 + nseg * 2];
-				int ey = sy + (int16)fifo[2 + nseg * 2 + 1];
+				int ex = sx + (int16_t)fifo[2 + nseg * 2];
+				int ey = sy + (int16_t)fifo[2 + nseg * 2 + 1];
 				line(sx, sy, ex, ey, fifo[0] & 7);
 				sx = ex;
 				sy = ey;
@@ -257,9 +257,9 @@ void HD63484::process_cmd()
 			line(sx, sy, cpx, cpy, fifo[0] & 7);
 		} else if((fifo[0] & 0xfff8) == 0xc000) {
 			// AFRCT
-			int16 pcx = fifo[1], pcy = fifo[2];
-			int16 ax = pcx - cpx, ay = pcy - cpy;
-			int16 xx = cpx, yy = cpy;
+			int16_t pcx = fifo[1], pcy = fifo[2];
+			int16_t ax = pcx - cpx, ay = pcy - cpy;
+			int16_t xx = cpx, yy = cpy;
 			for(;;) {
 				for(;;) {
 					dot(xx, yy, fifo[0] & 7, cl0);
@@ -293,12 +293,12 @@ void HD63484::process_cmd()
 			}
 		} else if((fifo[0] & 0xfff8) == 0xc400) {
 			// RFRCT
-			line(cpx, cpy, cpx + (int16)fifo[1], cpy, fifo[0] & 0xff);
+			line(cpx, cpy, cpx + (int16_t)fifo[1], cpy, fifo[0] & 0xff);
 			line(cpx + fifo[1], cpy, cpx + fifo[1], cpy + fifo[2], fifo[0] & 0xff);
 			line(cpx + fifo[1], cpy + fifo[2], cpx, cpy + fifo[2], fifo[0] & 0xff);
 			line(cpx, cpy + fifo[2], cpx, cpy, fifo[0] & 0xff);
-			cpx=cpx + (int16)fifo[1];
-			cpy=cpy + (int16)fifo[2];
+			cpx=cpx + (int16_t)fifo[1];
+			cpy=cpy + (int16_t)fifo[2];
 		} else if(fifo[0] == 0xc800) {
 			// PAINT
 			paint(cpx, cpy, cl0);
@@ -356,7 +356,7 @@ void HD63484::process_cmd()
 			}
 		} else if((fifo[0] & 0xf018) == 0xe000) {
 			// AGCPY
-			agcpy(fifo[0], (int16)fifo[1], (int16)fifo[2], cpx, cpy, fifo[3], fifo[4]);
+			agcpy(fifo[0], (int16_t)fifo[1], (int16_t)fifo[2], cpx, cpy, fifo[3], fifo[4]);
 			switch(fifo[0] & 0x700) {
 			case 0x000:
 				if(fifo[4] > 0) {
@@ -416,13 +416,13 @@ void HD63484::process_cmd()
 				break;
 			}
 		} else {
-			emu->out_debug_log(_T("unsupported command\n"));
+			this->out_debug_log(_T("unsupported command\n"));
 		}
 		fifo_ptr = 0;
 	}
 }
 
-void HD63484::doclr16(int opcode, uint16 fill, int *dst, int _ax, int _ay)
+void HD63484::doclr16(int opcode, uint16_t fill, int *dst, int _ax, int _ay)
 {
 	int ax = _ax, ay = _ay;
 	
@@ -603,14 +603,14 @@ int HD63484::org_first_pixel(int _org_dpd)
 	case 4:
 		return 0;
 	}
-	emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+	this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 	return 0;
 }
 
-void HD63484::dot(int x, int y, int opm, uint16 color)
+void HD63484::dot(int x, int y, int opm, uint16_t color)
 {
 	int dst, x_int, x_mod, bpp;
-	uint16 color_shifted, bitmask, bitmask_shifted;
+	uint16_t color_shifted, bitmask, bitmask_shifted;
 	
 	x += org_first_pixel(org_dpd);
 	
@@ -636,7 +636,7 @@ void HD63484::dot(int x, int y, int opm, uint16 color)
 		bitmask = 0xffff;
 		break;
 	default:
-		emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+		this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 		bpp = 0;
 		bitmask = 0x0000;
 	}
@@ -696,7 +696,7 @@ void HD63484::dot(int x, int y, int opm, uint16 color)
 int HD63484::get_pixel(int x, int y)
 {
 	int dst, x_int, x_mod, bpp;
-	uint16 bitmask, bitmask_shifted;
+	uint16_t bitmask, bitmask_shifted;
 	
 	switch((CCR & 0x700) >> 8) {
 	case 0:
@@ -720,7 +720,7 @@ int HD63484::get_pixel(int x, int y)
 		bitmask = 0xffff;
 		break;
 	default:
-		emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+		this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 		bpp = 0;
 		bitmask = 0x0000;
 	}
@@ -744,7 +744,7 @@ int HD63484::get_pixel(int x, int y)
 int HD63484::get_pixel_ptn(int x, int y)
 {
 	int dst, x_int, x_mod, bpp;
-	uint16 bitmask, bitmask_shifted;
+	uint16_t bitmask, bitmask_shifted;
 	
 	bpp = 1;
 	bitmask = 1;
@@ -770,7 +770,7 @@ int HD63484::get_pixel_ptn(int x, int y)
 	}
 }
 
-void HD63484::agcpy(int opcode, int src_x, int src_y, int dst_x, int dst_y, int16 _ax, int16 _ay)
+void HD63484::agcpy(int opcode, int src_x, int src_y, int dst_x, int dst_y, int16_t _ax, int16_t _ay)
 {
 	int dst_step1_x, dst_step1_y, dst_step2_x, dst_step2_y;
 	int src_step1_x, src_step1_y, src_step2_x, src_step2_y;
@@ -899,7 +899,7 @@ void HD63484::agcpy(int opcode, int src_x, int src_y, int dst_x, int dst_y, int1
 	}
 }
 
-void HD63484::ptn(int opcode, int src_x, int src_y, int16 _ax, int16 _ay)
+void HD63484::ptn(int opcode, int src_x, int src_y, int16_t _ax, int16_t _ay)
 {
 	int dst_step1_x = 0, dst_step1_y = 0, dst_step2_x = 0, dst_step2_y = 0;
 	int src_step1_x = 1, src_step1_y = 0, src_step2_x = -_ax, src_step2_y = 1;
@@ -914,17 +914,17 @@ void HD63484::ptn(int opcode, int src_x, int src_y, int16 _ax, int16 _ay)
 	int getpixel;
 	
 	if(opcode & 0x800) {
-		emu->out_debug_log(_T("HD63484 ptn not supported\n"));
+		this->out_debug_log(_T("HD63484 ptn not supported\n"));
 	} else {
 		switch(opcode & 0x700) {
 			case 0x000: dst_step1_x =  1; dst_step1_y =  0; dst_step2_x = -ax_neg * ax; dst_step2_y =  1; break;
-			case 0x100: emu->out_debug_log(_T("HD63484 ptn not supported\n")); break;
+			case 0x100: this->out_debug_log(_T("HD63484 ptn not supported\n")); break;
 			case 0x200: dst_step1_x =  0; dst_step1_y =  1; dst_step2_x = -1; dst_step2_y = -ax_neg * ax; break;
-			case 0x300: emu->out_debug_log(_T("HD63484 ptn not supported\n")); break;
+			case 0x300: this->out_debug_log(_T("HD63484 ptn not supported\n")); break;
 			case 0x400: dst_step1_x = -1; dst_step1_y =  0; dst_step2_x =  ax_neg * ax; dst_step2_y = -1; break;
-			case 0x500: emu->out_debug_log(_T("HD63484 ptn not supported\n")); break;
+			case 0x500: this->out_debug_log(_T("HD63484 ptn not supported\n")); break;
 			case 0x600: dst_step1_x =  0; dst_step1_y = -1; dst_step2_x =  1; dst_step2_y =  ax_neg * ax; break;
-			case 0x700: emu->out_debug_log(_T("HD63484 ptn not supported\n")); break;
+			case 0x700: this->out_debug_log(_T("HD63484 ptn not supported\n")); break;
 		}
 	}
 	for(;;) {
@@ -949,7 +949,7 @@ void HD63484::ptn(int opcode, int src_x, int src_y, int16 _ax, int16 _ay)
 				}
 				break;
 			case 3:
-				emu->out_debug_log(_T("HD63484 ptn not supported\n"));
+				this->out_debug_log(_T("HD63484 ptn not supported\n"));
 				break;
 			}
 			if(opcode & 0x800) {
@@ -1026,12 +1026,12 @@ void HD63484::ptn(int opcode, int src_x, int src_y, int16 _ax, int16 _ay)
 	}
 }
 
-void HD63484::line(int16 sx, int16 sy, int16 ex, int16 ey, int16 col)
+void HD63484::line(int16_t sx, int16_t sy, int16_t ex, int16_t ey, int16_t col)
 {
 	int cpx_t = sx;
 	int cpy_t = sy;
-	int16 ax = ex - sx;
-	int16 ay = ey - sy;
+	int16_t ax = ex - sx;
+	int16_t ay = ey - sy;
 	
 	if(abs(ax) >= abs(ay)) {
 		while(ax) {
@@ -1080,7 +1080,7 @@ void HD63484::paint(int sx, int sy, int col)
 	case 4:
 		break;
 	default:
-		emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+		this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 	}
 	if((getpixel != col) && (getpixel != edg)) {
 		sx++;
@@ -1103,7 +1103,7 @@ void HD63484::paint(int sx, int sy, int col)
 	case 4:
 		break;
 	default:
-		emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+		this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 	}
 	if((getpixel != col) && (getpixel != edg)) {
 		sx--;
@@ -1126,7 +1126,7 @@ void HD63484::paint(int sx, int sy, int col)
 	case 4:
 		break;
 	default:
-		emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+		this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 	}
 	if((getpixel != col) && (getpixel != edg)) {
 		sy++;
@@ -1149,7 +1149,7 @@ void HD63484::paint(int sx, int sy, int col)
 	case 4:
 		break;
 	default:
-		emu->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
+		this->out_debug_log(_T("HD63484 graphic bit mode not supported\n"));
 	}
 	if((getpixel != col) && (getpixel != edg)) {
 		sy--;

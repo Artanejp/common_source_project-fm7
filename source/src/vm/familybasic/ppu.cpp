@@ -9,9 +9,9 @@
 */
 
 #include "ppu.h"
-#include "../../fileio.h"
+#include "memory.h"
 
-static const uint8 palette[64][3] = {
+static const uint8_t palette[64][3] = {
 	{0x75, 0x75, 0x75}, {0x27, 0x1b, 0x8f}, {0x00, 0x00, 0xab}, {0x47, 0x00, 0x9f},
 	{0x8f, 0x00, 0x77}, {0xab, 0x00, 0x13}, {0xa7, 0x00, 0x00}, {0x7f, 0x0b, 0x00},
 	{0x43, 0x2f, 0x00}, {0x00, 0x47, 0x00}, {0x00, 0x51, 0x00}, {0x00, 0x3f, 0x17},
@@ -30,12 +30,12 @@ static const uint8 palette[64][3] = {
 	{0x9f, 0xff, 0xf3}, {0xdd, 0xdd, 0xdd}, {0x11, 0x11, 0x11}, {0x11, 0x11, 0x11}
 };
 
-#define VRAM(addr)	banks[((addr) >> 10) & 0x0f][(addr) & 0x3ff]
+#define VRAM(addr)	bank_ptr[((addr) >> 10) & 0x0f][(addr) & 0x3ff]
 
 #define NMI_enabled()	(regs[0] & 0x80)
 #define sprites_8x16()	(regs[0] & 0x20)
-#define spr_enabled()	(regs[1] & 0x10)
-#define bg_enabled()	(regs[1] & 0x08)
+//#define spr_enabled()	(regs[1] & 0x10)
+//#define bg_enabled()	(regs[1] & 0x08)
 #define spr_clip()	(!(regs[1] & 0x04))
 #define bg_clip()	(!(regs[1] & 0x02))
 #define monochrome()	(regs[1] & 0x01)
@@ -84,63 +84,78 @@ static const uint8 palette[64][3] = {
 
 void PPU::initialize()
 {
+	chr_rom = NULL;
+	
 	// register event
 	register_vline_event(this);
 }
 
-void PPU::load_rom_image(_TCHAR *file_name)
+void PPU::release()
+{
+	if(chr_rom != NULL) {
+		free(chr_rom);
+	}
+}
+
+void PPU::load_rom_image(const _TCHAR *file_name)
 {
 	FILEIO* fio = new FILEIO();
-	bool file_open = false;
 	
-	if(fio->Fopen(emu->bios_path(file_name), FILEIO_READ_BINARY)) {
-		file_open = true;
-	} else if(fio->Fopen(emu->bios_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
-		// for compatibility
-		file_open = true;
+	if(chr_rom != NULL) {
+		free(chr_rom);
 	}
-	if(file_open) {
+	chr_rom_size = 0;
+	
+	memset(&header, 0x00, sizeof(header));
+	
+	if(!fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
+		// for compatibility
+		fio->Fopen(create_local_path(_T("BASIC.NES")), FILEIO_READ_BINARY);
+	}
+	if(fio->IsOpened()) {
 		// read header
-		fio->Fread(header, sizeof(header), 1);
+		fio->Fread(&header, sizeof(header), 1);
 		// skip program rom
-		fio->Fseek(header[4] * 0x4000, FILEIO_SEEK_CUR);
-		// read chr rom (max 8kb)
-		fio->Fread(chr_rom, sizeof(chr_rom), 1);
+		fio->Fseek(0x2000 * header.num_8k_rom_banks(), FILEIO_SEEK_CUR);
+		// read chr rom
+		if((chr_rom_size = 8192 * header.num_8k_vrom_banks) != 0) {
+			for(uint32_t bit = 0x40000; bit != 0; bit >>= 1) {
+				if(chr_rom_size & bit) {
+					if(chr_rom_size & (bit - 1)) {
+						chr_rom_size = (chr_rom_size | (bit - 1)) + 1;
+					}
+					break;
+				}
+			}
+			chr_rom = (uint8_t *)calloc(chr_rom_size, 1);
+			fio->Fread(chr_rom, 8192 * header.num_8k_vrom_banks, 1);
+		}
 		fio->Fclose();
-	} else {
-		memset(header, 0, sizeof(header));
-		memset(chr_rom, 0xff, sizeof(chr_rom));
 	}
 	delete fio;
+	
+	if(chr_rom_size == 0) {
+		chr_rom_size = 8192;
+		chr_rom = (uint8_t *)calloc(chr_rom_size, 1);
+	}
+	chr_rom_mask = (chr_rom_size / 0x400) - 1;
 }
 
 void PPU::reset()
 {
 	// set up PPU memory space table
 	for(int i = 0; i < 8; i++) {
-		banks[i] = chr_rom + 0x400 * i;
+		set_ppu_bank(i, i);
 	}
 	
 	// set mirroring
-#if 0
-	if(header[6] & 8) {
-		// 4 screen mirroring
-		banks[ 8] = banks[12] = name_tables;
-		banks[ 9] = banks[13] = name_tables + 0x400;
-		banks[10] = banks[14] = name_tables + 0x800;
-		banks[11] = banks[15] = name_tables + 0xc00;
-	} else if(header[6] & 1) {
-#endif
-		// vertical mirroring
-		banks[ 8] = banks[10] = banks[12] = banks[14] = name_tables;
-		banks[ 9] = banks[11] = banks[13] = banks[15] = name_tables + 0x400;
-#if 0
+	if(header.flags_1 & 8) {
+		set_mirroring(MIRROR_4SCREEN);
+	} else if(header.flags_1 & 1) {
+		set_mirroring(MIRROR_VERT);
 	} else {
-		// horizontal mirroring
-		banks[ 8] = banks[ 9] = banks[12] = banks[13] = name_tables;
-		banks[10] = banks[11] = banks[14] = banks[15] = name_tables + 0x400;
+		set_mirroring(MIRROR_HORIZ);
 	}
-#endif
 	
 	memset(bg_pal, 0, sizeof(bg_pal));
 	memset(spr_pal, 0, sizeof(spr_pal));
@@ -166,9 +181,9 @@ void PPU::reset()
 	update_palette();
 }
 
-void PPU::write_data8(uint32 addr, uint32 data)
+void PPU::write_data8(uint32_t addr, uint32_t data)
 {
-	uint16 ofs;
+	uint16_t ofs;
 	
 	regs[addr & 7] = data;
 	
@@ -177,7 +192,7 @@ void PPU::write_data8(uint32 addr, uint32 data)
 		bg_pattern_table_addr = (data & 0x10) ? 0x1000 : 0;
 		spr_pattern_table_addr = (data & 0x08) ? 0x1000 : 0;
 		ppu_addr_inc = (data & 0x04) ? 32 : 1;
-		loopy_t = (loopy_t & 0xf3ff) | (((uint16)(data & 0x03)) << 10);
+		loopy_t = (loopy_t & 0xf3ff) | (((uint16_t)(data & 0x03)) << 10);
 		break;
 	case 0x2001:
 		if(rgb_bak != (data & 0xe0)) {
@@ -195,22 +210,22 @@ void PPU::write_data8(uint32 addr, uint32 data)
 		toggle_2005_2006 = !toggle_2005_2006;
 		if(toggle_2005_2006) {
 			// first write
-			loopy_t = (loopy_t & 0xffe0) | (((uint16)(data & 0xf8)) >> 3);
+			loopy_t = (loopy_t & 0xffe0) | (((uint16_t)(data & 0xf8)) >> 3);
 			loopy_x = data & 0x07;
 		} else {
 			// second write
-			loopy_t = (loopy_t & 0xfc1f) | (((uint16)(data & 0xf8)) << 2);
-			loopy_t = (loopy_t & 0x8fff) | (((uint16)(data & 0x07)) << 12);
+			loopy_t = (loopy_t & 0xfc1f) | (((uint16_t)(data & 0xf8)) << 2);
+			loopy_t = (loopy_t & 0x8fff) | (((uint16_t)(data & 0x07)) << 12);
 		}
 		break;
 	case 0x2006:
 		toggle_2005_2006 = !toggle_2005_2006;
 		if(toggle_2005_2006) {
 			// first write
-			loopy_t = (loopy_t & 0x00ff) | (((uint16)(data & 0x3f)) << 8);
+			loopy_t = (loopy_t & 0x00ff) | (((uint16_t)(data & 0x3f)) << 8);
 		} else {
 			// second write
-			loopy_t = (loopy_t & 0xff00) | ((uint16)data);
+			loopy_t = (loopy_t & 0xff00) | ((uint16_t)data);
 			loopy_v = loopy_t;
 		}
 		break;
@@ -233,17 +248,17 @@ void PPU::write_data8(uint32 addr, uint32 data)
 			// handle mirroring
 			ofs &= 0xefff;
 		}
-		if(ofs >= 0x2000) {
+		if(ofs >= 0x2000 || header.num_8k_vrom_banks == 0) {
 			VRAM(ofs) = data;
 		}
 		break;
 	}
 }
 
-uint32 PPU::read_data8(uint32 addr)
+uint32_t PPU::read_data8(uint32_t addr)
 {
-	uint16 ofs;
-	uint8 val;
+	uint16_t ofs;
+	uint8_t val;
 	
 	switch(addr & 0xe007) {
 	case 0x2002:
@@ -277,6 +292,12 @@ uint32 PPU::read_data8(uint32 addr)
 
 void PPU::event_vline(int v, int clock)
 {
+	// 525 -> 262.5
+	if(v & 1) {
+		return;
+	}
+	v >>= 1;
+	
 	switch(v) {
 	case 0:
 		if(spr_enabled() || bg_enabled()) {
@@ -302,10 +323,26 @@ void PPU::event_vline(int v, int clock)
 
 void PPU::draw_screen()
 {
-	
+	if(emu->now_waiting_in_debugger) {
+		// store regs
+		uint16_t tmp_loopy_v = loopy_v;
+		uint8_t tmp_status = regs[2];
+		
+		// drive vlines
+		if(spr_enabled() || bg_enabled()) {
+			loopy_v = loopy_t;
+		}
+		for(int v = 0; v < 240; v++) {
+			render_scanline(v);
+		}
+		
+		// restore regs
+		loopy_v = tmp_loopy_v;
+		regs[2] = tmp_status;
+	}
 	for(int y = 0; y < 240; y++) {
-		scrntype* dest = emu->screen_buffer(y);
-		uint8* src = screen[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 256; x++) {
 			dest[x] = palette_pc[src[x + 8] & 0x3f];
@@ -316,42 +353,42 @@ void PPU::draw_screen()
 void PPU::update_palette()
 {
 	for(int i = 0; i < 64; i++) {
-		uint8 r = palette[i][0];
-		uint8 g = palette[i][1];
-		uint8 b = palette[i][2];
+		uint8_t r = palette[i][0];
+		uint8_t g = palette[i][1];
+		uint8_t b = palette[i][2];
 		
 		switch(rgb_pal()) {
 		case 0x20:
-			g = (uint8)(g * 0.80);
-			b = (uint8)(b * 0.73);
+			g = (uint8_t)(g * 0.80);
+			b = (uint8_t)(b * 0.73);
 			break;
 		case 0x40:
-			r = (uint8)(r * 0.73);
-			b = (uint8)(b * 0.70);
+			r = (uint8_t)(r * 0.73);
+			b = (uint8_t)(b * 0.70);
 			break;
 		case 0x60:
-			r = (uint8)(r * 0.76);
-			g = (uint8)(g * 0.78);
-			b = (uint8)(b * 0.58);
+			r = (uint8_t)(r * 0.76);
+			g = (uint8_t)(g * 0.78);
+			b = (uint8_t)(b * 0.58);
 			break;
 		case 0x80:
-			r = (uint8)(r * 0.86);
-			g = (uint8)(g * 0.80);
+			r = (uint8_t)(r * 0.86);
+			g = (uint8_t)(g * 0.80);
 			break;
 		case 0xa0:
-			r = (uint8)(r * 0.83);
-			g = (uint8)(g * 0.68);
-			b = (uint8)(b * 0.85);
+			r = (uint8_t)(r * 0.83);
+			g = (uint8_t)(g * 0.68);
+			b = (uint8_t)(b * 0.85);
 			break;
 		case 0xc0:
-			r = (uint8)(r * 0.67);
-			g = (uint8)(g * 0.77);
-			b = (uint8)(b * 0.83);
+			r = (uint8_t)(r * 0.67);
+			g = (uint8_t)(g * 0.77);
+			b = (uint8_t)(b * 0.83);
 			break;
 		case 0xe0:
-			r = (uint8)(r * 0.68);
-			g = (uint8)(g * 0.68);
-			b = (uint8)(b * 0.68);
+			r = (uint8_t)(r * 0.68);
+			g = (uint8_t)(g * 0.68);
+			b = (uint8_t)(b * 0.68);
 			break;
 		}
 		palette_pc[i] = RGB_COLOR(r, g, b);
@@ -360,7 +397,7 @@ void PPU::update_palette()
 
 void PPU::render_scanline(int v)
 {
-	uint8* buf = screen[v];
+	uint8_t* buf = screen[v];
 	
 	if(!bg_enabled()) {
 		// set to background color
@@ -397,11 +434,11 @@ void PPU::render_scanline(int v)
 
 void PPU::render_bg(int v)
 {
-	uint32 tile_x = (loopy_v & 0x001f);
-	uint32 tile_y = (loopy_v & 0x03e0) >> 5;
-	uint32 name_addr = 0x2000 + (loopy_v & 0x0fff);
-	uint32 attrib_addr = 0x2000 + (loopy_v & 0x0c00) + 0x03c0 + ((tile_y & 0xfffc) << 1) + (tile_x >> 2);
-	uint8 attrib_bits;
+	uint32_t tile_x = (loopy_v & 0x001f);
+	uint32_t tile_y = (loopy_v & 0x03e0) >> 5;
+	uint32_t name_addr = 0x2000 + (loopy_v & 0x0fff);
+	uint32_t attrib_addr = 0x2000 + (loopy_v & 0x0c00) + 0x03c0 + ((tile_y & 0xfffc) << 1) + (tile_x >> 2);
+	uint8_t attrib_bits;
 	
 	if(!(tile_y & 2)) {
 		if(!(tile_x & 2)) {
@@ -416,59 +453,69 @@ void PPU::render_bg(int v)
 			attrib_bits = (VRAM(attrib_addr) & 0xC0) >> 4;
 		}
 	}
-	uint8 *p = screen[v] + (8 - loopy_x);
-	uint8 *solid = solid_buf + (8 - loopy_x);
+	uint8_t *p = screen[v] + (8 - loopy_x);
+	uint8_t *solid = solid_buf + (8 - loopy_x);
 	
 	for(int i = 33; i; i--) {
-		uint32 pattern_addr = bg_pattern_table_addr + ((int32)VRAM(name_addr) << 4) + ((loopy_v & 0x7000) >> 12);
-		uint8 pattern_lo = VRAM(pattern_addr);
-		uint8 pattern_hi = VRAM(pattern_addr + 8);
-		uint8 pattern_mask = 0x80;
-		uint8 col;
-		
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		pattern_mask >>= 1;
-		DRAW_BG_PIXEL();
-		
-		tile_x++;
-		name_addr++;
-		
-		if(!(tile_x & 1)) {
-			if(!(tile_x & 3)) {
-				if(!(tile_x & 0x1f)) {
-					name_addr ^= 0x0400; // switch name tables
-					attrib_addr ^= 0x0400;
-					name_addr -= 0x0020;
-					attrib_addr -= 0x0008;
-					tile_x -= 0x0020;
-				}
-				attrib_addr++;
+		if(header.mapper() == 5) {
+			uint8_t mmc5_pal = d_memory->mmc5_ppu_latch_render(1, name_addr & 0x03ff);
+			if(mmc5_pal != 0) {
+				attrib_bits = mmc5_pal & 0x0c;
 			}
-			if(!(tile_y & 2)) {
-				if(!(tile_x & 2)) {
-					attrib_bits = (VRAM(attrib_addr) & 0x03) << 2;
-				} else {
-					attrib_bits = (VRAM(attrib_addr) & 0x0c);
+		}
+		try {
+			uint32_t pattern_addr = bg_pattern_table_addr + ((int32_t)VRAM(name_addr) << 4) + ((loopy_v & 0x7000) >> 12);
+			uint8_t pattern_lo = VRAM(pattern_addr);
+			uint8_t pattern_hi = VRAM(pattern_addr + 8);
+			uint8_t pattern_mask = 0x80;
+			uint8_t col;
+			
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			pattern_mask >>= 1;
+			DRAW_BG_PIXEL();
+			
+			tile_x++;
+			name_addr++;
+			
+			if(!(tile_x & 1)) {
+				if(!(tile_x & 3)) {
+					if(!(tile_x & 0x1f)) {
+						name_addr ^= 0x0400; // switch name tables
+						attrib_addr ^= 0x0400;
+						name_addr -= 0x0020;
+						attrib_addr -= 0x0008;
+						tile_x -= 0x0020;
+					}
+					attrib_addr++;
 				}
-			} else {
-				if(!(tile_x & 2)) {
-					attrib_bits = (VRAM(attrib_addr) & 0x30) >> 2;
+				if(!(tile_y & 2)) {
+					if(!(tile_x & 2)) {
+						attrib_bits = (VRAM(attrib_addr) & 0x03) << 2;
+					} else {
+						attrib_bits = (VRAM(attrib_addr) & 0x0c);
+					}
 				} else {
-					attrib_bits = (VRAM(attrib_addr) & 0xc0) >> 4;
+					if(!(tile_x & 2)) {
+						attrib_bits = (VRAM(attrib_addr) & 0x30) >> 2;
+					} else {
+						attrib_bits = (VRAM(attrib_addr) & 0xc0) >> 4;
+					}
 				}
 			}
+		} catch(...) {
+			// do nothing
 		}
 	}
 	if(bg_clip()) {
@@ -482,8 +529,11 @@ void PPU::render_spr(int v)
 	int num_sprites = 0;
 	int spr_height = sprites_8x16() ? 16 : 8;
 	
+	if(header.mapper() == 5) {
+		d_memory->mmc5_ppu_latch_render(0, 0);
+	}
 	for(int s = 0; s < 64; s++) {
-		uint8* spr = &spr_ram[s << 2];
+		uint8_t* spr = &spr_ram[s << 2];
 		int spr_y = spr[0] + 1;
 		
 		if(spr_y > v || (spr_y + spr_height) <= v) {
@@ -509,8 +559,8 @@ void PPU::render_spr(int v)
 		}
 		int y = v - spr_y;
 		
-		uint8 *p = &screen[v][8 + spr_x + start_x];
-		uint8 *solid = &solid_buf[8 + spr_x + start_x];
+		uint8_t *p = &screen[v][8 + spr_x + start_x];
+		uint8_t *solid = &solid_buf[8 + spr_x + start_x];
 		
 		if(spr[2] & 0x40) {
 			start_x = (8 - 1) - start_x;
@@ -520,12 +570,12 @@ void PPU::render_spr(int v)
 		if(spr[2] & 0x80) {
 			y = (spr_height - 1) - y;
 		}
-		uint8 priority = spr[2] & 0x20;
+		uint8_t priority = spr[2] & 0x20;
 		
 		for(int x = start_x; x != end_x; x += inc_x) {
-			uint8 col = 0;
-			uint32 tile_addr;
-			uint8 tile_mask;
+			uint8_t col = 0;
+			uint32_t tile_addr;
+			uint8_t tile_mask;
 			
 			if(!((*solid) & SPR_WRITTEN_FLAG)) {
 				if(sprites_8x16()) {
@@ -588,3 +638,95 @@ void PPU::render_spr(int v)
 		regs[2] &= ~0x20;
 	}
 }
+
+void PPU::set_ppu_bank(uint8_t bank, uint32_t bank_num)
+{
+	if(bank < 8) {
+		bank_ptr[bank] = chr_rom + 0x400 * (bank_num & chr_rom_mask);
+	} else if(bank < 12) {
+		bank_ptr[bank] = bank_ptr[bank + 4] = name_tables + 0x400 * (bank_num & 0x03);
+	}
+	banks[bank] = bank_num;
+}
+
+void PPU::set_mirroring(int mirror)
+{
+	switch(mirror) {
+	case MIRROR_HORIZ:
+		// horizontal mirroring
+		set_mirroring(0, 0, 1, 1);
+		break;
+	case MIRROR_VERT:
+		// vertical mirroring
+		set_mirroring(0, 1, 0, 1);
+		break;
+	case MIRROR_4SCREEN:
+		// 4 screen mirroring
+		set_mirroring(0, 1, 2, 3);
+		break;
+	}
+}
+
+void PPU::set_mirroring(uint32_t nt0, uint32_t nt1, uint32_t nt2, uint32_t nt3)
+{
+	set_ppu_bank( 8, nt0);
+	set_ppu_bank( 9, nt1);
+	set_ppu_bank(10, nt2);
+	set_ppu_bank(11, nt3);
+}
+
+#define STATE_VERSION	3
+
+bool PPU::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateArray(solid_buf, sizeof(solid_buf), 1);
+	state_fio->StateArray(header.id, sizeof(header.id), 1);
+	state_fio->StateValue(header.ctrl_z);
+	state_fio->StateValue(header.dummy);
+	state_fio->StateValue(header.num_8k_vrom_banks);
+	state_fio->StateValue(header.flags_1);
+	state_fio->StateValue(header.flags_2);
+	state_fio->StateArray(header.reserved, sizeof(header.reserved), 1);
+	state_fio->StateArray(banks, sizeof(banks), 1);
+	state_fio->StateValue(chr_rom_size);
+//	state_fio->StateValue(chr_rom_mask);
+	if(loading) {
+		chr_rom_mask = (chr_rom_size / 0x400) - 1;
+		if(chr_rom != NULL) {
+			free(chr_rom);
+		}
+		chr_rom = (uint8_t *)malloc(chr_rom_size);
+	}
+	state_fio->StateArray(chr_rom, chr_rom_size, 1);
+	state_fio->StateArray(name_tables, sizeof(name_tables), 1);
+	state_fio->StateArray(spr_ram, sizeof(spr_ram), 1);
+	state_fio->StateArray(bg_pal, sizeof(bg_pal), 1);
+	state_fio->StateArray(spr_pal, sizeof(spr_pal), 1);
+	state_fio->StateValue(spr_ram_rw_ptr);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(bg_pattern_table_addr);
+	state_fio->StateValue(spr_pattern_table_addr);
+	state_fio->StateValue(ppu_addr_inc);
+	state_fio->StateValue(rgb_bak);
+	state_fio->StateValue(toggle_2005_2006);
+	state_fio->StateValue(read_2007_buffer);
+	state_fio->StateValue(loopy_v);
+	state_fio->StateValue(loopy_t);
+	state_fio->StateValue(loopy_x);
+	
+	// post process
+	if(loading) {
+		for(int i = 0; i < 12; i++) {
+			set_ppu_bank(i, banks[i]);
+		}
+	}
+	return true;
+}
+

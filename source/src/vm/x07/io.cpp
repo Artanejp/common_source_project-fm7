@@ -8,18 +8,21 @@
 	[ i/o ]
 */
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning( disable : 4996 )
+#endif
+
 #include <math.h>
 #include "io.h"
 #include "../beep.h"
 #include "../z80.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 #define EVENT_BEEP	0
 #define EVENT_CMT	1
 #define EVENT_1SEC	2
 
-static const uint8 sub_cmd_len[0x47] = {
+static const uint8_t sub_cmd_len[0x47] = {
 	1,	// 00	Unknown
 	1,	// 01	TimeCall
 	1,	// 02	Stick
@@ -231,21 +234,21 @@ static const int key_tbl_c[256] = {
 };
 
 //memo: how to request the display size changing
-//emu->change_screen_size(TV_SCREEN_WIDTH, TV_SCREEN_HEIGHT, -1, -1, TV_WINDOW_WIDTH, TV_WINDOW_HEIGHT);
-//emu->change_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT, -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT);
+//emu->set_vm_screen_size(TV_SCREEN_WIDTH, TV_SCREEN_HEIGHT, -1, -1, -1, -1);
+//emu->set_vm_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT, -1, -1, -1, -1);
 
 void IO::initialize()
 {
 	// load font
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
 	delete fio;
 	
 	// init timer
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	register_event(this, EVENT_1SEC, 1000000, true, &register_id_1sec);
 	
 	// init fifo
@@ -332,7 +335,7 @@ void IO::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 	}
@@ -348,9 +351,9 @@ void IO::event_vline(int v, int clock)
 	vblank = !(v < 192);
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
-//	emu->out_debug_log("OUT\t%4x, %2x\n", addr, data);
+//	this->out_debug_log(_T("OUT\t%4x, %2x\n"), addr, data);
 	switch(addr & 0xff) {
 	case 0x80:
 		font_code = data;
@@ -407,9 +410,9 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0x80:
@@ -453,7 +456,7 @@ uint32 IO::read_io8(uint32 addr)
 		val = rregs[6];
 		break;
 	}
-//	emu->out_debug_log("IN\t%4x = %2x\n", addr, val);
+//	this->out_debug_log(_T("IN\t%4x = %2x\n", addr, val);
 	return val;
 }
 
@@ -486,8 +489,8 @@ void IO::update_intr()
 
 void IO::draw_screen()
 {
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	
 	for(int y = 0; y < 4; y++) {
 		int py = y * 8;
@@ -495,14 +498,14 @@ void IO::draw_screen()
 			int px = x * 6;
 			if(cursor_on && (cursor_blink & 0x20) && cursor_x == x && cursor_y == y) {
 				for(int l = 0; l < 8; l++) {
-					scrntype* dest = emu->screen_buffer(py + l);
+					scrntype_t* dest = emu->get_screen_buffer(py + l);
 					dest += px;
 					dest[0] = dest[1] = dest[2] = dest[3] = dest[4] = dest[5] = (l < 7) ? cb : cd;
 				}
 			} else {
 				for(int l = 0; l < 8; l++) {
-					uint8* src = &lcd[py + l][px];
-					scrntype* dest = emu->screen_buffer(py + l);
+					uint8_t* src = &lcd[py + l][px];
+					scrntype_t* dest = emu->get_screen_buffer(py + l);
 					dest += px;
 					dest[0] = src[0] ? cd : cb;
 					dest[1] = src[1] ? cd : cb;
@@ -516,14 +519,14 @@ void IO::draw_screen()
 	}
 }
 
-void IO::draw_font(int x, int y, uint8 code)
+void IO::draw_font(int x, int y, uint8_t code)
 {
 	if(x < 20 && y < 4) {
 		int px = x * 6;
 		int py = y * 8;
 		int ofs = code << 3;
 		for(int l = 0; l < 8; l++) {
-			uint8 pat = udc[ofs + l];
+			uint8_t pat = udc[ofs + l];
 			lcd[py + l][px + 0] = (pat & 0x80) ? 0xff : 0;
 			lcd[py + l][px + 1] = (pat & 0x40) ? 0xff : 0;
 			lcd[py + l][px + 2] = (pat & 0x20) ? 0xff : 0;
@@ -752,7 +755,7 @@ strig_key:
 fkey:
 		ptr = udk_ofs[fctn] + 3;
 		for(;;) {
-			uint8 val = wram[ptr++];
+			uint8_t val = wram[ptr++];
 			if(!val) {
 				break;
 			}
@@ -766,7 +769,7 @@ fkey:
 		break;
 	default:
 		if(!key_buf->full()) {
-			uint8 val = 0;
+			uint8_t val = 0;
 			if(ctrl) {
 				val = key_tbl_c[code];
 			} else if(kana) {
@@ -826,12 +829,16 @@ void IO::key_up(int code)
 // cmt
 // ----------------------------------------------------------------------------
 
-void IO::play_tape(_TCHAR* file_path)
+void IO::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+		cmt_fio->Fseek(0, FILEIO_SEEK_END);
+		cmt_len = min((int)cmt_fio->Ftell(), (int)CMT_BUF_SIZE);
+		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
 		memset(cmt_buf, 0, sizeof(cmt_buf));
-		cmt_fio->Fread(cmt_buf, sizeof(cmt_buf), 1);
+		cmt_fio->Fread(cmt_buf, cmt_len, 1);
+		cmt_fio->Fclose();
 		cmt_ptr = 0;
 		cmt_play = true;
 		// receive first byte
@@ -841,10 +848,11 @@ void IO::play_tape(_TCHAR* file_path)
 	}
 }
 
-void IO::rec_tape(_TCHAR* file_path)
+void IO::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	if(cmt_fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
+		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		cmt_ptr = 0;
 		cmt_rec = true;
 	}
@@ -852,10 +860,10 @@ void IO::rec_tape(_TCHAR* file_path)
 
 void IO::close_tape()
 {
-	if(cmt_rec) {
-		cmt_fio->Fwrite(cmt_buf, cmt_ptr, 1);
-	}
-	if(cmt_rec || cmt_play) {
+	if(cmt_fio->IsOpened()) {
+		if(cmt_rec && cmt_ptr) {
+			cmt_fio->Fwrite(cmt_buf, cmt_ptr, 1);
+		}
 		cmt_fio->Fclose();
 	}
 	cmt_play = cmt_rec = false;
@@ -875,15 +883,9 @@ void IO::recv_from_cmt()
 {
 	if(cmt_play && cmt_mode) {
 		rregs[6] |= 2;
-		rregs[7] = cmt_buf[cmt_ptr++];
+		rregs[7] = (cmt_ptr < cmt_len) ? cmt_buf[cmt_ptr++] : 0;
 		// register event for rstb
 		register_event(this, EVENT_CMT, 2000, false, NULL);
-		// update buffer
-		cmt_ptr &= CMT_BUF_SIZE - 1;
-		if(!cmt_ptr) {
-			memset(cmt_buf, 0, sizeof(cmt_buf));
-			cmt_fio->Fread(cmt_buf, sizeof(cmt_buf), 1);
-		}
 	}
 }
 
@@ -907,7 +909,7 @@ void IO::send_to_sub()
 	} else {
 		cmd_buf->write(wregs[1]);
 		if(cmd_buf->count() == 2) {
-			uint8 cmd_type = cmd_buf->read_not_remove(0);
+			uint8_t cmd_type = cmd_buf->read_not_remove(0);
 			if(cmd_type == 7 && wregs[1] > 4) {
 				cmd_buf->clear();
 				cmd_buf->write(wregs[1] & 0x7f);
@@ -920,8 +922,8 @@ void IO::send_to_sub()
 	}
 	// check cmd length
 	if(!cmd_buf->empty()) {
-		uint8 cmd_type = cmd_buf->read_not_remove(0);
-		uint8 cmd_len = sub_cmd_len[cmd_type];
+		uint8_t cmd_type = cmd_buf->read_not_remove(0);
+		uint8_t cmd_len = sub_cmd_len[cmd_type];
 		if(cmd_len & 0x80) {
 			if((cmd_len & 0x7f) < cmd_buf->count() && !wregs[1]) {
 				cmd_len = cmd_buf->count();
@@ -936,7 +938,7 @@ void IO::send_to_sub()
 				sub_int |= 1;
 				update_intr();
 			}
-//			emu->out_debug_log("CMD TYPE = %2x, LEN = %d RSP=%d\n", cmd_type, cmd_len, rsp_buf->count());
+//			this->out_debug_log(_T("CMD TYPE = %2x, LEN = %d RSP=%d\n"), cmd_type, cmd_len, rsp_buf->count());
 		}
 	}
 }
@@ -960,12 +962,12 @@ void IO::ack_from_sub()
 
 void IO::process_sub()
 {
-	static const uint8 dow[8] = {128, 192, 224, 240, 248, 252, 254, 255};
-	uint8 val;
-	uint16 addr;
+	static const uint8_t dow[8] = {128, 192, 224, 240, 248, 252, 254, 255};
+	uint8_t val;
+	uint16_t addr;
 	int sx, sy, ex, ey, cr, i;
 	
-	uint8 cmd_type = cmd_buf->read();
+	uint8_t cmd_type = cmd_buf->read();
 	switch(cmd_type & 0x7f) {
 	case 0x00:	// unknown
 		break;
@@ -1113,7 +1115,7 @@ void IO::process_sub()
 	case 0x17:	// UDKRead
 		val = cmd_buf->read();
 		for(i = 0; i < udk_size[val]; i++) {
-			uint8 code = wram[udk_ofs[val] + i];
+			uint8_t code = wram[udk_ofs[val] + i];
 			rsp_buf->write(code);
 			if(!code) {
 				break;
@@ -1234,5 +1236,96 @@ void IO::process_sub()
 		rsp_buf->write(0);
 		break;
 	}
+}
+
+#define STATE_VERSION	1
+
+bool IO::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(rregs, sizeof(rregs), 1);
+	state_fio->StateArray(wregs, sizeof(wregs), 1);
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id_1sec);
+	if(!cmd_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(sub_int);
+	state_fio->StateArray(wram, sizeof(wram), 1);
+	state_fio->StateArray(alarm, sizeof(alarm), 1);
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(ctrl);
+	state_fio->StateValue(shift);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(graph);
+	state_fio->StateValue(brk);
+	state_fio->StateValue(stick);
+	state_fio->StateValue(strig);
+	state_fio->StateValue(strig1);
+	state_fio->StateValue(cmt_play);
+	state_fio->StateValue(cmt_rec);
+	state_fio->StateValue(cmt_mode);
+	state_fio->StateArray(rec_file_path, sizeof(rec_file_path), 1);
+	if(loading) {
+		int length_tmp = state_fio->FgetInt32_LE();
+		if(cmt_rec) {
+			cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				state_fio->Fread(buffer_tmp, length_rw, 1);
+				if(cmt_fio->IsOpened()) {
+					cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
+				}
+				length_tmp -= length_rw;
+			}
+		}
+	} else {
+		if(cmt_rec && cmt_fio->IsOpened()) {
+			int length_tmp = (int)cmt_fio->Ftell();
+			cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+			state_fio->FputInt32_LE(length_tmp);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				cmt_fio->Fread(buffer_tmp, length_rw, 1);
+				state_fio->Fwrite(buffer_tmp, length_rw, 1);
+				length_tmp -= length_rw;
+			}
+		} else {
+			state_fio->FputInt32_LE(0);
+		}
+	}
+	state_fio->StateValue(cmt_len);
+	state_fio->StateValue(cmt_ptr);
+	state_fio->StateArray(cmt_buf, sizeof(cmt_buf), 1);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(font_code);
+	state_fio->StateArray(udc, sizeof(udc), 1);
+	state_fio->StateArray(&lcd[0][0], sizeof(lcd), 1);
+	state_fio->StateValue(locate_on);
+	state_fio->StateValue(cursor_on);
+	state_fio->StateValue(udk_on);
+	state_fio->StateValue(locate_x);
+	state_fio->StateValue(locate_y);
+	state_fio->StateValue(cursor_x);
+	state_fio->StateValue(cursor_y);
+	state_fio->StateValue(cursor_blink);
+	state_fio->StateValue(scroll_min);
+	state_fio->StateValue(scroll_max);
+	state_fio->StateValue(register_id_beep);
+	return true;
 }
 

@@ -22,45 +22,45 @@ class I8255 : public DEVICE
 {
 private:
 	struct {
-		uint8 wreg;
-		uint8 rreg;
-		uint8 rmask;
-		uint8 mode;
+		uint8_t wreg;
+		uint8_t rreg;
+		uint8_t rmask;
+		uint8_t mode;
 		bool first;
 		// output signals
 		outputs_t outputs;
 	} port[3];
 	
 public:
-	I8255(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8255(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 3; i++) {
-			init_output_signals(&port[i].outputs);
+			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
 		clear_ports_by_cmdreg = false;
+		set_device_name(_T("8255 PIO"));
 	}
 	~I8255() {}
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int id);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-	void set_context_port_b(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
-	void set_context_port_c(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_c(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[2].outputs, device, id, mask, shift);
 	}

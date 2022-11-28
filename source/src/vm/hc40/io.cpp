@@ -10,9 +10,8 @@
 #include "io.h"
 #include "../beep.h"
 #include "../datarec.h"
-#include "../tf20.h"
+#include "../ptf20.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 // interrupt bits
 #define BIT_7508	0x01
@@ -66,11 +65,11 @@ void IO::initialize()
 	
 	// load external ram disk
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("EXTRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXTRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, 0x20000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext + 0x20000, 0x20000, 1);
 		fio->Fclose();
 	}
@@ -87,7 +86,7 @@ void IO::initialize()
 	pb = RGB_COLOR(160, 168, 160);
 	
 	// init 7508
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	onesec_intr = alarm_intr = false;
 	onesec_intr_enb = alarm_intr_enb = kb_intr_enb = true;
 	res_7508 = kb_caps = false;
@@ -102,7 +101,7 @@ void IO::release()
 {
 	// save external ram disk
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("EXTRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXTRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ext, 0x20000, 1);
 		fio->Fclose();
 	}
@@ -142,14 +141,14 @@ void IO::sysreset()
 	res_7508 = true;
 }
 
-void IO::write_signal(int id, uint32 data, uint32 mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_DREC) {
 		// signal from data recorder
 		if(!slbcr) {
 			bool next = ((data & mask) != 0);
 			if((bcr == 2 && ear && !next) || (bcr == 4 && !ear && next) || (bcr == 6 && ear != next)) {
-				icrb = passed_clock(cur_clock) / 6;
+				icrb = get_passed_clock(cur_clock) / 6;
 				isr |= BIT_ICF;
 				update_intr();
 			}
@@ -174,7 +173,7 @@ void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_FRC) {
 		// FRC overflow event
-		cur_clock = current_clock();
+		cur_clock = get_current_clock();
 		isr |= BIT_OVF;
 		update_intr();
 	} else if(event_id == EVENT_1SEC) {
@@ -182,7 +181,7 @@ void IO::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		onesec_intr = true;
@@ -213,7 +212,7 @@ void IO::event_callback(int event_id, int err)
 	}
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -236,7 +235,7 @@ void IO::write_io8(uint32 addr, uint32 data)
 		break;
 	case 0x02:
 		// CTLR2
-		d_drec->write_signal(SIG_DATAREC_OUT, data, 1);
+		d_drec->write_signal(SIG_DATAREC_MIC, data, 1);
 		d_drec->write_signal(SIG_DATAREC_REMOTE, data, 2);
 		break;
 	case 0x04:
@@ -320,14 +319,14 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0x00:
 		// ICRL.C (latch FRC value)
-		icrc = passed_clock(cur_clock) / 6;
+		icrc = get_passed_clock(cur_clock) / 6;
 		return icrc & 0xff;
 	case 0x01:
 		// ICRH.C
@@ -375,7 +374,7 @@ uint32 IO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 IO::intr_ack()
+uint32_t IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -404,13 +403,13 @@ void IO::update_intr()
 // 7508
 // ----------------------------------------------------------------------------
 
-void IO::send_to_7508(uint8 val)
+void IO::send_to_7508(uint8_t val)
 {
 	int res;
 	
 	// process command
 	cmd_buf->write(val);
-	uint8 cmd = cmd_buf->read_not_remove(0);
+	uint8_t cmd = cmd_buf->read_not_remove(0);
 	
 	switch(cmd) {
 	case 0x01:
@@ -552,7 +551,7 @@ void IO::send_to_7508(uint8 val)
 			
 			if((month & 0x0f) == 0 || (day & 0x0f) == 0) {
 				// invalid date
-				emu->get_host_time(&cur_time);
+				get_host_time(&cur_time);
 			} else {
 				bool changed = false;
 				if((year10 & 0x0f) != 0x0f && (year1 & 0x0f) != 0x0f) {
@@ -638,11 +637,11 @@ void IO::send_to_7508(uint8 val)
 	default:
 		// unknown cmd
 		cmd_buf->read();
-		emu->out_debug_log(_T("unknown cmd %2x\n"), cmd);
+		this->out_debug_log(_T("unknown cmd %2x\n"), cmd);
 	}
 }
 
-uint8 IO::rec_from_7508()
+uint8_t IO::rec_from_7508()
 {
 	return rsp_buf->read();
 }
@@ -695,11 +694,11 @@ void IO::update_key(int code)
 void IO::draw_screen()
 {
 	if(yoff & 0x80) {
-		uint8* vram = ram + ((vadr & 0xf8) << 8);
+		uint8_t* vram = ram + ((vadr & 0xf8) << 8);
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->screen_buffer((y - (yoff & 0x3f)) & 0x3f);
+			scrntype_t* dest = emu->get_screen_buffer((y - (yoff & 0x3f)) & 0x3f);
 			for(int x = 0; x < 30; x++) {
-				uint8 pat = *vram++;
+				uint8_t pat = *vram++;
 				dest[0] = (pat & 0x80) ? pd : pb;
 				dest[1] = (pat & 0x40) ? pd : pb;
 				dest[2] = (pat & 0x20) ? pd : pb;
@@ -714,10 +713,74 @@ void IO::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype_t* dest = emu->get_screen_buffer(y);
 			for(int x = 0; x < 240; x++) {
 				dest[x] = pb;
 			}
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+bool IO::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(cur_clock);
+	state_fio->StateValue(bcr);
+	state_fio->StateValue(slbcr);
+	state_fio->StateValue(isr);
+	state_fio->StateValue(ier);
+	state_fio->StateValue(bankr);
+	state_fio->StateValue(ioctlr);
+	state_fio->StateValue(icrc);
+	state_fio->StateValue(icrb);
+	state_fio->StateValue(ear);
+	state_fio->StateValue(vadr);
+	state_fio->StateValue(yoff);
+	if(!cmd_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id_1sec);
+	state_fio->StateValue(onesec_intr);
+	state_fio->StateValue(onesec_intr_enb);
+	state_fio->StateValue(alarm_intr);
+	state_fio->StateValue(alarm_intr_enb);
+	state_fio->StateArray(alarm, sizeof(alarm), 1);
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(kb_intr_enb);
+	state_fio->StateValue(kb_rep_enb);
+	state_fio->StateValue(kb_caps);
+	state_fio->StateValue(kb_rep_spd1);
+	state_fio->StateValue(kb_rep_spd2);
+	if(!art_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(artsr);
+	state_fio->StateValue(artdir);
+	state_fio->StateValue(txen);
+	state_fio->StateValue(rxen);
+	state_fio->StateValue(dsr);
+	state_fio->StateValue(register_id_art);
+	state_fio->StateValue(beep);
+	state_fio->StateValue(res_z80);
+	state_fio->StateValue(res_7508);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	state_fio->StateValue(extar);
+	state_fio->StateValue(extcr);
+	return true;
+}
+

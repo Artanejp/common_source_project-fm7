@@ -20,7 +20,7 @@ void DISPLAY::reset()
 	vsync_enb = true;
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x64:
@@ -39,6 +39,6 @@ void DISPLAY::event_vline(int v, int clock)
 
 void DISPLAY::draw_screen()
 {
-	emu->screen_skip_line = false;
+	emu->screen_skip_line(false);
 }
 

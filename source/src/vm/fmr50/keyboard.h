@@ -56,22 +56,26 @@ private:
 	DEVICE* d_pic;
 	
 	FIFO *key_buf;
-	uint8 kbstat, kbdata, kbint, kbmsk;
-	uint8 table[256];
+	uint8_t kbstat, kbdata, kbint, kbmsk;
+	uint8_t table[256];
 	
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
+	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique function
+	// unique functions
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;

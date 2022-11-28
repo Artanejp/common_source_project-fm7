@@ -3,10 +3,14 @@
 
 	Origin : MAME 0.142
 	Author : Takeda.Toshiya
-	Date  : 2011.04.23-
+	Date   : 2011.04.23-
 
 	[ MC6800 ]
 */
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning( disable : 4996 )
+#endif
 
 #include "mc6800.h"
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
@@ -45,7 +49,7 @@
 /* memory                                                                   */
 /****************************************************************************/
 
-uint32 MC6800::RM(uint32 Addr)
+uint32_t MC6800::RM(uint32_t Addr)
 {
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	if(Addr < 0x20) {
@@ -57,7 +61,7 @@ uint32 MC6800::RM(uint32 Addr)
 	return d_mem->read_data8(Addr);
 }
 
-void MC6800::WM(uint32 Addr, uint32 Value)
+void MC6800::WM(uint32_t Addr, uint32_t Value)
 {
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	if(Addr < 0x20) {
@@ -69,20 +73,22 @@ void MC6800::WM(uint32 Addr, uint32 Value)
 	d_mem->write_data8(Addr, Value);
 }
 
-uint32 MC6800::RM16(uint32 Addr)
+uint32_t MC6800::RM16(uint32_t Addr)
 {
-	uint32 result = RM(Addr) << 8;
+	uint32_t result = RM(Addr) << 8;
 	return result | RM((Addr + 1) & 0xffff);
 }
 
-void MC6800::WM16(uint32 Addr, pair *p)
+void MC6800::WM16(uint32_t Addr, pair32_t *p)
 {
 	WM(Addr, p->b.h);
 	WM((Addr + 1) & 0xffff, p->b.l);
 }
 
-#define M_RDOP(Addr)		d_mem->read_data8(Addr)
-#define M_RDOP_ARG(Addr)	d_mem->read_data8(Addr)
+//#define M_RDOP(Addr)		d_mem->read_data8(Addr)
+//#define M_RDOP_ARG(Addr)	d_mem->read_data8(Addr)
+#define M_RDOP(Addr)		RM(Addr)
+#define M_RDOP_ARG(Addr)	RM(Addr)
 
 /* macros to access memory */
 #define IMMBYTE(b)	b = M_RDOP_ARG(PCD); PC++
@@ -155,7 +161,7 @@ static const int RMCR_SS[] = { 16, 128, 1024, 4096 };
 #define TAKE_SCI	enter_interrupt(0xfff0)
 #define TAKE_TRAP	enter_interrupt(0xffee)
 
-uint32 MC6800::mc6801_io_r(uint32 offset)
+uint32_t MC6800::mc6801_io_r(uint32_t offset)
 {
 	switch (offset) {
 	case 0x00:
@@ -263,7 +269,7 @@ uint32 MC6800::mc6801_io_r(uint32 offset)
 	return 0;
 }
 
-void MC6800::mc6801_io_w(uint32 offset, uint32 data)
+void MC6800::mc6801_io_w(uint32_t offset, uint32_t data)
 {
 	switch(offset) {
 	case 0x00:
@@ -346,6 +352,7 @@ void MC6800::mc6801_io_w(uint32 offset, uint32 data)
 			output_compare.b.h = data;
 			MODIFIED_counters;
 		}
+        tcsr &=~TCSR_OCF;
 		break;
 	case 0x0c:
 		// output compare register (lsb)
@@ -353,6 +360,7 @@ void MC6800::mc6801_io_w(uint32 offset, uint32 data)
 			output_compare.b.l = data;
 			MODIFIED_counters;
 		}
+        tcsr &=~TCSR_OCF;
 		break;
 	case 0x0f:
 		// port3 control/status register
@@ -380,11 +388,16 @@ void MC6800::mc6801_io_w(uint32 offset, uint32 data)
 		break;
 	}
 }
+#endif
 
 void MC6800::increment_counter(int amount)
 {
+#ifdef USE_DEBUGGER
+	total_icount += amount;
+#endif
 	icount -= amount;
 	
+#if defined(HAS_MC6801) || defined(HAS_HD6301)
 	// timer
 	if((CTD += amount) >= timer_next) {
 		/* OCI */
@@ -422,13 +435,9 @@ void MC6800::increment_counter(int amount)
 		}
 		sio_counter += RMCR_SS[rmcr & 3];
 	}
+#endif
 }
 
-#else
-
-#define increment_counter(amount) icount -= amount
-
-#endif
 
 #define CLR_HNZVC	CC &= 0xd0
 #define CLR_NZV		CC &= 0xf1
@@ -441,8 +450,8 @@ void MC6800::increment_counter(int amount)
 #define CLR_C		CC &= 0xfe
 
 #define SET_Z(a)	if(!(a)) SEZ
-#define SET_Z8(a)	SET_Z((uint8)(a))
-#define SET_Z16(a)	SET_Z((uint16)(a))
+#define SET_Z8(a)	SET_Z((uint8_t)(a))
+#define SET_Z16(a)	SET_Z((uint16_t)(a))
 #define SET_N8(a)	CC |= (((a) & 0x80) >> 4)
 #define SET_N16(a)	CC |= (((a) & 0x8000) >> 12)
 #define SET_H(a,b,r)	CC |= ((((a) ^ (b) ^ (r)) & 0x10) << 1)
@@ -451,7 +460,7 @@ void MC6800::increment_counter(int amount)
 #define SET_V8(a,b,r)	CC |= ((((a) ^ (b) ^ (r) ^ ((r) >> 1)) & 0x80) >> 6)
 #define SET_V16(a,b,r)	CC |= ((((a) ^ (b) ^ (r) ^ ((r) >> 1)) & 0x8000) >> 14)
 
-static const uint8 flags8i[256] = {
+static const uint8_t flags8i[256] = {
 	/* increment */
 	0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -471,7 +480,7 @@ static const uint8 flags8i[256] = {
 	0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08
 };
 
-static const uint8 flags8d[256] = {
+static const uint8_t flags8d[256] = {
 	/* decrement */
 	0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -500,15 +509,15 @@ static const uint8 flags8d[256] = {
 #define SET_FLAGS8(a,b,r)	{SET_N8(r);  SET_Z8(r);  SET_V8(a,b,r);  SET_C8(r); }
 #define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a,b,r); SET_C16(r);}
 
-/* for treating an uint8 as a signed int16 */
-#define SIGNED(b)	((int16)(b & 0x80 ? b | 0xff00 : b))
+/* for treating an uint8_t as a signed int16_t */
+#define SIGNED(b)	((int16_t)(b & 0x80 ? b | 0xff00 : b))
 
 /* Macros for addressing modes */
 #define DIRECT		IMMBYTE(EAD)
 #define IMM8		EA = PC++
 #define IMM16		{EA = PC; PC += 2;}
 #define EXTENDED	IMMWORD(pEA)
-#define INDEXED		{EA = X + (uint8)M_RDOP_ARG(PCD); PC++;}
+#define INDEXED		{EA = X + (uint8_t)M_RDOP_ARG(PCD); PC++;}
 
 /* macros to set status flags */
 #define SEC	CC |= 0x01
@@ -540,7 +549,7 @@ static const uint8 flags8d[256] = {
 /* Note: don't use 0 cycles here for invalid opcodes so that we don't */
 /* hang in an infinite loop if we hit one */
 #define XX 5 // invalid opcode unknown cc
-static const uint8 cycles[] = {
+static const uint8_t cycles[] = {
 #if defined(HAS_MC6800)
 	XX, 2,XX,XX,XX,XX, 2, 2, 4, 4, 2, 2, 2, 2, 2, 2,
 	 2, 2,XX,XX,XX,XX, 2, 2,XX, 2,XX, 2,XX,XX,XX,XX,
@@ -618,8 +627,8 @@ void MC6800::initialize()
 {
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	recv_buffer = new FIFO(0x10000);
-#endif
 	ram_ctrl = 0xc0;
+#endif
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_debugger->set_context_mem(d_mem);
@@ -639,7 +648,8 @@ void MC6800::reset()
 	CC = 0xc0;
 	SEI; /* IRQ disabled */
 	PCD = RM16(0xfffe);
-	S = X = D = EA = 0;
+//	S = X = D = EA = 0;
+	SD = X = D = EAD = 0;
 	
 	wai_state = 0;
 	int_state = 0;
@@ -671,7 +681,7 @@ void MC6800::reset()
 #endif
 }
 
-void MC6800::write_signal(int id, uint32 data, uint32 mask)
+void MC6800::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_CPU_IRQ:
@@ -737,36 +747,7 @@ int MC6800::run(int clock)
 		CLEANUP_COUNTERS();
 #endif
 		icount = 0;
-#ifdef USE_DEBUGGER
-		bool now_debugging = d_debugger->now_debugging;
-		if(now_debugging) {
-			d_debugger->check_break_points(PC);
-			if(d_debugger->now_suspended) {
-				emu->mute_sound();
-				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					Sleep(10);
-				}
-			}
-			if(d_debugger->now_debugging) {
-				d_mem = d_debugger;
-			} else {
-				now_debugging = false;
-			}
-			
-			run_one_opecode();
-			
-			if(now_debugging) {
-				if(!d_debugger->now_going) {
-					d_debugger->now_suspended = true;
-				}
-				d_mem = d_mem_stored;
-			}
-		} else {
-#endif
-			run_one_opecode();
-#ifdef USE_DEBUGGER
-		}
-#endif
+		run_one_opecode();
 		return -icount;
 	} else {
 		/* run cpu while given clocks */
@@ -777,36 +758,7 @@ int MC6800::run(int clock)
 		int first_icount = icount;
 		
 		while(icount > 0) {
-#ifdef USE_DEBUGGER
-			bool now_debugging = d_debugger->now_debugging;
-			if(now_debugging) {
-				d_debugger->check_break_points(PC);
-				if(d_debugger->now_suspended) {
-					emu->mute_sound();
-					while(d_debugger->now_debugging && d_debugger->now_suspended) {
-						Sleep(10);
-					}
-				}
-				if(d_debugger->now_debugging) {
-					d_mem = d_debugger;
-				} else {
-					now_debugging = false;
-				}
-				
-				run_one_opecode();
-				
-				if(now_debugging) {
-					if(!d_debugger->now_going) {
-						d_debugger->now_suspended = true;
-					}
-					d_mem = d_mem_stored;
-				}
-			} else {
-#endif
-				run_one_opecode();
-#ifdef USE_DEBUGGER
-			}
-#endif
+			run_one_opecode();
 		}
 		return first_icount - icount;
 	}
@@ -817,11 +769,52 @@ void MC6800::run_one_opecode()
 	if(wai_state & (MC6800_WAI | HD6301_SLP)) {
 		increment_counter(1);
 	} else {
-		uint8 ireg = M_RDOP(PCD);
-		prevpc = PC;
-		PC++;
-		insn(ireg);
-		increment_counter(cycles[ireg]);
+		do {
+			one_more_insn = false;
+#ifdef USE_DEBUGGER
+			bool now_debugging = d_debugger->now_debugging;
+			if(now_debugging) {
+				d_debugger->check_break_points(PC);
+				if(d_debugger->now_suspended) {
+					d_debugger->now_waiting = true;
+					emu->start_waiting_in_debugger();
+					while(d_debugger->now_debugging && d_debugger->now_suspended) {
+						emu->process_waiting_in_debugger();
+					}
+					emu->finish_waiting_in_debugger();
+					d_debugger->now_waiting = false;
+				}
+				if(d_debugger->now_debugging) {
+					d_mem = d_debugger;
+				} else {
+					now_debugging = false;
+				}
+				
+				d_debugger->add_cpu_trace(PC);
+				uint8_t ireg = M_RDOP(PCD);
+				prevpc = PC;
+				PC++;
+				insn(ireg);
+				increment_counter(cycles[ireg]);
+				
+				if(now_debugging) {
+					if(!d_debugger->now_going) {
+						d_debugger->now_suspended = true;
+					}
+					d_mem = d_mem_stored;
+				}
+			} else {
+				d_debugger->add_cpu_trace(PC);
+#endif
+				uint8_t ireg = M_RDOP(PCD);
+				prevpc = PC;
+				PC++;
+				insn(ireg);
+				increment_counter(cycles[ireg]);
+#ifdef USE_DEBUGGER
+			}
+#endif
+		} while(one_more_insn);
 	}
 	
 	// check interrupt
@@ -863,45 +856,45 @@ void MC6800::run_one_opecode()
 }
 
 #ifdef USE_DEBUGGER
-void MC6800::debug_write_data8(uint32 addr, uint32 data)
+void MC6800::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 MC6800::debug_read_data8(uint32 addr)
+uint32_t MC6800::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void MC6800::debug_write_data16(uint32 addr, uint32 data)
+void MC6800::write_debug_data16(uint32_t addr, uint32_t data)
 {
-	debug_write_data8(addr, (data >> 8) & 0xff);
-	debug_write_data8(addr + 1, data & 0xff);
+	write_debug_data8(addr, (data >> 8) & 0xff);
+	write_debug_data8(addr + 1, data & 0xff);
 }
 
-uint32 MC6800::debug_read_data16(uint32 addr)
+uint32_t MC6800::read_debug_data16(uint32_t addr)
 {
-	uint32 val = debug_read_data8(addr) << 8;
-	val |= debug_read_data8(addr + 1);
+	uint32_t val = read_debug_data8(addr) << 8;
+	val |= read_debug_data8(addr + 1);
 	return val;
 }
 
-void MC6800::debug_write_data32(uint32 addr, uint32 data)
+void MC6800::write_debug_data32(uint32_t addr, uint32_t data)
 {
-	debug_write_data16(addr, (data >> 16) & 0xffff);
-	debug_write_data16(addr + 2, data & 0xffff);
+	write_debug_data16(addr, (data >> 16) & 0xffff);
+	write_debug_data16(addr + 2, data & 0xffff);
 }
 
-uint32 MC6800::debug_read_data32(uint32 addr)
+uint32_t MC6800::read_debug_data32(uint32_t addr)
 {
-	uint32 val = debug_read_data16(addr) << 16;
-	val |= debug_read_data16(addr + 2);
+	uint32_t val = read_debug_data16(addr) << 16;
+	val |= read_debug_data16(addr + 2);
 	return val;
 }
 
-bool MC6800::debug_write_reg(_TCHAR *reg, uint32 data)
+bool MC6800::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	if(_tcsicmp(reg, _T("A")) == 0) {
 		A = data;
@@ -919,11 +912,17 @@ bool MC6800::debug_write_reg(_TCHAR *reg, uint32 data)
 	return true;
 }
 
-void MC6800::debug_regs_info(_TCHAR *buffer)
+bool MC6800::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	_stprintf(buffer, _T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X"),
+	my_stprintf_s(buffer, buffer_len,
+	_T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	(CC & 0x01) ? _T('C') : _T('-'), (CC & 0x02) ? _T('V') : _T('-'), (CC & 0x04) ? _T('Z') : _T('-'), (CC & 0x08) ? _T('N') : _T('-'),
-	(CC & 0x10) ? _T('I') : _T('-'), (CC & 0x20) ? _T('X') : _T('-'), A, B, X, PC, S);
+	(CC & 0x10) ? _T('I') : _T('-'), (CC & 0x20) ? _T('X') : _T('-'), A, B, X, PC, S,
+	total_icount, total_icount - prev_total_icount,
+	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	prev_total_icount = total_icount;
+	return true;
 }
 
 /*
@@ -1082,7 +1081,7 @@ static const UINT8 table[0x102][3] = {
 #define ARG2    opram[2]
 #define ARGW    (opram[1]<<8) + opram[2]
 
-static unsigned Dasm680x (int subtype, char *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram)
+static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol)
 {
 //	UINT32 flags = 0;
 	int invalid_mask;
@@ -1124,69 +1123,72 @@ static unsigned Dasm680x (int subtype, char *buf, unsigned pc, const UINT8 *opro
 
 	if ( invalid & invalid_mask )   /* invalid for this cpu type ? */
 	{
-		strcpy(buf, "illegal");
+		_tcscpy(buf, _T("illegal"));
 		return 1;// | flags | DASMFLAG_SUPPORTED;
 	}
 
-	buf += sprintf(buf, "%-5s", op_name_str[opcode]);
+	buf += _stprintf(buf, _T("%-5s"), op_name_str[opcode]);
 
 	switch( args )
 	{
 		case rel:  /* relative */
-			sprintf (buf, "$%04X", pc + (INT8)ARG1 + 2);
+			_stprintf (buf, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), pc + (INT8)ARG1 + 2));
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imb:  /* immediate (byte) */
-			sprintf (buf, "#$%02X", ARG1);
+			_stprintf (buf, _T("#$%02X"), ARG1);
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imw:  /* immediate (word) */
-			sprintf (buf, "#$%04X", ARGW);
+			_stprintf (buf, _T("#%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ARGW));
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case idx:  /* indexed + byte offset */
-			sprintf (buf, "(x+$%02X)", ARG1 );
+			_stprintf (buf, _T("(x+$%02X)"), ARG1 );
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imx:  /* immediate, indexed + byte offset */
-			sprintf (buf, "#$%02X,(x+$%02x)", ARG1, ARG2 );
+			_stprintf (buf, _T("#$%02X,(x+$%02x)"), ARG1, ARG2 );
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case dir:  /* direct address */
-			sprintf (buf, "$%02X", ARG1 );
+			_stprintf (buf, _T("$%02X"), ARG1 );
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imd:  /* immediate, direct address */
-			sprintf (buf, "#$%02X,$%02X", ARG1, ARG2);
+			_stprintf (buf, _T("#$%02X,$%02X"), ARG1, ARG2);
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case ext:  /* extended address */
-			sprintf (buf, "$%04X", ARGW);
+			_stprintf (buf, _T("%s"), get_value_or_symbol(first_symbol, _T("$%04X"), ARGW));
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case sx1:  /* byte from address (s + 1) */
-			sprintf (buf, "(s+1)");
+			_stprintf (buf, _T("(s+1)"));
 			return 1;// | flags | DASMFLAG_SUPPORTED;
 		default:
 			return 1;// | flags | DASMFLAG_SUPPORTED;
 	}
 }
 
-int MC6800::debug_dasm(uint32 pc, _TCHAR *buffer)
+int MC6800::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 ops[4];
+	uint8_t ops[4];
 	for(int i = 0; i < 4; i++) {
 		int wait;
 		ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
 	}
 #if defined(HAS_MC6800)
-	return Dasm680x(6800, buffer, pc, ops, ops);
+	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);
 #elif defined(HAS_MC6801)
-	return Dasm680x(6801, buffer, pc, ops, ops);
+	return Dasm680x(6801, buffer, pc, ops, ops, d_debugger->first_symbol);
 #elif defined(HAS_HD6301)
-	return Dasm680x(6301, buffer, pc, ops, ops);
+	return Dasm680x(6301, buffer, pc, ops, ops, d_debugger->first_symbol);
 #elif defined(HAS_MB8861)
-	return Dasm680x(6800, buffer, pc, ops, ops);	// FIXME
+	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);	// FIXME
 #endif
 	return 0;
 }
 #endif
 
-void MC6800::enter_interrupt(uint16 irq_vector)
+void MC6800::enter_interrupt(uint16_t irq_vector)
 {
 	if(wai_state & MC6800_WAI) {
+#ifdef USE_DEBUGGER
+		total_icount += 4;
+#endif
 		icount -= 4;
 		wai_state &= ~MC6800_WAI;
 	} else {
@@ -1195,6 +1197,9 @@ void MC6800::enter_interrupt(uint16 irq_vector)
 		PUSHBYTE(A);
 		PUSHBYTE(B);
 		PUSHBYTE(CC);
+#ifdef USE_DEBUGGER
+		total_icount += 12;
+#endif
 		icount -= 12;
 	}
 	SEI;
@@ -1203,7 +1208,7 @@ void MC6800::enter_interrupt(uint16 irq_vector)
 
 // opcodes
 
-void MC6800::insn(uint8 code)
+void MC6800::insn(uint8_t code)
 {
 	switch(code) {
 	case 0x00: illegal(); break;
@@ -1600,13 +1605,15 @@ void MC6800::insn(uint8 code)
 #endif
 	case 0xfe: ldx_ex(); break;
 	case 0xff: stx_ex(); break;
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
+#endif
 	}
 }
 
 /* operate one instruction for */
 #define ONE_MORE_INSN() { \
-	uint8 ireg = M_RDOP(PCD); \
+	uint8_t ireg = M_RDOP(PCD); \
 	prevpc = PC; \
 	PC++; \
 	insn(ireg); \
@@ -1634,7 +1641,7 @@ void MC6800::nop()
 /* $04 LSRD inherent -0*-* */
 void MC6800::lsrd()
 {
-	uint16 t;
+	uint16_t t;
 	CLR_NZC;
 	t = D;
 	CC |= (t & 0x0001);
@@ -1647,7 +1654,7 @@ void MC6800::lsrd()
 void MC6800::asld()
 {
 	int r;
-	uint16 t;
+	uint16_t t;
 	t = D;
 	r = t << 1;
 	CLR_NZVC;
@@ -1659,7 +1666,8 @@ void MC6800::asld()
 void MC6800::tap()
 {
 	CC = A;
-	ONE_MORE_INSN();
+//	ONE_MORE_INSN();
+	one_more_insn = true;
 }
 
 /* $07 TPA inherent ----- */
@@ -1712,30 +1720,32 @@ void MC6800::sec()
 void MC6800::cli()
 {
 	CLI;
-	ONE_MORE_INSN();
+//	ONE_MORE_INSN();
+	one_more_insn = true;
 }
 
 /* $0f SEI */
 void MC6800::sei()
 {
 	SEI;
-	ONE_MORE_INSN();
+//	ONE_MORE_INSN();
+	one_more_insn = true;
 }
 
 /* $10 SBA inherent -**** */
 void MC6800::sba()
 {
-	uint16 t;
+	uint16_t t;
 	t = A - B;
 	CLR_NZVC;
 	SET_FLAGS8(A, B, t);
-	A = (uint8)t;
+	A = (uint8_t)t;
 }
 
 /* $11 CBA inherent -**** */
 void MC6800::cba()
 {
-	uint16 t;
+	uint16_t t;
 	t = A - B;
 	CLR_NZVC;
 	SET_FLAGS8(A, B, t);
@@ -1776,7 +1786,7 @@ void MC6800::tba()
 /* $18 XGDX inherent ----- */ /* HD6301 only */
 void MC6800::xgdx()
 {
-	uint16 t = X;
+	uint16_t t = X;
 	X = D;
 	D = t;
 }
@@ -1784,8 +1794,8 @@ void MC6800::xgdx()
 /* $19 DAA inherent (A) -**0* */
 void MC6800::daa()
 {
-	uint8 msn, lsn;
-	uint16 t, cf = 0;
+	uint8_t msn, lsn;
+	uint16_t t, cf = 0;
 	msn = A & 0xf0;
 	lsn = A & 0x0f;
 	if(lsn > 0x09 || CC & 0x20) {
@@ -1799,9 +1809,9 @@ void MC6800::daa()
 	}
 	t = cf + A;
 	CLR_NZV; /* keep carry from previous operation */
-	SET_NZ8((uint8)t);
+	SET_NZ8((uint8_t)t);
 	SET_C8(t);
-	A = (uint8)t;
+	A = (uint8_t)t;
 }
 
 /* $1a ILLEGAL */
@@ -1816,12 +1826,12 @@ void MC6800::slp()
 /* $1b ABA inherent ***** */
 void MC6800::aba()
 {
-	uint16 t;
+	uint16_t t;
 	t = A + B;
 	CLR_HNZVC;
 	SET_FLAGS8(A, B, t);
 	SET_H(A, B, t);
-	A = (uint8)t;
+	A = (uint8_t)t;
 }
 
 /* $1c ILLEGAL */
@@ -1835,7 +1845,7 @@ void MC6800::aba()
 /* $20 BRA relative ----- */
 void MC6800::bra()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	PC += SIGNED(t);
 }
@@ -1843,105 +1853,105 @@ void MC6800::bra()
 /* $21 BRN relative ----- */
 void MC6800::brn()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 }
 
 /* $22 BHI relative ----- */
 void MC6800::bhi()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!(CC & 0x05));
 }
 
 /* $23 BLS relative ----- */
 void MC6800::bls()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(CC & 0x05);
 }
 
 /* $24 BCC relative ----- */
 void MC6800::bcc()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!(CC & 0x01));
 }
 
 /* $25 BCS relative ----- */
 void MC6800::bcs()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(CC & 0x01);
 }
 
 /* $26 BNE relative ----- */
 void MC6800::bne()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!(CC & 0x04));
 }
 
 /* $27 BEQ relative ----- */
 void MC6800::beq()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(CC & 0x04);
 }
 
 /* $28 BVC relative ----- */
 void MC6800::bvc()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!(CC & 0x02));
 }
 
 /* $29 BVS relative ----- */
 void MC6800::bvs()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(CC & 0x02);
 }
 
 /* $2a BPL relative ----- */
 void MC6800::bpl()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!(CC & 0x08));
 }
 
 /* $2b BMI relative ----- */
 void MC6800::bmi()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(CC & 0x08);
 }
 
 /* $2c BGE relative ----- */
 void MC6800::bge()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!NXORV);
 }
 
 /* $2d BLT relative ----- */
 void MC6800::blt()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(NXORV);
 }
 
 /* $2e BGT relative ----- */
 void MC6800::bgt()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(!(NXORV||CC & 0x04));
 }
 
 /* $2f BLE relative ----- */
 void MC6800::ble()
 {
-	uint8 t;
+	uint8_t t;
 	BRANCH(NXORV||CC & 0x04);
 }
 
@@ -2030,7 +2040,7 @@ void MC6800::pshx()
 /* $3d MUL inherent --*-@ */
 void MC6800::mul()
 {
-	uint16 t;
+	uint16_t t;
 	t = A*B;
 	CLR_C;
 	if(t & 0x80) SEC;
@@ -2067,11 +2077,11 @@ void MC6800::swi()
 /* $40 NEGA inherent ?**** */
 void MC6800::nega()
 {
-	uint16 r;
+	uint16_t r;
 	r = -A;
 	CLR_NZVC;
 	SET_FLAGS8(0, A, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $41 ILLEGAL */
@@ -2101,7 +2111,7 @@ void MC6800::lsra()
 /* $46 RORA inherent -**-* */
 void MC6800::rora()
 {
-	uint8 r;
+	uint8_t r;
 	r = (CC & 0x01) << 7;
 	CLR_NZC;
 	CC |= (A & 0x01);
@@ -2123,23 +2133,23 @@ void MC6800::asra()
 /* $48 ASLA inherent ?**** */
 void MC6800::asla()
 {
-	uint16 r;
+	uint16_t r;
 	r = A << 1;
 	CLR_NZVC;
 	SET_FLAGS8(A, A, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $49 ROLA inherent -**** */
 void MC6800::rola()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	t = A;
 	r = CC & 0x01;
 	r |= t << 1;
 	CLR_NZVC;
 	SET_FLAGS8(t, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $4a DECA inherent -***- */
@@ -2180,11 +2190,11 @@ void MC6800::clra()
 /* $50 NEGB inherent ?**** */
 void MC6800::negb()
 {
-	uint16 r;
+	uint16_t r;
 	r = -B;
 	CLR_NZVC;
 	SET_FLAGS8(0, B, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $51 ILLEGAL */
@@ -2214,7 +2224,7 @@ void MC6800::lsrb()
 /* $56 RORB inherent -**-* */
 void MC6800::rorb()
 {
-	uint8 r;
+	uint8_t r;
 	r = (CC & 0x01) << 7;
 	CLR_NZC;
 	CC |= (B & 0x01);
@@ -2236,23 +2246,23 @@ void MC6800::asrb()
 /* $58 ASLB inherent ?**** */
 void MC6800::aslb()
 {
-	uint16 r;
+	uint16_t r;
 	r = B << 1;
 	CLR_NZVC;
 	SET_FLAGS8(B, B, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $59 ROLB inherent -**** */
 void MC6800::rolb()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	t = B;
 	r = CC & 0x01;
 	r |= t << 1;
 	CLR_NZVC;
 	SET_FLAGS8(t, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $5a DECB inherent -***- */
@@ -2293,7 +2303,7 @@ void MC6800::clrb()
 /* $60 NEG indexed ?**** */
 void MC6800::neg_ix()
 {
-	uint16 r, t;
+	uint16_t r, t;
 	IDXBYTE(t);
 	r = -t;
 	CLR_NZVC;
@@ -2304,7 +2314,7 @@ void MC6800::neg_ix()
 /* $61 AIM --**0- */ /* HD6301 only */
 void MC6800::aim_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r &= t;
@@ -2316,7 +2326,7 @@ void MC6800::aim_ix()
 /* $62 OIM --**0- */ /* HD6301 only */
 void MC6800::oim_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r |= t;
@@ -2328,7 +2338,7 @@ void MC6800::oim_ix()
 /* $63 COM indexed -**01 */
 void MC6800::com_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	t = ~t;
 	CLR_NZV;
@@ -2340,7 +2350,7 @@ void MC6800::com_ix()
 /* $64 LSR indexed -0*-* */
 void MC6800::lsr_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	CLR_NZC;
 	CC |= (t & 0x01);
@@ -2352,7 +2362,7 @@ void MC6800::lsr_ix()
 /* $65 EIM --**0- */ /* HD6301 only */
 void MC6800::eim_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r ^= t;
@@ -2364,7 +2374,7 @@ void MC6800::eim_ix()
 /* $66 ROR indexed -**-* */
 void MC6800::ror_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IDXBYTE(t);
 	r = (CC & 0x01) << 7;
 	CLR_NZC;
@@ -2377,7 +2387,7 @@ void MC6800::ror_ix()
 /* $67 ASR indexed ?**-* */
 void MC6800::asr_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	CLR_NZC;
 	CC |= (t & 0x01);
@@ -2390,7 +2400,7 @@ void MC6800::asr_ix()
 /* $68 ASL indexed ?**** */
 void MC6800::asl_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = t << 1;
 	CLR_NZVC;
@@ -2401,7 +2411,7 @@ void MC6800::asl_ix()
 /* $69 ROL indexed -**** */
 void MC6800::rol_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = CC & 0x01;
 	r |= t << 1;
@@ -2413,7 +2423,7 @@ void MC6800::rol_ix()
 /* $6a DEC indexed -***- */
 void MC6800::dec_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	--t;
 	CLR_NZV;
@@ -2424,7 +2434,7 @@ void MC6800::dec_ix()
 /* $6b TIM --**0- */ /* HD6301 only */
 void MC6800::tim_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r &= t;
@@ -2435,7 +2445,7 @@ void MC6800::tim_ix()
 /* $6c INC indexed -***- */
 void MC6800::inc_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	++t;
 	CLR_NZV;
@@ -2446,7 +2456,7 @@ void MC6800::inc_ix()
 /* $6d TST indexed -**0- */
 void MC6800::tst_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	CLR_NZVC;
 	SET_NZ8(t);
@@ -2471,7 +2481,7 @@ void MC6800::clr_ix()
 /* $70 NEG extended ?**** */
 void MC6800::neg_ex()
 {
-	uint16 r, t;
+	uint16_t r, t;
 	EXTBYTE(t);
 	r = -t;
 	CLR_NZVC;
@@ -2482,7 +2492,7 @@ void MC6800::neg_ex()
 /* $71 AIM --**0- */ /* HD6301 only */
 void MC6800::aim_di()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	DIRBYTE(r);
 	r &= t;
@@ -2494,7 +2504,7 @@ void MC6800::aim_di()
 /* $71 NIM --**0- */ /* MB8861 only */
 void MC6800::nim_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r &= t;
@@ -2510,7 +2520,7 @@ void MC6800::nim_ix()
 /* $72 OIM --**0- */ /* HD6301 only */
 void MC6800::oim_di()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	DIRBYTE(r);
 	r |= t;
@@ -2522,7 +2532,7 @@ void MC6800::oim_di()
 /* $72 OIM --**0- */ /* MB8861 only */
 void MC6800::oim_ix_mb8861()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r |= t;
@@ -2538,7 +2548,7 @@ void MC6800::oim_ix_mb8861()
 /* $73 COM extended -**01 */
 void MC6800::com_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	t = ~t;
 	CLR_NZV;
@@ -2550,7 +2560,7 @@ void MC6800::com_ex()
 /* $74 LSR extended -0*-* */
 void MC6800::lsr_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	CLR_NZC;
 	CC |= (t & 0x01);
@@ -2562,7 +2572,7 @@ void MC6800::lsr_ex()
 /* $75 EIM --**0- */ /* HD6301 only */
 void MC6800::eim_di()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	DIRBYTE(r);
 	r ^= t;
@@ -2574,7 +2584,7 @@ void MC6800::eim_di()
 /* $75 XIM --**-- */ /* MB8861 only */
 void MC6800::xim_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r ^= t;
@@ -2590,7 +2600,7 @@ void MC6800::xim_ix()
 /* $76 ROR extended -**-* */
 void MC6800::ror_ex()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	EXTBYTE(t);
 	r = (CC & 0x01) << 7;
 	CLR_NZC;
@@ -2603,7 +2613,7 @@ void MC6800::ror_ex()
 /* $77 ASR extended ?**-* */
 void MC6800::asr_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	CLR_NZC;
 	CC |= (t & 0x01);
@@ -2616,7 +2626,7 @@ void MC6800::asr_ex()
 /* $78 ASL extended ?**** */
 void MC6800::asl_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = t << 1;
 	CLR_NZVC;
@@ -2627,7 +2637,7 @@ void MC6800::asl_ex()
 /* $79 ROL extended -**** */
 void MC6800::rol_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = CC & 0x01;
 	r |= t << 1;
@@ -2639,7 +2649,7 @@ void MC6800::rol_ex()
 /* $7a DEC extended -***- */
 void MC6800::dec_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	--t;
 	CLR_NZV;
@@ -2650,7 +2660,7 @@ void MC6800::dec_ex()
 /* $7b TIM --**0- */ /* HD6301 only */
 void MC6800::tim_di()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	DIRBYTE(r);
 	r &= t;
@@ -2661,7 +2671,7 @@ void MC6800::tim_di()
 /* $7b TMM --***- */ /* MB8861 only */
 void MC6800::tmm_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	IDXBYTE(r);
 	r &= t;
@@ -2678,7 +2688,7 @@ void MC6800::tmm_ix()
 /* $7c INC extended -***- */
 void MC6800::inc_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	++t;
 	CLR_NZV;
@@ -2689,7 +2699,7 @@ void MC6800::inc_ex()
 /* $7d TST extended -**0- */
 void MC6800::tst_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	CLR_NZVC;
 	SET_NZ8(t);
@@ -2714,18 +2724,18 @@ void MC6800::clr_ex()
 /* $80 SUBA immediate ?**** */
 void MC6800::suba_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = A - t;
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $81 CMPA immediate ?**** */
 void MC6800::cmpa_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = A - t;
 	CLR_NZVC;
@@ -2735,19 +2745,19 @@ void MC6800::cmpa_im()
 /* $82 SBCA immediate ?**** */
 void MC6800::sbca_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = A - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $83 SUBD immediate -**** */
 void MC6800::subd_im()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IMMWORD(b);
 	d = D;
 	r = d - b.d;
@@ -2759,7 +2769,7 @@ void MC6800::subd_im()
 /* $84 ANDA immediate -**0- */
 void MC6800::anda_im()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	A &= t;
 	CLR_NZV;
@@ -2769,7 +2779,7 @@ void MC6800::anda_im()
 /* $85 BITA immediate -**0- */
 void MC6800::bita_im()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	r = A & t;
 	CLR_NZV;
@@ -2797,7 +2807,7 @@ void MC6800::sta_im()
 /* $88 EORA immediate -**0- */
 void MC6800::eora_im()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	A ^= t;
 	CLR_NZV;
@@ -2807,19 +2817,19 @@ void MC6800::eora_im()
 /* $89 ADCA immediate ***** */
 void MC6800::adca_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = A + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $8a ORA immediate -**0- */
 void MC6800::ora_im()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	A |= t;
 	CLR_NZV;
@@ -2829,20 +2839,20 @@ void MC6800::ora_im()
 /* $8b ADDA immediate ***** */
 void MC6800::adda_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $8c CMPX immediate -***- */
 void MC6800::cmpx_im()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IMMWORD(b);
 	d = X;
 	r = d - b.d;
@@ -2854,8 +2864,8 @@ void MC6800::cmpx_im()
 /* $8c CPX immediate -**** (6801) */
 void MC6800::cpx_im()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IMMWORD(b);
 	d = X;
 	r = d - b.d;
@@ -2867,7 +2877,7 @@ void MC6800::cpx_im()
 /* $8d BSR ----- */
 void MC6800::bsr()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	PUSHWORD(pPC);
 	PC += SIGNED(t);
@@ -2893,18 +2903,18 @@ void MC6800::sts_im()
 /* $90 SUBA direct ?**** */
 void MC6800::suba_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = A - t;
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $91 CMPA direct ?**** */
 void MC6800::cmpa_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = A - t;
 	CLR_NZVC;
@@ -2914,19 +2924,19 @@ void MC6800::cmpa_di()
 /* $92 SBCA direct ?**** */
 void MC6800::sbca_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = A - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $93 SUBD direct -**** */
 void MC6800::subd_di()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	DIRWORD(b);
 	d = D;
 	r = d - b.d;
@@ -2938,7 +2948,7 @@ void MC6800::subd_di()
 /* $94 ANDA direct -**0- */
 void MC6800::anda_di()
 {
-	uint8 t;
+	uint8_t t;
 	DIRBYTE(t);
 	A &= t;
 	CLR_NZV;
@@ -2948,7 +2958,7 @@ void MC6800::anda_di()
 /* $95 BITA direct -**0- */
 void MC6800::bita_di()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	DIRBYTE(t);
 	r = A & t;
 	CLR_NZV;
@@ -2975,7 +2985,7 @@ void MC6800::sta_di()
 /* $98 EORA direct -**0- */
 void MC6800::eora_di()
 {
-	uint8 t;
+	uint8_t t;
 	DIRBYTE(t);
 	A ^= t;
 	CLR_NZV;
@@ -2985,19 +2995,19 @@ void MC6800::eora_di()
 /* $99 ADCA direct ***** */
 void MC6800::adca_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = A + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $9a ORA direct -**0- */
 void MC6800::ora_di()
 {
-	uint8 t;
+	uint8_t t;
 	DIRBYTE(t);
 	A |= t;
 	CLR_NZV;
@@ -3007,20 +3017,20 @@ void MC6800::ora_di()
 /* $9b ADDA direct ***** */
 void MC6800::adda_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $9c CMPX direct -***- */
 void MC6800::cmpx_di()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	DIRWORD(b);
 	d = X;
 	r = d - b.d;
@@ -3032,8 +3042,8 @@ void MC6800::cmpx_di()
 /* $9c CPX direct -**** (6801) */
 void MC6800::cpx_di()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	DIRWORD(b);
 	d = X;
 	r = d - b.d;
@@ -3069,18 +3079,18 @@ void MC6800::sts_di()
 /* $a0 SUBA indexed ?**** */
 void MC6800::suba_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = A - t;
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $a1 CMPA indexed ?**** */
 void MC6800::cmpa_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = A - t;
 	CLR_NZVC;
@@ -3090,19 +3100,19 @@ void MC6800::cmpa_ix()
 /* $a2 SBCA indexed ?**** */
 void MC6800::sbca_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = A - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $a3 SUBD indexed -**** */
 void MC6800::subd_ix()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IDXWORD(b);
 	d = D;
 	r = d - b.d;
@@ -3114,7 +3124,7 @@ void MC6800::subd_ix()
 /* $a4 ANDA indexed -**0- */
 void MC6800::anda_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	A &= t;
 	CLR_NZV;
@@ -3124,7 +3134,7 @@ void MC6800::anda_ix()
 /* $a5 BITA indexed -**0- */
 void MC6800::bita_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IDXBYTE(t);
 	r = A & t;
 	CLR_NZV;
@@ -3151,7 +3161,7 @@ void MC6800::sta_ix()
 /* $a8 EORA indexed -**0- */
 void MC6800::eora_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	A ^= t;
 	CLR_NZV;
@@ -3161,19 +3171,19 @@ void MC6800::eora_ix()
 /* $a9 ADCA indexed ***** */
 void MC6800::adca_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = A + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $aa ORA indexed -**0- */
 void MC6800::ora_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	A |= t;
 	CLR_NZV;
@@ -3183,20 +3193,20 @@ void MC6800::ora_ix()
 /* $ab ADDA indexed ***** */
 void MC6800::adda_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $ac CMPX indexed -***- */
 void MC6800::cmpx_ix()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IDXWORD(b);
 	d = X;
 	r = d - b.d;
@@ -3208,8 +3218,8 @@ void MC6800::cmpx_ix()
 /* $ac CPX indexed -**** (6801)*/
 void MC6800::cpx_ix()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IDXWORD(b);
 	d = X;
 	r = d - b.d;
@@ -3245,18 +3255,18 @@ void MC6800::sts_ix()
 /* $b0 SUBA extended ?**** */
 void MC6800::suba_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = A - t;
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $b1 CMPA extended ?**** */
 void MC6800::cmpa_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = A - t;
 	CLR_NZVC;
@@ -3266,19 +3276,19 @@ void MC6800::cmpa_ex()
 /* $b2 SBCA extended ?**** */
 void MC6800::sbca_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = A - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $b3 SUBD extended -**** */
 void MC6800::subd_ex()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	EXTWORD(b);
 	d = D;
 	r = d - b.d;
@@ -3290,7 +3300,7 @@ void MC6800::subd_ex()
 /* $b4 ANDA extended -**0- */
 void MC6800::anda_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	A &= t;
 	CLR_NZV;
@@ -3300,7 +3310,7 @@ void MC6800::anda_ex()
 /* $b5 BITA extended -**0- */
 void MC6800::bita_ex()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	EXTBYTE(t);
 	r = A & t;
 	CLR_NZV;
@@ -3327,7 +3337,7 @@ void MC6800::sta_ex()
 /* $b8 EORA extended -**0- */
 void MC6800::eora_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	A ^= t;
 	CLR_NZV;
@@ -3337,19 +3347,19 @@ void MC6800::eora_ex()
 /* $b9 ADCA extended ***** */
 void MC6800::adca_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = A + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $ba ORA extended -**0- */
 void MC6800::ora_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	A |= t;
 	CLR_NZV;
@@ -3359,20 +3369,20 @@ void MC6800::ora_ex()
 /* $bb ADDA extended ***** */
 void MC6800::adda_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	SET_H(A, t, r);
-	A = (uint8)r;
+	A = (uint8_t)r;
 }
 
 /* $bc CMPX extended -***- */
 void MC6800::cmpx_ex()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	EXTWORD(b);
 	d = X;
 	r = d - b.d;
@@ -3384,8 +3394,8 @@ void MC6800::cmpx_ex()
 /* $bc CPX extended -**** (6801) */
 void MC6800::cpx_ex()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	EXTWORD(b);
 	d = X;
 	r = d - b.d;
@@ -3421,18 +3431,18 @@ void MC6800::sts_ex()
 /* $c0 SUBB immediate ?**** */
 void MC6800::subb_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = B - t;
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $c1 CMPB immediate ?**** */
 void MC6800::cmpb_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = B - t;
 	CLR_NZVC;
@@ -3442,19 +3452,19 @@ void MC6800::cmpb_im()
 /* $c2 SBCB immediate ?**** */
 void MC6800::sbcb_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = B - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $c3 ADDD immediate -**** */
 void MC6800::addd_im()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IMMWORD(b);
 	d = D;
 	r = d + b.d;
@@ -3466,7 +3476,7 @@ void MC6800::addd_im()
 /* $c4 ANDB immediate -**0- */
 void MC6800::andb_im()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	B &= t;
 	CLR_NZV;
@@ -3476,7 +3486,7 @@ void MC6800::andb_im()
 /* $c5 BITB immediate -**0- */
 void MC6800::bitb_im()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IMMBYTE(t);
 	r = B & t;
 	CLR_NZV;
@@ -3504,7 +3514,7 @@ void MC6800::stb_im()
 /* $c8 EORB immediate -**0- */
 void MC6800::eorb_im()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	B ^= t;
 	CLR_NZV;
@@ -3514,19 +3524,19 @@ void MC6800::eorb_im()
 /* $c9 ADCB immediate ***** */
 void MC6800::adcb_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = B + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $ca ORB immediate -**0- */
 void MC6800::orb_im()
 {
-	uint8 t;
+	uint8_t t;
 	IMMBYTE(t);
 	B |= t;
 	CLR_NZV;
@@ -3536,13 +3546,13 @@ void MC6800::orb_im()
 /* $cb ADDB immediate ***** */
 void MC6800::addb_im()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IMMBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $CC LDD immediate -**0- */
@@ -3583,18 +3593,18 @@ void MC6800::stx_im()
 /* $d0 SUBB direct ?**** */
 void MC6800::subb_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = B - t;
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $d1 CMPB direct ?**** */
 void MC6800::cmpb_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = B - t;
 	CLR_NZVC;
@@ -3604,19 +3614,19 @@ void MC6800::cmpb_di()
 /* $d2 SBCB direct ?**** */
 void MC6800::sbcb_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = B - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $d3 ADDD direct -**** */
 void MC6800::addd_di()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	DIRWORD(b);
 	d = D;
 	r = d + b.d;
@@ -3628,7 +3638,7 @@ void MC6800::addd_di()
 /* $d4 ANDB direct -**0- */
 void MC6800::andb_di()
 {
-	uint8 t;
+	uint8_t t;
 	DIRBYTE(t);
 	B &= t;
 	CLR_NZV;
@@ -3638,7 +3648,7 @@ void MC6800::andb_di()
 /* $d5 BITB direct -**0- */
 void MC6800::bitb_di()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	DIRBYTE(t);
 	r = B & t;
 	CLR_NZV;
@@ -3665,7 +3675,7 @@ void MC6800::stb_di()
 /* $d8 EORB direct -**0- */
 void MC6800::eorb_di()
 {
-	uint8 t;
+	uint8_t t;
 	DIRBYTE(t);
 	B ^= t;
 	CLR_NZV;
@@ -3675,19 +3685,19 @@ void MC6800::eorb_di()
 /* $d9 ADCB direct ***** */
 void MC6800::adcb_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = B + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $da ORB direct -**0- */
 void MC6800::orb_di()
 {
-	uint8 t;
+	uint8_t t;
 	DIRBYTE(t);
 	B |= t;
 	CLR_NZV;
@@ -3697,13 +3707,13 @@ void MC6800::orb_di()
 /* $db ADDB direct ***** */
 void MC6800::addb_di()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	DIRBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $dc LDD direct -**0- */
@@ -3743,18 +3753,18 @@ void MC6800::stx_di()
 /* $e0 SUBB indexed ?**** */
 void MC6800::subb_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = B - t;
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $e1 CMPB indexed ?**** */
 void MC6800::cmpb_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = B - t;
 	CLR_NZVC;
@@ -3764,19 +3774,19 @@ void MC6800::cmpb_ix()
 /* $e2 SBCB indexed ?**** */
 void MC6800::sbcb_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = B - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $e3 ADDD indexed -**** */
 void MC6800::addd_ix()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	IDXWORD(b);
 	d = D;
 	r = d + b.d;
@@ -3788,7 +3798,7 @@ void MC6800::addd_ix()
 /* $e4 ANDB indexed -**0- */
 void MC6800::andb_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	B &= t;
 	CLR_NZV;
@@ -3798,7 +3808,7 @@ void MC6800::andb_ix()
 /* $e5 BITB indexed -**0- */
 void MC6800::bitb_ix()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	IDXBYTE(t);
 	r = B & t;
 	CLR_NZV;
@@ -3825,7 +3835,7 @@ void MC6800::stb_ix()
 /* $e8 EORB indexed -**0- */
 void MC6800::eorb_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	B ^= t;
 	CLR_NZV;
@@ -3835,19 +3845,19 @@ void MC6800::eorb_ix()
 /* $e9 ADCB indexed ***** */
 void MC6800::adcb_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = B + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $ea ORB indexed -**0- */
 void MC6800::orb_ix()
 {
-	uint8 t;
+	uint8_t t;
 	IDXBYTE(t);
 	B |= t;
 	CLR_NZV;
@@ -3857,13 +3867,13 @@ void MC6800::orb_ix()
 /* $eb ADDB indexed ***** */
 void MC6800::addb_ix()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	IDXBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $ec LDD indexed -**0- */
@@ -3877,7 +3887,7 @@ void MC6800::ldd_ix()
 /* $ec ADX immediate -**** */ /* MB8861 only */
 void MC6800::adx_im()
 {
-	uint32 r, d, t;
+	uint32_t r, d, t;
 	IMMBYTE(t);
 	d = X;
 	r = d + t;
@@ -3915,18 +3925,18 @@ void MC6800::stx_ix()
 /* $f0 SUBB extended ?**** */
 void MC6800::subb_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = B - t;
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $f1 CMPB extended ?**** */
 void MC6800::cmpb_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = B - t;
 	CLR_NZVC;
@@ -3936,19 +3946,19 @@ void MC6800::cmpb_ex()
 /* $f2 SBCB extended ?**** */
 void MC6800::sbcb_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = B - t - (CC & 0x01);
 	CLR_NZVC;
 	SET_FLAGS8(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $f3 ADDD extended -**** */
 void MC6800::addd_ex()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	EXTWORD(b);
 	d = D;
 	r = d + b.d;
@@ -3960,7 +3970,7 @@ void MC6800::addd_ex()
 /* $f4 ANDB extended -**0- */
 void MC6800::andb_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	B &= t;
 	CLR_NZV;
@@ -3970,7 +3980,7 @@ void MC6800::andb_ex()
 /* $f5 BITB extended -**0- */
 void MC6800::bitb_ex()
 {
-	uint8 t, r;
+	uint8_t t, r;
 	EXTBYTE(t);
 	r = B & t;
 	CLR_NZV;
@@ -3997,7 +4007,7 @@ void MC6800::stb_ex()
 /* $f8 EORB extended -**0- */
 void MC6800::eorb_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	B ^= t;
 	CLR_NZV;
@@ -4007,19 +4017,19 @@ void MC6800::eorb_ex()
 /* $f9 ADCB extended ***** */
 void MC6800::adcb_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = B + t + (CC & 0x01);
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $fa ORB extended -**0- */
 void MC6800::orb_ex()
 {
-	uint8 t;
+	uint8_t t;
 	EXTBYTE(t);
 	B |= t;
 	CLR_NZV;
@@ -4029,13 +4039,13 @@ void MC6800::orb_ex()
 /* $fb ADDB extended ***** */
 void MC6800::addb_ex()
 {
-	uint16 t, r;
+	uint16_t t, r;
 	EXTBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	SET_H(B, t, r);
-	B = (uint8)r;
+	B = (uint8_t)r;
 }
 
 /* $fc LDD extended -**0- */
@@ -4049,8 +4059,8 @@ void MC6800::ldd_ex()
 /* $fc ADX immediate -**** */ /* MB8861 only */
 void MC6800::adx_ex()
 {
-	uint32 r, d;
-	pair b;
+	uint32_t r, d;
+	pair32_t b;
 	EXTWORD(b);
 	d = X;
 	r = d + b.d;
@@ -4083,5 +4093,75 @@ void MC6800::stx_ex()
 	SET_NZ16(X);
 	EXTENDED;
 	WM16(EAD, &pX);
+}
+
+#define STATE_VERSION	2
+
+bool MC6800::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(pc.d);
+	state_fio->StateValue(prevpc);
+	state_fio->StateValue(sp.d);
+	state_fio->StateValue(ix.d);
+	state_fio->StateValue(acc_d.d);
+	state_fio->StateValue(ea.d);
+	state_fio->StateValue(cc);
+	state_fio->StateValue(wai_state);
+	state_fio->StateValue(int_state);
+#ifdef USE_DEBUGGER
+	state_fio->StateValue(total_icount);
+#endif
+	state_fio->StateValue(icount);
+#if defined(HAS_MC6801) || defined(HAS_HD6301)
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].ddr);
+		state_fio->StateValue(port[i].latched_data);
+		state_fio->StateValue(port[i].latched);
+		state_fio->StateValue(port[i].first_write);
+	}
+	state_fio->StateValue(p3csr);
+	state_fio->StateValue(p3csr_is3_flag_read);
+	state_fio->StateValue(sc1_state);
+	state_fio->StateValue(sc2_state);
+	state_fio->StateValue(counter.d);
+	state_fio->StateValue(output_compare.d);
+	state_fio->StateValue(timer_over.d);
+	state_fio->StateValue(tcsr);
+	state_fio->StateValue(pending_tcsr);
+	state_fio->StateValue(input_capture);
+#ifdef HAS_HD6301
+	state_fio->StateValue(latch09);
+#endif
+	state_fio->StateValue(timer_next);
+	if(!recv_buffer->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(trcsr);
+	state_fio->StateValue(rdr);
+	state_fio->StateValue(tdr);
+	state_fio->StateValue(trcsr_read_tdre);
+	state_fio->StateValue(trcsr_read_orfe);
+	state_fio->StateValue(trcsr_read_rdrf);
+	state_fio->StateValue(rmcr);
+	state_fio->StateValue(sio_counter);
+	state_fio->StateValue(ram_ctrl);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+#endif
+	
+#ifdef USE_DEBUGGER
+	// post process
+	if(loading) {
+		prev_total_icount = total_icount;
+	}
+#endif
+	return true;
 }
 

@@ -13,15 +13,21 @@
 #include "../event.h"
 
 #include "../huc6280.h"
-#include "pce.h"
+#include "../msm5205.h"
+#include "../scsi_cdrom.h"
+#include "../scsi_host.h"
 
-#include "../../fileio.h"
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
+
+#include "pce.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -33,15 +39,41 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	pcecpu = new HUC6280(this, emu);
 //	pcecpu->set_context_event_manager(pceevent);
+	adpcm = new MSM5205(this, emu);
+//	adpcm->set_context_event_manager(pceevent);
+	scsi_host = new SCSI_HOST(this, emu);
+//	scsi_host->set_context_event_manager(pceevent);
+	scsi_cdrom = new SCSI_CDROM(this, emu);
+//	scsi_cdrom->set_context_event_manager(pceevent);
+	
 	pce = new PCE(this, emu);
 //	pce->set_context_event_manager(pceevent);
 	
 	pceevent->set_context_cpu(pcecpu, CPU_CLOCKS);
 	pceevent->set_context_sound(pce);
+	// NOTE: adpcm::mix() and scsi_cdrom::mix() will be called in pce::mix()
+//	pceevent->set_context_sound(adpcm);
+//	pceevent->set_context_sound(scsi_cdrom);
 	
 	pcecpu->set_context_mem(pce);
 	pcecpu->set_context_io(pce);
+#ifdef USE_DEBUGGER
+	pcecpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	scsi_cdrom->scsi_id = 0;
+	scsi_cdrom->set_context_interface(scsi_host);
+	scsi_host->set_context_target(scsi_cdrom);
+	
+	scsi_host->set_context_irq(pce, SIG_PCE_SCSI_IRQ, 1);
+	scsi_host->set_context_drq(pce, SIG_PCE_SCSI_DRQ, 1);
+	scsi_host->set_context_bsy(pce, SIG_PCE_SCSI_BSY, 1);
+	scsi_cdrom->set_context_done(pce, SIG_PCE_CDDA_DONE, 1);
+	adpcm->set_context_vclk(pce, SIG_PCE_ADPCM_VCLK, 1);
+	
 	pce->set_context_cpu(pcecpu);
+	pce->set_context_adpcm(adpcm);
+	pce->set_context_scsi_host(scsi_host);
+	pce->set_context_scsi_cdrom(scsi_cdrom);
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -87,10 +119,24 @@ void VM::run()
 	pceevent->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return pceevent->frame_rate();
+	return pceevent->get_frame_rate();
 }
+
+// ----------------------------------------------------------------------------
+// debugger
+// ----------------------------------------------------------------------------
+
+#ifdef USE_DEBUGGER
+DEVICE *VM::get_cpu(int index)
+{
+	if(index == 0) {
+		return pcecpu;
+	}
+	return NULL;
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // draw screen
@@ -112,47 +158,73 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 	pce->initialize_sound(rate);
+	adpcm->initialize_sound(ADPCM_CLOCK / 6, MSM5205_S48_4B);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return pceevent->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return pceevent->sound_buffer_ptr();
+	return pceevent->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		pce->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		scsi_cdrom->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		adpcm->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_cart(int drv, _TCHAR* file_path)
+void VM::open_cart(int drv, const _TCHAR* file_path)
 {
-	if(drv == 0) {
-		pce->open_cart(file_path);
-		pce->reset();
-		pcecpu->reset();
-	}
+	pce->open_cart(file_path);
+	pce->reset();
+	pcecpu->reset();
 }
 
 void VM::close_cart(int drv)
 {
-	if(drv == 0) {
-		pce->close_cart();
-		pce->reset();
-		pcecpu->reset();
-	}
+	pce->close_cart();
+	pce->reset();
+	pcecpu->reset();
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
-	if(drv == 0) {
-		return pce->cart_inserted();
-	} else {
-		return false;
-	}
+	return pce->is_cart_inserted();
+}
+
+void VM::open_compact_disc(int drv, const _TCHAR* file_path)
+{
+	scsi_cdrom->open(file_path);
+}
+
+void VM::close_compact_disc(int drv)
+{
+	scsi_cdrom->close();
+}
+
+bool VM::is_compact_disc_inserted(int drv)
+{
+	return scsi_cdrom->mounted();
+}
+
+uint32_t VM::is_compact_disc_accessed()
+{
+	return scsi_cdrom->accessed();
 }
 
 void VM::update_config()
@@ -162,24 +234,24 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-void VM::save_state(FILEIO* state_fio)
+bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->save_state(state_fio);
-	}
-}
-
-bool VM::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(!device->load_state(state_fio)) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
 			return false;
 		}
 	}

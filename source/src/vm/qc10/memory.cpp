@@ -11,7 +11,6 @@
 #include "../i8253.h"
 #include "../pcm1bit.h"
 #include "../upd765a.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -31,24 +30,24 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(cmos, sizeof(cmos), 1);
 		fio->Fclose();
 	}
 	delete fio;
 	
-	cmos_crc32 = getcrc32(cmos, sizeof(cmos));
+	cmos_crc32 = get_crc32(cmos, sizeof(cmos));
 }
 
 void MEMORY::release()
 {
-	if(cmos_crc32 != getcrc32(cmos, sizeof(cmos))) {
+	if(cmos_crc32 != get_crc32(cmos, sizeof(cmos))) {
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("CMOS.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(cmos, sizeof(cmos), 1);
 			fio->Fclose();
 		}
@@ -70,19 +69,19 @@ void MEMORY::reset()
 	fdc_irq = motor = false;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18: case 0x19: case 0x1a: case 0x1b:
@@ -104,13 +103,13 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	update_map();
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x18: case 0x19: case 0x1a: case 0x1b:
 		return ~config.dipswitch & 0xff;
 	case 0x30: case 0x31: case 0x32: case 0x33:
-		return (bank & 0xf0) | (d_fdc->disk_inserted() ? 8 : 0) | (motor ? 0 : 2) | (fdc_irq ? 1 : 0);
+		return (bank & 0xf0) | (d_fdc->is_disk_inserted() ? 8 : 0) | (motor ? 0 : 2) | (fdc_irq ? 1 : 0);
 	}
 	return 0xff;
 }
@@ -123,7 +122,7 @@ uint32 MEMORY::read_io8(uint32 addr)
 	8000-87FF	: CMOS
 */
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PCM) {
 		// pcm on from pit
@@ -180,3 +179,33 @@ void MEMORY::update_pcm()
 		pcm_on = false;
 	}
 }
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(cmos, sizeof(cmos), 1);
+	state_fio->StateValue(cmos_crc32);
+	state_fio->StateValue(bank);
+	state_fio->StateValue(psel);
+	state_fio->StateValue(csel);
+	state_fio->StateValue(pcm_on);
+	state_fio->StateValue(pcm_cont);
+	state_fio->StateValue(pcm_pit);
+	state_fio->StateValue(fdc_irq);
+	state_fio->StateValue(motor);
+	
+	// post process
+	if(loading) {
+		update_map();
+	}
+	return true;
+}
+

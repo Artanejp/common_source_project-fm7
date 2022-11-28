@@ -19,6 +19,7 @@
 #include "../i8255.h"
 #include "../i8259.h"
 #include "../io.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../upd7220.h"
 #include "../upd765a.h"
@@ -39,7 +40,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -48,15 +49,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	rtc = new HD146818P(this, emu);
 	dma0 = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma0->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	dma0->set_device_name(_T("8237 DMAC (FDC/GDC)"));
 	dma1 = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma1->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	dma1->set_device_name(_T("8237 DMAC (User)"));
 	pit0 = new I8253(this, emu);
+	pit0->set_device_name(_T("8253 PIT (Sound/PIC)"));
 	pit1 = new I8253(this, emu);
+	pit1->set_device_name(_T("8253 PIT (Sound/SIO)"));
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	cpu = new Z80(this, emu);
 	sio = new Z80SIO(this, emu);	// uPD7201
 	
@@ -69,6 +83,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	rtc->set_context_intr(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
 	dma0->set_context_memory(memory);
@@ -85,6 +102,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit1->set_context_ch0(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	pit1->set_context_ch1(pit0, SIG_I8253_CLOCK_0, 1);
 	pit1->set_context_ch1(pit0, SIG_I8253_CLOCK_1, 1);
+	pit1->set_context_ch1(sio, SIG_Z80SIO_TX_CLK_CH0, 1);
+	pit1->set_context_ch1(sio, SIG_Z80SIO_RX_CLK_CH0, 1);
+	pit1->set_context_ch2(sio, SIG_Z80SIO_TX_CLK_CH1, 1);
+	pit1->set_context_ch2(sio, SIG_Z80SIO_RX_CLK_CH1, 1);
 	pit1->set_constant_clock(0, CPU_CLOCKS >> 1);	// 1.9968MHz
 	pit1->set_constant_clock(1, CPU_CLOCKS >> 1);	// 1.9968MHz
 	pit1->set_constant_clock(2, CPU_CLOCKS >> 1);	// 1.9968MHz
@@ -97,7 +118,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
 	fdc->set_context_drq(dma0, SIG_I8237_CH0, 1);
 	sio->set_context_intr(pic, SIG_I8259_IR4 | SIG_I8259_CHIP0);
-	sio->set_context_send0(keyboard, SIG_KEYBOARD_RECV);
+	sio->set_context_send(0, keyboard, SIG_KEYBOARD_RECV);
+//	sio->set_tx_clock(0, 1200 * 16);	// 1200 baud for keyboard
+//	sio->set_rx_clock(0, 1200 * 16);	// clock is from 8253 ch1 (1.9968MHz/104)
+//	sio->set_tx_clock(1, 9600 * 16);	// 9600 baud for RS-232C
+//	sio->set_rx_clock(1, 9600 * 16);	// clock is from 8253 ch2 (1.9968MHz/13)
 	
 	display->set_context_gdc(gdc);
 	display->set_sync_ptr(gdc->get_sync());
@@ -195,9 +220,9 @@ void VM::run()
 	event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -223,12 +248,6 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-int VM::access_lamp()
-{
-	uint32 status = fdc->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -239,18 +258,31 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->init(rate, 4000);
+	pcm->initialize_sound(rate, 4000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key
@@ -270,24 +302,39 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-bool VM::now_skip()
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	return event->now_skip();
+	fdc->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -295,5 +342,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	4
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

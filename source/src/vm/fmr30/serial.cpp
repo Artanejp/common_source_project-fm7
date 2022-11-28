@@ -13,17 +13,10 @@
 
 void SERIAL::initialize()
 {
-	for(int i = 0; i < 4; i++) {
-		sioctrl[i].baud = 0;
-		sioctrl[i].ctrl = 0;
-		sioctrl[i].rxrdy = false;
-		sioctrl[i].txrdy = false;
-		sioctrl[i].intstat = 0;
-		sioctrl[i].intmask = 0;
-	}
+	memset(sioctrl, sizeof(sioctrl), 1);
 }
 
-void SERIAL::write_io8(uint32 addr, uint32 data)
+void SERIAL::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x0a:
@@ -73,7 +66,7 @@ void SERIAL::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SERIAL::read_io8(uint32 addr)
+uint32_t SERIAL::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x0a:
@@ -108,7 +101,7 @@ uint32 SERIAL::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SERIAL::write_signal(int id, uint32 data, uint32 mask)
+void SERIAL::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_SERIAL_RXRDY_KB:
@@ -145,3 +138,25 @@ void SERIAL::update_intr(int ch)
 		sioctrl[ch].intstat &=  ~4;
 	}
 }
+
+#define STATE_VERSION	2
+
+bool SERIAL::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int i = 0; i < array_length(sioctrl); i++) {
+		state_fio->StateValue(sioctrl[i].baud);
+		state_fio->StateValue(sioctrl[i].ctrl);
+		state_fio->StateValue(sioctrl[i].rxrdy);
+		state_fio->StateValue(sioctrl[i].txrdy);
+		state_fio->StateValue(sioctrl[i].intmask);
+		state_fio->StateValue(sioctrl[i].intstat);
+	}
+	return true;
+}
+

@@ -1,0 +1,4527 @@
+12/30/2021
+
+[VM/DATAREC] support to enable/disable playing signal and voice separately
+[VM/I386_NP21] fix DAA/DAS/AAA/AAS/AAM/AAD based on DOSBox
+[VM/I386_NP21] fix SHLD/SHRD for n > 15 case
+[VM/I386_NP21] fix FCOM/FCOMI/FXAM for NaN and INF cases
+[VM/I386_NP21] fix FDECSTP/FINCSTP to clear C1 flag
+[VM/I386_NP21] fix FLD to set/clear C1 flag when stack overflow occurs or not
+[VM/I386_NP21] fix FSTENV/FLDENV/FSAVE/FLDENV to consider data16 prefix
+[VM/Z80DMA] fix not to enter too long loop (thanks Mr.YAT)
+
+[BX1] add keyboard and display artwork
+[MZ80K/MEMORY] fix v-gate signal (thanks Mr.Hlide Fremen)
+[MZ700/MEMORY] fix vblank signal timing (thanks Mr.Koucha-Youkan)
+[PC6001] remove some codes from iP6 Plus (thanks Mr.tanam)
+[PHC25/KEYBOARD] support _ and kana key
+[PHC25/SYSTEM] support GM1 signal (thanks Mr.Moroboshi)
+
+
+5/2/2021
+
+[VM/DATAREC] fix mixing sound track
+[VM/HD46505] support smooth vertical scroll
+[VM/MC6843] fix seek command
+[VM/MC6844] fix data chain register to consider 2/4 channel select bit
+[VM/MC6844] fix to transfer 64K when byte count register is zero
+[VM/Z80CTC] fix to apply written time constant just after reset bit is cleared
+
+[BX1] fix memory map around ram
+[BX1] support cartridge rom images
+[BX1/DISPLAY] add missing font patterns
+[BX1/FLOPPY] support i/o ports around fdc
+[BX1/KEYBOARD] support PROG.SELECT switch
+[BX1/PRINTER] support AUTO PRINT switch
+[MZ1500/JOTSTICK] support joystick (thanks Mr.Koucha-Youkan)
+[PC6001] remove some codes from iP6 Plus (thanks Mr.tanam)
+[X1TURBO/DISPLAY] support smooth vertical scroll
+
+
+2/7/2021
+
+[WINMAIN] improve WM_KEYDOW/WM_KEYUP events for VK_PROCESSKEY case
+[WIN32/CONSLE] improve routine to change console size
+
+[VM/DISK] fix density flag when loading solid image with fm sectors
+[VM/MC6843] fix track zero flag in STRA
+[VM/MC6843] fix seek error flag in STRB
+[VM/MC6843] fix seek command
+
+[BX1/DISPLAY] improve for drawing digitron display
+[BX1/KEYBOARD] improve I/O ports for detecting key pressed/released
+[BX1/PRINTER] add ugly patch for printer process
+
+
+1/24/2021
+
+[VM/I8279] support 8279 (based on MAME)
+
+[MP85] support MITEC MP-85
+
+
+1/17/2021
+
+[VM/UPD765A] improve for the case tc is asserted while reading/writing sector
+
+[PC8801/PC88] improve to render screen with port params at end of disp timing
+[X1TURBO/FLOPPY] fix to change type of all drives (thanks Mr.Sato)
+
+
+1/3/2021
+
+[WINMAIN] improve for pressing shift key and numpad key
+
+[MZ80K] fix roman/kana conversion
+[MZ80K/KEYBOARD] improve for pressing right shift key and numpad key
+
+
+12/31/2020
+
+[PC8801/PC88] improve crtc to refer reverse setting in start display command
+
+
+12/21/2020
+
+[VM/SCSI_CDROM] fix start frame of CD-DA playing when track number is specified
+
+[PCENGINE/PCE] fix issue that ADPCM is mistakenly looped
+
+
+12/19/2020
+
+[VM/SCSI_CDROM] fix pre-gap of first track when it is audio track
+
+
+12/18/2020
+
+[VM/SCSI_CDROM] improve routine to get start/end frame of CD-DA playing
+
+[PC8801/PC88] support 8inch DMA-type floppy drives for PC-8001mkII/SR
+[PC9801/DISPLAY] improve EGC (thanks Mr.Ryuji Okamoto)
+
+
+12/16/2020
+
+[PC8801/DISKIO] improve to read/write files in initial current directory
+[PC8801/PC88] support force ready/drq mask register for DMA-type FDD
+[PC8801/PC88] fix PC-8001mkIISR hiragana font when PCG-8100 is enabled
+
+
+12/15/2020
+
+[PC8801/DISKIO] support M88 DiskDrv (thanks Mr.CISC and Mr.apaslothy)
+[PC8801/PC88] support PC-8001mkIISR hiragana font
+[PC8801/PC88] support to disable 5inch/8inch-FDD interfaces
+[PC8801/PC88] support to disable updating scan line setting automatically
+[PC8801/PC88] fix mouse data when position is not latched
+
+
+12/14/2020
+
+[PC8801/PC88] support 8inch DMA-type floppy drives
+
+
+12/13/2020
+
+[VM/MC6843] support MC6843 (based on MAME)
+[[VM/SCSI_CDROM] fix to reset logical block size in Test Unit Ready command
+
+[BX1] support CANON BX-1 (not work)
+[MZ1500/QUICKDISK] improve for BSD record (thanks Mr.Motochan1500)
+[PC8801/PC88] fix hireso graphic screen when scan line is disabled
+
+
+12/12/2020
+
+[PC8801/PC88] fix to clear attibutes at starting new frame
+[PC8801/PC88] fix to read status of 2nd OPNA
+
+
+12/11/2020
+
+[PC8801/PC88] fix to run dma from memory to crtc when (rd,wr)=(0,0)
+[PC8801/PC88] fix to run dma from scsi to memory only when count > 0
+
+
+12/8/2020
+
+[COMMON] fix build error on VC++2019 (thanks Mr.Sato)
+
+[VM/Z80CTC] fix not to clear in-service at software reset (thanks Mr.Sato)
+[VM/Z80DMA] fix stall cycles at BUSACK in byte mode (thanks Mr.Sato)
+
+[X1TURBOZ/DISPLAY] fix zpalette in 64 colors, 2 screens mode (thanks Mr.Sato)
+
+
+12/6/2020-2
+
+[MZ1500] fix inp(0xe8) to detect voice board is missing (thanks Mr.kitahei88)
+[X1TURBOZ/DISPLAY] fix to update zpalette at vline=0 (thanks Mr.Sato)
+
+
+12/6/2020
+
+[OSD/WIN32] import Unity plug-in code (thanks Mr.Marukun)
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev79 beta4
+[VM/UPD765A] fix transfer size to 128 << min(N, 7) (thanks Mr.Kugimoto)
+
+[MZ1500/QUICKDISK] improve for QDF format (thanks Mr.kitahei88)
+[MZ1500/QUICKDISK] improve for BSD record (thanks Mr.Yuushi)
+[PC9801/MEMORY] fix switching BIOS ROM/RAM
+[X1/CZ8RB] support CZ-8RB (thanks Mr.Meister)
+
+
+8/16/2020
+
+[VM/SCSI_DEV] improve to specify data req signal delay (thanks Mr.Sato)
+[VM/SCSI_DEV] fix read6/write6 command in 0 length case (thanks Mr.Sato)
+[VM/SISI_HDD] change drive type to hot swappable
+[VM/SISI_HDD] improve seek time (thanks Mr.Sato)
+[VM/SASI_HDD] support winchester drive parameters command
+[VM/Z80DMA] improve to sense rdy signal as level, not edge (thanks Mr.Sato)
+
+[MZ2500/CRTC] fix sub plane address in 640x200 16colors mode (thanks Mr.856)
+[SVI3X8] support SPECTRAVIDEO SVI-3x8 (thanks Mr.tanam)
+[X1] add menu items for FD2/FD3 (thanks Mr.Sato)
+[X1/DISPLAY] fix high speed pcg definition (thanks Mr.YAT)
+[X1TURBOZ/DISPLAY] improve palette update timing (thanks Mr.Sato)
+
+
+8/14/2020
+
+[OSD/WIN32] support x64 build (thank Mr.Marukun)
+[OSD/WIN32] support Direct2D
+
+[MICOM_MAHJONG] support Nippon Mail Service MICOM MAHJONG (thanks Mr.GORRY)
+[TVBOY] support GAKKEN TV BOY (thanks Mr.tanam)
+
+
+4/6/2020
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev72
+
+
+2/21/2020
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev71 beta4
+
+[PC9801VX] support to switch cpu mode to V30
+[PC9801RA] support to switch cpu mode to V30
+
+
+2/17/2020
+
+[EMU] add is_floppy_disk_connected() and is_quick_disk_connected()
+[WINMAIN] disable floppy/quick disk drive menus when drives are disconnected
+
+[VM/I8080] improve disassembler to distinguish 8080 and 8085
+[VM/I86] split i86/i88/i186/v30 from I286 class
+[VM/I86] fix aam in v30
+[VM/I86] support 8080 emulation mode in V30
+[VM/I386_NP21] improve not to explicitly accept irq while executing opecode
+[VM/I386_DASM] split i386 disassembler from I286/I386 class
+[VM/V30_DASM] split v30 disassembler from I286 class
+[VM/V30_DASM] add 8080 disassebler for 8080 emulation mode
+[VM/VM_TEMPLATE] add is_floppy_disk_connected() and is_quick_disk_connected()
+
+[PC9801] support to enable/disable 1MB/640K/320KB-FDD interfaces
+
+
+2/1/2020
+
+[EMU] support to create blank hard disk image (*.hdi/*.nhd)
+[WINMAIN] add menu items to mount blank hard disk image
+
+[VM/DEVICE] improve memory/io bus interfaces for 16/32bit access
+[VM/DEVICE] add get_event_clocks() and get_cpu_clocks()
+[VM/EVENT] add get_event_clocks() and get_cpu_clocks()
+[VM/I386_NP21] support 80386 (based on Neko Project 21/W i386 core)
+[VM/I8259] make update_intr() public
+[VM/MEMORY] improve memory bus interfaces for 16/32bit access
+[VM/MEMORY] make rd_table/wr_table/addr_shift public
+[VM/UPD7220] fix stop command (thanks Neko Project 21/W)
+
+[FMR50] change i386 core from MAME to Neko Project 21/W
+[FMR50] support to mount blank hard disk image
+[MZ2500] support to mount blank hard disk image
+[MZ2800] support to mount blank hard disk image
+[PC9801] change i386 core from MAME to Neko Project 21/W
+[PC9801] support to mount blank hard disk image
+[PC9801/DISPLAY] improve code for big-endian host machine
+[PC9801/FMSOUND] support 86-type PCM (thanks Neko Project 21/W)
+[PC9801/MEMBUS] improve memory bus interfaces for 16/32bit access
+[PC9801/MOUSE] fix irq number in hireso mode
+[PC9801/SASI] improve irq/drq signals to generate from sasi bus signals
+[X1TURBO] support to mount blank hard disk image
+[X1TURBO/IOBUS] fix not to clear vram in reset()
+
+
+1/23/2020
+
+[VM/Z80DMA] fix byte counter read by read mask follows command (thanks Mr.Sato)
+
+
+12/31/2019
+
+[MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
+
+
+11/3/2019
+
+[PC98RL] fix horizontal frequency
+[PC98RL/DISPLAY] fix not to change horizontal frequency
+[PC98RL/DISPLAY] fix cg window
+[PC98RL/DISPLAY] fix multiple vram planes accessing
+[PC9801/DISPLAY] fix vram word accessing (thanks Mr.Artane.)
+
+
+10/28/2019
+
+[X1/PSUB] improve tape recording
+[X1/SUB] improve tape stopping
+[X1/SUB] improve tape write-protected signal
+
+
+10/22/2019
+
+[X1/PSUB] improve tape end signal
+[X1/SUB] improve tape end signal
+
+
+4/30/2019
+
+[VM/DEVICE] add is_primary_cpu() and update_extra_event()
+[VM/EVENT] support to udpate event while cpu is running one opecode
+[VM/I8259] fix reading isr register (thanks Mr.rednow)
+[VM/SCSI_HOST] fix to raise irq at command/message phase
+[VM/Z80] improve to update event in every read/write cycle
+
+[CEFUCOM21] support Hino Electronics CEFUCOM-21 (not work)
+[MZ2500/CRTC] apply crtc patch (thanks Mr.Koucha-Youkan)
+[PC8801MA] improve to enable/disable cmdsing and pcg
+[PC8801MA] improve to enable/disable changing palette for each scan line
+
+
+2/19/2019-2
+
+[VM/DEVICE] revirt fixes in 2/19/2019
+[VM/EVENT] revirt fixes in 2/19/2019
+[VM/Z80] revirt fixes in 2/19/2019
+
+
+2/19/2019
+
+[VM/DEVICE] add is_primary_cpu() and update_extra_event()
+[VM/EVENT] support to udpate event while cpu is running one opecode
+[VM/Z80] improve to update event in every read/write cycle
+
+[MZ2500/MEMORY] improve pcgram wait in display timing
+
+
+2/16/2019
+
+[EMU/DEBUGGER] improve to enumerate devices that is debugger available
+[EMU/DEBUGGER] improve to show all breaked reasons
+[EMU/DEBUGGER] support breakpoint of cpu selected by "! device" command
+[EMU/*] simplify code for debugger
+[VM/*] simplify code for debugger
+
+[VM/I8237] support break point for direct memory access
+[VM/MB8877] fix not to wait 60ms to start read/write after seek is finished
+[VM/MC6844] support break point for direct memory access
+[VM/TMS9918A] support break point for registers and vram access
+[VM/UPD71071] support break point for direct memory access
+[VM/Z80DMA] support break point for direct i/o and memory access
+
+
+2/14/2019
+
+[EMU/DEBUGGER] support break point for non-cpu device
+[EMU/DEBUGGER] change command length from 64 to 1024
+
+[VM/AY_3_891X] support break point
+[VM/DEVICE] add get_debug_data_addr_space()
+[VM/DEVICE] change type of get_debug_regs_info() from void to bool
+[VM/MB8877] fix to decrease first seek time by 500us (2D/2DD) or 250us (2HD)
+[VM/TMS9918A] support break point
+[VM/YM2151] support break point
+[VM/YM2203] support break point
+[VM/Z80CTC] fix to reset interrupt req/in service by bit2 of control register
+[VM/Z80DMA] fix to reset interrupt req/in service by reset command
+
+[X1TURBO/EMM] support to access vram as memory space from debugger
+[X1TURBO/IOBUS] support to access vram as memory space from debugger
+[X1TURBO/IOBUS] support break point
+
+
+2/9/2019
+
+[EMU/DEBUGGER] enlarge text buffer size
+
+[VM/DEVICE] add get_context_child() to enumerate daisy-chained devices
+[VM/DISK] add get_sector_info()
+[VM/MB8877] improve debugger to show current head position and disk geometry
+[VM/MB8877] fix not to abort command when eject disk in unselected drive
+[VM/UPD765A] improve debugger to show current head position and disk geometry
+[VM/Z80*] add get_context_child() to enumerate daisy-chained devices
+
+[X1TURBO] fix to force clear iei/oei of z80 family devices when reset vm
+[X1TURBO/DISPLAY] fix to check bit0/2 of port 0x1fd0 in draw_text()
+
+
+2/8/2019
+
+[EMU/*] simplify code to draw screen while debugging cpu
+[OSD/*] simplify code to draw screen while debugging cpu
+[VM/*] simplify code to draw screen while debugging cpu
+
+[BUBCOM80/DISPLAY] improve dmac
+[HC80/IO] fix slave-cpu command 0x27 and 0x29 (thanks Mr.Stefano Bodrato)
+
+
+2/7/2019
+
+[EMU/DEBUGGER] improve to draw screen while debugging cpu
+[EMU] add override/restore/run_wndproc() for debugger
+[EMU] add create_bank_floppy_disk()
+[OSD/WIN32] add override/restore/run_wndproc() for debugger
+
+[VM/315_5124] improve draw_screen() for debugger
+[VM/H6280] improve to run window procedure while suspending for debugger
+[VM/I286] improve to run window procedure while suspending for debugger
+[VM/I386] improve to run window procedure while suspending for debugger
+[VM/I8080] improve to run window procedure while suspending for debugger
+[VM/M6502] improve to run window procedure while suspending for debugger
+[VM/MC6800] improve to run window procedure while suspending for debugger
+[VM/MC6809] improve to run window procedure while suspending for debugger
+[VM/MCS48] improve to run window procedure while suspending for debugger
+[VM/TMS9918A] improve draw_screen() for debugger
+[VM/TMS9995] improve to run window procedure while suspending for debugger
+[VM/UPD7801] improve to run window procedure while suspending for debugger
+[VM/UPD7810] improve to run window procedure while suspending for debugger
+[VM/V9938] improve draw_screen() for debugger
+[VM/V99X8] improve draw_screen() for debugger
+[VM/Z80] improve to run window procedure while suspending for debugger
+
+[BUBCOM80/DISPLAY] improve draw_screen() for debugger
+[FAMILYBASIC/PPU] improve draw_screen() for debugger
+[MZ80K/DISPLAY] improve draw_screen() for debugger
+[MZ1500/MEMORY] improve draw_screen() for debugger
+[PC8801/PC88] improve draw_screen() for debugger
+[PCENGINE/PCE] improve draw_screen() for debugger
+[SMC777/MEMORY] improve draw_screen() for debugger
+[X1/DISPLAY] improve draw_screen() for debugger
+
+
+1/29/2019
+
+[MZ80K/MEMORY] support COLOR GAL 5 (thanks Mr.Suga)
+[PC8001/PC88] fix issue that cursor is mistakenly hidden
+
+
+1/18/2019
+
+[PC8001/PC88] clear ram[0xff33] for DEMPA Galaxian
+[SMC777/MEMORY] improve to render screen in each scan line
+
+
+1/16/2019
+
+[EMU] improve to reinitialize vm in reset when dipswitch is changed
+
+[VM/UPD765A] fix st3 in sence devstat command to set two-side bit (temporary)
+
+[PC8801] support GSX-8800
+[PC8801] support to enable/disable PC-8801-11/GSX-8800/PCG-8100
+[PC8801] fix some degradations
+
+
+1/11/2019
+
+[PC8001] support NEC PC-8001
+[PC8001] support NEC PC-8001mkII
+[PC8801] support NEC PC-8801
+[PC8801] support NEC PC-8801mkII
+
+
+12/28/2018
+
+[EMU] support to insert blank 2D/2DD/2HD disk image
+
+
+12/27/2018
+
+[PC6001/PSUB] improve keyboard irq
+[PC8801/PC88] improve initial memory map when CD BIOS is loaded
+[PC8801/PC88] support CD-DA fade in/out
+
+
+12/18/2018
+
+[VM/I386] improve i386 core based on MAME 0.204
+[VM/SCSI_CDROM] improve vendor specific command for NEC CD-ROM^2
+[VM/SCSI_DEV] fix to write buffer when current command is not WRITE6/10/12
+[VM/SCSI_DEV] fix Request Sense command to get correct data length
+[VM/SCSI_HDD] fix not to write buffer when current command is not WRITE6/10/12
+
+[PC8801/PC88] improve initial memory map when CD BIOS is loaded
+[PC8801/PC88] revert screen renderer fixes in 12/1/2018 except scanline issues
+[PC8801/PC88] fix dmac registers to clear higher 16bits of pair32_t
+[PC8801/PC88] fix dmac to read i/o in verify mode
+
+
+12/9/2018
+
+[VM/SCSI_CDROM] add vendor specific command for NEC CD-ROM^2
+
+[PC8801/PC88] support CD-ROM drive (thanks M88/cdif)
+[PC8801/PC88] support Video Art Boad (thanks X88000)
+
+
+12/5/2018
+
+[VM/MB8877] improve reset() to finish previous command and reset fdc completely
+[VM/Z80] add read_signal() to read irq status
+
+[PC8801/PC88] improve to render scan line with black if color graphic mode
+[SMC70/MEMORY] support 640x400 and 160x100 graphic mode
+[SMC777/MEMORY] fix issue that text blink is not working
+[SMC777/MEMORY] improve inport 21h to read vsync irq status
+[SMC777/MEMORY] improve inport 51h to read cursor and space keys as joystick #1
+[VM/*] improve tape interfaces for each virtual machine
+
+
+12/4/2018
+
+[CONFIG] remove fmgen_dll_path and add mame2151_dll_path/mame2608_dll_path
+
+[VM/YM2203] remove HAS_YM2608 and YM2203_PORT_MODE to simplify code
+
+[PC8801] support HMB-20 sound board
+
+
+12/2/2018-2
+
+[PC8801/PC88] fix text/graph renderer again (thanks Mr.Bookworm)
+
+
+12/2/2018
+
+[PC8801/PC88] fix not to apply reverse attribute to monochrome graphic screen
+
+
+12/1/2018
+
+[PC8801] enable/disable drawing scan line when monitor type is hireso/standard
+[PC8801/PC88] improve text attributes/rederer (thanks ePC-8801MA‰ü)
+[PC8801/PC88] fix analog back color
+[PC8801/PC88] improve routine to change palette for each scan line
+
+
+11/28/2018
+
+[WIN32/INPUT] support joystick with multiple axes and hat key
+[WIN32/INPUT] improve joystick to keyboard function for numpad key 5
+
+
+11/27/2018
+
+[WIN32/INPUT] support joystick to keyboard function
+[WIN32/SCREEN] support Window x1.5 mode
+
+[PC8801/PC88] support PC key, that is mapped to F11
+
+
+11/23/2018
+
+[VM/I386] improve i386_limit_check to consider data size
+[VM/SCSI_DEV] improve REQ timing just after ACK is raised
+
+[PC6001/*] apply patch for timing issues (thanks Mr.Akikawa)
+[PC8801/PC88] support to change palette for each scan line
+[PC9801] support PC-9801-86 sound board for PC-9801RA and PC-98RL
+[PC9801/FMSOUND] fix process_state
+
+
+10/14/2018
+
+[COMMON/FILEIO] improve functions to load/save state file for big-endian
+
+[VM/*] improve process_state for big-endian
+
+
+10/13/2018
+
+[EMU/DEBUGGER] increase breakpoint number from 8 to 16
+
+[VM/VM_TEMPLATE] fix issue that virtual machine is not correctly released
+
+
+10/10/2018
+
+[VM/SCSI_DEV] fix ack signal issue when multiple devices are attached
+[VM/SCSI_HOST] support to output cd/io/msg/req signals to other devices
+
+[MZ2800/SASI] support SASI I/F and HDD (thanks Mr.Oh!Ishi)
+
+
+10/7/2018
+
+[COMMON] add pair16_t and pair64_t (thanks Mr.Artane.)
+[COMMON] rename pair_t to pair32_t
+[COMMON] add functions for endians (thanks Mr.Artane.)
+[EMU] fix roman/kana conversion when uppercase alphabet is input (thanks Mr.Artane.)
+[EMU] abolish SUPPORT_VARIABLE_TIMING and USE_TAPE_BUTTON
+[WINMAIN] abolish USE_ALT_F10_KEY
+[WIN32/INPUT] abolish NOTIFY_KEY_DOWN and USE_SHIFT_NUMPAD_KEY
+[WIN32/INPUT] improve key input for shift + numpad keys
+
+[VM/*] introduce VM_TEMPLATE (thanks Mr.Artane.)
+
+
+10/5/2018
+
+[COMMON] combine load_state and save_statet of cur_time_t to process_state
+[COMMON/FIFO] combine load_state and save_statet to process_state
+[COMMON/FILEIO] add functions to load/save state file
+
+[VM/*] combine load_state and save_statet to process_state
+[VM/I386] fix to load/save vtlb state
+[VM/I386] fix to rebuild tables when load state
+
+[JX] support save/load state
+[FM77AV] import Mr.Artane.'s fixes (Release in September 30, 2018)
+
+
+9/30/2018
+
+[COMMON/FILEIO] improve Fseek for compressed file by gzip
+[EMU] improve to mount/unmount hard disk image in reset() if not hot swappable
+[EMU/DEBUGGER] add commands for checkpoint
+[EMU/DEBUGGER] improve to read/write files in initial current directory
+
+[VM/DISK] improve for case 2D disk is inserted to 2DD drive (thanks Mr.Sato)
+[VM/HARDDISK] support Virtual98 hdd image
+[VM/HARDDISK] improve for solid image file
+[VM/IO] improve debug log
+[VM/MSM58321] fix pulse event (thanks Mr.Artane.)
+[VM/SCSI_DEV] add is_hot_swappable
+[VM/SCSI_HDD] improve to mount/unmount image in reset() if not hot swappable
+[VM/SASI_HDD] support SASI hard disk drive
+[VM/SN76489AN] fix save/load state function
+[VM/UPD71071] fix verify command
+
+[FM77L4] add eFM77L4 codes (thanks Mr.Artane.)
+[MZ80A] improve to switch 2D/2DD drive type
+[MZ80B] improve to switch 2D/2DD drive type
+[MZ1500] improve to switch 2D/2DD drive type
+[MZ2500] improve to switch 2D/2DD drive type
+[MZ2800/FLOPPY] improve to switch 2D/2DD drive type
+[MZ2800/SASI] support SASI I/F and HDD (partial)
+[PC98XA] support NEC PC-98XA
+[PC9801/MEMBUS] fix save/load state function
+[X1TURBO/FLOPPY] improve to switch 2D/2DD drive type (thanks Mr.Sato)
+
+
+5/24/2018
+
+[COMMON] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[COMMON/FIFO] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[EMU] support set_vm_screen_lines() (thanks Mr.Artane.)
+[EMU] fix interfaces for bubble cassette
+[EMU] add interfaces for hard disk
+[WINMAIN] add interfaces for hard disk
+
+[VM/DEVICE] support read_debug_reg()
+[VM/DISK] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[VM/HARDDISK] support hard disk handler
+[VM/I286] improve i286 core based on MAME 0.197
+[VM/I286] support read_debug_reg()
+[VM/I386] support read_debug_reg()
+[VM/I8237] fix verify command
+[VM/I8237] support to read bank register by read_signal()
+[VM/MC6809] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[VM/SCSI_DEV] support SASI specify command
+[VM/SCSI_HDD] improve to use hard disk handler
+[VM/SCSI_HOST] support to read ack signal
+
+[BUBCOM80] support Systems Formulate BUBCOM80
+[FM77AV] import Mr.Artane.'s fixes (Commits on May 10, 2018)
+[FMR30] support to change hard disk image
+[FMR50] support to change hard disk image
+[FMR50/BIOS] improve to use hard disk handler
+[MZ2500] support to select floppy drive type 2DD/2D
+[MZ2500] support to change hard disk image
+[MZ2500/MZ1E30] reimplent SASI I/F with general SCSI host/hard disk device
+[PC9801/CPUREG] support NMI enable/disable
+[PC9801/MEMBUS] improve for 24bit/32bit address
+[PC9801/SASI] support SASI I/F and hard disk drives
+[X1TURBO/SASI] support SASI I/F and hard disk drives
+
+
+5/6/2018
+
+[COMMON] add is_absolute_path() and create_absolute_path() functions
+[COMMON/FILEIO] add Gzopen() function to read/write compressed file by gzip
+
+[EMU] support to save/load compressed state file
+[EMU/DEBUGGER] support to switch the target cpu/device
+
+[VM/I386] improve i386 core based on MAME 0.197
+[VM/MB8877] improve for debugger
+[VM/TMS9918] improve for debugger
+[VM/UPD765A] improve for debugger
+[VM/UPD765A] fix read/write commands to check density (thanks PC8801MA‰ü)
+[VM/UPD765A] fix read diagnostics status for unformat/density mismatch case
+
+[PC8801/PC88] fix underline/upperline attributes
+[PC98XL] support NEC PC-98XL
+[PC9801/MEMBUS] support NEC EMS
+[PC9801/MEMBUS] support SASI/SCSI/IDE BIOS (only BIOS, not drives)
+[X1/KEYBOAD] improve phantom keys (thanks Mr.Sato)
+
+
+3/1/2018
+
+[PC98RL] support NEC PC-98RL
+[PC9801/DISPLAY] update for hireso mode
+[PC9801/DISPLAY] fix for the case gdc scroll parameters are invalid
+[PC9801/MEMBUS] update for hireso mode
+[PC9801/MEMBUS] support outport 053Dh
+[PC9801/MEMBUS] move memory map routine from VM class to MEMBUS class
+
+
+2/28/2018
+
+[VM/I286] fix not to clear cycles in reset()
+[VM/I386] fix not to clear cycles in reset()
+[VM/I386] improve mov_r16_rm16 instruction to check limit
+[VM/I386] fix debugger
+
+[PC9801RA] support NEC PC-9801RA
+
+
+2/27/2018
+
+[VM/I8237] fix bank register and inc mask register
+
+[PC9801/DISPLAY] fix array length of analog palette
+[PC9801/MEMBUS] improve memory bus for i386 or later (partial)
+
+
+2/25/2018
+
+[VM/DISK] improve for case 2D/2DD disk is inserted to 2DD/2D drive
+
+[FMR30/FLOPPY] support to change drive type 2DD/2HD
+[FMR30/FLOPPY] support to get media type 2D/2DD/2HD
+[FMR50/BIOS] suppoert int 93h, ah=00h/01h to set/get drive type
+[FMR50/BIOS] improve int 93h, ah=02h to get sector size and media type
+[FMR50/FLOPPY] support to change drive type 2DD/2HD
+[MZ80A] support to select floppy drive type 2D/2DD
+[MZ80B] support to select floppy drive type 2D/2DD
+[MZ80B] support to select cpu clock 4MHz/6MHz
+[MZ800] support to select floppy drive type 2D/2DD
+[MZ1500] support to select floppy drive type 2D/2DD
+[MZ2200] support to select floppy drive type 2D/2DD
+[MZ2200] support to select cpu clock 4MHz/6MHz
+[MZ2800/FLOPPY] support to change drive type 2DD/2HD
+[PC100] support to select floppy drive type 2D/2DD
+[PC100/IOCTRL] improve dipswitch value for floppy drive type 2D/2DD
+[X1TURBO] support to select floppy drive type 2D/2DD/2HD
+[X1TURBO/FLOPPY] support to change drive type 2D/2DD/2HD
+
+
+2/23/2018
+
+[VM/DISK] support two side
+[VM/I8237] support address mask
+[VM/I8237] fix interface to connect tc signal for ch.2-4
+[VM/IO] support to create multiple instances with different address range
+[VM/MC6840] fix issue for the case address range is not 0-7
+[VM/MEMORY] support to create multiple instances with different address ranges
+[VM/UPD765A] fix st3 in sence devstat command
+
+[FM16BETA] support FUJITSU FM16beta (not work)
+[FMR50/MEMORY] fix memset issue
+[PC9801] fix to connect terminal count signal from dmac to fdc
+
+
+12/27/2017
+
+[EMU] support to restore sound frequency/latency settings when load state
+
+[VM/DISK] support T98-NEXT nfd r0 floppy disk image
+[VM/DISK] support BKDSK hdm/hd5/hd4/hdb/dd9/dd6 floppy disk image
+
+
+12/15/2017
+
+[COMMON/FILEIO] add Fcompare function
+
+[VM/*] improve save/load state function to check device class name
+[VM/YM2151] fix save/load state function
+
+
+12/14/2017
+
+[RESOURCE] change accelerators for switching full speed and roman/kana input
+[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MA‰ü)
+
+[VM/HD46505] fix to force update event timing when R0-R9 are modified
+[VM/HUC6280] support to show clocks since starting scanline in debugger
+[VM/I286] support to show clocks since starting scanline in debugger
+[VM/I386] support to show clocks since starting scanline in debugger
+[VM/M6502] support to show clocks since starting scanline in debugger
+[VM/MC6800] support to show clocks since starting scanline in debugger
+[VM/MC6809] support to show clocks since starting scanline in debugger
+[VM/MCS48] support to show clocks since starting scanline in debugger
+[VM/TMS9995] support to show clocks since starting scanline in debugger
+[VM/UPD7220] fix to force update event timing when sync are modified
+[VM/UPD7801] support to show clocks since starting scanline in debugger
+[VM/UPD7810] support to show clocks since starting scanline in debugger
+[VM/Z80] support to show clocks since starting scanline in debugger
+
+[X1TURBOZ/DISPLAY] fix pcg/analog palette access wait again (thanks Mr.Sato)
+
+
+12/12/2017
+
+[VM/DISK] fix crc in id/data field (thanks Mr.Sato)
+[VM/HD46505] fix not to raise DISPTMG signal if bit2,3 of R8 are 11
+
+[X1TURBOZ/DISPLAY] fix pcg/analog palette access wait (thanks Mr.Sato)
+[X1TURBOZ/DISPLAY] fix to draw each line at start of hblank (thanks Mr.Sato)
+
+
+12/3/2017
+
+[VM/UPD765A] fix read diagnostic to set ND when 1st sector's id are not match
+
+
+11/28/2017
+
+[EMU/DEBUGGER] fix ut command to show correct range of cpu trace
+
+[VM/DEVICE] rename bios_call_i86() to bios_call_far_i86()
+[VM/HUC6280] support to show total cpu clocks in debugger
+[VM/HUC6280] support cpu trace
+[VM/I286] support to show total cpu clocks in debugger
+[VM/I286] support cpu trace
+[VM/I386] support to show total cpu clocks in debugger
+[VM/I386] support cpu trace
+[VM/M6502] support to show total cpu clocks in debugger
+[VM/M6502] support cpu trace
+[VM/MC6800] support to show total cpu clocks in debugger
+[VM/MC6800] support cpu trace
+[VM/MC6800] fix issue that can not break at instruction following tap/cli/sei
+[VM/MC6809] support to show total cpu clocks in debugger
+[VM/MC6809] support cpu trace
+[VM/MCS48] fix to add clocks for interrupt to total cpu clocks
+[VM/TMS9995] support to show total cpu clocks in debugger
+[VM/TMS9995] support cpu trace
+[VM/UPD7801] support to show total cpu clocks in debugger
+[VM/UPD7801] support cpu trace
+[VM/UPD7810] support to show total cpu clocks in debugger
+[VM/UPD7810] support cpu trace
+[VM/Z80] fix to add clocks for interrupt to total cpu clocks
+
+
+11/26/2017
+
+[PC8801MA] fix text attribute when dma underrun occurs
+
+
+11/25/2017
+
+[EMU/DEBUGGER] support command history
+[EMU/DEBUGGER] support ut command (unassemble cpu trace)
+[EMU/DEBUGGER] fix < command to check if command file is correctly opened
+
+[EMU/OSD] fix initialize_screen_buffer() for RGB565 (thanks PC8801MA‰ü)
+[EMU/OSD] improve read_console_input() to get cursor key
+
+[VM/MCS48] support to show total cpu clocks in debugger
+[VM/MCS48] support cpu trace
+[VM/UPD7220] improve vsync/hsync timing
+[VM/UPD7220] improve status register to select vblank/hblank by sync command
+[VM/YM2151] improve not to load mamefm.dll again (thanks PC8801MA‰ü)
+[VM/YM2203] improve not to load mamefm.dll again (thanks PC8801MA‰ü)
+[VM/Z80] support to show total cpu clocks in debugger
+[VM/Z80] support cpu trace
+
+[PC8801MA] support OPN+OPN, OPNA+OPNA, and OPNA+OPN (thanks PC8801MA‰ü)
+[PC8801MA] fix back space key issue (thanks PC8801MA‰ü)
+[PC8801MA] fix bank switch of extrom (thanks PC8801MA‰ü)
+[PC8801MA] fix not to apply digital palette in monochrome and digital mode
+[PC8801MA] fix to apply analog palette in monochrome and analog mode
+[PC8801MA] fix to apply reverse in text attribute to monochrome graphic
+[PC8801MA] fix cpu mode "Z80 8MHz (FE2/MC)"
+
+[X1/KEYBOAD] support phantom keys (thanks Mr.Sato)
+[X1/SUB] fix not to check iei status when sub cpu sends ack (thanks Mr.Sato)
+
+
+8/12/2017
+
+[EMU/DEBUGGER] improve to show message when cpu is not suspended soon
+
+[PC8801/PC88] fix to render text color #0 with back color
+[PC8801/PC88] fix to get text color attribute when text display is stopped
+
+
+8/10/2017
+
+[EMU] support to enter 0-9 by numpad key while roman to kana is enabled
+[EMU] support to enter shift + function key while roman to kana is enabled
+[EMU/DEBUGGER] fix to wait until cpu is suspended and enters into waiting loop
+
+[VM/I386] fix to flush vtlb after modifying address mask
+[VM/UPD7220] support to specify device class to access vram
+[VM/Z80] fix to run dma before checking interrupts
+
+[PC8801/PC88] fix monocolor graph screen to get color index from text attribute
+[PC8801/PC88] fix monocolor graph screen to render with graph palette
+
+[PC9801VX] support NEC PC-9801VX
+[PC9801/CPUREG] support address mask i/o
+[PC9801/DISPLAY] support EGC (thanks Neko Project 2)
+[PC9801/DISPLAY] support EGC/GRCG access from graphic GDC
+[PC9801/MEMBUS] support 24bit/32bit address memory bus
+[PC9801/MEMBUS] support ITF rom
+
+
+6/22/2017
+
+[EMU] move auto key codes from winmain to emu class
+[EMU] support to convert roman letters to kana letters
+[WINMAIN] support APPLICATION accelerator to enable/disable roman to kana
+[WINMAIN] support CTRL+ALT+ENTER accelerator to enable/disable full speed
+
+[VM/I386] improve i86/i286 core based on MAME 0.185
+[VM/UPD765A] fix device status (thanks annonymus guy)
+[VM/YM2203] fix to mask YM2608 ports in YM2203 case (thanks annonymus guy)
+
+[PC8801/PC88] fix bank switch of extend ram (thanks annonymus guy)
+[PC8801/PC88] fix crtc for dma underrun case (thanks annonymus guy)
+
+
+5/28/2017
+
+[WINMAIN] support to run simulation at full speed
+
+[VM/I386] improve i386 core based on MAME 0.185
+
+
+5/20/2017
+
+[YIS/DISPLAY] support correct font rom (thanks Mr.Moriya)
+[YIS/DISPLAY] support native graphic commands
+[YIS/DISPLAY] include KST32B stroke font and its decoder (thanks Mr.Saka.N)
+
+[X1TURBOZ/DISPLAY] fix 8 color mode with 4096 palette (thanks Mr.Sato)
+
+
+5/17/2017
+
+[X1TURBOZ/DISPLAY] fix 64/4096 color mode (thanks Mr.Sato)
+
+
+5/15/2017
+
+[X1TURBOZ] support SHARP X1turboZ
+[X1TURBOZ/DISPLAY] support X1turboZ enhanced graphic modes
+[X1TURBOZ/IOSUB] support analog palette access wait
+
+
+5/13/2017
+
+[WIN32/SCREEN] fix not to move window position unnecessarily
+
+[VM/AM9511] support AM9511 (thanks Xep128)
+[VM/DISK] support to specify raw track size
+[VM/MB8877] support to specify raw track size
+[VM/MC6844] support MC6844
+[VM/MC6850] support MC6850
+[VM/MSM58321] add read_signal()
+[VM/MEMORY] improve that dma controller does not read/write memory mapped i/o
+[VM/NOISE] fix not to restart from first sample if already playing noise
+
+[YIS] support YAMAHA YIS (thanks YAMAHA and Mr.Moriya)
+
+
+4/16/2017
+
+[VM/IO] revert the fix in 4/15/2017
+[VM/SN76489AN] revert the fix in 4/15/2017
+
+
+4/15/2017
+
+[COMMON] add muldiv_s32 and muldiv_u32 to multiple 32bit integer
+[COMMON] fix functions to support symbols
+
+[VM/IO] improve to use read/write_io8/16/32w() to get wait clock from device
+[VM/SN76489AN] improve to return 32 + 16 * n for wait clock
+
+[MZ700] improve correct cpu clock and frame rate
+[MZ800] improve correct cpu clock and frame rate
+
+
+4/2/2017
+
+[RESOURCE] improve menu items
+[WINMAIN] improve menu items
+
+[EX80] support to show/hide crt monitor
+
+
+3/30/2017
+
+[COMMON] add functions to convert char, wchar_t, and _TCHAR to each other
+[COMMON] add _fgetts, _ftprintf, my_ftprintf_s, and my_swprintf_s
+[COMMON/FILEIO] add Fgetts and Ftprintf for _TCHAR
+[COMMON/FILEIO] fix functions using ZLIB for _UNICODE case
+[EMU/DEBUGGER] fix for _UNICODE case
+[WINMAIN] improve to update status only when status is changed
+
+[VM/HUC6280] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/I8080] improve disassembler to support symbols
+[VM/M6502] support debugger and disassembler (thanks MAME)
+[VM/MCS48] improve disassembler to support symbols
+[VM/TMS9995] fix disassembler for _UNICODE case
+[VM/UPD7810] improve disassembler to support symbols
+[VM/UPD7810] fix disassembler for _UNICODE case
+
+[BABBAGE2ND] support debugger and save/load state
+[FAMILYBASIC] support debugger
+[YS6464A] support debugger and save/load state
+
+
+3/28/2017
+
+[COMMON] add _tcscat and my_tcscat_s
+[COMMON] add structure and functions to support symbols
+[EMU/DEBUGGER] improve debugger to support symbols (thanks Mr.Kei Moroboshi)
+
+[VM/MC6800] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/MC6809] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/TMS9995] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/UPD7801] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+[VM/Z80] improve disassembler to support symbols (thanks Mr.Kei Moroboshi)
+
+
+3/26/2017
+
+[VM/YM2413] support mute
+
+[FAMILYBASIC] support Family BASIC MMC5/VRC7 MOD
+[FAMILYBASIC] support correct scanlines
+[FAMILYBASIC/MEMORY] support MMC5/ VRC7 based on unofficial nester
+[FAMILYBASIC/MEMORY] fix data recorder signal (thanks MESS)
+
+
+3/20/2017
+
+[COMMON] suport to read ascii/binary file compressed by gzip
+[RESOURCE] fix fm8/fm7/fm77 dipswitch menu items
+[WINMAIN] fix to update status bar twice/second to supress flickar
+
+[VM/SCSI_CDROM] support CD-ROM bin/img file compressed by gzip
+[VM/DATAREC] support tape image file compressed by gzip
+[VM/DATAREC] support to save FUJITSU FM-7/77 t77 format tape image
+
+[BMJR/MEMORY] fix sound mixer not to clear previously mixed sound
+
+
+3/18/2017
+
+[WINMAIN] support multiple data recorder
+[EMU] support multiple data recorder
+
+[VM/DATAREC] support HITACH BASIC Master Jr bin format tape image
+[VM/PTF20] support access lamp signal
+
+[BMJR/MEMORY] fix reading cmt signal
+[BMJR/MEMORY] fix sound mixer
+[TK80BS/CMT] support TK-80 cmt i/f
+
+
+3/15/2017
+
+[WINMAIN] add status bar to draw access lamps
+[EMU] add interfaces to get access status of floppy/quick/hard disk drives
+[EMU] add interface to get cmt status message
+
+[VM/DATAREC] support cmt status message
+[VM/HD44102] fix build error
+[VM/MC6800] fix M_RDOP and M_RDOP_ARG macros (thanks PockEmul)
+[VM/LD700] support access lamp signal
+[VM/SCSI_CDROM] support access lamp signal
+[VM/SCSI_DEV] support access lamp signal
+[VM/SCSI_HDD] support access lamp signal
+
+[HC20] fix issue that we cannot debug TF-20 CPU
+[JR800] support National JR-800 (thanks PockEmul)
+
+
+3/12/2017
+
+[VM/DATAREC] fix issue that fast forward noise may not stop
+
+
+3/11/2017
+
+[VM/DATAREC] support to play play/stop/fast-fwd noise
+[VM/MB8877] support to play seek/load/unload noise
+[VM/HD44102] support HD44102 based on MAME 0.171
+[VM/T3444A] support to play seek/load/unload noise
+[VM/UPD765A] support to play seek/load/unload noise
+[VM/UPD765A] fix seek time (thanks Mr.Artane.)
+
+[MZ80B/MEMORY80B] fix vgate signal (thanks Mr.Suga)
+
+
+3/8/2017
+
+[VM/DISK] improve to check if disk image is modified more strictly
+[VM/DISK] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
+[VM/V9938] import yaya2016-04-13plus1 (thanks Mr.umaiboux and MAME)
+[VM/YM2413] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
+
+[FMR30] split project for i86 and i286
+[MSX/*] import yaya2016-04-13plus1 (thanks Mr.umaiboux)
+
+
+3/7/2017
+
+[WIN32/INPUT] improve to accept shift + caps/kana/kanji
+
+[VM/DISK] support device name (thanks Mr.Aratane.)
+[VM/EVENT] improve to check abnormal scanline number (thanks Mr.Sato)
+[VM/EVENT] fix light weight sound rendering (thanks Mr.168)
+[VM/*] add device name to all devices of each machine (thanks Mr.Aratane.)
+
+[MZ80B] change floppy drive type from 2D to 2DD (thanks Mr.Suga)
+[MZ80B/MEMORY80B] support I-O DATA PIO-3039 (thanks Mr.Suga)
+
+
+3/4/2017
+
+[WINMAIN] add interfaces for bubble casette (thanks Mr.Artane.)
+[EMU] add interfaces for bubble casette (thanks Mr.Artane.)
+
+[VM/*] import Mr.Artane.'s fixes (Commits on Feb 18, 2017)
+[VM/AY_3_891X] split YM2203 and AY-3-891X (thanks Mr.Artane.)
+[VM/DISK] fix trim buffer routine for 2D disk image (thanks Mr.Artane.)
+[VM/EVENT] support light weight sound rendering (thanks Mr.Artane.)
+[VM/MB8877] fix seek command for 2D disk image (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Feb 18, 2017)
+
+
+3/1/2017
+
+[EMU/DEBUGGER] support < command (input commands from file)
+
+[X1/MEMORY] support to unmap rom by reading port 1Exxh (thanks Mr.Sato)
+
+
+2/9/2017
+
+[WINMAIN] support to draw bitmap image onto buttons
+[WINMAIN] fix to redraw pcb bitmap image when window is invalidated
+[WIN32/SCREEN] fix to invalidate rects for 7-seg leds and buttons
+
+[BABBAGE2ND] add bitmap images for buttons
+[EX80] add bitmap images for buttons
+[SMB80TE] add bitmap images for buttons
+[TK80BS] add bitmap images for buttons
+[TK85] support NEC TK-85
+[YS6464A] add bitmap images for buttons
+
+
+12/31/2016
+
+[COLECOVISION/KEYBOARD] fix not to raise irq when joystick is pressed
+[COLECOVISION/KEYBOARD] fix joystick/tenkey inputs
+[COLECOVISION/KEYBOARD] fix to save/load tenky enabled status
+[SC3000/MEMORY] support 32KB+16KB or 128KB ROM carts
+
+
+12/30/2016
+
+[COLECOVISION] support COLECO ColecoVision (thanks Mr.tanam)
+
+
+12/29/2016
+
+[RESOURCE] recompress png files in https://tinypng.com/
+
+[EMU/DEBUGGER] support p command (trace one opcode, step-over)
+
+[MZ80K/MEMORY] support V-GATE signal (thanks Mr.Suga)
+[PASOPIA/DISPLAY] fix graphic color in screen 2 mode (thanks Mr.Kamei)
+[SMB80TE] support SHARP SM-B-80TE
+
+
+4/13/2016
+
+[WINMAIN] improve auto key for the case to switch upper/lowercase with capslock
+[EMU/DEBUGGER] fix issue that u command may cause the infinite loop
+
+[VM/DATAREC] support to detect the frequency of signal
+[VM/DATAREC] fix to always adjust zero position of wave signal
+[VM/UPD1990A] fix not to check clk signal is low when stb signal is raised
+[VM/UPD7810] support debugger
+[VM/UPD7810] support MOV A,S opecode
+[VM/UPD7810] fix not to change V register (thanks PockEmul)
+
+[PC2001] support NEC PC-2001
+[PC2001] fix cpu clock
+[PC2001] support beep sound
+[PC2001/IO] support rtc control signals
+[YALKY] support Yuasa Kyouiku System YALKY
+[YALKY/IO] improve data recorder controller
+
+
+4/1/2016
+
+[VM/DATAREC] suppot to specify channel of data and voice for each vm
+[VM/UPD7810] support uPD7810 series based on MAME 0.152
+[VM/UPD16434] support uPD16434 based on PockEmul
+
+[PC2001] support NEC PC-2001 (not work)
+[SMC70] support SONY SMC-70
+[YALKY] support Yuasa Kyouiku System YALKY (not work)
+
+
+3/23/2016
+
+[VM/FMGEN] fix psg volume (thanks Mr.umaiboux and Mr.Artane.)
+[VM/MZ1P17] support MZ-80P3 and MZ-80P4 (thanks Mr.Suga)
+[VM/UPD7801] support HOLD/HLDA signals at PC #7/#6 pins
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Mar 20, 2016)
+[MZ80K] support dummy printer device and MZ-80P3 / MZ-80P4 (thanks Mr.Suga)
+[MZ80K/KEYBOARD] fix shift and kana keys
+[MZ2800] fix issue that prnfile instance is not initialized
+
+
+3/17/2016
+
+[ALL] improve VC++2013 project files for include/lib directories and manifest
+
+[COMMON] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
+[EMU] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
+[EMU] add get_sound_rate()
+
+[VM/SCSI_CDROM] improve CD-DA mixer to reduce cpu usage
+
+[PCENGINE/PCE] fix adpcm streaming with dma function for Ys III
+
+
+3/16/2016
+
+[VM/HUC6280] support busreq
+[VM/MSM5205] support MSM5205 based on MAME 0.171
+[VM/SCSI_CDROM] support SCSI CD-ROM drive
+[VM/SCSI_CDROM] support NEC features based on MAME 0.171 and Ootake 2.76
+[VM/SCSI_DEV] support more correct req timing
+[VM/SCSI_DEV] simplify codes
+[VM/SCSI_HDD] fix save/load state function to call SCSI_DEV's ones
+[VM/SCSI_HDD] simplify codes
+[VM/SCSI_HOST] suuport output bsy signal to notify bus free
+
+[PCENGINE] support CD-ROM^2 based on MAME 0.171 and Ootake 2.76
+[PCENGINE] change icon file
+
+
+3/5/2016
+
+[EMU] add force_out_debug_log() function
+
+[VM/DEVICE] add definitions for SCSI signals
+[VM/I8237] suuport output signal to notify terminal count
+[VM/MB8877] support MB89311
+[VM/SCSI_HOST] support SCSI base host adaptor
+[VM/SCSI_DEV] support SCSI base device
+[VM/SCSI_HDD] support SCSI hard disk drive
+[VM/UPD71071] fix to clear registers at initialize() for debug mode
+[VM/UPD71071] fix initial mode and mask registers values in reset()
+
+[FMR30] fix not to use pseudo bios class when ipl rom image is loaded
+[FMR30/SCSI] support SCSI host adaptor
+[FMR50] fix not to use pseudo bios class when ipl rom image is loaded
+[FMR50/BIOS] remove codes for unused memory card and power management bios
+[FMR50/SCSI] support SCSI host adaptor
+
+
+3/1/2016
+
+[ALL] use integer types defined in stdint.h (uint8 -> uint8_t, etc)
+[ALL] rename pair and scrntype to pair_t and scrntype_t
+
+[COMMON] add get_long_full_path_name() and get_parent_dir()
+[COMMON] rename IsFileExists() in FILEIO class to IsFileExisting()
+[EMU] import Mr.Artane.'s fixes (Commits on Feb 27, 2016)
+[EMU] add get_osd()
+[EMU] add set_mouse_pointer(), set_mouse_button(), and get_mouse_button()
+[EMU] add get_access_lamp_status() and get_led_status()
+[EMU/DEBUGGER] avoid PostMessage() and GetAsyncKeyState()
+[WIN32/CONSOLE] add is_console_key_pressed() and close_debugger_console()
+
+[VM/DATAREC] fix t77 image loader (thanks Mr.Artane.)
+[VM/DEVICE] add get_device_name() (thanks Mr.Artane.)
+[VM/DISK] import Mr.Artane.'s fixes for eFM7/77/77AV hacks
+[VM/MB8877] import Mr.Artane.'s fixes for eFM7/77/77AV hacks
+[VM/MC6809] add 16/32bit read/write functions for debugger (thanks Mr.Artane.)
+[VM/V99X8] fix macro to create color (thanks Mr.Artane.)
+[VM/Z80DMA] fix build issue for MinGW's (older) GCC (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Feb 27, 2016)
+[FM77AV] add eFM8 codes (thanks Mr.Artane.)
+[J3100] fix build issues (thanks Mr.Artane.)
+
+
+2/26/2016
+
+[WINMAIN] refactor codes
+[WIN32] fix routine to check the Windows Vista or later
+[WIN32/INPUT] improve DirectInput codes for newer DirectX 9.0 SDK
+[WIN32/VIDEO] improve routine to copy DirectShow buffer to vm screen buffer
+
+[VM/HD46505] support to set character clock
+[VM/MC6840] reimplement based on MAME 0.168
+[VM/T3444A] fix build error
+[VM/YM2203] fix to clear output register and mode register in reset()
+
+
+2/21/2016
+
+[VM/MB8877] fix timing to start read/write sector for invalid format track
+[VM/T3444A] fix timing to start read/write sector for invalid format track
+
+[MZ2500/CMT] fix reset signal again for Laydock
+
+
+2/19/2016
+
+[ALL] add VC++2013 project files
+[ALL] change many public method names according to common naming convention
+
+[COMMON] add create_string() function
+[WINMAIN] copy codes to read clipboard for auto key from osd class
+[EMU] copy codes for auto key and joystick mapping from osd class
+[EMU/OSD] remove codes for auto key and joystick mapping
+
+[VM/PRNFILE] fix not to register ack event in initialize() for debug build
+[VM/MZ1P17] fix not to register ack event in initialize() for debug build
+[VM/MZ1P17] fix font rom loader for MZ-80B/2000/2200
+
+[MZ2200/MEMORY80B] fix green monitor color
+
+
+2/17/2016
+
+[EMU] improve screen stretch modes
+[EMU/OSD] improve screen stretch modes
+
+[VM/FMGEN] support to set left/right volumes
+[VM/YM2151] support to set left/right volumes
+[VM/YM2203] support to set left/right volumes
+[VM/Z80DMA] fix timing of bus request and release
+
+[MZ2200/MEMORY80B] fix green monitor not to refer text/back color registers
+[MZ2200/MEMORY80B] support to swap left/right side of color and green monitors
+
+
+2/13/2016
+
+[VM/DISK] fix routine to calculate sector position for invalid format track
+[VM/DISK] increase max sector number from 256 to 512
+[VM/MB8877] improve timing to start read/write sector for invalid format track
+[VM/MZ1P17] fix initial value of reset signal
+[VM/PRNFILE] fix initial value of reset signal
+[VM/T3444A] improve timing to start read/write sector for invalid format track
+
+[MZ2200/MEMORY80B] support dual (color and green) monitors
+
+
+2/11/2016
+
+[VM/DISK] fix to allow fdc class to get gap3 size
+[VM/MB8877] improve timing to start read/write sector
+[VM/T3444A] improve timing to start read/write sector
+[VM/T3444A] fix to wait 100usec for tnd signal after sector is finshed
+
+
+2/10/2016
+
+[COMMON] improve routine to apply volume to sound samples
+[WINMAIN] improve volume dialog
+[WINMAIN] change volume uppder limit from +20dB to 0dB
+[WINMAIN] support joystick dialog
+[WINMAIN] simplify codes
+[EMU] remove function to get sound device info
+[EMU] change keyboard/joystick/mapper data pointer to const pointer
+
+[MZ80K/KEYBOARD] fix for constant keyboatd data pointer
+[PC6001/PSUB] fix for constant keyboatd data pointer
+[X1/KEYBOARD] fix for constant keyboatd data pointer
+
+
+2/7/2016
+
+[WINMAIN] add dialog to set sound device volumes
+[EMU] support to get sound device info
+[EMU] support to set left/right volumes
+
+[VM/BEEP] support to set left/right volumes
+[VM/DATAREC] support to set left/right volumes
+[VM/DEVICE] add virtual function to set left/right volumes
+[VM/LD700] support to set left/right volumes
+[VM/PCM1BIT] support to set left/right volumes
+[VM/SN76489AN] support to set left/right volumes
+[VM/TMS3631] support to set left/right volumes
+[VM/UPD7552] support to set left/right volumes
+[VM/YM2151] support to set volume
+[VM/YM2203] support to set volume
+[VM/YM2413] support to set left/right volumes
+[VM/YM2413] fix memory leak issue
+
+[BMJR/MEMORY] support to set left/right volumes
+[FAMILYBASIC/APU] support to set left/right volumes
+[MULTI8] support beep sound
+[PV1000/PSG] support to set left/right volumes
+[SCV/SOUND] support to set left/right volumes
+
+
+2/4/2016
+
+[VM/TMS9995] support debugger
+
+
+1/10/2016
+
+[VM/MZ1P17] support ESC % 2 in MZ-1 mode
+[VM/MZ1P17] support MZ-2/3/X1 mode
+[VM/MZ1P17] improve hiragana mode
+[VM/MZ1P17] support overprint in the case that line feed distance is not enough
+[VM/MZ1P17] improve busy signal
+[VM/MZ1P17] support ack and reset signal
+[VM/PRNFILE] improve busy signal
+[VM/PRNFILE] support ack and reset signal
+
+[MZ1500] support dummy printer device and MZ-1P17
+[MZ2200/PRINTER] support dummy printer device and MZ-1P17
+[MZ2500/PRINTER] improve to use printer reset signal
+[MZ2800/PRINTER] support dummy printer device and MZ-1P17
+[MZ3500] support dummy printer device and MZ-1P17
+[MZ5500] support dummy printer device and MZ-1P17
+[PC8801/PC88] fix to get printer busy status
+[PC9801] fix to get printer busy status
+[PC98LT] fix to get printer busy status
+[X1] support dummy printer device and MZ-1P17
+
+
+12/31/2015
+
+[VM/MZ1P17] support underline, hiragana mode, and color mode
+
+
+12/30/2015
+
+[COMMON] add jis_to_sjis() function
+[EMU] fix to delete OSD instance after delete VM instance
+[EMU/OSD] improve functions to manipulate bitmaps and fonts
+
+[VM/PRNFILE] support save/load state
+[VM/MZ1P17] support MZ-1P17
+
+[MZ2500/PRINTER] support dummy printer device and MZ-1P17
+
+
+12/23/2015
+
+[ALL] fix for UNICODE character set case
+
+[COMMON] improve create_local_path() and get_file_path_without_extensiton() not to overwrite previous result soon
+[EMU/OSD] improve to capture screen with png file format
+[EMU/OSD] improve functions to manipulate bitmaps and fonts
+
+[TOOL/MZ80K] support software keyboard for MZ-80K/C
+
+
+12/20/2015
+
+[EMU/OSD] remove functions for pinter interface
+[EMU/OSD] add functions to manipulate bitmaps and fonts
+
+[VM/PRNFILE] support dummy printer device that outputs to file
+
+[MZ80K/MEMORY] combine memory class and display class
+[MZ80K/MEMORY] support PCG-8000/1200
+[MZ700/MEMORY] fix PCG-700
+[PC6001] improve to use new dummy printer device
+[PC8801] improve to use new dummy printer device
+[PC9801] improve to use new dummy printer device
+[PC98LT] improve to use new dummy printer device
+[X1] improve to use new dummy printer device
+
+
+12/17/2015
+
+[COMMON] add application_path() and create_local_path()
+[COMMON] add create_date_file_path()
+[COMMON] add get_host_time()
+[EMU/OSD] remove EMU::application_path() and EMU::bios_path()
+[EMU/OSD] remove OSD::create_date_file_name()
+[EMU/OSD] remove EMU::get_host_time()
+[WIN32/SCREEN] fix screen rotation
+
+[EX80] improve screen
+
+
+12/16/2015
+
+[COMMON] improve config, common, and fileio for other environments
+[EMU/OSD] improve lock_vm() and unlock_vm() to support nesting
+[EMU/OSD] add force_unlock_vm() to force unlock vm ignoring nesting
+
+[VM/DISK] improve for other environments
+[VM/F9368] support F9368
+[VM/FMGEN] fix to use FILEIO class (thanks Mr.Artane.)
+[VM/LD700] improve for other environments
+[VM/MC6809] improve for other environments
+[VM/UPD765A] improve for other environments
+[VM/V99X8] fix to check if screen buffer is valid or not
+
+[EX80] support save/load state
+[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 13, 2015)
+[J3100] fix build errors (thanks Mr.Artane.)
+[TK80BS] support save/load state
+
+
+12/15/2015
+
+[WINMAIN] fix to check if button caption is multi-line or not
+
+[VM/I8080] fix to use fetch_op() function to fetch opecode
+[VM/I8080] support to read interrupt enabled status
+
+[EX80] support TOSHIBA EX-80
+[TK80BS] improve screen
+
+
+12/10/2015
+
+[COMMON] improve common.h for other environments
+[WIN32/SCREEN] fix crt filter issue for eFM-7
+
+
+12/9/2015
+
+[EMU/OSD] add OSD class and move OS dependent codes to OSD class
+[WIN32/SCREEN] support screen rotation 180deg and 270deg, not only 90deg
+[WIN32/SCREEN] support to load png image from resource
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 7, 2015)
+[PC9801] fix PC-9801-26(K) irq number on YM2203 port A again
+[TK80BS] add printed circuit board picture and buttons
+[X1TURBO/PSUB] fix kana key map in keyboard mode B
+
+
+11/18/2015
+
+[WINMAIN] support to eject disk with d88 bank selection menu open
+[EMU/WIN32] add tape_playing(), tape_recording(), and tape_position()
+
+[VM/*] add tape_playing(), tape_recording(), and tape_position()
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Nov 14, 2015)
+
+
+10/31/2015
+
+[WIN32/INPUT] fix broken auto key function
+[WIN32/INPUT] support to notify l/r-shift/control/menu key to virtual machine
+[WIN32/SOUND] fix not to create a sound buffer on sound card memory
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 29, 2015)
+
+
+10/27/2015
+
+[VM/IO] fix build error
+[VM/UPD765A] fix tc signal in exec phase (thanks Mr.PI.)
+
+
+10/7/2015
+
+[VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE
+[VM/IO] improve debug log for second cpu
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 2, 2015)
+
+
+10/6/2015
+
+[WIN32/DEBUGGER] add > command to output the logfile
+
+[VM/UPD7220] support vram data mask to support 12bit vram for MZ-3500
+[VM/Z80] improve disassembler for DD/ED/FD opecodes
+
+[MZ3500/SUB] fix character vram bit width
+[MZ3500/SUB] fix graphic vram size
+[MZ3500/SUB] fix to negate color palette number of kanji character screen
+
+
+9/30/2015
+
+[EMU/WIN32] fix eFM77AV40/EX menu issues
+
+[VM/TMS3631] add TMS3631 based on Neko Project 2
+
+[MZ3500/SUB] support monochrome mode
+[MZ3500/SUB] support vertical/horizontal line
+[MZ3500/SUB] fix character color in the case color number is zero
+[PC9801] fix PC-9801-26(K) irq number on YM2203 port A
+[PC9801] support PC-9801-14
+
+
+9/29/2015
+
+[EMU/WIN32] fix terrible mistakes (thanks Mr.Artane.)
+
+[VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE
+[VM/MB8877] import Mr.Artane.'s fixes for FM-7 series
+
+[FM77AV] add eFM77AV40/40EX codes (thanks Mr.Artane.)
+[FM77AV] import Mr.Artane.'s fixes (from SNAPSHOT 20150926)
+[MZ3500/MAIN] support some dip switches
+[MZ3500/SUB] support middle resolution monitor and green monitor
+[PC9801] support to enable/disable sound board and sound bios
+
+
+9/26/2015
+
+[MZ3500/SUB] fix kanji character renderer
+[MZ3500/SUB] fix character renderer for non transparent black color
+
+
+9/25/2015
+
+[MZ3500] support HALT button
+[MZ3500/KEYBOARD] support PRO/OP mode switch
+[MZ3500/KEYBOARD] support CL and 00 keys
+[MZ3500/KEYBOARD] change key assign for program control keys
+[MZ3500/MAIN] fix to add one clock wait for each m1 cycle
+[MZ3500/MAIN] fix memory mapper to check me1/me2 signals
+[MZ3500/MAIN] fix memory mapper to update only when register values are changed
+[MZ3500/SUB] support kanji rom and kanji vram
+[MZ3500/SUB] implement graphic screen renderer
+
+
+9/23/2015-2
+
+[MZ3500/KEYBOARD] support kana key
+
+
+9/23/2015
+
+[VM/UPD765A] fix index hole signal width to 5msec (thanks Mr.Sato)
+
+[MZ3500] support SHARP MZ-3500
+[MZ3500/KEYBOARD] implement keyboard
+[MZ3500/SUB] enlarge ram size of sub cpu
+[MZ3500/SUB] fix text screen renderer
+
+
+9/17/2015
+
+[TOOL/ANY2D88] support to convert solid image to 1dd
+[TOOL/ANY2D88] support to convert solid image with sector size 256bytes
+
+[WINMAIN] improve to inhibit starting screen saver
+
+[VM/DISK] fix issue in the case that file extension of solid image is *.dsk
+[VM/DISK] update physical disk format table
+[VM/DISK] improve fdi converter
+[VM/DISK] support to get am1 position in id field
+[VM/MB8877] improve timing to start read/write sector
+[VM/MB8877] fix to use const time to search sector in incorrect timing setting
+[VM/T3444A] fix to use const time to search sector in incorrect timing setting
+[VM/UPD765A] fix to use const time to search sector in incorrect timing setting
+
+[MZ80K/DISPLAY] support green monitor for MZ-80C
+[X1TURBO/DISPLAY] fix issue in the case that char raster is greater than 8/16
+
+
+9/15/2015
+
+[TOOL/ANY2D88] add new utility any2d88 that converts any format image to d88
+
+[COMMON] add FileLength() function to FILEIO class
+[WIN32/DEBUGGER] disable ctrl-c on the debug console
+
+[VM/DATAREC] support to record tap format image
+[VM/DISK] simplify image loader
+[VM/DISK] improve cpdread converter for invalid track size table
+
+[MZ80K/MZ80FIO] fix drive number register (thanks Mr.masa and Mr.Suga)
+
+
+9/9/2015
+
+[COMMON] add batch file to merge manifest file for Windows Vista or later
+
+
+9/8/2015
+
+[VM/DISK] fix for single density disk in double density drive
+[VM/T3444A] support T3444A/T3444M
+
+[BMJR] support HITACHI BASIC Master Jr
+[MZ80K/MZ80FIO] support MZ-80FIO
+[MZ80K/KEYBOARD] fix eisuu/kana key to toggle with kana key
+[PC6001] fix signal connections between i8255 and PC-80S31K
+
+
+8/28/2015
+
+[WIN32/SCREEN] improve and simplify crt filter
+
+[VM/DATAREC] rename SIG_DATAREC_OUT to SIG_DATAREC_MIC
+[VM/DATAREC] rename set_context_out() to set_context_ear()
+[VM/DEVICE] add virtual functions to get remaining time until event is expired
+[VM/DEVICE] add functions to get remaining time until event is expired
+[VM/MC6800] fix build error for MB8861
+[VM/YS6522] support YS6522 based on MAME 0.164
+
+[JR100] support National JR-100
+
+
+8/25/2015
+
+[WIN32/SCREEN] improve crt filter for non stretched screen
+[WIN32/SCREEN] fix not to lock Direct3D9 offscreen surface for a long period
+
+[PC8801/PC88] import Mr.PI.'s fixes from XM8 version 1.30
+
+
+8/24/2015
+
+[VM/DISK] fix to save image in d88 format if solid image is physical formatted
+[VM/DISK] fix to save single side solid image correctly
+[VM/DISK] fix imagedisk converter for single side disk image
+
+
+8/23/2015
+
+[VM/DISK] fix routine to check FM-7 DEATH FORCE
+
+
+8/22/2015-2
+
+[VM/DISK] support solid 1dd 280kb disk image with .img extension
+[VM/MB8877] revert the fix in 8/22/2015
+
+[SMC777] fix floppy drive speed to 600rpm
+
+
+8/22/2015
+
+[COMMON] replace many _TCHAR* to const _TCHAR* mainly for file path
+[WIN32/DEBUGGER] improve L and W command to load/write intel hex format file
+
+[VM/DISK] add patch for FM-7 DEATH FORCE (thanks Mr.Artane.)
+[VM/MB8877] fix for 2d disk image on 2dd/2hd drive (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Aug 19, 2015)
+[MZ2500/CRTC] fix character blinking (thanks Mr.KanegonP)
+
+
+8/21/2015
+
+[WIN32/INPUT] improve auto key function for us-keyboard
+[WIN32/INPUT] support to load vm's own auto key table
+
+[VM/DISK] support *.1dd floppy disk image
+[VM/I286] fix build error
+[VM/MB8877] fix to check cylinder number for read/write sector command
+
+[SMC777] support SONY SMC-777
+
+
+8/13/2015
+
+[VM/HUC6280] support debugger
+[VM/I86] fix aad instruction for NEC V30
+[VM/I286] add NEC V30 instructions based on MAME 0.128
+
+[PC9801U] fix to use new V30 core
+[PC9801VF] fix to use new V30 core
+[PC9801VM] fix to use new V30 core
+[PC98DO] fix to use new V30 core
+[PC98HA] fix to use new V30 core
+[PC98LT] fix to use new V30 core
+
+
+8/9/2015
+
+[VM/MB8877] support MB8866
+[VM/MB8877] improve type-2/3 command timing for E flag
+[VM/MB8877] fix write protect status (thanks Mr.Artane.)
+
+[MZ80A] change fdc device type from MB8876 to MB8866
+
+
+8/8/2015
+
+[VM/DISK] remove ugly patch for X1turbo Alpha
+[VM/MB8877] remove ugly patch for X1turbo Alpha
+[VM/MB8877] improve type-1 command timing
+[VM/MB8877] improve type-2/3 command timing for E flag
+[VM/MB8877] improve force interrupt command to finish write sector command
+[VM/Z80SIO] improve transmitting timing for external clock signal
+
+
+8/7/2015
+
+[VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Young)
+[VM/DATAREC] improve mzt converter to support fast forward/rewind
+[VM/DISK] improve image decoder for single side and data mark missing cases
+[VM/MB8877] fix timing to abort searching the target sector
+[VM/MB8877] fix to raise irq signal after abort searching the target sector
+[VM/MB8877] fix to abort write command before drq when disk is write protected
+[VM/MB8877] fix to abort write command when lost data occurs at first drq
+[VM/MB8877] fix to read/write data register when lost data occurs
+[VM/MB8877] fix to show crc error when verify track number at seek command
+[VM/MB8876] fix not to show busy after seek command for FMR-30/50/60 series
+
+
+8/5/2015
+
+[WINMAIN] support menu to enable/disable correct fdc timing
+
+[VM/DISK] improve to check both id crc error and data crc error
+[VM/I286] fix issue that emulation may go to infinite loop when cpu is halted
+[VM/MB8877] fix index hole signal width to 5msec (thanks Mr.Sato)
+[VM/MB8877] improve drq signal timing to check E flag of type-2 and 3 commands
+[VM/MB8877] improve drq signal timing for write track command
+[VM/MB8877] improve data lost timing for write sector and write track commands
+[VM/MB8877] improve to check both id crc error and data crc error
+[VM/UPD765A] improve timing to go to exec phase
+[VM/UPD765A] improve to check both id crc error and data crc error
+[VM/Z80SIO] improve transmitting timing (thanks Mr.Sato)
+
+[FMR50/BIOS] improve to check both id crc error and data crc error
+[FMR50/BIOS] improve write track command for sectors without data field
+[MSX2/MEMORY] improve to check both id crc error and data crc error
+
+
+8/3/2015
+
+[VM/DISK] support sectors without data field
+[VM/MB8877] improve drq signal timing for write sector command (thanks Mr.Sato)
+[VM/MB8877] improve index hole signal width (thanks Mr.Sato)
+[VM/MB8877] improve read/write command to wait at least 60msec after seeking
+[VM/MB8877] improve seek command not to set seek error without verify flag
+[VM/MB8877] improve read/write sector commands for sectors without data field
+[VM/MB8877] improve write track command for sectors without data field
+[VM/MB8877] improve force interrupt command to finish write track command
+[VM/MB8877] remove ugly patch for MZ-2500 RELICS
+[VM/UPD765A] improve read/write sector commands for sectors without data field
+[VM/Z80SIO] improve transmitting timing (thanks Mr.Sato)
+
+
+8/1/2015
+
+[WINMAIN] support menu to modify write protected status of floppy disk image
+[WINMAIN] support menu to enable/disable DirectInput for keyboard
+[WIN32/INPUT] support to swap joystick buttons #1/#3/#5... and #2/#4/#6...
+
+[VM/DISK] fix not to inherit the write protected status of image file
+[VM/DISK] support to modify write protected status of floppy disk image
+[VM/DISK] add ugly patch for FM-7 Gambler Jiko Chuushin Ha
+[VM/MB8877] improve read/write commands to access the current track
+[VM/MB8877] improve seek commands (thanks Mr.Artane.)
+[VM/MB8877] suppot to set/get write protected status of floppy disk image
+[VM/MB8877] add ugly patch for FM-7 Gambler Jiko Chuushin Ha
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/PC6031] suppot to set/get write protected status of floppy disk image
+[VM/PTF20] suppot to set/get write protected status of floppy disk image
+[VM/UPD765A] suppot to set/get write protected status of floppy disk image
+
+[FM77AV] import Mr.Artane.'s fixes
+
+
+7/31/2015
+
+[COMMON] fix all vcproj files to disable WholeProgramOptimization option
+[COMMON] fix all vcproj files to enable SSE2 instructions
+[CONFIG] support ignore crc options individually for each floppy drive
+[WINMAIN] support ignore crc options individually for each floppy drive
+
+[VM/DISK] support ignore crc options individually for each floppy drive
+[VM/MB8877] improve read/write commands  (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/PC80S31K] fix m1 wait for PC-8801 series (thanks Mr.PI.)
+[VM/PC80S31K] fix for force ready signal (thanks Mr.PI.)
+[VM/UPD765A] fix for force ready signal (thanks Mr.PI.)
+[VM/YM2203] improve timer timing (thanks Mr.PI.)
+[VM/YM2151] improve timer timing (thanks Mr.PI.)
+
+[FM77AV] import Mr.Artane.'s fixes
+[PC8801] import Mr.PI.'s fixes from XM8 version 1.20
+
+
+6/28/2015
+
+[FM77AV] import Mr.Artane.'s fixes
+[MZ2500/CMT] fix reset signal
+[MZ2500/CRTC] improve timing for 15KHz and 24KHz mode
+[MZ2500/MEMORY] improve vram wait in display timing
+[PC8801] import Mr.PI.'s fixes from XM8 version 1.10
+
+
+6/25/2015
+
+[EMU/WIN32] add sleep(ms) for virtual machines (thanks Mr.PI.)
+[WIN32/DEBUGGER] support * for bc/bd/be to clear/disable/enable all points
+[WIN32/DEBUGGER] fix to accept escape key when the console is active
+
+[VM/FMGEN] fix status register (thanks Mr.PI.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/YM2203] fix busy period (thanks Mr.PI.)
+
+[FM77] add eFM77 codes (thanks Mr.Artane.)
+[FM77AV] import Mr.Artane.'s fixes
+[PC8801] import Mr.PI.'s fixes from XM8 version 1.00
+[PC8801/PC88] fix to check if sio output is connected to cmt or rs232c
+
+
+4/29/2015
+
+[EMU/WIN32] suport to load intel hexadecimal object file format
+[WIN32/DEBUGGER] fix my_hexatoi() for 32bit hexadecimal value
+
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes
+[Z80TVGAME] support Homebrew Z80 TV GAME SYSTEM
+
+
+4/24/2015
+
+[VM/DISK] fix to check only bit4-7 of sector status (thanks Mr.Artane.)
+[VM/I386] improve i386 core based on MAME 0.160
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes
+
+
+4/10/2015
+
+[CONFIG] remove model-dependent codes
+
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/MC6809] support debugger (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes
+[MZ2800/MEMORY] fix memory bank swith
+
+
+4/7/2015
+
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] add eFM77AV codes (thanks Mr.Artane.)
+
+
+3/28/2015
+
+[FM7] add eFM7 codes (thanks Mr.Artane.)
+
+
+3/26/2015
+
+[VM/MB8877] fix not to return error status when seek to unformatted track (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/YM2151] support mamefm.dll
+[VM/YM2203] fix to check SUPPORT_MULTIPLE flag of mamefm.dll
+
+[MSX2/MEMORY] import Mr.tanam's fixes
+
+
+3/21/2015-2
+
+[MSX2] import Mr.umaiboux's patches posted on Mr.tanam's blog
+
+
+3/21/2015
+
+[VM/DISK] support 1dd floppy image
+[VM/V99X8] support V99x8 (thanks Mr.umaiboux and Zodiac)
+[VM/V99X8] support save/load state
+[VM/Z80] support to hook ret opecode for pseudo bios call
+
+[MSX1] add yaMSX1 codes (thanks Mr.tanam, Mr.umaiboux and fMSX)
+[MSX1] support save/load state
+[MSX2] add yaMSX2 codes (thanks Mr.tanam, Mr.umaiboux and fMSX)
+[MSX2] support save/load state
+
+
+3/19/2015
+
+[WIN32/INPUT] fix DirectInput issues
+
+
+3/15/2015
+
+[WINMAIN] support to disable Desktop Window Manager (DWM) automatically
+[WIN32/INPUT] support DirectInput for keyboard
+
+[VM/*] simplify including fileio.h
+[VM/DATAREC] fix sound mixer
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/UPD7801] fix disassembler
+
+[FM16PI] support save/load state
+[FMR30] support save/load state
+[FMR50] support save/load state
+[FMR60] support save/load state
+[FMR70] support save/load state
+[FMR80] support save/load state
+[FP200/IO] fix lcd driver
+
+
+3/12/2015
+
+[FMR50/BIOS] support to format a floppy disk image physically
+
+
+3/12/2015
+
+[VM/DATAREC] support to play tape sound
+[VM/DATAREC] support FUJITSU FM-7/77 t77 format tape image (thanks Mr.Artane.)
+[VM/EVENT] suppot to change secondary cpu clock (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/MEMORY] support memory wait
+[VM/PTF20] support save/load state
+[VM/UPD765A] fix not to write sector because of tc if no data transfered
+
+[FP200] support save/load state
+[FP200] support memory and io wait
+[HC20] support save/load state
+[HC40] support save/load state
+[HC80] support save/load state
+[X07] support save/load state
+[X1TURBO] support cmt control buttons
+
+
+3/4/2015
+
+[VM/I8255] fix save/load state
+
+[MZ700/MEMORY] support PCG-700
+[PC8201] support save/load state
+
+
+3/3/2015
+
+[CONFIG] add cmt baud rate setting (thanks FP-1100 user)
+
+[VM/UPD765A] fix period to raise lost data for write id command
+
+[FP1100/MAIN] fix expansion slot selection
+[FP1100/SUB] fix color register (thanks FP-1100 user)
+[FP1100/SUB] fix vram plane mask
+[FP1100/SUB] support dipswitch to select cmt baud rate
+
+
+2/28/2015
+
+[COMMON] fix typo virtical to vertical (thanks Mr.Koucha-Youkan)
+
+[VM/DISK] fix to use correct gap0/gap1/gap3 length for known format images
+[VM/Z80] fix disassembler (thanks Mr.Reddam)
+
+
+2/21/2015
+
+[WIN32/INPUT] support to specify wait after shift key is pressed or released
+[WIN32/SCREEN] improve crt filter for rotated screen
+[CONFIG] add screen rotation setting
+
+[VM/BEEP] improve sound quality
+[VM/DATAREC] simplify sound mixer
+[VM/DEVICE] rename bios_call() to bios_call_i86()
+[VM/DEVICE] rename bios_int() to bios_int_i86()
+[VM/DEVICE] add virtual function bios_call_z80()
+[VM/DISK] support to fix sector number from big endian to little endian
+[VM/EVENT] support more precise loop event timing
+[VM/EVENT] improve sound quality
+[VM/HD46505] fix to update timing after all required registers are written
+[VM/PCM1BIT] simplify sound mixer
+[VM/PCM1BIT] fix to suppress petite noise when go to mute
+[VM/SN76489AN] improve sound quality
+[VM/UPD7801] support correct serial i/o
+[VM/Z80] support pseudo bios call
+
+[FP1100] improve auto key timing after shift key is pressed or released
+[FP1100] fix crtc horizontal frequency
+[FP1100] support cmt
+[FP1100/MAIN] support wait for i/o access
+[FP1100/SUB] support cmt control circuit consists of some standard logic ics
+[FP1100/SUB] support vram plane mask
+[MZ1500] support screen rotation (thanks Mr.Koucha-Youkan)
+[PASOPIA7/IOBUS] fix to initialize mio flag
+[PC8801MA/PC88] improve beep and cmd sing mixer
+[PC100] split setting for monitor type and screen rotation
+[PV1000/PSG] improve sound quality
+
+
+2/13/2015
+
+[VM/UPD765A] add ugly patch for PC-8801 Kimochi Disk 2
+
+[FP1100] change slot indices to support floppy drives
+[FP1100/MAIN] fix to clear irq from sub cpu when raise irq to sub cpu
+[PC8801MA/PC88] fix routine to set back color to black in color mode
+[PC8801MA/PC88] fix crtc to clear status in set interrupt mask (thanks Mr.cisc)
+[PC8801MA/PC88] fix crtc to restart when dma underrun does not occur
+[PC8801MA/PC88] fix out port 0x53 (thanks Mr.Redart)
+
+
+2/1/2015
+
+[VM/DISK] fix condition to check if the track offset is valid
+[VM/DISK] fix routine to trim the disk image
+
+
+1/31/2015
+
+[VM/DISK] improve for format operation
+[VM/DISK] fix issue that deleted mark is mistakely recognized as crc error
+[VM/MB8877] support write track command
+[VM/PTF20] rename pseudo EPSON TF-20 class from TF20 to PTF20
+[VM/PTF20] improve format command
+[VM/TF20] support EPSON TF-20
+[VM/UPD765A] support write id command
+
+[HC20] support EPSON TF-20
+
+
+1/28/2015
+
+[VM/DATAREC] fix issue for loading state file saved while recording
+[VM/PC6031] support save/load state
+[VM/UPD7552] support save/load state
+[VM/UPD7552] support init() function to specify sound rate
+[VM/YM2203] fix to reset fmdll before registers are restored (thanks Mr.Rednow)
+
+[FAMILYBASIC] support save/load state
+[MULTI8/CMT] fix issue for loading state file saved while recording cmt
+[MZ2800] support save/load state
+[MZ5500] support save/load state
+[MZ6500] support save/load state
+[PC6001] fix to specify sound rate to uPD7552
+[PC6001] support save/load state
+[PC6001MK2] support save/load state
+[PC6001MK2SR] support save/load state
+[PC6601] support save/load state
+[PC6601SR] support save/load state
+[PC8801MA/PC88] fix issue for loading state file saved while recording cmt
+[PC8801MA/PC88] fix crtc for dma underrun case (thanks Mr.Rednow)
+[PC98HA] support save/load state
+[PC98HA] fix crash issue
+[PC98LT] support save/load state
+[PC98LT] fix crash issue
+
+
+1/24/2015
+
+[COMMON] avoid _tfopen_s() and use _tfpoen() not to lock reading file
+[WINMAIN] fix to close d88 format disk image after image titles are read
+
+[VM/DISK] fix to save image to temporary file if image file cannot be written
+[VM/MB8877] fix to enable REC NOT FOUND patch only for Batten Tanuki
+
+[X1TURBO] support to select boot floppy media type 2D or 2HD
+
+
+1/21/2015
+
+[MZ2500/SERIAL] fix port 0xcd for specifying Z80SIO TX/RX clock frequency
+[MZ2800/SERIAL] fix port 0xcd for specifying Z80SIO TX/RX clock frequency
+
+
+1/19/2015
+
+[VM/HD146818P] support save/load state
+[VM/I386] support save/load state
+[VM/I8080] support save/load state
+[VM/I8155] support save/load state
+[VM/M6502] support save/load state
+[VM/MC6800] support save/load state
+[VM/MC6820] support save/load state
+[VM/MC6840] support save/load state
+[VM/UPD4991A] support save/load state
+[VM/UPD71071] support save/load state
+[VM/Z80SIO] improve transmit/receive timing
+[VM/Z80SIO] support external transmit/receive clocks
+
+[FP1100] support save/load state
+[MULTI8] support save/load state
+[MYCOMZ80A] support save/load state
+[MZ1500] support correct sio timing
+[MZ2200] support correct sio timing
+[MZ2500] support to switch sio port address
+[MZ2500] support correct sio timing
+[MZ2800] support to switch sio port address
+[MZ2800] support correct sio timing
+[MZ5500] support correct sio timing
+[PASOPIA] support save/load state
+[PASOPIA7] support save/load state
+[PASOPIA7] fix to use standard i/o bus class
+[PASOPIA7/IOBUS] simplify unique i/o bus class
+[QC10] support save/load state
+[QC10] support correct sio timing
+[X1TURBO] support correct sio timing
+[X1TURBO] fix to use standard i/o bus class
+[X1TURBO/IOBUS] simplify unique i/o bus class
+
+
+1/14/2015
+
+[COMMON] fix to use secure string functions
+[COMMON] add substitutes for _TCHAR and secure string functions
+
+[VM/I386] improve i386 core again based on MAME 0.157
+
+[MZ80A] support MZ-80AIF and floppy drives (thanks Mr.Suga)
+
+
+1/11/2015
+
+[VM/MC6820] fix mc6820 build error (thanks Mr.Artane.)
+
+[PC8801MA/PC88] fix RGB to COLOR_RGB macro (thanks Mr.Artane.)
+[PHC25] fix issue that cmt tape igam can not be correctly loaded
+
+
+1/10/2015
+
+[VM/DATAREC] support NEC PC-6001 p6t format tape image (temporary)
+[VM/DATAREC] improve NEC PC-6001 p6 format tape image loader
+[VM/I386] improve i386 core based on MAME 0.157
+[VM/MC6847] support save/load state
+[VM/MSM58321] support save/load state
+[VM/YM2203] support to change device type to YM2608
+
+[MAP1010] support save/load state
+[MZ80A] support save/load state
+[MZ80K] support save/load state
+[MZ1200] support save/load state
+[PC6001/SUB] support p6t format tape image (temporary)
+[PC6001/SUB] fix to start/stop data recorder by 0x19/0x1a command
+[PC6001/PSUB] support p6t format tape image (temporary)
+[PC6001/PSUB] fix cmt loader to wait 1sec between header and body
+[PC8801MA] support to select PC-8801-23 (OPNA) or PC-8801-11 (OPN)
+[PC100] support save/load state
+[PHC20] support save/load state
+[PHC25] support save/load state
+[PV1000] support save/load state
+[RX78] support save/load state
+
+
+1/1/2015
+
+[PC8801MA/PC88] fix to mask bit4-7 of extended ram bank register
+
+
+12/29/2014
+
+[VM/SN76489AN] support save/load state
+[VM/TMS9918A] support save/load state
+[VM/TMS9995] support save/load state
+[VM/UPD7801] support save/load state
+
+[M5] support save/load state
+[MZ700] support save/load state
+[MZ800] support save/load state
+[MZ1500] support save/load state
+[MZ1500/KANJI] support MZ-1R23 and MZ-1R24
+[PC8801MA/PC88] fix many PC-8001mkIISR issues (thanks Mr.apaslothy)
+[PV2000] support save/load state
+[PYUTA] support save/load state
+[SC3000] support save/load state
+[SCV] support save/load state
+
+
+12/26/2014
+
+[VM/AND] support save/load state
+[VM/I8237] support save/load state
+[VM/I86] support save/load state
+[VM/LS244] support save/load state
+[VM/LS393] support save/load state
+[VM/NAND] support save/load state
+[VM/NOR] support save/load state
+[VM/NOT] support save/load state
+[VM/OR] support save/load state
+[VM/UPD1990A] fix to show lsb bit of second when shift register is not updated
+[VM/UPD7220] support save/load state
+
+[PC8801MA/PC88] fix many PC-8001mkIISR issues (thanks Mr.apaslothy)
+[PC8801MA/PC88] fix cmt issue that pacland cannot be loaded on PC-8001mkIISR
+[PC9801] support save/load state
+[PC9801E] support save/load state
+[PC9801U] support save/load state
+[PC9801VF] support save/load state
+[PC9801VM] support save/load state
+[PC98DO] support save/load state
+
+
+12/25/2014
+
+[EMU/WIN32] fix to remove printer file if the file size is less than 2 bytes
+[EMU/WIN32] fix to initialize virtual machine when sound device type is changed
+
+[VM/HD46505] support save/load state
+[VM/I286] support save/load state
+[VM/I8259] support save/load state
+[VM/MCS48] support save/load state
+[VM/UPD1990A] fix to show lsb bit of second after all bit are read
+
+[MZ2200] support save/load state
+[PC8801MA/PC88] fix many PC-8001mkIISR issues (thanks Mr.apaslothy)
+[PC8801MA/PC88] fix renderer for graphic screen with text attribute color
+[X1] support save/load state
+[X1TWIN] support save/load state
+[X1TURBO] support save/load state
+
+
+12/23/2014
+
+[EMU/WIN32] simplify get/put functions for several types in file i/o class
+
+[VM/BEEP] support save/load state
+[VM/DATAREC] support save/load state
+[VM/DISK] support save/load state
+[VM/DISK] fix issue that disk image except d88 or beta image may not be saved
+[VM/EVENT] fix load state function to update number of sound samples per frame
+[VM/FMGEN] support save/load state
+[VM/I8251] support save/load state
+[VM/I8253] support save/load state
+[VM/I8255] support save/load state
+[VM/IO] support save/load state
+[VM/MB8877] support save/load state
+[VM/PC6031] fix to initialize old_D2H
+[VM/PC80S31K] support save/load state
+[VM/PCM1BIT] support save/load state
+[VM/RP5C01] support save/load state
+[VM/UPD765A] support save/load state
+[VM/UPD1990A] support save/load state
+[VM/W3100A] support save/load state
+[VM/YM2151] support save/load state
+[VM/YM2203] support save/load state
+[VM/Z80] support save/load state
+[VM/Z80CTC] support save/load state
+[VM/Z80DMA] support save/load state
+[VM/Z80PIO] support save/load state
+[VM/Z80SIO] support save/load state
+
+[MZ80B] support save/load state
+[MZ1500/QUICKDISK] fix to clear first data/send break flags
+[MZ2500] support save/load state
+[MZ2500/CMT] fix issue that Laydock is not correctly booted
+[PC8001MKIISR] support save/load state
+[PC8801MA] support save/load state
+[PC8801MA/PC88] fix to reset dirty NIPPY patch flag
+[PC8801MA/PC88] fix not to render text scree when dma ch.2 is not running
+
+
+12/18/2014
+
+[EMU/WIN32] support save/load state
+[EMU/WIN32] support get/put functions for several types in file i/o class
+
+[VM/EVENT] support save/load state functions
+[VM/HUC6280] support save/load state functions
+[VM/I8155] fix to clear event register id in reset()
+[VM/I8253] fix to clear event register id in reset()
+[VM/UPD765A] fix to clear event register id in reset()
+
+[MZ2500/CMT] fix to check the pulse width of ipl reset signal
+[PCENGINE] support save/load state
+
+
+12/16/2014
+
+[VM/MB8877] fix to show not ready status a moment when no command is running
+
+[MZ80A] add EmuZ-80A codes (thanks Mr.Suga)
+
+
+11/28/2014
+
+[X1TURBO/DISPLAY] fix text renderer for 32rasters/char mode
+
+
+11/22/2014
+
+[WIN32/SCREEN] support two screen stretch modes keep aspect and fill screen
+
+[VM/I8080] fix debugger trace issue in busreq status
+[VM/I86] fix debugger trace issue in busreq status
+[VM/I286] fix debugger trace issue in busreq status
+[VM/I386] fix debugger trace issue in busreq status
+[VM/Z80] fix debugger trace issue in busreq status
+
+
+11/21/2014
+
+[PC8801MA/PC88] fix to support multi blocks tape images
+[PC8801MA/PC88] add dirty patch for NIPPY
+
+
+10/29/2014
+
+[PC8801MA/PC88] fix to check dma underrun in every frames
+[PC8801MA/PC88] fix port number of crtc status
+[PC8801MA/PC88] add function to read crtc parameters
+
+
+10/28/2014
+
+[PC8801MA/PC88] fix crtc issue that dma underrun never occurs
+[PC8801MA/PC88] fix crtc status
+
+
+10/27/2014
+
+[PC8801MA/PC88] revert the uPD5257 fix for CHOBIN
+
+
+10/26/2014
+
+[WINMAIN] fix frame rate issue again
+
+
+10/25/2014
+
+[WINMAIN] fix frame rate issue (thanks Mr.Rednow)
+[WIN32/DEBUGGER] fix issue about inputting decimal value
+
+[VM/Z80] fix disassembler
+
+[PC8801MA/PC88] fix uPD8257 dma controller
+[PC9801] fix PC-9801-26K bios size
+
+
+10/11/2014
+
+[WIN32/DEBUGGER] fix issue that hexa value ends with d is recognized as decimal
+
+[VM/Z80] fix disassembler
+
+[PC8801MA/PC88] fix to press insdel key automatically when backspace is pressed
+
+
+10/10/2014
+
+[VM/I8155] fix issue in the case that cpu clock is less than const frequency
+[VM/I8253] fix issue in the case that cpu clock is less than const frequency
+[VM/Z80CTC] fix issue in the case that cpu clock is less than const frequency
+
+[PC8801MA/PC88] support PCG-8100
+
+
+10/4/2014
+
+[PC8801MA/PC88] fix color/monochrome and 320x200/640x200 bits in port31
+
+
+9/29/2014
+
+[WIN32/SCREEN] support crt filter
+
+[BABBAGE2ND] update circuit board picture
+[PC9801U] support NEC PC-9801U
+[PC9801VF] support NEC PC-9801VF
+
+
+9/13/2014
+
+[WIN32/DEBUGGER] support search command
+
+[VM/I86] support to change IP register value from debugger console
+[VM/I286] support to change IP register value from debugger console
+[VM/I386] support to change IP register value from debugger console
+[VM/MC6800] support debugger
+
+[HC20/MEMORY] fix keyboard chattering
+
+
+9/7/2014
+
+[WIN32/DEBUGGER] support debugger console
+
+[VM/DEBUGGER] support common debugger object
+[VM/EVENT] fix to check ownew of event before it is canceled
+[VM/I8080] support debugger
+[VM/I86] support debugger
+[VM/I86] remove code for i186 and i286
+[VM/I286] fix for i8086/i8088/i80186
+[VM/I286] fix not to quit REP when remained icount is less than 0
+[VM/I286] support debugger
+[VM/I386] support debugger
+[VM/MB8877] fix not to cancel event registered by other device
+[VM/MCS48] support debugger
+[VM/UPD7801] support debugger
+[VM/Z80] support debugger
+
+[FM16PI] fix to use new i86 core
+[FMR30] fix to use new i86 core
+[MZ2200] fix to use new i86 core
+[MZ5500] fix to use new i86 core
+[MZ6500] fix to use new i86 core
+[MZ6550] fix to use new i86 core
+[PC8801/PC88] fix uPD8257 address and counter registers
+[PC100] fix to use new i86 core
+[PC9801] fix to use new i86 core
+[PC9801E] fix to use new i86 core
+
+
+8/29/2014
+
+[PC8801/PC88] fix crtc to support non transparent mode
+[PC8801/PC88] fix crtc issue that cursor is not displayed in non attibutes mode
+
+
+8/28/2014
+
+[COMMON] fix all vcproj files to set WholeProgramOptimization option
+[WINMAIN] support 320x240 full screen mode
+
+[VM/FMGEN] update fmgen.cpp from v1.49 to v1.50 (thanks Mr.Rururu-Tan)
+[VM/FMGEN] update opna.cpp from v1.68 to v1.70 (thanks Mr.Rururu-Tan)
+[VM/DATAREC] support NEC PC-6001 cas/p6 format tape image
+[VM/I386] fix memory leak issue
+[VM/I386] fix x87 opcodes FPREM and FPREM1 based on MAME 0.154
+[VM/MC6847] support enable/disable signal
+[VM/PC6031] support NEC PC-6031 and PC-6032 (thanks Mr.Nishida)
+[VM/UPD765A] fix to compare all of C/H/R/N to search sector (thanks Mr.Haserin)
+
+[GAMEGEAR/MEMORY] fix memory leak issue
+
+[MZ2500] fix to reset only cpu and memory map in standard (non-ipl) reset
+[MZ2500/CMT] fix to check the pulse width of ipl reset and cmt eject signals
+[MZ2500/CRTC] fix 640x400, 4 colors mode for Yukara K2 (temporary)
+[MZ2500/FLOPPY] support i/o signal to swtich internal/external floppy drives
+[MZ2500/FLOPPY] remove dirty patch for Laydock
+
+[PC6601] support real sub cpu emulation (thanks Mr.Moriya)
+[PC6601/FLOPPY] rename system to floppy
+[PC6601/FLOPPY] split to PC-6601 internal floppy drive class and PC-6031 class
+[PC6601/FLOPPY] support to switch internal/external floppy drives
+[PC6601/MEMORY] split to memory class and timer/irq class
+[PC6601/MEMORY] support CRTKILL/BUSRQ signals
+[PC6601/PSUB] rename keyboard to psub (pesudo sub cpu)
+[PC6601/PSUB] simplify cmt codes
+
+[PC8801/PC88] fix text attributes
+
+
+5/15/2014
+
+[PC6001] update yaPC-6001/6201/6601 codes (thanks Mr.tanam)
+[PC6001] support PC-80S31K floppy drives
+[PC6001MK2] support PC-80S31K floppy drives
+[PC6001MK2SR] add yaPC-6401 codes (thanks Mr.tanam)
+[PC6601SR] add yaPC-6801 codes (thanks Mr.tanam)
+
+
+5/1/2014
+
+[VM/I286] reimplement based on MAME 0.149
+[VM/I286] support disassembler
+[VM/I386] reimplement based on MAME 0.152
+[VM/I386] support disassembler
+
+[FMR50] split project for i286, i386 and i486
+[FMR60] split project for i286, i386 and i486
+[FMR50/MEMORY] improve memory address mask for cpu and dma
+[FMR50/MEMORY] support shutdown flag
+[FMR50/MEMORY] remove invalid color palette i/o
+[FMR50/MEMORY] fix text color palette #0
+[FMR50/MEMORY] fix text reverse/blink
+[FMR50/TIMER] support free run counter
+
+
+4/17/2014
+
+[WINMAIN] fix resource leak issue (thanks Mr.Redart)
+[EMU/WIN32] fix resource leak issue (thanks Mr.Redart)
+
+[VM/FMGEN] fix compiler dependent issue
+[VM/YM2203] support full sound generator dll features (thanks Mr.Redart)
+
+[MZ1500/QUICKDISK] support *.qdf raw quick disk images
+[PX7/MEMORY] fix super impose signal based on openMSX-0.10.0
+
+
+4/10/2014
+
+[EMU/WIN32] support to map keys to joystick buttons
+
+[GAMEGEAR] fix to map keys to joystick buttons
+[MASTERSYSTEM] fix to map keys to joystick buttons
+[PX7/MEMORY] fix to add one clock wait for each m1 cycle
+[PC6001] update yaPC-6001/6201/6601/6801 codes (thanks Mr.tanam)
+
+
+4/8/2014
+
+[EMU/WIN32] support to capture the movie sounds in DirectShow codes
+
+[VM/DATAREC] support SORD M5 cas format tape image
+[VM/LD700] support PIONEER LD-700 laser-disc player based on openMSX-0.10.0
+[VM/PCM1BIT] fix noise occurs when input signals top
+[VM/YM2203] support to overwrite i/o mode to fixed value
+
+[M5/CMT] stop loading cmt when tape image reaches the end of tape
+[PX7] support PIONEER PX-7 (MSX1 + laser-disc player)
+[PX7] fix MSX1 implements (thanks Mr.umaiboux)
+
+
+4/7/2014
+
+[WINMAIN] fix issue in the case that menu bar becomes multi line
+
+[VM/DATAREC] fix to output no sound signal when tape image reaches end of tape
+[VM/YM2203] fix build error in YM2608 case
+
+
+4/1/2014
+
+[VM/TMS9918A] fix mode1 and mode1+2 to fill out of screen with back color
+[VM/YM2203] fix i/o port codes for AY-3-8910/8912/8913
+[VM/YM2203] fix assert issue in fmgen module (thanks Mr.Mamiya)
+
+[PC8001MK2SR] fix ini file name
+
+
+3/26/2014
+
+[EMU/WIN32] improve video recorder timing to sync to sound recorder
+[EMU/WIN32] improve video recorder to compress frames in another thread
+[EMU/WIN32] support to play a movie file
+[EMU/WIN32] support Fgets() in file i/o class
+[EMU/WIN32] support new function to get the file path without extension
+
+[VM/TMS9918A] support super impose
+
+[GAMEGEAR] add yaGAMEGEAR codes (thanks Mr.tanam)
+[MASTERSYSTEM] add yaMASTERSYSTEM codes (thanks Mr.tanam)
+[PC6001] update yaPC-6001 codes (thanks Mr.tanam)
+[PC6001MK2] add yaPC-6201 codes (thanks Mr.tanam)
+[PC6601] add yaPC-6601 codes (thanks Mr.tanam)
+[PX7] support PIONEER PX-7 (MSX1 + laser-disc player) (partial)
+
+
+1/8/2014
+
+[VM/DISK] fix cpdread converter to check cylinder/side in track info block
+[VM/DISK] fix cpdread converter to check deleted mark
+[VM/MB8877] fix to seek one track when force interrupt is done
+
+[MZ800/FLOPPY] connect fdc drq signal to cpu irq pin
+[MZ800/FLOPPY] support irq mask register
+[MZ800/FLOPPY] support motor on/off signal delay
+[MZ800/MEMORY] support monochrome display
+[MZ800/MEMORY] fix to connect vblank signal to Z80PIO:PA5, not hblank signal
+
+
+12/31/2013
+
+[EMU/WIN32] support printer interface
+
+[PC8801/PC88] support printer interface
+[PC9801/PRINTER] support printer interface
+[PC98LT/PRINTER] support printer interface
+[MZ800] change the floppy drive type from 2D to 2DD
+[X1TURBO/PRINTER] support printer interface
+
+
+12/5/2013
+
+[VM/MC6840] support MC6840 (partial)
+
+[PC8801/PC88] fix to show opn busy flag at the first access only for ALPHA
+[PC8801/PC88] support crtc reverse flag
+
+
+8/24/2013
+
+[EMU/WIN32] fix access lamp renderer for Direct3D9
+
+[VM/HD46505] fix to initialize frequency if vline is lesser than 400
+[VM/MB8877] fix not to show record not found status after drive is changed
+[VM/MB8877] fix to activate access lamp while searching target sector
+[VM/MC6847] add function to load external cgrom image
+[VM/MC6847] support to request bus to cpu in display timing
+[VM/MC6847] support color bleed in black/white pattern (thanks Mr.tanam)
+
+[PC6001] add yaPC-6001 codes (thanks Mr.tanam)
+[X1TURBO/EMM] change EMM memory size to 320KB
+[X1TURBO/PSUB] fix to clear irq flag when z80 reads data from sub cpu
+
+
+8/21/2013
+
+[WINMAIN] fix to use GetFullPathName() to get the parent directory
+
+[VM/MB8877] modify constant period for searching sector
+
+
+8/16/2013
+
+[VM/DISK] add ugly patch for X1turbo ARCUS
+[VM/MB8877] fix to use constant period for searching sector if disk has no skew
+[VM/MB8877] fix to show busy status while searching sector if sector not found
+[VM/Z80DMA] fix dma stop condition
+
+
+8/10/2013
+
+[VM/DATAREC] fix not to skip frames while doint ff/rew
+[VM/DATAREC] support ff/rew for cas and tap images
+[VM/DATAREC] support APSS signals and doing APSS for SHARP X1
+
+[MZ2200] support to select if loading mzt to ram directly or not
+[X1TURBO] fix cmt ff/rew speed to x16
+[X1TURBO/PSUB] support APSS command
+
+
+8/9/2013
+
+[EMU/WIN32] improve debug log function
+
+[VM/Z80DMA] fix not to reset all registers in reset command
+
+[X1] support CZ-8BM2
+[X1/MOUSE] support serial mouse
+
+
+8/8/2013
+
+[VM/DISK] fix not to convert standard disk images to d88 format images
+[VM/DISK] add ugly patch for X1turbo ALPHA
+[VM/HD46505] reset registers and timings in reset()
+[VM/MB8877] fix to use constant wait to search sector for standard disk image
+[VM/MB8877] add ugly patch for X1turbo ALPHA
+[VM/YM2151] fix to show busy status in a moment
+[VM/YM2203] fix to show busy status in a moment
+[VM/Z80DMA] fix dma stop condition
+
+[PC8801/PC88] improve initial memory pattern
+[X1TURBO/DISPLAY] fix text renderer for kanji character on standard display
+[X1TURBO/DISPLAY] fix text renderer for 16rasters/char mode
+[X1TURBO/IO] fix not to add wait for text vram (temporary)
+
+
+8/2/2013
+
+[EMU/WIN32] fix to create new avi file when current file is close to 2GB
+
+[VM/DISK] support 1.20MB/1.44MB/2.88MB floppy disk images
+[VM/DISK] fix to add index mark in track image
+[VM/UPD765A] fix read data command when sector size or number is invalid
+[VM/UPD765A] fix seek time for MZ-3500
+
+
+8/1/2013
+
+[VM/DEVICE] support virtual function to set or get expend cpu clocks
+[VM/DEVICE] support virtual function to get passed usec
+[VM/DEVICE] support virtual functions for dma access with i/o wait
+[VM/DISK] support function to get perid to transfer specified bytes
+[VM/DISK] support functions to get drive rpm and track size
+[VM/DISK] improve make track image
+[VM/DEVICE] support function to get passed usec
+[VM/I86] support function to get and set expend cpu clocks
+[VM/I86] fix single mode dma when busreq is active
+[VM/I286] support function to get and set expend cpu clocks
+[VM/I386] fix single mode dma when busreq is active
+[VM/I386] support function to get and set expend cpu clocks
+[VM/I386] fix single mode dma when busreq is active
+[VM/MB8877] improve timing of index hole, seek, search sector and transfer data
+[VM/MB8877] improve to raise drq signal for each data
+[VM/MB8877] improve timing of index hole, seek, search sector and transfer data
+[VM/UPD765A] improve read data command to read sector gaps among sectors
+[VM/UPD765A] improve read id command to read id of first found sector
+[VM/Z80] support function to get and set expend cpu clocks
+[VM/Z80] fix single mode dma when busreq is active
+[VM/Z80DMA] improve timing of data transfer, bus request and release
+
+[PC8801/PC88] support to select hireso/standard display type
+[PC8801/PC88] improve memory wait (thanks Mr.Crazy Unit)
+[X1TURBO] fix not to input 2MHz to Z80CTC on CZ-8BS1
+[X1TURBO/DISPLAY] fix color reverse attribute (thanks Mr.Enri)
+[X1TURBO/FLOPPY] support motor on/off signal (thanks Mr.Sato)
+[X1TURBO/IO] improve i/o wait (thanks Mr.Sato)
+
+
+7/25/2013
+
+[X1TURBO/DISPLAY] fix text renderer for vertical/horizontal doubled character
+
+
+7/24/2013
+
+[WINMAIN] support 320x240 fullscreen mode
+[EMU/WIN32] support multiple quick disk drives and cart slots
+[CONFIG] support to read/write ini file
+
+
+7/23/2013
+
+[WINMAIN] simplify codes for boot mode and device type menus
+[EMU/WIN32] fix sound recorder not to output the old samples
+
+[VM/HD146818P] fix not to save backuped ram if it is not modified
+[VM/MCS48] fix to divide the given clocks in MCS48 class
+[VM/MCS48] fix not to run cpu if enough clocks are not given
+[VM/RP5C15] fix not to save backuped ram if it is not modified
+
+[FAMILYBASIC] support to select basic rom
+[FAMILYBASIC/MEMORY] fix not to save backuped ram if it is not modified
+[FMR30/CMOS] fix not to save backuped ram if it is not modified
+[FMR50/CMOS] fix not to save backuped ram if it is not modified
+[J3100SL/SLMEMORY] fix not to save backuped ram if it is not modified
+[PC8801MA] support dipswitch to select memory wait on/off
+[PC8801MA/PC88] fix display vertical frequency
+[PC8801MA/PC88] fix m1 wait and ram/vram wait clocks
+[PC98HA/MEMORY] fix not to learn ram/ram drive/memcard if they are not modified
+[QC10/MEMORY] fix not to save backuped ram if it is not modified
+[TK80BS] support to select basic rom
+[MZ700/CMOS] fix not to save backuped ram if it is not modified
+[SCV/MEMORY] fix not to save backuped ram if it is not modified
+[X1TURBO/PSUB] fix key repeat timing
+[X1TURBO/SUB] fix signal to detect cassette tape
+
+
+5/11/2013
+
+[VM/I286] reimplement based on MAME 0.148
+[VM/I386] reimplement based on MAME 0.148
+[VM/I8255] improve mode #1 and #2
+[VM/MCS48] support mcs48 based on MAME 0.148
+
+[X1TURBO] support real sub cpu and keyboard emulation
+[X1TURBO/DISPLAY] fix routine to get currently displayed character address
+[X1TURBO/DISPLAY] fix routine to render Vx2 character
+[X1TURBO/PSUB] improve key repeat timing
+
+
+4/25/2013
+
+[VM/DATAREC] fix mzt image converter based on Bin2Wav
+
+[MZ2200] fix to reset Z80PIO in special_reset()
+[MZ2200/MEMORYB80] fix to load mzt image to memory only when offset is 0
+[MZ2200/MZ1M01] fix to reset inport value from Z80PIO in reset()
+
+[PC8201] fix cpu clock from 2.4MHz to 2.4576MHz
+[PC8201] support cmt
+[PC8201] fix to reset rtc strobe signal at boot
+
+
+4/14/2013
+
+[WINMAIN] support to show a message on title bar post from vm or emu class
+[WINMAIN] disable close media menu when media file is not opened
+[EMU/WIN32] add function to post a message onto title bar
+
+[VM/DATAREC] fix mzt image converter to add 1sec space after header block
+[VM/DATAREC] support to post the tape status message onto title bar
+[VM/Z80PIO] fix handshake signals in bidirectional mode
+[VM/Z80PIO] fix masks follows bit in control register
+[VM/Z80PIO] fix to disable interrupt until the mask register is written
+
+[MZ80B/MEMORY] support optional 2nd vram
+[MZ2200/MEMORY] fix not to load mzt image to memory when attribute is not $01
+[MZ2200/MZ1M01] support 16bit cpu board (MZ-1M01)
+
+
+3/30/2013
+
+[VM/DATAREC] fix issue that sample number in recorded wav file header is 0
+[VM/DATAREC] improve recording wav file
+[VM/DATAREC] improve wave shaper function to support dB-BASIC
+[VM/EVENT] fix issue that continuous event causes invalid event clock
+[VM/Z80PIO] support handshake mode
+
+[MZ2200/MEMORY] support m1 wait when ipl rom is selected
+[MZ2200/MEMORY] support vram access wait
+[MZ2200/MZ1R13] fix address increment
+
+
+3/29/2013
+
+[MZ2200] support quick disk drive (MZ-1E18 and MZ-1F11)
+[MZ2200/MZ1R12] support to load MZ-1E18 ipl rom image
+[MZ2200/MZ1R13] support to switch kanji/dictionary roms
+
+
+3/28/2013
+
+[WINMAIN] fix to support max 30 screen resolutions
+
+[VM/DATAREC] support wave shaper function
+[VM/EVENT] fix not to skip frames when the sound is outputted
+
+
+3/23/2013
+
+[VM/I8080] support disassembler
+
+[FP200] support CASIO FP-200
+
+
+3/21/2013
+
+[VM/DATAREC] fix to skip the fact chunk in wave file header
+
+[MZ80B] support SHARP MZ-80B
+[MZ2200] support SHARP MZ-2200
+
+
+2/26/2013
+
+[WINMAIN] destry window before emulation core is released
+
+[PC8801MA/PC88] fix text attributes
+
+
+2/7/2013
+
+[EMU/WIN32] remove the function to play media files
+
+[VM/DATAREC] support fast forward and rewind
+[VM/DATAREC] support playing wav file
+[VM/HD146818P] fix to restart timer event when date/time is modified
+[VM/MSM58321] fix to restart timer event when date/time is modified
+[VM/RP5C01] fix to restart timer event when date/time is modified
+[VM/UPD1990A] fix to restart timer event when date/time is modified
+[VM/UPD4990A] fix uPD1990A compatible mode
+[VM/Z80] revert modifying clocks for interrupt in mode2
+
+[FMR30/RTC] fix to restart timer event when date/time is modified
+[HC40/IO] fix to restart timer event when date/time is modified
+[HC80/IO] fix to restart timer event when date/time is modified
+[MZ2500/CASSETTE] support playing a music cassette tape
+[MZ2500/CASSETTE] support load/save a data cassette tape
+[MZ2500/CASSETTE] support fast forward and rewind a cassette tape
+[X07/IO] fix to restart timer event when date/time is modified
+[X1TURBO/SUB] fix to restart timer event when date/time is modified
+[X1TURBO/SUB] support fast forward and rewind a cassette tape
+
+[TOOL/MZ2500] add new tool to cleanup the cassette tape for APSS
+
+
+1/23/2013
+
+[WINMAIN] support drag & drop a cart or disk image files
+
+[VM/HD146818P] support modifying the date and time
+[VM/MSM58321] renamed from RTC58321 to MSM58321
+[VM/MSM58321] support modifying the date and time
+[VM/MSM58321] support busy flag and base signal register
+[VM/MSM58321] remove ugly functions for FMR-50/60
+[VM/MS5832] removed and joined to MSM58321
+[VM/RP5C01] support modifying the date and time
+[VM/RP5C15] removed and joined to RP5C01
+[VM/UPD1990A] support modifying the date and time
+[VM/UPD1990A] remove ugly functions for PC-9801/PC-98LT
+[VM/UPD4991A] support modifying the date and time
+[VM/Z80] revert previous modification
+[VM/Z80] modify clocks for interrupt in mode2
+
+[FM16PI] replace rtc chip from msm5832 to rtc58321
+[FMR30/RTC] support modifying the date and time
+[FMR50/TIMER] support rtc with standard signal connections
+[HC40/IO] support modifying the date and time
+[HC80/IO] support modifying the date and time
+[PC9801] support rtc with standard signal connections
+[PC9801/DISPLAY] initialize year data in memory switch
+[PC98LT/CALENDAR] support rtc with standard signal connections
+[PC100] fix rtc signal connection and now rtc works fine
+[PCENGINE] fix to check the selected cart is for super grafx
+[X07/IO] support modifying the date and time
+[X1TURBO/SUB] support modifying the date and time
+
+
+1/18/2013
+
+[VM/DISK] fix to always save the converted disk image
+[VM/Z80] revert reimplemented Z80 core based on MAME 0.145
+
+[PC8801MA/PC88] support n80 format tape image
+
+
+12/29/2012
+
+[EMU/WIN32] support joysticks with more than 4 buttons
+[EMU/WIN32] support new function to get crc32 value
+
+[VM/DISK] fix make_track() to consider the media type
+[VM/DISK] fix teledisk/imagedisk converter to get the correct media type
+[VM/UPD765A] fix read diagnotics to start reading at the top of 1st sector data
+
+[FAMILYBASIC/PPU] fix crash issue in ppu
+[PC8001MK2SR] support NEC PC-8001mkIISR
+[PCENGINE] support NEC-HE PC Engine / SuperGrafx
+
+
+10/25/2012
+
+[PC8801MA/PC88] fix dma wait cycles on V1S mode
+
+
+10/23/2012
+
+[VM/HUC6280] reimplement based on MAME 0.147
+[VM/I286] reimplement based on MAME 0.147
+[VM/I386] reimplement based on MAME 0.147
+
+[FAMILYBASIC/MEMORY] fix joypad status
+[PC8801MA/PC88] fix video memory wait on V1S mode
+[X1TWIN/PCE] reimplement vdc based on MESS 0.147
+
+
+8/18/2012
+
+[EMU/WIN32] support to switch GDI/Direct3D9
+
+[VM/UPD7220] add get_start() function
+[VM/YM2203] support mamefm.dll(V1)
+
+[PC8801MA/PC88] fix text attributes based on m88
+[PC8801MA/PC88] fix to update memory wait in reset() 
+[PC9801/DISPLAY] fix to check gdc start status
+
+
+3/20/2012
+
+[EMU/WIN32] fix not to render screen to Direct3D9 buffer while recording video
+
+[VM/DEVICE] add new virtual function to nitify ei opecode is done on cpu
+[VM/YM2151] fix to raise/clear irq line when it is changed as level signal
+[VM/YM2203] fix to raise/clear irq line when it is changed as level signal
+[VM/Z80] fix to notify ei opecode is done on z80 core
+
+[PC8801MA/PC88] fix sound irq based on m88 for Lipstick Adv and Re-Fight
+
+
+3/15/2012
+
+[EMU/WIN32] fix to renew vm class instance to change cpu clock in reset()
+
+[PC8801MA/PC88] support data recorder
+[PC8801MA/PC88] fix not to show pallete#0 color when graph screen is disabled
+[PC8801MA/PC88] fix to recognize ctrl + comma/period as numpad comma/period
+
+
+3/6/2012
+
+[WINMAIN] fix to reset timing controls when run any extra frames to fill sound buffer
+[EMU/WIN32] fix to stretch offscreen buffer in both window mode and fullscreen mode
+[EMU/WIN32] fix to call ReleaseDC() to release the device context
+[EMU/WIN32] fix to call SelectObject() to select the old hBmp before release the DIBSection
+[EMU/WIN32] fix to start play sound buffer when virtual machine is driven
+[EMU/WIN32] fix to use constant threshold for joystick direction values
+[EMU/WIN32] support table to convert given keycodes from winmain
+[EMU/WIN32] fix to initialize d88 multi volume handler
+
+[VM/DEVICE] add virtual function to fetch opecode
+[VM/FMGEN] fix to give the advanced time with chip clock, not usec
+[VM/YM2151] fix to initialize register #29 to enable only timer interrupt
+[VM/YM2151] fix to update fmgen count when read/write opm registers
+[VM/YM2151] fix to update fmgen count with chip clocks
+[VM/YM2203] fix to update fmgen count when read/write opn(a) registers
+[VM/YM2203] fix to update fmgen count with chip clocks
+[VM/Z80] fix to use new fetch_op() function to fetch opecode from memory bus
+
+[PASOPIA] support floppy drives by Mr.zak
+[PASOPIA/DISPLAY] fix attribute and display mode by Mr.zak
+[PASOPIA/MEMORY] fix vram access via pio by Mr.zak
+[PASOPIA/PAC2] support kanji rom and joystick pac by Mr.zak
+[PASOPIA/RAMPAC2] support to change file to load/save rampac2 image by Mr.zak
+
+[PASOPIA7] fix memory bank switch by Mr.zak
+[PASOPIA7/RAMPAC2] support to change file to load/save rampac2 image by Mr.zak
+
+[PC8801MA] change rtc device type from uPD1990A to uPD4990A
+[PC8801MA/PC88] support bus mouse
+[PC8801MA/PC88] change memory wait cycles
+[PC8801MA/PC88] fix not to draw cursor before cursor position is updated
+[PC8801MA/PC88] fix to refer text attributes for hireso screen
+[PC8801MA/PC88] fix a ugly patch for attributes issue for RST Ongaku Disk 12
+
+
+2/22/2012
+
+[WINMAIN] add codes to check memory leaks in debug build
+[VM/*] fix memory leaks
+
+[MULTI8/CMT] fix not to refer other device in release() function
+[MZ1500/QUICKDISK] fix not to refer other device in release() function
+[PC9801/CMT] fix not to refer other device in release() function
+[TK80BS/CMT] fix not to refer other device in release() function
+
+
+2/21/2012
+
+[PC8801MA/PC88] update memory wait cycles
+
+
+2/20/2012
+
+[WINMAIN] support d88 disk image with multi voluemes
+[EMU/WIN32] update screen manager with Direct3D9
+
+[VM/DISK] support d88 disk image with multi voluemes
+
+[JX/DISPLAY] fix not to render screen just after screen size is changed
+[PC8801MA/PC88] fix to render 640x400 graph screen refering text attributes
+[PC8801MA/PC88] update memory/dma wait cycles based on m88 and QUASI88
+
+
+2/16/2012
+
+[WINMAIN] simplify timing controls
+[EMU/WIN32] simplify screen manager
+[EMU/WIN32] fix to capture the rotated screen in vertical screen mode
+
+[VM/Z80] reimplement based on MAME 0.145 Z80 core
+
+[PC8801MA] support NEC PC-8801MA
+[PC8801MA/PC88] fix to initialize main ram pettern
+[PC8801MA/PC88] fix text window
+[PC8801MA/PC88] fix to clear vram bank when alu is active
+[PC98DO] remove dictionary rom, joystick and opna sound
+
+
+2/13/2012
+
+[PC98DO/PC88] fix to show opn busy flag at the first access (for ALPHA)
+
+[VM/EVENT] fix not to clear sound buffer index in reset function
+[VM/I8255] fix not to clear output signals in default setting
+
+
+2/11/2012
+
+[PC98DO/PC88] fix to select hireso screen only in monochrome mode
+[PC98DO/PC88] fix crtc registers
+[PC98DO/PC88] fix the character scan lines and screen height again
+[PC98DO/PC88] fix to consider the number of attributes data
+[PC98DO/PC88] add a ugly patch for attributes issue for alpha
+
+[VM/I8255] fix to clear output signals when control register is written
+[VM/Z80] fix not to output debug log for continuously executed halt command
+
+
+2/8/2012
+
+[EMU/WIN32] fix to release all pressed keys when the main window lost focus
+
+[PC98DO/PC88] fix hireso/mono graphic screen renderer
+[PC98DO/PC88] support dictionary rom
+[PC98DO/PC88] fix the character scan lines and screen height again
+
+
+2/7/2012
+
+[VM/UPD765A] fix the wait time to finish seek command
+
+[PC9801/DISPLAY] support semi graphics on text screen
+
+
+2/6/2012
+
+[VM/YM2151] fix to raise irq when timer is expired before it is reset
+[VM/YM2203] support YM2608(OPNA)
+[VM/YM2203] fix to raise irq when timer is expired before it is reset
+
+[PC98DO/PC88] fix to clear text screen when dma overrun occurs
+[PC98DO/PC88] fix to refer same palettes in 8/512 color mode
+[PC98DO/PC88] support OPNA sound (though PC-98DO does not support OPNA...)
+[PC98DO/PC9801] support OPNA sound (though PC-98DO does not support OPNA...)
+
+
+2/2/2012
+
+[VM/Z80] fix to consider meaningless $dd/$ed/$fd
+
+[PC9801] disable i/o port to change mouse irq frequency
+[PC9801E] disable i/o port to change mouse irq frequency
+[PC98DO/PC88] fix to raise vrtc irq when crtc is not started
+
+
+1/31/2012
+
+[VM/UPD1990A] support uPD4990A
+
+[PC98DO/PC88] support caps/kana lock
+[PC98DO/PC88] fix to reverse strobe signal to rtc
+
+
+1/30/2012
+
+[PC98DO/PC88] fix text attributes again
+[PC98DO/PC88] fix not to raise irq when disk is changed
+
+
+1/29/2012
+
+[PC98DO/PC88] fix to canel the requested irq when it is masked
+[PC98DO/PC88] fix text attributes
+
+
+1/27/2012
+
+[VM/DISK] fix the routine to check d88 format
+[VM/EVENT] fix the event manager for sub cpu event timing
+
+
+1/25/2012
+
+[WINMAIN] support to specify the minimum window width
+
+[EMU/WIN32] fix the routine to detect the shift and numpad keys are pressed
+
+[VM/DISK] fix to check if the inserted disk image is really d88 format
+[VM/EVENT] update event manager to check events in every cpu opecode
+[VM/HUC6260] update cpu to run only one opecode and return clocks
+[VM/I86] update cpu to run only one opecode and return clocks
+[VM/I386] update cpu to run only one opecode and return clocks
+[VM/M6502] update cpu to run only one opecode and return clocks
+[VM/MC6800] update cpu to run only one opecode and return clocks
+[VM/MC6809] update cpu to run only one opecode and return clocks
+[VM/TMS9995] update cpu to run only one opecode and return clocks
+[VM/UPD765A] fix to get the side number from hdu param in SHARP MZ-3500 case
+[VM/UPD765A] fix index hole signal width and frequency
+[VM/UPD7801] update cpu to run only one opecode and return clocks
+[VM/Z80] update cpu to run only one opecode and return clocks
+
+[HC80/IO] fix the memory access violation issue when run without rom images
+[PC100/IOCTRL] move keyborad initialization from intialize() to reset()
+[PC98DO] raise irq when disk is inserted or ejected
+[PC98DO/MOUSE] fix not to clear the registered event when machine is reset
+[PC98DO/PC88] fix extended vram selection mode
+[PC98DO/PC88] fix the key code table for ins/del
+[PC98DO/PC88] fix to convert the pressed ins/f6-10 keys to shift + del/f1-f5
+[SC3000] support SF-7000
+[SC3000] fix to negate the motor on/off signal from pio pc1
+
+
+1/18/2012
+
+[EMU/WIN32] support to detect the shift and numpad keys are pressed
+
+[VM/I8080] fix to refer read_data8w() to fetch opcode if memory wait is active
+[VM/UPD765A] fix to accept seek command before other seek is not finished
+[VM/UPD765A] fix to accept tc in result phase after read/write commands
+[VM/YM2203] fix to read the input port value though the port mode is output
+[VM/Z80] fix to refer read_data8w() to fetch opcode if memory wait is active
+
+[PC98DO/PC88] support joystick (though PC-98DO does not support joystick...)
+[PC98DO/PC88] fix i/o port to read expanded ram selection in $e2
+[PC98DO/PC88] fix i/o port to read 15KHz/24KHz monitor type in $40
+[PC98DO/PC88] fix hireso/mono graphic screen renderer
+[PC98DO/PC88] support memory access wait (temporary)
+[PC98DO/PC88] fix to raise busreq while dma is running in V1(S)/N mode
+[VM/X1TWIN] remove the routine to detect the shift and numpad keys are pressed
+
+
+1/11/2012
+
+[VM/HD46505] support to update the timing settings in the event manager
+[VM/UPD7220] support to update the timing settings in the event manager
+
+[VM/PC9801E] support to switch crt frequency
+[VM/PC9801VM] support to switch crt frequency
+[VM/PC98DO] support to switch crt frequency
+[VM/X1TURBO] support to switch crt frequency
+
+
+1/9/2012
+
+[VM/DEVICE] add virtual function to get the id of parent event manager
+[VM/EVENT] fix to notify the timing changes only to child devices
+
+[PC9801E] support to switch cpu clocks
+[PC9801VM] support to switch cpu clocks
+[PC98DO] support to switch cpu clocks
+
+
+1/7/2012
+
+[VM/DEVICE] add virtual function to notify that timing settings are changed
+[VM/EVENT] fix to notify to all devices when timing settings are changed
+[VM/PC80S31K] add ugly patch to enable both #1 and #2 drives
+[VM/UPD765A] fix that recalib is successfully done though disk is unformatted
+[VM/YM2203] fix to update the period that fmgen is driven in vline
+[VM/YM2151] fix to update the period that fmgen is driven in vline
+
+[PC98DO/PC88] fix to connect opn irq line to the interrupt controller
+[PC98DO/PC88] fix to initialize opn input ports
+[PC98DO/PC88] fix to access high speed tvram through dma in V1(H)/V2 mode
+[PC98DO/PC88] fix to draw text screen when crtc is already started
+[PC98DO/PC88] fix the initial attribute before it is changed
+[PC98DO/PC88] fix the character scan lines (temporary)
+[PC98DO/PC88] support 2HD disks
+
+
+1/5/2012
+
+[VM/HD46505] fix the issue that vline event is not correctly registered
+[VM/UPD765A] fix the issue that CP/M Plus does not boot correctly on QC-10
+
+
+12/31/2011
+
+[EMU/WIN32] support to change the frame timing by virtual machine
+
+[VM/DEVICE] support multiple event manager
+[VM/DISK] support to detect the disk ejection
+[VM/EVENT] support multiple cpus with different clocks
+[VM/HD46505] fix typo
+[VM/I8237] support word transfer
+[VM/I8259] fix to wait a few time to raise irq that imr is cleared
+[VM/PC80S31K] support PC-80S31K floppy drives
+[VM/UPD765A] support non dma mode
+[VM/UPD765A] fix to clear irq signal when result pahse is finished
+[VM/UPD765A] support irq/drq mask signals
+[VM/UPD765A] support to detect the disk ejection
+[VM/Z80] support NOP in IM0 interrupt
+
+[FP1100] set correct sub cpu clock
+[J3100] support TOSHIBA J-3100GT/SL (not work)
+[MZ800] reset virtual machine when boot mode is changed
+[PC9801] support 320KB floppy drives
+[PC9801VM] support NEC PC-9801VM
+[PC98DO] support NEC PC-98DO
+[QC10] fix the issue that CP/M Plus does not boot correctly
+[MZ2500/SASI] refine code
+
+
+8/6/2011
+
+[EMU/WIN32] render access lamp in emu class
+
+[VM/MC6820] support MC6820 (partial)
+
+[M5/CMT] support reset/halt key
+[X1TURBO] fix i/o map for i8255 at 01a**h
+[X1TURBO/IO] clear i/o tables to fix debug build issue
+
+
+6/1/2011
+
+[VM/BEEP] remove the routine to get frequency from the pulse count
+[VM/MC6800] support MB8861
+
+[HC20/MEMORY] implement some slave cpu commands
+[PASOPIA7] fix signal connections from z80ctc to speaker
+
+
+5/28/2011
+
+[VM/MB8877] clear track register and index hole counter in reset()
+[VM/MC6800] support MC6800/MC6801/HD6301 (based on MAME 0.142)
+[VM/MC6809] support MC6809 (based on MAME 0.142)
+[VM/Z80DMA] fix issues for X1/X1turbo games (thanks Y.S.)
+
+[HC20] support EPSON HC-20
+[PASOPIA] fix OA-BASIC issue
+
+
+5/20/2011
+
+[EMU/WIN32] support sound latency 50msec
+
+[VM/DEVICE] add virtual function do_dma() for single mode dma
+[VM/I8237] support single mode
+[VM/UPD71071] support single mode
+[VM/Z80DMA] fix issues for X1/X1turbo games (thanks Y.S.)
+[VM/Z80DMA] support single mode
+[VM/I86] call do_dma() in every machine cycle for single mode dma
+[VM/I386] call do_dma() in every machine cycle for single mode dma
+[VM/Z80] call do_dma() in every machine cycle for single mode dma
+
+[MZ2800] support single mode dma
+[MZ5500] support single mode dma
+[PC9801] support single mode dma
+[PC9801E] support single mode dma
+[X1TURBO] support single mode dma
+
+
+5/19/2011
+
+[VM/EVENT] fix to check registered count for frame/vline events
+[VM/EVENT] clear event counts before other devices are initialized
+[VM/HD46505] fix to update sync signals in more precise timing
+[VM/HD46505] support notifying vline event to other devices
+[VM/Z80DMA] fix issues for X1/X1turbo games (thanks Y.S.)
+[VM/Z80DMA] fix to return current count/address for init read sequence command
+[VM/Z80DMA] fix do_dma() routine
+
+[JX/DISPLAY] support high resolution screen (partial)
+[JX/DISPLAY] support bankswitch for kanji rom and extended vram
+[MZ800/DISPLAY] remove display class and combine to memory class
+[MZ800/MEMORY] fix scroll registers
+[X1TURBO/DISPLAY] remove crtc vblank/vsync signal generator
+
+
+5/18/2011
+
+[VM/DISK] fix dsk floppy disk image converter
+
+[MZ800] support SHARP MZ-800
+[MZ1500] support floppy disk drives
+
+
+5/16/2011
+
+[JX] fix memory map for kanji rom
+[JX/DISPLAY] fix text screen renderer
+
+
+5/14/2011
+
+[VM/DISK] support dsk floppy disk image based on MESS formats/dsk_dsk.c
+[VM/I8259] support poll command
+[VM/I8259] update eoi command
+[VM/MEMORY] return file size of loaded bios image
+[VM/UPD765A] fix sence interrupt status result
+[VM/UPD765A] fix not to clear exm bit in multi sector read/write
+[VM/Z80CTC] fix not to reset time constant when channel is freezed
+[VM/Z80DMA] fix transfer length when 0 is specified
+
+[JX] support IBM Japan Ltd PC/JX
+[PC9801] set media type for floppy drives
+[X1TURBO/DISPLAY] wait next raster when pcg/cgrom is accessed
+[X1TURBO/SUB] readjust the key repeat timing
+
+
+5/4/2011
+
+[EMU/WIN32] remove patch code for PV-2000 in input manager
+
+[VM/DEVICE] add virtual functions for 16bit/32bit dma
+[VM/I8259] refine code
+[VM/IO] support standard d-ff register
+[VM/IO] support 16bit/32bit dma functions
+[VM/MB8877] change wait period for read/write from 100msec to 70msec
+[VM/HD146818P] check address line in write access
+[VM/UPD765A] check address line in write access
+[VM/W3100A] check address line in write access
+[VM/YM2203] disable status register for AY-3-8912
+
+[MZ80K] refine driver and remove unused io class
+[MZ2800] refine driver and remove unused calendar/timer classes
+[X1TURBO] support dip-switch for monitor type selection
+[X1TURBO/DISPLAY] fix vblank/vsync signals
+[X1TURBO/IO] support standard d-ff register
+
+
+4/27/2011
+
+[COMMON] modify struct union 'pair'
+[VM/EVENT] fix to get more precise cpu clocks
+[VM/HUC6260] fix to get more precise cpu clocks
+[VM/I8080] fix to get more precise cpu clocks
+[VM/I86] fix i286 protected mode boundary check (from MESS)
+[VM/I86] fix POP SP and POP ESP (from MESS)
+[VM/I86] fix to get more precise cpu clocks
+[VM/I386] fix to get more precise cpu clocks
+[VM/M6502] fix to get more precise cpu clocks
+[VM/TMS9995] fix to get more precise cpu clocks
+[VM/UPD7801] fix to get more precise cpu clocks
+[VM/Z80] fix to get more precise cpu clocks
+
+[X1TURBO/DISPLAY] fix to get correct pcg address in hires screen mode
+
+
+4/25/2011
+
+[VM/MB8877] fix to wait 100msec to read/write just after seek command
+[VM/Z80CTC] fix to initialize vector when reset device
+[VM/Z80CTC] fix to copy time constant to counter just after reset command
+[VM/Z80CTC] fix to clear pending irq when RETI opcode is detected
+[VM/Z80CTC] fix to update int signal without checking the current signal
+[VM/Z80DMA] fix to update int signal without checking the current signal
+[VM/Z80PIO] fix to update int signal without checking the current signal
+[VM/Z80SIO] fix to update int signal without checking the current signal
+
+
+4/23/2011
+
+[VM/DISK] fix to check disk type in teledisk converter
+[VM/I86] reimplement based on MAME 0.142 80x86 core
+[VM/I86] support 80186
+[VM/MB8877] fix to clear drq/irq when status register is read
+[VM/UPD71071] fix not to restart dma while dma is running
+[VM/Z80CTC] fix to clear pending irq when control reg is updated
+[VM/Z80DMA] fix not to restart dma while dma is running
+[VM/Z80DMA] fix end of block condition
+[VM/Z80DMA] fix to support auto restart
+
+[X1TURBO/DISPLAY] fix vertical doubled character in hires mode
+[X1TURBO/DISPLAY] fix black character renderer
+
+
+4/15/2011
+
+[VM/DEVICE] add virtual functions for i/o port with dma
+[VM/DISK] support drive type
+[VM/MB8877] add functions to get/set drive type
+[VM/UPD765A] add functions to get/set drive type
+[VM/Z80DMA] change transfer length when block length equals to 0
+
+[X1TURBO] support 2HD floopy disk
+[X1TURBO/FLOPPY] support to change the drive type
+
+
+4/14/2011
+
+[VM/DEVICE] add virtual functions for Z80 daisy chain definitions
+
+[X1TURBO] support 2nd CZ-8BS1 for NRTDRV
+[X1TURBO/DISPLAY] support black/transparency register
+[X1TURBO/SUB] fix xfer key code
+[X1TURBO/SUB] fix ctrl/shift/kana/caps/graph bits in $e6 command
+[X1TURBO/SUB] fix write protected bit in $eb command
+
+
+4/13/2011
+
+[VM/Z80DMA] fix address step count (thanks Kale)
+
+
+4/12/2011
+
+[EMU/WIN32] fix repeat flag for caps/kana/kanji keys
+
+[VM/DISK] fix not to write disk image when data is not modified
+[VM/IO] support read/write interface for dma
+[VM/Z80] fix disassembler
+[VM/Z80DMA] support Z80DMA (based on MAME Z80DMA core)
+
+[PC9801/CMT] support cmt interface
+[X1TURBO] support SHARP X1turbo
+[X1TURBO/DISPLAY] generate HD46505 vblank/vsync signals in display class
+[X1TURBO/IO] support read/write interface with dma
+
+
+4/7/2011
+
+Fix typo (regist -> register, recieve -> receive)
+
+
+4/6/2011
+
+[EMU/WIN32] fix joystick manager
+
+[VM/DISK] support standard disk image without format info
+[VM/Z80SIO] fix abort/break flag
+[VM/Z80SIO] fix not to load data before sync char is loaded
+
+[MZ1500/QUICKDISK] fix unformat error issue
+[X1TWIN] support to enable/disable CZ-8BS1
+[X1TWIN/DISPLAY] fix cursor blink
+[X1TWIN/DISPLAY] combine kanji class to refer the same font rom image
+[X1TWIN/DISPLAY] refine code to support X1turbo series
+[X1TWIN/MEMORY] refine code to support X1turbo series
+
+
+4/2/2011
+
+[X1TWIN/SUB] fix irq handling
+
+
+4/1/2011
+
+[EMU/WIN32] support stereo sound
+[EMU/WIN32] fix joystick initialization
+
+[VM/DATAREC] support to load wave file with 16bit/stereo and any frequency
+[VM/DATAREC] support to load TAP tape images (used for SHARP X1 series)
+[VM/DATAREC] support to rewind tape image
+[VM/EVENT] support stereo sound
+[VM/FMGEN] fix timer not to cause overflow
+[VM/FMGEN] support interface to read int signal
+[VM/SN76489AN] fix mixer issue that volume mixed by other device is doubled
+[VM/YM2151] fix irq handling to refer int signal from fmgen
+[VM/YM2203] fix irq handling to refer int signal from fmgen
+[VM/Z80SIO] support monosync/bisync mode
+[VM/Z80SIO] support auto enables bit in wr3
+[VM/Z80SIO] support send break bit in wr5
+[VM/Z80SIO] support sync/abort bit in rr0
+[VM/Z80SIO] support signals to notify transmitt/recieve is done
+[VM/Z80SIO] support sync signal (input/output)
+[VM/Z80SIO] fix not to reset external signals
+
+[MZ1500] support quick disk drive
+[PC9801] support irq connection from PC-9801-26
+[PC9801/DISPLAY] support 200 lines screen mode
+[PC9801/JOYSTICK] support joystick
+[X1TWIN] support CMT device
+[X1TWIN/EMM] support 512kb emm board
+[X1TWIN/MEMORY] fix memory mapping for ipl rom
+
+
+2/16/2011
+
+[EMU/WIN32] notify key repeat
+
+[VM/YM2203] fix prescaler for AY-3-8190/8192
+[VM/YM2151] fix typo
+
+[X1TWIN] support fm sound card
+[X1TWIN/DISPLAY] fix routine to render vertical doubled character
+[X1TWIN/DISPLAY] render screen in each scan line
+[X1TWIN/SUB] support pressing both shift and numpad key for XANADU
+[X1TWIN/SUB] support key repeat
+[X1TWIN/SUB] fix ctrl + '_'
+[X1TWIN/SUB] fix $e6 command to return key code until it is released
+
+
+1/26/2011
+
+[EMU/WIN32] support capture screen
+
+[VM/SN76489AN] support SN76489
+[VM/SN76489AN] fix noise period
+
+[X1TWIN/DISPLAY] fix not to update pcg addr frequently for Wibarm
+[X1TWIN/SUB] fix to raise irq just after command with no results was processed
+[X1TWIN/SUB] fix keycode read function
+[X1TWIN/SUB] fix command processing period
+
+
+1/21/2011
+
+[EMU/WIN32] support output debug log to console
+
+[VM/DEVICE] fix virtual functions for memory and i/o access with wait
+[VM/MB8877] support output debug log
+[VM/MB8877] support request cpu to output debug log when status is read
+[VM/Z80] support variable m1 cycle wait
+[VM/Z80] support disassembler to output executed mnemonics
+[VM/Z80SIO] change delay timing for data transmitter
+
+[X1TWIN] fix i/o map for display controller and text/attr vram
+[X1TWIN/DISPLAY] fix routine to render vertical doubled character
+[X1TWIN/DISPLAY] fix routine to get accessing vram address and raster
+[X1TWIN/DISPLAY] fix graphic renderer to check view range in crtc registers
+[X1TWIN/FLOPPY] fix not to stop motor of floppy drive
+[X1TWIN/MEMORY] fix to wait 1 clock in m1 cycle when ipl rom is selected
+[X1TWIN/SUB] fix not to raise irq before all data are recieved by main cpu
+[X1TWIN/SUB] fix to exit interrupt automatically without reti
+[X1TWIN/SUB] fix to raise obf when new command is processed
+[X1TWIN/SUB] fix caps lock
+[X1TWIN/SUB] remove game key read command because this is turbo feature
+
+
+1/17/2011
+
+[PV1000/VDP] fix pattern offset register for Dig-Dug and Space Panic
+
+
+1/16/2011
+
+[VM/YM2203] support AY-3-8190/8192
+[VM/Z80SIO] fix transmit/status interrupt
+
+[SCV/SOUND] support 2nd and 3rd square wave generators (by Mr.kazz)
+[SCV/SOUND] fix not to accept new command before return ack (by Mr.kazz)
+[MZ2500/CRTC] fix gfx plane mask register
+[MZ2500/CRTC] fix scroll registers
+[MZ2500/CRTC] fix to effect transparency register to outside of text region
+[MZ2500/CRTC] support screen mask i/o signal
+[MZ2500/CRTC] optimize screen rederer
+[MZ2800/CRTC] fix gfx plane mask register
+[MZ2800/CRTC] fix to effect transparency register to outside of text region
+[MZ2800/CRTC] support screen mask i/o signal
+[MZ2800/CRTC] optimize screen rederer
+[X1TWIN/DISPLAY] support 4 rasters * 50 lines screen for XEVIOUS
+[X1TWIN/SUB] fix get calender command
+
+
+12/28/2010
+
+[EMU/WIN32] support power off notification
+
+[VM/DATAREC] support to load MZT/M12 tape images (used for SHARP MZ series)
+[VM/I8251] support break signal
+[VM/MB8877] change irq signal to low when new command is processed
+[VM/MSM5832] support address write signal
+[VM/Z80SIO] support cts/dcd signals
+
+[FM16PI] support FUJITSU FM16pi
+[SC3000/KEYBOARD] fix the issue that multiple keys in the same column cannot be pressed at the same time
+[MZ1500] support z80sio for quick disk and rs-232c (not work)
+
+
+9/29/2010
+
+[VM/UPD765A] fix not to retry read id command
+[VM/UPD765A] fix to return the result of non-seek commands for sence intstat
+[VM/UPD765A] fix to update the data lost event when data is read/written
+
+[PC9801] fix not to disable fdc i/o in the case fd bios roms are not loaded
+
+
+9/20/2010
+
+[VM/DEVICE] support interface for memory mappied i/o
+[VM/I8237] fix bank register
+[VM/I8253] fix counter latch before the counter update event is occured
+[VM/MEMORY] support general memory bus
+[VM/SN76489AN] fix noise generator
+[VM/UPD765A] fix to wait 100usec before go to result phase
+[VM/UPD7220] fix not to terminate write command after data is set
+[VM/UPD7220] support interface to get the cursor address and top/bottom lines
+
+[MZ3500/MAIN] update memory mapper
+[MZ3500/SUB] implement serial i/o for keyboard
+[PC9801] support NEC PC-9801
+[PC9801E] support NEC PC-9801E/F/M
+
+
+9/4/2010
+
+[VM/EVENT] support to run extra frames for continuous sound
+[VM/IO] support to register the return value
+[VM/IO] refine i/o map registrations
+[VM/UPD765A] support external drive selection
+[VM/UPD765A] fix not to output index hole signal if disk is not inserted
+
+[MZ1500] fix sound mask (for thunder force)
+[MZ1500/DISPLAY] fix to refer bit3 of pcg attribute
+[MZ1500/MEMORY] support pcg ram wait
+[MZ1500/MEMORY] fix memory mapped i/o range
+[MZ1500/RAMFILE] support ram file
+[MZ3500] reimplement SHARP MZ-3500 (not work)
+[PASOPIA7/IO] refine i/o map registrations
+[PHC20] support SANYO PHC-20
+[X1TWIN/IO] refine i/o map registrations
+
+
+8/31/2010
+
+[VM/UPD765A] support dack signal
+
+[FP1100/SUB] support logic to clear vram
+[FP1100/SUB] fix vram write access
+[FP1100/SUB] fix screen renderer
+[MZ1500] fix psg i/o addr
+[MZ1500/DISPLAY] fix color palette and priority register
+
+
+8/27/2010
+
+[VM/AND] fix output signal when it is changed
+[VM/OR] fix output signal when it is changed
+[VM/NAND] fix output signal when it is changed
+[VM/NOR] fix output signal when it is changed
+[VM/NOT] fix output signal when it is changed
+[VM/DEVICE] refine signal connections
+[VM/DISK] support SEGA SF-7000 floppy disk image
+[VM/EVENT] sync 2 or more cpus precisely
+[VM/I8253] fix read both low and high counter
+[VM/PCM1BIT] update to check on/off signal width in one sample
+[VM/TMS9918A] fix screen mode selection
+[VM/UPD765A] support reset signal
+[VM/UPD765A] support index hole signal
+[VM/Z80] revert reimplemented Z80 core (temporary)
+
+[FM16PI] remove FUJITSU FM16pi skelton
+[PC3200] remove SHARP PC-3200 skelton
+[FP1100/MAIN] raise sub cpu's int2 at both L->H edge and H->L edge
+[FP1100/SUB] add ugly patch to raise int2 when sub cpu recieve the command
+[MZ80K] support SHARP MZ-80K
+[MZ1200] support SHARP MZ-1200
+[MZ700/MEMORY] init memory map when mzt image is loaded
+[MZ700/MEMORY] support MZ700WIN's patch block when mzt image is loaded
+[MZ1500] support SHARP MZ-1500 (QD is not supported yet)
+[PASOPIA] fix signal connections around z80ctc
+[SC3000] support SEGA SC-3000
+[X1TWIN/SUB] fix sub cpu to check key release
+[X1TWIN/DISPLAY] fix vertical/horizontal doubled character
+[X1TWIN/DISPLAY] fix palette priority register
+
+
+8/13/2010
+
+[EMU/WIN32] reset virtual machine after emu class is initialized
+
+[VM/M6502] support M6502 and N2A03
+[VM/SN76489AN] fix mixer
+[VM/YM2151] fix mixer
+[VM/YM2203] fix mixer
+
+[FAMILYBASIC] support Nintendo Family BASIC
+
+
+8/9/2010
+
+[EMU/WIN32] disable ALT short cut key
+
+[VM/Z80] reimplement Z80 (based on MAME Z80 core)
+
+[MAP1010/KEYBOARD] support keyboard
+[MYCOMZ80A/KEYBOARD] reset key event counter
+
+
+8/6/2010
+
+[VM/MC6847] fix graphics mode
+[VM/MC6847] check vram size in render routine
+
+[MAP1010] support SEIKO MAP-1010 (not work)
+[PHC25] fix psg i/o address
+[PHC25] fix vsync/hsync bit in system port
+[PHC25/JOYSTICK] support joystick
+[PHC25/SYSTEM] fix vdp mode signals in system port
+
+
+8/4/2010
+
+[VM/MC6847] support MC6847
+[VM/UPD7801] add wait signal
+[VM/Z80] support raise irq by write_signal()
+
+[FP1100] support CASIO FP-1100 (not work)
+[PHC25] support SANYO PHC-25
+[MULTI8/FLOPPY] fix floppy drive
+[PV1000/PSG] fix psg frequency
+
+
+6/4/2010
+
+[EMU/WIN32] update screen stretch/rotation
+[EMU/WIN32] support window x3 - x8 modes
+[EMU/WIN32] support fullscreen mode with any resolutions
+[EMU/WIN32] fix video recorder
+[EMU/WIN32] hide menu bar in full screen mode
+[EMU/WIN32] save opened file dir for common dialog's initial dir
+
+[VM/UPD765A] fix result status for recalib/seek commands
+
+[PV1000/PGS] support sound generation (based on MESS driver)
+[PV1000/JOYSTICK] fix $fc status register
+
+
+5/12/2010
+
+[EMU/WIN32] remove Windows CE support
+[EMU/WIN32] remove Direct3D support
+[EMU/WIN32] remove waveOut api support
+[EMU/WIN32] remove video capture support
+
+[VM/DISK] support media type property
+[VM/DISK] check if the current disk image is reopened
+[VM/UPD7220] update csform/csrw commands
+[VM/UPD7220] support unknown $5a command
+[VM/UPD765A] support force ready signal for NEC PC-98 series
+[VM/UPD765A] fix result status for recalib/seek commands
+[VM/UPD764A] update hdu for sence device status command
+[VM/UPD765A] raise interrupt when disk is inserted or ejected
+
+[MZ2500/CRTC] remove super impose support
+[PC98LT] support floppy drive
+[PC98LT/BIOS] support pseudo disk bios to check the media type
+[PC98LT/FLOPPY] remove unused io address for 1MB FDD I/F
+
+
+12/31/2009
+
+[YS6464A] support Shinko Sangyo YS-6464A
+
+
+12/28/2009
+
+[EMU/WIN32] support artwork, buttons and leds for single-board computers
+[VM/I386] reimplement 80386 (based on MAME i386 core)
+[VM/I8237] support increment mask of bank register
+[VM/I8251] check number of sync characters
+[VM/I8253] fix mask bit for output signal
+[VM/UPD7220] check vram pointer is not null
+[VM/Z80CTC] fix issue in the case sysclock is same as cpu clock
+
+[BABBAGE2ND] support Gijutsu Hyron Sha Babbage-2nd
+[N5200] support NEC N5200 (not work)
+[FMR50] check crc32 of bios and set machine id
+[FMR50] select cpu core i286/i386 refering machine id
+[FMR50/MEMORY] support 32bit memory address
+[MULTI8/DISPLAY] fix cursor end line
+[PASOPIA/VM] fix order of z80family's daisy chain
+[PASOPIA7/VM] fix order of z80family's daisy chain
+[MYCOMZ80A/DISPLAY] fix semi graphics mode
+[MYCOMZ80A/DISPLAY] fix cursor end line
+[MYCOMZ80A/KEYBOARD] add key buffer
+
+
+5/25/2009
+
+[VM/UPD7220] fix initial vect params
+[VM/Z80CTC] support different sysclock from cpu clock
+
+[MYCOMZ80A] build without optimization for wince port
+[MZ5500] set correct z80ctc sysclock
+[QC10/DISPLAY] fix access violation problem
+
+
+5/20/2009
+
+[VM/MSM5832] fix build error
+
+[MYCOMZ80A] support Japan Electronics College MYCOMZ-80A (my 30th emulator!)
+[FMR50/CMOS] add experimental codes for FMR-CARD
+[FMR50/MEMORY] add experimental codes for FMR-CARD
+
+
+5/17/2009
+
+[VM/I386] support 80386 (based on PCemu i386 core)
+[VM/LS393] refine implements of output signal
+[VM/MSM5832] support MSM5832
+[VM/SN76489AN] support cs/we/data signal to be controlled without i/o bus
+[VM/Z80CTC] refine implements of output signal
+
+[MZ5500] fix ay-3-8912 address
+[MZ6500] support SHARP MZ-6500
+[FMR50/MEMORY] support address mask 20/24/32bit
+[PC8201/KEYBOARD] support kana key (thanks Mr.apaslothy)
+[X1TWIN/SUB] fix key matrix
+
+
+4/9/2009
+
+[COMMON] modify definition of uint64 and int64
+[VM/DEVICE] support 32bit i/o bus
+[VM/IO] support 32bit i/o bus
+
+[PC8201] support PC-8201A (by Mr.apaslothy)
+[PC8201/LCD] support command $3a,$3b,$3e,$3f,$7e,$be and $fe (by Mr.apaslothy)
+
+
+4/5/2009
+
+[COMMON] define pair struct
+[VM/I8155] fix build error
+[VM/UPD1990A] fix shift register
+
+[PC98LT] fix signal connection from upd1990a to i8255
+[X1TWIN] fix key matrix
+[PC8201] support NEC PC-8201
+
+
+4/1/2009
+
+[COMMON] define uint64 and int64
+[EMU/WIN32] support 1024x768 and 1280x1024 full-screen mode
+[VM/DEVICE] support 32bit memory bus
+[VM/DISK] detect disk is changed
+[VM/EVENT] remove hsync event
+[VM/EVENT] initialize sound buffer before reset
+[VM/EVENT] multi instance free
+[VM/HD46505] support vblank signal
+[VM/HD63484] support HD63484 (based on MAME HD63484 core)
+[VM/HUC6260] support HuC6260 (based on Ootake cpu core)
+[VM/I8155] add mask bit for output signal
+[VM/I8253] add mask bit for output signal
+[VM/I86] fix to refer 16bit i/o bus
+[VM/UPD1990A] support TP signal
+[VM/YM2151] support YM2151 (use fmgen core by Mr.CISC)
+
+[MULTI8/DISPLAY] check R8:DISPTMG on HD46505
+[MZ2500/JOYSTICK] fix full-auto timing
+[MZ2800/JOYSTICK] fix full-auto timing
+[PASOPIA/DISPLAY] check R8:DISPTMG on HD46505
+[PASOPIA7/DISPLAY] check R8:DISPTMG on HD46505
+[FMR60] support FUJITSU FMR-60
+[X1TWIN] support SHARP X1twin
+
+
+2/8/2009
+
+[EMU/WIN32] support window minimize button
+
+[FMR30/MEMORY] optimize memory bank switch
+[FRM50/BIOS] fix disk bios $fa
+[FMR50/BIOS] support memcard
+[FRM50/BIOS] support power management bios
+[FMR50/FLOPPY] fix disk status register
+[FMR50/KEYBOARD] fix kbint register
+[FMR50/MEMORY] support line/logical operations circuit
+[FMR50/MEMORY] support 40chars/20lines text screen mode
+[FMR50/MEMORY] refer cursor end line register on hd46505
+[FMR50/TIMER] fix timer interrupt cause register
+
+
+1/16/2009
+
+[EMU/WIN32] change screen buffer type from uint16 to user-defined type
+[EMU/WIN32] change screen buffer depth from RGB555 to RGB888 on windows pc
+[VM/I8155] support i8155
+
+[FMR50/MEMORY] optimize memory bank switch
+
+*) change the compiler from vs2005 to vs2008
+
+
+1/2/2009
+
+[EMU/WIN32] support power off requested by vm
+[VM/I8237] support external bank register
+[VM/I8251] support txrdy/txempty/dsr/dtr signals
+[VM/I8251] support loop back
+[VM/I8251] don't reset dsr bit of status register
+[VM/I8253] don't latch count before previously latched count is not read
+[VM/I8254] support i8254 based on i8253
+[VM/I86] fix push sp in 8086 mode
+[VM/I86] fix a20 line in fetch functions
+[VM/IO] change class name from IO8 to IO
+[VM/IO] support 16bit i/o bus
+
+[FMR30] support FUJITSU FMR-30
+[FMR50/MEMORY] support power off bit on $20
+
+
+12/26/2008
+
+[EMU/WIN32] support kana-characters on auto key function
+[VM/DISK] support ImageDisk floppy disk image
+[VM/I8085] support 8080/8085 (based on MAME 8080/8085 core)
+[VM/I86] change class name from X86 to I86
+
+[MULTI8/KEYBOARD] fix the problem that cannot input the kana-character "¨"
+[TK80] change cpu core from z80 to 8080
+[TK80/MEMORY] change user-defined rom address to $0c00-$7dff
+
+
+10/17/2008
+
+[EMU/WIN32] fix key notification for caps/kana/kanji
+[VM/X86] optimize the pseudo bios call by interrupt
+
+[FMR50/BIOS] support scsi hard drive
+[FMR50/BIOS] support pseudo bios
+[FMR50/BIOS] support disk bios $FA
+[FMR50/BIOS] support cmos/wait bios call
+[FMR50/FLOPPY] support disk change register
+[FMR50/KEYBOARD] support key repeat
+[FMR50/MEMORY] fix vram bank switch in 200line screen mode
+[FMR50/MEMORY] support reading ank/kanji rom
+[HC40/IO] fix caps toggle problem
+[HC80/IO] fix caps toggle problem
+[PC98HA/KEYBOARD] fix kana toggle problem
+[TK80/DISPLAY] change 8-seg LED color
+[TK80/KEYBOARD] change key assign
+[TK80/MEMORY] change rom size for COMPO BS/80
+[TK80/MEMORY] support user-defined rom for $0800-$7dff
+
+
+10/11/2008
+
+[FMR50] fix i/o address of pit and crtc
+[FRM50/MEMORY] fix busy status of line renderer
+[FMR50/MEMORY] draw cursor on text screen
+[FMR50/MEMORY] support cg screen
+
+
+10/10/2008
+
+[FMR50/BIOS] support disk bios
+[FMR50/KEYBOARD] support keyboard
+[MZ700/MEMORY] change EMM memory size for Windows CE
+
+
+10/6/2008
+
+[EMU/WIN32] fix the problem when new file path is specified
+[EMU/WIN32] support 96khz sound
+
+[VM/DATAREC] support trigger signal
+[VM/DATAREC] output remote signal
+[VM/I8253] fix mode3 output signal
+[VM/PCM1BIT] support LPF
+[VM/UPD765A] fix AT bit in the result of seek command
+[VM/X86] support pseudo bios call
+
+[MZ700] support mzt/m12 file
+[MZ700] support datarec control signals
+[MZ700] fix vsync/hsnyc timing
+[MZ700/MEMORY] support memory wait
+[TK80BS] support circuits on TK-80 main board
+[TK80BS] support 2ch sound (PC1 and PC2 of 8255)
+[TK80BS/MEMORY] support save/load ram image
+[TK80BS/MEMORY] fix interrupt address
+[TK80BS/KEYBOARD] fix key map for kana chars
+
+
+8/27/2008
+
+[EMU/WIN32] fix build problem for Windows CE
+
+[VM/I8255] support mode1
+[VM/I8259] clear irr bit if the request signal is changed to low level
+[VM/UPD1990A] support i/o coonection interface
+[VM/X86] fix interrup status
+[VM/X86] fix pop es on 80286
+
+[MZ700] fix vsync/hsnyc timing
+[MZ700/MEMORY] support 16MB EMM board
+[PC98LT] support PC-98LT
+[TK80BS] support TK-80BS (COMPO BS/80)
+
+
+8/19/2008
+
+[VM/UPD765A] fix the problem that data lost occurs after the result phase
+[VM/UPD765A] fix CB bit in the status register in sence intstat command
+[VM/UPD765A] fix AT bit in the result of seek command
+
+[PC100/CTRC] support monochrome screen mode
+[PC100/CRTC] fix palette registers
+[PC100/IOCTRL] fix keyboard event
+[PC100/IOCTRL] support keyboard reset
+[PC100/IOCTRL] fix keyboard initialize data
+
+
+8/16/2008
+
+[EMU/WIN32] support rotate screen
+[EMU/WIN32] fix build problem for Windows CE
+
+[VM/BEEP] more clear beep generation for the constant frequency
+[VM/BEEP] fix mute logic
+[VM/DEVICE] return address for unassigned I/O port
+[VM/EVENT] fix crash problem in the initialization
+[VM/I8251] fix PE bit in the status register
+[VM/I8253] check edge of the input signal
+[VM/I8253] fix gate signal
+[VM/RTC58321] support i/o coonection interface
+[VM/UPD4991A] modify i/o connection interface
+[VM/UPD4991A] fix year data
+[VM/UPD765A] support drq line delay
+
+[PC98HA] support NEC PC-98HA
+[PC100] support NEC PC-100 (not work)
+[MZ700] fix sound noise problem
+[MZ700/MEMORY] support EMM memory
+[MZ2500/TIMER] modify 8253 gate control
+
+
+6/11/2008
+
+[EMU/WIN32] open command line as cart or disk file path
+[EMU/WIN32] convert file path to full and long file path
+
+[VM/AND/OR/NAND/NOR] support and/or/nand/nor gates
+[VM/DATAREC] output low signal when the tape is closed
+[VM/MB8876] support motor on/off signal
+[VM/PCM1BIT] support on/off signal
+[VM/PCM1BIT] support high quality sound
+[VM/RTC58321] support RTC58321
+[VM/UPD4991A] support uPD4991A
+[VM/UPD765A] fdc status patch for MZ-3500
+[VM/X86] fix freeze problem that some opecodes did not decrease the clock
+[VM/Z80] return busack signal whe busreq occurs
+
+[FMR50] support FUJITSU FMR-50 (not work)
+[MZ700] support SHARP MZ-700
+[MZ3500] support SHARP MZ-3500 (not work)
+[HC80/IO] support intelligent ram disk (by Mr.Dennis Heynlein)
+
+
+4/22/2008
+
+[VM/LS244] support 74LS244/245
+[VM/UPD1990A] support uPD1990A
+[VM/X86] fix hlt
+[VM/X86] support busreq
+[VM/Z80] don't reset busreq in reset()
+
+[MZ5500/KEYBOARD] support communication timeout
+
+
+4/16/2008
+
+[VM/UPD7220] support pitch command
+[VM/UPD7220] fix vecte command in the case R=C=T=L=0 (pset)
+[VM/UPD765A] fix read id command
+
+[MZ5500/DISPLAY] support window controller
+[MZ5500/DISPLAY] support 320x200, 320x400, 640x200 mode
+[MZ5500/DISPLAY] support color palette
+[MZ5500/DISPLAY] support b/w mode
+[MZ5500/DISPLAY] support plane priority
+[MZ5500/KEYBOARD] support algo key
+[MZ5500/SYSPORT] support nmi reset
+[QC10/DISPLAY] support floppy drive access lamp
+
+
+4/14/2008
+
+[MZ5500/KEYBOARD] support keyboard and mouse
+
+
+4/12/2008
+
+[VM/LS393] support 74LS393
+[VM/RP5C01] support RP-5C01
+[VM/UPD7220] fix pset function
+[VM/UPD7220] notify vsync
+[VM/UPD765A] check sector id strictly
+
+[MZ5500] support SHARP MZ-5500
+
+
+4/7/2008
+
+[EMU/WIN32] support the screen size changing requested by the virtual machine
+
+[VM/MZ2800] support z80sio interrupt vector port
+
+
+4/3/2008
+
+[VM/I8259] fix the cascade mode condition
+[VM/UPD7220] fix low/high byte condition in dma commands
+[VM/UPD7220] check the param count in fifo buffer in sync/vectw commands
+[VM/UPD7220] get mod param in write command with no params
+[VM/UPD7220] check mod param in vect/char drawing commands
+[VM/UPD7220] check dir param in read/write command
+[VM/UPD7220] support line drawing in vecte command
+[VM/UPD7220] update ead/dad after drawing commands
+[VM/UPD7220] fix lsb/msb order in pset function
+
+[QC10] change the default dipswitch status
+[QC10/DISPLAY] support color monitor subboard
+[QC10/KEYBOARD] support SF1-SF4 keys
+[QC10/MFONT] support multifonts rom card
+
+
+3/22/2008
+
+[VM/I8251] notify rxrdy is changed
+[VM/TF20] fix the error result of read command
+
+[HC80/IO] support HD6303 commands for microcassette (returns error code)
+[HC80/IO] support HD6303 commands for serial i/o
+[HC80/IO] support TF-20
+[HC80/IO] support 8kb/16kb rom capsule
+[HC80/IO] remove 8251 codes and use common 8251 class
+
+
+3/20/2008
+
+[EMU/WIN32] set DirectX9 graphics params on the screen menu
+
+[HC40/IO] fix key buffers
+[HC80] support EPSON HC-80/PX-8/Geneva
+
+
+3/2/2008
+
+[EMU/WIN32] support DirectX9 graphics
+[EMU/WIN32] fix the window size problem of eHC-40
+
+
+2/29/2008
+
+[EMU/WIN32] more quick stretch screen
+[EMU/CONFIG] divide the config version to the file version and the virtual machine version
+[VM/TF20] support EPSON TF-20 terminal floppy drives
+
+[HC40/IO] don't reset 7508 sub cpu when boot the system
+[HC40/IO] support system reset
+[HC40/IO] support buzzer partially (constant frequency)
+[HC40/IO] support ART (8251 subset)
+[HC40/IO] support TF-20 connected to ART
+
+
+2/27/2008
+
+[EMU/WIN32] Windows CE.NET binaries for GAPI are no longer supported
+[EMU/WIN32] don't use StretchBlt
+
+[HC40] support EPSON HC-40/PX-4
+[QC10/MEMORY] fix the gate signal bit in $18
+[QC10/MEMORY] fix the memory bank switch
+[X07/IO] change LCD display color
+
+
+2/20/2008
+
+VC++ 6.0 project files are removed.
+
+[VM/HD146818P] support sqw and periodic interrupt
+[VM/HD146818P] clear IRQF/PF/AF/UF in the reg $0c when it is read
+[VM/I8237] fix the build error
+[VM/I8237] reimplement based on uPD71071
+[VM/UPD7220] fix the build error
+[VM/UPD7220] modify hblank/vsync event
+[VM/UPD765A] lost data event occurs soon if dma request is not accepted
+[VM/Z80SIO] change uPD7201 fifo buffer size
+
+[QC10] support EPSON QC-10/QX-10
+[RX78/VDP] fix the crash problem on Windows CE
+
+
+2/11/2008
+
+The interrupt logics are largely modified and are now very close to the real circuits.
+
+In the older versions:
+	- Each device requests the interrupt, sends the vector and goes into the in-service status only in the case that CPU can accept the interrupt.
+	- These requests are always accepted and executed just now.
+	- When the interrupt acception status is changed by the opecodes for example EI/RETI/RETN, CPU notifies to each devices to let them request the pending interrupt.
+	- Realize Z80 family daisy chain by the pseudo device Z80PIC to control the priorities and receive RETI opecode.
+
+This is because let CPU not to monitor the int-line in every opecodes.
+But it causes some problems for example:
+	- Timing problems.
+	- End of Interrupt command in Z80SIO/uPD7201.
+	- Using Z80 family devices with 80x86 and PIC8259.
+
+In this release:
+	- Each device can request the interrupt any time.
+	- CPU checks the int-line in every opecodes.
+	- When CPU accepts the request, CPU sends the ack signal to the device and receive the vector.
+	- The device goes into the in-service status when receive the ack signal.
+	- Realize Z80 family daisy chain by IEI/OEI signals supported in Z80 family devices.
+	- Z80 checks the wired-or of int-lines from Z80 family devices.
+
+[VM/DEVICE] modify virtual functions for interrupts
+[VM/I8259] support the new interrupt logic
+[VM/I8259] fix the crash problem
+[VM/UPD7201] support uPD7201 (combined to Z80SIO class)
+[VM/X86] support the new interrupt logic
+[VM/Z80] support the new interrupt logic
+[VM/Z80CTC] support the new interrupt logic
+[VM/Z80PIO] support the new interrupt logic
+[VM/Z80SIO] support the new interrupt logic
+[VM/Z80SIO] support the End of Interrupt command
+[VM/Z80SIO] fix the status register #0 (interrupt pending bit)
+[VM/Z80SIO] fix the status register #2 (vector)
+[VM/Z80PIC] removed
+
+[MZ2500/CRTC] notify vsync signal by not edge but level
+[MZ2500/INTERRUPT] support the new interrupt logic
+[MZ2500/INTERRUPT] pending the interrupt request from vsync and timer
+[MZ2500/INTERRUPT] remove the patches added in 2/11/2007
+
+
+1/5/2008
+
+[VM/BEEP] fix the crash problem when the frequency is constant
+[VM/BEEP] support the interface to change the frequency constant
+
+[X07/IO] support user defined keys
+[X07/IO] support break key
+[X07/IO] support line/circle commands
+[X07/IO] support beep command
+[X07/IO] support data recorder
+
+
+12/31/2007
+
+[COMMON/FIFO] support read_not_remove()
+[VM/NSC800] fix NSC800
+
+[X07] support CANON X-07
+
+
+9/14/2007
+
+[MZ2800/CRTC] fix read-modify-write registers
+
+
+8/24/2007
+
+[EMU/WIN32] check the status of both left and right ALT/CTRL/SHIFT keys
+
+[MZ2800] ignore A15 of I/O port addr
+[MZ2800/CTRL] support 65536colors graphic screen
+[MZ2800/KEYBOARD] change keymap to newply support some keys
+[MZ2800/MEMORY] fix the problem that symbol does not work on BASIC-M25
+
+
+8/22/2007
+
+[VM/RP5C15] fix the initial 12H/24H setting
+
+[MZ2500/CRTC] optimize the screen renderer
+[MZ2800/CRTC] support the 16/4096colors graphic screen
+[MZ2800/CRTC] support the read modify write
+[MZ2800/CRTC] support the hardware scroll
+[MZ2800/CRTC] support the vram plane mask
+[MZ2800/MEMORY] support the dictionary/kanji/pcg bank switch
+
+
+8/19/2007
+
+[VM/MB8877] fix the status for type4 command
+[VM/UPD71071] support the base registers
+[VM/X86] fix rep never to exit and re-fetch the opecode in the loop
+[VM/X86] fix the modrm table
+
+[MZ2800] add eVC4 project file
+[MZ2800/CRTC] fix the test screen renderer
+[MZ2800/CRTC] support 4096 color palette registers
+[MZ2800/MEMORY] fix that ipl rom is initially mapped to $f0000-$fffff
+
+
+8/16/2007
+
+[VM/DEVICE] add the virtual functions for dma access
+[VM/I8237] fix the typo
+[VM/I8259] support the special fully nest mode
+[VM/I8259] support the rotation of priorities
+[VM/I8259] support the intrrupt request from Z80 family devices
+[VM/IO8] support 16bit i/o adrress
+[VM/MB8877] support the dma access
+[VM/MB8877] support the irq and drq signals
+[VM/RP5C15] support reading the values of banks #13/#14/#15
+[VM/UPD71071] support uPD71071
+[VM/X86] support 8086/V30/80286
+[VM/YM2203] support the irq signal
+
+[MZ2500] fix YM2203 PortB signal from RP-5C15
+[MZ2800] support SHARP MZ-2800
+
+
+7/23/2007
+
+[VM/DATAREC] modify the frame skip condition (skip when the signal is changed)
+[VM/TMS9918A] reimplement based on MAME 0.116
+[VM/UPD7801] support the memory access wait
+
+[PYUTA/MEMORY] modify the memory bank switch
+[PYUTA/MEMORY] change the data bus from pull-down to pull-up
+[SCV/MEMORY] support the memory access wait (now disabled)
+
+
+7/16/2007
+
+[VM/TMS9995] support TMS9995
+
+[PYUTA] support TOMY PyuTa and PyuTa Jr.
+
+
+2/11/2007
+
+[COMMON] support auto key hitting from the clipboard
+[COMMON] save and restore the window mode when the emulator is restarted
+[VM/DEVICE] modify memory access wait
+[VM/DEVICE] support i/o access wait
+[VM/DISK] fix the crash problem when the invalid track number is set
+[VM/HD46505] support HD46505
+[VM/HD46505] fix the display/vsync/hsync signals timing
+[VM/I8253] more precise signal timing in mode #2, #4 and #5
+[VM/MB8877] support the access led status
+[VM/PICM1BIT] support 1bit pcm
+[VM/UPD765A] support the acces led status
+[VM/YM2203] support the volume adjustment
+[VM/Z80] modify memory access wait
+[VM//Z80] support i/o access wait
+[VM/Z80SIO] fix the recv and under-run interrupt flags
+[VM/Z80SIO] fix the status affect vector
+[VM/Z80SIO] cancel the interrupt request when read the recv buffer
+[VM/Z80SIO] support the i/f to clear the recv buffer
+
+[MULTI8/DISPLAY] remove HD46505 codes
+[MULTI8/DISPLAY] draw the flopppy drive access led
+[MZ2500] support 1bit pcm
+[MZ2500] adjust fm/psg volume
+[MZ2500] support i/o access wait
+[MZ2500/CRTC] render screen with less cpu power
+[MZ2500/CRTC] draw the floppy drive access led
+[MZ2500/INTERRUPT] reimplement interrupt handler with the common Z80PIC class
+[MZ2500/INTERRUPT] add the patch for GALAGA, LAYDOCK, THEXDER, MULTIPLAN, Super Shunbou, Wizardry and Ys3
+[MZ2500/MEMORY] modify memory access wait
+[MZ2500/MOUSE] clear Z80SIO recv buffer when send the mouse status
+[PASOPIA] support OA-BASIC
+[PASOPIA] support hsync signal
+[PASOPIA/DISPLAY] remove HD46505 codes
+[PASOPIA/MEMORY] fix the memory map $8000-$ffff
+[PASOPIA7/DISPLAY] remove HD46505 codes
+[PASOPIA7/DISPLAY] draw the flopppy drive access led
+[PV1000] rewrite with the common event manager class
+[PV1000/JOYSTICK] fix $fc status (not complete)
+[PV1000/VDP] add the patch for SPACE PANIC
+
+
+2/1/2007
+
+[COMMON] ignore some warnings on Visual Studio 2005
+[WIN32/SCREEN] support video recording
+[WIN32/SOUND] record wave as 16bit, stereo (for TMPGEnc)
+[WIN32/SOUND] dont use multi threading to recieve MM_WOM_DONE event
+[WIN32/WCE] build 4 binaries (use GAPI or GDI, DirectSound or waveOut)
+[VM/BEEP] modify beep sound generator for more stable frequency
+[VM/DATAREC] auto stop at the end of tape image
+[VM/DEVICE] add virtual functions to get the memory wait and passed clocks in cpu class
+[VM/EVENT] more precise event timing refering the passed clock in cpu class
+[VM/I8253] drive counter when it reaches the terminal count or read the count registers
+[VM/I8253] more precise output signal timing
+[VM/NSC800] suppor NSC800
+[VM/Z80] fix the clocks for opecodes DD-CB-** and FD-CB-**
+[VM/Z80CTC] drive counter when it reaches the terminal count or read the count registers
+[VM/Z80PIC] accept the interrupt request when it is running
+
+[MULTI8/HD46505] dont use hsync event and use the event callback to drive the hsync signal 
+[MZ2500/CRTC] dont use hsync event and use the event callback to drive the hsync signal 
+[MZ2500/MEMORY] support the memory wait in display period
+[MZ2500/Z80PIC] accept the interrupt request when it is running 
+[MZ2500/Z80PIC] recognize the i8253 clock signal as level, or edge only for MUDER CLUB, KUGYOKUDEN and RELICS 
+[PASOPIA] reimplement EmuPIA under the common source code project 
+[PASOPIA7/HD46505] dont use hsync event and use the event callback to drive the hsync signal 
+
+
+12/31/2006
+
+[WIN32] support DirectShow video capture devices (DX8 or later is required)
+[WIN32] support Windows CE.net 4.x devices (use GAPI and waveOut APIs)
+[VM] each device can get the cpu time
+[VM/BEEP] modify beep sound generator for more stable frequency
+[VM/Z80] support BUSREQ
+[VM/Z80PIC] call do_reti() in the device that requested the interrupt
+[VM/Z80SIO] suppor Z80SIO
+[VM/DISK] support TeleDisk floppy disk image
+[VM/EVENT] fix the problem in the case that the new event is registered in the event callback routine
+[VM/I8253] drive the counter more accurate and less power
+
+[MZ2500] reimplement EmuZ-2500 under the common source code project
+[MZ2500] support the ethernet card function designed by Mr.Oh!Ishi
+[MZ2500/CRTC] support the super impose function
+[MZ2500/MEMORY] support VRAM access wait 
+
+
+12/7/2006
+
+Initial release

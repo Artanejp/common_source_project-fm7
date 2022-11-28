@@ -70,3 +70,19 @@ void KEYBOARD::key_up(int code)
 	}
 }
 
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(kana);
+	state_fio->StateValue(caps);
+	state_fio->StateArray(flag, sizeof(flag), 1);
+	return true;
+}
+

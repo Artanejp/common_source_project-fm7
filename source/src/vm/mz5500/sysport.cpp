@@ -15,7 +15,7 @@ void SYSPORT::initialize()
 	register_frame_event(this);
 }
 
-void SYSPORT::write_io8(uint32 addr, uint32 data)
+void SYSPORT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x3f0) {
 	case 0x70:
@@ -30,13 +30,13 @@ void SYSPORT::write_io8(uint32 addr, uint32 data)
 	case 0x260:
 		// z80ctc reti
 		if(data == 0x4d) {
-			d_ctc->intr_reti();
+			d_ctc->notify_intr_reti();
 		}
 		break;
 	}
 }
 
-uint32 SYSPORT::read_io8(uint32 addr)
+uint32_t SYSPORT::read_io8(uint32_t addr)
 {
 	switch(addr & 0x3ff) {
 	case 0x60:
@@ -48,14 +48,36 @@ uint32 SYSPORT::read_io8(uint32 addr)
 #endif
 	case 0x240:
 		// z80ctc vector
-		return d_ctc->intr_ack();
+		return d_ctc->get_intr_ack();
 	case 0x250:
 		// z80sio vector
-		return d_sio->intr_ack();
+		return d_sio->get_intr_ack();
 	case 0x270:
 		// port-b
 		return 0xff;
 	}
 	return 0xff;
+}
+
+void SYSPORT::event_frame()
+{
+	if(rst) {
+		rst--;
+	}
+}
+
+#define STATE_VERSION	1
+
+bool SYSPORT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(rst);
+	state_fio->StateValue(highden);
+	return true;
 }
 

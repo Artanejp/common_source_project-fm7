@@ -17,20 +17,20 @@
 class JOYSTICK : public DEVICE
 {
 private:
-	uint32 mode;
-	int full_auto;
-	uint32* joy_stat;
+	uint32_t mode;
+	const uint32_t* joy_stat;
 public:
-	JOYSTICK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	JOYSTICK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Joystick I/F"));
+	}
 	~JOYSTICK() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void event_frame();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

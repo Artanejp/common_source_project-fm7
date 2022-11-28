@@ -20,19 +20,23 @@ private:
 	DEVICE* d_mem;
 	DEVICE* d_sound;
 	
-	uint8* key;
-	uint32* joy;
-	uint8 pa, pb, pc, si, so;
+	const uint8_t* key;
+	const uint32_t* joy;
+	uint8_t pa, pb, pc;
 	
 public:
-	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("I/O Bus"));
+	}
 	~IO() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

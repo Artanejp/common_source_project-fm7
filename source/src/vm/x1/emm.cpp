@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2011.02.17-
@@ -10,7 +11,6 @@
 */
 
 #include "emm.h"
-#include "../../fileio.h"
 
 void EMM::initialize()
 {
@@ -22,7 +22,7 @@ void EMM::reset()
 	data_addr = 0;
 }
 
-void EMM::write_io8(uint32 addr, uint32 data)
+void EMM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0:
@@ -43,9 +43,9 @@ void EMM::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 EMM::read_io8(uint32 addr)
+uint32_t EMM::read_io8(uint32_t addr)
 {
-	uint32 data = 0xff;
+	uint32_t data = 0xff;
 	
 	switch(addr & 3) {
 	case 3:
@@ -60,24 +60,15 @@ uint32 EMM::read_io8(uint32 addr)
 
 #define STATE_VERSION	1
 
-void EMM::save_state(FILEIO* state_fio)
+bool EMM::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(data_buffer, sizeof(data_buffer), 1);
-	state_fio->FputUint32(data_addr);
-}
-
-bool EMM::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->Fread(data_buffer, sizeof(data_buffer), 1);
-	data_addr = state_fio->FgetUint32();
+	state_fio->StateArray(data_buffer, sizeof(data_buffer), 1);
+	state_fio->StateValue(data_addr);
 	return true;
 }

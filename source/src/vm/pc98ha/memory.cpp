@@ -9,7 +9,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 14, eb = (e) >> 14; \
@@ -49,42 +48,42 @@ void MEMORY::initialize()
 	
 	// load rom/ram images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(learn, sizeof(learn), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("ROMDRV.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("ROMDRV.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(romdrv, sizeof(romdrv), 1);
 		fio->Fclose();
 	}
 #ifdef _PC98HA
-	if(fio->Fopen(emu->bios_path(_T("RAMDRV.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RAMDRV.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ramdrv, sizeof(ramdrv), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("MEMCARD.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MEMCARD.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(memcard, sizeof(memcard), 1);
 		fio->Fclose();
 	}
 #endif
 	delete fio;
 	
-	learn_crc32 = getcrc32(learn, sizeof(learn));
+	learn_crc32 = get_crc32(learn, sizeof(learn));
 #ifdef _PC98HA
-	ramdrv_crc32 = getcrc32(ramdrv, sizeof(ramdrv));
-	memcard_crc32 = getcrc32(memcard, sizeof(memcard));
+	ramdrv_crc32 = get_crc32(ramdrv, sizeof(ramdrv));
+	memcard_crc32 = get_crc32(memcard, sizeof(memcard));
 #endif
 }
 
@@ -92,21 +91,21 @@ void MEMORY::release()
 {
 	// save ram images
 	FILEIO* fio = new FILEIO();
-	if(learn_crc32 != getcrc32(learn, sizeof(learn))) {
-		if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
+	if(learn_crc32 != get_crc32(learn, sizeof(learn))) {
+		if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(learn, sizeof(learn), 1);
 			fio->Fclose();
 		}
 	}
 #ifdef _PC98HA
-	if(ramdrv_crc32 != getcrc32(ramdrv, sizeof(ramdrv))) {
-		if(fio->Fopen(emu->bios_path(_T("RAMDRV.BIN")), FILEIO_WRITE_BINARY)) {
+	if(ramdrv_crc32 != get_crc32(ramdrv, sizeof(ramdrv))) {
+		if(fio->Fopen(create_local_path(_T("RAMDRV.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(ramdrv, sizeof(ramdrv), 1);
 			fio->Fclose();
 		}
 	}
-	if(memcard_crc32 != getcrc32(memcard, sizeof(memcard))) {
-		if(fio->Fopen(emu->bios_path(_T("MEMCARD.BIN")), FILEIO_WRITE_BINARY)) {
+	if(memcard_crc32 != get_crc32(memcard, sizeof(memcard))) {
+		if(fio->Fopen(create_local_path(_T("MEMCARD.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(memcard, sizeof(memcard), 1);
 			fio->Fclose();
 		}
@@ -127,7 +126,7 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 	wbank[addr >> 14][addr & 0x3fff] = data;
@@ -139,13 +138,13 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 #endif
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #ifdef _PC98HA
@@ -206,7 +205,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x0c10:
@@ -257,14 +256,14 @@ void MEMORY::update_bank()
 void MEMORY::draw_screen()
 {
 	// draw to real screen
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	int ptr = 0;
 	
 	for(int y = 0; y < 400; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype_t* dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 640; x += 8) {
-			uint8 pat = vram[ptr++];
+			uint8_t pat = vram[ptr++];
 			dest[x + 0] = (pat & 0x80) ? cd : cb;
 			dest[x + 1] = (pat & 0x40) ? cd : cb;
 			dest[x + 2] = (pat & 0x20) ? cd : cb;
@@ -275,5 +274,45 @@ void MEMORY::draw_screen()
 			dest[x + 7] = (pat & 0x01) ? cd : cb;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(learn, sizeof(learn), 1);
+#ifdef _PC98HA
+	state_fio->StateArray(ramdrv, sizeof(ramdrv), 1);
+	state_fio->StateArray(ems, sizeof(ems), 1);
+	state_fio->StateArray(memcard, sizeof(memcard), 1);
+#endif
+	state_fio->StateValue(learn_crc32);
+#ifdef _PC98HA
+	state_fio->StateValue(ramdrv_crc32);
+	state_fio->StateValue(memcard_crc32);
+#endif
+	state_fio->StateValue(learn_bank);
+	state_fio->StateValue(dic_bank);
+	state_fio->StateValue(kanji_bank);
+	state_fio->StateValue(romdrv_bank);
+#ifdef _PC98HA
+	state_fio->StateValue(ramdrv_bank);
+	state_fio->StateValue(ramdrv_sel);
+	state_fio->StateArray(ems_bank, sizeof(ems_bank), 1);
+#endif
+	
+	// post process
+	if(loading) {
+		update_bank();
+	}
+	return true;
 }
 

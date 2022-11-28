@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
@@ -37,7 +36,7 @@ void MEMORY::initialize()
 	
 	// load ipl
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
@@ -64,7 +63,7 @@ void MEMORY::reset()
 	memset(vram, 0, sizeof(vram));
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	// known bug : ram must not be mapped to $ec00-$eebf
 	addr &= 0xffff;
@@ -92,7 +91,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	// known bug : ram must not be mapped to $ec00-$eebf
 	addr &= 0xffff;
@@ -105,7 +104,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return 0xff;
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf1:
@@ -117,7 +116,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void MEMORY::open_cart(_TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	
@@ -135,3 +134,23 @@ void MEMORY::close_cart()
 	memset(cart, 0xff, sizeof(cart));
 	inserted = false;
 }
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(rpage);
+	state_fio->StateValue(wpage);
+	state_fio->StateValue(inserted);
+	return true;
+}
+

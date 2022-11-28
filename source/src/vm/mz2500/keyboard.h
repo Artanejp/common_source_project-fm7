@@ -24,21 +24,23 @@ private:
 	DEVICE *d_pio_i, *d_pio;	// i8255, z80pio
 	
 	// keyboard
-	uint8* key_stat;
-	uint8 keys[16];
-	uint8 column;
+	const uint8_t* key_stat;
+	uint8_t keys[16];
+	uint8_t column;
 	void create_keystat();
 	
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_pio_i(DEVICE* device)

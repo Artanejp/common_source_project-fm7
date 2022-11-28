@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define PAGE_TYPE_NORMAL	0
 #define PAGE_TYPE_VRAM		1
@@ -47,19 +46,19 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("PHONE.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("PHONE.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(phone, sizeof(phone), 1);
 		fio->Fclose();
 	}
@@ -83,6 +82,7 @@ void MEMORY::reset()
 	
 	// reset crtc signals
 	blank = hblank = vblank = busreq = false;
+	extra_wait = 0;
 }
 
 void MEMORY::special_reset()
@@ -100,13 +100,11 @@ void MEMORY::special_reset()
 	
 	// reset crtc signals
 	blank = hblank = vblank = busreq = false;
+	extra_wait = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
 {
-	addr &= 0xffff;
-	int b = addr >> 13;
-	
 	if(is_vram[b] && !blank) {
 		// vram wait
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -128,11 +126,8 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8_tmp(int b, uint32_t addr)
 {
-	addr &= 0xffff;
-	int b = addr >> 13;
-	
 	if(is_vram[b] && !blank) {
 		// vram wait
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -153,27 +148,65 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
+
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
-	*wait = page_wait[addr >> 13];
-	write_data8(addr, data);
+	int b = addr >> 13;
+	write_data8_tmp(b, addr, data);
 }
 
-uint32 MEMORY::read_data8w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
-	*wait = page_wait[addr >> 13];
-	return read_data8(addr);
+	int b = addr >> 13;
+	return read_data8_tmp(b, addr);
 }
 
-uint32 MEMORY::fetch_op(uint32 addr, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	addr &= 0xffff;
+	int b = addr >> 13;
+	write_data8_tmp(b, addr, data);
+	
+/*
+	if(busreq) {
+		*wait = 0;
+		extra_wait += page_wait[b];
+	} else {
+		*wait = page_wait[b] + extra_wait;
+		extra_wait = 0;
+	}
+*/
+	*wait = page_wait[b];
+}
+
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
+{
+	addr &= 0xffff;
+	int b = addr >> 13;
+	uint32_t data = read_data8_tmp(b, addr);
+	
+/*
+	if(busreq) {
+		*wait = 0;
+		extra_wait += page_wait[b];
+	} else {
+		*wait = page_wait[b] + extra_wait;
+		extra_wait = 0;
+	}
+*/
+	*wait = page_wait[b];
+	return data;
+}
+
+uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -209,7 +242,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -217,14 +250,14 @@ uint32 MEMORY::read_io8(uint32 addr)
 		return bank;
 	case 0xb5:
 		// map reg
-		uint32 val = page[bank];
+		uint32_t val = page[bank];
 		bank = (bank + 1) & 7;
 		return val;
 	}
 	return 0xff;
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_HBLANK) {
 		hblank = ((data & mask) != 0);
@@ -241,7 +274,7 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 	blank = next;
 }
 
-void MEMORY::set_map(uint8 data)
+void MEMORY::set_map(uint8_t data)
 {
 	int base = bank * 0x2000;
 	
@@ -284,6 +317,7 @@ void MEMORY::set_map(uint8 data)
 		}
 		page_type[bank] = PAGE_TYPE_KANJI;
 		page_wait[bank] = 2;
+		is_vram[bank] = true;
 	} else if(data == 0x3a) {
 		// dictionary rom
 		SET_BANK(base,  base + 0x1fff, wdmy, dic + dic_bank * 0x2000);
@@ -303,53 +337,36 @@ void MEMORY::set_map(uint8 data)
 
 #define STATE_VERSION	1
 
-void MEMORY::save_state(FILEIO* state_fio)
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->Fwrite(vram, sizeof(vram), 1);
-	state_fio->Fwrite(tvram, sizeof(tvram), 1);
-	state_fio->Fwrite(pcg, sizeof(pcg), 1);
-	state_fio->FputUint8(bank);
-	state_fio->Fwrite(page, sizeof(page), 1);
-	state_fio->FputUint8(dic_bank);
-	state_fio->FputUint8(kanji_bank);
-	state_fio->FputBool(blank);
-	state_fio->FputBool(hblank);
-	state_fio->FputBool(vblank);
-	state_fio->FputBool(busreq);
-}
-
-bool MEMORY::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->Fread(ram, sizeof(ram), 1);
-	state_fio->Fread(vram, sizeof(vram), 1);
-	state_fio->Fread(tvram, sizeof(tvram), 1);
-	state_fio->Fread(pcg, sizeof(pcg), 1);
-	bank = state_fio->FgetUint8();
-	state_fio->Fread(page, sizeof(page), 1);
-	dic_bank = state_fio->FgetUint8();
-	kanji_bank = state_fio->FgetUint8();
-	blank = state_fio->FgetBool();
-	hblank = state_fio->FgetBool();
-	vblank = state_fio->FgetBool();
-	busreq = state_fio->FgetBool();
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(tvram, sizeof(tvram), 1);
+	state_fio->StateArray(pcg, sizeof(pcg), 1);
+	state_fio->StateValue(bank);
+	state_fio->StateArray(page, sizeof(page), 1);
+	state_fio->StateValue(dic_bank);
+	state_fio->StateValue(kanji_bank);
+	state_fio->StateValue(blank);
+	state_fio->StateValue(hblank);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(busreq);
 	
-	// restore memory map
-	uint8 bank_tmp = bank;
-	bank = 0;
-	for(int i = 0; i < 8; i++) {
-		set_map(page[i]);
+	// post process
+	if(loading) {
+		uint8_t bank_tmp = bank;
+		bank = 0;
+		for(int i = 0; i < 8; i++) {
+			set_map(page[i]);
+		}
+		bank = bank_tmp;
 	}
-	bank = bank_tmp;
 	return true;
 }
 

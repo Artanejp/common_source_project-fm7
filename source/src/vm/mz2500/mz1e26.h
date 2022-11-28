@@ -17,16 +17,19 @@
 class MZ1E26 : public DEVICE
 {
 private:
-//	uint8 prev_data;
+//	uint8_t prev_data;
 	
 public:
-	MZ1E26(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MZ1E26(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("MZ-1E26 (Voice Communication I/F)"));
+	}
 	~MZ1E26() {}
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 };
 
 #endif

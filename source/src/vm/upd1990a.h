@@ -29,25 +29,25 @@ private:
 	outputs_t outputs_dout;
 	outputs_t outputs_tp;
 	
-	cur_time_t cur_time;
+	dll_cur_time_t cur_time;
 	int register_id_1sec;
 	
-	uint8 cmd, mode, tpmode;
-	uint64 shift_data;
+	uint8_t cmd, mode, tpmode;
+	uint64_t shift_data;
 	bool clk, stb, din, hold, tp;
-	uint32 dout;
+	uint32_t dout;
 	bool dout_changed;
 	int register_id_tp;
 	
 #ifdef HAS_UPD4990A
-	uint8 shift_cmd;
+	uint8_t shift_cmd;
 #endif
 	
 public:
-	UPD1990A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD1990A(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_dout);
-		init_output_signals(&outputs_tp);
+		initialize_output_signals(&outputs_dout);
+		initialize_output_signals(&outputs_tp);
 		cmd = mode = tpmode = 0;
 		shift_data = 0;
 		clk = stb = din = tp = true;
@@ -56,27 +56,29 @@ public:
 		dout_changed = false;
 #ifdef HAS_UPD4990A
 		shift_cmd = 0;
+		set_device_name(_T("uPD4990A RTC"));
+#else
+		set_device_name(_T("uPD1990A RTC"));
 #endif
 	}
 	~UPD1990A() {}
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch)
 	{
 		return dout;
 	}
 	void event_callback(int event_id, int err);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_dout(DEVICE* device, int id, uint32 mask)
+	void set_context_dout(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_dout, device, id, mask);
 	}
-	void set_context_tp(DEVICE* device, int id, uint32 mask)
+	void set_context_tp(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tp, device, id, mask);
 	}

@@ -12,7 +12,6 @@
 #include "keyboard.h"
 #include "../i8255.h"
 #include "../z80pio.h"
-#include "../../fileio.h"
 
 #ifdef _MZ2500
 #define MAX_COLUMN 14
@@ -39,12 +38,12 @@ static const int key_map[14][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	column = 0;
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_KEYBOARD_COLUMN) {
 		column = data & mask;	// from z80pio port a
@@ -56,9 +55,8 @@ void KEYBOARD::event_frame()
 {
 	// update key status
 	memset(keys, 0xff, sizeof(keys));
-	key_stat[0] = 0;
 	for(int i = 0; i < MAX_COLUMN; i++) {
-		uint8 tmp = 0;
+		uint8_t tmp = 0;
 		for(int j = 0; j < 8; j++) {
 			tmp |= (key_stat[key_map[i][j]]) ? 0 : (1 << j);
 		}
@@ -70,30 +68,22 @@ void KEYBOARD::event_frame()
 
 void KEYBOARD::create_keystat()
 {
-	uint8 val = keys[(column & 0x10) ? (column & 0x0f) : 0x0f];
+	uint8_t val = keys[(column & 0x10) ? (column & 0x0f) : 0x0f];
 	d_pio_i->write_signal(SIG_I8255_PORT_B, val, 0x80);	// to i8255 port b
 	d_pio->write_signal(SIG_Z80PIO_PORT_B, val, 0xff);	// to z80pio port b
 }
 
 #define STATE_VERSION	1
 
-void KEYBOARD::save_state(FILEIO* state_fio)
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(column);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	column = state_fio->FgetUint8();
+	state_fio->StateValue(column);
 	return true;
 }
 

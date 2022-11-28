@@ -26,15 +26,15 @@ private:
 	DEVICE *d_pit, *d_pcm;
 	UPD765A *d_fdc;
 	
-	uint8* rbank[32];
-	uint8* wbank[32];
-	uint8 wdmy[0x10000];
-	uint8 rdmy[0x10000];
-	uint8 ipl[0x2000];
-	uint8 ram[0x40000];
-	uint8 cmos[0x800];
-	uint32 cmos_crc32;
-	uint8 bank, psel, csel;
+	uint8_t* rbank[32];
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x10000];
+	uint8_t rdmy[0x10000];
+	uint8_t ipl[0x2000];
+	uint8_t ram[0x40000];
+	uint8_t cmos[0x800];
+	uint32_t cmos_crc32;
+	uint8_t bank, psel, csel;
 	void update_map();
 	
 	bool pcm_on, pcm_cont, pcm_pit;
@@ -43,19 +43,22 @@ private:
 	bool fdc_irq, motor;
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus"));
+	}
 	~MEMORY() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_pit(DEVICE* device)

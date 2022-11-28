@@ -12,33 +12,43 @@
 #define _FMR50_H_
 
 #if defined(_FMR50)
-#if defined(HAS_I286)
-#define DEVICE_NAME		"FUJITSU FMR-50 (i286)"
-#define CONFIG_NAME		"fmr50_i286"
-#elif defined(HAS_I386)
-#define DEVICE_NAME		"FUJITSU FMR-50 (i386)"
-#define CONFIG_NAME		"fmr50_i386"
-#elif defined(HAS_I486)
-#define DEVICE_NAME		"FUJITSU FMR-50 (i486)"
-#define CONFIG_NAME		"fmr50_i486"
-#elif defined(HAS_PENTIUM)
-#define DEVICE_NAME		"FUJITSU FMR-250"
-#define CONFIG_NAME		"fmr250"
-#endif
+	#if defined(HAS_I286)
+		#define DEVICE_NAME		"FUJITSU FMR-50 (i286)"
+		#define CONFIG_NAME		"fmr50_i286"
+	#elif defined(HAS_I386)
+		#define DEVICE_NAME		"FUJITSU FMR-50 (i386)"
+		#define CONFIG_NAME		"fmr50_i386"
+	#elif defined(HAS_I486)
+		#define DEVICE_NAME		"FUJITSU FMR-50 (i486)"
+		#define CONFIG_NAME		"fmr50_i486"
+	#elif defined(HAS_PENTIUM)
+		#define DEVICE_NAME		"FUJITSU FMR-250"
+		#define CONFIG_NAME		"fmr250"
+	#endif
 #elif defined(_FMR60)
-#if defined(HAS_I286)
-#define DEVICE_NAME		"FUJITSU FMR-60"
-#define CONFIG_NAME		"fmr60"
-#elif defined(HAS_I386)
-#define DEVICE_NAME		"FUJITSU FMR-70"
-#define CONFIG_NAME		"fmr70"
-#elif defined(HAS_I486)
-#define DEVICE_NAME		"FUJITSU FMR-80"
-#define CONFIG_NAME		"fmr80"
-#elif defined(HAS_PENTIUM)
-#define DEVICE_NAME		"FUJITSU FMR-280"
-#define CONFIG_NAME		"fmr280"
+	#if defined(HAS_I286)
+		#define DEVICE_NAME		"FUJITSU FMR-60"
+		#define CONFIG_NAME		"fmr60"
+	#elif defined(HAS_I386)
+		#define DEVICE_NAME		"FUJITSU FMR-70"
+		#define CONFIG_NAME		"fmr70"
+	#elif defined(HAS_I486)
+		#define DEVICE_NAME		"FUJITSU FMR-80"
+		#define CONFIG_NAME		"fmr80"
+	#elif defined(HAS_PENTIUM)
+		#define DEVICE_NAME		"FUJITSU FMR-280"
+		#define CONFIG_NAME		"fmr280"
+	#endif
 #endif
+#if defined(HAS_I486)
+	#if !(defined(HAS_I486SX) || defined(HAS_I486DX))
+		#define HAS_I486SX
+//		#define HAS_I486DX
+	#endif
+#else
+	#if (defined(HAS_I486SX) || defined(HAS_I486DX))
+		#define HAS_I486
+	#endif
 #endif
 
 // device informations for virtual machine
@@ -55,41 +65,42 @@
 #if defined(_FMR60)
 #define SCREEN_WIDTH		1120
 #define SCREEN_HEIGHT		750
+#define WINDOW_HEIGHT_ASPECT	840
 #else
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define WINDOW_HEIGHT_ASPECT	480
 #endif
 #define MAX_DRIVE		4
-#define MAX_SCSI		8
 #define MAX_MEMCARD		2
-#if defined(HAS_I286)
-#define I86_BIOS_CALL
-#else
-#define I386_BIOS_CALL
-#endif
+#define I86_PSEUDO_BIOS
 #define I8259_MAX_CHIPS		2
-//#define SINGLE_MODE_DMA
+#define SINGLE_MODE_DMA
+#define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
+#define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
 #define USE_CPU_TYPE		2
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
-#define NOTIFY_KEY_DOWN
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
+#define USE_FLOPPY_DISK		4
+#define USE_HARD_DISK		7
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
-#define USE_CRT_FILTER
-#define USE_ACCESS_LAMP
-// i386 core will support debugger later
-//#if defined(HAS_I286)
+#define USE_AUTO_KEY_NUMPAD
+#define USE_SCREEN_FILTER
+#define USE_SOUND_VOLUME	2
 #define USE_DEBUGGER
-//#endif
+#define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
+#include "../vm_template.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("Beep"), _T("Noise (FDD)"),
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -111,6 +122,8 @@ class IO;
 class MB8877;
 class MSM58321;
 class PCM1BIT;
+class SCSI_HDD;
+class SCSI_HOST;
 class UPD71071;
 
 class BIOS;
@@ -122,10 +135,10 @@ class MEMORY;
 class SCSI;
 class TIMER;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+//	EMU* emu;
 	
 	// devices
 	EVENT* event;
@@ -147,6 +160,8 @@ protected:
 	MB8877* fdc;
 	MSM58321* rtc;
 	PCM1BIT* pcm;
+	SCSI_HDD* scsi_hdd[7];
+	SCSI_HOST* scsi_host;
 	UPD71071* dma;
 	
 	BIOS* bios;
@@ -173,6 +188,10 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -181,24 +200,34 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int access_lamp();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	uint16_t* create_sound(int* extra_frames);
+	int get_sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	
 	// user interface
-	void open_disk(int drv, _TCHAR* file_path, int offset);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	bool now_skip();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+	bool is_frame_skippable();
 	
 	void update_config();
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device
@@ -206,9 +235,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+//	DEVICE* dummy;
+//	DEVICE* first_device;
+//	DEVICE* last_device;
 };
 
 #endif

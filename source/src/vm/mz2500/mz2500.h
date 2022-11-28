@@ -14,17 +14,22 @@
 #define CONFIG_NAME		"mz2500"
 
 // device informations for virtual machine
-#define FRAMES_PER_SEC		55.4
-#define LINES_PER_FRAME 	440
+#define FRAMES_PER_SEC		55.49
+#define LINES_PER_FRAME 	448
 #define CHARS_PER_LINE		108
 #define CPU_CLOCKS		6000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
 #define HAS_MB8876
 #define HAS_RP5C15
 #define DATAREC_SOUND
-#define PCM1BIT_HIGH_QUALITY
+#define DATAREC_SOUND_RIGHT
+// FIXME: need to adjust speed for BASIC-M25 Demonstration
+//#define DATAREC_FAST_FWD_SPEED	10
+//#define DATAREC_FAST_REW_SPEED	10
+#define SCSI_HOST_AUTO_ACK
 
 // memory wait
 #define Z80_MEMORY_WAIT
@@ -32,24 +37,33 @@
 
 // device informations for win32
 #define USE_SPECIAL_RESET
-#define USE_FD1
-#define USE_FD2
-#define USE_FD3
-#define USE_FD4
-#define USE_TAPE
+#define USE_FLOPPY_DISK		4
+#define USE_TAPE		1
+#define USE_HARD_DISK		2
 #define USE_SOCKET
-#define USE_SHIFT_NUMPAD_KEY
-#define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
+#define USE_AUTO_KEY_NUMPAD
 #define USE_MONITOR_TYPE	4
-#define USE_CRT_FILTER
+#define USE_SCREEN_FILTER
 #define USE_SCANLINE
-#define USE_ACCESS_LAMP
+#define USE_SOUND_VOLUME	7
+#define USE_JOYSTICK
+#define USE_MOUSE
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
+#include "../vm_template.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("OPN (FM)"), _T("OPN (PSG)"), _T("Beep"), _T("CMT (Signal)"), _T("CMT (Voice)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -62,6 +76,8 @@ class IO;
 class MB8877;
 class PCM1BIT;
 class RP5C01;
+class SASI_HDD;
+class SCSI_HOST;
 class W3100A;
 class YM2203;
 class Z80;
@@ -81,14 +97,14 @@ class MZ1E26;
 class MZ1E30;
 class MZ1R13;
 class MZ1R37;
+class PRINTER;
+class SERIAL;
 class TIMER;
 
-class FILEIO;
-
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+//	EMU* emu;
 	
 	// devices
 	EVENT* event;
@@ -100,6 +116,8 @@ protected:
 	MB8877* fdc;
 	PCM1BIT* pcm;
 	RP5C01* rtc;
+	SASI_HDD* sasi_hdd;
+	SCSI_HOST* sasi_host;
 	W3100A* w3100a;
 	YM2203* opn;
 	Z80* cpu;
@@ -119,6 +137,8 @@ protected:
 	MZ1E30* mz1e30;
 	MZ1R13* mz1r13;
 	MZ1R37* mz1r37;
+	PRINTER* printer;
+	SERIAL* serial;
 	TIMER* timer;
 	
 	// monitor type cache
@@ -140,6 +160,7 @@ public:
 	void reset();
 	void special_reset();
 	void run();
+	double get_frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -148,35 +169,53 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int access_lamp();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	uint16_t* create_sound(int* extra_frames);
+	int get_sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// socket
-	void network_connected(int ch);
-	void network_disconnected(int ch);
-	uint8* get_sendbuffer(int ch, int* size);
-	void inc_sendbuffer_ptr(int ch, int size);
-	uint8* get_recvbuffer0(int ch, int* size0, int* size1);
-	uint8* get_recvbuffer1(int ch);
-	void inc_recvbuffer_ptr(int ch, int size);
+	void notify_socket_connected(int ch);
+	void notify_socket_disconnected(int ch);
+	uint8_t* get_socket_send_buffer(int ch, int* size);
+	void inc_socket_send_buffer_ptr(int ch, int size);
+	uint8_t* get_socket_recv_buffer0(int ch, int* size0, int* size1);
+	uint8_t* get_socket_recv_buffer1(int ch);
+	void inc_socket_recv_buffer_ptr(int ch, int size);
 	
 	// user interface
-	void open_disk(int drv, _TCHAR* file_path, int offset);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
-	void close_tape();
-	bool tape_inserted();
-	bool now_skip();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv) {}
+	void push_apss_rewind(int drv) {}
+	bool is_frame_skippable();
 	
 	void update_config();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device
@@ -184,9 +223,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+//	DEVICE* dummy;
+//	DEVICE* first_device;
+//	DEVICE* last_device;
 };
 
 #endif

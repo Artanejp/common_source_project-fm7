@@ -20,6 +20,10 @@
 #include "../i8259.h"
 #include "../i86.h"
 #include "../io.h"
+#include "../noise.h"
+#include "../not.h"
+//#include "../pcpr201.h"
+#include "../prnfile.h"
 #ifdef _PC98HA
 #include "../upd4991a.h"
 #else
@@ -38,13 +42,12 @@
 #include "keyboard.h"
 #include "memory.h"
 #include "note.h"
-#include "printer.h"
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -53,20 +56,40 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	sio_rs = new I8251(this, emu);	// for rs232c
+	sio_rs->set_device_name(_T("8251 SIO (RS-232C)"));
 	sio_kbd = new I8251(this, emu);	// for keyboard
+	sio_kbd->set_device_name(_T("8251 SIO (Keyboard)"));
 	pit = new I8253(this, emu);	// V50 internal
 	pio_sys = new I8255(this, emu);	// for system port
+	pio_sys->set_device_name(_T("8255 PIO (System)"));
 	pio_prn = new I8255(this, emu);	// for printer
+	pio_prn->set_device_name(_T("8251 PIO (Printer)"));
 	pic = new I8259(this, emu);	// V50 internal
 	cpu = new I86(this, emu);	// V50
+	cpu->device_model = NEC_V30;
 	io = new IO(this, emu);
+	not_busy = new NOT(this, emu);
 #ifdef _PC98HA
 	rtc = new UPD4991A(this, emu);
 #else
 	rtc = new UPD1990A(this, emu);
 #endif
 	dma = new UPD71071(this, emu);	// V50 internal
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	fdc = new UPD765A(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
+	
+	if(config.printer_type == 0) {
+		printer = new PRNFILE(this, emu);
+//	} else if(config.printer_type == 1) {
+//		printer = new PCPR201(this, emu);
+	} else {
+		printer = dummy;
+	}
 	
 	bios = new BIOS(this, emu);
 	calendar = new CALENDAR(this, emu);
@@ -78,6 +101,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 //???	sio_rs->set_context_rxrdy(pic, SIG_I8259_IR4, 1);
 	sio_kbd->set_context_rxrdy(pic, SIG_I8259_IR1, 1);
@@ -94,8 +120,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit->set_constant_clock(2, 1996800);
 #endif
 	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
-	pio_prn->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
-	pio_prn->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);
+	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
+	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
+	if(config.printer_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+//	} else if(config.printer_type == 1) {
+//		PRNFILE *pcpr201 = (PCPR201 *)printer;
+//		pcpr201->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+	}
+	not_busy->set_context_out(pio_prn, SIG_I8255_PORT_B, 4);
 	pic->set_context_cpu(cpu);
 #ifdef _PC98LT
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
@@ -112,7 +146,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy->set_context_fdc(fdc);
 	keyboard->set_context_sio(sio_kbd);
 	note->set_context_pic(pic);
-	printer = new PRINTER(this, emu);
 	
 	// cpu bus
 	cpu->set_context_bios(bios);
@@ -252,12 +285,6 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-int VM::access_lamp()
-{
-	uint32 status = fdc->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -268,18 +295,31 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	beep->init(rate, 2400, 8000);
+	beep->initialize_sound(rate, 2400, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		beep->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key
@@ -295,28 +335,53 @@ void VM::key_up(int code)
 	keyboard->key_up(code);
 }
 
+bool VM::get_caps_locked()
+{
+	return keyboard->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return keyboard->get_kana_locked();
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-bool VM::now_skip()
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	return event->now_skip();
+	fdc->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -324,5 +389,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	8
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

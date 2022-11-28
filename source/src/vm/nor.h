@@ -27,25 +27,25 @@ class NOR : public DEVICE
 {
 private:
 	outputs_t outputs;
-	uint32 bits_in;
+	uint32_t bits_in;
 	bool prev, first;
 	
 public:
-	NOR(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	NOR(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs);
+		initialize_output_signals(&outputs);
 		bits_in = 0;
 		prev = first = true;
+		set_device_name(_T("NOR Gate"));
 	}
 	~NOR() {}
 	
 	// common functions
-	void write_signal(int id, uint32 data, uint32 mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void set_context_out(DEVICE* device, int id, uint32 mask)
+	void set_context_out(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs, device, id, mask);
 	}

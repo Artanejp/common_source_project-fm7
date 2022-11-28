@@ -31,7 +31,7 @@ void KEYBOARD::reset()
 	kbstat = kbdata = kbint = kbmsk = 0;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x600:
@@ -47,7 +47,7 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x600:
@@ -97,5 +97,26 @@ void KEYBOARD::key_up(int code)
 			key_buf->write(code);
 		}
 //	}
+}
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(kbstat);
+	state_fio->StateValue(kbdata);
+	state_fio->StateValue(kbint);
+	state_fio->StateValue(kbmsk);
+	state_fio->StateArray(table, sizeof(table), 1);
+	return true;
 }
 

@@ -8,7 +8,6 @@
 */
 
 #include "cmt.h"
-#include "../../fileio.h"
 
 void CMT::initialize()
 {
@@ -31,7 +30,7 @@ void CMT::reset()
 	close_tape();
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -72,10 +71,10 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CMT::read_io8(uint32 addr)
+uint32_t CMT::read_io8(uint32_t addr)
 {
 	// bit0 = signal
-	uint32 val = 2;
+	uint32_t val = 2;
 	if((start & 0x9) == 0x9 && play) {
 		val |= (buffer[bufcnt] & bit ? 1 : 0);
 		if(!(bit & 0x80)) {
@@ -92,7 +91,7 @@ uint32 CMT::read_io8(uint32 addr)
 	return val;
 }
 
-void CMT::play_tape(_TCHAR* file_path)
+void CMT::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -105,7 +104,7 @@ void CMT::play_tape(_TCHAR* file_path)
 	}
 }
 
-void CMT::rec_tape(_TCHAR* file_path)
+void CMT::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -128,5 +127,24 @@ void CMT::close_tape()
 		fio->Fclose();
 	}
 	play = rec = false;
+}
+
+#define STATE_VERSION	1
+
+bool CMT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(bufcnt);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(start);
+	state_fio->StateValue(bit);
+	return true;
 }
 

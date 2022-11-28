@@ -29,7 +29,7 @@ void FLOPPY::reset()
 	irq_enabled = false;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xdc:
@@ -85,7 +85,7 @@ void FLOPPY::event_callback(int event_id, int err)
 	register_id = -1;
 }
 
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FLOPPY_DRQ) {
 		if(irq_enabled && (data & mask) != 0) {
@@ -93,3 +93,21 @@ void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(prev_dc);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(motor_on);
+	state_fio->StateValue(irq_enabled);
+	return true;
+}
+

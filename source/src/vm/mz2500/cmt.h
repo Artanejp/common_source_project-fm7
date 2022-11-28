@@ -31,7 +31,7 @@ private:
 	DEVICE* d_pio;
 	DATAREC *d_drec;
 	
-	uint8 pa, pc;
+	uint8_t pa, pc;
 	bool play, rec;
 	bool now_play, now_rewind;
 	int register_id_frew;
@@ -52,16 +52,18 @@ private:
 	void stop();
 	
 public:
-	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CMT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("CMT I/F"));
+	}
 	~CMT() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_pio(DEVICE* device)

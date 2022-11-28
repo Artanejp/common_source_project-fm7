@@ -12,17 +12,17 @@
 
 void IO::initialize()
 {
-	key = emu->key_buffer();
-	joy = emu->joy_buffer();
+	key = emu->get_key_buffer();
+	joy = emu->get_joy_buffer();
 }
 
 void IO::reset()
 {
 	pa = 0xff;
-	pb = pc = si = so = 0;
+	pb = pc = 0;
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case P_A:
@@ -32,26 +32,20 @@ void IO::write_io8(uint32 addr, uint32 data)
 		pb = data;
 		break;
 	case P_C:
-		if((uint8)(data & 0x60) != (pc & 0x60)) {
+		if((uint8_t)(data & 0x60) != (pc & 0x60)) {
 			d_mem->write_io8(addr, data);
 		}
-		if((uint8)(data & 0x8) != (pc & 0x8)) {
+		if((uint8_t)(data & 0x8) != (pc & 0x8)) {
 			d_sound->write_io8(addr, data);
 		}
 		pc = data;
 		break;
-	case P_SI:
-		si = data;
-		break;
-	case P_SO:
-		so = data;
-		break;
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr) {
 	case P_A:
@@ -111,3 +105,20 @@ uint32 IO::read_io8(uint32 addr)
 	}
 	return 0xff;
 }
+
+#define STATE_VERSION	2
+
+bool IO::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(pa);
+	state_fio->StateValue(pb);
+	state_fio->StateValue(pc);
+	return true;
+}
+

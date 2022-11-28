@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2010.08.31-
 
-	[ main ]
+	[ main pcb ]
 */
 
 #ifndef _MAIN_H_
@@ -28,52 +28,57 @@
 class MAIN : public DEVICE
 {
 private:
-	DEVICE *d_cpu, *d_subcpu, *d_fdc;
+	DEVICE *d_maincpu, *d_subcpu, *d_fdc;
 	
-	uint8* rbank[32];	// 64KB / 2KB
-	uint8* wbank[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8 ipl[0x2000];
-	uint8 ram[0x40000];
-	uint8 common[0x800];
-	uint8 basic[0x8000];
-	uint8 ext[0x8000];
+	uint8_t* rbank[32];	// 64KB / 2KB
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t ipl[0x2000];
+	uint8_t ram[0x40000];
+	uint8_t common[0x800];
+	uint8_t basic[0x8000];
+	uint8_t ext[0x8000];
 	
-	uint8 ma, ms, mo;
+	uint8_t ma, ms, mo;
 	bool me1, me2;
 	
-	uint8 srqb, sres;
+	uint8_t srqb, sres;
 	bool sack, srdy;
 	bool intfd, int0, int1, int2, int3, int4;
 	bool me, e1;
-	uint8 inp;
+	uint8_t inp;
 	bool motor, drq, index;
+	
+	bool crt_400line;
 	
 	void update_irq();
 	void update_bank();
 	
 public:
-	MAIN(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MAIN(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		intfd = int0 = int1 = int2 = int3 = int4 = false;
 		me = e1 = false;
+		set_device_name(_T("Memory Bus (Main)"));
 	}
 	~MAIN() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int *wait);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_cpu(DEVICE* device)
+	void set_context_maincpu(DEVICE* device)
 	{
-		d_cpu = device;
+		d_maincpu = device;
 	}
 	void set_context_subcpu(DEVICE* device)
 	{
@@ -83,11 +88,11 @@ public:
 	{
 		d_fdc = device;
 	}
-	uint8 *get_ipl()
+	uint8_t *get_ipl()
 	{
 		return ipl;
 	}
-	uint8 *get_common()
+	uint8_t *get_common()
 	{
 		return common;
 	}

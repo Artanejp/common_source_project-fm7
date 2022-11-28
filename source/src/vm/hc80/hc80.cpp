@@ -14,7 +14,7 @@
 
 #include "../beep.h"
 #include "../i8251.h"
-#include "../tf20.h"
+#include "../ptf20.h"
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -28,7 +28,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -37,7 +37,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	sio = new I8251(this, emu);
-	tf20 = new TF20(this, emu);
+	tf20 = new PTF20(this, emu);
 	cpu = new Z80(this, emu);
 	
 	io = new IO(this, emu);
@@ -139,12 +139,6 @@ void VM::draw_screen()
 	io->draw_screen();
 }
 
-int VM::access_lamp()
-{
-	uint32 status = tf20->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -155,18 +149,27 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	beep->init(rate, 1000, 8000);
+	beep->initialize_sound(rate, 1000, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		beep->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key
@@ -186,24 +189,39 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	tf20->open_disk(drv, file_path, offset);
+	tf20->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	tf20->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return tf20->disk_inserted(drv);
+	return tf20->is_disk_inserted(drv);
 }
 
-bool VM::now_skip()
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	return event->now_skip();
+	tf20->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return tf20->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return tf20->read_signal(0);
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -211,5 +229,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	2
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

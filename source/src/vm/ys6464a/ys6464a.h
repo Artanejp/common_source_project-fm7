@@ -23,48 +23,48 @@
 #define MEMORY_BANK_SIZE	0x2000
 
 // device informations for win32
-#define USE_BINARY_FILE1
-#define USE_BITMAP
-#define USE_BUTTON
+#define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		21
-#define USE_LED
-#define MAX_LEDS		6
+#define MAX_DRAW_RANGES		6
+#define USE_BINARY_FILE		1
+#define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
+#include "../vm_template.h"
 
 const struct {
-	const _TCHAR* caption;
 	int x, y;
 	int width, height;
-	int font_size;
 	int code;
-} buttons[] = {
-	{_T("0"), 344, 288, 42, 42, 20, 0x30},
-	{_T("1"), 403, 288, 42, 42, 20, 0x31},
-	{_T("2"), 462, 288, 42, 42, 20, 0x32},
-	{_T("3"), 521, 288, 42, 42, 20, 0x33},
-	{_T("4"), 344, 229, 42, 42, 20, 0x34},
-	{_T("5"), 403, 229, 42, 42, 20, 0x35},
-	{_T("6"), 462, 229, 42, 42, 20, 0x36},
-	{_T("7"), 521, 229, 42, 42, 20, 0x37},
-	{_T("8"), 344, 170, 42, 42, 20, 0x38},
-	{_T("9"), 403, 170, 42, 42, 20, 0x39},
-	{_T("A"), 462, 170, 42, 42, 20, 0x41},
-	{_T("B"), 521, 170, 42, 42, 20, 0x42},
-	{_T("C"), 344, 111, 42, 42, 20, 0x43},
-	{_T("D"), 403, 111, 42, 42, 20, 0x44},
-	{_T("E"), 462, 111, 42, 42, 20, 0x45},
-	{_T("F"), 521, 111, 42, 42, 20, 0x46},
-	{_T("WRITE\nINC"), 581, 288, 42, 42, 10, 0x70},
-	{_T("READ\nDEC"),  581, 229, 42, 42, 10, 0x71},
-	{_T("READ\nINC"),  581, 170, 42, 42, 10, 0x72},
-	{_T("ADR\nRUN"),   581, 111, 42, 42, 10, 0x73},
-	{_T("RESET"),      265, 288, 42, 42, 10, 0x00}
+} vm_buttons[] = {
+	{342 + 59 * 0, 287 - 59 * 0, 46, 46, 0x30},	// 0
+	{342 + 59 * 1, 287 - 59 * 0, 46, 46, 0x31},	// 1
+	{342 + 59 * 2, 287 - 59 * 0, 46, 46, 0x32},	// 2
+	{342 + 59 * 3, 287 - 59 * 0, 46, 46, 0x33},	// 3
+	{342 + 59 * 0, 287 - 59 * 1, 46, 46, 0x34},	// 4
+	{342 + 59 * 1, 287 - 59 * 1, 46, 46, 0x35},	// 5
+	{342 + 59 * 2, 287 - 59 * 1, 46, 46, 0x36},	// 6
+	{342 + 59 * 3, 287 - 59 * 1, 46, 46, 0x37},	// 7
+	{342 + 59 * 0, 287 - 59 * 2, 46, 46, 0x38},	// 8
+	{342 + 59 * 1, 287 - 59 * 2, 46, 46, 0x39},	// 9
+	{342 + 59 * 2, 287 - 59 * 2, 46, 46, 0x41},	// A
+	{342 + 59 * 3, 287 - 59 * 2, 46, 46, 0x42},	// B
+	{342 + 59 * 0, 287 - 59 * 3, 46, 46, 0x43},	// C
+	{342 + 59 * 1, 287 - 59 * 3, 46, 46, 0x44},	// D
+	{342 + 59 * 2, 287 - 59 * 3, 46, 46, 0x45},	// E
+	{342 + 59 * 3, 287 - 59 * 3, 46, 46, 0x46},	// F
+	{342 + 59 * 4, 287 - 59 * 0, 46, 46, 0x70},	// WRITE INC
+	{342 + 59 * 4, 287 - 59 * 1, 46, 46, 0x71},	// READ DEC
+	{342 + 59 * 4, 287 - 59 * 2, 46, 46, 0x72},	// READ INC
+	{342 + 59 * 4, 287 - 59 * 3, 46, 46, 0x73},	// ADR RUN
+	{262         , 287         , 46, 46, 0x00},	// RESET
 };
 const struct {
 	int x, y;
 	int width, height;
-} leds[] = {
+} vm_ranges[] = {
 	{357, 23, 28, 40},
 	{392, 23, 28, 40},
 	{439, 23, 28, 40},
@@ -86,10 +86,10 @@ class Z80;
 class DISPLAY;
 class KEYBOARD;
 
-class VM
+class VM : public VM_TEMPLATE
 {
 protected:
-	EMU* emu;
+//	EMU* emu;
 	
 	// devices
 	EVENT* event;
@@ -104,8 +104,8 @@ protected:
 	KEYBOARD* keyboard;
 	
 	// memory
-	uint8 rom[0x2000];
-	uint8 ram[0x2000];
+	uint8_t rom[0x2000];
+	uint8_t ram[0x2000];
 	
 public:
 	// ----------------------------------------
@@ -122,21 +122,31 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
+	double get_frame_rate()
+	{
+		return FRAMES_PER_SEC;
+	}
+	
+#ifdef USE_DEBUGGER
+	// debugger
+	DEVICE *get_cpu(int index);
+#endif
 	
 	// draw screen
 	void draw_screen();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	uint16_t* create_sound(int* extra_frames);
+	int get_sound_buffer_ptr();
 	
 	// user interface
-	void load_binary(int drv, _TCHAR* file_path);
-	void save_binary(int drv, _TCHAR* file_path);
-	bool now_skip();
+	void load_binary(int drv, const _TCHAR* file_path);
+	void save_binary(int drv, const _TCHAR* file_path);
+	bool is_frame_skippable();
 	
 	void update_config();
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
 	// for each device
@@ -144,9 +154,9 @@ public:
 	
 	// devices
 	DEVICE* get_device(int id);
-	DEVICE* dummy;
-	DEVICE* first_device;
-	DEVICE* last_device;
+//	DEVICE* dummy;
+//	DEVICE* first_device;
+//	DEVICE* last_device;
 };
 
 #endif

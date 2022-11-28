@@ -27,60 +27,69 @@
 
 #define MAX_PARAM 0x8000
 
+typedef struct {
+	int count;
+	int diff;
+	int period;
+	int timbre;
+	int volume;
+	int output;
+	int ptr;
+} channel_t;
+
 class SOUND : public DEVICE
 {
 private:
 	DEVICE* d_cpu;
 	
 	// sound gen
-	typedef struct {
-		int count;
-		int diff;
-		int period;
-		int timbre;
-		int volume;
-		int output;
-		int ptr;
-	} channel_t;
-	struct channel_t tone;
-	struct channel_t noise;
-	struct channel_t square1;
-	struct channel_t square2;
-	struct channel_t square3;
-	struct channel_t pcm;
+	channel_t tone;
+	channel_t noise;
+	channel_t square1;
+	channel_t square2;
+	channel_t square3;
+	channel_t pcm;
 	void clear_channel(channel_t *ch);
 	
 	int pcm_table[MAX_PARAM * 8];
-	uint32 cmd_addr;
+	uint32_t cmd_addr;
 	int pcm_len;
 	
 	int volume_table[32];
 	int detune_table[32];
 	
+	int psg_volume_l, psg_volume_r;
+	int pcm_volume_l, pcm_volume_r;
+	
 	// command buffer
 	int param_cnt, param_ptr, register_id;
-	uint8 params[MAX_PARAM];
+	uint8_t params[MAX_PARAM];
 	
-	void process_pcm(uint8 data);
+	void process_pcm(uint8_t data);
 	void process_cmd();
 	
 public:
-	SOUND(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Sound"));
+	}
 	~SOUND() {}
 	
 	// common functions
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	void write_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique function
+	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;
 	}
-	void init(int rate);
+	void initialize_sound(int rate);
 };
 
 #endif

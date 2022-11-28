@@ -10,7 +10,6 @@
 */
 
 #include "cmos.h"
-#include "../../fileio.h"
 
 #define DATA_SIZE	0x8000
 #define ADDR_MASK	(DATA_SIZE - 1)
@@ -18,13 +17,13 @@
 void CMOS::initialize()
 {
 	// init memory
-	data_buffer = (uint8 *)malloc(DATA_SIZE);
+	data_buffer = (uint8_t *)malloc(DATA_SIZE);
 	memset(data_buffer, 0, DATA_SIZE);
 	modified = false;
 	
 	// load cmos image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(data_buffer, DATA_SIZE, 1);
 		fio->Fclose();
 	}
@@ -36,7 +35,7 @@ void CMOS::release()
 	// save cmos image
 	if(modified) {
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("CMOS.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(data_buffer, DATA_SIZE, 1);
 			fio->Fclose();
 		}
@@ -52,7 +51,7 @@ void CMOS::reset()
 	data_addr = 0;
 }
 
-void CMOS::write_io8(uint32 addr, uint32 data)
+void CMOS::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf8:
@@ -71,7 +70,7 @@ void CMOS::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CMOS::read_io8(uint32 addr)
+uint32_t CMOS::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xf8:
@@ -81,5 +80,21 @@ uint32 CMOS::read_io8(uint32 addr)
 		return data_buffer[(data_addr++) & ADDR_MASK];
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+bool CMOS::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(data_buffer, DATA_SIZE, 1);
+	state_fio->StateValue(data_addr);
+	state_fio->StateValue(modified);
+	return true;
 }
 

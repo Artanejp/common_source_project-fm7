@@ -21,13 +21,16 @@ private:
 	DEVICE* d_pit;
 	
 public:
-	TIMER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	TIMER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Timer I/F"));
+	}
 	~TIMER() {}
 	
-	// common functions
-	void write_io8(uint32 addr, uint32 data);
+	// common function
+	void write_io8(uint32_t addr, uint32_t data);
 	
-	// unique functions
+	// unique function
 	void set_context_pit(DEVICE* device)
 	{
 		d_pit = device;

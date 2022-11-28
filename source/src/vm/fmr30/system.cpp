@@ -15,7 +15,7 @@ void SYSTEM::initialize()
 	nmimask = 0xf0;
 }
 
-void SYSTEM::write_io8(uint32 addr, uint32 data)
+void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x46:
@@ -30,7 +30,7 @@ void SYSTEM::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SYSTEM::read_io8(uint32 addr)
+uint32_t SYSTEM::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x18:
@@ -52,5 +52,21 @@ uint32 SYSTEM::read_io8(uint32 addr)
 		return arr;
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+bool SYSTEM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(arr);
+	state_fio->StateValue(nmistat);
+	state_fio->StateValue(nmimask);
+	return true;
 }
 

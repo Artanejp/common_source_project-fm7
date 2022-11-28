@@ -60,7 +60,7 @@ void PAC2::reset()
 	kanji->reset();
 }
 
-void PAC2::write_io8(uint32 addr, uint32 data)
+void PAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -78,13 +78,36 @@ void PAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PAC2::read_io8(uint32 addr)
+uint32_t PAC2::read_io8(uint32_t addr)
 {
 	return dev[sel]->read_io8(addr);
 }
 
-void PAC2::open_rampac2(int drv, _TCHAR* file_path)
+void PAC2::open_rampac2(int drv, const _TCHAR* file_path)
 {
 	rampac2[drv]->open_file(file_path);
+}
+
+#define STATE_VERSION	1
+
+bool PAC2::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(sel);
+	if(!rampac2[0]->process_state(state_fio, loading)) {
+		return false;
+	}
+	if(!rampac2[1]->process_state(state_fio, loading)) {
+		return false;
+	}
+	if(!kanji->process_state(state_fio, loading)) {
+		return false;
+	}
+	return true;
 }
 

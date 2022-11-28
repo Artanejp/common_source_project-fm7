@@ -19,7 +19,7 @@
 #define	SUPPORT_FM_A		0x00000007
 #define	SUPPORT_FM_B		0x00000038
 #define	SUPPORT_FM_C		0x000000c0	// OPM用
-#define	SUPPORT_FM			(SUPPORT_FM_A+SUPPROT_FM_B+SUPPROT_FM_C)
+#define	SUPPORT_FM			(SUPPORT_FM_A+SUPPORT_FM_B+SUPPORT_FM_C)
 #define	SUPPORT_PSG_1		0x00000100
 #define	SUPPORT_PSG_2		0x00000200
 #define	SUPPORT_PSG_3		0x00000400
@@ -37,7 +37,7 @@
 #define	SUPPORT_PSGPCM		0x00100000
 #define	SUPPORT_BEEPPCM		0x00200000
 
-#define	SUPPORT_CMS			0x00800000	// DLL内でCMSを処理するか
+#define	SUPPORT_CSM			0x00800000	// DLL内でCSMを処理するか
 #define	SUPPORT_TIMER		0x01000000	// タイマーA/B
 #define	SUPPORT_STATUS		0x02000000	// BUSY/TIMER/ID
 #define	SUPPORT_REG			0x04000000	// GetReg
@@ -56,12 +56,11 @@
 #define	SUPPORT_OPNB		SUPPORT_YM2610
 #define	SUPPORT_YM2612		(SUPPORT_FM_A+SUPPORT_FM_B+SUPPORT_DAC)
 #define	SUPPORT_OPN2		SUPPORT_YM2612
-#define	SUPPORT_YM2512		SUPPORT_FM
+#define	SUPPORT_YM2151		SUPPORT_FM
 #define	SUPPORT_OPM			SUPPORT_YM2151
 
 #define	FMDLL_VER			100
 
-//	__cdeclかよw
 typedef	DWORD (__cdecl *DLLFUNC0)(void);
 typedef	DWORD (__cdecl *DLLFUNC1)(LPVOID);
 typedef	DWORD (__cdecl *DLLFUNC2)(LPVOID, DWORD);
@@ -81,7 +80,7 @@ class CFMDLL
 {
 private:
 	HMODULE	hDll;
-	
+
 #ifdef USE_CS
 	CRITICAL_SECTION	cs;
 #endif
@@ -90,9 +89,17 @@ private:
 	DLLFUNC3	fm_setrate;
 	DLLFUNC2	fm_setvolfm;
 	DLLFUNC2	fm_setvolpsg;
+	DLLFUNC2	fm_setvolrhythmtotal;
+	DLLFUNC3	fm_setvolrhythm;
+	DLLFUNC2	fm_setvoladpcm;
 	DLLFUNC2	fm_setchannelmask;
 	DLLFUNC3	fm_getpcm;
+//	DLLFUNC2	fm_getpcmbuf;
 	DLLFUNC3	fm_setreg;
+	DLLFUNC2	fm_getreg;
+	DLLFUNC2	fm_updatetimer;
+	DLLFUNC1	fm_getnextevent;
+	DLLFUNC1	fm_getadpcmbuf;
 	DLLFUNC1	fm_release;
 	DLLFUNC2	fm_getstatus;
 	DLLFUNC1	fm_getcaps;
@@ -107,9 +114,18 @@ public:
 			fm_reset = (DLLFUNC1) GetProcAddress(hDll, "fm_reset");
 			fm_setvolfm = (DLLFUNC2) GetProcAddress(hDll, "fm_setvolfm");
 			fm_setvolpsg = (DLLFUNC2) GetProcAddress(hDll, "fm_setvolpsg");
+			fm_setvolrhythmtotal = (DLLFUNC2) GetProcAddress(hDll, "fm_setvolrhythmtotal");
+			fm_setvolrhythm = (DLLFUNC3) GetProcAddress(hDll, "fm_setvolrhythm");
+			fm_setvoladpcm = (DLLFUNC2) GetProcAddress(hDll, "fm_setvoladpcm");
+			
 			fm_setchannelmask = (DLLFUNC2) GetProcAddress(hDll, "fm_setchannelmask");
 			fm_setreg = (DLLFUNC3) GetProcAddress(hDll, "fm_setreg");
+			fm_getreg = (DLLFUNC2) GetProcAddress(hDll, "fm_getreg");
+			fm_updatetimer = (DLLFUNC2) GetProcAddress(hDll, "fm_updatetimer");
+			fm_getnextevent = (DLLFUNC1) GetProcAddress(hDll, "fm_getnextevent");
+			fm_getadpcmbuf = (DLLFUNC1) GetProcAddress(hDll, "fm_getadpcmbuf");
 			fm_getpcm = (DLLFUNC3) GetProcAddress(hDll, "fm_getpcm");
+//			fm_getpcmbuf = (DLLFUNC2) GetProcAddress(hDll, "fm_getpcmbuf");
 			fm_release = (DLLFUNC1) GetProcAddress(hDll, "fm_release");
 			fm_getstatus = (DLLFUNC2) GetProcAddress(hDll, "fm_getstatus");
 			fm_getcaps = (DLLFUNC1) GetProcAddress(hDll, "fm_getcaps");
@@ -137,8 +153,14 @@ public:
 			hDll = NULL;
 		}
 	}
-	
+
+	//	DLLの存在フラグ
+	BOOL IsDll(void) {
+		return (hDll != NULL ? TRUE : FALSE);
+	}
+
 	//	音源作成(&chipなのに注意)
+	//	chipにはNULLを入れておく事
 	BOOL Create(LPVOID *chip, int clock, int rate) {
 		BOOL	bRet = FALSE;
 		if (hDll != NULL && fm_create != NULL) {
@@ -147,10 +169,13 @@ public:
 //			LPVOID	lpv;
 //			bRet = fm_create(&lpv, clock, rate);
 //			*chip = lpv;
+#if 0
+			//	chipの内容で判断
 			if (!bRet) {
 				FreeLibrary(hDll);
 				hDll = NULL;
 			}
+#endif
 			STI();
 		}
 		return bRet;
@@ -183,6 +208,17 @@ public:
 		}
 	}
 	
+	//	レジスタ設定
+	DWORD GetReg(LPVOID chip, UINT adr) {
+		DWORD	dwRet = 0;
+		if (hDll != NULL && fm_getreg != NULL) {
+			CLI();
+			dwRet = fm_getreg(chip, adr);
+			STI();
+		}
+		return dwRet;
+	}
+	
 	//	FM音源ボリューム設定(fmgen互換)
 	void SetVolumeFM(LPVOID chip, int vol) {
 		if (hDll != NULL && fm_setvolfm != NULL) {
@@ -201,6 +237,33 @@ public:
 		}
 	}
 	
+	//	リズム音源全体ボリューム設定(fmgen互換)
+	void SetVolumeRhythmTotal(LPVOID chip, int vol) {
+		if (hDll != NULL && fm_setvolrhythmtotal != NULL) {
+			CLI();
+			fm_setvolrhythmtotal(chip, vol);
+			STI();
+		}
+	}
+	
+	//	各リズム音源ボリューム設定(fmgen互換)
+	void SetVolumeRhythm(LPVOID chip, int no, int vol) {
+		if (hDll != NULL && fm_setvolrhythm != NULL) {
+			CLI();
+			fm_setvolrhythm(chip, no, vol);
+			STI();
+		}
+	}
+
+	//	ADPCMボリューム設定(fmgen互換)
+	void SetVolumeADPCM(LPVOID chip, int vol) {
+		if (hDll != NULL && fm_setvoladpcm != NULL) {
+			CLI();
+			fm_setvoladpcm(chip, vol);
+			STI();
+		}
+	}
+	
 	//	チャンネルマスク(fmgen互換)
 	void SetChannelMask(LPVOID chip, int mask) {
 		if (hDll != NULL && fm_setchannelmask != NULL) {
@@ -208,6 +271,26 @@ public:
 			fm_setchannelmask(chip, mask);
 			STI();
 		}
+	}
+	
+	//	タイマ更新(fmgen互換)
+	void Count(LPVOID chip, DWORD us) {
+		if (hDll != NULL && fm_updatetimer != NULL) {
+			CLI();
+			fm_updatetimer(chip, us);
+			STI();
+		}
+	}
+	
+	//	次タイマーイベントまでの時間取得(fmgen互換)
+	DWORD GetNextEvent(LPVOID chip) {
+		DWORD	dwRet = 0xffffffff;
+		if (hDll != NULL && fm_getnextevent != NULL) {
+			CLI();
+			dwRet = fm_getnextevent(chip);
+			STI();
+		}
+		return dwRet;
 	}
 	
 	//	合成
@@ -218,7 +301,29 @@ public:
 			STI();
 		}
 	}
-	
+#if 0
+	//	各チャンネルPCMデータ取得(モノラル)
+	int* GetBuffer(LPVOID chip, int no) {
+		int	*p = NULL;
+		if (hDll != NULL && fm_getpcmbuf != NULL) {
+			CLI();
+			p = (int*) fm_getpcmbuf(chip, no);
+			STI();
+		}
+		return p;
+	}
+#endif
+	//	ADPCMバッファ(256KB)
+	//	bufとbufferが混在してる…
+	LPBYTE GetADPCMBuffer(LPVOID chip) {
+		LPBYTE	p = NULL;
+		if (hDll != NULL && fm_getadpcmbuf != NULL) {
+			CLI();
+			p = (LPBYTE) fm_getadpcmbuf(chip);
+			STI();
+		}
+		return p;
+	}
 	//	開放
 	void Release(LPVOID chip) {
 		if (hDll != NULL && fm_release != NULL) {
@@ -240,7 +345,6 @@ public:
 	}
 	
 	//	サポートしている機能を返す
-	//	mamefmは現在FM音源のみ
 	DWORD GetCaps(LPVOID chip) {
 		DWORD	dwRet = 0;
 		if (hDll != NULL && fm_getcaps != NULL) {
@@ -250,6 +354,7 @@ public:
 		}
 		return dwRet;
 	}
+
 };
 
 #undef	CLI

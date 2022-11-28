@@ -16,7 +16,7 @@ void SYSTEM::initialize()
 	status = 0x0f;
 }
 
-void SYSTEM::write_io8(uint32 addr, uint32 data)
+void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x61:
@@ -31,7 +31,7 @@ void SYSTEM::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SYSTEM::read_io8(uint32 addr)
+uint32_t SYSTEM::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x61:
@@ -40,7 +40,7 @@ uint32 SYSTEM::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SYSTEM::write_signal(int id, uint32 data, uint32 mask)
+void SYSTEM::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SYSTEM_TC2O) {
 		if(data & mask) {

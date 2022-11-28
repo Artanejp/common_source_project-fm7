@@ -68,7 +68,7 @@ void KEYBOARD::reset()
 	nmi_reg = 0;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xa0:
@@ -77,7 +77,7 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0xa0:
@@ -111,7 +111,7 @@ void KEYBOARD::event_callback(int id, int err)
 		if(send_count == 0 && !key_buf->empty()) {
 			int code = key_buf->read();
 			int parity = 1;
-			uint64 bit = 1;
+			uint64_t bit = 1;
 			
 			for(int i = 0; i < 8; i++) {
 				if(code & (1 << i)) {
@@ -167,7 +167,7 @@ void KEYBOARD::event_callback(int id, int err)
 	}
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 #ifndef TIMER_HACK
 	if(id == SIG_KEYBOARD_TIMER) {
@@ -190,5 +190,27 @@ void KEYBOARD::key_up(int code)
 	if(key_table[code]) {
 		key_buf->write(key_table[code] | 0x80);
 	}
+}
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state(state_fio, loading)) {
+		return false;
+	}
+#ifndef KEYBOARD_HACK
+	state_fio->StateValue(send_data);
+	state_fio->StateValue(send_count);
+#endif
+	state_fio->StateValue(key_latched);
+	state_fio->StateValue(nmi_reg);
+	return true;
 }
 

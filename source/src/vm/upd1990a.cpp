@@ -8,7 +8,6 @@
 */
 
 #include "upd1990a.h"
-#include "../fileio.h"
 
 #define EVENT_1SEC	0
 #define EVENT_TP	1
@@ -16,20 +15,20 @@
 void UPD1990A::initialize()
 {
 	// initialize rtc
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	
 	// register events
 	register_event(this, EVENT_1SEC, 1000000.0, true, &register_id_1sec);
 	register_id_tp = -1;
 }
 
-void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
+void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_UPD1990A_CLK) {
 		bool next = ((data & mask) != 0);
 		if(!clk && next) {
 			if((mode & 0x0f) == 1) {
-				uint64 bit = 1;
+				uint64_t bit = 1;
 #ifdef HAS_UPD4990A
 				if(mode & 0x80) {
 					bit <<= (52 - 1);
@@ -46,7 +45,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 					shift_data &= ~bit;
 				}
 				// output LSB
-				dout = (uint32)(shift_data & 1);
+				dout = (uint32_t)(shift_data & 1);
 				dout_changed = true;
 				write_signals(&outputs_dout, (shift_data & 1) ? 0xffffffff : 0);
 			}
@@ -57,7 +56,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 		clk = next;
 	} else if(id == SIG_UPD1990A_STB) {
 		bool next = ((data & mask) != 0);
-		if(!stb && next && !clk) {
+		if(!stb && next/* && !clk*/) {
 #ifdef HAS_UPD4990A
 			if(cmd == 7) {
 				mode = shift_cmd | 0x80;
@@ -70,7 +69,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 			switch(mode & 0x0f) {
 			case 0x02:
 				{
-					uint64 tmp = shift_data;
+					uint64_t tmp = shift_data;
 					cur_time.second = FROM_BCD(tmp);
 					tmp >>= 8;
 					cur_time.minute = FROM_BCD(tmp);
@@ -116,7 +115,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 				shift_data <<= 8;
 				shift_data |= TO_BCD(cur_time.second);
 				// output LSB
-				dout = (uint32)(shift_data & 1);
+				dout = (uint32_t)(shift_data & 1);
 				dout_changed = true;
 				write_signals(&outputs_dout, (shift_data & 1) ? 0xffffffff : 0);
 				break;
@@ -200,7 +199,7 @@ void UPD1990A::event_callback(int event_id, int err)
 				write_signals(&outputs_dout, (cur_time.second & 1) ? 0xffffffff : 0);
 			}
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 	} else if(event_id == EVENT_TP) {
@@ -211,56 +210,32 @@ void UPD1990A::event_callback(int event_id, int err)
 
 #define STATE_VERSION	2
 
-void UPD1990A::save_state(FILEIO* state_fio)
+bool UPD1990A::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(register_id_1sec);
-	state_fio->FputUint8(cmd);
-	state_fio->FputUint8(mode);
-	state_fio->FputUint8(tpmode);
-	state_fio->FputUint64(shift_data);
-	state_fio->FputBool(clk);
-	state_fio->FputBool(stb);
-	state_fio->FputBool(din);
-	state_fio->FputBool(hold);
-	state_fio->FputBool(tp);
-	state_fio->FputUint32(dout);
-	state_fio->FputBool(dout_changed);
-	state_fio->FputInt32(register_id_tp);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id_1sec);
+	state_fio->StateValue(cmd);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(tpmode);
+	state_fio->StateValue(shift_data);
+	state_fio->StateValue(clk);
+	state_fio->StateValue(stb);
+	state_fio->StateValue(din);
+	state_fio->StateValue(hold);
+	state_fio->StateValue(tp);
+	state_fio->StateValue(dout);
+	state_fio->StateValue(dout_changed);
+	state_fio->StateValue(register_id_tp);
 #ifdef HAS_UPD4990A
-	state_fio->FputUint8(shift_cmd);
-#endif
-}
-
-bool UPD1990A::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	register_id_1sec = state_fio->FgetInt32();
-	cmd = state_fio->FgetUint8();
-	mode = state_fio->FgetUint8();
-	tpmode = state_fio->FgetUint8();
-	shift_data = state_fio->FgetUint64();
-	clk = state_fio->FgetBool();
-	stb = state_fio->FgetBool();
-	din = state_fio->FgetBool();
-	hold = state_fio->FgetBool();
-	tp = state_fio->FgetBool();
-	dout = state_fio->FgetUint32();
-	dout_changed = state_fio->FgetBool();
-	register_id_tp = state_fio->FgetInt32();
-#ifdef HAS_UPD4990A
-	shift_cmd = state_fio->FgetUint8();
+	state_fio->StateValue(shift_cmd);
 #endif
 	return true;
 }

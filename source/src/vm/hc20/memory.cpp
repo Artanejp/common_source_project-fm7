@@ -10,9 +10,8 @@
 #include "memory.h"
 #include "../beep.h"
 #include "../mc6800.h"
-#include "../tf20.h"
+#include "../z80sio.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
@@ -58,19 +57,19 @@ void MEMORY::initialize()
 	
 	// load backuped ram / rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("DRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
 		// for compatibility
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, sizeof(ext), 1);
 		fio->Fclose();
 	}
@@ -132,7 +131,7 @@ void MEMORY::release()
 {
 	// save battery backuped ram
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("DRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
@@ -173,7 +172,7 @@ void MEMORY::reset()
 	int_mask = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -223,7 +222,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -285,13 +284,13 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PORT_2) {
 		sio_select = ((data & 0x04) != 0);
 	} else if(id == SIG_MEMORY_SIO_MAIN) {
 		if(!sio_select) {
-			d_tf20->write_signal(SIGNAL_TF20_SIO, data, 0xff);
+			d_sio_tf20->write_signal(SIG_Z80SIO_RECV_CH0, data, 0xff);
 		} else {
 			send_to_slave(data & mask);
 		}
@@ -355,9 +354,9 @@ void MEMORY::update_keyboard()
 		d_cpu->write_signal(SIG_MC6801_PORT_1, 0x20, 0x20);
 		
 		// clear key buffer except shift/ctrl/alt keys
-		uint8 key_stat_10 = key_stat[0x10];
-		uint8 key_stat_11 = key_stat[0x11];
-		uint8 key_stat_12 = key_stat[0x12];
+		uint8_t key_stat_10 = key_stat[0x10];
+		uint8_t key_stat_11 = key_stat[0x11];
+		uint8_t key_stat_12 = key_stat[0x12];
 		memset(key_stat, 0, sizeof(key_stat));
 		key_stat[0x10] = key_stat_10;
 		key_stat[0x11] = key_stat_11;
@@ -410,16 +409,16 @@ void MEMORY::update_intr()
 	d_cpu->write_signal(SIG_CPU_IRQ, int_status ? 1 : 0, 1);
 }
 
-void MEMORY::send_to_slave(uint8 val)
+void MEMORY::send_to_slave(uint8_t val)
 {
 	cmd_buf->write(val);
-	uint8 cmd = cmd_buf->read_not_remove(0);
+	uint8_t cmd = cmd_buf->read_not_remove(0);
 	
-//	emu->out_debug_log("Command = %2x", cmd);
+//	this->out_debug_log(_T("Command = %2x"), cmd);
 //	for(int i = 1; i < cmd_buf->count(); i++) {
-//		emu->out_debug_log(" %2x", cmd_buf->read_not_remove(i));
+//		this->out_debug_log(_T(" %2x"), cmd_buf->read_not_remove(i));
 //	}
-//	emu->out_debug_log("\n");
+//	this->out_debug_log(_T("\n"));
 	
 	switch(cmd) {
 	case 0x00: // slave mcpu ready check
@@ -724,35 +723,37 @@ void MEMORY::send_to_slave(uint8 val)
 		break;
 	default:
 		// unknown command
-		emu->out_debug_log("Unknown Command = %2x\n", cmd);
+		this->out_debug_log(_T("Unknown Command = %2x\n"), cmd);
 		send_to_main(0x0f);
 		break;
 	}
 }
 
-void MEMORY::send_to_main(uint8 val)
+void MEMORY::send_to_main(uint8_t val)
 {
 	// send to main cpu
 	d_cpu->write_signal(SIG_MC6801_SIO_RECV, val, 0xff);
 }
 
-void MEMORY::play_tape(_TCHAR* file_path)
+void MEMORY::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		memset(cmt_buffer, 0, sizeof(cmt_buffer));
 		cmt_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
+		cmt_fio->Fclose();
 		cmt_count = 0;
 		cmt_play = true;
 	}
 }
 
-void MEMORY::rec_tape(_TCHAR* file_path)
+void MEMORY::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+		my_tcscpy_s(cmt_file_path, _MAX_PATH, file_path);
 		cmt_count = 0;
 		cmt_rec = true;
 	}
@@ -760,10 +761,10 @@ void MEMORY::rec_tape(_TCHAR* file_path)
 
 void MEMORY::close_tape()
 {
-	if(cmt_rec && cmt_count) {
-		cmt_fio->Fwrite(cmt_buffer, cmt_count, 1);
-	}
-	if(cmt_play || cmt_rec) {
+	if(cmt_fio->IsOpened()) {
+		if(cmt_rec && cmt_count) {
+			cmt_fio->Fwrite(cmt_buffer, cmt_count, 1);
+		}
 		cmt_fio->Fclose();
 	}
 	cmt_count = 0;
@@ -781,7 +782,7 @@ void MEMORY::draw_screen()
 		int ofs = (c & 1) ? 40 : 0;
 		
 		for(int i = 0; i < 40; i++) {
-			uint8 pat = lcd[c >> 1].buffer[ofs + i];
+			uint8_t pat = lcd[c >> 1].buffer[ofs + i];
 			lcd_render[y + 0][x + i] = (pat & 0x01) ? pd : pb;
 			lcd_render[y + 1][x + i] = (pat & 0x02) ? pd : pb;
 			lcd_render[y + 2][x + i] = (pat & 0x04) ? pd : pb;
@@ -793,8 +794,103 @@ void MEMORY::draw_screen()
 		}
 	}
 	for(int y = 0; y < 32; y++) {
-		scrntype* dest = emu->screen_buffer(y);
-		memcpy(dest, lcd_render[y], sizeof(scrntype) * 120);
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		my_memcpy(dest, lcd_render[y], sizeof(scrntype_t) * 120);
 	}
+}
+
+#define STATE_VERSION	2
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	bool wr = false;
+	bool rd = false;
+	
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(loading) {
+		wr = state_fio->FgetBool();
+		rd = state_fio->FgetBool();
+	} else {
+		state_fio->FputBool(wbank[0x8000 >> 13] == ext);
+		state_fio->FputBool(rbank[0x8000 >> 13] == ext);
+	}
+	state_fio->StateArray(rom, sizeof(rom), 1);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	if(!cmd_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(sio_select);
+	state_fio->StateValue(special_cmd_masked);
+	state_fio->StateArray(slave_mem, sizeof(slave_mem), 1);
+	for(int i = 0; i < array_length(sound); i++) {
+		state_fio->StateValue(sound[i].freq);
+		state_fio->StateValue(sound[i].period);
+		state_fio->StateValue(sound[i].remain);
+	}
+	state_fio->StateValue(sound_ptr);
+	state_fio->StateValue(sound_count);
+	state_fio->StateValue(sound_reply);
+	state_fio->StateValue(sound_freq);
+	state_fio->StateArray(key_stat, sizeof(key_stat), 1);
+	state_fio->StateArray(key_flag, sizeof(key_flag), 1);
+	state_fio->StateValue(key_data);
+	state_fio->StateValue(key_strobe);
+	state_fio->StateValue(key_intmask);
+	state_fio->StateValue(cmt_play);
+	state_fio->StateValue(cmt_rec);
+	state_fio->StateArray(cmt_file_path, sizeof(cmt_file_path), 1);
+	if(loading) {
+		int length_tmp = state_fio->FgetInt32_LE();
+		if(cmt_rec) {
+			cmt_fio->Fopen(cmt_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				state_fio->Fread(buffer_tmp, length_rw, 1);
+				if(cmt_fio->IsOpened()) {
+					cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
+				}
+				length_tmp -= length_rw;
+			}
+		}
+	} else {
+		if(cmt_rec && cmt_fio->IsOpened()) {
+			int length_tmp = (int)cmt_fio->Ftell();
+			cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+			state_fio->FputInt32_LE(length_tmp);
+			while(length_tmp != 0) {
+				uint8_t buffer_tmp[1024];
+				int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
+				cmt_fio->Fread(buffer_tmp, length_rw, 1);
+				state_fio->Fwrite(buffer_tmp, length_rw, 1);
+				length_tmp -= length_rw;
+			}
+		} else {
+			state_fio->FputInt32_LE(0);
+		}
+	}
+	state_fio->StateValue(cmt_count);
+	state_fio->StateArray(cmt_buffer, sizeof(cmt_buffer), 1);
+	for(int i = 0; i < array_length(lcd); i++) {
+		state_fio->StateArray(lcd[i].buffer, sizeof(lcd[i].buffer), 1);
+		state_fio->StateValue(lcd[i].bank);
+		state_fio->StateValue(lcd[i].addr);
+	}
+	state_fio->StateValue(lcd_select);
+	state_fio->StateValue(lcd_data);
+	state_fio->StateValue(lcd_clock);
+	state_fio->StateValue(int_status);
+	state_fio->StateValue(int_mask);
+	
+	// post process
+	if(loading) {
+		SET_BANK(0x8000, 0xbfff, wr ? ext : wdmy, rd ? ext : rom);
+	}
+	return true;
 }
 

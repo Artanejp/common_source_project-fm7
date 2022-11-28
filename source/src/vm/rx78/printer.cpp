@@ -14,7 +14,7 @@ void PRINTER::initialize()
 	busy = strobe = false;
 }
 
-void PRINTER::write_io8(uint32 addr, uint32 data)
+void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xe2:
@@ -26,7 +26,7 @@ void PRINTER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PRINTER::read_io8(uint32 addr)
+uint32_t PRINTER::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xe2:
@@ -35,10 +35,26 @@ uint32 PRINTER::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void PRINTER::write_signal(int id, uint32 data, uint32 mask)
+void PRINTER::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_PRINTER_BUSY) {
-		busy = ((data & mask) != 0);
+//	if(id == SIG_PRINTER_BUSY) {
+//		busy = ((data & mask) != 0);
+//	}
+}
+
+#define STATE_VERSION	1
+
+bool PRINTER::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
 	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(strobe);
+	state_fio->StateValue(busy);
+	state_fio->StateValue(out);
+	return true;
 }
 

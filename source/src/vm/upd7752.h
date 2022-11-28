@@ -58,32 +58,28 @@ typedef	int	D7752_FIXED;
 #define	D7752E_ERR	(0x10)	// b4 ERR -	1 when error
 #define	D7752E_IDL	(0x00)	// waiting
 
-/// #define SOUND_RATE 22050
-/// #define SOUND_RATE 44100
-#define SOUND_RATE 48000
-
 class UPD7752 : public DEVICE
 {
 private:
 	bool mute;
 	int ThreadLoopStop;
 
-		// I/O ports
-	byte io_E0H;
-	byte io_E2H;
-	byte io_E3H;
+	// I/O ports
+	uint8_t io_E0H;
+	uint8_t io_E2H;
+	uint8_t io_E3H;
 
 	int VStat;					// status
 
 	// parameter buffer
-	byte ParaBuf[7];			// parameter buffer
-	byte Pnum;					// parameter number
+	uint8_t ParaBuf[7];			// parameter buffer
+	uint8_t Pnum;					// parameter number
 	int Fnum;					// repeat frame number
 	int PReady;					// complete setting parameter
 
+	int FbufLength;
 	D7752_SAMPLE *Fbuf;			// frame buffer pointer (10kHz 1frame)
 	unsigned char *voicebuf;
-	int samples;
 	int fin;
 	int fout;
 
@@ -91,12 +87,38 @@ private:
 	void AbortVoice(void);
 	void CancelVoice(void);
 	int VoiceOn(void);
-	void VSetMode(byte mode);
-	void VSetCommand(byte comm);
-	void VSetData(byte data);
+	void VSetMode(uint8_t mode);
+	void VSetCommand(uint8_t comm);
+	void VSetData(uint8_t data);
 	int VGetStatus(void);
+	
+	// filter coefficients
+	typedef	struct {
+		D7752_FIXED	f[5];
+		D7752_FIXED	b[5];
+		D7752_FIXED	amp;
+		D7752_FIXED	pitch;
+	} D7752Coef;
+	
+	// voice
+	D7752Coef Coef;
+	int Y[5][2];
+	int PitchCount;
+	int FrameSize;
+	int SOUND_RATE;
+	
+	int UPD7752_Start(int mode);
+	int GetFrameSize(void);
+	int Synth(uint8_t *param, D7752_SAMPLE *frame);
+	
+	int volume_l, volume_r;
+	
 public:
-	UPD7752(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	UPD7752(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+		set_device_name(_T("uPD7752 Voice Synthesizer"));
+	}
 	~UPD7752() {}
 	
 	// common functions
@@ -104,9 +126,17 @@ public:
 	void event_frame();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void mix(int32* buffer, int cnt);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool process_state(FILEIO* state_fio, bool loading);
+	
+	// unique function
+	void initialize_sound(int rate)
+	{
+		SOUND_RATE = rate;
+	}
 };
 
 #endif

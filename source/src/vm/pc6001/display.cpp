@@ -16,10 +16,10 @@ void DISPLAY::reset()
 	vram_ptr = ram_ptr + 0xe000;
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	unsigned int VRAMHead[4] = { 0xc000, 0xe000, 0x8000, 0xa000 };
-	uint16 port=(addr & 0x00ff);
+	uint16_t port=(addr & 0x00ff);
 	
 	switch (port) {
 	case 0xB0:
@@ -43,3 +43,22 @@ void DISPLAY::draw_screen()
 	}
 	d_vdp->draw_screen();
 }
+
+#define STATE_VERSION	1
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(loading) {
+		vram_ptr = ram_ptr + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(vram_ptr - ram_ptr));
+	}
+	return true;
+}
+

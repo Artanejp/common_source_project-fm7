@@ -7,7 +7,7 @@
 #ifndef FM_OPNA_H
 #define FM_OPNA_H
 
-#include <tchar.h>
+#include "../../common.h"
 #include "fmgen.h"
 #include "fmtimer.h"
 #include "psg.h"
@@ -78,7 +78,7 @@
 //		時間[clock]を返す
 //		タイマーが停止している場合は ULONG_MAX を返す… と思う
 //	
-//	void SetVolumeFM(int db)/SetVolumePSG(int db) ...
+//	void SetVolumeFM(int db_l, int db_r)/SetVolumePSG(int db_l, int db_r) ...
 //		各音源の音量を＋－方向に調節する．標準値は 0.
 //		単位は約 1/2 dB，有効範囲の上限は 20 (10dB)
 //
@@ -95,9 +95,11 @@ namespace FM
 		virtual void Reset();
 		bool	ReadIRQ();
 		
-		void	SetVolumeFM(int db);
-		void	SetVolumePSG(int db);
+		void	SetVolumeFM(int db_l, int db_r);
+		void	SetVolumePSG(int db_l, int db_r);
 		void	SetLPFCutoff(uint freq) {}	// obsolete
+		
+		bool is_ay3_891x;
 
 	protected:
 		void	SetParameter(Channel4* ch, uint addr, uint data);
@@ -105,10 +107,10 @@ namespace FM
 		void	RebuildTimeTable();
 		void	Intr(bool value);
 		
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
-		int		fmvolume;
+		int		fmvolume_l;
+		int		fmvolume_r;
 		
 		uint	clock;				// OPN クロック
 		uint	rate;				// FM 音源合成レート
@@ -152,8 +154,7 @@ namespace FM
 		void	SetADPCMBReg(uint reg, uint data);
 		uint	GetReg(uint addr);	
 		
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 	
 	protected:
 		void	FMMix(Sample* buffer, int nsamples);
@@ -200,17 +201,22 @@ namespace FM
 		uint	memaddr;		// 再生中アドレス
 		uint	limitaddr;		// Limit address/mask
 		int		adpcmlevel;		// ADPCM 音量
-		int		adpcmvolume;
-		int		adpcmvol;
+		int		adpcmvolume_l;
+		int		adpcmvolume_r;
+		int		adpcmvol_l;
+		int		adpcmvol_r;
 		uint	deltan;			// ⊿N
 		int		adplc;			// 周波数変換用変数
 		int		adpld;			// 周波数変換用変数差分値
 		uint	adplbase;		// adpld の元
 		int		adpcmx;			// ADPCM 合成用 x
 		int		adpcmd;			// ADPCM 合成用 ⊿
-		int		adpcmout;		// ADPCM 合成後の出力
-		int		apout0;			// out(t-2)+out(t-1)
-		int		apout1;			// out(t-1)+out(t)
+		int		adpcmout_l;		// ADPCM 合成後の出力
+		int		adpcmout_r;		// ADPCM 合成後の出力
+		int		apout0_l;			// out(t-2)+out(t-1)
+		int		apout0_r;			// out(t-2)+out(t-1)
+		int		apout1_l;			// out(t-1)+out(t)
+		int		apout1_r;			// out(t-1)+out(t)
 
 		uint	adpcmreadbuf;	// ADPCM リード用バッファ
 		bool	adpcmplay;		// ADPCM 再生中
@@ -255,8 +261,7 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 		
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 	
 	private:
 		void	SetStatus(uint bit);
@@ -286,9 +291,9 @@ namespace FM
 		void 	SetReg(uint addr, uint data);
 		uint	GetReg(uint addr);
 
-		void	SetVolumeADPCM(int db);
-		void	SetVolumeRhythmTotal(int db);
-		void	SetVolumeRhythm(int index, int db);
+		void	SetVolumeADPCM(int db_l, int db_r);
+		void	SetVolumeRhythmTotal(int db_l, int db_r);
+		void	SetVolumeRhythm(int index, int db_l, int db_r);
 
 		uint8*	GetADPCMBuffer() { return adpcmbuf; }
 
@@ -296,15 +301,15 @@ namespace FM
 		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
 		Channel4* dbgGetCh(int c) { return &ch[c]; }
 
-		void SaveState(void *f);
-		bool LoadState(void *f);
+		bool ProcessState(void *f, bool loading);
 		
 	private:
 		struct Rhythm
 		{
 			uint8	pan;		// ぱん
 			int8	level;		// おんりょう
-			int		volume;		// おんりょうせってい
+			int		volume_l;		// おんりょうせってい
+			int		volume_r;		// おんりょうせってい
 			int16*	sample;		// さんぷる
 			uint	size;		// さいず
 			uint	pos;		// いち
@@ -317,7 +322,8 @@ namespace FM
 	// リズム音源関係
 		Rhythm	rhythm[6];
 		int8	rhythmtl;		// リズム全体の音量
-		int		rhythmtvol;		
+		int		rhythmtvol_l;		
+		int		rhythmtvol_r;		
 		uint8	rhythmkey;		// リズムのキー
 	};
 
@@ -340,9 +346,9 @@ namespace FM
 		uint	GetReg(uint addr);
 		uint	ReadStatusEx();
 
-		void	SetVolumeADPCMATotal(int db);
-		void	SetVolumeADPCMA(int index, int db);
-		void	SetVolumeADPCMB(int db);
+		void	SetVolumeADPCMATotal(int db_l, int db_r);
+		void	SetVolumeADPCMA(int index, int db_l, int db_r);
+		void	SetVolumeADPCMB(int db_l, int db_r);
 
 //		void	SetChannelMask(uint mask);
 		
@@ -351,7 +357,8 @@ namespace FM
 		{
 			uint8	pan;		// ぱん
 			int8	level;		// おんりょう
-			int		volume;		// おんりょうせってい
+			int		volume_l;		// おんりょうせってい
+			int		volume_r;		// おんりょうせってい
 			uint	pos;		// いち
 			uint	step;		// すてっぷち
 
@@ -371,7 +378,8 @@ namespace FM
 		int		adpcmasize;
 		ADPCMA	adpcma[6];
 		int8	adpcmatl;		// ADPCMA 全体の音量
-		int		adpcmatvol;		
+		int		adpcmatvol_l;		
+		int		adpcmatvol_r;		
 		uint8	adpcmakey;		// ADPCMA のキー
 		int		adpcmastep;
 		uint8	adpcmareg[32];
@@ -424,9 +432,9 @@ inline void FM::OPNBase::RebuildTimeTable()
 	SetPrescaler(p);
 }
 
-inline void FM::OPNBase::SetVolumePSG(int db)
+inline void FM::OPNBase::SetVolumePSG(int db_l, int db_r)
 {
-	psg.SetVolume(db);
+	psg.SetVolume(db_l, db_r, is_ay3_891x);
 }
 
 #endif // FM_OPNA_H

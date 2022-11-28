@@ -17,7 +17,7 @@ void SPEAKER::initialize()
 	d_psg->write_signal(SIG_SN76489AN_MUTE, 1, 1);
 }
 
-void SPEAKER::write_signal(int id, uint32 data, uint32 mask)
+void SPEAKER::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if((data & 0x62) == 0x02) {
 		d_pcm->write_signal(SIG_PCM1BIT_MUTE, 0, 0);

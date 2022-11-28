@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2013.05.01-
@@ -12,12 +13,11 @@
 #include "keyboard.h"
 #include "sub.h"
 #include "../mcs48.h"
-#include "../../fileio.h"
 
 #define CAPS	0xfe
 #define KANA	0xff
 
-static const uint8 matrix[15][8] = {
+static const uint8_t matrix[15][8] = {
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, //	(CMT buttons ???)
 	{0x1b, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37}, //	ESC	1	2	3	4	5	6	7
 	{0x51, 0x57, 0x45, 0x52, 0x54, 0x59, 0x55, 0x49}, //	Q	W	E	R	T	Y	U	I
@@ -35,9 +35,14 @@ static const uint8 matrix[15][8] = {
 	{0x11, 0x10, KANA, CAPS, 0x12, 0x00, 0x00, 0x00}, //	CTRL	SHIFT	KANA	CAPS	GRAPH			
 };
 
+static const uint8_t diode[15] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x1f, //	CTRL	SHIFT	KANA	CAPS	GRAPH
+};
+
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	caps_locked = kana_locked = 0;
 	column = 0;
 }
@@ -52,7 +57,7 @@ void KEYBOARD::initialize()
 	INT	<-- H
 */
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case MCS48_PORT_P1:
@@ -65,10 +70,10 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 			static bool prev_signal = true;
 			bool cur_signal = ((data & 0x80) != 0);
 			if(prev_signal != cur_signal) {
-				static uint32 prev_clk = 0;
-				int us = (int)((double)passed_clock(prev_clk) * 1000.0 * 1000.0 / 4000000 + 0.5);
-				prev_clk = current_clock();
-				emu->out_debug_log("%d\t%d\n",prev_signal,us);
+				static uint32_t prev_clk = 0;
+				int us = (int)((double)get_passed_clock(prev_clk) * 1000.0 * 1000.0 / 4000000 + 0.5);
+				prev_clk = get_current_clock();
+				this->out_debug_log(_T("%d\t%d\n"), prev_signal, us);
 				prev_signal = cur_signal;
 			}
 		}
@@ -78,12 +83,12 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case MCS48_PORT_T0:
 #ifdef _X1TURBO_FEATURE
-		if(config.device_type == 0) {
+		if(config.keyboard_type == 0) {
 			return 1;	// mode A
 		} else
 #endif
@@ -92,37 +97,53 @@ uint32 KEYBOARD::read_io8(uint32 addr)
 		return 1;
 	default:
 		{
-			uint8 caps_stored = key_stat[CAPS];
-			uint8 kana_stored = key_stat[KANA];
-			uint8 shift_stored = key_stat[VK_SHIFT];
-			uint8 delete_stored = key_stat[VK_DELETE];
-			uint32 value = 0;
+			uint32_t value = 0;
 			
 			// update key status
-			if(key_stat[VK_INSERT]) {
-				key_stat[VK_SHIFT] = key_stat[VK_DELETE] = 1;
-			}
-			if(key_stat[VK_BACK]) {
-				key_stat[VK_DELETE] = 1;
-			}
-			key_stat[CAPS] = caps_locked;
-			key_stat[KANA] = kana_locked;
+			uint8_t key_buf[256];
+			memcpy(key_buf, key_stat, sizeof(key_buf));
 			
-			for(int i = 1; i < 15; i++) {
-				if(!(column & (1 << i))) {
-					for(int j = 0; j < 8; j++) {
-						if(key_stat[matrix[i][j]]) {
-							value |= 1 << j;
-						}
+			if(key_buf[VK_INSERT]) {
+				key_buf[VK_SHIFT] = key_buf[VK_DELETE] = 1;
+			}
+			if(key_buf[VK_BACK]) {
+				key_buf[VK_DELETE] = 1;
+			}
+			key_buf[CAPS] = caps_locked;
+			key_buf[KANA] = kana_locked;
+			
+			// get key status of all column
+			uint8_t key_map[15];
+			memset(key_map, 0, sizeof(key_map));
+			
+			for(int i = 0; i < 15; i++) {
+				for(int j = 0; j < 8; j++) {
+					if(key_buf[matrix[i][j]]) {
+						key_map[i] |= 1 << j;
 					}
 				}
 			}
 			
-			// restore key status
-			key_stat[CAPS] = caps_stored;
-			key_stat[KANA] = kana_stored;
-			key_stat[VK_SHIFT] = shift_stored;
-			key_stat[VK_DELETE] = delete_stored;
+			// check phantom keys (thanks Mr.Sato)
+			for(int i = 0; i < 15; i++) {
+				if(!(column & (1 << i))) {
+					uint8_t row_hold;
+					uint8_t row_reak = key_map[i] & (~diode[i]);
+					do {
+						row_hold = row_reak;
+						for(int c = 0; c < 15; c++) {
+							if(c != i){
+								uint8_t row_bridge = key_map[c] & (~diode[c]);
+								if(row_reak & row_bridge) {
+									row_reak |= row_bridge;
+								}
+								if(row_hold != row_reak) break;
+							}
+						}
+					} while(row_hold != row_reak);
+					value |= key_map[i] | row_reak;
+				}
+			}
 			return ~value;
 		}
 	}
@@ -143,27 +164,17 @@ void KEYBOARD::key_down(int code, bool repeat)
 
 #define STATE_VERSION	1
 
-void KEYBOARD::save_state(FILEIO* state_fio)
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(caps_locked);
-	state_fio->FputUint8(kana_locked);
-	state_fio->FputUint16(column);
-}
-
-bool KEYBOARD::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	caps_locked = state_fio->FgetUint8();
-	kana_locked= state_fio->FgetUint8();
-	column = state_fio->FgetUint16();
+	state_fio->StateValue(caps_locked);
+	state_fio->StateValue(kana_locked);
+	state_fio->StateValue(column);
 	return true;
 }
 

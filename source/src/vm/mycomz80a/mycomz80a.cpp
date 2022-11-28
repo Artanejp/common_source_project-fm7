@@ -17,6 +17,7 @@
 #include "../i8255.h"
 #include "../io.h"
 #include "../msm58321.h"
+#include "../noise.h"
 #include "../sn76489an.h"
 #include "../z80.h"
 
@@ -32,7 +33,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -40,10 +41,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	drec = new DATAREC(this, emu);
+	drec->set_context_noise_play(new NOISE(this, emu));
+	drec->set_context_noise_stop(new NOISE(this, emu));
+	drec->set_context_noise_fast(new NOISE(this, emu));
 	crtc = new HD46505(this, emu);
 	pio1 = new I8255(this, emu);
+	pio1->set_device_name(_T("8255 PIO (VRAM/Keyboard)"));
 	pio2 = new I8255(this, emu);
+	pio2->set_device_name(_T("8255 PIO (Display/Keyboard/CMT)"));
 	pio3 = new I8255(this, emu);
+	pio3->set_device_name(_T("8255 PIO (FDC/RTC)"));
 	io = new IO(this, emu);
 	rtc = new MSM58321(this, emu);	// MSM5832
 	psg = new SN76489AN(this, emu);
@@ -56,6 +63,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
+	event->set_context_sound(drec);
+	event->set_context_sound(drec->get_context_noise_play());
+	event->set_context_sound(drec->get_context_noise_stop());
+	event->set_context_sound(drec->get_context_noise_fast());
 	
 	//	00	out	system control
 	//	01	in/out	vram data
@@ -93,12 +104,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	//		pc5	out	rtc rd
 	//		pc6	out	rtc wr
 	//		pc7	out	rtc cs
-	drec->set_context_out(pio2, SIG_I8255_PORT_A, 4);
+	drec->set_context_ear(pio2, SIG_I8255_PORT_A, 4);
 	crtc->set_context_disp(pio2, SIG_I8255_PORT_A, 0x80);
 	pio1->set_context_port_a(display, SIG_DISPLAY_ADDR_L, 0xff, 0);
 	pio1->set_context_port_a(psg, SIG_SN76489AN_DATA, 0xff, 0);
 	pio1->set_context_port_c(display, SIG_DISPLAY_ADDR_H, 7, 0);
-	pio2->set_context_port_c(drec, SIG_DATAREC_OUT, 4, 0);
+	pio2->set_context_port_c(drec, SIG_DATAREC_MIC, 4, 0);
 	pio2->set_context_port_c(drec, SIG_DATAREC_REMOTE, 8, 0);
 	pio2->set_context_port_c(psg, SIG_SN76489AN_WE, 0x10, 0);
 	pio2->set_context_port_c(psg, SIG_SN76489AN_CS, 0x20, 0);
@@ -111,6 +122,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio3->set_context_port_c(rtc, SIG_MSM58321_CS, 0x80, 0);
 	rtc->set_context_data(pio3, SIG_I8255_PORT_B, 0x0f, 0);
 	
+	display->set_context_crtc(crtc);
 	display->set_regs_ptr(crtc->get_regs());
 	keyboard->set_context_cpu(cpu);
 	keyboard->set_context_pio1(pio1);
@@ -176,9 +188,9 @@ void VM::run()
 	event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -214,18 +226,33 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	psg->init(rate, 2500800, 10000);
+	psg->initialize_sound(rate, 2500800, 10000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		psg->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
+		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key
@@ -241,36 +268,102 @@ void VM::key_up(int code)
 	keyboard->key_up(code);
 }
 
+bool VM::get_caps_locked()
+{
+	return keyboard->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return keyboard->get_kana_locked();
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
-	drec->play_tape(file_path);
-//	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	bool remote = drec->get_remote();
+	
+	if(drec->play_tape(file_path) && remote) {
+		// if machine already sets remote on, start playing now
+		push_play(drv);
+	}
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
-	drec->rec_tape(file_path);
-//	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	bool remote = drec->get_remote();
+	
+	if(drec->rec_tape(file_path) && remote) {
+		// if machine already sets remote on, start recording now
+		push_play(drv);
+	}
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
+	emu->lock_vm();
 	drec->close_tape();
-//	drec->write_signal(SIG_DATAREC_REMOTE, 0, 1);
+	emu->unlock_vm();
+	drec->set_remote(false);
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::now_skip()
+bool VM::is_tape_playing(int drv)
 {
-	return event->now_skip();
+	return drec->is_tape_playing();
+}
+
+bool VM::is_tape_recording(int drv)
+{
+	return drec->is_tape_recording();
+}
+
+int VM::get_tape_position(int drv)
+{
+	return drec->get_tape_position();
+}
+
+const _TCHAR* VM::get_tape_message(int drv)
+{
+	return drec->get_message();
+}
+
+void VM::push_play(int drv)
+{
+	drec->set_remote(false);
+	drec->set_ff_rew(0);
+	drec->set_remote(true);
+}
+
+void VM::push_stop(int drv)
+{
+	drec->set_remote(false);
+}
+
+void VM::push_fast_forward(int drv)
+{
+	drec->set_remote(false);
+	drec->set_ff_rew(1);
+	drec->set_remote(true);
+}
+
+void VM::push_fast_rewind(int drv)
+{
+	drec->set_remote(false);
+	drec->set_ff_rew(-1);
+	drec->set_remote(true);
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -278,5 +371,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	3
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

@@ -1,0 +1,76 @@
+/*
+ * I/O termination dummy [dummydevice.h]
+ * 
+ * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License: GPLv2
+ * History:
+ *   Jul 30, 2015 : Initial
+ *
+ */
+
+#ifndef _VM_DUMMYDEVICE_H_
+#define _VM_DUMMYDEVICE_H_
+
+#include "../device.h"
+
+enum {
+	SIG_DUMMYDEVICE_BIT0 = 0,
+	SIG_DUMMYDEVICE_BIT1,
+	SIG_DUMMYDEVICE_BIT2,
+	SIG_DUMMYDEVICE_BIT3,
+	SIG_DUMMYDEVICE_BIT4,
+	SIG_DUMMYDEVICE_BIT5,
+	SIG_DUMMYDEVICE_BIT6,
+	SIG_DUMMYDEVICE_BIT7,
+	SIG_DUMMYDEVICE_BIT8,
+	SIG_DUMMYDEVICE_BIT9,
+	SIG_DUMMYDEVICE_BIT10,
+	SIG_DUMMYDEVICE_BIT11,
+	SIG_DUMMYDEVICE_BIT12,
+	SIG_DUMMYDEVICE_BIT13,
+	SIG_DUMMYDEVICE_BIT14,
+	SIG_DUMMYDEVICE_BIT15,
+	SIG_DUMMYDEVICE_BIT16,
+	SIG_DUMMYDEVICE_BIT17,
+	SIG_DUMMYDEVICE_BIT18,
+	SIG_DUMMYDEVICE_BIT19,
+	SIG_DUMMYDEVICE_BIT20,
+	SIG_DUMMYDEVICE_BIT21,
+	SIG_DUMMYDEVICE_BIT22,
+	SIG_DUMMYDEVICE_BIT23,
+	SIG_DUMMYDEVICE_BIT24,
+	SIG_DUMMYDEVICE_BIT25,
+	SIG_DUMMYDEVICE_BIT26,
+	SIG_DUMMYDEVICE_BIT27,
+	SIG_DUMMYDEVICE_BIT28,
+	SIG_DUMMYDEVICE_BIT29,
+	SIG_DUMMYDEVICE_BIT30,
+	SIG_DUMMYDEVICE_BIT31,
+	SIG_DUMMYDEVICE_READWRITE,
+	SIG_DUMMYDEVICE_CLEAR_ON_RESET,
+	SIG_DUMMYDEVICE_CLEAR_WITH_ZERO,
+};
+class VM;
+class EMU;
+class DUMMYDEVICE : public DEVICE {
+private:
+	uint32_t status;
+	bool clear_on_reset;
+	bool clear_with_zero;
+public:
+	DUMMYDEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		status = 0x00000000;
+		clear_on_reset = true;
+		clear_with_zero = true;
+	}
+	~DUMMYDEVICE() {}
+
+	uint32_t read_signal(int id);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+
+	void reset();
+	bool process_state(FILEIO *state_fio, bool loading);
+};
+
+#endif //_VM_DUMMYDEVICE_H_

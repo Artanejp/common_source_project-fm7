@@ -1,6 +1,14 @@
 /*
 	NEC PC-9801 Emulator 'ePC-9801'
 	NEC PC-9801E/F/M Emulator 'ePC-9801E'
+	NEC PC-9801U Emulator 'ePC-9801U'
+	NEC PC-9801VF Emulator 'ePC-9801VF'
+	NEC PC-9801VM Emulator 'ePC-9801VM'
+	NEC PC-9801VX Emulator 'ePC-9801VX'
+	NEC PC-9801RA Emulator 'ePC-9801RA'
+	NEC PC-98XA Emulator 'ePC-98XA'
+	NEC PC-98XL Emulator 'ePC-98XL'
+	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
 
 	Author : Takeda.Toshiya
@@ -12,7 +20,6 @@
 #include "mouse.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 #define EVENT_TIMER	0
 
@@ -20,7 +27,7 @@ static const int freq_table[4] = {120, 60, 30, 15};
 
 void MOUSE::initialize()
 {
-	status = emu->mouse_buffer();
+	status = emu->get_mouse_buffer();
 	
 	ctrlreg = 0xff;
 	freq = cur_freq = 0;
@@ -35,25 +42,41 @@ void MOUSE::reset()
 	lx = ly = -1;
 }
 
-void MOUSE::write_io8(uint32 addr, uint32 data)
+#if !defined(SUPPORT_HIRESO)
+void MOUSE::write_io8(uint32_t addr, uint32_t data)
 {
-	switch(addr & 0xffff) {
+	switch(addr) {
 	case 0xbfdb:
-		// this port is not available on PC-9801/E/F/M
-		freq = data & 3;
+		if((data & 0xfc) == 0) {
+			freq = data;
+		}
 		break;
 	}
 }
 
+uint32_t MOUSE::read_io8(uint32_t addr)
+{
+	switch(addr) {
+	case 0xbfdb:
+		return freq;
+	}
+	return 0xff;
+}
+#endif
+
 void MOUSE::event_callback(int event_id, int err)
 {
 	if(!(ctrlreg & 0x10)) {
-		d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR5, 1, 1);
+		#if !defined(SUPPORT_HIRESO)
+			d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR5, 1, 1);
+		#else
+			d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR6, 1, 1);
+		#endif
 	}
-	if(cur_freq != freq) {
+	if(cur_freq != (freq & 3)) {
 		cancel_event(this, register_id);
-		register_event(this, EVENT_TIMER, 1000000.0 / freq_table[freq] + err, true, &register_id);
-		cur_freq = freq;
+		register_event(this, EVENT_TIMER, 1000000.0 / freq_table[freq & 3] + err, true, &register_id);
+		cur_freq = freq & 3;
 	}
 }
 
@@ -74,7 +97,7 @@ void MOUSE::event_frame()
 	update_mouse();
 }
 
-void MOUSE::write_signal(int id, uint32 data, uint32 mask)
+void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(!(ctrlreg & 0x80) && (data & 0x80)) {
 		lx = dx;
@@ -106,39 +129,24 @@ void MOUSE::update_mouse()
 	d_pio->write_signal(SIG_I8255_PORT_A, val, 0xff);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-void MOUSE::save_state(FILEIO* state_fio)
+bool MOUSE::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(ctrlreg);
-	state_fio->FputInt32(freq);
-	state_fio->FputInt32(cur_freq);
-	state_fio->FputInt32(dx);
-	state_fio->FputInt32(dy);
-	state_fio->FputInt32(lx);
-	state_fio->FputInt32(ly);
-	state_fio->FputInt32(register_id);
-}
-
-bool MOUSE::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	ctrlreg = state_fio->FgetInt32();
-	freq = state_fio->FgetInt32();
-	cur_freq = state_fio->FgetInt32();
-	dx = state_fio->FgetInt32();
-	dy = state_fio->FgetInt32();
-	lx = state_fio->FgetInt32();
-	ly = state_fio->FgetInt32();
-	register_id = state_fio->FgetInt32();
+	state_fio->StateValue(ctrlreg);
+	state_fio->StateValue(freq);
+	state_fio->StateValue(cur_freq);
+	state_fio->StateValue(dx);
+	state_fio->StateValue(dy);
+	state_fio->StateValue(lx);
+	state_fio->StateValue(ly);
+	state_fio->StateValue(register_id);
 	return true;
 }
 

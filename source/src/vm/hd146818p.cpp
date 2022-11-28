@@ -8,7 +8,6 @@
 */
 
 #include "hd146818p.h"
-#include "../fileio.h"
 
 #define EVENT_1SEC	0
 #define EVENT_SQW	1
@@ -26,8 +25,9 @@ void HD146818P::initialize()
 	memset(regs, 0, sizeof(regs));
 	modified = false;
 	
+	// FIXME: we need to consider the multiple chips case
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("HD146818P.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("HD146818P.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(regs + 14, 50, 1);
 		fio->Fclose();
 	}
@@ -38,7 +38,7 @@ void HD146818P::initialize()
 	intr = sqw = false;
 	register_id_sqw = -1;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register event
@@ -48,8 +48,9 @@ void HD146818P::initialize()
 void HD146818P::release()
 {
 	if(modified) {
+		// FIXME: we need to consider the multiple chips case
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("HD146818P.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("HD146818P.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(regs + 14, 50, 1);
 			fio->Fclose();
 		}
@@ -63,7 +64,7 @@ void HD146818P::reset()
 	regs[0x0c] = 0;
 }
 
-void HD146818P::write_io8(uint32 addr, uint32 data)
+void HD146818P::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		ch = data & 0x3f;
@@ -117,12 +118,12 @@ void HD146818P::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 HD146818P::read_io8(uint32 addr)
+uint32_t HD146818P::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		return 0xff;
 	} else {
-		uint8 val = regs[ch];
+		uint8_t val = regs[ch];
 		if(ch == 0x0c) {
 			regs[0x0c] = 0;
 			update_intr();
@@ -140,7 +141,7 @@ void HD146818P::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		read_from_cur_time();
@@ -149,7 +150,7 @@ void HD146818P::event_callback(int event_id, int err)
 		update_intr();
 	} else if(event_id == EVENT_SQW) {
 		// periodic interrupt
-		if(sqw = !sqw) {
+		if((sqw = !sqw) == true) {
 			regs[0x0c] |= 0x40;
 			update_intr();
 		}
@@ -213,5 +214,29 @@ void HD146818P::update_intr()
 		write_signals(&outputs_intr, next ? 0xffffffff : 0);
 		intr = next;
 	}
+}
+
+#define STATE_VERSION	1
+
+bool HD146818P::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id_1sec);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(period);
+	state_fio->StateValue(register_id_sqw);
+	state_fio->StateValue(intr);
+	state_fio->StateValue(sqw);
+	state_fio->StateValue(modified);
+	return true;
 }
 

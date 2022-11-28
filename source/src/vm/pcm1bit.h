@@ -21,33 +21,34 @@
 class PCM1BIT : public DEVICE
 {
 private:
-	bool signal, on, mute;
+	bool signal, on, mute, realtime;
+	int changed;
+	uint32_t prev_clock;
+	int positive_clocks, negative_clocks;
+	int max_vol, last_vol_l, last_vol_r;
+	int volume_l, volume_r;
 	
-#ifdef PCM1BIT_HIGH_QUALITY
-	bool samples_signal[1024];
-	bool samples_out[1024];
-	uint32 samples_clock[1024];
-	int sample_count;
-	uint32 prev_clock;
-	int32 prev_vol;
-#endif
-	int max_vol;
-	int update;
+	void update_realtime_render();
 	
 public:
-	PCM1BIT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PCM1BIT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+		set_device_name(_T("1-Bit PCM Sound"));
+	}
 	~PCM1BIT() {}
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void reset();
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void mix(int32* buffer, int cnt);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void init(int rate, int volume);
+	void initialize_sound(int rate, int volume);
 };
 
 #endif

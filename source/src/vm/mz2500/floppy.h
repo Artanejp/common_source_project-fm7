@@ -27,18 +27,20 @@ private:
 #endif
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FLOPPY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Floppy I/F"));
+	}
 	~FLOPPY() {}
 	
 	// common functions
 #ifdef _MZ2500
 	void initialize();
 #endif
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 #ifdef _MZ2500
-	void write_signal(int id, uint32 data, uint32 mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 #endif
 	
 	// unique functions

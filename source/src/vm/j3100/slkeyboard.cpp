@@ -32,7 +32,7 @@ void KEYBOARD::reset()
 	key_read = true;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x61:
@@ -48,9 +48,9 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 
 	switch(addr) {
 	case 0x60:

@@ -10,7 +10,6 @@
 
 #include "cmt.h"
 #include "../i8251.h"
-#include "../../fileio.h"
 
 void CMT::initialize()
 {
@@ -30,12 +29,17 @@ void CMT::reset()
 	play = rec = remote = false;
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
-	remote = ((data & 0x20) != 0);
+	switch(addr) {
+	case 0x0095:
+	case 0x0097:
+		remote = ((data & 0x20) != 0);
+		break;
+	}
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_OUT) {
 		if(rec && remote) {
@@ -49,7 +53,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void CMT::play_tape(_TCHAR* file_path)
+void CMT::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -69,7 +73,7 @@ void CMT::play_tape(_TCHAR* file_path)
 	}
 }
 
-void CMT::rec_tape(_TCHAR* file_path)
+void CMT::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -102,31 +106,19 @@ void CMT::release_tape()
 
 #define STATE_VERSION	1
 
-void CMT::save_state(FILEIO* state_fio)
+bool CMT::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(bufcnt);
-	state_fio->Fwrite(buffer, sizeof(buffer), 1);
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(remote);
-}
-
-bool CMT::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	bufcnt = state_fio->FgetInt32();
-	state_fio->Fread(buffer, sizeof(buffer), 1);
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	remote = state_fio->FgetBool();
+	state_fio->StateValue(bufcnt);
+	state_fio->StateArray(buffer, sizeof(buffer), 1);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(remote);
 	return true;
 }
 

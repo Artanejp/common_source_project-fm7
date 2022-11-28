@@ -15,7 +15,6 @@
 #if defined(_MZ800)
 #include "../z80pio.h"
 #endif
-#include "../../fileio.h"
 
 #define EVENT_TEMPO		0
 #define EVENT_BLINK		1
@@ -25,6 +24,8 @@
 #if defined(_MZ1500)
 #define EVENT_HBLANK_PCG	5
 #endif
+#define EVENT_VBLANK_S		6
+#define EVENT_VBLANK_E		7
 
 #define MEM_BANK_MON_L		0x01
 #define MEM_BANK_MON_H		0x02
@@ -86,21 +87,28 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T(IPL_FILE_NAME)), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T(IPL_FILE_NAME)), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
 #if defined(_MZ800) || defined(_MZ1500)
-	if(fio->Fopen(emu->bios_path(_T(EXT_FILE_NAME)), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T(EXT_FILE_NAME)), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, sizeof(ext), 1);
 		fio->Fclose();
 	}
 #endif
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
 	delete fio;
+	
+#if defined(_MZ700)
+	// init PCG-700
+	memset(pcg, 0, sizeof(pcg));
+	memcpy(pcg + 0x000, font + 0x000, 0x400);
+	memcpy(pcg + 0x800, font + 0x800, 0x400);
+#endif
 	
 	// init memory map
 	SET_BANK(0x0000, 0xffff, ram, ram);
@@ -159,6 +167,12 @@ void MEMORY::reset()
 #endif
 #endif
 	
+#if defined(_MZ700)
+	// reset PCG-700
+	pcg_data = pcg_addr = 0;
+	pcg_ctrl = 0xff;
+#endif
+	
 	// reset palette
 #if defined(_MZ800)
 	palette_sw = 0;
@@ -206,8 +220,8 @@ void MEMORY::update_config()
 void MEMORY::event_vline(int v, int clock)
 {
 	// vblank / vsync
-	set_vblank(v >= 200);
 #if defined(_MZ800)
+	set_vblank(v >= 200);
 	vsync = (v >= 240 && v <= 242);
 #else
 	vsync = (v >= 221 && v <= 223);
@@ -223,6 +237,11 @@ void MEMORY::event_vline(int v, int clock)
 	register_event_by_clock(this, EVENT_HBLANK, 165, false, NULL);	// NTSC 60Hz
 //	register_event_by_clock(this, EVENT_HSYNC_S, 180, false, NULL);
 //	register_event_by_clock(this, EVENT_HSYNC_E, 194, false, NULL);
+	if (v == 199) {
+		register_event_by_clock(this, EVENT_VBLANK_S, 166, false, NULL);
+	} else if (v == 261) {
+		register_event_by_clock(this, EVENT_VBLANK_E, 166, false, NULL);
+	}
 #endif
 	
 #if defined(_MZ700) || defined(_MZ1500)
@@ -237,29 +256,7 @@ void MEMORY::event_vline(int v, int clock)
 	
 	// draw one line
 	if(v < 200) {
-#if defined(_MZ800)
-		switch(dmd & 0x0f) {
-		case 0x00:	// 320x200,4col
-		case 0x01:
-			draw_line_320x200_2bpp(v);
-			break;
-		case 0x02:	// 320x200,16col
-			draw_line_320x200_4bpp(v);
-			break;
-		case 0x04:	// 640x200,2col
-		case 0x05:
-			draw_line_640x200_1bpp(v);
-			break;
-		case 0x06:	// 640x200,4col
-			draw_line_640x200_2bpp(v);
-			break;
-		case 0x08:	// MZ-700
-			draw_line_mz700(v);
-			break;
-		}
-#else
 		draw_line(v);
-#endif
 	}
 }
 
@@ -292,10 +289,14 @@ void MEMORY::event_callback(int event_id, int err)
 		}
 		hblank_pcg = true;
 #endif
+	} else if(event_id == EVENT_VBLANK_S) {
+		set_vblank(true);
+	} else if(event_id == EVENT_VBLANK_E) {
+		set_vblank(false);
 	}
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -419,6 +420,22 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 					break;
 				}
 				return;
+#if defined(_MZ700)
+			} else if(addr == 0xe010) {
+				pcg_data = data;
+				return;
+			} else if(addr == 0xe011) {
+				pcg_addr = data;
+				return;
+			} else if(addr == 0xe012) {
+				if(!(pcg_ctrl & 0x10) && (data & 0x10)) {
+					int offset = pcg_addr | ((data & 3) << 8);
+					offset |= (data & 4) ? 0xc00 : 0x400;
+					pcg[offset] = (data & 0x20) ? font[offset] : pcg_data;
+				}
+				pcg_ctrl = data;
+				return;
+#endif
 			}
 		}
 #if defined(_MZ1500)
@@ -428,7 +445,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -451,9 +468,9 @@ uint32 MEMORY::read_data8(uint32 addr)
 			addr = vram_addr(addr & 0x3fff);
 			if(rf & 0x80) {
 				int page = vram_page_mask(rf);
-				uint32 result = 0xff;
+				uint32_t result = 0xff;
 				for(int bit2 = 1; bit2 <= 0x80; bit2 <<= 1) {
-					uint32 addr2 = addr;
+					uint32_t addr2 = addr;
 					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr2 += 0x2000) {
 						if((page & bit) && (vram[addr2] & bit2) != ((rf & bit) ? bit2 : 0)) {
 							result &= ~bit2;
@@ -501,7 +518,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 				case 4: case 5: case 6: case 7:
 					return d_pit->read_io8(addr & 3);
 				case 8:
-					return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | 0x7e;
+					return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | d_joystick->read_io8(0);
 				}
 				return 0xff;
 			}
@@ -513,19 +530,19 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	write_data8(addr, data);
 }
 
-uint32 MEMORY::read_data8w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #if defined(_MZ800)
@@ -628,7 +645,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 }
 
 #if defined(_MZ800)
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xce:
@@ -726,7 +743,7 @@ void MEMORY::update_map_high()
 #if defined(_MZ1500)
 	if(mem_bank & MEM_BANK_PCG) {
 		if(pcg_bank & 3) {
-			uint8 *bank = pcg + ((pcg_bank & 3) - 1) * 0x2000;
+			uint8_t *bank = pcg + ((pcg_bank & 3) - 1) * 0x2000;
 			SET_BANK(0xd000, 0xefff, bank, bank);
 		} else {
 			SET_BANK(0xd000, 0xdfff, wdmy, font);	// read only
@@ -753,7 +770,7 @@ void MEMORY::update_map_high()
 }
 
 #if defined(_MZ800)
-int MEMORY::vram_page_mask(uint8 f)
+int MEMORY::vram_page_mask(uint8_t f)
 {
 	switch(dmd & 7) {
 	case 0:	// 320x200,4col
@@ -797,25 +814,32 @@ int MEMORY::vram_addr(int addr)
 void MEMORY::draw_line(int v)
 {
 	int ptr = 40 * (v >> 3);
+#if defined(_MZ700)
+	bool pcg_active = ((config.dipswitch & 1) && !(pcg_ctrl & 8));
+#endif
 	
 	for(int x = 0; x < 320; x += 8) {
-		uint8 attr = vram[ptr | 0x800];
+		uint8_t attr = vram[ptr | 0x800];
 #if defined(_MZ1500)
-		uint8 pcg_attr = vram[ptr | 0xc00];
+		uint8_t pcg_attr = vram[ptr | 0xc00];
 #endif
-		uint16 code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
-		uint8 col_b = attr & 7;
-		uint8 col_f = (attr >> 4) & 7;
-		uint8 pat_t = font[code | (v & 7)];
-		uint8* dest = &screen[v][x];
+		uint16_t code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
+		uint8_t col_b = attr & 7;
+		uint8_t col_f = (attr >> 4) & 7;
+#if defined(_MZ700)
+		uint8_t pat_t = pcg_active ? pcg[code | (v & 7)] : font[code | (v & 7)];
+#else
+		uint8_t pat_t = font[code | (v & 7)];
+#endif
+		uint8_t* dest = &screen[v][x];
 		
 #if defined(_MZ1500)
 		if((priority & 1) && (pcg_attr & 8)) {
-			uint16 pcg_code = (vram[ptr | 0x400] << 3) | ((pcg_attr & 0xc0) << 5);
-			uint8 pcg_dot[8];
-			uint8 pat_b = pcg[pcg_code | (v & 7) | 0x0000];
-			uint8 pat_r = pcg[pcg_code | (v & 7) | 0x2000];
-			uint8 pat_g = pcg[pcg_code | (v & 7) | 0x4000];
+			uint16_t pcg_code = (vram[ptr | 0x400] << 3) | ((pcg_attr & 0xc0) << 5);
+			uint8_t pcg_dot[8];
+			uint8_t pat_b = pcg[pcg_code | (v & 7) | 0x0000];
+			uint8_t pat_r = pcg[pcg_code | (v & 7) | 0x2000];
+			uint8_t pat_g = pcg[pcg_code | (v & 7) | 0x4000];
 			pcg_dot[0] = ((pat_b & 0x80) >> 7) | ((pat_r & 0x80) >> 6) | ((pat_g & 0x80) >> 5);
 			pcg_dot[1] = ((pat_b & 0x40) >> 6) | ((pat_r & 0x40) >> 5) | ((pat_g & 0x40) >> 4);
 			pcg_dot[2] = ((pat_b & 0x20) >> 5) | ((pat_r & 0x20) >> 4) | ((pat_g & 0x20) >> 3);
@@ -866,11 +890,20 @@ void MEMORY::draw_line(int v)
 
 void MEMORY::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// draw lines
+		for(int v = 0; v < 200; v++) {
+			draw_line(v);
+		}
+	}
+	
 	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(2 * y);
-		scrntype* dest1 = emu->screen_buffer(2 * y + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(2 * y);
+		scrntype_t* dest1 = emu->get_screen_buffer(2 * y + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #if defined(_MZ1500)
@@ -880,14 +913,37 @@ void MEMORY::draw_screen()
 #endif
 		}
 		if(!config.scan_line) {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		} else {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 #else
+void MEMORY::draw_line(int v)
+{
+	switch(dmd & 0x0f) {
+	case 0x00:	// 320x200,4col
+	case 0x01:
+		draw_line_320x200_2bpp(v);
+		break;
+	case 0x02:	// 320x200,16col
+		draw_line_320x200_4bpp(v);
+		break;
+	case 0x04:	// 640x200,2col
+	case 0x05:
+		draw_line_640x200_1bpp(v);
+		break;
+	case 0x06:	// 640x200,4col
+		draw_line_640x200_2bpp(v);
+		break;
+	case 0x08:	// MZ-700
+		draw_line_mz700(v);
+		break;
+	}
+}
+
 void MEMORY::draw_line_320x200_2bpp(int v)
 {
 	int ofs1 = (dmd & 1) ? 0x4000 : 0;
@@ -896,9 +952,9 @@ void MEMORY::draw_line_320x200_2bpp(int v)
 	
 	for(int x = 0; x < 320; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat1 = vram[addr | ofs1];
-		uint8 pat2 = vram[addr | ofs2];
-		uint8* dest = &screen[v][x];
+		uint8_t pat1 = vram[addr | ofs1];
+		uint8_t pat2 = vram[addr | ofs2];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette[((pat1 & 0x01)     ) | ((pat2 & 0x01) << 1)];
 		dest[1] = palette[((pat1 & 0x02) >> 1) | ((pat2 & 0x02)     )];
@@ -917,11 +973,11 @@ void MEMORY::draw_line_320x200_4bpp(int v)
 	
 	for(int x = 0; x < 320; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat1 = vram[addr         ];
-		uint8 pat2 = vram[addr | 0x2000];
-		uint8 pat3 = vram[addr | 0x4000];
-		uint8 pat4 = vram[addr | 0x6000];
-		uint8* dest = &screen[v][x];
+		uint8_t pat1 = vram[addr         ];
+		uint8_t pat2 = vram[addr | 0x2000];
+		uint8_t pat3 = vram[addr | 0x4000];
+		uint8_t pat4 = vram[addr | 0x6000];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette16[((pat1 & 0x01)     ) | ((pat2 & 0x01) << 1) | ((pat3 & 0x01) << 2) | ((pat4 & 0x01) << 3)];
 		dest[1] = palette16[((pat1 & 0x02) >> 1) | ((pat2 & 0x02)     ) | ((pat3 & 0x02) << 1) | ((pat4 & 0x02) << 2)];
@@ -941,8 +997,8 @@ void MEMORY::draw_line_640x200_1bpp(int v)
 	
 	for(int x = 0; x < 640; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat = vram[addr | ofs];
-		uint8* dest = &screen[v][x];
+		uint8_t pat = vram[addr | ofs];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette[(pat & 0x01)     ];
 		dest[1] = palette[(pat & 0x02) >> 1];
@@ -961,9 +1017,9 @@ void MEMORY::draw_line_640x200_2bpp(int v)
 	
 	for(int x = 0; x < 640; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat1 = vram[addr         ];
-		uint8 pat2 = vram[addr | 0x4000];
-		uint8* dest = &screen[v][x];
+		uint8_t pat1 = vram[addr         ];
+		uint8_t pat2 = vram[addr | 0x4000];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette[((pat1 & 0x01)     ) | ((pat2 & 0x01) << 1)];
 		dest[1] = palette[((pat1 & 0x02) >> 1) | ((pat2 & 0x02)     )];
@@ -981,12 +1037,12 @@ void MEMORY::draw_line_mz700(int v)
 	int ptr = (40 * (v >> 3)) | 0x3000;
 	
 	for(int x = 0; x < 320; x += 8) {
-		uint8 attr = vram[ptr | 0x800];
-		uint16 code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
-		uint8 col_b = attr & 7;
-		uint8 col_f = (attr >> 4) & 7;
-		uint8 pat_t = vram[code | (v & 7) | 0x2000];
-		uint8* dest = &screen[v][x];
+		uint8_t attr = vram[ptr | 0x800];
+		uint16_t code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
+		uint8_t col_b = attr & 7;
+		uint8_t col_f = (attr >> 4) & 7;
+		uint8_t pat_t = vram[code | (v & 7) | 0x2000];
+		uint8_t* dest = &screen[v][x];
 		
 		// text only
 		dest[0] = (pat_t & 0x01) ? col_f : col_b;
@@ -1003,11 +1059,20 @@ void MEMORY::draw_line_mz700(int v)
 
 void MEMORY::draw_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		// draw lines
+		for(int v = 0; v < 200; v++) {
+			draw_line(v);
+		}
+	}
+	
 	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(2 * y);
-		scrntype* dest1 = emu->screen_buffer(2 * y + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(2 * y);
+		scrntype_t* dest1 = emu->get_screen_buffer(2 * y + 1);
+		uint8_t* src = screen[y];
 		
 		if(dmd & 8) {
 			// MZ-700 mode
@@ -1026,12 +1091,82 @@ void MEMORY::draw_screen()
 			}
 		}
 		if(!config.scan_line) {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		} else {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 #endif
+
+#define STATE_VERSION	2
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#if defined(_MZ700)
+	state_fio->StateArray(pcg + 0x400, 0x400, 1);
+	state_fio->StateArray(pcg + 0xc00, 0x400, 1);
+#elif defined(_MZ1500)
+	state_fio->StateArray(pcg, sizeof(pcg), 1);
+#endif
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(mem_bank);
+#if defined(_MZ700)
+	state_fio->StateValue(pcg_data);
+	state_fio->StateValue(pcg_addr);
+	state_fio->StateValue(pcg_ctrl);
+#elif defined(_MZ800)
+	state_fio->StateValue(wf);
+	state_fio->StateValue(rf);
+	state_fio->StateValue(dmd);
+	state_fio->StateValue(vram_addr_top);
+	state_fio->StateValue(is_mz800);
+#elif defined(_MZ1500)
+	state_fio->StateValue(pcg_bank);
+#endif
+#if defined(_MZ800)
+	state_fio->StateValue(sof);
+	state_fio->StateValue(sw);
+	state_fio->StateValue(ssa);
+	state_fio->StateValue(sea);
+	state_fio->StateValue(palette_sw);
+	state_fio->StateArray(palette, sizeof(palette), 1);
+	state_fio->StateArray(palette16, sizeof(palette16), 1);
+#elif defined(_MZ1500)
+	state_fio->StateValue(priority);
+	state_fio->StateArray(palette, sizeof(palette), 1);
+#endif
+	state_fio->StateValue(blink);
+	state_fio->StateValue(tempo);
+	state_fio->StateValue(hblank);
+	state_fio->StateValue(hsync);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(vsync);
+#if defined(_MZ700) || defined(_MZ1500)
+	state_fio->StateValue(hblank_vram);
+#endif
+#if defined(_MZ1500)
+	state_fio->StateValue(hblank_pcg);
+#endif
+#if defined(_MZ800)
+	state_fio->StateArray(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
+#endif
+	state_fio->StateArray(palette_pc, sizeof(palette_pc), 1);
+	
+	// post process
+	if(loading) {
+		update_map_low();
+		update_map_middle();
+		update_map_high();
+	}
+	return true;
+}
 

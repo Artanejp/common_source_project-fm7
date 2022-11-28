@@ -42,8 +42,8 @@ static const int key_table[256] = {
 void IOCTRL::initialize()
 {
 	// init keyboard
-	key_stat = emu->key_buffer();
-	mouse_stat = emu->mouse_buffer();
+	key_stat = emu->get_key_buffer();
+	mouse_stat = emu->get_mouse_buffer();
 	key_buf = new FIFO(64);
 	caps = kana = false;
 	
@@ -76,7 +76,7 @@ void IOCTRL::reset()
 	update_key();
 }
 
-void IOCTRL::write_io8(uint32 addr, uint32 data)
+void IOCTRL::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x3f0) {
 	case 0x22:
@@ -92,7 +92,7 @@ void IOCTRL::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IOCTRL::read_io8(uint32 addr)
+uint32_t IOCTRL::read_io8(uint32_t addr)
 {
 	switch(addr & 0x3ff) {
 	case 0x20:
@@ -100,10 +100,20 @@ uint32 IOCTRL::read_io8(uint32 addr)
 		update_key();
 		return key_val;
 	case 0x22:
-		if(config.monitor_type) {
-			return key_mouse | 0x0d;	// virt monitor
-		} else {
-			return key_mouse | 0x2d;	// horiz monitor
+		// bit1: 0 = Color Mode, 1 = Monochrome Mode
+		// bit2: 1 = Double FDD, 0 = Single FDD
+		// bit3: 1 = 2D, 0 = 2DD
+		// bit4: 1 = KD, 0 = MD
+		// bit5: 1 = Horizontal Monitor, 0 = Virtical Monitor
+		{
+			uint32_t value = key_mouse | 0x05;
+			if(!config.drive_type) {
+				value |= 0x08; // 2D
+			}
+			if(!config.monitor_type) {
+				value |= 0x20; // Horizontal Monitor
+			}
+			return value;
 		}
 	}
 	return 0xff;
@@ -134,7 +144,7 @@ void IOCTRL::event_callback(int event_id, int err)
 		}
 		// mouse
 		if(key_buf->empty()) {
-			uint8 val = 0;
+			uint8_t val = 0;
 			if(!(mouse_stat[2] & 1)) val |= 1;
 			if(!(mouse_stat[2] & 2)) val |= 2;
 			if(caps) val |= 0x10;
@@ -160,7 +170,7 @@ void IOCTRL::event_callback(int event_id, int err)
 	}
 }
 
-void IOCTRL::write_signal(int id, uint32 data, uint32 mask)
+void IOCTRL::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
 	if(!key_res && next) {
@@ -205,5 +215,30 @@ void IOCTRL::update_key()
 			register_event(this, EVENT_KEY, 1000, false, &register_id);
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+bool IOCTRL::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(caps);
+	state_fio->StateValue(kana);
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(key_val);
+	state_fio->StateValue(key_mouse);
+	state_fio->StateValue(key_prev);
+	state_fio->StateValue(key_res);
+	state_fio->StateValue(key_done);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(ts);
+	return true;
 }
 

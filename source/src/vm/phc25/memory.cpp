@@ -9,7 +9,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -34,7 +33,7 @@ void MEMORY::initialize()
 	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
@@ -60,7 +59,7 @@ void MEMORY::reset()
 	memset(vram, 0, sizeof(vram));
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #ifdef _MAP1010
@@ -72,7 +71,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #ifdef _MAP1010
@@ -84,5 +83,20 @@ uint32 MEMORY::read_data8(uint32 addr)
 	}
 #endif
 	return rbank[addr >> 11][addr & 0x7ff];
+}
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	return true;
 }
 

@@ -34,6 +34,9 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	DEVICE *d_mem, *d_io, *d_pic;
+#ifdef Z80_PSEUDO_BIOS
+	DEVICE *d_bios;
+#endif
 #ifdef SINGLE_MODE_DMA
 	DEVICE *d_dma;
 #endif
@@ -43,68 +46,84 @@ private:
 #endif
 	outputs_t outputs_busack;
 	
+	bool is_primary;
+	
 	/* ---------------------------------------------------------------------------
 	registers
 	--------------------------------------------------------------------------- */
 	
+#ifdef USE_DEBUGGER
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+#endif
 	int icount;
 	int extra_icount;
-	uint16 prevpc;
-	pair pc, sp, af, bc, de, hl, ix, iy, wz;
-	pair af2, bc2, de2, hl2;
-	uint8 I, R, R2;
-	uint32 ea;
+	int busreq_icount;
+	uint16_t prevpc;
+	pair32_t pc, sp, af, bc, de, hl, ix, iy, wz;
+	pair32_t af2, bc2, de2, hl2;
+	uint8_t I, R, R2;
+	uint32_t ea;
 	
-	bool busreq, halt;
-	uint8 im, iff1, iff2, icr;
+	bool busreq, after_halt;
+	uint8_t im, iff1, iff2, icr;
 	bool after_ei, after_ldair;
-	uint32 intr_req_bit, intr_pend_bit;
+	uint32_t intr_req_bit, intr_pend_bit;
 	
-	inline uint8 RM8(uint32 addr);
-	inline void WM8(uint32 addr, uint8 val);
-	inline void RM16(uint32 addr, pair *r);
-	inline void WM16(uint32 addr, pair *r);
-	inline uint8 FETCHOP();
-	inline uint8 FETCH8();
-	inline uint32 FETCH16();
-	inline uint8 IN8(uint32 addr);
-	inline void OUT8(uint32 addr, uint8 val);
+	inline uint8_t RM8(uint32_t addr);
+	inline void WM8(uint32_t addr, uint8_t val);
+	inline void RM16(uint32_t addr, pair32_t *r);
+	inline void WM16(uint32_t addr, pair32_t *r);
+	inline uint8_t FETCHOP();
+	inline uint8_t FETCH8();
+	inline uint32_t FETCH16();
+	inline uint8_t IN8(uint32_t addr);
+	inline void OUT8(uint32_t addr, uint8_t val);
 	
-	inline uint8 INC(uint8 value);
-	inline uint8 DEC(uint8 value);
+	inline uint8_t INC(uint8_t value);
+	inline uint8_t DEC(uint8_t value);
 	
-	inline uint8 RLC(uint8 value);
-	inline uint8 RRC(uint8 value);
-	inline uint8 RL(uint8 value);
-	inline uint8 RR(uint8 value);
-	inline uint8 SLA(uint8 value);
-	inline uint8 SRA(uint8 value);
-	inline uint8 SLL(uint8 value);
-	inline uint8 SRL(uint8 value);
+	inline uint8_t RLC(uint8_t value);
+	inline uint8_t RRC(uint8_t value);
+	inline uint8_t RL(uint8_t value);
+	inline uint8_t RR(uint8_t value);
+	inline uint8_t SLA(uint8_t value);
+	inline uint8_t SRA(uint8_t value);
+	inline uint8_t SLL(uint8_t value);
+	inline uint8_t SRL(uint8_t value);
 	
-	inline uint8 RES(uint8 bit, uint8 value);
-	inline uint8 SET(uint8 bit, uint8 value);
+	inline uint8_t RES(uint8_t bit, uint8_t value);
+	inline uint8_t SET(uint8_t bit, uint8_t value);
 	
-	void OP_CB(uint8 code);
-	void OP_XY(uint8 code);
-	void OP_DD(uint8 code);
-	void OP_FD(uint8 code);
-	void OP_ED(uint8 code);
-	void OP(uint8 code);
+	void OP_CB(uint8_t code);
+	void OP_XY(uint8_t code);
+	void OP_DD(uint8_t code);
+	void OP_FD(uint8_t code);
+	void OP_ED(uint8_t code);
+	void OP(uint8_t code);
 	void run_one_opecode();
+	void check_interrupt();
 	
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
 	
 public:
-	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+#ifdef USE_DEBUGGER
+		total_icount = prev_total_icount = 0;
+#endif
 		busreq = false;
+#ifdef Z80_PSEUDO_BIOS
+		d_bios = NULL;
+#endif
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
-		init_output_signals(&outputs_busack);
+		initialize_output_signals(&outputs_busack);
+		is_primary = false;
+		set_device_name(_T("Z80 CPU"));
 	}
 	~Z80() {}
 	
@@ -112,10 +131,11 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void set_intr_line(bool line, bool pending, uint32 bit)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
+	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
-		uint32 mask = 1 << bit;
+		uint32_t mask = 1 << bit;
 		intr_req_bit = line ? (intr_req_bit | mask) : (intr_req_bit & ~mask);
 		intr_pend_bit = pending ? (intr_pend_bit | mask) : (intr_pend_bit & ~mask);
 	}
@@ -127,37 +147,44 @@ public:
 	{
 		return extra_icount;
 	}
-	uint32 get_pc()
+	uint32_t get_pc()
 	{
 		return prevpc;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return pc.w.l;
 	}
 #ifdef USE_DEBUGGER
+	bool is_cpu()
+	{
+		return true;
+	}
+	bool is_debugger_available()
+	{
+		return true;
+	}
 	void *get_debugger()
 	{
 		return d_debugger;
 	}
-	uint32 debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void debug_write_data8(uint32 addr, uint32 data);
-	uint32 debug_read_data8(uint32 addr);
-	void debug_write_io8(uint32 addr, uint32 data);
-	uint32 debug_read_io8(uint32 addr);
-	bool debug_write_reg(_TCHAR *reg, uint32 data);
-	void debug_regs_info(_TCHAR *buffer);
-	int debug_dasm(uint32 pc, _TCHAR *buffer);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -172,6 +199,16 @@ public:
 	{
 		d_pic = device;
 	}
+	DEVICE *get_context_child()
+	{
+		return d_pic;
+	}
+#ifdef Z80_PSEUDO_BIOS
+	void set_context_bios(DEVICE* device)
+	{
+		d_bios = device;
+	}
+#endif
 #ifdef SINGLE_MODE_DMA
 	void set_context_dma(DEVICE* device)
 	{
@@ -184,15 +221,15 @@ public:
 		d_debugger = device;
 	}
 #endif
-	void set_context_busack(DEVICE* device, int id, uint32 mask)
+	void set_context_busack(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_busack, device, id, mask);
 	}
-	void set_pc(uint16 value)
+	void set_pc(uint16_t value)
 	{
 		pc.w.l = value;
 	}
-	void set_sp(uint16 value)
+	void set_sp(uint16_t value)
 	{
 		sp.w.l = value;
 	}

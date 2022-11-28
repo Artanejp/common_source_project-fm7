@@ -24,14 +24,18 @@ private:
 	bool nmi_mask, pasopia;
 	
 public:
-	IOTRAP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	IOTRAP(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("I/O Trap"));
+	}
 	~IOTRAP() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

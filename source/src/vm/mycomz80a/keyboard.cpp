@@ -87,7 +87,7 @@ static const int keycode_ks[256] = {	// kana shift
 void KEYBOARD::initialize()
 {
 	key_buf = new FIFO(8);
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	// register event
 	register_frame_event(this);
@@ -215,5 +215,24 @@ void KEYBOARD::event_frame()
 	if(++event_cnt > 5) {
 		event_cnt = 0;
 	}
+}
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(key_code);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(event_cnt);
+	return true;
 }
 

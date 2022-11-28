@@ -12,7 +12,6 @@
 #include "cmt.h"
 #include "../datarec.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 #define EVENT_FREW	0
 #define EVENT_FFWD	1
@@ -51,6 +50,7 @@ void CMT::reset()
 void CMT::fast_forward()
 {
 	if(play) {
+		d_drec->set_remote(false);
 		d_drec->set_ff_rew(1);
 		d_drec->set_remote(true);
 	}
@@ -60,6 +60,7 @@ void CMT::fast_forward()
 void CMT::fast_rewind()
 {
 	if(play) {
+		d_drec->set_remote(false);
 		d_drec->set_ff_rew(-1);
 		d_drec->set_remote(true);
 	}
@@ -70,6 +71,7 @@ void CMT::fast_rewind()
 void CMT::forward()
 {
 	if(play || rec) {
+		d_drec->set_remote(false);
 		d_drec->set_ff_rew(0);
 		d_drec->set_remote(true);
 	}
@@ -83,10 +85,10 @@ void CMT::stop()
 		d_drec->set_remote(false);
 	}
 	now_play = now_rewind = false;
-	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+	d_pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x40);
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_PIO_PA) {
 #ifndef _MZ80B
@@ -186,9 +188,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 		}
 #else
 		if((pc & 8) && !(data & 8)) {
-//			if(register_id_ipl == -1) {
-				register_event(this, EVENT_IPL, PERIOD_IPL_SIGNAL, false, &register_id_ipl);
-//			}
+			register_event(this, EVENT_IPL, PERIOD_IPL_SIGNAL, false, &register_id_ipl);
 		} else if(!(pc & 8) && (data & 8)) {
 			if(register_id_ipl != -1) {
 				cancel_event(this, register_id_ipl);
@@ -204,7 +204,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 				register_id_eject = -1;
 			}
 		}
-		d_drec->write_signal(SIG_DATAREC_OUT, data, 0x80);
+		d_drec->write_signal(SIG_DATAREC_MIC, data, 0x80);
 		pc = data;
 	} else if(id == SIG_CMT_OUT) {
 #ifndef _MZ80B
@@ -216,10 +216,10 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 		} else
 #endif
 		if(now_play) {
-			d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0x40 : 0, 0x40);
+			d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0x40 : 0x00, 0x40);
 		}
 	} else if(id == SIG_CMT_REMOTE) {
-		d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0 : 8, 8);
+		d_pio->write_signal(SIG_I8255_PORT_B, (data & mask) ? 0x00 : 0x08, 0x08);
 	} else if(id == SIG_CMT_END) {
 		if((data & mask) && now_play) {
 #ifndef _MZ80B
@@ -276,11 +276,11 @@ void CMT::event_callback(int event_id, int err)
 #endif
 		register_id_stop = -1;
 	} else if(event_id == EVENT_EJECT) {
-		emu->close_tape();
+		emu->close_tape(0);
 		register_id_eject = -1;
 #ifndef _MZ80B
 	} else if(event_id == EVENT_APSS) {
-		d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+		d_pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x40);
 		register_id_apss = -1;
 #endif
 	} else if(event_id == EVENT_IPL) {
@@ -300,7 +300,7 @@ void CMT::rec_tape(bool value)
 {
 	play = false;
 	rec = value;
-	d_pio->write_signal(SIG_I8255_PORT_B, rec ? 0 : 0x30, 0x30);
+	d_pio->write_signal(SIG_I8255_PORT_B, rec ? 0x00 : 0x30, 0x30);
 }
 
 void CMT::close_tape()
@@ -308,7 +308,7 @@ void CMT::close_tape()
 	play = rec = false;
 	now_play = now_rewind = false;
 	d_pio->write_signal(SIG_I8255_PORT_B, 0x30, 0x30);
-	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
+	d_pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x40);
 	
 #ifndef _MZ80B
 	if(register_id_apss != -1) {
@@ -320,55 +320,31 @@ void CMT::close_tape()
 
 #define STATE_VERSION	1
 
-void CMT::save_state(FILEIO* state_fio)
+bool CMT::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(pa);
-	state_fio->FputUint8(pc);
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(now_play);
-	state_fio->FputBool(now_rewind);
-	state_fio->FputInt32(register_id_frew);
-	state_fio->FputInt32(register_id_ffwd);
-	state_fio->FputInt32(register_id_fwd);
-	state_fio->FputInt32(register_id_stop);
-	state_fio->FputInt32(register_id_eject);
-#ifndef _MZ80B
-	state_fio->FputInt32(register_id_apss);
-	state_fio->FputBool(now_apss);
-	state_fio->FputBool(now_apss_tmp);
-#endif
-	state_fio->FputInt32(register_id_ipl);
-}
-
-bool CMT::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	pa = state_fio->FgetUint8();
-	pc = state_fio->FgetUint8();
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	now_play = state_fio->FgetBool();
-	now_rewind = state_fio->FgetBool();
-	register_id_frew = state_fio->FgetInt32();
-	register_id_ffwd = state_fio->FgetInt32();
-	register_id_fwd = state_fio->FgetInt32();
-	register_id_stop = state_fio->FgetInt32();
-	register_id_eject = state_fio->FgetInt32();
+	state_fio->StateValue(pa);
+	state_fio->StateValue(pc);
+	state_fio->StateValue(play);
+	state_fio->StateValue(rec);
+	state_fio->StateValue(now_play);
+	state_fio->StateValue(now_rewind);
+	state_fio->StateValue(register_id_frew);
+	state_fio->StateValue(register_id_ffwd);
+	state_fio->StateValue(register_id_fwd);
+	state_fio->StateValue(register_id_stop);
+	state_fio->StateValue(register_id_eject);
 #ifndef _MZ80B
-	register_id_apss = state_fio->FgetInt32();
-	now_apss = state_fio->FgetBool();
-	now_apss_tmp = state_fio->FgetBool();
+	state_fio->StateValue(register_id_apss);
+	state_fio->StateValue(now_apss);
+	state_fio->StateValue(now_apss_tmp);
 #endif
-	register_id_ipl = state_fio->FgetInt32();
+	state_fio->StateValue(register_id_ipl);
 	return true;
 }
 

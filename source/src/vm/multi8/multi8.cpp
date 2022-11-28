@@ -12,6 +12,7 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../beep.h"
 #include "../disk.h"
 #include "../hd46505.h"
 #include "../i8251.h"
@@ -19,8 +20,10 @@
 #include "../i8255.h"
 #include "../i8259.h"
 #include "../io.h"
+#include "../noise.h"
 #include "../upd765a.h"
-#include "../ym2203.h"
+//#include "../ym2203.h"
+#include "../ay_3_891x.h"
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -38,13 +41,14 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
+	beep = new BEEP(this, emu);
 	crtc = new HD46505(this, emu);
 	sio = new I8251(this, emu);
 	pit = new I8253(this, emu);
@@ -52,7 +56,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new UPD765A(this, emu);
-	psg = new YM2203(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
+	psg = new AY_3_891X(this, emu);
+#ifdef USE_DEBUGGER
+	psg->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	cpu = new Z80(this, emu);
 	
 	cmt = new CMT(this, emu);
@@ -64,7 +74,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_sound(beep);
 	event->set_context_sound(psg);
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	crtc->set_context_vsync(pio, SIG_I8255_PORT_A, 0x20);
 	sio->set_context_out(cmt, SIG_CMT_OUT);
@@ -80,6 +94,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_drq(floppy, SIG_FLOPPY_DRQ, 1);
 	psg->set_context_port_a(cmt, SIG_CMT_REMOTE, 2, 0);
 	psg->set_context_port_a(pio, SIG_I8255_PORT_A, 2, 1);
+	psg->set_context_port_a(beep, SIG_BEEP_ON, 8, 1);
 	
 	cmt->set_context_sio(sio);
 	display->set_vram_ptr(memory->get_vram());
@@ -158,9 +173,9 @@ void VM::run()
 	event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -186,12 +201,6 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-int VM::access_lamp()
-{
-	uint32 status = fdc->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -202,61 +211,106 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	psg->init(rate, 3579545, samples, 0, 0);
+	beep->initialize_sound(rate, 2400, 8000);
+	psg->initialize_sound(rate, 3579545, samples, 0, 0);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
+}
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		psg->set_volume(1, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		beep->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// notify key
+// ----------------------------------------------------------------------------
+
+bool VM::get_caps_locked()
+{
+	return key->get_caps_locked();
+}
+
+bool VM::get_kana_locked()
+{
+	return key->get_kana_locked();
 }
 
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::is_floppy_disk_protected(int drv, bool value)
+{
+	fdc->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
+
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	cmt->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	cmt->rec_tape(file_path);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	cmt->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
-	return cmt->tape_inserted();
+	return cmt->is_tape_inserted();
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -264,5 +318,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	5
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

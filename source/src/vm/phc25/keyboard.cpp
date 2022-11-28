@@ -11,7 +11,7 @@
 #include "keyboard.h"
 
 #ifdef _MAP1010
-static const uint8 key_map[0x50] = {
+static const uint8_t key_map[0x50] = {
 /*
 	7800:	Z	X	C	V	B	N	SPACE	M
 	7808:	,	.	/	_	TK0	TK-	TK+	ENTER
@@ -36,8 +36,8 @@ static const uint8 key_map[0x50] = {
 	0x00, 0x25, 0x27, 0x26, 0x28, 0x00, 0x00, 0x6F
 };
 #else
-static const uint8 key_map[10][8] = {
-	{0x31, 0x57, 0x53, 0x58, 0x26, 0x2e, 0xba, 0x00},
+static const uint8_t key_map[10][8] = {
+	{0x31, 0x57, 0x53, 0x58, 0x26, 0x2e, 0xba, 0xe2},
 	{0x1b, 0x51, 0x41, 0x5a, 0x28, 0x0d, 0xbb, 0xbf},
 	{0x33, 0x52, 0x46, 0x56, 0x25, 0xde, 0xdb, 0x00},
 	{0x32, 0x45, 0x44, 0x43, 0x27, 0xdc, 0xdd, 0x20},
@@ -45,14 +45,14 @@ static const uint8 key_map[10][8] = {
 	{0x34, 0x54, 0x47, 0x42, 0x73, 0xbd, 0xc0, 0x00},
 	{0x36, 0x55, 0x4a, 0x4d, 0x71, 0x39, 0x4f, 0x00},
 	{0x37, 0x49, 0x4b, 0xbc, 0x70, 0x38, 0x4c, 0xbe},
-	{0x00, 0x12, 0x10, 0x11, 0x00, 0xf0, 0x00, 0x00},
+	{0x00, 0x12, 0x10, 0x11, 0x00, 0x15, 0x00, 0x00},
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 };
 #endif
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	// register event to update the key status
 	register_frame_event(this);
@@ -67,7 +67,7 @@ void KEYBOARD::reset()
 #endif
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 #ifdef _MAP1010
 	// memory mapped i/o
@@ -109,7 +109,7 @@ void KEYBOARD::event_frame()
 	memset(status, 0, sizeof(status));
 	
 	for(int i = 0; i < 10; i++) {
-		uint8 val = 0;
+		uint8_t val = 0;
 		for(int j = 0; j < 8; j++) {
 			val |= key_stat[key_map[i][j]] ? (1 << j) : 0;
 		}
@@ -117,3 +117,22 @@ void KEYBOARD::event_frame()
 	}
 #endif
 }
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#ifdef _MAP1010
+	state_fio->StateValue(kana_pressed);
+#else
+	state_fio->StateArray(status, sizeof(status), 1);
+#endif
+	return true;
+}
+

@@ -19,20 +19,24 @@ class KANJI : public DEVICE
 private:
 	DEVICE* d_pio;
 	
-	uint8 rom[0x20000];
-	uint32 ptr;
+	uint8_t rom[0x20000];
+	uint32_t ptr;
 	
 public:
-	KANJI(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KANJI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Kanji ROM"));
+	}
 	~KANJI() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique functions
+	// unique function
 	void set_context_pio(DEVICE* device)
 	{
 		d_pio = device;

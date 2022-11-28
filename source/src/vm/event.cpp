@@ -8,13 +8,8 @@
 */
 
 #include "event.h"
-#include "../fileio.h"
 
-#ifndef EVENT_CONTINUOUS_SOUND
-//#ifdef PCM1BIT_HIGH_QUALITY
-#define EVENT_CONTINUOUS_SOUND
-//#endif
-#endif
+#define EVENT_MIX	0
 
 void EVENT::initialize()
 {
@@ -29,25 +24,29 @@ void EVENT::initialize()
 	sound_tmp = NULL;
 	
 	dont_skip_frames = 0;
-	prev_skip = skip = false;
+	prev_skip = next_skip = false;
 	sound_changed = false;
+	
+	vline_start_clock = 0;
+	cur_vline = 0;
+	vclocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5); // temporary
 }
 
 void EVENT::initialize_sound(int rate, int samples)
 {
 	// initialize sound
-	sound_rate = rate;
 	sound_samples = samples;
-#ifdef EVENT_CONTINUOUS_SOUND
 	sound_tmp_samples = samples * 2;
-#else
-	sound_tmp_samples = samples;
-#endif
-	sound_buffer = (uint16*)malloc(sound_samples * sizeof(uint16) * 2);
-	memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
-	sound_tmp = (int32*)malloc(sound_tmp_samples * sizeof(int32) * 2);
-	memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32) * 2);
-	buffer_ptr = accum_samples = 0;
+	sound_buffer = (uint16_t*)malloc(sound_samples * sizeof(uint16_t) * 2);
+	memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
+	sound_tmp = (int32_t*)malloc(sound_tmp_samples * sizeof(int32_t) * 2);
+	memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
+	buffer_ptr = 0;
+	mix_counter = 1;
+	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0)); // per 0.5ms.
+	
+	// register event
+	this->register_event(this, EVENT_MIX, 1000000.0 / rate, true, NULL);
 }
 
 void EVENT::release()
@@ -70,15 +69,15 @@ void EVENT::reset()
 		}
 	}
 	
-	event_remain = 0;
+	event_remain = event_extra = 0;
 	cpu_remain = cpu_accum = cpu_done = 0;
 	
 	// reset sound
 	if(sound_buffer) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
+		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
 	}
 	if(sound_tmp) {
-		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32) * 2);
+		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	}
 //	buffer_ptr = 0;
 	
@@ -103,57 +102,65 @@ void EVENT::drive()
 		int remain = sum;
 		
 		for(int i = 0; i < lines_per_frame; i++) {
+			assert(i < MAX_LINES);
 			vclocks[i] = (int)(sum / lines_per_frame);
 			remain -= vclocks[i];
 		}
 		for(int i = 0; i < remain; i++) {
 			int index = (int)((double)lines_per_frame * (double)i / (double)remain);
+			assert(index < MAX_LINES);
 			vclocks[index]++;
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
 		}
 		for(DEVICE* device = vm->first_device; device; device = device->next_device) {
-			if(device->event_manager_id() == this_device_id) {
+			if(device->get_event_manager_id() == this_device_id) {
 				device->update_timing(d_cpu[0].cpu_clocks, frames_per_sec, lines_per_frame);
 			}
 		}
-		update_samples = (int)(1024.0 * (double)sound_rate / frames_per_sec / (double)lines_per_frame + 0.5);
 	}
 	
 	// run virtual machine for 1 frame period
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_frame();
 	}
-	for(int v = 0; v < lines_per_frame; v++) {
+	for(cur_vline = 0; cur_vline < lines_per_frame; cur_vline++) {
+		vline_start_clock = get_current_clock();
+		
 		// run virtual machine per line
 		for(int i = 0; i < vline_event_count; i++) {
-			vline_event[i]->event_vline(v, vclocks[v]);
+			vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
 		}
 		
 		if(event_remain < 0) {
-			if(-event_remain > vclocks[v]) {
-				update_event(vclocks[v]);
+			if(-event_remain > vclocks[cur_vline]) {
+				update_event(vclocks[cur_vline]);
 			} else {
 				update_event(-event_remain);
 			}
 		}
-		event_remain += vclocks[v];
-		cpu_remain += vclocks[v] << power;
+		event_remain += vclocks[cur_vline];
+		cpu_remain += vclocks[cur_vline] << power;
 		
 		while(event_remain > 0) {
 			int event_done = event_remain;
 			if(cpu_remain > 0) {
-				// run one opecode on primary cpu
+				event_extra = 0;
 				int cpu_done_tmp;
 				if(dcount_cpu == 1) {
+					// run one opecode on primary cpu
 					cpu_done_tmp = d_cpu[0].device->run(-1);
 				} else {
 					// sync to sub cpus
 					if(cpu_done == 0) {
+						// run one opecode on primary cpu
 						cpu_done = d_cpu[0].device->run(-1);
 					}
-					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
+					
+					// sub cpu runs continuously and no events will be fired while the given clocks,
+					// so I need to give small enough clocks...
+					cpu_done_tmp = (event_extra > 0 || cpu_done < 4) ? cpu_done : 4;
 					cpu_done -= cpu_done_tmp;
 					
 					for(int i = 1; i < dcount_cpu; i++) {
@@ -170,34 +177,57 @@ void EVENT::drive()
 				cpu_accum += cpu_done_tmp;
 				event_done = cpu_accum >> power;
 				cpu_accum -= event_done << power;
+				event_done -= event_extra;
 			}
 			if(event_done > 0) {
-				if(event_done > event_remain) {
-					update_event(event_remain);
-				} else {
-					update_event(event_done);
+				if(event_remain > 0) {
+					if(event_done > event_remain) {
+						update_event(event_remain);
+					} else {
+						update_event(event_done);
+					}
 				}
 				event_remain -= event_done;
 			}
 		}
-		update_sound();
+	}
+}
+
+void EVENT::update_extra_event(int clock)
+{
+	// this is called from primary cpu while running one opecode
+	int event_done = clock >> power;
+	
+	if(event_done > 0) {
+		if(event_remain > 0) {
+			if(event_done > event_remain) {
+				update_event(event_remain);
+			} else {
+				update_event(event_done);
+			}
+		}
+		event_remain -= event_done;
+		event_extra += event_done;
 	}
 }
 
 void EVENT::update_event(int clock)
 {
-	uint64 event_clocks_tmp = event_clocks + clock;
+	uint64_t event_clocks_tmp = event_clocks + clock;
 	
 	while(first_fire_event != NULL && first_fire_event->expired_clock <= event_clocks_tmp) {
 		event_t *event_handle = first_fire_event;
-		uint64 expired_clock = event_handle->expired_clock;
+		uint64_t expired_clock = event_handle->expired_clock;
 		
 		first_fire_event = event_handle->next;
 		if(first_fire_event != NULL) {
 			first_fire_event->prev = NULL;
 		}
 		if(event_handle->loop_clock != 0) {
-			event_handle->expired_clock += event_handle->loop_clock;
+			event_handle->accum_clocks += event_handle->loop_clock;
+			uint64_t clock_tmp = event_handle->accum_clocks >> 10;
+			event_handle->accum_clocks -= clock_tmp << 10;
+			event_handle->expired_clock += clock_tmp;
 			insert_event(event_handle);
 		} else {
 			event_handle->active = false;
@@ -210,45 +240,92 @@ void EVENT::update_event(int clock)
 	event_clocks = event_clocks_tmp;
 }
 
-uint32 EVENT::current_clock()
+uint32_t EVENT::get_current_clock()
 {
-	return (uint32)(event_clocks & 0xffffffff);
+	return (uint32_t)(event_clocks & 0xffffffff);
 }
 
-uint32 EVENT::passed_clock(uint32 prev)
+uint32_t EVENT::get_passed_clock(uint32_t prev)
 {
-	uint32 current = current_clock();
+	uint32_t current = get_current_clock();
 	return (current > prev) ? current - prev : current + (0xffffffff - prev) + 1;
 }
 
-double EVENT::passed_usec(uint32 prev)
+double EVENT::get_passed_usec(uint32_t prev)
 {
-	return 1000000.0 * passed_clock(prev) / d_cpu[0].cpu_clocks;
+	return 1000000.0 * get_passed_clock(prev) / d_cpu[0].cpu_clocks;
 }
 
-uint32 EVENT::get_cpu_pc(int index)
+uint32_t EVENT::get_passed_clock_since_vline()
+{
+	return get_passed_clock(vline_start_clock);
+}
+
+double EVENT::get_passed_usec_since_vline()
+{
+	return get_passed_usec(vline_start_clock);
+}
+
+uint32_t EVENT::get_cpu_pc(int index)
 {
 	return d_cpu[index].device->get_pc();
 }
 
 void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 {
-	int clock = (int)((double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
-	register_event_by_clock(device, event_id, clock, loop, register_id);
-}
-
-void EVENT::register_event_by_clock(DEVICE* device, int event_id, int clock, bool loop, int* register_id)
-{
 #ifdef _DEBUG_LOG
 	if(!initialize_done && !loop) {
-		emu->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
+		this->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
 	}
 #endif
 	
 	// register event
 	if(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many events !!!\n"));
+		this->out_debug_log(_T("EVENT: too many events !!!\n"));
+#endif
+		if(register_id != NULL) {
+			*register_id = -1;
+		}
+		return;
+	}
+	event_t *event_handle = first_free_event;
+	first_free_event = first_free_event->next;
+	
+	if(register_id != NULL) {
+		*register_id = event_handle->index;
+	}
+	event_handle->active = true;
+	event_handle->device = device;
+	event_handle->event_id = event_id;
+	uint64_t clock;
+	if(loop) {
+		event_handle->loop_clock = (uint64_t)(1024.0 * (double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
+		event_handle->accum_clocks = event_handle->loop_clock;
+		clock = event_handle->accum_clocks >> 10;
+		event_handle->accum_clocks -= clock << 10;
+	} else {
+		clock = (uint64_t)((double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
+		event_handle->loop_clock = 0;
+		event_handle->accum_clocks = 0;
+	}
+	event_handle->expired_clock = event_clocks + clock;
+	
+	insert_event(event_handle);
+}
+
+void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id)
+{
+#ifdef _DEBUG_LOG
+	if(!initialize_done && !loop) {
+		this->out_debug_log(_T("EVENT: device (name=%s, id=%d) registeres non-loop event before initialize is done\n"), device->this_device_name, device->this_device_id);
+	}
+#endif
+	
+	// register event
+	if(first_free_event == NULL) {
+#ifdef _DEBUG_LOG
+		this->out_debug_log(_T("EVENT: too many events !!!\n"));
 #endif
 		if(register_id != NULL) {
 			*register_id = -1;
@@ -265,7 +342,8 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, int clock, boo
 	event_handle->device = device;
 	event_handle->event_id = event_id;
 	event_handle->expired_clock = event_clocks + clock;
-	event_handle->loop_clock = loop ? clock : 0;
+	event_handle->loop_clock = loop ? (clock << 10) : 0;
+	event_handle->accum_clocks = 0;
 	
 	insert_event(event_handle);
 }
@@ -310,7 +388,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-			emu->out_debug_log("EVENT: event cannot be canceled by non ownew device (id=%d) !!!\n", device->this_device_id);
+			this->out_debug_log(_T("EVENT: device (name=%s, id=%d) tries to calcel event that is not its own !!!\n"), device->this_device_name, device->this_device_id);
 			return;
 		}
 		if(event_handle->active) {
@@ -329,33 +407,128 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	}
 }
 
-void EVENT::register_frame_event(DEVICE* dev)
+void EVENT::register_frame_event(DEVICE* device)
 {
 	if(frame_event_count < MAX_EVENT) {
-		frame_event[frame_event_count++] = dev;
-	} else {
+		for(int i = 0; i < frame_event_count; i++) {
+			if(frame_event[i] == device) {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many frame events !!!\n"));
+				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered frame event !!!\n"), device->this_device_name, device->this_device_id);
+#endif
+				return;
+			}
+		}
+		frame_event[frame_event_count++] = device;
+#ifdef _DEBUG_LOG
+	} else {
+		this->out_debug_log(_T("EVENT: too many frame events !!!\n"));
 #endif
 	}
 }
 
-void EVENT::register_vline_event(DEVICE* dev)
+void EVENT::register_vline_event(DEVICE* device)
 {
 	if(vline_event_count < MAX_EVENT) {
-		vline_event[vline_event_count++] = dev;
-	} else {
+		for(int i = 0; i < vline_event_count; i++) {
+			if(vline_event[i] == device) {
 #ifdef _DEBUG_LOG
-		emu->out_debug_log(_T("EVENT: too many vline events !!!\n"));
+				this->out_debug_log(_T("EVENT: device (name=%s, id=%d) has already registered vline event !!!\n"), device->this_device_name, device->this_device_id);
 #endif
+				return;
+			}
+		}
+		vline_event[vline_event_count++] = device;
+#ifdef _DEBUG_LOG
+	} else {
+		this->out_debug_log(_T("EVENT: too many vline events !!!\n"));
+#endif
+	}
+}
+
+uint32_t EVENT::get_event_remaining_clock(int register_id)
+{
+	if(0 <= register_id && register_id < MAX_EVENT) {
+		event_t *event_handle = &event[register_id];
+		if(event_handle->active && event->expired_clock > event_clocks) {
+			return (uint32_t)(event->expired_clock - event_clocks);
+		}
+	}
+	return 0;
+}
+
+double EVENT::get_event_remaining_usec(int register_id)
+{
+	return 1000000.0 * get_event_remaining_clock(register_id) / d_cpu[0].cpu_clocks;
+}
+
+void EVENT::touch_sound()
+{
+	if(!(config.sound_strict_rendering || (need_mix > 0))) {
+		int samples = mix_counter;
+		if(samples >= (sound_tmp_samples - buffer_ptr)) {
+			samples = sound_tmp_samples - buffer_ptr;
+		}
+		if(samples > 0) {
+			mix_sound(samples);
+			mix_counter -= samples;
+		}
+	}
+}
+
+void EVENT::set_realtime_render(DEVICE* device, bool flag)
+{
+	assert(device != NULL && device->this_device_id < MAX_DEVICE);
+	if(dev_need_mix[device->this_device_id] != flag) {
+		if(flag) {
+			need_mix++;
+		} else {
+			assert(need_mix > 0);
+			need_mix--;
+			if(need_mix < 0) need_mix = 0;
+		}
+		dev_need_mix[device->this_device_id] = flag;
+	}
+}
+
+void EVENT::event_callback(int event_id, int err)
+{
+	// mix sound
+	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
+		buffer_ptr = 0;
+	}
+	int remain = sound_tmp_samples - buffer_ptr;
+	
+	if(remain > 0) {
+		int samples = mix_counter;
+		
+		if(config.sound_strict_rendering || (need_mix > 0)) {
+			if(samples < 1) {
+				samples = 1;
+			}
+		}
+		if(samples >= remain) {
+			samples = remain;
+		}
+		if(config.sound_strict_rendering || (need_mix > 0)) {
+			if(samples > 0) {
+				mix_sound(samples);
+			}
+			mix_counter = 1;
+		} else {
+			if(samples > 0 && mix_counter >= mix_limit) {
+				mix_sound(samples);
+				mix_counter -= samples;
+			}
+			mix_counter++;
+		}
 	}
 }
 
 void EVENT::mix_sound(int samples)
 {
 	if(samples > 0) {
-		int32* buffer = sound_tmp + buffer_ptr * 2;
-		memset(buffer, 0, samples * sizeof(int32) * 2);
+		int32_t* buffer = sound_tmp + buffer_ptr * 2;
+		memset(buffer, 0, samples * sizeof(int32_t) * 2);
 		for(int i = 0; i < dcount_sound; i++) {
 			d_sound[i]->mix(buffer, samples);
 		}
@@ -376,42 +549,20 @@ void EVENT::mix_sound(int samples)
 	}
 }
 
-void EVENT::update_sound()
-{
-	accum_samples += update_samples;
-	int samples = accum_samples >> 10;
-	accum_samples -= samples << 10;
-	
-	// mix sound
-	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
-		buffer_ptr = 0;
-	}
-	if(samples > sound_tmp_samples - buffer_ptr) {
-		samples = sound_tmp_samples - buffer_ptr;
-	}
-	mix_sound(samples);
-}
-
-uint16* EVENT::create_sound(int* extra_frames)
+uint16_t* EVENT::create_sound(int* extra_frames)
 {
 	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
+		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
 		*extra_frames = 0;
 		return sound_buffer;
 	}
 	int frames = 0;
 	
-#ifdef EVENT_CONTINUOUS_SOUND
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		drive();
 		frames++;
 	}
-#else
-	// fill sound buffer
-	int samples = sound_samples - buffer_ptr;
-	mix_sound(samples);
-#endif
 #ifdef LOW_PASS_FILTER
 	// low-pass filter
 	for(int i = 0; i < sound_samples - 1; i++) {
@@ -422,7 +573,7 @@ uint16* EVENT::create_sound(int* extra_frames)
 	// copy to buffer
 	for(int i = 0; i < sound_samples * 2; i++) {
 		int dat = sound_tmp[i];
-		uint16 highlow = (uint16)(dat & 0x0000ffff);
+		uint16_t highlow = (uint16_t)(dat & 0x0000ffff);
 		
 		if((dat > 0) && (highlow >= 0x8000)) {
 			sound_buffer[i] = 0x7fff;
@@ -436,7 +587,7 @@ uint16* EVENT::create_sound(int* extra_frames)
 	}
 	if(buffer_ptr > sound_samples) {
 		buffer_ptr -= sound_samples;
-		memcpy(sound_tmp, sound_tmp + sound_samples * 2, buffer_ptr * sizeof(int32) * 2);
+		memcpy(sound_tmp, sound_tmp + sound_samples * 2, buffer_ptr * sizeof(int32_t) * 2);
 	} else {
 		buffer_ptr = 0;
 	}
@@ -444,28 +595,29 @@ uint16* EVENT::create_sound(int* extra_frames)
 	return sound_buffer;
 }
 
-int EVENT::sound_buffer_ptr()
+int EVENT::get_sound_buffer_ptr()
 {
 	return buffer_ptr;
 }
 
-void EVENT::set_skip_frames(bool value)
+void EVENT::request_skip_frames()
 {
-	skip = value;
+	next_skip = true;
 }
 
-bool EVENT::now_skip()
+bool EVENT::is_frame_skippable()
 {
-	bool value = skip;
+	bool value = next_skip;
 	
-	if(sound_changed || (prev_skip && !skip)) {
+	if(sound_changed || (prev_skip && !next_skip)) {
 		dont_skip_frames = (int)frames_per_sec;
 	}
 	if(dont_skip_frames > 0) {
 		value = false;
 		dont_skip_frames--;
 	}
-	prev_skip = skip;
+	prev_skip = next_skip;
+	next_skip = false;
 	sound_changed = false;
 	
 	return value;
@@ -479,90 +631,76 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	4
 
-void EVENT::save_state(FILEIO* state_fio)
+bool EVENT::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(dcount_cpu);
-	for(int i = 0; i < dcount_cpu; i++) {
-		state_fio->FputInt32(d_cpu[i].cpu_clocks);
-		state_fio->FputInt32(d_cpu[i].update_clocks);
-		state_fio->FputInt32(d_cpu[i].accum_clocks);
-	}
-	state_fio->Fwrite(vclocks, sizeof(vclocks), 1);
-	state_fio->FputInt32(event_remain);
-	state_fio->FputInt32(cpu_remain);
-	state_fio->FputInt32(cpu_accum);
-	state_fio->FputInt32(cpu_done);
-	state_fio->FputUint64(event_clocks);
-	for(int i = 0; i < MAX_EVENT; i++) {
-		state_fio->FputInt32(event[i].device != NULL ? event[i].device->this_device_id : -1);
-		state_fio->FputInt32(event[i].event_id);
-		state_fio->FputUint64(event[i].expired_clock);
-		state_fio->FputUint32(event[i].loop_clock);
-		state_fio->FputBool(event[i].active);
-		state_fio->FputInt32(event[i].next != NULL ? event[i].next->index : -1);
-		state_fio->FputInt32(event[i].prev != NULL ? event[i].prev->index : -1);
-	}
-	state_fio->FputInt32(first_free_event != NULL ? first_free_event->index : -1);
-	state_fio->FputInt32(first_fire_event != NULL ? first_fire_event->index : -1);
-	state_fio->FputDouble(frames_per_sec);
-	state_fio->FputDouble(next_frames_per_sec);
-	state_fio->FputInt32(lines_per_frame);
-	state_fio->FputInt32(next_lines_per_frame);
-}
-
-bool EVENT::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != dcount_cpu) {
+	if(!state_fio->StateCheckInt32(dcount_cpu)) {
 		return false;
 	}
 	for(int i = 0; i < dcount_cpu; i++) {
-		d_cpu[i].cpu_clocks = state_fio->FgetInt32();
-		d_cpu[i].update_clocks = state_fio->FgetInt32();
-		d_cpu[i].accum_clocks = state_fio->FgetInt32();
+		state_fio->StateValue(d_cpu[i].cpu_clocks);
+		state_fio->StateValue(d_cpu[i].update_clocks);
+		state_fio->StateValue(d_cpu[i].accum_clocks);
 	}
-	state_fio->Fread(vclocks, sizeof(vclocks), 1);
-	event_remain = state_fio->FgetInt32();
-	cpu_remain = state_fio->FgetInt32();
-	cpu_accum = state_fio->FgetInt32();
-	cpu_done = state_fio->FgetInt32();
-	event_clocks = state_fio->FgetUint64();
+	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
+	state_fio->StateValue(event_remain);
+	state_fio->StateValue(event_extra);
+	state_fio->StateValue(cpu_remain);
+	state_fio->StateValue(cpu_accum);
+	state_fio->StateValue(cpu_done);
+	state_fio->StateValue(event_clocks);
 	for(int i = 0; i < MAX_EVENT; i++) {
-		event[i].device = vm->get_device(state_fio->FgetInt32());
-		event[i].event_id = state_fio->FgetInt32();
-		event[i].expired_clock = state_fio->FgetUint64();
-		event[i].loop_clock = state_fio->FgetUint32();
-		event[i].active = state_fio->FgetBool();
-		event[i].next = (event_t *)get_event(state_fio->FgetInt32());
-		event[i].prev = (event_t *)get_event(state_fio->FgetInt32());
+		if(loading) {
+			event[i].device = vm->get_device(state_fio->FgetInt32_LE());
+		} else {
+			state_fio->FputInt32_LE(event[i].device != NULL ? event[i].device->this_device_id : -1);
+		}
+		state_fio->StateValue(event[i].event_id);
+		state_fio->StateValue(event[i].expired_clock);
+		state_fio->StateValue(event[i].loop_clock);
+		state_fio->StateValue(event[i].accum_clocks);
+		state_fio->StateValue(event[i].active);
+		if(loading) {
+			event[i].next = (event_t *)get_event(state_fio->FgetInt32_LE());
+			event[i].prev = (event_t *)get_event(state_fio->FgetInt32_LE());
+		} else {
+			state_fio->FputInt32_LE(event[i].next != NULL ? event[i].next->index : -1);
+			state_fio->FputInt32_LE(event[i].prev != NULL ? event[i].prev->index : -1);
+		}
 	}
-	first_free_event = (event_t *)get_event(state_fio->FgetInt32());
-	first_fire_event = (event_t *)get_event(state_fio->FgetInt32());
-	frames_per_sec = state_fio->FgetDouble();
-	next_frames_per_sec = state_fio->FgetDouble();
-	lines_per_frame = state_fio->FgetInt32();
-	next_lines_per_frame = state_fio->FgetInt32();
+	if(loading) {
+		first_free_event = (event_t *)get_event(state_fio->FgetInt32_LE());
+		first_fire_event = (event_t *)get_event(state_fio->FgetInt32_LE());
+	} else {
+		state_fio->FputInt32_LE(first_free_event != NULL ? first_free_event->index : -1);
+		state_fio->FputInt32_LE(first_fire_event != NULL ? first_fire_event->index : -1);
+	}
+	state_fio->StateValue(frames_per_sec);
+	state_fio->StateValue(next_frames_per_sec);
+	state_fio->StateValue(lines_per_frame);
+	state_fio->StateValue(next_lines_per_frame);
+	state_fio->StateArray(dev_need_mix, sizeof(dev_need_mix), 1);
+	state_fio->StateValue(need_mix);
 	
-	// clear sound buffer
-	if(sound_buffer) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
+	// post process
+	if(loading) {
+		if(sound_buffer) {
+			memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
+		}
+		if(sound_tmp) {
+			memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
+		}
+		buffer_ptr = 0;
+		mix_counter = 1;
+		mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
 	}
-	if(sound_tmp) {
-		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32) * 2);
-	}
-	buffer_ptr = accum_samples = 0;
-	update_samples = (int)(1024.0 * (double)sound_rate / frames_per_sec / (double)lines_per_frame + 0.5);
-	
 	return true;
 }
 

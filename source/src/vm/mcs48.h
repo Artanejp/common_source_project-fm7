@@ -30,24 +30,24 @@ class DEBUGGER;
 class MCS48MEM : public DEVICE
 {
 private:
-	uint8 ram[0x100];
+	uint8_t ram[0x100];
 public:
-	MCS48MEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MCS48MEM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(ram, 0, sizeof(ram));
+		set_device_name(_T("MCS48 Memory Bus"));
 	}
 	~MCS48MEM() {}
 	
-	uint32 read_data8(uint32 addr)
+	uint32_t read_data8(uint32_t addr)
 	{
 		return ram[addr & 0xff];
 	}
-	void write_data8(uint32 addr, uint32 data)
+	void write_data8(uint32_t addr, uint32_t data)
 	{
 		ram[addr & 0xff] = data;
 	}
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 class MCS48 : public DEVICE
@@ -64,10 +64,23 @@ private:
 #endif
 	void *opaque;
 	
+	/* ---------------------------------------------------------------------------
+	registers
+	--------------------------------------------------------------------------- */
+	
+#ifdef USE_DEBUGGER
+	uint64_t total_icount;
+	uint64_t prev_total_icount;
+#endif
+	
 public:
-	MCS48(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MCS48(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_mem = d_io = d_intr = NULL;
+#ifdef USE_DEBUGGER
+		total_icount = prev_total_icount = 0;
+#endif
+		set_device_name(_T("MCS48 MCU"));
 	}
 	~MCS48() {}
 	
@@ -76,32 +89,39 @@ public:
 	void release();
 	void reset();
 	int run(int icount);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_pc();
-	uint32 get_next_pc();
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_pc();
+	uint32_t get_next_pc();
 #ifdef USE_DEBUGGER
+	bool is_cpu()
+	{
+		return true;
+	}
+	bool is_debugger_available()
+	{
+		return true;
+	}
 	void *get_debugger()
 	{
 		return d_debugger;
 	}
-	uint32 debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xfff;
 	}
-	uint32 debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xff;
 	}
-	void debug_write_data8(uint32 addr, uint32 data);
-	uint32 debug_read_data8(uint32 addr);
-	void debug_write_io8(uint32 addr, uint32 data);
-	uint32 debug_read_io8(uint32 addr);
-	bool debug_write_reg(_TCHAR *reg, uint32 data);
-	void debug_regs_info(_TCHAR *buffer);
-	int debug_dasm(uint32 pc, _TCHAR *buffer);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	void save_state(FILEIO* state_state_fio);
-	bool load_state(FILEIO* state_state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -122,8 +142,8 @@ public:
 		d_debugger = device;
 	}
 #endif
-	void load_rom_image(_TCHAR *file_path);
-	uint8 *get_rom_ptr();
+	void load_rom_image(const _TCHAR *file_path);
+	uint8_t *get_rom_ptr();
 };
 
 #endif

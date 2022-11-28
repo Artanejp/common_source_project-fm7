@@ -30,33 +30,35 @@ private:
 	
 	FILEIO* fio;
 	int bufcnt;
-	uint8 buffer[BUFFER_SIZE];
+	uint8_t buffer[BUFFER_SIZE];
 	bool play, rec, remote;
 	
 	void release_tape();
 	
 public:
-	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CMT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("CMT I/F"));
+	}
 	~CMT() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_sio(DEVICE* device)
 	{
 		d_sio = device;
 	}
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return (play || rec);
 	}

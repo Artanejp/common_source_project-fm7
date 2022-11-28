@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2009.03.16-
@@ -10,11 +11,11 @@
 */
 
 #include "joystick.h"
-#include "../ym2203.h"
+#include "../ay_3_891x.h"
 
 void JOYSTICK::initialize()
 {
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_frame_event(this);
@@ -23,9 +24,9 @@ void JOYSTICK::initialize()
 void JOYSTICK::event_frame()
 {
 	for(int i = 0; i < 2; i++) {
-		uint8 val = 0xff;
+		uint8_t val = 0xff;
 #ifdef _X1TWIN
-		if(!vm->cart_inserted(0)) {
+		if(!vm->is_cart_inserted(0)) {
 #endif
 			if(joy_stat[i] & 0x01) val &= ~0x01;
 			if(joy_stat[i] & 0x02) val &= ~0x02;
@@ -37,9 +38,9 @@ void JOYSTICK::event_frame()
 		}
 #endif
 		if(i == 0) {
-			d_psg->write_signal(SIG_YM2203_PORT_A, val, 0xff);
+			d_psg->write_signal(SIG_AY_3_891X_PORT_A, val, 0xff);
 		} else {
-			d_psg->write_signal(SIG_YM2203_PORT_B, val, 0xff);
+			d_psg->write_signal(SIG_AY_3_891X_PORT_B, val, 0xff);
 		}
 	}
 }

@@ -28,7 +28,6 @@
 
 #include "ld700.h"
 #include "../fifo.h"
-#include "../fileio.h"
 
 void LD700::initialize()
 {
@@ -74,24 +73,26 @@ void LD700::release()
 	delete signal_buffer;
 }
 
-void LD700::write_signal(int id, uint32 data, uint32 mask)
+void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_LD700_REMOTE) {
 		bool signal = ((data & mask) != 0);
 		if(prev_remote_signal != signal) {
-			int usec = (int)passed_usec(prev_remote_time);
-			prev_remote_time = current_clock();
+			int usec = (int)get_passed_usec(prev_remote_time);
+			prev_remote_time = get_current_clock();
 			prev_remote_signal = signal;
 			
 			// from openmsx-0.10.0/src/laserdisc/
 			switch(phase) {
 			case PHASE_IDLE:
 				if(signal) {
+					touch_sound();
 					command = num_bits = 0;
 					phase = PHASE_HEADER_PULSE;
 				}
 				break;
 			case PHASE_HEADER_PULSE:
+				touch_sound();
 				if(5800 <= usec && usec < 11200) {
 					phase = PHASE_HEADER_SPACE;
 				} else {
@@ -99,6 +100,7 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 				}
 				break;
 			case PHASE_HEADER_SPACE:
+				touch_sound();
 				if(3400 <= usec && usec < 6200) {
 					phase = PHASE_BITS_PULSE;
 				} else {
@@ -106,6 +108,7 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 				}
 				break;
 			case PHASE_BITS_PULSE:
+				touch_sound();
 				if(usec >= 380 && usec < 1070) {
 					phase = PHASE_BITS_SPACE;
 				} else {
@@ -113,6 +116,7 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 				}
 				break;
 			case PHASE_BITS_SPACE:
+				touch_sound();
 				if(1260 <= usec && usec < 4720) {
 					// bit 1
 					command |= 1 << num_bits;
@@ -122,10 +126,10 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 					break;
 				}
 				if(++num_bits == 32) {
-					uint8 custom      = ( command >>  0) & 0xff;
-					uint8 custom_comp = (~command >>  8) & 0xff;
-					uint8 code        = ( command >> 16) & 0xff;
-					uint8 code_comp   = (~command >> 24) & 0xff;
+					uint8_t custom      = ( command >>  0) & 0xff;
+					uint8_t custom_comp = (~command >>  8) & 0xff;
+					uint8_t code        = ( command >> 16) & 0xff;
+					uint8_t code_comp   = (~command >> 24) & 0xff;
 					if(custom == custom_comp && custom == 0xa8 && code == code_comp) {
 						// command accepted
 						accepted = true;
@@ -138,10 +142,17 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 			}
 		}
 	} else if(id == SIG_LD700_MUTE_L) {
+		touch_sound();
 		sound_mute_l = ((data & mask) != 0);
 	} else if(id == SIG_LD700_MUTE_R) {
+		touch_sound();
 		sound_mute_r = ((data & mask) != 0);
 	}
+}
+
+uint32_t LD700::read_signal(int id)
+{
+	return (status == STATUS_PLAY) ? 1 : 0;
 }
 
 void LD700::event_frame()
@@ -153,8 +164,8 @@ void LD700::event_frame()
 	
 	if(accepted) {
 		command = (command >> 16) & 0xff;
-		emu->out_debug_log("---\n",command);
-		emu->out_debug_log("LD700: COMMAND=%02x\n",command);
+		this->out_debug_log(_T("---\n"), command);
+		this->out_debug_log(_T("LD700: COMMAND=%02x\n"), command);
 		switch(command) {
 		case 0x00:
 		case 0x01:
@@ -168,7 +179,7 @@ void LD700::event_frame()
 		case 0x09:
 			if(status != STATUS_EJECT /*&& status != STATUS_STOP*/) {
 				seek_num = seek_num * 10 + command;
-				emu->out_debug_log("LD700: SEEK NUMBER=%d\n", seek_num);
+				this->out_debug_log(_T("LD700: SEEK NUMBER=%d\n"), seek_num);
 			}
 			break;
 		case 0x16:
@@ -179,23 +190,23 @@ void LD700::event_frame()
 					emu->stop_movie();
 					emu->set_cur_movie_frame(0, false);
 					set_status(STATUS_STOP);
-					emu->out_debug_log("LD700: STOP\n");
+					this->out_debug_log(_T("LD700: STOP\n"));
 				}
 			}
 			break;
 		case 0x17:
 			if(status != STATUS_EJECT && status != STATUS_PLAY) {
-				emu->mute_direct_show_dev(true, true);
+				emu->mute_video_dev(true, true);
 				emu->play_movie();
 				set_status(STATUS_PLAY);
-				emu->out_debug_log("LD700: PLAY\n");
+				this->out_debug_log(_T("LD700: PLAY\n"));
 			}
 			break;
 		case 0x18:
 			if(status != STATUS_EJECT /*&& status != STATUS_STOP*/) {
 				emu->pause_movie();
 				set_status(STATUS_PAUSE);
-				emu->out_debug_log("LD700: PAUSE\n");
+				this->out_debug_log(_T("LD700: PAUSE\n"));
 			}
 			break;
 		case 0x40:	// SEEK_CHAPTER
@@ -235,20 +246,20 @@ void LD700::event_frame()
 					} else {
 						wait_frame_raw = (int)((double)seek_num / 29.97 * emu->get_movie_frame_rate() + 0.5);
 					}
-					emu->out_debug_log("LD700: WAIT FRAME=%d\n", seek_num);
+					this->out_debug_log(_T("LD700: WAIT FRAME=%d\n"), seek_num);
 				} else {
 					if(seek_mode == SEEK_CHAPTER) {
-						emu->out_debug_log("LD700: SEEK TRACK=%d\n", seek_num);
+						this->out_debug_log(_T("LD700: SEEK TRACK=%d\n"), seek_num);
 						set_cur_track(seek_num);
 					} else if(seek_mode == SEEK_FRAME) {
-						emu->out_debug_log("LD700: SEEK FRAME=%d\n", seek_num);
+						this->out_debug_log(_T("LD700: SEEK FRAME=%d\n"), seek_num);
 						set_cur_frame(seek_num, false);
 					}
 					if(status == STATUS_PAUSE) {
-						emu->mute_direct_show_dev(true, true);
+						emu->mute_video_dev(true, true);
 						emu->play_movie();
 						set_status(STATUS_PLAY);
-						emu->out_debug_log("LD700: PLAY\n");
+						this->out_debug_log(_T("LD700: PLAY\n"));
 					}
 					seek_done = true;
 				}
@@ -261,7 +272,7 @@ void LD700::event_frame()
 			}
 			break;
 		default:
-			emu->out_debug_log(_T("LaserDisc: Unknown Command %02X\n"), command);
+			this->out_debug_log(_T("LaserDisc: Unknown Command %02X\n"), command);
 		}
 		accepted = false;
 		set_ack(true);
@@ -269,7 +280,7 @@ void LD700::event_frame()
 	
 	if(!seek_done && status == STATUS_PLAY) {
 		if(wait_frame_raw != 0 && prev_frame_raw < wait_frame_raw && cur_frame_raw >= wait_frame_raw) {
-			emu->out_debug_log("LD700: WAIT RAW FRAME=%d (%d)\n", wait_frame_raw, cur_frame_raw);
+			this->out_debug_log(_T("LD700: WAIT RAW FRAME=%d (%d)\n"), wait_frame_raw, cur_frame_raw);
 			set_ack(true);
 			wait_frame_raw = 0;
 		}
@@ -277,7 +288,7 @@ void LD700::event_frame()
 			if(prev_frame_raw < pause_frame_raw[i] && cur_frame_raw >= pause_frame_raw[i]) {
 				emu->pause_movie();
 				set_status(STATUS_PAUSE);
-				emu->out_debug_log("LD700: PAUSE RAW FRAME=%d (%d->%d)\n", pause_frame_raw[i], prev_frame_raw, cur_frame_raw);
+				this->out_debug_log(_T("LD700: PAUSE RAW FRAME=%d (%d->%d)\n"), pause_frame_raw[i], prev_frame_raw, cur_frame_raw);
 				break;
 			}
 		}
@@ -354,7 +365,7 @@ void LD700::set_cur_frame(int frame, bool relative)
 		frame = 1;
 	}
 	emu->set_cur_movie_frame(sign ? frame : -frame, relative);
-	emu->out_debug_log("LD700: SEEK RAW FRAME=%d RELATIVE=%d\n", sign ? frame : -frame, relative);
+	this->out_debug_log(_T("LD700: SEEK RAW FRAME=%d RELATIVE=%d\n"), sign ? frame : -frame, relative);
 }
 
 int LD700::get_cur_frame_raw()
@@ -369,10 +380,10 @@ void LD700::set_cur_track(int track)
 	}
 }
 
-void LD700::open_disc(_TCHAR* file_path)
+void LD700::open_disc(const _TCHAR* file_path)
 {
 	if(emu->open_movie_file(file_path)) {
-		emu->out_debug_log("LD700: OPEN MOVIE PATH=%s\n", file_path);
+		this->out_debug_log(_T("LD700: OPEN MOVIE PATH=%s\n"), file_path);
 		
 		// read LOCATION information
 		num_tracks = -1;
@@ -383,14 +394,14 @@ void LD700::open_disc(_TCHAR* file_path)
 		if(check_file_extension(file_path, _T(".ogv"))) {
 			FILEIO* fio = new FILEIO();
 			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-				uint8 buffer[0x1000+1];
+				uint8_t buffer[0x1000+1];
 				fio->Fread(buffer, sizeof(buffer), 1);
 				fio->Fclose();
 				buffer[0x1000] = 0;
 				
 				for(int i = 0; i < 0x1000; i++) {
 					char *top = (char *)(buffer + i), tmp[128];
-					if(_strnicmp(top, "chapter:", 8) == 0) {
+					if(strnicmp(top, "chapter:", 8) == 0) {
 						top += 8;
 						for(int j = 0;;) {
 							char c = *top++;
@@ -416,9 +427,9 @@ void LD700::open_disc(_TCHAR* file_path)
 								num_tracks = track;
 							}
 							track_frame_raw[track] = atoi(tmp);
-							emu->out_debug_log("LD700: TRACK %d: %d\n", track, track_frame_raw[track]);
+							this->out_debug_log(_T("LD700: TRACK %d: %d\n"), track, track_frame_raw[track]);
 						}
-					} else if(_strnicmp(top, "stop:", 5) == 0) {
+					} else if(strnicmp(top, "stop:", 5) == 0) {
 						top += 5;
 						for(int j = 0;;) {
 							char c = *top++;
@@ -431,24 +442,22 @@ void LD700::open_disc(_TCHAR* file_path)
 						}
 						if(num_pauses < MAX_PAUSES) {
 							pause_frame_raw[num_pauses] = atoi(tmp) > 300 ? atoi(tmp) : 285;
-							emu->out_debug_log("LD700: PAUSE %d\n", pause_frame_raw[num_pauses]);
+							this->out_debug_log(_T("LD700: PAUSE %d\n"), pause_frame_raw[num_pauses]);
 							num_pauses++;
 						}
-					} else if(_strnicmp(top, "ENCODER=", 8) == 0) {
+					} else if(strnicmp(top, "ENCODER=", 8) == 0) {
 						break;
 					}
 				}
 			}
 			delete fio;
 		} else {
-			_TCHAR ini_path[MAX_PATH];
-			_stprintf(ini_path, _T("%s.ini"), get_file_path_without_extensiton(file_path));
-			emu->out_debug_log("LD700: OPEN INI PATH=%s\n", ini_path);
+			_TCHAR ini_path[_MAX_PATH];
+			my_stprintf_s(ini_path, _MAX_PATH, _T("%s.ini"), get_file_path_without_extensiton(file_path));
+			this->out_debug_log(_T("LD700: OPEN INI PATH=%s\n"), ini_path);
 			
 			for(int i = 0; i <= MAX_TRACKS; i++) {
-				_TCHAR name[64];
-				_stprintf(name, _T("chapter%d"), i);
-				int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
+				int value = MyGetPrivateProfileInt(_T("Location"), create_string(_T("chapter%d"), i), -1, ini_path);
 				if(value < 0) {
 					break;
 				} else {
@@ -457,9 +466,7 @@ void LD700::open_disc(_TCHAR* file_path)
 				}
 			}
 			for(int i = 0; i < MAX_PAUSES; i++) {
-				_TCHAR name[64];
-				_stprintf(name, _T("stop%d"), i);
-				int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
+				int value = MyGetPrivateProfileInt(_T("Location"), create_string(_T("stop%d"), i), -1, ini_path);
 				if(value < 0) {
 					break;
 				} else {
@@ -485,43 +492,49 @@ void LD700::close_disc()
 	set_status(STATUS_EJECT);
 }
 
-bool LD700::disc_inserted()
+bool LD700::is_disc_inserted()
 {
 	return (status != STATUS_EJECT);
 }
 
 void LD700::initialize_sound(int rate, int samples)
 {
-	mix_buffer_l = (int16 *)malloc(samples * 2 * sizeof(int16));
-	mix_buffer_r = (int16 *)malloc(samples * 2 * sizeof(int16));
+	mix_buffer_l = (int16_t *)malloc(samples * 2 * sizeof(int16_t));
+	mix_buffer_r = (int16_t *)malloc(samples * 2 * sizeof(int16_t));
 	mix_buffer_length = samples * 2;
 	register_event(this, EVENT_MIX, 1000000. / (double)rate, true, NULL);
 }
 
-void LD700::mix(int32* buffer, int cnt)
+void LD700::mix(int32_t* buffer, int cnt)
 {
-	int16 sample_l = 0, sample_r = 0;
+	int16_t sample_l = 0, sample_r = 0;
 	for(int i = 0; i < cnt; i++) {
 		if(i < mix_buffer_ptr) {
-			sample_l = mix_buffer_l[i];
-			sample_r = mix_buffer_r[i];
+			sample_l = apply_volume(mix_buffer_l[i], volume_l);
+			sample_r = apply_volume(mix_buffer_r[i], volume_r);
 		}
 		*buffer += sample_l;
 		*buffer += sample_r;
 	}
 	if(cnt < mix_buffer_ptr) {
-		memmove(mix_buffer_l, mix_buffer_l + cnt, (mix_buffer_ptr - cnt) * sizeof(int16));
-		memmove(mix_buffer_r, mix_buffer_r + cnt, (mix_buffer_ptr - cnt) * sizeof(int16));
+		memmove(mix_buffer_l, mix_buffer_l + cnt, (mix_buffer_ptr - cnt) * sizeof(int16_t));
+		memmove(mix_buffer_r, mix_buffer_r + cnt, (mix_buffer_ptr - cnt) * sizeof(int16_t));
 		mix_buffer_ptr -= cnt;
 	} else {
 		mix_buffer_ptr = 0;
 	}
 }
 
-void LD700::movie_sound_callback(uint8 *buffer, long size)
+void LD700::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
+}
+
+void LD700::movie_sound_callback(uint8_t *buffer, long size)
 {
 	if(status == STATUS_PLAY) {
-		int16 *buffer16 = (int16 *)buffer;
+		int16_t *buffer16 = (int16_t *)buffer;
 		size /= 2;
 		for(int i = 0; i < size; i += 2) {
 			sound_buffer_l->write(buffer16[i]);

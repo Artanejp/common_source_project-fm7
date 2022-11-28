@@ -8,9 +8,8 @@
 */
 
 #include "nand.h"
-#include "../fileio.h"
 
-void NAND::write_signal(int id, uint32 data, uint32 mask)
+void NAND::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		bits_in |= id;
@@ -27,29 +26,18 @@ void NAND::write_signal(int id, uint32 data, uint32 mask)
 
 #define STATE_VERSION	1
 
-void NAND::save_state(FILEIO* state_fio)
+bool NAND::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint32(bits_mask);
-	state_fio->FputUint32(bits_in);
-	state_fio->FputBool(prev);
-	state_fio->FputBool(first);
-}
-
-bool NAND::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	bits_mask = state_fio->FgetUint32();
-	bits_in = state_fio->FgetUint32();
-	prev = state_fio->FgetBool();
-	first = state_fio->FgetBool();
+	state_fio->StateValue(bits_mask);
+	state_fio->StateValue(bits_in);
+	state_fio->StateValue(prev);
+	state_fio->StateValue(first);
 	return true;
 }
 

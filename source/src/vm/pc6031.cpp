@@ -17,16 +17,20 @@
 
 #include "pc6031.h"
 #include "disk.h"
+#include "noise.h"
 
 int PC6031::Seek88(int drvno, int trackno, int sectno)
 {
 	if(drvno < 2) {
+		if(cur_trk[drvno] != trackno) {
+			if(d_noise_seek != NULL) d_noise_seek->play();
+		}
 		cur_trk[drvno] = trackno;
 		cur_sct[drvno] = sectno;
 		cur_pos[drvno] = 0;
 		
 		if(disk[drvno]->get_track(trackno >> 1, trackno & 1)) {
-			for(int i = 0; i < disk[drvno]->sector_num; i++) {
+			for(int i = 0; i < disk[drvno]->sector_num.sd; i++) {
 				if(disk[drvno]->get_sector(trackno >> 1, 0/*trackno & 1*/, i)) {
 					if(disk[drvno]->id[2] == sectno) {
 						return 1;
@@ -41,7 +45,7 @@ int PC6031::Seek88(int drvno, int trackno, int sectno)
 unsigned char PC6031::Getc88(int drvno)
 {
 	if(drvno < 2 && disk[drvno]->sector != NULL) {
-		if(cur_pos[drvno] >= disk[drvno]->sector_size) {
+		if(cur_pos[drvno] >= disk[drvno]->sector_size.sd) {
 			cur_sct[drvno]++;
 			if(!Seek88(drvno, cur_trk[drvno], cur_sct[drvno])) {
 //				cur_trk[drvno]++;
@@ -61,7 +65,7 @@ unsigned char PC6031::Getc88(int drvno)
 int PC6031::Putc88(int drvno, unsigned char dat)
 {
 	if(drvno < 2 && disk[drvno]->sector != NULL) {
-		if(cur_pos[drvno] >= disk[drvno]->sector_size) {
+		if(cur_pos[drvno] >= disk[drvno]->sector_size.sd) {
 			cur_sct[drvno]++;
 			if(!Seek88(drvno, cur_trk[drvno], cur_sct[drvno])) {
 //				cur_trk[drvno]++;
@@ -270,8 +274,29 @@ unsigned char PC6031::InD3H_60() { return io_D3H; }
 void PC6031::initialize()
 {
 	for(int i = 0; i < 2; i++) {
-		disk[i] = new DISK();
+		disk[i] = new DISK(emu);
+		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
+		disk[i]->drive_type = DRIVE_TYPE_2D;
 	}
+	if(d_noise_seek != NULL) {
+		d_noise_seek->set_device_name(_T("Noise Player (FDD Seek)"));
+		if(!d_noise_seek->load_wav_file(_T("FDDSEEK.WAV"))) {
+			if(!d_noise_seek->load_wav_file(_T("FDDSEEK1.WAV"))) {
+				d_noise_seek->load_wav_file(_T("SEEK.WAV"));
+			}
+		}
+		d_noise_seek->set_mute(!config.sound_noise_fdd);
+	}
+//	if(d_noise_head_down != NULL) {
+//		d_noise_head_down->set_device_name(_T("Noise Player (FDD Head Load)"));
+//		d_noise_head_down->load_wav_file(_T("HEADDOWN.WAV"));
+//		d_noise_head_down->set_mute(!config.sound_noise_fdd);
+//	}
+//	if(d_noise_head_up != NULL) {
+//		d_noise_head_up->set_device_name(_T("Noise Player (FDD Head Unload)"));
+//		d_noise_head_up->load_wav_file(_T("HEADUP.WAV"));
+//		d_noise_head_up->set_mute(!config.sound_noise_fdd);
+//	}
 	DrvNum = 1;
 	memset(&mdisk, 0, sizeof(DISK60));
 	mdisk.command = WAIT;		// received command
@@ -286,12 +311,13 @@ void PC6031::release()
 {
 	for(int i = 0; i < 2; i++) {
 		if(disk[i]) {
+			disk[i]->close();
 			delete disk[i];
 		}
 	}
 }
 
-void PC6031::write_io8(uint32 addr, uint32 data)
+void PC6031::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 1:
@@ -306,7 +332,7 @@ void PC6031::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PC6031::read_io8(uint32 addr)
+uint32_t PC6031::read_io8(uint32_t addr)
 {
 	switch(addr & 3) {
 	case 0:
@@ -321,10 +347,10 @@ uint32 PC6031::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 PC6031::read_signal(int ch)
+uint32_t PC6031::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = 0;
+	uint32_t stat = 0;
 	for(int drv = 0; drv < 2; drv++) {
 		if(access[drv]) {
 			stat |= 1 << drv;
@@ -338,10 +364,10 @@ uint32 PC6031::read_signal(int ch)
 // user interface
 // ----------------------------------------------------------------------------
 
-void PC6031::open_disk(int drv, _TCHAR path[], int offset)
+void PC6031::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < 2) {
-		disk[drv]->open(path, offset);
+		disk[drv]->open(file_path, bank);
 		Seek88(drv, 0, 1);
 	}
 }
@@ -353,7 +379,7 @@ void PC6031::close_disk(int drv)
 	}
 }
 
-bool PC6031::disk_inserted(int drv)
+bool PC6031::is_disk_inserted(int drv)
 {
 	if(drv < 2) {
 		return disk[drv]->inserted;
@@ -367,5 +393,72 @@ bool PC6031::disk_ejected(int drv)
 		return disk[drv]->ejected;
 	}
 	return false;
+}
+
+void PC6031::is_disk_protected(int drv, bool value)
+{
+	if(drv < 2) {
+		disk[drv]->write_protected = value;
+	}
+}
+
+bool PC6031::is_disk_protected(int drv)
+{
+	if(drv < 2) {
+		return disk[drv]->write_protected;
+	}
+	return false;
+}
+
+void PC6031::update_config()
+{
+	if(d_noise_seek != NULL) {
+		d_noise_seek->set_mute(!config.sound_noise_fdd);
+	}
+//	if(d_noise_head_down != NULL) {
+//		d_noise_head_down->set_mute(!config.sound_noise_fdd);
+//	}
+//	if(d_noise_head_up != NULL) {
+//		d_noise_head_up->set_mute(!config.sound_noise_fdd);
+//	}
+}
+
+#define STATE_VERSION	2
+
+bool PC6031::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int i = 0; i < 2; i++) {
+		if(!disk[i]->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	state_fio->StateArray(cur_trk, sizeof(cur_trk), 1);
+	state_fio->StateArray(cur_sct, sizeof(cur_sct), 1);
+	state_fio->StateArray(cur_pos, sizeof(cur_pos), 1);
+	state_fio->StateArray(access, sizeof(access), 1);
+	state_fio->StateValue(mdisk.ATN);
+	state_fio->StateValue(mdisk.DAC);
+	state_fio->StateValue(mdisk.RFD);
+	state_fio->StateValue(mdisk.DAV);
+	state_fio->StateValue(mdisk.command);
+	state_fio->StateValue(mdisk.step);
+	state_fio->StateValue(mdisk.blk);
+	state_fio->StateValue(mdisk.drv);
+	state_fio->StateValue(mdisk.trk);
+	state_fio->StateValue(mdisk.sct);
+	state_fio->StateValue(mdisk.size);
+	state_fio->StateValue(mdisk.retdat);
+	state_fio->StateValue(io_D1H);
+	state_fio->StateValue(io_D2H);
+	state_fio->StateValue(old_D2H);
+	state_fio->StateValue(io_D3H);
+	state_fio->StateValue(DrvNum);
+	return true;
 }
 

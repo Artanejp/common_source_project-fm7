@@ -13,8 +13,6 @@
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// create pc palette
 	for(int i = 0; i < 16; i++) {
 		int val = (i & 8) ? 127 : 0;
@@ -23,8 +21,8 @@ void DISPLAY::initialize()
 	palette_pc[8] = RGB_COLOR(127, 127, 127);
 	
 	hires_mode = 1;
-	prev_width = 640;
-	prev_height = 400;
+//	prev_width = 640;
+//	prev_height = 400;
 	
 	cblink = 0;
 	register_frame_event(this);
@@ -47,12 +45,7 @@ void DISPLAY::reset()
 	status = 0x04;
 }
 
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
-}
-
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x1ff:
@@ -106,7 +99,7 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 DISPLAY::read_io8(uint32 addr)
+uint32_t DISPLAY::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x1ff:
@@ -122,7 +115,7 @@ uint32 DISPLAY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_ENABLE) {
 		if(data & mask) {
@@ -148,7 +141,7 @@ void DISPLAY::draw_screen()
 {
 	int mode1 = vgarray[0];
 	int mode2 = vgarray[3];
-	int screen_width, screen_height, width;
+	int screen_width, screen_height, window_height_aspect, width;
 	
 	memset(screen, 0, sizeof(screen));
 	
@@ -156,18 +149,20 @@ void DISPLAY::draw_screen()
 	if((hires_mode & 3) == 1) {
 		screen_width = width = 640;
 		screen_height = 400;
+		window_height_aspect = 480;
 	} else {
 		screen_width = width = 720;
 		screen_height = 512;
+		window_height_aspect = 540;
 	}
-	if(!(prev_width == screen_width && prev_height == screen_height)) {
-		emu->change_screen_size(screen_width, screen_height, -1, -1, screen_width, screen_height);
-		prev_width = screen_width;
-		prev_height = screen_height;
+//	if(!(prev_width == screen_width && prev_height == screen_height)) {
+		emu->set_vm_screen_size(screen_width, screen_height, screen_width, screen_height, screen_width, window_height_aspect);
+//		prev_width = screen_width;
+//		prev_height = screen_height;
 		
 		// we need to wait until screen manager updates buffer size
-		return;
-	}
+//		return;
+//	}
 	
 	// render screen
 	if((hires_mode & 3) == 1) {
@@ -220,9 +215,9 @@ void DISPLAY::draw_screen()
 	// copy to real screen
 	if((hires_mode & 3) == 1) {
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-			scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-			uint8 *src = screen[y];
+			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+			uint8_t *src = screen[y];
 			
 			if(width == 640) {
 				for(int x = 0; x < 640; x++) {
@@ -237,17 +232,17 @@ void DISPLAY::draw_screen()
 					dest0[x4] = dest0[x4 + 1] = dest0[x4 + 2] = dest0[x4 + 3] = palette_pc[src[x]];
 				}
 			}
-			if(!scanline) {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			if(!config.scan_line) {
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			} else {
-				memset(dest1, 0, 640 * sizeof(scrntype));
+				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			}
 		}
-		emu->screen_skip_line = true;
+		emu->screen_skip_line(true);
 	} else {
 		for(int y = 0; y < 512; y++) {
-			scrntype* dest = emu->screen_buffer(y);
-			uint8 *src = screen[y];
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			uint8_t *src = screen[y];
 			
 			if(width == 720) {
 				for(int x = 0; x < 720; x++) {
@@ -259,7 +254,7 @@ void DISPLAY::draw_screen()
 				}
 			}
 		}
-		emu->screen_skip_line = false;
+		emu->screen_skip_line(false);
 	}
 }
 
@@ -274,8 +269,8 @@ void DISPLAY::draw_alpha()
 	int shift = (ch_height < 16) ? 0 : 1;
 	int bp = regs[10] & 0x60;
 	
-	uint8 *vram_ptr = vram + (page & 7) * 0x4000;
-	uint8 pal_mask = vgarray[1] & 0x0f;
+	uint8_t *vram_ptr = vram + (page & 7) * 0x4000;
+	uint8_t pal_mask = vgarray[1] & 0x0f;
 	
 	int prev_code = 0;
 	
@@ -324,7 +319,7 @@ void DISPLAY::draw_alpha()
 				}
 			}
 			
-			uint8 *pattern;
+			uint8_t *pattern;
 			if(ch_height < 16) {
 				pattern = &font[code * 8];
 			} else {
@@ -335,8 +330,8 @@ void DISPLAY::draw_alpha()
 				if(ytop + l >= 512) {
 					break;
 				}
-				uint8 pat = (l < ymax) ? pattern[(l << shift) | lr] : 0;
-				uint8 *dest = &screen[ytop + l][x * 8];
+				uint8_t pat = (l < ymax) ? pattern[(l << shift) | lr] : 0;
+				uint8_t *dest = &screen[ytop + l][x * 8];
 				
 				dest[0] = (pat & 0x80) ? fore_color : back_color;
 				dest[1] = (pat & 0x40) ? fore_color : back_color;
@@ -368,17 +363,17 @@ void DISPLAY::draw_graph_160x200_16col()
 {
 	int src = (regs[12] << 8) | regs[13];
 	
-	uint8 mask = vgarray[1] & 0x0f;
+	uint8_t mask = vgarray[1] & 0x0f;
 	
 	for(int l = 0; l < 2; l++) {
-		uint8 *vram_ptr = vram + (page & 7) * 0x4000 + l * 0x2000;
+		uint8_t *vram_ptr = vram + (page & 7) * 0x4000 + l * 0x2000;
 		int src2 = src;
 		
 		for(int y = 0; y < 200; y += 2) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 160; x += 2) {
-				uint8 pat = vram_ptr[(src2++) & 0x1fff];
+				uint8_t pat = vram_ptr[(src2++) & 0x1fff];
 				
 				dest[x    ] = palette[(pat >> 4) & mask];
 				dest[x + 1] = palette[(pat     ) & mask];
@@ -391,17 +386,17 @@ void DISPLAY::draw_graph_320x200_4col()
 {
 	int src = (regs[12] << 8) | regs[13];
 	
-	uint8 mask = vgarray[1] & 3;
+	uint8_t mask = vgarray[1] & 3;
 	
 	for(int l = 0; l < 2; l++) {
-		uint8 *vram_ptr = vram + (page & 7) * 0x4000 + l * 0x2000;
+		uint8_t *vram_ptr = vram + (page & 7) * 0x4000 + l * 0x2000;
 		int src2 = src;
 		
 		for(int y = 0; y < 200; y += 2) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 320; x += 4) {
-				uint8 pat = vram_ptr[(src2++) & 0x1fff];
+				uint8_t pat = vram_ptr[(src2++) & 0x1fff];
 				
 				dest[x    ] = palette[(pat >> 6) & mask];
 				dest[x + 1] = palette[(pat >> 4) & mask];
@@ -416,17 +411,17 @@ void DISPLAY::draw_graph_320x200_16col()
 {
 	int src = (regs[12] << 8) | regs[13];
 	
-	uint8 mask = vgarray[1] & 0x0f;
+	uint8_t mask = vgarray[1] & 0x0f;
 	
 	for(int l = 0; l < 4; l++) {
-		uint8 *vram_ptr = vram + ((page >> 1) & 3) * 0x8000 + l * 0x2000;
+		uint8_t *vram_ptr = vram + ((page >> 1) & 3) * 0x8000 + l * 0x2000;
 		int src2 = src;
 		
 		for(int y = 0; y < 200; y += 4) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 320; x += 2) {
-				uint8 pat = vram_ptr[(src2++) & 0x1fff];
+				uint8_t pat = vram_ptr[(src2++) & 0x1fff];
 				
 				dest[x    ] = palette[(pat >> 4) & mask];
 				dest[x + 1] = palette[(pat     ) & mask];
@@ -439,17 +434,17 @@ void DISPLAY::draw_graph_640x200_2col()
 {
 	int src = (regs[12] << 8) | regs[13];
 	
-	uint8 mask = vgarray[1] & 1;
+	uint8_t mask = vgarray[1] & 1;
 	
 	for(int l = 0; l < 2; l++) {
-		uint8 *vram_ptr = vram + (page & 7) * 0x4000 + l * 0x2000;
+		uint8_t *vram_ptr = vram + (page & 7) * 0x4000 + l * 0x2000;
 		int src2 = src;
 		
 		for(int y = 0; y < 200; y += 2) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 640; x += 8) {
-				uint8 pat = vram_ptr[(src2++) & 0x1fff];
+				uint8_t pat = vram_ptr[(src2++) & 0x1fff];
 				
 				dest[x    ] = palette[(pat >> 7) & mask];
 				dest[x + 1] = palette[(pat >> 6) & mask];
@@ -468,18 +463,18 @@ void DISPLAY::draw_graph_640x200_4col()
 {
 	int src = (regs[12] << 8) | regs[13];
 	
-	uint8 mask = vgarray[1] & 3;
+	uint8_t mask = vgarray[1] & 3;
 	
 	for(int l = 0; l < 4; l++) {
-		uint8 *vram_ptr = vram + ((page >> 1) & 3) * 0x8000 + l * 0x2000;
+		uint8_t *vram_ptr = vram + ((page >> 1) & 3) * 0x8000 + l * 0x2000;
 		int src2 = src;
 		
 		for(int y = 0; y < 200; y += 4) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 640; x += 8) {
-				uint8 pat0 = vram_ptr[(src2++) & 0x1fff];
-				uint8 pat1 = vram_ptr[(src2++) & 0x1fff];
+				uint8_t pat0 = vram_ptr[(src2++) & 0x1fff];
+				uint8_t pat1 = vram_ptr[(src2++) & 0x1fff];
 				
 				dest[x    ] = palette[(((pat0 >> 7) & 1) | ((pat1 >> 6) & 2)) & mask];
 				dest[x + 1] = palette[(((pat0 >> 6) & 1) | ((pat1 >> 5) & 2)) & mask];
@@ -496,21 +491,21 @@ void DISPLAY::draw_graph_640x200_4col()
 
 void DISPLAY::draw_graph_720x512_2col()
 {
-	static const uint8 palette2[2] = {0, 7};
+	static const uint8_t palette2[2] = {0, 7};
 	
 	int src = (regs[12] << 8) | regs[13];
 	
-	uint8 mask = 1;//vgarray[1] & 1;
+	uint8_t mask = 1;//vgarray[1] & 1;
 	
 	for(int l = 0; l < 2; l++) {
-		uint8 *vram_ptr = extvram + l * 0x8000;
+		uint8_t *vram_ptr = extvram + l * 0x8000;
 		int src2 = src;
 		
 		for(int y = 0; y < 512; y += 2) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 720; x += 8) {
-				uint8 pat = vram_ptr[(src2++) & 0x7fff];
+				uint8_t pat = vram_ptr[(src2++) & 0x7fff];
 				
 				dest[x    ] = palette2[(pat >> 7) & mask];
 				dest[x + 1] = palette2[(pat >> 6) & mask];
@@ -528,5 +523,29 @@ void DISPLAY::draw_graph_720x512_2col()
 void DISPLAY::draw_graph_360x512_4col()
 {
 	// TODO
+}
+
+#define STATE_VERSION	1
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(extvram, sizeof(extvram), 1);
+	state_fio->StateArray(vgarray, sizeof(vgarray), 1);
+	state_fio->StateArray(palette, sizeof(palette), 1);
+	state_fio->StateValue(vgarray_num);
+	state_fio->StateArray(bankreg, sizeof(bankreg), 1);
+	state_fio->StateValue(bankreg_num);
+	state_fio->StateValue(hires_mode);
+	state_fio->StateValue(page);
+	state_fio->StateValue(status);
+	state_fio->StateValue(cblink);
+	return true;
 }
 

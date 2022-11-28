@@ -9,7 +9,6 @@
 
 #include "memory.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
@@ -39,11 +38,11 @@ void MEMORY::initialize()
 	
 	// load ipl
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("FDC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FDC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(fdc, sizeof(fdc), 1);
 		fio->Fclose();
 		
@@ -63,11 +62,11 @@ void MEMORY::reset()
 	update_map();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
-		uint32 ptr = addr & 0x3fff;
+		uint32_t ptr = addr & 0x3fff;
 		// select vram
 		if(!(map1 & 1)) {
 			vram[0x0000 | ptr] = data;
@@ -86,13 +85,13 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
-		uint32 ptr = addr & 0x3fff;
+		uint32_t ptr = addr & 0x3fff;
 		// select vram
-		uint32 val = 0xff;
+		uint32_t val = 0xff;
 		if(!(map1 & 1)) {
 			val &= vram[0x0000 | ptr];
 		}
@@ -110,13 +109,13 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	map2 = data;
 	update_map();
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_I8255_C) {
 		map1 = data & mask;
@@ -137,3 +136,27 @@ void MEMORY::update_map()
 		SET_BANK(0x8000, 0xffff, ram1, ram1);
 	}
 }
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram0, sizeof(ram0), 1);
+	state_fio->StateArray(ram1, sizeof(ram1), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateValue(map1);
+	state_fio->StateValue(map2);
+	
+	// post process
+	if(loading) {
+		update_map();
+	}
+	return true;
+}
+

@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -41,11 +40,11 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 		
@@ -55,7 +54,7 @@ void MEMORY::initialize()
 		}
 		memset(dic, 0xff, sizeof(dic));
 	}
-	if(fio->Fopen(emu->bios_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 	}
@@ -80,7 +79,7 @@ void MEMORY::reset()
 	vram_bank = dic_bank = kanji_bank = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		write_dma_data8((addr & 0x3ffff) | mem_window, data);
@@ -91,7 +90,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		return read_dma_data8((addr & 0x3ffff) | mem_window);
@@ -102,17 +101,17 @@ uint32 MEMORY::read_data8(uint32 addr)
 	}
 }
 
-void MEMORY::write_dma_data8(uint32 addr, uint32 data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_dma_data8(uint32 addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -134,7 +133,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 			SET_BANK(0x0f4000, 0x0f5fff, tvram, tvram);
 			SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
 		} else if(data == 4) {
-			SET_BANK(0x0c0000, 0x0dffff, vram, vram);
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
 		} else if(data == 5) {
 			SET_BANK(0x0c0000, 0x0dffff, vram + 0x20000, vram + 0x20000);
 		} else if(data == 6) {
@@ -161,7 +160,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -174,5 +173,51 @@ uint32 MEMORY::read_io8(uint32 addr)
 		return kanji_bank;
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	2
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(tvram, sizeof(tvram), 1);
+	state_fio->StateArray(pcg, sizeof(pcg), 1);
+	state_fio->StateValue(mem_window);
+	state_fio->StateValue(vram_bank);
+	state_fio->StateValue(dic_bank);
+	state_fio->StateValue(kanji_bank);
+	
+	// post process
+	if(loading) {
+		if(vram_bank == 4) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
+		} else if(vram_bank == 5) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x20000, vram + 0x20000);
+		} else if(vram_bank == 6) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x40000, vram + 0x40000);
+		} else if(vram_bank == 7) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x60000, vram + 0x60000);
+		} else {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
+		}
+		SET_BANK(0x0e0000, 0x0effff, wdmy, dic + ((dic_bank & 0x18) >> 3) * 0x10000);
+		if(kanji_bank & 0x80) {
+			SET_BANK(0x0f0000, 0x0f0fff, wdmy, kanji + 0x1000 * (kanji_bank & 0x7f));
+		} else {
+			SET_BANK(0x0f0000, 0x0f0fff, pcg, pcg);
+		}
+		SET_BANK(0x0f1000, 0x0f3fff, pcg + 0x1000, pcg + 0x1000);
+		SET_BANK(0x0f4000, 0x0f5fff, tvram, tvram);
+		SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
+	}
+	return true;
 }
 

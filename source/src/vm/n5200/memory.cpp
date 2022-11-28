@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -39,7 +38,7 @@ void MEMORY::initialize()
 	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 		for(int i = 0xa8e; i < 0xafc; i++) {
@@ -53,7 +52,7 @@ void MEMORY::release()
 {
 	// save ram image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("TVRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("TVRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(tvram, sizeof(tvram), 1);
 		fio->Fclose();
 	}
@@ -74,7 +73,7 @@ void MEMORY::reset()
 	protect = true;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	if(0xe7800 <= addr && addr < 0xf0000 && protect) {
@@ -83,13 +82,13 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x74:
@@ -98,7 +97,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	return 0xff;
 }

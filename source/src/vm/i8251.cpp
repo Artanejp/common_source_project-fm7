@@ -9,7 +9,6 @@
 
 #include "i8251.h"
 #include "../fifo.h"
-#include "../fileio.h"
 
 // max 256kbytes
 #define BUFFER_SIZE	0x40000
@@ -55,7 +54,9 @@ void I8251::release()
 void I8251::reset()
 {
 	mode = MODE_CLEAR;
-	recv = 0xff;
+	recv = 0x00;	// XM8 version 1.10
+//	recv = 0xff;
+	
 	// dont reset dsr
 	status &= DSR;
 	status |= TXRDY | TXE;
@@ -66,7 +67,7 @@ void I8251::reset()
 	recv_id = send_id = -1;
 }
 
-void I8251::write_io8(uint32 addr, uint32 data)
+void I8251::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		switch(mode) {
@@ -130,9 +131,13 @@ void I8251::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8251::read_io8(uint32 addr)
+uint32_t I8251::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
+		// XM8 version 1.10
+		if(!txen) {
+			return status & ~(TXRDY | TXE);
+		}
 		return status;
 	} else {
 		if(status & RXRDY) {
@@ -143,7 +148,7 @@ uint32 I8251::read_io8(uint32 addr)
 	}
 }
 
-void I8251::write_signal(int id, uint32 data, uint32 mask)
+void I8251::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_I8251_RECV) {
 		recv_buffer->write(data & mask);
@@ -183,7 +188,7 @@ void I8251::event_callback(int event_id, int err)
 					status |= SYNDET;
 					write_signals(&outputs_syndet, 0xffffffff);
 				} else {
-					recv = (uint8)val;
+					recv = (uint8_t)val;
 					status |= RXRDY;
 					write_signals(&outputs_rxrdy, 0xffffffff);
 				}
@@ -197,7 +202,7 @@ void I8251::event_callback(int event_id, int err)
 		}
 	} else if(event_id == EVENT_SEND) {
 		if(txen && !send_buffer->empty()) {
-			uint8 send = send_buffer->read();
+			uint8_t send = send_buffer->read();
 			if(loopback) {
 				// send to this device
 				write_signal(SIG_I8251_RECV, send, 0xff);
@@ -225,45 +230,28 @@ void I8251::event_callback(int event_id, int err)
 
 #define STATE_VERSION	1
 
-void I8251::save_state(FILEIO* state_fio)
+bool I8251::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(recv);
-	state_fio->FputUint8(status);
-	state_fio->FputUint8(mode);
-	state_fio->FputBool(txen);
-	state_fio->FputBool(rxen);
-	state_fio->FputBool(loopback);
-	recv_buffer->save_state((void *)state_fio);
-	send_buffer->save_state((void *)state_fio);
-	state_fio->FputInt32(recv_id);
-	state_fio->FputInt32(send_id);
-}
-
-bool I8251::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	recv = state_fio->FgetUint8();
-	status = state_fio->FgetUint8();
-	mode = state_fio->FgetUint8();
-	txen = state_fio->FgetBool();
-	rxen = state_fio->FgetBool();
-	loopback = state_fio->FgetBool();
-	if(!recv_buffer->load_state((void *)state_fio)) {
+	state_fio->StateValue(recv);
+	state_fio->StateValue(status);
+	state_fio->StateValue(mode);
+	state_fio->StateValue(txen);
+	state_fio->StateValue(rxen);
+	state_fio->StateValue(loopback);
+	if(!recv_buffer->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	if(!send_buffer->load_state((void *)state_fio)) {
+	if(!send_buffer->process_state((void *)state_fio, loading)) {
 		return false;
 	}
-	recv_id = state_fio->FgetInt32();
-	send_id = state_fio->FgetInt32();
+	state_fio->StateValue(recv_id);
+	state_fio->StateValue(send_id);
 	return true;
 }
 

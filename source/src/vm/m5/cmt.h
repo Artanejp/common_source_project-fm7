@@ -16,7 +16,7 @@
 
 #define SIG_CMT_IN		0
 #define SIG_CMT_EOT		1
-#define SIG_PRINTER_BUSY	2
+//#define SIG_PRINTER_BUSY	2
 
 class CMT : public DEVICE
 {
@@ -27,23 +27,27 @@ private:
 	bool in, out, remote, eot;
 	
 	// printer
-	uint8 pout;
+	uint8_t pout;
 	bool strobe, busy;
 	
 	// reset/halt key
-	uint8* key_stat;
+	const uint8_t* key_stat;
 	
 public:
-	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CMT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("CMT I/F"));
+	}
 	~CMT() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique functions
+	// unique function
 	void set_context_drec(DEVICE* device)
 	{
 		d_drec = device;

@@ -21,20 +21,24 @@ class MFONT : public DEVICE
 private:
 	DEVICE *d_pic;
 	
-	uint8 mfont[36 * 0x60 * 2 * 17];
-	uint8 status;
+	uint8_t mfont[36 * 0x60 * 2 * 17];
+	uint8_t status;
 	FIFO *cmd;
 	FIFO *res;
 	
 public:
-	MFONT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MFONT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Multi FONT ROM Card"));
+	}
 	~MFONT() {}
 	
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_pic(DEVICE* device)

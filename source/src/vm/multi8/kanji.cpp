@@ -9,13 +9,12 @@
 
 #include "kanji.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 void KANJI::initialize()
 {
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 		
@@ -33,7 +32,7 @@ void KANJI::reset()
 	ptr = 0;
 }
 
-void KANJI::write_io8(uint32 addr, uint32 data)
+void KANJI::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x40:
@@ -45,7 +44,7 @@ void KANJI::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KANJI::read_io8(uint32 addr)
+uint32_t KANJI::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x40:
@@ -55,3 +54,18 @@ uint32 KANJI::read_io8(uint32 addr)
 	}
 	return 0xff;
 }
+
+#define STATE_VERSION	1
+
+bool KANJI::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(ptr);
+	return true;
+}
+

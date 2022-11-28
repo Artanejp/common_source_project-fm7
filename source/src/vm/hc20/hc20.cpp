@@ -13,9 +13,15 @@
 #include "../event.h"
 
 #include "../beep.h"
+#include "../disk.h"
 #include "../hd146818p.h"
+#include "../i8255.h"
 #include "../mc6800.h"
+#include "../noise.h"
 #include "../tf20.h"
+#include "../upd765a.h"
+#include "../z80.h"
+#include "../z80sio.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -27,7 +33,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -37,13 +43,25 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	beep = new BEEP(this, emu);
 	rtc = new HD146818P(this, emu);
 	cpu = new MC6800(this, emu);
+	
 	tf20 = new TF20(this, emu);
+	pio_tf20 = new I8255(this, emu);
+	fdc_tf20 = new UPD765A(this, emu);
+	fdc_tf20->set_context_noise_seek(new NOISE(this, emu));
+	fdc_tf20->set_context_noise_head_down(new NOISE(this, emu));
+	fdc_tf20->set_context_noise_head_up(new NOISE(this, emu));
+	cpu_tf20 = new Z80(this, emu);
+	sio_tf20 = new Z80SIO(this, emu);
 	
 	memory = new MEMORY(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_cpu(cpu_tf20, 4000000);
 	event->set_context_sound(beep);
+	event->set_context_sound(fdc_tf20->get_context_noise_seek());
+	event->set_context_sound(fdc_tf20->get_context_noise_head_down());
+	event->set_context_sound(fdc_tf20->get_context_noise_head_up());
 	
 /*
 	memory:
@@ -91,12 +109,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_context_port4(memory, SIG_MEMORY_PORT_4, 0xff, 0);
 	cpu->set_context_sio(memory, SIG_MEMORY_SIO_MAIN);
 	rtc->set_context_intr(memory, SIG_MEMORY_RTC_IRQ, 1);
-	tf20->set_context_sio(memory, SIG_MEMORY_SIO_TF20);
 	
 	memory->set_context_beep(beep);
 	memory->set_context_cpu(cpu);
 	memory->set_context_rtc(rtc);
-	memory->set_context_tf20(tf20);
+	memory->set_context_sio_tf20(sio_tf20);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
@@ -104,9 +121,30 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
+	// tf-20
+	tf20->set_context_cpu(cpu_tf20);
+	tf20->set_context_fdc(fdc_tf20);
+	tf20->set_context_pio(pio_tf20);
+	tf20->set_context_sio(sio_tf20);
+	cpu_tf20->set_context_mem(tf20);
+	cpu_tf20->set_context_io(tf20);
+	cpu_tf20->set_context_intr(tf20);
+#ifdef USE_DEBUGGER
+	cpu_tf20->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	fdc_tf20->set_context_irq(cpu_tf20, SIG_CPU_IRQ, 1);
+	sio_tf20->set_context_send(0, memory, SIG_MEMORY_SIO_TF20);
+	sio_tf20->set_tx_clock(0, 4915200 / 8);	// 4.9152MHz / 8 (38.4kbps)
+	sio_tf20->set_rx_clock(0, 4915200 / 8);	// baud-rate can be changed by jumper pin
+	sio_tf20->set_tx_clock(1, 4915200 / 8);
+	sio_tf20->set_rx_clock(1, 4915200 / 8);
+	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
+	}
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		fdc_tf20->set_drive_type(i, DRIVE_TYPE_2D);
 	}
 }
 
@@ -147,7 +185,7 @@ void VM::reset()
 
 void VM::notify_power_off()
 {
-//	emu->out_debug_log("--- POWER OFF ---\n");
+//	this->out_debug_log(T("--- POWER OFF ---\n"));
 	memory->notify_power_off();
 }
 
@@ -165,6 +203,8 @@ DEVICE *VM::get_cpu(int index)
 {
 	if(index == 0) {
 		return cpu;
+	} else if(index == 1) {
+		return cpu_tf20;
 	}
 	return NULL;
 }
@@ -179,12 +219,6 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-int VM::access_lamp()
-{
-	uint32 status = tf20->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-}
-
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -195,18 +229,31 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	beep->init(rate, 1000, 8000);
+	beep->initialize_sound(rate, 1000, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		beep->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc_tf20->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc_tf20->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc_tf20->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key
@@ -226,44 +273,59 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	tf20->open_disk(drv, file_path, offset);
+	fdc_tf20->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
-	tf20->close_disk(drv);
+	fdc_tf20->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return tf20->disk_inserted(drv);
+	return fdc_tf20->is_disk_inserted(drv);
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::is_floppy_disk_protected(int drv, bool value)
+{
+	fdc_tf20->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc_tf20->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc_tf20->read_signal(0);
+}
+
+void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	memory->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	memory->rec_tape(file_path);
 }
 
-void VM::close_tape()
+void VM::close_tape(int drv)
 {
 	memory->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted(int drv)
 {
-	return memory->tape_inserted();
+	return memory->is_tape_inserted();
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -271,5 +333,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	3
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

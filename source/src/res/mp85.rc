@@ -1,0 +1,269 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Japanese resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
+    VK_APPS,        ID_ACCEL_SPEED,         VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU DISCARDABLE 
+BEGIN
+    POPUP "Control"
+    BEGIN
+        MENUITEM "Reset",                       ID_RESET
+        MENUITEM SEPARATOR
+        MENUITEM "CPU x1",                      ID_CPU_POWER0
+        MENUITEM "CPU x2",                      ID_CPU_POWER1
+        MENUITEM "CPU x4",                      ID_CPU_POWER2
+        MENUITEM "CPU x8",                      ID_CPU_POWER3
+        MENUITEM "CPU x16",                     ID_CPU_POWER4
+        MENUITEM "Full Speed",                  ID_FULL_SPEED
+        MENUITEM SEPARATOR
+        MENUITEM "Paste",                       ID_AUTOKEY_START
+        MENUITEM "Stop",                        ID_AUTOKEY_STOP
+        MENUITEM SEPARATOR
+        POPUP "Save State"
+        BEGIN
+            MENUITEM "State 0",                 ID_SAVE_STATE0
+            MENUITEM "State 1",                 ID_SAVE_STATE1
+            MENUITEM "State 2",                 ID_SAVE_STATE2
+            MENUITEM "State 3",                 ID_SAVE_STATE3
+            MENUITEM "State 4",                 ID_SAVE_STATE4
+            MENUITEM "State 5",                 ID_SAVE_STATE5
+            MENUITEM "State 6",                 ID_SAVE_STATE6
+            MENUITEM "State 7",                 ID_SAVE_STATE7
+            MENUITEM "State 8",                 ID_SAVE_STATE8
+            MENUITEM "State 9",                 ID_SAVE_STATE9
+        END
+        POPUP "Load State"
+        BEGIN
+            MENUITEM "State 0",                 ID_LOAD_STATE0
+            MENUITEM "State 1",                 ID_LOAD_STATE1
+            MENUITEM "State 2",                 ID_LOAD_STATE2
+            MENUITEM "State 3",                 ID_LOAD_STATE3
+            MENUITEM "State 4",                 ID_LOAD_STATE4
+            MENUITEM "State 5",                 ID_LOAD_STATE5
+            MENUITEM "State 6",                 ID_LOAD_STATE6
+            MENUITEM "State 7",                 ID_LOAD_STATE7
+            MENUITEM "State 8",                 ID_LOAD_STATE8
+            MENUITEM "State 9",                 ID_LOAD_STATE9
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
+        MENUITEM SEPARATOR
+        MENUITEM "Exit",                        ID_EXIT
+    END
+    POPUP "RAM"
+    BEGIN
+        MENUITEM "Load",                        ID_LOAD_BINARY1
+        MENUITEM "Save",                        ID_SAVE_BINARY1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_BINARY1
+    END
+    POPUP "CMT"
+    BEGIN
+        MENUITEM "Play",                        ID_PLAY_TAPE1
+        MENUITEM "Rec",                         ID_REC_TAPE1
+        MENUITEM "Eject",                       ID_CLOSE_TAPE1
+        MENUITEM SEPARATOR
+        MENUITEM "Play Button",                 ID_PLAY_BUTTON1
+        MENUITEM "Stop Button",                 ID_STOP_BUTTON1
+        MENUITEM "Fast Forward",                ID_FAST_FORWARD1
+        MENUITEM "Fast Rewind",                 ID_FAST_REWIND1
+        MENUITEM SEPARATOR
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER1
+        MENUITEM SEPARATOR
+        MENUITEM "Recent",                      ID_RECENT_TAPE1
+    END
+    POPUP "Device"
+    BEGIN
+        POPUP "Sound"
+        BEGIN
+            MENUITEM "Play CMT Noise",          ID_VM_SOUND_NOISE_CMT
+            MENUITEM "Play CMT Signal",         ID_VM_SOUND_TAPE_SIGNAL
+            MENUITEM "Play CMT Voice",          ID_VM_SOUND_TAPE_VOICE
+        END
+    END
+    POPUP "Host"
+    BEGIN
+        MENUITEM "Rec Sound",                   ID_HOST_REC_SOUND
+        MENUITEM "Stop",                        ID_HOST_REC_STOP
+        MENUITEM SEPARATOR
+        POPUP "Sound"
+        BEGIN
+            MENUITEM "2000Hz",                  ID_SOUND_FREQ0
+            MENUITEM "4000Hz",                  ID_SOUND_FREQ1
+            MENUITEM "8000Hz",                  ID_SOUND_FREQ2
+            MENUITEM "11025Hz",                 ID_SOUND_FREQ3
+            MENUITEM "22050Hz",                 ID_SOUND_FREQ4
+            MENUITEM "44100Hz",                 ID_SOUND_FREQ5
+            MENUITEM "48000Hz",                 ID_SOUND_FREQ6
+            MENUITEM "96000Hz",                 ID_SOUND_FREQ7
+            MENUITEM SEPARATOR
+            MENUITEM "50msec",                  ID_SOUND_LATE0
+            MENUITEM "100msec",                 ID_SOUND_LATE1
+            MENUITEM "200msec",                 ID_SOUND_LATE2
+            MENUITEM "300msec",                 ID_SOUND_LATE3
+            MENUITEM "400msec",                 ID_SOUND_LATE4
+            MENUITEM SEPARATOR
+            MENUITEM "Realtime Mix",            ID_SOUND_STRICT_RENDER
+            MENUITEM "Light Weight Mix",        ID_SOUND_LIGHT_RENDER
+            MENUITEM SEPARATOR
+            MENUITEM "Volume",                  ID_SOUND_VOLUME
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Use DirectInput",             ID_HOST_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_HOST_DISABLE_DWM
+        MENUITEM "Show Status Bar",             ID_HOST_SHOW_STATUS_BAR
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Image
+//
+
+IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "mp85/board.png"
+IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "mp85/button00.png"
+IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "mp85/button01.png"
+IDI_BITMAP_BUTTON02     IMAGE   DISCARDABLE     "mp85/button02.png"
+IDI_BITMAP_BUTTON03     IMAGE   DISCARDABLE     "mp85/button03.png"
+IDI_BITMAP_BUTTON04     IMAGE   DISCARDABLE     "mp85/button04.png"
+IDI_BITMAP_BUTTON05     IMAGE   DISCARDABLE     "mp85/button05.png"
+IDI_BITMAP_BUTTON06     IMAGE   DISCARDABLE     "mp85/button06.png"
+IDI_BITMAP_BUTTON07     IMAGE   DISCARDABLE     "mp85/button07.png"
+IDI_BITMAP_BUTTON08     IMAGE   DISCARDABLE     "mp85/button08.png"
+IDI_BITMAP_BUTTON09     IMAGE   DISCARDABLE     "mp85/button09.png"
+IDI_BITMAP_BUTTON10     IMAGE   DISCARDABLE     "mp85/button10.png"
+IDI_BITMAP_BUTTON11     IMAGE   DISCARDABLE     "mp85/button11.png"
+IDI_BITMAP_BUTTON12     IMAGE   DISCARDABLE     "mp85/button12.png"
+IDI_BITMAP_BUTTON13     IMAGE   DISCARDABLE     "mp85/button13.png"
+IDI_BITMAP_BUTTON14     IMAGE   DISCARDABLE     "mp85/button14.png"
+IDI_BITMAP_BUTTON15     IMAGE   DISCARDABLE     "mp85/button15.png"
+IDI_BITMAP_BUTTON16     IMAGE   DISCARDABLE     "mp85/button16.png"
+IDI_BITMAP_BUTTON17     IMAGE   DISCARDABLE     "mp85/button17.png"
+IDI_BITMAP_BUTTON18     IMAGE   DISCARDABLE     "mp85/button18.png"
+IDI_BITMAP_BUTTON19     IMAGE   DISCARDABLE     "mp85/button19.png"
+IDI_BITMAP_BUTTON20     IMAGE   DISCARDABLE     "mp85/button20.png"
+IDI_BITMAP_BUTTON21     IMAGE   DISCARDABLE     "mp85/button21.png"
+IDI_BITMAP_BUTTON22     IMAGE   DISCARDABLE     "mp85/button22.png"
+IDI_BITMAP_BUTTON23     IMAGE   DISCARDABLE     "mp85/button23.png"
+IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "mp85/button24.png"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "mp85.ico"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 90
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Volume"
+FONT 9, "MS PGothic"
+BEGIN
+    LTEXT           "Sound Device #1",IDC_VOLUME_CAPTION0,6,6,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,6,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,21,175,12
+    LTEXT           "Sound Device #2",IDC_VOLUME_CAPTION1,6,36,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,36,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,51,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,70,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,70,50,14
+END
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

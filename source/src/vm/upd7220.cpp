@@ -11,17 +11,26 @@
 #include <math.h>
 #include "upd7220.h"
 #include "../fifo.h"
-#include "../fileio.h"
+
+#define EVENT_HSYNC_HFP	0
+#define EVENT_HSYNC_HS	1
+#define EVENT_HSYNC_HBP	2
 
 enum {
 	CMD_RESET	= 0x00,
-	CMD_SYNC	= 0x0e,
-	CMD_SLAVE	= 0x6e,
+	CMD_SYNC_OFF	= 0x0e,
+	CMD_SYNC_ON	= 0x0f,
 	CMD_MASTER	= 0x6f,
-	CMD_START	= 0x6b,
-	CMD_BCTRL	= 0x0c,
+	CMD_SLAVE	= 0x6e,
+
+	CMD_START_	= 0x6b,
+	CMD_START	= 0x0d,
+	CMD_STOP_	= 0x05,
+	CMD_STOP	= 0x0c,
+
 	CMD_ZOOM	= 0x46,
 	CMD_SCROLL	= 0x70,
+	CMD_CSRW	= 0x49,
 	CMD_CSRFORM	= 0x4b,
 	CMD_PITCH	= 0x47,
 	CMD_LPEN	= 0xc0,
@@ -29,9 +38,9 @@ enum {
 	CMD_VECTE	= 0x6c,
 	CMD_TEXTW	= 0x78,
 	CMD_TEXTE	= 0x68,
-	CMD_CSRW	= 0x49,
 	CMD_CSRR	= 0xe0,
 	CMD_MASK	= 0x4a,
+
 	CMD_WRITE	= 0x20,
 	CMD_READ	= 0xa0,
 	CMD_DMAR	= 0xa4,
@@ -47,7 +56,7 @@ enum {
 	STAT_DRAW	= 0x08,
 	STAT_DMA	= 0x10,
 	STAT_VSYNC	= 0x20,
-	STAT_HBLANK	= 0x40,
+	STAT_BLANK	= 0x40,
 	STAT_LPEN	= 0x80,
 };
 
@@ -65,24 +74,24 @@ void UPD7220::initialize()
 	}
 	fo = new FIFO(0x10000);
 	
-	vsync = hblank = false;
+	hsync = hblank = false;
+	vsync = vblank = false;
 	master = false;
 	pitch = 40;	// 640dot
 	
 	// initial settings for 1st frame
-	vtotal = LINES_PER_FRAME;
-	v1 = 16;
-	v2 = vtotal - v1;
+	vtotal = 0; //LINES_PER_FRAME;
+	v1 = v2 = v3 = 16;
+	v4 = LINES_PER_FRAME - v1 - v2 - v3;
+	h1 = h2 = h3 = 8;
 #ifdef CHARS_PER_LINE
-	h1 = (CHARS_PER_LINE > 80) ? 80 : 40;	// CHARS_PER_LINE > 40 ???
-	h2 = CHARS_PER_LINE - h1;
+	h4 = CHARS_PER_LINE - v1 - v2 - v3;
 #else
-	h1 = 80;
-	h2 = 29;
+	h4 = width;
 #endif
 	
 	sync_changed = false;
-	vs = hc = 0;
+	vs = hs = 0;
 	
 #ifdef UPD7220_HORIZ_FREQ
 	horiz_freq = 0;
@@ -105,7 +114,7 @@ void UPD7220::reset()
 	cmd_reset();
 }
 
-void UPD7220::write_dma_io8(uint32 addr, uint32 data)
+void UPD7220::write_dma_io8(uint32_t addr, uint32_t data)
 {
 	// for dma access
 	switch(cmdreg & 0x18) {
@@ -129,9 +138,9 @@ void UPD7220::write_dma_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD7220::read_dma_io8(uint32 addr)
+uint32_t UPD7220::read_dma_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	// for dma access
 	switch(cmdreg & 0x18) {
@@ -156,14 +165,14 @@ uint32 UPD7220::read_dma_io8(uint32 addr)
 	return val;
 }
 
-void UPD7220::write_io8(uint32 addr, uint32 data)
+void UPD7220::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0: // set parameter
-//		emu->out_debug_log("\tPARAM = %2x\n", data);
+//		this->out_debug_log(_T("\tPARAM = %2x\n"), data);
 		if(cmdreg != -1) {
 			if(params_count < 16) {
-				params[params_count++] = (uint8)(data & 0xff);
+				params[params_count++] = (uint8_t)(data & 0xff);
 			}
 			check_cmd();
 			if(cmdreg == -1) {
@@ -176,8 +185,8 @@ void UPD7220::write_io8(uint32 addr, uint32 data)
 			process_cmd();
 		}
 		// set new command
-		cmdreg = (uint8)(data & 0xff);
-//		emu->out_debug_log("CMDREG = %2x\n", cmdreg);
+		cmdreg = (uint8_t)(data & 0xff);
+//		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 		params_count = 0;
 		check_cmd();
 		break;
@@ -189,14 +198,18 @@ void UPD7220::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD7220::read_io8(uint32 addr)
+uint32_t UPD7220::read_io8(uint32_t addr)
 {
-	uint32 val;
+	uint32_t val;
 	
 	switch(addr & 3) {
 	case 0: // status
 		val = statreg;
-		val |= hblank ? STAT_HBLANK : 0;
+		if(sync[5] & 0x80) {
+			val |= vblank ? STAT_BLANK : 0;
+		} else {
+			val |= hblank ? STAT_BLANK : 0;
+		}
 		val |= vsync ? STAT_VSYNC : 0;
 //		val |= (params_count == 0) ? STAT_EMPTY : 0;
 		val |= STAT_EMPTY;
@@ -218,31 +231,32 @@ void UPD7220::event_pre_frame()
 {
 	if(sync_changed) {
 		// calc vsync/hblank timing
-		v1 = sync[2] >> 5;		// VS
-		v1 += (sync[3] & 3) << 3;
-		v2 = sync[5] & 0x3f;		// VFP
-		v2 += sync[6];			// AL
-		v2 += (sync[7] & 3) << 8;
-		v2 += sync[7] >> 2;		// VBP
+		v1  = sync[5] & 0x3f;		// VFP
+		v2  = sync[2] >> 5;		// VS
+		v2 += (sync[3] & 0x03) << 3;
+		v3  = sync[7] >> 2;		// VBP
+		v4  = sync[6];			// L/F
+		v4 += (sync[7] & 0x03) << 8;
 		
-		h1 = sync[1] + 2;		// AW
-		h2 = (sync[2] & 0x1f) + 1;	// HS
-		h2 += (sync[3] >> 2) + 1;	// HFP
-		h2 += (sync[4] & 0x3f) + 1;	// HBP
+		h1  = (sync[3] >> 2) + 1;	// HFP
+		h2  = (sync[2] & 0x1f) + 1;	// HS
+		h3  = (sync[4] & 0x3f) + 1;	// HBP
+		h4  = sync[1] + 2;		// C/R
 		
 		sync_changed = false;
-		vs = hc = 0;
+		vs = hs = 0;
+		vtotal = 0;
 #ifdef UPD7220_HORIZ_FREQ
 		horiz_freq = 0;
 #endif
 	}
 	if(master) {
-		if(vtotal != v1 + v2) {
-			vtotal = v1 + v2;
+		if(vtotal != v1 + v2 + v3 + v4) {
+			vtotal = v1 + v2 + v3 + v4;
 			set_lines_per_frame(vtotal);
 		}
 #ifdef UPD7220_HORIZ_FREQ
-		if(horiz_freq != next_horiz_freq) {
+		if(horiz_freq != next_horiz_freq && vtotal != 0) {
 			horiz_freq = next_horiz_freq;
 			set_frames_per_sec((double)horiz_freq / (double)vtotal);
 		}
@@ -257,14 +271,18 @@ void UPD7220::update_timing(int new_clocks, double new_frames_per_sec, int new_l
 	lines_per_frame = new_lines_per_frame;	// because this device may be slave gdc
 	
 	// update event clocks
-	vs = hc = 0;
+	vs = hs = 0;
 }
 
 void UPD7220::event_frame()
 {
 	if(vs == 0) {
-		vs = (int)((double)lines_per_frame * (double)v1 / (double)(v1 + v2) + 0.5);
-		hc = (int)((double)cpu_clocks * (double)h2 / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2) + 0.5);
+		vfp = (int)((double)lines_per_frame * (double)(v1          ) / (double)(v1 + v2 + v3 + v4) + 0.5);
+		vs  = (int)((double)lines_per_frame * (double)(v1 + v2     ) / (double)(v1 + v2 + v3 + v4) + 0.5);
+		vbp = (int)((double)lines_per_frame * (double)(v1 + v2 + v3) / (double)(v1 + v2 + v3 + v4) + 0.5);
+		hfp = (int)((double)cpu_clocks * (double)(h1          ) / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2 + h3 + h4) + 0.5);
+		hs  = (int)((double)cpu_clocks * (double)(h1 + h2     ) / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2 + h3 + h4) + 0.5);
+		hbp = (int)((double)cpu_clocks * (double)(h1 + h2 + h3) / frames_per_sec / (double)lines_per_frame / (double)(h1 + h2 + h3 + h4) + 0.5);
 	}
 	if(++blink_cursor >= blink_rate * 4) {
 		blink_cursor = 0;
@@ -276,21 +294,35 @@ void UPD7220::event_frame()
 
 void UPD7220::event_vline(int v, int clock)
 {
-	bool next = (v < vs);
-	if(vsync != next) {
-		write_signals(&outputs_vsync, next ? 0xffffffff : 0);
-		vsync = next;
+	if(v == 0) {
+		vblank = true;
+	} else if(v == vfp) {
+		write_signals(&outputs_vsync, 0xffffffff);
+		vsync = true;
+	} else if(v == vs) {
+		write_signals(&outputs_vsync, 0);
+		vsync = false;
+	} else if(v == vbp) {
+		vblank = false;
 	}
 	hblank = true;
-	register_event_by_clock(this, 0, hc, false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_HFP, hfp, false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_HS,  hs,  false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_HBP, hbp, false, NULL);
 }
 
 void UPD7220::event_callback(int event_id, int err)
 {
-	hblank = false;
+	if(event_id == EVENT_HSYNC_HFP) {
+		hsync = true;
+	} else if(event_id == EVENT_HSYNC_HS) {
+		hsync = false;
+	} else if(event_id == EVENT_HSYNC_HBP) {
+		hblank = false;
+	}
 }
 
-uint32 UPD7220::cursor_addr(uint32 mask)
+uint32_t UPD7220::cursor_addr(uint32_t mask)
 {
 	if((cs[0] & 0x80) && ((cs[1] & 0x20) || (blink_cursor < blink_rate * 2))) {
 		return (ead << 1) & mask;
@@ -317,10 +349,14 @@ void UPD7220::check_cmd()
 	case CMD_RESET:
 		cmd_reset();
 		break;
-	case CMD_SYNC + 0:
-	case CMD_SYNC + 1:
+	case CMD_SYNC_OFF:
 		if(params_count > 7) {
-			cmd_sync();
+			cmd_sync(false);
+		}
+		break;
+	case CMD_SYNC_ON:
+		if(params_count > 7) {
+			cmd_sync(true);
 		}
 		break;
 	case CMD_MASTER:
@@ -329,14 +365,13 @@ void UPD7220::check_cmd()
 	case CMD_SLAVE:
 		cmd_slave();
 		break;
+	case CMD_START_:
 	case CMD_START:
 		cmd_start();
 		break;
-	case CMD_BCTRL + 0:
+	case CMD_STOP_:
+	case CMD_STOP:
 		cmd_stop();
-		break;
-	case CMD_BCTRL + 1:
-		cmd_start();
 		break;
 	case CMD_ZOOM:
 		cmd_zoom();
@@ -472,9 +507,11 @@ void UPD7220::process_cmd()
 	case CMD_RESET:
 		cmd_reset();
 		break;
-	case CMD_SYNC + 0:
-	case CMD_SYNC + 1:
-		cmd_sync();
+	case CMD_SYNC_OFF:
+		cmd_sync(false);
+		break;
+	case CMD_SYNC_ON:
+		cmd_sync(true);
 		break;
 	case CMD_SCROLL + 0:
 	case CMD_SCROLL + 1:
@@ -552,15 +589,15 @@ void UPD7220::cmd_reset()
 	cmd_write_done = false;
 }
 
-void UPD7220::cmd_sync()
+void UPD7220::cmd_sync(bool flag)
 {
-	start = ((cmdreg & 1) != 0);
 	for(int i = 0; i < 8 && i < params_count; i++) {
 		if(sync[i] != params[i]) {
 			sync[i] = params[i];
 			sync_changed = true;
 		}
 	}
+	start = flag;
 	cmdreg = -1;
 }
 
@@ -591,7 +628,7 @@ void UPD7220::cmd_stop()
 void UPD7220::cmd_zoom()
 {
 	if(params_count > 0) {
-		uint8 tmp = params[0];
+		uint8_t tmp = params[0];
 		zr = tmp >> 4;
 		zw = tmp & 0x0f;
 		cmdreg = -1;
@@ -644,7 +681,7 @@ void UPD7220::cmd_vectw()
 {
 	for(int i = 0; i < 11 && i < params_count; i++) {
 		vect[i] = params[i];
-//		emu->out_debug_log("\tVECT[%d] = %2x\n", i, vect[i]);
+//		this->out_debug_log(_T("\tVECT[%d] = %2x\n"), i, vect[i]);
 	}
 	update_vect();
 	cmdreg = -1;
@@ -745,8 +782,8 @@ void UPD7220::cmd_write()
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		if(params_count > 1) {
-			uint8 l = params[0] & maskl;
-			uint8 h = params[1] & maskh;
+			uint8_t l = params[0] & maskl;
+			uint8_t h = params[1] & maskh;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				cmd_write_sub(ead * 2 + 1, h);
@@ -758,7 +795,7 @@ void UPD7220::cmd_write()
 		break;
 	case 0x10: // low byte
 		if(params_count > 0) {
-			uint8 l = params[0] & maskl;
+			uint8_t l = params[0] & maskl;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				ead += dif;
@@ -769,7 +806,7 @@ void UPD7220::cmd_write()
 		break;
 	case 0x18: // high byte
 		if(params_count > 0) {
-			uint8 h = params[0] & maskh;
+			uint8_t h = params[0] & maskh;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
@@ -843,7 +880,7 @@ void UPD7220::cmd_unk_5a()
 
 // command sub
 
-void UPD7220::cmd_write_sub(uint32 addr, uint8 data)
+void UPD7220::cmd_write_sub(uint32_t addr, uint8_t data)
 {
 	switch(mod) {
 	case 0: // replace
@@ -861,17 +898,26 @@ void UPD7220::cmd_write_sub(uint32 addr, uint8 data)
 	}
 }
 
-void UPD7220::write_vram(uint32 addr, uint8 data)
+void UPD7220::write_vram(uint32_t addr, uint8_t data)
 {
-	if(vram != NULL && addr < vram_size) {
-		vram[addr] = data;
+	if(addr < vram_size) {
+		if(vram != NULL) {
+			vram[addr] = data;
+		} else if(d_vram_bus != NULL) {
+			d_vram_bus->write_dma_io8(addr, data);
+		}
 	}
 }
 
-uint8 UPD7220::read_vram(uint32 addr)
+uint8_t UPD7220::read_vram(uint32_t addr)
 {
-	if(vram != NULL && addr < vram_size) {
-		return vram[addr];
+	if(addr < vram_size) {
+		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
+		if(vram != NULL) {
+			return (vram[addr] & mask) | ~mask;
+		} else if(d_vram_bus != NULL) {
+			return (d_vram_bus->read_dma_io8(addr) & mask) | ~mask;
+		}
 	}
 	return 0xff;
 }
@@ -970,7 +1016,7 @@ void UPD7220::draw_vectl()
 
 void UPD7220::draw_vectt()
 {
-	uint16 draw = ra[8] | (ra[9] << 8);
+	uint16_t draw = ra[8] | (ra[9] << 8);
 	if(sl) {
 		// reverse
 		draw = (draw & 0x0001 ? 0x8000 : 0) | (draw & 0x0002 ? 0x4000 : 0) | 
@@ -1134,7 +1180,7 @@ void UPD7220::draw_text()
 		sy = 640; // ugly patch
 	}
 #endif
-//	emu->out_debug_log("\tTEXT: dx=%d,dy=%d,sx=%d,sy=%d\n", dx, dy, sx, sy);
+//	this->out_debug_log(_T("\tTEXT: dx=%d,dy=%d,sx=%d,sy=%d\n"), dx, dy, sx, sy);
 	int index = 15;
 	
 	while(sy--) {
@@ -1142,7 +1188,7 @@ void UPD7220::draw_text()
 		while(muly--) {
 			int cx = dx;
 			int cy = dy;
-			uint8 bit = ra[index];
+			uint8_t bit = ra[index];
 			int xrem = sx;
 			while(xrem--) {
 				pattern = (bit & 1) ? 0xffff : 0;
@@ -1165,15 +1211,15 @@ void UPD7220::draw_text()
 
 void UPD7220::draw_pset(int x, int y)
 {
-	uint16 dot = pattern & 1;
+	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	uint32 addr = y * 80 + (x >> 3);
+	uint32_t addr = y * width + (x >> 3);
 #ifdef UPD7220_MSB_FIRST
-	uint8 bit = 0x80 >> (x & 7);
+	uint8_t bit = 0x80 >> (x & 7);
 #else
-	uint8 bit = 1 << (x & 7);
+	uint8_t bit = 1 << (x & 7);
 #endif
-	uint8 cur = read_vram(addr);
+	uint8_t cur = read_vram(addr);
 	
 	switch(mod) {
 	case 0: // replace
@@ -1191,135 +1237,92 @@ void UPD7220::draw_pset(int x, int y)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-void UPD7220::save_state(FILEIO* state_fio)
+bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(cmdreg);
+	state_fio->StateValue(statreg);
+	state_fio->StateArray(sync, sizeof(sync), 1);
+	state_fio->StateValue(vtotal);
+	state_fio->StateValue(vfp);
+	state_fio->StateValue(vs);
+	state_fio->StateValue(vbp);
+	state_fio->StateValue(v1);
+	state_fio->StateValue(v2);
+	state_fio->StateValue(v3);
+	state_fio->StateValue(v4);
+	state_fio->StateValue(hfp);
+	state_fio->StateValue(hs);
+	state_fio->StateValue(hbp);
+	state_fio->StateValue(h1);
+	state_fio->StateValue(h2);
+	state_fio->StateValue(h3);
+	state_fio->StateValue(h4);
+	state_fio->StateValue(sync_changed);
+	state_fio->StateValue(master);
+	state_fio->StateValue(zoom);
+	state_fio->StateValue(zr);
+	state_fio->StateValue(zw);
+	state_fio->StateArray(ra, sizeof(ra), 1);
+	state_fio->StateArray(cs, sizeof(cs), 1);
+	state_fio->StateValue(pitch);
+	state_fio->StateValue(lad);
+	state_fio->StateArray(vect, sizeof(vect), 1);
+	state_fio->StateValue(ead);
+	state_fio->StateValue(dad);
+	state_fio->StateValue(maskl);
+	state_fio->StateValue(maskh);
+	state_fio->StateValue(mod);
+	state_fio->StateValue(hsync);
+	state_fio->StateValue(hblank);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(start);
+	state_fio->StateValue(blink_cursor);
+	state_fio->StateValue(blink_attr);
+	state_fio->StateValue(blink_rate);
+	state_fio->StateValue(low_high);
+	state_fio->StateValue(cmd_write_done);
+	state_fio->StateValue(cpu_clocks);
+#ifdef UPD7220_HORIZ_FREQ
+	state_fio->StateValue(horiz_freq);
+	state_fio->StateValue(next_horiz_freq);
+#endif
+	state_fio->StateValue(frames_per_sec);
+	state_fio->StateValue(lines_per_frame);
+	state_fio->StateArray(params, sizeof(params), 1);
+	state_fio->StateValue(params_count);
+	if(!fo->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateArray(rt, sizeof(rt), 1);
+	state_fio->StateValue(dx);
+	state_fio->StateValue(dy);
+	state_fio->StateValue(dir);
+	state_fio->StateValue(dif);
+	state_fio->StateValue(sl);
+	state_fio->StateValue(dc);
+	state_fio->StateValue(d);
+	state_fio->StateValue(d2);
+	state_fio->StateValue(d1);
+	state_fio->StateValue(dm);
+	state_fio->StateValue(pattern);
 	
-	state_fio->FputInt32(cmdreg);
-	state_fio->FputUint8(statreg);
-	state_fio->Fwrite(sync, sizeof(sync), 1);
-	state_fio->FputInt32(vtotal);
-	state_fio->FputInt32(vs);
-	state_fio->FputInt32(v1);
-	state_fio->FputInt32(v2);
-	state_fio->FputInt32(hc);
-	state_fio->FputInt32(h1);
-	state_fio->FputInt32(h2);
-	state_fio->FputBool(sync_changed);
-	state_fio->FputBool(master);
-	state_fio->FputUint8(zoom);
-	state_fio->FputUint8(zr);
-	state_fio->FputUint8(zw);
-	state_fio->Fwrite(ra, sizeof(ra), 1);
-	state_fio->Fwrite(cs, sizeof(cs), 1);
-	state_fio->FputUint8(pitch);
-	state_fio->FputUint32(lad);
-	state_fio->Fwrite(vect, sizeof(vect), 1);
-	state_fio->FputInt32(ead);
-	state_fio->FputInt32(dad);
-	state_fio->FputUint8(maskl);
-	state_fio->FputUint8(maskh);
-	state_fio->FputUint8(mod);
-	state_fio->FputBool(hblank);
-	state_fio->FputBool(vsync);
-	state_fio->FputBool(start);
-	state_fio->FputInt32(blink_cursor);
-	state_fio->FputInt32(blink_attr);
-	state_fio->FputInt32(blink_rate);
-	state_fio->FputBool(low_high);
-	state_fio->FputBool(cmd_write_done);
-	state_fio->FputInt32(cpu_clocks);
+	// post process
+	if(loading && master) {
+		// force update timing
+		vtotal = 0;
 #ifdef UPD7220_HORIZ_FREQ
-	state_fio->FputInt32(horiz_freq);
-	state_fio->FputInt32(next_horiz_freq);
+		horiz_freq = 0;
 #endif
-	state_fio->FputDouble(frames_per_sec);
-	state_fio->FputInt32(lines_per_frame);
-	state_fio->Fwrite(params, sizeof(params), 1);
-	state_fio->FputInt32(params_count);
-	fo->save_state((void *)state_fio);
-	state_fio->Fwrite(rt, sizeof(rt), 1);
-	state_fio->FputInt32(dx);
-	state_fio->FputInt32(dy);
-	state_fio->FputInt32(dir);
-	state_fio->FputInt32(dif);
-	state_fio->FputInt32(sl);
-	state_fio->FputInt32(dc);
-	state_fio->FputInt32(d);
-	state_fio->FputInt32(d2);
-	state_fio->FputInt32(d1);
-	state_fio->FputInt32(dm);
-	state_fio->FputUint16(pattern);
-}
-
-bool UPD7220::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	cmdreg = state_fio->FgetInt32();
-	statreg = state_fio->FgetUint8();
-	state_fio->Fread(sync, sizeof(sync), 1);
-	vtotal = state_fio->FgetInt32();
-	vs = state_fio->FgetInt32();
-	v1 = state_fio->FgetInt32();
-	v2 = state_fio->FgetInt32();
-	hc = state_fio->FgetInt32();
-	h1 = state_fio->FgetInt32();
-	h2 = state_fio->FgetInt32();
-	sync_changed = state_fio->FgetBool();
-	master = state_fio->FgetBool();
-	zoom = state_fio->FgetUint8();
-	zr = state_fio->FgetUint8();
-	zw = state_fio->FgetUint8();
-	state_fio->Fread(ra, sizeof(ra), 1);
-	state_fio->Fread(cs, sizeof(cs), 1);
-	pitch = state_fio->FgetUint8();
-	lad = state_fio->FgetUint32();
-	state_fio->Fread(vect, sizeof(vect), 1);
-	ead = state_fio->FgetInt32();
-	dad = state_fio->FgetInt32();
-	maskl = state_fio->FgetUint8();
-	maskh = state_fio->FgetUint8();
-	mod = state_fio->FgetUint8();
-	hblank = state_fio->FgetBool();
-	vsync = state_fio->FgetBool();
-	start = state_fio->FgetBool();
-	blink_cursor = state_fio->FgetInt32();
-	blink_attr = state_fio->FgetInt32();
-	blink_rate = state_fio->FgetInt32();
-	low_high = state_fio->FgetBool();
-	cmd_write_done = state_fio->FgetBool();
-	cpu_clocks = state_fio->FgetInt32();
-#ifdef UPD7220_HORIZ_FREQ
-	horiz_freq = state_fio->FgetInt32();
-	next_horiz_freq = state_fio->FgetInt32();
-#endif
-	frames_per_sec = state_fio->FgetDouble();
-	lines_per_frame = state_fio->FgetInt32();
-	state_fio->Fread(params, sizeof(params), 1);
-	params_count = state_fio->FgetInt32();
-	if(!fo->load_state((void *)state_fio)) {
-		return false;
-	}
-	state_fio->Fread(rt, sizeof(rt), 1);
-	dx = state_fio->FgetInt32();
-	dy = state_fio->FgetInt32();
-	dir = state_fio->FgetInt32();
-	dif = state_fio->FgetInt32();
-	sl = state_fio->FgetInt32();
-	dc = state_fio->FgetInt32();
-	d = state_fio->FgetInt32();
-	d2 = state_fio->FgetInt32();
-	d1 = state_fio->FgetInt32();
-	dm = state_fio->FgetInt32();
-	pattern = state_fio->FgetUint16();
 	return true;
 }
 

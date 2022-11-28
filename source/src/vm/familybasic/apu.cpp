@@ -17,7 +17,7 @@
 #define APU_TO_FIXED(x)    ((x) << 16)
 #define APU_FROM_FIXED(x)  ((x) >> 16)
 
-static const uint8 vbl_length[32] = {
+static const uint8_t vbl_length[32] = {
 	 5,	127,
 	10,	  1,
 	19,	  2,
@@ -50,9 +50,9 @@ static const int duty_lut[4] = {
 
 // rectangle wave
 
-int32 APU::create_rectangle(rectangle_t *chan)
+int32_t APU::create_rectangle(rectangle_t *chan)
 {
-	int32 output = 0;
+	int32_t output = 0;
 	double total, sample_weight;
 	
 	if(!chan->enabled || chan->vbl_length <= 0) {
@@ -123,7 +123,7 @@ int32 APU::create_rectangle(rectangle_t *chan)
 
 // triangle wave
 
-int32 APU::create_triangle(triangle_t *chan)
+int32_t APU::create_triangle(triangle_t *chan)
 {
 	double sample_weight, total;
 	
@@ -170,9 +170,9 @@ int32 APU::create_triangle(triangle_t *chan)
 
 // white noise channel
 
-int32 APU::create_noise(noise_t *chan)
+int32_t APU::create_noise(noise_t *chan)
 {
-	int32 outvol;
+	int32_t outvol;
 	double total;
 	double sample_weight;
 	
@@ -236,7 +236,7 @@ inline void APU::dmc_reload(dmc_t *chan)
 	chan->irq_occurred = false;
 }
 
-int32 APU::create_dmc(dmc_t *chan)
+int32_t APU::create_dmc(dmc_t *chan)
 {
 	double total;
 	double sample_weight;
@@ -313,20 +313,21 @@ void APU::enqueue(queue_t *d)
 	q_head = (q_head + 1) & APUQUEUE_MASK;
 }
 
-APU::queue_t* APU::dequeue()
+queue_t* APU::dequeue()
 {
 	int loc = q_tail;
 	q_tail = (q_tail + 1) & APUQUEUE_MASK;
 	return &queue[loc];
 }
 
-void APU::write_data_sync(uint32 addr, uint32 data)
+void APU::write_data_sync(uint32_t addr, uint32_t data)
 {
 	int chan;
 	
 	switch (addr) {
 	case 0x4000:
 	case 0x4004:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[0] = data;
 		rectangle[chan].volume = data & 0x0f;
@@ -337,6 +338,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		break;
 	case 0x4001:
 	case 0x4005:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[1] = data;
 		rectangle[chan].sweep_on = ((data & 0x80) != 0);
@@ -347,12 +349,14 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		break;
 	case 0x4002:
 	case 0x4006:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[2] = data;
 		rectangle[chan].freq = (rectangle[chan].freq & ~0xff) | data;
 		break;
 	case 0x4003:
 	case 0x4007:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].regs[3] = data;
 		rectangle[chan].vbl_length = vbl_lut[data >> 3];
@@ -364,6 +368,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x4008:
+		touch_sound();
 		triangle.regs[0] = data;
 		triangle.holdnote = ((data & 0x80) != 0);
 		if(!triangle.counter_started && triangle.vbl_length > 0) {
@@ -371,10 +376,12 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x400a:
+		touch_sound();
 		triangle.regs[1] = data;
 		triangle.freq = APU_TO_FIXED((((triangle.regs[2] & 7) << 8) + data) + 1);
 		break;
 	case 0x400b:
+		touch_sound();
 		triangle.regs[2] = data;
 		triangle.write_latency = (int)(228 / APU_FROM_FIXED(cycle_rate));
 		triangle.freq = APU_TO_FIXED((((data & 7) << 8) + triangle.regs[1]) + 1);
@@ -386,6 +393,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x400c:
+		touch_sound();
 		noise.regs[0] = data;
 		noise.env_delay = decay_lut[data & 0x0f];
 		noise.holdnote = ((data & 0x20) != 0);
@@ -393,11 +401,13 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		noise.volume = data & 0x0f;
 		break;
 	case 0x400e:
+		touch_sound();
 		noise.regs[1] = data;
 		noise.freq = APU_TO_FIXED(noise_freq[data & 0x0f]);
 		noise.xor_tap = (data & 0x80) ? 0x40: 0x02;
 		break;
 	case 0x400f:
+		touch_sound();
 		noise.regs[2] = data;
 		noise.vbl_length = vbl_lut[data >> 3];
 		noise.env_vol = 0; /* reset envelope */
@@ -406,6 +416,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x4010:
+		touch_sound();
 		dmc.regs[0] = data;
 		dmc.freq = APU_TO_FIXED(dmc_clocks[data & 0x0f]);
 		dmc.looping = ((data & 0x40) != 0);
@@ -417,18 +428,22 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x4011:	/* 7-bit DAC */
+		touch_sound();
 		data &= 0x7f; /* bit 7 ignored */
 		dmc.regs[1] = data;
 		break;
 	case 0x4012:
+		touch_sound();
 		dmc.regs[2] = data;
-		dmc.cached_addr = 0xc000 + (uint16) (data << 6);
+		dmc.cached_addr = 0xc000 + (uint16_t) (data << 6);
 		break;
 	case 0x4013:
+		touch_sound();
 		dmc.regs[3] = data;
 		dmc.cached_dmalength = ((data << 4) + 1) << 3;
 		break;
 	case 0x4015:
+		touch_sound();
 		// bodge for timestamp queue
 		dmc.enabled = ((data & 0x10) != 0);
 		enable_reg = data;
@@ -462,6 +477,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 	case 0x400D:
 		break;
 	case 0x4017:
+		touch_sound();
 		count_rate = (data & 0x80) ? 4 : 5;
 		break;
 	default:
@@ -469,7 +485,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 	}
 }
 
-void APU::write_data_cur(uint32 addr, uint32 data)
+void APU::write_data_cur(uint32_t addr, uint32_t data)
 {
 	// for sync read $4015
 	int chan;
@@ -477,11 +493,13 @@ void APU::write_data_cur(uint32 addr, uint32 data)
 	switch (addr) {
 	case 0x4000:
 	case 0x4004:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].holdnote_cur = ((data & 0x20) != 0);
 		break;
 	case 0x4003:
 	case 0x4007:
+		touch_sound();
 		chan = (addr & 4) >> 2;
 		rectangle[chan].vbl_length_cur = vbl_length[data >> 3] * 5;
 		if(enable_reg_cur & (1 << chan)) {
@@ -489,9 +507,11 @@ void APU::write_data_cur(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x4008:
+		touch_sound();
 		triangle.holdnote_cur = ((data & 0x80) != 0);
 		break;
 	case 0x400b:
+		touch_sound();
 		triangle.vbl_length_cur = vbl_length[data >> 3] * 5;
 		if(enable_reg_cur & 0x04) {
 			triangle.enabled_cur = true;
@@ -499,15 +519,18 @@ void APU::write_data_cur(uint32 addr, uint32 data)
 		triangle.counter_started_cur = true;
 		break;
 	case 0x400c:
+		touch_sound();
 		noise.holdnote_cur = ((data & 0x20) != 0);
 		break;
 	case 0x400f:
+		touch_sound();
 		noise.vbl_length_cur = vbl_length[data >> 3] * 5;
 		if(enable_reg_cur & 0x08) {
 			noise.enabled_cur = true;
 		}
 		break;
 	case 0x4010:
+		touch_sound();
 		dmc.freq_cur = dmc_clocks[data & 0x0f];
 		dmc.phaseacc_cur = 0;
 		dmc.looping_cur = ((data & 0x40) != 0);
@@ -519,9 +542,11 @@ void APU::write_data_cur(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x4013:
+		touch_sound();
 		dmc.cached_dmalength_cur = (data << 4) + 1;
 		break;
 	case 0x4015:
+		touch_sound();
 		enable_reg_cur = data;
 		for(chan = 0; chan < 2; chan++) {
 			if(!(data & (1 << chan))) {
@@ -562,6 +587,8 @@ void APU::initialize()
 
 void APU::reset()
 {
+	touch_sound();
+	
 	// reset queue
 	elapsed_cycles = 0;
 	memset(&queue, 0, APUQUEUE_SIZE * sizeof(queue_t));
@@ -579,7 +606,7 @@ void APU::reset()
 	memset(&dmc, 0, sizeof(dmc));
 	
 	// reset registers
-	for(uint32 addr = 0x4000; addr <= 0x4013; addr++) {
+	for(uint32_t addr = 0x4000; addr <= 0x4013; addr++) {
 		write_data_sync(addr, 0);
 		write_data_cur(addr, 0);
 	}
@@ -592,7 +619,7 @@ void APU::reset()
 	ave = max = min = 0;
 }
 
-void APU::write_data8(uint32 addr, uint32 data)
+void APU::write_data8(uint32_t addr, uint32_t data)
 {
 	queue_t d;
 	
@@ -608,7 +635,8 @@ void APU::write_data8(uint32 addr, uint32 data)
 	case 0x400c: case 0x400d: case 0x400e: case 0x400f:
 	case 0x4010: case 0x4011: case 0x4012: case 0x4013:
 	case 0x4017:
-		d.timestamp = current_clock();
+		touch_sound();
+		d.timestamp = get_current_clock();
 		d.addr = addr;
 		d.data = data;
 #ifdef APU_USE_QUEUE
@@ -620,10 +648,10 @@ void APU::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 APU::read_data8(uint32 addr)
+uint32_t APU::read_data8(uint32_t addr)
 {
 	if(addr == 0x4015) {
-		uint32 data = 0;
+		uint32_t data = 0;
 		// return 1 in 0-5 bit pos if a channel is playing
 		if(rectangle[0].enabled_cur && rectangle[0].vbl_length_cur > 0) {
 			data |= 0x01;
@@ -669,7 +697,13 @@ void APU::event_frame()
 
 void APU::event_vline(int v, int clock)
 {
-	boolean irq_occurred = false;
+	// 525 -> 262.5
+	if(v & 1) {
+		return;
+	}
+	v >>= 1;
+	
+	bool irq_occurred = false;
 	
 	dmc.phaseacc_cur -= clock;
 	while(dmc.phaseacc_cur < 0) {
@@ -698,7 +732,7 @@ void APU::event_vline(int v, int clock)
 
 void APU::initialize_sound(int rate, int samples)
 {
-	cycle_rate = (int32)(APU_BASEFREQ * 65536.0 / (float)rate);
+	cycle_rate = (int32_t)(APU_BASEFREQ * 65536.0 / (float)rate);
 	
 	// lut used for enveloping and frequency sweeps
 	for(int i = 0; i < 16; i++) {
@@ -714,9 +748,9 @@ void APU::initialize_sound(int rate, int samples)
 	}
 }
 
-void APU::mix(int32* buffer, int num_samples)
+void APU::mix(int32_t* buffer, int num_samples)
 {
-	uint32 cpu_cycles = elapsed_cycles;
+	uint32_t cpu_cycles = elapsed_cycles;
 	
 	while(num_samples--) {
 #ifdef APU_USE_QUEUE
@@ -727,7 +761,7 @@ void APU::mix(int32* buffer, int num_samples)
 		}
 		cpu_cycles += APU_FROM_FIXED(cycle_rate);
 #endif
-		int32 accum = 0;
+		int32_t accum = 0;
 		accum += create_rectangle(&rectangle[0]);
 		accum += create_rectangle(&rectangle[1]);
 		accum += create_triangle(&triangle);
@@ -745,13 +779,152 @@ void APU::mix(int32* buffer, int num_samples)
 		}
 		ave -= ave / 1024.0;
 		ave += (max + min) / 2048.0;
-		accum -= (int32)ave;
+		accum -= (int32_t)ave;
 		
-		*buffer++ += accum; // L
-		*buffer++ += accum; // R
+		*buffer++ += apply_volume(accum, volume_l); // L
+		*buffer++ += apply_volume(accum, volume_r); // R
 	}
 	
 	// resync cycle counter
-	elapsed_cycles = current_clock();
+	elapsed_cycles = get_current_clock();
+}
+
+void APU::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
+}
+
+#define STATE_VERSION	2
+
+void process_state_rectangle(rectangle_t* val, FILEIO* state_fio)
+{
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->fixed_envelope);
+	state_fio->StateValue(val->holdnote);
+	state_fio->StateValue(val->volume);
+	state_fio->StateValue(val->sweep_phase);
+	state_fio->StateValue(val->sweep_delay);
+	state_fio->StateValue(val->sweep_on);
+	state_fio->StateValue(val->sweep_shifts);
+	state_fio->StateValue(val->sweep_length);
+	state_fio->StateValue(val->sweep_inc);
+	state_fio->StateValue(val->freq_limit);
+	state_fio->StateValue(val->sweep_complement);
+	state_fio->StateValue(val->env_phase);
+	state_fio->StateValue(val->env_delay);
+	state_fio->StateValue(val->env_vol);
+	state_fio->StateValue(val->vbl_length);
+	state_fio->StateValue(val->adder);
+	state_fio->StateValue(val->duty_flip);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->holdnote_cur);
+	state_fio->StateValue(val->vbl_length_cur);
+}
+
+void process_state_triangle(triangle_t* val, FILEIO* state_fio)
+{
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->adder);
+	state_fio->StateValue(val->holdnote);
+	state_fio->StateValue(val->counter_started);
+	state_fio->StateValue(val->write_latency);
+	state_fio->StateValue(val->vbl_length);
+	state_fio->StateValue(val->linear_length);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->holdnote_cur);
+	state_fio->StateValue(val->counter_started_cur);
+	state_fio->StateValue(val->vbl_length_cur);
+}
+
+void process_state_noise(noise_t* val, FILEIO* state_fio)
+{
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->env_phase);
+	state_fio->StateValue(val->env_delay);
+	state_fio->StateValue(val->env_vol);
+	state_fio->StateValue(val->fixed_envelope);
+	state_fio->StateValue(val->holdnote);
+	state_fio->StateValue(val->volume);
+	state_fio->StateValue(val->vbl_length);
+	state_fio->StateValue(val->xor_tap);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->holdnote_cur);
+	state_fio->StateValue(val->vbl_length_cur);
+	state_fio->StateValue(val->shift_reg);
+	state_fio->StateValue(val->noise_bit);
+}
+
+void process_state_dmc(dmc_t* val, FILEIO* state_fio)
+{
+	state_fio->StateArray(val->regs, sizeof(val->regs), 1);
+	state_fio->StateValue(val->enabled);
+	state_fio->StateValue(val->freq);
+	state_fio->StateValue(val->phaseacc);
+	state_fio->StateValue(val->output_vol);
+	state_fio->StateValue(val->address);
+	state_fio->StateValue(val->cached_addr);
+	state_fio->StateValue(val->dma_length);
+	state_fio->StateValue(val->cached_dmalength);
+	state_fio->StateValue(val->cur_byte);
+	state_fio->StateValue(val->looping);
+	state_fio->StateValue(val->irq_gen);
+	state_fio->StateValue(val->irq_occurred);
+	state_fio->StateValue(val->freq_cur);
+	state_fio->StateValue(val->phaseacc_cur);
+	state_fio->StateValue(val->dma_length_cur);
+	state_fio->StateValue(val->cached_dmalength_cur);
+	state_fio->StateValue(val->enabled_cur);
+	state_fio->StateValue(val->looping_cur);
+	state_fio->StateValue(val->irq_gen_cur);
+	state_fio->StateValue(val->irq_occurred_cur);
+}
+
+void process_state_queue(queue_t* val, FILEIO* state_fio)
+{
+	state_fio->StateValue(val->timestamp);
+	state_fio->StateValue(val->addr);
+	state_fio->StateValue(val->data);
+}
+
+bool APU::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int i = 0; i < array_length(rectangle); i++) {
+		process_state_rectangle(&rectangle[i], state_fio);
+	}
+	process_state_triangle(&triangle, state_fio);
+	process_state_noise(&noise, state_fio);
+	process_state_dmc(&dmc, state_fio);
+	state_fio->StateValue(enable_reg);
+	state_fio->StateValue(enable_reg_cur);
+	state_fio->StateValue(count_rate);
+	for(int i = 0; i < array_length(queue); i++) {
+		process_state_queue(&queue[i], state_fio);
+	}
+	state_fio->StateValue(q_head);
+	state_fio->StateValue(q_tail);
+	state_fio->StateValue(elapsed_cycles);
+	state_fio->StateValue(ave);
+	state_fio->StateValue(max);
+	state_fio->StateValue(min);
+	return true;
 }
 

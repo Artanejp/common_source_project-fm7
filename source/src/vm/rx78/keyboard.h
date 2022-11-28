@@ -17,19 +17,23 @@
 class KEYBOARD : public DEVICE
 {
 private:
-	uint8* key_stat;
-	uint32* joy_stat;
-	uint8 status[16];
-	uint8 column;
+	const uint8_t* key_stat;
+	const uint32_t* joy_stat;
+	uint8_t status[16];
+	uint8_t column;
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

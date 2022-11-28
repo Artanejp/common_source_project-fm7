@@ -32,17 +32,17 @@ private:
 	outputs_t outputs_vsync;
 	outputs_t outputs_hsync;
 	
-	uint8 extfont[256 * 16];
-	uint8 sg4[16 * 12];
-	uint8 sg6[64 * 12];
-	uint8 screen[192][256];
-	uint8 *vram_ptr;
+	uint8_t extfont[256 * 16];
+	uint8_t sg4[16 * 12];
+	uint8_t sg6[64 * 12];
+	uint8_t screen[192][256];
+	uint8_t *vram_ptr;
 	int vram_size;
-	scrntype palette_pc[16];
+	scrntype_t palette_pc[16];
 	
 	bool ag, as;
 	bool intext;
-	uint8 gm;
+	uint8_t gm;
 	bool css, inv;
 	
 	bool vsync, hsync, disp;
@@ -57,42 +57,44 @@ private:
 	void draw_alpha();
 	
 public:
-	MC6847(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MC6847(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
 		ag = as = intext = css = inv = false;
 		gm = 0;
-		init_output_signals(&outputs_vsync);
-		init_output_signals(&outputs_hsync);
+		initialize_output_signals(&outputs_vsync);
+		initialize_output_signals(&outputs_hsync);
+		set_device_name(_T("MC6847 VDC"));
 	}
 	~MC6847() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;
 	}
-	void set_context_vsync(DEVICE* device, int id, uint32 mask)
+	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_context_hsync(DEVICE* device, int id, uint32 mask)
+	void set_context_hsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_hsync, device, id, mask);
 	}
-	void set_vram_ptr(uint8* ptr, int size)
+	void set_vram_ptr(uint8_t* ptr, int size)
 	{
 		vram_ptr = ptr; vram_size = size;
 	}
-	void load_font_image(_TCHAR *path);
+	void load_font_image(const _TCHAR *file_path);
 	void draw_screen();
 };
 

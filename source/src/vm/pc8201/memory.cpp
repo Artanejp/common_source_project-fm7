@@ -11,7 +11,6 @@
 #include "cmt.h"
 #include "../datarec.h"
 #include "../upd1990a.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
@@ -39,15 +38,15 @@ void MEMORY::initialize()
 	
 	// load rom / ram images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, sizeof(ext), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("RAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
@@ -58,7 +57,7 @@ void MEMORY::release()
 {
 	// save ram image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
@@ -71,19 +70,19 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf0) {
 	case 0x90:
@@ -105,7 +104,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	// $A0: bank status
 	return (sio & 0xc0) | (bank & 0xf);
@@ -142,3 +141,25 @@ void MEMORY::update_bank()
 		break;
 	}
 }
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(sio);
+	state_fio->StateValue(bank);
+	
+	// post process
+	if(loading) {
+		update_bank();
+	}
+	return true;
+}
+

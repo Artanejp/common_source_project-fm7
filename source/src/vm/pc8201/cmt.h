@@ -24,31 +24,48 @@ class CMT : public DEVICE
 {
 private:
 	FILEIO* fio;
-	int bufcnt;
-	uint8 buffer[BUFFER_SIZE];
-	int prev_signal;
-	uint32 prev_clock;
 	bool is_wav, rec, remote;
+	_TCHAR rec_file_path[_MAX_PATH];
+	int bufcnt;
+	uint8_t buffer[BUFFER_SIZE];
+	int prev_signal;
+	uint32_t prev_clock;
 	
-	void write_buffer(uint8 value, int samples);
+	void write_buffer(uint8_t value, int samples);
 	void put_signal();
 	
 public:
-	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	CMT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("CMT I/F"));
+	}
 	~CMT() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void rec_tape(_TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return rec;
+	}
+	bool is_tape_playing()
+	{
+		return false;
+	}
+	bool is_tape_recording()
+	{
+		return rec && remote;
+	}
+	int get_tape_position()
+	{
+		return 0;
 	}
 };
 

@@ -18,6 +18,10 @@
 #include "../z80ctc.h"
 #include "../z80pio.h"
 
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
+
 #include "display.h"
 #include "keyboard.h"
 
@@ -25,7 +29,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -37,7 +41,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio1 = new Z80PIO(this, emu);
+	pio1->set_device_name(_T("Z80 PIO (LEDs)"));
 	pio2 = new Z80PIO(this, emu);
+	pio2->set_device_name(_T("Z80 PIO (7-Seg/Keyboard)"));
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -58,6 +64,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(ctc);
+#ifdef USE_DEBUGGER
+	cpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	
 	// z80 family daisy chain
 	ctc->set_context_intr(cpu, 0);
@@ -125,6 +134,20 @@ void VM::run()
 }
 
 // ----------------------------------------------------------------------------
+// debugger
+// ----------------------------------------------------------------------------
+
+#ifdef USE_DEBUGGER
+DEVICE *VM::get_cpu(int index)
+{
+	if(index == 0) {
+		return cpu;
+	}
+	return NULL;
+}
+#endif
+
+// ----------------------------------------------------------------------------
 // draw screen
 // ----------------------------------------------------------------------------
 
@@ -143,14 +166,14 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 // ----------------------------------------------------------------------------
@@ -171,23 +194,23 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::load_binary(int drv, _TCHAR* file_path)
+void VM::load_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memory->read_image(file_path, ram, sizeof(ram));
 	}
 }
 
-void VM::save_binary(int drv, _TCHAR* file_path)
+void VM::save_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memory->write_image(file_path, ram, sizeof(ram));
 	}
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -195,5 +218,30 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	2
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	return true;
 }
 

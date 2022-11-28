@@ -11,8 +11,8 @@
 
 void JOYSTICK::initialize()
 {
-	key = emu->key_buffer();
-	joy = emu->joy_buffer();
+	key = emu->get_key_buffer();
+	joy = emu->get_joy_buffer();
 	
 	// register event to interrupt
 	register_frame_event(this);
@@ -23,7 +23,7 @@ void JOYSTICK::reset()
 	status = 0;
 }
 
-void JOYSTICK::write_io8(uint32 addr, uint32 data)
+void JOYSTICK::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xfc:
@@ -34,12 +34,12 @@ void JOYSTICK::write_io8(uint32 addr, uint32 data)
 		status |= 2;
 		break;
 	}
-//	emu->out_debug_log(_T("OUT\t%2x, %2x\n"), addr & 0xff, data);
+//	this->out_debug_log(_T("OUT\t%2x, %2x\n"), addr & 0xff, data);
 }
 
-uint32 JOYSTICK::read_io8(uint32 addr)
+uint32_t JOYSTICK::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0xfc:
@@ -75,7 +75,7 @@ uint32 JOYSTICK::read_io8(uint32 addr)
 //		status &= ~2;
 		break;
 	}
-//	emu->out_debug_log(_T("IN\t%2x, %2x\n"), addr & 0xff, val);
+//	this->out_debug_log(_T("IN\t%2x, %2x\n"), addr & 0xff, val);
 	return val;
 }
 
@@ -83,3 +83,19 @@ void JOYSTICK::event_frame()
 {
 	status |= 1;
 }
+
+#define STATE_VERSION	1
+
+bool JOYSTICK::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(column);
+	state_fio->StateValue(status);
+	return true;
+}
+

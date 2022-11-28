@@ -5,46 +5,46 @@
 #include <stdlib.h>
 #include <tchar.h>
 
-#ifndef uint8
-typedef unsigned char uint8;
+#ifndef uint8_t
+typedef unsigned char uint8_t;
 #endif
-#ifndef uint16
-typedef unsigned short uint16;
+#ifndef uint16_t
+typedef unsigned short uint16_t;
 #endif
-#ifndef uint32
-typedef unsigned int uint32;
+#ifndef uint32_t
+typedef unsigned int uint32_t;
 #endif
 
-#ifndef int8
-typedef signed char int8;
+#ifndef int8_t
+typedef signed char int8_t;
 #endif
-#ifndef int16
-typedef signed short int16;
+#ifndef int16_t
+typedef signed short int16_t;
 #endif
-#ifndef int32
-typedef signed int int32;
+#ifndef int32_t
+typedef signed int int32_t;
 #endif
 
 #pragma pack(1)
 typedef struct {
 	char RIFF[4];
-	uint32 file_len;
+	uint32_t file_len;
 	char WAVE[4];
 	char fmt[4];
-	uint32 fmt_size;
-	uint16 format_id;
-	uint16 channels;
-	uint32 sample_rate;
-	uint32 data_speed;
-	uint16 block_size;
-	uint16 sample_bits;
+	uint32_t fmt_size;
+	uint16_t format_id;
+	uint16_t channels;
+	uint32_t sample_rate;
+	uint32_t data_speed;
+	uint16_t block_size;
+	uint16_t sample_bits;
 } wav_header_t;
 #pragma pack()
 
 #pragma pack(1)
 typedef struct {
 	char data[4];
-	uint32 data_len;
+	uint32_t data_len;
 } wav_data_t;
 #pragma pack()
 
@@ -85,13 +85,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	int samples = data.data_len / 4;
 	
 	// load samples
-	int16* buffer_l = (int16 *)malloc(samples * sizeof(int16));
-	int16* buffer_r = (int16 *)malloc(samples * sizeof(int16));
+	int16_t* buffer_l = (int16_t *)malloc(samples * sizeof(int16_t));
+	int16_t* buffer_r = (int16_t *)malloc(samples * sizeof(int16_t));
 	
 	typedef union {
-		int16 s16;
+		int16_t s16;
 		struct {
-			uint8 l, h;
+			uint8_t l, h;
 		} b;
 	} sample_pair;
 	sample_pair sample;
@@ -129,7 +129,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					volume += buffer_l[j];
 				}
 				if((double)count_p / (double)width > 0.2 && (double)count_m / (double)width > 0.2) {
-					int16 volume_ave = (int16)(volume / (double)width + 0.5);
+					int16_t volume_ave = (int16_t)(volume / (double)width + 0.5);
 					int sec = start / header.sample_rate;
 					printf("Start = %d:%d\tWidth = %d (msec)\n", sec / 60, sec % 60, (int)(1000 * width / header.sample_rate));
 					for(int j = prev; j < start; j++) {

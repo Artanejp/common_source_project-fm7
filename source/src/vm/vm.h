@@ -15,9 +15,104 @@
 #include "babbage2nd/babbage2nd.h"
 #endif
 
+// HITACHI BASIC Master Jr
+#ifdef _BMJR
+#include "bmjr/bmjr.h"
+#endif
+
+// Systems Formulate BUBCOM80
+#ifdef _BUBCOM80
+#include "bubcom80/bubcom80.h"
+#endif
+
+// CANON BX-1
+#ifdef _BX1
+#include "bx1/bx1.h"
+#endif
+
+// Hino Electronics CEFUCOM-21
+#ifdef _CEFUCOM21
+#include "cefucom21/cefucom21.h"
+#endif
+
+// COLECO ColecoVision
+#ifdef _COLECOVISION
+#include "colecovision/colecovision.h"
+#endif
+
+// TOSHIBA EX-80
+#ifdef _EX80
+#include "ex80/ex80.h"
+#endif
+
 // Nintendo Family BASIC
 #ifdef _FAMILYBASIC
 #include "familybasic/familybasic.h"
+#endif
+
+// FUJITSU FM-8
+#ifdef _FM8
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM-7
+#ifdef _FM7
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM-NEW7
+#ifdef _FMNEW7
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM-77
+#ifdef _FM77
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM-77L2
+#ifdef _FM77L2
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM-77L4
+#ifdef _FM77L4
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV
+#ifdef _FM77AV
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV20
+#ifdef _FM77AV20
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV40
+#ifdef _FM77AV40
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV20EX
+#ifdef _FM77AV20EX
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV40EX
+#ifdef _FM77AV40EX
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV40SX
+#ifdef _FM77AV40SX
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM16beta
+#ifdef _FM16BETA
+#include "fm16beta/fm16beta.h"
 #endif
 
 // FUJITSU FM16pi
@@ -50,6 +145,11 @@
 #include "fp1100/fp1100.h"
 #endif
 
+// Panasonic FS-A1
+#ifdef _FSA1
+#include "msx/msx_ex.h"
+#endif
+
 // SEGA GAME GEAR
 #ifdef _GAMEGEAR
 #include "gamegear/gamegear.h"
@@ -70,14 +170,34 @@
 #include "hc80/hc80.h"
 #endif
 
+// TOSHIBA HX-20 + FDD
+#ifdef _HX20
+#include "msx/msx_ex.h"
+#endif
+
 // TOSHIBA J-3100GT
-#ifdef _J3100SL
+#ifdef _J3100GT
 #include "j3100/j3100.h"
 #endif
 
 // TOSHIBA J-3100SL
 #ifdef _J3100SL
 #include "j3100/j3100.h"
+#endif
+
+// National JR-100
+#ifdef _JR100
+#include "jr100/jr100.h"
+#endif
+
+// National JR-200
+#ifdef _JR200
+#include "jr200/jr200.h"
+#endif
+
+// National JR-800
+#ifdef _JR800
+#include "jr800/jr800.h"
 #endif
 
 // IBM Japan Ltd PC/JX
@@ -98,6 +218,33 @@
 // SEGA MASTER SYSTEM
 #ifdef _MASTERSYSTEM
 #include "gamegear/mastersystem.h"
+#endif
+
+// Nippon Mail Service MICOM MAHJONG
+#ifdef _MICOM_MAHJONG
+#include "micom_mahjong/micom_mahjong.h"
+#endif
+
+// MITEC MP85
+#ifdef _MP85
+#include "mp85/mp85.h"
+#endif
+
+// ASCII MSX
+#ifdef _MSX1
+//#include "msx/msx.h"
+#include "msx/msx_ex.h"
+#endif
+
+// ASCII MSX2
+#ifdef _MSX2
+//#include "msx/msx.h"
+#include "msx/msx_ex.h"
+#endif
+
+// ASCII MSX2+
+#ifdef _MSX2P
+#include "msx/msx_ex.h"
 #endif
 
 // MITSUBISHI Elec. MULTI8
@@ -195,6 +342,11 @@
 #include "pasopia7/pasopia7.h"
 #endif
 
+// NEC PC-2001
+#ifdef _PC2001
+#include "pc2001/pc2001.h"
+#endif
+
 // NEC PC-6001
 #ifdef _PC6001
 #include "pc6001/pc6001.h"
@@ -220,6 +372,16 @@
 #include "pc6001/pc6001.h"
 #endif
 
+// NEC PC-8001
+#ifdef _PC8001
+#include "pc8801/pc8801.h"
+#endif
+
+// NEC PC-8001mkII
+#ifdef _PC8001MK2
+#include "pc8801/pc8801.h"
+#endif
+
 // NEC PC-8001mkIISR
 #ifdef _PC8001SR
 #include "pc8801/pc8801.h"
@@ -233,6 +395,16 @@
 // NEC PC-8201A
 #ifdef _PC8201A
 #include "pc8201/pc8201.h"
+#endif
+
+// NEC PC-8801
+#ifdef _PC8801
+#include "pc8801/pc8801.h"
+#endif
+
+// NEC PC-8801mkII
+#ifdef _PC8801MK2
+#include "pc8801/pc8801.h"
 #endif
 
 // NEC PC-8801MA
@@ -265,6 +437,16 @@
 #include "pc9801/pc9801.h"
 #endif
 
+// NEC PC-9801VX
+#ifdef _PC9801VX
+#include "pc9801/pc9801.h"
+#endif
+
+// NEC PC-9801RA
+#ifdef _PC9801RA
+#include "pc9801/pc9801.h"
+#endif
+
 // NEC PC-98DO
 #ifdef _PC98DO
 #include "pc9801/pc9801.h"
@@ -278,6 +460,21 @@
 // NEC PC-98LT
 #ifdef _PC98LT
 #include "pc98ha/pc98ha.h"
+#endif
+
+// NEC PC-98RL
+#ifdef _PC98RL
+#include "pc9801/pc9801.h"
+#endif
+
+// NEC PC-98XA
+#ifdef _PC98XA
+#include "pc9801/pc9801.h"
+#endif
+
+// NEC PC-98XL
+#ifdef _PC98XL
+#include "pc9801/pc9801.h"
 #endif
 
 // NEC PC-100
@@ -312,7 +509,8 @@
 
 // PIONEER PX-7
 #ifdef _PX7
-#include "msx1/msx1.h"
+//#include "msx/msx.h"
+#include "msx/msx_ex.h"
 #endif
 
 // TOMY PYUTA
@@ -340,9 +538,44 @@
 #include "scv/scv.h"
 #endif
 
+// SHARP SM-B-80TE
+#ifdef _SMB80TE
+#include "smb80te/smb80te.h"
+#endif
+
+// SONY SMC-70
+#ifdef _SMC70
+#include "smc777/smc777.h"
+#endif
+
+// SONY SMC-777
+#ifdef _SMC777
+#include "smc777/smc777.h"
+#endif
+
+// SPECTRAVIDEO SVI-3x8
+#ifdef _SVI3X8
+#include "svi3x8/msx_ex.h"
+#endif
+
 // NEC TK-80BS (COMPO BS/80)
 #ifdef _TK80BS
 #include "tk80bs/tk80bs.h"
+#endif
+
+// NEC TK-80
+#ifdef _TK80
+#include "tk80bs/tk80bs.h"
+#endif
+
+// NEC TK-85
+#ifdef _TK85
+#include "tk80bs/tk80bs.h"
+#endif
+
+// GAKKEN TV BOY
+#ifdef _TVBOY
+#include "tvboy/tvboy.h"
 #endif
 
 // CANON X-07
@@ -370,9 +603,80 @@
 #include "x1/x1.h"
 #endif
 
+// Yuasa Kyouiku System YALKY
+#ifdef _YALKY
+#include "yalky/yalky.h"
+#endif
+
+// YAMAHA YIS
+#ifdef _YIS
+#include "yis/yis.h"
+#endif
+
 // SHINKO SANGYO YS-6464A
 #ifdef _YS6464A
 #include "ys6464a/ys6464a.h"
+#endif
+
+// Homebrew Z80 TV GAME SYSTEM
+#ifdef _Z80TVGAME
+#include "z80tvgame/z80tvgame.h"
+#endif
+
+#ifndef WINDOW_MODE_BASE
+	#define WINDOW_MODE_BASE 1
+#endif
+#ifndef WINDOW_WIDTH
+	#ifdef SCREEN_FAKE_WIDTH
+		#define WINDOW_WIDTH SCREEN_FAKE_WIDTH
+	#else
+		#define WINDOW_WIDTH SCREEN_WIDTH
+	#endif
+#endif
+#ifndef WINDOW_HEIGHT
+	#ifdef SCREEN_FAKE_HEIGHT
+		#define WINDOW_HEIGHT SCREEN_FAKE_HEIGHT
+	#else
+		#define WINDOW_HEIGHT SCREEN_HEIGHT
+	#endif
+#endif
+#ifndef WINDOW_WIDTH_ASPECT
+	#define WINDOW_WIDTH_ASPECT WINDOW_WIDTH
+#endif
+#ifndef WINDOW_HEIGHT_ASPECT
+	#define WINDOW_HEIGHT_ASPECT WINDOW_HEIGHT
+#endif
+
+#if defined(USE_CART) && !defined(BASE_CART_NUM)
+	#define BASE_CART_NUM		1
+#endif
+#if defined(USE_FLOPPY_DISK) && !defined(BASE_FLOPPY_DISK_NUM)
+	#define BASE_FLOPPY_DISK_NUM	1
+#endif
+#if defined(USE_QUICK_DISK) && !defined(BASE_QUICK_DISK_NUM)
+	#define BASE_QUICK_DISK_NUM	1
+#endif
+#if defined(USE_HARD_DISK) && !defined(BASE_HARD_DISK_NUM)
+	#define BASE_HARD_DISK_NUM	1
+#endif
+#if defined(USE_TAPE) && !defined(BASE_TAPE_NUM)
+	#define BASE_TAPE_NUM		1
+#endif
+#if defined(USE_COMPACT_DISC) && !defined(BASE_COMPACT_DISC_NUM)
+	#define BASE_COMPACT_DISC_NUM	1
+#endif
+#if defined(USE_LASER_DISC) && !defined(BASE_LASER_DISC_NUM)
+	#define BASE_LASER_DISC_NUM	1
+#endif
+#if defined(USE_BINARY_FILE) && !defined(BASE_BINARY_FILE_NUM)
+	#define BASE_BINARY_FILE_NUM	1
+#endif
+#if defined(USE_BUBBLE) && !defined(BASE_BUBBLE_NUM)
+	#define BASE_BUBBLE_NUM		1
+#endif
+
+#ifndef KEY_KEEP_FRAMES
+	#define KEY_KEEP_FRAMES 3
 #endif
 
 #endif

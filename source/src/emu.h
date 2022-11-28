@@ -10,390 +10,166 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
-// DirectX
-#define DIRECTSOUND_VERSION 0x900
-#define DIRECT3D_VERSION 0x900
-
 // for debug
 //#define _DEBUG_LOG
 #ifdef _DEBUG_LOG
 	// output fdc debug log
 //	#define _FDC_DEBUG_LOG
+	// output scsi debug log
+//	#define _SCSI_DEBUG_LOG
+	// output dma debug log
+//	#define _DMA_DEBUG_LOG
 	// output i/o debug log
 //	#define _IO_DEBUG_LOG
 #endif
 
-#include <windows.h>
-#include <windowsx.h>
-#include <mmsystem.h>
-#include <process.h>
 #include <stdio.h>
 #include <assert.h>
 #include "common.h"
 #include "config.h"
 #include "vm/vm.h"
 
-#define WM_RESIZE  (WM_USER + 1)
-#define WM_SOCKET0 (WM_USER + 2)
-#define WM_SOCKET1 (WM_USER + 3)
-#define WM_SOCKET2 (WM_USER + 4)
-#define WM_SOCKET3 (WM_USER + 5)
-
-#if defined(USE_LASER_DISC) || defined(USE_VIDEO_CAPTURE)
-#define USE_DIRECT_SHOW
-#endif
-#ifdef USE_VIDEO_CAPTURE
-#define MAX_CAPTURE_DEVS 8
-#endif
-
-#ifndef SCREEN_WIDTH_ASPECT
-#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH
-#endif
-#ifndef SCREEN_HEIGHT_ASPECT
-#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
-#endif
-#ifndef WINDOW_WIDTH
-#define WINDOW_WIDTH SCREEN_WIDTH_ASPECT
-#endif
-#ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT SCREEN_HEIGHT_ASPECT
+#if defined(_USE_QT)
+#include <pthread.h>
+#define OSD_QT
+#elif defined(_USE_SDL)
+#include <pthread.h>
+#define OSD_SDL
+#elif defined(_WIN32)
+#define OSD_WIN32
+#else
+// oops!
 #endif
 
-#pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "d3dx9.lib")
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <d3d9types.h>
+// OS dependent header files should be included in each osd.h
+// Please do not include them in emu.h
 
-#include <dsound.h>
-#include <vfw.h>
-
-#ifdef USE_DIRECT_SHOW
-#pragma comment(lib, "strmiids.lib")
-#include <dshow.h>
-//#include <qedit.h>
-EXTERN_C const CLSID CLSID_SampleGrabber;
-EXTERN_C const CLSID CLSID_NullRenderer;
-EXTERN_C const IID IID_ISampleGrabberCB;
-MIDL_INTERFACE("0579154A-2B53-4994-B0D0-E773148EFF85")
-ISampleGrabberCB : public IUnknown {
-public:
-	virtual HRESULT STDMETHODCALLTYPE SampleCB( double SampleTime,IMediaSample *pSample) = 0;
-	virtual HRESULT STDMETHODCALLTYPE BufferCB( double SampleTime,BYTE *pBuffer,long BufferLen) = 0;
-};
-EXTERN_C const IID IID_ISampleGrabber;
-MIDL_INTERFACE("6B652FFF-11FE-4fce-92AD-0266B5D7C78F")
-ISampleGrabber : public IUnknown {
-public:
-	virtual HRESULT STDMETHODCALLTYPE SetOneShot( BOOL OneShot) = 0;
-	virtual HRESULT STDMETHODCALLTYPE SetMediaType( const AM_MEDIA_TYPE *pType) = 0;
-	virtual HRESULT STDMETHODCALLTYPE GetConnectedMediaType( AM_MEDIA_TYPE *pType) = 0;
-	virtual HRESULT STDMETHODCALLTYPE SetBufferSamples( BOOL BufferThem) = 0;
-	virtual HRESULT STDMETHODCALLTYPE GetCurrentBuffer( /* [out][in] */ long *pBufferSize,/* [out] */ long *pBuffer) = 0;
-	virtual HRESULT STDMETHODCALLTYPE GetCurrentSample( /* [retval][out] */ IMediaSample **ppSample) = 0;
-	virtual HRESULT STDMETHODCALLTYPE SetCallback( ISampleGrabberCB *pCallback,long WhichMethodToCallback) = 0;
-};
-#ifdef USE_LASER_DISC
-class CMySampleGrabberCB : public ISampleGrabberCB {
-private:
-	VM *vm;
-public:
-	CMySampleGrabberCB(VM *vm_ptr)
-	{
-		vm = vm_ptr;
-	}
-	STDMETHODIMP_(ULONG) AddRef()
-	{
-		return 2;
-	}
-	STDMETHODIMP_(ULONG) Release()
-	{
-		return 1;
-	}
-	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
-	{
-		if(riid == IID_ISampleGrabberCB || riid == IID_IUnknown) {
-			*ppv = (void *) static_cast<ISampleGrabberCB*>(this);
-			return NOERROR;
-		}
-		return E_NOINTERFACE;
-	}
-	STDMETHODIMP SampleCB(double SampleTime, IMediaSample *pSample)
-	{
-		return S_OK;
-	}
-	STDMETHODIMP BufferCB(double dblSampleTime, BYTE *pBuffer, long lBufferSize)
-	{
-		vm->movie_sound_callback(pBuffer, lBufferSize);
-		return S_OK;
-	}
-};
-#endif
+#if defined(OSD_QT)
+#include "qt/osd.h"
+#elif defined(OSD_SDL)
+#include "sdl/osd.h"
+#elif defined(OSD_WIN32)
+#include "win32/osd.h"
 #endif
 
-#ifdef USE_SOCKET
-#include <winsock.h>
-#endif
-
-// check memory leaks
-#ifdef _DEBUG
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#define malloc(s) _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
-#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#endif
-
-#ifdef USE_FD1
+#ifdef USE_FLOPPY_DISK
 #define MAX_D88_BANKS 64
 #endif
-
-#ifdef USE_SOCKET
-#define SOCKET_MAX 4
-#define SOCKET_BUFFER_MAX 0x100000
+#ifdef USE_BUBBLE
+#define MAX_B77_BANKS 16
 #endif
 
 class EMU;
+class OSD;
 class FIFO;
 class FILEIO;
 
-typedef struct video_thread_t {
-	PAVISTREAM pAVICompressed;
-	scrntype* lpBmpSource;
-	LPBITMAPINFOHEADER pbmInfoHeader;
-	DWORD dwAVIFileSize;
-	LONG lAVIFrames;
-	int frames;
-	int result;
-} video_thread_t;
-
 #ifdef USE_DEBUGGER
-typedef struct debugger_thread_t {
+#if defined(OSD_QT)
+class CSP_Debugger;
+class CSP_DebuggerThread;
+#endif
+typedef struct {
 	EMU *emu;
-	VM *vm;
+	OSD *osd;
+	VM_TEMPLATE *vm;
 	int cpu_index;
 	bool running;
 	bool request_terminate;
 } debugger_thread_t;
 #endif
 
+#if defined(OSD_QT)
+class USING_FLAGS;
+class GLDrawClass;
+class EmuThreadClass;
+class DrawThreadClass;
+#endif
+
 class EMU
 {
 protected:
-	VM* vm;
+	VM_TEMPLATE* vm;
+	OSD* osd;
+	
 private:
-	// ----------------------------------------
-	// input
-	// ----------------------------------------
-	void initialize_input();
-	void release_input();
-	void update_input();
-	
-	uint8 keycode_conv[256];
-	uint8 key_status[256];	// windows key code mapping
-#ifdef USE_SHIFT_NUMPAD_KEY
-	uint8 key_converted[256];
-	bool key_shift_pressed, key_shift_released;
-#endif
-	bool lost_focus;
-	
-	uint32 joy_status[2];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
-	int joy_num;
-	uint32 joy_mask[2];
-	
-	int mouse_status[3];	// x, y, button (b0 = left, b1 = right)
-	bool mouse_enabled;
-	
-#ifdef USE_AUTO_KEY
-	FIFO* autokey_buffer;
-	int autokey_phase, autokey_shift;
+	// debugger
+#ifdef USE_DEBUGGER
+	void initialize_debugger();
+	void release_debugger();
 #endif
 	
-	// ----------------------------------------
-	// screen
-	// ----------------------------------------
-	void initialize_screen();
-	void release_screen();
-	void create_dib_section(HDC hdc, int width, int height, HDC *hdcDib, HBITMAP *hBmp, HBITMAP *hOldBmp, LPBYTE *lpBuf, scrntype **lpBmp, LPBITMAPINFO *lpDib);
-	
-	// screen settings
-	int screen_width, screen_height;
-	int screen_width_aspect, screen_height_aspect;
-	int window_width, window_height;
-	int display_width, display_height;
-	bool screen_size_changed;
-	
-	HDC hdcDibSource;
-	scrntype* lpBmpSource;
-	LPBITMAPINFO lpDibSource;
-	LPBITMAPINFOHEADER pbmInfoHeader;
-	
-	int source_width, source_height;
-	int source_width_aspect, source_height_aspect;
-	int stretched_width, stretched_height;
-	int stretch_pow_x, stretch_pow_y;
-	int screen_dest_x, screen_dest_y;
-	bool stretch_screen;
-	
-	// update flags
-	bool first_draw_screen;
-	bool first_invalidate;
-	bool self_invalidate;
-	
-	// screen buffer
-	HDC hdcDib;
-	HBITMAP hBmp, hOldBmp;
-	LPBYTE lpBuf;
-	scrntype* lpBmp;
-	LPBITMAPINFO lpDib;
-	
-#ifdef USE_SCREEN_ROTATE
-	// rotate buffer
-	HDC hdcDibRotate;
-	HBITMAP hBmpRotate, hOldBmpRotate;
-	LPBYTE lpBufRotate;
-	scrntype* lpBmpRotate;
-	LPBITMAPINFO lpDibRotate;
+	// debug log
+#ifdef _DEBUG_LOG
+	void initialize_debug_log();
+	void release_debug_log();
+	FILE* debug_log;
 #endif
 	
-	// stretch buffer
-	HDC hdcDibStretch1;
-	HBITMAP hBmpStretch1, hOldBmpStretch1;
-	LPBYTE lpBufStretch1;
-	scrntype* lpBmpStretch1;
-	LPBITMAPINFO lpDibStretch1;
-	
-	HDC hdcDibStretch2;
-	HBITMAP hBmpStretch2, hOldBmpStretch2;
-	LPBYTE lpBufStretch2;
-	scrntype* lpBmpStretch2;
-	LPBITMAPINFO lpDibStretch2;
-	
-	// for direct3d9
-	LPDIRECT3D9 lpd3d9;
-	LPDIRECT3DDEVICE9 lpd3d9Device;
-	LPDIRECT3DSURFACE9 lpd3d9Surface;
-	LPDIRECT3DSURFACE9 lpd3d9OffscreenSurface;
-	scrntype *lpd3d9Buffer;
-	bool render_to_d3d9Buffer;
-	bool use_d3d9;
-	bool wait_vsync;
-	
-	// record video
-	_TCHAR video_file_name[_MAX_PATH];
-	int rec_video_fps;
-	double rec_video_run_frames;
-	double rec_video_frames;
-	
-	LPBITMAPINFO lpDibRec;
-	PAVIFILE pAVIFile;
-	PAVISTREAM pAVIStream;
-	PAVISTREAM pAVICompressed;
-	AVICOMPRESSOPTIONS opts;
-	DWORD dwAVIFileSize;
-	LONG lAVIFrames;
-	
-	HDC hdcDibRec;
-	HBITMAP hBmpRec, hOldBmpRec;
-	LPBYTE lpBufRec;
-	scrntype* lpBmpRec;
-	
-	bool use_video_thread;
-	HANDLE hVideoThread;
-	video_thread_t video_thread_param;
-	
-	// ----------------------------------------
-	// sound
-	// ----------------------------------------
-	void initialize_sound();
-	void release_sound();
-	void update_sound(int* extra_frames);
-	
+	// misc
+	int sound_frequency, sound_latency;
 	int sound_rate, sound_samples;
-	bool sound_ok, sound_started, now_mute;
-	
-	// direct sound
-	LPDIRECTSOUND lpds;
-	LPDIRECTSOUNDBUFFER lpdsb, lpdsp;
-	bool first_half;
-	
-	// record sound
-	_TCHAR sound_file_name[_MAX_PATH];
-	FILEIO* rec;
-	int rec_bytes;
-	int rec_buffer_ptr;
-	
-#ifdef USE_DIRECT_SHOW
-	// ----------------------------------------
-	// direct show
-	// ----------------------------------------
-	void initialize_direct_show();
-	void release_direct_show();
-	void create_direct_show_dib_section();
-	void release_direct_show_dib_section();
-	
-	IGraphBuilder *pGraphBuilder;
-	IBaseFilter *pVideoBaseFilter;
-	IBaseFilter *pCaptureBaseFilter;
-	ICaptureGraphBuilder2 *pCaptureGraphBuilder2;
-	ISampleGrabber *pVideoSampleGrabber;
-	IBaseFilter *pSoundBaseFilter;
-	ISampleGrabber *pSoundSampleGrabber;
-	CMySampleGrabberCB *pSoundCallBack;
-	IMediaControl *pMediaControl;
-	IMediaSeeking *pMediaSeeking;
-	IMediaPosition *pMediaPosition;
-	IVideoWindow *pVideoWindow;
-	IBasicVideo *pBasicVideo;
-	IBasicAudio *pBasicAudio;
-	bool bTimeFormatFrame;
-	bool bVirticalReversed;
-	
-	HDC hdcDibDShow;
-	HBITMAP hBmpDShow, hOldBmpDShow;
-	LPBYTE lpBufDShow;
-	scrntype* lpBmpDShow;
-	LPBITMAPINFO lpDibDShow;
-	
-	int direct_show_width, direct_show_height;
-	bool direct_show_mute[2];
-#ifdef USE_LASER_DISC
-	double movie_frame_rate;
-	int movie_sound_rate;
-	bool now_movie_play, now_movie_pause;
+#ifdef USE_CPU_TYPE
+	int cpu_type;
 #endif
-#ifdef USE_VIDEO_CAPTURE
-	void enum_capture_devs();
-	bool connect_capture_dev(int index, bool pin);
-	int cur_capture_dev_index;
-	int num_capture_devs;
-	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
+#ifdef USE_DIPSWITCH
+	uint32_t dipswitch;
 #endif
+#ifdef USE_SOUND_TYPE
+	int sound_type;
+#endif
+#ifdef USE_PRINTER_TYPE
+	int printer_type;
+#endif
+	bool now_suspended;
+	
+	// input
+#ifdef USE_AUTO_KEY
+	FIFO* auto_key_buffer;
+	int auto_key_phase, auto_key_shift;
+	bool shift_pressed;
+	void initialize_auto_key();
+	void release_auto_key();
+	int get_auto_key_code(int code);
+	void set_auto_key_code(int code);
+	void update_auto_key();
+#endif
+#ifdef USE_JOYSTICK
+	uint32_t joy_status[4];
+	void update_joystick();
 #endif
 	
-	// ----------------------------------------
 	// media
-	// ----------------------------------------
 	typedef struct {
 		_TCHAR path[_MAX_PATH];
 		bool play;
-		int offset;
+		int bank;
 		int wait_count;
 	} media_status_t;
 	
-#ifdef USE_CART1
-	media_status_t cart_status[MAX_CART];
+#ifdef USE_CART
+	media_status_t cart_status[USE_CART];
 #endif
-#ifdef USE_FD1
-	media_status_t disk_status[MAX_FD];
+#ifdef USE_FLOPPY_DISK
+	media_status_t floppy_disk_status[USE_FLOPPY_DISK];
 #endif
-#ifdef USE_QD1
-	media_status_t quickdisk_status[MAX_QD];
+#ifdef USE_QUICK_DISK
+	media_status_t quick_disk_status[USE_QUICK_DISK];
+#endif
+#ifdef USE_HARD_DISK
+	media_status_t hard_disk_status[USE_HARD_DISK];
 #endif
 #ifdef USE_TAPE
-	media_status_t tape_status;
+	media_status_t tape_status[USE_TAPE];
+#endif
+#ifdef USE_COMPACT_DISC
+	media_status_t compact_disc_status[USE_COMPACT_DISC];
 #endif
 #ifdef USE_LASER_DISC
-	media_status_t laser_disc_status;
+	media_status_t laser_disc_status[USE_LASER_DISC];
+#endif
+#ifdef USE_BUBBLE
+	media_status_t bubble_casette_status[USE_BUBBLE];
 #endif
 	
 	void initialize_media();
@@ -406,346 +182,331 @@ private:
 		status->wait_count = 0;
 	}
 	
-	// ----------------------------------------
-	// printer
-	// ----------------------------------------
-	void initialize_printer();
-	void release_printer();
-	void reset_printer();
-	void update_printer();
-	void open_printer_file();
-	void close_printer_file();
-	
-	_TCHAR prn_file_name[MAX_PATH];
-	FILEIO *prn_fio;
-	int prn_data, prn_wait_frames;
-	bool prn_strobe;
-	
-#ifdef USE_SOCKET
-	// ----------------------------------------
-	// socket
-	// ----------------------------------------
-	void initialize_socket();
-	void release_socket();
-	void update_socket();
-	
-	int soc[SOCKET_MAX];
-	bool is_tcp[SOCKET_MAX];
-	struct sockaddr_in udpaddr[SOCKET_MAX];
-	int socket_delay[SOCKET_MAX];
-	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
-	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
-#endif
-	
-#ifdef USE_DEBUGGER
-	// ----------------------------------------
-	// debugger
-	// ----------------------------------------
-	void initialize_debugger();
-	void release_debugger();
-	HANDLE hDebuggerThread;
-	debugger_thread_t debugger_thread_param;
-#endif
-	
-#ifdef _DEBUG_LOG
-	// ----------------------------------------
-	// debug log
-	// ----------------------------------------
-	void initialize_debug_log();
-	void release_debug_log();
-	FILE* debug_log;
-#endif
-	
-#ifdef USE_STATE
-	// ----------------------------------------
 	// state
-	// ----------------------------------------
-	void save_state_tmp(_TCHAR* file_path);
-	bool load_state_tmp(_TCHAR* file_path);
+#ifdef USE_STATE
+	bool load_state_tmp(const _TCHAR* file_path);
 #endif
-	
-	// ----------------------------------------
-	// misc
-	// ----------------------------------------
-#ifdef USE_CPU_TYPE
-	int cpu_type;
-#endif
-#ifdef USE_SOUND_DEVICE_TYPE
-	int sound_device_type;
-#endif
-	_TCHAR app_path[_MAX_PATH];
-	bool now_suspended;
 	
 public:
-	// ----------------------------------------
-	// initialize
-	// ----------------------------------------
+#if defined(OSD_QT)
+	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p);
+#elif defined(OSD_WIN32)
 	EMU(HWND hwnd, HINSTANCE hinst);
+#else
+	EMU();
+#endif
 	~EMU();
 	
-	_TCHAR* application_path()
+	VM_TEMPLATE *get_vm()
 	{
-		return app_path;
+		return vm;
 	}
-	_TCHAR* bios_path(_TCHAR* file_name);
+	OSD *get_osd()
+	{
+		return osd;
+	}
+#ifdef OSD_QT
+	// qt dependent
+	EmuThreadClass *get_parent_handler();
+	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
+	void set_host_cpus(int v);
+	int get_host_cpus();
+#endif
 	
-	// ----------------------------------------
-	// for windows
-	// ----------------------------------------
-	HWND main_window_handle;
-	HINSTANCE instance_handle;
-	
-	// drive virtual machine
-	int frame_interval();
+	// drive machine
+	double get_frame_rate();
+	int get_frame_interval();
+	bool is_frame_skippable();
 	int run();
 	void reset();
 #ifdef USE_SPECIAL_RESET
 	void special_reset();
 #endif
-#ifdef USE_POWER_OFF
+#ifdef USE_NOTIFY_POWER_OFF
 	void notify_power_off();
 #endif
+	void power_off();
 	void suspend();
+	void lock_vm();
+	void unlock_vm();
+	void force_unlock_vm();
+	bool is_vm_locked();
 	
-	// media
-#ifdef USE_FD1
-	typedef struct {
-		_TCHAR name[18];
-		int offset;
-	} d88_bank_t;
-	typedef struct {
-		_TCHAR path[_MAX_PATH];
-		d88_bank_t bank[MAX_D88_BANKS];
-		int bank_num;
-		int cur_bank;
-	} d88_file_t;
-	d88_file_t d88_file[MAX_FD];
+	// input
+	void key_down(int code, bool extended, bool repeat);
+	void key_up(int code, bool extended);
+	void key_char(char code);
+#ifdef USE_KEY_LOCKED
+	bool get_caps_locked();
+	bool get_kana_locked();
 #endif
-	
-	// user interface
-#ifdef USE_CART1
-	void open_cart(int drv, _TCHAR* file_path);
-	void close_cart(int drv);
-	bool cart_inserted(int drv);
-#endif
-#ifdef USE_FD1
-	void open_disk(int drv, _TCHAR* file_path, int offset);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-#endif
-#ifdef USE_QD1
-	void open_quickdisk(int drv, _TCHAR* file_path);
-	void close_quickdisk(int drv);
-	bool quickdisk_inserted(int drv);
-#endif
-#ifdef USE_TAPE
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
-	void close_tape();
-	bool tape_inserted();
-#endif
-#ifdef USE_TAPE_BUTTON
-	void push_play();
-	void push_stop();
-#endif
-#ifdef USE_LASER_DISC
-	void open_laser_disc(_TCHAR* file_path);
-	void close_laser_disc();
-	bool laser_disc_inserted();
-#endif
-#ifdef USE_BINARY_FILE1
-	void load_binary(int drv, _TCHAR* file_path);
-	void save_binary(int drv, _TCHAR* file_path);
-#endif
-	bool now_skip();
-	
-	void start_rec_sound();
-	void stop_rec_sound();
-	void restart_rec_sound();
-	bool now_rec_sound;
-	
-	void capture_screen();
-	bool start_rec_video(int fps);
-	void stop_rec_video();
-	void restart_rec_video();
-	bool now_rec_video;
-	
-	void update_config();
-	
-#ifdef USE_STATE
-	void save_state();
-	void load_state();
-#endif
-	
-	// input device
-	void key_down(int code, bool repeat);
-	void key_up(int code);
-	void key_lost_focus()
-	{
-		lost_focus = true;
-	}
-#ifdef USE_BUTTON
+	void key_lost_focus();
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
 #endif
-	
+#ifdef USE_MOUSE
 	void enable_mouse();
-	void disenable_mouse();
+	void disable_mouse();
 	void toggle_mouse();
-	bool get_mouse_enabled()
-	{
-		return mouse_enabled;
-	}
-	
+	bool is_mouse_enabled();
+#endif
 #ifdef USE_AUTO_KEY
+	void set_auto_key_list(char *buf, int size);
+	void set_auto_key_char(char code);
 	void start_auto_key();
 	void stop_auto_key();
-	bool now_auto_key()
+	bool is_auto_key_running()
 	{
-		return (autokey_phase != 0);
+		return (auto_key_phase != 0);
 	}
+	FIFO* get_auto_key_buffer()
+	{
+		return auto_key_buffer;
+	}
+#endif
+	const uint8_t* get_key_buffer();
+#ifdef USE_JOYSTICK
+	const uint32_t* get_joy_buffer();
+#endif
+#ifdef USE_MOUSE
+	const int32_t* get_mouse_buffer();
 #endif
 	
 	// screen
-	int get_window_width(int mode);
-	int get_window_height(int mode);
-	void set_display_size(int width, int height, bool window_mode);
-	int draw_screen();
-	void update_screen(HDC hdc);
-#ifdef USE_BITMAP
-	void reload_bitmap()
-	{
-		first_invalidate = true;
-	}
+	double get_window_mode_power(int mode);
+	int get_window_mode_width(int mode);
+	int get_window_mode_height(int mode);
+	void set_host_window_size(int window_width, int window_height, bool window_mode);
+	void set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect);
+	void set_vm_screen_lines(int lines);
+	int get_vm_window_width();
+	int get_vm_window_height();
+	int get_vm_window_width_aspect();
+	int get_vm_window_height_aspect();
+#if defined(USE_MINIMUM_RENDERING)
+	bool is_screen_changed();
 #endif
+	int draw_screen();
+	scrntype_t* get_screen_buffer(int y);
+#ifdef USE_SCREEN_FILTER
+	void screen_skip_line(bool skip_line);
+#endif
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	void get_invalidated_rect(int *left, int *top, int *right, int *bottom);
+	void reload_bitmap();
+#endif
+#ifdef OSD_WIN32
+	void invalidate_screen();
+	void update_screen(HDC hdc);
+#endif
+	void capture_screen();
+	bool start_record_video(int fps);
+	void stop_record_video();
+	bool is_video_recording();
 	
 	// sound
+	int get_sound_rate()
+	{
+		return sound_rate;
+	}
 	void mute_sound();
+	void start_record_sound();
+	void stop_record_sound();
+	bool is_sound_recording();
 	
+	// video device
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+	void get_video_buffer();
+	void mute_video_dev(bool l, bool r);
+#endif
+#ifdef USE_MOVIE_PLAYER
+	bool open_movie_file(const _TCHAR* file_path);
+	void close_movie_file();
+	void play_movie();
+	void stop_movie();
+	void pause_movie();
+	double get_movie_frame_rate();
+	int get_movie_sound_rate();
+	void set_cur_movie_frame(int frame, bool relative);
+	uint32_t get_cur_movie_frame();
+#endif
 #ifdef USE_VIDEO_CAPTURE
-	// video capture
-	int get_cur_capture_dev_index()
-	{
-		return cur_capture_dev_index;
-	}
-	int get_num_capture_devs()
-	{
-		return num_capture_devs;
-	}
-	_TCHAR* get_capture_dev_name(int index)
-	{
-		return capture_dev_name[index];
-	}
+	int get_cur_capture_dev_index();
+	int get_num_capture_devs();
+	_TCHAR* get_capture_dev_name(int index);
 	void open_capture_dev(int index, bool pin);
 	void close_capture_dev();
 	void show_capture_dev_filter();
 	void show_capture_dev_pin();
 	void show_capture_dev_source();
-#endif
-	
-#ifdef USE_SOCKET
-	// socket
-	int get_socket(int ch)
-	{
-		return soc[ch];
-	}
-	void socket_connected(int ch);
-	void socket_disconnected(int ch);
-	void send_data(int ch);
-	void recv_data(int ch);
-#endif
-	
-#ifdef USE_DEBUGGER
-	// debugger
-	void open_debugger(int cpu_index);
-	void close_debugger();
-	bool debugger_enabled(int cpu_index);
-	bool now_debugging;
-#endif
-	
-	// ----------------------------------------
-	// for virtual machine
-	// ----------------------------------------
-	
-	// power off
-	void power_off()
-	{
-		PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
-	}
-	
-	// input device
-	uint8* key_buffer()
-	{
-		return key_status;
-	}
-	uint32* joy_buffer()
-	{
-		return joy_status;
-	}
-	int* mouse_buffer()
-	{
-		return mouse_status;
-	}
-	
-	// screen
-	void change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh);
-	scrntype* screen_buffer(int y);
-#ifdef USE_CRT_FILTER
-	bool screen_skip_line;
-#endif
-	
-	// timer
-	void get_host_time(cur_time_t* time);
-	
-	// printer
-	void printer_out(uint8 value);
-	void printer_strobe(bool value);
-	
-#ifdef USE_DIRECT_SHOW
-	// direct show
-	void get_direct_show_buffer();
-	void mute_direct_show_dev(bool l, bool r);
-	
-#ifdef USE_LASER_DISC
-	bool open_movie_file(_TCHAR* file_path);
-	void close_movie_file();
-	
-	void play_movie();
-	void stop_movie();
-	void pause_movie();
-	
-	double get_movie_frame_rate()
-	{
-		return movie_frame_rate;
-	}
-	int get_movie_sound_rate()
-	{
-		return movie_sound_rate;
-	}
-	void set_cur_movie_frame(int frame, bool relative);
-	uint32 get_cur_movie_frame();
-#endif
-#ifdef USE_VIDEO_CAPTURE
 	void set_capture_dev_channel(int ch);
 #endif
+	
+	// printer
+#ifdef USE_PRINTER
+	void create_bitmap(bitmap_t *bitmap, int width, int height);
+	void release_bitmap(bitmap_t *bitmap);
+	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
+	void release_font(font_t *font);
+	void create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b);
+	void release_pen(pen_t *pen);
+	void clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b);
+	int get_text_width(bitmap_t *bitmap, font_t *font, const char *text);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8_t r, uint8_t g, uint8_t b);
+	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
+	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b);
+	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b);
+	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
+	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 #endif
 	
-#ifdef USE_SOCKET
 	// socket
-	bool init_socket_tcp(int ch);
-	bool init_socket_udp(int ch);
-	bool connect_socket(int ch, uint32 ipaddr, int port);
+#ifdef USE_SOCKET
+	SOCKET get_socket(int ch);
+	void notify_socket_connected(int ch);
+	void notify_socket_disconnected(int ch);
+	bool initialize_socket_tcp(int ch);
+	bool initialize_socket_udp(int ch);
+	bool connect_socket(int ch, uint32_t ipaddr, int port);
 	void disconnect_socket(int ch);
 	bool listen_socket(int ch);
-	void send_data_tcp(int ch);
-	void send_data_udp(int ch, uint32 ipaddr, int port);
+	void send_socket_data_tcp(int ch);
+	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
+	void send_socket_data(int ch);
+	void recv_socket_data(int ch);
 #endif
+	
+	// debugger
+#ifdef USE_DEBUGGER
+	void open_debugger(int cpu_index);
+	void close_debugger();
+	bool is_debugger_enabled(int cpu_index);
+	bool now_debugging;
+	debugger_thread_t debugger_thread_param;
+#if defined(OSD_QT)
+	pthread_t debugger_thread_id;
+	CSP_Debugger *hDebugger;
+#elif defined(OSD_WIN32)
+	HANDLE hDebuggerThread;
+#else
+	int debugger_thread_id;
+#endif
+	void start_waiting_in_debugger();
+	void finish_waiting_in_debugger();
+	void process_waiting_in_debugger();
+#endif
+	bool now_waiting_in_debugger;
 	
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
+	void force_out_debug_log(const _TCHAR* format, ...);
 	
 	void out_message(const _TCHAR* format, ...);
 	int message_count;
 	_TCHAR message[1024];
+	
+	// misc
+	void sleep(uint32_t ms);
+	
+	// user interface
+#ifdef USE_CART
+	void open_cart(int drv, const _TCHAR* file_path);
+	void close_cart(int drv);
+	bool is_cart_inserted(int drv);
+#endif
+#ifdef USE_FLOPPY_DISK
+	struct {
+		_TCHAR path[_MAX_PATH];
+		_TCHAR disk_name[MAX_D88_BANKS][128];	// may convert to UTF-8
+		int bank_num;
+		int cur_bank;
+	} d88_file[USE_FLOPPY_DISK];
+	bool create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_connected(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
+#endif
+#ifdef USE_QUICK_DISK
+	void open_quick_disk(int drv, const _TCHAR* file_path);
+	void close_quick_disk(int drv);
+	bool is_quick_disk_connected(int drv);
+	bool is_quick_disk_inserted(int drv);
+	uint32_t is_quick_disk_accessed();
+#endif
+#ifdef USE_HARD_DISK
+	bool create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int sectors, int surfaces, int cylinders);
+	void open_hard_disk(int drv, const _TCHAR* file_path);
+	void close_hard_disk(int drv);
+	bool is_hard_disk_inserted(int drv);
+	uint32_t is_hard_disk_accessed();
+#endif
+#ifdef USE_TAPE
+	void play_tape(int drv, const _TCHAR* file_path);
+	void rec_tape(int drv, const _TCHAR* file_path);
+	void close_tape(int drv);
+	bool is_tape_inserted(int drv);
+	bool is_tape_playing(int drv);
+	bool is_tape_recording(int drv);
+	int get_tape_position(int drv);
+	const _TCHAR* get_tape_message(int drv);
+	void push_play(int drv);
+	void push_stop(int drv);
+	void push_fast_forward(int drv);
+	void push_fast_rewind(int drv);
+	void push_apss_forward(int drv);
+	void push_apss_rewind(int drv);
+#endif
+#ifdef USE_COMPACT_DISC
+	void open_compact_disc(int drv, const _TCHAR* file_path);
+	void close_compact_disc(int drv);
+	bool is_compact_disc_inserted(int drv);
+	uint32_t is_compact_disc_accessed();
+#endif
+#ifdef USE_LASER_DISC
+	void open_laser_disc(int drv, const _TCHAR* file_path);
+	void close_laser_disc(int drv);
+	bool is_laser_disc_inserted(int drv);
+	uint32_t is_laser_disc_accessed();
+#endif
+#ifdef USE_BINARY_FILE
+	void load_binary(int drv, const _TCHAR* file_path);
+	void save_binary(int drv, const _TCHAR* file_path);
+#endif
+#ifdef USE_BUBBLE
+	struct {
+		_TCHAR path[_MAX_PATH];
+		_TCHAR bubble_name[MAX_B77_BANKS][128];  // may convert to UTF-8
+		int bank_num;
+		int cur_bank;
+	} b77_file[USE_BUBBLE];
+	void open_bubble_casette(int drv, const _TCHAR* file_path, int bank);
+	void close_bubble_casette(int drv);
+	bool is_bubble_casette_inserted(int drv);
+	void is_bubble_casette_protected(int drv, bool value);
+	bool is_bubble_casette_protected(int drv);
+#endif
+#ifdef USE_LED_DEVICE
+	uint32_t get_led_status();
+#endif
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
+	void update_config();
+	
+	// state
+#ifdef USE_STATE
+	void save_state(const _TCHAR* file_path);
+	void load_state(const _TCHAR* file_path);
+#endif
+#ifdef OSD_QT
+	// New APIs
+	void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
+	void free_sound_file(int id, int16_t **data);
+#endif
 };
 
 #endif

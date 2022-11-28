@@ -10,7 +10,7 @@
 #include "fdcpack.h"
 #include "../upd765a.h"
 
-void FDCPACK::write_io8(uint32 addr, uint32 data)
+void FDCPACK::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0xff00) {
 		switch(addr & 7) {
@@ -34,7 +34,7 @@ void FDCPACK::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 FDCPACK::read_io8(uint32 addr)
+uint32_t FDCPACK::read_io8(uint32_t addr)
 {
 	if(addr < 0xff00) {
 		switch(addr & 7) {

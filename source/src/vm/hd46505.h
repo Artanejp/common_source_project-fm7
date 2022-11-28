@@ -23,13 +23,16 @@ private:
 	outputs_t outputs_vsync;
 	outputs_t outputs_hsync;
 	
-	uint8 regs[18];
+	uint8_t regs[18], reg5_bottom, reg9_bottom;
+	bool regs_written[18];
 	int ch;
 	bool timing_changed;
 	
 	int cpu_clocks;
-#ifdef HD46505_HORIZ_FREQ
-	int horiz_freq, next_horiz_freq;
+#if defined(HD46505_CHAR_CLOCK)
+	double char_clock, next_char_clock;
+#elif defined(HD46505_HORIZ_FREQ)
+	double horiz_freq, next_horiz_freq;
 #endif
 	double frames_per_sec;
 	
@@ -50,52 +53,57 @@ private:
 	void set_hsync(bool val);
 	
 public:
-	HD46505(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	HD46505(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_disp);
-		init_output_signals(&outputs_vblank);
-		init_output_signals(&outputs_vsync);
-		init_output_signals(&outputs_hsync);
+		initialize_output_signals(&outputs_disp);
+		initialize_output_signals(&outputs_vblank);
+		initialize_output_signals(&outputs_vsync);
+		initialize_output_signals(&outputs_hsync);
+		set_device_name(_T("HD46505 CRTC"));
 	}
 	~HD46505() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void set_context_disp(DEVICE* device, int id, uint32 mask)
+	void set_context_disp(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_disp, device, id, mask);
 	}
-	void set_context_vblank(DEVICE* device, int id, uint32 mask)
+	void set_context_vblank(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vblank, device, id, mask);
 	}
-	void set_context_vsync(DEVICE* device, int id, uint32 mask)
+	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_context_hsync(DEVICE* device, int id, uint32 mask)
+	void set_context_hsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_hsync, device, id, mask);
 	}
-#ifdef HD46505_HORIZ_FREQ
-	void set_horiz_freq(int freq)
+#if defined(HD46505_CHAR_CLOCK)
+	void set_char_clock(double clock)
+	{
+		next_char_clock = clock;
+	}
+#elif defined(HD46505_HORIZ_FREQ)
+	void set_horiz_freq(double freq)
 	{
 		next_horiz_freq = freq;
 	}
 #endif
-	uint8* get_regs()
+	uint8_t* get_regs()
 	{
 		return regs;
 	}

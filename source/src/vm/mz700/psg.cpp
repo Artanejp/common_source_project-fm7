@@ -10,7 +10,7 @@
 
 #include "psg.h"
 
-void PSG::write_io8(uint32 addr, uint32 data)
+void PSG::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xe9:

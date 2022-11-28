@@ -24,22 +24,28 @@ private:
 	DEVICE *d_pic;
 	
 	FIFO* recv_buf;
-	uint8 recv_data;
+	uint8_t recv_data;
 	
 	int kbic_cmd, kbsc_cmd;
-	FIFO* cmd_param
-	uint8 kbic_status;
+	FIFO* cmd_param;
+	uint8_t cmd_byte;
+	uint8_t kbic_status;
+	
+	void process_cmd();
 	
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	
 	// unique functions

@@ -9,10 +9,13 @@
 
 #include "memory.h"
 #include "../i8237.h"
+#if defined(HAS_I86)
+#include "../i86.h"
+#elif defined(HAS_I286)
 #include "../i286.h"
-#include "../../fileio.h"
+#endif
 
-static const uint8 bios1[] = {
+static const uint8_t bios1[] = {
 	0xFA,				// cli
 	0xDB,0xE3,			// fninit
 	0xB8,0x00,0x7F,			// mov	ax,7F00
@@ -35,7 +38,7 @@ static const uint8 bios1[] = {
 	0xEB,0xE7			// jmp $-25
 };
 
-static const uint8 bios2[] = {
+static const uint8_t bios2[] = {
 	0xEA,0x00,0x00,0x00,0xFC,	// jmp	FC00:0000
 	0x00,0x00,0x00,
 	0xcf				// iret
@@ -70,7 +73,7 @@ void MEMORY::initialize()
 	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	} else {
@@ -79,16 +82,16 @@ void MEMORY::initialize()
 		memcpy(ipl + 0xfff0, bios2, sizeof(bios2));
 		
 		// ank8/16
-		if(fio->Fopen(emu->bios_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(ipl, 0x800, 1);
 			fio->Fclose();
 		}
-		if(fio->Fopen(emu->bios_path(_T("ANK16.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("ANK16.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(ipl + 0x800, 0x1000, 1);
 			fio->Fclose();
 		}
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI16.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI16.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji16, sizeof(kanji16), 1);
 		fio->Fclose();
 	}
@@ -97,6 +100,7 @@ void MEMORY::initialize()
 	// set memory
 	SET_BANK(0x000000, 0xffffff, wdmy, rdmy);
 	SET_BANK(0x000000, sizeof(ram) - 1, ram, ram);
+	SET_BANK(0x0f0000, 0x0fffff, wdmy, ipl);
 	SET_BANK(0xff0000, 0xffffff, wdmy, ipl);
 	
 	// register event
@@ -118,36 +122,40 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	// memory controller
 	case 0x1d:
+#ifdef HAS_I286
+		// protect mode ???
+//		d_cpu->write_signal(SIG_I286_A20, data, 0x10);
+#endif
 		mcr1 = data;
 		update_bank();
-		// protect mode ???
-//		d_cpu->write_signal(SIG_I86_A20, data, 0x10);
 		break;
 	case 0x1e:
 		mcr2 = data;
 		update_bank();
 		break;
 	case 0x26:
-		a20 = data;
+#ifdef HAS_I286
 		// protect mode ???
-		d_cpu->write_signal(SIG_I86_A20, data, 0x80);
+		d_cpu->write_signal(SIG_I286_A20, data, 0x80);
+#endif
+		a20 = data;
 		break;
 	// dma bank
 	case 0x120:
@@ -201,9 +209,9 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xffff) {
 	case 0x1d:
@@ -279,12 +287,12 @@ void MEMORY::draw_screen()
 		draw_cg();
 	}
 	
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	for(int y = 0; y < 400; y++) {
-		scrntype* dest = emu->screen_buffer(y);
-		uint8* txt = screen_txt[y];
-		uint8* cg = screen_cg[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* txt = screen_txt[y];
+		uint8_t* cg = screen_cg[y];
 		
 		for(int x = 0; x < 640; x++) {
 			dest[x] = (txt[x] || cg[x]) ? cd : cb;
@@ -294,8 +302,8 @@ void MEMORY::draw_screen()
 
 void MEMORY::draw_text40()
 {
-	uint8 *ank8 = ipl;
-	uint8 *ank16 = ipl + 0x800;
+	uint8_t *ank8 = ipl;
+	uint8_t *ank16 = ipl + 0x800;
 	
 	int src = 0;//((lcdreg[12] << 9) | (lcdreg[13] << 1)) & 0xfff;
 	int caddr = (lcdreg[10] & 0x20) ? -1 : (((lcdreg[14] << 9) | (lcdreg[15] << 1)) & 0xfff);
@@ -308,13 +316,13 @@ void MEMORY::draw_text40()
 		for(int x = 0; x < 40; x++) {
 			bool cursor = (src == caddr);
 			int cx = x;
-			uint8 code = cvram[src];
-			uint8 h = kvram[src] & 0x7f;
+			uint8_t code = cvram[src];
+			uint8_t h = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 attr = cvram[src];
-			uint8 l = kvram[src] & 0x7f;
+			uint8_t attr = cvram[src];
+			uint8_t l = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 col = attr & 0x27;
+			uint8_t col = attr & 0x27;
 			bool blnk = blink && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
 			
@@ -330,15 +338,15 @@ void MEMORY::draw_text40()
 				}
 				
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat0 = kanji16[ofs + (l << 1) + 0];
-					uint8 pat1 = kanji16[ofs + (l << 1) + 1];
+					uint8_t pat0 = kanji16[ofs + (l << 1) + 0];
+					uint8_t pat1 = kanji16[ofs + (l << 1) + 1];
 					pat0 = blnk ? 0 : rev ? ~pat0 : pat0;
 					pat1 = blnk ? 0 : rev ? ~pat1 : pat1;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 4];
+					uint8_t* d = &screen_txt[yy][x << 4];
 					
 					d[ 0] = d[ 1] = (pat0 & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat0 & 0x40) ? col : 0;
@@ -361,13 +369,13 @@ void MEMORY::draw_text40()
 				x++;
 			} else {
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat = ank16[(code << 4) + l];
+					uint8_t pat = ank16[(code << 4) + l];
 					pat = blnk ? 0 : rev ? ~pat : pat;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 4];
+					uint8_t* d = &screen_txt[yy][x << 4];
 					
 					d[ 0] = d[ 1] = (pat & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat & 0x40) ? col : 0;
@@ -392,8 +400,8 @@ void MEMORY::draw_text40()
 
 void MEMORY::draw_text80()
 {
-	uint8 *ank8 = ipl;
-	uint8 *ank16 = ipl + 0x800;
+	uint8_t *ank8 = ipl;
+	uint8_t *ank16 = ipl + 0x800;
 	
 	int src = 0;//((lcdreg[12] << 9) | (lcdreg[13] << 1)) & 0xfff;
 	int caddr = (lcdreg[10] & 0x20) ? -1 : (((lcdreg[14] << 9) | (lcdreg[15] << 1)) & 0xfff);
@@ -406,13 +414,13 @@ void MEMORY::draw_text80()
 		for(int x = 0; x < 80; x++) {
 			bool cursor = (src == caddr);
 			int cx = x;
-			uint8 code = cvram[src];
-			uint8 h = kvram[src] & 0x7f;
+			uint8_t code = cvram[src];
+			uint8_t h = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 attr = cvram[src];
-			uint8 l = kvram[src] & 0x7f;
+			uint8_t attr = cvram[src];
+			uint8_t l = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 col = attr & 0x27;
+			uint8_t col = attr & 0x27;
 			bool blnk = blink && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
 			
@@ -428,15 +436,15 @@ void MEMORY::draw_text80()
 				}
 				
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat0 = kanji16[ofs + (l << 1) + 0];
-					uint8 pat1 = kanji16[ofs + (l << 1) + 1];
+					uint8_t pat0 = kanji16[ofs + (l << 1) + 0];
+					uint8_t pat1 = kanji16[ofs + (l << 1) + 1];
 					pat0 = blnk ? 0 : rev ? ~pat0 : pat0;
 					pat1 = blnk ? 0 : rev ? ~pat1 : pat1;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 3];
+					uint8_t* d = &screen_txt[yy][x << 3];
 					
 					d[ 0] = (pat0 & 0x80) ? col : 0;
 					d[ 1] = (pat0 & 0x40) ? col : 0;
@@ -459,13 +467,13 @@ void MEMORY::draw_text80()
 				x++;
 			} else {
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat = ank16[(code << 4) + l];
+					uint8_t pat = ank16[(code << 4) + l];
 					pat = blnk ? 0 : rev ? ~pat : pat;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 3];
+					uint8_t* d = &screen_txt[yy][x << 3];
 					
 					d[0] = (pat & 0x80) ? col : 0;
 					d[1] = (pat & 0x40) ? col : 0;
@@ -490,13 +498,13 @@ void MEMORY::draw_text80()
 
 void MEMORY::draw_cg()
 {
-	uint8* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
+	uint8_t* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
 	int ptr = 0;
 	
 	for(int y = 0; y < 400; y++) {
 		for(int x = 0; x < 640; x += 8) {
-			uint8 pat = plane[ptr++];
-			uint8* d = &screen_cg[y][x];
+			uint8_t pat = plane[ptr++];
+			uint8_t* d = &screen_cg[y][x];
 			
 			d[0] = pat & 0x80;
 			d[1] = pat & 0x40;
@@ -508,5 +516,39 @@ void MEMORY::draw_cg()
 			d[7] = pat & 0x01;
 		}
 	}
+}
+
+#define STATE_VERSION	2
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateArray(vram, sizeof(vram), 1);
+	state_fio->StateArray(cvram, sizeof(cvram), 1);
+	state_fio->StateArray(kvram, sizeof(kvram), 1);
+	state_fio->StateValue(mcr1);
+	state_fio->StateValue(mcr2);
+	state_fio->StateValue(a20);
+	state_fio->StateValue(lcdadr);
+	state_fio->StateArray(lcdreg, sizeof(lcdreg), 1);
+	state_fio->StateValue(dcr1);
+	state_fio->StateValue(dcr2);
+	state_fio->StateValue(kj_h);
+	state_fio->StateValue(kj_l);
+	state_fio->StateValue(kj_ofs);
+	state_fio->StateValue(kj_row);
+	state_fio->StateValue(blinkcnt);
+	
+	// post process
+	if(loading) {
+		update_bank();
+	}
+	return true;
 }
 

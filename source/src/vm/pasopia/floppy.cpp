@@ -15,7 +15,7 @@ void FLOPPY::initialize()
 	intr = false;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	if(!supported) {
 		// OA-BASIC without floppy drives
@@ -46,7 +46,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	if(!supported) {
 		// OA-BASIC without floppy drives
@@ -64,10 +64,25 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FLOPPY_INTR) {
 		intr = ((data & mask) != 0);
 	}
+}
+
+#define STATE_VERSION	1
+
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(intr);
+	state_fio->StateValue(supported);
+	return true;
 }
 

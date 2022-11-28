@@ -10,7 +10,6 @@
 
 #include "sasi.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 #define PHASE_FREE	0
 #define PHASE_SELECT	1
@@ -37,11 +36,8 @@ void SASI::initialize()
 {
 	// open hard drive images
 	for(int i = 0; i < 2; i++) {
-		_TCHAR file_name[_MAX_PATH];
-		_stprintf(file_name, _T("HDD%d.DAT"), i + 1);
-		
 		drive[i].fio = new FILEIO();
-		if(!drive[i].fio->Fopen(emu->bios_path(file_name), FILEIO_READ_WRITE_BINARY)) {
+		if(!drive[i].fio->Fopen(create_local_path(_T("HDD%d.DAT"), i + 1), FILEIO_READ_WRITE_BINARY)) {
 			delete drive[i].fio;
 			drive[i].fio = NULL;
 		}
@@ -79,7 +75,7 @@ void SASI::reset()
 	maskreg = 0;
 }
 
-void SASI::write_io8(uint32 addr, uint32 data)
+void SASI::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x1f0:
@@ -128,9 +124,9 @@ void SASI::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SASI::read_io8(uint32 addr)
+uint32_t SASI::read_io8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr) {
 	case 0x1f0:
@@ -194,20 +190,20 @@ uint32 SASI::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SASI::write_dma_io8(uint32 addr, uint32 data)
+void SASI::write_dma_io8(uint32_t addr, uint32_t data)
 {
 	write_io8(0x1f0, data);
 }
 
-uint32 SASI::read_dma_io8(uint32 addr)
+uint32_t SASI::read_dma_io8(uint32_t addr)
 {
 	return read_io8(0x1f0);
 }
 
-uint32 SASI::read_signal(int ch)
+uint32_t SASI::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = (drive[0].access ? 0x10 : 0) | (drive[1].access ? 0x20 : 0);
+	uint32_t stat = (drive[0].access ? 0x10 : 0) | (drive[1].access ? 0x20 : 0);
 	drive[0].access = drive[1].access = false;
 	return stat;
 }
@@ -261,9 +257,9 @@ void SASI::check_cmd()
 		// request sense status
 		phase = PHASE_SENSE;
 		status_buf[0] = error;
-		status_buf[1] = (uint8)((unit << 5) | ((sector >> 16) & 0x1f));
-		status_buf[2] = (uint8)(sector >> 8);
-		status_buf[3] = (uint8)sector;
+		status_buf[1] = (uint8_t)((unit << 5) | ((sector >> 16) & 0x1f));
+		status_buf[2] = (uint8_t)(sector >> 8);
+		status_buf[3] = (uint8_t)sector;
 		error = 0;
 		status = 0x00;
 		status_ptr = 0;
@@ -338,7 +334,7 @@ void SASI::check_cmd()
 	}
 }
 
-void SASI::set_status(uint8 err)
+void SASI::set_status(uint8_t err)
 {
 	error = err;
 	register_event(this, EVENT_STATUS, 10, false, NULL);

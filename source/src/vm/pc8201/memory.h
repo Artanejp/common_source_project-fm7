@@ -19,30 +19,33 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cmt, *d_drec, *d_rtc;
 	
-	uint8 ipl[0x8000];	// rom #0
-	uint8 ext[0x8000];	// rom #1
-	uint8 ram[0x8000*3];	// standard and optional ram
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
-	uint8* wbank[16];
-	uint8* rbank[16];
+	uint8_t ipl[0x8000];	// rom #0
+	uint8_t ext[0x8000];	// rom #1
+	uint8_t ram[0x8000*3];	// standard and optional ram
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
+	uint8_t* wbank[16];
+	uint8_t* rbank[16];
 	
-	uint8 sio, bank;
+	uint8_t sio, bank;
 	void update_bank();
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus"));
+	}
 	~MEMORY() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cmt(DEVICE* device)

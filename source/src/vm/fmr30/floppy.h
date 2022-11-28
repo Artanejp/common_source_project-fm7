@@ -16,28 +16,36 @@
 
 #define SIG_FLOPPY_IRQ	0
 
+class MB8877;
+
 class FLOPPY : public DEVICE
 {
 private:
-	DEVICE *d_fdc, *d_pic;
+	MB8877 *d_fdc;
+	DEVICE *d_pic;
 	
-	uint8 fdcr, fdsl, fdst;
+	uint8_t fdcr, fdsl, fdst;
 	int drvsel;
 	bool irq, changed[4];
 	void update_intr();
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FLOPPY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Floppy I/F"));
+	}
 	~FLOPPY() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void reset();
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_fdc(DEVICE* device)
+	void set_context_fdc(MB8877* device)
 	{
 		d_fdc = device;
 	}

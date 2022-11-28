@@ -8,7 +8,6 @@
 */
 
 #include "rp5c01.h"
-#include "../fileio.h"
 
 #define EVENT_1SEC	0
 #define EVENT_16HZ	1
@@ -20,8 +19,9 @@ void RP5C01::initialize()
 	memset(ram, 0, sizeof(ram));
 	modified = false;
 	
+	// FIXME: we need to consider the multiple chips case
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RP5C01.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
@@ -36,7 +36,7 @@ void RP5C01::initialize()
 	alarm = pulse_1hz = pulse_16hz = false;
 	count_16hz = 0;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register events
@@ -49,8 +49,9 @@ void RP5C01::release()
 #ifndef HAS_RP5C15
 	// save ram image
 	if(modified) {
+		// FIXME: we need to consider the multiple chips case
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("RP5C01.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(ram, sizeof(ram), 1);
 			fio->Fclose();
 		}
@@ -59,7 +60,7 @@ void RP5C01::release()
 #endif
 }
 
-void RP5C01::write_io8(uint32 addr, uint32 data)
+void RP5C01::write_io8(uint32_t addr, uint32_t data)
 {
 	addr &= 0x0f;
 	if(addr <= 0x0c) {
@@ -91,7 +92,7 @@ void RP5C01::write_io8(uint32 addr, uint32 data)
 		}
 	}
 	
-	uint8 tmp = regs[addr] ^ data;
+	uint8_t tmp = regs[addr] ^ data;
 	regs[addr] = data;
 	
 	if(addr == 0x0a) {
@@ -129,7 +130,7 @@ void RP5C01::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RP5C01::read_io8(uint32 addr)
+uint32_t RP5C01::read_io8(uint32_t addr)
 {
 	addr &= 0x0f;
 	if(addr <= 0x0c) {
@@ -165,7 +166,7 @@ void RP5C01::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		if(regs[0x0d] & 8) {
@@ -235,7 +236,7 @@ void RP5C01::read_from_cur_time()
 	time[12] = TO_BCD_HI(cur_time.year);
 	
 	// check alarm
-	static const uint8 mask[9] = {0, 0, 0x0f, 0x07, 0x0f, 0x03, 0x07, 0x0f, 0x03};
+	static const uint8_t mask[9] = {0, 0, 0x0f, 0x07, 0x0f, 0x03, 0x07, 0x0f, 0x03};
 	bool tmp = true;
 	
 	for(int i = 3; i < 9; i++) {
@@ -272,47 +273,28 @@ void RP5C01::write_to_cur_time()
 
 #define STATE_VERSION	1
 
-void RP5C01::save_state(FILEIO* state_fio)
+bool RP5C01::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	cur_time.save_state((void *)state_fio);
-	state_fio->FputInt32(register_id);
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->Fwrite(time, sizeof(time), 1);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateArray(time, sizeof(time), 1);
 #ifndef HAS_RP5C15
-	state_fio->Fwrite(ram, sizeof(ram), 1);
-	state_fio->FputBool(modified);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(modified);
 #endif
-	state_fio->FputBool(alarm);
-	state_fio->FputBool(pulse_1hz);
-	state_fio->FputBool(pulse_16hz);
-	state_fio->FputInt32(count_16hz);
-}
-
-bool RP5C01::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
-	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	if(!cur_time.load_state((void *)state_fio)) {
-		return false;
-	}
-	register_id = state_fio->FgetInt32();
-	state_fio->Fread(regs, sizeof(regs), 1);
-	state_fio->Fread(time, sizeof(time), 1);
-#ifndef HAS_RP5C15
-	state_fio->Fread(ram, sizeof(ram), 1);
-	modified = state_fio->FgetBool();
-#endif
-	alarm = state_fio->FgetBool();
-	pulse_1hz = state_fio->FgetBool();
-	pulse_16hz = state_fio->FgetBool();
-	count_16hz = state_fio->FgetInt32();
+	state_fio->StateValue(alarm);
+	state_fio->StateValue(pulse_1hz);
+	state_fio->StateValue(pulse_16hz);
+	state_fio->StateValue(count_16hz);
 	return true;
 }
 

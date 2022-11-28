@@ -28,27 +28,30 @@ class SERIAL : public DEVICE
 private:
 	DEVICE *d_pic, *d_kb, *d_sub, *d_ch1, *d_ch2;
 	
-	typedef struct {
-		uint8 baud;
-		uint8 ctrl;
+	struct {
+		uint8_t baud;
+		uint8_t ctrl;
 		bool rxrdy;
 		bool txrdy;
-		uint8 intmask;
-		uint8 intstat;
-	} sioctrl_t;
-	sioctrl_t sioctrl[4];
+		uint8_t intmask;
+		uint8_t intstat;
+	} sioctrl[4];
 	
 	void update_intr(int ch);
 	
 public:
-	SERIAL(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SERIAL(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Serial I/F"));
+	}
 	~SERIAL() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_pic(DEVICE* device)

@@ -2,11 +2,12 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2013.05.01-
 
-	[ sub cpu ]
+	[ sub system ]
 */
 
 #include "sub.h"
@@ -14,7 +15,6 @@
 #include "../i8255.h"
 #include "../mcs48.h"
 #include "../upd1990a.h"
-#include "../../fileio.h"
 
 /*
 SUB CPU
@@ -86,12 +86,12 @@ void SUB::reset()
 	d_pio->write_signal(SIG_I8255_PORT_C, (v) ? 0xff : 0, 0x40); \
 }
 
-void SUB::write_io8(uint32 addr, uint32 data)
+void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xff00) == 0x1900) {
 		// for z80
-//		emu->out_debug_log("Z80 -> PA=%2x\n",data);
+//		this->out_debug_log(_T("Z80 -> PA=%2x\n"), data);
 		d_pio->write_signal(SIG_I8255_PORT_A, data, 0xff);
 		SET_STB(true);
 		SET_STB(false);
@@ -112,6 +112,11 @@ void SUB::write_io8(uint32 addr, uint32 data)
 				d_drec->set_ff_rew(0);
 				d_drec->set_remote(true);
 			}
+			if(!(p2_out & 0x02) && (data & 0x02)) {
+				if(rom_crc32 == CRC32_MSM80C49_262) {
+					d_drec->set_remote(false);
+				}
+			}
 			if((p2_out & 0x04) && !(data & 0x04)) {
 				d_drec->set_ff_rew(1);
 				d_drec->set_remote(true);
@@ -120,7 +125,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 				d_drec->set_ff_rew(-1);
 				d_drec->set_remote(true);
 			}
-			if((p2_out & 0x10) && !(data & 0x10)) {
+			if(!(p2_out & 0x10) && (data & 0x10)) {
 				d_drec->set_remote(false);
 			}
 			intr = ((data & 0x40) == 0);
@@ -134,25 +139,26 @@ void SUB::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_io8(uint32 addr)
+uint32_t SUB::read_io8(uint32_t addr)
 {
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xff00) == 0x1900) {
 		// for z80
-		uint32 value = d_pio->read_signal(SIG_I8255_PORT_A);
-//		emu->out_debug_log("Z80 <- PA=%2x\n",value);
-		if(iei) {
+		uint32_t value = d_pio->read_signal(SIG_I8255_PORT_A);
+//		this->out_debug_log(_T("Z80 <- PA=%2x\n"), value);
+		// don't check iei status (thanks Mr.Sato)
+//		if(iei) {
 			SET_ACK(true);
 			SET_ACK(false);
 			SET_ACK(true);
-		}
+//		}
 		return value;
 	} else {
 		// for 80c48
 		switch(addr) {
 		case MCS48_PORT_P1:
 			{
-				uint32 value = p1_in & p1_out;
+				uint32_t value = p1_in & p1_out;
 				p1_in &= ~4;	// P12
 				return value | 4;
 			}
@@ -169,11 +175,11 @@ uint32 SUB::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SUB::write_signal(int id, uint32 data, uint32 mask)
+void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SUB_PIO_PORT_C) {
 		if((portc & 0x01) && !(data & 0x01)) {
-			emu->close_tape();
+			emu->close_tape(0);
 		}
 		obf = ((data & 0x80) == 0);
 		portc = data;
@@ -210,18 +216,19 @@ void SUB::close_tape()
 void SUB::update_tape()
 {
 	if(rom_crc32 != CRC32_MSM80C49_277) {
-		uint32 value = 0x10;
-		if(!(tape_play && tape_eot)) {
+		uint32_t value = 0x10;
+//		if(!(tape_play && tape_eot)) {
+		if((tape_play || tape_rec) && !tape_eot) {
 			value |= 0x01;	// tape end
 		}
 		if(tape_play || tape_rec) {
 			value |= 0x02;	// cassette inserted
 		}
-		if(rom_crc32 == CRC32_MSM80C49_262) {
-			value ^= 0x02;	// X1F/G or X1turbo
-		}
-		if(tape_play) {
+		if(tape_rec) {
 			value |= 0x04;	// rec protected
+		}
+		if(rom_crc32 == CRC32_MSM80C49_262) {
+			value ^= 0x06;	// X1F/G or X1turbo
 		}
 		if(tape_play && tape_apss) {
 			value |= 0x20;
@@ -243,13 +250,13 @@ void SUB::set_intr_iei(bool val)
 	}
 }
 
-uint32 SUB::intr_ack()
+uint32_t SUB::get_intr_ack()
 {
 	intr = false;
 	return read_io8(0x1900);
 }
 
-void SUB::intr_reti()
+void SUB::notify_intr_reti()
 {
 	// NOTE: some software uses RET, not RETI ???
 }
@@ -265,47 +272,27 @@ void SUB::update_intr()
 
 #define STATE_VERSION	1
 
-void SUB::save_state(FILEIO* state_fio)
+bool SUB::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(p1_out);
-	state_fio->FputUint8(p1_in);
-	state_fio->FputUint8(p2_out);
-	state_fio->FputUint8(p2_in);
-	state_fio->FputUint8(portc);
-	state_fio->FputBool(tape_play);
-	state_fio->FputBool(tape_rec);
-	state_fio->FputBool(tape_eot);
-	state_fio->FputBool(tape_apss);
-	state_fio->FputBool(intr);
-	state_fio->FputBool(obf);
-	state_fio->FputBool(iei);
-	state_fio->FputUint32(intr_bit);
-}
-
-bool SUB::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	p1_out = state_fio->FgetUint8();
-	p1_in = state_fio->FgetUint8();
-	p2_out = state_fio->FgetUint8();
-	p2_in = state_fio->FgetUint8();
-	portc = state_fio->FgetUint8();
-	tape_play = state_fio->FgetBool();
-	tape_rec = state_fio->FgetBool();
-	tape_eot = state_fio->FgetBool();
-	tape_apss = state_fio->FgetBool();
-	intr = state_fio->FgetBool();
-	obf = state_fio->FgetBool();
-	iei = state_fio->FgetBool();
-	intr_bit = state_fio->FgetUint32();
+	state_fio->StateValue(p1_out);
+	state_fio->StateValue(p1_in);
+	state_fio->StateValue(p2_out);
+	state_fio->StateValue(p2_in);
+	state_fio->StateValue(portc);
+	state_fio->StateValue(tape_play);
+	state_fio->StateValue(tape_rec);
+	state_fio->StateValue(tape_eot);
+	state_fio->StateValue(tape_apss);
+	state_fio->StateValue(intr);
+	state_fio->StateValue(obf);
+	state_fio->StateValue(iei);
+	state_fio->StateValue(intr_bit);
 	return true;
 }
 

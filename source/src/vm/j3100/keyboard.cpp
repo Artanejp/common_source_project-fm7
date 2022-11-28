@@ -20,7 +20,7 @@ void KEYBOARD::initialize()
 	recv_buf = new FIFO(32);
 	cmd_param = new FIFO(32);
 	
-	vm->register_frame_event(this);
+	register_frame_event(this);
 }
 
 void KEYBOARD::release()
@@ -36,10 +36,11 @@ void KEYBOARD::reset()
 	
 	kbic_cmd = kbsc_cmd = -1;
 	cmd_param->clear();
+	cmd_byte = 0x00;
 	kbic_status = 0x12;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x60:
@@ -57,7 +58,7 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x60:

@@ -22,13 +22,16 @@ private:
 	DEVICE *d_cpu, *d_pio1, *d_pio2;
 	
 	FIFO* key_buf;
-	uint8* key_stat;
+	const uint8_t* key_stat;
 	int key_code;
 	bool kana;
 	int event_cnt;
 	
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
 	// common functions
@@ -36,6 +39,7 @@ public:
 	void release();
 	void reset();
 	void event_frame();
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -52,6 +56,15 @@ public:
 	}
 	void key_down(int code);
 	void key_up(int code);
+	bool get_caps_locked()
+	{
+//		return caps;
+		return true;
+	}
+	bool get_kana_locked()
+	{
+		return kana;
+	}
 };
 
 #endif

@@ -10,7 +10,6 @@
 #include "memory.h"
 #include "../datarec.h"
 #include "../tms9995.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
@@ -28,6 +27,23 @@
 	} \
 }
 
+#define ENABLE_CART() { \
+	if(ctype == 3) { \
+		SET_BANK(0x0000, 0x3fff, wdmy, ipl); \
+		SET_BANK(0x4000, 0xbfff, wdmy, cart); \
+	} else { \
+		SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
+		SET_BANK(0x8000, 0xbfff, wdmy, cart); \
+	} \
+	cart_enabled = true; \
+}
+
+#define DISABLE_CART() { \
+	SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
+	SET_BANK(0x8000, 0xbfff, wdmy, basic); \
+	cart_enabled = false; \
+}
+
 void MEMORY::initialize()
 {
 	memset(ipl, 0xff, sizeof(ipl));
@@ -37,11 +53,11 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(basic, sizeof(basic), 1);
 		fio->Fclose();
 		has_extrom = true;
@@ -51,13 +67,12 @@ void MEMORY::initialize()
 	delete fio;
 	
 	// set memory map
-	SET_BANK(0x0000, 0x7fff, wdmy, ipl);
-	SET_BANK(0x8000, 0xbfff, wdmy, basic);
+	DISABLE_CART();
 	SET_BANK(0xc000, 0xffff, wdmy, rdmy);
 	
 	// get keyboard and joystick buffers
-	key = emu->key_buffer();
-	joy = emu->joy_buffer();
+	key = emu->get_key_buffer();
+	joy = emu->get_joy_buffer();
 	
 	ctype = 0;
 }
@@ -67,22 +82,7 @@ void MEMORY::reset()
 	cmt_signal = cmt_remote = false;
 }
 
-#define ENABLE_CART() { \
-	if(ctype == 3) { \
-		SET_BANK(0x0000, 0x3fff, wdmy, ipl); \
-		SET_BANK(0x4000, 0xbfff, wdmy, cart); \
-	} else { \
-		SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
-		SET_BANK(0x8000, 0xbfff, wdmy, cart); \
-	} \
-}
-
-#define DISABLE_CART() { \
-	SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
-	SET_BANK(0x8000, 0xbfff, wdmy, basic); \
-}
-
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr < 0xe000) {
@@ -109,7 +109,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 			switch((addr >> 6) & 3) {
 			case 0:
 				if(cmt_signal != signal) {
-					d_cmt->write_signal(SIG_DATAREC_OUT, signal ? 1 : 0, 1);
+					d_cmt->write_signal(SIG_DATAREC_MIC, signal ? 1 : 0, 1);
 					cmt_signal = signal;
 				}
 				break;
@@ -127,9 +127,9 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	addr &= 0xffff;
 	if(addr < 0xe000) {
@@ -184,15 +184,15 @@ uint32 MEMORY::read_data8(uint32 addr)
 	}
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	// CRU OUT
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	// CRU IN
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr) {
 	case 0xec0:
@@ -274,7 +274,7 @@ uint32 MEMORY::read_io8(uint32 addr)
 	return 0xff;	// pull down ?
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from cmt
 	bool signal = ((data & mask) != 0);
@@ -286,19 +286,19 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void MEMORY::open_cart(_TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	// open cart
 	FILEIO* fio = new FILEIO();
 	
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		// 8kb
-		ctype = fio->Fread(cart, 0x2000, 1);
+		ctype  = (int)fio->Fread(cart, 0x2000, 1);
 		memcpy(cart + 0x2000, cart, 0x2000);
 		// 16kb
-		ctype += fio->Fread(cart + 0x2000, 0x2000, 1);
+		ctype += (int)fio->Fread(cart + 0x2000, 0x2000, 1);
 		// 32kb
-		ctype += fio->Fread(cart + 0x4000, 0x4000, 1);
+		ctype += (int)fio->Fread(cart + 0x4000, 0x4000, 1);
 		fio->Fclose();
 		
 		ENABLE_CART();
@@ -310,5 +310,32 @@ void MEMORY::close_cart()
 {
 	ctype = 0;
 	DISABLE_CART();
+}
+
+#define STATE_VERSION	1
+
+bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(cmt_signal);
+	state_fio->StateValue(cmt_remote);
+	state_fio->StateValue(has_extrom);
+	state_fio->StateValue(cart_enabled);
+	state_fio->StateValue(ctype);
+	
+	// post process
+	if(loading) {
+		if(cart_enabled) {
+			ENABLE_CART();
+		} else {
+			DISABLE_CART();
+		}
+	}
+	return true;
 }
 

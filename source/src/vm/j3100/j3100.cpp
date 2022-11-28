@@ -18,14 +18,20 @@
 //#include "../i8250.h"
 #include "../i8253.h"
 #include "../i8259.h"
-#include "../i86.h"
 #include "../io.h"
+#include "../noise.h"
 #include "../pcm1bit.h"
 #include "../upd765a.h"
 #ifdef TYPE_SL
+#include "../i86.h"
 #include "../rp5c01.h"
 #else
+#include "../i286.h"
 #include "../hd146818p.h"
+#endif
+
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
 #endif
 
 #include "display.h"
@@ -46,7 +52,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-VM::VM(EMU* parent_emu) : emu(parent_emu)
+VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	// create devices
 	first_device = last_device = NULL;
@@ -55,16 +61,30 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	crtc = new HD46505(this, emu);
 	dma = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #ifndef TYPE_SL
 	dma2 = new I8237(this, emu);
+#ifdef USE_DEBUGGER
+	dma2->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 #endif
 //	sio = new I8250(this, emu);
 	pit = new I8253(this, emu);	// i8254
 	pic = new I8259(this, emu);
+#ifdef TYPE_SL
 	cpu = new I86(this, emu);
+	cpu->device_model = INTEL_8086;
+#else
+	cpu = new I286(this, emu);
+#endif
 	io = new IO(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
+	fdc->set_context_noise_seek(new NOISE(this, emu));
+	fdc->set_context_noise_head_down(new NOISE(this, emu));
+	fdc->set_context_noise_head_up(new NOISE(this, emu));
 #ifdef TYPE_SL
 	rtc = new RP5C01(this, emu);
 #else
@@ -82,11 +102,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
+	event->set_context_sound(fdc->get_context_noise_seek());
+	event->set_context_sound(fdc->get_context_noise_head_down());
+	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
+#ifdef USE_DEBUGGER
+	cpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	
 	// dmac
 	io->set_iomap_range_rw(0x00, 0x0f, dma);
@@ -99,7 +125,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iomap_alias_rw(i, dma2, i >> 1);
 	}
 	dma2->set_context_memory(memory);
-	dma2->set_word_mode(true);
+	dma2->set_mode_word(true);
 	dmareg->set_context_dma2(dma2);
 #endif
 	
@@ -196,7 +222,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		0x2e8, 0x42e8, 0x82e8, 0xc2e8,
 #endif
 	};
-	for(int i = 0; i < _countof(ems_addr); i++) {
+	for(int i = 0; i < array_length(ems_addr); i++) {
 		io->set_iomap_single_rw(ems_addr[i], memory);
 #ifdef TYPE_SL
 		io->set_iomap_single_w(ems_addr[i] + 1, memory);
@@ -273,18 +299,26 @@ void VM::run()
 }
 
 // ----------------------------------------------------------------------------
+// debugger
+// ----------------------------------------------------------------------------
+
+#ifdef USE_DEBUGGER
+DEVICE *VM::get_cpu(int index)
+{
+	if(index == 0) {
+		return cpu;
+	}
+	return NULL;
+}
+#endif
+
+// ----------------------------------------------------------------------------
 // draw screen
 // ----------------------------------------------------------------------------
 
 void VM::draw_screen()
 {
 	display->draw_screen();
-}
-
-int VM::access_lamp()
-{
-	uint32 status = fdc->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -297,18 +331,31 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->init(rate, 8000);
+	pcm->initialize_sound(rate, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
+		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key
@@ -328,24 +375,39 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-bool VM::now_skip()
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	return event->now_skip();
+	fdc->is_disk_protected(drv, value);
+}
+
+bool VM::is_floppy_disk_protected(int drv)
+{
+	return fdc->is_disk_protected(drv);
+}
+
+uint32_t VM::is_floppy_disk_accessed()
+{
+	return fdc->read_signal(0);
+}
+
+bool VM::is_frame_skippable()
+{
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
@@ -353,5 +415,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	3
+
+bool VM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		const char *name = typeid(*device).name() + 6; // skip "class "
+		int len = (int)strlen(name);
+		
+		if(!state_fio->StateCheckInt32(len)) {
+			return false;
+		}
+		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+			return false;
+		}
+		if(!device->process_state(state_fio, loading)) {
+			return false;
+		}
+	}
+	return true;
 }
 

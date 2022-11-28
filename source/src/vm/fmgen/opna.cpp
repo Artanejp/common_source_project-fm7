@@ -27,9 +27,9 @@
 //
 //#define NO_BITTYPE_EMULATION
 
-#ifdef BUILD_OPNA
-#include "file.h"
-#endif
+//#ifdef BUILD_OPNA
+//#include "file.h"
+//#endif
 
 namespace FM
 {
@@ -43,6 +43,7 @@ uint32	OPNBase::lfotable[8];			// OPNA/B 用
 
 OPNBase::OPNBase()
 {
+	is_ay3_891x = false;
 	prescale = 0;
 }
 
@@ -155,13 +156,19 @@ bool OPNBase::Init(uint c, uint r)
 }
 
 //	音量設定
-void OPNBase::SetVolumeFM(int db)
+void OPNBase::SetVolumeFM(int db_l, int db_r)
 {
-	db = Min(db, 20);
-	if (db > -192)
-		fmvolume = int(16384.0 * pow(10.0, db / 40.0));
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+	
+	if (db_l > -192)
+		fmvolume_l = int(16384.0 * pow(10.0, db_l / 40.0));
 	else
-		fmvolume = 0;
+		fmvolume_l = 0;
+	if (db_r > -192)
+		fmvolume_r = int(16384.0 * pow(10.0, db_r / 40.0));
+	else
+		fmvolume_r = 0;
 }
 
 //	タイマー時間処理
@@ -183,47 +190,30 @@ void OPNBase::Intr(bool value)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPN_BASE_STATE_VERSION	1
+#define OPN_BASE_STATE_VERSION	2
 
-void OPNBase::SaveState(void *f)
+bool OPNBase::ProcessState(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(OPN_BASE_STATE_VERSION);
-	
-	Timer::SaveState(f);
-	state_fio->FputInt32(fmvolume);
-	state_fio->FputUint32(clock);
-	state_fio->FputUint32(rate);
-	state_fio->FputUint32(psgrate);
-	state_fio->FputUint32(status);
-	state_fio->FputBool(interrupt);
-	state_fio->FputUint8(prescale);
-	chip.SaveState(f);
-	psg.SaveState(f);
-}
-
-bool OPNBase::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != OPN_BASE_STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(OPN_BASE_STATE_VERSION)) {
 		return false;
 	}
-	if(!Timer::LoadState(f)) {
+	if(!Timer::ProcessState(f, loading)) {
 		return false;
 	}
-	fmvolume = state_fio->FgetInt32();
-	clock = state_fio->FgetUint32();
-	rate = state_fio->FgetUint32();
-	psgrate = state_fio->FgetUint32();
-	status = state_fio->FgetUint32();
-	interrupt = state_fio->FgetBool();
-	prescale = state_fio->FgetUint8();
-	if(!chip.LoadState(f)) {
+	state_fio->StateValue(fmvolume_l);
+	state_fio->StateValue(fmvolume_r);
+	state_fio->StateValue(clock);
+	state_fio->StateValue(rate);
+	state_fio->StateValue(psgrate);
+	state_fio->StateValue(status);
+	state_fio->StateValue(interrupt);
+	state_fio->StateValue(prescale);
+	if(!chip.ProcessState(f, loading)) {
 		return false;
 	}
-	if(!psg.LoadState(f)) {
+	if(!psg.ProcessState(f, loading)) {
 		return false;
 	}
 	return true;
@@ -238,8 +228,8 @@ bool OPNBase::LoadState(void *f)
 
 OPN::OPN()
 {
-	SetVolumeFM(0);
-	SetVolumePSG(0);
+	SetVolumeFM(0, 0);
+	SetVolumePSG(0, 0);
 
 	csmch = &ch[2];
 
@@ -258,8 +248,8 @@ bool OPN::Init(uint c, uint r, bool ip, const char*)
 	
 	Reset();
 
-	SetVolumeFM(0);
-	SetVolumePSG(0);
+	SetVolumeFM(0, 0);
+	SetVolumePSG(0, 0);
 	SetChannelMask(0);
 	return true;
 }
@@ -394,7 +384,8 @@ void OPN::SetChannelMask(uint mask)
 //	合成(2ch)
 void OPN::Mix(Sample* buffer, int nsamples)
 {
-#define IStoSample(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume) >> 14)
+#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
 	
 	psg.Mix(buffer, nsamples);
 	
@@ -418,15 +409,18 @@ void OPN::Mix(Sample* buffer, int nsamples)
 		for (Sample* dest = buffer; dest < limit; dest+=2)
 		{
 			ISample s = 0;
+			ISample s_l, s_r;
 			if (actch & 0x01) s  = ch[0].Calc();
 			if (actch & 0x04) s += ch[1].Calc();
 			if (actch & 0x10) s += ch[2].Calc();
-			s = IStoSample(s);
-			StoreSample(dest[0], s);
-			StoreSample(dest[1], s);
+			s_l = IStoSampleL(s);
+			s_r = IStoSampleR(s);
+			StoreSample(dest[0], s_l);
+			StoreSample(dest[1], s_r);
 		}
 	}
-#undef IStoSample
+#undef IStoSampleL
+#undef IStoSampleR
 }
 
 // ---------------------------------------------------------------------------
@@ -434,36 +428,21 @@ void OPN::Mix(Sample* buffer, int nsamples)
 //
 #define OPN_STATE_VERSION	1
 
-void OPN::SaveState(void *f)
+bool OPN::ProcessState(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(OPN_STATE_VERSION);
-	
-	OPNBase::SaveState(f);
-	state_fio->Fwrite(fnum, sizeof(fnum), 1);
-	state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
-	state_fio->Fwrite(fnum2, sizeof(fnum2), 1);
-	for(int i = 0; i < 3; i++) {
-		ch[i].SaveState(f);
-	}
-}
-
-bool OPN::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != OPN_STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(OPN_STATE_VERSION)) {
 		return false;
 	}
-	if(!OPNBase::LoadState(f)) {
+	if(!OPNBase::ProcessState(f, loading)) {
 		return false;
 	}
-	state_fio->Fread(fnum, sizeof(fnum), 1);
-	state_fio->Fread(fnum3, sizeof(fnum3), 1);
-	state_fio->Fread(fnum2, sizeof(fnum2), 1);
+	state_fio->StateArray(fnum, sizeof(fnum), 1);
+	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
+	state_fio->StateArray(fnum2, sizeof(fnum2), 1);
 	for(int i = 0; i < 3; i++) {
-		if(!ch[i].LoadState(f)) {
+		if(!ch[i].ProcessState(f, loading)) {
 			return false;
 		}
 	}
@@ -491,7 +470,8 @@ OPNABase::OPNABase()
 	startaddr = 0;
 	deltan = 256;
 
-	adpcmvol = 0;
+	adpcmvol_l = 0;
+	adpcmvol_r = 0;
 	control2 = 0;
 
 	MakeTable2();
@@ -516,8 +496,8 @@ bool OPNABase::Init(uint c, uint r, bool)
 	
 	Reset();
 
-	SetVolumeFM(0);
-	SetVolumePSG(0);
+	SetVolumeFM(0, 0);
+	SetVolumePSG(0, 0);
 	SetChannelMask(0);
 	return true;
 }
@@ -564,7 +544,8 @@ void OPNABase::Reset()
 	adpcmd = 127;
 	adpcmx = 0;
 	adpcmreadbuf = 0;
-	apout0 = apout1 = adpcmout = 0;
+	apout0_l = apout1_l = adpcmout_l = 0;
+	apout0_r = apout1_r = adpcmout_r = 0;
 	lfocount = 0;
 	adpcmplay = false;
 	adplc = 0;
@@ -772,7 +753,8 @@ void OPNABase::SetADPCMBReg(uint addr, uint data)
 
 	case 0x0b:		// Level Control
 		adpcmlevel = data; 
-		adpcmvolume = (adpcmvol * adpcmlevel) >> 12;
+		adpcmvolume_l = (adpcmvol_l * adpcmlevel) >> 12;
+		adpcmvolume_r = (adpcmvol_r * adpcmlevel) >> 12;
 		break;
 
 	case 0x0c:		// Limit Address L
@@ -785,7 +767,8 @@ void OPNABase::SetADPCMBReg(uint addr, uint data)
 	case 0x10:		// Flag Control
 		if (data & 0x80)
 		{
-			status = 0;
+			// for Firecracker Music collection (Hi-speed PCM loader)
+			status &= 0x03;
 			UpdateStatus();
 		}
 		else
@@ -1036,6 +1019,8 @@ int OPNABase::ReadRAMN()
 			memaddr = startaddr;
 			data = adpcmx;
 			adpcmx = 0, adpcmd = 127;
+			// for PC-8801FA/MA shop demonstration
+			SetStatus(adpcmnotice);
 			return data;
 		}
 		else
@@ -1068,10 +1053,15 @@ uint OPNABase::ReadStatusEx()
 //
 inline void OPNABase::DecodeADPCMB()
 {
-	apout0 = apout1;
-	int n = (ReadRAMN() * adpcmvolume) >> 13;
-	apout1 = adpcmout + n;
-	adpcmout = n;
+	apout0_l = apout1_l;
+	apout0_r = apout1_r;
+	int ram = ReadRAMN();
+	int s_l = (ram * adpcmvolume_l) >> 13;
+	int s_r = (ram * adpcmvolume_r) >> 13;
+	apout1_l = adpcmout_l + s_l;
+	apout1_r = adpcmout_r + s_r;
+	adpcmout_l = s_l;
+	adpcmout_r = s_r;
 }
 
 // ---------------------------------------------------------------------------
@@ -1079,11 +1069,11 @@ inline void OPNABase::DecodeADPCMB()
 //	
 void OPNABase::ADPCMBMix(Sample* dest, uint count)
 {
-	uint maskl = control2 & 0x80 ? -1 : 0;
-	uint maskr = control2 & 0x40 ? -1 : 0;
+	uint mask_l = control2 & 0x80 ? -1 : 0;
+	uint mask_r = control2 & 0x40 ? -1 : 0;
 	if (adpcmmask_)
 	{
-		maskl = maskr = 0;
+		mask_l = mask_r = 0;
 	}
  	
 	if (adpcmplay)
@@ -1100,22 +1090,25 @@ void OPNABase::ADPCMBMix(Sample* dest, uint count)
 					if (!adpcmplay)
 						break;
 				}
-				int s = (adplc * apout0 + (8192-adplc) * apout1) >> 13;
-				StoreSample(dest[0], s & maskl);
-				StoreSample(dest[1], s & maskr);
+				int s_l = (adplc * apout0_l + (8192-adplc) * apout1_l) >> 13;
+				int s_r = (adplc * apout0_r + (8192-adplc) * apout1_r) >> 13;
+				StoreSample(dest[0], s_l & mask_l);
+				StoreSample(dest[1], s_r & mask_r);
 				dest += 2;
 				adplc -= adpld;
 			}
-			for (; count>0 && apout0; count--)
+			for (; count>0 && (apout0_l || apout0_r); count--)
 			{
 				if (adplc < 0)
 				{
-					apout0 = apout1, apout1 = 0;
+					apout0_l = apout1_l, apout1_l = 0;
+					apout0_r = apout1_r, apout1_r = 0;
 					adplc += 8192;
 				}
-				int s = (adplc * apout1) >> 13;
-				StoreSample(dest[0], s & maskl);
-				StoreSample(dest[1], s & maskr);
+				int s_l = (adplc * apout1_l) >> 13;
+				int s_r = (adplc * apout1_r) >> 13;
+				StoreSample(dest[0], s_l & mask_l);
+				StoreSample(dest[1], s_r & mask_r);
 				dest += 2;
 				adplc -= adpld;
 			}
@@ -1125,19 +1118,22 @@ void OPNABase::ADPCMBMix(Sample* dest, uint count)
 			int t = (-8192*8192)/adpld;
 			for (; count>0; count--)
 			{
-				int s = apout0 * (8192+adplc);
+				int s_l = apout0_l * (8192+adplc);
+				int s_r = apout0_r * (8192+adplc);
 				while (adplc < 0)
 				{
 					DecodeADPCMB();
 					if (!adpcmplay)
 						goto stop;
-					s -= apout0 * Max(adplc, t);
+					s_l -= apout0_l * Max(adplc, t);
+					s_r -= apout0_r * Max(adplc, t);
 					adplc -= t;
 				}
 				adplc -= 8192;
-				s >>= 13;
-				StoreSample(dest[0], s & maskl);
-				StoreSample(dest[1], s & maskr);
+				s_l >>= 13;
+				s_r >>= 13;
+				StoreSample(dest[0], s_l & mask_l);
+				StoreSample(dest[1], s_r & mask_r);
 				dest += 2;
 			}
 stop:
@@ -1146,7 +1142,8 @@ stop:
 	}
 	if (!adpcmplay)
 	{
-		apout0 = apout1 = adpcmout = 0;
+		apout0_l = apout1_l = adpcmout_l = 0;
+		apout0_r = apout1_r = adpcmout_r = 0;
 		adplc = 0;
 	}
 }
@@ -1158,7 +1155,7 @@ stop:
 //
 void OPNABase::FMMix(Sample* buffer, int nsamples)
 {
-	if (fmvolume > 0)
+	if (fmvolume_l > 0 || fmvolume_r > 0)
 	{
 		// 準備
 		// Set F-Number
@@ -1243,7 +1240,8 @@ inline void OPNABase::LFO()
 // ---------------------------------------------------------------------------
 //	合成
 //
-#define IStoSample(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume) >> 14)
+#define IStoSampleL(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume_r) >> 14)
 
 void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 {
@@ -1265,114 +1263,70 @@ void OPNABase::Mix6(Sample* buffer, int nsamples, int activech)
 			LFO(), MixSubSL(activech, idest);
 		else
 			MixSubS(activech, idest);
-		StoreSample(dest[0], IStoSample(ibuf[2] + ibuf[3]));
-		StoreSample(dest[1], IStoSample(ibuf[1] + ibuf[3]));
+		StoreSample(dest[0], IStoSampleL(ibuf[2] + ibuf[3]));
+		StoreSample(dest[1], IStoSampleR(ibuf[1] + ibuf[3]));
 	}
 }
 
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPNA_BASE_STATE_VERSION	1
+#define OPNA_BASE_STATE_VERSION	2
 
-void OPNABase::SaveState(void *f)
+bool OPNABase::ProcessState(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(OPNA_BASE_STATE_VERSION);
-	
-	OPNBase::SaveState(f);
-	state_fio->Fwrite(pan, sizeof(pan), 1);
-	state_fio->Fwrite(fnum2, sizeof(fnum2), 1);
-	state_fio->FputUint8(reg22);
-	state_fio->FputUint32(reg29);
-	state_fio->FputUint32(stmask);
-	state_fio->FputUint32(statusnext);
-	state_fio->FputUint32(lfocount);
-	state_fio->FputUint32(lfodcount);
-	state_fio->Fwrite(fnum, sizeof(fnum), 1);
-	state_fio->Fwrite(fnum3, sizeof(fnum3), 1);
-	state_fio->Fwrite(adpcmbuf, 0x40000, 1);
-	state_fio->FputUint32(adpcmmask);
-	state_fio->FputUint32(adpcmnotice);
-	state_fio->FputUint32(startaddr);
-	state_fio->FputUint32(stopaddr);
-	state_fio->FputUint32(memaddr);
-	state_fio->FputUint32(limitaddr);
-	state_fio->FputInt32(adpcmlevel);
-	state_fio->FputInt32(adpcmvolume);
-	state_fio->FputInt32(adpcmvol);
-	state_fio->FputUint32(deltan);
-	state_fio->FputInt32(adplc);
-	state_fio->FputInt32(adpld);
-	state_fio->FputUint32(adplbase);
-	state_fio->FputInt32(adpcmx);
-	state_fio->FputInt32(adpcmd);
-	state_fio->FputInt32(adpcmout);
-	state_fio->FputInt32(apout0);
-	state_fio->FputInt32(apout1);
-	state_fio->FputUint32(adpcmreadbuf);
-	state_fio->FputBool(adpcmplay);
-	state_fio->FputInt8(granuality);
-	state_fio->FputBool(adpcmmask_);
-	state_fio->FputUint8(control1);
-	state_fio->FputUint8(control2);
-	state_fio->Fwrite(adpcmreg, sizeof(adpcmreg), 1);
-	state_fio->FputInt32(rhythmmask_);
-	for(int i = 0; i < 6; i++) {
-		ch[i].SaveState(f);
-	}
-}
-
-bool OPNABase::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != OPNA_BASE_STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(OPNA_BASE_STATE_VERSION)) {
 		return false;
 	}
-	if(!OPNBase::LoadState(f)) {
+	if(!OPNBase::ProcessState(f, loading)) {
 		return false;
 	}
-	state_fio->Fread(pan, sizeof(pan), 1);
-	state_fio->Fread(fnum2, sizeof(fnum2), 1);
-	reg22 = state_fio->FgetUint8();
-	reg29 = state_fio->FgetUint32();
-	stmask = state_fio->FgetUint32();
-	statusnext = state_fio->FgetUint32();
-	lfocount = state_fio->FgetUint32();
-	lfodcount = state_fio->FgetUint32();
-	state_fio->Fread(fnum, sizeof(fnum), 1);
-	state_fio->Fread(fnum3, sizeof(fnum3), 1);
-	state_fio->Fread(adpcmbuf, 0x40000, 1);
-	adpcmmask = state_fio->FgetUint32();
-	adpcmnotice = state_fio->FgetUint32();
-	startaddr = state_fio->FgetUint32();
-	stopaddr = state_fio->FgetUint32();
-	memaddr = state_fio->FgetUint32();
-	limitaddr = state_fio->FgetUint32();
-	adpcmlevel = state_fio->FgetInt32();
-	adpcmvolume = state_fio->FgetInt32();
-	adpcmvol = state_fio->FgetInt32();
-	deltan = state_fio->FgetUint32();
-	adplc = state_fio->FgetInt32();
-	adpld = state_fio->FgetInt32();
-	adplbase = state_fio->FgetUint32();
-	adpcmx = state_fio->FgetInt32();
-	adpcmd = state_fio->FgetInt32();
-	adpcmout = state_fio->FgetInt32();
-	apout0 = state_fio->FgetInt32();
-	apout1 = state_fio->FgetInt32();
-	adpcmreadbuf = state_fio->FgetUint32();
-	adpcmplay = state_fio->FgetBool();
-	granuality = state_fio->FgetInt8();
-	adpcmmask_ = state_fio->FgetBool();
-	control1 = state_fio->FgetUint8();
-	control2 = state_fio->FgetUint8();
-	state_fio->Fread(adpcmreg, sizeof(adpcmreg), 1);
-	rhythmmask_ = state_fio->FgetInt32();
+	state_fio->StateArray(pan, sizeof(pan), 1);
+	state_fio->StateArray(fnum2, sizeof(fnum2), 1);
+	state_fio->StateValue(reg22);
+	state_fio->StateValue(reg29);
+	state_fio->StateValue(stmask);
+	state_fio->StateValue(statusnext);
+	state_fio->StateValue(lfocount);
+	state_fio->StateValue(lfodcount);
+	state_fio->StateArray(fnum, sizeof(fnum), 1);
+	state_fio->StateArray(fnum3, sizeof(fnum3), 1);
+	state_fio->StateArray(adpcmbuf, 0x40000, 1);
+	state_fio->StateValue(adpcmmask);
+	state_fio->StateValue(adpcmnotice);
+	state_fio->StateValue(startaddr);
+	state_fio->StateValue(stopaddr);
+	state_fio->StateValue(memaddr);
+	state_fio->StateValue(limitaddr);
+	state_fio->StateValue(adpcmlevel);
+	state_fio->StateValue(adpcmvolume_l);
+	state_fio->StateValue(adpcmvolume_r);
+	state_fio->StateValue(adpcmvol_l);
+	state_fio->StateValue(adpcmvol_r);
+	state_fio->StateValue(deltan);
+	state_fio->StateValue(adplc);
+	state_fio->StateValue(adpld);
+	state_fio->StateValue(adplbase);
+	state_fio->StateValue(adpcmx);
+	state_fio->StateValue(adpcmd);
+	state_fio->StateValue(adpcmout_l);
+	state_fio->StateValue(adpcmout_r);
+	state_fio->StateValue(apout0_l);
+	state_fio->StateValue(apout0_r);
+	state_fio->StateValue(apout1_l);
+	state_fio->StateValue(apout1_r);
+	state_fio->StateValue(adpcmreadbuf);
+	state_fio->StateValue(adpcmplay);
+	state_fio->StateValue(granuality);
+	state_fio->StateValue(adpcmmask_);
+	state_fio->StateValue(control1);
+	state_fio->StateValue(control2);
+	state_fio->StateArray(adpcmreg, sizeof(adpcmreg), 1);
+	state_fio->StateValue(rhythmmask_);
 	for(int i = 0; i < 6; i++) {
-		if(!ch[i].LoadState(f)) {
+		if(!ch[i].ProcessState(f, loading)) {
 			return false;
 		}
 	}
@@ -1397,11 +1351,13 @@ OPNA::OPNA()
 		rhythm[i].sample = 0;
 		rhythm[i].pos = 0;
 		rhythm[i].size = 0;
-		rhythm[i].volume = 0;
+		rhythm[i].volume_l = 0;
+		rhythm[i].volume_r = 0;
 		rhythm[i].level = 0;
 		rhythm[i].pan = 0;
 	}
-	rhythmtvol = 0;
+	rhythmtvol_l = 0;
+	rhythmtvol_r = 0;
 	adpcmmask = 0x3ffff;
 	adpcmnotice = 4;
 	csmch = &ch[2];
@@ -1438,10 +1394,10 @@ bool OPNA::Init(uint c, uint r, bool ipflag, const _TCHAR* path)
 	
 	Reset();
 
-	SetVolumeADPCM(0);
-	SetVolumeRhythmTotal(0);
+	SetVolumeADPCM(0, 0);
+	SetVolumeRhythmTotal(0, 0);
 	for (int i=0; i<6; i++)
-		SetVolumeRhythm(i, 0);
+		SetVolumeRhythm(i, 0, 0);
 	return true;
 }
 
@@ -1489,23 +1445,23 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 
 	for (i=0; i<6; i++)
 	{
-		FileIO file;
+		FILEIO file;
 		uint32 fsize;
-		_TCHAR buf[MAX_PATH] = _T("");
+		_TCHAR buf[_MAX_PATH] = _T("");
 		if (path)
-			_tcsncpy(buf, path, MAX_PATH);
-		_tcsncat(buf, _T("2608_"), MAX_PATH);
-		_tcsncat(buf, rhythmname[i], MAX_PATH);
-		_tcsncat(buf, _T(".WAV"), MAX_PATH);
+			_tcsncpy(buf, path, _MAX_PATH);
+		_tcsncat(buf, _T("2608_"), _MAX_PATH);
+		_tcsncat(buf, rhythmname[i], _MAX_PATH);
+		_tcsncat(buf, _T(".WAV"), _MAX_PATH);
 
-		if (!file.Open(buf, FileIO::readonly))
+		if (!file.Fopen(buf, FILEIO_READ_BINARY))
 		{
 			if (i != 5)
 				break;
 			if (path)
-				_tcsncpy(buf, path, MAX_PATH);
-			_tcsncpy(buf, _T("2608_RYM.WAV"), MAX_PATH);
-			if (!file.Open(buf, FileIO::readonly))
+				_tcsncpy(buf, path, _MAX_PATH);
+			_tcsncpy(buf, _T("2608_RYM.WAV"), _MAX_PATH);
+			if (!file.Fopen(buf, FILEIO_READ_BINARY))
 				break;
 		}
 		
@@ -1521,16 +1477,16 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 			uint16 size;
 		} whdr;
 
-		file.Seek(0x10, FileIO::begin);
-		file.Read(&whdr, sizeof(whdr));
+		file.Fseek(0x10, FILEIO_SEEK_SET);
+		file.Fread(&whdr, sizeof(whdr), 1);
 		
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
 		do 
 		{
-			file.Seek(fsize, FileIO::current);
-			file.Read(&subchunkname, 4);
-			file.Read(&fsize, 4);
+			file.Fseek(fsize, FILEIO_SEEK_CUR);
+			file.Fread(&subchunkname, 4, 1);
+			file.Fread(&fsize, 4, 1);
 		} while (memcmp("data", subchunkname, 4));
 
 		fsize /= 2;
@@ -1543,7 +1499,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		if (!rhythm[i].sample)
 			break;
 		
-		file.Read(rhythm[i].sample, fsize * 2);
+		file.Fread(rhythm[i].sample, fsize * 2, 1);
 		
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;
@@ -1619,6 +1575,13 @@ void OPNA::SetReg(uint addr, uint data)
 		OPNABase::SetADPCMBReg(addr - 0x100, data);
 		break;
 
+	case 0x0127:
+		// for PC-8801FA/MA shop demonstration
+		if ((control1 & 0x10) && (status & adpcmnotice)) {
+			ResetStatus(adpcmnotice);
+		}
+		break;
+
 	default:
 		OPNABase::SetReg(addr, data);
 		break;
@@ -1631,7 +1594,7 @@ void OPNA::SetReg(uint addr, uint data)
 //
 void OPNA::RhythmMix(Sample* buffer, uint count)
 {
-	if (rhythmtvol < 128 && rhythm[0].sample && (rhythmkey & 0x3f))
+	if ((rhythmtvol_l < 128 || rhythmtvol_r < 128) && rhythm[0].sample && (rhythmkey & 0x3f))
 	{
 		Sample* limit = buffer + count * 2;
 		for (int i=0; i<6; i++)
@@ -1639,22 +1602,25 @@ void OPNA::RhythmMix(Sample* buffer, uint count)
 			Rhythm& r = rhythm[i];
 			if ((rhythmkey & (1 << i)) && r.level < 128)
 			{
-				int db = Limit(rhythmtl+rhythmtvol+r.level+r.volume, 127, -31);
-				int vol = tltable[FM_TLPOS+(db << (FM_TLBITS-7))] >> 4;
-				int maskl = -((r.pan >> 1) & 1);
-				int maskr = -(r.pan & 1);
+				int db_l = Limit(rhythmtl+rhythmtvol_l+r.level+r.volume_l, 127, -31);
+				int db_r = Limit(rhythmtl+rhythmtvol_r+r.level+r.volume_r, 127, -31);
+				int vol_l = tltable[FM_TLPOS+(db_l << (FM_TLBITS-7))] >> 4;
+				int vol_r = tltable[FM_TLPOS+(db_r << (FM_TLBITS-7))] >> 4;
+				int mask_l = -((r.pan >> 1) & 1);
+				int mask_r = -(r.pan & 1);
 
 				if (rhythmmask_ & (1 << i))
 				{
-					maskl = maskr = 0;
+					mask_l = mask_r = 0;
 				}
 				
 				for (Sample* dest = buffer; dest<limit && r.pos < r.size; dest+=2)
 				{
-					int sample = (r.sample[r.pos / 1024] * vol) >> 12;
+					int sample_l = (r.sample[r.pos / 1024] * vol_l) >> 12;
+					int sample_r = (r.sample[r.pos / 1024] * vol_r) >> 12;
 					r.pos += r.step;
-					StoreSample(dest[0], sample & maskl);
-					StoreSample(dest[1], sample & maskr);
+					StoreSample(dest[0], sample_l & mask_l);
+					StoreSample(dest[1], sample_r & mask_r);
 				}
 			}
 		}
@@ -1664,27 +1630,40 @@ void OPNA::RhythmMix(Sample* buffer, uint count)
 // ---------------------------------------------------------------------------
 //	音量設定
 //
-void OPNA::SetVolumeRhythmTotal(int db)
+void OPNA::SetVolumeRhythmTotal(int db_l, int db_r)
 {
-	db = Min(db, 20);
-	rhythmtvol = -(db * 2 / 3);
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+
+	rhythmtvol_l = -(db_l * 2 / 3);
+	rhythmtvol_r = -(db_r * 2 / 3);
 }
 
-void OPNA::SetVolumeRhythm(int index, int db)
+void OPNA::SetVolumeRhythm(int index, int db_l, int db_r)
 {
-	db = Min(db, 20);
-	rhythm[index].volume = -(db * 2 / 3);
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+
+	rhythm[index].volume_l = -(db_l * 2 / 3);
+	rhythm[index].volume_r = -(db_r * 2 / 3);
 }
 
-void OPNA::SetVolumeADPCM(int db)
+void OPNA::SetVolumeADPCM(int db_l, int db_r)
 {
-	db = Min(db, 20);
-	if (db > -192)
-		adpcmvol = int(65536.0 * pow(10.0, db / 40.0));
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+
+	if (db_l > -192)
+		adpcmvol_l = int(65536.0 * pow(10.0, db_l / 40.0));
 	else
-		adpcmvol = 0;
+		adpcmvol_l = 0;
+	if (db_r > -192)
+		adpcmvol_r = int(65536.0 * pow(10.0, db_r / 40.0));
+	else
+		adpcmvol_r = 0;
 
-	adpcmvolume = (adpcmvol * adpcmlevel) >> 12;
+	adpcmvolume_l = (adpcmvol_l * adpcmlevel) >> 12;
+	adpcmvolume_r = (adpcmvol_r * adpcmlevel) >> 12;
 }
 
 // ---------------------------------------------------------------------------
@@ -1703,43 +1682,27 @@ void OPNA::Mix(Sample* buffer, int nsamples)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPNA_STATE_VERSION	1
+#define OPNA_STATE_VERSION	2
 
-void OPNA::SaveState(void *f)
+bool OPNA::ProcessState(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
 	
-	state_fio->FputUint32(OPNA_STATE_VERSION);
-	
-	OPNABase::SaveState(f);
-	for(int i = 0; i < 6; i++) {
-		state_fio->FputUint8(rhythm[i].pan);
-		state_fio->FputInt8(rhythm[i].level);
-		state_fio->FputUint32(rhythm[i].pos);
-	}
-	state_fio->FputInt8(rhythmtl);
-	state_fio->FputInt32(rhythmtvol);
-	state_fio->FputUint8(rhythmkey);
-}
-
-bool OPNA::LoadState(void *f)
-{
-	FILEIO *state_fio = (FILEIO *)f;
-	
-	if(state_fio->FgetUint32() != OPNA_STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(OPNA_STATE_VERSION)) {
 		return false;
 	}
-	if(!OPNABase::LoadState(f)) {
+	if(!OPNABase::ProcessState(f, loading)) {
 		return false;
 	}
 	for(int i = 0; i < 6; i++) {
-		rhythm[i].pan = state_fio->FgetUint8();
-		rhythm[i].level = state_fio->FgetInt8();
-		rhythm[i].pos = state_fio->FgetUint32();
+		state_fio->StateValue(rhythm[i].pan);
+		state_fio->StateValue(rhythm[i].level);
+		state_fio->StateValue(rhythm[i].pos);
 	}
-	rhythmtl = state_fio->FgetInt8();
-	rhythmtvol = state_fio->FgetInt32();
-	rhythmkey = state_fio->FgetUint8();
+	state_fio->StateValue(rhythmtl);
+	state_fio->StateValue(rhythmtvol_l);
+	state_fio->StateValue(rhythmtvol_r);
+	state_fio->StateValue(rhythmkey);
 	return true;
 }
 
@@ -1762,10 +1725,10 @@ OPNB::OPNB()
 	{
 		adpcma[i].pan = 0;
 		adpcma[i].level = 0;
-		adpcma[i].volume = 0;
+		adpcma[i].volume_l = 0;
+		adpcma[i].volume_r = 0;
 		adpcma[i].pos = 0;
 		adpcma[i].step = 0;
-		adpcma[i].volume = 0;
 		adpcma[i].start = 0;
 		adpcma[i].stop = 0;
 		adpcma[i].adpcmx = 0;
@@ -1773,7 +1736,8 @@ OPNB::OPNB()
 	}
 	adpcmatl = 0;
 	adpcmakey = 0;
-	adpcmatvol = 0;
+	adpcmatvol_l = 0;
+	adpcmatvol_r = 0;
 	adpcmmask = 0;
 	adpcmnotice = 0x8000;
 	granuality = -1;
@@ -1817,12 +1781,12 @@ bool OPNB::Init(uint c, uint r, bool ipflag,
 	
 	Reset();
 
-	SetVolumeFM(0);
-	SetVolumePSG(0);
-	SetVolumeADPCMB(0);
-	SetVolumeADPCMATotal(0);
+	SetVolumeFM(0, 0);
+	SetVolumePSG(0, 0);
+	SetVolumeADPCMB(0, 0);
+	SetVolumeADPCMATotal(0, 0);
 	for (i=0; i<6; i++)
-		SetVolumeADPCMA(i, 0);
+		SetVolumeADPCMA(i, 0, 0);
 	SetChannelMask(0);
 	return true;
 }
@@ -1842,10 +1806,10 @@ void OPNB::Reset()
 	{
 		adpcma[i].pan = 0;
 		adpcma[i].level = 0;
-		adpcma[i].volume = 0;
+		adpcma[i].volume_l = 0;
+		adpcma[i].volume_r = 0;
 		adpcma[i].pos = 0;
 		adpcma[i].step = 0;
-		adpcma[i].volume = 0;
 		adpcma[i].start = 0;
 		adpcma[i].stop = 0;
 		adpcma[i].adpcmx = 0;
@@ -1975,7 +1939,8 @@ void OPNB::SetReg(uint addr, uint data)
 
 	case 0x1b:		// Level Control
 		adpcmlevel = data; 
-		adpcmvolume = (adpcmvol * adpcmlevel) >> 12;
+		adpcmvolume_l = (adpcmvol_l * adpcmlevel) >> 12;
+		adpcmvolume_r = (adpcmvol_r * adpcmlevel) >> 12;
 		break;
 
 	case 0x1c:		// Flag Control
@@ -2044,7 +2009,7 @@ void OPNB::ADPCMAMix(Sample* buffer, uint count)
 		-1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16
 	};
 
-	if (adpcmatvol < 128 && (adpcmakey & 0x3f))
+	if ((adpcmatvol_l < 128 || adpcmatvol_r < 128) && (adpcmakey & 0x3f))
 	{
 		Sample* limit = buffer + count * 2;
 		for (int i=0; i<6; i++)
@@ -2052,15 +2017,17 @@ void OPNB::ADPCMAMix(Sample* buffer, uint count)
 			ADPCMA& r = adpcma[i];
 			if ((adpcmakey & (1 << i)) && r.level < 128)
 			{
-				uint maskl = r.pan & 2 ? -1 : 0;
-				uint maskr = r.pan & 1 ? -1 : 0;
+				uint mask_l = r.pan & 2 ? -1 : 0;
+				uint mask_r = r.pan & 1 ? -1 : 0;
 				if (rhythmmask_ & (1 << i))
 				{
-					maskl = maskr = 0;
+					mask_l = mask_r = 0;
 				}
 
-				int db = Limit(adpcmatl+adpcmatvol+r.level+r.volume, 127, -31);
-				int vol = tltable[FM_TLPOS+(db << (FM_TLBITS-7))] >> 4;
+				int db_l = Limit(adpcmatl+adpcmatvol_l+r.level+r.volume_l, 127, -31);
+				int db_r = Limit(adpcmatl+adpcmatvol_r+r.level+r.volume_r, 127, -31);
+				int vol_l = tltable[FM_TLPOS+(db_l << (FM_TLBITS-7))] >> 4;
+				int vol_r = tltable[FM_TLPOS+(db_r << (FM_TLBITS-7))] >> 4;
 				
 				Sample* dest = buffer;
 				for ( ; dest<limit; dest+=2) 
@@ -2092,9 +2059,10 @@ void OPNB::ADPCMAMix(Sample* buffer, uint count)
 						r.adpcmd += decode_tableA1[data];
 						r.adpcmd = Limit(r.adpcmd, 48*16, 0);
 					}
-					int sample = (r.adpcmx * vol) >> 10;
-					StoreSample(dest[0], sample & maskl);
-					StoreSample(dest[1], sample & maskr);
+					int sample_l = (r.adpcmx * vol_l) >> 10;
+					int sample_r = (r.adpcmx * vol_r) >> 10;
+					StoreSample(dest[0], sample_l & mask_l);
+					StoreSample(dest[1], sample_r & mask_r);
 				}
 			}
 		}
@@ -2104,25 +2072,37 @@ void OPNB::ADPCMAMix(Sample* buffer, uint count)
 // ---------------------------------------------------------------------------
 //	音量設定
 //
-void OPNB::SetVolumeADPCMATotal(int db)
+void OPNB::SetVolumeADPCMATotal(int db_l, int db_r)
 {
-	db = Min(db, 20);
-	adpcmatvol = -(db * 2 / 3);
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+
+	adpcmatvol_l = -(db_l * 2 / 3);
+	adpcmatvol_r = -(db_r * 2 / 3);
 }
 
-void OPNB::SetVolumeADPCMA(int index, int db)
+void OPNB::SetVolumeADPCMA(int index, int db_l, int db_r)
 {
-	db = Min(db, 20);
-	adpcma[index].volume = -(db * 2 / 3);
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+
+	adpcma[index].volume_l = -(db_l * 2 / 3);
+	adpcma[index].volume_r = -(db_r * 2 / 3);
 }
 
-void OPNB::SetVolumeADPCMB(int db)
+void OPNB::SetVolumeADPCMB(int db_l, int db_r)
 {
-	db = Min(db, 20);
-	if (db > -192)
-		adpcmvol = int(65536.0 * pow(10.0, db / 40.0));
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+
+	if (db_l > -192)
+		adpcmvol_l = int(65536.0 * pow(10.0, db_l / 40.0));
 	else
-		adpcmvol = 0;
+		adpcmvol_l = 0;
+	if (db_r > -192)
+		adpcmvol_r = int(65536.0 * pow(10.0, db_r / 40.0));
+	else
+		adpcmvol_r = 0;
 }
 
 // ---------------------------------------------------------------------------

@@ -12,10 +12,10 @@
 #include "../i8259.h"
 #include "../../fifo.h"
 
-#define BIT_DK	8
+#define BIT_DK	0x08
 #define BIT_SRK	0x10
-#define BIT_DC	1
-#define BIT_STC	2
+#define BIT_DC	0x01
+#define BIT_STC	0x02
 
 #define PHASE_IDLE	0
 
@@ -185,8 +185,8 @@ static const int key_table_graph_shift[256] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
-	mouse_stat = emu->mouse_buffer();
+	key_stat = emu->get_key_buffer();
+	mouse_stat = emu->get_mouse_buffer();
 	key_buf = new FIFO(64);
 	rsp_buf = new FIFO(16);
 	caps = kana = graph = false;
@@ -213,7 +213,7 @@ void KEYBOARD::reset()
 	timeout = 0;
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from 8255 port c
 	dc = (data & BIT_DC) ? 0 : 1;
@@ -462,5 +462,35 @@ void KEYBOARD::process(int cmd)
 //		rsp_buf->write(0x110);
 		break;
 	}
+}
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(caps);
+	state_fio->StateValue(kana);
+	state_fio->StateValue(graph);
+	state_fio->StateValue(dk);
+	state_fio->StateValue(srk);
+	state_fio->StateValue(dc);
+	state_fio->StateValue(stc);
+	state_fio->StateValue(send);
+	state_fio->StateValue(recv);
+	state_fio->StateValue(phase);
+	state_fio->StateValue(timeout);
+	return true;
 }
 

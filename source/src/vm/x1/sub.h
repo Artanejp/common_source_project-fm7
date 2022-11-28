@@ -2,11 +2,12 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2013.05.01-
 
-	[ sub cpu ]
+	[ sub system ]
 */
 
 #ifndef _SUB_H_
@@ -28,8 +29,8 @@ private:
 	DEVICE *d_pio, *d_rtc;
 	DATAREC *d_drec;
 	
-	uint8 p1_out, p1_in, p2_out, p2_in;
-	uint8 portc;
+	uint8_t p1_out, p1_in, p2_out, p2_in;
+	uint8_t portc;
 	bool tape_play, tape_rec, tape_eot, tape_apss;
 	void update_tape();
 	
@@ -39,30 +40,32 @@ private:
 	// z80 daisy chain
 	DEVICE *d_cpu;
 	bool iei;
-	uint32 intr_bit;
+	uint32_t intr_bit;
 	void update_intr();
 	
 public:
-	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SUB(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Sub System"));
+	}
 	~SUB() {}
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32 bit)
+	void set_context_intr(DEVICE* device, uint32_t bit)
 	{
 		d_cpu = device;
 		intr_bit = bit;
 	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32_t get_intr_ack();
+	void notify_intr_reti();
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)
@@ -80,7 +83,7 @@ public:
 	void play_tape(bool value);
 	void rec_tape(bool value);
 	void close_tape();
-	uint32 rom_crc32;
+	uint32_t rom_crc32;
 };
 
 #endif

@@ -24,14 +24,14 @@ class MEMORY;
 class DISPLAY : public DEVICE
 {
 private:
-	uint8 mode;
-	uint8 status;
-	uint8* regs;
-	uint8* vram;
+	uint8_t mode;
+	uint8_t status;
+	uint8_t* regs;
+	uint8_t* vram;
 	
-	uint8 screen[400][640];
-	uint8 font[0x800];
-	scrntype palette_pc[2];
+	uint8_t screen[400][640];
+	uint8_t font[0x800];
+	scrntype_t palette_pc[2];
 	int cblink;
 	
 	void draw_alpha();
@@ -40,23 +40,26 @@ private:
 	void draw_graph_640x400();
 	
 public:
-	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Display"));
+	}
 	~DISPLAY() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	
-	// unique function
-	void set_regs_ptr(uint8* ptr)
+	// unique functions
+	void set_regs_ptr(uint8_t* ptr)
 	{
 		regs = ptr;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram = ptr;
 	}

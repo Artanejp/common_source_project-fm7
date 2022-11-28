@@ -20,13 +20,16 @@ private:
 	DEVICE *d_fdc, *d_mem;
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	FLOPPY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Floppy I/F"));
+	}
 	~FLOPPY() {}
 	
 	// common functions
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	
-	// unique function
+	// unique functions
 	void set_context_fdc(DEVICE* device)
 	{
 		d_fdc = device;

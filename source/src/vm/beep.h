@@ -22,6 +22,8 @@ class BEEP : public DEVICE
 private:
 	int gen_rate;
 	int gen_vol;
+	int volume_l, volume_r;
+	
 	bool signal;
 	int count;
 	int diff;
@@ -30,18 +32,22 @@ private:
 	bool mute;
 	
 public:
-	BEEP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	BEEP(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+		set_device_name(_T("Beep Generator"));
+	}
 	~BEEP() {}
 	
 	// common functions
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
-	void mix(int32* buffer, int cnt);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
-	void init(int rate, double frequency, int volume);
+	void initialize_sound(int rate, double frequency, int volume);
 	void set_frequency(double frequency);
 };
 

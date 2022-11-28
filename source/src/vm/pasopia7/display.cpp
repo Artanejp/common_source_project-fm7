@@ -8,15 +8,12 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
@@ -46,12 +43,7 @@ void DISPLAY::initialize()
 	register_frame_event(this);
 }
 
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
-}
-
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_I8255_0_A) {
 		mode = data;
@@ -76,7 +68,7 @@ void DISPLAY::draw_screen()
 #ifdef _LCD
 	if((regs[8] & 0x30) != 0x30) {
 		// render screen
-		uint16 src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3ff8;
+		uint16_t src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3ff8;
 		if((regs[8] & 0xc0) == 0xc0) {
 			cursor = -1;
 		} else {
@@ -96,26 +88,28 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
+	emu->set_vm_screen_lines(64);
+	
 	for(int y = 0; y < 64; y++) {
-		scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 320; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}
-		if(scanline) {
+		if(config.scan_line) {
 			for(int x = 0; x < 320; x++) {
 				dest1[x] = palette_pc[0];
 			}
 		} else {
-			memcpy(dest1, dest0, 320 * sizeof(scrntype));
+			memcpy(dest1, dest0, 320 * sizeof(scrntype_t));
 		}
 	}
 #else
 	if((regs[8] & 0x30) != 0x30) {
 		// sync check
-		uint16 flash = 0;
+		uint16_t flash = 0;
 		if(mode & 0x20) {
 			if(regs[0] < 106 || 118 < regs[0] || 113 < regs[2]) {
 				flash = 0xffff;
@@ -133,7 +127,7 @@ void DISPLAY::draw_screen()
 		if((regs[8] & 3) == 3 || (regs[9] != 7 && regs[9] != 6)) {
 			flash = 0xffff;
 		}
-		uint16 src = (((regs[12] << 11) | (regs[13] << 3)) + (flash_cnt & flash)) & 0x3ff8;
+		uint16_t src = (((regs[12] << 11) | (regs[13] << 3)) + (flash_cnt & flash)) & 0x3ff8;
 		if((regs[8] & 0xc0) == 0xc0) {
 			cursor = -1;
 		} else {
@@ -165,31 +159,33 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}
-		if(scanline) {
+		if(config.scan_line) {
 //			for(int x = 0; x < 640; x++) {
 //				dest1[x] = palette_pc[0];
 //			}
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
 #endif
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 
-void DISPLAY::draw_text_normal(uint16 src)
+void DISPLAY::draw_text_normal(uint16_t src)
 {
 	// text mode, normal char (80chars)
-	uint16 src_t = (src & 0x3ff8) + text_page;
+	uint16_t src_t = (src & 0x3ff8) + text_page;
 	int maxx = 79, maxy = 24, hsync_pos = 92, vsync_pos = 28;
 	int _maxx = maxx + 36, _minx = -36;
 	int homex = hsync_pos - regs[2], homey = vsync_pos - regs[7];
@@ -233,16 +229,16 @@ void DISPLAY::draw_text_normal(uint16 src)
 			if((_dstx < 0)||(_dstx > maxx)) {
 				continue;
 			}
-			uint8 code = vram_g[src_t];
-			uint8 attr = vram_a[src_t];
-			uint8 c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
-			uint8* font_base = &font[code << 3];
-			uint8 p = pal_dis ? 0 : 0xff;
+			uint8_t code = vram_g[src_t];
+			uint8_t attr = vram_a[src_t];
+			uint8_t c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
+			uint8_t* font_base = &font[code << 3];
+			uint8_t p = pal_dis ? 0 : 0xff;
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 p1 = vram_b[src + l] & p;
-				uint8 p2 = vram_r[src + l] & p;
-				uint8 p3 = font_base[l];
+				uint8_t p1 = vram_b[src + l] & p;
+				uint8_t p2 = vram_r[src + l] & p;
+				uint8_t p3 = font_base[l];
 				// negative, blink
 				if(attr & 8) {
 					p3 = ~p3;
@@ -250,7 +246,7 @@ void DISPLAY::draw_text_normal(uint16 src)
 				if((mode & 8) && !(attr & 4) && blink) {
 					p3 = 0;
 				}
-				uint8* d = &screen[(dsty << 3) + l][_dstx << 3];
+				uint8_t* d = &screen[(dsty << 3) + l][_dstx << 3];
 				
 				c = ((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | 0;
 				d[0] = (pal[c] & 8) ? (pal[c] & 7) : (p3 & 0x80) ? c_t : (pal[c] & 7);
@@ -281,10 +277,10 @@ void DISPLAY::draw_text_normal(uint16 src)
 	}
 }
 
-void DISPLAY::draw_text_wide(uint16 src)
+void DISPLAY::draw_text_wide(uint16_t src)
 {
 	// text mode, wide char (40chars)
-	uint16 src_t = (src & 0x3ff8) + text_page;
+	uint16_t src_t = (src & 0x3ff8) + text_page;
 	int maxx = 39, maxy = 24, hsync_pos = 47, vsync_pos = 28;
 	int _maxx = maxx + 18, _minx = -18;
 	int homex = hsync_pos - regs[2], homey = vsync_pos - regs[7];
@@ -329,16 +325,16 @@ void DISPLAY::draw_text_wide(uint16 src)
 				continue;
 			}
 			
-			uint8 code = vram_g[src_t];
-			uint8 attr = vram_a[src_t];
-			uint8 c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
-			uint8* font_base = &font[code << 3];
-			uint8 p = pal_dis ? 0 : 0xff;
+			uint8_t code = vram_g[src_t];
+			uint8_t attr = vram_a[src_t];
+			uint8_t c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
+			uint8_t* font_base = &font[code << 3];
+			uint8_t p = pal_dis ? 0 : 0xff;
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 p1 = vram_b[src + l] & p;
-				uint8 p2 = vram_r[src + l] & p;
-				uint8 p3 = font_base[l];
+				uint8_t p1 = vram_b[src + l] & p;
+				uint8_t p2 = vram_r[src + l] & p;
+				uint8_t p3 = font_base[l];
 				// negative, blink
 				if(attr & 8) {
 					p3 = ~p3;
@@ -346,7 +342,7 @@ void DISPLAY::draw_text_wide(uint16 src)
 				if((mode & 8) && !(attr & 4) && blink) {
 					p3 = 0;
 				}
-				uint8* d = &screen[(dsty << 3) + l][_dstx << 4];
+				uint8_t* d = &screen[(dsty << 3) + l][_dstx << 4];
 				
 				c = ((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6);
 				d[ 0] = (pal[c | 0] & 8) ? (pal[c | 0] & 7) : (p3 & 0x80) ? c_t : (pal[c | 0] & 7);
@@ -385,7 +381,7 @@ void DISPLAY::draw_text_wide(uint16 src)
 	}
 }
 
-void DISPLAY::draw_fine_normal(uint16 src)
+void DISPLAY::draw_fine_normal(uint16_t src)
 {
 	// fine graph mode, normal char (80chars)
 	int maxx = 79, maxy = 24, hsync_pos = 92, vsync_pos = 28;
@@ -433,18 +429,18 @@ void DISPLAY::draw_fine_normal(uint16 src)
 			}
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 code = vram_g[src + l];
-				uint8 attr = vram_a[src + l];
-				uint8 c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
-				uint8* font_base = &font[code << 3];
-				uint8 p = pal_dis ? 0 : 0xff;
-				uint8* d = &screen[(dsty << 3) + l][_dstx << 3];
+				uint8_t code = vram_g[src + l];
+				uint8_t attr = vram_a[src + l];
+				uint8_t c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
+				uint8_t* font_base = &font[code << 3];
+				uint8_t p = pal_dis ? 0 : 0xff;
+				uint8_t* d = &screen[(dsty << 3) + l][_dstx << 3];
 				
 				if(attr & 8) {
 					// dot mode
-					uint8 p1 = vram_b[src + l] & p;
-					uint8 p2 = vram_r[src + l] & p;
-					uint8 p3 = vram_g[src + l] & p;
+					uint8_t p1 = vram_b[src + l] & p;
+					uint8_t p2 = vram_r[src + l] & p;
+					uint8_t p3 = vram_g[src + l] & p;
 					
 					d[0] = pal[((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | ((p3 & 0x80) >> 5) | 0] & 7;
 					d[1] = pal[((p1 & 0x40) >> 6) | ((p2 & 0x40) >> 5) | ((p3 & 0x40) >> 4) | 8] & 7;
@@ -456,9 +452,9 @@ void DISPLAY::draw_fine_normal(uint16 src)
 					d[7] = pal[((p1 & 0x01) >> 0) | ((p2 & 0x01) << 1) | ((p3 & 0x01) << 2) | 8] & 7;
 				} else {
 					// text
-					uint8 p1 = vram_b[src + l] & p;
-					uint8 p2 = vram_r[src + l] & p;
-					uint8 p3 = font_base[l];
+					uint8_t p1 = vram_b[src + l] & p;
+					uint8_t p2 = vram_r[src + l] & p;
+					uint8_t p3 = font_base[l];
 					if(mode & 8) {
 						// negative, blink
 						if(attr & 8) {
@@ -498,7 +494,7 @@ void DISPLAY::draw_fine_normal(uint16 src)
 	}
 }
 
-void DISPLAY::draw_fine_wide(uint16 src)
+void DISPLAY::draw_fine_wide(uint16_t src)
 {
 	// fine graph mode, wide char (40chars)
 	int maxx = 39, maxy = 24, hsync_pos = 47, vsync_pos = 28;	//WIDTH 40
@@ -546,18 +542,18 @@ void DISPLAY::draw_fine_wide(uint16 src)
 			}
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 code = vram_g[src + l];
-				uint8 attr = vram_a[src + l];
-				uint8 c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
-				uint8* font_base = &font[code << 3];
-				uint8 p = pal_dis ? 0 : 0xff;
-				uint8* d = &screen[(dsty << 3) + l][_dstx << 4];
+				uint8_t code = vram_g[src + l];
+				uint8_t attr = vram_a[src + l];
+				uint8_t c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
+				uint8_t* font_base = &font[code << 3];
+				uint8_t p = pal_dis ? 0 : 0xff;
+				uint8_t* d = &screen[(dsty << 3) + l][_dstx << 4];
 				
 				if(attr & 8) {
 					// dot mode
-					uint8 p1 = vram_b[src + l] & p;
-					uint8 p2 = vram_r[src + l] & p;
-					uint8 p3 = vram_g[src + l] & p;
+					uint8_t p1 = vram_b[src + l] & p;
+					uint8_t p2 = vram_r[src + l] & p;
+					uint8_t p3 = vram_g[src + l] & p;
 					
 					d[ 0] = pal[((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | ((p3 & 0x80) >> 5) | 0] & 7;
 					d[ 1] = pal[((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | ((p3 & 0x80) >> 5) | 8] & 7;
@@ -577,9 +573,9 @@ void DISPLAY::draw_fine_wide(uint16 src)
 					d[15] = pal[((p1 & 0x01) >> 0) | ((p2 & 0x01) << 1) | ((p3 & 0x01) << 2) | 8] & 7;
 				} else {
 					// text
-					uint8 p1 = vram_b[src + l] & p;
-					uint8 p2 = vram_r[src + l] & p;
-					uint8 p3 = font_base[l];
+					uint8_t p1 = vram_b[src + l] & p;
+					uint8_t p2 = vram_r[src + l] & p;
+					uint8_t p3 = font_base[l];
 					if(mode & 8) {
 						// negative, blink
 						if(attr & 8) {
@@ -627,7 +623,7 @@ void DISPLAY::draw_fine_wide(uint16 src)
 	}
 }
 
-void DISPLAY::draw_text_lcd(uint16 src)
+void DISPLAY::draw_text_lcd(uint16_t src)
 {
 	// text mode, nomarl char (80chars)
 	for(int y = 0, yy = 0; y < 64; y += 8, yy++) {
@@ -635,15 +631,15 @@ void DISPLAY::draw_text_lcd(uint16 src)
 		int src_t = src_g;// + text_page;
 		
 		for(int x = 0; x < 40; x++) {
-			uint8 code = vram_g[src_t];
-			uint8 attr = vram_a[src_t];
-			uint8 c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
-			uint8* font_base = &font[code << 3];
+			uint8_t code = vram_g[src_t];
+			uint8_t attr = vram_a[src_t];
+			uint8_t c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
+			uint8_t* font_base = &font[code << 3];
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 p1 = vram_b[src_g + l];
-				uint8 p2 = vram_r[src_g + l];
-				uint8 p3 = font_base[l];
+				uint8_t p1 = vram_b[src_g + l];
+				uint8_t p2 = vram_r[src_g + l];
+				uint8_t p3 = font_base[l];
 				// negative, blink
 				if(attr & 8) {
 					p3 = ~p3;
@@ -651,7 +647,7 @@ void DISPLAY::draw_text_lcd(uint16 src)
 				if((mode & 8) && !(attr & 4) && blink) {
 					p3 = 0;
 				}
-				uint8* d = &screen[y + l][x << 3];
+				uint8_t* d = &screen[y + l][x << 3];
 				
 				c = ((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | 0;
 				d[0] = (pal[c] & 8) ? (pal[c] & 7) : (p3 & 0x80) ? c_t : (pal[c] & 7);
@@ -684,25 +680,25 @@ void DISPLAY::draw_text_lcd(uint16 src)
 	}
 }
 
-void DISPLAY::draw_fine_lcd(uint16 src)
+void DISPLAY::draw_fine_lcd(uint16_t src)
 {
 	// fine graph mode, normal char (80chars)
 	for(int y = 0, yy = 0; y < 64; y += 8, yy++) {
 		int src_g = (src + 640 * (yy & 3) + (yy & 4 ? 8 : 0)) & 0x3ff8;
 		
 		for(int x = 0; x < 80; x++) {
-			uint8 code = vram_g[src_g];
-			uint8 attr = vram_a[src_g];
-			uint8 c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
-			uint8* font_base = &font[code << 3];
+			uint8_t code = vram_g[src_g];
+			uint8_t attr = vram_a[src_g];
+			uint8_t c, c_t = (mode & 8) ? (mode & 7) : (attr & 7);
+			uint8_t* font_base = &font[code << 3];
 			
 			if(attr & 8) {
 				// dot mode
 				for(int l = 0; l < 8; l++) {
-					uint8 p1 = vram_b[src_g + l];
-					uint8 p2 = vram_r[src_g + l];
-					uint8 p3 = vram_g[src_g + l];
-					uint8* d = &screen[y + l][x << 3];
+					uint8_t p1 = vram_b[src_g + l];
+					uint8_t p2 = vram_r[src_g + l];
+					uint8_t p3 = vram_g[src_g + l];
+					uint8_t* d = &screen[y + l][x << 3];
 					
 					d[0] = pal[((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | ((p3 & 0x80) >> 5) | 0] & 7;
 					d[1] = pal[((p1 & 0x40) >> 6) | ((p2 & 0x40) >> 5) | ((p3 & 0x40) >> 4) | 8] & 7;
@@ -716,9 +712,9 @@ void DISPLAY::draw_fine_lcd(uint16 src)
 			} else {
 				// text
 				for(int l = 0; l < 8; l++) {
-					uint8 p1 = vram_b[src_g + l];
-					uint8 p2 = vram_r[src_g + l];
-					uint8 p3 = font_base[l];
+					uint8_t p1 = vram_b[src_g + l];
+					uint8_t p2 = vram_r[src_g + l];
+					uint8_t p3 = font_base[l];
 					if(mode & 8) {
 						// negative, blink
 						if(attr & 8) {
@@ -728,7 +724,7 @@ void DISPLAY::draw_fine_lcd(uint16 src)
 							p3 = 0;
 						}
 					}
-					uint8* d = &screen[y + l][x << 3];
+					uint8_t* d = &screen[y + l][x << 3];
 					
 					c = ((p1 & 0x80) >> 7) | ((p2 & 0x80) >> 6) | 0;
 					d[0] = (pal[c] & 8) ? (pal[c] & 7) : (p3 & 0x80) ? c_t : (pal[c] & 7);
@@ -759,5 +755,25 @@ void DISPLAY::draw_fine_lcd(uint16 src)
 			src_g = (src_g + 16) & 0x3ff8;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(mode);
+	state_fio->StateValue(text_page);
+	state_fio->StateValue(cursor);
+	state_fio->StateValue(cblink);
+	state_fio->StateValue(flash_cnt);
+	state_fio->StateValue(blink);
+	state_fio->StateValue(pal_dis);
+	return true;
 }
 

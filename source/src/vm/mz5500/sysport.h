@@ -21,19 +21,20 @@ private:
 	int rst, highden;
 	
 public:
-	SYSPORT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SYSPORT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("System I/O"));
+	}
 	~SYSPORT() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void event_frame()
-	{
-		if(rst) rst--;
-	}
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void event_frame();
+	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique function
+	// unique functions
 	void set_context_fdc(DEVICE* device)
 	{
 		d_fdc = device;

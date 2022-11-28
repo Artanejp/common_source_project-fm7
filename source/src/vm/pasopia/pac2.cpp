@@ -41,7 +41,7 @@ void PAC2::reset()
 	get_device()->reset();
 }
 
-void PAC2::write_io8(uint32 addr, uint32 data)
+void PAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -53,7 +53,7 @@ void PAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PAC2::read_io8(uint32 addr)
+uint32_t PAC2::read_io8(uint32_t addr)
 {
 	return get_device()->read_io8(addr);
 }
@@ -71,8 +71,22 @@ PAC2DEV* PAC2::get_device()
 	return dummy;
 }
 
-void PAC2::open_rampac2(_TCHAR* file_path)
+void PAC2::open_rampac2(const _TCHAR* file_path)
 {
 	rampac2->open_file(file_path);
+}
+
+#define STATE_VERSION	1
+
+bool PAC2::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(device_type);
+	return get_device()->process_state(state_fio, loading);
 }
 

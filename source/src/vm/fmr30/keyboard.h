@@ -20,16 +20,19 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_sio;
-	uint8 table[256];
+	uint8_t table[256];
 	
 public:
-	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Keyboard"));
+	}
 	~KEYBOARD() {}
 	
-	// common functions
+	// common function
 	void reset();
 	
-	// unique function
+	// unique functions
 	void set_context_sio(DEVICE* device)
 	{
 		d_sio = device;

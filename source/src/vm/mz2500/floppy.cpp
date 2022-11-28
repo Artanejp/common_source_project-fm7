@@ -11,7 +11,6 @@
 
 #include "floppy.h"
 #include "../mb8877.h"
-#include "../../fileio.h"
 
 #ifdef _MZ2500
 void FLOPPY::initialize()
@@ -20,7 +19,7 @@ void FLOPPY::initialize()
 }
 #endif
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xdc:
@@ -41,7 +40,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 }
 
 #ifdef _MZ2500
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FLOPPY_REVERSE) {
 		reversed = ((data & mask) != 0);
@@ -50,23 +49,15 @@ void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
 
 #define STATE_VERSION	1
 
-void FLOPPY::save_state(FILEIO* state_fio)
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputBool(reversed);
-}
-
-bool FLOPPY::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	reversed = state_fio->FgetBool();
+	state_fio->StateValue(reversed);
 	return true;
 }
 #endif

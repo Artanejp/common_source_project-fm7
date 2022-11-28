@@ -33,20 +33,6 @@
 #define	I2F(a) (((D7752_FIXED) a) << 16)
 #define	F2I(a) ((int)((a) >> 16))
 
-// filter coefficients
-typedef	struct {
-	D7752_FIXED	f[5];
-	D7752_FIXED	b[5];
-	D7752_FIXED	amp;
-	D7752_FIXED	pitch;
-} D7752Coef;
-
-// voice
-static D7752Coef Coef;
-static int	Y[5][2];
-static int	PitchCount;
-static int	FrameSize;
-
 // amplitude table
 static const int amp_table[16] = {0, 1, 1, 2, 3, 4, 5, 7, 9, 13, 17, 23, 31, 42, 56, 75};
 
@@ -91,7 +77,7 @@ static const int iir2[64]	= {
 //       S=01: SLOW SPEED
 //       S=10: FAST SPEED
 // return: error code
-int	UPD7752_Start(int mode)
+int	UPD7752::UPD7752_Start(int mode)
 {
 	const static int frame_size[8] = {
 		100,		 //	10ms, NORMAL
@@ -126,7 +112,7 @@ int	UPD7752_Start(int mode)
 }
 
 //	get length of voice synthesis for 1 frame
-int	GetFrameSize(void)
+int	UPD7752::GetFrameSize(void)
 {
 	return FrameSize;
 }
@@ -134,7 +120,7 @@ int	GetFrameSize(void)
 // synthesise voice for one frame
 // frame: pointer for data store
 // return: error code
-int	Synth(byte *param, D7752_SAMPLE *frame)
+int	UPD7752::Synth(uint8_t *param, D7752_SAMPLE *frame)
 {
 	int	vu;
 	int	qmag;
@@ -144,6 +130,7 @@ int	Synth(byte *param, D7752_SAMPLE *frame)
 	int p;
 	
 	if (!param || !frame) return D7752_ERR_PARAM;
+	touch_sound();
 	curr = &Coef;
 	
 	// expand parameters to coefficients
@@ -243,7 +230,7 @@ void UPD7752::UpConvert(void)
 {
 	int i;
 	// 10kHz -> actual sampling rate
-	samples = GetFrameSize() * SOUND_RATE / 10000;
+	int samples = GetFrameSize() * SOUND_RATE / 10000;
 	if (!voicebuf) {
 		voicebuf=(unsigned char *)malloc(samples * 10000);
 		memset(voicebuf, 0, samples * 10000);
@@ -260,6 +247,7 @@ void UPD7752::UpConvert(void)
 // abort voice
 void UPD7752::AbortVoice(void)
 {
+	touch_sound();
 	// stop thread loop
 	ThreadLoopStop = 1;
 	// cancel remaining parameters
@@ -288,7 +276,7 @@ int UPD7752::VoiceOn(void)
 }
 
 // set mode
-void UPD7752::VSetMode(byte mode)
+void UPD7752::VSetMode(uint8_t mode)
 {
 	// start synthesising
 	UPD7752_Start(mode);
@@ -297,7 +285,7 @@ void UPD7752::VSetMode(byte mode)
 }
 
 // set command
-void UPD7752::VSetCommand(byte comm)
+void UPD7752::VSetCommand(uint8_t comm)
 {
 	// if synthesising voice, abort
 	AbortVoice();
@@ -311,7 +299,8 @@ void UPD7752::VSetCommand(byte comm)
 		break;
 	case 0xfe: {	// external voice
 		// malloc frame buffer
-		Fbuf = (D7752_SAMPLE *)malloc(sizeof(D7752_SAMPLE)*GetFrameSize());
+		FbufLength = sizeof(D7752_SAMPLE)*GetFrameSize();
+		Fbuf = (D7752_SAMPLE *)malloc(FbufLength);
 		if(!Fbuf) break;
 		// make external mode, start parameter request
 		VStat = D7752E_BSY | D7752E_EXT | D7752E_REQ;
@@ -326,7 +315,7 @@ void UPD7752::VSetCommand(byte comm)
 }
 
 // transfer voice parameter
-void UPD7752::VSetData(byte data)
+void UPD7752::VSetData(uint8_t data)
 {
 	// accept data only when busy
 	if ((VStat & D7752E_BSY)&&(VStat & D7752E_REQ)) {
@@ -399,31 +388,34 @@ void UPD7752::reset()
 	return;
 }
 
-void UPD7752::write_io8(uint32 addr, uint32 data)
+void UPD7752::write_io8(uint32_t addr, uint32_t data)
 {
 	// disk I/O
-	uint16 port=(addr & 0x00ff);
-	byte Value=(data & 0xff);
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=(data & 0xff);
 
 	switch(port)
 	{
 	case 0xE0:
+		touch_sound();
 		VSetData(data);
 		break;
 	case 0xE2:
+		touch_sound();
 		VSetMode(data);
 		break;
 	case 0xE3:
+		touch_sound();
 		VSetCommand(data);
 		break;
 	}
 	return;
 }
 
-uint32 UPD7752::read_io8(uint32 addr)
+uint32_t UPD7752::read_io8(uint32_t addr)
 {
-	uint16 port=(addr & 0x00ff);
-	byte Value=0xff;
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=0xff;
 
 	switch(port)
 	{
@@ -467,19 +459,82 @@ void UPD7752::event_frame()
 	}
 }
 
-void UPD7752::mix(int32* buffer, int cnt)
+void UPD7752::mix(int32_t* buffer, int cnt)
 {
 	if (mute && fout == fin) {
 		fin = fout =0;
 		return;
 	}
 	for(int i = 0; i < cnt; i++) {
-		int32 vol = 0;
-		if (fout < fin) {
-			vol=voicebuf[fout];
+		int32_t vol = 0;
+		if ((fout < fin) && (voicebuf != NULL)) {
+			vol=voicebuf[fout]-128;
 			voicebuf[fout]=0;
 			fout++;
 		}
-		*buffer++ = vol << 4;
+		*buffer++ = apply_volume(vol * 16, volume_l); // L
+		*buffer++ = apply_volume(vol * 16, volume_r); // R
 	}
 }
+
+void UPD7752::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
+}
+
+#define STATE_VERSION	2
+
+bool UPD7752::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	// pre process
+	if(loading) {
+		if(Fbuf) {
+			free(Fbuf);
+			Fbuf = NULL;
+		}
+		if (voicebuf) {
+			free(voicebuf);
+			voicebuf = NULL;
+		}
+	}
+	state_fio->StateValue(mute);
+	state_fio->StateValue(ThreadLoopStop);
+	state_fio->StateValue(io_E0H);
+	state_fio->StateValue(io_E2H);
+	state_fio->StateValue(io_E3H);
+	state_fio->StateValue(VStat);
+	state_fio->StateArray(ParaBuf, sizeof(ParaBuf), 1);
+	state_fio->StateValue(Pnum);
+	state_fio->StateValue(Fnum);
+	state_fio->StateValue(PReady);
+	if(loading) {
+		FbufLength = state_fio->FgetInt32_LE();
+		if(FbufLength > 0) {
+			Fbuf = (D7752_SAMPLE *)malloc(FbufLength);
+			state_fio->Fread(Fbuf, FbufLength, 1);
+		}
+	} else {
+		state_fio->FputInt32_LE(Fbuf != NULL ? FbufLength : 0);
+		if(Fbuf != NULL && FbufLength > 0) {
+			state_fio->Fwrite(Fbuf, FbufLength, 1);
+		}
+	}
+	state_fio->StateValue(fin);
+	state_fio->StateValue(fout);
+	state_fio->StateArray(Coef.f, sizeof(Coef.f), 1);
+	state_fio->StateArray(Coef.b, sizeof(Coef.b), 1);
+	state_fio->StateValue(Coef.amp);
+	state_fio->StateValue(Coef.pitch);
+	state_fio->StateArray(&Y[0][0], sizeof(Y), 1);
+	state_fio->StateValue(PitchCount);
+	state_fio->StateValue(FrameSize);
+	return true;
+}
+

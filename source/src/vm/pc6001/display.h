@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2013.08.22-
 
-	[ joystick ]
+	[ display ]
 */
 
 #ifndef _DISPLAY_H_
@@ -23,23 +23,27 @@ private:
 	MC6847 *d_vdp;
 	TIMER *d_timer;
 	
-	uint8 *ram_ptr;
-	uint8 *vram_ptr;
+	uint8_t *ram_ptr;
+	uint8_t *vram_ptr;
 	
 public:
-	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Display"));
+	}
 	~DISPLAY() {}
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_vdp(MC6847* device)
 	{
 		d_vdp = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		ram_ptr = vram_ptr = ptr;
 	}

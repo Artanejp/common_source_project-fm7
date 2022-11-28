@@ -253,7 +253,7 @@ typedef struct {
 /* table is 3dB/octave, DV converts this into 6dB/octave */
 /* 0.1875 is bit 0 weight of the envelope counter (volume) expressed in the 'decibel' scale */
 #define DV (0.1875/1.0)
-static const UINT32 ksl_tab[8*16]=
+static const double ksl_tab[8*16]=
 {
   /* OCT 0 */
    0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
@@ -416,11 +416,11 @@ O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
 
 
 /* multiple table */
-#define ML 2
+#define ML 2.0f
 static const UINT8 mul_tab[16]= {
 /* 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,10,12,12,15,15 */
-   0.50*ML, 1.00*ML, 2.00*ML, 3.00*ML, 4.00*ML, 5.00*ML, 6.00*ML, 7.00*ML,
-   8.00*ML, 9.00*ML,10.00*ML,10.00*ML,12.00*ML,12.00*ML,15.00*ML,15.00*ML
+   (UINT8)(0.50*ML), (UINT8)(1.00*ML), (UINT8)(2.00*ML), (UINT8)(3.00*ML), (UINT8)(4.00*ML), (UINT8)(5.00*ML), (UINT8)(6.00*ML), (UINT8)(7.00*ML),
+   (UINT8)(8.00*ML), (UINT8)(9.00*ML), (UINT8)(10.00*ML), (UINT8)(10.00*ML), (UINT8)(12.00*ML), (UINT8)(12.00*ML), (UINT8)(15.00*ML), (UINT8)(15.00*ML)
 };
 #undef ML
 
@@ -1277,7 +1277,7 @@ static void OPLL_initalize(YM2413C *chip)
     logerror("ym2413.c: ksl_tab[oct=%2i] =",i);
     for (j=0; j<16; j++)
     {
-      logerror("%08x ", ksl_tab[i*16+j] );
+      logerror("%08x ", (UINT32)ksl_tab[i*16+j] );
     }
     logerror("\n");
   }
@@ -1758,7 +1758,7 @@ static void OPLLWriteReg(YM2413C *chip, int r, int v)
       /* BLK 2,1,0 bits -> bits 3,2,1 of kcode, FNUM MSB -> kcode LSB */
       CH->kcode    = (block_fnum&0x0f00)>>8;
 
-      CH->ksl_base = ksl_tab[block_fnum>>5];
+      CH->ksl_base = (UINT32)ksl_tab[block_fnum>>5];
 
       block_fnum   = block_fnum * 2;
       block        = (block_fnum&0x1c00) >> 10;
@@ -1998,12 +1998,7 @@ static unsigned char OPLLRead(YM2413C *chip,int a)
   return 0xff;
 }
 
-
-
-
-
 #define MAX_OPLL_CHIPS 4
-
 
 static YM2413C *OPLL_YM2413[MAX_OPLL_CHIPS];  /* array of pointers to the YM2413's */
 static int YM2413NumChips = 0;        /* number of chips */
@@ -2159,21 +2154,30 @@ void YM2413UpdateOne(int which, INT16 **buffers, int length)
 
 void YM2413::initialize()
 {
+	buf[0] = buf[1] = NULL;
 	mute = false;
 }
 
 void YM2413::release()
 {
+	if(buf[0]) {
+		free(buf[0]);
+	}
+	if(buf[1]) {
+		free(buf[1]);
+	}
 	YM2413Shutdown();
 }
 
 void YM2413::reset()
 {
+	touch_sound();
 	YM2413ResetChip(0);
 }
 
-void YM2413::write_io8(uint32 addr, uint32 data)
+void YM2413::write_io8(uint32_t addr, uint32_t data)
 {
+	touch_sound();
 	if (addr & 1) {
 		reg[ latch & 0x3F] = data;
 		latch = data;
@@ -2183,28 +2187,48 @@ void YM2413::write_io8(uint32 addr, uint32 data)
 	YM2413Write(0, addr & 1, data);
 }
 
-uint32 YM2413::read_io8(uint32 addr)
+uint32_t YM2413::read_io8(uint32_t addr)
 {
 	return latch;
 }
 
-void YM2413::mix(int32* buffer, int cnt)
+void YM2413::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	if(id == SIG_YM2413_MUTE) {
+		mute = ((data & mask) != 0);
+	}
+}
+
+void YM2413::mix(int32_t* buffer, int cnt)
 {
 	if(mute) {
 		return;
 	}
 	if(cnt > 0) YM2413UpdateOne(0, buf, cnt);
 	for(int i = 0; i < cnt; i++) {
-		int32 vol1 = 0;
-		int32 vol2 = 0;
-		vol1 += buf[0][i];
-		vol2 += buf[1][i];
-		*buffer++ += vol1<<2; // L
-		*buffer++ += vol2<<2; // R
+//		int32_t vol1 = 0;
+//		int32_t vol2 = 0;
+//		vol1 += buf[0][i];
+//		vol2 += buf[1][i];
+//		*buffer++ += vol1<<2; // L
+//		*buffer++ += vol2<<2; // R
+#if defined(_MSX1_VARIANTS) || defined(_MSX2_VARIANTS) || defined(_MSX2P_VARIANTS)
+		*buffer++ += apply_volume((buf[0][i] + buf[1][i]) * 4, volume_l); // L
+		*buffer++ += apply_volume((buf[0][i] + buf[1][i]) * 4, volume_r); // R
+#else
+		*buffer++ += apply_volume(buf[0][i] * 4, volume_l); // L
+		*buffer++ += apply_volume(buf[1][i] * 4, volume_r); // R
+#endif
 	}
 }
 
-void YM2413::init(int rate, int clock, int samples)
+void YM2413::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
+}
+
+void YM2413::initialize_sound(int rate, int clock, int samples)
 {
 	YM2413Init(1, clock, rate);
 	YM2413ResetChip(0);

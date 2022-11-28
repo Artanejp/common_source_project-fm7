@@ -8,15 +8,12 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
@@ -42,12 +39,7 @@ void DISPLAY::initialize()
 	register_frame_event(this);
 }
 
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
-}
-
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x10:
@@ -59,7 +51,7 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from 8255-1 port.a
 	mode = data;
@@ -73,7 +65,7 @@ void DISPLAY::event_frame()
 void DISPLAY::draw_screen()
 {
 	if((regs[8] & 0x30) != 0x30) {
-		uint16 src = ((regs[12] << 8) | regs[13]) & 0x7ff;
+		uint16_t src = ((regs[12] << 8) | regs[13]) & 0x7ff;
 		if((regs[8] & 0xc0) == 0xc0) {
 			cursor = -1;
 		} else {
@@ -114,47 +106,49 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
-	uint16 bcol = palette_pc[mode & 7];
+	emu->set_vm_screen_lines(200);
+	
+	uint16_t bcol = palette_pc[mode & 7];
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}
-		if(scanline) {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+		if(config.scan_line) {
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 
 #define IS_ATTRIB(d) (((d) & 0xf8) == 0xf8)
 
-void DISPLAY::draw_screen0_normal(uint16 src)
+void DISPLAY::draw_screen0_normal(uint16_t src)
 {
 	// screen 0, normal char (80chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
 	
 	for(int y = 0; y < 200; y += 8) {
-		uint8 c_t = IS_ATTRIB(vram[src_t]) ? (vram[src_t] & 7) : 7;
+		uint8_t c_t = IS_ATTRIB(vram[src_t]) ? (vram[src_t] & 7) : 7;
 		src_t = (src_t & 0x3800) | ((src_t + 1) & 0x7ff);
 		
 		for(int x = 0; x < width; x++) {
-			uint8 code = vram[src_t];
+			uint8_t code = vram[src_t];
 			if(IS_ATTRIB(code)) {
 				c_t = code & 7;
 			}
-			uint8* font_base = &font[code << 3];
+			uint8_t* font_base = &font[code << 3];
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 p = font_base[l];
-				uint8* d = &screen[y + l][x << 3];
+				uint8_t p = font_base[l];
+				uint8_t* d = &screen[y + l][x << 3];
 				
 				d[0] = (p & 0x80) ? c_t : c_b;
 				d[1] = (p & 0x40) ? c_t : c_b;
@@ -178,27 +172,27 @@ void DISPLAY::draw_screen0_normal(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen0_wide(uint16 src)
+void DISPLAY::draw_screen0_wide(uint16_t src)
 {
 	// screen 0, wide char (36chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
 	
 	for(int y = 0; y < 192; y += 8) {
-		uint8 c_t = IS_ATTRIB(vram[src_t]) ? (vram[src_t] & 7) : 7;
+		uint8_t c_t = IS_ATTRIB(vram[src_t]) ? (vram[src_t] & 7) : 7;
 		src_t = (src_t & 0x3800) | ((src_t + 1) & 0x7ff);
 		
 		for(int x = 0; x < width; x++) {
-			uint8 code = vram[src_t];
+			uint8_t code = vram[src_t];
 			if(IS_ATTRIB(code)) {
 				c_t = code & 7;
 			}
-			uint8* font_base = &font[code << 3];
+			uint8_t* font_base = &font[code << 3];
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 p = font_base[l];
-				uint8* d = &screen[y + l][x << 4];
+				uint8_t p = font_base[l];
+				uint8_t* d = &screen[y + l][x << 4];
 				
 				d[ 0] = d[ 1] = (p & 0x80) ? c_t : c_b;
 				d[ 2] = d[ 3] = (p & 0x40) ? c_t : c_b;
@@ -222,18 +216,18 @@ void DISPLAY::draw_screen0_wide(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen1_normal(uint16 src)
+void DISPLAY::draw_screen1_normal(uint16_t src)
 {
 	// screen 1, normal char (80chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
-	uint8 c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+	uint8_t c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
 	
 	for(int y = 0; y < 200; y += 8) {
 		// character data is set for every other line in scren 1
 		for(int i = 0; i < 8; i += 2) {
-			uint8 t = vram[src_t + (i * 0x800)];
+			uint8_t t = vram[src_t + (i * 0x800)];
 			if(IS_ATTRIB(t)) {
 				c_t[i] = c_t[i + 1] = t & 7;
 			}
@@ -242,10 +236,10 @@ void DISPLAY::draw_screen1_normal(uint16 src)
 		
 		for(int x = 0; x < width; x++) {
 			bool is_graph[8];
-			uint8 attr_t[8];
-			uint8 code[8];
+			uint8_t attr_t[8];
+			uint8_t code[8];
 			for(int i = 0; i < 8; i += 2) {
-				uint16 t = (src_t + (i * 0x800)) & 0x3fff;
+				uint16_t t = (src_t + (i * 0x800)) & 0x3fff;
 				is_graph[i] = is_graph[i + 1] = (attr[t] != 0);
 				attr_t[i] = attr_t[i + 1] = attr[t];
 				code[i] = code[i + 1] = vram[t];
@@ -254,12 +248,12 @@ void DISPLAY::draw_screen1_normal(uint16 src)
 			for(int l = 0; l < 8; l++) {
 				// change line color if vram data is text and is attribute character
 				// note: check only first line
-				uint8 code_t = code[l];
+				uint8_t code_t = code[l];
 				if(!is_graph[l] && IS_ATTRIB(code_t)) {
 					c_t[l] = code_t & 7;
 				}
-				uint8* font_base = &font[code_t << 3];
-				uint8 c_l = c_t[l], c_r = c_t[l], p = font_base[l];
+				uint8_t* font_base = &font[code_t << 3];
+				uint8_t c_l = c_t[l], c_r = c_t[l], p = font_base[l];
 				if(is_graph[l]) {
 					if(attr_t[l]) {
 						p = code_t;
@@ -270,7 +264,7 @@ void DISPLAY::draw_screen1_normal(uint16 src)
 						p = 0;
 					}
 				}
-				uint8* d = &screen[y + l][x << 3];
+				uint8_t* d = &screen[y + l][x << 3];
 				
 				d[0] = (p & 0x80) ? c_l : c_b;
 				d[1] = (p & 0x40) ? c_l : c_b;
@@ -294,18 +288,18 @@ void DISPLAY::draw_screen1_normal(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen1_wide(uint16 src)
+void DISPLAY::draw_screen1_wide(uint16_t src)
 {
 	// screen 1, wide char (36chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
-	uint8 c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+	uint8_t c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
 	
 	for(int y = 0; y < 192; y += 8) {
 		// character data is set for every other line in scren 1
 		for(int i = 0; i < 8; i += 2) {
-			uint8 t = vram[src_t + (i * 0x800)];
+			uint8_t t = vram[src_t + (i * 0x800)];
 			if(IS_ATTRIB(t)) {
 				c_t[i] = c_t[i + 1] = t & 7;
 			}
@@ -314,10 +308,10 @@ void DISPLAY::draw_screen1_wide(uint16 src)
 		
 		for(int x = 0; x < width; x++) {
 			bool is_graph[8];
-			uint8 attr_t[8];
-			uint8 code[8];
+			uint8_t attr_t[8];
+			uint8_t code[8];
 			for(int i = 0; i < 8; i += 2) {
-				uint16 t = (src_t + (i * 0x800)) & 0x3fff;
+				uint16_t t = (src_t + (i * 0x800)) & 0x3fff;
 				is_graph[i] = is_graph[i + 1] = (attr[t] != 0);
 				attr_t[i] = attr_t[i + 1] = attr[t];
 				code[i] = code[i + 1] = vram[t];
@@ -326,12 +320,12 @@ void DISPLAY::draw_screen1_wide(uint16 src)
 			for(int l = 0; l < 8; l++) {
 				// change line color if vram data is text and is attribute character
 				// note: check only first line
-				uint8 code_t = code[l];
+				uint8_t code_t = code[l];
 				if(!is_graph[l] && IS_ATTRIB(code_t)) {
 					c_t[l] = code_t & 7;
 				}
-				uint8* font_base = &font[code_t << 3];
-				uint8 c_l = c_t[l], c_r = c_t[l], p = font_base[l];
+				uint8_t* font_base = &font[code_t << 3];
+				uint8_t c_l = c_t[l], c_r = c_t[l], p = font_base[l];
 				if(is_graph[l]) {
 					if(attr_t[l]) {
 						p = code_t;
@@ -342,7 +336,7 @@ void DISPLAY::draw_screen1_wide(uint16 src)
 						p = 0;
 					}
 				}
-				uint8* d = &screen[y + l][x << 4];
+				uint8_t* d = &screen[y + l][x << 4];
 				
 				d[ 0] = d[ 1] = (p & 0x80) ? c_l : c_b;
 				d[ 2] = d[ 3] = (p & 0x40) ? c_l : c_b;
@@ -366,18 +360,18 @@ void DISPLAY::draw_screen1_wide(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen2_normal(uint16 src)
+void DISPLAY::draw_screen2_normal(uint16_t src)
 {
 	// screen 2, normal char (80chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
-	uint8 c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+	uint8_t c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
 	
 	for(int y = 0; y < 200; y += 8) {
 		// character data is set for every line in scren 2
 		for(int i = 0; i < 8; i++) {
-			uint8 t = vram[src_t + (i * 0x800)];
+			uint8_t t = vram[src_t + (i * 0x800)];
 			if(IS_ATTRIB(t)) {
 				c_t[i] = t & 7;
 			}
@@ -385,28 +379,28 @@ void DISPLAY::draw_screen2_normal(uint16 src)
 		src_t = (src_t & 0x3800) | ((src_t + 1) & 0x7ff);
 		
 		for(int x = 0; x < width; x++) {
-			uint16 src_g = src_t;
+			uint16_t src_g = src_t;
 			bool is_graph[8];
-			uint8 code[8];
+			uint8_t code[8];
 			for(int i = 0; i < 8; i++) {
-				uint16 t = (src_t + (i * 0x800)) & 0x3fff;
+				uint16_t t = (src_t + (i * 0x800)) & 0x3fff;
 				is_graph[i] = (attr[t] != 0);
 				code[i] = vram[t];
 			}
 			
 			for(int l = 0; l < 8; l++) {
 				// change line color if vram data is text and is attribute character
-				uint8 code_t = code[l];
+				uint8_t code_t = code[l];
 				if(!is_graph[l] && (0xf8 <= code_t) && (code_t <= 0xff)) {
 					c_t[l] = code_t & 7;
 				}
-				uint8 c_l = c_t[l], c_r = c_t[l];
+				uint8_t c_l = c_t[l], c_r = c_t[l];
 				
-				uint8* font_base = &font[code_t << 3];
-				uint8 p = is_graph[l] ? (attr[src_g] ? vram[src_g] : 0) : font_base[l];
+				uint8_t* font_base = &font[code_t << 3];
+				uint8_t p = is_graph[l] ? (attr[src_g] ? vram[src_g] : 0) : font_base[l];
 				src_g = (src_g + 0x800) & 0x3fff;
-				uint8 c_p = is_graph[l] ? 7 : c_t[l];
-				uint8* d = &screen[y + l][x << 3];
+				uint8_t c_p = /*is_graph[l] ? 7 : */c_t[l];
+				uint8_t* d = &screen[y + l][x << 3];
 				
 				d[0] = (p & 0x80) ? c_p : c_b;
 				d[1] = (p & 0x40) ? c_p : c_b;
@@ -430,18 +424,18 @@ void DISPLAY::draw_screen2_normal(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen2_wide(uint16 src)
+void DISPLAY::draw_screen2_wide(uint16_t src)
 {
 	// screen 0, wide char (36chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
-	uint8 c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+	uint8_t c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
 	
 	for(int y = 0; y < 192; y += 8) {
 		// character data is set for every line in scren 2
 		for(int i = 0; i < 8; i++) {
-			uint8 t = vram[src_t + (i * 0x800)];
+			uint8_t t = vram[src_t + (i * 0x800)];
 			if(IS_ATTRIB(t)) {
 				c_t[i] = t & 7;
 			}
@@ -449,27 +443,27 @@ void DISPLAY::draw_screen2_wide(uint16 src)
 		src_t = (src_t & 0x3800) | ((src_t + 1) & 0x7ff);
 		
 		for(int x = 0; x < width; x++) {
-			uint16 src_g = src_t;
+			uint16_t src_g = src_t;
 			bool is_graph[8];
-			uint8 code[8];
+			uint8_t code[8];
 			for(int i = 0; i < 8; i++) {
-				uint16 t = (src_t + (i * 0x800)) & 0x3fff;
+				uint16_t t = (src_t + (i * 0x800)) & 0x3fff;
 				is_graph[i] = (attr[t] != 0);
 				code[i] = vram[t];
 			}
 			for(int l = 0; l < 8; l++) {
 				// change line color if vram data is text and is attribute character
-				uint8 code_t = code[l];
+				uint8_t code_t = code[l];
 				if(!is_graph[l] && IS_ATTRIB(code_t)) {
 					c_t[l] = code_t & 7;
 				}
-				uint8 c_l = c_t[l], c_r = c_t[l];
+				uint8_t c_l = c_t[l], c_r = c_t[l];
 				
-				uint8* font_base = &font[code_t << 3];
-				uint8 p = is_graph[l] ? (attr[src_g] ? vram[src_g] : 0) : font_base[l];
+				uint8_t* font_base = &font[code_t << 3];
+				uint8_t p = is_graph[l] ? (attr[src_g] ? vram[src_g] : 0) : font_base[l];
 				src_g = (src_g + 0x800) & 0x3fff;
-				uint8 c_p = is_graph[l] ? 7 : c_t[l];
-				uint8* d = &screen[y + l][x << 4];
+				uint8_t c_p = /*is_graph[l] ? 7 : */c_t[l];
+				uint8_t* d = &screen[y + l][x << 4];
 				
 				d[ 0] = d[ 1] = (p & 0x80) ? c_p : c_b;
 				d[ 2] = d[ 3] = (p & 0x40) ? c_p : c_b;
@@ -493,18 +487,18 @@ void DISPLAY::draw_screen2_wide(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen15_normal(uint16 src)
+void DISPLAY::draw_screen15_normal(uint16_t src)
 {
 	// screen 2, normal char (80chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
-	uint8 c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+	uint8_t c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
 	
 	for(int y = 0; y < 200; y += 8) {
 		// character data is set for every line in scren 1.5
 		for(int i = 0; i < 8; i++) {
-			uint8 t = vram[src_t + (i * 0x800)];
+			uint8_t t = vram[src_t + (i * 0x800)];
 			if(IS_ATTRIB(t)) {
 				c_t[i] = t & 7;
 			}
@@ -513,22 +507,22 @@ void DISPLAY::draw_screen15_normal(uint16 src)
 		
 		for(int x = 0; x < width; x++) {
 			bool is_graph[8];
-			uint8 attr_t[8];
-			uint8 code[8];
+			uint8_t attr_t[8];
+			uint8_t code[8];
 			for(int i = 0; i < 8; i++) {
-				uint16 t = (src_t + (i * 0x800)) & 0x3fff;
+				uint16_t t = (src_t + (i * 0x800)) & 0x3fff;
 				is_graph[i] = (attr[t] != 0);
 				attr_t[i] = attr[t];
 				code[i] = vram[t];
 			}
 			for(int l = 0; l < 8; l++) {
 				// change line color if vram data is text and is attribute character
-				uint8 code_t = code[l];
+				uint8_t code_t = code[l];
 				if(!is_graph[l] && IS_ATTRIB(code_t)) {
 					c_t[l] = code_t & 7;
 				}
-				uint8* font_base = &font[code_t << 3];
-				uint8 c_l = c_t[l], c_r = c_t[l], p = font_base[l];
+				uint8_t* font_base = &font[code_t << 3];
+				uint8_t c_l = c_t[l], c_r = c_t[l], p = font_base[l];
 				if(is_graph[l]) {
 					if(attr_t[l]) {
 						p = code_t;
@@ -539,7 +533,7 @@ void DISPLAY::draw_screen15_normal(uint16 src)
 						p = 0;
 					}
 				}
-				uint8* d = &screen[y + l][x << 3];
+				uint8_t* d = &screen[y + l][x << 3];
 				
 				d[0] = (p & 0x80) ? c_l : c_b;
 				d[1] = (p & 0x40) ? c_l : c_b;
@@ -563,18 +557,18 @@ void DISPLAY::draw_screen15_normal(uint16 src)
 	}
 }
 
-void DISPLAY::draw_screen15_wide(uint16 src)
+void DISPLAY::draw_screen15_wide(uint16_t src)
 {
 	// screen 0, normal char (80chars)
-	uint16 src_t = src & 0x7ff;
-	uint8 c_b = mode & 7;
+	uint16_t src_t = src & 0x7ff;
+	uint8_t c_b = mode & 7;
 	int width = regs[1] - 1;
-	uint8 c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
+	uint8_t c_t[8] = {7, 7, 7, 7, 7, 7, 7, 7};
 	
 	for(int y = 0; y < 192; y += 8) {
 		// character data is set for every line in scren 1.5
 		for(int i = 0; i < 8; i++) {
-			uint8 t = vram[src_t + (i * 0x800)];
+			uint8_t t = vram[src_t + (i * 0x800)];
 			if(IS_ATTRIB(t)) {
 				c_t[i] = t & 7;
 			}
@@ -583,10 +577,10 @@ void DISPLAY::draw_screen15_wide(uint16 src)
 		
 		for(int x = 0; x < width; x++) {
 			bool is_graph[8];
-			uint8 attr_t[8];
-			uint8 code[8];
+			uint8_t attr_t[8];
+			uint8_t code[8];
 			for(int i = 0; i < 8; i++) {
-				uint16 t = (src_t + (i * 0x800)) & 0x3fff;
+				uint16_t t = (src_t + (i * 0x800)) & 0x3fff;
 				is_graph[i] = (attr[t] != 0);
 				attr_t[i] = attr[t];
 				code[i] = vram[t];
@@ -594,12 +588,12 @@ void DISPLAY::draw_screen15_wide(uint16 src)
 			
 			for(int l = 0; l < 8; l++) {
 				// change line color if vram data is text and is attribute character
-				uint8 code_t = code[l];
+				uint8_t code_t = code[l];
 				if(!is_graph[l] && IS_ATTRIB(code_t)) {
 					c_t[l] = code_t & 7;
 				}
-				uint8* font_base = &font[code_t << 3];
-				uint8 c_l = c_t[l], c_r = c_t[l], p = font_base[l];
+				uint8_t* font_base = &font[code_t << 3];
+				uint8_t c_l = c_t[l], c_r = c_t[l], p = font_base[l];
 				if(is_graph[l]) {
 					if(attr_t[l]) {
 						p = code_t;
@@ -610,7 +604,7 @@ void DISPLAY::draw_screen15_wide(uint16 src)
 						p = 0;
 					}
 				}
-				uint8* d = &screen[y + l][x << 4];
+				uint8_t* d = &screen[y + l][x << 4];
 				
 				d[ 0] = d[ 1] = (p & 0x80) ? c_l : c_b;
 				d[ 2] = d[ 3] = (p & 0x40) ? c_l : c_b;
@@ -632,5 +626,21 @@ void DISPLAY::draw_screen15_wide(uint16 src)
 			src_t = (src_t & 0x3800) | ((src_t + 1) & 0x7ff);
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(mode);
+	state_fio->StateValue(cursor);
+	state_fio->StateValue(cblink);
+	return true;
 }
 

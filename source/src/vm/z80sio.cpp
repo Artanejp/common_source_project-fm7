@@ -9,17 +9,9 @@
 
 #include "z80sio.h"
 #include "../fifo.h"
-#include "../fileio.h"
 
 #define EVENT_SEND	2
 #define EVENT_RECV	4
-
-#ifndef Z80SIO_DELAY_SEND
-#define Z80SIO_DELAY_SEND	2000
-#endif
-#ifndef Z80SIO_DELAY_RECV
-#define Z80SIO_DELAY_RECV	2000
-#endif
 
 //#define SIO_DEBUG
 
@@ -32,15 +24,73 @@
 #define BIT_SYNC1	1
 #define BIT_SYNC2	2
 
+#define REGISTER_FIRST_SEND_EVENT(ch) { \
+	if(port[ch].tx_clock != 0) { \
+		if(port[ch].send_id == -1) { \
+			register_event(this, EVENT_SEND + ch, 1000000.0 / port[ch].tx_clock / 2.0, false, &port[ch].send_id); \
+		} \
+	} else { \
+		if(port[ch].tx_bits_x2_remain == 0) { \
+			port[ch].tx_bits_x2_remain = 1; \
+		} \
+	} \
+}
+
+#define REGISTER_SEND_EVENT(ch) { \
+	if(port[ch].tx_clock != 0) { \
+		if(port[ch].send_id == -1) { \
+			register_event(this, EVENT_SEND + ch, port[ch].tx_interval, false, &port[ch].send_id); \
+		} \
+	} else { \
+		if(port[ch].tx_bits_x2_remain == 0) { \
+			port[ch].tx_bits_x2_remain = port[ch].tx_bits_x2; \
+		} \
+	} \
+}
+
+#define CANCEL_SEND_EVENT(ch) { \
+	if(port[ch].tx_clock != 0) { \
+		if(port[ch].send_id != -1) { \
+			cancel_event(this, port[ch].send_id); \
+			port[ch].send_id = -1; \
+		} \
+	} else { \
+		port[ch].tx_bits_x2_remain = 0; \
+	} \
+}
+
+#define REGISTER_RECV_EVENT(ch) { \
+	if(port[ch].rx_clock != 0) { \
+		if(port[ch].recv_id == -1) { \
+			register_event(this, EVENT_RECV + ch, port[ch].rx_interval, false, &port[ch].recv_id); \
+		} \
+	} else { \
+		if(port[ch].rx_bits_x2_remain == 0) { \
+			port[ch].rx_bits_x2_remain = port[ch].rx_bits_x2; \
+		} \
+	} \
+}
+
+#define CANCEL_RECV_EVENT(ch) { \
+	if(port[ch].rx_clock != 0) { \
+		if(port[ch].recv_id != -1) { \
+			cancel_event(this, port[ch].recv_id); \
+			port[ch].recv_id = -1; \
+		} \
+	} else { \
+		port[ch].rx_bits_x2_remain = 0; \
+	} \
+}
+
 void Z80SIO::initialize()
 {
 	for(int ch = 0; ch < 2; ch++) {
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		port[ch].send = new FIFO(16);
 		port[ch].recv = new FIFO(16);
 		port[ch].rtmp = new FIFO(16);
 #else
-		port[ch].send = new FIFO(2);
+		port[ch].send = new FIFO(1);
 		port[ch].recv = new FIFO(4);
 		port[ch].rtmp = new FIFO(8);
 #endif
@@ -61,14 +111,15 @@ void Z80SIO::reset()
 		port[ch].over_flow = false;
 		port[ch].under_run = false;
 		port[ch].abort = false;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		port[ch].tx_count = 0;
 #endif
-		port[ch].send_id = -1;
-		port[ch].recv_id = -1;
 		port[ch].send->clear();
 		port[ch].recv->clear();
 		port[ch].rtmp->clear();
+		port[ch].shift_reg = -1;
+		port[ch].send_id = -1;
+		port[ch].recv_id = -1;
 		memset(port[ch].wr, 0, sizeof(port[ch].wr));
 		// interrupt
 		port[ch].err_intr = false;
@@ -106,29 +157,62 @@ void Z80SIO::release()
 	3	ch.b control
 */
 
-void Z80SIO::write_io8(uint32 addr, uint32 data)
+void Z80SIO::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = (addr >> 1) & 1;
 	bool update_intr_required = false;
+	bool update_tx_timing_required = false;
+	bool update_rx_timing_required = false;
 	
 	switch(addr & 3) {
 	case 0:
 	case 2:
 		// send data
-		port[ch].send->write(data);
-#ifdef UPD7210
-		port[ch].tx_count++;
-#endif
 		if(port[ch].send_intr) {
 			port[ch].send_intr = false;
 			update_intr();
 		}
+		// register next event
+		if(port[ch].wr[5] & 8) {
+			int tx_data_bits = 5;
+			if((data & 0xe0) == 0x00) {
+				tx_data_bits = 5;
+			} else if((data & 0xf0) == 0x80) {
+				tx_data_bits = 4;
+			} else if((data & 0xf8) == 0xc0) {
+				tx_data_bits = 3;
+			} else if((data & 0xfc) == 0xe0) {
+				tx_data_bits = 2;
+			} else if((data & 0xfe) == 0xf0) {
+				tx_data_bits = 1;
+			}
+			if(port[ch].tx_data_bits != tx_data_bits) {
+				port[ch].tx_data_bits = tx_data_bits;
+				update_tx_timing(ch);
+			}
+			if((port[ch].wr[4] & 0x0c) != 0 && port[ch].shift_reg == -1 && port[ch].send->empty()) {
+				// this is the first data
+				CANCEL_SEND_EVENT(ch);
+				REGISTER_FIRST_SEND_EVENT(ch);
+			} else {
+				REGISTER_SEND_EVENT(ch);
+			}
+		} else {
+			CANCEL_SEND_EVENT(ch);
+		}
+#ifndef HAS_UPD7201
+		port[ch].send->clear();
+#endif
+		port[ch].send->write(data);
+#ifdef HAS_UPD7201
+		port[ch].tx_count++;
+#endif
 		break;
 	case 1:
 	case 3:
 		// control
 #ifdef SIO_DEBUG
-//		emu->out_debug_log(_T("Z80SIO: ch=%d WR[%d]=%2x\n"), ch, port[ch].pointer, data);
+//		this->out_debug_log(_T("Z80SIO: ch=%d WR[%d]=%2x\n"), ch, port[ch].pointer, data);
 #endif
 		switch(port[ch].pointer) {
 		case 0:
@@ -141,23 +225,18 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 				break;
 			case 0x18:
 				// channel reset
-				if(port[ch].send_id != -1) {
-					cancel_event(this, port[ch].send_id);
-					port[ch].send_id = -1;
-				}
-				if(port[ch].recv_id != -1) {
-					cancel_event(this, port[ch].recv_id);
-					port[ch].recv_id = -1;
-				}
+				CANCEL_SEND_EVENT(ch);
+				CANCEL_RECV_EVENT(ch);
 				port[ch].nextrecv_intr = false;
 				port[ch].first_data = false;
 				port[ch].over_flow = false;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 				port[ch].tx_count = 0;	// is this correct ???
 #endif
 				port[ch].send->clear();
 				port[ch].recv->clear();
 				port[ch].rtmp->clear();
+				port[ch].shift_reg = -1;
 				memset(port[ch].wr, 0, sizeof(port[ch].wr));
 				// interrupt
 				if(port[ch].err_intr) {
@@ -237,41 +316,52 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 				// enter hunt/sync phase
 				if(MONOSYNC(ch)) {
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (monosync)\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (monosync)\n"), ch);
 #endif
 					port[ch].sync_bit = BIT_SYNC1;
 				} else if(BISYNC(ch)) {
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (bisync)\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d enter hunt/sync phase (bisync)\n"), ch);
 #endif
 					port[ch].sync_bit = BIT_SYNC1 | BIT_SYNC2;
 				}
 				port[ch].sync = false;
 				write_signals(&port[ch].outputs_sync, 0xffffffff);
 			}
+			if((port[ch].wr[3] & 0xc0) != (data & 0xc0)) {
+				update_rx_timing_required = true;
+			}
+			break;
+		case 4:
+			if((port[ch].wr[4] & 0xcd) != (data & 0xcd)) {
+				update_tx_timing_required = update_rx_timing_required = true;
+			}
 			break;
 		case 5:
-			if((uint32)(port[ch].wr[5] & 2) != (data & 2)) {
+			if((uint32_t)(port[ch].wr[5] & 2) != (data & 2)) {
 				// rts
 				write_signals(&port[ch].outputs_rts, (data & 2) ? 0 : 0xffffffff);
 			}
-			if((uint32)(port[ch].wr[5] & 0x80) != (data & 0x80)) {
+			if((uint32_t)(port[ch].wr[5] & 0x80) != (data & 0x80)) {
 				// dtr
 				write_signals(&port[ch].outputs_dtr, (data & 0x80) ? 0 : 0xffffffff);
 			}
 			if(data & 8) {
-				if(port[ch].send_id == -1) {
-					register_event(this, EVENT_SEND + ch, Z80SIO_DELAY_SEND, true, &port[ch].send_id);
+				if((port[ch].wr[4] & 0x0c) != 0 && port[ch].shift_reg == -1 && !port[ch].send->empty()) {
+//					CANCEL_SEND_EVENT(ch);
+					REGISTER_FIRST_SEND_EVENT(ch);
+				} else {
+					REGISTER_SEND_EVENT(ch);
 				}
 			} else {
-				if(port[ch].send_id != -1) {
-					cancel_event(this, port[ch].send_id);
-					port[ch].send_id = -1;
-				}
+				CANCEL_SEND_EVENT(ch);
 			}
 			if(data & 0x10) {
 				// send break
 				write_signals(&port[ch].outputs_break, 0xffffffff);
+			}
+			if((port[ch].wr[5] & 0x60) != (data & 0x60)) {
+				update_tx_timing_required = true;
 			}
 			break;
 		}
@@ -279,15 +369,21 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 		if(update_intr_required) {
 			update_intr();
 		}
+		if(update_tx_timing_required) {
+			update_tx_timing(ch);
+		}
+		if(update_rx_timing_required) {
+			update_rx_timing(ch);
+		}
 		port[ch].pointer = (port[ch].pointer == 0) ? (data & 7) : 0;
 		break;
 	}
 }
 
-uint32 Z80SIO::read_io8(uint32 addr)
+uint32_t Z80SIO::read_io8(uint32_t addr)
 {
 	int ch = (addr >> 1) & 1;
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr & 3) {
 	case 0:
@@ -337,11 +433,13 @@ uint32 Z80SIO::read_io8(uint32 addr)
 			}
 		} else if(port[ch].pointer == 2) {
 			val = port[ch].vector;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		} else if(port[ch].pointer == 3) {
 			val = port[ch].tx_count & 0xff;
+			port[ch].tx_count_hi = port[ch].tx_count >> 8;
 		} else if(port[ch].pointer == 4) {
-			val = (port[ch].tx_count >> 8) & 0xff;
+//			val = (port[ch].tx_count >> 8) & 0xff;
+			val = port[ch].tx_count_hi;
 #endif
 		}
 		port[ch].pointer = 0;
@@ -350,7 +448,7 @@ uint32 Z80SIO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void Z80SIO::write_signal(int id, uint32 data, uint32 mask)
+void Z80SIO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// recv data
 	int ch = id & 1;
@@ -360,9 +458,7 @@ void Z80SIO::write_signal(int id, uint32 data, uint32 mask)
 	case SIG_Z80SIO_RECV_CH0:
 	case SIG_Z80SIO_RECV_CH1:
 		// recv data
-		if(port[ch].recv_id == -1) {
-			register_event(this, EVENT_RECV + ch, Z80SIO_DELAY_RECV, false, &port[ch].recv_id);
-		}
+		REGISTER_RECV_EVENT(ch);
 		if(port[ch].rtmp->empty()) {
 			port[ch].first_data = true;
 		}
@@ -399,8 +495,11 @@ void Z80SIO::write_signal(int id, uint32 data, uint32 mask)
 			port[ch].cts = signal;
 			if(!signal && (port[ch].wr[3] & 0x20)) {
 				// auto enables
-				if(port[ch].send_id == -1) {
-					register_event(this, EVENT_SEND + ch, Z80SIO_DELAY_SEND, true, &port[ch].send_id);
+				if((port[ch].wr[4] & 0x0c) != 0 && port[ch].shift_reg == -1 && !port[ch].send->empty()) {
+//					CANCEL_SEND_EVENT(ch);
+					REGISTER_FIRST_SEND_EVENT(ch);
+				} else {
+					REGISTER_SEND_EVENT(ch);
 				}
 				port[ch].wr[5] |= 8;
 			}
@@ -419,14 +518,29 @@ void Z80SIO::write_signal(int id, uint32 data, uint32 mask)
 			}
 		}
 		break;
+	case SIG_Z80SIO_TX_CLK_CH0:
+	case SIG_Z80SIO_TX_CLK_CH1:
+		if(port[ch].prev_tx_clock_signal != signal) {
+			if(port[ch].tx_bits_x2_remain > 0 && --port[ch].tx_bits_x2_remain == 0) {
+				event_callback(EVENT_SEND + ch, 0);
+			}
+			port[ch].prev_tx_clock_signal = signal;
+		}
+		break;
+	case SIG_Z80SIO_RX_CLK_CH0:
+	case SIG_Z80SIO_RX_CLK_CH1:
+		if(port[ch].prev_rx_clock_signal != signal) {
+			if(port[ch].rx_bits_x2_remain > 0 && --port[ch].rx_bits_x2_remain == 0) {
+				event_callback(EVENT_RECV + ch, 0);
+			}
+			port[ch].prev_rx_clock_signal = signal;
+		}
+		break;
 	case SIG_Z80SIO_CLEAR_CH0:
 	case SIG_Z80SIO_CLEAR_CH1:
 		// hack: clear recv buffer
 		if(data & mask) {
-			if(port[ch].recv_id != -1) {
-				cancel_event(this, port[ch].recv_id);
-				port[ch].recv_id = -1;
-			}
+			CANCEL_RECV_EVENT(ch);
 			port[ch].rtmp->clear();
 			port[ch].recv->clear();
 			if(port[ch].recv_intr) {
@@ -444,7 +558,23 @@ void Z80SIO::event_callback(int event_id, int err)
 	
 	if(event_id & EVENT_SEND) {
 		// send
-		if(port[ch].send->empty()) {
+		port[ch].send_id = -1;
+		port[ch].tx_bits_x2_remain = 0;
+		
+		bool under_run = true;
+		
+		if(port[ch].shift_reg != -1) {
+			// send data in shift register
+			write_signals(&port[ch].outputs_send, port[ch].shift_reg);
+			port[ch].shift_reg = -1;
+			under_run = false;
+		}
+		if(!port[ch].send->empty()) {
+			// load data in send buffer to shift register
+			port[ch].shift_reg = port[ch].send->read();
+			under_run = false;
+		}
+		if(under_run) {
 			// underrun interrupt
 			if(!port[ch].under_run) {
 				port[ch].under_run = true;
@@ -453,22 +583,23 @@ void Z80SIO::event_callback(int event_id, int err)
 					update_intr();
 				}
 			}
-		} else {
-			uint32 data = port[ch].send->read();
-			write_signals(&port[ch].outputs_send, data);
-			if(port[ch].send->empty()) {
-				// transmitter interrupt
-				if(!port[ch].send_intr) {
-					port[ch].send_intr = true;
-					update_intr();
-				}
-				write_signals(&port[ch].outputs_txdone, 0xffffffff);
-			}
 		}
+		if(port[ch].send->empty()) {
+			// transmitter interrupt
+			if(!port[ch].send_intr) {
+				port[ch].send_intr = true;
+				update_intr();
+			}
+			write_signals(&port[ch].outputs_txdone, 0xffffffff);
+		}
+		REGISTER_SEND_EVENT(ch);
 	} else if(event_id & EVENT_RECV) {
 		// recv
+		port[ch].recv_id = -1;
+		port[ch].rx_bits_x2_remain = 0;
+		
 		if(!(port[ch].wr[3] & 1)) {
-			register_event(this, EVENT_RECV + ch, Z80SIO_DELAY_RECV + err, false, &port[ch].recv_id);
+			REGISTER_RECV_EVENT(ch);
 			return;
 		}
 		bool update_intr_required = false;
@@ -493,7 +624,7 @@ void Z80SIO::event_callback(int event_id, int err)
 						goto request_next_data;
 					}
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d recv sync1\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d recv sync1\n"), ch);
 #endif
 					port[ch].sync_bit &= ~BIT_SYNC1;
 				} else if(port[ch].sync_bit & BIT_SYNC2) {
@@ -502,13 +633,13 @@ void Z80SIO::event_callback(int event_id, int err)
 						goto request_next_data;
 					}
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d recv sync2\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d recv sync2\n"), ch);
 #endif
 					port[ch].sync_bit &= ~BIT_SYNC2;
 				}
 				if(port[ch].sync_bit == 0) {
 #ifdef SIO_DEBUG
-					emu->out_debug_log(_T("Z80SIO: ch=%d leave hunt/sync phase\n"), ch);
+					this->out_debug_log(_T("Z80SIO: ch=%d leave hunt/sync phase\n"), ch);
 #endif
 					if(!port[ch].stat_intr) {
 						port[ch].stat_intr = true;
@@ -524,7 +655,7 @@ void Z80SIO::event_callback(int event_id, int err)
 			}
 			// load received data into buffer
 #ifdef SIO_DEBUG
-			emu->out_debug_log(_T("Z80SIO: ch=%d recv %2x\n"), ch, data);
+			this->out_debug_log(_T("Z80SIO: ch=%d recv %2x\n"), ch, data);
 #endif
 			port[ch].recv->write(data);
 			
@@ -560,16 +691,66 @@ request_next_data:
 		if(port[ch].rtmp->empty()) {
 			// no data received
 #ifdef SIO_DEBUG
-			emu->out_debug_log(_T("Z80SIO: ch=%d end of block\n"), ch);
+			this->out_debug_log(_T("Z80SIO: ch=%d end of block\n"), ch);
 #endif
 			port[ch].recv_id = -1;
 		} else {
-			register_event(this, EVENT_RECV + ch, Z80SIO_DELAY_RECV + err, false, &port[ch].recv_id);
+			REGISTER_RECV_EVENT(ch);
 			port[ch].first_data = first_data;
 		}
 		if(update_intr_required) {
 			update_intr();
 		}
+	}
+}
+
+void Z80SIO::update_tx_timing(int ch)
+{
+	port[ch].tx_bits_x2 = (port[ch].wr[4] & 1) * 2;
+	switch(port[ch].wr[5] & 0x60) {
+	case 0x00: port[ch].tx_bits_x2 += 2 * port[ch].tx_data_bits; break;
+	case 0x20: port[ch].tx_bits_x2 += 2 * 7; break;
+	case 0x40: port[ch].tx_bits_x2 += 2 * 6; break;
+	case 0x60: port[ch].tx_bits_x2 += 2 * 8; break;
+	}
+	switch(port[ch].wr[4] & 0x0c) {
+	case 0x00: port[ch].tx_bits_x2 += 0; break;	// sync mode
+	case 0x04: port[ch].tx_bits_x2 += 4; break;	// 2 * (1 + 1)
+	case 0x08: port[ch].tx_bits_x2 += 5; break;	// 2 * (1 + 1.5)
+	case 0x0c: port[ch].tx_bits_x2 += 6; break;	// 2 * (1 + 2)
+	}
+	switch(port[ch].wr[4] & 0xc0) {
+	case 0x40: port[ch].tx_bits_x2 *= 16; break;
+	case 0x80: port[ch].tx_bits_x2 *= 32; break;
+	case 0xc0: port[ch].tx_bits_x2 *= 64; break;
+	}
+	if(port[ch].tx_clock != 0) {
+		port[ch].tx_interval = 1000000.0 / port[ch].tx_clock * (double)port[ch].tx_bits_x2 / 2.0;
+	}
+}
+
+void Z80SIO::update_rx_timing(int ch)
+{
+	port[ch].rx_bits_x2 = (port[ch].wr[4] & 1) * 2;
+	switch(port[ch].wr[3] & 0xc0) {
+	case 0x00: port[ch].rx_bits_x2 += 2 * 5; break;
+	case 0x40: port[ch].rx_bits_x2 += 2 * 7; break;
+	case 0x80: port[ch].rx_bits_x2 += 2 * 6; break;
+	case 0xc0: port[ch].rx_bits_x2 += 2 * 8; break;
+	}
+	switch(port[ch].wr[4] & 0x0c) {
+	case 0x00: port[ch].rx_bits_x2 += 0; break;	// sync mode
+	case 0x04: port[ch].rx_bits_x2 += 4; break;	// 2 * (1 + 1)
+	case 0x08: port[ch].rx_bits_x2 += 5; break;	// 2 * (1 + 1.5)
+	case 0x0c: port[ch].rx_bits_x2 += 6; break;	// 2 * (1 + 2)
+	}
+	switch(port[ch].wr[4] & 0xc0) {
+	case 0x40: port[ch].rx_bits_x2 *= 16; break;
+	case 0x80: port[ch].rx_bits_x2 *= 32; break;
+	case 0xc0: port[ch].rx_bits_x2 *= 64; break;
+	}
+	if(port[ch].rx_clock != 0) {
+		port[ch].rx_interval = 1000000.0 / port[ch].rx_clock * (double)port[ch].rx_bits_x2 / 2.0;
 	}
 }
 
@@ -626,8 +807,8 @@ void Z80SIO::update_intr()
 	
 	// create vector
 	if(port[1].wr[1] & 4) {
-#ifdef UPD7201
-		uint8 affect = 7;	// no interrupt pending
+#ifdef HAS_UPD7201
+		uint8_t affect = 7;	// no interrupt pending
 		for(int ch = 0; ch < 2; ch++) {
 			if(port[ch].in_service) {
 				break;
@@ -637,14 +818,14 @@ void Z80SIO::update_intr()
 				break;
 			}
 		}
-		uint8 mode = port[0].wr[2] & 0x38;
+		uint8_t mode = port[0].wr[2] & 0x38;
 		if(mode == 0 || mode == 8 || mode == 0x20 || mode == 0x28 || mode == 0x38) {
 			port[1].vector = (port[1].wr[2] & 0xe3) | (affect << 2);	// 8085
 		} else {
 			port[1].vector = (port[1].wr[2] & 0xf8) | (affect << 0);	// 8086
 		}
 #else
-		uint8 affect = 3;	// no interrupt pending
+		uint8_t affect = 3;	// no interrupt pending
 		for(int ch = 0; ch < 2; ch++) {
 			if(port[ch].in_service) {
 				break;
@@ -678,7 +859,7 @@ void Z80SIO::update_intr()
 	}
 }
 
-uint32 Z80SIO::intr_ack()
+uint32_t Z80SIO::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	for(int ch = 0; ch < 2; ch++) {
@@ -701,18 +882,18 @@ uint32 Z80SIO::intr_ack()
 			port[ch].in_service = true;
 		}
 		if(port[ch].in_service) {
-			uint8 vector = port[1].vector;
+			uint8_t vector = port[1].vector;
 			update_intr();
 			return vector;
 		}
 	}
 	if(d_child) {
-		return d_child->intr_ack();
+		return d_child->get_intr_ack();
 	}
 	return 0xff;
 }
 
-void Z80SIO::intr_reti()
+void Z80SIO::notify_intr_reti()
 {
 	// detect RETI
 	for(int ch = 0; ch < 2; ch++) {
@@ -723,97 +904,71 @@ void Z80SIO::intr_reti()
 		}
 	}
 	if(d_child) {
-		d_child->intr_reti();
+		d_child->notify_intr_reti();
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	3
 
-void Z80SIO::save_state(FILEIO* state_fio)
+bool Z80SIO::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < 2; i++) {
-		state_fio->FputInt32(port[i].pointer);
-		state_fio->Fwrite(port[i].wr, sizeof(port[i].wr), 1);
-		state_fio->FputUint8(port[i].vector);
-		state_fio->FputUint8(port[i].affect);
-		state_fio->FputBool(port[i].nextrecv_intr);
-		state_fio->FputBool(port[i].first_data);
-		state_fio->FputBool(port[i].over_flow);
-		state_fio->FputBool(port[i].under_run);
-		state_fio->FputBool(port[i].abort);
-		state_fio->FputBool(port[i].sync);
-		state_fio->FputUint8(port[i].sync_bit);
-#ifdef UPD7201
-		state_fio->FputUint16(port[i].tx_count);
-#endif
-		port[i].send->save_state((void *)state_fio);
-		port[i].recv->save_state((void *)state_fio);
-		port[i].rtmp->save_state((void *)state_fio);
-		state_fio->FputInt32(port[i].send_id);
-		state_fio->FputInt32(port[i].recv_id);
-		state_fio->FputBool(port[i].err_intr);
-		state_fio->FputInt32(port[i].recv_intr);
-		state_fio->FputBool(port[i].stat_intr);
-		state_fio->FputBool(port[i].send_intr);
-		state_fio->FputBool(port[i].req_intr);
-		state_fio->FputBool(port[i].in_service);
-		state_fio->FputBool(port[i].dcd);
-		state_fio->FputBool(port[i].cts);
-	}
-	state_fio->FputBool(iei);
-	state_fio->FputBool(oei);
-	state_fio->FputUint32(intr_bit);
-}
-
-bool Z80SIO::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
 	for(int i = 0; i < 2; i++) {
-		port[i].pointer = state_fio->FgetInt32();
-		state_fio->Fread(port[i].wr, sizeof(port[i].wr), 1);
-		port[i].vector = state_fio->FgetUint8();
-		port[i].affect = state_fio->FgetUint8();
-		port[i].nextrecv_intr = state_fio->FgetBool();
-		port[i].first_data = state_fio->FgetBool();
-		port[i].over_flow = state_fio->FgetBool();
-		port[i].under_run = state_fio->FgetBool();
-		port[i].abort = state_fio->FgetBool();
-		port[i].sync = state_fio->FgetBool();
-		port[i].sync_bit = state_fio->FgetUint8();
-#ifdef UPD7201
-		port[i].tx_count = state_fio->FgetUint16();
+		state_fio->StateValue(port[i].pointer);
+		state_fio->StateArray(port[i].wr, sizeof(port[i].wr), 1);
+		state_fio->StateValue(port[i].vector);
+		state_fio->StateValue(port[i].affect);
+		state_fio->StateValue(port[i].nextrecv_intr);
+		state_fio->StateValue(port[i].first_data);
+		state_fio->StateValue(port[i].over_flow);
+		state_fio->StateValue(port[i].under_run);
+		state_fio->StateValue(port[i].abort);
+		state_fio->StateValue(port[i].sync);
+		state_fio->StateValue(port[i].sync_bit);
+#ifdef HAS_UPD7201
+		state_fio->StateValue(port[i].tx_count);
+		state_fio->StateValue(port[i].tx_count_hi);
 #endif
-		if(!port[i].send->load_state((void *)state_fio)) {
+		state_fio->StateValue(port[i].tx_clock);
+		state_fio->StateValue(port[i].tx_interval);
+		state_fio->StateValue(port[i].rx_clock);
+		state_fio->StateValue(port[i].rx_interval);
+		state_fio->StateValue(port[i].tx_data_bits);
+		state_fio->StateValue(port[i].tx_bits_x2);
+		state_fio->StateValue(port[i].tx_bits_x2_remain);
+		state_fio->StateValue(port[i].rx_bits_x2);
+		state_fio->StateValue(port[i].rx_bits_x2_remain);
+		state_fio->StateValue(port[i].prev_tx_clock_signal);
+		state_fio->StateValue(port[i].prev_rx_clock_signal);
+		if(!port[i].send->process_state((void *)state_fio, loading)) {
 			return false;
 		}
-		if(!port[i].recv->load_state((void *)state_fio)) {
+		if(!port[i].recv->process_state((void *)state_fio, loading)) {
 			return false;
 		}
-		if(!port[i].rtmp->load_state((void *)state_fio)) {
+		if(!port[i].rtmp->process_state((void *)state_fio, loading)) {
 			return false;
 		}
-		port[i].send_id = state_fio->FgetInt32();
-		port[i].recv_id = state_fio->FgetInt32();
-		port[i].err_intr = state_fio->FgetBool();
-		port[i].recv_intr = state_fio->FgetInt32();
-		port[i].stat_intr = state_fio->FgetBool();
-		port[i].send_intr = state_fio->FgetBool();
-		port[i].req_intr = state_fio->FgetBool();
-		port[i].in_service = state_fio->FgetBool();
-		port[i].dcd = state_fio->FgetBool();
-		port[i].cts = state_fio->FgetBool();
+		state_fio->StateValue(port[i].shift_reg);
+		state_fio->StateValue(port[i].send_id);
+		state_fio->StateValue(port[i].recv_id);
+		state_fio->StateValue(port[i].err_intr);
+		state_fio->StateValue(port[i].recv_intr);
+		state_fio->StateValue(port[i].stat_intr);
+		state_fio->StateValue(port[i].send_intr);
+		state_fio->StateValue(port[i].req_intr);
+		state_fio->StateValue(port[i].in_service);
+		state_fio->StateValue(port[i].dcd);
+		state_fio->StateValue(port[i].cts);
 	}
-	iei = state_fio->FgetBool();
-	oei = state_fio->FgetBool();
-	intr_bit = state_fio->FgetUint32();
+	state_fio->StateValue(iei);
+	state_fio->StateValue(oei);
+	state_fio->StateValue(intr_bit);
 	return true;
 }
 

@@ -8,7 +8,6 @@
 */
 
 #include "hd46505.h"
-#include "../fileio.h"
 
 #define EVENT_DISPLAY	0
 #define EVENT_HSYNC_S	1
@@ -28,6 +27,7 @@ void HD46505::reset()
 	vblank = vsync = hsync = true;
 	
 	memset(regs, 0, sizeof(regs));
+	memset(regs_written, 0, sizeof(regs_written));
 	ch = 0;
 	
 	// initial settings for 1st frame
@@ -48,27 +48,37 @@ void HD46505::reset()
 	timing_changed = false;
 	disp_end_clock = 0;
 	
-#ifdef HD46505_HORIZ_FREQ
+#if defined(HD46505_CHAR_CLOCK)
+	char_clock = 0;
+	next_char_clock = HD46505_CHAR_CLOCK;
+#elif defined(HD46505_HORIZ_FREQ)
 	horiz_freq = 0;
 	next_horiz_freq = HD46505_HORIZ_FREQ;
 #endif
 }
 
-void HD46505::write_io8(uint32 addr, uint32 data)
+void HD46505::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		if(ch < 18) {
 			if(ch < 10 && regs[ch] != data) {
 				timing_changed = true;
 			}
+			if(ch == 5 && !regs_written[5]) {
+				reg5_bottom = data;
+			}
+			if(ch == 9 && !regs_written[9]) {
+				reg9_bottom = data;
+			}
 			regs[ch] = data;
+			regs_written[ch] = true;
 		}
 	} else {
 		ch = data;
 	}
 }
 
-uint32 HD46505::read_io8(uint32 addr)
+uint32_t HD46505::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		return (12 <= ch && ch < 18) ? regs[ch] : 0xff;
@@ -80,37 +90,45 @@ uint32 HD46505::read_io8(uint32 addr)
 void HD46505::event_pre_frame()
 {
 	if(timing_changed) {
-		int ch_height = (regs[9] & 0x1f) + 1;
-		
-		hz_total = regs[0] + 1;
-		hz_disp = regs[1];
-		hs_start = regs[2];
-		hs_end = hs_start + (regs[3] & 0x0f);
-		
-		int new_vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
-		vt_disp = (regs[6] & 0x7f) * ch_height;
-		vs_start = ((regs[7] & 0x7f) + 1) * ch_height;
-		vs_end = vs_start + ((regs[3] & 0xf0) ? (regs[3] >> 4) : 16);
-		
-		if(vt_total != new_vt_total) {
-			vt_total = new_vt_total;
+		if(regs_written[0] && regs_written[1] && regs_written[2] && regs_written[3] && regs_written[4] && regs_written[5] && regs_written[6] && regs_written[7] && regs_written[9]) {
+			int ch_height = (regs[9] & 0x1f) + 1;
+			int ch_height_bottom = (reg9_bottom & 0x1f) + 1;
+			
+			hz_total = regs[0] + 1;
+			hz_disp = regs[1];
+			hs_start = regs[2];
+			hs_end = hs_start + (regs[3] & 0x0f);
+			
+//			vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
+			vt_total = (regs[4] & 0x7f) * ch_height + ch_height_bottom + (reg5_bottom & 0x1f);
+			vt_disp = (regs[6] & 0x7f) * ch_height;
+			vs_start = ((regs[7] & 0x7f) + 1) * ch_height;
+			vs_end = vs_start + ((regs[3] & 0xf0) ? (regs[3] >> 4) : 16);
+			
 			set_lines_per_frame(vt_total);
-		}
-		timing_changed = false;
-		disp_end_clock = 0;
-#ifdef HD46505_HORIZ_FREQ
-		// for SHARP X1turbo
-		if(vt_total < 400) {
-			next_horiz_freq = HD46505_HORIZ_FREQ;
-		}
-		horiz_freq = 0;
+			
+			timing_changed = false;
+			disp_end_clock = 0;
+#if defined(HD46505_CHAR_CLOCK)
+			char_clock = 0;
+#elif defined(HD46505_HORIZ_FREQ)
+			horiz_freq = 0;
 #endif
+		}
 	}
-#ifdef HD46505_HORIZ_FREQ
+#if defined(HD46505_CHAR_CLOCK)
+	if(char_clock != next_char_clock) {
+		char_clock = next_char_clock;
+		frames_per_sec = char_clock / (double)vt_total / (double)hz_total;
+		if(regs[8] & 1) {
+			frames_per_sec *= 2; // interlace mode
+		}
+		set_frames_per_sec(frames_per_sec);
+	}
+#elif defined(HD46505_HORIZ_FREQ)
 	if(horiz_freq != next_horiz_freq) {
-		uint8 r8 = regs[8] & 3;
 		horiz_freq = next_horiz_freq;
-		frames_per_sec = (double)horiz_freq / (double)vt_total;
+		frames_per_sec = horiz_freq / (double)vt_total;
 		if(regs[8] & 1) {
 			frames_per_sec *= 2; // interlace mode
 		}
@@ -122,7 +140,7 @@ void HD46505::event_pre_frame()
 void HD46505::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 {
 	cpu_clocks = new_clocks;
-#ifndef HD46505_HORIZ_FREQ
+#if !defined(HD46505_CHAR_CLOCK) && !defined(HD46505_HORIZ_FREQ)
 	frames_per_sec = new_frames_per_sec;
 #endif
 	
@@ -142,8 +160,20 @@ void HD46505::event_frame()
 
 void HD46505::event_vline(int v, int clock)
 {
-	// if vt_disp == 0, raise vblank for one line
-	bool new_vblank = ((v < vt_disp) || (v == 0 && vt_disp == 0));
+	bool new_vblank;
+	
+	if((regs[8] & 0x30) != 0x30) {
+		// if vt_disp == 0, raise vblank for one line
+		new_vblank = ((v < vt_disp) || (v == 0 && vt_disp == 0));
+	} else {
+		new_vblank = false;
+	}
+	
+	// virtical smooth scroll
+	if(v == vt_disp) {
+		reg5_bottom = regs[5];
+		reg9_bottom = regs[9];
+	}
 	
 	// display
 	if(outputs_disp.count) {
@@ -210,71 +240,54 @@ void HD46505::set_hsync(bool val)
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	4
 
-void HD46505::save_state(FILEIO* state_fio)
+bool HD46505::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateArray(regs_written, sizeof(regs_written), 1);
+	state_fio->StateValue(reg5_bottom);
+	state_fio->StateValue(reg9_bottom);
+	state_fio->StateValue(ch);
+	state_fio->StateValue(timing_changed);
+	state_fio->StateValue(cpu_clocks);
+#if defined(HD46505_CHAR_CLOCK)
+	state_fio->StateValue(char_clock);
+	state_fio->StateValue(next_char_clock);
+#elif defined(HD46505_HORIZ_FREQ)
+	state_fio->StateValue(horiz_freq);
+	state_fio->StateValue(next_horiz_freq);
+#endif
+	state_fio->StateValue(frames_per_sec);
+	state_fio->StateValue(hz_total);
+	state_fio->StateValue(hz_disp);
+	state_fio->StateValue(hs_start);
+	state_fio->StateValue(hs_end);
+	state_fio->StateValue(vt_total);
+	state_fio->StateValue(vt_disp);
+	state_fio->StateValue(vs_start);
+	state_fio->StateValue(vs_end);
+	state_fio->StateValue(disp_end_clock);
+	state_fio->StateValue(hs_start_clock);
+	state_fio->StateValue(hs_end_clock);
+	state_fio->StateValue(display);
+	state_fio->StateValue(vblank);
+	state_fio->StateValue(vsync);
+	state_fio->StateValue(hsync);
 	
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->FputInt32(ch);
-	state_fio->FputBool(timing_changed);
-	state_fio->FputInt32(cpu_clocks);
-#ifdef HD46505_HORIZ_FREQ
-	state_fio->FputInt32(horiz_freq);
-	state_fio->FputInt32(next_horiz_freq);
-#endif
-	state_fio->FputDouble(frames_per_sec);
-	state_fio->FputInt32(hz_total);
-	state_fio->FputInt32(hz_disp);
-	state_fio->FputInt32(hs_start);
-	state_fio->FputInt32(hs_end);
-	state_fio->FputInt32(vt_total);
-	state_fio->FputInt32(vt_disp);
-	state_fio->FputInt32(vs_start);
-	state_fio->FputInt32(vs_end);
-	state_fio->FputInt32(disp_end_clock);
-	state_fio->FputInt32(hs_start_clock);
-	state_fio->FputInt32(hs_end_clock);
-	state_fio->FputBool(display);
-	state_fio->FputBool(vblank);
-	state_fio->FputBool(vsync);
-	state_fio->FputBool(hsync);
-}
-
-bool HD46505::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
-		return false;
+	// post process
+	if(loading) {
+		if(regs_written[0] && regs_written[1] && regs_written[2] && regs_written[3] && regs_written[4] && regs_written[5] && regs_written[6] && regs_written[7] && regs_written[9]) {
+			// force update timing
+			timing_changed = true;
+		}
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
-		return false;
-	}
-	state_fio->Fread(regs, sizeof(regs), 1);
-	ch = state_fio->FgetInt32();
-	timing_changed = state_fio->FgetBool();
-	cpu_clocks = state_fio->FgetInt32();
-#ifdef HD46505_HORIZ_FREQ
-	horiz_freq = state_fio->FgetInt32();
-	next_horiz_freq = state_fio->FgetInt32();
-#endif
-	frames_per_sec = state_fio->FgetDouble();
-	hz_total = state_fio->FgetInt32();
-	hz_disp = state_fio->FgetInt32();
-	hs_start = state_fio->FgetInt32();
-	hs_end = state_fio->FgetInt32();
-	vt_total = state_fio->FgetInt32();
-	vt_disp = state_fio->FgetInt32();
-	vs_start = state_fio->FgetInt32();
-	vs_end = state_fio->FgetInt32();
-	disp_end_clock = state_fio->FgetInt32();
-	hs_start_clock = state_fio->FgetInt32();
-	hs_end_clock = state_fio->FgetInt32();
-	display = state_fio->FgetBool();
-	vblank = state_fio->FgetBool();
-	vsync = state_fio->FgetBool();
-	hsync = state_fio->FgetBool();
 	return true;
 }
 

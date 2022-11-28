@@ -8,9 +8,8 @@
 */
 
 #include "ls393.h"
-#include "../fileio.h"
 
-void LS393::write_signal(int id, uint32 data, uint32 mask)
+void LS393::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	if(prev_in && !signal) {
@@ -19,7 +18,7 @@ void LS393::write_signal(int id, uint32 data, uint32 mask)
 			if(outputs[i].count) {
 				int bit = 1 << i;
 				if((prev_count & bit) != (count & bit)) {
-					uint32 val = (count & bit) ? 0xffffffff : 0;
+					uint32_t val = (count & bit) ? 0xffffffff : 0;
 					write_signals(&outputs[i], val);
 				}
 			}
@@ -30,25 +29,16 @@ void LS393::write_signal(int id, uint32 data, uint32 mask)
 
 #define STATE_VERSION	1
 
-void LS393::save_state(FILEIO* state_fio)
+bool LS393::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint32(count);
-	state_fio->FputBool(prev_in);
-}
-
-bool LS393::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	count = state_fio->FgetUint32();
-	prev_in = state_fio->FgetBool();
+	state_fio->StateValue(count);
+	state_fio->StateValue(prev_in);
 	return true;
 }
 

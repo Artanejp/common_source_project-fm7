@@ -18,8 +18,6 @@ static const int plane_priority[8][8] = {
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// init pallete
 	for(int i = 0; i < 8; i++) {
 		palette_pc_base[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
@@ -38,12 +36,7 @@ void DISPLAY::initialize()
 	memset(reverse, 0, sizeof(reverse));
 }
 
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
-}
-
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x3ff) {
 	case 0x110:
@@ -183,9 +176,9 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 DISPLAY::read_io8(uint32 addr)
+uint32_t DISPLAY::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0x3ff) {
 	case 0x110:
@@ -242,31 +235,31 @@ void DISPLAY::draw_screen()
 	if(ymax == 400) {
 		// 400 lines
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
-			uint8* src = screen[y];
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			uint8_t* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette_pc[src[x]];
 			}
 		}
-		emu->screen_skip_line = false;
+		emu->screen_skip_line(false);
 	} else {
 		// 200 lines
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-			scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-			uint8* src = screen[y];
+			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+			uint8_t* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest0[x] = palette_pc[src[x]];
 			}
-			if(scanline) {
-				memset(dest1, 0, 640 * sizeof(scrntype));
+			if(config.scan_line) {
+				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype));
+				my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
-		emu->screen_skip_line = true;
+		emu->screen_skip_line(true);
 	}
 }
 
@@ -276,7 +269,7 @@ void DISPLAY::draw_640dot_screen(int ymax)
 	bool wy1 = false, wy2 = false, wy3 = false, wy4 = false;
 	
 	for(int i = 0, total = 0; i < 4 && total < al; i++) {
-		uint32 tmp = ra[4 * i];
+		uint32_t tmp = ra[4 * i];
 		tmp |= ra[4 * i + 1] << 8;
 		tmp |= ra[4 * i + 2] << 16;
 		tmp |= ra[4 * i + 3] << 24;
@@ -285,7 +278,7 @@ void DISPLAY::draw_640dot_screen(int ymax)
 		bool wide = ((tmp & 0x80000000) != 0);
 		
 		for(int y = total; y < total + line && y < ymax; y++) {
-			uint8 mapy = mapram[y << 1];
+			uint8_t mapy = mapram[y << 1];
 			if(mapy & 1) wy1 = !wy1;
 			if(mapy & 2) wy2 = !wy2;
 			if(mapy & 4) wy3 = !wy3;
@@ -294,7 +287,7 @@ void DISPLAY::draw_640dot_screen(int ymax)
 			
 			if(wide) {
 				for(int x = 0; x < 640; x+= 16) {
-					uint8 mapx = mapram[(x >> 4) << 1];
+					uint8_t mapx = mapram[(x >> 4) << 1];
 					if(mapx & 0x10) wx1 = !wx1;
 					if(mapx & 0x20) wx2 = !wx2;
 					if(mapx & 0x40) wx3 = !wx3;
@@ -303,10 +296,10 @@ void DISPLAY::draw_640dot_screen(int ymax)
 					
 					int vaddr = ((ptr++) + vma[wn] * 2) & 0xffff;
 					ptr &= 0xffff;
-					uint8 b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
-					uint8 r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
-					uint8 g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
-					uint8 col, bcol = back[wn];
+					uint8_t b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
+					uint8_t r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
+					uint8_t g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
+					uint8_t col, bcol = back[wn];
 					if(mode_c & 1) {
 						bcol = 0;
 						b ^= reverse[wn];
@@ -334,7 +327,7 @@ void DISPLAY::draw_640dot_screen(int ymax)
 			} else {
 				for(int x = 0; x < 640; x+= 8) {
 					if(!(x & 8)) {
-						uint8 mapx = mapram[(x >> 4) << 1];
+						uint8_t mapx = mapram[(x >> 4) << 1];
 						if(mapx & 0x10) wx1 = !wx1;
 						if(mapx & 0x20) wx2 = !wx2;
 						if(mapx & 0x40) wx3 = !wx3;
@@ -344,10 +337,10 @@ void DISPLAY::draw_640dot_screen(int ymax)
 					
 					int vaddr = ((ptr++) + vma[wn] * 2) & 0xffff;
 					ptr &= 0xffff;
-					uint8 b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
-					uint8 r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
-					uint8 g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
-					uint8 col, bcol = back[wn];
+					uint8_t b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
+					uint8_t r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
+					uint8_t g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
+					uint8_t col, bcol = back[wn];
 					if(mode_c & 1) {
 						bcol = 0;
 						b ^= reverse[wn];
@@ -384,7 +377,7 @@ void DISPLAY::draw_320dot_screen(int ymax)
 	bool wy1 = false, wy2 = false, wy3 = false, wy4 = false;
 	
 	for(int i = 0, total = 0; i < 4 && total < al; i++) {
-		uint32 tmp = ra[4 * i];
+		uint32_t tmp = ra[4 * i];
 		tmp |= ra[4 * i + 1] << 8;
 		tmp |= ra[4 * i + 2] << 16;
 		tmp |= ra[4 * i + 3] << 24;
@@ -393,7 +386,7 @@ void DISPLAY::draw_320dot_screen(int ymax)
 		bool wide = ((tmp & 0x80000000) != 0);
 		
 		for(int y = total; y < total + line && y < ymax; y++) {
-			uint8 mapy = mapram[y << 1];
+			uint8_t mapy = mapram[y << 1];
 			if(mapy & 1) wy1 = !wy1;
 			if(mapy & 2) wy2 = !wy2;
 			if(mapy & 4) wy3 = !wy3;
@@ -402,7 +395,7 @@ void DISPLAY::draw_320dot_screen(int ymax)
 			
 			if(wide) {
 				for(int x = 0; x < 640; x+= 32) {
-					uint8 mapx = mapram[(x >> 4) << 1];
+					uint8_t mapx = mapram[(x >> 4) << 1];
 					if(mapx & 0x10) wx1 = !wx1;
 					if(mapx & 0x20) wx2 = !wx2;
 					if(mapx & 0x40) wx3 = !wx3;
@@ -411,10 +404,10 @@ void DISPLAY::draw_320dot_screen(int ymax)
 					
 					int vaddr = ((ptr++) + vma[wn] * 2) & 0xffff;
 					ptr &= 0xffff;
-					uint8 b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
-					uint8 r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
-					uint8 g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
-					uint8 col, bcol = back[wn];
+					uint8_t b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
+					uint8_t r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
+					uint8_t g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
+					uint8_t col, bcol = back[wn];
 					if(mode_c & 1) {
 						bcol = 0;
 						b ^= reverse[wn];
@@ -441,7 +434,7 @@ void DISPLAY::draw_320dot_screen(int ymax)
 				}
 			} else {
 				for(int x = 0; x < 640; x+= 16) {
-					uint8 mapx = mapram[(x >> 4) << 1];
+					uint8_t mapx = mapram[(x >> 4) << 1];
 					if(mapx & 0x10) wx1 = !wx1;
 					if(mapx & 0x20) wx2 = !wx2;
 					if(mapx & 0x40) wx3 = !wx3;
@@ -450,10 +443,10 @@ void DISPLAY::draw_320dot_screen(int ymax)
 					
 					int vaddr = ((ptr++) + vma[wn] * 2) & 0xffff;
 					ptr &= 0xffff;
-					uint8 b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
-					uint8 r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
-					uint8 g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
-					uint8 col, bcol = back[wn];
+					uint8_t b = (vds[wn] & 1) ? vram_b[vaddr] : 0;
+					uint8_t r = (vds[wn] & 2) ? vram_r[vaddr] : 0;
+					uint8_t g = (vds[wn] & 4) ? vram_g[vaddr] : 0;
+					uint8_t col, bcol = back[wn];
 					if(mode_c & 1) {
 						bcol = 0;
 						b ^= reverse[wn];
@@ -504,3 +497,29 @@ void DISPLAY::update_palette()
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(palette_pc, sizeof(palette_pc), 1);
+	state_fio->StateArray(palette, sizeof(palette), 1);
+	state_fio->StateArray(back, sizeof(back), 1);
+	state_fio->StateArray(reverse, sizeof(reverse), 1);
+	state_fio->StateValue(rno);
+	state_fio->StateArray(wregs, sizeof(wregs), 1);
+	state_fio->StateArray(pri, sizeof(pri), 1);
+	state_fio->StateArray(vma, sizeof(vma), 1);
+	state_fio->StateArray(vds, sizeof(vds), 1);
+	state_fio->StateValue(mode_r);
+	state_fio->StateValue(mode_c);
+	state_fio->StateValue(mode_p);
+	return true;
+}
+

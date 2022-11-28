@@ -22,11 +22,11 @@
 class INTERRUPT : public DEVICE
 {
 private:
-	uint8 select;
+	uint8_t select;
 	
 	// interrupt
 	struct {
-		uint8 vector;
+		uint8_t vector;
 		bool enb_intr;
 		bool req_intr;
 		bool in_service;
@@ -36,25 +36,25 @@ private:
 	// z80 daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
-	uint32 intr_bit;
+	uint32_t intr_bit;
 	void update_intr();
 	
 public:
-	INTERRUPT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	INTERRUPT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = d_child = NULL;
+		set_device_name(_T("Interrupt"));
 	}
 	~INTERRUPT() {}
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32 bit)
+	void set_context_intr(DEVICE* device, uint32_t bit)
 	{
 		d_cpu = device;
 		intr_bit = bit;
@@ -64,8 +64,8 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32_t get_intr_ack();
+	void notify_intr_reti();
 };
 
 #endif

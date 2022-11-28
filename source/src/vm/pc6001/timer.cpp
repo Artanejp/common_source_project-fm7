@@ -46,7 +46,7 @@ void TIMER::reset()
 }
 
 #ifndef _PC6001
-void TIMER::write_io8(uint32 addr, uint32 data)
+void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
@@ -88,7 +88,7 @@ void TIMER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 TIMER::read_io8(uint32 addr)
+uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
@@ -130,19 +130,19 @@ void TIMER::event_callback(int event_id, int err)
 		timer_id = -1;
 		// register next event
 #ifdef _PC6001
-		register_event(this, EVENT_TIMER, 2000.0, false, &timer_id);
+		register_event(this, EVENT_TIMER, TIMER_PERIOD, false, &timer_id);
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-		if(vm->sr_mode) {
-			register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 0x80, false, &timer_id);
+		if(static_cast<VM *>(vm)->sr_mode) {
+			register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 0x80, false, &timer_id);
 		} else
 #endif
-		register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 4, false, &timer_id);
+		register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 4, false, &timer_id);
 #endif
 	}
 }
 
-void TIMER::set_portB0(uint32 data)
+void TIMER::set_portB0(uint32_t data)
 {
 	if(data & 1) {
 		// stop
@@ -155,20 +155,20 @@ void TIMER::set_portB0(uint32 data)
 		if(timer_id == -1) {
 #ifdef _PC6001
 			// first period is 1msec
-			register_event(this, EVENT_TIMER, 1000.0, false, &timer_id);
+			register_event(this, EVENT_TIMER, TIMER_PERIOD / 2, false, &timer_id);
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-			if(vm->sr_mode) {
-				register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 0x80, false, &timer_id);
+			if(static_cast<VM *>(vm)->sr_mode) {
+				register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 0x80, false, &timer_id);
 			} else
 #endif
-			register_event(this, EVENT_TIMER, 2000.0 * (portF6 + 1) / 4, false, &timer_id);
+			register_event(this, EVENT_TIMER, TIMER_PERIOD * (portF6 + 1.) / 4, false, &timer_id);
 #endif
 		}
 	}
 }
 
-void TIMER::write_signal(int id, uint32 data, uint32 mask)
+void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		IRQ |= (1 << id);
@@ -178,10 +178,10 @@ void TIMER::write_signal(int id, uint32 data, uint32 mask)
 	update_intr();
 }
 
-uint32 TIMER::intr_ack()
+uint32_t TIMER::get_intr_ack()
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	if(vm->sr_mode) {
+	if(static_cast<VM *>(vm)->sr_mode) {
 		for(int i = 0, bit = 1; i < 8; i++, bit <<= 1) {
 			if(NewIRQ & bit) {
 				if(portFB & bit) {
@@ -200,7 +200,7 @@ uint32 TIMER::intr_ack()
 			return portF4;
 		}
 #endif
-		return d_sub->intr_ack();
+		return d_sub->get_intr_ack();
 	}
 #ifndef _PC6001
 	else if(NewIRQ & 0x02) {	// Joystick
@@ -244,7 +244,7 @@ uint32 TIMER::intr_ack()
 	return 0x06;	// dummy
 }
 
-void TIMER::intr_reti()
+void TIMER::notify_intr_reti()
 {
 	update_intr();
 }
@@ -256,7 +256,7 @@ void TIMER::update_intr()
 	NewIRQ &= 0x05;	// Only Sub-CPU and Timer
 #else
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	if(vm->sr_mode) {
+	if(static_cast<VM *>(vm)->sr_mode) {
 		NewIRQ &= ~portFA;
 	} else
 #endif
@@ -277,5 +277,33 @@ void TIMER::update_intr()
 //	} else {
 //		d_cpu->write_signal(SIG_CPU_IRQ, 0, 1);
 	}
+}
+
+#define STATE_VERSION	1
+
+bool TIMER::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(IRQ);
+	state_fio->StateValue(NewIRQ);
+	state_fio->StateValue(timer_id);
+#ifndef _PC6001
+#if defined(_PC6601SR) || defined(_PC6001MK2SR)
+	state_fio->StateArray(sr_vectors, sizeof(sr_vectors), 1);
+	state_fio->StateValue(portFA);
+	state_fio->StateValue(portFB);
+#endif
+	state_fio->StateValue(portF3);
+	state_fio->StateValue(portF4);
+	state_fio->StateValue(portF5);
+	state_fio->StateValue(portF6);
+	state_fio->StateValue(portF7);
+#endif
+	return true;
 }
 

@@ -8,7 +8,6 @@
 */
 
 #include "i8255.h"
-#include "../fileio.h"
 
 // mode1 input
 #define BIT_IBF_A	0x20	// PC5
@@ -33,7 +32,7 @@ void I8255::reset()
 	}
 }
 
-void I8255::write_io8(uint32 addr, uint32 data)
+void I8255::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = addr & 3;
 	
@@ -48,7 +47,7 @@ void I8255::write_io8(uint32 addr, uint32 data)
 #ifndef I8255_AUTO_HAND_SHAKE
 		if(ch == 0) {
 			if(port[0].mode == 1 || port[0].mode == 2) {
-				uint32 val = port[2].wreg & ~BIT_OBF_A;
+				uint32_t val = port[2].wreg & ~BIT_OBF_A;
 				if(port[2].wreg & BIT_ACK_A) {
 					val &= ~BIT_INTR_A;
 				}
@@ -56,7 +55,7 @@ void I8255::write_io8(uint32 addr, uint32 data)
 			}
 		} else if(ch == 1) {
 			if(port[1].mode == 1) {
-				uint32 val = port[2].wreg & ~BIT_OBF_B;
+				uint32_t val = port[2].wreg & ~BIT_OBF_B;
 				if(port[2].wreg & BIT_ACK_B) {
 					val &= ~BIT_INTR_B;
 				}
@@ -80,7 +79,7 @@ void I8255::write_io8(uint32 addr, uint32 data)
 			}
 			// setup control signals
 			if(port[0].mode != 0 || port[1].mode != 0) {
-				uint32 val = port[2].wreg;
+				uint32_t val = port[2].wreg;
 				if(port[0].mode == 1 || port[0].mode == 2) {
 					val &= ~BIT_IBF_A;
 					val |= BIT_OBF_A;
@@ -97,7 +96,7 @@ void I8255::write_io8(uint32 addr, uint32 data)
 				write_io8(2, val);
 			}
 		} else {
-			uint32 val = port[2].wreg;
+			uint32_t val = port[2].wreg;
 			int bit = (data >> 1) & 7;
 			if(data & 1) {
 				val |= 1 << bit;
@@ -110,7 +109,7 @@ void I8255::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8255::read_io8(uint32 addr)
+uint32_t I8255::read_io8(uint32_t addr)
 {
 	int ch = addr & 3;
 	
@@ -120,7 +119,7 @@ uint32 I8255::read_io8(uint32 addr)
 	case 2:
 		if(ch == 0) {
 			if(port[0].mode == 1 || port[0].mode == 2) {
-				uint32 val = port[2].wreg & ~BIT_IBF_A;
+				uint32_t val = port[2].wreg & ~BIT_IBF_A;
 				if(port[2].wreg & BIT_STB_A) {
 					val &= ~BIT_INTR_A;
 				}
@@ -128,7 +127,7 @@ uint32 I8255::read_io8(uint32 addr)
 			}
 		} else if(ch == 1) {
 			if(port[1].mode == 1) {
-				uint32 val = port[2].wreg & ~BIT_IBF_B;
+				uint32_t val = port[2].wreg & ~BIT_IBF_B;
 				if(port[2].wreg & BIT_STB_B) {
 					val &= ~BIT_INTR_B;
 				}
@@ -140,14 +139,14 @@ uint32 I8255::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void I8255::write_signal(int id, uint32 data, uint32 mask)
+void I8255::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_I8255_PORT_A:
 		port[0].rreg = (port[0].rreg & ~mask) | (data & mask);
 #ifdef I8255_AUTO_HAND_SHAKE
 		if(port[0].mode == 1 || port[0].mode == 2) {
-			uint32 val = port[2].wreg | BIT_IBF_A;
+			uint32_t val = port[2].wreg | BIT_IBF_A;
 			if(port[2].wreg & BIT_STB_A) {
 				val |= BIT_INTR_A;
 			}
@@ -159,7 +158,7 @@ void I8255::write_signal(int id, uint32 data, uint32 mask)
 		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
 #ifdef I8255_AUTO_HAND_SHAKE
 		if(port[1].mode == 1) {
-			uint32 val = port[2].wreg | BIT_IBF_B;
+			uint32_t val = port[2].wreg | BIT_IBF_B;
 			if(port[2].wreg & BIT_STB_B) {
 				val |= BIT_INTR_B;
 			}
@@ -218,7 +217,7 @@ void I8255::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 I8255::read_signal(int id)
+uint32_t I8255::read_signal(int id)
 {
 	switch(id) {
 	case SIG_I8255_PORT_A:
@@ -233,34 +232,20 @@ uint32 I8255::read_signal(int id)
 
 #define STATE_VERSION	1
 
-void I8255::save_state(FILEIO* state_fio)
+bool I8255::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	for(int i = 0; i < 3; i++) {
-		state_fio->FputUint8(port[i].wreg);
-		state_fio->FputUint8(port[i].rreg);
-		state_fio->FputUint8(port[i].rmask);
-		state_fio->FputUint8(port[i].mode);
-		state_fio->FputBool(port[i].first);
-	}
-}
-
-bool I8255::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
 	for(int i = 0; i < 3; i++) {
-		port[i].wreg = state_fio->FgetUint8();
-		port[i].rreg = state_fio->FgetUint8();
-		port[i].rmask = state_fio->FgetUint8();
-		port[i].mode = state_fio->FgetUint8();
-		port[i].first = state_fio->FgetBool();
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].rmask);
+		state_fio->StateValue(port[i].mode);
+		state_fio->StateValue(port[i].first);
 	}
 	return true;
 }

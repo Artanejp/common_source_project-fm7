@@ -8,12 +8,11 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
-void MEMORY::sms_mapper_w(uint32 addr, uint32 data)
+void MEMORY::sms_mapper_w(uint32_t addr, uint32_t data)
 {
 	/* Calculate ROM page index */
-	uint8 page = (data % pages);
+	uint8_t page = (data % pages);
 
 	/* Save frame control register data */
 	fcr[addr] = data;
@@ -97,7 +96,7 @@ void MEMORY::bios()
 {
 	FILEIO* fio = new FILEIO();
 	
-	if(fio->Fopen(emu->bios_path(_T("COLECO.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("COLECO.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fseek(0, FILEIO_SEEK_END);
 		size=fio->Ftell();
 		pages = (size / 0x4000);
@@ -137,19 +136,19 @@ void MEMORY::bios()
 	delete fio;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	cpu_writemap[(addr >> 13)][(addr & 0x1FFF)] = data;
 	if (pages < 4) return;
 	if (addr >= 0xFFFC) sms_mapper_w(addr & 3, data);
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	return cpu_readmap[(addr >> 13)][(addr & 0x1FFF)];
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from PIO-P6
 	if(data & mask) {
@@ -179,7 +178,7 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void MEMORY::open_cart(_TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	
@@ -189,7 +188,7 @@ void MEMORY::open_cart(_TCHAR* file_path)
 		pages = (size / 0x4000);
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		if (cart) free(cart);
-		cart=(uint8 *)malloc(size);
+		cart=(uint8_t *)malloc(size);
 		fio->Fread(cart, size, 1);
 		fio->Fclose();
 		delete fio;
@@ -198,8 +197,7 @@ void MEMORY::open_cart(_TCHAR* file_path)
 		delete fio;
 		return;
 	}
-	if (strstr(file_path, ".col") || 
-		strstr(file_path, ".COL")) {
+	if (check_file_extension(file_path, _T(".col"))) {
 		/* $0000-$1FFF mapped to internal ROM (8K) */
 		cpu_readmap[0]  = ram;
 		cpu_writemap[0] = ram;
@@ -232,7 +230,7 @@ void MEMORY::open_cart(_TCHAR* file_path)
 		cpu_readmap[6] = ram + 0xC000;
 		cpu_readmap[7] = ram + 0xE000;
 	}
-	if (strstr(file_path, "SMS.ROM")) {
+	if (_tcsicmp(file_path, _T("SMS.ROM"))) {
 		cart[0x77]=0;
 		cart[0x79]=0;
 	}

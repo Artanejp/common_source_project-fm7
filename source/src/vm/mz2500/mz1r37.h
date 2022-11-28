@@ -17,19 +17,21 @@
 class MZ1R37 : public DEVICE
 {
 private:
-	uint8* buffer;
-	uint32 address;
+	uint8_t* buffer;
+	uint32_t address;
 public:
-	MZ1R37(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MZ1R37(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("MZ-1R37 (640KB EMM)"));
+	}
 	~MZ1R37() {}
 	
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

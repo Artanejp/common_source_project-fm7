@@ -42,43 +42,42 @@ private:
 	DEVICE* d_cpu;
 	
 	struct {
-		uint8 imr, isr, irr, irr_tmp, prio;
-		uint8 icw1, icw2, icw3, icw4, ocw3;
-		uint8 icw2_r, icw3_r, icw4_r;
+		uint8_t imr, isr, irr, irr_tmp, prio;
+		uint8_t icw1, icw2, icw3, icw4, ocw3;
+		uint8_t icw2_r, icw3_r, icw4_r;
 		int irr_tmp_id;
 	} pic[I8259_MAX_CHIPS];
 	int req_chip, req_level;
-	uint8 req_bit;
-	
-	void update_intr();
+	uint8_t req_bit;
 	
 public:
-	I8259(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8259(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_cpu = NULL;
+		set_device_name(_T("8259 PIC"));
 	}
 	~I8259() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int id);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 	void event_callback(int event_id, int err);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// interrupt common functions
-	void set_intr_line(bool line, bool pending, uint32 bit)
+	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		// request from Z80 familly
 		write_signal(bit, line ? 1 : 0, 1);
 	}
-	uint32 intr_ack();
+	void update_intr();
+	uint32_t get_intr_ack();
 	
-	// unique functions
+	// unique function
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;

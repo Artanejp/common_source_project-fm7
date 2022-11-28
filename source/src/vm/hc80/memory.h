@@ -18,27 +18,32 @@ class MEMORY : public DEVICE
 {
 private:
 	// memory
-	uint8 ram[0x10000];
-	uint8 sys[0x8000];
+	uint8_t ram[0x10000];
+	uint8_t sys[0x8000];
 	
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
+	uint8_t bank;
 	
-	void set_bank(uint32 val);
+	void set_bank(uint32_t val);
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus"));
+	}
 	~MEMORY() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

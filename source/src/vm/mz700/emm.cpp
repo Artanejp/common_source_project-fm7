@@ -10,7 +10,6 @@
 */
 
 #include "emm.h"
-#include "../../fileio.h"
 
 #define DATA_SIZE	0x1000000
 #define ADDR_MASK	(DATA_SIZE - 1)
@@ -18,12 +17,12 @@
 void EMM::initialize()
 {
 	// init memory
-	data_buffer = (uint8 *)malloc(DATA_SIZE);
+	data_buffer = (uint8_t *)malloc(DATA_SIZE);
 	memset(data_buffer, 0xff, DATA_SIZE);
 	
 	// load emm image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("EMM.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EMM.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(data_buffer, DATA_SIZE, 1);
 		fio->Fclose();
 	}
@@ -41,7 +40,7 @@ void EMM::reset()
 	data_addr = 0;
 }
 
-void EMM::write_io8(uint32 addr, uint32 data)
+void EMM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -59,7 +58,7 @@ void EMM::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 EMM::read_io8(uint32 addr)
+uint32_t EMM::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -72,5 +71,20 @@ uint32 EMM::read_io8(uint32 addr)
 		return data_buffer[(data_addr++) & ADDR_MASK];
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+bool EMM::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(data_buffer, DATA_SIZE, 1);
+	state_fio->StateValue(data_addr);
+	return true;
 }
 

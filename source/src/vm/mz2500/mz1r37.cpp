@@ -8,13 +8,12 @@
 */
 
 #include "mz1r37.h"
-#include "../../fileio.h"
 
 #define EMM_SIZE	(640 * 1024)
 
 void MZ1R37::initialize()
 {
-	buffer = (uint8*)calloc(EMM_SIZE, sizeof(uint8));
+	buffer = (uint8_t*)calloc(EMM_SIZE, sizeof(uint8_t));
 	address = 0;
 }
 
@@ -25,7 +24,7 @@ void MZ1R37::release()
 	}
 }
 
-void MZ1R37::write_io8(uint32 addr, uint32 data)
+void MZ1R37::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xac:
@@ -40,7 +39,7 @@ void MZ1R37::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1R37::read_io8(uint32 addr)
+uint32_t MZ1R37::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xad:
@@ -55,25 +54,16 @@ uint32 MZ1R37::read_io8(uint32 addr)
 
 #define STATE_VERSION	1
 
-void MZ1R37::save_state(FILEIO* state_fio)
+bool MZ1R37::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->Fwrite(buffer, EMM_SIZE, 1);
-	state_fio->FputUint32(address);
-}
-
-bool MZ1R37::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	state_fio->Fread(buffer, EMM_SIZE, 1);
-	address = state_fio->FgetUint32();
+	state_fio->StateArray(buffer, EMM_SIZE, 1);
+	state_fio->StateValue(address);
 	return true;
 }
 

@@ -14,7 +14,7 @@ void PRINTER::initialize()
 	busy = false;
 }
 
-void PRINTER::write_io8(uint32 addr, uint32 data)
+void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x80:
@@ -32,9 +32,26 @@ void PRINTER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PRINTER::read_io8(uint32 addr)
+uint32_t PRINTER::read_io8(uint32_t addr)
 {
 	// bit7 = busy
 	return busy ? 0xff : 0x7f;
+}
+
+#define STATE_VERSION	1
+
+bool PRINTER::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(out);
+	state_fio->StateValue(ctrl0);
+	state_fio->StateValue(ctrl1);
+	state_fio->StateValue(busy);
+	return true;
 }
 

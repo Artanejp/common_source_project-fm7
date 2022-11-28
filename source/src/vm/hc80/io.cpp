@@ -9,9 +9,8 @@
 
 #include "io.h"
 #include "../beep.h"
-#include "../tf20.h"
+#include "../ptf20.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 //#define OUT_CMD_LOG
 
@@ -81,7 +80,7 @@ static const int key_tbl[256] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
 };
 
-static const uint8 dot_tbl[8] = {
+static const uint8_t dot_tbl[8] = {
 	0x80, 0x40, 0x20, 0x10, 8, 4, 2, 1
 };
 
@@ -99,35 +98,35 @@ void IO::initialize()
 	
 	// load images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(basic, 0x4000, 1);
 		memcpy(basic + 0x4000, basic, 0x4000);
 		fio->Fread(basic + 0x4000, 0x4000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("UTIL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("UTIL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(util, 0x4000, 1);
 		memcpy(util + 0x4000, util, 0x4000);
 		fio->Fread(util + 0x4000, 0x4000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("VRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("VRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram + 0x8000, 0x1800, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXTRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXTRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, 0x20000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("INTRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("INTRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(iramdisk_sectors, sizeof(iramdisk_sectors), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext + 0x20000, 0x20000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
@@ -147,7 +146,7 @@ void IO::initialize()
 	pb = RGB_COLOR(160, 168, 160);
 	
 	// init 7508
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	onesec_intr = alarm_intr = false;
 	onesec_intr_enb = alarm_intr_enb = kb_intr_enb = true;
 	res_7508 = kb_caps = false;
@@ -163,15 +162,15 @@ void IO::release()
 {
 	// save external ram disk
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("VRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("VRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ram + 0x8000, 0x1800, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXTRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXTRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ext, 0x20000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("INTRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("INTRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(iramdisk_sectors, sizeof(iramdisk_sectors), 1);
 		fio->Fclose();
 	}
@@ -229,7 +228,7 @@ void IO::sysreset()
 	res_7508 = true;
 }
 
-void IO::write_signal(int id, uint32 data, uint32 mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_RXRDY) {
 		// notify rxrdy is changed from i8251
@@ -244,7 +243,7 @@ void IO::write_signal(int id, uint32 data, uint32 mask)
 		if(!slbcr) {
 			bool next = ((data & mask) != 0);
 			if((bcr == 2 && ear && !next) || (bcr == 4 && !ear && next) || (bcr == 6 && ear != next)) {
-				icrb = passed_clock(cur_clock) / 4;
+				icrb = get_passed_clock(cur_clock) / 4;
 				isr |= BIT_ICF;
 				update_intr();
 			}
@@ -267,7 +266,7 @@ void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_FRC) {
 		// FRC overflow event
-		cur_clock = current_clock();
+		cur_clock = get_current_clock();
 		isr |= BIT_OVF;
 		update_intr();
 	} else if(event_id == EVENT_1SEC) {
@@ -275,7 +274,7 @@ void IO::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		onesec_intr = true;
@@ -295,9 +294,9 @@ void IO::event_callback(int event_id, int err)
 	}
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
-	//emu->out_debug_log(_T("OUT %2x,%2x\n"), addr & 0xff, data);
+	//this->out_debug_log(_T("OUT %2x,%2x\n"), addr & 0xff, data);
 	switch(addr & 0xff) {
 	case 0x00:
 		// CTLR1
@@ -341,7 +340,7 @@ void IO::write_io8(uint32 addr, uint32 data)
 		cmd6303_buf->write(data);
 		psr |= BIT_OBF;
 #ifdef OUT_CMD_LOG
-		emu->out_debug_log(_T("%4x\tDAT %2x\n"), get_cpu_pc(0), data);
+		this->out_debug_log(_T("%4x\tDAT %2x\n"), get_cpu_pc(0), data);
 #endif
 		break;
 	case 0x0f:
@@ -349,7 +348,7 @@ void IO::write_io8(uint32 addr, uint32 data)
 		cmd6303 = data;
 		psr |= BIT_OBF;
 #ifdef OUT_CMD_LOG
-		emu->out_debug_log(_T("\n%4x\tCMD %2x\n"), vm->get_cpu_pc(), data);
+		this->out_debug_log(_T("\n%4x\tCMD %2x\n"), get_cpu_pc(0), data);
 #endif
 		break;
 	case 0x80:
@@ -398,15 +397,15 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
-//	emu->out_debug_log(_T("IN %2x\n"), addr & 0xff);
+	uint32_t val = 0xff;
+//	this->out_debug_log(_T("IN %2x\n"), addr & 0xff);
 	
 	switch(addr & 0xff) {
 	case 0x00:
 		// ICRL.C (latch FRC value)
-		icrc = passed_clock(cur_clock) / 4;
+		icrc = get_passed_clock(cur_clock) / 4;
 		return icrc & 0xff;
 	case 0x01:
 		// ICRH.C
@@ -447,7 +446,7 @@ uint32 IO::read_io8(uint32 addr)
 			psr &= ~BIT_F1;
 		}
 #ifdef OUT_CMD_LOG
-		emu->out_debug_log(_T("%4x\tRCV %2x\n"), vm->get_cpu_pc(), val);
+		this->out_debug_log(_T("%4x\tRCV %2x\n"), get_cpu_pc(0), val);
 #endif
 		return val;
 	case 0x80:
@@ -480,7 +479,7 @@ uint32 IO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 IO::intr_ack()
+uint32_t IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -511,13 +510,13 @@ void IO::update_intr()
 // 7508
 // ----------------------------------------------------------------------------
 
-void IO::send_to_7508(uint8 val)
+void IO::send_to_7508(uint8_t val)
 {
 	int res;
 	
 	// process command
 	cmd7508_buf->write(val);
-	uint8 cmd = cmd7508_buf->read_not_remove(0);
+	uint8_t cmd = cmd7508_buf->read_not_remove(0);
 	
 	switch(cmd) {
 	case 0x01:
@@ -663,7 +662,7 @@ void IO::send_to_7508(uint8 val)
 			
 			if((month & 0x0f) == 0 || (day & 0x0f) == 0) {
 				// invalid date
-				emu->get_host_time(&cur_time);
+				get_host_time(&cur_time);
 			} else {
 				bool changed = false;
 				if((year10 & 0x0f) != 0x0f && (year1 & 0x0f) != 0x0f) {
@@ -766,11 +765,11 @@ void IO::send_to_7508(uint8 val)
 	default:
 		// unknown cmd
 		cmd7508_buf->read();
-		emu->out_debug_log(_T("unknown cmd %2x\n"), cmd);
+		this->out_debug_log(_T("unknown cmd %2x\n"), cmd);
 	}
 }
 
-uint8 IO::rec_from_7508()
+uint8_t IO::rec_from_7508()
 {
 	return rsp7508_buf->read();
 }
@@ -826,7 +825,7 @@ void IO::process_6303()
 	case 0x00:
 		// read data
 		if(cmd6303_buf->count() == 2) {
-			uint16 addr = cmd6303_buf->read() << 8;
+			uint16_t addr = cmd6303_buf->read() << 8;
 			addr |= cmd6303_buf->read();
 			rsp6303_buf->write(RCD00);
 			rsp6303_buf->write(ram[addr]);
@@ -836,10 +835,10 @@ void IO::process_6303()
 	case 0x01:
 		// write data
 		if(cmd6303_buf->count() == 4) {
-			uint16 addr = cmd6303_buf->read() << 8;
+			uint16_t addr = cmd6303_buf->read() << 8;
 			addr |= cmd6303_buf->read();
-			uint8 val = cmd6303_buf->read();
-			uint8 ope = cmd6303_buf->read();
+			uint8_t val = cmd6303_buf->read();
+			uint8_t ope = cmd6303_buf->read();
 			if(ope == 1) {
 				ram[addr] &= val;
 			} else if(ope == 2) {
@@ -856,7 +855,7 @@ void IO::process_6303()
 	case 0x02:
 		// execute routine
 		if(cmd6303_buf->count() == 2) {
-			uint16 addr = cmd6303_buf->read() << 8;
+			uint16_t addr = cmd6303_buf->read() << 8;
 			addr |= cmd6303_buf->read();
 			// unknown
 			rsp6303_buf->write(RCD00);
@@ -883,7 +882,7 @@ void IO::process_6303()
 			cmd6303_buf->read();
 			cmd6303_buf->read();
 			cmd6303_buf->read();
-			uint16 bottom = cmd6303_buf->read() << 8;
+			uint16_t bottom = cmd6303_buf->read() << 8;
 			bottom |= cmd6303_buf->read();
 			cmd6303_buf->read();
 			cmd6303_buf->read();
@@ -979,8 +978,8 @@ void IO::process_6303()
 	case 0x1a:
 		// clear screen
 		if(cmd6303_buf->count() == 4) {
-			uint8 scr = cmd6303_buf->read();
-			uint8 code = cmd6303_buf->read();
+			uint8_t scr = cmd6303_buf->read();
+			uint8_t code = cmd6303_buf->read();
 			int sy = cmd6303_buf->read();
 			int num = cmd6303_buf->read();
 			if(scr) {
@@ -1019,10 +1018,10 @@ void IO::process_6303()
 			int lx = cmd6303_buf->read_not_remove(1);
 			int ly = cmd6303_buf->read_not_remove(2);
 			if(cmd6303_buf->count() == lx * ly + 3) {
-				uint8 code = cmd6303_buf->read();
+				uint8_t code = cmd6303_buf->read();
 				bool pre = (udgc[code][0] && udgc[code][1]);
 				for(int i = 0; i < lx * ly + 2; i++) {
-					uint8 d = cmd6303_buf->read();
+					uint8_t d = cmd6303_buf->read();
 					if(!pre) {
 						udgc[code][i] = d;
 					}
@@ -1059,7 +1058,7 @@ void IO::process_6303()
 			int y = cmd6303_buf->read();
 			int ofs = cmd6303_buf->read() << 3;
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = font[ofs + l];
+				uint8_t pat = font[ofs + l];
 				draw_point(x + 0, y + l, pat & 0x20);
 				draw_point(x + 1, y + l, pat & 0x10);
 				draw_point(x + 2, y + l, pat & 0x08);
@@ -1076,10 +1075,10 @@ void IO::process_6303()
 		if(cmd6303_buf->count() >= 3) {
 			int dx = cmd6303_buf->read();
 			int dy = cmd6303_buf->read();
-			uint8 code = cmd6303_buf->read();
+			uint8_t code = cmd6303_buf->read();
 			int lx = udgc[code][0];
 			int ly = udgc[code][1];
-			uint8* pat = &udgc[code][2];
+			uint8_t* pat = &udgc[code][2];
 			if(lx && ly) {
 				for(int y = 0; y < ly; y++) {
 					for(int x = 0; x < lx; x++) {
@@ -1098,7 +1097,7 @@ void IO::process_6303()
 		if(cmd6303_buf->count() == 3) {
 			int x = cmd6303_buf->read();
 			int y = cmd6303_buf->read();
-			uint8* src = &ram[gs_addr + (x + y * 60)];
+			uint8_t* src = &ram[gs_addr + (x + y * 60)];
 			int cnt = cmd6303_buf->read();
 			rsp6303_buf->write(RCD00);
 			for(int i = 0; i < cnt; i++) {
@@ -1117,10 +1116,10 @@ void IO::process_6303()
 				int dy = cmd6303_buf->read();
 				lx = cmd6303_buf->read();
 				ly = cmd6303_buf->read();
-				uint8 ope = cmd6303_buf->read();
+				uint8_t ope = cmd6303_buf->read();
 				for(int y = 0; y < ly; y++) {
 					for(int x = 0; x < lx; x++) {
-						uint8 d = cmd6303_buf->read();
+						uint8_t d = cmd6303_buf->read();
 						if(dx + x < 60 && dy + y < 64) {
 							if(ope == 1) {
 								ram[gs_addr + (dx + x + (dy + y) * 60)] &= d;
@@ -1173,11 +1172,17 @@ void IO::process_6303()
 			int x = cmd6303_buf->read() << 8;
 			x |= cmd6303_buf->read();
 			int y = cmd6303_buf->read();
-			uint8 ope = cmd6303_buf->read();
+			uint8_t ope = cmd6303_buf->read();
 			if(ope == 1) {
 				draw_point(x, y, 0);
-			} else {
+			} else if(ope == 2) {
 				draw_point(x, y, 1);
+			} else if(ope == 3) {
+				if(get_point(x, y)) {
+					draw_point(x, y, 0);
+				} else {
+					draw_point(x, y, 1);
+				}
 			}
 			rsp6303_buf->write(RCD00);
 			psr |= BIT_F1;
@@ -1205,14 +1210,10 @@ void IO::process_6303()
 			ex |= cmd6303_buf->read();
 			int ey = cmd6303_buf->read() << 8;
 			ey |= cmd6303_buf->read();
-			uint16 ope = cmd6303_buf->read() << 8;
+			uint16_t ope = cmd6303_buf->read() << 8;
 			ope |= cmd6303_buf->read();
-			uint8 mode = cmd6303_buf->read();
-			if(mode == 1) {
-				draw_line(sx, sy, ex, ey, ~ope);
-			} else {
-				draw_line(sx, sy, ex, ey, ope);
-			}
+			uint8_t mode = cmd6303_buf->read();
+			draw_line(sx, sy, ex, ey, ope, mode);
 			rsp6303_buf->write(RCD00);
 			psr |= BIT_F1;
 		}
@@ -1273,7 +1274,7 @@ void IO::process_6303()
 		if(cmd6303_buf->count() == 3) {
 			int x = cmd6303_buf->read();
 			int y = cmd6303_buf->read();
-			uint8* src = &ram[cs_addr + (x + y * 80)];
+			uint8_t* src = &ram[cs_addr + (x + y * 80)];
 			int cnt = cmd6303_buf->read();
 			rsp6303_buf->write(RCD00);
 			for(int i = 0; i < cnt; i++) {
@@ -1289,7 +1290,7 @@ void IO::process_6303()
 			if(cmd6303_buf->count() == cnt + 3) {
 				int x = cmd6303_buf->read();
 				int y = cmd6303_buf->read();
-				uint8* dest = &ram[cs_addr + (x + y * 80)];
+				uint8_t* dest = &ram[cs_addr + (x + y * 80)];
 				cnt = cmd6303_buf->read();
 				for(int i = 0; i < cnt; i++) {
 					dest[i] = cmd6303_buf->read();
@@ -1532,7 +1533,7 @@ void IO::process_6303()
 		// read data
 		if(cmd6303_buf->count() == 4) {
 			cmd6303_buf->read();
-			uint16 addr = cmd6303_buf->read() << 8;
+			uint16_t addr = cmd6303_buf->read() << 8;
 			addr |= cmd6303_buf->read();
 			addr ^= 0x4000;
 			int cnt = cmd6303_buf->read();
@@ -1579,20 +1580,20 @@ void IO::process_6303()
 	}
 }
 
-uint8 IO::get_point(int x, int y)
+uint8_t IO::get_point(int x, int y)
 {
 	if(0 <= x && x < 480 && 0 <= y && y < 64) {
-		uint8 bit = dot_tbl[x & 7];
+		uint8_t bit = dot_tbl[x & 7];
 		int ofs = y * 60 + (x >> 3);
 		return ram[gs_addr + ofs] & bit;
 	}
 	return 0;
 }
 
-void IO::draw_point(int x, int y, uint16 dot)
+void IO::draw_point(int x, int y, uint16_t dot)
 {
 	if(0 <= x && x < 480 && 0 <= y && y < 64) {
-		uint8 bit = dot_tbl[x & 7];
+		uint8_t bit = dot_tbl[x & 7];
 		int ofs = y * 60 + (x >> 3);
 		if(dot) {
 			ram[gs_addr + ofs] |= bit;
@@ -1602,7 +1603,7 @@ void IO::draw_point(int x, int y, uint16 dot)
 	}
 }
 
-void IO::draw_line(int sx, int sy, int ex, int ey, uint16 ope)
+void IO::draw_line(int sx, int sy, int ex, int ey, uint16_t ope, uint8_t mode)
 {
 	int next_x = sx, next_y = sy;
 	int delta_x = abs(ex - sx) * 2;
@@ -1621,7 +1622,19 @@ void IO::draw_line(int sx, int sy, int ex, int ey, uint16 ope)
 			}
 			next_x += step_x;
 			frac += delta_y;
-			draw_point(next_x, next_y, ope & 0x8000);
+			if(ope & 0x8000) {
+				if(mode == 1) {
+					draw_point(next_x, next_y, 0);
+				} else if(mode == 2) {
+					draw_point(next_x, next_y, 1);
+				} else if(mode == 3) {
+					if(get_point(next_x, next_y)) {
+						draw_point(next_x, next_y, 0);
+					} else {
+						draw_point(next_x, next_y, 1);
+					}
+				}
+			}
 			ope = (ope << 1) | (ope & 0x8000 ? 1 : 0);
 		}
 	} else {
@@ -1633,7 +1646,19 @@ void IO::draw_line(int sx, int sy, int ex, int ey, uint16 ope)
 			}
 			next_y += step_y;
 			frac += delta_x;
-			draw_point(next_x, next_y, ope & 0x8000);
+			if(ope & 0x8000) {
+				if(mode == 1) {
+					draw_point(next_x, next_y, 0);
+				} else if(mode == 2) {
+					draw_point(next_x, next_y, 1);
+				} else if(mode == 3) {
+					if(get_point(next_x, next_y)) {
+						draw_point(next_x, next_y, 0);
+					} else {
+						draw_point(next_x, next_y, 1);
+					}
+				}
+			}
 			ope = (ope << 1) | (ope & 0x8000 ? 1 : 0);
 		}
 	}
@@ -1682,7 +1707,7 @@ SECTOR:		0-63
 BANK:		1 or 2
 */
 
-void IO::iramdisk_write_data(uint8 val)
+void IO::iramdisk_write_data(uint8_t val)
 {
 	if(iramdisk_dest == IRAMDISK_IN && iramdisk_count) {
 		*(iramdisk_ptr++) = val;
@@ -1727,7 +1752,7 @@ void IO::iramdisk_write_data(uint8 val)
 	}
 }
 
-void IO::iramdisk_write_cmd(uint8 val)
+void IO::iramdisk_write_cmd(uint8_t val)
 {
 	iramdisk_cmd = val;
 	iramdisk_count = 0;
@@ -1757,7 +1782,7 @@ void IO::iramdisk_write_cmd(uint8 val)
 	}
 }
 
-uint8 IO::iramdisk_read_data()
+uint8_t IO::iramdisk_read_data()
 {
 	if(iramdisk_dest == IRAMDISK_OUT) {
 		if(iramdisk_count) {
@@ -1771,7 +1796,7 @@ uint8 IO::iramdisk_read_data()
 	return 0;
 }
 
-uint8 IO::iramdisk_read_stat()
+uint8_t IO::iramdisk_read_stat()
 {
 	if(iramdisk_dest == IRAMDISK_OUT) {
 		return IRAMDISK_WAIT;
@@ -1791,14 +1816,14 @@ void IO::draw_screen()
 		memset(lcd, 0, sizeof(lcd));
 		if(scr_mode) {
 			// char screen
-			uint8* vram = &ram[scr_ptr];
+			uint8_t* vram = &ram[scr_ptr];
 			for(int y = 0; y < (num_lines ? 7 : 8); y++) {
 				int py = num_lines ? (y * 9 + 1) : y * 8;
 				for(int x = 0; x < 80; x++) {
 					int px = x * 6;
 					int ofs = vram[y * 80 + x] << 3;
 					for(int l = 0; l < 8; l++) {
-						uint8 pat = font[ofs + l];
+						uint8_t pat = font[ofs + l];
 						lcd[py + l][px + 0] = (pat & 0x20) ? 0xff : 0;
 						lcd[py + l][px + 1] = (pat & 0x10) ? 0xff : 0;
 						lcd[py + l][px + 2] = (pat & 0x08) ? 0xff : 0;
@@ -1843,11 +1868,11 @@ void IO::draw_screen()
 			}
 		} else {
 			// graph screen
-			uint8* vram = &ram[gs_addr];
+			uint8_t* vram = &ram[gs_addr];
 			for(int y = 0; y < 64; y++) {
 				for(int x = 0; x < 60; x++) {
 					int px = x * 8;
-					uint8 pat = *vram++;
+					uint8_t pat = *vram++;
 					lcd[y][px + 0] = (pat & 0x80) ? 0xff : 0;
 					lcd[y][px + 1] = (pat & 0x40) ? 0xff : 0;
 					lcd[y][px + 2] = (pat & 0x20) ? 0xff : 0;
@@ -1881,17 +1906,115 @@ void IO::draw_screen()
 			}
 		}
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype_t* dest = emu->get_screen_buffer(y);
 			for(int x = 0; x < 480; x++) {
 				dest[x] = lcd[y][x] ? pd : pb;
 			}
 		}
 	} else {
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype_t* dest = emu->get_screen_buffer(y);
 			for(int x = 0; x < 480; x++) {
 				dest[x] = pb;
 			}
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+bool IO::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(cur_clock);
+	state_fio->StateValue(bcr);
+	state_fio->StateValue(slbcr);
+	state_fio->StateValue(isr);
+	state_fio->StateValue(ier);
+	state_fio->StateValue(ioctlr);
+	state_fio->StateValue(icrc);
+	state_fio->StateValue(icrb);
+	state_fio->StateValue(ear);
+	state_fio->StateValue(vadr);
+	state_fio->StateValue(yoff);
+	if(!cmd7508_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp7508_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(onesec_intr);
+	state_fio->StateValue(onesec_intr_enb);
+	state_fio->StateValue(alarm_intr);
+	state_fio->StateValue(alarm_intr_enb);
+	state_fio->StateArray(alarm, sizeof(alarm), 1);
+	if(!key_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(kb_intr_enb);
+	state_fio->StateValue(kb_rep_enb);
+	state_fio->StateValue(kb_caps);
+	state_fio->StateValue(kb_rep_spd1);
+	state_fio->StateValue(kb_rep_spd2);
+	state_fio->StateValue(beep);
+	state_fio->StateValue(res_z80);
+	state_fio->StateValue(res_7508);
+	state_fio->StateValue(cmd6303);
+	state_fio->StateValue(psr);
+	if(!cmd6303_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	if(!rsp6303_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(cs_addr);
+	state_fio->StateValue(gs_addr);
+	state_fio->StateValue(lcd_on);
+	state_fio->StateValue(scr_mode);
+	state_fio->StateValue(scr_ptr);
+	state_fio->StateValue(num_lines);
+	state_fio->StateValue(curs_mode);
+	state_fio->StateValue(curs_x);
+	state_fio->StateValue(curs_y);
+	state_fio->StateValue(wnd_ptr_x);
+	state_fio->StateValue(wnd_ptr_y);
+	state_fio->StateValue(flash_block);
+	state_fio->StateValue(cs_blocks);
+	state_fio->StateArray(&cs_block[0][0], sizeof(cs_block), 1);
+	state_fio->StateValue(gs_blocks);
+	state_fio->StateArray(&gs_block[0][0], sizeof(gs_block), 1);
+	state_fio->StateArray(font, sizeof(font), 1);
+	state_fio->StateArray(&udgc[0][0], sizeof(udgc), 1);
+	state_fio->StateArray(&mov[0][0], sizeof(mov), 1);
+	state_fio->StateArray(&lcd[0][0], sizeof(lcd), 1);
+	state_fio->StateValue(blink);
+	if(!tf20_buf->process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(device_type);
+	state_fio->StateArray(ext, sizeof(ext), 1);
+	state_fio->StateValue(extar);
+	state_fio->StateValue(extcr);
+	state_fio->StateArray(&iramdisk_sectors[0][0][0], sizeof(iramdisk_sectors), 1);
+	state_fio->StateValue(iramdisk_cmd);
+	state_fio->StateValue(iramdisk_count);
+	state_fio->StateValue(iramdisk_dest);
+	state_fio->StateArray(iramdisk_buf, sizeof(iramdisk_buf), 1);
+	if(loading) {
+		iramdisk_ptr = iramdisk_buf + state_fio->FgetInt32_LE();
+	} else {
+		state_fio->FputInt32_LE((int)(iramdisk_ptr - iramdisk_buf));
+	}
+	return true;
+}
+

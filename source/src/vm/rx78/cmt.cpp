@@ -20,7 +20,7 @@ void CMT::initialize()
 	register_frame_event(this);
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
 	// data recorder
 	if(!remote) {
@@ -30,13 +30,13 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	}
 	bool signal = ((data & 1) != 0);
 	if(signal != out) {
-		d_drec->write_signal(SIG_DATAREC_OUT, signal ? 1 : 0, 1);
+		d_drec->write_signal(SIG_DATAREC_MIC, signal ? 1 : 0, 1);
 		out = signal;
 	}
 	now_acc = true;
 }
 
-uint32 CMT::read_io8(uint32 addr)
+uint32_t CMT::read_io8(uint32_t addr)
 {
 	if(!remote) {
 		// motor on
@@ -47,7 +47,7 @@ uint32 CMT::read_io8(uint32 addr)
 	return in ? 1 : 0;
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_IN) {
 		in = ((data & mask) != 0);
@@ -67,3 +67,22 @@ void CMT::event_frame()
 		now_acc = false;
 	}
 }
+
+#define STATE_VERSION	1
+
+bool CMT::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(in);
+	state_fio->StateValue(out);
+	state_fio->StateValue(remote);
+	state_fio->StateValue(now_acc);
+	state_fio->StateValue(framecnt);
+	return true;
+}
+

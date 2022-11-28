@@ -17,18 +17,22 @@
 class KANJI : public DEVICE
 {
 private:
-	uint8 kanji[0x20000];
-	uint16 ptr;
+	uint8_t kanji[0x20000];
+	uint16_t ptr;
 	bool strobe;
 	
 public:
-	KANJI(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	KANJI(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Kanji ROM"));
+	}
 	~KANJI() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

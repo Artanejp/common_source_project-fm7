@@ -23,32 +23,33 @@ class Z80CTC : public DEVICE
 {
 private:
 	struct {
-		uint8 control;
+		uint8_t control;
 		bool slope;
-		uint16 count;
-		uint16 constant;
-		uint8 vector;
+		uint16_t count;
+		uint16_t constant;
+		uint8_t vector;
 		int clocks;
 		int prescaler;
 		bool freeze;
+		bool freezed;
 		bool start;
 		bool latch;
 		bool prev_in;
 		bool first_constant;
 		// constant clock
-		uint64 freq;
+		uint64_t freq;
 		int clock_id;
 		int sysclock_id;
-		uint32 input;
-		uint32 period;
-		uint32 prev;
+		uint32_t input;
+		uint32_t period;
+		uint32_t prev;
 		// interrupt
 		bool req_intr;
 		bool in_service;
 		// output signals
 		outputs_t outputs;
 	} counter[4];
-	uint64 cpu_clocks;
+	uint64_t cpu_clocks;
 	
 	void input_clock(int ch, int clock);
 	void input_sysclock(int ch, int clock);
@@ -57,37 +58,37 @@ private:
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
-	uint32 intr_bit;
+	uint32_t intr_bit;
 	void update_intr();
 	
 public:
-	Z80CTC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	Z80CTC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		memset(counter, 0, sizeof(counter));
 		for(int i = 0; i < 4; i++) {
-			init_output_signals(&counter[i].outputs);
+			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 			counter[i].prev_in = false;
 		}
 		d_cpu = d_child = NULL;
+		set_device_name(_T("Z80 CTC"));
 	}
 	~Z80CTC() {}
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 	{
 		cpu_clocks = new_clocks;
 	}
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32 bit)
+	void set_context_intr(DEVICE* device, uint32_t bit)
 	{
 		d_cpu = device;
 		intr_bit = bit;
@@ -96,24 +97,28 @@ public:
 	{
 		d_child = device;
 	}
+	DEVICE *get_context_child()
+	{
+		return d_child;
+	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32_t get_intr_ack();
+	void notify_intr_reti();
 	
 	// unique functions
-	void set_context_zc0(DEVICE* device, int id, uint32 mask)
+	void set_context_zc0(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&counter[0].outputs, device, id, mask);
 	}
-	void set_context_zc1(DEVICE* device, int id, uint32 mask)
+	void set_context_zc1(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&counter[1].outputs, device, id, mask);
 	}
-	void set_context_zc2(DEVICE* device, int id, uint32 mask)
+	void set_context_zc2(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&counter[2].outputs, device, id, mask);
 	}
-	void set_constant_clock(int ch, uint32 hz)
+	void set_constant_clock(int ch, uint32_t hz)
 	{
 		counter[ch].freq = hz;
 	}

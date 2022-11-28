@@ -57,17 +57,17 @@ void I8155::reset()
 	stop_count();
 }
 
-void I8155::write_data8(uint32 addr, uint32 data)
+void I8155::write_data8(uint32_t addr, uint32_t data)
 {
 	ram[addr & 0xff] = data;
 }
 
-uint32 I8155::read_data8(uint32 addr)
+uint32_t I8155::read_data8(uint32_t addr)
 {
 	return ram[addr & 0xff];
 }
 
-void I8155::write_io8(uint32 addr, uint32 data)
+void I8155::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 7) {
 	case 0:
@@ -118,9 +118,9 @@ void I8155::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8155::read_io8(uint32 addr)
+uint32_t I8155::read_io8(uint32_t addr)
 {
-	switch(addr & 3) {
+	switch(addr & 7) {
 	case 0:
 		if(statreg & STA_INTR_T) {
 			statreg &= ~STA_INTR_T;
@@ -151,13 +151,13 @@ uint32 I8155::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void I8155::write_signal(int id, uint32 data, uint32 mask)
+void I8155::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_I8155_PORT_A:
 		if(PIO_MODE_3 || PIO_MODE_4) {
 			// note: strobe signal must be checked
-			uint32 val = pio[2].wreg | STA_BF_A;
+			uint32_t val = pio[2].wreg | STA_BF_A;
 			statreg |= STA_BF_A;
 			if(cmdreg & CMD_INTE_A) {
 				val |= STA_INTR_A;
@@ -170,7 +170,7 @@ void I8155::write_signal(int id, uint32 data, uint32 mask)
 	case SIG_I8155_PORT_B:
 		if(PIO_MODE_4) {
 			// note: strobe signal must be checked
-			uint32 val = pio[2].wreg | STA_BF_B;
+			uint32_t val = pio[2].wreg | STA_BF_B;
 			statreg |= STA_BF_B;
 			if(cmdreg & CMD_INTE_B) {
 				val |= STA_INTR_B;
@@ -203,7 +203,7 @@ void I8155::event_callback(int event_id, int err)
 	if(freq && now_count) {
 		input_clk = get_next_clock();
 		period = (int)(cpu_clocks * input_clk / freq) + err;
-		prev_clk = current_clock() + err;
+		prev_clk = get_current_clock() + err;
 		register_event_by_clock(this, 0, period, false, &register_id);
 	}
 }
@@ -216,7 +216,7 @@ void I8155::input_clock(int clock)
 	
 	// update counter
 	count -= clock;
-	int32 tmp = COUNT_VALUE;
+	int32_t tmp = COUNT_VALUE;
 loop:
 	if(half) {
 		set_signal(count > (tmp >> 1));
@@ -249,7 +249,7 @@ void I8155::start_count()
 		if(freq && register_id == -1) {
 			input_clk = get_next_clock();
 			period = (int)(cpu_clocks * input_clk / freq);
-			prev_clk = current_clock();
+			prev_clk = get_current_clock();
 			register_event_by_clock(this, 0, period, false, &register_id);
 		}
 	}
@@ -268,8 +268,8 @@ void I8155::update_count()
 {
 	if(register_id != -1) {
 		// update counter
-		int passed = passed_clock(prev_clk);
-		uint32 input = (uint32)(freq * passed / cpu_clocks);
+		int passed = get_passed_clock(prev_clk);
+		uint32_t input = (uint32_t)(freq * passed / cpu_clocks);
 		if(input_clk <= input) {
 			input = input_clk - 1;
 		}
@@ -279,7 +279,7 @@ void I8155::update_count()
 			cancel_event(this, register_id);
 			input_clk -= input;
 			period -= passed;
-			prev_clk = current_clock();
+			prev_clk = get_current_clock();
 			register_event_by_clock(this, 0, period, false, &register_id);
 		}
 	}
@@ -288,7 +288,7 @@ void I8155::update_count()
 int I8155::get_next_clock()
 {
 	if(half) {
-		int32 tmp = COUNT_VALUE >> 1;
+		int32_t tmp = COUNT_VALUE >> 1;
 		return (count > tmp) ? count - tmp : count;
 	}
 	return (count > 1) ? count - 1 : 1;
@@ -306,12 +306,48 @@ void I8155::set_signal(bool signal)
 	prev_out = signal;
 }
 
-void I8155::set_pio(int ch, uint8 data)
+void I8155::set_pio(int ch, uint8_t data)
 {
 	if(pio[ch].wreg != data || pio[ch].first) {
 		write_signals(&pio[ch].outputs, data);
 		pio[ch].wreg = data;
 		pio[ch].first = false;
 	}
+}
+
+#define STATE_VERSION	1
+
+bool I8155::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateValue(count);
+	state_fio->StateValue(countreg);
+	state_fio->StateValue(now_count);
+	state_fio->StateValue(stop_tc);
+	state_fio->StateValue(half);
+	state_fio->StateValue(prev_out);
+	state_fio->StateValue(prev_in);
+	state_fio->StateValue(freq);
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(input_clk);
+	state_fio->StateValue(prev_clk);
+	state_fio->StateValue(period);
+	state_fio->StateValue(cpu_clocks);
+	for(int i = 0; i < 3; i++) {
+		state_fio->StateValue(pio[i].wreg);
+		state_fio->StateValue(pio[i].rreg);
+		state_fio->StateValue(pio[i].rmask);
+		state_fio->StateValue(pio[i].mode);
+		state_fio->StateValue(pio[i].first);
+	}
+	state_fio->StateValue(cmdreg);
+	state_fio->StateValue(statreg);
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	return true;
 }
 

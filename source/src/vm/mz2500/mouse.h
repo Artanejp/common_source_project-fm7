@@ -23,18 +23,20 @@ private:
 	DEVICE* d_sio;
 	
 	// mouse
-	int* stat;
+	const int32_t* stat;
 	bool select;
 	
 public:
-	MOUSE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MOUSE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Mouse I/F"));
+	}
 	~MOUSE() {}
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique function
 	void set_context_sio(DEVICE* device)

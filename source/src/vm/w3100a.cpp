@@ -8,7 +8,6 @@
 */
 
 #include "w3100a.h"
-#include "../fileio.h"
 
 void W3100A::initialize()
 {
@@ -37,9 +36,9 @@ void W3100A::initialize()
 	} \
 }
 
-void W3100A::write_io8(uint32 addr, uint32 data)
+void W3100A::write_io8(uint32_t addr, uint32_t data)
 {
-	uint16 raddr;
+	uint16_t raddr;
 	
 	switch(addr & 3) {
 	case 0:
@@ -60,10 +59,10 @@ void W3100A::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 W3100A::read_io8(uint32 addr)
+uint32_t W3100A::read_io8(uint32_t addr)
 {
-	uint16 raddr;
-	uint32 val;
+	uint16_t raddr;
+	uint32_t val;
 	
 	switch(addr & 3) {
 	case 3:
@@ -76,9 +75,9 @@ uint32 W3100A::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void W3100A::process_cmd(uint16 raddr, uint8 data)
+void W3100A::process_cmd(uint16_t raddr, uint8_t data)
 {
-	uint16 bufsz[4] = { 1024, 2048, 4096, 8192 };
+	uint16_t bufsz[4] = { 1024, 2048, 4096, 8192 };
 	int ch;
 	
 	switch(raddr) {
@@ -93,17 +92,17 @@ void W3100A::process_cmd(uint16 raddr, uint8 data)
 		ch = raddr & 3;
 		if(data & 2) {
 			// init sock
-			uint8 mode = regs[0xa1 + 24 * ch] & 7;
+			uint8_t mode = regs[0xa1 + 24 * ch] & 7;
 			if(mode == 0) {
 				emu->disconnect_socket(ch);
 			} else {
 				bool result = false, connect = false;
 				regs[0xa0 + 24 * ch] = 0;	// SOCK_CLOSE
 				if(mode == 1) {
-					result = connect = emu->init_socket_tcp(ch);
+					result = connect = emu->initialize_socket_tcp(ch);
 					is_tcp[ch] = true;
 				} else if(mode == 2) {
-					result = connect = emu->init_socket_udp(ch);
+					result = connect = emu->initialize_socket_udp(ch);
 					if(result) {
 						regs[0xa0 + 24 * ch] = 0xf;	// SOCK_UDP
 					}
@@ -119,7 +118,7 @@ void W3100A::process_cmd(uint16 raddr, uint8 data)
 		if(data & 4) {
 			// connect
 			regs[0xa0 + 24 * ch] = 3;	// SOCK_SYNSENT
-			uint32 ipaddr = regs[0xa8 + 24 * ch];
+			uint32_t ipaddr = regs[0xa8 + 24 * ch];
 			ipaddr |= regs[0xa9 + 24 * ch] << 8;
 			ipaddr |= regs[0xaa + 24 * ch] << 16;
 			ipaddr |= regs[0xab + 24 * ch] << 24;
@@ -146,18 +145,18 @@ void W3100A::process_cmd(uint16 raddr, uint8 data)
 		if(data & 0x20) {
 			// send
 			send_dst_ptr[ch] = cx_tw_pr[ch];
-			uint32 rd_ptr = is_tcp[ch] ? cx_ta_pr[ch] : cx_tr_pr[ch];
+			uint32_t rd_ptr = is_tcp[ch] ? cx_ta_pr[ch] : cx_tr_pr[ch];
 			if(rd_ptr != send_dst_ptr[ch]) {
 				regs[ch + 4] &= ~0x20;
 				if(is_tcp[ch]) {
-					emu->send_data_tcp(ch);
+					emu->send_socket_data_tcp(ch);
 				} else {
-					uint32 ipaddr = regs[0xa8 + 24 * ch];
+					uint32_t ipaddr = regs[0xa8 + 24 * ch];
 					ipaddr |= regs[0xa9 + 24 * ch] << 8;
 					ipaddr |= regs[0xaa + 24 * ch] << 16;
 					ipaddr |= regs[0xab + 24 * ch] << 24;
 					int port = (regs[0xac + 24 * ch] << 8) | regs[0xad + 24 * ch];
-					emu->send_data_udp(ch, ipaddr, port);
+					emu->send_socket_data_udp(ch, ipaddr, port);
 				}
 			} else {
 				regs[ch + 4] |= 0x20;	// send ok
@@ -234,7 +233,7 @@ lbl_cx_tr_pr:
 	}
 }
 
-void W3100A::process_status(uint16 raddr)
+void W3100A::process_status(uint16_t raddr)
 {
 	int ch;
 	
@@ -292,14 +291,14 @@ lbl_cx_str_pr:
 	}
 }
 
-void W3100A::connected(int ch)
+void W3100A::notify_connected(int ch)
 {
 	regs[4 + ch] |= 4;		// established = true
 	regs[4 + ch] &= ~8;		// closed = false
 	regs[0xa0 + 24 * ch] = 6;	// SOCK_ESTABLISHED
 }
 
-void W3100A::disconnected(int ch)
+void W3100A::notify_disconnected(int ch)
 {
 	regs[4 + ch] &= ~4;		// established = false
 	regs[4 + ch] |= 8;		// closed = true
@@ -309,11 +308,11 @@ void W3100A::disconnected(int ch)
 	regs[0xa0 + 24 * ch] = 0;	// SOCK_CLOSED
 }
 
-uint8* W3100A::get_sendbuffer(int ch, int* size)
+uint8_t* W3100A::get_send_buffer(int ch, int* size)
 {
-	uint32 cx_ta_tr = is_tcp[ch] ? cx_ta_pr[ch] : cx_tr_pr[ch];
-	uint32 rd_ptr = cx_ta_tr & (tx_bufsz[ch] - 1);
-	uint32 wr_ptr = send_dst_ptr[ch] & (tx_bufsz[ch] - 1);
+	uint32_t cx_ta_tr = is_tcp[ch] ? cx_ta_pr[ch] : cx_tr_pr[ch];
+	uint32_t rd_ptr = cx_ta_tr & (tx_bufsz[ch] - 1);
+	uint32_t wr_ptr = send_dst_ptr[ch] & (tx_bufsz[ch] - 1);
 	
 	if(!(regs[ch] & 0x20)) {
 		*size = 0;
@@ -324,14 +323,14 @@ uint8* W3100A::get_sendbuffer(int ch, int* size)
 	} else {
 		*size = tx_bufsz[ch] - rd_ptr;
 	}
-	uint32 ofs = 0x4000;
+	uint32_t ofs = 0x4000;
 	for(int i = 0; i < ch; i++) {
 		ofs += tx_bufsz[i];
 	}
 	return &regs[ofs + rd_ptr];
 }
 
-void W3100A::inc_sendbuffer_ptr(int ch, int size)
+void W3100A::inc_send_buffer_ptr(int ch, int size)
 {
 	if(is_tcp[ch]) {
 		cx_ta_pr[ch] += size;
@@ -346,10 +345,10 @@ void W3100A::inc_sendbuffer_ptr(int ch, int size)
 	}
 }
 
-uint8* W3100A::get_recvbuffer0(int ch, int* size0, int* size1)
+uint8_t* W3100A::get_recv_buffer0(int ch, int* size0, int* size1)
 {
-	uint32 wr_ptr = cx_rw_pr[ch] & (rx_bufsz[ch] - 1);
-	uint32 rr_ptr = recv_dst_ptr[ch] & (rx_bufsz[ch] - 1);
+	uint32_t wr_ptr = cx_rw_pr[ch] & (rx_bufsz[ch] - 1);
+	uint32_t rr_ptr = recv_dst_ptr[ch] & (rx_bufsz[ch] - 1);
 	
 	if(!(regs[ch] & 0x40)) {
 		*size0 = *size1 = 0;
@@ -362,25 +361,25 @@ uint8* W3100A::get_recvbuffer0(int ch, int* size0, int* size1)
 		*size0 = rr_ptr - wr_ptr;
 		*size1 = 0;
 	}
-	uint32 ofs = 0x6000;
+	uint32_t ofs = 0x6000;
 	for(int i = 0; i < ch; i++) {
 		ofs += rx_bufsz[i];
 	}
 	return &regs[ofs + wr_ptr];
 }
 
-uint8* W3100A::get_recvbuffer1(int ch)
+uint8_t* W3100A::get_recv_buffer1(int ch)
 {
-	uint32 ofs = 0x6000;
+	uint32_t ofs = 0x6000;
 	for(int i = 0; i < ch; i++) {
 		ofs += rx_bufsz[i];
 	}
 	return &regs[ofs];
 }
 
-void W3100A::inc_recvbuffer_ptr(int ch, int size)
+void W3100A::inc_recv_buffer_ptr(int ch, int size)
 {
-//	uint32 wr_ptr = cx_rw_pr[ch];
+//	uint32_t wr_ptr = cx_rw_pr[ch];
 //	wr_ptr = (wr_ptr + size) & (rx_bufsz[ch] - 1);
 //	cx_rw_pr[ch] = (cx_rw_pr[ch] & ~(rx_bufsz[ch] - 1)) | wr_ptr;
 	cx_rw_pr[ch] += size;
@@ -389,49 +388,28 @@ void W3100A::inc_recvbuffer_ptr(int ch, int size)
 
 #define STATE_VERSION	1
 
-void W3100A::save_state(FILEIO* state_fio)
+bool W3100A::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputUint8(idm_or);
-	state_fio->FputUint8(idm_ar0);
-	state_fio->FputUint8(idm_ar1);
-	state_fio->Fwrite(regs, sizeof(regs), 1);
-	state_fio->Fwrite(is_tcp, sizeof(is_tcp), 1);
-	state_fio->Fwrite(rx_bufsz, sizeof(rx_bufsz), 1);
-	state_fio->Fwrite(tx_bufsz, sizeof(tx_bufsz), 1);
-	state_fio->Fwrite(cx_rw_pr, sizeof(cx_rw_pr), 1);
-	state_fio->Fwrite(cx_rr_pr, sizeof(cx_rr_pr), 1);
-	state_fio->Fwrite(cx_ta_pr, sizeof(cx_ta_pr), 1);
-	state_fio->Fwrite(cx_tw_pr, sizeof(cx_tw_pr), 1);
-	state_fio->Fwrite(cx_tr_pr, sizeof(cx_tr_pr), 1);
-	state_fio->Fwrite(send_dst_ptr, sizeof(send_dst_ptr), 1);
-	state_fio->Fwrite(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
-}
-
-bool W3100A::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	idm_or = state_fio->FgetUint8();
-	idm_ar0 = state_fio->FgetUint8();
-	idm_ar1 = state_fio->FgetUint8();
-	state_fio->Fread(regs, sizeof(regs), 1);
-	state_fio->Fread(is_tcp, sizeof(is_tcp), 1);
-	state_fio->Fread(rx_bufsz, sizeof(rx_bufsz), 1);
-	state_fio->Fread(tx_bufsz, sizeof(tx_bufsz), 1);
-	state_fio->Fread(cx_rw_pr, sizeof(cx_rw_pr), 1);
-	state_fio->Fread(cx_rr_pr, sizeof(cx_rr_pr), 1);
-	state_fio->Fread(cx_ta_pr, sizeof(cx_ta_pr), 1);
-	state_fio->Fread(cx_tw_pr, sizeof(cx_tw_pr), 1);
-	state_fio->Fread(cx_tr_pr, sizeof(cx_tr_pr), 1);
-	state_fio->Fread(send_dst_ptr, sizeof(send_dst_ptr), 1);
-	state_fio->Fread(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
+	state_fio->StateValue(idm_or);
+	state_fio->StateValue(idm_ar0);
+	state_fio->StateValue(idm_ar1);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateArray(is_tcp, sizeof(is_tcp), 1);
+	state_fio->StateArray(rx_bufsz, sizeof(rx_bufsz), 1);
+	state_fio->StateArray(tx_bufsz, sizeof(tx_bufsz), 1);
+	state_fio->StateArray(cx_rw_pr, sizeof(cx_rw_pr), 1);
+	state_fio->StateArray(cx_rr_pr, sizeof(cx_rr_pr), 1);
+	state_fio->StateArray(cx_ta_pr, sizeof(cx_ta_pr), 1);
+	state_fio->StateArray(cx_tw_pr, sizeof(cx_tw_pr), 1);
+	state_fio->StateArray(cx_tr_pr, sizeof(cx_tr_pr), 1);
+	state_fio->StateArray(send_dst_ptr, sizeof(send_dst_ptr), 1);
+	state_fio->StateArray(recv_dst_ptr, sizeof(recv_dst_ptr), 1);
 	return true;
 }
 

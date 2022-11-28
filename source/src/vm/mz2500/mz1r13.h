@@ -19,22 +19,24 @@
 class MZ1R13 : public DEVICE
 {
 private:
-	uint8 kanji[0x20000];
-	uint8 dic[0x4000];
+	uint8_t kanji[0x20000];
+	uint8_t dic[0x4000];
 	
-	uint16 address;
+	uint16_t address;
 	bool select_kanji;
 	
 public:
-	MZ1R13(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MZ1R13(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("MZ-1R13 (Kanji ROM)"));
+	}
 	~MZ1R13() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

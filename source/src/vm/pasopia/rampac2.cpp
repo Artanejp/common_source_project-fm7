@@ -9,9 +9,8 @@
 */
 
 #include "rampac2.h"
-#include "../../fileio.h"
 
-static const uint8 header[16] = {
+static const uint8_t header[16] = {
 	0xaa, 0x1f, 0x04, 0x00, 0x04, 0x80, 0x00, 0x01, 0x04, 0x04, 0x01, 0x03, 0x08, 0x00, 0x00, 0x00
 };
 
@@ -25,9 +24,7 @@ void RAMPAC2::initialize(int id)
 		open_file(config.recent_binary_path[id - 1][0]);
 	} else {
 		// open default rampac2 file
-		_TCHAR file_path[_MAX_PATH];
-		_stprintf(file_path, _T("%sRAMPAC%d.BIN"), emu->application_path(), id);
-		open_file(file_path);
+		open_file(create_local_path(_T("RAMPAC%d.BIN"), id));
 	}
 }
 
@@ -49,7 +46,7 @@ void RAMPAC2::reset()
 	ptr = 0;
 }
 
-void RAMPAC2::write_io8(uint32 addr, uint32 data)
+void RAMPAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -67,12 +64,12 @@ void RAMPAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RAMPAC2::read_io8(uint32 addr)
+uint32_t RAMPAC2::read_io8(uint32_t addr)
 {
 	return ram[ptr & 0x7fff];
 }
 
-void RAMPAC2::open_file(_TCHAR* file_path)
+void RAMPAC2::open_file(const _TCHAR* file_path)
 {
 	// save modified data
 	release();
@@ -92,8 +89,22 @@ void RAMPAC2::open_file(_TCHAR* file_path)
 	}
 	delete fio;
 	
-	_tcscpy(path, file_path);
+	my_tcscpy_s(path, _MAX_PATH, file_path);
 	opened = true;
 	modified = false;
+}
+
+#define STATE_VERSION	1
+
+bool RAMPAC2::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	state_fio->StateArray(ram, sizeof(ram), 1);
+	state_fio->StateValue(ptr);
+	state_fio->StateValue(opened);
+	state_fio->StateValue(modified);
+	return true;
 }
 

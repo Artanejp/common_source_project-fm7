@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2010.08.31-
 
-	[ sub ]
+	[ sub pcb ]
 */
 
 #ifndef _SUB_H_
@@ -14,100 +14,85 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SUB_RTC_DOUT	0
-#define SIG_SUB_PIO_OBF		1
-#define SIG_SUB_PIO_PM		2
-#define SIG_SUB_KEYBOARD_DC	3
-#define SIG_SUB_KEYBOARD_STC	4
-#define SIG_SUB_KEYBOARD_ACKC	5
-
 class SUB : public DEVICE
 {
 private:
 	DEVICE *d_main;
 	
 	// memory
-	uint8* rbank[32];	// 64KB / 2KB
-	uint8* wbank[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8 ram[0x2000];
-	uint8* ipl;
-	uint8* common;
+	uint8_t* rbank[32];	// 64KB / 2KB
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t ram[0x4000];
+	uint8_t kanji[0x20000];
+	uint8_t* ipl;
+	uint8_t* common;
 	
 	// display
-	uint8 vram_chr[0x1000];
-	uint8 *sync_chr, *ra_chr, *cs_chr;
+	uint8_t vram_chr[0x2000];
+	uint8_t *sync_chr, *ra_chr, *cs_chr;
 	int* ead_chr;
-	uint8 vram_gfx[0x20000];
-	uint8 *sync_gfx, *ra_gfx, *cs_gfx;
+	uint8_t vram_gfx[0x18000];
+	uint8_t *sync_gfx, *ra_gfx, *cs_gfx;
 	int* ead_gfx;
-	uint8 disp[16];
-	bool pm;
+	uint8_t disp[16];
 	
-	uint8 screen_chr[400][640];
-	uint8 screen_gfx[400][640];
-	uint8 font[0x2000];
-	scrntype palette_pc[8];
-	int blink;
+	uint8_t screen_chr[400][640];
+	uint8_t screen_gfx[400][640];
+	uint8_t font[0x2000];
+	int cblink;
+	bool crt_400line;
 	
-	void draw_chr();
-	void draw_gfx();
-	
-	// rtc, pio
-	bool dout, obf;
-	
-	// keyboard
-	bool dk, stk, hlt;	// to cpu
-	bool dc, stc, ackc;	// from cpu
-	int key_phase;
-	int key_send_data, key_send_bit;
-	int key_recv_data, key_recv_bit;
-	void key_send(int data, bool command);
-	void key_recv(int data);
-	void key_drive();
+	void draw_chr_400line();
+	void draw_chr_200line();
+	void draw_gfx_400line();
+	void draw_gfx_200line_16bit();
+	void draw_gfx_200line_8bit();
 	
 public:
-	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SUB(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Memory Bus (Sub)"));
+	}
 	~SUB() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
-	void event_callback(int event_id, int err);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_main(DEVICE* device)
 	{
 		d_main = device;
 	}
-	void set_ipl(uint8* ptr)
+	void set_ipl(uint8_t* ptr)
 	{
 		ipl = ptr;
 	}
-	void set_common(uint8* ptr)
+	void set_common(uint8_t* ptr)
 	{
 		common = ptr;
 	}
-	uint8* get_vram_chr()
+	uint8_t* get_vram_chr()
 	{
 		return vram_chr;
 	}
-	void set_sync_ptr_chr(uint8* ptr)
+	void set_sync_ptr_chr(uint8_t* ptr)
 	{
 		sync_chr = ptr;
 	}
-	void set_ra_ptr_chr(uint8* ptr)
+	void set_ra_ptr_chr(uint8_t* ptr)
 	{
 		ra_chr = ptr;
 	}
-	void set_cs_ptr_chr(uint8* ptr)
+	void set_cs_ptr_chr(uint8_t* ptr)
 	{
 		cs_chr = ptr;
 	}
@@ -115,19 +100,19 @@ public:
 	{
 		ead_chr = ptr;
 	}
-	uint8* get_vram_gfx()
+	uint8_t* get_vram_gfx()
 	{
 		return vram_gfx;
 	}
-	void set_sync_ptr_gfx(uint8* ptr)
+	void set_sync_ptr_gfx(uint8_t* ptr)
 	{
 		sync_gfx = ptr;
 	}
-	void set_ra_ptr_gfx(uint8* ptr)
+	void set_ra_ptr_gfx(uint8_t* ptr)
 	{
 		ra_gfx = ptr;
 	}
-	void set_cs_ptr_gfx(uint8* ptr)
+	void set_cs_ptr_gfx(uint8_t* ptr)
 	{
 		cs_gfx = ptr;
 	}
@@ -135,8 +120,6 @@ public:
 	{
 		ead_gfx = ptr;
 	}
-	void key_down(int code);
-	void key_up(int code);
 	void draw_screen();
 };
 

@@ -31,7 +31,7 @@ void MSM58321::initialize()
 	rd = wr = addr_wr = busy = hold = false;
 	count_1024hz = count_1s = count_1m = count_1h = 0;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register events
@@ -52,7 +52,7 @@ void MSM58321::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		if(!hold) {
@@ -67,19 +67,19 @@ void MSM58321::event_callback(int event_id, int err)
 			count_1024hz = 0;
 			regs[15] ^= 1;
 		}
-		if(++count_1s = 8192) {
+		if(++count_1s == 8192) {
 			count_1s = 0;
 			regs[15] &= ~2;
 		} else {
 			regs[15] |= 2;
 		}
-		if(++count_1m = 60 * 8192) {
+		if(++count_1m == 60 * 8192) {
 			count_1m = 0;
 			regs[15] &= ~4;
 		} else {
 			regs[15] |= 4;
 		}
-		if(++count_1h = 3600 * 8192) {
+		if(++count_1h == 3600 * 8192) {
 			count_1h = 0;
 			regs[15] &= ~8;
 		} else {
@@ -142,7 +142,7 @@ void MSM58321::write_to_cur_time()
 #endif
 }
 
-void MSM58321::write_signal(int id, uint32 data, uint32 mask)
+void MSM58321::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MSM58321_DATA) {
 		wreg = (data & mask) | (wreg & ~mask);
@@ -188,6 +188,14 @@ void MSM58321::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
+uint32_t MSM58321::read_signal(int ch)
+{
+	if(ch == SIG_MSM58321_DATA) {
+		return regs[regnum];
+	}
+	return 0;
+}
+
 void MSM58321::output_data()
 {
 	if(cs && rd) {
@@ -203,5 +211,35 @@ void MSM58321::set_busy(bool val)
 	}
 #endif
 	busy = val;
+}
+
+#define STATE_VERSION	1
+
+bool MSM58321::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(wreg);
+	state_fio->StateValue(regnum);
+	state_fio->StateValue(cs);
+	state_fio->StateValue(rd);
+	state_fio->StateValue(wr);
+	state_fio->StateValue(addr_wr);
+	state_fio->StateValue(busy);
+	state_fio->StateValue(hold);
+	state_fio->StateValue(count_1024hz);
+	state_fio->StateValue(count_1s);
+	state_fio->StateValue(count_1m);
+	state_fio->StateValue(count_1h);
+	return true;
 }
 

@@ -25,78 +25,92 @@ class MEMORY : public DEVICE
 {
 private:
 	typedef struct {
-		DEVICE* dev;
-		uint8* memory;
+		DEVICE *device;
+		uint8_t *memory;
+		int wait;
 	} bank_t;
 	
-	bank_t *read_table;
-	bank_t *write_table;
-	
-	int addr_shift;
-	
-	uint8 read_dummy[MEMORY_BANK_SIZE];
-	uint8 write_dummy[MEMORY_BANK_SIZE];
+	uint8_t *rd_dummy;
+	uint8_t *wr_dummy;
 	
 public:
-	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		int bank_num = MEMORY_ADDR_MAX / MEMORY_BANK_SIZE;
+		addr_max = MEMORY_ADDR_MAX;
+		bank_size = MEMORY_BANK_SIZE;
 		
-		read_table = (bank_t *)malloc(sizeof(bank_t) * bank_num);
-		write_table = (bank_t *)malloc(sizeof(bank_t) * bank_num);
+		rd_table = wr_table = NULL;
+		rd_dummy = wr_dummy = NULL;
 		
-		for(int i = 0; i < bank_num; i++) {
-			read_table[i].dev = NULL;
-			read_table[i].memory = read_dummy;
-			
-			write_table[i].dev = NULL;
-			write_table[i].memory = write_dummy;
-		}
-		for(int i = 0;; i++) {
-			if(MEMORY_BANK_SIZE == (1 << i)) {
-				addr_shift = i;
-				break;
-			}
-		}
-		memset(read_dummy, 0xff, MEMORY_BANK_SIZE);
+		set_device_name(_T("Generic Memory Bus"));
 	}
 	~MEMORY() {}
 	
 	// common functions
+	void initialize();
 	void release();
-	uint32 read_data8(uint32 addr);
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data16(uint32 addr);
-	void write_data16(uint32 addr, uint32 data);
-	uint32 read_data32(uint32 addr);
-	void write_data32(uint32 addr, uint32 data);
+	uint32_t read_data8(uint32_t addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data16(uint32_t addr);
+	void write_data16(uint32_t addr, uint32_t data);
+	uint32_t read_data32(uint32_t addr);
+	void write_data32(uint32_t addr, uint32_t data);
+	uint32_t read_data8w(uint32_t addr, int* wait);
+	void write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_data16w(uint32_t addr, int* wait);
+	void write_data16w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_data32w(uint32_t addr, int* wait);
+	void write_data32w(uint32_t addr, uint32_t data, int* wait);
+#ifdef MEMORY_DISABLE_DMA_MMIO
+	uint32_t read_dma_data8(uint32_t addr);
+	void write_dma_data8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_data16(uint32_t addr);
+	void write_dma_data16(uint32_t addr, uint32_t data);
+	uint32_t read_dma_data32(uint32_t addr);
+	void write_dma_data32(uint32_t addr, uint32_t data);
+#endif
 	
 	// unique functions
-	void set_memory_r(uint32 start, uint32 end, uint8 *memory);
-	void set_memory_w(uint32 start, uint32 end, uint8 *memory);
-	void set_memory_rw(uint32 start, uint32 end, uint8 *memory)
+	void set_memory_r(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_w(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_rw(uint32_t start, uint32_t end, uint8_t *memory)
 	{
 		set_memory_r(start, end, memory);
 		set_memory_w(start, end, memory);
 	}
-	void set_memory_mapped_io_r(uint32 start, uint32 end, DEVICE *device);
-	void set_memory_mapped_io_w(uint32 start, uint32 end, DEVICE *device);
-	void set_memory_mapped_io_rw(uint32 start, uint32 end, DEVICE *device)
+	void set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device);
+	void set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device);
+	void set_memory_mapped_io_rw(uint32_t start, uint32_t end, DEVICE *device)
 	{
 		set_memory_mapped_io_r(start, end, device);
 		set_memory_mapped_io_w(start, end, device);
 	}
-	void unset_memory_r(uint32 start, uint32 end);
-	void unset_memory_w(uint32 start, uint32 end);
-	void unset_memory_rw(uint32 start, uint32 end)
+	void set_wait_r(uint32_t start, uint32_t end, int wait);
+	void set_wait_w(uint32_t start, uint32_t end, int wait);
+	void set_wait_rw(uint32_t start, uint32_t end, int wait)
+	{
+		set_wait_r(start, end, wait);
+		set_wait_w(start, end, wait);
+	}
+	void unset_memory_r(uint32_t start, uint32_t end);
+	void unset_memory_w(uint32_t start, uint32_t end);
+	void unset_memory_rw(uint32_t start, uint32_t end)
 	{
 		unset_memory_r(start, end);
 		unset_memory_w(start, end);
 	}
-	int read_bios(_TCHAR *file_name, uint8 *buffer, int size);
-	bool write_bios(_TCHAR *file_name, uint8 *buffer, int size);
-	bool read_image(_TCHAR *file_path, uint8 *buffer, int size);
-	bool write_image(_TCHAR *file_path, uint8 *buffer, int size);
+	int read_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
+	bool write_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
+	bool read_image(const _TCHAR *file_path, uint8_t *buffer, int size);
+	bool write_image(const _TCHAR *file_path, uint8_t *buffer, int size);
+	
+	uint32_t addr_max;
+	uint32_t bank_size;
+	
+	bank_t *rd_table;
+	bank_t *wr_table;
+	
+	int addr_shift;
 };
 
 #endif

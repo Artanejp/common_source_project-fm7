@@ -19,19 +19,23 @@
 class EMM : public DEVICE
 {
 private:
-	uint8 *data_buffer;
-	uint32 data_addr;
+	uint8_t *data_buffer;
+	uint32_t data_addr;
 	
 public:
-	EMM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	EMM(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("EMM"));
+	}
 	~EMM() {}
 	
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	bool process_state(FILEIO* state_fio, bool loading);
 };
 
 #endif

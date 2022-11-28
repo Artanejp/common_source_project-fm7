@@ -22,12 +22,15 @@ private:
 	DEVICE *d_pcm, *d_psg;
 	
 public:
-	SPEAKER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	SPEAKER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Speaker"));
+	}
 	~SPEAKER() {}
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_pcm(DEVICE* device)

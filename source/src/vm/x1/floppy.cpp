@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2009.03.14-
@@ -14,7 +15,6 @@
 #ifdef _X1TURBO_FEATURE
 #include "../disk.h"
 #endif
-#include "../../fileio.h"
 
 #define EVENT_MOTOR_ON	0
 #define EVENT_MOTOR_OFF	1
@@ -24,7 +24,7 @@ void FLOPPY::reset()
 	register_id = -1;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xffc:
@@ -56,22 +56,34 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 }
 
 #ifdef _X1TURBO_FEATURE
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0xffc:	// FM
-//		d_fdc->set_drive_mfm(prev & 3, false);
+//		for(int drv = 0; drv < 4; drv++) {
+//			d_fdc->set_drive_mfm(drv, false);
+//		}
 		return 0xff;
 	case 0xffd:	// MFM
-//		d_fdc->set_drive_mfm(prev & 3, true);
+//		for(int drv = 0; drv < 4; drv++) {
+//			d_fdc->set_drive_mfm(drv, true);
+//		}
 		return 0xff;
 	case 0xffe:	// 2HD
-		d_fdc->set_drive_type(prev & 3, DRIVE_TYPE_2HD);
-//		d_fdc->set_drive_rpm(prev & 3, 360);
+		for(int drv = 0; drv < 4; drv++) {
+			d_fdc->set_drive_type(drv, DRIVE_TYPE_2HD);
+//			d_fdc->set_drive_rpm(drv, 360);
+		}
 		return 0xff;
 	case 0xfff:	// 2D/2DD
-		d_fdc->set_drive_type(prev & 3, DRIVE_TYPE_2DD);
-//		d_fdc->set_drive_rpm(prev & 3, 300);
+		for(int drv = 0; drv < 4; drv++) {
+			if(d_fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
+				d_fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
+			} else {
+				d_fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+			}
+//			d_fdc->set_drive_rpm(drv, 300);
+		}
 		return 0xff;
 	}
 	return 0xff;
@@ -90,29 +102,19 @@ void FLOPPY::event_callback(int event_id, int err)
 	register_id = -1;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	3
 
-void FLOPPY::save_state(FILEIO* state_fio)
+bool FLOPPY::process_state(FILEIO* state_fio, bool loading)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
-	
-	state_fio->FputInt32(prev);
-	state_fio->FputBool(motor_on);
-	state_fio->FputInt32(register_id);
-}
-
-bool FLOPPY::load_state(FILEIO* state_fio)
-{
-	if(state_fio->FgetUint32() != STATE_VERSION) {
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	if(state_fio->FgetInt32() != this_device_id) {
+	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	prev = state_fio->FgetInt32();
-	motor_on = state_fio->FgetBool();
-	register_id = state_fio->FgetInt32();
+	state_fio->StateValue(prev);
+	state_fio->StateValue(motor_on);
+	state_fio->StateValue(register_id);
 	return true;
 }
 

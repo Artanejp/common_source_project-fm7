@@ -9,7 +9,6 @@
 
 #include "rtc.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 #define EVENT_1HZ	0
 #define EVENT_32HZ	1
@@ -31,7 +30,7 @@ void RTC::initialize()
 	regs[POWON] = 0x10;	// cleared
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RTC.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RTC.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(regs + 8, 32, 1);
 		fio->Fclose();
 	}
@@ -48,7 +47,7 @@ void RTC::initialize()
 	rtcmr = rtdsr = 0;
 	
 	// update calendar
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register event
@@ -65,14 +64,14 @@ void RTC::release()
 	
 	// save rtc regs image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RTC.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RTC.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(regs + 8, 32, 1);
 		fio->Fclose();
 	}
 	delete fio;
 }
 
-void RTC::write_io16(uint32 addr, uint32 data)
+void RTC::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0:
@@ -97,7 +96,7 @@ void RTC::write_io16(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RTC::read_io16(uint32 addr)
+uint32_t RTC::read_io16(uint32_t addr)
 {
 	switch(addr) {
 	case 2:
@@ -115,7 +114,7 @@ void RTC::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		read_from_cur_time();
@@ -133,7 +132,7 @@ void RTC::event_callback(int event_id, int err)
 		} else if(rtadr & 0x80) {
 			// write
 			if(ch <= 6) {
-				regs[ch] = (uint8)rtobr;
+				regs[ch] = (uint8_t)rtobr;
 				write_to_cur_time();
 			} else if(ch == POWON) {
 				regs[ch] = (regs[ch] & 0xe0) | (rtobr & 0x1f);
@@ -147,7 +146,7 @@ void RTC::event_callback(int event_id, int err)
 				}
 				update_checksum();
 			} else if(7 <= ch && ch < 32) {
-				regs[ch] = (uint8)rtobr;
+				regs[ch] = (uint8_t)rtobr;
 				update_checksum();
 			}
 		} else {
@@ -198,9 +197,9 @@ void RTC::update_checksum()
 		sum += regs[i] & 0xf;
 		sum += (regs[i] >> 4) & 0xf;
 	}
-	uint8 ckh = (sum >> 6) & 0xf;
-	uint8 ckm = (sum >> 2) & 0xf;
-	uint8 ckl = (sum >> 0) & 3;
+	uint8_t ckh = (sum >> 6) & 0xf;
+	uint8_t ckm = (sum >> 2) & 0xf;
+	uint8_t ckl = (sum >> 0) & 3;
 	
 	regs[CKHM] = ckh | (ckm << 4);
 	regs[CKL] = (regs[CKL] & 0xf0) | ckl | 0xc;
@@ -210,3 +209,27 @@ void RTC::update_intr()
 {
 	d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR1, (rtcmr & rtdsr & 0xe) ? 1 : 0, 1);
 }
+
+#define STATE_VERSION	1
+
+bool RTC::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!cur_time.process_state((void *)state_fio, loading)) {
+		return false;
+	}
+	state_fio->StateValue(register_id);
+	state_fio->StateValue(rtcmr);
+	state_fio->StateValue(rtdsr);
+	state_fio->StateValue(rtadr);
+	state_fio->StateValue(rtobr);
+	state_fio->StateValue(rtibr);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	return true;
+}
+

@@ -2,6 +2,7 @@
 	SHARP X1 Emulator 'eX1'
 	SHARP X1twin Emulator 'eX1twin'
 	SHARP X1turbo Emulator 'eX1turbo'
+	SHARP X1turboZ Emulator 'eX1turboZ'
 
 	Author : Takeda.Toshiya
 	Date   : 2009.03.16-
@@ -20,10 +21,13 @@ class JOYSTICK : public DEVICE
 {
 private:
 	DEVICE* d_psg;
-	uint32* joy_stat;
+	const uint32_t* joy_stat;
 	
 public:
-	JOYSTICK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	JOYSTICK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		set_device_name(_T("Joystick I/F"));
+	}
 	~JOYSTICK() {}
 	
 	// common functions

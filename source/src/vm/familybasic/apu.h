@@ -18,154 +18,162 @@
 #define APUQUEUE_SIZE	4096
 #define APUQUEUE_MASK	(APUQUEUE_SIZE - 1)
 
+// rectangle
+typedef struct {
+	uint8_t regs[4];
+	bool enabled;
+	int32_t phaseacc;
+	int32_t freq;
+	int32_t output_vol;
+	bool fixed_envelope;
+	bool holdnote;
+	uint8_t volume;
+	int32_t sweep_phase;
+	int32_t sweep_delay;
+	bool sweep_on;
+	uint8_t sweep_shifts;
+	uint8_t sweep_length;
+	bool sweep_inc;
+	int32_t freq_limit;
+	bool sweep_complement;
+	int32_t env_phase;
+	int32_t env_delay;
+	uint8_t env_vol;
+	int vbl_length;
+	uint8_t adder;
+	int duty_flip;
+	bool enabled_cur;
+	bool holdnote_cur;
+	int vbl_length_cur;
+} rectangle_t;
+
+// triangle
+typedef struct {
+	uint8_t regs[3];
+	bool enabled;
+	int32_t freq;
+	int32_t phaseacc;
+	int32_t output_vol;
+	uint8_t adder;
+	bool holdnote;
+	bool counter_started;
+	int write_latency;
+	int vbl_length;
+	int linear_length;
+	bool enabled_cur;
+	bool holdnote_cur;
+	bool counter_started_cur;
+	int vbl_length_cur;
+} triangle_t;
+
+// noise
+typedef struct {
+	uint8_t regs[3];
+	bool enabled;
+	int32_t freq;
+	int32_t phaseacc;
+	int32_t output_vol;
+	int32_t env_phase;
+	int32_t env_delay;
+	uint8_t env_vol;
+	bool fixed_envelope;
+	bool holdnote;
+	uint8_t volume;
+	int vbl_length;
+	uint8_t xor_tap;
+	bool enabled_cur;
+	bool holdnote_cur;
+	int vbl_length_cur;
+	
+	int shift_reg;
+	int noise_bit;
+} noise_t;
+
+// dmc
+typedef struct {
+	uint8_t regs[4];
+	bool enabled;
+	int32_t freq;
+	int32_t phaseacc;
+	int32_t output_vol;
+	uint32_t address;
+	uint32_t cached_addr;
+	int dma_length;
+	int cached_dmalength;
+	uint8_t cur_byte;
+	bool looping;
+	bool irq_gen;
+	bool irq_occurred;
+	int32_t freq_cur;
+	int32_t phaseacc_cur;
+	int dma_length_cur;
+	int cached_dmalength_cur;
+	bool enabled_cur;
+	bool looping_cur;
+	bool irq_gen_cur;
+	bool irq_occurred_cur;
+} dmc_t;
+
+// queue
+typedef struct {
+	uint32_t timestamp, addr;
+	uint32_t data;
+} queue_t;
+
 class APU : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_mem;
-	
-	// rectangle
-	typedef struct rectangle_s {
-		uint8 regs[4];
-		boolean enabled;
-		int32 phaseacc;
-		int32 freq;
-		int32 output_vol;
-		boolean fixed_envelope;
-		boolean holdnote;
-		uint8 volume;
-		int32 sweep_phase;
-		int32 sweep_delay;
-		boolean sweep_on;
-		uint8 sweep_shifts;
-		uint8 sweep_length;
-		boolean sweep_inc;
-		int32 freq_limit;
-		boolean sweep_complement;
-		int32 env_phase;
-		int32 env_delay;
-		uint8 env_vol;
-		int vbl_length;
-		uint8 adder;
-		int duty_flip;
-		boolean enabled_cur;
-		boolean holdnote_cur;
-		int vbl_length_cur;
-	} rectangle_t;
-	
-	// triangle
-	typedef struct triangle_s {
-		uint8 regs[3];
-		boolean enabled;
-		int32 freq;
-		int32 phaseacc;
-		int32 output_vol;
-		uint8 adder;
-		boolean holdnote;
-		boolean counter_started;
-		int write_latency;
-		int vbl_length;
-		int linear_length;
-		boolean enabled_cur;
-		boolean holdnote_cur;
-		boolean counter_started_cur;
-		int vbl_length_cur;
-	} triangle_t;
-	
-	// noise
-	typedef struct noise_s {
-		uint8 regs[3];
-		boolean enabled;
-		int32 freq;
-		int32 phaseacc;
-		int32 output_vol;
-		int32 env_phase;
-		int32 env_delay;
-		uint8 env_vol;
-		boolean fixed_envelope;
-		boolean holdnote;
-		uint8 volume;
-		int vbl_length;
-		uint8 xor_tap;
-		boolean enabled_cur;
-		boolean holdnote_cur;
-		int vbl_length_cur;
-		
-		int shift_reg;
-		int noise_bit;
-	} noise_t;
-	
-	// dmc
-	typedef struct dmc_s {
-		uint8 regs[4];
-		boolean enabled;
-		int32 freq;
-		int32 phaseacc;
-		int32 output_vol;
-		uint32 address;
-		uint32 cached_addr;
-		int dma_length;
-		int cached_dmalength;
-		uint8 cur_byte;
-		boolean looping;
-		boolean irq_gen;
-		boolean irq_occurred;
-		int32 freq_cur;
-		int32 phaseacc_cur;
-		int dma_length_cur;
-		int cached_dmalength_cur;
-		boolean enabled_cur;
-		boolean looping_cur;
-		boolean irq_gen_cur;
-		boolean irq_occurred_cur;
-	} dmc_t;
-	
-	// queue
-	typedef struct apudata_s {
-		uint32 timestamp, addr;
-		uint32 data;
-	} queue_t;
 	
 	rectangle_t rectangle[2];
 	triangle_t triangle;
 	noise_t noise;
 	dmc_t dmc;
 	
-	int32 cycle_rate;
-	int32 decay_lut[16];
+	int32_t cycle_rate;
+	int32_t decay_lut[16];
 	int vbl_lut[32];
 	int trilength_lut[128];
 	
-	uint32 enable_reg;
-	uint32 enable_reg_cur;
+	uint32_t enable_reg;
+	uint32_t enable_reg_cur;
 	int count_rate;
 	
 	queue_t queue[APUQUEUE_SIZE];
 	int q_head, q_tail;
-	uint32 elapsed_cycles;
+	uint32_t elapsed_cycles;
 	double ave, max, min;
 	
-	int32 create_rectangle(rectangle_t *chan);
-	int32 create_triangle(triangle_t *chan);
-	int32 create_noise(noise_t *chan);
+	int32_t create_rectangle(rectangle_t *chan);
+	int32_t create_triangle(triangle_t *chan);
+	int32_t create_noise(noise_t *chan);
 	inline void dmc_reload(dmc_t *chan);
-	int32 create_dmc(dmc_t *chan);
+	int32_t create_dmc(dmc_t *chan);
 	void enqueue(queue_t *d);
 	queue_t* dequeue();
-	void write_data_sync(uint32 addr, uint32 data);
-	void write_data_cur(uint32 addr, uint32 data);
+	void write_data_sync(uint32_t addr, uint32_t data);
+	void write_data_cur(uint32_t addr, uint32_t data);
+	
+	int volume_l, volume_r;
 	
 public:
-	APU(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	APU(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+		set_device_name(_T("APU"));
+	}
 	~APU() {}
 	
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void event_frame();
 	void event_vline(int v, int clock);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
+	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

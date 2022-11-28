@@ -10,7 +10,6 @@
 */
 
 #include "ramfile.h"
-#include "../../fileio.h"
 
 #define DATA_SIZE	0x10000
 #define ADDR_MASK	(DATA_SIZE - 1)
@@ -18,7 +17,7 @@
 void RAMFILE::initialize()
 {
 	// init memory
-	data_buffer = (uint8 *)malloc(DATA_SIZE);
+	data_buffer = (uint8_t *)malloc(DATA_SIZE);
 	memset(data_buffer, 0, DATA_SIZE);
 }
 
@@ -33,7 +32,7 @@ void RAMFILE::reset()
 	data_addr = 0;
 }
 
-void RAMFILE::write_io8(uint32 addr, uint32 data)
+void RAMFILE::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xea:
@@ -45,12 +44,27 @@ void RAMFILE::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RAMFILE::read_io8(uint32 addr)
+uint32_t RAMFILE::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xea:
 		return data_buffer[(data_addr++) & ADDR_MASK];
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+bool RAMFILE::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(data_buffer, DATA_SIZE, 1);
+	state_fio->StateValue(data_addr);
+	return true;
 }
 

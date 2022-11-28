@@ -30,7 +30,7 @@ static const int key_map[16][8] = {
 
 void KEYBOARD::initialize()
 {
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 }
 
 void KEYBOARD::reset()
@@ -40,15 +40,15 @@ void KEYBOARD::reset()
 	intr_enb = false;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	intr_enb = (data == 0xf);
 	key_no = data & 0xf;
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr & 0xff) {
 	case 0x10:
@@ -106,5 +106,21 @@ void KEYBOARD::key_down(int code)
 void KEYBOARD::key_up(int code)
 {
 	key_stat[code] = 0;
+}
+
+#define STATE_VERSION	1
+
+bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	state_fio->StateArray(key_stat, sizeof(key_stat), 1);
+	state_fio->StateValue(key_no);
+	state_fio->StateValue(intr_enb);
+	return true;
 }
 

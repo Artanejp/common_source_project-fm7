@@ -56,11 +56,14 @@
 #define INTF2	0x08
 #define INTFS	0x10
 
-static const uint8 irq_bits[5] = {
+#define SIO_DISABLED	(!(MC & 4) && (IN8(P_C) & 4))
+#define SIO_EXTCLOCK	(MC & 0x80)
+
+static const uint8_t irq_bits[5] = {
 	INTF0, INTFT, INTF1, INTF2, INTFS
 };
 
-static const uint16 irq_addr[5] = {
+static const uint16_t irq_addr[5] = {
 	0x0004, 0x0008, 0x0010, 0x0020, 0x0040
 };
 
@@ -285,11 +288,11 @@ static const op_t op74[256] = {
 
 // memory
 
-inline uint8 UPD7801::RM8(uint16 addr)
+inline uint8_t UPD7801::RM8(uint16_t addr)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(addr, &wait);
+	uint8_t val = d_mem->read_data8w(addr, &wait);
 	period += wait;
 	return val;
 #else
@@ -297,7 +300,7 @@ inline uint8 UPD7801::RM8(uint16 addr)
 #endif
 }
 
-inline void UPD7801::WM8(uint16 addr, uint8 val)
+inline void UPD7801::WM8(uint16_t addr, uint8_t val)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
@@ -308,11 +311,11 @@ inline void UPD7801::WM8(uint16 addr, uint8 val)
 #endif
 }
 
-inline uint16 UPD7801::RM16(uint16 addr)
+inline uint16_t UPD7801::RM16(uint16_t addr)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = d_mem->read_data16w(addr, &wait);
+	uint16_t val = d_mem->read_data16w(addr, &wait);
 	period += wait;
 	return val;
 #else
@@ -320,7 +323,7 @@ inline uint16 UPD7801::RM16(uint16 addr)
 #endif
 }
 
-inline void UPD7801::WM16(uint16 addr, uint16 val)
+inline void UPD7801::WM16(uint16_t addr, uint16_t val)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
@@ -331,11 +334,11 @@ inline void UPD7801::WM16(uint16 addr, uint16 val)
 #endif
 }
 
-inline uint8 UPD7801::FETCH8()
+inline uint8_t UPD7801::FETCH8()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(PC++, &wait);
+	uint8_t val = d_mem->read_data8w(PC++, &wait);
 	period += wait;
 	return val;
 #else
@@ -343,24 +346,24 @@ inline uint8 UPD7801::FETCH8()
 #endif
 }
 
-inline uint16 UPD7801::FETCH16()
+inline uint16_t UPD7801::FETCH16()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = d_mem->read_data16w(PC, &wait);
+	uint16_t val = d_mem->read_data16w(PC, &wait);
 	period += wait;
 #else
-	uint16 val = d_mem->read_data16(PC);
+	uint16_t val = d_mem->read_data16(PC);
 #endif
 	PC += 2;
 	return val;
 }
 
-inline uint16 UPD7801::FETCHWA()
+inline uint16_t UPD7801::FETCHWA()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = (_V << 8) | d_mem->read_data8w(PC++, &wait);
+	uint16_t val = (_V << 8) | d_mem->read_data8w(PC++, &wait);
 	period += wait;
 	return val;
 #else
@@ -368,11 +371,11 @@ inline uint16 UPD7801::FETCHWA()
 #endif
 }
 
-inline uint8 UPD7801::POP8()
+inline uint8_t UPD7801::POP8()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(SP++, &wait);
+	uint8_t val = d_mem->read_data8w(SP++, &wait);
 	period += wait;
 	return val;
 #else
@@ -380,7 +383,7 @@ inline uint8 UPD7801::POP8()
 #endif
 }
 
-inline void UPD7801::PUSH8(uint8 val)
+inline void UPD7801::PUSH8(uint8_t val)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
@@ -391,20 +394,20 @@ inline void UPD7801::PUSH8(uint8 val)
 #endif
 }
 
-inline uint16 UPD7801::POP16()
+inline uint16_t UPD7801::POP16()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = d_mem->read_data16w(SP, &wait);
+	uint16_t val = d_mem->read_data16w(SP, &wait);
 	period += wait;
 #else
-	uint16 val = d_mem->read_data16(SP);
+	uint16_t val = d_mem->read_data16(SP);
 #endif
 	SP += 2;
 	return val;
 }
 
-inline void UPD7801::PUSH16(uint16 val)
+inline void UPD7801::PUSH16(uint16_t val)
 {
 	SP -= 2;
 #ifdef UPD7801_MEMORY_WAIT
@@ -418,7 +421,7 @@ inline void UPD7801::PUSH16(uint16 val)
 
 // io
 
-inline uint8 UPD7801::IN8(int port)
+inline uint8_t UPD7801::IN8(int port)
 {
 	if(port == P_C) {
 		return (d_io->read_io8(P_C) & 0x87) | (PORTC & 0x78);
@@ -426,7 +429,7 @@ inline uint8 UPD7801::IN8(int port)
 	return d_io->read_io8(port);
 }
 
-inline void UPD7801::OUT8(int port, uint8 val)
+inline void UPD7801::OUT8(int port, uint8_t val)
 {
 	if(port == P_C) {
 		PORTC = val;
@@ -435,92 +438,93 @@ inline void UPD7801::OUT8(int port, uint8 val)
 }
 
 // IOM : 0x20 = I/O, 0 = MEMORY
-inline void UPD7801::UPDATE_PORTC(uint8 IOM)
+inline void UPD7801::UPDATE_PORTC(uint8_t IOM)
 {
-	d_io->write_io8(P_C, (PORTC & MC) | ((SAK | TO | IOM) & ~MC));
+	uint8_t MC2 = (MC & 0x7f) | ((MC & 0x40) << 1);
+	d_io->write_io8(P_C, (PORTC & MC2) | ((SAK | TO | IOM | HLDA) & ~MC2));
 }
 
 // opecode
 
 #define ACI(r) { \
-	uint8 tmp = r + FETCH8() + (PSW & F_CY); \
+	uint8_t tmp = r + FETCH8() + (PSW & F_CY); \
 	ZHC_ADD(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define ACI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old + FETCH8() + (PSW & F_CY); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old + FETCH8() + (PSW & F_CY); \
 	ZHC_ADD(tmp, old, (PSW & F_CY)); \
 	OUT8(p, tmp); \
 }
 #define ADC(r, n) { \
-	uint8 tmp = r + n + (PSW & F_CY); \
+	uint8_t tmp = r + n + (PSW & F_CY); \
 	ZHC_ADD(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define ADCW() { \
-	uint8 tmp = _A + RM8(FETCHWA()) + (PSW & F_CY); \
+	uint8_t tmp = _A + RM8(FETCHWA()) + (PSW & F_CY); \
 	ZHC_ADD(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define ADCX(r) { \
-	uint8 tmp = _A + RM8(r) + (PSW & F_CY); \
+	uint8_t tmp = _A + RM8(r) + (PSW & F_CY); \
 	ZHC_ADD(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define ADD(r, n) { \
-	uint8 tmp = r + n; \
+	uint8_t tmp = r + n; \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 }
 #define ADDNC(r, n) { \
-	uint8 tmp = r + n; \
+	uint8_t tmp = r + n; \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define ADDNCW() { \
-	uint8 tmp = _A + RM8(FETCHWA()); \
+	uint8_t tmp = _A + RM8(FETCHWA()); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define ADDNCX(r) { \
-	uint8 tmp = _A + RM8(r); \
+	uint8_t tmp = _A + RM8(r); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define ADDW() { \
-	uint8 tmp = _A + RM8(FETCHWA()); \
+	uint8_t tmp = _A + RM8(FETCHWA()); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define ADDX(r) { \
-	uint8 tmp = _A + RM8(r); \
+	uint8_t tmp = _A + RM8(r); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define ADI(r) { \
-	uint8 tmp = r + FETCH8(); \
+	uint8_t tmp = r + FETCH8(); \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 }
 #define ADI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old + FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old + FETCH8(); \
 	ZHC_ADD(tmp, old, 0); \
 	OUT8(p, tmp); \
 }
 #define ADINC(r) { \
-	uint8 tmp = r + FETCH8(); \
+	uint8_t tmp = r + FETCH8(); \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define ADINC_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old + FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old + FETCH8(); \
 	ZHC_ADD(tmp, old, 0); \
 	OUT8(p, tmp); \
 	SKIP_NC; \
@@ -542,13 +546,13 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	SET_Z(r); \
 }
 #define ANI_IO(p) { \
-	uint8 tmp = IN8(p) & FETCH8(); \
+	uint8_t tmp = IN8(p) & FETCH8(); \
 	OUT8(p, tmp); \
 	SET_Z(tmp); \
 }
 #define ANIW() { \
-	uint16 dst = FETCHWA(); \
-	uint8 tmp = RM8(dst) & FETCH8(); \
+	uint16_t dst = FETCHWA(); \
+	uint8_t tmp = RM8(dst) & FETCH8(); \
 	WM8(dst, tmp); \
 	SET_Z(tmp); \
 }
@@ -567,22 +571,22 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define CALF(o) { \
-	uint16 dst = 0x800 + ((o & 7) << 8) + FETCH8(); \
+	uint16_t dst = 0x800 + ((o & 7) << 8) + FETCH8(); \
 	PUSH16(PC); \
 	PC = dst; \
 }
 #define CALL() { \
-	uint16 dst = FETCH16(); \
+	uint16_t dst = FETCH16(); \
 	PUSH16(PC); \
 	PC = dst; \
 }
 #define CALT(o) { \
-	uint16 dst = RM16(0x80 + ((o & 0x3f) << 1)); \
+	uint16_t dst = RM16(0x80 + ((o & 0x3f) << 1)); \
 	PUSH16(PC); \
 	PC = dst; \
 }
 #define DAA() { \
-	uint8 lo = _A & 0xf, hi = _A >> 4, diff = 0; \
+	uint8_t lo = _A & 0xf, hi = _A >> 4, diff = 0; \
 	if(lo <= 9 && !(PSW & F_HC)) { \
 		diff = (hi >= 10 || (PSW & F_CY)) ? 0x60 : 0x00; \
 	} else if(lo >= 10 && !(PSW & F_HC)) { \
@@ -608,117 +612,117 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define DCR(r) { \
-	uint8 carry = PSW & F_CY; \
-	uint8 tmp = r - 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint8_t tmp = r - 1; \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define DCRW() { \
-	uint8 carry = PSW & F_CY; \
-	uint16 dst = FETCHWA(); \
-	uint8 old = RM8(dst); \
-	uint8 tmp = old - 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint16_t dst = FETCHWA(); \
+	uint8_t old = RM8(dst); \
+	uint8_t tmp = old - 1; \
 	ZHC_SUB(tmp, old, 0); \
 	WM8(dst, tmp); \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define EQA(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_Z; \
 }
 #define EQAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_Z; \
 }
 #define EQAX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_Z; \
 }
 #define EQI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_Z; \
 }
 #define EQI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_Z; \
 }
 #define EQIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_Z; \
 }
 #define EX() { \
-	uint16 tmp; \
+	uint16_t tmp; \
 	tmp = VA; VA = altVA; altVA = tmp; \
 }
 #define EXX() { \
-	uint16 tmp; \
+	uint16_t tmp; \
 	tmp = BC; BC = altBC; altBC = tmp; \
 	tmp = DE; DE = altDE; altDE = tmp; \
 	tmp = HL; HL = altHL; altHL = tmp; \
 }
 #define GTA(r, n) { \
-	uint8 tmp = r - n - 1; \
+	uint8_t tmp = r - n - 1; \
 	ZHC_SUB(tmp, r, 1); \
 	SKIP_NC; \
 }
 #define GTAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()) - 1; \
+	uint8_t tmp = _A - RM8(FETCHWA()) - 1; \
 	ZHC_SUB(tmp, _A, 1); \
 	SKIP_NC; \
 }
 #define GTAX(r) { \
-	uint8 tmp = _A - RM8(r) - 1; \
+	uint8_t tmp = _A - RM8(r) - 1; \
 	ZHC_SUB(tmp, _A, 1); \
 	SKIP_NC; \
 }
 #define GTI(r) { \
-	uint8 tmp = r - FETCH8() - 1; \
+	uint8_t tmp = r - FETCH8() - 1; \
 	ZHC_SUB(tmp, r, 1); \
 	SKIP_NC; \
 }
 #define GTI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8() - 1; \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8() - 1; \
 	ZHC_SUB(tmp, old, 1); \
 	SKIP_NC; \
 }
 #define GTIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8() - 1; \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8() - 1; \
 	ZHC_SUB(tmp, old, 1); \
 	SKIP_NC; \
 }
 #define INR(r) { \
-	uint8 carry = PSW & F_CY; \
-	uint8 tmp = r + 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint8_t tmp = r + 1; \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define INRW() { \
-	uint8 carry = PSW & F_CY; \
-	uint16 dst = FETCHWA(); \
-	uint8 old = RM8(dst); \
-	uint8 tmp = old + 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint16_t dst = FETCHWA(); \
+	uint8_t old = RM8(dst); \
+	uint8_t tmp = old + 1; \
 	ZHC_ADD(tmp, old, 0); \
 	WM8(dst, tmp); \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define JRE(o) { \
-	uint8 tmp = FETCH8(); \
+	uint8_t tmp = FETCH8(); \
 	if(o & 1) { \
 		PC -= 256 - tmp; \
 	} else { \
@@ -726,70 +730,70 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define LTA(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_CY; \
 }
 #define LTAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_CY; \
 }
 #define LTAX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_CY; \
 }
 #define LTI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_CY; \
 }
 #define LTI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_CY; \
 }
 #define LTIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_CY; \
 }
 #define MVIW() { \
-	uint16 dst = FETCHWA(); \
+	uint16_t dst = FETCHWA(); \
 	WM8(dst, FETCH8()); \
 }
 #define NEA(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_NZ; \
 }
 #define NEAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_NZ; \
 }
 #define NEAX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_NZ; \
 }
 #define NEI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_NZ; \
 }
 #define NEI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_NZ; \
 }
 #define NEIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_NZ; \
 }
@@ -829,7 +833,7 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define OFFIW() { \
-	uint8 tmp = RM8(FETCHWA()); \
+	uint8_t tmp = RM8(FETCHWA()); \
 	if(tmp & FETCH8()) { \
 		PSW &= ~F_Z; \
 	} else { \
@@ -872,7 +876,7 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define ONIW() { \
-	uint8 tmp = RM8(FETCHWA()); \
+	uint8_t tmp = RM8(FETCHWA()); \
 	if(tmp & FETCH8()) { \
 		PSW = (PSW & ~F_Z) | F_SK; \
 	} else { \
@@ -896,13 +900,13 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	SET_Z(r); \
 }
 #define ORI_IO(p) { \
-	uint8 tmp = IN8(p) | FETCH8(); \
+	uint8_t tmp = IN8(p) | FETCH8(); \
 	OUT8(p, tmp); \
 	SET_Z(tmp); \
 }
 #define ORIW() { \
-	uint16 dst = FETCHWA(); \
-	uint8 tmp = RM8(dst) | FETCH8(); \
+	uint16_t dst = FETCHWA(); \
+	uint8_t tmp = RM8(dst) | FETCH8(); \
 	WM8(dst, tmp); \
 	SET_Z(tmp); \
 }
@@ -913,55 +917,56 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 #define PEX() { \
 }
 #define RLD() { \
-	uint8 old = RM8(HL); \
-	uint8 tmp = (old << 4) | (_A & 0x0f); \
+	uint8_t old = RM8(HL); \
+	uint8_t tmp = (old << 4) | (_A & 0x0f); \
 	_A = (_A & 0xf0) | (old >> 4); \
 	WM8(HL, tmp); \
 }
 #define RLL(r) { \
-	uint8 carry = PSW & F_CY; \
+	uint8_t carry = PSW & F_CY; \
 	PSW = (PSW & ~F_CY) | ((r >> 7) & F_CY); \
 	r = (r << 1) | carry; \
 }
 #define RLR(r) { \
-	uint8 carry = (PSW & F_CY) << 7; \
+	uint8_t carry = (PSW & F_CY) << 7; \
 	PSW = (PSW & ~F_CY) | (r & F_CY); \
 	r = (r >> 1) | carry; \
 }
 #define RRD() { \
-	uint8 old = RM8(HL); \
-	uint8 tmp = (_A << 4) | (old >> 4); \
+	uint8_t old = RM8(HL); \
+	uint8_t tmp = (_A << 4) | (old >> 4); \
 	_A = (_A & 0xf0) | (old & 0x0f); \
 	WM8(HL, tmp); \
 }
 #define SBB(r, n) { \
-	uint8 tmp = r - n - (PSW & F_CY); \
+	uint8_t tmp = r - n - (PSW & F_CY); \
 	ZHC_SUB(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define SBBW() { \
-	uint8 tmp = _A - RM8(FETCHWA()) - (PSW & F_CY); \
+	uint8_t tmp = _A - RM8(FETCHWA()) - (PSW & F_CY); \
 	ZHC_SUB(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define SBBX(r) { \
-	uint8 tmp = _A - RM8(r) - (PSW & F_CY); \
+	uint8_t tmp = _A - RM8(r) - (PSW & F_CY); \
 	ZHC_SUB(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define SBI(r) { \
-	uint8 tmp = r - FETCH8() - (PSW & F_CY); \
+	uint8_t tmp = r - FETCH8() - (PSW & F_CY); \
 	ZHC_SUB(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define SBI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8() - (PSW & F_CY); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8() - (PSW & F_CY); \
 	ZHC_SUB(tmp, old, (PSW & F_CY)); \
 	OUT8(p, tmp); \
 }
 #define SIO() { \
-	scount = 32 + 4; \
+	scount = 4; \
+	sio_count = 0; \
 }
 #define SK(f) { \
 	if(PSW & f) { \
@@ -997,58 +1002,58 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	tcount = (((TM0 | (TM1 << 8)) & 0xfff) + 1) * PRESCALER; \
 }
 #define SUB(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 }
 #define SUBNB(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define SUBNBW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define SUBNBX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define SUBW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define SUBX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define SUI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 }
 #define SUI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	OUT8(p, tmp); \
 }
 #define SUINB(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define SUINB_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	OUT8(p, tmp); \
 	SKIP_NC; \
@@ -1070,7 +1075,7 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	SET_Z(r); \
 }
 #define XRI_IO(p) { \
-	uint8 tmp = IN8(p) ^ FETCH8(); \
+	uint8_t tmp = IN8(p) ^ FETCH8(); \
 	OUT8(p, tmp); \
 	SET_Z(tmp); \
 }
@@ -1093,10 +1098,11 @@ void UPD7801::reset()
 	_V = MB = MC = TM0 = TM1 = SR = 0xff;
 	altVA = VA;
 	MK = 0x1f;
-	PORTC = TO = SAK = 0;
+	PORTC = TO = SAK = HLDA = 0;
 	count = 0;
 	scount = tcount = 0;
 	wait = false;
+	sio_count = 0;
 }
 
 int UPD7801::run(int clock)
@@ -1129,7 +1135,18 @@ int UPD7801::run(int clock)
 
 void UPD7801::run_one_opecode()
 {
-	if(wait) {
+	if(!(MC & 0x40) && (IN8(P_C) & 0x80)) {
+		if(!HLDA) {
+			HLDA = 0x40;
+			UPDATE_PORTC(0);
+		}
+	} else {
+		if(HLDA) {
+			HLDA = 0;
+			UPDATE_PORTC(0);
+		}
+	}
+	if(HLDA || wait) {
 		period = 1;
 	} else {
 		// interrupt is enabled after next opecode of ei
@@ -1138,23 +1155,40 @@ void UPD7801::run_one_opecode()
 		}
 		
 		// run 1 opecode
+#ifdef USE_DEBUGGER
+		d_debugger->add_cpu_trace(PC);
+#endif
 		period = 0;
 		prevPC = PC;
 		OP();
 	}
+#ifdef USE_DEBUGGER
+	total_count += period;
+#endif
 	count -= period;
 	
 	// update serial count
-	if(scount && (scount -= period) <= 0) {
-		scount = 0;
-		IRR |= INTFS;
-		OUT8(P_SO, SR);
-		SR = IN8(P_SI);
-		if(SAK) {
-			SAK = 0;
-			UPDATE_PORTC(0);
+	if(scount) {
+		scount -= period;
+		while(scount <= 0) {
+			if(!SIO_DISABLED && !SIO_EXTCLOCK) {
+				write_signals(&outputs_so, (SR & 0x80) ? 0xffffffff : 0);
+				SR <<= 1;
+				if(SI) SR |= 1;
+				if(++sio_count == 8) {
+					IRR |= INTFS;
+					if(SAK) {
+						SAK = 0;
+						UPDATE_PORTC(0);
+					}
+					scount = sio_count = 0;
+					break;
+				}
+			}
+			scount += 4;
 		}
 	}
+	
 	// update timer
 	if(tcount && (tcount -= period) <= 0) {
 		tcount += (((TM0 | (TM1 << 8)) & 0xfff) + 1) * PRESCALER;
@@ -1168,7 +1202,7 @@ void UPD7801::run_one_opecode()
 	// check interrupt
 	if(IFF == 1 && !SIRQ) {
 		for(int i = 0; i < 5; i++) {
-			uint8 bit = irq_bits[i];
+			uint8_t bit = irq_bits[i];
 			if((IRR & bit) && !(MK & bit)) {
 				if(HALT) {
 					HALT = 0;
@@ -1194,10 +1228,13 @@ void UPD7801::run_one_opecode_debugger()
 	if(now_debugging) {
 		d_debugger->check_break_points(PC);
 		if(d_debugger->now_suspended) {
-			emu->mute_sound();
+			d_debugger->now_waiting = true;
+			emu->start_waiting_in_debugger();
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				Sleep(10);
+				emu->process_waiting_in_debugger();
 			}
+			emu->finish_waiting_in_debugger();
+			d_debugger->now_waiting = false;
 		}
 		if(d_debugger->now_debugging) {
 			d_mem = d_io = d_debugger;
@@ -1217,30 +1254,30 @@ void UPD7801::run_one_opecode_debugger()
 	}
 }
 
-void UPD7801::debug_write_data8(uint32 addr, uint32 data)
+void UPD7801::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 UPD7801::debug_read_data8(uint32 addr)
+uint32_t UPD7801::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void UPD7801::debug_write_io8(uint32 addr, uint32 data)
+void UPD7801::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 UPD7801::debug_read_io8(uint32 addr) {
+uint32_t UPD7801::read_debug_io8(uint32_t addr) {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool UPD7801::debug_write_reg(_TCHAR *reg, uint32 data)
+bool UPD7801::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -1300,44 +1337,53 @@ bool UPD7801::debug_write_reg(_TCHAR *reg, uint32 data)
 	return true;
 }
 
-void UPD7801::debug_regs_info(_TCHAR *buffer)
+bool UPD7801::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 VA = 0000  BC = 0000  DE = 0000 HL = 0000  PSW= 00 [Z SK HC L1 L0 CY]
 VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
           (BC)= 0000 (DE)=0000 (HL)= 0000 (SP)= 0000 <DI>
+Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 */
 	int wait;
-	_stprintf(buffer, _T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\nVA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>"),
+	my_stprintf_s(buffer, buffer_len,
+	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\n")
+	_T("VA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n")
+	_T("          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>\n")
+	_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 	VA, BC, DE, HL, PSW,
 	(PSW & F_Z) ? _T("Z") : _T("-"), (PSW & F_SK) ? _T("SK") : _T("--"), (PSW & F_HC) ? _T("HC") : _T("--"), (PSW & F_L1) ? _T("L1") : _T("--"), (PSW & F_L0) ? _T("L0") : _T("--"), (PSW & F_CY) ? _T("CY") : _T("--"),
 	altVA, altBC, altDE, altHL, SP, PC,
 	d_mem_stored->read_data16w(BC, &wait), d_mem_stored->read_data16w(DE, &wait), d_mem_stored->read_data16w(HL, &wait), d_mem_stored->read_data16w(SP, &wait),
-	IFF ? _T("EI") : _T("DI"));
+	IFF ? _T("EI") : _T("DI"),
+	total_count, total_count - prev_total_count,
+	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
+	prev_total_count = total_count;
+	return true;
 }
 
 // disassembler
 
-uint8 upd7801_dasm_ops[4];
+uint8_t upd7801_dasm_ops[4];
 int upd7801_dasm_ptr;
 
-uint8 getb()
+uint8_t getb()
 {
 	return upd7801_dasm_ops[upd7801_dasm_ptr++];
 }
 
-uint16 getw()
+uint16_t getw()
 {
-	uint16 l = getb();
+	uint16_t l = getb();
 	return l | (getb() << 8);
 }
 
-uint8 getwa()
+uint8_t getwa()
 {
 	return getb();
 }
 
-int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer)
+int UPD7801::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	for(int i = 0; i < 4; i++) {
 		int wait;
@@ -1345,780 +1391,780 @@ int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer)
 	}
 	upd7801_dasm_ptr = 0;
 	
-	uint8 b;
-	uint16 wa;
+	uint8_t b;
+	uint16_t wa;
 	
 	switch(b = getb()) {
-	case 0x00: _stprintf(buffer, _T("nop")); break;
-	case 0x01: _stprintf(buffer, _T("hlt")); break;
-	case 0x02: _stprintf(buffer, _T("inx sp")); break;
-	case 0x03: _stprintf(buffer, _T("dcx sp")); break;
-	case 0x04: _stprintf(buffer, _T("lxi sp,%4xh"), getw()); break;
-	case 0x05: wa = getwa(); _stprintf(buffer, _T("aniw v.%xh,%2xh"), wa, getb()); break;
+	case 0x00: my_stprintf_s(buffer, buffer_len, _T("nop")); break;
+	case 0x01: my_stprintf_s(buffer, buffer_len, _T("hlt")); break;
+	case 0x02: my_stprintf_s(buffer, buffer_len, _T("inx sp")); break;
+	case 0x03: my_stprintf_s(buffer, buffer_len, _T("dcx sp")); break;
+	case 0x04: my_stprintf_s(buffer, buffer_len, _T("lxi sp,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+	case 0x05: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("aniw v.%02xh,%02xh"), wa, getb()); break;
 //	case 0x06:
-	case 0x07: _stprintf(buffer, _T("ani a,%2xh"), getb()); break;
-	case 0x08: _stprintf(buffer, _T("ret")); break;
-	case 0x09: _stprintf(buffer, _T("sio")); break;
-	case 0x0a: _stprintf(buffer, _T("mov a,b")); break;
-	case 0x0b: _stprintf(buffer, _T("mov a,c")); break;
-	case 0x0c: _stprintf(buffer, _T("mov a,d")); break;
-	case 0x0d: _stprintf(buffer, _T("mov a,e")); break;
-	case 0x0e: _stprintf(buffer, _T("mov a,h")); break;
-	case 0x0f: _stprintf(buffer, _T("mov a,l")); break;
+	case 0x07: my_stprintf_s(buffer, buffer_len, _T("ani a,%02xh"), getb()); break;
+	case 0x08: my_stprintf_s(buffer, buffer_len, _T("ret")); break;
+	case 0x09: my_stprintf_s(buffer, buffer_len, _T("sio")); break;
+	case 0x0a: my_stprintf_s(buffer, buffer_len, _T("mov a,b")); break;
+	case 0x0b: my_stprintf_s(buffer, buffer_len, _T("mov a,c")); break;
+	case 0x0c: my_stprintf_s(buffer, buffer_len, _T("mov a,d")); break;
+	case 0x0d: my_stprintf_s(buffer, buffer_len, _T("mov a,e")); break;
+	case 0x0e: my_stprintf_s(buffer, buffer_len, _T("mov a,h")); break;
+	case 0x0f: my_stprintf_s(buffer, buffer_len, _T("mov a,l")); break;
 	
-	case 0x10: _stprintf(buffer, _T("ex")); break;
-	case 0x11: _stprintf(buffer, _T("exx")); break;
-	case 0x12: _stprintf(buffer, _T("inx b")); break;
-	case 0x13: _stprintf(buffer, _T("dcx b")); break;
-	case 0x14: _stprintf(buffer, _T("lxi b,%4xh"), getw()); break;
-	case 0x15: wa = getwa(); _stprintf(buffer, _T("oriw v.%xh,%2xh"), wa, getb()); break;
-	case 0x16: _stprintf(buffer, _T("xri a,%2xh"), getb()); break;
-	case 0x17: _stprintf(buffer, _T("ori a,%2xh"), getb()); break;
-	case 0x18: _stprintf(buffer, _T("rets")); break;
-	case 0x19: _stprintf(buffer, _T("stm")); break;
-	case 0x1a: _stprintf(buffer, _T("mov b,a")); break;
-	case 0x1b: _stprintf(buffer, _T("mov c,a")); break;
-	case 0x1c: _stprintf(buffer, _T("mov d,a")); break;
-	case 0x1d: _stprintf(buffer, _T("mov e,a")); break;
-	case 0x1e: _stprintf(buffer, _T("mov h,a")); break;
-	case 0x1f: _stprintf(buffer, _T("mov l,a")); break;
+	case 0x10: my_stprintf_s(buffer, buffer_len, _T("ex")); break;
+	case 0x11: my_stprintf_s(buffer, buffer_len, _T("exx")); break;
+	case 0x12: my_stprintf_s(buffer, buffer_len, _T("inx b")); break;
+	case 0x13: my_stprintf_s(buffer, buffer_len, _T("dcx b")); break;
+	case 0x14: my_stprintf_s(buffer, buffer_len, _T("lxi b,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+	case 0x15: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("oriw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x16: my_stprintf_s(buffer, buffer_len, _T("xri a,%02xh"), getb()); break;
+	case 0x17: my_stprintf_s(buffer, buffer_len, _T("ori a,%02xh"), getb()); break;
+	case 0x18: my_stprintf_s(buffer, buffer_len, _T("rets")); break;
+	case 0x19: my_stprintf_s(buffer, buffer_len, _T("stm")); break;
+	case 0x1a: my_stprintf_s(buffer, buffer_len, _T("mov b,a")); break;
+	case 0x1b: my_stprintf_s(buffer, buffer_len, _T("mov c,a")); break;
+	case 0x1c: my_stprintf_s(buffer, buffer_len, _T("mov d,a")); break;
+	case 0x1d: my_stprintf_s(buffer, buffer_len, _T("mov e,a")); break;
+	case 0x1e: my_stprintf_s(buffer, buffer_len, _T("mov h,a")); break;
+	case 0x1f: my_stprintf_s(buffer, buffer_len, _T("mov l,a")); break;
 	
-	case 0x20: _stprintf(buffer, _T("inrw v.%xh"), getwa()); break;
-	case 0x21: _stprintf(buffer, _T("table")); break;
-	case 0x22: _stprintf(buffer, _T("inx d")); break;
-	case 0x23: _stprintf(buffer, _T("dcx d")); break;
-	case 0x24: _stprintf(buffer, _T("lxi d,%4xh"), getw()); break;
-	case 0x25: wa = getwa(); _stprintf(buffer, _T("gtiw v.%xh,%2xh"), wa, getb()); break;
-	case 0x26: _stprintf(buffer, _T("adinc a,%2xh"), getb()); break;
-	case 0x27: _stprintf(buffer, _T("gti a,%2xh"), getb()); break;
-	case 0x28: _stprintf(buffer, _T("ldaw v.%xh"), getwa()); break;
-	case 0x29: _stprintf(buffer, _T("ldax b")); break;
-	case 0x2a: _stprintf(buffer, _T("ldax d")); break;
-	case 0x2b: _stprintf(buffer, _T("ldax h")); break;
-	case 0x2c: _stprintf(buffer, _T("ldax d+")); break;
-	case 0x2d: _stprintf(buffer, _T("ldax h+")); break;
-	case 0x2e: _stprintf(buffer, _T("ldax d-")); break;
-	case 0x2f: _stprintf(buffer, _T("ldax h-")); break;
+	case 0x20: my_stprintf_s(buffer, buffer_len, _T("inrw v.%02xh"), getwa()); break;
+	case 0x21: my_stprintf_s(buffer, buffer_len, _T("table")); break;
+	case 0x22: my_stprintf_s(buffer, buffer_len, _T("inx d")); break;
+	case 0x23: my_stprintf_s(buffer, buffer_len, _T("dcx d")); break;
+	case 0x24: my_stprintf_s(buffer, buffer_len, _T("lxi d,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+	case 0x25: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("gtiw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x26: my_stprintf_s(buffer, buffer_len, _T("adinc a,%02xh"), getb()); break;
+	case 0x27: my_stprintf_s(buffer, buffer_len, _T("gti a,%02xh"), getb()); break;
+	case 0x28: my_stprintf_s(buffer, buffer_len, _T("ldaw v.%02xh"), getwa()); break;
+	case 0x29: my_stprintf_s(buffer, buffer_len, _T("ldax b")); break;
+	case 0x2a: my_stprintf_s(buffer, buffer_len, _T("ldax d")); break;
+	case 0x2b: my_stprintf_s(buffer, buffer_len, _T("ldax h")); break;
+	case 0x2c: my_stprintf_s(buffer, buffer_len, _T("ldax d+")); break;
+	case 0x2d: my_stprintf_s(buffer, buffer_len, _T("ldax h+")); break;
+	case 0x2e: my_stprintf_s(buffer, buffer_len, _T("ldax d-")); break;
+	case 0x2f: my_stprintf_s(buffer, buffer_len, _T("ldax h-")); break;
 	
-	case 0x30: _stprintf(buffer, _T("dcrw v.%xh"), getwa()); break;
-	case 0x31: _stprintf(buffer, _T("block")); break;
-	case 0x32: _stprintf(buffer, _T("inx h")); break;
-	case 0x33: _stprintf(buffer, _T("dcx h")); break;
-	case 0x34: _stprintf(buffer, _T("lxi h,%4xh"), getw()); break;
-	case 0x35: wa = getwa(); _stprintf(buffer, _T("ltiw v.%xh,%2xh"), wa, getb()); break;
-	case 0x36: _stprintf(buffer, _T("suinb a,%2xh"), getb()); break;
-	case 0x37: _stprintf(buffer, _T("lti a,%2xh"), getb()); break;
-	case 0x38: _stprintf(buffer, _T("staw v.%xh"), getwa()); break;
-	case 0x39: _stprintf(buffer, _T("stax b")); break;
-	case 0x3a: _stprintf(buffer, _T("stax d")); break;
-	case 0x3b: _stprintf(buffer, _T("stax h")); break;
-	case 0x3c: _stprintf(buffer, _T("stax d+")); break;
-	case 0x3d: _stprintf(buffer, _T("stax h+")); break;
-	case 0x3e: _stprintf(buffer, _T("stax d-")); break;
-	case 0x3f: _stprintf(buffer, _T("stax h-")); break;
+	case 0x30: my_stprintf_s(buffer, buffer_len, _T("dcrw v.%02xh"), getwa()); break;
+	case 0x31: my_stprintf_s(buffer, buffer_len, _T("block")); break;
+	case 0x32: my_stprintf_s(buffer, buffer_len, _T("inx h")); break;
+	case 0x33: my_stprintf_s(buffer, buffer_len, _T("dcx h")); break;
+	case 0x34: my_stprintf_s(buffer, buffer_len, _T("lxi h,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+	case 0x35: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("ltiw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x36: my_stprintf_s(buffer, buffer_len, _T("suinb a,%02xh"), getb()); break;
+	case 0x37: my_stprintf_s(buffer, buffer_len, _T("lti a,%02xh"), getb()); break;
+	case 0x38: my_stprintf_s(buffer, buffer_len, _T("staw v.%02xh"), getwa()); break;
+	case 0x39: my_stprintf_s(buffer, buffer_len, _T("stax b")); break;
+	case 0x3a: my_stprintf_s(buffer, buffer_len, _T("stax d")); break;
+	case 0x3b: my_stprintf_s(buffer, buffer_len, _T("stax h")); break;
+	case 0x3c: my_stprintf_s(buffer, buffer_len, _T("stax d+")); break;
+	case 0x3d: my_stprintf_s(buffer, buffer_len, _T("stax h+")); break;
+	case 0x3e: my_stprintf_s(buffer, buffer_len, _T("stax d-")); break;
+	case 0x3f: my_stprintf_s(buffer, buffer_len, _T("stax h-")); break;
 	
 //	case 0x40:
-	case 0x41: _stprintf(buffer, _T("inr a")); break;
-	case 0x42: _stprintf(buffer, _T("inr b")); break;
-	case 0x43: _stprintf(buffer, _T("inr c")); break;
-	case 0x44: _stprintf(buffer, _T("call %4xh"), getw()); break;
-	case 0x45: wa = getwa(); _stprintf(buffer, _T("oniw v.%xh,%2xh"), wa, getb()); break;
-	case 0x46: _stprintf(buffer, _T("adi a,%2xh"), getb()); break;
-	case 0x47: _stprintf(buffer, _T("oni a,%2xh"), getb()); break;
+	case 0x41: my_stprintf_s(buffer, buffer_len, _T("inr a")); break;
+	case 0x42: my_stprintf_s(buffer, buffer_len, _T("inr b")); break;
+	case 0x43: my_stprintf_s(buffer, buffer_len, _T("inr c")); break;
+	case 0x44: my_stprintf_s(buffer, buffer_len, _T("call %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+	case 0x45: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("oniw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x46: my_stprintf_s(buffer, buffer_len, _T("adi a,%02xh"), getb()); break;
+	case 0x47: my_stprintf_s(buffer, buffer_len, _T("oni a,%02xh"), getb()); break;
 	case 0x48:
 		switch(b = getb()) {
-		case 0x00: _stprintf(buffer, _T("skit intf0")); break;
-		case 0x01: _stprintf(buffer, _T("skit intft")); break;
-		case 0x02: _stprintf(buffer, _T("skit intf1")); break;
-		case 0x03: _stprintf(buffer, _T("skit intf2")); break;
-		case 0x04: _stprintf(buffer, _T("skit intfs")); break;
-		case 0x0a: _stprintf(buffer, _T("sk cy")); break;
-		case 0x0c: _stprintf(buffer, _T("sk z")); break;
-		case 0x0e: _stprintf(buffer, _T("push v")); break;
-		case 0x0f: _stprintf(buffer, _T("pop v")); break;
-		case 0x10: _stprintf(buffer, _T("sknit f0")); break;
-		case 0x11: _stprintf(buffer, _T("sknit ft")); break;
-		case 0x12: _stprintf(buffer, _T("sknit f1")); break;
-		case 0x13: _stprintf(buffer, _T("sknit f2")); break;
-		case 0x14: _stprintf(buffer, _T("sknit fs")); break;
-		case 0x1a: _stprintf(buffer, _T("skn cy")); break;
-		case 0x1c: _stprintf(buffer, _T("skn z")); break;
-		case 0x1e: _stprintf(buffer, _T("push b")); break;
-		case 0x1f: _stprintf(buffer, _T("pop b")); break;
-		case 0x20: _stprintf(buffer, _T("ei")); break;
-		case 0x24: _stprintf(buffer, _T("di")); break;
-		case 0x2a: _stprintf(buffer, _T("clc")); break;
-		case 0x2b: _stprintf(buffer, _T("stc")); break;
-		case 0x2c: _stprintf(buffer, _T("pen")); break;
-		case 0x2d: _stprintf(buffer, _T("pex")); break;
-		case 0x2e: _stprintf(buffer, _T("push d")); break;
-		case 0x2f: _stprintf(buffer, _T("pop d")); break;
-		case 0x30: _stprintf(buffer, _T("rll a")); break;
-		case 0x31: _stprintf(buffer, _T("rlr a")); break;
-		case 0x32: _stprintf(buffer, _T("rll c")); break;
-		case 0x33: _stprintf(buffer, _T("rlr c")); break;
-		case 0x34: _stprintf(buffer, _T("sll a")); break;
-		case 0x35: _stprintf(buffer, _T("slr a")); break;
-		case 0x36: _stprintf(buffer, _T("sll c")); break;
-		case 0x37: _stprintf(buffer, _T("sll c")); break;
-		case 0x38: _stprintf(buffer, _T("rld")); break;
-		case 0x39: _stprintf(buffer, _T("rrd")); break;
-		case 0x3c: _stprintf(buffer, _T("per")); break;
-		case 0x3e: _stprintf(buffer, _T("push h")); break;
-		case 0x3f: _stprintf(buffer, _T("pop h")); break;
-		default: _stprintf(buffer, _T("db 48h,%2xh"), b);
+		case 0x00: my_stprintf_s(buffer, buffer_len, _T("skit intf0")); break;
+		case 0x01: my_stprintf_s(buffer, buffer_len, _T("skit intft")); break;
+		case 0x02: my_stprintf_s(buffer, buffer_len, _T("skit intf1")); break;
+		case 0x03: my_stprintf_s(buffer, buffer_len, _T("skit intf2")); break;
+		case 0x04: my_stprintf_s(buffer, buffer_len, _T("skit intfs")); break;
+		case 0x0a: my_stprintf_s(buffer, buffer_len, _T("sk cy")); break;
+		case 0x0c: my_stprintf_s(buffer, buffer_len, _T("sk z")); break;
+		case 0x0e: my_stprintf_s(buffer, buffer_len, _T("push v")); break;
+		case 0x0f: my_stprintf_s(buffer, buffer_len, _T("pop v")); break;
+		case 0x10: my_stprintf_s(buffer, buffer_len, _T("sknit f0")); break;
+		case 0x11: my_stprintf_s(buffer, buffer_len, _T("sknit ft")); break;
+		case 0x12: my_stprintf_s(buffer, buffer_len, _T("sknit f1")); break;
+		case 0x13: my_stprintf_s(buffer, buffer_len, _T("sknit f2")); break;
+		case 0x14: my_stprintf_s(buffer, buffer_len, _T("sknit fs")); break;
+		case 0x1a: my_stprintf_s(buffer, buffer_len, _T("skn cy")); break;
+		case 0x1c: my_stprintf_s(buffer, buffer_len, _T("skn z")); break;
+		case 0x1e: my_stprintf_s(buffer, buffer_len, _T("push b")); break;
+		case 0x1f: my_stprintf_s(buffer, buffer_len, _T("pop b")); break;
+		case 0x20: my_stprintf_s(buffer, buffer_len, _T("ei")); break;
+		case 0x24: my_stprintf_s(buffer, buffer_len, _T("di")); break;
+		case 0x2a: my_stprintf_s(buffer, buffer_len, _T("clc")); break;
+		case 0x2b: my_stprintf_s(buffer, buffer_len, _T("stc")); break;
+		case 0x2c: my_stprintf_s(buffer, buffer_len, _T("pen")); break;
+		case 0x2d: my_stprintf_s(buffer, buffer_len, _T("pex")); break;
+		case 0x2e: my_stprintf_s(buffer, buffer_len, _T("push d")); break;
+		case 0x2f: my_stprintf_s(buffer, buffer_len, _T("pop d")); break;
+		case 0x30: my_stprintf_s(buffer, buffer_len, _T("rll a")); break;
+		case 0x31: my_stprintf_s(buffer, buffer_len, _T("rlr a")); break;
+		case 0x32: my_stprintf_s(buffer, buffer_len, _T("rll c")); break;
+		case 0x33: my_stprintf_s(buffer, buffer_len, _T("rlr c")); break;
+		case 0x34: my_stprintf_s(buffer, buffer_len, _T("sll a")); break;
+		case 0x35: my_stprintf_s(buffer, buffer_len, _T("slr a")); break;
+		case 0x36: my_stprintf_s(buffer, buffer_len, _T("sll c")); break;
+		case 0x37: my_stprintf_s(buffer, buffer_len, _T("sll c")); break;
+		case 0x38: my_stprintf_s(buffer, buffer_len, _T("rld")); break;
+		case 0x39: my_stprintf_s(buffer, buffer_len, _T("rrd")); break;
+		case 0x3c: my_stprintf_s(buffer, buffer_len, _T("per")); break;
+		case 0x3e: my_stprintf_s(buffer, buffer_len, _T("push h")); break;
+		case 0x3f: my_stprintf_s(buffer, buffer_len, _T("pop h")); break;
+		default: my_stprintf_s(buffer, buffer_len, _T("db 48h,%02xh"), b);
 		}
 		break;
-	case 0x49: _stprintf(buffer, _T("mvix b,%2xh"), getb()); break;
-	case 0x4a: _stprintf(buffer, _T("mvix d,%2xh"), getb()); break;
-	case 0x4b: _stprintf(buffer, _T("mvix h,%2xh"), getb()); break;
+	case 0x49: my_stprintf_s(buffer, buffer_len, _T("mvix b,%02xh"), getb()); break;
+	case 0x4a: my_stprintf_s(buffer, buffer_len, _T("mvix d,%02xh"), getb()); break;
+	case 0x4b: my_stprintf_s(buffer, buffer_len, _T("mvix h,%02xh"), getb()); break;
 	case 0x4c:
 		switch(b = getb()) {
-		case 0xc0: _stprintf(buffer, _T("mov a,pa")); break;
-		case 0xc1: _stprintf(buffer, _T("mov a,pb")); break;
-		case 0xc2: _stprintf(buffer, _T("mov a,pc")); break;
-		case 0xc3: _stprintf(buffer, _T("mov a,mk")); break;
-		case 0xc4: _stprintf(buffer, _T("mov a,mb")); break;	// 未定義?
-		case 0xc5: _stprintf(buffer, _T("mov a,mc")); break;	// 未定義?
-		case 0xc6: _stprintf(buffer, _T("mov a,tm0")); break;	// 未定義?
-		case 0xc7: _stprintf(buffer, _T("mov a,tm1")); break;	// 未定義?
-		case 0xc8: _stprintf(buffer, _T("mov a,s")); break;
+		case 0xc0: my_stprintf_s(buffer, buffer_len, _T("mov a,pa")); break;
+		case 0xc1: my_stprintf_s(buffer, buffer_len, _T("mov a,pb")); break;
+		case 0xc2: my_stprintf_s(buffer, buffer_len, _T("mov a,pc")); break;
+		case 0xc3: my_stprintf_s(buffer, buffer_len, _T("mov a,mk")); break;
+		case 0xc4: my_stprintf_s(buffer, buffer_len, _T("mov a,mb")); break;	// 未定義?
+		case 0xc5: my_stprintf_s(buffer, buffer_len, _T("mov a,mc")); break;	// 未定義?
+		case 0xc6: my_stprintf_s(buffer, buffer_len, _T("mov a,tm0")); break;	// 未定義?
+		case 0xc7: my_stprintf_s(buffer, buffer_len, _T("mov a,tm1")); break;	// 未定義?
+		case 0xc8: my_stprintf_s(buffer, buffer_len, _T("mov a,s")); break;
 		default:
 			if(b < 0xc0) {
-				_stprintf(buffer, _T("in %2xh"), getb()); break;
+				my_stprintf_s(buffer, buffer_len, _T("in %02xh"), getb()); break;
 			}
-			_stprintf(buffer, _T("db 4ch,%2xh"), b);
+			my_stprintf_s(buffer, buffer_len, _T("db 4ch,%02xh"), b);
 		}
 		break;
 	case 0x4d:
 		switch(b = getb()) {
-		case 0xc0: _stprintf(buffer, _T("mov pa,a")); break;
-		case 0xc1: _stprintf(buffer, _T("mov pb,a")); break;
-		case 0xc2: _stprintf(buffer, _T("mov pc,a")); break;
-		case 0xc3: _stprintf(buffer, _T("mov mk,a")); break;
-		case 0xc4: _stprintf(buffer, _T("mov mb,a")); break;
-		case 0xc5: _stprintf(buffer, _T("mov mc,a")); break;
-		case 0xc6: _stprintf(buffer, _T("mov tm0,a")); break;
-		case 0xc7: _stprintf(buffer, _T("mov tm1,a")); break;
-		case 0xc8: _stprintf(buffer, _T("mov s,a")); break;
+		case 0xc0: my_stprintf_s(buffer, buffer_len, _T("mov pa,a")); break;
+		case 0xc1: my_stprintf_s(buffer, buffer_len, _T("mov pb,a")); break;
+		case 0xc2: my_stprintf_s(buffer, buffer_len, _T("mov pc,a")); break;
+		case 0xc3: my_stprintf_s(buffer, buffer_len, _T("mov mk,a")); break;
+		case 0xc4: my_stprintf_s(buffer, buffer_len, _T("mov mb,a")); break;
+		case 0xc5: my_stprintf_s(buffer, buffer_len, _T("mov mc,a")); break;
+		case 0xc6: my_stprintf_s(buffer, buffer_len, _T("mov tm0,a")); break;
+		case 0xc7: my_stprintf_s(buffer, buffer_len, _T("mov tm1,a")); break;
+		case 0xc8: my_stprintf_s(buffer, buffer_len, _T("mov s,a")); break;
 		default:
 			if(b < 0xc0) {
-				_stprintf(buffer, _T("out %2xh"), getb()); break;
+				my_stprintf_s(buffer, buffer_len, _T("out %02xh"), getb()); break;
 			}
-			_stprintf(buffer, _T("db 4dh,%2xh"), b);
+			my_stprintf_s(buffer, buffer_len, _T("db 4dh,%02xh"), b);
 		}
 		break;
-	case 0x4e: b = getb(); _stprintf(buffer, _T("jre %4xh"), pc + b); break;
-	case 0x4f: b = getb(); _stprintf(buffer, _T("jre %4xh"), (pc + b - 256) & 0xffff); break;
+	case 0x4e: b = getb(); my_stprintf_s(buffer, buffer_len, _T("jre %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), pc + upd7801_dasm_ptr + b)); break;
+	case 0x4f: b = getb(); my_stprintf_s(buffer, buffer_len, _T("jre %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), (pc + upd7801_dasm_ptr + b - 256) & 0xffff)); break;
 	
 //	case 0x50:
-	case 0x51: _stprintf(buffer, _T("dcr a")); break;
-	case 0x52: _stprintf(buffer, _T("dcr b")); break;
-	case 0x53: _stprintf(buffer, _T("dcr c")); break;
-	case 0x54: _stprintf(buffer, _T("jmp %4xh"), getw()); break;
-	case 0x55: wa = getwa(); _stprintf(buffer, _T("offiw v.%xh,%2xh"), wa, getb()); break;
-	case 0x56: _stprintf(buffer, _T("aci a,%2xh"), getb()); break;
-	case 0x57: _stprintf(buffer, _T("offi a,%2xh"), getb()); break;
-	case 0x58: _stprintf(buffer, _T("bit 0,v.%xh"), getwa()); break;
-	case 0x59: _stprintf(buffer, _T("bit 1,v.%xh"), getwa()); break;
-	case 0x5a: _stprintf(buffer, _T("bit 2,v.%xh"), getwa()); break;
-	case 0x5b: _stprintf(buffer, _T("bit 3,v.%xh"), getwa()); break;
-	case 0x5c: _stprintf(buffer, _T("bit 4,v.%xh"), getwa()); break;
-	case 0x5d: _stprintf(buffer, _T("bit 5,v.%xh"), getwa()); break;
-	case 0x5e: _stprintf(buffer, _T("bit 6,v.%xh"), getwa()); break;
-	case 0x5f: _stprintf(buffer, _T("bit 7,v.%xh"), getwa()); break;
+	case 0x51: my_stprintf_s(buffer, buffer_len, _T("dcr a")); break;
+	case 0x52: my_stprintf_s(buffer, buffer_len, _T("dcr b")); break;
+	case 0x53: my_stprintf_s(buffer, buffer_len, _T("dcr c")); break;
+	case 0x54: my_stprintf_s(buffer, buffer_len, _T("jmp %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+	case 0x55: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("offiw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x56: my_stprintf_s(buffer, buffer_len, _T("aci a,%02xh"), getb()); break;
+	case 0x57: my_stprintf_s(buffer, buffer_len, _T("offi a,%02xh"), getb()); break;
+	case 0x58: my_stprintf_s(buffer, buffer_len, _T("bit 0,v.%02xh"), getwa()); break;
+	case 0x59: my_stprintf_s(buffer, buffer_len, _T("bit 1,v.%02xh"), getwa()); break;
+	case 0x5a: my_stprintf_s(buffer, buffer_len, _T("bit 2,v.%02xh"), getwa()); break;
+	case 0x5b: my_stprintf_s(buffer, buffer_len, _T("bit 3,v.%02xh"), getwa()); break;
+	case 0x5c: my_stprintf_s(buffer, buffer_len, _T("bit 4,v.%02xh"), getwa()); break;
+	case 0x5d: my_stprintf_s(buffer, buffer_len, _T("bit 5,v.%02xh"), getwa()); break;
+	case 0x5e: my_stprintf_s(buffer, buffer_len, _T("bit 6,v.%02xh"), getwa()); break;
+	case 0x5f: my_stprintf_s(buffer, buffer_len, _T("bit 7,v.%02xh"), getwa()); break;
 	
 	case 0x60:
 		switch(b = getb()) {
-		case 0x08: _stprintf(buffer, _T("ana v,a")); break;
-		case 0x09: _stprintf(buffer, _T("ana a,a")); break;
-		case 0x0a: _stprintf(buffer, _T("ana b,a")); break;
-		case 0x0b: _stprintf(buffer, _T("ana c,a")); break;
-		case 0x0c: _stprintf(buffer, _T("ana d,a")); break;
-		case 0x0d: _stprintf(buffer, _T("ana e,a")); break;
-		case 0x0e: _stprintf(buffer, _T("ana h,a")); break;
-		case 0x0f: _stprintf(buffer, _T("ana l,a")); break;
-		case 0x10: _stprintf(buffer, _T("xra v,a")); break;
-		case 0x11: _stprintf(buffer, _T("xra a,a")); break;
-		case 0x12: _stprintf(buffer, _T("xra b,a")); break;
-		case 0x13: _stprintf(buffer, _T("xra c,a")); break;
-		case 0x14: _stprintf(buffer, _T("xra d,a")); break;
-		case 0x15: _stprintf(buffer, _T("xra e,a")); break;
-		case 0x16: _stprintf(buffer, _T("xra h,a")); break;
-		case 0x17: _stprintf(buffer, _T("xra l,a")); break;
-		case 0x18: _stprintf(buffer, _T("ora v,a")); break;
-		case 0x19: _stprintf(buffer, _T("ora a,a")); break;
-		case 0x1a: _stprintf(buffer, _T("ora b,a")); break;
-		case 0x1b: _stprintf(buffer, _T("ora c,a")); break;
-		case 0x1c: _stprintf(buffer, _T("ora d,a")); break;
-		case 0x1d: _stprintf(buffer, _T("ora e,a")); break;
-		case 0x1e: _stprintf(buffer, _T("ora h,a")); break;
-		case 0x1f: _stprintf(buffer, _T("ora l,a")); break;
-		case 0x20: _stprintf(buffer, _T("addnc v,a")); break;
-		case 0x21: _stprintf(buffer, _T("addnc a,a")); break;
-		case 0x22: _stprintf(buffer, _T("addnc b,a")); break;
-		case 0x23: _stprintf(buffer, _T("addnc c,a")); break;
-		case 0x24: _stprintf(buffer, _T("addnc d,a")); break;
-		case 0x25: _stprintf(buffer, _T("addnc e,a")); break;
-		case 0x26: _stprintf(buffer, _T("addnc h,a")); break;
-		case 0x27: _stprintf(buffer, _T("addnc l,a")); break;
-		case 0x28: _stprintf(buffer, _T("gta v,a")); break;
-		case 0x29: _stprintf(buffer, _T("gta a,a")); break;
-		case 0x2a: _stprintf(buffer, _T("gta b,a")); break;
-		case 0x2b: _stprintf(buffer, _T("gta c,a")); break;
-		case 0x2c: _stprintf(buffer, _T("gta d,a")); break;
-		case 0x2d: _stprintf(buffer, _T("gta e,a")); break;
-		case 0x2e: _stprintf(buffer, _T("gta h,a")); break;
-		case 0x2f: _stprintf(buffer, _T("gta l,a")); break;
-		case 0x30: _stprintf(buffer, _T("subnb v,a")); break;
-		case 0x31: _stprintf(buffer, _T("subnb a,a")); break;
-		case 0x32: _stprintf(buffer, _T("subnb b,a")); break;
-		case 0x33: _stprintf(buffer, _T("subnb c,a")); break;
-		case 0x34: _stprintf(buffer, _T("subnb d,a")); break;
-		case 0x35: _stprintf(buffer, _T("subnb e,a")); break;
-		case 0x36: _stprintf(buffer, _T("subnb h,a")); break;
-		case 0x37: _stprintf(buffer, _T("subnb l,a")); break;
-		case 0x38: _stprintf(buffer, _T("lta v,a")); break;
-		case 0x39: _stprintf(buffer, _T("lta a,a")); break;
-		case 0x3a: _stprintf(buffer, _T("lta b,a")); break;
-		case 0x3b: _stprintf(buffer, _T("lta c,a")); break;
-		case 0x3c: _stprintf(buffer, _T("lta d,a")); break;
-		case 0x3d: _stprintf(buffer, _T("lta e,a")); break;
-		case 0x3e: _stprintf(buffer, _T("lta h,a")); break;
-		case 0x3f: _stprintf(buffer, _T("lta l,a")); break;
-		case 0x40: _stprintf(buffer, _T("add v,a")); break;
-		case 0x41: _stprintf(buffer, _T("add a,a")); break;
-		case 0x42: _stprintf(buffer, _T("add b,a")); break;
-		case 0x43: _stprintf(buffer, _T("add c,a")); break;
-		case 0x44: _stprintf(buffer, _T("add d,a")); break;
-		case 0x45: _stprintf(buffer, _T("add e,a")); break;
-		case 0x46: _stprintf(buffer, _T("add h,a")); break;
-		case 0x47: _stprintf(buffer, _T("add l,a")); break;
-		case 0x50: _stprintf(buffer, _T("adc v,a")); break;
-		case 0x51: _stprintf(buffer, _T("adc a,a")); break;
-		case 0x52: _stprintf(buffer, _T("adc b,a")); break;
-		case 0x53: _stprintf(buffer, _T("adc c,a")); break;
-		case 0x54: _stprintf(buffer, _T("adc d,a")); break;
-		case 0x55: _stprintf(buffer, _T("adc e,a")); break;
-		case 0x56: _stprintf(buffer, _T("adc h,a")); break;
-		case 0x57: _stprintf(buffer, _T("adc l,a")); break;
-		case 0x60: _stprintf(buffer, _T("sub v,a")); break;
-		case 0x61: _stprintf(buffer, _T("sub a,a")); break;
-		case 0x62: _stprintf(buffer, _T("sub b,a")); break;
-		case 0x63: _stprintf(buffer, _T("sub c,a")); break;
-		case 0x64: _stprintf(buffer, _T("sub d,a")); break;
-		case 0x65: _stprintf(buffer, _T("sub e,a")); break;
-		case 0x66: _stprintf(buffer, _T("sub h,a")); break;
-		case 0x67: _stprintf(buffer, _T("sub l,a")); break;
-		case 0x68: _stprintf(buffer, _T("nea v,a")); break;
-		case 0x69: _stprintf(buffer, _T("nea a,a")); break;
-		case 0x6a: _stprintf(buffer, _T("nea b,a")); break;
-		case 0x6b: _stprintf(buffer, _T("nea c,a")); break;
-		case 0x6c: _stprintf(buffer, _T("nea d,a")); break;
-		case 0x6d: _stprintf(buffer, _T("nea e,a")); break;
-		case 0x6e: _stprintf(buffer, _T("nea h,a")); break;
-		case 0x6f: _stprintf(buffer, _T("nea l,a")); break;
-		case 0x70: _stprintf(buffer, _T("sbb v,a")); break;
-		case 0x71: _stprintf(buffer, _T("sbb a,a")); break;
-		case 0x72: _stprintf(buffer, _T("sbb b,a")); break;
-		case 0x73: _stprintf(buffer, _T("sbb c,a")); break;
-		case 0x74: _stprintf(buffer, _T("sbb d,a")); break;
-		case 0x75: _stprintf(buffer, _T("sbb e,a")); break;
-		case 0x76: _stprintf(buffer, _T("sbb h,a")); break;
-		case 0x77: _stprintf(buffer, _T("sbb l,a")); break;
-		case 0x78: _stprintf(buffer, _T("eqa v,a")); break;
-		case 0x79: _stprintf(buffer, _T("eqa a,a")); break;
-		case 0x7a: _stprintf(buffer, _T("eqa b,a")); break;
-		case 0x7b: _stprintf(buffer, _T("eqa c,a")); break;
-		case 0x7c: _stprintf(buffer, _T("eqa d,a")); break;
-		case 0x7d: _stprintf(buffer, _T("eqa e,a")); break;
-		case 0x7e: _stprintf(buffer, _T("eqa h,a")); break;
-		case 0x7f: _stprintf(buffer, _T("eqa l,a")); break;
-		case 0x88: _stprintf(buffer, _T("ana a,v")); break;
-		case 0x89: _stprintf(buffer, _T("ana a,a")); break;
-		case 0x8a: _stprintf(buffer, _T("ana a,b")); break;
-		case 0x8b: _stprintf(buffer, _T("ana a,c")); break;
-		case 0x8c: _stprintf(buffer, _T("ana a,d")); break;
-		case 0x8d: _stprintf(buffer, _T("ana a,e")); break;
-		case 0x8e: _stprintf(buffer, _T("ana a,h")); break;
-		case 0x8f: _stprintf(buffer, _T("ana a,l")); break;
-		case 0x90: _stprintf(buffer, _T("xra a,v")); break;
-		case 0x91: _stprintf(buffer, _T("xra a,a")); break;
-		case 0x92: _stprintf(buffer, _T("xra a,b")); break;
-		case 0x93: _stprintf(buffer, _T("xra a,c")); break;
-		case 0x94: _stprintf(buffer, _T("xra a,d")); break;
-		case 0x95: _stprintf(buffer, _T("xra a,e")); break;
-		case 0x96: _stprintf(buffer, _T("xra a,h")); break;
-		case 0x97: _stprintf(buffer, _T("xra a,l")); break;
-		case 0x98: _stprintf(buffer, _T("ora a,v")); break;
-		case 0x99: _stprintf(buffer, _T("ora a,a")); break;
-		case 0x9a: _stprintf(buffer, _T("ora a,b")); break;
-		case 0x9b: _stprintf(buffer, _T("ora a,c")); break;
-		case 0x9c: _stprintf(buffer, _T("ora a,d")); break;
-		case 0x9d: _stprintf(buffer, _T("ora a,e")); break;
-		case 0x9e: _stprintf(buffer, _T("ora a,h")); break;
-		case 0x9f: _stprintf(buffer, _T("ora a,l")); break;
-		case 0xa0: _stprintf(buffer, _T("addnc a,v")); break;
-		case 0xa1: _stprintf(buffer, _T("addnc a,a")); break;
-		case 0xa2: _stprintf(buffer, _T("addnc a,b")); break;
-		case 0xa3: _stprintf(buffer, _T("addnc a,c")); break;
-		case 0xa4: _stprintf(buffer, _T("addnc a,d")); break;
-		case 0xa5: _stprintf(buffer, _T("addnc a,e")); break;
-		case 0xa6: _stprintf(buffer, _T("addnc a,h")); break;
-		case 0xa7: _stprintf(buffer, _T("addnc a,l")); break;
-		case 0xa8: _stprintf(buffer, _T("gta a,v")); break;
-		case 0xa9: _stprintf(buffer, _T("gta a,a")); break;
-		case 0xaa: _stprintf(buffer, _T("gta a,b")); break;
-		case 0xab: _stprintf(buffer, _T("gta a,c")); break;
-		case 0xac: _stprintf(buffer, _T("gta a,d")); break;
-		case 0xad: _stprintf(buffer, _T("gta a,e")); break;
-		case 0xae: _stprintf(buffer, _T("gta a,h")); break;
-		case 0xaf: _stprintf(buffer, _T("gta a,l")); break;
-		case 0xb0: _stprintf(buffer, _T("subnb a,v")); break;
-		case 0xb1: _stprintf(buffer, _T("subnb a,a")); break;
-		case 0xb2: _stprintf(buffer, _T("subnb a,b")); break;
-		case 0xb3: _stprintf(buffer, _T("subnb a,c")); break;
-		case 0xb4: _stprintf(buffer, _T("subnb a,d")); break;
-		case 0xb5: _stprintf(buffer, _T("subnb a,e")); break;
-		case 0xb6: _stprintf(buffer, _T("subnb a,h")); break;
-		case 0xb7: _stprintf(buffer, _T("subnb a,l")); break;
-		case 0xb8: _stprintf(buffer, _T("lta a,v")); break;
-		case 0xb9: _stprintf(buffer, _T("lta a,a")); break;
-		case 0xba: _stprintf(buffer, _T("lta a,b")); break;
-		case 0xbb: _stprintf(buffer, _T("lta a,c")); break;
-		case 0xbc: _stprintf(buffer, _T("lta a,d")); break;
-		case 0xbd: _stprintf(buffer, _T("lta a,e")); break;
-		case 0xbe: _stprintf(buffer, _T("lta a,h")); break;
-		case 0xbf: _stprintf(buffer, _T("lta a,l")); break;
-		case 0xc0: _stprintf(buffer, _T("add a,v")); break;
-		case 0xc1: _stprintf(buffer, _T("add a,a")); break;
-		case 0xc2: _stprintf(buffer, _T("add a,b")); break;
-		case 0xc3: _stprintf(buffer, _T("add a,c")); break;
-		case 0xc4: _stprintf(buffer, _T("add a,d")); break;
-		case 0xc5: _stprintf(buffer, _T("add a,e")); break;
-		case 0xc6: _stprintf(buffer, _T("add a,h")); break;
-		case 0xc7: _stprintf(buffer, _T("add a,l")); break;
-		case 0xc8: _stprintf(buffer, _T("ona a,v")); break;
-		case 0xc9: _stprintf(buffer, _T("ona a,a")); break;
-		case 0xca: _stprintf(buffer, _T("ona a,b")); break;
-		case 0xcb: _stprintf(buffer, _T("ona a,c")); break;
-		case 0xcc: _stprintf(buffer, _T("ona a,d")); break;
-		case 0xcd: _stprintf(buffer, _T("ona a,e")); break;
-		case 0xce: _stprintf(buffer, _T("ona a,h")); break;
-		case 0xcf: _stprintf(buffer, _T("ona a,l")); break;
-		case 0xd0: _stprintf(buffer, _T("adc a,v")); break;
-		case 0xd1: _stprintf(buffer, _T("adc a,a")); break;
-		case 0xd2: _stprintf(buffer, _T("adc a,b")); break;
-		case 0xd3: _stprintf(buffer, _T("adc a,c")); break;
-		case 0xd4: _stprintf(buffer, _T("adc a,d")); break;
-		case 0xd5: _stprintf(buffer, _T("adc a,e")); break;
-		case 0xd6: _stprintf(buffer, _T("adc a,h")); break;
-		case 0xd7: _stprintf(buffer, _T("adc a,l")); break;
-		case 0xd8: _stprintf(buffer, _T("offa a,v")); break;
-		case 0xd9: _stprintf(buffer, _T("offa a,a")); break;
-		case 0xda: _stprintf(buffer, _T("offa a,b")); break;
-		case 0xdb: _stprintf(buffer, _T("offa a,c")); break;
-		case 0xdc: _stprintf(buffer, _T("offa a,d")); break;
-		case 0xdd: _stprintf(buffer, _T("offa a,e")); break;
-		case 0xde: _stprintf(buffer, _T("offa a,h")); break;
-		case 0xdf: _stprintf(buffer, _T("offa a,l")); break;
-		case 0xe0: _stprintf(buffer, _T("sub a,v")); break;
-		case 0xe1: _stprintf(buffer, _T("sub a,a")); break;
-		case 0xe2: _stprintf(buffer, _T("sub a,b")); break;
-		case 0xe3: _stprintf(buffer, _T("sub a,c")); break;
-		case 0xe4: _stprintf(buffer, _T("sub a,d")); break;
-		case 0xe5: _stprintf(buffer, _T("sub a,e")); break;
-		case 0xe6: _stprintf(buffer, _T("sub a,h")); break;
-		case 0xe7: _stprintf(buffer, _T("sub a,l")); break;
-		case 0xe8: _stprintf(buffer, _T("nea a,v")); break;
-		case 0xe9: _stprintf(buffer, _T("nea a,a")); break;
-		case 0xea: _stprintf(buffer, _T("nea a,b")); break;
-		case 0xeb: _stprintf(buffer, _T("nea a,c")); break;
-		case 0xec: _stprintf(buffer, _T("nea a,d")); break;
-		case 0xed: _stprintf(buffer, _T("nea a,e")); break;
-		case 0xee: _stprintf(buffer, _T("nea a,h")); break;
-		case 0xef: _stprintf(buffer, _T("nea a,l")); break;
-		case 0xf0: _stprintf(buffer, _T("sbb a,v")); break;
-		case 0xf1: _stprintf(buffer, _T("sbb a,a")); break;
-		case 0xf2: _stprintf(buffer, _T("sbb a,b")); break;
-		case 0xf3: _stprintf(buffer, _T("sbb a,c")); break;
-		case 0xf4: _stprintf(buffer, _T("sbb a,d")); break;
-		case 0xf5: _stprintf(buffer, _T("sbb a,e")); break;
-		case 0xf6: _stprintf(buffer, _T("sbb a,h")); break;
-		case 0xf7: _stprintf(buffer, _T("sbb a,l")); break;
-		case 0xf8: _stprintf(buffer, _T("eqa a,v")); break;
-		case 0xf9: _stprintf(buffer, _T("eqa a,a")); break;
-		case 0xfa: _stprintf(buffer, _T("eqa a,b")); break;
-		case 0xfb: _stprintf(buffer, _T("eqa a,c")); break;
-		case 0xfc: _stprintf(buffer, _T("eqa a,d")); break;
-		case 0xfd: _stprintf(buffer, _T("eqa a,e")); break;
-		case 0xfe: _stprintf(buffer, _T("eqa a,h")); break;
-		case 0xff: _stprintf(buffer, _T("eqa a,l")); break;
-		default: _stprintf(buffer, _T("db 60h,%2xh"), b);
+		case 0x08: my_stprintf_s(buffer, buffer_len, _T("ana v,a")); break;
+		case 0x09: my_stprintf_s(buffer, buffer_len, _T("ana a,a")); break;
+		case 0x0a: my_stprintf_s(buffer, buffer_len, _T("ana b,a")); break;
+		case 0x0b: my_stprintf_s(buffer, buffer_len, _T("ana c,a")); break;
+		case 0x0c: my_stprintf_s(buffer, buffer_len, _T("ana d,a")); break;
+		case 0x0d: my_stprintf_s(buffer, buffer_len, _T("ana e,a")); break;
+		case 0x0e: my_stprintf_s(buffer, buffer_len, _T("ana h,a")); break;
+		case 0x0f: my_stprintf_s(buffer, buffer_len, _T("ana l,a")); break;
+		case 0x10: my_stprintf_s(buffer, buffer_len, _T("xra v,a")); break;
+		case 0x11: my_stprintf_s(buffer, buffer_len, _T("xra a,a")); break;
+		case 0x12: my_stprintf_s(buffer, buffer_len, _T("xra b,a")); break;
+		case 0x13: my_stprintf_s(buffer, buffer_len, _T("xra c,a")); break;
+		case 0x14: my_stprintf_s(buffer, buffer_len, _T("xra d,a")); break;
+		case 0x15: my_stprintf_s(buffer, buffer_len, _T("xra e,a")); break;
+		case 0x16: my_stprintf_s(buffer, buffer_len, _T("xra h,a")); break;
+		case 0x17: my_stprintf_s(buffer, buffer_len, _T("xra l,a")); break;
+		case 0x18: my_stprintf_s(buffer, buffer_len, _T("ora v,a")); break;
+		case 0x19: my_stprintf_s(buffer, buffer_len, _T("ora a,a")); break;
+		case 0x1a: my_stprintf_s(buffer, buffer_len, _T("ora b,a")); break;
+		case 0x1b: my_stprintf_s(buffer, buffer_len, _T("ora c,a")); break;
+		case 0x1c: my_stprintf_s(buffer, buffer_len, _T("ora d,a")); break;
+		case 0x1d: my_stprintf_s(buffer, buffer_len, _T("ora e,a")); break;
+		case 0x1e: my_stprintf_s(buffer, buffer_len, _T("ora h,a")); break;
+		case 0x1f: my_stprintf_s(buffer, buffer_len, _T("ora l,a")); break;
+		case 0x20: my_stprintf_s(buffer, buffer_len, _T("addnc v,a")); break;
+		case 0x21: my_stprintf_s(buffer, buffer_len, _T("addnc a,a")); break;
+		case 0x22: my_stprintf_s(buffer, buffer_len, _T("addnc b,a")); break;
+		case 0x23: my_stprintf_s(buffer, buffer_len, _T("addnc c,a")); break;
+		case 0x24: my_stprintf_s(buffer, buffer_len, _T("addnc d,a")); break;
+		case 0x25: my_stprintf_s(buffer, buffer_len, _T("addnc e,a")); break;
+		case 0x26: my_stprintf_s(buffer, buffer_len, _T("addnc h,a")); break;
+		case 0x27: my_stprintf_s(buffer, buffer_len, _T("addnc l,a")); break;
+		case 0x28: my_stprintf_s(buffer, buffer_len, _T("gta v,a")); break;
+		case 0x29: my_stprintf_s(buffer, buffer_len, _T("gta a,a")); break;
+		case 0x2a: my_stprintf_s(buffer, buffer_len, _T("gta b,a")); break;
+		case 0x2b: my_stprintf_s(buffer, buffer_len, _T("gta c,a")); break;
+		case 0x2c: my_stprintf_s(buffer, buffer_len, _T("gta d,a")); break;
+		case 0x2d: my_stprintf_s(buffer, buffer_len, _T("gta e,a")); break;
+		case 0x2e: my_stprintf_s(buffer, buffer_len, _T("gta h,a")); break;
+		case 0x2f: my_stprintf_s(buffer, buffer_len, _T("gta l,a")); break;
+		case 0x30: my_stprintf_s(buffer, buffer_len, _T("subnb v,a")); break;
+		case 0x31: my_stprintf_s(buffer, buffer_len, _T("subnb a,a")); break;
+		case 0x32: my_stprintf_s(buffer, buffer_len, _T("subnb b,a")); break;
+		case 0x33: my_stprintf_s(buffer, buffer_len, _T("subnb c,a")); break;
+		case 0x34: my_stprintf_s(buffer, buffer_len, _T("subnb d,a")); break;
+		case 0x35: my_stprintf_s(buffer, buffer_len, _T("subnb e,a")); break;
+		case 0x36: my_stprintf_s(buffer, buffer_len, _T("subnb h,a")); break;
+		case 0x37: my_stprintf_s(buffer, buffer_len, _T("subnb l,a")); break;
+		case 0x38: my_stprintf_s(buffer, buffer_len, _T("lta v,a")); break;
+		case 0x39: my_stprintf_s(buffer, buffer_len, _T("lta a,a")); break;
+		case 0x3a: my_stprintf_s(buffer, buffer_len, _T("lta b,a")); break;
+		case 0x3b: my_stprintf_s(buffer, buffer_len, _T("lta c,a")); break;
+		case 0x3c: my_stprintf_s(buffer, buffer_len, _T("lta d,a")); break;
+		case 0x3d: my_stprintf_s(buffer, buffer_len, _T("lta e,a")); break;
+		case 0x3e: my_stprintf_s(buffer, buffer_len, _T("lta h,a")); break;
+		case 0x3f: my_stprintf_s(buffer, buffer_len, _T("lta l,a")); break;
+		case 0x40: my_stprintf_s(buffer, buffer_len, _T("add v,a")); break;
+		case 0x41: my_stprintf_s(buffer, buffer_len, _T("add a,a")); break;
+		case 0x42: my_stprintf_s(buffer, buffer_len, _T("add b,a")); break;
+		case 0x43: my_stprintf_s(buffer, buffer_len, _T("add c,a")); break;
+		case 0x44: my_stprintf_s(buffer, buffer_len, _T("add d,a")); break;
+		case 0x45: my_stprintf_s(buffer, buffer_len, _T("add e,a")); break;
+		case 0x46: my_stprintf_s(buffer, buffer_len, _T("add h,a")); break;
+		case 0x47: my_stprintf_s(buffer, buffer_len, _T("add l,a")); break;
+		case 0x50: my_stprintf_s(buffer, buffer_len, _T("adc v,a")); break;
+		case 0x51: my_stprintf_s(buffer, buffer_len, _T("adc a,a")); break;
+		case 0x52: my_stprintf_s(buffer, buffer_len, _T("adc b,a")); break;
+		case 0x53: my_stprintf_s(buffer, buffer_len, _T("adc c,a")); break;
+		case 0x54: my_stprintf_s(buffer, buffer_len, _T("adc d,a")); break;
+		case 0x55: my_stprintf_s(buffer, buffer_len, _T("adc e,a")); break;
+		case 0x56: my_stprintf_s(buffer, buffer_len, _T("adc h,a")); break;
+		case 0x57: my_stprintf_s(buffer, buffer_len, _T("adc l,a")); break;
+		case 0x60: my_stprintf_s(buffer, buffer_len, _T("sub v,a")); break;
+		case 0x61: my_stprintf_s(buffer, buffer_len, _T("sub a,a")); break;
+		case 0x62: my_stprintf_s(buffer, buffer_len, _T("sub b,a")); break;
+		case 0x63: my_stprintf_s(buffer, buffer_len, _T("sub c,a")); break;
+		case 0x64: my_stprintf_s(buffer, buffer_len, _T("sub d,a")); break;
+		case 0x65: my_stprintf_s(buffer, buffer_len, _T("sub e,a")); break;
+		case 0x66: my_stprintf_s(buffer, buffer_len, _T("sub h,a")); break;
+		case 0x67: my_stprintf_s(buffer, buffer_len, _T("sub l,a")); break;
+		case 0x68: my_stprintf_s(buffer, buffer_len, _T("nea v,a")); break;
+		case 0x69: my_stprintf_s(buffer, buffer_len, _T("nea a,a")); break;
+		case 0x6a: my_stprintf_s(buffer, buffer_len, _T("nea b,a")); break;
+		case 0x6b: my_stprintf_s(buffer, buffer_len, _T("nea c,a")); break;
+		case 0x6c: my_stprintf_s(buffer, buffer_len, _T("nea d,a")); break;
+		case 0x6d: my_stprintf_s(buffer, buffer_len, _T("nea e,a")); break;
+		case 0x6e: my_stprintf_s(buffer, buffer_len, _T("nea h,a")); break;
+		case 0x6f: my_stprintf_s(buffer, buffer_len, _T("nea l,a")); break;
+		case 0x70: my_stprintf_s(buffer, buffer_len, _T("sbb v,a")); break;
+		case 0x71: my_stprintf_s(buffer, buffer_len, _T("sbb a,a")); break;
+		case 0x72: my_stprintf_s(buffer, buffer_len, _T("sbb b,a")); break;
+		case 0x73: my_stprintf_s(buffer, buffer_len, _T("sbb c,a")); break;
+		case 0x74: my_stprintf_s(buffer, buffer_len, _T("sbb d,a")); break;
+		case 0x75: my_stprintf_s(buffer, buffer_len, _T("sbb e,a")); break;
+		case 0x76: my_stprintf_s(buffer, buffer_len, _T("sbb h,a")); break;
+		case 0x77: my_stprintf_s(buffer, buffer_len, _T("sbb l,a")); break;
+		case 0x78: my_stprintf_s(buffer, buffer_len, _T("eqa v,a")); break;
+		case 0x79: my_stprintf_s(buffer, buffer_len, _T("eqa a,a")); break;
+		case 0x7a: my_stprintf_s(buffer, buffer_len, _T("eqa b,a")); break;
+		case 0x7b: my_stprintf_s(buffer, buffer_len, _T("eqa c,a")); break;
+		case 0x7c: my_stprintf_s(buffer, buffer_len, _T("eqa d,a")); break;
+		case 0x7d: my_stprintf_s(buffer, buffer_len, _T("eqa e,a")); break;
+		case 0x7e: my_stprintf_s(buffer, buffer_len, _T("eqa h,a")); break;
+		case 0x7f: my_stprintf_s(buffer, buffer_len, _T("eqa l,a")); break;
+		case 0x88: my_stprintf_s(buffer, buffer_len, _T("ana a,v")); break;
+		case 0x89: my_stprintf_s(buffer, buffer_len, _T("ana a,a")); break;
+		case 0x8a: my_stprintf_s(buffer, buffer_len, _T("ana a,b")); break;
+		case 0x8b: my_stprintf_s(buffer, buffer_len, _T("ana a,c")); break;
+		case 0x8c: my_stprintf_s(buffer, buffer_len, _T("ana a,d")); break;
+		case 0x8d: my_stprintf_s(buffer, buffer_len, _T("ana a,e")); break;
+		case 0x8e: my_stprintf_s(buffer, buffer_len, _T("ana a,h")); break;
+		case 0x8f: my_stprintf_s(buffer, buffer_len, _T("ana a,l")); break;
+		case 0x90: my_stprintf_s(buffer, buffer_len, _T("xra a,v")); break;
+		case 0x91: my_stprintf_s(buffer, buffer_len, _T("xra a,a")); break;
+		case 0x92: my_stprintf_s(buffer, buffer_len, _T("xra a,b")); break;
+		case 0x93: my_stprintf_s(buffer, buffer_len, _T("xra a,c")); break;
+		case 0x94: my_stprintf_s(buffer, buffer_len, _T("xra a,d")); break;
+		case 0x95: my_stprintf_s(buffer, buffer_len, _T("xra a,e")); break;
+		case 0x96: my_stprintf_s(buffer, buffer_len, _T("xra a,h")); break;
+		case 0x97: my_stprintf_s(buffer, buffer_len, _T("xra a,l")); break;
+		case 0x98: my_stprintf_s(buffer, buffer_len, _T("ora a,v")); break;
+		case 0x99: my_stprintf_s(buffer, buffer_len, _T("ora a,a")); break;
+		case 0x9a: my_stprintf_s(buffer, buffer_len, _T("ora a,b")); break;
+		case 0x9b: my_stprintf_s(buffer, buffer_len, _T("ora a,c")); break;
+		case 0x9c: my_stprintf_s(buffer, buffer_len, _T("ora a,d")); break;
+		case 0x9d: my_stprintf_s(buffer, buffer_len, _T("ora a,e")); break;
+		case 0x9e: my_stprintf_s(buffer, buffer_len, _T("ora a,h")); break;
+		case 0x9f: my_stprintf_s(buffer, buffer_len, _T("ora a,l")); break;
+		case 0xa0: my_stprintf_s(buffer, buffer_len, _T("addnc a,v")); break;
+		case 0xa1: my_stprintf_s(buffer, buffer_len, _T("addnc a,a")); break;
+		case 0xa2: my_stprintf_s(buffer, buffer_len, _T("addnc a,b")); break;
+		case 0xa3: my_stprintf_s(buffer, buffer_len, _T("addnc a,c")); break;
+		case 0xa4: my_stprintf_s(buffer, buffer_len, _T("addnc a,d")); break;
+		case 0xa5: my_stprintf_s(buffer, buffer_len, _T("addnc a,e")); break;
+		case 0xa6: my_stprintf_s(buffer, buffer_len, _T("addnc a,h")); break;
+		case 0xa7: my_stprintf_s(buffer, buffer_len, _T("addnc a,l")); break;
+		case 0xa8: my_stprintf_s(buffer, buffer_len, _T("gta a,v")); break;
+		case 0xa9: my_stprintf_s(buffer, buffer_len, _T("gta a,a")); break;
+		case 0xaa: my_stprintf_s(buffer, buffer_len, _T("gta a,b")); break;
+		case 0xab: my_stprintf_s(buffer, buffer_len, _T("gta a,c")); break;
+		case 0xac: my_stprintf_s(buffer, buffer_len, _T("gta a,d")); break;
+		case 0xad: my_stprintf_s(buffer, buffer_len, _T("gta a,e")); break;
+		case 0xae: my_stprintf_s(buffer, buffer_len, _T("gta a,h")); break;
+		case 0xaf: my_stprintf_s(buffer, buffer_len, _T("gta a,l")); break;
+		case 0xb0: my_stprintf_s(buffer, buffer_len, _T("subnb a,v")); break;
+		case 0xb1: my_stprintf_s(buffer, buffer_len, _T("subnb a,a")); break;
+		case 0xb2: my_stprintf_s(buffer, buffer_len, _T("subnb a,b")); break;
+		case 0xb3: my_stprintf_s(buffer, buffer_len, _T("subnb a,c")); break;
+		case 0xb4: my_stprintf_s(buffer, buffer_len, _T("subnb a,d")); break;
+		case 0xb5: my_stprintf_s(buffer, buffer_len, _T("subnb a,e")); break;
+		case 0xb6: my_stprintf_s(buffer, buffer_len, _T("subnb a,h")); break;
+		case 0xb7: my_stprintf_s(buffer, buffer_len, _T("subnb a,l")); break;
+		case 0xb8: my_stprintf_s(buffer, buffer_len, _T("lta a,v")); break;
+		case 0xb9: my_stprintf_s(buffer, buffer_len, _T("lta a,a")); break;
+		case 0xba: my_stprintf_s(buffer, buffer_len, _T("lta a,b")); break;
+		case 0xbb: my_stprintf_s(buffer, buffer_len, _T("lta a,c")); break;
+		case 0xbc: my_stprintf_s(buffer, buffer_len, _T("lta a,d")); break;
+		case 0xbd: my_stprintf_s(buffer, buffer_len, _T("lta a,e")); break;
+		case 0xbe: my_stprintf_s(buffer, buffer_len, _T("lta a,h")); break;
+		case 0xbf: my_stprintf_s(buffer, buffer_len, _T("lta a,l")); break;
+		case 0xc0: my_stprintf_s(buffer, buffer_len, _T("add a,v")); break;
+		case 0xc1: my_stprintf_s(buffer, buffer_len, _T("add a,a")); break;
+		case 0xc2: my_stprintf_s(buffer, buffer_len, _T("add a,b")); break;
+		case 0xc3: my_stprintf_s(buffer, buffer_len, _T("add a,c")); break;
+		case 0xc4: my_stprintf_s(buffer, buffer_len, _T("add a,d")); break;
+		case 0xc5: my_stprintf_s(buffer, buffer_len, _T("add a,e")); break;
+		case 0xc6: my_stprintf_s(buffer, buffer_len, _T("add a,h")); break;
+		case 0xc7: my_stprintf_s(buffer, buffer_len, _T("add a,l")); break;
+		case 0xc8: my_stprintf_s(buffer, buffer_len, _T("ona a,v")); break;
+		case 0xc9: my_stprintf_s(buffer, buffer_len, _T("ona a,a")); break;
+		case 0xca: my_stprintf_s(buffer, buffer_len, _T("ona a,b")); break;
+		case 0xcb: my_stprintf_s(buffer, buffer_len, _T("ona a,c")); break;
+		case 0xcc: my_stprintf_s(buffer, buffer_len, _T("ona a,d")); break;
+		case 0xcd: my_stprintf_s(buffer, buffer_len, _T("ona a,e")); break;
+		case 0xce: my_stprintf_s(buffer, buffer_len, _T("ona a,h")); break;
+		case 0xcf: my_stprintf_s(buffer, buffer_len, _T("ona a,l")); break;
+		case 0xd0: my_stprintf_s(buffer, buffer_len, _T("adc a,v")); break;
+		case 0xd1: my_stprintf_s(buffer, buffer_len, _T("adc a,a")); break;
+		case 0xd2: my_stprintf_s(buffer, buffer_len, _T("adc a,b")); break;
+		case 0xd3: my_stprintf_s(buffer, buffer_len, _T("adc a,c")); break;
+		case 0xd4: my_stprintf_s(buffer, buffer_len, _T("adc a,d")); break;
+		case 0xd5: my_stprintf_s(buffer, buffer_len, _T("adc a,e")); break;
+		case 0xd6: my_stprintf_s(buffer, buffer_len, _T("adc a,h")); break;
+		case 0xd7: my_stprintf_s(buffer, buffer_len, _T("adc a,l")); break;
+		case 0xd8: my_stprintf_s(buffer, buffer_len, _T("offa a,v")); break;
+		case 0xd9: my_stprintf_s(buffer, buffer_len, _T("offa a,a")); break;
+		case 0xda: my_stprintf_s(buffer, buffer_len, _T("offa a,b")); break;
+		case 0xdb: my_stprintf_s(buffer, buffer_len, _T("offa a,c")); break;
+		case 0xdc: my_stprintf_s(buffer, buffer_len, _T("offa a,d")); break;
+		case 0xdd: my_stprintf_s(buffer, buffer_len, _T("offa a,e")); break;
+		case 0xde: my_stprintf_s(buffer, buffer_len, _T("offa a,h")); break;
+		case 0xdf: my_stprintf_s(buffer, buffer_len, _T("offa a,l")); break;
+		case 0xe0: my_stprintf_s(buffer, buffer_len, _T("sub a,v")); break;
+		case 0xe1: my_stprintf_s(buffer, buffer_len, _T("sub a,a")); break;
+		case 0xe2: my_stprintf_s(buffer, buffer_len, _T("sub a,b")); break;
+		case 0xe3: my_stprintf_s(buffer, buffer_len, _T("sub a,c")); break;
+		case 0xe4: my_stprintf_s(buffer, buffer_len, _T("sub a,d")); break;
+		case 0xe5: my_stprintf_s(buffer, buffer_len, _T("sub a,e")); break;
+		case 0xe6: my_stprintf_s(buffer, buffer_len, _T("sub a,h")); break;
+		case 0xe7: my_stprintf_s(buffer, buffer_len, _T("sub a,l")); break;
+		case 0xe8: my_stprintf_s(buffer, buffer_len, _T("nea a,v")); break;
+		case 0xe9: my_stprintf_s(buffer, buffer_len, _T("nea a,a")); break;
+		case 0xea: my_stprintf_s(buffer, buffer_len, _T("nea a,b")); break;
+		case 0xeb: my_stprintf_s(buffer, buffer_len, _T("nea a,c")); break;
+		case 0xec: my_stprintf_s(buffer, buffer_len, _T("nea a,d")); break;
+		case 0xed: my_stprintf_s(buffer, buffer_len, _T("nea a,e")); break;
+		case 0xee: my_stprintf_s(buffer, buffer_len, _T("nea a,h")); break;
+		case 0xef: my_stprintf_s(buffer, buffer_len, _T("nea a,l")); break;
+		case 0xf0: my_stprintf_s(buffer, buffer_len, _T("sbb a,v")); break;
+		case 0xf1: my_stprintf_s(buffer, buffer_len, _T("sbb a,a")); break;
+		case 0xf2: my_stprintf_s(buffer, buffer_len, _T("sbb a,b")); break;
+		case 0xf3: my_stprintf_s(buffer, buffer_len, _T("sbb a,c")); break;
+		case 0xf4: my_stprintf_s(buffer, buffer_len, _T("sbb a,d")); break;
+		case 0xf5: my_stprintf_s(buffer, buffer_len, _T("sbb a,e")); break;
+		case 0xf6: my_stprintf_s(buffer, buffer_len, _T("sbb a,h")); break;
+		case 0xf7: my_stprintf_s(buffer, buffer_len, _T("sbb a,l")); break;
+		case 0xf8: my_stprintf_s(buffer, buffer_len, _T("eqa a,v")); break;
+		case 0xf9: my_stprintf_s(buffer, buffer_len, _T("eqa a,a")); break;
+		case 0xfa: my_stprintf_s(buffer, buffer_len, _T("eqa a,b")); break;
+		case 0xfb: my_stprintf_s(buffer, buffer_len, _T("eqa a,c")); break;
+		case 0xfc: my_stprintf_s(buffer, buffer_len, _T("eqa a,d")); break;
+		case 0xfd: my_stprintf_s(buffer, buffer_len, _T("eqa a,e")); break;
+		case 0xfe: my_stprintf_s(buffer, buffer_len, _T("eqa a,h")); break;
+		case 0xff: my_stprintf_s(buffer, buffer_len, _T("eqa a,l")); break;
+		default: my_stprintf_s(buffer, buffer_len, _T("db 60h,%02xh"), b);
 		}
 		break;
-	case 0x61: _stprintf(buffer, _T("daa")); break;
-	case 0x62: _stprintf(buffer, _T("reti")); break;
-	case 0x63: _stprintf(buffer, _T("calb")); break;
+	case 0x61: my_stprintf_s(buffer, buffer_len, _T("daa")); break;
+	case 0x62: my_stprintf_s(buffer, buffer_len, _T("reti")); break;
+	case 0x63: my_stprintf_s(buffer, buffer_len, _T("calb")); break;
 	case 0x64:
 		switch(b = getb()) {
-		case 0x08: _stprintf(buffer, _T("ani v,%2xh"), getb()); break;
-		case 0x09: _stprintf(buffer, _T("ani a,%2xh"), getb()); break;
-		case 0x0a: _stprintf(buffer, _T("ani b,%2xh"), getb()); break;
-		case 0x0b: _stprintf(buffer, _T("ani c,%2xh"), getb()); break;
-		case 0x0c: _stprintf(buffer, _T("ani d,%2xh"), getb()); break;
-		case 0x0d: _stprintf(buffer, _T("ani e,%2xh"), getb()); break;
-		case 0x0e: _stprintf(buffer, _T("ani h,%2xh"), getb()); break;
-		case 0x0f: _stprintf(buffer, _T("ani l,%2xh"), getb()); break;
-		case 0x10: _stprintf(buffer, _T("xri v,%2xh"), getb()); break;
-		case 0x11: _stprintf(buffer, _T("xri a,%2xh"), getb()); break;
-		case 0x12: _stprintf(buffer, _T("xri b,%2xh"), getb()); break;
-		case 0x13: _stprintf(buffer, _T("xri c,%2xh"), getb()); break;
-		case 0x14: _stprintf(buffer, _T("xri d,%2xh"), getb()); break;
-		case 0x15: _stprintf(buffer, _T("xri e,%2xh"), getb()); break;
-		case 0x16: _stprintf(buffer, _T("xri h,%2xh"), getb()); break;
-		case 0x17: _stprintf(buffer, _T("xri l,%2xh"), getb()); break;
-		case 0x18: _stprintf(buffer, _T("ori v,%2xh"), getb()); break;
-		case 0x19: _stprintf(buffer, _T("ori a,%2xh"), getb()); break;
-		case 0x1a: _stprintf(buffer, _T("ori b,%2xh"), getb()); break;
-		case 0x1b: _stprintf(buffer, _T("ori c,%2xh"), getb()); break;
-		case 0x1c: _stprintf(buffer, _T("ori d,%2xh"), getb()); break;
-		case 0x1d: _stprintf(buffer, _T("ori e,%2xh"), getb()); break;
-		case 0x1e: _stprintf(buffer, _T("ori h,%2xh"), getb()); break;
-		case 0x1f: _stprintf(buffer, _T("ori l,%2xh"), getb()); break;
-		case 0x20: _stprintf(buffer, _T("adinc v,%2xh"), getb()); break;
-		case 0x21: _stprintf(buffer, _T("adinc a,%2xh"), getb()); break;
-		case 0x22: _stprintf(buffer, _T("adinc b,%2xh"), getb()); break;
-		case 0x23: _stprintf(buffer, _T("adinc c,%2xh"), getb()); break;
-		case 0x24: _stprintf(buffer, _T("adinc d,%2xh"), getb()); break;
-		case 0x25: _stprintf(buffer, _T("adinc e,%2xh"), getb()); break;
-		case 0x26: _stprintf(buffer, _T("adinc h,%2xh"), getb()); break;
-		case 0x27: _stprintf(buffer, _T("adinc l,%2xh"), getb()); break;
-		case 0x28: _stprintf(buffer, _T("gti v,%2xh"), getb()); break;
-		case 0x29: _stprintf(buffer, _T("gti a,%2xh"), getb()); break;
-		case 0x2a: _stprintf(buffer, _T("gti b,%2xh"), getb()); break;
-		case 0x2b: _stprintf(buffer, _T("gti c,%2xh"), getb()); break;
-		case 0x2c: _stprintf(buffer, _T("gti d,%2xh"), getb()); break;
-		case 0x2d: _stprintf(buffer, _T("gti e,%2xh"), getb()); break;
-		case 0x2e: _stprintf(buffer, _T("gti h,%2xh"), getb()); break;
-		case 0x2f: _stprintf(buffer, _T("gti l,%2xh"), getb()); break;
-		case 0x30: _stprintf(buffer, _T("suinb v,%2xh"), getb()); break;
-		case 0x31: _stprintf(buffer, _T("suinb a,%2xh"), getb()); break;
-		case 0x32: _stprintf(buffer, _T("suinb b,%2xh"), getb()); break;
-		case 0x33: _stprintf(buffer, _T("suinb c,%2xh"), getb()); break;
-		case 0x34: _stprintf(buffer, _T("suinb d,%2xh"), getb()); break;
-		case 0x35: _stprintf(buffer, _T("suinb e,%2xh"), getb()); break;
-		case 0x36: _stprintf(buffer, _T("suinb h,%2xh"), getb()); break;
-		case 0x37: _stprintf(buffer, _T("suinb l,%2xh"), getb()); break;
-		case 0x38: _stprintf(buffer, _T("lti v,%2xh"), getb()); break;
-		case 0x39: _stprintf(buffer, _T("lti a,%2xh"), getb()); break;
-		case 0x3a: _stprintf(buffer, _T("lti b,%2xh"), getb()); break;
-		case 0x3b: _stprintf(buffer, _T("lti c,%2xh"), getb()); break;
-		case 0x3c: _stprintf(buffer, _T("lti d,%2xh"), getb()); break;
-		case 0x3d: _stprintf(buffer, _T("lti e,%2xh"), getb()); break;
-		case 0x3e: _stprintf(buffer, _T("lti h,%2xh"), getb()); break;
-		case 0x3f: _stprintf(buffer, _T("lti l,%2xh"), getb()); break;
-		case 0x40: _stprintf(buffer, _T("adi v,%2xh"), getb()); break;
-		case 0x41: _stprintf(buffer, _T("adi a,%2xh"), getb()); break;
-		case 0x42: _stprintf(buffer, _T("adi b,%2xh"), getb()); break;
-		case 0x43: _stprintf(buffer, _T("adi c,%2xh"), getb()); break;
-		case 0x44: _stprintf(buffer, _T("adi d,%2xh"), getb()); break;
-		case 0x45: _stprintf(buffer, _T("adi e,%2xh"), getb()); break;
-		case 0x46: _stprintf(buffer, _T("adi h,%2xh"), getb()); break;
-		case 0x47: _stprintf(buffer, _T("adi l,%2xh"), getb()); break;
-		case 0x48: _stprintf(buffer, _T("oni v,%2xh"), getb()); break;
-		case 0x49: _stprintf(buffer, _T("oni a,%2xh"), getb()); break;
-		case 0x4a: _stprintf(buffer, _T("oni b,%2xh"), getb()); break;
-		case 0x4b: _stprintf(buffer, _T("oni c,%2xh"), getb()); break;
-		case 0x4c: _stprintf(buffer, _T("oni d,%2xh"), getb()); break;
-		case 0x4d: _stprintf(buffer, _T("oni e,%2xh"), getb()); break;
-		case 0x4e: _stprintf(buffer, _T("oni h,%2xh"), getb()); break;
-		case 0x4f: _stprintf(buffer, _T("oni l,%2xh"), getb()); break;
-		case 0x50: _stprintf(buffer, _T("aci v,%2xh"), getb()); break;
-		case 0x51: _stprintf(buffer, _T("aci a,%2xh"), getb()); break;
-		case 0x52: _stprintf(buffer, _T("aci b,%2xh"), getb()); break;
-		case 0x53: _stprintf(buffer, _T("aci c,%2xh"), getb()); break;
-		case 0x54: _stprintf(buffer, _T("aci d,%2xh"), getb()); break;
-		case 0x55: _stprintf(buffer, _T("aci e,%2xh"), getb()); break;
-		case 0x56: _stprintf(buffer, _T("aci h,%2xh"), getb()); break;
-		case 0x57: _stprintf(buffer, _T("aci l,%2xh"), getb()); break;
-		case 0x58: _stprintf(buffer, _T("offi v,%2xh"), getb()); break;
-		case 0x59: _stprintf(buffer, _T("offi a,%2xh"), getb()); break;
-		case 0x5a: _stprintf(buffer, _T("offi b,%2xh"), getb()); break;
-		case 0x5b: _stprintf(buffer, _T("offi c,%2xh"), getb()); break;
-		case 0x5c: _stprintf(buffer, _T("offi d,%2xh"), getb()); break;
-		case 0x5d: _stprintf(buffer, _T("offi e,%2xh"), getb()); break;
-		case 0x5e: _stprintf(buffer, _T("offi h,%2xh"), getb()); break;
-		case 0x5f: _stprintf(buffer, _T("offi l,%2xh"), getb()); break;
-		case 0x60: _stprintf(buffer, _T("sui v,%2xh"), getb()); break;
-		case 0x61: _stprintf(buffer, _T("sui a,%2xh"), getb()); break;
-		case 0x62: _stprintf(buffer, _T("sui b,%2xh"), getb()); break;
-		case 0x63: _stprintf(buffer, _T("sui c,%2xh"), getb()); break;
-		case 0x64: _stprintf(buffer, _T("sui d,%2xh"), getb()); break;
-		case 0x65: _stprintf(buffer, _T("sui e,%2xh"), getb()); break;
-		case 0x66: _stprintf(buffer, _T("sui h,%2xh"), getb()); break;
-		case 0x67: _stprintf(buffer, _T("sui l,%2xh"), getb()); break;
-		case 0x68: _stprintf(buffer, _T("nei v,%2xh"), getb()); break;
-		case 0x69: _stprintf(buffer, _T("nei a,%2xh"), getb()); break;
-		case 0x6a: _stprintf(buffer, _T("nei b,%2xh"), getb()); break;
-		case 0x6b: _stprintf(buffer, _T("nei c,%2xh"), getb()); break;
-		case 0x6c: _stprintf(buffer, _T("nei d,%2xh"), getb()); break;
-		case 0x6d: _stprintf(buffer, _T("nei e,%2xh"), getb()); break;
-		case 0x6e: _stprintf(buffer, _T("nei h,%2xh"), getb()); break;
-		case 0x6f: _stprintf(buffer, _T("nei l,%2xh"), getb()); break;
-		case 0x70: _stprintf(buffer, _T("sbi v,%2xh"), getb()); break;
-		case 0x71: _stprintf(buffer, _T("sbi a,%2xh"), getb()); break;
-		case 0x72: _stprintf(buffer, _T("sbi b,%2xh"), getb()); break;
-		case 0x73: _stprintf(buffer, _T("sbi c,%2xh"), getb()); break;
-		case 0x74: _stprintf(buffer, _T("sbi d,%2xh"), getb()); break;
-		case 0x75: _stprintf(buffer, _T("sbi e,%2xh"), getb()); break;
-		case 0x76: _stprintf(buffer, _T("sbi h,%2xh"), getb()); break;
-		case 0x77: _stprintf(buffer, _T("sbi l,%2xh"), getb()); break;
-		case 0x78: _stprintf(buffer, _T("eqi v,%2xh"), getb()); break;
-		case 0x79: _stprintf(buffer, _T("eqi a,%2xh"), getb()); break;
-		case 0x7a: _stprintf(buffer, _T("eqi b,%2xh"), getb()); break;
-		case 0x7b: _stprintf(buffer, _T("eqi c,%2xh"), getb()); break;
-		case 0x7c: _stprintf(buffer, _T("eqi d,%2xh"), getb()); break;
-		case 0x7d: _stprintf(buffer, _T("eqi e,%2xh"), getb()); break;
-		case 0x7e: _stprintf(buffer, _T("eqi h,%2xh"), getb()); break;
-		case 0x7f: _stprintf(buffer, _T("eqi l,%2xh"), getb()); break;
-		case 0x88: _stprintf(buffer, _T("ani pa,%2xh"), getb()); break;
-		case 0x89: _stprintf(buffer, _T("ani pb,%2xh"), getb()); break;
-		case 0x8a: _stprintf(buffer, _T("ani pc,%2xh"), getb()); break;
-		case 0x8b: _stprintf(buffer, _T("ani mk,%2xh"), getb()); break;
-		case 0x90: _stprintf(buffer, _T("xri pa,%2xh"), getb()); break;
-		case 0x91: _stprintf(buffer, _T("xri pb,%2xh"), getb()); break;
-		case 0x92: _stprintf(buffer, _T("xri pc,%2xh"), getb()); break;
-		case 0x93: _stprintf(buffer, _T("xri mk,%2xh"), getb()); break;
-		case 0x98: _stprintf(buffer, _T("ori pa,%2xh"), getb()); break;
-		case 0x99: _stprintf(buffer, _T("ori pb,%2xh"), getb()); break;
-		case 0x9a: _stprintf(buffer, _T("ori pc,%2xh"), getb()); break;
-		case 0x9b: _stprintf(buffer, _T("ori mk,%2xh"), getb()); break;
-		case 0xa0: _stprintf(buffer, _T("adinc pa,%2xh"), getb()); break;
-		case 0xa1: _stprintf(buffer, _T("adinc pb,%2xh"), getb()); break;
-		case 0xa2: _stprintf(buffer, _T("adinc pc,%2xh"), getb()); break;
-		case 0xa3: _stprintf(buffer, _T("adinc mk,%2xh"), getb()); break;
-		case 0xa8: _stprintf(buffer, _T("gti pa,%2xh"), getb()); break;
-		case 0xa9: _stprintf(buffer, _T("gti pb,%2xh"), getb()); break;
-		case 0xaa: _stprintf(buffer, _T("gti pc,%2xh"), getb()); break;
-		case 0xab: _stprintf(buffer, _T("gti mk,%2xh"), getb()); break;
-		case 0xb0: _stprintf(buffer, _T("suinb pa,%2xh"), getb()); break;
-		case 0xb1: _stprintf(buffer, _T("suinb pb,%2xh"), getb()); break;
-		case 0xb2: _stprintf(buffer, _T("suinb pc,%2xh"), getb()); break;
-		case 0xb3: _stprintf(buffer, _T("suinb mk,%2xh"), getb()); break;
-		case 0xb8: _stprintf(buffer, _T("lti pa,%2xh"), getb()); break;
-		case 0xb9: _stprintf(buffer, _T("lti pb,%2xh"), getb()); break;
-		case 0xba: _stprintf(buffer, _T("lti pc,%2xh"), getb()); break;
-		case 0xbb: _stprintf(buffer, _T("lti mk,%2xh"), getb()); break;
-		case 0xc0: _stprintf(buffer, _T("adi pa,%2xh"), getb()); break;
-		case 0xc1: _stprintf(buffer, _T("adi pb,%2xh"), getb()); break;
-		case 0xc2: _stprintf(buffer, _T("adi pc,%2xh"), getb()); break;
-		case 0xc3: _stprintf(buffer, _T("adi mk,%2xh"), getb()); break;
-		case 0xc8: _stprintf(buffer, _T("oni pa,%2xh"), getb()); break;
-		case 0xc9: _stprintf(buffer, _T("oni pb,%2xh"), getb()); break;
-		case 0xca: _stprintf(buffer, _T("oni pc,%2xh"), getb()); break;
-		case 0xcb: _stprintf(buffer, _T("oni mk,%2xh"), getb()); break;
-		case 0xd0: _stprintf(buffer, _T("aci pa,%2xh"), getb()); break;
-		case 0xd1: _stprintf(buffer, _T("aci pb,%2xh"), getb()); break;
-		case 0xd2: _stprintf(buffer, _T("aci pc,%2xh"), getb()); break;
-		case 0xd3: _stprintf(buffer, _T("aci mk,%2xh"), getb()); break;
-		case 0xd8: _stprintf(buffer, _T("offi pa,%2xh"), getb()); break;
-		case 0xd9: _stprintf(buffer, _T("offi pb,%2xh"), getb()); break;
-		case 0xda: _stprintf(buffer, _T("offi pc,%2xh"), getb()); break;
-		case 0xdb: _stprintf(buffer, _T("offi mk,%2xh"), getb()); break;
-		case 0xe0: _stprintf(buffer, _T("sui pa,%2xh"), getb()); break;
-		case 0xe1: _stprintf(buffer, _T("sui pb,%2xh"), getb()); break;
-		case 0xe2: _stprintf(buffer, _T("sui pc,%2xh"), getb()); break;
-		case 0xe3: _stprintf(buffer, _T("sui mk,%2xh"), getb()); break;
-		case 0xe8: _stprintf(buffer, _T("nei pa,%2xh"), getb()); break;
-		case 0xe9: _stprintf(buffer, _T("nei pb,%2xh"), getb()); break;
-		case 0xea: _stprintf(buffer, _T("nei pc,%2xh"), getb()); break;
-		case 0xeb: _stprintf(buffer, _T("nei mk,%2xh"), getb()); break;
-		case 0xf0: _stprintf(buffer, _T("sbi pa,%2xh"), getb()); break;
-		case 0xf1: _stprintf(buffer, _T("sbi pb,%2xh"), getb()); break;
-		case 0xf2: _stprintf(buffer, _T("sbi pc,%2xh"), getb()); break;
-		case 0xf3: _stprintf(buffer, _T("sbi mk,%2xh"), getb()); break;
-		case 0xf8: _stprintf(buffer, _T("eqi pa,%2xh"), getb()); break;
-		case 0xf9: _stprintf(buffer, _T("eqi pb,%2xh"), getb()); break;
-		case 0xfa: _stprintf(buffer, _T("eqi pc,%2xh"), getb()); break;
-		case 0xfb: _stprintf(buffer, _T("eqi mk,%2xh"), getb()); break;
-		default: _stprintf(buffer, _T("db 64h,%2xh"), b);
+		case 0x08: my_stprintf_s(buffer, buffer_len, _T("ani v,%02xh"), getb()); break;
+		case 0x09: my_stprintf_s(buffer, buffer_len, _T("ani a,%02xh"), getb()); break;
+		case 0x0a: my_stprintf_s(buffer, buffer_len, _T("ani b,%02xh"), getb()); break;
+		case 0x0b: my_stprintf_s(buffer, buffer_len, _T("ani c,%02xh"), getb()); break;
+		case 0x0c: my_stprintf_s(buffer, buffer_len, _T("ani d,%02xh"), getb()); break;
+		case 0x0d: my_stprintf_s(buffer, buffer_len, _T("ani e,%02xh"), getb()); break;
+		case 0x0e: my_stprintf_s(buffer, buffer_len, _T("ani h,%02xh"), getb()); break;
+		case 0x0f: my_stprintf_s(buffer, buffer_len, _T("ani l,%02xh"), getb()); break;
+		case 0x10: my_stprintf_s(buffer, buffer_len, _T("xri v,%02xh"), getb()); break;
+		case 0x11: my_stprintf_s(buffer, buffer_len, _T("xri a,%02xh"), getb()); break;
+		case 0x12: my_stprintf_s(buffer, buffer_len, _T("xri b,%02xh"), getb()); break;
+		case 0x13: my_stprintf_s(buffer, buffer_len, _T("xri c,%02xh"), getb()); break;
+		case 0x14: my_stprintf_s(buffer, buffer_len, _T("xri d,%02xh"), getb()); break;
+		case 0x15: my_stprintf_s(buffer, buffer_len, _T("xri e,%02xh"), getb()); break;
+		case 0x16: my_stprintf_s(buffer, buffer_len, _T("xri h,%02xh"), getb()); break;
+		case 0x17: my_stprintf_s(buffer, buffer_len, _T("xri l,%02xh"), getb()); break;
+		case 0x18: my_stprintf_s(buffer, buffer_len, _T("ori v,%02xh"), getb()); break;
+		case 0x19: my_stprintf_s(buffer, buffer_len, _T("ori a,%02xh"), getb()); break;
+		case 0x1a: my_stprintf_s(buffer, buffer_len, _T("ori b,%02xh"), getb()); break;
+		case 0x1b: my_stprintf_s(buffer, buffer_len, _T("ori c,%02xh"), getb()); break;
+		case 0x1c: my_stprintf_s(buffer, buffer_len, _T("ori d,%02xh"), getb()); break;
+		case 0x1d: my_stprintf_s(buffer, buffer_len, _T("ori e,%02xh"), getb()); break;
+		case 0x1e: my_stprintf_s(buffer, buffer_len, _T("ori h,%02xh"), getb()); break;
+		case 0x1f: my_stprintf_s(buffer, buffer_len, _T("ori l,%02xh"), getb()); break;
+		case 0x20: my_stprintf_s(buffer, buffer_len, _T("adinc v,%02xh"), getb()); break;
+		case 0x21: my_stprintf_s(buffer, buffer_len, _T("adinc a,%02xh"), getb()); break;
+		case 0x22: my_stprintf_s(buffer, buffer_len, _T("adinc b,%02xh"), getb()); break;
+		case 0x23: my_stprintf_s(buffer, buffer_len, _T("adinc c,%02xh"), getb()); break;
+		case 0x24: my_stprintf_s(buffer, buffer_len, _T("adinc d,%02xh"), getb()); break;
+		case 0x25: my_stprintf_s(buffer, buffer_len, _T("adinc e,%02xh"), getb()); break;
+		case 0x26: my_stprintf_s(buffer, buffer_len, _T("adinc h,%02xh"), getb()); break;
+		case 0x27: my_stprintf_s(buffer, buffer_len, _T("adinc l,%02xh"), getb()); break;
+		case 0x28: my_stprintf_s(buffer, buffer_len, _T("gti v,%02xh"), getb()); break;
+		case 0x29: my_stprintf_s(buffer, buffer_len, _T("gti a,%02xh"), getb()); break;
+		case 0x2a: my_stprintf_s(buffer, buffer_len, _T("gti b,%02xh"), getb()); break;
+		case 0x2b: my_stprintf_s(buffer, buffer_len, _T("gti c,%02xh"), getb()); break;
+		case 0x2c: my_stprintf_s(buffer, buffer_len, _T("gti d,%02xh"), getb()); break;
+		case 0x2d: my_stprintf_s(buffer, buffer_len, _T("gti e,%02xh"), getb()); break;
+		case 0x2e: my_stprintf_s(buffer, buffer_len, _T("gti h,%02xh"), getb()); break;
+		case 0x2f: my_stprintf_s(buffer, buffer_len, _T("gti l,%02xh"), getb()); break;
+		case 0x30: my_stprintf_s(buffer, buffer_len, _T("suinb v,%02xh"), getb()); break;
+		case 0x31: my_stprintf_s(buffer, buffer_len, _T("suinb a,%02xh"), getb()); break;
+		case 0x32: my_stprintf_s(buffer, buffer_len, _T("suinb b,%02xh"), getb()); break;
+		case 0x33: my_stprintf_s(buffer, buffer_len, _T("suinb c,%02xh"), getb()); break;
+		case 0x34: my_stprintf_s(buffer, buffer_len, _T("suinb d,%02xh"), getb()); break;
+		case 0x35: my_stprintf_s(buffer, buffer_len, _T("suinb e,%02xh"), getb()); break;
+		case 0x36: my_stprintf_s(buffer, buffer_len, _T("suinb h,%02xh"), getb()); break;
+		case 0x37: my_stprintf_s(buffer, buffer_len, _T("suinb l,%02xh"), getb()); break;
+		case 0x38: my_stprintf_s(buffer, buffer_len, _T("lti v,%02xh"), getb()); break;
+		case 0x39: my_stprintf_s(buffer, buffer_len, _T("lti a,%02xh"), getb()); break;
+		case 0x3a: my_stprintf_s(buffer, buffer_len, _T("lti b,%02xh"), getb()); break;
+		case 0x3b: my_stprintf_s(buffer, buffer_len, _T("lti c,%02xh"), getb()); break;
+		case 0x3c: my_stprintf_s(buffer, buffer_len, _T("lti d,%02xh"), getb()); break;
+		case 0x3d: my_stprintf_s(buffer, buffer_len, _T("lti e,%02xh"), getb()); break;
+		case 0x3e: my_stprintf_s(buffer, buffer_len, _T("lti h,%02xh"), getb()); break;
+		case 0x3f: my_stprintf_s(buffer, buffer_len, _T("lti l,%02xh"), getb()); break;
+		case 0x40: my_stprintf_s(buffer, buffer_len, _T("adi v,%02xh"), getb()); break;
+		case 0x41: my_stprintf_s(buffer, buffer_len, _T("adi a,%02xh"), getb()); break;
+		case 0x42: my_stprintf_s(buffer, buffer_len, _T("adi b,%02xh"), getb()); break;
+		case 0x43: my_stprintf_s(buffer, buffer_len, _T("adi c,%02xh"), getb()); break;
+		case 0x44: my_stprintf_s(buffer, buffer_len, _T("adi d,%02xh"), getb()); break;
+		case 0x45: my_stprintf_s(buffer, buffer_len, _T("adi e,%02xh"), getb()); break;
+		case 0x46: my_stprintf_s(buffer, buffer_len, _T("adi h,%02xh"), getb()); break;
+		case 0x47: my_stprintf_s(buffer, buffer_len, _T("adi l,%02xh"), getb()); break;
+		case 0x48: my_stprintf_s(buffer, buffer_len, _T("oni v,%02xh"), getb()); break;
+		case 0x49: my_stprintf_s(buffer, buffer_len, _T("oni a,%02xh"), getb()); break;
+		case 0x4a: my_stprintf_s(buffer, buffer_len, _T("oni b,%02xh"), getb()); break;
+		case 0x4b: my_stprintf_s(buffer, buffer_len, _T("oni c,%02xh"), getb()); break;
+		case 0x4c: my_stprintf_s(buffer, buffer_len, _T("oni d,%02xh"), getb()); break;
+		case 0x4d: my_stprintf_s(buffer, buffer_len, _T("oni e,%02xh"), getb()); break;
+		case 0x4e: my_stprintf_s(buffer, buffer_len, _T("oni h,%02xh"), getb()); break;
+		case 0x4f: my_stprintf_s(buffer, buffer_len, _T("oni l,%02xh"), getb()); break;
+		case 0x50: my_stprintf_s(buffer, buffer_len, _T("aci v,%02xh"), getb()); break;
+		case 0x51: my_stprintf_s(buffer, buffer_len, _T("aci a,%02xh"), getb()); break;
+		case 0x52: my_stprintf_s(buffer, buffer_len, _T("aci b,%02xh"), getb()); break;
+		case 0x53: my_stprintf_s(buffer, buffer_len, _T("aci c,%02xh"), getb()); break;
+		case 0x54: my_stprintf_s(buffer, buffer_len, _T("aci d,%02xh"), getb()); break;
+		case 0x55: my_stprintf_s(buffer, buffer_len, _T("aci e,%02xh"), getb()); break;
+		case 0x56: my_stprintf_s(buffer, buffer_len, _T("aci h,%02xh"), getb()); break;
+		case 0x57: my_stprintf_s(buffer, buffer_len, _T("aci l,%02xh"), getb()); break;
+		case 0x58: my_stprintf_s(buffer, buffer_len, _T("offi v,%02xh"), getb()); break;
+		case 0x59: my_stprintf_s(buffer, buffer_len, _T("offi a,%02xh"), getb()); break;
+		case 0x5a: my_stprintf_s(buffer, buffer_len, _T("offi b,%02xh"), getb()); break;
+		case 0x5b: my_stprintf_s(buffer, buffer_len, _T("offi c,%02xh"), getb()); break;
+		case 0x5c: my_stprintf_s(buffer, buffer_len, _T("offi d,%02xh"), getb()); break;
+		case 0x5d: my_stprintf_s(buffer, buffer_len, _T("offi e,%02xh"), getb()); break;
+		case 0x5e: my_stprintf_s(buffer, buffer_len, _T("offi h,%02xh"), getb()); break;
+		case 0x5f: my_stprintf_s(buffer, buffer_len, _T("offi l,%02xh"), getb()); break;
+		case 0x60: my_stprintf_s(buffer, buffer_len, _T("sui v,%02xh"), getb()); break;
+		case 0x61: my_stprintf_s(buffer, buffer_len, _T("sui a,%02xh"), getb()); break;
+		case 0x62: my_stprintf_s(buffer, buffer_len, _T("sui b,%02xh"), getb()); break;
+		case 0x63: my_stprintf_s(buffer, buffer_len, _T("sui c,%02xh"), getb()); break;
+		case 0x64: my_stprintf_s(buffer, buffer_len, _T("sui d,%02xh"), getb()); break;
+		case 0x65: my_stprintf_s(buffer, buffer_len, _T("sui e,%02xh"), getb()); break;
+		case 0x66: my_stprintf_s(buffer, buffer_len, _T("sui h,%02xh"), getb()); break;
+		case 0x67: my_stprintf_s(buffer, buffer_len, _T("sui l,%02xh"), getb()); break;
+		case 0x68: my_stprintf_s(buffer, buffer_len, _T("nei v,%02xh"), getb()); break;
+		case 0x69: my_stprintf_s(buffer, buffer_len, _T("nei a,%02xh"), getb()); break;
+		case 0x6a: my_stprintf_s(buffer, buffer_len, _T("nei b,%02xh"), getb()); break;
+		case 0x6b: my_stprintf_s(buffer, buffer_len, _T("nei c,%02xh"), getb()); break;
+		case 0x6c: my_stprintf_s(buffer, buffer_len, _T("nei d,%02xh"), getb()); break;
+		case 0x6d: my_stprintf_s(buffer, buffer_len, _T("nei e,%02xh"), getb()); break;
+		case 0x6e: my_stprintf_s(buffer, buffer_len, _T("nei h,%02xh"), getb()); break;
+		case 0x6f: my_stprintf_s(buffer, buffer_len, _T("nei l,%02xh"), getb()); break;
+		case 0x70: my_stprintf_s(buffer, buffer_len, _T("sbi v,%02xh"), getb()); break;
+		case 0x71: my_stprintf_s(buffer, buffer_len, _T("sbi a,%02xh"), getb()); break;
+		case 0x72: my_stprintf_s(buffer, buffer_len, _T("sbi b,%02xh"), getb()); break;
+		case 0x73: my_stprintf_s(buffer, buffer_len, _T("sbi c,%02xh"), getb()); break;
+		case 0x74: my_stprintf_s(buffer, buffer_len, _T("sbi d,%02xh"), getb()); break;
+		case 0x75: my_stprintf_s(buffer, buffer_len, _T("sbi e,%02xh"), getb()); break;
+		case 0x76: my_stprintf_s(buffer, buffer_len, _T("sbi h,%02xh"), getb()); break;
+		case 0x77: my_stprintf_s(buffer, buffer_len, _T("sbi l,%02xh"), getb()); break;
+		case 0x78: my_stprintf_s(buffer, buffer_len, _T("eqi v,%02xh"), getb()); break;
+		case 0x79: my_stprintf_s(buffer, buffer_len, _T("eqi a,%02xh"), getb()); break;
+		case 0x7a: my_stprintf_s(buffer, buffer_len, _T("eqi b,%02xh"), getb()); break;
+		case 0x7b: my_stprintf_s(buffer, buffer_len, _T("eqi c,%02xh"), getb()); break;
+		case 0x7c: my_stprintf_s(buffer, buffer_len, _T("eqi d,%02xh"), getb()); break;
+		case 0x7d: my_stprintf_s(buffer, buffer_len, _T("eqi e,%02xh"), getb()); break;
+		case 0x7e: my_stprintf_s(buffer, buffer_len, _T("eqi h,%02xh"), getb()); break;
+		case 0x7f: my_stprintf_s(buffer, buffer_len, _T("eqi l,%02xh"), getb()); break;
+		case 0x88: my_stprintf_s(buffer, buffer_len, _T("ani pa,%02xh"), getb()); break;
+		case 0x89: my_stprintf_s(buffer, buffer_len, _T("ani pb,%02xh"), getb()); break;
+		case 0x8a: my_stprintf_s(buffer, buffer_len, _T("ani pc,%02xh"), getb()); break;
+		case 0x8b: my_stprintf_s(buffer, buffer_len, _T("ani mk,%02xh"), getb()); break;
+		case 0x90: my_stprintf_s(buffer, buffer_len, _T("xri pa,%02xh"), getb()); break;
+		case 0x91: my_stprintf_s(buffer, buffer_len, _T("xri pb,%02xh"), getb()); break;
+		case 0x92: my_stprintf_s(buffer, buffer_len, _T("xri pc,%02xh"), getb()); break;
+		case 0x93: my_stprintf_s(buffer, buffer_len, _T("xri mk,%02xh"), getb()); break;
+		case 0x98: my_stprintf_s(buffer, buffer_len, _T("ori pa,%02xh"), getb()); break;
+		case 0x99: my_stprintf_s(buffer, buffer_len, _T("ori pb,%02xh"), getb()); break;
+		case 0x9a: my_stprintf_s(buffer, buffer_len, _T("ori pc,%02xh"), getb()); break;
+		case 0x9b: my_stprintf_s(buffer, buffer_len, _T("ori mk,%02xh"), getb()); break;
+		case 0xa0: my_stprintf_s(buffer, buffer_len, _T("adinc pa,%02xh"), getb()); break;
+		case 0xa1: my_stprintf_s(buffer, buffer_len, _T("adinc pb,%02xh"), getb()); break;
+		case 0xa2: my_stprintf_s(buffer, buffer_len, _T("adinc pc,%02xh"), getb()); break;
+		case 0xa3: my_stprintf_s(buffer, buffer_len, _T("adinc mk,%02xh"), getb()); break;
+		case 0xa8: my_stprintf_s(buffer, buffer_len, _T("gti pa,%02xh"), getb()); break;
+		case 0xa9: my_stprintf_s(buffer, buffer_len, _T("gti pb,%02xh"), getb()); break;
+		case 0xaa: my_stprintf_s(buffer, buffer_len, _T("gti pc,%02xh"), getb()); break;
+		case 0xab: my_stprintf_s(buffer, buffer_len, _T("gti mk,%02xh"), getb()); break;
+		case 0xb0: my_stprintf_s(buffer, buffer_len, _T("suinb pa,%02xh"), getb()); break;
+		case 0xb1: my_stprintf_s(buffer, buffer_len, _T("suinb pb,%02xh"), getb()); break;
+		case 0xb2: my_stprintf_s(buffer, buffer_len, _T("suinb pc,%02xh"), getb()); break;
+		case 0xb3: my_stprintf_s(buffer, buffer_len, _T("suinb mk,%02xh"), getb()); break;
+		case 0xb8: my_stprintf_s(buffer, buffer_len, _T("lti pa,%02xh"), getb()); break;
+		case 0xb9: my_stprintf_s(buffer, buffer_len, _T("lti pb,%02xh"), getb()); break;
+		case 0xba: my_stprintf_s(buffer, buffer_len, _T("lti pc,%02xh"), getb()); break;
+		case 0xbb: my_stprintf_s(buffer, buffer_len, _T("lti mk,%02xh"), getb()); break;
+		case 0xc0: my_stprintf_s(buffer, buffer_len, _T("adi pa,%02xh"), getb()); break;
+		case 0xc1: my_stprintf_s(buffer, buffer_len, _T("adi pb,%02xh"), getb()); break;
+		case 0xc2: my_stprintf_s(buffer, buffer_len, _T("adi pc,%02xh"), getb()); break;
+		case 0xc3: my_stprintf_s(buffer, buffer_len, _T("adi mk,%02xh"), getb()); break;
+		case 0xc8: my_stprintf_s(buffer, buffer_len, _T("oni pa,%02xh"), getb()); break;
+		case 0xc9: my_stprintf_s(buffer, buffer_len, _T("oni pb,%02xh"), getb()); break;
+		case 0xca: my_stprintf_s(buffer, buffer_len, _T("oni pc,%02xh"), getb()); break;
+		case 0xcb: my_stprintf_s(buffer, buffer_len, _T("oni mk,%02xh"), getb()); break;
+		case 0xd0: my_stprintf_s(buffer, buffer_len, _T("aci pa,%02xh"), getb()); break;
+		case 0xd1: my_stprintf_s(buffer, buffer_len, _T("aci pb,%02xh"), getb()); break;
+		case 0xd2: my_stprintf_s(buffer, buffer_len, _T("aci pc,%02xh"), getb()); break;
+		case 0xd3: my_stprintf_s(buffer, buffer_len, _T("aci mk,%02xh"), getb()); break;
+		case 0xd8: my_stprintf_s(buffer, buffer_len, _T("offi pa,%02xh"), getb()); break;
+		case 0xd9: my_stprintf_s(buffer, buffer_len, _T("offi pb,%02xh"), getb()); break;
+		case 0xda: my_stprintf_s(buffer, buffer_len, _T("offi pc,%02xh"), getb()); break;
+		case 0xdb: my_stprintf_s(buffer, buffer_len, _T("offi mk,%02xh"), getb()); break;
+		case 0xe0: my_stprintf_s(buffer, buffer_len, _T("sui pa,%02xh"), getb()); break;
+		case 0xe1: my_stprintf_s(buffer, buffer_len, _T("sui pb,%02xh"), getb()); break;
+		case 0xe2: my_stprintf_s(buffer, buffer_len, _T("sui pc,%02xh"), getb()); break;
+		case 0xe3: my_stprintf_s(buffer, buffer_len, _T("sui mk,%02xh"), getb()); break;
+		case 0xe8: my_stprintf_s(buffer, buffer_len, _T("nei pa,%02xh"), getb()); break;
+		case 0xe9: my_stprintf_s(buffer, buffer_len, _T("nei pb,%02xh"), getb()); break;
+		case 0xea: my_stprintf_s(buffer, buffer_len, _T("nei pc,%02xh"), getb()); break;
+		case 0xeb: my_stprintf_s(buffer, buffer_len, _T("nei mk,%02xh"), getb()); break;
+		case 0xf0: my_stprintf_s(buffer, buffer_len, _T("sbi pa,%02xh"), getb()); break;
+		case 0xf1: my_stprintf_s(buffer, buffer_len, _T("sbi pb,%02xh"), getb()); break;
+		case 0xf2: my_stprintf_s(buffer, buffer_len, _T("sbi pc,%02xh"), getb()); break;
+		case 0xf3: my_stprintf_s(buffer, buffer_len, _T("sbi mk,%02xh"), getb()); break;
+		case 0xf8: my_stprintf_s(buffer, buffer_len, _T("eqi pa,%02xh"), getb()); break;
+		case 0xf9: my_stprintf_s(buffer, buffer_len, _T("eqi pb,%02xh"), getb()); break;
+		case 0xfa: my_stprintf_s(buffer, buffer_len, _T("eqi pc,%02xh"), getb()); break;
+		case 0xfb: my_stprintf_s(buffer, buffer_len, _T("eqi mk,%02xh"), getb()); break;
+		default: my_stprintf_s(buffer, buffer_len, _T("db 64h,%02xh"), b);
 		}
 		break;
-	case 0x65: wa = getwa(); _stprintf(buffer, _T("neiw v.%xh,%2xh"), wa, getb()); break;
-	case 0x66: _stprintf(buffer, _T("sui a,%2xh"), getb()); break;
-	case 0x67: _stprintf(buffer, _T("nei a,%2xh"), getb()); break;
-	case 0x68: _stprintf(buffer, _T("mvi v,%2xh"), getb()); break;
-	case 0x69: _stprintf(buffer, _T("mvi a,%2xh"), getb()); break;
-	case 0x6a: _stprintf(buffer, _T("mvi b,%2xh"), getb()); break;
-	case 0x6b: _stprintf(buffer, _T("mvi c,%2xh"), getb()); break;
-	case 0x6c: _stprintf(buffer, _T("mvi d,%2xh"), getb()); break;
-	case 0x6d: _stprintf(buffer, _T("mvi e,%2xh"), getb()); break;
-	case 0x6e: _stprintf(buffer, _T("mvi h,%2xh"), getb()); break;
-	case 0x6f: _stprintf(buffer, _T("mvi l,%2xh"), getb()); break;
+	case 0x65: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("neiw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x66: my_stprintf_s(buffer, buffer_len, _T("sui a,%02xh"), getb()); break;
+	case 0x67: my_stprintf_s(buffer, buffer_len, _T("nei a,%02xh"), getb()); break;
+	case 0x68: my_stprintf_s(buffer, buffer_len, _T("mvi v,%02xh"), getb()); break;
+	case 0x69: my_stprintf_s(buffer, buffer_len, _T("mvi a,%02xh"), getb()); break;
+	case 0x6a: my_stprintf_s(buffer, buffer_len, _T("mvi b,%02xh"), getb()); break;
+	case 0x6b: my_stprintf_s(buffer, buffer_len, _T("mvi c,%02xh"), getb()); break;
+	case 0x6c: my_stprintf_s(buffer, buffer_len, _T("mvi d,%02xh"), getb()); break;
+	case 0x6d: my_stprintf_s(buffer, buffer_len, _T("mvi e,%02xh"), getb()); break;
+	case 0x6e: my_stprintf_s(buffer, buffer_len, _T("mvi h,%02xh"), getb()); break;
+	case 0x6f: my_stprintf_s(buffer, buffer_len, _T("mvi l,%02xh"), getb()); break;
 	
 	case 0x70:
 		switch(b = getb()) {
-		case 0x0e: _stprintf(buffer, _T("sspd %4xh"), getw()); break;
-		case 0x0f: _stprintf(buffer, _T("lspd %4xh"), getw()); break;
-		case 0x1e: _stprintf(buffer, _T("sbcd %4xh"), getw()); break;
-		case 0x1f: _stprintf(buffer, _T("lbcd %4xh"), getw()); break;
-		case 0x2e: _stprintf(buffer, _T("sded %4xh"), getw()); break;
-		case 0x2f: _stprintf(buffer, _T("lded %4xh"), getw()); break;
-		case 0x3e: _stprintf(buffer, _T("shld %4xh"), getw()); break;
-		case 0x3f: _stprintf(buffer, _T("lhld %4xh"), getw()); break;
-		case 0x68: _stprintf(buffer, _T("mov v,%4xh"), getw()); break;
-		case 0x69: _stprintf(buffer, _T("mov a,%4xh"), getw()); break;
-		case 0x6a: _stprintf(buffer, _T("mov b,%4xh"), getw()); break;
-		case 0x6b: _stprintf(buffer, _T("mov c,%4xh"), getw()); break;
-		case 0x6c: _stprintf(buffer, _T("mov d,%4xh"), getw()); break;
-		case 0x6d: _stprintf(buffer, _T("mov e,%4xh"), getw()); break;
-		case 0x6e: _stprintf(buffer, _T("mov h,%4xh"), getw()); break;
-		case 0x6f: _stprintf(buffer, _T("mov l,%4xh"), getw()); break;
-		case 0x78: _stprintf(buffer, _T("mov %4xh,v"), getw()); break;
-		case 0x79: _stprintf(buffer, _T("mov %4xh,a"), getw()); break;
-		case 0x7a: _stprintf(buffer, _T("mov %4xh,b"), getw()); break;
-		case 0x7b: _stprintf(buffer, _T("mov %4xh,c"), getw()); break;
-		case 0x7c: _stprintf(buffer, _T("mov %4xh,d"), getw()); break;
-		case 0x7d: _stprintf(buffer, _T("mov %4xh,e"), getw()); break;
-		case 0x7e: _stprintf(buffer, _T("mov %4xh,h"), getw()); break;
-		case 0x7f: _stprintf(buffer, _T("mov %4xh,l"), getw()); break;
-		case 0x89: _stprintf(buffer, _T("anax b")); break;
-		case 0x8a: _stprintf(buffer, _T("anax d")); break;
-		case 0x8b: _stprintf(buffer, _T("anax h")); break;
-		case 0x8c: _stprintf(buffer, _T("anax d+")); break;
-		case 0x8d: _stprintf(buffer, _T("anax h+")); break;
-		case 0x8e: _stprintf(buffer, _T("anax d-")); break;
-		case 0x8f: _stprintf(buffer, _T("anax h-")); break;
-		case 0x91: _stprintf(buffer, _T("xrax b")); break;
-		case 0x92: _stprintf(buffer, _T("xrax d")); break;
-		case 0x93: _stprintf(buffer, _T("xrax h")); break;
-		case 0x94: _stprintf(buffer, _T("xrax d+")); break;
-		case 0x95: _stprintf(buffer, _T("xrax h+")); break;
-		case 0x96: _stprintf(buffer, _T("xrax d-")); break;
-		case 0x97: _stprintf(buffer, _T("xrax h-")); break;
-		case 0x99: _stprintf(buffer, _T("orax b")); break;
-		case 0x9a: _stprintf(buffer, _T("orax d")); break;
-		case 0x9b: _stprintf(buffer, _T("orax h")); break;
-		case 0x9c: _stprintf(buffer, _T("orax d+")); break;
-		case 0x9d: _stprintf(buffer, _T("orax h+")); break;
-		case 0x9e: _stprintf(buffer, _T("orax d-")); break;
-		case 0x9f: _stprintf(buffer, _T("orax h-")); break;
-		case 0xa1: _stprintf(buffer, _T("addncx b")); break;
-		case 0xa2: _stprintf(buffer, _T("addncx d")); break;
-		case 0xa3: _stprintf(buffer, _T("addncx h")); break;
-		case 0xa4: _stprintf(buffer, _T("addncx d+")); break;
-		case 0xa5: _stprintf(buffer, _T("addncx h+")); break;
-		case 0xa6: _stprintf(buffer, _T("addncx d-")); break;
-		case 0xa7: _stprintf(buffer, _T("addncx h-")); break;
-		case 0xa9: _stprintf(buffer, _T("gtax b")); break;
-		case 0xaa: _stprintf(buffer, _T("gtax d")); break;
-		case 0xab: _stprintf(buffer, _T("gtax h")); break;
-		case 0xac: _stprintf(buffer, _T("gtax d+")); break;
-		case 0xad: _stprintf(buffer, _T("gtax h+")); break;
-		case 0xae: _stprintf(buffer, _T("gtax d-")); break;
-		case 0xaf: _stprintf(buffer, _T("gtax h-")); break;
-		case 0xb1: _stprintf(buffer, _T("subnbx b")); break;
-		case 0xb2: _stprintf(buffer, _T("subnbx d")); break;
-		case 0xb3: _stprintf(buffer, _T("subnbx h")); break;
-		case 0xb4: _stprintf(buffer, _T("subnbx d+")); break;
-		case 0xb5: _stprintf(buffer, _T("subnbx h+")); break;
-		case 0xb6: _stprintf(buffer, _T("subnbx d-")); break;
-		case 0xb7: _stprintf(buffer, _T("subnbx h-")); break;
-		case 0xb9: _stprintf(buffer, _T("ltax b")); break;
-		case 0xba: _stprintf(buffer, _T("ltax d")); break;
-		case 0xbb: _stprintf(buffer, _T("ltax h")); break;
-		case 0xbc: _stprintf(buffer, _T("ltax d+")); break;
-		case 0xbd: _stprintf(buffer, _T("ltax h+")); break;
-		case 0xbe: _stprintf(buffer, _T("ltax d-")); break;
-		case 0xbf: _stprintf(buffer, _T("ltax h-")); break;
-		case 0xc1: _stprintf(buffer, _T("addx b")); break;
-		case 0xc2: _stprintf(buffer, _T("addx d")); break;
-		case 0xc3: _stprintf(buffer, _T("addx h")); break;
-		case 0xc4: _stprintf(buffer, _T("addx d+")); break;
-		case 0xc5: _stprintf(buffer, _T("addx h+")); break;
-		case 0xc6: _stprintf(buffer, _T("addx d-")); break;
-		case 0xc7: _stprintf(buffer, _T("addx h-")); break;
-		case 0xc9: _stprintf(buffer, _T("onax b")); break;
-		case 0xca: _stprintf(buffer, _T("onax d")); break;
-		case 0xcb: _stprintf(buffer, _T("onax h")); break;
-		case 0xcc: _stprintf(buffer, _T("onax d+")); break;
-		case 0xcd: _stprintf(buffer, _T("onax h+")); break;
-		case 0xce: _stprintf(buffer, _T("onax d-")); break;
-		case 0xcf: _stprintf(buffer, _T("onax h-")); break;
-		case 0xd1: _stprintf(buffer, _T("adcx b")); break;
-		case 0xd2: _stprintf(buffer, _T("adcx d")); break;
-		case 0xd3: _stprintf(buffer, _T("adcx h")); break;
-		case 0xd4: _stprintf(buffer, _T("adcx d+")); break;
-		case 0xd5: _stprintf(buffer, _T("adcx h+")); break;
-		case 0xd6: _stprintf(buffer, _T("adcx d-")); break;
-		case 0xd7: _stprintf(buffer, _T("adcx h-")); break;
-		case 0xd9: _stprintf(buffer, _T("offax b")); break;
-		case 0xda: _stprintf(buffer, _T("offax d")); break;
-		case 0xdb: _stprintf(buffer, _T("offax h")); break;
-		case 0xdc: _stprintf(buffer, _T("offax d+")); break;
-		case 0xdd: _stprintf(buffer, _T("offax h+")); break;
-		case 0xde: _stprintf(buffer, _T("offax d-")); break;
-		case 0xdf: _stprintf(buffer, _T("offax h-")); break;
-		case 0xe1: _stprintf(buffer, _T("subx b")); break;
-		case 0xe2: _stprintf(buffer, _T("subx d")); break;
-		case 0xe3: _stprintf(buffer, _T("subx h")); break;
-		case 0xe4: _stprintf(buffer, _T("subx d+")); break;
-		case 0xe5: _stprintf(buffer, _T("subx h+")); break;
-		case 0xe6: _stprintf(buffer, _T("subx d-")); break;
-		case 0xe7: _stprintf(buffer, _T("subx h-")); break;
-		case 0xe9: _stprintf(buffer, _T("neax b")); break;
-		case 0xea: _stprintf(buffer, _T("neax d")); break;
-		case 0xeb: _stprintf(buffer, _T("neax h")); break;
-		case 0xec: _stprintf(buffer, _T("neax d+")); break;
-		case 0xed: _stprintf(buffer, _T("neax h+")); break;
-		case 0xee: _stprintf(buffer, _T("neax d-")); break;
-		case 0xef: _stprintf(buffer, _T("neax h-")); break;
-		case 0xf1: _stprintf(buffer, _T("sbbx b")); break;
-		case 0xf2: _stprintf(buffer, _T("sbbx d")); break;
-		case 0xf3: _stprintf(buffer, _T("sbbx h")); break;
-		case 0xf4: _stprintf(buffer, _T("sbbx d+")); break;
-		case 0xf5: _stprintf(buffer, _T("sbbx h+")); break;
-		case 0xf6: _stprintf(buffer, _T("sbbx d-")); break;
-		case 0xf7: _stprintf(buffer, _T("sbbx h-")); break;
-		case 0xf9: _stprintf(buffer, _T("eqax b")); break;
-		case 0xfa: _stprintf(buffer, _T("eqax d")); break;
-		case 0xfb: _stprintf(buffer, _T("eqax h")); break;
-		case 0xfc: _stprintf(buffer, _T("eqax d+")); break;
-		case 0xfd: _stprintf(buffer, _T("eqax h+")); break;
-		case 0xfe: _stprintf(buffer, _T("eqax d-")); break;
-		case 0xff: _stprintf(buffer, _T("eqax h-")); break;
-		default: _stprintf(buffer, _T("db 70h,%2xh"), b);
+		case 0x0e: my_stprintf_s(buffer, buffer_len, _T("sspd %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x0f: my_stprintf_s(buffer, buffer_len, _T("lspd %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x1e: my_stprintf_s(buffer, buffer_len, _T("sbcd %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x1f: my_stprintf_s(buffer, buffer_len, _T("lbcd %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x2e: my_stprintf_s(buffer, buffer_len, _T("sded %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x2f: my_stprintf_s(buffer, buffer_len, _T("lded %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x3e: my_stprintf_s(buffer, buffer_len, _T("shld %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x3f: my_stprintf_s(buffer, buffer_len, _T("lhld %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x68: my_stprintf_s(buffer, buffer_len, _T("mov v,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x69: my_stprintf_s(buffer, buffer_len, _T("mov a,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x6a: my_stprintf_s(buffer, buffer_len, _T("mov b,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x6b: my_stprintf_s(buffer, buffer_len, _T("mov c,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x6c: my_stprintf_s(buffer, buffer_len, _T("mov d,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x6d: my_stprintf_s(buffer, buffer_len, _T("mov e,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x6e: my_stprintf_s(buffer, buffer_len, _T("mov h,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x6f: my_stprintf_s(buffer, buffer_len, _T("mov l,%s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x78: my_stprintf_s(buffer, buffer_len, _T("mov %s,v"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x79: my_stprintf_s(buffer, buffer_len, _T("mov %s,a"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x7a: my_stprintf_s(buffer, buffer_len, _T("mov %s,b"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x7b: my_stprintf_s(buffer, buffer_len, _T("mov %s,c"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x7c: my_stprintf_s(buffer, buffer_len, _T("mov %s,d"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x7d: my_stprintf_s(buffer, buffer_len, _T("mov %s,e"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x7e: my_stprintf_s(buffer, buffer_len, _T("mov %s,h"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x7f: my_stprintf_s(buffer, buffer_len, _T("mov %s,l"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
+		case 0x89: my_stprintf_s(buffer, buffer_len, _T("anax b")); break;
+		case 0x8a: my_stprintf_s(buffer, buffer_len, _T("anax d")); break;
+		case 0x8b: my_stprintf_s(buffer, buffer_len, _T("anax h")); break;
+		case 0x8c: my_stprintf_s(buffer, buffer_len, _T("anax d+")); break;
+		case 0x8d: my_stprintf_s(buffer, buffer_len, _T("anax h+")); break;
+		case 0x8e: my_stprintf_s(buffer, buffer_len, _T("anax d-")); break;
+		case 0x8f: my_stprintf_s(buffer, buffer_len, _T("anax h-")); break;
+		case 0x91: my_stprintf_s(buffer, buffer_len, _T("xrax b")); break;
+		case 0x92: my_stprintf_s(buffer, buffer_len, _T("xrax d")); break;
+		case 0x93: my_stprintf_s(buffer, buffer_len, _T("xrax h")); break;
+		case 0x94: my_stprintf_s(buffer, buffer_len, _T("xrax d+")); break;
+		case 0x95: my_stprintf_s(buffer, buffer_len, _T("xrax h+")); break;
+		case 0x96: my_stprintf_s(buffer, buffer_len, _T("xrax d-")); break;
+		case 0x97: my_stprintf_s(buffer, buffer_len, _T("xrax h-")); break;
+		case 0x99: my_stprintf_s(buffer, buffer_len, _T("orax b")); break;
+		case 0x9a: my_stprintf_s(buffer, buffer_len, _T("orax d")); break;
+		case 0x9b: my_stprintf_s(buffer, buffer_len, _T("orax h")); break;
+		case 0x9c: my_stprintf_s(buffer, buffer_len, _T("orax d+")); break;
+		case 0x9d: my_stprintf_s(buffer, buffer_len, _T("orax h+")); break;
+		case 0x9e: my_stprintf_s(buffer, buffer_len, _T("orax d-")); break;
+		case 0x9f: my_stprintf_s(buffer, buffer_len, _T("orax h-")); break;
+		case 0xa1: my_stprintf_s(buffer, buffer_len, _T("addncx b")); break;
+		case 0xa2: my_stprintf_s(buffer, buffer_len, _T("addncx d")); break;
+		case 0xa3: my_stprintf_s(buffer, buffer_len, _T("addncx h")); break;
+		case 0xa4: my_stprintf_s(buffer, buffer_len, _T("addncx d+")); break;
+		case 0xa5: my_stprintf_s(buffer, buffer_len, _T("addncx h+")); break;
+		case 0xa6: my_stprintf_s(buffer, buffer_len, _T("addncx d-")); break;
+		case 0xa7: my_stprintf_s(buffer, buffer_len, _T("addncx h-")); break;
+		case 0xa9: my_stprintf_s(buffer, buffer_len, _T("gtax b")); break;
+		case 0xaa: my_stprintf_s(buffer, buffer_len, _T("gtax d")); break;
+		case 0xab: my_stprintf_s(buffer, buffer_len, _T("gtax h")); break;
+		case 0xac: my_stprintf_s(buffer, buffer_len, _T("gtax d+")); break;
+		case 0xad: my_stprintf_s(buffer, buffer_len, _T("gtax h+")); break;
+		case 0xae: my_stprintf_s(buffer, buffer_len, _T("gtax d-")); break;
+		case 0xaf: my_stprintf_s(buffer, buffer_len, _T("gtax h-")); break;
+		case 0xb1: my_stprintf_s(buffer, buffer_len, _T("subnbx b")); break;
+		case 0xb2: my_stprintf_s(buffer, buffer_len, _T("subnbx d")); break;
+		case 0xb3: my_stprintf_s(buffer, buffer_len, _T("subnbx h")); break;
+		case 0xb4: my_stprintf_s(buffer, buffer_len, _T("subnbx d+")); break;
+		case 0xb5: my_stprintf_s(buffer, buffer_len, _T("subnbx h+")); break;
+		case 0xb6: my_stprintf_s(buffer, buffer_len, _T("subnbx d-")); break;
+		case 0xb7: my_stprintf_s(buffer, buffer_len, _T("subnbx h-")); break;
+		case 0xb9: my_stprintf_s(buffer, buffer_len, _T("ltax b")); break;
+		case 0xba: my_stprintf_s(buffer, buffer_len, _T("ltax d")); break;
+		case 0xbb: my_stprintf_s(buffer, buffer_len, _T("ltax h")); break;
+		case 0xbc: my_stprintf_s(buffer, buffer_len, _T("ltax d+")); break;
+		case 0xbd: my_stprintf_s(buffer, buffer_len, _T("ltax h+")); break;
+		case 0xbe: my_stprintf_s(buffer, buffer_len, _T("ltax d-")); break;
+		case 0xbf: my_stprintf_s(buffer, buffer_len, _T("ltax h-")); break;
+		case 0xc1: my_stprintf_s(buffer, buffer_len, _T("addx b")); break;
+		case 0xc2: my_stprintf_s(buffer, buffer_len, _T("addx d")); break;
+		case 0xc3: my_stprintf_s(buffer, buffer_len, _T("addx h")); break;
+		case 0xc4: my_stprintf_s(buffer, buffer_len, _T("addx d+")); break;
+		case 0xc5: my_stprintf_s(buffer, buffer_len, _T("addx h+")); break;
+		case 0xc6: my_stprintf_s(buffer, buffer_len, _T("addx d-")); break;
+		case 0xc7: my_stprintf_s(buffer, buffer_len, _T("addx h-")); break;
+		case 0xc9: my_stprintf_s(buffer, buffer_len, _T("onax b")); break;
+		case 0xca: my_stprintf_s(buffer, buffer_len, _T("onax d")); break;
+		case 0xcb: my_stprintf_s(buffer, buffer_len, _T("onax h")); break;
+		case 0xcc: my_stprintf_s(buffer, buffer_len, _T("onax d+")); break;
+		case 0xcd: my_stprintf_s(buffer, buffer_len, _T("onax h+")); break;
+		case 0xce: my_stprintf_s(buffer, buffer_len, _T("onax d-")); break;
+		case 0xcf: my_stprintf_s(buffer, buffer_len, _T("onax h-")); break;
+		case 0xd1: my_stprintf_s(buffer, buffer_len, _T("adcx b")); break;
+		case 0xd2: my_stprintf_s(buffer, buffer_len, _T("adcx d")); break;
+		case 0xd3: my_stprintf_s(buffer, buffer_len, _T("adcx h")); break;
+		case 0xd4: my_stprintf_s(buffer, buffer_len, _T("adcx d+")); break;
+		case 0xd5: my_stprintf_s(buffer, buffer_len, _T("adcx h+")); break;
+		case 0xd6: my_stprintf_s(buffer, buffer_len, _T("adcx d-")); break;
+		case 0xd7: my_stprintf_s(buffer, buffer_len, _T("adcx h-")); break;
+		case 0xd9: my_stprintf_s(buffer, buffer_len, _T("offax b")); break;
+		case 0xda: my_stprintf_s(buffer, buffer_len, _T("offax d")); break;
+		case 0xdb: my_stprintf_s(buffer, buffer_len, _T("offax h")); break;
+		case 0xdc: my_stprintf_s(buffer, buffer_len, _T("offax d+")); break;
+		case 0xdd: my_stprintf_s(buffer, buffer_len, _T("offax h+")); break;
+		case 0xde: my_stprintf_s(buffer, buffer_len, _T("offax d-")); break;
+		case 0xdf: my_stprintf_s(buffer, buffer_len, _T("offax h-")); break;
+		case 0xe1: my_stprintf_s(buffer, buffer_len, _T("subx b")); break;
+		case 0xe2: my_stprintf_s(buffer, buffer_len, _T("subx d")); break;
+		case 0xe3: my_stprintf_s(buffer, buffer_len, _T("subx h")); break;
+		case 0xe4: my_stprintf_s(buffer, buffer_len, _T("subx d+")); break;
+		case 0xe5: my_stprintf_s(buffer, buffer_len, _T("subx h+")); break;
+		case 0xe6: my_stprintf_s(buffer, buffer_len, _T("subx d-")); break;
+		case 0xe7: my_stprintf_s(buffer, buffer_len, _T("subx h-")); break;
+		case 0xe9: my_stprintf_s(buffer, buffer_len, _T("neax b")); break;
+		case 0xea: my_stprintf_s(buffer, buffer_len, _T("neax d")); break;
+		case 0xeb: my_stprintf_s(buffer, buffer_len, _T("neax h")); break;
+		case 0xec: my_stprintf_s(buffer, buffer_len, _T("neax d+")); break;
+		case 0xed: my_stprintf_s(buffer, buffer_len, _T("neax h+")); break;
+		case 0xee: my_stprintf_s(buffer, buffer_len, _T("neax d-")); break;
+		case 0xef: my_stprintf_s(buffer, buffer_len, _T("neax h-")); break;
+		case 0xf1: my_stprintf_s(buffer, buffer_len, _T("sbbx b")); break;
+		case 0xf2: my_stprintf_s(buffer, buffer_len, _T("sbbx d")); break;
+		case 0xf3: my_stprintf_s(buffer, buffer_len, _T("sbbx h")); break;
+		case 0xf4: my_stprintf_s(buffer, buffer_len, _T("sbbx d+")); break;
+		case 0xf5: my_stprintf_s(buffer, buffer_len, _T("sbbx h+")); break;
+		case 0xf6: my_stprintf_s(buffer, buffer_len, _T("sbbx d-")); break;
+		case 0xf7: my_stprintf_s(buffer, buffer_len, _T("sbbx h-")); break;
+		case 0xf9: my_stprintf_s(buffer, buffer_len, _T("eqax b")); break;
+		case 0xfa: my_stprintf_s(buffer, buffer_len, _T("eqax d")); break;
+		case 0xfb: my_stprintf_s(buffer, buffer_len, _T("eqax h")); break;
+		case 0xfc: my_stprintf_s(buffer, buffer_len, _T("eqax d+")); break;
+		case 0xfd: my_stprintf_s(buffer, buffer_len, _T("eqax h+")); break;
+		case 0xfe: my_stprintf_s(buffer, buffer_len, _T("eqax d-")); break;
+		case 0xff: my_stprintf_s(buffer, buffer_len, _T("eqax h-")); break;
+		default: my_stprintf_s(buffer, buffer_len, _T("db 70h,%02xh"), b);
 		}
 		break;
-	case 0x71: wa = getwa(); _stprintf(buffer, _T("mviw v.%xh,%2xh"), wa, getb()); break;
-	case 0x72: _stprintf(buffer, _T("softi")); break;
-	case 0x73: _stprintf(buffer, _T("jb")); break;
+	case 0x71: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("mviw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x72: my_stprintf_s(buffer, buffer_len, _T("softi")); break;
+	case 0x73: my_stprintf_s(buffer, buffer_len, _T("jb")); break;
 	case 0x74:
 		switch(b = getb()) {
-		case 0x88: _stprintf(buffer, _T("anaw v.%x"), getwa()); break;
-		case 0x90: _stprintf(buffer, _T("xraw v.%x"), getwa()); break;
-		case 0x98: _stprintf(buffer, _T("oraw v.%x"), getwa()); break;
-		case 0xa0: _stprintf(buffer, _T("addncw v.%x"), getwa()); break;
-		case 0xa8: _stprintf(buffer, _T("gtaw v.%x"), getwa()); break;
-		case 0xb0: _stprintf(buffer, _T("subnbw v.%x"), getwa()); break;
-		case 0xb8: _stprintf(buffer, _T("ltaw v.%x"), getwa()); break;
-		case 0xc0: _stprintf(buffer, _T("addw v.%x"), getwa()); break;
-		case 0xc8: _stprintf(buffer, _T("onaw v.%x"), getwa()); break;
-		case 0xd0: _stprintf(buffer, _T("adcw v.%x"), getwa()); break;
-		case 0xd8: _stprintf(buffer, _T("offaw v.%x"), getwa()); break;
-		case 0xe0: _stprintf(buffer, _T("subw v.%x"), getwa()); break;
-		case 0xe8: _stprintf(buffer, _T("neaw v.%x"), getwa()); break;
-		case 0xf0: _stprintf(buffer, _T("sbbw v.%x"), getwa()); break;
-		case 0xf8: _stprintf(buffer, _T("eqaw v.%x"), getwa()); break;
-		default: _stprintf(buffer, _T("db 74h,%2xh"), b);
+		case 0x88: my_stprintf_s(buffer, buffer_len, _T("anaw v.%02xh"), getwa()); break;
+		case 0x90: my_stprintf_s(buffer, buffer_len, _T("xraw v.%02xh"), getwa()); break;
+		case 0x98: my_stprintf_s(buffer, buffer_len, _T("oraw v.%02xh"), getwa()); break;
+		case 0xa0: my_stprintf_s(buffer, buffer_len, _T("addncw v.%02xh"), getwa()); break;
+		case 0xa8: my_stprintf_s(buffer, buffer_len, _T("gtaw v.%02xh"), getwa()); break;
+		case 0xb0: my_stprintf_s(buffer, buffer_len, _T("subnbw v.%02xh"), getwa()); break;
+		case 0xb8: my_stprintf_s(buffer, buffer_len, _T("ltaw v.%02xh"), getwa()); break;
+		case 0xc0: my_stprintf_s(buffer, buffer_len, _T("addw v.%02xh"), getwa()); break;
+		case 0xc8: my_stprintf_s(buffer, buffer_len, _T("onaw v.%02xh"), getwa()); break;
+		case 0xd0: my_stprintf_s(buffer, buffer_len, _T("adcw v.%02xh"), getwa()); break;
+		case 0xd8: my_stprintf_s(buffer, buffer_len, _T("offaw v.%02xh"), getwa()); break;
+		case 0xe0: my_stprintf_s(buffer, buffer_len, _T("subw v.%02xh"), getwa()); break;
+		case 0xe8: my_stprintf_s(buffer, buffer_len, _T("neaw v.%02xh"), getwa()); break;
+		case 0xf0: my_stprintf_s(buffer, buffer_len, _T("sbbw v.%02xh"), getwa()); break;
+		case 0xf8: my_stprintf_s(buffer, buffer_len, _T("eqaw v.%02xh"), getwa()); break;
+		default: my_stprintf_s(buffer, buffer_len, _T("db 74h,%02xh"), b);
 		}
 		break;
-	case 0x75: wa = getwa(); _stprintf(buffer, _T("eqiw v.%xh,%2xh"), wa, getb()); break;
-	case 0x76: _stprintf(buffer, _T("sbi a,%2xh"), getb()); break;
-	case 0x77: _stprintf(buffer, _T("eqi a,%2xh"), getb()); break;
+	case 0x75: wa = getwa(); my_stprintf_s(buffer, buffer_len, _T("eqiw v.%02xh,%02xh"), wa, getb()); break;
+	case 0x76: my_stprintf_s(buffer, buffer_len, _T("sbi a,%02xh"), getb()); break;
+	case 0x77: my_stprintf_s(buffer, buffer_len, _T("eqi a,%02xh"), getb()); break;
 	case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
-		_stprintf(buffer, _T("calf %3x"), 0x800 | ((b & 7) << 8) | getb()); break;
+		my_stprintf_s(buffer, buffer_len, _T("calf %3x"), 0x800 | ((b & 7) << 8) | getb()); break;
 	
 	case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
 	case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
@@ -2128,27 +2174,27 @@ int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer)
 	case 0xa8: case 0xa9: case 0xaa: case 0xab: case 0xac: case 0xad: case 0xae: case 0xaf:
 	case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
 	case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
-		_stprintf(buffer, _T("calt %2xh"), 0x80 | ((b & 0x3f) << 1)); break;
+		my_stprintf_s(buffer, buffer_len, _T("calt %02xh"), 0x80 | ((b & 0x3f) << 1)); break;
 		
 	case 0xc0: case 0xc1: case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7:
 	case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
 	case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
 	case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf:
-		_stprintf(buffer, _T("jr %4xh"), pc + (b & 0x1f)); break;
+		my_stprintf_s(buffer, buffer_len, _T("jr %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), pc + upd7801_dasm_ptr + (b & 0x1f))); break;
 	
 	case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
 	case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
 	case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 	case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
-		_stprintf(buffer, _T("jr %4xh"), pc + ((b & 0x1f) - 0x20)); break;
+		my_stprintf_s(buffer, buffer_len, _T("jr %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), pc + upd7801_dasm_ptr + ((b & 0x1f) - 0x20))); break;
 	
-	default: _stprintf(buffer, _T("db %2xh"), b); break;
+	default: my_stprintf_s(buffer, buffer_len, _T("db %02xh"), b); break;
 	}
 	return upd7801_dasm_ptr;
 }
 #endif
 
-void UPD7801::write_signal(int id, uint32 data, uint32 mask)
+void UPD7801::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_UPD7801_INTF0) {
 		if(data & mask) {
@@ -2170,12 +2216,35 @@ void UPD7801::write_signal(int id, uint32 data, uint32 mask)
 		}
 	} else if(id == SIG_UPD7801_WAIT) {
 		wait = ((data & mask) != 0);
+	} else if(id == SIG_UPD7801_SI) {
+		SI = ((data & mask) != 0);
+	} else if(id == SIG_UPD7801_SCK) {
+		bool newSCK = ((data & mask) != 0);
+		if(SCK != newSCK) {
+			if(!SIO_DISABLED && SIO_EXTCLOCK) {
+				if(SCK && !newSCK) {
+					write_signals(&outputs_so, (SR & 0x80) ? 0xffffffff : 0);
+				} else if(!SCK && newSCK) {
+					SR <<= 1;
+					if(SI) SR |= 1;
+					if(++sio_count == 8) {
+						IRR |= INTFS;
+						if(SAK) {
+							SAK = 0;
+							UPDATE_PORTC(0);
+						}
+						scount = sio_count = 0;
+					}
+				}
+			}
+			SCK = newSCK;
+		}
 	}
 }
 
 void UPD7801::OP()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	
 	if((PSW & F_SK) && ope != 0x72) {
 		// skip this mnemonic
@@ -2476,15 +2545,17 @@ void UPD7801::OP()
 	case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 	case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:	// jr
 		PC -= 0x20 - (ope & 0x1f); break;
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default:
 		__assume(0);
+#endif
 	}
 	PSW &= ~(F_L0 | F_L1);
 }
 
 void UPD7801::OP48()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op48[ope].clock;
 	
 	switch(ope) {
@@ -2567,13 +2638,13 @@ void UPD7801::OP48()
 	case 0x3f:	// pop h
 		HL = POP16(); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 48 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 48 %2x\n"), prevPC, ope);
 	}
 }
 
 void UPD7801::OP4C()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op4c[ope].clock;
 	
 	switch(ope) {
@@ -2605,14 +2676,14 @@ void UPD7801::OP4C()
 			_A = RM8((_B << 8) | ope);
 			UPDATE_PORTC(0);
 		} else {
-			emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4c %2x\n"), prevPC, ope);
+			this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4c %2x\n"), prevPC, ope);
 		}
 	}
 }
 
 void UPD7801::OP4D()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op4d[ope].clock;
 	
 	switch(ope) {
@@ -2647,14 +2718,14 @@ void UPD7801::OP4D()
 			WM8((_B << 8) | ope, _A);
 			UPDATE_PORTC(0);
 		} else {
-			emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4d %2x\n"), prevPC, ope);
+			this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 4d %2x\n"), prevPC, ope);
 		}
 	}
 }
 
 void UPD7801::OP60()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op60[ope].clock;
 	
 	switch(ope) {
@@ -3107,13 +3178,13 @@ void UPD7801::OP60()
 	case 0xff:	// eqa a,l
 		EQA(_A, _L); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 60 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 60 %2x\n"), prevPC, ope);
 	}
 }
 
 void UPD7801::OP64()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op64[ope].clock;
 	
 	switch(ope) {
@@ -3478,13 +3549,13 @@ void UPD7801::OP64()
 	case 0xfb:	// eqi mk,byte
 		EQI(MK); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 64 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 64 %2x\n"), prevPC, ope);
 	}
 }
 
 void UPD7801::OP70()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op70[ope].clock;
 	
 	switch(ope) {
@@ -3748,13 +3819,13 @@ void UPD7801::OP70()
 	case 0xff:	// eqax h-
 		EQAX(HL--); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 70 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 70 %2x\n"), prevPC, ope);
 	}
 }
 
 void UPD7801::OP74()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op74[ope].clock;
 	
 	switch(ope) {
@@ -3789,7 +3860,57 @@ void UPD7801::OP74()
 	case 0xf8:	// eqaw wa
 		EQAW(); break;
 	default:
-		emu->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 74 %2x\n"), prevPC, ope);
+		this->out_debug_log(_T("PC=%4x\tCPU\tUNKNOWN OP : 74 %2x\n"), prevPC, ope);
 	}
+}
+
+#define STATE_VERSION	4
+
+bool UPD7801::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+#ifdef USE_DEBUGGER
+	state_fio->StateValue(total_count);
+#endif
+	state_fio->StateValue(count);
+	state_fio->StateValue(period);
+	state_fio->StateValue(scount);
+	state_fio->StateValue(tcount);
+	state_fio->StateValue(wait);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(SP);
+	state_fio->StateValue(PC);
+	state_fio->StateValue(prevPC);
+	state_fio->StateValue(PSW);
+	state_fio->StateValue(IRR);
+	state_fio->StateValue(IFF);
+	state_fio->StateValue(SIRQ);
+	state_fio->StateValue(HALT);
+	state_fio->StateValue(MK);
+	state_fio->StateValue(MB);
+	state_fio->StateValue(MC);
+	state_fio->StateValue(TM0);
+	state_fio->StateValue(TM1);
+	state_fio->StateValue(SR);
+	state_fio->StateValue(SAK);
+	state_fio->StateValue(TO);
+	state_fio->StateValue(HLDA);
+	state_fio->StateValue(PORTC);
+	state_fio->StateValue(SI);
+	state_fio->StateValue(SCK);
+	state_fio->StateValue(sio_count);
+	
+#ifdef USE_DEBUGGER
+	// post process
+	if(loading) {
+		prev_total_count = total_count;
+	}
+#endif
+	return true;
 }
 

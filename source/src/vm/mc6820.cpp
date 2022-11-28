@@ -21,7 +21,7 @@ void MC6820::reset()
 	}
 }
 
-void MC6820::write_io8(uint32 addr, uint32 data)
+void MC6820::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = (addr & 2) >> 1;
 	
@@ -39,7 +39,7 @@ void MC6820::write_io8(uint32 addr, uint32 data)
 		}
 		break;
 	case 1:
-	case 3;
+	case 3:
 		if(data & 0x20) {
 			port[ch].ctrl &= ~0x40;
 		}
@@ -48,7 +48,7 @@ void MC6820::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MC6820::read_io8(uint32 addr)
+uint32_t MC6820::read_io8(uint32_t addr)
 {
 	int ch = (addr & 2) >> 1;
 	
@@ -63,13 +63,13 @@ uint32 MC6820::read_io8(uint32 addr)
 			return port[ch].ddr;
 		}
 	case 1:
-	case 3;
+	case 3:
 		return port[ch].ctrl;
 	}
 	return 0xff;
 }
 
-void MC6820::write_signal(int id, uint32 data, uint32 mask)
+void MC6820::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	int ch = id & 1;
@@ -104,5 +104,27 @@ void MC6820::write_signal(int id, uint32 data, uint32 mask)
 		port[ch].c2 = signal;
 		break;
 	}
+}
+
+#define STATE_VERSION	1
+
+bool MC6820::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	for(int i = 0; i < 2; i++) {
+		state_fio->StateValue(port[i].wreg);
+		state_fio->StateValue(port[i].rreg);
+		state_fio->StateValue(port[i].ctrl);
+		state_fio->StateValue(port[i].ddr);
+		state_fio->StateValue(port[i].c1);
+		state_fio->StateValue(port[i].c2);
+		state_fio->StateValue(port[i].first);
+	}
+	return true;
 }
 
