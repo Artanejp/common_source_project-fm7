@@ -779,7 +779,24 @@ bool VM::is_floppy_disk_protected(int drv)
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-	return fdc->read_signal(0);
+	if(floppy->get_motor_on()) {
+		int drv = fdc->read_signal(SIG_MB8877_DRIVEREG);
+		return 1 << drv;
+	}
+	return 0;
+}
+
+uint32_t VM::floppy_disk_indicator_color()
+{
+#ifdef _X1TURBO_FEATURE
+	if(floppy->get_motor_on()) {
+		int drv = fdc->read_signal(SIG_MB8877_DRIVEREG);
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2HD) {
+			return 1 << drv;
+		}
+	}
+#endif
+	return 0;
 }
 
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
@@ -980,7 +997,7 @@ void VM::update_config()
 void VM::update_dipswitch()
 {
 	// bit0		0=High 1=Standard
-	// bit1-3	000=5"2D 001=5"2DD 010=5"2HD
+	// bit1-3	000=5"2D 001=5"2DD 010=5"2HD 110=8"1S 111=SASI
 	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 7) << 1));
 }
 #endif
@@ -993,8 +1010,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int len = (int)strlen(name);
+		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
+		int len = (int)_tcslen(name);
 		
 		if(!state_fio->StateCheckInt32(len)) {
 			return false;

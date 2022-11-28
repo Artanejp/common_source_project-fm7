@@ -219,50 +219,50 @@ void UPD765A::reset()
 	set_drq(false);
 }
 
-static const char* get_command_name(uint8_t data)
+static const _TCHAR* get_command_name(uint8_t data)
 {
-	static char name[16];
+	static _TCHAR name[16];
 	
 	switch(data & 0x1f) {
 	case 0x02:
-		my_sprintf_s(name, 16, _T("RD DIAGNOSTIC"));
+		my_stprintf_s(name, 16, _T("RD DIAGNOSTIC"));
 		break;
 	case 0x03:
-		my_sprintf_s(name, 16, _T("SPECIFY      "));
+		my_stprintf_s(name, 16, _T("SPECIFY      "));
 		break;
 	case 0x04:
-		my_sprintf_s(name, 16, _T("SENCE DEVSTAT"));
+		my_stprintf_s(name, 16, _T("SENCE DEVSTAT"));
 		break;
 	case 0x05:
 	case 0x09:
-		my_sprintf_s(name, 16, _T("WRITE DATA   "));
+		my_stprintf_s(name, 16, _T("WRITE DATA   "));
 		break;
 	case 0x06:
 	case 0x0c:
-		my_sprintf_s(name, 16, _T("READ DATA    "));
+		my_stprintf_s(name, 16, _T("READ DATA    "));
 		break;
 	case 0x07:
-		my_sprintf_s(name, 16, _T("RECALIB      "));
+		my_stprintf_s(name, 16, _T("RECALIB      "));
 		break;
 	case 0x08:
-		my_sprintf_s(name, 16, _T("SENCE INTSTAT"));
+		my_stprintf_s(name, 16, _T("SENCE INTSTAT"));
 		break;
 	case 0x0a:
-		my_sprintf_s(name, 16, _T("READ ID      "));
+		my_stprintf_s(name, 16, _T("READ ID      "));
 		break;
 	case 0x0d:
-		my_sprintf_s(name, 16, _T("WRITE ID     "));
+		my_stprintf_s(name, 16, _T("WRITE ID     "));
 		break;
 	case 0x0f:
-		my_sprintf_s(name, 16, _T("SEEK         "));
+		my_stprintf_s(name, 16, _T("SEEK         "));
 		break;
 	case 0x11:
 	case 0x19:
 	case 0x1d:
-		my_sprintf_s(name, 16, _T("SCAN         "));
+		my_stprintf_s(name, 16, _T("SCAN         "));
 		break;
 	default:
-		my_sprintf_s(name, 16, _T("INVALID      "));
+		my_stprintf_s(name, 16, _T("INVALID      "));
 		break;
 	}
 	return name;

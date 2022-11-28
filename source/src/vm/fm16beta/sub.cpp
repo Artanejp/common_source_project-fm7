@@ -538,20 +538,20 @@ void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_SUB_CANCEL) {
 		irq_cancel = ((data & mask) != 0);
 		update_irq();
-this->out_debug_log("MAIN -> SUB: CANCEL = %d\n", irq_cancel);
+this->out_debug_log(_T("MAIN -> SUB: CANCEL = %d\n"), irq_cancel);
 
 	} else if(id == SIG_SUB_KEY) {
 		firq_key = ((data & mask) != 0);
 		update_firq();
 	} else if(id == SIG_SUB_HALT) {
-this->out_debug_log("MAIN -> SUB: HALT = %d\n", data & mask ?1 : 0);
+this->out_debug_log(_T("MAIN -> SUB: HALT = %d\n"), data & mask ?1 : 0);
 		if(data & mask) {
 			d_main->write_signal(SIG_MAIN_SUB_BUSY, 1, 1);
 			mix &= ~0x01;
 		}
 		d_subcpu->write_signal(SIG_CPU_BUSREQ, data, mask);
 	} else if(id == SIG_SUB_MAINACK) {
-this->out_debug_log("MAIN -> SUB: MAINACK = %d\n", data & mask ? 1 : 0);
+this->out_debug_log(_T("MAIN -> SUB: MAINACK = %d\n"), data & mask ? 1 : 0);
 		if(data & mask) {
 			d_main->write_signal(SIG_MAIN_FIRQ0, 0, 0);
 			mainack |= 0x80;

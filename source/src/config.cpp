@@ -365,6 +365,7 @@ void load_config(const _TCHAR* config_path)
 	
 	// win32
 	#ifdef _WIN32
+		config.use_telnet = MyGetPrivateProfileBool(_T("Win32"), _T("UseTelnet"), config.use_telnet, config_path);
 		#ifndef ONE_BOARD_MICRO_COMPUTER
 			config.use_d2d1 = MyGetPrivateProfileBool(_T("Win32"), _T("UseDirect2D1"), config.use_d2d1, config_path);
 			config.use_d3d9 = MyGetPrivateProfileBool(_T("Win32"), _T("UseDirect3D9"), config.use_d3d9, config_path);
@@ -577,6 +578,7 @@ void save_config(const _TCHAR* config_path)
 	
 	// win32
 	#ifdef _WIN32
+		MyWritePrivateProfileBool(_T("Win32"), _T("UseTelnet"), config.use_telnet, config_path);
 		#ifndef ONE_BOARD_MICRO_COMPUTER
 			MyWritePrivateProfileBool(_T("Win32"), _T("UseDirect2D1"), config.use_d2d1, config_path);
 			MyWritePrivateProfileBool(_T("Win32"), _T("UseDirect3D9"), config.use_d3d9, config_path);

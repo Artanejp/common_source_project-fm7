@@ -44,6 +44,7 @@ private:
 	bool enabled;
 	uint32_t ready;
 	bool force_ready;
+	bool enalbe_after_reti;
 	
 	uint16_t addr_a;
 	uint16_t addr_b;

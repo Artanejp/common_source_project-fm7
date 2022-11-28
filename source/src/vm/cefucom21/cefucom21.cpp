@@ -191,7 +191,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mcu_io->set_iomap_alias_r  (0xc1, mcu_psg, 1);	// PSG data
 	mcu_io->set_iomap_range_rw (0xe0, 0xe3, mcu_pio);
 	
+#ifdef _IO_DEBUG_LOG
 	pcu_io->cpu_index = 1;
+#endif
 	pcu_io->set_iomap_range_rw (0x00, 0x03, pcu_ctc1);
 	pcu_io->set_iomap_range_rw (0x08, 0x0b, pcu_ctc2);
 	pcu_io->set_iomap_alias_rw (0x10, pcu_pio, 0);
@@ -419,8 +421,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int len = (int)strlen(name);
+		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
+		int len = (int)_tcslen(name);
 		
 		if(!state_fio->StateCheckInt32(len)) {
 			return false;

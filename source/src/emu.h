@@ -382,6 +382,10 @@ public:
 	void close_debugger();
 	bool is_debugger_enabled(int cpu_index);
 	bool now_debugging;
+#ifdef USE_STATE
+	int debugger_cpu_index, debugger_target_id;
+	int request_save_state, request_load_state;
+#endif
 	debugger_thread_t debugger_thread_param;
 #if defined(OSD_QT)
 	pthread_t debugger_thread_id;
@@ -429,6 +433,7 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
+	uint32_t floppy_disk_indicator_color();
 #endif
 #ifdef USE_QUICK_DISK
 	void open_quick_disk(int drv, const _TCHAR* file_path);
@@ -501,6 +506,7 @@ public:
 #ifdef USE_STATE
 	void save_state(const _TCHAR* file_path);
 	void load_state(const _TCHAR* file_path);
+	const _TCHAR *state_file_path(int num);
 #endif
 #ifdef OSD_QT
 	// New APIs

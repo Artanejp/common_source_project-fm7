@@ -150,6 +150,11 @@
 #include "msx/msx_ex.h"
 #endif
 
+// CASIO FX-9000P
+#ifdef _FX9000P
+#include "fx9000p/fx9000p.h"
+#endif
+
 // SEGA GAME GEAR
 #ifdef _GAMEGEAR
 #include "gamegear/gamegear.h"

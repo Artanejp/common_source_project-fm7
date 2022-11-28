@@ -1050,6 +1050,10 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\src\res\indicator\access_green.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\indicator\access_off.bmp"
 				>
 			</File>

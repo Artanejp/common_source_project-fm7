@@ -61,6 +61,7 @@
 #define DATAREC_FAST_REW_SPEED	16
 #define PRINTER_STROBE_RISING_EDGE
 #define SCSI_HOST_AUTO_ACK
+#define OVERRIDE_SOUND_FREQ_48000HZ	62500
 
 #ifdef _X1TURBO_FEATURE
 #define IPL_ROM_FILE_SIZE	0x8000
@@ -89,7 +90,7 @@
 #define USE_KEYBOARD_TYPE	2
 // Keyboard mode B
 #define KEYBOARD_TYPE_DEFAULT	1
-#define USE_DRIVE_TYPE		3
+#define USE_DRIVE_TYPE		8
 #endif
 #define USE_FLOPPY_DISK		4
 #define BASE_FLOPPY_DISK_NUM	0
@@ -379,6 +380,7 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
+	uint32_t floppy_disk_indicator_color();
 	void open_hard_disk(int drv, const _TCHAR* file_path);
 	void close_hard_disk(int drv);
 	bool is_hard_disk_inserted(int drv);

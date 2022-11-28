@@ -181,8 +181,8 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		// Note: typeid(foo).name is fixed by recent ABI.Not dec 6.
 		// const char *name = typeid(*device).name();
 		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
-		const char *name = device->get_device_name();
-		int len = (int)strlen(name);
+		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
+		int len = (int)_tcslen(name);
 		
 		if(!state_fio->StateCheckInt32(len)) {
 			if(loading) {

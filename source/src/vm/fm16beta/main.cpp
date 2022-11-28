@@ -313,7 +313,7 @@ void MAIN::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_MAIN_SUB_BUSY) {
 		sub_busy = ((data & mask) != 0);
 
-this->out_debug_log("SUB -> MAIN: SUB BUSY = %d\n", sub_busy);
+this->out_debug_log(_T("SUB -> MAIN: SUB BUSY = %d\n"), sub_busy);
 
 	} else if(id == SIG_MAIN_DRQ_2HD) {
 		drq_2hd = ((data & mask) != 0);

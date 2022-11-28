@@ -196,6 +196,11 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 				wr_tmp[wr_num++] = GET_REGNUM(MATCH_BYTE);
 			}
 			enabled = ((data & 0x40) != 0);
+			// RDY signal sense is a LEVEL, not an EDDGE (thanks Mr.Sato)
+			if(now_ready() && INT_ON_READY) {
+				request_intr(INT_RDY);
+				update_intr();
+			}
 		} else if((data & 0x83) == 0x81) {
 #ifdef DMA_DEBUG
 			this->out_debug_log(_T("Z80DMA: WR4=%2x\n"), data);
@@ -243,6 +248,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 			// run command
 			switch (data) {
 			case CMD_ENABLE_AFTER_RETI:
+				enalbe_after_reti = true;
 				break;
 			case CMD_READ_STATUS_BYTE:
 				// force to read status (from Xmillenium)
@@ -261,6 +267,7 @@ void Z80DMA::write_io8(uint32_t addr, uint32_t data)
 			case CMD_RESET:
 				enabled = false;
 				force_ready = false;
+				enalbe_after_reti = false;
 				req_intr = in_service = false;
 				update_intr();
 				status = 0x30;
@@ -507,7 +514,7 @@ uint32_t Z80DMA::read_ioport(uint32_t addr, int* wait)
 
 void Z80DMA::do_dma()
 {
-	if(!enabled) {
+	if(!enabled || (enalbe_after_reti && in_service)) {
 		return;
 	}
 	bool occured = false;
@@ -833,6 +840,7 @@ void Z80DMA::notify_intr_reti()
 	// detect RETI
 	if(in_service) {
 		in_service = false;
+		enalbe_after_reti = false;
 		update_intr();
 		return;
 	}
@@ -859,7 +867,7 @@ PORT-A(MEM,FFFF)->PORT-B(I/O,FFFF) CNT=65536 BLK=65536 STAT=00 ENABLE=1 READY=1
 }
 #endif
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool Z80DMA::process_state(FILEIO* state_fio, bool loading)
 {
@@ -881,6 +889,7 @@ bool Z80DMA::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(enabled);
 	state_fio->StateValue(ready);
 	state_fio->StateValue(force_ready);
+	state_fio->StateValue(enalbe_after_reti);
 	state_fio->StateValue(addr_a);
 	state_fio->StateValue(addr_b);
 	state_fio->StateValue(upcount);

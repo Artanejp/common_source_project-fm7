@@ -246,9 +246,9 @@ static const _TCHAR *sound_device_caption[USE_SOUND_VOLUME] = {
 		#define NUM1 " "
 	#endif
 #ifdef SUPPORT_PC88_OPNA
-	_T("OPNA" NUM1 "(FM)"), _T("OPNA" NUM1 "(PSG)"), _T("OPNA" NUM1 "(ADPCM)"), _T("OPNA" NUM1 "(Rhythm)"),
+	_T("OPNA") _T(NUM1) _T("(FM)"), _T("OPNA") _T(NUM1) _T("(PSG)"), _T("OPNA") _T(NUM1) _T("(ADPCM)"), _T("OPNA") _T(NUM1) _T("(Rhythm)"),
 #else
-	_T("OPN" NUM1 "(FM)"), _T("OPN" NUM1 "(PSG)"),
+	_T("OPN") _T(NUM1) _T("(FM)"), _T("OPN") _T(NUM1) _T("(PSG)"),
 #endif
 #endif
 #ifdef SUPPORT_PC88_OPN2
@@ -258,9 +258,9 @@ static const _TCHAR *sound_device_caption[USE_SOUND_VOLUME] = {
 		#define NUM2 " "
 	#endif
 #ifdef SUPPORT_PC88_OPNA
-	_T("OPNA" NUM2 "(FM)"), _T("OPNA" NUM2 "(PSG)"), _T("OPNA" NUM2 "(ADPCM)"), _T("OPNA" NUM2 "(Rhythm)"),
+	_T("OPNA") _T(NUM2) _T("(FM)"), _T("OPNA") _T(NUM2) _T("(PSG)"), _T("OPNA") _T(NUM2) _T("(ADPCM)"), _T("OPNA") _T(NUM2) _T("(Rhythm)"),
 #else
-	_T("OPN" NUM2 "(FM)"), _T("OPN" NUM2 "(PSG)"),
+	_T("OPN") _T(NUM2) _T("(FM)"), _T("OPN") _T(NUM2) _T("(PSG)"),
 #endif
 #endif
 #ifdef SUPPORT_PC88_CDROM

@@ -261,6 +261,9 @@
     <Image Include="..\src\res\fm16beta.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\src\res\indicator\access_green.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
     <Image Include="..\src\res\indicator\access_off.bmp">
       <Filter>Resource Files</Filter>
     </Image>

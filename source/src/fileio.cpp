@@ -573,7 +573,27 @@ void FILEIO::FputDouble_LE(double val)
 	FputUint8(tmp.b.h7);
 }
 
-_TCHAR FILEIO::FgetTCHAR_LE()
+wchar_t FILEIO::FgetWchar_LE()
+{
+	switch(sizeof(wchar_t)) {
+	case 2: return (wchar_t)FgetUint16_LE();
+	case 4: return (wchar_t)FgetUint32_LE();
+	case 8: return (wchar_t)FgetUint64_LE();
+	}
+	return (wchar_t)FgetUint8();
+}
+
+void FILEIO::FputWchar_LE(wchar_t val)
+{
+	switch(sizeof(wchar_t)) {
+	case 2: FputUint16_LE((uint16_t)val); return;
+	case 4: FputUint32_LE((uint32_t)val); return;
+	case 8: FputUint32_LE((uint64_t)val); return;
+	}
+	FputUint8((uint8_t)val);
+}
+
+_TCHAR FILEIO::FgetTchar_LE()
 {
 	switch(sizeof(_TCHAR)) {
 	case 2: return (_TCHAR)FgetUint16_LE();
@@ -583,14 +603,14 @@ _TCHAR FILEIO::FgetTCHAR_LE()
 	return (_TCHAR)FgetUint8();
 }
 
-void FILEIO::FputTCHAR_LE(_TCHAR val)
+void FILEIO::FputTchar_LE(_TCHAR val)
 {
 	switch(sizeof(_TCHAR)) {
 	case 2: FputUint16_LE((uint16_t)val); return;
 	case 4: FputUint32_LE((uint32_t)val); return;
 	case 8: FputUint32_LE((uint64_t)val); return;
 	}
-	FputUint8((uint8_t )val);
+	FputUint8((uint8_t)val);
 }
 
 uint16_t FILEIO::FgetUint16_BE()
@@ -769,7 +789,27 @@ void FILEIO::FputDouble_BE(double val)
 	FputUint8(tmp.b.l);
 }
 
-_TCHAR FILEIO::FgetTCHAR_BE()
+wchar_t FILEIO::FgetWchar_BE()
+{
+	switch(sizeof(wchar_t)) {
+	case 2: return (wchar_t)FgetUint16_BE();
+	case 4: return (wchar_t)FgetUint32_BE();
+	case 8: return (wchar_t)FgetUint64_BE();
+	}
+	return (wchar_t)FgetUint8();
+}
+
+void FILEIO::FputWchar_BE(wchar_t val)
+{
+	switch(sizeof(wchar_t)) {
+	case 2: FputUint16_BE((uint16_t)val); return;
+	case 4: FputUint32_BE((uint32_t)val); return;
+	case 8: FputUint32_BE((uint64_t)val); return;
+	}
+	FputUint8((uint8_t)val);
+}
+
+_TCHAR FILEIO::FgetTchar_BE()
 {
 	switch(sizeof(_TCHAR)) {
 	case 2: return (_TCHAR)FgetUint16_BE();
@@ -779,14 +819,14 @@ _TCHAR FILEIO::FgetTCHAR_BE()
 	return (_TCHAR)FgetUint8();
 }
 
-void FILEIO::FputTCHAR_BE(_TCHAR val)
+void FILEIO::FputTchar_BE(_TCHAR val)
 {
 	switch(sizeof(_TCHAR)) {
 	case 2: FputUint16_BE((uint16_t)val); return;
 	case 4: FputUint32_BE((uint32_t)val); return;
 	case 8: FputUint32_BE((uint64_t)val); return;
 	}
-	FputUint8((uint8_t )val);
+	FputUint8((uint8_t)val);
 }
 
 int FILEIO::Fgetc()
@@ -955,6 +995,18 @@ long FILEIO::Ftell()
 	return 0;
 }
 
+void FILEIO::Fflush()
+{
+#ifdef USE_ZLIB
+	if(gz != NULL) {
+		//gzflush(gz, Z_SYNC_FLUSH);
+	} else
+#endif
+	if(fp != NULL) {
+		fflush(fp);
+	}
+}
+
 bool FILEIO::StateCheckUint32(uint32_t val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
@@ -979,11 +1031,11 @@ bool FILEIO::StateCheckBuffer(const _TCHAR *buffer, size_t size, size_t count)
 {
 	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
 		if(open_mode == FILEIO_READ_BINARY) {
-			if(buffer[i] != FgetTCHAR_LE()) {
+			if(buffer[i] != FgetTchar_LE()) {
 				return false;
 			}
 		} else {
-			FputTCHAR_LE(buffer[i]);
+			FputTchar_LE(buffer[i]);
 		}
 	}
 	return true;
@@ -1115,12 +1167,21 @@ void FILEIO::StateValue(double &val)
 	}
 }
 
-void FILEIO::StateValue(_TCHAR &val)
+void FILEIO::StateValue(char &val)
 {
 	if(open_mode == FILEIO_READ_BINARY) {
-		val = FgetTCHAR_LE();
+		val = FgetInt8();
 	} else {
-		FputTCHAR_LE(val);
+		FputInt8(val);
+	}
+}
+
+void FILEIO::StateValue(wchar_t &val)
+{
+	if(open_mode == FILEIO_READ_BINARY) {
+		val = FgetWchar_LE();
+	} else {
+		FputWchar_LE(val);
 	}
 }
 
@@ -1222,7 +1283,14 @@ void FILEIO::StateArray(double *buffer, size_t size, size_t count)
 	}
 }
 
-void FILEIO::StateArray(_TCHAR *buffer, size_t size, size_t count)
+void FILEIO::StateArray(char *buffer, size_t size, size_t count)
+{
+	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
+		StateValue(buffer[i]);
+	}
+}
+
+void FILEIO::StateArray(wchar_t *buffer, size_t size, size_t count)
 {
 	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++) {
 		StateValue(buffer[i]);

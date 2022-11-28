@@ -111,8 +111,10 @@ public:
 	void FputFloat_LE(float val);
 	double FgetDouble_LE();
 	void FputDouble_LE(double val);
-	_TCHAR FgetTCHAR_LE();
-	void FputTCHAR_LE(_TCHAR val);
+	wchar_t FgetWchar_LE();
+	void FputWchar_LE(wchar_t val);
+	_TCHAR FgetTchar_LE();
+	void FputTchar_LE(_TCHAR val);
 	
 	uint16_t FgetUint16_BE();
 	void FputUint16_BE(uint16_t val);
@@ -130,8 +132,10 @@ public:
 	void FputFloat_BE(float val);
 	double FgetDouble_BE();
 	void FputDouble_BE(double val);
-	_TCHAR FgetTCHAR_BE();
-	void FputTCHAR_BE(_TCHAR val);
+	wchar_t FgetWchar_BE();
+	void FputWchar_BE(wchar_t val);
+	_TCHAR FgetTchar_BE();
+	void FputTchar_BE(_TCHAR val);
 	
 	int Fgetc();
 	int Fputc(int c);
@@ -144,6 +148,7 @@ public:
 	size_t Fwrite(const void* buffer, size_t size, size_t count);
 	int Fseek(long offset, int origin);
 	long Ftell();
+	void Fflush();
 	
 	bool StateCheckUint32(uint32_t val);
 	bool StateCheckInt32(int32_t val);
@@ -163,7 +168,8 @@ public:
 	void StateValue(pair64_t &val);
 	void StateValue(float &val);
 	void StateValue(double &val);
-	void StateValue(_TCHAR &val);
+	void StateValue(char &val);
+	void StateValue(wchar_t &val);
 	
 	void StateArray(bool *buffer, size_t size, size_t count);
 	void StateArray(uint8_t *buffer, size_t size, size_t count);
@@ -179,7 +185,8 @@ public:
 	void StateArray(pair64_t *buffer, size_t size, size_t count);
 	void StateArray(float *buffer, size_t size, size_t count);
 	void StateArray(double *buffer, size_t size, size_t count);
-	void StateArray(_TCHAR *buffer, size_t size, size_t count);
+	void StateArray(char *buffer, size_t size, size_t count);
+	void StateArray(wchar_t *buffer, size_t size, size_t count);
 	
 	// obsolete function
 	void StateBuffer(void *buffer, size_t size, size_t count);

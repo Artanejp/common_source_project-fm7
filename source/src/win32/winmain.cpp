@@ -38,6 +38,7 @@ bool status_bar_visible = false;
 
 #ifdef USE_FLOPPY_DISK
 uint32_t fd_status = 0x80000000;
+uint32_t fd_indicator_color = 0x80000000;
 #endif
 #ifdef USE_QUICK_DISK
 uint32_t qd_status = 0x80000000;
@@ -193,13 +194,6 @@ void update_socket(int ch, WPARAM wParam, LPARAM lParam)
 		emu->recv_socket_data(ch);
 		break;
 	}
-}
-#endif
-
-#ifdef USE_STATE
-const _TCHAR *state_file_path(int num)
-{
-	return create_local_path(_T("%s.sta%d"), _T(CONFIG_NAME), num);
 }
 #endif
 
@@ -730,13 +724,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_SAVE_STATE0: case ID_SAVE_STATE1: case ID_SAVE_STATE2: case ID_SAVE_STATE3: case ID_SAVE_STATE4:
 		case ID_SAVE_STATE5: case ID_SAVE_STATE6: case ID_SAVE_STATE7: case ID_SAVE_STATE8: case ID_SAVE_STATE9:
 			if(emu) {
-				emu->save_state(state_file_path(LOWORD(wParam) - ID_SAVE_STATE0));
+				emu->save_state(emu->state_file_path(LOWORD(wParam) - ID_SAVE_STATE0));
 			}
 			break;
 		case ID_LOAD_STATE0: case ID_LOAD_STATE1: case ID_LOAD_STATE2: case ID_LOAD_STATE3: case ID_LOAD_STATE4:
 		case ID_LOAD_STATE5: case ID_LOAD_STATE6: case ID_LOAD_STATE7: case ID_LOAD_STATE8: case ID_LOAD_STATE9:
 			if(emu) {
-				emu->load_state(state_file_path(LOWORD(wParam) - ID_LOAD_STATE0));
+				emu->load_state(emu->state_file_path(LOWORD(wParam) - ID_LOAD_STATE0));
 			}
 			break;
 #endif
@@ -1560,7 +1554,7 @@ void update_save_state_menu(HMENU hMenu)
 	info.dwTypeData = buf;
 	
 	for(int i = 0; i < 10; i++) {
-		if((hFile = CreateFile(state_file_path(i), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) != INVALID_HANDLE_VALUE){
+		if((hFile = CreateFile(emu->state_file_path(i), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) != INVALID_HANDLE_VALUE){
 			GetFileTime(hFile, NULL, NULL, &ftWrite);
 			FileTimeToLocalFileTime(&ftWrite, &ftLocal);
 			FileTimeToSystemTime(&ftLocal, &st);
@@ -1595,7 +1589,7 @@ void update_load_state_menu(HMENU hMenu)
 	info.dwTypeData = buf;
 	
 	for(int i = 0; i < 10; i++) {
-		if((hFile = CreateFile(state_file_path(i), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) != INVALID_HANDLE_VALUE){
+		if((hFile = CreateFile(emu->state_file_path(i), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) != INVALID_HANDLE_VALUE){
 			GetFileTime(hFile, NULL, NULL, &ftWrite);
 			FileTimeToLocalFileTime(&ftWrite, &ftLocal);
 			FileTimeToSystemTime(&ftLocal, &st);
@@ -2518,9 +2512,11 @@ bool get_status_bar_updated()
 	
 #ifdef USE_FLOPPY_DISK
 	uint32_t new_fd_status = emu->is_floppy_disk_accessed();
-	if(fd_status != new_fd_status) {
+	uint32_t new_fd_indicator_color = emu->floppy_disk_indicator_color();
+	if(fd_status != new_fd_status || fd_indicator_color != new_fd_indicator_color) {
 		updated = true;
 		fd_status = new_fd_status;
+		fd_indicator_color = new_fd_indicator_color;
 	}
 #endif
 #ifdef USE_QUICK_DISK
@@ -2581,15 +2577,16 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 	#if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_HARD_DISK) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC)
 	{
 		HDC hdcMem = CreateCompatibleDC(lpDrawItem->hDC);
-		HBITMAP hBitmap[2];
-		BITMAP bmp[2];
+		HBITMAP hBitmap[3];
+		BITMAP bmp[3];
 		hBitmap[0] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_OFF"));
 		hBitmap[1] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_ON" ));
+		hBitmap[2] = LoadBitmap(hInstance, _T("IDI_BITMAP_ACCESS_ON2"));
 		
-		if(hBitmap[0] != NULL && hBitmap[1] != NULL) {
-			GetObject(hBitmap[0], sizeof(BITMAP), &bmp[0]);
-			GetObject(hBitmap[1], sizeof(BITMAP), &bmp[1]);
-			
+		if(hBitmap[0] != NULL && hBitmap[1] != NULL && hBitmap[2] != NULL) {
+			for(int i = 0; i < 3; i++) {
+				GetObject(hBitmap[i], sizeof(BITMAP), &bmp[i]);
+			}
 			int bmp_width = bmp[0].bmWidth;
 			int bmp_height = bmp[0].bmHeight;
 			int bmp_top = (lpDrawItem->rcItem.top + lpDrawItem->rcItem.bottom) / 2 - bmp_height / 2;
@@ -2601,7 +2598,7 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				draw_left += size.cx + 4;
 				
 				for(int i = 0; i < USE_FLOPPY_DISK; i++) {
-					int idx = (fd_status >> i) & 1;
+					int idx = !((fd_status >> i) & 1) ? 0 : !((fd_indicator_color >> i) & 1) ? 1 : 2;
 					SelectObject(hdcMem, hBitmap[idx]);
 					TransparentBlt(lpDrawItem->hDC, draw_left, bmp_top, bmp_width, bmp_height, hdcMem, 0, 0, bmp_width, bmp_height, 0);
 					draw_left += bmp_width + 2;
@@ -2661,11 +2658,10 @@ void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem)
 				draw_left += 8;
 			#endif
 		}
-		if(hBitmap[0] != NULL) {
-			DeleteObject(hBitmap[0]);
-		}
-		if(hBitmap[1] != NULL) {
-			DeleteObject(hBitmap[1]);
+		for(int i = 0; i < 3; i++) {
+			if(hBitmap[i] != NULL) {
+				DeleteObject(hBitmap[i]);
+			}
 		}
 		DeleteDC(hdcMem);
 	}

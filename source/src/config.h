@@ -215,6 +215,7 @@ typedef struct {
 	
 	// win32
 	#if defined(USE_SHARED_DLL) || defined(_WIN32)
+		bool use_telnet;
 		bool use_d2d1;
 		bool use_d3d9;
 		bool wait_vsync;

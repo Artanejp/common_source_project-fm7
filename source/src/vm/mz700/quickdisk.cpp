@@ -644,7 +644,7 @@ void QUICKDISK::release_disk()
 		// save blocks as mzt file
 		FILEIO* fio = new FILEIO();
 		if(!fio->Fopen(file_path_tmp, FILEIO_WRITE_BINARY)) {
-			my_tcscpy_s(file_path_tmp, _MAX_PATH, "temporary_saved_quick_disk.mzt");
+			my_tcscpy_s(file_path_tmp, _MAX_PATH, _T("temporary_saved_quick_disk.mzt"));
 			fio->Fopen(create_local_path(file_path_tmp), FILEIO_WRITE_BINARY);
 		}
 		if(fio->IsOpened()) {

@@ -1,3 +1,20 @@
+4/5/2022
+
+[COMMON/FILEIO] improve functions for flush and wchar_t/char accessors
+[EMU/DEBUGGER] support save_state and load_state
+[EMU/WIN32] support changing access lamp of floppy drives
+[WIN32/CONSOLE] support telnet client
+[WIN32/SCREEN] fix to reinitialize Direct3D9 when device is lost
+
+[VM/Z80DMA] support enable after reti command (thanks Mr.Sato)
+[VM/Z80DMA] support interrupt on ready when WR3 is written (thanks Mr.Sato)
+
+[FX9000P] support CASIO FX-9000P
+[X1/DISPLAY] fix smooth vertical scroll
+[X1TURBO/FLOPPY] improve motor on signal for spindle-up delay
+[X1TURBO/FLOPPY] support changing access lamp of floppy drives
+
+
 12/30/2021
 
 [VM/DATAREC] support to enable/disable playing signal and voice separately

@@ -431,6 +431,7 @@
     <ClInclude Include="..\src\win32\osd.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\src\res\indicator\access_green.bmp" />
     <Image Include="..\src\res\indicator\access_off.bmp" />
     <Image Include="..\src\res\indicator\access_on.bmp" />
     <Image Include="..\src\res\x1.ico" />

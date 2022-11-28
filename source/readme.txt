@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								1/24/2021
+								4/5/2021
 
 --- What's this ?
 
@@ -17,6 +17,7 @@ This archive includes the all source codes of emulators listed below:
 	CASIO
 		eFP-200		FP-200
 		eFP-1100	FP-1100
+		eFX-9000P	FX-9000P
 		ePV-1000	PV-1000
 		EmuGaki		PV-2000
 	COLECO

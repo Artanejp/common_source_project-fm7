@@ -16,8 +16,8 @@
 #include "../disk.h"
 #endif
 
-#define EVENT_MOTOR_ON	0
-#define EVENT_MOTOR_OFF	1
+#define EVENT_SPINDLE_UP	0
+#define EVENT_MOTOR_OFF		1
 
 void FLOPPY::reset()
 {
@@ -35,7 +35,8 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 				register_id = -1;
 			}
 			if(!motor_on) {
-				register_event(this, EVENT_MOTOR_ON, 560000, false, &register_id);
+				motor_on = true;
+				register_event(this, EVENT_SPINDLE_UP, 560000, false, &register_id);
 			}
 		} else if((prev & 0x80) && !(data & 0x80)) {
 			// H -> L
@@ -43,9 +44,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 				cancel_event(this, register_id);
 				register_id = -1;
 			}
-			if(motor_on) {
-				register_event(this, EVENT_MOTOR_OFF, 1500000, false, &register_id);
-			}
+			register_event(this, EVENT_MOTOR_OFF, 1500000, false, &register_id);
 		}
 		// FIXME: drvsel is active while motor is on ???
 		d_fdc->write_signal(SIG_MB8877_DRIVEREG, data, 0x03);
@@ -92,11 +91,10 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 
 void FLOPPY::event_callback(int event_id, int err)
 {
-	if(event_id == EVENT_MOTOR_ON) {
-		d_fdc->write_signal(SIG_MB8877_MOTOR, 1, 1);
-		motor_on = true;
+	if(event_id == EVENT_SPINDLE_UP) {
+		d_fdc->write_signal(SIG_MB8877_MOTOR, 1, 1); // READY
 	} else if(event_id == EVENT_MOTOR_OFF) {
-		d_fdc->write_signal(SIG_MB8877_MOTOR, 0, 0);
+		d_fdc->write_signal(SIG_MB8877_MOTOR, 0, 0); // notREADY
 		motor_on = false;
 	}
 	register_id = -1;

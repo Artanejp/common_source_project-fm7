@@ -555,6 +555,8 @@ void DISPLAY::event_frame()
 	int vt_total = ((regs[4] & 0x7f) + 1) * ch_height + (regs[5] & 0x1f);
 	hireso = (vt_total > 400);
 	if(!hireso) vt_ofs = max(vt_ofs - 2, 0);
+#else
+	vt_ofs = max(vt_ofs - 2, 0);
 #endif
 	
 	// initialize draw screen

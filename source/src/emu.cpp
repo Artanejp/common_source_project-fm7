@@ -11,6 +11,9 @@
 #include <string>
 #endif
 #include "emu.h"
+#if defined(USE_DEBUGGER)
+#include "vm/debugger.h"
+#endif
 #include "vm/vm.h"
 #include "fifo.h"
 #include "fileio.h"
@@ -195,6 +198,37 @@ bool EMU::is_frame_skippable()
 
 int EMU::run()
 {
+#if defined(USE_DEBUGGER) && defined(USE_STATE)
+	if(request_save_state >= 0 || request_load_state >= 0) {
+		if(request_save_state >= 0) {
+			save_state(state_file_path(request_save_state));
+		} else {
+			load_state(state_file_path(request_load_state));
+		}
+		// NOTE: vm instance may be reinitialized in load_state
+		if(!is_debugger_enabled(debugger_cpu_index)) {
+			for(int i = 0; i < 8; i++) {
+				if(is_debugger_enabled(i)) {
+					debugger_cpu_index = i;
+					debugger_target_id = vm->get_cpu(debugger_cpu_index)->this_device_id;
+					break;
+				}
+			}
+		}
+		if(is_debugger_enabled(debugger_cpu_index)) {
+			if(!(vm->get_device(debugger_target_id) != NULL && vm->get_device(debugger_target_id)->get_debugger() != NULL)) {
+				debugger_target_id = vm->get_cpu(debugger_cpu_index)->this_device_id;
+			}
+			DEBUGGER *cpu_debugger = (DEBUGGER *)vm->get_cpu(debugger_cpu_index)->get_debugger();
+			cpu_debugger->now_going = false;
+			cpu_debugger->now_debugging = true;
+			debugger_thread_param.vm = vm;
+		} else {
+			close_debugger();
+		}
+		request_save_state = request_load_state = -1;
+	}
+#endif
 	if(now_suspended) {
 		osd->restore();
 		now_suspended = false;
@@ -2324,6 +2358,11 @@ uint32_t EMU::is_floppy_disk_accessed()
 {
 	return vm->is_floppy_disk_accessed();
 }
+
+uint32_t EMU::floppy_disk_indicator_color()
+{
+	return vm->floppy_disk_indicator_color();
+}
 #endif
 
 #ifdef USE_QUICK_DISK
@@ -3086,6 +3125,11 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 	osd->unlock_vm();
 	delete fio;
 	return result;
+}
+
+const _TCHAR *EMU::state_file_path(int num)
+{
+	return create_local_path(_T("%s.sta%d"), _T(CONFIG_NAME), num);
 }
 #endif
 

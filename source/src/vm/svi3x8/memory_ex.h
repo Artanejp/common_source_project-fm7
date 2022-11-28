@@ -101,8 +101,8 @@ public:
 	}
 	const _TCHAR* get_message()
 	{
-		if (play) return "Play";
-		else return "Stop";
+		if (play) return _T("Play");
+		else return _T("Stop");
 	}
 };
 

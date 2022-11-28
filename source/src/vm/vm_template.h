@@ -109,6 +109,7 @@ public:
 	virtual void close_tape(int drv) { }
 	
 	virtual uint32_t is_floppy_disk_accessed() { return 0; }
+	virtual uint32_t floppy_disk_indicator_color() { return 0; }
 	virtual uint32_t is_quick_disk_accessed() { return 0; }
 	virtual uint32_t is_hard_disk_accessed() { return 0; }
 	virtual uint32_t is_compact_disc_accessed() { return 0; }
