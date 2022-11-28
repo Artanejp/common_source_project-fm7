@@ -42,12 +42,12 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x00f0:
 		d_cpu->reset();
 		d_cpu->set_address_mask(0x000fffff);
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 		d_cpu->write_signal(SIG_CPU_BUSREQ,  data, 1);
 		d_v30->reset();
 		d_v30->write_signal(SIG_CPU_BUSREQ, ~data, 1);
 		cpu_mode = ((data & 1) != 0);
-		d_pio->write_signal(SIG_I8255_PORT_B, data, 2);
+		d_pio->write_signal(SIG_I8255_PORT_B, data << 1, 2);
 #endif
 		break;
 	case 0x00f2:
@@ -94,10 +94,7 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x10; // Unknown
 		value |= 0x08; // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 //		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
-#if defined(HAS_I86) || defined(HAS_V30)
-		value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
-#endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 		if(cpu_mode) {
 			value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
 		}

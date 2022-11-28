@@ -106,6 +106,7 @@
 //	#define PIT_CLOCK_8MHZ
 	#if defined(_PC9801VX)
 		#define USE_CPU_TYPE		4
+		#define HAS_SUB_V30
 	#else
 		#define USE_CPU_TYPE		2
 	#endif
@@ -130,6 +131,7 @@
 //	#define PIT_CLOCK_8MHZ
 	#if defined(_PC9801RA)
 		#define USE_CPU_TYPE		4
+		#define HAS_SUB_V30
 	#else
 		#define USE_CPU_TYPE		2
 	#endif
@@ -397,7 +399,7 @@ class I286;
 #else
 class I86;
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 class I86; // V30
 #endif
 class IO;
@@ -498,7 +500,7 @@ protected:
 #else
 	I86* cpu;
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	I86* v30;
 #endif
 	IO* io;

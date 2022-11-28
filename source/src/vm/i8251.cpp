@@ -60,7 +60,8 @@ void I8251::reset()
 	// dont reset dsr
 	status &= DSR;
 	status |= TXRDY | TXE;
-	txen = rxen = loopback = false;
+	txen = true;
+	rxen = loopback = false;
 	
 	recv_buffer->clear();
 	send_buffer->clear();

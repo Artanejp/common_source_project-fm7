@@ -43,7 +43,7 @@
 #else
 #include "../i86.h"
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 #include "../i86.h" // V30
 #endif
 #include "../io.h"
@@ -207,7 +207,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I386(this, emu);
 	cpu->device_model = INTEL_I486DX;
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	v30 = new I86(this, emu);
 	v30->device_model = NEC_V30;
 #endif
@@ -375,7 +375,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// set cpu device contexts
 	event->set_context_cpu(cpu, cpu_clocks);
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	event->set_context_cpu(v30, v30_clocks);
 #endif
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -504,7 +504,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	cpureg->set_context_cpu(cpu);
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	cpureg->set_context_v30(v30);
 	cpureg->set_context_pio(pio_prn);
 	cpureg->cpu_mode = (config.cpu_type == 2 || config.cpu_type == 3);
@@ -609,7 +609,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	v30->set_context_mem(memory);
 	v30->set_context_io(io);
 	v30->set_context_intr(pic);
@@ -1084,7 +1084,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if(config.cpu_type == 2 || config.cpu_type == 3) {
 		cpu->write_signal(SIG_CPU_BUSREQ,  1, 1);
 	} else {
@@ -1201,10 +1201,7 @@ void VM::reset()
 #if defined(SUPPORT_HIRESO)
 //	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hireso Mode
 #endif
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
-#endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if(config.cpu_type == 2 || config.cpu_type == 3) {
 		port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
 	}
@@ -1277,13 +1274,14 @@ void VM::reset()
 	port_b |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
 #endif
 	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
-#endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if(cpureg->cpu_mode) {
 		port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
 	}
+#elif defined(HAS_V30) || defined(HAS_V33)
+	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
+#endif
 #endif
 #if defined(_PC9801VF) || defined(_PC9801U)
 	port_b |= 0x01; // VF, 1 = PC-9801VF/U
@@ -1364,10 +1362,18 @@ DEVICE *VM::get_cpu(int index)
 	}
 #else
 	if(index == 0) {
+#if defined(HAS_SUB_V30)
+		if(cpureg->cpu_mode) {
+			return NULL;
+		}
+#endif
 		return cpu;
 	} else if(index == 1) {
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
-		return v30;
+#if defined(HAS_SUB_V30)
+		if(cpureg->cpu_mode) {
+			return v30;
+		}
+		return NULL;
 #elif defined(SUPPORT_320KB_FDD_IF)
 		return cpu_sub;
 #endif
