@@ -1,3 +1,14 @@
+4/9/2022
+
+[COMMON] avoid C5208 and C26495 warnings on VC++2019 (thanks Mr.Meister)
+[EMU/DEBUGGER] support mount and unmount image files
+
+[PC8801MA] support changing access lamp of floppy drives
+[SMC777/MEMORY] improve screen renderer for scrolling
+[SMC777/MEMORY] improve joystick port not to keep trigger#2 pressed
+[SMC777/MEMORY] improve for key releasingg
+
+
 4/5/2022
 
 [COMMON/FILEIO] improve functions for flush and wchar_t/char accessors

@@ -251,13 +251,12 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::key_down(int code, bool repeat)
 {
 	if(!repeat) {
-		memory->key_down_up(code, true);
+		memory->key_down(code);
 	}
 }
 
 void VM::key_up(int code)
 {
-	memory->key_down_up(code, false);
 }
 
 bool VM::get_caps_locked()

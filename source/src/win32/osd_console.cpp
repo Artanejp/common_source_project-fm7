@@ -365,7 +365,7 @@ void OSD::open_telnet(const _TCHAR* title)
 void OSD::close_telnet()
 {
 	if(svr_socket != INVALID_SOCKET) {
-		shutdown(svr_socket , /*SD_BOTH*/2);
+		shutdown(svr_socket, /*SD_BOTH*/2);
 		closesocket(svr_socket);
 		svr_socket = cli_socket = INVALID_SOCKET;
 	}

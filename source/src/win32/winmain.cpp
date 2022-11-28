@@ -70,10 +70,8 @@ void open_recent_cart(int drv, int index);
 #ifdef USE_FLOPPY_DISK
 void open_floppy_disk_dialog(HWND hWnd, int drv);
 void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type);
-void open_floppy_disk(int drv, const _TCHAR* path, int bank);
 void open_recent_floppy_disk(int drv, int index);
 void select_d88_bank(int drv, int index);
-void close_floppy_disk(int drv);
 #endif
 #ifdef USE_QUICK_DISK
 void open_quick_disk_dialog(HWND hWnd, int drv);
@@ -1109,7 +1107,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break; \
 		case ID_CLOSE_FD: \
 			if(emu) { \
-				close_floppy_disk(drv); \
+				emu->close_floppy_disk(drv); \
 			} \
 			break; \
 		case ID_OPEN_BLANK_2D_FD: \
@@ -2758,7 +2756,12 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_floppy_disk_path[drv]);
 		my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
-		open_floppy_disk(drv, path, 0);
+		emu->open_floppy_disk(drv, path, 0);
+#if USE_FLOPPY_DISK >= 2
+		if((drv & 1) == 0 && drv + 1 < USE_FLOPPY_DISK && emu->d88_file[drv].bank_num > 1) {
+			emu->open_floppy_disk(drv + 1, path, 1);
+		}
+#endif
 	}
 }
 
@@ -2778,52 +2781,9 @@ void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type)
 		if(emu->create_blank_floppy_disk(path, type)) {
 			UPDATE_HISTORY(path, config.recent_floppy_disk_path[drv]);
 			my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
-			open_floppy_disk(drv, path, 0);
+			emu->open_floppy_disk(drv, path, 0);
 		}
 	}
-}
-
-void open_floppy_disk(int drv, const _TCHAR* path, int bank)
-{
-	emu->d88_file[drv].bank_num = 0;
-	emu->d88_file[drv].cur_bank = -1;
-	
-	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77")) || check_file_extension(path, _T(".1dd"))) {
-		FILEIO *fio = new FILEIO();
-		if(fio->Fopen(path, FILEIO_READ_BINARY)) {
-			try {
-				fio->Fseek(0, FILEIO_SEEK_END);
-				uint32_t file_size = fio->Ftell(), file_offset = 0;
-				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
-					fio->Fseek(file_offset, FILEIO_SEEK_SET);
-#ifdef _UNICODE
-					char tmp[18];
-					fio->Fread(tmp, 17, 1);
-					tmp[17] = 0;
-					MultiByteToWideChar(CP_ACP, 0, tmp, -1, emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], 18);
-#else
-					fio->Fread(emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], 17, 1);
-					emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num][17] = 0;
-#endif
-					fio->Fseek(file_offset + 0x1c, SEEK_SET);
-					file_offset += fio->FgetUint32_LE();
-					emu->d88_file[drv].bank_num++;
-				}
-				my_tcscpy_s(emu->d88_file[drv].path, _MAX_PATH, path);
-				emu->d88_file[drv].cur_bank = bank;
-			} catch(...) {
-				emu->d88_file[drv].bank_num = 0;
-			}
-			fio->Fclose();
-		}
-		delete fio;
-	}
-	emu->open_floppy_disk(drv, path, bank);
-#if USE_FLOPPY_DISK >= 2
-	if((drv & 1) == 0 && drv + 1 < USE_FLOPPY_DISK && bank + 1 < emu->d88_file[drv].bank_num) {
-		open_floppy_disk(drv + 1, path, bank + 1);
-	}
-#endif
 }
 
 void open_recent_floppy_disk(int drv, int index)
@@ -2834,23 +2794,19 @@ void open_recent_floppy_disk(int drv, int index)
 		my_tcscpy_s(config.recent_floppy_disk_path[drv][i], _MAX_PATH, config.recent_floppy_disk_path[drv][i - 1]);
 	}
 	my_tcscpy_s(config.recent_floppy_disk_path[drv][0], _MAX_PATH, path);
-	open_floppy_disk(drv, path, 0);
+	emu->open_floppy_disk(drv, path, 0);
+#if USE_FLOPPY_DISK >= 2
+	if((drv & 1) == 0 && drv + 1 < USE_FLOPPY_DISK && emu->d88_file[drv].bank_num > 1) {
+		emu->open_floppy_disk(drv + 1, path, 1);
+	}
+#endif
 }
 
 void select_d88_bank(int drv, int index)
 {
 	if(emu->d88_file[drv].cur_bank != index) {
 		emu->open_floppy_disk(drv, emu->d88_file[drv].path, index);
-		emu->d88_file[drv].cur_bank = index;
 	}
-}
-
-void close_floppy_disk(int drv)
-{
-	emu->close_floppy_disk(drv);
-	emu->d88_file[drv].bank_num = 0;
-	emu->d88_file[drv].cur_bank = -1;
-
 }
 #endif
 
@@ -3174,7 +3130,12 @@ void open_any_file(const _TCHAR* path)
 	   check_file_extension(path, _T(".vfd"))) {
 		UPDATE_HISTORY(path, config.recent_floppy_disk_path[0]);
 		my_tcscpy_s(config.initial_floppy_disk_dir, _MAX_PATH, get_parent_dir(path));
-		open_floppy_disk(0, path, 0);
+		emu->open_floppy_disk(0, path, 0);
+#if USE_FLOPPY_DISK >= 2
+		if(emu->d88_file[0].bank_num > 1) {
+			emu->open_floppy_disk(1, path, 1);
+		}
+#endif
 		return;
 	}
 #endif

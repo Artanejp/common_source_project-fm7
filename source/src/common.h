@@ -270,7 +270,7 @@
 	#endif
 #endif
 
-typedef union {
+typedef union pair16_u {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h, l;
@@ -351,7 +351,7 @@ typedef union {
 	}
 } pair16_t;
 
-typedef union {
+typedef union pair32_u {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h3, h2, h, l;
@@ -508,7 +508,7 @@ typedef union {
 	}
 } pair32_t;
 
-typedef union {
+typedef union pair64_u {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h7, h6, h5, h4, h3, h2, h, l;
@@ -1074,6 +1074,7 @@ typedef DLL_PREFIX struct cur_time_s {
 	bool initialized;
 	cur_time_s()
 	{
+		year = month = day = day_of_week = hour = minute = second = 0;
 		initialized = false;
 	}
 	void increment();

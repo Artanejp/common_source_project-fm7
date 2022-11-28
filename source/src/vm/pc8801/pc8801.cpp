@@ -910,6 +910,12 @@ uint32_t VM::is_floppy_disk_accessed()
 	return status;
 }
 
+uint32_t VM::floppy_disk_indicator_color()
+{
+	return ((pc88fdc_sub->get_drive_type(0) == DRIVE_TYPE_2HD) ? 1 : 0) |
+	       ((pc88fdc_sub->get_drive_type(1) == DRIVE_TYPE_2HD) ? 2 : 0);
+}
+
 UPD765A *VM::get_floppy_disk_controller(int drv)
 {
 	if(drv == 0 || drv == 1) {

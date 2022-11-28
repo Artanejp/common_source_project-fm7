@@ -2285,6 +2285,39 @@ bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < USE_FLOPPY_DISK) {
+		d88_file[drv].bank_num = 0;
+		d88_file[drv].cur_bank = -1;
+		
+		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
+			FILEIO *fio = new FILEIO();
+			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+				try {
+					fio->Fseek(0, FILEIO_SEEK_END);
+					uint32_t file_size = fio->Ftell(), file_offset = 0;
+					while(file_offset + 0x2b0 <= file_size && d88_file[drv].bank_num < MAX_D88_BANKS) {
+						fio->Fseek(file_offset, FILEIO_SEEK_SET);
+#ifdef _UNICODE
+						char tmp[18];
+						fio->Fread(tmp, 17, 1);
+						tmp[17] = 0;
+						MultiByteToWideChar(CP_ACP, 0, tmp, -1, d88_file[drv].disk_name[d88_file[drv].bank_num], 18);
+#else
+						fio->Fread(d88_file[drv].disk_name[d88_file[drv].bank_num], 17, 1);
+						d88_file[drv].disk_name[d88_file[drv].bank_num][17] = 0;
+#endif
+						fio->Fseek(file_offset + 0x1c, SEEK_SET);
+						file_offset += fio->FgetUint32_LE();
+						d88_file[drv].bank_num++;
+					}
+					my_tcscpy_s(d88_file[drv].path, _MAX_PATH, file_path);
+					d88_file[drv].cur_bank = bank;
+				} catch(...) {
+					d88_file[drv].bank_num = 0;
+				}
+				fio->Fclose();
+			}
+			delete fio;
+		}
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
@@ -2310,6 +2343,9 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 void EMU::close_floppy_disk(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
+		d88_file[drv].bank_num = 0;
+		d88_file[drv].cur_bank = -1;
+		
 		vm->close_floppy_disk(drv);
 		clear_media_status(&floppy_disk_status[drv]);
 #if USE_FLOPPY_DISK > 1
@@ -2723,40 +2759,48 @@ void EMU::push_apss_rewind(int drv)
 #ifdef USE_COMPACT_DISC
 void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 {
-	if(vm->is_compact_disc_inserted(drv)) {
+	if(drv < USE_COMPACT_DISC) {
+		if(vm->is_compact_disc_inserted(drv)) {
+			vm->close_compact_disc(drv);
+			// wait 0.5sec
+			compact_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+#if USE_COMPACT_DISC > 1
+			out_message(_T("CD%d: Ejected"), drv + BASE_COMPACT_DISC_NUM);
+#else
+			out_message(_T("CD: Ejected"));
+#endif
+		} else if(compact_disc_status[drv].wait_count == 0) {
+			vm->open_compact_disc(drv, file_path);
+#if USE_COMPACT_DISC > 1
+			out_message(_T("CD%d: %s"), drv + BASE_COMPACT_DISC_NUM, file_path);
+#else
+			out_message(_T("CD: %s"), file_path);
+#endif
+		}
+		my_tcscpy_s(compact_disc_status[drv].path, _MAX_PATH, file_path);
+	}
+}
+
+void EMU::close_compact_disc(int drv)
+{
+	if(drv < USE_COMPACT_DISC) {
 		vm->close_compact_disc(drv);
-		// wait 0.5sec
-		compact_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+		clear_media_status(&compact_disc_status[drv]);
 #if USE_COMPACT_DISC > 1
 		out_message(_T("CD%d: Ejected"), drv + BASE_COMPACT_DISC_NUM);
 #else
 		out_message(_T("CD: Ejected"));
 #endif
-	} else if(compact_disc_status[drv].wait_count == 0) {
-		vm->open_compact_disc(drv, file_path);
-#if USE_COMPACT_DISC > 1
-		out_message(_T("CD%d: %s"), drv + BASE_COMPACT_DISC_NUM, file_path);
-#else
-		out_message(_T("CD: %s"), file_path);
-#endif
 	}
-	my_tcscpy_s(compact_disc_status[drv].path, _MAX_PATH, file_path);
-}
-
-void EMU::close_compact_disc(int drv)
-{
-	vm->close_compact_disc(drv);
-	clear_media_status(&compact_disc_status[drv]);
-#if USE_COMPACT_DISC > 1
-	out_message(_T("CD%d: Ejected"), drv + BASE_COMPACT_DISC_NUM);
-#else
-	out_message(_T("CD: Ejected"));
-#endif
 }
 
 bool EMU::is_compact_disc_inserted(int drv)
 {
-	return vm->is_compact_disc_inserted(drv);
+	if(drv < USE_COMPACT_DISC) {
+		return vm->is_compact_disc_inserted(drv);
+	} else {
+		return false;
+	}
 }
 
 uint32_t EMU::is_compact_disc_accessed()
@@ -2768,40 +2812,48 @@ uint32_t EMU::is_compact_disc_accessed()
 #ifdef USE_LASER_DISC
 void EMU::open_laser_disc(int drv, const _TCHAR* file_path)
 {
-	if(vm->is_laser_disc_inserted(drv)) {
+	if(drv < USE_LASER_DISC) {
+		if(vm->is_laser_disc_inserted(drv)) {
+			vm->close_laser_disc(drv);
+			// wait 0.5sec
+			laser_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+#if USE_LASER_DISC > 1
+			out_message(_T("LD%d: Ejected"), drv + BASE_LASER_DISC_NUM);
+#else
+			out_message(_T("LD: Ejected"));
+#endif
+		} else if(laser_disc_status[drv].wait_count == 0) {
+			vm->open_laser_disc(drv, file_path);
+#if USE_LASER_DISC > 1
+			out_message(_T("LD%d: %s"), drv + BASE_LASER_DISC_NUM, file_path);
+#else
+			out_message(_T("LD: %s"), file_path);
+#endif
+		}
+		my_tcscpy_s(laser_disc_status[drv].path, _MAX_PATH, file_path);
+	}
+}
+
+void EMU::close_laser_disc(int drv)
+{
+	if(drv < USE_LASER_DISC) {
 		vm->close_laser_disc(drv);
-		// wait 0.5sec
-		laser_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+		clear_media_status(&laser_disc_status[drv]);
 #if USE_LASER_DISC > 1
 		out_message(_T("LD%d: Ejected"), drv + BASE_LASER_DISC_NUM);
 #else
 		out_message(_T("LD: Ejected"));
 #endif
-	} else if(laser_disc_status[drv].wait_count == 0) {
-		vm->open_laser_disc(drv, file_path);
-#if USE_LASER_DISC > 1
-		out_message(_T("LD%d: %s"), drv + BASE_LASER_DISC_NUM, file_path);
-#else
-		out_message(_T("LD: %s"), file_path);
-#endif
 	}
-	my_tcscpy_s(laser_disc_status[drv].path, _MAX_PATH, file_path);
-}
-
-void EMU::close_laser_disc(int drv)
-{
-	vm->close_laser_disc(drv);
-	clear_media_status(&laser_disc_status[drv]);
-#if USE_LASER_DISC > 1
-	out_message(_T("LD%d: Ejected"), drv + BASE_LASER_DISC_NUM);
-#else
-	out_message(_T("LD: Ejected"));
-#endif
 }
 
 bool EMU::is_laser_disc_inserted(int drv)
 {
-	return vm->is_laser_disc_inserted(drv);
+	if(drv < USE_LASER_DISC) {
+		return vm->is_laser_disc_inserted(drv);
+	} else {
+		return false;
+	}
 }
 
 uint32_t EMU::is_laser_disc_accessed()

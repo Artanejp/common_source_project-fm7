@@ -38,77 +38,6 @@
 	} \
 }
 
-static const uint8_t keytable_base[68][6] = {
-	{0x70, 0x01, 0x15, 0x1a, 0x01, 0x15},	// F1
-	{0x71, 0x02, 0x18, 0x10, 0x02, 0x18},	// F2
-	{0x72, 0x04, 0x12, 0x13, 0x04, 0x12},	// F3
-	{0x73, 0x06, 0x05, 0x07, 0x06, 0x05},	// F4
-	{0x74, 0x0b, 0x03, 0x0c, 0x0b, 0x03},	// F5
-	{0x23, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e},	// CLR -> END
-	{0x2e, 0x11, 0x11, 0x11, 0x11, 0x11},	// DEL
-	{0x2d, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f},	// INS
-	{0x24, 0x14, 0x14, 0x14, 0x14, 0x14},	// HOME
-	{0x25, 0x16, 0x16, 0x16, 0x16, 0x16},	// LEFT
-	{0x26, 0x17, 0x17, 0x17, 0x17, 0x17},	// UP
-	{0x28, 0x1c, 0x1c, 0x1c, 0x1c, 0x1c},	// DOWN
-	{0x27, 0x19, 0x19, 0x19, 0x19, 0x19},	// RIGHT
-	{0x1b, 0x1b, 0x1b, 0x1b, 0x1b, 0x1b},	// ESC
-	{0x31, 0x31, 0x21, 0x00, 0xb1, 0xa7},	// '1'
-	{0x32, 0x32, 0x40, 0x00, 0xb2, 0xa8},	// '2'
-	{0x33, 0x33, 0x23, 0x00, 0xb3, 0xa9},	// '3'
-	{0x34, 0x34, 0x24, 0x00, 0xb4, 0xaa},	// '4'
-	{0x35, 0x35, 0x25, 0x00, 0xb5, 0xab},	// '5'
-	{0x36, 0x36, 0x5e, 0x00, 0xc5, 0xc5},	// '6'
-	{0x37, 0x37, 0x26, 0x00, 0xc6, 0xc6},	// '7'
-	{0x38, 0x38, 0x2a, 0x00, 0xc7, 0xc7},	// '8'
-	{0x39, 0x39, 0x28, 0x00, 0xc8, 0xc8},	// '9'
-	{0x30, 0x30, 0x29, 0x00, 0xc9, 0xc9},	// '0'
-	{0xbd, 0x2d, 0x5f, 0x00, 0xd7, 0xd7},	// '-'
-	{0xde, 0x3d, 0x2b, 0x00, 0xd8, 0xd8},	// '='
-	{0xdc, 0x7f, 0x7f, 0x7f, 0xd9, 0xd9},	// RUB OUT -> '\'
-	{0x08, 0x08, 0x08, 0x08, 0x08, 0x08},	// BS
-	{0x51, 0x71, 0x51, 0x11, 0xb6, 0xb6},	// 'Q'
-	{0x57, 0x77, 0x57, 0x17, 0xb7, 0xb7},	// 'W'
-	{0x45, 0x65, 0x45, 0x05, 0xb8, 0xb8},	// 'E'
-	{0x52, 0x72, 0x52, 0x12, 0xb9, 0xb9},	// 'R'
-	{0x54, 0x74, 0x54, 0x14, 0xba, 0xba},	// 'T'
-	{0x59, 0x79, 0x59, 0x19, 0xca, 0xca},	// 'Y'
-	{0x55, 0x75, 0x55, 0x15, 0xcb, 0xcb},	// 'U'
-	{0x49, 0x69, 0x49, 0x09, 0xcc, 0xcc},	// 'I'
-	{0x4f, 0x6f, 0x4f, 0x0f, 0xcd, 0xcd},	// 'O'
-	{0x50, 0x70, 0x50, 0x10, 0xce, 0xce},	// 'P'
-	{0xc0, 0x5b, 0x7b, 0x1b, 0xda, 0xda},	// '['
-	{0xdb, 0x5d, 0x7d, 0x1d, 0xdb, 0xb0},	// ']'
-	{0x7b, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a},	// LF -> F12
-	{0x41, 0x61, 0x41, 0x01, 0xbb, 0xbb},	// 'A'
-	{0x53, 0x73, 0x53, 0x13, 0xbc, 0xbc},	// 'S'
-	{0x44, 0x64, 0x44, 0x04, 0xbd, 0xbd},	// 'D'
-	{0x46, 0x66, 0x46, 0x06, 0xbe, 0xbe},	// 'F'
-	{0x47, 0x67, 0x47, 0x07, 0xbf, 0xbf},	// 'G'
-	{0x48, 0x68, 0x48, 0x08, 0xcf, 0xcf},	// 'H'
-	{0x4a, 0x6a, 0x4a, 0x0a, 0xd0, 0xd0},	// 'J'
-	{0x4b, 0x6b, 0x4b, 0x0b, 0xd1, 0xd1},	// 'K'
-	{0x4c, 0x6c, 0x4c, 0x0c, 0xd2, 0xd2},	// 'L'
-	{0xbb, 0x3b, 0x3a, 0x00, 0xd3, 0xd3},	// ';'
-	{0xba, 0x27, 0x22, 0x00, 0xde, 0xa2},	// ','
-	{0xdd, 0x60, 0x7e, 0x00, 0xdf, 0xa3},	// '`'
-	{0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d},	// RETURN
-	{0x5a, 0x7a, 0x5a, 0x1a, 0xc0, 0xc0},	// 'Z'
-	{0x58, 0x78, 0x58, 0x18, 0xc1, 0xc1},	// 'X'
-	{0x43, 0x63, 0x43, 0x03, 0xc2, 0xaf},	// 'C'
-	{0x56, 0x76, 0x56, 0x16, 0xc3, 0xc3},	// 'V'
-	{0x42, 0x62, 0x42, 0x02, 0xc4, 0xc4},	// 'B'
-	{0x4e, 0x6e, 0x4e, 0x0e, 0xd4, 0xac},	// 'N'
-	{0x4d, 0x6d, 0x4d, 0x0d, 0xd5, 0xad},	// 'M'
-	{0xbc, 0x2c, 0x3c, 0x00, 0xd6, 0xae},	// ','
-	{0xbe, 0x2e, 0x3e, 0x1e, 0xdc, 0xa4},	// '.'
-	{0xbf, 0x2f, 0x3f, 0x1f, 0xa6, 0xa1},	// '/'
-	{0xe2, 0x5c, 0x7c, 0x1c, 0xdd, 0xa5},	// '\'
-	{0x09, 0x09, 0x09, 0x09, 0x09, 0x09},	// TAB
-	{0x20, 0x20, 0x20, 0x20, 0x20, 0x20},	// SPACE
-	{0x7a, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d}	// H -> F11
-};
-
 void MEMORY::initialize()
 {
 	// initialize memory
@@ -194,6 +123,7 @@ void MEMORY::reset()
 	
 	key_code = key_status = key_cmd = 0;
 	key_repeat_event = -1;
+	funckey_code = funckey_index = -1;
 	
 	gcw = 0x80;
 	vsync = disp = blink = false;
@@ -207,20 +137,7 @@ void MEMORY::reset()
 
 void MEMORY::initialize_key()
 {
-	memset(keytable, 0, sizeof(keytable));
-	memset(keytable_shift, 0, sizeof(keytable_shift));
-	memset(keytable_ctrl, 0, sizeof(keytable_ctrl));
-	memset(keytable_kana, 0, sizeof(keytable_kana));
-	memset(keytable_kana_shift, 0, sizeof(keytable_kana_shift));
-	
-	for(int i = 0; i < 68; i++) {
-		uint8_t code = keytable_base[i][0];
-		keytable[code] = keytable_base[i][1];
-		keytable_shift[code] = keytable_base[i][2];
-		keytable_ctrl[code] = keytable_base[i][3];
-		keytable_kana[code] = keytable_base[i][4];
-		keytable_kana_shift[code] = keytable_base[i][5];
-	}
+	memcpy(key_table, key_table_base, sizeof(key_table));
 	key_repeat_start = 1000;
 	key_repeat_interval = 100;
 }
@@ -290,13 +207,21 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 				int index = funckey_index++;
 				if(index == 0) {
 					// key code
-					keytable[funckey_code] = keytable_kana[funckey_code] = data;
+					if(funckey_code != -1) {
+						key_table[funckey_code].code = 
+						key_table[funckey_code].code_kana = data;
+					}
 				} else if(index == 1) {
 					// key  code with shift key
-					keytable_shift[funckey_code] = keytable_kana_shift[funckey_code] = data;
+					if(funckey_code != -1) {
+						key_table[funckey_code].code_shift = 
+						key_table[funckey_code].code_kana_shift = data;
+					}
 				} else if(index == 2) {
 					// key code with ctrl key
-					keytable_ctrl[funckey_code] = data;
+					if(funckey_code != -1) {
+						key_table[funckey_code].code_ctrl = data;
+					}
 				} else {
 					key_cmd = -1;
 				}
@@ -309,6 +234,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 				// bit0: IEF		1 = enable keyboard irq
 				if(data & 0x80) {
 					// clear keyboard irq
+					key_status &= ~1;
 				}
 				if(data & 0x10) {
 					// go to setting mode
@@ -338,13 +264,13 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 					// bit5: ~R/W
 					// bit0-3: key address flag
 					switch(data & 0x0f) {
-					case 1:  funckey_code = 0x70; break; // F1
-					case 2:  funckey_code = 0x71; break; // F2
-					case 3:  funckey_code = 0x72; break; // F3
-					case 4:  funckey_code = 0x73; break; // F4
-					case 5:  funckey_code = 0x74; break; // F5
-					case 6:  funckey_code = 0x7a; break; // H -> F11
-					default: funckey_code = 0x00; break;
+					case 1:  funckey_code =  0; break; // F1
+					case 2:  funckey_code =  1; break; // F2
+					case 3:  funckey_code =  2; break; // F3
+					case 4:  funckey_code =  3; break; // F4
+					case 5:  funckey_code =  4; break; // F5
+					case 6:  funckey_code =  5; break; // H -> F11
+					default: funckey_code = -1; break;
 					}
 					funckey_index = 0;
 					break;
@@ -508,16 +434,23 @@ uint32_t MEMORY::read_io8_debug(uint32_t addr)
 				int index = funckey_index++;
 				if(index == 0) {
 					// key code
-					return keytable[funckey_code];
+					if(funckey_code != -1) {
+						return key_table[funckey_code].code;
+					}
 				} else if(index == 1) {
 					// key  code with shift key
-					return keytable_shift[funckey_code];
+					if(funckey_code != -1) {
+						return key_table[funckey_code].code_shift;
+					}
 				} else if(index == 2) {
-					// key  code with ctrl key
-					return keytable_ctrl[funckey_code];
+					// key code with ctrl key
+					if(funckey_code != -1) {
+						return key_table[funckey_code].code_ctrl;
+					}
 				} else {
 					key_cmd = -1;
 				}
+				return 0;
 			}
 			break;
 		case 0x1b: // 8041 key encoder status
@@ -591,22 +524,13 @@ uint32_t MEMORY::read_io8_debug(uint32_t addr)
 			// addr bit8:		0 = joystick #2, 1 = joystick #1
 			// bit7: ~BL		0 = h/v blanking, 1 = not blanking
 			// bit6: ~CS		0 = joystick #2 is enabled
-			// bit4: ~T		0 = joystick trigger on
+			// bit5: ~USER		0 = joystick trigger2 on (only joystick #2)
+			// bit4: ~T		0 = joystick trigger1 on
 			// bit3: ~R		0 = joystick right on
 			// bit2: ~L		0 = joystick left on
 			// bit1: ~B		0 = joystick back on
 			// bit0: ~F		0 = joystick forward on
-			{
-				uint32_t stat = joy_stat[(addr & 0x100) ? 0 : 1];
-				if(addr & 0x100) {
-					if(key_stat[0x26]) stat |= 0x01; // up
-					if(key_stat[0x28]) stat |= 0x02; // down
-					if(key_stat[0x25]) stat |= 0x04; // left
-					if(key_stat[0x27]) stat |= 0x08; // right
-					if(key_stat[0x20]) stat |= 0x10; // space
-				}
-				return (~stat & 0x1f) | (disp ? 0x80 : 0);
-			}
+			return ((~joy_stat[(addr & 0x100) ? 0 : 1]) & ((addr & 0x100) ? 0x1f : 0x3f)) | (disp ? 0x80 : 0);
 #endif
 		case 0x7e: // KANJI ROM data
 			// addr bit8-12: l/r and raster
@@ -654,77 +578,65 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void MEMORY::key_down_up(int code, bool down)
+void MEMORY::key_down(int code)
 {
-	if(code == 0x14 && down) {
+	if(code == 0x14) {
 		caps = !caps;
-		return;
-	} else if(code == 0x15 && down) {
+	} else if(code == 0x15) {
 		kana = !kana;
-		return;
 	}
+}
+
+void MEMORY::update_key()
+{
 	bool shift = (key_stat[0x10] != 0);
 	bool ctrl = (key_stat[0x11] != 0);
 	bool kana_tmp = kana;
+	uint8_t code = 0;
 	
-	if(code >= 0x60 && code <= 0x69) { // numpad 0-9
-		code = code - 0x60 + 0x30;
-		shift = ctrl = kana_tmp = false;
-	} else if(code == 0x6a) { // numpad *
-		code = 0x38;
-		shift = true; ctrl = kana_tmp = false;
-	} else if(code == 0x6b) { // numpad +
-		code = 0xde;
-		shift = true; ctrl = kana_tmp = false;
-	} else if(code == 0x6c) { // numpad ,
-		code = 0xbc;
-		shift = ctrl = kana_tmp = false;
-	} else if(code == 0x6d) { // numpad -
-		code = 0xbd;
-		shift = ctrl = kana_tmp = false;
-	} else if(code == 0x6e) { // numpad .
-		code = 0xbe;
-		shift = ctrl = kana_tmp = false;
-	} else if(code == 0x6f) { // numpad /
-		code = 0xbf;
-		shift = ctrl = kana_tmp = false;
-	} else if(code >= 0x75 && code <= 0x79) { // F6-F10 -> Shift + F1-F5
-		code = code - 0x75 + 0x70;
-		shift = true;
-	}
-	if(ctrl) {
-		code = keytable_ctrl[code];
-	} else if(kana_tmp && shift) {
-		code = keytable_kana_shift[code];
-	} else if(kana_tmp) {
-		code = keytable_kana[code];
-	} else if(shift) {
-		code = keytable_shift[code];
-	} else {
-		code = keytable[code];
+	for(int i = 0; i < array_length(key_table); i++) {
+		if(key_stat[key_table[i].vk]) {
+			if(key_table[i].flag == 0) {
+				shift = ctrl = kana_tmp = false;
+			} else if(key_table[i].flag == 1) {
+				shift = true;
+				ctrl = kana_tmp = false;
+			}
+			if(ctrl) {
+				code = key_table[i].code_ctrl;
+			} else if(kana_tmp && shift) {
+				code = key_table[i].code_kana_shift;
+			} else if(kana_tmp) {
+				code = key_table[i].code_kana;
+			} else if(shift) {
+				code = key_table[i].code_shift;
+			} else {
+				code = key_table[i].code;
+			}
+			if(caps && ((code >= 'a' && code <= 'z') || (code >= 'A' && code <= 'Z'))) {
+				code ^= 0x20;
+			}
+			break;
+		}
 	}
 	if(code != 0) {
-		if(caps && ((code >= 'a' && code <= 'z') || (code >= 'A' && code <= 'Z'))) {
-			code ^= 0x20;
-		}
-		if(down && key_code != code) {
+		if(!(key_status & 4) || key_code != code) {
 			if(ief_key) {
 				d_cpu->write_signal(SIG_CPU_IRQ, IRQ_BIT_KEYIN, IRQ_BIT_KEYIN);
 			}
 			if(key_repeat_event != -1) {
 				cancel_event(this, key_repeat_event);
 			}
-			key_code = code;
-			key_status = ctrl ? 0x85 : shift ? 0x45 : 5;
 			register_event(this, EVENT_KEY_REPEAT, key_repeat_start * 1000, false, &key_repeat_event);
-		} else if(!down && key_code == code) {
-			if(key_repeat_event != -1) {
-				cancel_event(this, key_repeat_event);
-				key_repeat_event = -1;
-			}
-			key_code = 0;
-			key_status &= ~4;
+			key_code = code;
+			key_status = (ctrl ? 0x80 : shift ? 0x40 : 0) | 5;
 		}
+	} else {
+		if(key_repeat_event != -1) {
+			cancel_event(this, key_repeat_event);
+			key_repeat_event = -1;
+		}
+		key_status &= ~4;
 	}
 }
 
@@ -744,6 +656,7 @@ void MEMORY::event_callback(int event_id, int err)
 void MEMORY::event_frame()
 {
 	cblink = (cblink + 1) & 0x1f;
+	update_key();
 }
 
 void MEMORY::event_vline(int v, int clock)
@@ -1005,13 +918,13 @@ void MEMORY::draw_graph_640x400(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 160 * y;
+	src += 80 * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
 //			for(int l = 0; l < ht; l++) {
-				uint8_t pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
-				uint8_t pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
+				uint8_t pat0 = gram[((src * 2 + 0) & 0xfff) + 0x1000 * (l & 7)];
+				uint8_t pat1 = gram[((src * 2 + 1) & 0xfff) + 0x1000 * (l & 7)];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
@@ -1036,7 +949,7 @@ void MEMORY::draw_graph_640x400(int v)
 				d1[6] = (pat1 >> 1) & 1;
 				d1[7] = (pat1     ) & 1;
 //			}
-			src += 2;
+			src++;
 		}
 //	}
 }
@@ -1054,13 +967,13 @@ void MEMORY::draw_graph_640x200(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 160 * y;
+	src += 80 * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
 //			for(int l = 0; l < ht; l++) {
-				uint8_t pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
-				uint8_t pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
+				uint8_t pat0 = gram[((src * 2 + 0) & 0xfff) + 0x1000 * (l & 7)];
+				uint8_t pat1 = gram[((src * 2 + 1) & 0xfff) + 0x1000 * (l & 7)];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
@@ -1075,7 +988,7 @@ void MEMORY::draw_graph_640x200(int v)
 				d[6] = color_ptr[(pat1 >> 2) & 3];
 				d[7] = color_ptr[(pat1     ) & 3];
 //			}
-			src += 2;
+			src++;
 		}
 //	}
 }
@@ -1090,13 +1003,13 @@ void MEMORY::draw_graph_320x200(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 160 * y;
+	src += 80 * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
 //			for(int l = 0; l < ht; l++) {
-				uint8_t pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
-				uint8_t pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
+				uint8_t pat0 = gram[((src * 2 + 0) & 0xfff) + 0x1000 * (l & 7)];
+				uint8_t pat1 = gram[((src * 2 + 1) & 0xfff) + 0x1000 * (l & 7)];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
@@ -1107,7 +1020,7 @@ void MEMORY::draw_graph_320x200(int v)
 				d[4] = d[5] = pat1 >> 4;
 				d[6] = d[7] = pat1 & 15;
 //			}
-			src += 2;
+			src++;
 		}
 //	}
 }
@@ -1122,17 +1035,15 @@ void MEMORY::draw_graph_160x100(int v)
 	int ht = 8;// (crtc_regs[9] & 0x1f) + 1;
 	uint16_t src = (crtc_regs[12] << 8) | crtc_regs[13];
 	
-	src += 0x1000 * ((gcw >> 1) & 1) + (gcw & 1);
-	
 	int y = v / ht;
-	int l = v % ht;
+	int l = v % ht + ((gcw >> 1) & 1);
 	
-	src += 160 * y;
+	src += 80 * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
 //			for(int l = 0; l < ht; l += 2) {
-				uint8_t pat = gram[(src + 0x1000 * l) & 0x7fff];
+				uint8_t pat = gram[((src * 2 + (gcw & 1)) & 0xfff) + 0x1000 * (l & 7)];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
@@ -1144,12 +1055,12 @@ void MEMORY::draw_graph_160x100(int v)
 				d0[4] = d0[5] = d0[6] = d0[7] = 
 				d1[4] = d1[5] = d1[6] = d1[7] = pat & 15;
 //			}
-			src += 2;
+			src++;
 		}
 //	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1167,11 +1078,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(rom_selected);
 	state_fio->StateValue(rom_switch_wait);
 	state_fio->StateValue(ram_switch_wait);
-	state_fio->StateArray(keytable, sizeof(keytable), 1);
-	state_fio->StateArray(keytable_shift, sizeof(keytable_shift), 1);
-	state_fio->StateArray(keytable_ctrl, sizeof(keytable_ctrl), 1);
-	state_fio->StateArray(keytable_kana, sizeof(keytable_kana), 1);
-	state_fio->StateArray(keytable_kana_shift, sizeof(keytable_kana_shift), 1);
+	state_fio->StateBuffer(key_table, sizeof(key_table), 1);
 	state_fio->StateValue(key_code);
 	state_fio->StateValue(key_status);
 	state_fio->StateValue(key_cmd);
