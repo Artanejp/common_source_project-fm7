@@ -75,7 +75,7 @@ uint32_t CMOS::read_io8(uint32_t addr)
 	switch(addr & 0xff) {
 	case 0xf8:
 		data_addr = 0;
-		return 0xff;
+		break;
 	case 0xf9:
 		return data_buffer[(data_addr++) & ADDR_MASK];
 	}

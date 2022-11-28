@@ -329,21 +329,26 @@
     <ClCompile Include="..\src\fileio.cpp" />
     <ClCompile Include="..\src\vm\and.cpp" />
     <ClCompile Include="..\src\vm\datarec.cpp" />
+    <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
+    <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\mz700\cmos.cpp" />
     <ClCompile Include="..\src\vm\mz700\emm.cpp" />
+    <ClCompile Include="..\src\vm\mz700\floppy.cpp" />
     <ClCompile Include="..\src\vm\mz700\joystick.cpp" />
     <ClCompile Include="..\src\vm\mz700\kanji.cpp" />
     <ClCompile Include="..\src\vm\mz700\keyboard.cpp" />
     <ClCompile Include="..\src\vm\mz700\memory.cpp" />
     <ClCompile Include="..\src\vm\mz700\mz700.cpp" />
+    <ClCompile Include="..\src\vm\mz700\quickdisk.cpp" />
     <ClCompile Include="..\src\vm\mz700\ramfile.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
+    <ClCompile Include="..\src\vm\z80sio.cpp" />
     <ClCompile Include="..\src\win32\osd.cpp" />
     <ClCompile Include="..\src\win32\osd_console.cpp" />
     <ClCompile Include="..\src\win32\osd_input.cpp" />
@@ -362,26 +367,34 @@
     <ClInclude Include="..\src\vm\datarec.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
+    <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\io.h" />
+    <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\mz700\cmos.h" />
     <ClInclude Include="..\src\vm\mz700\emm.h" />
+    <ClInclude Include="..\src\vm\mz700\floppy.h" />
     <ClInclude Include="..\src\vm\mz700\joystick.h" />
     <ClInclude Include="..\src\vm\mz700\kanji.h" />
     <ClInclude Include="..\src\vm\mz700\keyboard.h" />
     <ClInclude Include="..\src\vm\mz700\memory.h" />
     <ClInclude Include="..\src\vm\mz700\mz700.h" />
+    <ClInclude Include="..\src\vm\mz700\quickdisk.h" />
     <ClInclude Include="..\src\vm\mz700\ramfile.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\vm_template.h" />
     <ClInclude Include="..\src\vm\z80.h" />
+    <ClInclude Include="..\src\vm\z80sio.h" />
     <ClInclude Include="..\src\win32\osd.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\src\res\indicator\access_green.bmp" />
+    <Image Include="..\src\res\indicator\access_off.bmp" />
+    <Image Include="..\src\res\indicator\access_on.bmp" />
     <Image Include="..\src\res\mz700.ico" />
   </ItemGroup>
   <ItemGroup>

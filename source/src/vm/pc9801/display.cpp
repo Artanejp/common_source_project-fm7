@@ -151,11 +151,11 @@ static const uint32_t egc_maskdword[16][2] = {
 
 void DISPLAY::initialize()
 {
+	FILEIO* fio = new FILEIO();
+	
 	// load font data
 //	memset(font, 0xff, sizeof(font));
 	memset(font, 0x00, sizeof(font));
-	
-	FILEIO* fio = new FILEIO();
 	
 #if !defined(SUPPORT_HIRESO)
 	uint8_t *p = font + 0x81000;
@@ -249,6 +249,8 @@ void DISPLAY::initialize()
 			}
 		}
 #endif
+		fio->Fclose();
+		
 		for(int code = 0x20; code <= 0x7f; code++) {
 			for(int line = 0; line < 24; line++) {
 //				uint16_t pattern = (*(uint16_t *)(&font[ANK_FONT_OFS + FONT_SIZE * code + line * 2])) & 0x3fff;
@@ -282,6 +284,16 @@ void DISPLAY::initialize()
 		memcpy(font + ANK_FONT_OFS + FONT_SIZE * 0x300, font + ANK_FONT_OFS, FONT_SIZE * 0x100);
 	}
 #endif
+	
+	// load memory switch
+	uint8_t memsw[16];
+	
+	memcpy(memsw, memsw_default, 16);
+	
+	if(fio->Fopen(create_local_path(_T("MEMORYSW.BIN")), FILEIO_READ_BINARY)) {
+		fio->Fread(memsw, sizeof(memsw), 1);
+		fio->Fclose();
+	}
 	delete fio;
 	
 	// init palette
@@ -302,7 +314,7 @@ void DISPLAY::initialize()
 	memset(vram, 0, sizeof(vram));
 	
 	for(int i = 0; i < 16; i++) {
-		tvram[0x3fe0 + (i << 1)] = memsw_default[i];
+		tvram[0x3fe0 + (i << 1)] = memsw[i];
 	}
 #ifndef HAS_UPD4990A
 	dll_cur_time_t cur_time;
@@ -318,6 +330,21 @@ void DISPLAY::initialize()
 	
 	// register event
 	register_frame_event(this);
+}
+
+void DISPLAY::release()
+{
+	FILEIO* fio = new FILEIO();
+	uint8_t memsw[16];
+	
+	for(int i = 0; i < 16; i++) {
+		memsw[i] = tvram[0x3fe0 + (i << 1)];
+	}
+	if(fio->Fopen(create_local_path(_T("MEMORYSW.BIN")), FILEIO_WRITE_BINARY)) {
+		fio->Fwrite(memsw, sizeof(memsw), 1);
+		fio->Fclose();
+	}
+	delete fio;
 }
 
 #if !defined(SUPPORT_HIRESO)

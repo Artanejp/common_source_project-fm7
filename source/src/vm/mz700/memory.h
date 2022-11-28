@@ -40,8 +40,8 @@ private:
 	uint8_t ipl[0x1000];	// IPL 4KB
 #if defined(_MZ800)
 	uint8_t ext[0x2000];	// MZ-800 IPL 8KB
-#elif defined(_MZ1500)
-	uint8_t ext[0x1800];	// MZ-1500 EXT 6KB
+#else
+	uint8_t ext[0x1800];	// MZ-700/1500 EXT 6KB
 #endif
 	uint8_t font[0x1000];	// CGROM 4KB
 #if defined(_MZ700)
@@ -89,10 +89,8 @@ private:
 	bool blank;
 	bool hblank, hsync;
 	bool vblank, vsync;
-#if defined(_MZ700) || defined(_MZ1500)
 	bool blank_vram;
-#endif
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 	bool blank_pcg;
 #endif
 	

@@ -48,10 +48,8 @@
 #define IO_ADDR_MAX		0x100
 #define Z80_MEMORY_WAIT
 #define Z80_IO_WAIT
-#if defined(_MZ800) || defined(_MZ1500)
 #define MAX_DRIVE		4
 #define HAS_MB8876
-#endif
 #if defined(_MZ1500)
 #define MZ1P17_SW1_4_ON
 #endif
@@ -63,10 +61,8 @@
 #define USE_BOOT_MODE		2
 #endif
 #define USE_TAPE		1
-#if defined(_MZ800) || defined(_MZ1500)
 #define USE_FLOPPY_DISK		2
 #define USE_QUICK_DISK		1
-#endif
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
@@ -83,7 +79,7 @@
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
 #if defined(_MZ700)
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	4
 #elif defined(_MZ800)
 #define USE_SOUND_VOLUME	5
 #elif defined(_MZ1500)
@@ -177,11 +173,7 @@ static const _TCHAR *sound_device_caption[] = {
 #elif defined(_MZ1500)
 	_T("PSG #1"), _T("PSG #2"),
 #endif
-	_T("Beep"), _T("CMT (Signal)"),
-#if defined(_MZ800) || defined(_MZ1500)
-	_T("Noise (FDD)"),
-#endif
-	_T("Noise (CMT)"),
+	_T("Beep"), _T("CMT (Signal)"), _T("Noise (CMT)"), _T("Noise (FDD)"),
 };
 #endif
 
@@ -207,27 +199,27 @@ class DATAREC;
 class I8253;
 class I8255;
 class IO;
+class MB8877;
 class PCM1BIT;
 class Z80;
+class Z80SIO;
 
-//class CMOS;
+class CMOS;
 class EMM;
+class FLOPPY;
 class KANJI;
 class KEYBOARD;
 class MEMORY;
+class QUICKDISK;
 class RAMFILE;
 
 #if defined(_MZ800) || defined(_MZ1500)
-class MB8877;
 class NOT;
 class SN76489AN;
 class Z80PIO;
-class Z80SIO;
-class FLOPPY;
 #if defined(_MZ1500)
 class PSG;
 #endif
-class QUICKDISK;
 #endif
 #if defined(_MZ700) || defined(_MZ1500)
 class JOYSTICK;
@@ -246,19 +238,22 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	IO* io;
+	MB8877* fdc;
 	PCM1BIT* pcm;
 	Z80* cpu;
+	Z80SIO* sio_qd;	// QD
 	
-//	CMOS* cmos;
+	CMOS* cmos;
 	EMM* emm;
+	FLOPPY* floppy;
 	KANJI* kanji;
 	KEYBOARD* keyboard;
 	MEMORY* memory;
 	RAMFILE* ramfile;
+	QUICKDISK* qd;
 	
 #if defined(_MZ800) || defined(_MZ1500)
 	AND* and_snd;
-	MB8877* fdc;
 #if defined(_MZ800)
 	NOT* not_pit;
 	SN76489AN* psg;
@@ -271,19 +266,18 @@ protected:
 #endif
 	Z80PIO* pio_int;
 	Z80SIO* sio_rs;	// RS-232C
-	Z80SIO* sio_qd;	// QD
 	
-	FLOPPY* floppy;
 #if defined(_MZ1500)
 	PSG* psg;
 #endif
-	QUICKDISK* qd;
 #endif
 #if defined(_MZ700) || defined(_MZ1500)
 	JOYSTICK* joystick;
 #endif
 	
-#if defined(_MZ800)
+#if defined(_MZ700)
+	int dipswitch;
+#elif defined(_MZ800)
 	int boot_mode;
 #endif
 	
@@ -338,7 +332,6 @@ public:
 	void push_fast_rewind(int drv);
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
-#if defined(_MZ800) || defined(_MZ1500)
 	void open_quick_disk(int drv, const _TCHAR* file_path);
 	void close_quick_disk(int drv);
 	bool is_quick_disk_inserted(int drv);
@@ -349,7 +342,6 @@ public:
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
-#endif
 	bool is_frame_skippable();
 	
 	void update_config();

@@ -60,6 +60,7 @@ public:
 		
 		my_sprintf_s(vendor_id, 9, "NECITSU");
 		my_sprintf_s(product_id, 17, "SCSI-CDROM");
+		my_sprintf_s(product_rev, 5, "1.0");
 		device_type = 0x05; // CD-ROM drive
 		is_removable = true;
 		is_hot_swappable = false;

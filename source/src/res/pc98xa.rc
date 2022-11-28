@@ -173,6 +173,17 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "DIP Switch"
+        BEGIN
+            MENUITEM "SW 1-1",                  ID_VM_DIPSWITCH16
+            MENUITEM "SW 1-2 (Terminal)",       ID_VM_DIPSWITCH17
+            MENUITEM "SW 1-3 (80 Columns)",     ID_VM_DIPSWITCH18
+            MENUITEM "SW 1-4 (25 Lines)",       ID_VM_DIPSWITCH19
+            MENUITEM "SW 1-5 (Hold Memory Switch)", ID_VM_DIPSWITCH20
+            MENUITEM "SW 1-6",                  ID_VM_DIPSWITCH21
+            MENUITEM "SW 1-7",                  ID_VM_DIPSWITCH22
+            MENUITEM "SW 1-8",                  ID_VM_DIPSWITCH23
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "PC-9801-26 (BIOS Enabled)",   ID_VM_SOUND_TYPE0

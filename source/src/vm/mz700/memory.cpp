@@ -99,9 +99,7 @@ void MEMORY::initialize()
 #if defined(_MZ700) || defined(_MZ1500)
 	memset(vram + 0x800, 0x71, 0x400);
 #endif
-#if defined(_MZ800) || defined(_MZ1500)
 	memset(ext, 0xff, sizeof(ext));
-#endif
 #if defined(_MZ1500)
 	memset(pcg, 0, sizeof(pcg));
 #endif
@@ -117,6 +115,19 @@ void MEMORY::initialize()
 #if defined(_MZ800) || defined(_MZ1500)
 	if(fio->Fopen(create_local_path(_T(EXT_FILE_NAME)), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, sizeof(ext), 1);
+		fio->Fclose();
+	}
+#else
+	if((config.dipswitch & 8) && fio->Fopen(create_local_path(_T("MZ1R12.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fread(ext, 0x800, 1);
+		fio->Fclose();
+	}
+	if((config.dipswitch & 4) && fio->Fopen(create_local_path(_T("MZ1E14.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fread(ext, 0x800, 1);
+		fio->Fclose();
+	}
+	if((config.dipswitch & 2) && fio->Fopen(create_local_path(_T("MZ1E05.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fread(ext + 0x800, 0x1000, 1);
 		fio->Fclose();
 	}
 #endif
@@ -183,10 +194,8 @@ void MEMORY::reset()
 	blank = false;
 	vblank = vsync = false;
 	hblank = hsync = false;
-#if defined(_MZ700) || defined(_MZ1500)
 	blank_vram = false;
-#endif
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 	blank_pcg = false;
 #endif
 	
@@ -243,7 +252,7 @@ void MEMORY::update_config()
 void MEMORY::event_vline(int v, int clock)
 {
 	register_event_by_clock(this, EVENT_BLANK_S, BLANK_CLK_S, false, NULL);
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 	register_event_by_clock(this, EVENT_BLANK_PCG, BLANK_CLK_S + 5, false, NULL);
 #endif
 	register_event_by_clock(this, EVENT_BLANK_E, BLANK_CLK_E, false, NULL);
@@ -278,17 +287,15 @@ void MEMORY::event_callback(int event_id, int err)
 		// 556 OUT (1.5KHz) -> 8255:PC6
 		d_pio->write_signal(SIG_I8255_PORT_C, (blink = !blink) ? 0xff : 0, 0x40);
 	} else if(event_id == EVENT_BLANK_S) {
-#if defined(_MZ700) || defined(_MZ1500)
 		if(blank_vram) {
 			// wait because vram is accessed
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 		}
 		blank_vram = true;
-#endif
 		set_blank(true);
 		set_hblank(true);
 	} else if(event_id == EVENT_BLANK_PCG) {
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 		if(blank_pcg) {
 			// wait because pcg is accessed
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
@@ -297,10 +304,8 @@ void MEMORY::event_callback(int event_id, int err)
 #endif
 	} else if(event_id == EVENT_BLANK_E) {
 		set_blank(false);
-#if defined(_MZ700) || defined(_MZ1500)
 		blank_vram = false;
-#endif
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 		blank_pcg = false;
 #endif
 	} else if(event_id == EVENT_HSYNC_S) {
@@ -324,110 +329,33 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 #if defined(_MZ800)
 	// MZ-800
 	if(MZ700_MODE) {
-		if(0xe000 <= addr && addr <= 0xe00f && (mem_bank & MEM_BANK_MON_H)) {
-			// memory mapped i/o
-			switch(addr & 0x0f) {
-			case 0: case 1: case 2: case 3:
-				d_pio->write_io8(addr & 3, data);
-				break;
-			case 4: case 5: case 6: case 7:
-				d_pit->write_io8(addr & 3, data);
-				break;
-			case 8:
-				// 8253 gate0
-//				d_pit->write_signal(SIG_I8253_GATE_0, data, 1);
-				break;
-			}
-			return;
-		}
-	} else {
-		if(0x8000 <= addr && addr <= vram_addr_top && (mem_bank & MEM_BANK_VRAM)) {
-			addr = vram_addr(addr & 0x3fff);
-			int page;
-			switch(wf & 0xe0) {
-			case 0x00:	// single write
-				page = (dmd & 4) ? (wf & 5) : wf;
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						vram[addr] = data;
-					}
-				}
-				break;
-			case 0x20:	// exor
-				page = (dmd & 4) ? (wf & 5) : wf;
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						vram[addr] ^= data;
-					}
-				}
-				break;
-			case 0x40:	// or
-				page = (dmd & 4) ? (wf & 5) : wf;
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						vram[addr] |= data;
-					}
-				}
-				break;
-			case 0x60:	// reset
-				page = (dmd & 4) ? (wf & 5) : wf;
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						vram[addr] &= ~data;
-					}
-				}
-				break;
-			case 0x80:	// replace
-			case 0xa0:
-				page = vram_page_mask(wf);
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						if(wf & bit) {
-							vram[addr] = data;
-						} else {
-							vram[addr] = 0;
-						}
-					}
-				}
-				break;
-			case 0xc0:	// pset
-			case 0xe0:
-				page = vram_page_mask(wf);
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						if(wf & bit) {
-							vram[addr] |= data;
-						} else {
-							vram[addr] &= ~data;
-						}
-					}
-				}
-				break;
-			}
-			return;
-		}
-	}
-#else
-	// MZ-700/1500
-#if defined(_MZ1500)
-	if(mem_bank & MEM_BANK_PCG) {
-		if(0xd000 <= addr && addr <= 0xefff) {
-			// pcg wait
-			if(!blank_pcg) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				blank_pcg = true;
-			}
-		}
-	} else {
-#endif
-		if(mem_bank & MEM_BANK_MON_H) {
-			if(0xd000 <= addr && addr <= 0xdfff) {
+		if(0xc000 <= addr && addr <= 0xcfff) {
+			if(mem_bank & MEM_BANK_CGROM_R) {
 				// vram wait
 				if(!blank_vram) {
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 					blank_vram = true;
 				}
-			} else if(0xe000 <= addr && addr <= 0xe00f) {
+			}
+		} else if(0xd000 <= addr && addr <= 0xdfff) {
+#if 1
+			if(mem_bank & MEM_BANK_PCG) {
+				// pcg wait
+				if(!blank_pcg) {
+					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					blank_pcg = true;
+				}
+			} else
+#endif
+			if(mem_bank & MEM_BANK_MON_H) {
+				// vram wait
+				if(!blank_vram) {
+					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					blank_vram = true;
+				}
+			}
+		} else if(0xe000 <= addr && addr <= 0xe00f) {
+			if(mem_bank & MEM_BANK_MON_H) {
 				// memory mapped i/o
 				switch(addr & 0x0f) {
 				case 0: case 1: case 2: case 3:
@@ -438,78 +366,84 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 					break;
 				case 8:
 					// 8253 gate0
-					d_pit->write_signal(SIG_I8253_GATE_0, data, 1);
+//					d_pit->write_signal(SIG_I8253_GATE_0, data, 1);
 					break;
 				}
 				return;
-#if defined(_MZ700)
-			} else if(addr == 0xe010) {
-				pcg_data = data;
-				return;
-			} else if(addr == 0xe011) {
-				pcg_addr = data;
-				return;
-			} else if(addr == 0xe012) {
-				if(!(pcg_ctrl & 0x10) && (data & 0x10)) {
-					int offset = pcg_addr | ((data & 3) << 8);
-					offset |= (data & 4) ? 0xc00 : 0x400;
-					pcg[offset] = (data & 0x20) ? font[offset] : pcg_data;
-				}
-				pcg_ctrl = data;
-				return;
-#endif
 			}
-		}
-#if defined(_MZ1500)
-	}
-#endif
-#endif
-	wbank[addr >> 11][addr & 0x7ff] = data;
-}
-
-uint32_t MEMORY::read_data8(uint32_t addr)
-{
-	addr &= 0xffff;
-#if defined(_MZ800)
-	// MZ-800
-	if(MZ700_MODE) {
-		if(0xe000 <= addr && addr <= 0xe00f && (mem_bank & MEM_BANK_MON_H)) {
-			// memory mapped i/o
-			switch(addr & 0x0f) {
-			case 0: case 1: case 2: case 3:
-				return d_pio->read_io8(addr & 3);
-			case 4: case 5: case 6: case 7:
-				return d_pit->read_io8(addr & 3);
-			case 8:
-				return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | 0x7e;
-			}
-			return 0xff;
 		}
 	} else {
-		if(0x8000 <= addr && addr <= vram_addr_top && (mem_bank & MEM_BANK_VRAM)) {
-			addr = vram_addr(addr & 0x3fff);
-			if(rf & 0x80) {
-				int page = vram_page_mask(rf);
-				uint32_t result = 0xff;
-				for(int bit2 = 1; bit2 <= 0x80; bit2 <<= 1) {
-					uint32_t addr2 = addr;
-					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr2 += 0x2000) {
-						if((page & bit) && (vram[addr2] & bit2) != ((rf & bit) ? bit2 : 0)) {
-							result &= ~bit2;
-							break;
+		if(0x8000 <= addr && addr <= vram_addr_top) {
+			if(mem_bank & MEM_BANK_VRAM) {
+				// vram wait
+				if(!blank_vram) {
+					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					blank_vram = true;
+				}
+				addr = vram_addr(addr & 0x3fff);
+				int page;
+				switch(wf & 0xe0) {
+				case 0x00:	// single write
+					page = (dmd & 4) ? (wf & 5) : wf;
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							vram[addr] = data;
 						}
 					}
-				}
-				return result;
-			} else {
-				int page = vram_page_mask(rf) & rf;
-				for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
-					if(page & bit) {
-						return vram[addr];
+					break;
+				case 0x20:	// exor
+					page = (dmd & 4) ? (wf & 5) : wf;
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							vram[addr] ^= data;
+						}
 					}
+					break;
+				case 0x40:	// or
+					page = (dmd & 4) ? (wf & 5) : wf;
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							vram[addr] |= data;
+						}
+					}
+					break;
+				case 0x60:	// reset
+					page = (dmd & 4) ? (wf & 5) : wf;
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							vram[addr] &= ~data;
+						}
+					}
+					break;
+				case 0x80:	// replace
+				case 0xa0:
+					page = vram_page_mask(wf);
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							if(wf & bit) {
+								vram[addr] = data;
+							} else {
+								vram[addr] = 0;
+							}
+						}
+					}
+					break;
+				case 0xc0:	// pset
+				case 0xe0:
+					page = vram_page_mask(wf);
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							if(wf & bit) {
+								vram[addr] |= data;
+							} else {
+								vram[addr] &= ~data;
+							}
+						}
+					}
+					break;
 				}
+				return;
 			}
-			return 0xff;
 		}
 	}
 #else
@@ -523,16 +457,85 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 				blank_pcg = true;
 			}
 		}
-	} else {
+	} else
 #endif
-		if(mem_bank & MEM_BANK_MON_H) {
-			if(0xd000 <= addr && addr <= 0xdfff) {
+	if(mem_bank & MEM_BANK_MON_H) {
+		if(0xd000 <= addr && addr <= 0xdfff) {
+			// vram wait
+			if(!blank_vram) {
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				blank_vram = true;
+			}
+		} else if(0xe000 <= addr && addr <= 0xe00f) {
+			// memory mapped i/o
+			switch(addr & 0x0f) {
+			case 0: case 1: case 2: case 3:
+				d_pio->write_io8(addr & 3, data);
+				break;
+			case 4: case 5: case 6: case 7:
+				d_pit->write_io8(addr & 3, data);
+				break;
+			case 8:
+				// 8253 gate0
+				d_pit->write_signal(SIG_I8253_GATE_0, data, 1);
+				break;
+			}
+			return;
+#if defined(_MZ700)
+		} else if(addr == 0xe010) {
+			pcg_data = data;
+			return;
+		} else if(addr == 0xe011) {
+			pcg_addr = data;
+			return;
+		} else if(addr == 0xe012) {
+			if(!(pcg_ctrl & 0x10) && (data & 0x10)) {
+				int offset = pcg_addr | ((data & 3) << 8);
+				offset |= (data & 4) ? 0xc00 : 0x400;
+				pcg[offset] = (data & 0x20) ? font[offset] : pcg_data;
+			}
+			pcg_ctrl = data;
+			return;
+#endif
+		}
+	}
+#endif
+	wbank[addr >> 11][addr & 0x7ff] = data;
+}
+
+uint32_t MEMORY::read_data8(uint32_t addr)
+{
+	addr &= 0xffff;
+#if defined(_MZ800)
+	// MZ-800
+	if(MZ700_MODE) {
+		if(0xc000 <= addr && addr <= 0xcfff) {
+			if(mem_bank & MEM_BANK_CGROM_R) {
 				// vram wait
 				if(!blank_vram) {
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 					blank_vram = true;
 				}
-			} else if(0xe000 <= addr && addr <= 0xe00f) {
+			}
+		} else if(0xd000 <= addr && addr <= 0xdfff) {
+#if 1
+			if(mem_bank & MEM_BANK_PCG) {
+				// pcg wait
+				if(!blank_pcg) {
+					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					blank_pcg = true;
+				}
+			} else
+#endif
+			if(mem_bank & MEM_BANK_MON_H) {
+				// vram wait
+				if(!blank_vram) {
+					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					blank_vram = true;
+				}
+			}
+		} else if(0xe000 <= addr && addr <= 0xe00f) {
+			if(mem_bank & MEM_BANK_MON_H) {
 				// memory mapped i/o
 				switch(addr & 0x0f) {
 				case 0: case 1: case 2: case 3:
@@ -540,14 +543,78 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 				case 4: case 5: case 6: case 7:
 					return d_pit->read_io8(addr & 3);
 				case 8:
-					return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | d_joystick->read_io8(0);
+					return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | 0x7e;
 				}
 				return 0xff;
 			}
 		}
-#if defined(_MZ1500)
+	} else {
+		if(0x8000 <= addr && addr <= vram_addr_top) {
+			if(mem_bank & MEM_BANK_VRAM) {
+				// vram wait
+				if(!blank_vram) {
+					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					blank_vram = true;
+				}
+				addr = vram_addr(addr & 0x3fff);
+				if(rf & 0x80) {
+					int page = vram_page_mask(rf);
+					uint32_t result = 0xff;
+					for(int bit2 = 1; bit2 <= 0x80; bit2 <<= 1) {
+						uint32_t addr2 = addr;
+						for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr2 += 0x2000) {
+							if((page & bit) && (vram[addr2] & bit2) != ((rf & bit) ? bit2 : 0)) {
+								result &= ~bit2;
+								break;
+							}
+						}
+					}
+					return result;
+				} else {
+					int page = vram_page_mask(rf) & rf;
+					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr += 0x2000) {
+						if(page & bit) {
+							return vram[addr];
+						}
+					}
+				}
+				return 0xff;
+			}
+		}
 	}
+#else
+	// MZ-700/1500
+#if defined(_MZ1500)
+	if(mem_bank & MEM_BANK_PCG) {
+		if(0xd000 <= addr && addr <= 0xefff) {
+			// pcg wait
+			if(!blank_pcg) {
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				blank_pcg = true;
+			}
+		}
+	} else
 #endif
+	if(mem_bank & MEM_BANK_MON_H) {
+		if(0xd000 <= addr && addr <= 0xdfff) {
+			// vram wait
+			if(!blank_vram) {
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				blank_vram = true;
+			}
+		} else if(0xe000 <= addr && addr <= 0xe00f) {
+			// memory mapped i/o
+			switch(addr & 0x0f) {
+			case 0: case 1: case 2: case 3:
+				return d_pio->read_io8(addr & 3);
+			case 4: case 5: case 6: case 7:
+				return d_pit->read_io8(addr & 3);
+			case 8:
+				return (hblank ? 0 : 0x80) | (tempo ? 1 : 0) | d_joystick->read_io8(0);
+			}
+			return 0xff;
+		}
+	}
 #endif
 	return rbank[addr >> 11][addr & 0x7ff];
 }
@@ -799,12 +866,8 @@ void MEMORY::update_map_high()
 #endif
 		if(mem_bank & MEM_BANK_MON_H) {
 			SET_BANK(0xd000, 0xdfff, vram, vram);
-#if defined(_MZ1500)
 			SET_BANK(0xe000, 0xe7ff, wdmy, rdmy);
 			SET_BANK(0xe800, 0xffff, wdmy, ext );
-#else
-			SET_BANK(0xe000, 0xffff, wdmy, rdmy);
-#endif
 		} else {
 			SET_BANK(0xd000, 0xffff, ram + 0xd000, ram + 0xd000);
 		}
@@ -1145,7 +1208,7 @@ void MEMORY::draw_screen()
 }
 #endif
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1196,10 +1259,8 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(hsync);
 	state_fio->StateValue(vblank);
 	state_fio->StateValue(vsync);
-#if defined(_MZ700) || defined(_MZ1500)
 	state_fio->StateValue(blank_vram);
-#endif
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 	state_fio->StateValue(blank_pcg);
 #endif
 #if defined(_MZ800)

@@ -258,6 +258,7 @@ public:
 	
 	char vendor_id[8 + 1];
 	char product_id[16 + 1];
+	char product_rev[4 + 1];
 	uint8_t device_type;
 	bool is_removable;
 	bool is_hot_swappable;

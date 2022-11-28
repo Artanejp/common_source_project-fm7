@@ -31,6 +31,7 @@ public:
 		}
 		my_sprintf_s(vendor_id, 9, "NECITSU");
 		my_sprintf_s(product_id, 17, "SCSI-HDD");
+		my_sprintf_s(product_rev, 5, "1.0");
 		device_type = 0x00;
 		is_removable = false;
 		is_hot_swappable = true; //false;

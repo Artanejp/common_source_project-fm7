@@ -225,7 +225,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
 #if defined(_PC9801) || defined(_PC9801E)
-	if((config.dipswitch & 1) && FILEIO::IsFileExisting(create_local_path(_T("2HDIF.ROM")))) {
+	if((config.dipswitch & DIPSWITCH_2HD) && FILEIO::IsFileExisting(create_local_path(_T("2HDIF.ROM")))) {
 #endif
 		fdc_2hd = new UPD765A(this, emu);
 		fdc_2hd->set_device_name(_T("uPD765A FDC (2HD I/F)"));
@@ -237,7 +237,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 #if defined(_PC9801) || defined(_PC9801E)
-	if((config.dipswitch & 2) && FILEIO::IsFileExisting(create_local_path(_T("2DDIF.ROM")))) {
+	if((config.dipswitch & DIPSWITCH_2DD) && FILEIO::IsFileExisting(create_local_path(_T("2DDIF.ROM")))) {
 #endif
 		fdc_2dd = new UPD765A(this, emu);
 		fdc_2dd->set_device_name(_T("uPD765A FDC (2DD I/F)"));
@@ -338,7 +338,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
-	if((config.dipswitch & 4) && (FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM"))) || FILEIO::IsFileExisting(create_local_path(_T("PC88.ROM"))))) {
+	if((config.dipswitch & DIPSWITCH_2D) && (FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM"))) || FILEIO::IsFileExisting(create_local_path(_T("PC88.ROM"))))) {
 		pio_sub = new I8255(this, emu);
 		pio_sub->set_device_name(_T("8255 PIO (320KB FDD)"));
 		pc80s31k = new PC80S31K(this, emu);
@@ -1213,6 +1213,9 @@ void VM::reset()
 	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
 	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
 	
+#if 1
+	port_a  = ~(config.dipswitch >> 16) & 0xff;
+#else
 	port_a  = 0x00;
 	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
 	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
@@ -1222,6 +1225,7 @@ void VM::reset()
 //	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
 	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
 	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+#endif
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
 	if(config.serial_type == SERIAL_TYPE_DEFAULT) {
@@ -1231,7 +1235,9 @@ void VM::reset()
 	}
 #if !defined(SUPPORT_HIRESO)
 //	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
-	port_b |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	if(config.monitor_type == 0) {
+		port_b |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	}
 #else
 	port_b |= 0x10; // SHUT0
 	port_b |= 0x08; // SHUT1

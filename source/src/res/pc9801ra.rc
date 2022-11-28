@@ -181,6 +181,17 @@ BEGIN
             MENUITEM "V30 10MHz",               ID_VM_CPU_TYPE2
             MENUITEM "V30  8MHz",               ID_VM_CPU_TYPE3
         END
+        POPUP "DIP Switch"
+        BEGIN
+            MENUITEM "SW 2-1",                  ID_VM_DIPSWITCH16
+            MENUITEM "SW 2-2 (Terminal)",       ID_VM_DIPSWITCH17
+            MENUITEM "SW 2-3 (80 Columns)",     ID_VM_DIPSWITCH18
+            MENUITEM "SW 2-4 (25 Lines)",       ID_VM_DIPSWITCH19
+            MENUITEM "SW 2-5 (Hold Memory Switch)", ID_VM_DIPSWITCH20
+            MENUITEM "SW 2-6",                  ID_VM_DIPSWITCH21
+            MENUITEM "SW 2-7",                  ID_VM_DIPSWITCH22
+            MENUITEM "SW 2-8",                  ID_VM_DIPSWITCH23
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "PC-9801-86 (BIOS Enabled)",   ID_VM_SOUND_TYPE0

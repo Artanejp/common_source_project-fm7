@@ -94,13 +94,13 @@ void MEMBUS::initialize()
 	// EXT BIOS
 #if defined(_PC9801) || defined(_PC9801E)
 	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
-	if(config.dipswitch & 1) {
+	if(config.dipswitch & DIPSWITCH_2HD) {
 		read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
 	}
 	set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
 	
 	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
-	if(config.dipswitch & 2) {
+	if(config.dipswitch & DIPSWITCH_2DD) {
 		read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
 	}
 	set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);

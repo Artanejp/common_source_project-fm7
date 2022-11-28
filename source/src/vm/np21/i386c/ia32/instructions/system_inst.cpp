@@ -1156,7 +1156,6 @@ RDTSC(void)
 		}else{
 			tsc_tmp = CPU_MSR_TSC;
 		}
-		//tsc_tmp /= 1000;
 		CPU_EDX = ((tsc_tmp >> 32) & 0xffffffff);
 		CPU_EAX = (tsc_tmp & 0xffffffff);
 	}else{

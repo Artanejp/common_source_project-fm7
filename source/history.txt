@@ -1,3 +1,15 @@
+8/27/2022
+
+[VM/I386_NP21] fix DOSBOX FPU code
+[VM/SCSI_DEV] fix inquiry command to send product revision
+
+[MZ700] support MZ-1E05/MZ-1E14/MZ-1R12
+[MZ800/MEMORY] improve vram wait
+
+[PC9801] support dip switch #2
+[PC9801/DISPLAY] improve to save/load memory switch
+
+
 7/27/2022
 
 [WINMAIN] improve to release emulation core when Windows shuts down

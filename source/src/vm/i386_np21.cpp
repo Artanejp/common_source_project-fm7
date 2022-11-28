@@ -235,9 +235,9 @@ void I386::reset()
 		set_device_name(_T("Neko Processor II CPU"));
 		break;
 	}
-	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
+//	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
-//	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
+	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
 	fpu_initialize();
 	
 	UINT32 PREV_CPU_ADRSMASK = CPU_ADRSMASK;

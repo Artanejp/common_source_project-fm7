@@ -533,7 +533,7 @@ void SCSI_DEV::start_command()
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 		position *= physical_block_size();
 		// transfer length
-		remain = 32;
+		remain = 36;
 		// create inquiry data table
 		buffer->clear();
 		buffer->write(device_type);
@@ -554,6 +554,12 @@ void SCSI_DEV::start_command()
 			buffer->write(vendor_id[i]);
 		}
 		for(int i = (int)strlen(product_id); i < 16; i++) {
+			buffer->write(0x20);
+		}
+		for(int i = 0; i < (int)strlen(product_rev) && i < 4; i++) {
+			buffer->write(product_rev[i]);
+		}
+		for(int i = (int)strlen(product_rev); i < 4; i++) {
 			buffer->write(0x20);
 		}
 		// change to data in phase
