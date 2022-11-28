@@ -1,3 +1,8 @@
+10/12/2022
+
+[MZ1500] fix irq issue
+
+
 9/30/2022
 
 [VM/Z80] fix for DI,EI,EI,DI case
