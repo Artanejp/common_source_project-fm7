@@ -138,6 +138,12 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "Boot"
+        BEGIN
+            MENUITEM "EX-80",                   ID_VM_BOOT_MODE0
+            MENUITEM "EX-80BS Lv1 BASIC",       ID_VM_BOOT_MODE1
+            MENUITEM "EX-80BS Lv2 BASIC",       ID_VM_BOOT_MODE2
+        END
         POPUP "DIP Switch"
         BEGIN
             MENUITEM "SW1: STEP/AUTO",          ID_VM_DIPSWITCH0
@@ -197,32 +203,32 @@ END
 // Image
 //
 
-IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "ex80/board.png"
-IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "ex80/button00.png"
-IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "ex80/button01.png"
-IDI_BITMAP_BUTTON02     IMAGE   DISCARDABLE     "ex80/button02.png"
-IDI_BITMAP_BUTTON03     IMAGE   DISCARDABLE     "ex80/button03.png"
-IDI_BITMAP_BUTTON04     IMAGE   DISCARDABLE     "ex80/button04.png"
-IDI_BITMAP_BUTTON05     IMAGE   DISCARDABLE     "ex80/button05.png"
-IDI_BITMAP_BUTTON06     IMAGE   DISCARDABLE     "ex80/button06.png"
-IDI_BITMAP_BUTTON07     IMAGE   DISCARDABLE     "ex80/button07.png"
-IDI_BITMAP_BUTTON08     IMAGE   DISCARDABLE     "ex80/button08.png"
-IDI_BITMAP_BUTTON09     IMAGE   DISCARDABLE     "ex80/button09.png"
-IDI_BITMAP_BUTTON10     IMAGE   DISCARDABLE     "ex80/button10.png"
-IDI_BITMAP_BUTTON11     IMAGE   DISCARDABLE     "ex80/button11.png"
-IDI_BITMAP_BUTTON12     IMAGE   DISCARDABLE     "ex80/button12.png"
-IDI_BITMAP_BUTTON13     IMAGE   DISCARDABLE     "ex80/button13.png"
-IDI_BITMAP_BUTTON14     IMAGE   DISCARDABLE     "ex80/button14.png"
-IDI_BITMAP_BUTTON15     IMAGE   DISCARDABLE     "ex80/button15.png"
-IDI_BITMAP_BUTTON16     IMAGE   DISCARDABLE     "ex80/button16.png"
-IDI_BITMAP_BUTTON17     IMAGE   DISCARDABLE     "ex80/button17.png"
-IDI_BITMAP_BUTTON18     IMAGE   DISCARDABLE     "ex80/button18.png"
-IDI_BITMAP_BUTTON19     IMAGE   DISCARDABLE     "ex80/button19.png"
-IDI_BITMAP_BUTTON20     IMAGE   DISCARDABLE     "ex80/button20.png"
-IDI_BITMAP_BUTTON21     IMAGE   DISCARDABLE     "ex80/button21.png"
-IDI_BITMAP_BUTTON22     IMAGE   DISCARDABLE     "ex80/button22.png"
-IDI_BITMAP_BUTTON23     IMAGE   DISCARDABLE     "ex80/button23.png"
-IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "ex80/button24.png"
+IDI_BITMAP_BOARD        IMAGE   DISCARDABLE     "ex80bs/board.png"
+IDI_BITMAP_BUTTON00     IMAGE   DISCARDABLE     "ex80bs/button00.png"
+IDI_BITMAP_BUTTON01     IMAGE   DISCARDABLE     "ex80bs/button01.png"
+IDI_BITMAP_BUTTON02     IMAGE   DISCARDABLE     "ex80bs/button02.png"
+IDI_BITMAP_BUTTON03     IMAGE   DISCARDABLE     "ex80bs/button03.png"
+IDI_BITMAP_BUTTON04     IMAGE   DISCARDABLE     "ex80bs/button04.png"
+IDI_BITMAP_BUTTON05     IMAGE   DISCARDABLE     "ex80bs/button05.png"
+IDI_BITMAP_BUTTON06     IMAGE   DISCARDABLE     "ex80bs/button06.png"
+IDI_BITMAP_BUTTON07     IMAGE   DISCARDABLE     "ex80bs/button07.png"
+IDI_BITMAP_BUTTON08     IMAGE   DISCARDABLE     "ex80bs/button08.png"
+IDI_BITMAP_BUTTON09     IMAGE   DISCARDABLE     "ex80bs/button09.png"
+IDI_BITMAP_BUTTON10     IMAGE   DISCARDABLE     "ex80bs/button10.png"
+IDI_BITMAP_BUTTON11     IMAGE   DISCARDABLE     "ex80bs/button11.png"
+IDI_BITMAP_BUTTON12     IMAGE   DISCARDABLE     "ex80bs/button12.png"
+IDI_BITMAP_BUTTON13     IMAGE   DISCARDABLE     "ex80bs/button13.png"
+IDI_BITMAP_BUTTON14     IMAGE   DISCARDABLE     "ex80bs/button14.png"
+IDI_BITMAP_BUTTON15     IMAGE   DISCARDABLE     "ex80bs/button15.png"
+IDI_BITMAP_BUTTON16     IMAGE   DISCARDABLE     "ex80bs/button16.png"
+IDI_BITMAP_BUTTON17     IMAGE   DISCARDABLE     "ex80bs/button17.png"
+IDI_BITMAP_BUTTON18     IMAGE   DISCARDABLE     "ex80bs/button18.png"
+IDI_BITMAP_BUTTON19     IMAGE   DISCARDABLE     "ex80bs/button19.png"
+IDI_BITMAP_BUTTON20     IMAGE   DISCARDABLE     "ex80bs/button20.png"
+IDI_BITMAP_BUTTON21     IMAGE   DISCARDABLE     "ex80bs/button21.png"
+IDI_BITMAP_BUTTON22     IMAGE   DISCARDABLE     "ex80bs/button22.png"
+IDI_BITMAP_BUTTON23     IMAGE   DISCARDABLE     "ex80bs/button23.png"
+IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "ex80bs/button24.png"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -232,7 +238,7 @@ IDI_BITMAP_BUTTON24     IMAGE   DISCARDABLE     "ex80/button24.png"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "ex80.ico"
+IDI_ICON1               ICON    DISCARDABLE     "ex80bs.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

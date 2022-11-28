@@ -7,7 +7,7 @@
 	[ virtual machine ]
 */
 
-#include "ex80.h"
+#include "ex80bs.h"
 #include "../../emu.h"
 #include "../device.h"
 #include "../event.h"
@@ -24,7 +24,6 @@
 
 #include "cmt.h"
 #include "display.h"
-#include "keyboard.h"
 #include "memory.h"
 
 // ----------------------------------------------------------------------------
@@ -46,7 +45,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
-	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	
 	// set contexts
@@ -55,25 +53,28 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	sio->set_context_out(cmt, SIG_CMT_OUT);
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x08, 0);
-	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x70, 0);
-	pio->set_context_port_c(display, SIG_DISPLAY_DMA, 0x80, 0);
+	pio->set_context_port_c(memory, SIG_KEYBOARD_COLUMN, 0x70, 0);
+	pio->set_context_port_c(display, SIG_DISPLAY_PC, 0x87, 0);
 	
 	cmt->set_context_sio(sio);
 	display->set_context_cpu(cpu);
 	display->set_ram_ptr(memory->get_ram());
-	keyboard->set_context_pio(pio);
+	display->set_vram_ptr(memory->get_vram());
 	memory->set_context_cpu(cpu);
+	memory->set_context_pio(pio);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
-	cpu->set_context_intr(dummy);
+	cpu->set_context_intr(memory);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
 	// io bus
 	io->set_iomap_range_rw(0xdc, 0xdd, sio);
+	io->set_iomap_single_w(0xaf, memory);
+	io->set_iomap_single_r(0xef, memory);
 	io->set_iomap_range_rw(0xf8, 0xfb, pio);
 	
 	// initialize all devices
@@ -179,6 +180,21 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	}
 }
 #endif
+
+// ----------------------------------------------------------------------------
+// notify key
+// ----------------------------------------------------------------------------
+
+void VM::key_down(int code, bool repeat)
+{
+	if(!repeat) {
+		memory->key_down(code);
+	}
+}
+
+void VM::key_up(int code)
+{
+}
 
 // ----------------------------------------------------------------------------
 // user interface

@@ -211,18 +211,27 @@ static const int led_pattern[LED_HEIGHT][LED_WIDTH] = {
 void DISPLAY::initialize()
 {
 	// load rom image
+	memcpy(font,  font_pattern, sizeof(font ));
+	memcpy(font1, font_pattern, sizeof(font1));
+	memcpy(font2, font_pattern, sizeof(font2));
+	
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
-	} else {
-		memcpy(font, font_pattern, sizeof(font));
+	}
+	if(fio->Fopen(create_local_path(_T("FONT1.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fread(font1, sizeof(font1), 1);
+		fio->Fclose();
+	}
+	if(fio->Fopen(create_local_path(_T("FONT2.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fread(font2, sizeof(font2), 1);
+		fio->Fclose();
 	}
 	delete fio;
 	
-	memset(screen, 0, sizeof(screen));
 	odd_even = 0;
-	dma = true;
+	pc = 0x80;
 	
 	register_frame_event(this);
 	register_vline_event(this);
@@ -230,8 +239,8 @@ void DISPLAY::initialize()
 
 void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_DISPLAY_DMA) {
-		dma = ((data & mask) != 0);
+	if(id == SIG_DISPLAY_PC) {
+		pc = data & mask;
 	}
 }
 
@@ -243,39 +252,10 @@ void DISPLAY::event_frame()
 void DISPLAY::event_vline(int v, int clock)
 {
 	if((v & 1) == odd_even && v < 8 * 29 * 2) {
-		uint8_t* dest = screen[v];
-		if(dma) {
-/*
-			SW2	ON = CHAR / OFF = BIT
-			SW3-1/2	ON ,ON  = 8000H-81FFH
-				OFF,ON  = 8200H-83FFH
-				ON ,OFF = 8400H-85FFH
-				OFF,OFF = 8600H-87FFH
-*/
-			int line = v >> 4;
-			int raster = (v >> 1) & 7;
-			uint8_t* base = ram + (~(config.dipswitch >> 2) & 3) * 0x200 + (line + 1) * 16;
-			
-			for(int x = 0; x < 12; x++) {
-				uint8_t pat = base[x];
-				if(config.dipswitch & 2) {
-					pat = (font[(pat & 0x7f) * 8 + raster] & 0x1f) << 2;
-				}
-				dest[0] = (pat & 0x01) >> 0;
-				dest[1] = (pat & 0x02) >> 1;
-				dest[2] = (pat & 0x04) >> 2;
-				dest[3] = (pat & 0x08) >> 3;
-				dest[4] = (pat & 0x10) >> 4;
-				dest[5] = (pat & 0x20) >> 5;
-				dest[6] = (pat & 0x40) >> 6;
-				dest[7] = (pat & 0x80) >> 7;
-				dest += 8;
-			}
+		if(pc & 0x80) {
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 			// wait 8clk/byte
 			register_event_by_clock(this, EVENT_HBLANK, 8 * 12, false, NULL);
-		} else {
-			memset(dest, 0, 8 * 12);
 		}
 	}
 }
@@ -290,13 +270,19 @@ void DISPLAY::event_callback(int event_id, int err)
 void DISPLAY::draw_screen()
 {
 	// draw screen
-	scrntype_t color_crt[2] = {RGB_COLOR(255, 255, 255), 0};
-	for(int y = 0; y < 8 * 29 * 2; y++) {
+	scrntype_t color_tv[2] = {0, RGB_COLOR(255, 255, 255)};
+	
+	if(pc & 0x80) {
+		draw_tv();
+	} else {
+		draw_bs();
+	}
+	for(int y = 0; y < TV_HEIGHT; y++) {
 		scrntype_t* dest = emu->get_screen_buffer(y + vm_ranges[8].y) + vm_ranges[8].x;
 		uint8_t* src = screen[y];
-		for(int x = 0; x < 8 * 12; x++) {
-			dest[0] = dest[1] = dest[2] = dest[3] = dest[4] = dest[5] = color_crt[src[x] & 1];
-			dest += 6;
+		
+		for(int x = 0; x < TV_WIDTH; x++) {
+			dest[x] = color_tv[src[x]];
 		}
 	}
 	
@@ -311,7 +297,7 @@ void DISPLAY::draw_screen()
 		uint8_t val = (base[i >> 1] >> ((i & 1) ? 0 : 4)) & 0x0f;
 		
 		for(int b = 0; b < 8; b++) {
-			color_led[b + 1] = (dma && f9368[val][b]) ? color_on : color_off;
+			color_led[b + 1] = ((pc & 0x80) && f9368[val][b]) ? color_on : color_off;
 		}
 		for(int y = 0; y < LED_HEIGHT; y++) {
 			scrntype_t* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
@@ -322,7 +308,85 @@ void DISPLAY::draw_screen()
 	}
 }
 
-#define STATE_VERSION	1
+void DISPLAY::draw_tv()
+{
+/*
+	SW2	ON = CHAR / OFF = BIT
+	SW3-1/2	ON ,ON  = 8000H-81FFH
+		OFF,ON  = 8200H-83FFH
+		ON ,OFF = 8400H-85FFH
+		OFF,OFF = 8600H-87FFH
+*/
+	const uint8_t color_wb[2] = {1, 0};
+	uint8_t *base = ram + (~(config.dipswitch >> 2) & 3) * 0x200 + 0x31;
+	
+	memset(screen, 1, sizeof(screen));
+	
+	if(pc & 0x80) {
+		for(int y = 0; y < 26; y++) {
+			for(int l = 0; l < 8; l++) {
+				uint8_t *dest = &screen[(y * 8 + l) * 2 + 4][20];
+				
+				for(int x = 0; x < 10; x++) {
+					uint8_t pat = base[x];
+					if(config.dipswitch & 2) {
+						pat = (font[(pat & 0x7f) * 8 + l] & 0x1f) << 2;
+					}
+					dest[ 0] = dest[ 1] = dest[ 2] = dest[ 3] = dest[ 4] = dest[ 5] = color_wb[(pat >> 0) & 1];
+					dest[ 6] = dest[ 7] = dest[ 8] = dest[ 9] = dest[10] = dest[11] = color_wb[(pat >> 1) & 1];
+					dest[12] = dest[13] = dest[14] = dest[15] = dest[16] = dest[17] = color_wb[(pat >> 2) & 1];
+					dest[18] = dest[19] = dest[20] = dest[21] = dest[22] = dest[23] = color_wb[(pat >> 3) & 1];
+					dest[24] = dest[25] = dest[26] = dest[27] = dest[28] = dest[29] = color_wb[(pat >> 4) & 1];
+					dest[30] = dest[31] = dest[32] = dest[33] = dest[34] = dest[35] = color_wb[(pat >> 5) & 1];
+					dest[36] = dest[37] = dest[38] = dest[39] = dest[40] = dest[41] = color_wb[(pat >> 6) & 1];
+					dest[42] = dest[43] = dest[44] = dest[45] = dest[46] = dest[47] = color_wb[(pat >> 7) & 1];
+					dest += 48;
+				}
+			}
+			base += 16;
+		}
+		for(int y = 0; y < TV_HEIGHT; y += 2) {
+			memcpy(screen[y + 1], screen[y], TV_WIDTH);
+		}
+	}
+}
+
+void DISPLAY::draw_bs()
+{
+	const uint8_t color_bw[2] = {0, 1};
+	const uint8_t color_wb[2] = {1, 0};
+	const uint8_t *color = (pc & 2) ? color_wb : color_bw;
+	uint8_t *base = vram + 0x80;
+	
+	memset(screen, color[0], sizeof(screen));
+	
+	if(pc & 4) {
+		for(int y = 0; y < 25; y++) {
+			for(int x = 0; x < 32; x++) {
+				uint8_t code = *base++;
+				
+				for(int l = 0; l < 8; l++) {
+					uint8_t *dest = &screen[(y * 8 + l) * 2 + 12][x * 16 + 4];
+					uint8_t pat = ((pc & 1) ? font1 : font2)[code * 8 + l];
+					
+					dest[ 0] = dest[ 1] = color[(pat >> 0) & 1];
+					dest[ 2] = dest[ 3] = color[(pat >> 1) & 1];
+					dest[ 4] = dest[ 5] = color[(pat >> 2) & 1];
+					dest[ 6] = dest[ 7] = color[(pat >> 3) & 1];
+					dest[ 8] = dest[ 9] = color[(pat >> 4) & 1];
+					dest[10] = dest[11] = color[(pat >> 5) & 1];
+					dest[12] = dest[13] = color[(pat >> 6) & 1];
+					dest[14] = dest[15] = color[(pat >> 7) & 1];
+				}
+			}
+		}
+		for(int y = 0; y < TV_HEIGHT; y += 2) {
+			memcpy(screen[y + 1], screen[y], TV_WIDTH);
+		}
+	}
+}
+
+#define STATE_VERSION	2
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -333,7 +397,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateValue(odd_even);
-	state_fio->StateValue(dma);
+	state_fio->StateValue(pc);
 	return true;
 }
 

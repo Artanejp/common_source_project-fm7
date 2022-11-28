@@ -14,19 +14,24 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_DISPLAY_DMA		0
+#define SIG_DISPLAY_PC		0
 
 class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
-	
-	uint8_t font[0x400];
-	uint8_t screen[8 * 29 * 2][8 * 12];
+	uint8_t font[0x400];	// EX-80
+	uint8_t font1[0x800];	// EX-80BS
+	uint8_t font2[0x800];	// EX-80BS (user defined)
+	uint8_t screen[TV_HEIGHT][TV_WIDTH];
 	
 	uint8_t *ram;
+	uint8_t *vram;
 	int odd_even;
-	bool dma;
+	uint8_t pc;
+	
+	void draw_tv();
+	void draw_bs();
 	
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -51,6 +56,10 @@ public:
 	void set_ram_ptr(uint8_t* ptr)
 	{
 		ram = ptr;
+	}
+	void set_vram_ptr(uint8_t* ptr)
+	{
+		vram = ptr;
 	}
 	void draw_screen();
 };

@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								4/5/2021
+								5/7/2022
 
 --- What's this ?
 
@@ -148,7 +148,7 @@ This archive includes the all source codes of emulators listed below:
 	TOMY
 		ePyuTa		PyuTa/PyuTa Jr.
 	TOSHIBA
-		eEX-80		EX-80
+		eEX-80BS	EX-80BS
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7

@@ -10,8 +10,8 @@
 #ifndef _EX80_H_
 #define _EX80_H_
 
-#define DEVICE_NAME		"TOSHIBA EX-80"
-#define CONFIG_NAME		"ex80"
+#define DEVICE_NAME		"TOSHIBA EX-80BS"
+#define CONFIG_NAME		"ex80bs"
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		59.94
@@ -36,6 +36,7 @@ SW3-1/2	ON ,ON  = 8000H-81FFH
 	ON ,OFF = 8400H-85FFH
 	OFF,OFF = 8600H-87FFH
 */
+#define USE_BOOT_MODE		2
 #define USE_DIPSWITCH
 #define DIPSWITCH_DEFAULT	0x0e
 #define USE_TAPE		1
@@ -61,6 +62,8 @@ static const _TCHAR *sound_device_caption[] = {
 
 #define LED_WIDTH	26
 #define LED_HEIGHT	51
+#define TV_WIDTH	(32 * 8 * 2 + 8)
+#define TV_HEIGHT	(26 * 8 * 2 + 8)
 
 const struct {
 	int x, y;
@@ -106,7 +109,7 @@ const struct {
 	{828 + 33 * 1, 295, LED_WIDTH, LED_HEIGHT},
 	{828 + 33 * 2, 295, LED_WIDTH, LED_HEIGHT},
 	{828 + 33 * 3, 295, LED_WIDTH, LED_HEIGHT},
-	{8, 8, 8 * 6 * 12, 8 * 2 * 29}, // CRT
+	{8, 8, TV_WIDTH, TV_HEIGHT}, // TV
 };
 
 class EMU;
@@ -121,7 +124,6 @@ class I8080;
 
 class CMT;
 class DISPLAY;
-class KEYBOARD;
 class MEMORY;
 
 class VM : public VM_TEMPLATE
@@ -140,7 +142,6 @@ protected:
 	
 	CMT* cmt;
 	DISPLAY* display;
-	KEYBOARD* keyboard;
 	MEMORY* memory;
 	
 public:
@@ -179,6 +180,10 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
+	
+	// notify key
+	void key_down(int code, bool repeat);
+	void key_up(int code);
 	
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);

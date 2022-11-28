@@ -35,9 +35,9 @@ devenv.com colecovision.vcproj /Rebuild Release
 mkdir build_xp\colecovision
 copy Release\colecovision.exe build_xp\colecovision\.
 
-devenv.com ex80.vcproj /Rebuild Release
-mkdir build_xp\ex80
-copy Release\ex80.exe build_xp\ex80\.
+devenv.com ex80bs.vcproj /Rebuild Release
+mkdir build_xp\ex80bs
+copy Release\ex80bs.exe build_xp\ex80bs\.
 
 devenv.com familybasic.vcproj /Rebuild Release
 mkdir build_xp\familybasic

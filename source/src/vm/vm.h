@@ -40,9 +40,9 @@
 #include "colecovision/colecovision.h"
 #endif
 
-// TOSHIBA EX-80
-#ifdef _EX80
-#include "ex80/ex80.h"
+// TOSHIBA EX-80BS
+#ifdef _EX80BS
+#include "ex80bs/ex80bs.h"
 #endif
 
 // Nintendo Family BASIC
