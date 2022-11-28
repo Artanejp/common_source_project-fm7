@@ -166,7 +166,11 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 					buffer->write(data_bus);
 					break;
 				}
-				set_req_delay(0, data_req_delay); // thanks Mr.Sato
+				if(phase == SCSI_PHASE_DATA_OUT || phase == SCSI_PHASE_DATA_IN) {
+					set_req_delay(0, data_req_delay); // thanks Mr.Sato
+				} else {
+					set_req_delay(0, 0.1);
+				}
 			} else if(prev_status && !ack_status) {
 				// H -> L
 				if(atn_pending) {
