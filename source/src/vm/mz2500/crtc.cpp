@@ -671,17 +671,17 @@ void CRTC::event_vline(int v, int clock)
 	}
 	
 	// vblank/hblank of graph screen
-	if(v == GDEVS) {
-		d_pio->write_signal(SIG_I8255_PORT_B, 1, 1);
-		d_int->write_signal(SIG_INTERRUPT_CRTC, 0, 1);
-		d_mem->write_signal(SIG_MEMORY_VBLANK_GRAPH, 0, 1);
-		vblank_g = false;
-	} else if(v == GDEVE) {
+	if(v == GDEVE) {
 		d_pio->write_signal(SIG_I8255_PORT_B, 0, 1);
 		d_int->write_signal(SIG_INTERRUPT_CRTC, 1, 1);
 		d_mem->write_signal(SIG_MEMORY_VBLANK_GRAPH, 1, 1);
 		vblank_g = true;
 		clear_flag = 0;
+	} else if(v == GDEVS) {
+		d_pio->write_signal(SIG_I8255_PORT_B, 1, 1);
+		d_int->write_signal(SIG_INTERRUPT_CRTC, 0, 1);
+		d_mem->write_signal(SIG_MEMORY_VBLANK_GRAPH, 0, 1);
+		vblank_g = false;
 	}
 	if(GDEHS < GDEHE) {
 		register_event_by_clock(this, EVENT_HDISP_GRAPH_S, (int)(clocks_per_char * (GDEHS + 10) + 0.5) - 2, false, NULL);
