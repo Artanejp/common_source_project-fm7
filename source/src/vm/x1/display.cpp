@@ -164,7 +164,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			if(APEN && !APRD) {
 				if(!cur_blank) {
 					// wait next blank
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
 				if(zpal[num].b != (data & 0x0f)) {
@@ -188,7 +188,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			if(APEN && !APRD) {
 				if(!cur_blank) {
 					// wait next blank
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
 				if(zpal[num].r != (data & 0x0f)) {
@@ -212,7 +212,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			if(APEN && !APRD) {
 				if(!cur_blank) {
 					// wait next blank
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
 				if(zpal[num].g != (data & 0x0f)) {
@@ -532,7 +532,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 #ifdef _X1TURBO_FEATURE
 			}
 			// restart cpu after pcg/cgrom/zpal is accessed
-//			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+//			d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 			register_event_by_clock(this, EVENT_AFTER_BLANK, 24, false, NULL);
 #endif
 		}
@@ -588,7 +588,7 @@ void DISPLAY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_AFTER_BLANK) {
 		// restart cpu after pcg/cgrom/zpal is accessed
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+		d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 	}
 }
 #endif
@@ -643,7 +643,7 @@ uint8_t DISPLAY::get_cur_font(uint32_t addr)
 #ifdef _X1TURBO_FEATURE
 	if(mode1 & 0x20) {
 		// wait next blank
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 		
 		// from X1EMU
 		uint16_t vaddr;
@@ -683,7 +683,7 @@ void DISPLAY::get_cur_pcg(uint32_t addr)
 #ifdef _X1TURBO_FEATURE
 	if(mode1 & 0x20) {
 		// wait next blank
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 		
 		// from X1EMU
 		uint16_t vaddr;

@@ -88,6 +88,7 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM "Full Speed",                  ID_FULL_SPEED
+        MENUITEM "Drive VM in M1/R/W Cycle",    ID_DRIVE_VM_IN_OPECODE
         MENUITEM SEPARATOR
         POPUP "Save State"
         BEGIN

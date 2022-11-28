@@ -41,7 +41,6 @@ private:
 	uint8_t *pcg0, *pcg1, *pcg2, *pcg3;
 	
 	// crtc
-	void set_hsync(int h);
 	uint8_t textreg_num, textreg[16];
 	uint8_t cgreg_num, cgreg[32];
 	uint8_t scrn_size, cg_mask, cg_mask256;
@@ -50,8 +49,9 @@ private:
 	uint8_t latch[4];
 	uint16_t GDEVS, GDEVE;
 	uint8_t GDEHS, GDEHE;
-	int GDEHSC, GDEHEC;
-	bool hblank, vblank, blink;
+	bool hblank_t, vblank_t;
+	bool hblank_g, vblank_g;
+	bool blink;
 	uint8_t clear_flag;
 	uint8_t palette_reg[16];
 	bool pal_select;

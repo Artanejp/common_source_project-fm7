@@ -118,7 +118,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(!hblank && is_vram[addr >> 11]) {
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 	}
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
@@ -127,7 +127,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(!hblank && is_vram[addr >> 11]) {
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 	}
 	return rbank[addr >> 11][addr & 0x7ff];
 }
@@ -233,7 +233,7 @@ void MEMORY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_HBLANK) {
 		hblank = true;
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+		d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 	}
 }
 

@@ -122,10 +122,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_constant_clock(2, 12500);		// ŽÀ‘ª 12.49KHz
 	ctc->set_constant_clock(3, 2500);		// ŽÀ‘ª 2.499KHz
 #ifdef _M68
-	ctc2->set_constant_clock(0, CPU_CLOCKS / 13);	// ŽÀ‘ª 307.6KHz
-	ctc2->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13•ªŽü) / CTC:2•ªŽü / SIO:16•ªŽü = 9600 baud
-	ctc2->set_constant_clock(2, 12500);		// ŽÀ‘ª 12.49KHz
-	ctc2->set_constant_clock(3, 2500);		// ŽÀ‘ª 2.499KHz
+	ctc2->set_constant_clock(0, 50);		// ŽÀ‘ª 50Hz
+	ctc2->set_constant_clock(1, 50);
+	ctc2->set_constant_clock(2, 50);
+	ctc2->set_constant_clock(3, 50);
 #endif
 	dma->set_context_memory(memory);
 	dma->set_context_io(io);
@@ -155,14 +155,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		dev->set_context_intr(cpu, level++); \
 		parent_dev = dev; \
 	}
+	// NOTE: IEI and IEO seems not to be connected to other Z80 family chips on M68 :-(
 	Z80_DAISY_CHAIN(dma);
 	Z80_DAISY_CHAIN(ctc);
 #ifdef _M68
-	// need to investigate M68 board :-(
+	Z80_DAISY_CHAIN(pio);
+	Z80_DAISY_CHAIN(sio);
 	Z80_DAISY_CHAIN(ctc2);
-#endif
+#else
 	Z80_DAISY_CHAIN(sio);
 	Z80_DAISY_CHAIN(pio);
+#endif
 	
 	// i/o bus
 	if(config.drive_type == 0) {

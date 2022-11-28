@@ -28,7 +28,7 @@
 void CMT::initialize()
 {
 #if defined(_MZ2500)
-	boot_mode = config.boot_mode;
+	is_mz80b = (config.boot_mode == 2);
 #endif
 	pa = pc = 0xff;
 	play = rec = false;
@@ -95,7 +95,7 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_PIO_PA) {
 #if defined(_MZ2500)
-		if(boot_mode != 2) {
+		if(!is_mz80b) {
 #endif
 #if !defined(_MZ80B)
 			// MZ-2000/2500
@@ -238,7 +238,7 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_CMT_END) {
 		if((data & mask) && now_play) {
 #if defined(_MZ2500)
-			if(boot_mode != 2) {
+			if(!is_mz80b) {
 #endif
 #if !defined(_MZ80B)
 				if(!(pa & 0x20)) {
@@ -253,7 +253,7 @@ void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_CMT_TOP) {
 		if((data & mask) && now_rewind) {
 #if defined(_MZ2500)
-			if(boot_mode != 2) {
+			if(!is_mz80b) {
 #endif
 #if !defined(_MZ80B)
 				if(!(pa & 0x40)) {
@@ -345,7 +345,7 @@ void CMT::close_tape()
 #endif
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool CMT::process_state(FILEIO* state_fio, bool loading)
 {
@@ -356,7 +356,7 @@ bool CMT::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 #if defined(_MZ2500)
-	state_fio->StateValue(boot_mode);
+	state_fio->StateValue(is_mz80b);
 #endif
 	state_fio->StateValue(pa);
 	state_fio->StateValue(pc);

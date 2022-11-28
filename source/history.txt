@@ -1,3 +1,22 @@
+9/9/2022
+
+[EMU/DEBUGGER] show hint message for ? command
+
+[VM/EVENT] improve to drive virtual machine while executing one cpu opecode
+[VM/PCM8BIT] improve sound generation quality (thanks Mr.Sato)
+[VM/Z80] improve to drive virtual machine in m1/read/write cycle
+[VM/Z80] support wait signal
+
+[MZ2500] improve i/o access wait in 4MHz mode
+[MZ2500/CRTC] improve hsync/vsync timing
+[MZ2500/MEMORY] fix enbug around bank page of pcg and kanji rom
+[MZ2500/MEMORY] improve memory access wait in 4MHz mode
+[MZ2500/MEMORY] improve memory access wait by blanking signals
+
+[PC8801] improve JAST SOUND volume (thanks Mr.Sato)
+[X1] improve JAST SOUND volume (thanks Mr.Sato)
+
+
 8/30/2022
 
 [MZ2200/KEYBOARD] change key assign for SFTLOCK from CapsLock to Ctrl

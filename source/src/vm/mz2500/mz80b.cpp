@@ -295,7 +295,7 @@ void VM::special_reset()
 //		device->special_reset();
 //	}
 	memory->special_reset();
-	cpu->reset();
+	cpu->special_reset();
 #ifdef SUPPORT_16BIT_BOARD
 	pio_to16->reset();
 	cpu_16->reset();

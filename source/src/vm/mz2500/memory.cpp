@@ -10,10 +10,11 @@
 #include "memory.h"
 
 #define PAGE_TYPE_NORMAL	0
-#define PAGE_TYPE_VRAM		1
-#define PAGE_TYPE_KANJI		2
-#define PAGE_TYPE_DIC		3
-#define PAGE_TYPE_MODIFY	4
+#define PAGE_TYPE_TVRAM		1
+#define PAGE_TYPE_GVRAM		2
+#define PAGE_TYPE_RMW		3
+#define PAGE_TYPE_PCG		4
+#define PAGE_TYPE_DIC		5
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -65,6 +66,7 @@ void MEMORY::initialize()
 	delete fio;
 	
 	// MZ-2000/80B
+	is_4mhz = (config.boot_mode != 0);
 	vram_sel = vram_page = 0;
 }
 
@@ -73,7 +75,6 @@ void MEMORY::initialize()
 void MEMORY::reset()
 {
 	// ipl reset
-	memset(page, 0xff, sizeof(page));
 	bank = 0;
 	set_map(0x34);
 	set_map(0x35);
@@ -88,14 +89,14 @@ void MEMORY::reset()
 	mode = 0;
 	
 	// reset crtc signals
-	blank = hblank = vblank = busreq = false;
+	hblank_t = vblank_t = hblank_g = vblank_g = true;
+	wait_t = wait_g = false;
 	extra_wait = 0;
 }
 
 void MEMORY::special_reset()
 {
 	// reset
-	memset(page, 0xff, sizeof(page));
 	bank = 0;
 	set_map(0x00);
 	set_map(0x01);
@@ -107,7 +108,8 @@ void MEMORY::special_reset()
 	set_map(0x07);
 	
 	// reset crtc signals
-	blank = hblank = vblank = busreq = false;
+	hblank_t = vblank_t = hblank_g = vblank_g = true;
+	wait_t = wait_g = false;
 	extra_wait = 0;
 }
 
@@ -128,25 +130,28 @@ void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 	addr &= 0xffff;
 	int b = addr >> 12;
 	
-	if(is_vram[b] && !blank) {
-		// vram wait
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		busreq = true;
+	// vram wait
+	switch(page_type[b]) {
+	case PAGE_TYPE_TVRAM:
+	case PAGE_TYPE_PCG:
+		if(!hblank_t && !vblank_t) {
+			d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
+			wait_t = true;
+		}
+		break;
+	case PAGE_TYPE_GVRAM:
+	case PAGE_TYPE_RMW:
+		if(!hblank_g && !vblank_g) {
+			d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
+			wait_g = true;
+		}
+		break;
 	}
-/*
-	if(busreq) {
-		*wait = 0;
-		extra_wait += page_wait[b];
-	} else {
-		*wait = page_wait[b] + extra_wait;
-		extra_wait = 0;
-	}
-*/
 	*wait = page_wait[b];
 	
-	if(page_type[b] == PAGE_TYPE_MODIFY) {
+	if(page_type[b] == PAGE_TYPE_RMW) {
 		// read write modify
-		int b2 = b >> 1;
+		int b2 = addr >> 13;
 		if(page[b2] == 0x30) {
 			d_crtc->write_data8((addr & 0x1fff) + 0x0000, data);
 		} else if(page[b2] == 0x31) {
@@ -166,25 +171,28 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 	addr &= 0xffff;
 	int b = addr >> 12;
 	
-	if(is_vram[b] && !blank) {
-		// vram wait
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		busreq = true;
+	// vram wait
+	switch(page_type[b]) {
+	case PAGE_TYPE_TVRAM:
+	case PAGE_TYPE_PCG:
+		if(!hblank_t && !vblank_t) {
+			d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
+			wait_t = true;
+		}
+		break;
+	case PAGE_TYPE_GVRAM:
+	case PAGE_TYPE_RMW:
+		if(!hblank_g && !vblank_g) {
+			d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
+			wait_g = true;
+		}
+		break;
 	}
-/*
-	if(busreq) {
-		*wait = 0;
-		extra_wait += page_wait[b];
-	} else {
-		*wait = page_wait[b] + extra_wait;
-		extra_wait = 0;
-	}
-*/
 	*wait = page_wait[b];
 	
-	if(page_type[b] == PAGE_TYPE_MODIFY) {
+	if(page_type[b] == PAGE_TYPE_RMW) {
 		// read write modify
-		int b2 = b >> 1;
+		int b2 = addr >> 13;
 		if(page[b2] == 0x30) {
 			return d_crtc->read_data8((addr & 0x1fff) + 0x0000);
 		} else if(page[b2] == 0x31) {
@@ -200,7 +208,7 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 
 uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
 {
-	*wait = 1;
+	*wait = is_4mhz ? 0 : 1;
 	return read_data8(addr);
 }
 
@@ -219,10 +227,14 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		// mode reg
 		if(!(mode & 2) && (data & 2)) {
 			// MZ-2500 to MZ-2000/80B
-			for(int i = 0; i < 8; i++) {
-				page[i] = 0xff;
-				set_map(i, i);
-			}
+			set_map(0, 0x00);
+			set_map(1, 0x01);
+			set_map(2, 0x02);
+			set_map(3, 0x03);
+			set_map(4, 0x04);
+			set_map(5, 0x05);
+			set_map(6, 0x06);
+			set_map(7, 0x07);
 		}
 		mode = data & 3;
 		break;
@@ -230,7 +242,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		// dictionary bank
 		dic_bank = data & 0x1f;
 		for(int i = 0; i < 8; i++) {
-			if(page_type[i] == PAGE_TYPE_DIC) {
+			if(page_type[i << 1] == PAGE_TYPE_DIC) {
 				SET_BANK(i * 0x2000,  i * 0x2000 + 0x1fff, wdmy, dic + dic_bank * 0x2000);
 			}
 		}
@@ -239,7 +251,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		// kanji bank
 		kanji_bank = data;
 		for(int i = 0; i < 8; i++) {
-			if(page_type[i] == PAGE_TYPE_KANJI) {
+			if(page_type[i << 1] == PAGE_TYPE_PCG) {
 				if(kanji_bank & 0x80) {
 					SET_BANK(i * 0x2000,  i * 0x2000 + 0x7ff, wdmy, kanji + (kanji_bank & 0x7f) * 0x800);
 				} else {
@@ -290,27 +302,45 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 
 void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_MEMORY_VRAM_SEL) {
+	if(id == SIG_MEMORY_HBLANK_TEXT) {
+		hblank_t = ((data & mask) != 0);
+		if((hblank_t || vblank_t) && wait_t) {
+			if(!wait_g) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_t = false;
+		}
+	} else if(id == SIG_MEMORY_VBLANK_TEXT) {
+		vblank_t = ((data & mask) != 0);
+		if((hblank_t || vblank_t) && wait_t) {
+			if(!wait_g) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_t = false;
+		}
+	} else if(id == SIG_MEMORY_HBLANK_GRAPH) {
+		hblank_g = ((data & mask) != 0);
+		if((hblank_g || vblank_g) && wait_g) {
+			if(!wait_t) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_g = false;
+		}
+	} else if(id == SIG_MEMORY_VBLANK_GRAPH) {
+		vblank_g = ((data & mask) != 0);
+		if((hblank_g || vblank_g) && wait_g) {
+			if(!wait_t) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_g = false;
+		}
+	} else if(id == SIG_MEMORY_VRAM_SEL) {
 		// MZ-2000/80B
 		if(vram_sel != (data & mask)) {
 			vram_sel = data & mask;
 			update_vram_map();
 		}
-		return;
 	}
-	if(id == SIG_MEMORY_HBLANK) {
-		hblank = ((data & mask) != 0);
-	} else if(id == SIG_MEMORY_VBLANK) {
-		vblank = ((data & mask) != 0);
-	}
-	
-	// if blank, disable busreq
-	bool next = hblank || vblank;
-	if(!blank && next && busreq) {
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		busreq = false;
-	}
-	blank = next;
 }
 
 void MEMORY::set_map(uint8_t data)
@@ -321,13 +351,9 @@ void MEMORY::set_map(uint8_t data)
 
 void MEMORY::set_map(uint8_t bank, uint8_t data)
 {
-	if(page[bank] == data) {
-		return;
-	}
 	int base = bank * 0x2000;
 	int page_type_tmp = 0;
 	int page_wait_tmp = 0;
-	bool is_vram_tmp = false;
 	
 	if(data <= 0x1f) {
 		// main ram
@@ -338,15 +364,13 @@ void MEMORY::set_map(uint8_t bank, uint8_t data)
 		static const int ofs_table[] = {0x00, 0x01, 0x04, 0x05, 0x08, 0x09, 0x0c, 0x0d, 0x02, 0x03, 0x06, 0x07, 0x0a, 0x0b, 0x0e, 0x0f};
 		int ofs = ofs_table[data - 0x20] * 0x2000;
 		SET_BANK(base,  base + 0x1fff, vram + ofs, vram + ofs);
-		page_type_tmp = PAGE_TYPE_VRAM;
-		page_wait_tmp = 1;
-		is_vram_tmp = true;
+		page_type_tmp = PAGE_TYPE_GVRAM;
+		page_wait_tmp = is_4mhz ? 0 : 1;
 	} else if(0x30 <= data && data <= 0x33) {
 		// read modify write
 		SET_BANK(base,  base + 0x1fff, wdmy, rdmy);
-		page_type_tmp = PAGE_TYPE_MODIFY;
-		page_wait_tmp = 2;
-		is_vram_tmp = true;
+		page_type_tmp = PAGE_TYPE_RMW;
+		page_wait_tmp = is_4mhz ? 1 : 2;
 	} else if(0x34 <= data && data <= 0x37) {
 		// ipl rom
 		SET_BANK(base,  base + 0x1fff, wdmy, ipl + (data - 0x34) * 0x2000);
@@ -355,18 +379,16 @@ void MEMORY::set_map(uint8_t bank, uint8_t data)
 		// text vram
 		SET_BANK(base         ,  base + 0x17ff, tvram, tvram);
 		SET_BANK(base + 0x1800,  base + 0x1fff, wdmy,  rdmy);
-		page_type_tmp = PAGE_TYPE_VRAM;
-		page_wait_tmp = 1;
-		is_vram_tmp = true;
+		page_type_tmp = PAGE_TYPE_TVRAM;
+		page_wait_tmp = is_4mhz ? 0 : 1;
 	} else if(data == 0x39) {
 		// kanji rom, pcg
 		SET_BANK(base,  base + 0x1fff, pcg, pcg);
 		if(kanji_bank & 0x80) {
 			SET_BANK(base,  base + 0x7ff, wdmy, kanji + (kanji_bank & 0x7f) * 0x800);
 		}
-		page_type_tmp = PAGE_TYPE_KANJI;
-		page_wait_tmp = 2;
-		is_vram_tmp = true;
+		page_type_tmp = PAGE_TYPE_PCG;
+		page_wait_tmp = is_4mhz ? 0 : 2;
 	} else if(data == 0x3a) {
 		// dictionary rom
 		SET_BANK(base,  base + 0x1fff, wdmy, dic + dic_bank * 0x2000);
@@ -383,7 +405,6 @@ void MEMORY::set_map(uint8_t bank, uint8_t data)
 	page[bank] = data;
 	page_type[bank << 1] = page_type[(bank << 1) + 1] = page_type_tmp;
 	page_wait[bank << 1] = page_wait[(bank << 1) + 1] = page_wait_tmp;
-	is_vram  [bank << 1] = is_vram  [(bank << 1) + 1] = is_vram_tmp;
 }
 
 void MEMORY::update_vram_map()
@@ -392,57 +413,51 @@ void MEMORY::update_vram_map()
 		// MZ-2000
 		if(vram_sel == 0x80) {
 			for(int i = 0x0c; i <= 0x0f; i++) {
-				page_type[i] = PAGE_TYPE_VRAM;
+				page_type[i] = PAGE_TYPE_GVRAM;
 				page_wait[i] = 1;
-				is_vram  [i] = true;
 			}
 			SET_BANK(0xc000, 0xffff, vram + 0x8000 * vram_page, vram + 0x8000 * vram_page);
 		} else {
 			for(int i = (0x0c >> 1); i <= (0x0f >> 1); i++) {
-				uint8_t page_tmp = page[i];
-				page[i] = 0xff;
-				set_map(i, page_tmp);
+				set_map(i, page[i]);
 			}
 			if(vram_sel == 0xc0) {
-				page_type[0x0d] = PAGE_TYPE_VRAM;
+				page_type[0x0d] = PAGE_TYPE_TVRAM;
 				page_wait[0x0d] = 1;
-				is_vram  [0x0d] = true;
 				SET_BANK(0xd000, 0xdfff, tvram, tvram);
 			}
 		}
 	} else if(mode == 2) {
 		// MZ-80B
 		for(int i = (0x05 >> 1); i <= (0x07 >> 1); i++) {
-			uint8_t page_tmp = page[i];
-			page[i] = 0xff;
-			set_map(i, page_tmp);
+			set_map(i, page[i]);
 		}
 		for(int i = (0x0d >> 1); i <= (0x0f >> 1); i++) {
-			uint8_t page_tmp = page[i];
-			page[i] = 0xff;
-			set_map(i, page_tmp);
+			set_map(i, page[i]);
 		}
 		if(vram_sel == 0x80) {
-			for(int i = 0x0d; i <= 0x0f; i++) {
-				page_type[i] = PAGE_TYPE_VRAM;
-				page_wait[i] = 1;
-				is_vram  [i] = true;
-			}
+			page_type[0x0d] = PAGE_TYPE_TVRAM;
+			page_wait[0x0d] = 1;
+			page_type[0x0e] = PAGE_TYPE_GVRAM;
+			page_wait[0x0e] = 1;
+			page_type[0x0f] = PAGE_TYPE_GVRAM;
+			page_wait[0x0f] = 1;
 			SET_BANK(0xd000, 0xdfff, tvram, tvram);
 			SET_BANK(0xe000, 0xffff, vram + 0x8000 * (vram_page & 1), vram + 0x8000 * (vram_page & 1));
 		} else if(vram_sel == 0xc0) {
-			for(int i = 0x05; i <= 0x07; i++) {
-				page_type[i] = PAGE_TYPE_VRAM;
-				page_wait[i] = 1;
-				is_vram  [i] = true;
-			}
+			page_type[0x05] = PAGE_TYPE_TVRAM;
+			page_wait[0x05] = 1;
+			page_type[0x06] = PAGE_TYPE_GVRAM;
+			page_wait[0x06] = 1;
+			page_type[0x07] = PAGE_TYPE_GVRAM;
+			page_wait[0x07] = 1;
 			SET_BANK(0x5000, 0x5fff, tvram, tvram);
 			SET_BANK(0x6000, 0x7fff, vram + 0x8000 * (vram_page & 1), vram + 0x8000 * (vram_page & 1));
 		}
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -460,10 +475,13 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(page, sizeof(page), 1);
 	state_fio->StateValue(dic_bank);
 	state_fio->StateValue(kanji_bank);
-	state_fio->StateValue(blank);
-	state_fio->StateValue(hblank);
-	state_fio->StateValue(vblank);
-	state_fio->StateValue(busreq);
+	state_fio->StateValue(hblank_t);
+	state_fio->StateValue(vblank_t);
+	state_fio->StateValue(wait_t);
+	state_fio->StateValue(hblank_g);
+	state_fio->StateValue(vblank_g);
+	state_fio->StateValue(wait_g);
+	state_fio->StateValue(is_4mhz);
 	state_fio->StateValue(mode);
 	state_fio->StateValue(vram_sel);
 	state_fio->StateValue(vram_page);
@@ -471,9 +489,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	// post process
 	if(loading) {
 		for(int i = 0; i < 8; i++) {
-			uint8_t page_tmp = page[i];
-			page[i] = 0xff;
-			set_map(i, page_tmp);
+			set_map(i, page[i]);
 		}
 		update_vram_map();
 	}

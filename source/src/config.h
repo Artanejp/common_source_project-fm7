@@ -120,7 +120,7 @@ typedef struct {
 	#endif
 	bool compress_state;
 	int cpu_power;
-	bool full_speed;
+	bool full_speed, drive_vm_in_opecode;
 	
 	// recent files
 	#if defined(USE_SHARED_DLL) || defined(USE_CART)

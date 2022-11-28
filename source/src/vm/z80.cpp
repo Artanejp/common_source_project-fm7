@@ -225,42 +225,56 @@ static const uint8_t cc_ex[0x100] = {
 	} \
 } while(0)
 
-#define UPDATE_EXTRA_EVENT(clock) do { \
+#define CLOCK_IN_OP(clock) do { \
 	if(is_primary) { \
-		if(busreq) { \
-			busreq_icount += (clock); \
+		if(wait || wait_icount > 0) { \
+			wait_icount += (clock); \
 		} \
-		update_extra_event(clock); \
+		event_icount += (clock); \
+	} \
+} while(0)
+
+#define UPDATE_EVENT_IN_OP(clock) do { \
+	if(is_primary ) { \
+		if(wait || wait_icount > 0) { \
+			wait_icount += (clock); \
+		} \
+		event_icount += (clock); \
+		if(!(wait || wait_icount > 0)) { \
+			update_event_in_opecode(event_icount); \
+			event_done_icount += event_icount; \
+			event_icount = 0; \
+		} \
 	} \
 } while(0)
 
 inline uint8_t Z80::RM8(uint32_t addr)
 {
-	UPDATE_EXTRA_EVENT(1);
+	UPDATE_EVENT_IN_OP(2);
 #ifdef Z80_MEMORY_WAIT
-	int wait;
-	uint8_t val = d_mem->read_data8w(addr, &wait);
-	icount -= wait;
-	UPDATE_EXTRA_EVENT(2 + wait);
+	int wait_clock;
+	uint8_t val = d_mem->read_data8w(addr, &wait_clock);
+	icount -= wait_clock;
+	CLOCK_IN_OP(1 + wait_clock);
 	return val;
 #else
 	uint8_t val = d_mem->read_data8(addr);
-	UPDATE_EXTRA_EVENT(2);
+	CLOCK_IN_OP(1);
 	return val;
 #endif
 }
 
 inline void Z80::WM8(uint32_t addr, uint8_t val)
 {
-	UPDATE_EXTRA_EVENT(1);
+	UPDATE_EVENT_IN_OP(2);
 #ifdef Z80_MEMORY_WAIT
-	int wait;
-	d_mem->write_data8w(addr, val, &wait);
-	icount -= wait;
-	UPDATE_EXTRA_EVENT(2 + wait);
+	int wait_clock;
+	d_mem->write_data8w(addr, val, &wait_clock);
+	icount -= wait_clock;
+	CLOCK_IN_OP(1 + wait_clock);
 #else
 	d_mem->write_data8(addr, val);
-	UPDATE_EXTRA_EVENT(2);
+	CLOCK_IN_OP(1);
 #endif
 }
 
@@ -283,11 +297,11 @@ inline uint8_t Z80::FETCHOP()
 	R++;
 	
 	// consider m1 cycle wait
-	UPDATE_EXTRA_EVENT(1);
-	int wait;
-	uint8_t val = d_mem->fetch_op(pctmp, &wait);
-	icount -= wait;
-	UPDATE_EXTRA_EVENT(3 + wait);
+	UPDATE_EVENT_IN_OP(2);
+	int wait_clock;
+	uint8_t val = d_mem->fetch_op(pctmp, &wait_clock);
+	icount -= wait_clock;
+	CLOCK_IN_OP(2 + wait_clock);
 	return val;
 }
 
@@ -307,38 +321,38 @@ inline uint32_t Z80::FETCH16()
 
 inline uint8_t Z80::IN8(uint32_t addr)
 {
-	UPDATE_EXTRA_EVENT(2);
+	UPDATE_EVENT_IN_OP(3);
 #ifdef Z80_IO_WAIT
-	int wait;
-	uint8_t val = d_io->read_io8w(addr, &wait);
-	icount -= wait;
-	UPDATE_EXTRA_EVENT(2 + wait);
+	int wait_clock;
+	uint8_t val = d_io->read_io8w(addr, &wait_clock);
+	icount -= wait_clock;
+	CLOCK_IN_OP(1 + wait_clock);
 	return val;
 #else
 	uint8_t val = d_io->read_io8(addr);
-	UPDATE_EXTRA_EVENT(2);
+	CLOCK_IN_OP(1);
 	return val;
 #endif
 }
 
 inline void Z80::OUT8(uint32_t addr, uint8_t val)
 {
-	UPDATE_EXTRA_EVENT(2);
+	UPDATE_EVENT_IN_OP(3);
 #ifdef HAS_NSC800
 	if((addr & 0xff) == 0xbb) {
 		icr = val;
-		UPDATE_EXTRA_EVENT(2);
+		CLOCK_IN_OP(1);
 		return;
 	}
 #endif
 #ifdef Z80_IO_WAIT
-	int wait;
-	d_io->write_io8w(addr, val, &wait);
-	icount -= wait;
-	UPDATE_EXTRA_EVENT(2 + wait);
+	int wait_clock;
+	d_io->write_io8w(addr, val, &wait_clock);
+	icount -= wait_clock;
+	CLOCK_IN_OP(1 + wait_clock);
 #else
 	d_io->write_io8(addr, val);
-	UPDATE_EXTRA_EVENT(2);
+	CLOCK_IN_OP(1);
 #endif
 }
 
@@ -359,6 +373,7 @@ inline void Z80::OUT8(uint32_t addr, uint8_t val)
 
 #define PUSH(SR) do { \
 	SP -= 2; \
+	CLOCK_IN_OP(1); \
 	WM16(SPD, &SR); \
 } while(0)
 
@@ -498,6 +513,7 @@ inline uint8_t Z80::DEC(uint8_t value)
 #define RRD() do { \
 	uint8_t n = RM8(HL); \
 	WZ = HL + 1; \
+	CLOCK_IN_OP(4); \
 	WM8(HL, (n >> 4) | (A << 4)); \
 	A = (A & 0xf0) | (n & 0x0f); \
 	F = (F & CF) | SZP[A]; \
@@ -506,6 +522,7 @@ inline uint8_t Z80::DEC(uint8_t value)
 #define RLD() do { \
 	uint8_t n = RM8(HL); \
 	WZ = HL + 1; \
+	CLOCK_IN_OP(4); \
 	WM8(HL, (n << 4) | (A & 0x0f)); \
 	A = (A & 0xf0) | (n >> 4); \
 	F = (F & CF) | SZP[A]; \
@@ -601,7 +618,9 @@ inline uint8_t Z80::DEC(uint8_t value)
 	pair32_t tmp; \
 	tmp.d = 0; \
 	RM16(SPD, &tmp); \
+	CLOCK_IN_OP(1); \
 	WM16(SPD, &DR); \
+	CLOCK_IN_OP(2); \
 	DR = tmp; \
 	WZ = DR.d; \
 } while(0)
@@ -729,6 +748,7 @@ inline uint8_t Z80::SET(uint8_t bit, uint8_t value)
 	if((A + io) & 0x08) F |= XF; /* bit 3 -> flag 3 */ \
 	HL++; DE++; BC--; \
 	if(BC) F |= VF; \
+	CLOCK_IN_OP(2); \
 } while(0)
 
 #define CPI() do { \
@@ -741,31 +761,32 @@ inline uint8_t Z80::SET(uint8_t bit, uint8_t value)
 	if(res & 0x02) F |= YF; /* bit 1 -> flag 5 */ \
 	if(res & 0x08) F |= XF; /* bit 3 -> flag 3 */ \
 	if(BC) F |= VF; \
+	CLOCK_IN_OP(5); \
 } while(0)
 
 #define INI() do { \
-	unsigned t; \
+	CLOCK_IN_OP(1); \
 	uint8_t io = IN8(BC); \
 	WZ = BC + 1; \
 	B--; \
 	WM8(HL, io); \
 	HL++; \
 	F = SZ[B]; \
-	t = (unsigned)((C + 1) & 0xff) + (unsigned)io; \
+	unsigned t = (unsigned)((C + 1) & 0xff) + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
 	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
 } while(0)
 
 #define OUTI() do { \
-	unsigned t; \
+	CLOCK_IN_OP(1); \
 	uint8_t io = RM8(HL); \
 	B--; \
 	WZ = BC + 1; \
 	OUT8(BC, io); \
 	HL++; \
 	F = SZ[B]; \
-	t = (unsigned)L + (unsigned)io; \
+	unsigned t = (unsigned)L + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
 	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
@@ -779,6 +800,7 @@ inline uint8_t Z80::SET(uint8_t bit, uint8_t value)
 	if((A + io) & 0x08) F |= XF; /* bit 3 -> flag 3 */ \
 	HL--; DE--; BC--; \
 	if(BC) F |= VF; \
+	CLOCK_IN_OP(2); \
 } while(0)
 
 #define CPD() do { \
@@ -791,31 +813,32 @@ inline uint8_t Z80::SET(uint8_t bit, uint8_t value)
 	if(res & 0x02) F |= YF; /* bit 1 -> flag 5 */ \
 	if(res & 0x08) F |= XF; /* bit 3 -> flag 3 */ \
 	if(BC) F |= VF; \
+	CLOCK_IN_OP(5); \
 } while(0)
 
 #define IND() do { \
-	unsigned t; \
+	CLOCK_IN_OP(1); \
 	uint8_t io = IN8(BC); \
 	WZ = BC - 1; \
 	B--; \
 	WM8(HL, io); \
 	HL--; \
 	F = SZ[B]; \
-	t = ((unsigned)(C - 1) & 0xff) + (unsigned)io; \
+	unsigned t = ((unsigned)(C - 1) & 0xff) + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
 	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
 } while(0)
 
 #define OUTD() do { \
-	unsigned t; \
+	CLOCK_IN_OP(1); \
 	uint8_t io = RM8(HL); \
 	B--; \
 	WZ = BC - 1; \
 	OUT8(BC, io); \
 	HL--; \
 	F = SZ[B]; \
-	t = (unsigned)L + (unsigned)io; \
+	unsigned t = (unsigned)L + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
 	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
@@ -896,265 +919,268 @@ inline uint8_t Z80::SET(uint8_t bit, uint8_t value)
 
 void Z80::OP_CB(uint8_t code)
 {
+	// Done: M1 + M1
+	uint8_t v;
+	
 	icount -= cc_cb[code];
 	
 	switch(code) {
-	case 0x00: B = RLC(B); break;			/* RLC  B           */
-	case 0x01: C = RLC(C); break;			/* RLC  C           */
-	case 0x02: D = RLC(D); break;			/* RLC  D           */
-	case 0x03: E = RLC(E); break;			/* RLC  E           */
-	case 0x04: H = RLC(H); break;			/* RLC  H           */
-	case 0x05: L = RLC(L); break;			/* RLC  L           */
-	case 0x06: WM8(HL, RLC(RM8(HL))); break;	/* RLC  (HL)        */
-	case 0x07: A = RLC(A); break;			/* RLC  A           */
-	case 0x08: B = RRC(B); break;			/* RRC  B           */
-	case 0x09: C = RRC(C); break;			/* RRC  C           */
-	case 0x0a: D = RRC(D); break;			/* RRC  D           */
-	case 0x0b: E = RRC(E); break;			/* RRC  E           */
-	case 0x0c: H = RRC(H); break;			/* RRC  H           */
-	case 0x0d: L = RRC(L); break;			/* RRC  L           */
-	case 0x0e: WM8(HL, RRC(RM8(HL))); break;	/* RRC  (HL)        */
-	case 0x0f: A = RRC(A); break;			/* RRC  A           */
-	case 0x10: B = RL(B); break;			/* RL   B           */
-	case 0x11: C = RL(C); break;			/* RL   C           */
-	case 0x12: D = RL(D); break;			/* RL   D           */
-	case 0x13: E = RL(E); break;			/* RL   E           */
-	case 0x14: H = RL(H); break;			/* RL   H           */
-	case 0x15: L = RL(L); break;			/* RL   L           */
-	case 0x16: WM8(HL, RL(RM8(HL))); break;		/* RL   (HL)        */
-	case 0x17: A = RL(A); break;			/* RL   A           */
-	case 0x18: B = RR(B); break;			/* RR   B           */
-	case 0x19: C = RR(C); break;			/* RR   C           */
-	case 0x1a: D = RR(D); break;			/* RR   D           */
-	case 0x1b: E = RR(E); break;			/* RR   E           */
-	case 0x1c: H = RR(H); break;			/* RR   H           */
-	case 0x1d: L = RR(L); break;			/* RR   L           */
-	case 0x1e: WM8(HL, RR(RM8(HL))); break;		/* RR   (HL)        */
-	case 0x1f: A = RR(A); break;			/* RR   A           */
-	case 0x20: B = SLA(B); break;			/* SLA  B           */
-	case 0x21: C = SLA(C); break;			/* SLA  C           */
-	case 0x22: D = SLA(D); break;			/* SLA  D           */
-	case 0x23: E = SLA(E); break;			/* SLA  E           */
-	case 0x24: H = SLA(H); break;			/* SLA  H           */
-	case 0x25: L = SLA(L); break;			/* SLA  L           */
-	case 0x26: WM8(HL, SLA(RM8(HL))); break;	/* SLA  (HL)        */
-	case 0x27: A = SLA(A); break;			/* SLA  A           */
-	case 0x28: B = SRA(B); break;			/* SRA  B           */
-	case 0x29: C = SRA(C); break;			/* SRA  C           */
-	case 0x2a: D = SRA(D); break;			/* SRA  D           */
-	case 0x2b: E = SRA(E); break;			/* SRA  E           */
-	case 0x2c: H = SRA(H); break;			/* SRA  H           */
-	case 0x2d: L = SRA(L); break;			/* SRA  L           */
-	case 0x2e: WM8(HL, SRA(RM8(HL))); break;	/* SRA  (HL)        */
-	case 0x2f: A = SRA(A); break;			/* SRA  A           */
-	case 0x30: B = SLL(B); break;			/* SLL  B           */
-	case 0x31: C = SLL(C); break;			/* SLL  C           */
-	case 0x32: D = SLL(D); break;			/* SLL  D           */
-	case 0x33: E = SLL(E); break;			/* SLL  E           */
-	case 0x34: H = SLL(H); break;			/* SLL  H           */
-	case 0x35: L = SLL(L); break;			/* SLL  L           */
-	case 0x36: WM8(HL, SLL(RM8(HL))); break;	/* SLL  (HL)        */
-	case 0x37: A = SLL(A); break;			/* SLL  A           */
-	case 0x38: B = SRL(B); break;			/* SRL  B           */
-	case 0x39: C = SRL(C); break;			/* SRL  C           */
-	case 0x3a: D = SRL(D); break;			/* SRL  D           */
-	case 0x3b: E = SRL(E); break;			/* SRL  E           */
-	case 0x3c: H = SRL(H); break;			/* SRL  H           */
-	case 0x3d: L = SRL(L); break;			/* SRL  L           */
-	case 0x3e: WM8(HL, SRL(RM8(HL))); break;	/* SRL  (HL)        */
-	case 0x3f: A = SRL(A); break;			/* SRL  A           */
-	case 0x40: BIT(0, B); break;			/* BIT  0,B         */
-	case 0x41: BIT(0, C); break;			/* BIT  0,C         */
-	case 0x42: BIT(0, D); break;			/* BIT  0,D         */
-	case 0x43: BIT(0, E); break;			/* BIT  0,E         */
-	case 0x44: BIT(0, H); break;			/* BIT  0,H         */
-	case 0x45: BIT(0, L); break;			/* BIT  0,L         */
-	case 0x46: BIT_HL(0, RM8(HL)); break;		/* BIT  0,(HL)      */
-	case 0x47: BIT(0, A); break;			/* BIT  0,A         */
-	case 0x48: BIT(1, B); break;			/* BIT  1,B         */
-	case 0x49: BIT(1, C); break;			/* BIT  1,C         */
-	case 0x4a: BIT(1, D); break;			/* BIT  1,D         */
-	case 0x4b: BIT(1, E); break;			/* BIT  1,E         */
-	case 0x4c: BIT(1, H); break;			/* BIT  1,H         */
-	case 0x4d: BIT(1, L); break;			/* BIT  1,L         */
-	case 0x4e: BIT_HL(1, RM8(HL)); break;		/* BIT  1,(HL)      */
-	case 0x4f: BIT(1, A); break;			/* BIT  1,A         */
-	case 0x50: BIT(2, B); break;			/* BIT  2,B         */
-	case 0x51: BIT(2, C); break;			/* BIT  2,C         */
-	case 0x52: BIT(2, D); break;			/* BIT  2,D         */
-	case 0x53: BIT(2, E); break;			/* BIT  2,E         */
-	case 0x54: BIT(2, H); break;			/* BIT  2,H         */
-	case 0x55: BIT(2, L); break;			/* BIT  2,L         */
-	case 0x56: BIT_HL(2, RM8(HL)); break;		/* BIT  2,(HL)      */
-	case 0x57: BIT(2, A); break;			/* BIT  2,A         */
-	case 0x58: BIT(3, B); break;			/* BIT  3,B         */
-	case 0x59: BIT(3, C); break;			/* BIT  3,C         */
-	case 0x5a: BIT(3, D); break;			/* BIT  3,D         */
-	case 0x5b: BIT(3, E); break;			/* BIT  3,E         */
-	case 0x5c: BIT(3, H); break;			/* BIT  3,H         */
-	case 0x5d: BIT(3, L); break;			/* BIT  3,L         */
-	case 0x5e: BIT_HL(3, RM8(HL)); break;		/* BIT  3,(HL)      */
-	case 0x5f: BIT(3, A); break;			/* BIT  3,A         */
-	case 0x60: BIT(4, B); break;			/* BIT  4,B         */
-	case 0x61: BIT(4, C); break;			/* BIT  4,C         */
-	case 0x62: BIT(4, D); break;			/* BIT  4,D         */
-	case 0x63: BIT(4, E); break;			/* BIT  4,E         */
-	case 0x64: BIT(4, H); break;			/* BIT  4,H         */
-	case 0x65: BIT(4, L); break;			/* BIT  4,L         */
-	case 0x66: BIT_HL(4, RM8(HL)); break;		/* BIT  4,(HL)      */
-	case 0x67: BIT(4, A); break;			/* BIT  4,A         */
-	case 0x68: BIT(5, B); break;			/* BIT  5,B         */
-	case 0x69: BIT(5, C); break;			/* BIT  5,C         */
-	case 0x6a: BIT(5, D); break;			/* BIT  5,D         */
-	case 0x6b: BIT(5, E); break;			/* BIT  5,E         */
-	case 0x6c: BIT(5, H); break;			/* BIT  5,H         */
-	case 0x6d: BIT(5, L); break;			/* BIT  5,L         */
-	case 0x6e: BIT_HL(5, RM8(HL)); break;		/* BIT  5,(HL)      */
-	case 0x6f: BIT(5, A); break;			/* BIT  5,A         */
-	case 0x70: BIT(6, B); break;			/* BIT  6,B         */
-	case 0x71: BIT(6, C); break;			/* BIT  6,C         */
-	case 0x72: BIT(6, D); break;			/* BIT  6,D         */
-	case 0x73: BIT(6, E); break;			/* BIT  6,E         */
-	case 0x74: BIT(6, H); break;			/* BIT  6,H         */
-	case 0x75: BIT(6, L); break;			/* BIT  6,L         */
-	case 0x76: BIT_HL(6, RM8(HL)); break;		/* BIT  6,(HL)      */
-	case 0x77: BIT(6, A); break;			/* BIT  6,A         */
-	case 0x78: BIT(7, B); break;			/* BIT  7,B         */
-	case 0x79: BIT(7, C); break;			/* BIT  7,C         */
-	case 0x7a: BIT(7, D); break;			/* BIT  7,D         */
-	case 0x7b: BIT(7, E); break;			/* BIT  7,E         */
-	case 0x7c: BIT(7, H); break;			/* BIT  7,H         */
-	case 0x7d: BIT(7, L); break;			/* BIT  7,L         */
-	case 0x7e: BIT_HL(7, RM8(HL)); break;		/* BIT  7,(HL)      */
-	case 0x7f: BIT(7, A); break;			/* BIT  7,A         */
-	case 0x80: B = RES(0, B); break;		/* RES  0,B         */
-	case 0x81: C = RES(0, C); break;		/* RES  0,C         */
-	case 0x82: D = RES(0, D); break;		/* RES  0,D         */
-	case 0x83: E = RES(0, E); break;		/* RES  0,E         */
-	case 0x84: H = RES(0, H); break;		/* RES  0,H         */
-	case 0x85: L = RES(0, L); break;		/* RES  0,L         */
-	case 0x86: WM8(HL, RES(0, RM8(HL))); break;	/* RES  0,(HL)      */
-	case 0x87: A = RES(0, A); break;		/* RES  0,A         */
-	case 0x88: B = RES(1, B); break;		/* RES  1,B         */
-	case 0x89: C = RES(1, C); break;		/* RES  1,C         */
-	case 0x8a: D = RES(1, D); break;		/* RES  1,D         */
-	case 0x8b: E = RES(1, E); break;		/* RES  1,E         */
-	case 0x8c: H = RES(1, H); break;		/* RES  1,H         */
-	case 0x8d: L = RES(1, L); break;		/* RES  1,L         */
-	case 0x8e: WM8(HL, RES(1, RM8(HL))); break;	/* RES  1,(HL)      */
-	case 0x8f: A = RES(1, A); break;		/* RES  1,A         */
-	case 0x90: B = RES(2, B); break;		/* RES  2,B         */
-	case 0x91: C = RES(2, C); break;		/* RES  2,C         */
-	case 0x92: D = RES(2, D); break;		/* RES  2,D         */
-	case 0x93: E = RES(2, E); break;		/* RES  2,E         */
-	case 0x94: H = RES(2, H); break;		/* RES  2,H         */
-	case 0x95: L = RES(2, L); break;		/* RES  2,L         */
-	case 0x96: WM8(HL, RES(2, RM8(HL))); break;	/* RES  2,(HL)      */
-	case 0x97: A = RES(2, A); break;		/* RES  2,A         */
-	case 0x98: B = RES(3, B); break;		/* RES  3,B         */
-	case 0x99: C = RES(3, C); break;		/* RES  3,C         */
-	case 0x9a: D = RES(3, D); break;		/* RES  3,D         */
-	case 0x9b: E = RES(3, E); break;		/* RES  3,E         */
-	case 0x9c: H = RES(3, H); break;		/* RES  3,H         */
-	case 0x9d: L = RES(3, L); break;		/* RES  3,L         */
-	case 0x9e: WM8(HL, RES(3, RM8(HL))); break;	/* RES  3,(HL)      */
-	case 0x9f: A = RES(3, A); break;		/* RES  3,A         */
-	case 0xa0: B = RES(4,	B); break;		/* RES  4,B         */
-	case 0xa1: C = RES(4,	C); break;		/* RES  4,C         */
-	case 0xa2: D = RES(4,	D); break;		/* RES  4,D         */
-	case 0xa3: E = RES(4,	E); break;		/* RES  4,E         */
-	case 0xa4: H = RES(4,	H); break;		/* RES  4,H         */
-	case 0xa5: L = RES(4,	L); break;		/* RES  4,L         */
-	case 0xa6: WM8(HL, RES(4, RM8(HL))); break;	/* RES  4,(HL)      */
-	case 0xa7: A = RES(4,	A); break;		/* RES  4,A         */
-	case 0xa8: B = RES(5, B); break;		/* RES  5,B         */
-	case 0xa9: C = RES(5, C); break;		/* RES  5,C         */
-	case 0xaa: D = RES(5, D); break;		/* RES  5,D         */
-	case 0xab: E = RES(5, E); break;		/* RES  5,E         */
-	case 0xac: H = RES(5, H); break;		/* RES  5,H         */
-	case 0xad: L = RES(5, L); break;		/* RES  5,L         */
-	case 0xae: WM8(HL, RES(5, RM8(HL))); break;	/* RES  5,(HL)      */
-	case 0xaf: A = RES(5, A); break;		/* RES  5,A         */
-	case 0xb0: B = RES(6, B); break;		/* RES  6,B         */
-	case 0xb1: C = RES(6, C); break;		/* RES  6,C         */
-	case 0xb2: D = RES(6, D); break;		/* RES  6,D         */
-	case 0xb3: E = RES(6, E); break;		/* RES  6,E         */
-	case 0xb4: H = RES(6, H); break;		/* RES  6,H         */
-	case 0xb5: L = RES(6, L); break;		/* RES  6,L         */
-	case 0xb6: WM8(HL, RES(6, RM8(HL))); break;	/* RES  6,(HL)      */
-	case 0xb7: A = RES(6, A); break;		/* RES  6,A         */
-	case 0xb8: B = RES(7, B); break;		/* RES  7,B         */
-	case 0xb9: C = RES(7, C); break;		/* RES  7,C         */
-	case 0xba: D = RES(7, D); break;		/* RES  7,D         */
-	case 0xbb: E = RES(7, E); break;		/* RES  7,E         */
-	case 0xbc: H = RES(7, H); break;		/* RES  7,H         */
-	case 0xbd: L = RES(7, L); break;		/* RES  7,L         */
-	case 0xbe: WM8(HL, RES(7, RM8(HL))); break;	/* RES  7,(HL)      */
-	case 0xbf: A = RES(7, A); break;		/* RES  7,A         */
-	case 0xc0: B = SET(0, B); break;		/* SET  0,B         */
-	case 0xc1: C = SET(0, C); break;		/* SET  0,C         */
-	case 0xc2: D = SET(0, D); break;		/* SET  0,D         */
-	case 0xc3: E = SET(0, E); break;		/* SET  0,E         */
-	case 0xc4: H = SET(0, H); break;		/* SET  0,H         */
-	case 0xc5: L = SET(0, L); break;		/* SET  0,L         */
-	case 0xc6: WM8(HL, SET(0, RM8(HL))); break;	/* SET  0,(HL)      */
-	case 0xc7: A = SET(0, A); break;		/* SET  0,A         */
-	case 0xc8: B = SET(1, B); break;		/* SET  1,B         */
-	case 0xc9: C = SET(1, C); break;		/* SET  1,C         */
-	case 0xca: D = SET(1, D); break;		/* SET  1,D         */
-	case 0xcb: E = SET(1, E); break;		/* SET  1,E         */
-	case 0xcc: H = SET(1, H); break;		/* SET  1,H         */
-	case 0xcd: L = SET(1, L); break;		/* SET  1,L         */
-	case 0xce: WM8(HL, SET(1, RM8(HL))); break;	/* SET  1,(HL)      */
-	case 0xcf: A = SET(1, A); break;		/* SET  1,A         */
-	case 0xd0: B = SET(2, B); break;		/* SET  2,B         */
-	case 0xd1: C = SET(2, C); break;		/* SET  2,C         */
-	case 0xd2: D = SET(2, D); break;		/* SET  2,D         */
-	case 0xd3: E = SET(2, E); break;		/* SET  2,E         */
-	case 0xd4: H = SET(2, H); break;		/* SET  2,H         */
-	case 0xd5: L = SET(2, L); break;		/* SET  2,L         */
-	case 0xd6: WM8(HL, SET(2, RM8(HL))); break;	/* SET  2,(HL)      */
-	case 0xd7: A = SET(2, A); break;		/* SET  2,A         */
-	case 0xd8: B = SET(3, B); break;		/* SET  3,B         */
-	case 0xd9: C = SET(3, C); break;		/* SET  3,C         */
-	case 0xda: D = SET(3, D); break;		/* SET  3,D         */
-	case 0xdb: E = SET(3, E); break;		/* SET  3,E         */
-	case 0xdc: H = SET(3, H); break;		/* SET  3,H         */
-	case 0xdd: L = SET(3, L); break;		/* SET  3,L         */
-	case 0xde: WM8(HL, SET(3, RM8(HL))); break;	/* SET  3,(HL)      */
-	case 0xdf: A = SET(3, A); break;		/* SET  3,A         */
-	case 0xe0: B = SET(4, B); break;		/* SET  4,B         */
-	case 0xe1: C = SET(4, C); break;		/* SET  4,C         */
-	case 0xe2: D = SET(4, D); break;		/* SET  4,D         */
-	case 0xe3: E = SET(4, E); break;		/* SET  4,E         */
-	case 0xe4: H = SET(4, H); break;		/* SET  4,H         */
-	case 0xe5: L = SET(4, L); break;		/* SET  4,L         */
-	case 0xe6: WM8(HL, SET(4, RM8(HL))); break;	/* SET  4,(HL)      */
-	case 0xe7: A = SET(4, A); break;		/* SET  4,A         */
-	case 0xe8: B = SET(5, B); break;		/* SET  5,B         */
-	case 0xe9: C = SET(5, C); break;		/* SET  5,C         */
-	case 0xea: D = SET(5, D); break;		/* SET  5,D         */
-	case 0xeb: E = SET(5, E); break;		/* SET  5,E         */
-	case 0xec: H = SET(5, H); break;		/* SET  5,H         */
-	case 0xed: L = SET(5, L); break;		/* SET  5,L         */
-	case 0xee: WM8(HL, SET(5, RM8(HL))); break;	/* SET  5,(HL)      */
-	case 0xef: A = SET(5, A); break;		/* SET  5,A         */
-	case 0xf0: B = SET(6, B); break;		/* SET  6,B         */
-	case 0xf1: C = SET(6, C); break;		/* SET  6,C         */
-	case 0xf2: D = SET(6, D); break;		/* SET  6,D         */
-	case 0xf3: E = SET(6, E); break;		/* SET  6,E         */
-	case 0xf4: H = SET(6, H); break;		/* SET  6,H         */
-	case 0xf5: L = SET(6, L); break;		/* SET  6,L         */
-	case 0xf6: WM8(HL, SET(6, RM8(HL))); break;	/* SET  6,(HL)      */
-	case 0xf7: A = SET(6, A); break;		/* SET  6,A         */
-	case 0xf8: B = SET(7, B); break;		/* SET  7,B         */
-	case 0xf9: C = SET(7, C); break;		/* SET  7,C         */
-	case 0xfa: D = SET(7, D); break;		/* SET  7,D         */
-	case 0xfb: E = SET(7, E); break;		/* SET  7,E         */
-	case 0xfc: H = SET(7, H); break;		/* SET  7,H         */
-	case 0xfd: L = SET(7, L); break;		/* SET  7,L         */
-	case 0xfe: WM8(HL, SET(7, RM8(HL))); break;	/* SET  7,(HL)      */
-	case 0xff: A = SET(7, A); break;		/* SET  7,A         */
+	case 0x00: B = RLC(B); break;						/* RLC  B           */
+	case 0x01: C = RLC(C); break;						/* RLC  C           */
+	case 0x02: D = RLC(D); break;						/* RLC  D           */
+	case 0x03: E = RLC(E); break;						/* RLC  E           */
+	case 0x04: H = RLC(H); break;						/* RLC  H           */
+	case 0x05: L = RLC(L); break;						/* RLC  L           */
+	case 0x06: v = RLC(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* RLC  (HL)        */
+	case 0x07: A = RLC(A); break;						/* RLC  A           */
+	case 0x08: B = RRC(B); break;						/* RRC  B           */
+	case 0x09: C = RRC(C); break;						/* RRC  C           */
+	case 0x0a: D = RRC(D); break;						/* RRC  D           */
+	case 0x0b: E = RRC(E); break;						/* RRC  E           */
+	case 0x0c: H = RRC(H); break;						/* RRC  H           */
+	case 0x0d: L = RRC(L); break;						/* RRC  L           */
+	case 0x0e: v = RRC(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* RRC  (HL)        */
+	case 0x0f: A = RRC(A); break;						/* RRC  A           */
+	case 0x10: B = RL(B); break;						/* RL   B           */
+	case 0x11: C = RL(C); break;						/* RL   C           */
+	case 0x12: D = RL(D); break;						/* RL   D           */
+	case 0x13: E = RL(E); break;						/* RL   E           */
+	case 0x14: H = RL(H); break;						/* RL   H           */
+	case 0x15: L = RL(L); break;						/* RL   L           */
+	case 0x16: v = RL(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* RL   (HL)        */
+	case 0x17: A = RL(A); break;						/* RL   A           */
+	case 0x18: B = RR(B); break;						/* RR   B           */
+	case 0x19: C = RR(C); break;						/* RR   C           */
+	case 0x1a: D = RR(D); break;						/* RR   D           */
+	case 0x1b: E = RR(E); break;						/* RR   E           */
+	case 0x1c: H = RR(H); break;						/* RR   H           */
+	case 0x1d: L = RR(L); break;						/* RR   L           */
+	case 0x1e: v = RR(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* RR   (HL)        */
+	case 0x1f: A = RR(A); break;						/* RR   A           */
+	case 0x20: B = SLA(B); break;						/* SLA  B           */
+	case 0x21: C = SLA(C); break;						/* SLA  C           */
+	case 0x22: D = SLA(D); break;						/* SLA  D           */
+	case 0x23: E = SLA(E); break;						/* SLA  E           */
+	case 0x24: H = SLA(H); break;						/* SLA  H           */
+	case 0x25: L = SLA(L); break;						/* SLA  L           */
+	case 0x26: v = SLA(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* SLA  (HL)        */
+	case 0x27: A = SLA(A); break;						/* SLA  A           */
+	case 0x28: B = SRA(B); break;						/* SRA  B           */
+	case 0x29: C = SRA(C); break;						/* SRA  C           */
+	case 0x2a: D = SRA(D); break;						/* SRA  D           */
+	case 0x2b: E = SRA(E); break;						/* SRA  E           */
+	case 0x2c: H = SRA(H); break;						/* SRA  H           */
+	case 0x2d: L = SRA(L); break;						/* SRA  L           */
+	case 0x2e: v = SRA(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* SRA  (HL)        */
+	case 0x2f: A = SRA(A); break;						/* SRA  A           */
+	case 0x30: B = SLL(B); break;						/* SLL  B           */
+	case 0x31: C = SLL(C); break;						/* SLL  C           */
+	case 0x32: D = SLL(D); break;						/* SLL  D           */
+	case 0x33: E = SLL(E); break;						/* SLL  E           */
+	case 0x34: H = SLL(H); break;						/* SLL  H           */
+	case 0x35: L = SLL(L); break;						/* SLL  L           */
+	case 0x36: v = SLL(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* SLL  (HL)        */
+	case 0x37: A = SLL(A); break;						/* SLL  A           */
+	case 0x38: B = SRL(B); break;						/* SRL  B           */
+	case 0x39: C = SRL(C); break;						/* SRL  C           */
+	case 0x3a: D = SRL(D); break;						/* SRL  D           */
+	case 0x3b: E = SRL(E); break;						/* SRL  E           */
+	case 0x3c: H = SRL(H); break;						/* SRL  H           */
+	case 0x3d: L = SRL(L); break;						/* SRL  L           */
+	case 0x3e: v = SRL(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;		/* SRL  (HL)        */
+	case 0x3f: A = SRL(A); break;						/* SRL  A           */
+	case 0x40: BIT(0, B); break;						/* BIT  0,B         */
+	case 0x41: BIT(0, C); break;						/* BIT  0,C         */
+	case 0x42: BIT(0, D); break;						/* BIT  0,D         */
+	case 0x43: BIT(0, E); break;						/* BIT  0,E         */
+	case 0x44: BIT(0, H); break;						/* BIT  0,H         */
+	case 0x45: BIT(0, L); break;						/* BIT  0,L         */
+	case 0x46: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(0, v); break;		/* BIT  0,(HL)      */
+	case 0x47: BIT(0, A); break;						/* BIT  0,A         */
+	case 0x48: BIT(1, B); break;						/* BIT  1,B         */
+	case 0x49: BIT(1, C); break;						/* BIT  1,C         */
+	case 0x4a: BIT(1, D); break;						/* BIT  1,D         */
+	case 0x4b: BIT(1, E); break;						/* BIT  1,E         */
+	case 0x4c: BIT(1, H); break;						/* BIT  1,H         */
+	case 0x4d: BIT(1, L); break;						/* BIT  1,L         */
+	case 0x4e: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(1, v); break;		/* BIT  1,(HL)      */
+	case 0x4f: BIT(1, A); break;						/* BIT  1,A         */
+	case 0x50: BIT(2, B); break;						/* BIT  2,B         */
+	case 0x51: BIT(2, C); break;						/* BIT  2,C         */
+	case 0x52: BIT(2, D); break;						/* BIT  2,D         */
+	case 0x53: BIT(2, E); break;						/* BIT  2,E         */
+	case 0x54: BIT(2, H); break;						/* BIT  2,H         */
+	case 0x55: BIT(2, L); break;						/* BIT  2,L         */
+	case 0x56: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(2, v); break;		/* BIT  2,(HL)      */
+	case 0x57: BIT(2, A); break;						/* BIT  2,A         */
+	case 0x58: BIT(3, B); break;						/* BIT  3,B         */
+	case 0x59: BIT(3, C); break;						/* BIT  3,C         */
+	case 0x5a: BIT(3, D); break;						/* BIT  3,D         */
+	case 0x5b: BIT(3, E); break;						/* BIT  3,E         */
+	case 0x5c: BIT(3, H); break;						/* BIT  3,H         */
+	case 0x5d: BIT(3, L); break;						/* BIT  3,L         */
+	case 0x5e: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(3, v); break;		/* BIT  3,(HL)      */
+	case 0x5f: BIT(3, A); break;						/* BIT  3,A         */
+	case 0x60: BIT(4, B); break;						/* BIT  4,B         */
+	case 0x61: BIT(4, C); break;						/* BIT  4,C         */
+	case 0x62: BIT(4, D); break;						/* BIT  4,D         */
+	case 0x63: BIT(4, E); break;						/* BIT  4,E         */
+	case 0x64: BIT(4, H); break;						/* BIT  4,H         */
+	case 0x65: BIT(4, L); break;						/* BIT  4,L         */
+	case 0x66: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(4, v); break;		/* BIT  4,(HL)      */
+	case 0x67: BIT(4, A); break;						/* BIT  4,A         */
+	case 0x68: BIT(5, B); break;						/* BIT  5,B         */
+	case 0x69: BIT(5, C); break;						/* BIT  5,C         */
+	case 0x6a: BIT(5, D); break;						/* BIT  5,D         */
+	case 0x6b: BIT(5, E); break;						/* BIT  5,E         */
+	case 0x6c: BIT(5, H); break;						/* BIT  5,H         */
+	case 0x6d: BIT(5, L); break;						/* BIT  5,L         */
+	case 0x6e: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(5, v); break;		/* BIT  5,(HL)      */
+	case 0x6f: BIT(5, A); break;						/* BIT  5,A         */
+	case 0x70: BIT(6, B); break;						/* BIT  6,B         */
+	case 0x71: BIT(6, C); break;						/* BIT  6,C         */
+	case 0x72: BIT(6, D); break;						/* BIT  6,D         */
+	case 0x73: BIT(6, E); break;						/* BIT  6,E         */
+	case 0x74: BIT(6, H); break;						/* BIT  6,H         */
+	case 0x75: BIT(6, L); break;						/* BIT  6,L         */
+	case 0x76: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(6, v); break;		/* BIT  6,(HL)      */
+	case 0x77: BIT(6, A); break;						/* BIT  6,A         */
+	case 0x78: BIT(7, B); break;						/* BIT  7,B         */
+	case 0x79: BIT(7, C); break;						/* BIT  7,C         */
+	case 0x7a: BIT(7, D); break;						/* BIT  7,D         */
+	case 0x7b: BIT(7, E); break;						/* BIT  7,E         */
+	case 0x7c: BIT(7, H); break;						/* BIT  7,H         */
+	case 0x7d: BIT(7, L); break;						/* BIT  7,L         */
+	case 0x7e: v = RM8(HL); CLOCK_IN_OP(1); BIT_HL(7, v); break;		/* BIT  7,(HL)      */
+	case 0x7f: BIT(7, A); break;						/* BIT  7,A         */
+	case 0x80: B = RES(0, B); break;					/* RES  0,B         */
+	case 0x81: C = RES(0, C); break;					/* RES  0,C         */
+	case 0x82: D = RES(0, D); break;					/* RES  0,D         */
+	case 0x83: E = RES(0, E); break;					/* RES  0,E         */
+	case 0x84: H = RES(0, H); break;					/* RES  0,H         */
+	case 0x85: L = RES(0, L); break;					/* RES  0,L         */
+	case 0x86: v = RES(0, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  0,(HL)      */
+	case 0x87: A = RES(0, A); break;					/* RES  0,A         */
+	case 0x88: B = RES(1, B); break;					/* RES  1,B         */
+	case 0x89: C = RES(1, C); break;					/* RES  1,C         */
+	case 0x8a: D = RES(1, D); break;					/* RES  1,D         */
+	case 0x8b: E = RES(1, E); break;					/* RES  1,E         */
+	case 0x8c: H = RES(1, H); break;					/* RES  1,H         */
+	case 0x8d: L = RES(1, L); break;					/* RES  1,L         */
+	case 0x8e: v = RES(1, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  1,(HL)      */
+	case 0x8f: A = RES(1, A); break;					/* RES  1,A         */
+	case 0x90: B = RES(2, B); break;					/* RES  2,B         */
+	case 0x91: C = RES(2, C); break;					/* RES  2,C         */
+	case 0x92: D = RES(2, D); break;					/* RES  2,D         */
+	case 0x93: E = RES(2, E); break;					/* RES  2,E         */
+	case 0x94: H = RES(2, H); break;					/* RES  2,H         */
+	case 0x95: L = RES(2, L); break;					/* RES  2,L         */
+	case 0x96: v = RES(2, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  2,(HL)      */
+	case 0x97: A = RES(2, A); break;					/* RES  2,A         */
+	case 0x98: B = RES(3, B); break;					/* RES  3,B         */
+	case 0x99: C = RES(3, C); break;					/* RES  3,C         */
+	case 0x9a: D = RES(3, D); break;					/* RES  3,D         */
+	case 0x9b: E = RES(3, E); break;					/* RES  3,E         */
+	case 0x9c: H = RES(3, H); break;					/* RES  3,H         */
+	case 0x9d: L = RES(3, L); break;					/* RES  3,L         */
+	case 0x9e: v = RES(3, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  3,(HL)      */
+	case 0x9f: A = RES(3, A); break;					/* RES  3,A         */
+	case 0xa0: B = RES(4,	B); break;					/* RES  4,B         */
+	case 0xa1: C = RES(4,	C); break;					/* RES  4,C         */
+	case 0xa2: D = RES(4,	D); break;					/* RES  4,D         */
+	case 0xa3: E = RES(4,	E); break;					/* RES  4,E         */
+	case 0xa4: H = RES(4,	H); break;					/* RES  4,H         */
+	case 0xa5: L = RES(4,	L); break;					/* RES  4,L         */
+	case 0xa6: v = RES(4, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  4,(HL)      */
+	case 0xa7: A = RES(4,	A); break;					/* RES  4,A         */
+	case 0xa8: B = RES(5, B); break;					/* RES  5,B         */
+	case 0xa9: C = RES(5, C); break;					/* RES  5,C         */
+	case 0xaa: D = RES(5, D); break;					/* RES  5,D         */
+	case 0xab: E = RES(5, E); break;					/* RES  5,E         */
+	case 0xac: H = RES(5, H); break;					/* RES  5,H         */
+	case 0xad: L = RES(5, L); break;					/* RES  5,L         */
+	case 0xae: v = RES(5, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  5,(HL)      */
+	case 0xaf: A = RES(5, A); break;					/* RES  5,A         */
+	case 0xb0: B = RES(6, B); break;					/* RES  6,B         */
+	case 0xb1: C = RES(6, C); break;					/* RES  6,C         */
+	case 0xb2: D = RES(6, D); break;					/* RES  6,D         */
+	case 0xb3: E = RES(6, E); break;					/* RES  6,E         */
+	case 0xb4: H = RES(6, H); break;					/* RES  6,H         */
+	case 0xb5: L = RES(6, L); break;					/* RES  6,L         */
+	case 0xb6: v = RES(6, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  6,(HL)      */
+	case 0xb7: A = RES(6, A); break;					/* RES  6,A         */
+	case 0xb8: B = RES(7, B); break;					/* RES  7,B         */
+	case 0xb9: C = RES(7, C); break;					/* RES  7,C         */
+	case 0xba: D = RES(7, D); break;					/* RES  7,D         */
+	case 0xbb: E = RES(7, E); break;					/* RES  7,E         */
+	case 0xbc: H = RES(7, H); break;					/* RES  7,H         */
+	case 0xbd: L = RES(7, L); break;					/* RES  7,L         */
+	case 0xbe: v = RES(7, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* RES  7,(HL)      */
+	case 0xbf: A = RES(7, A); break;					/* RES  7,A         */
+	case 0xc0: B = SET(0, B); break;					/* SET  0,B         */
+	case 0xc1: C = SET(0, C); break;					/* SET  0,C         */
+	case 0xc2: D = SET(0, D); break;					/* SET  0,D         */
+	case 0xc3: E = SET(0, E); break;					/* SET  0,E         */
+	case 0xc4: H = SET(0, H); break;					/* SET  0,H         */
+	case 0xc5: L = SET(0, L); break;					/* SET  0,L         */
+	case 0xc6: v = SET(0, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  0,(HL)      */
+	case 0xc7: A = SET(0, A); break;					/* SET  0,A         */
+	case 0xc8: B = SET(1, B); break;					/* SET  1,B         */
+	case 0xc9: C = SET(1, C); break;					/* SET  1,C         */
+	case 0xca: D = SET(1, D); break;					/* SET  1,D         */
+	case 0xcb: E = SET(1, E); break;					/* SET  1,E         */
+	case 0xcc: H = SET(1, H); break;					/* SET  1,H         */
+	case 0xcd: L = SET(1, L); break;					/* SET  1,L         */
+	case 0xce: v = SET(1, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  1,(HL)      */
+	case 0xcf: A = SET(1, A); break;					/* SET  1,A         */
+	case 0xd0: B = SET(2, B); break;					/* SET  2,B         */
+	case 0xd1: C = SET(2, C); break;					/* SET  2,C         */
+	case 0xd2: D = SET(2, D); break;					/* SET  2,D         */
+	case 0xd3: E = SET(2, E); break;					/* SET  2,E         */
+	case 0xd4: H = SET(2, H); break;					/* SET  2,H         */
+	case 0xd5: L = SET(2, L); break;					/* SET  2,L         */
+	case 0xd6: v = SET(2, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  2,(HL)      */
+	case 0xd7: A = SET(2, A); break;					/* SET  2,A         */
+	case 0xd8: B = SET(3, B); break;					/* SET  3,B         */
+	case 0xd9: C = SET(3, C); break;					/* SET  3,C         */
+	case 0xda: D = SET(3, D); break;					/* SET  3,D         */
+	case 0xdb: E = SET(3, E); break;					/* SET  3,E         */
+	case 0xdc: H = SET(3, H); break;					/* SET  3,H         */
+	case 0xdd: L = SET(3, L); break;					/* SET  3,L         */
+	case 0xde: v = SET(3, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  3,(HL)      */
+	case 0xdf: A = SET(3, A); break;					/* SET  3,A         */
+	case 0xe0: B = SET(4, B); break;					/* SET  4,B         */
+	case 0xe1: C = SET(4, C); break;					/* SET  4,C         */
+	case 0xe2: D = SET(4, D); break;					/* SET  4,D         */
+	case 0xe3: E = SET(4, E); break;					/* SET  4,E         */
+	case 0xe4: H = SET(4, H); break;					/* SET  4,H         */
+	case 0xe5: L = SET(4, L); break;					/* SET  4,L         */
+	case 0xe6: v = SET(4, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  4,(HL)      */
+	case 0xe7: A = SET(4, A); break;					/* SET  4,A         */
+	case 0xe8: B = SET(5, B); break;					/* SET  5,B         */
+	case 0xe9: C = SET(5, C); break;					/* SET  5,C         */
+	case 0xea: D = SET(5, D); break;					/* SET  5,D         */
+	case 0xeb: E = SET(5, E); break;					/* SET  5,E         */
+	case 0xec: H = SET(5, H); break;					/* SET  5,H         */
+	case 0xed: L = SET(5, L); break;					/* SET  5,L         */
+	case 0xee: v = SET(5, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  5,(HL)      */
+	case 0xef: A = SET(5, A); break;					/* SET  5,A         */
+	case 0xf0: B = SET(6, B); break;					/* SET  6,B         */
+	case 0xf1: C = SET(6, C); break;					/* SET  6,C         */
+	case 0xf2: D = SET(6, D); break;					/* SET  6,D         */
+	case 0xf3: E = SET(6, E); break;					/* SET  6,E         */
+	case 0xf4: H = SET(6, H); break;					/* SET  6,H         */
+	case 0xf5: L = SET(6, L); break;					/* SET  6,L         */
+	case 0xf6: v = SET(6, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  6,(HL)      */
+	case 0xf7: A = SET(6, A); break;					/* SET  6,A         */
+	case 0xf8: B = SET(7, B); break;					/* SET  7,B         */
+	case 0xf9: C = SET(7, C); break;					/* SET  7,C         */
+	case 0xfa: D = SET(7, D); break;					/* SET  7,D         */
+	case 0xfb: E = SET(7, E); break;					/* SET  7,E         */
+	case 0xfc: H = SET(7, H); break;					/* SET  7,H         */
+	case 0xfd: L = SET(7, L); break;					/* SET  7,L         */
+	case 0xfe: v = SET(7, RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;	/* SET  7,(HL)      */
+	case 0xff: A = SET(7, A); break;					/* SET  7,A         */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
 #endif
@@ -1163,265 +1189,268 @@ void Z80::OP_CB(uint8_t code)
 
 void Z80::OP_XY(uint8_t code)
 {
+	// Done: M1 + M1 + R + R + 2
+	uint8_t v;
+	
 	icount -= cc_xycb[code];
 	
 	switch(code) {
-	case 0x00: B = RLC(RM8(ea)); WM8(ea, B); break;		/* RLC  B=(XY+o)    */
-	case 0x01: C = RLC(RM8(ea)); WM8(ea, C); break;		/* RLC  C=(XY+o)    */
-	case 0x02: D = RLC(RM8(ea)); WM8(ea, D); break;		/* RLC  D=(XY+o)    */
-	case 0x03: E = RLC(RM8(ea)); WM8(ea, E); break;		/* RLC  E=(XY+o)    */
-	case 0x04: H = RLC(RM8(ea)); WM8(ea, H); break;		/* RLC  H=(XY+o)    */
-	case 0x05: L = RLC(RM8(ea)); WM8(ea, L); break;		/* RLC  L=(XY+o)    */
-	case 0x06: WM8(ea, RLC(RM8(ea))); break;		/* RLC  (XY+o)      */
-	case 0x07: A = RLC(RM8(ea)); WM8(ea, A); break;		/* RLC  A=(XY+o)    */
-	case 0x08: B = RRC(RM8(ea)); WM8(ea, B); break;		/* RRC  B=(XY+o)    */
-	case 0x09: C = RRC(RM8(ea)); WM8(ea, C); break;		/* RRC  C=(XY+o)    */
-	case 0x0a: D = RRC(RM8(ea)); WM8(ea, D); break;		/* RRC  D=(XY+o)    */
-	case 0x0b: E = RRC(RM8(ea)); WM8(ea, E); break;		/* RRC  E=(XY+o)    */
-	case 0x0c: H = RRC(RM8(ea)); WM8(ea, H); break;		/* RRC  H=(XY+o)    */
-	case 0x0d: L = RRC(RM8(ea)); WM8(ea, L); break;		/* RRC  L=(XY+o)    */
-	case 0x0e: WM8(ea, RRC(RM8(ea))); break;		/* RRC  (XY+o)      */
-	case 0x0f: A = RRC(RM8(ea)); WM8(ea, A); break;		/* RRC  A=(XY+o)    */
-	case 0x10: B = RL(RM8(ea)); WM8(ea, B); break;		/* RL   B=(XY+o)    */
-	case 0x11: C = RL(RM8(ea)); WM8(ea, C); break;		/* RL   C=(XY+o)    */
-	case 0x12: D = RL(RM8(ea)); WM8(ea, D); break;		/* RL   D=(XY+o)    */
-	case 0x13: E = RL(RM8(ea)); WM8(ea, E); break;		/* RL   E=(XY+o)    */
-	case 0x14: H = RL(RM8(ea)); WM8(ea, H); break;		/* RL   H=(XY+o)    */
-	case 0x15: L = RL(RM8(ea)); WM8(ea, L); break;		/* RL   L=(XY+o)    */
-	case 0x16: WM8(ea, RL(RM8(ea))); break;			/* RL   (XY+o)      */
-	case 0x17: A = RL(RM8(ea)); WM8(ea, A); break;		/* RL   A=(XY+o)    */
-	case 0x18: B = RR(RM8(ea)); WM8(ea, B); break;		/* RR   B=(XY+o)    */
-	case 0x19: C = RR(RM8(ea)); WM8(ea, C); break;		/* RR   C=(XY+o)    */
-	case 0x1a: D = RR(RM8(ea)); WM8(ea, D); break;		/* RR   D=(XY+o)    */
-	case 0x1b: E = RR(RM8(ea)); WM8(ea, E); break;		/* RR   E=(XY+o)    */
-	case 0x1c: H = RR(RM8(ea)); WM8(ea, H); break;		/* RR   H=(XY+o)    */
-	case 0x1d: L = RR(RM8(ea)); WM8(ea, L); break;		/* RR   L=(XY+o)    */
-	case 0x1e: WM8(ea, RR(RM8(ea))); break;			/* RR   (XY+o)      */
-	case 0x1f: A = RR(RM8(ea)); WM8(ea, A); break;		/* RR   A=(XY+o)    */
-	case 0x20: B = SLA(RM8(ea)); WM8(ea, B); break;		/* SLA  B=(XY+o)    */
-	case 0x21: C = SLA(RM8(ea)); WM8(ea, C); break;		/* SLA  C=(XY+o)    */
-	case 0x22: D = SLA(RM8(ea)); WM8(ea, D); break;		/* SLA  D=(XY+o)    */
-	case 0x23: E = SLA(RM8(ea)); WM8(ea, E); break;		/* SLA  E=(XY+o)    */
-	case 0x24: H = SLA(RM8(ea)); WM8(ea, H); break;		/* SLA  H=(XY+o)    */
-	case 0x25: L = SLA(RM8(ea)); WM8(ea, L); break;		/* SLA  L=(XY+o)    */
-	case 0x26: WM8(ea, SLA(RM8(ea))); break;		/* SLA  (XY+o)      */
-	case 0x27: A = SLA(RM8(ea)); WM8(ea, A); break;		/* SLA  A=(XY+o)    */
-	case 0x28: B = SRA(RM8(ea)); WM8(ea, B); break;		/* SRA  B=(XY+o)    */
-	case 0x29: C = SRA(RM8(ea)); WM8(ea, C); break;		/* SRA  C=(XY+o)    */
-	case 0x2a: D = SRA(RM8(ea)); WM8(ea, D); break;		/* SRA  D=(XY+o)    */
-	case 0x2b: E = SRA(RM8(ea)); WM8(ea, E); break;		/* SRA  E=(XY+o)    */
-	case 0x2c: H = SRA(RM8(ea)); WM8(ea, H); break;		/* SRA  H=(XY+o)    */
-	case 0x2d: L = SRA(RM8(ea)); WM8(ea, L); break;		/* SRA  L=(XY+o)    */
-	case 0x2e: WM8(ea, SRA(RM8(ea))); break;		/* SRA  (XY+o)      */
-	case 0x2f: A = SRA(RM8(ea)); WM8(ea, A); break;		/* SRA  A=(XY+o)    */
-	case 0x30: B = SLL(RM8(ea)); WM8(ea, B); break;		/* SLL  B=(XY+o)    */
-	case 0x31: C = SLL(RM8(ea)); WM8(ea, C); break;		/* SLL  C=(XY+o)    */
-	case 0x32: D = SLL(RM8(ea)); WM8(ea, D); break;		/* SLL  D=(XY+o)    */
-	case 0x33: E = SLL(RM8(ea)); WM8(ea, E); break;		/* SLL  E=(XY+o)    */
-	case 0x34: H = SLL(RM8(ea)); WM8(ea, H); break;		/* SLL  H=(XY+o)    */
-	case 0x35: L = SLL(RM8(ea)); WM8(ea, L); break;		/* SLL  L=(XY+o)    */
-	case 0x36: WM8(ea, SLL(RM8(ea))); break;		/* SLL  (XY+o)      */
-	case 0x37: A = SLL(RM8(ea)); WM8(ea, A); break;		/* SLL  A=(XY+o)    */
-	case 0x38: B = SRL(RM8(ea)); WM8(ea, B); break;		/* SRL  B=(XY+o)    */
-	case 0x39: C = SRL(RM8(ea)); WM8(ea, C); break;		/* SRL  C=(XY+o)    */
-	case 0x3a: D = SRL(RM8(ea)); WM8(ea, D); break;		/* SRL  D=(XY+o)    */
-	case 0x3b: E = SRL(RM8(ea)); WM8(ea, E); break;		/* SRL  E=(XY+o)    */
-	case 0x3c: H = SRL(RM8(ea)); WM8(ea, H); break;		/* SRL  H=(XY+o)    */
-	case 0x3d: L = SRL(RM8(ea)); WM8(ea, L); break;		/* SRL  L=(XY+o)    */
-	case 0x3e: WM8(ea, SRL(RM8(ea))); break;		/* SRL  (XY+o)      */
-	case 0x3f: A = SRL(RM8(ea)); WM8(ea, A); break;		/* SRL  A=(XY+o)    */
-	case 0x40: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x41: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x42: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x43: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x44: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x45: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x46: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x47: BIT_XY(0, RM8(ea)); break;			/* BIT  0,(XY+o)    */
-	case 0x48: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x49: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x4a: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x4b: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x4c: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x4d: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x4e: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x4f: BIT_XY(1, RM8(ea)); break;			/* BIT  1,(XY+o)    */
-	case 0x50: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x51: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x52: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x53: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x54: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x55: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x56: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x57: BIT_XY(2, RM8(ea)); break;			/* BIT  2,(XY+o)    */
-	case 0x58: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x59: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x5a: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x5b: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x5c: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x5d: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x5e: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x5f: BIT_XY(3, RM8(ea)); break;			/* BIT  3,(XY+o)    */
-	case 0x60: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x61: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x62: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x63: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x64: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x65: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x66: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x67: BIT_XY(4, RM8(ea)); break;			/* BIT  4,(XY+o)    */
-	case 0x68: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x69: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x6a: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x6b: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x6c: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x6d: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x6e: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x6f: BIT_XY(5, RM8(ea)); break;			/* BIT  5,(XY+o)    */
-	case 0x70: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x71: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x72: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x73: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x74: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x75: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x76: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x77: BIT_XY(6, RM8(ea)); break;			/* BIT  6,(XY+o)    */
-	case 0x78: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x79: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x7a: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x7b: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x7c: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x7d: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x7e: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x7f: BIT_XY(7, RM8(ea)); break;			/* BIT  7,(XY+o)    */
-	case 0x80: B = RES(0, RM8(ea)); WM8(ea, B); break;	/* RES  0,B=(XY+o)  */
-	case 0x81: C = RES(0, RM8(ea)); WM8(ea, C); break;	/* RES  0,C=(XY+o)  */
-	case 0x82: D = RES(0, RM8(ea)); WM8(ea, D); break;	/* RES  0,D=(XY+o)  */
-	case 0x83: E = RES(0, RM8(ea)); WM8(ea, E); break;	/* RES  0,E=(XY+o)  */
-	case 0x84: H = RES(0, RM8(ea)); WM8(ea, H); break;	/* RES  0,H=(XY+o)  */
-	case 0x85: L = RES(0, RM8(ea)); WM8(ea, L); break;	/* RES  0,L=(XY+o)  */
-	case 0x86: WM8(ea, RES(0, RM8(ea))); break;		/* RES  0,(XY+o)    */
-	case 0x87: A = RES(0, RM8(ea)); WM8(ea, A); break;	/* RES  0,A=(XY+o)  */
-	case 0x88: B = RES(1, RM8(ea)); WM8(ea, B); break;	/* RES  1,B=(XY+o)  */
-	case 0x89: C = RES(1, RM8(ea)); WM8(ea, C); break;	/* RES  1,C=(XY+o)  */
-	case 0x8a: D = RES(1, RM8(ea)); WM8(ea, D); break;	/* RES  1,D=(XY+o)  */
-	case 0x8b: E = RES(1, RM8(ea)); WM8(ea, E); break;	/* RES  1,E=(XY+o)  */
-	case 0x8c: H = RES(1, RM8(ea)); WM8(ea, H); break;	/* RES  1,H=(XY+o)  */
-	case 0x8d: L = RES(1, RM8(ea)); WM8(ea, L); break;	/* RES  1,L=(XY+o)  */
-	case 0x8e: WM8(ea, RES(1, RM8(ea))); break;		/* RES  1,(XY+o)    */
-	case 0x8f: A = RES(1, RM8(ea)); WM8(ea, A); break;	/* RES  1,A=(XY+o)  */
-	case 0x90: B = RES(2, RM8(ea)); WM8(ea, B); break;	/* RES  2,B=(XY+o)  */
-	case 0x91: C = RES(2, RM8(ea)); WM8(ea, C); break;	/* RES  2,C=(XY+o)  */
-	case 0x92: D = RES(2, RM8(ea)); WM8(ea, D); break;	/* RES  2,D=(XY+o)  */
-	case 0x93: E = RES(2, RM8(ea)); WM8(ea, E); break;	/* RES  2,E=(XY+o)  */
-	case 0x94: H = RES(2, RM8(ea)); WM8(ea, H); break;	/* RES  2,H=(XY+o)  */
-	case 0x95: L = RES(2, RM8(ea)); WM8(ea, L); break;	/* RES  2,L=(XY+o)  */
-	case 0x96: WM8(ea, RES(2, RM8(ea))); break;		/* RES  2,(XY+o)    */
-	case 0x97: A = RES(2, RM8(ea)); WM8(ea, A); break;	/* RES  2,A=(XY+o)  */
-	case 0x98: B = RES(3, RM8(ea)); WM8(ea, B); break;	/* RES  3,B=(XY+o)  */
-	case 0x99: C = RES(3, RM8(ea)); WM8(ea, C); break;	/* RES  3,C=(XY+o)  */
-	case 0x9a: D = RES(3, RM8(ea)); WM8(ea, D); break;	/* RES  3,D=(XY+o)  */
-	case 0x9b: E = RES(3, RM8(ea)); WM8(ea, E); break;	/* RES  3,E=(XY+o)  */
-	case 0x9c: H = RES(3, RM8(ea)); WM8(ea, H); break;	/* RES  3,H=(XY+o)  */
-	case 0x9d: L = RES(3, RM8(ea)); WM8(ea, L); break;	/* RES  3,L=(XY+o)  */
-	case 0x9e: WM8(ea, RES(3, RM8(ea))); break;		/* RES  3,(XY+o)    */
-	case 0x9f: A = RES(3, RM8(ea)); WM8(ea, A); break;	/* RES  3,A=(XY+o)  */
-	case 0xa0: B = RES(4, RM8(ea)); WM8(ea, B); break;	/* RES  4,B=(XY+o)  */
-	case 0xa1: C = RES(4, RM8(ea)); WM8(ea, C); break;	/* RES  4,C=(XY+o)  */
-	case 0xa2: D = RES(4, RM8(ea)); WM8(ea, D); break;	/* RES  4,D=(XY+o)  */
-	case 0xa3: E = RES(4, RM8(ea)); WM8(ea, E); break;	/* RES  4,E=(XY+o)  */
-	case 0xa4: H = RES(4, RM8(ea)); WM8(ea, H); break;	/* RES  4,H=(XY+o)  */
-	case 0xa5: L = RES(4, RM8(ea)); WM8(ea, L); break;	/* RES  4,L=(XY+o)  */
-	case 0xa6: WM8(ea, RES(4, RM8(ea))); break;		/* RES  4,(XY+o)    */
-	case 0xa7: A = RES(4, RM8(ea)); WM8(ea, A); break;	/* RES  4,A=(XY+o)  */
-	case 0xa8: B = RES(5, RM8(ea)); WM8(ea, B); break;	/* RES  5,B=(XY+o)  */
-	case 0xa9: C = RES(5, RM8(ea)); WM8(ea, C); break;	/* RES  5,C=(XY+o)  */
-	case 0xaa: D = RES(5, RM8(ea)); WM8(ea, D); break;	/* RES  5,D=(XY+o)  */
-	case 0xab: E = RES(5, RM8(ea)); WM8(ea, E); break;	/* RES  5,E=(XY+o)  */
-	case 0xac: H = RES(5, RM8(ea)); WM8(ea, H); break;	/* RES  5,H=(XY+o)  */
-	case 0xad: L = RES(5, RM8(ea)); WM8(ea, L); break;	/* RES  5,L=(XY+o)  */
-	case 0xae: WM8(ea, RES(5, RM8(ea))); break;		/* RES  5,(XY+o)    */
-	case 0xaf: A = RES(5, RM8(ea)); WM8(ea, A); break;	/* RES  5,A=(XY+o)  */
-	case 0xb0: B = RES(6, RM8(ea)); WM8(ea, B); break;	/* RES  6,B=(XY+o)  */
-	case 0xb1: C = RES(6, RM8(ea)); WM8(ea, C); break;	/* RES  6,C=(XY+o)  */
-	case 0xb2: D = RES(6, RM8(ea)); WM8(ea, D); break;	/* RES  6,D=(XY+o)  */
-	case 0xb3: E = RES(6, RM8(ea)); WM8(ea, E); break;	/* RES  6,E=(XY+o)  */
-	case 0xb4: H = RES(6, RM8(ea)); WM8(ea, H); break;	/* RES  6,H=(XY+o)  */
-	case 0xb5: L = RES(6, RM8(ea)); WM8(ea, L); break;	/* RES  6,L=(XY+o)  */
-	case 0xb6: WM8(ea, RES(6, RM8(ea))); break;		/* RES  6,(XY+o)    */
-	case 0xb7: A = RES(6, RM8(ea)); WM8(ea, A); break;	/* RES  6,A=(XY+o)  */
-	case 0xb8: B = RES(7, RM8(ea)); WM8(ea, B); break;	/* RES  7,B=(XY+o)  */
-	case 0xb9: C = RES(7, RM8(ea)); WM8(ea, C); break;	/* RES  7,C=(XY+o)  */
-	case 0xba: D = RES(7, RM8(ea)); WM8(ea, D); break;	/* RES  7,D=(XY+o)  */
-	case 0xbb: E = RES(7, RM8(ea)); WM8(ea, E); break;	/* RES  7,E=(XY+o)  */
-	case 0xbc: H = RES(7, RM8(ea)); WM8(ea, H); break;	/* RES  7,H=(XY+o)  */
-	case 0xbd: L = RES(7, RM8(ea)); WM8(ea, L); break;	/* RES  7,L=(XY+o)  */
-	case 0xbe: WM8(ea, RES(7, RM8(ea))); break;		/* RES  7,(XY+o)    */
-	case 0xbf: A = RES(7, RM8(ea)); WM8(ea, A); break;	/* RES  7,A=(XY+o)  */
-	case 0xc0: B = SET(0, RM8(ea)); WM8(ea, B); break;	/* SET  0,B=(XY+o)  */
-	case 0xc1: C = SET(0, RM8(ea)); WM8(ea, C); break;	/* SET  0,C=(XY+o)  */
-	case 0xc2: D = SET(0, RM8(ea)); WM8(ea, D); break;	/* SET  0,D=(XY+o)  */
-	case 0xc3: E = SET(0, RM8(ea)); WM8(ea, E); break;	/* SET  0,E=(XY+o)  */
-	case 0xc4: H = SET(0, RM8(ea)); WM8(ea, H); break;	/* SET  0,H=(XY+o)  */
-	case 0xc5: L = SET(0, RM8(ea)); WM8(ea, L); break;	/* SET  0,L=(XY+o)  */
-	case 0xc6: WM8(ea, SET(0, RM8(ea))); break;		/* SET  0,(XY+o)    */
-	case 0xc7: A = SET(0, RM8(ea)); WM8(ea, A); break;	/* SET  0,A=(XY+o)  */
-	case 0xc8: B = SET(1, RM8(ea)); WM8(ea, B); break;	/* SET  1,B=(XY+o)  */
-	case 0xc9: C = SET(1, RM8(ea)); WM8(ea, C); break;	/* SET  1,C=(XY+o)  */
-	case 0xca: D = SET(1, RM8(ea)); WM8(ea, D); break;	/* SET  1,D=(XY+o)  */
-	case 0xcb: E = SET(1, RM8(ea)); WM8(ea, E); break;	/* SET  1,E=(XY+o)  */
-	case 0xcc: H = SET(1, RM8(ea)); WM8(ea, H); break;	/* SET  1,H=(XY+o)  */
-	case 0xcd: L = SET(1, RM8(ea)); WM8(ea, L); break;	/* SET  1,L=(XY+o)  */
-	case 0xce: WM8(ea, SET(1, RM8(ea))); break;		/* SET  1,(XY+o)    */
-	case 0xcf: A = SET(1, RM8(ea)); WM8(ea, A); break;	/* SET  1,A=(XY+o)  */
-	case 0xd0: B = SET(2, RM8(ea)); WM8(ea, B); break;	/* SET  2,B=(XY+o)  */
-	case 0xd1: C = SET(2, RM8(ea)); WM8(ea, C); break;	/* SET  2,C=(XY+o)  */
-	case 0xd2: D = SET(2, RM8(ea)); WM8(ea, D); break;	/* SET  2,D=(XY+o)  */
-	case 0xd3: E = SET(2, RM8(ea)); WM8(ea, E); break;	/* SET  2,E=(XY+o)  */
-	case 0xd4: H = SET(2, RM8(ea)); WM8(ea, H); break;	/* SET  2,H=(XY+o)  */
-	case 0xd5: L = SET(2, RM8(ea)); WM8(ea, L); break;	/* SET  2,L=(XY+o)  */
-	case 0xd6: WM8(ea, SET(2, RM8(ea))); break;		/* SET  2,(XY+o)    */
-	case 0xd7: A = SET(2, RM8(ea)); WM8(ea, A); break;	/* SET  2,A=(XY+o)  */
-	case 0xd8: B = SET(3, RM8(ea)); WM8(ea, B); break;	/* SET  3,B=(XY+o)  */
-	case 0xd9: C = SET(3, RM8(ea)); WM8(ea, C); break;	/* SET  3,C=(XY+o)  */
-	case 0xda: D = SET(3, RM8(ea)); WM8(ea, D); break;	/* SET  3,D=(XY+o)  */
-	case 0xdb: E = SET(3, RM8(ea)); WM8(ea, E); break;	/* SET  3,E=(XY+o)  */
-	case 0xdc: H = SET(3, RM8(ea)); WM8(ea, H); break;	/* SET  3,H=(XY+o)  */
-	case 0xdd: L = SET(3, RM8(ea)); WM8(ea, L); break;	/* SET  3,L=(XY+o)  */
-	case 0xde: WM8(ea, SET(3, RM8(ea))); break;		/* SET  3,(XY+o)    */
-	case 0xdf: A = SET(3, RM8(ea)); WM8(ea, A); break;	/* SET  3,A=(XY+o)  */
-	case 0xe0: B = SET(4, RM8(ea)); WM8(ea, B); break;	/* SET  4,B=(XY+o)  */
-	case 0xe1: C = SET(4, RM8(ea)); WM8(ea, C); break;	/* SET  4,C=(XY+o)  */
-	case 0xe2: D = SET(4, RM8(ea)); WM8(ea, D); break;	/* SET  4,D=(XY+o)  */
-	case 0xe3: E = SET(4, RM8(ea)); WM8(ea, E); break;	/* SET  4,E=(XY+o)  */
-	case 0xe4: H = SET(4, RM8(ea)); WM8(ea, H); break;	/* SET  4,H=(XY+o)  */
-	case 0xe5: L = SET(4, RM8(ea)); WM8(ea, L); break;	/* SET  4,L=(XY+o)  */
-	case 0xe6: WM8(ea, SET(4, RM8(ea))); break;		/* SET  4,(XY+o)    */
-	case 0xe7: A = SET(4, RM8(ea)); WM8(ea, A); break;	/* SET  4,A=(XY+o)  */
-	case 0xe8: B = SET(5, RM8(ea)); WM8(ea, B); break;	/* SET  5,B=(XY+o)  */
-	case 0xe9: C = SET(5, RM8(ea)); WM8(ea, C); break;	/* SET  5,C=(XY+o)  */
-	case 0xea: D = SET(5, RM8(ea)); WM8(ea, D); break;	/* SET  5,D=(XY+o)  */
-	case 0xeb: E = SET(5, RM8(ea)); WM8(ea, E); break;	/* SET  5,E=(XY+o)  */
-	case 0xec: H = SET(5, RM8(ea)); WM8(ea, H); break;	/* SET  5,H=(XY+o)  */
-	case 0xed: L = SET(5, RM8(ea)); WM8(ea, L); break;	/* SET  5,L=(XY+o)  */
-	case 0xee: WM8(ea, SET(5, RM8(ea))); break;		/* SET  5,(XY+o)    */
-	case 0xef: A = SET(5, RM8(ea)); WM8(ea, A); break;	/* SET  5,A=(XY+o)  */
-	case 0xf0: B = SET(6, RM8(ea)); WM8(ea, B); break;	/* SET  6,B=(XY+o)  */
-	case 0xf1: C = SET(6, RM8(ea)); WM8(ea, C); break;	/* SET  6,C=(XY+o)  */
-	case 0xf2: D = SET(6, RM8(ea)); WM8(ea, D); break;	/* SET  6,D=(XY+o)  */
-	case 0xf3: E = SET(6, RM8(ea)); WM8(ea, E); break;	/* SET  6,E=(XY+o)  */
-	case 0xf4: H = SET(6, RM8(ea)); WM8(ea, H); break;	/* SET  6,H=(XY+o)  */
-	case 0xf5: L = SET(6, RM8(ea)); WM8(ea, L); break;	/* SET  6,L=(XY+o)  */
-	case 0xf6: WM8(ea, SET(6, RM8(ea))); break;		/* SET  6,(XY+o)    */
-	case 0xf7: A = SET(6, RM8(ea)); WM8(ea, A); break;	/* SET  6,A=(XY+o)  */
-	case 0xf8: B = SET(7, RM8(ea)); WM8(ea, B); break;	/* SET  7,B=(XY+o)  */
-	case 0xf9: C = SET(7, RM8(ea)); WM8(ea, C); break;	/* SET  7,C=(XY+o)  */
-	case 0xfa: D = SET(7, RM8(ea)); WM8(ea, D); break;	/* SET  7,D=(XY+o)  */
-	case 0xfb: E = SET(7, RM8(ea)); WM8(ea, E); break;	/* SET  7,E=(XY+o)  */
-	case 0xfc: H = SET(7, RM8(ea)); WM8(ea, H); break;	/* SET  7,H=(XY+o)  */
-	case 0xfd: L = SET(7, RM8(ea)); WM8(ea, L); break;	/* SET  7,L=(XY+o)  */
-	case 0xfe: WM8(ea, SET(7, RM8(ea))); break;		/* SET  7,(XY+o)    */
-	case 0xff: A = SET(7, RM8(ea)); WM8(ea, A); break;	/* SET  7,A=(XY+o)  */
+	case 0x00: B = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* RLC  B=(XY+o)    */
+	case 0x01: C = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* RLC  C=(XY+o)    */
+	case 0x02: D = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* RLC  D=(XY+o)    */
+	case 0x03: E = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* RLC  E=(XY+o)    */
+	case 0x04: H = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* RLC  H=(XY+o)    */
+	case 0x05: L = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* RLC  L=(XY+o)    */
+	case 0x06: v = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* RLC  (XY+o)      */
+	case 0x07: A = RLC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* RLC  A=(XY+o)    */
+	case 0x08: B = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* RRC  B=(XY+o)    */
+	case 0x09: C = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* RRC  C=(XY+o)    */
+	case 0x0a: D = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* RRC  D=(XY+o)    */
+	case 0x0b: E = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* RRC  E=(XY+o)    */
+	case 0x0c: H = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* RRC  H=(XY+o)    */
+	case 0x0d: L = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* RRC  L=(XY+o)    */
+	case 0x0e: v = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* RRC  (XY+o)      */
+	case 0x0f: A = RRC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* RRC  A=(XY+o)    */
+	case 0x10: B = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* RL   B=(XY+o)    */
+	case 0x11: C = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* RL   C=(XY+o)    */
+	case 0x12: D = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* RL   D=(XY+o)    */
+	case 0x13: E = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* RL   E=(XY+o)    */
+	case 0x14: H = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* RL   H=(XY+o)    */
+	case 0x15: L = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* RL   L=(XY+o)    */
+	case 0x16: v = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* RL   (XY+o)      */
+	case 0x17: A = RL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* RL   A=(XY+o)    */
+	case 0x18: B = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* RR   B=(XY+o)    */
+	case 0x19: C = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* RR   C=(XY+o)    */
+	case 0x1a: D = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* RR   D=(XY+o)    */
+	case 0x1b: E = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* RR   E=(XY+o)    */
+	case 0x1c: H = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* RR   H=(XY+o)    */
+	case 0x1d: L = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* RR   L=(XY+o)    */
+	case 0x1e: v = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* RR   (XY+o)      */
+	case 0x1f: A = RR(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* RR   A=(XY+o)    */
+	case 0x20: B = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* SLA  B=(XY+o)    */
+	case 0x21: C = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* SLA  C=(XY+o)    */
+	case 0x22: D = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* SLA  D=(XY+o)    */
+	case 0x23: E = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* SLA  E=(XY+o)    */
+	case 0x24: H = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* SLA  H=(XY+o)    */
+	case 0x25: L = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* SLA  L=(XY+o)    */
+	case 0x26: v = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* SLA  (XY+o)      */
+	case 0x27: A = SLA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* SLA  A=(XY+o)    */
+	case 0x28: B = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* SRA  B=(XY+o)    */
+	case 0x29: C = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* SRA  C=(XY+o)    */
+	case 0x2a: D = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* SRA  D=(XY+o)    */
+	case 0x2b: E = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* SRA  E=(XY+o)    */
+	case 0x2c: H = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* SRA  H=(XY+o)    */
+	case 0x2d: L = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* SRA  L=(XY+o)    */
+	case 0x2e: v = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* SRA  (XY+o)      */
+	case 0x2f: A = SRA(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* SRA  A=(XY+o)    */
+	case 0x30: B = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* SLL  B=(XY+o)    */
+	case 0x31: C = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* SLL  C=(XY+o)    */
+	case 0x32: D = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* SLL  D=(XY+o)    */
+	case 0x33: E = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* SLL  E=(XY+o)    */
+	case 0x34: H = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* SLL  H=(XY+o)    */
+	case 0x35: L = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* SLL  L=(XY+o)    */
+	case 0x36: v = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* SLL  (XY+o)      */
+	case 0x37: A = SLL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* SLL  A=(XY+o)    */
+	case 0x38: B = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;		/* SRL  B=(XY+o)    */
+	case 0x39: C = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;		/* SRL  C=(XY+o)    */
+	case 0x3a: D = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;		/* SRL  D=(XY+o)    */
+	case 0x3b: E = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;		/* SRL  E=(XY+o)    */
+	case 0x3c: H = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;		/* SRL  H=(XY+o)    */
+	case 0x3d: L = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;		/* SRL  L=(XY+o)    */
+	case 0x3e: v = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;		/* SRL  (XY+o)      */
+	case 0x3f: A = SRL(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;		/* SRL  A=(XY+o)    */
+	case 0x40: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x41: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x42: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x43: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x44: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x45: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x46: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x47: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(0, v); break;		/* BIT  0,(XY+o)    */
+	case 0x48: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x49: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x4a: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x4b: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x4c: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x4d: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x4e: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x4f: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(1, v); break;		/* BIT  1,(XY+o)    */
+	case 0x50: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x51: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x52: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x53: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x54: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x55: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x56: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x57: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(2, v); break;		/* BIT  2,(XY+o)    */
+	case 0x58: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x59: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x5a: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x5b: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x5c: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x5d: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x5e: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x5f: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(3, v); break;		/* BIT  3,(XY+o)    */
+	case 0x60: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x61: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x62: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x63: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x64: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x65: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x66: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x67: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(4, v); break;		/* BIT  4,(XY+o)    */
+	case 0x68: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x69: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x6a: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x6b: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x6c: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x6d: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x6e: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x6f: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(5, v); break;		/* BIT  5,(XY+o)    */
+	case 0x70: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x71: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x72: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x73: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x74: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x75: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x76: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x77: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(6, v); break;		/* BIT  6,(XY+o)    */
+	case 0x78: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x79: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x7a: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x7b: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x7c: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x7d: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x7e: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x7f: v = RM8(ea); CLOCK_IN_OP(1); BIT_XY(7, v); break;		/* BIT  7,(XY+o)    */
+	case 0x80: B = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  0,B=(XY+o)  */
+	case 0x81: C = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  0,C=(XY+o)  */
+	case 0x82: D = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  0,D=(XY+o)  */
+	case 0x83: E = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  0,E=(XY+o)  */
+	case 0x84: H = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  0,H=(XY+o)  */
+	case 0x85: L = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  0,L=(XY+o)  */
+	case 0x86: v = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  0,(XY+o)    */
+	case 0x87: A = RES(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  0,A=(XY+o)  */
+	case 0x88: B = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  1,B=(XY+o)  */
+	case 0x89: C = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  1,C=(XY+o)  */
+	case 0x8a: D = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  1,D=(XY+o)  */
+	case 0x8b: E = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  1,E=(XY+o)  */
+	case 0x8c: H = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  1,H=(XY+o)  */
+	case 0x8d: L = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  1,L=(XY+o)  */
+	case 0x8e: v = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  1,(XY+o)    */
+	case 0x8f: A = RES(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  1,A=(XY+o)  */
+	case 0x90: B = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  2,B=(XY+o)  */
+	case 0x91: C = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  2,C=(XY+o)  */
+	case 0x92: D = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  2,D=(XY+o)  */
+	case 0x93: E = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  2,E=(XY+o)  */
+	case 0x94: H = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  2,H=(XY+o)  */
+	case 0x95: L = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  2,L=(XY+o)  */
+	case 0x96: v = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  2,(XY+o)    */
+	case 0x97: A = RES(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  2,A=(XY+o)  */
+	case 0x98: B = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  3,B=(XY+o)  */
+	case 0x99: C = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  3,C=(XY+o)  */
+	case 0x9a: D = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  3,D=(XY+o)  */
+	case 0x9b: E = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  3,E=(XY+o)  */
+	case 0x9c: H = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  3,H=(XY+o)  */
+	case 0x9d: L = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  3,L=(XY+o)  */
+	case 0x9e: v = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  3,(XY+o)    */
+	case 0x9f: A = RES(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  3,A=(XY+o)  */
+	case 0xa0: B = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  4,B=(XY+o)  */
+	case 0xa1: C = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  4,C=(XY+o)  */
+	case 0xa2: D = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  4,D=(XY+o)  */
+	case 0xa3: E = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  4,E=(XY+o)  */
+	case 0xa4: H = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  4,H=(XY+o)  */
+	case 0xa5: L = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  4,L=(XY+o)  */
+	case 0xa6: v = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  4,(XY+o)    */
+	case 0xa7: A = RES(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  4,A=(XY+o)  */
+	case 0xa8: B = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  5,B=(XY+o)  */
+	case 0xa9: C = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  5,C=(XY+o)  */
+	case 0xaa: D = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  5,D=(XY+o)  */
+	case 0xab: E = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  5,E=(XY+o)  */
+	case 0xac: H = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  5,H=(XY+o)  */
+	case 0xad: L = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  5,L=(XY+o)  */
+	case 0xae: v = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  5,(XY+o)    */
+	case 0xaf: A = RES(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  5,A=(XY+o)  */
+	case 0xb0: B = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  6,B=(XY+o)  */
+	case 0xb1: C = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  6,C=(XY+o)  */
+	case 0xb2: D = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  6,D=(XY+o)  */
+	case 0xb3: E = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  6,E=(XY+o)  */
+	case 0xb4: H = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  6,H=(XY+o)  */
+	case 0xb5: L = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  6,L=(XY+o)  */
+	case 0xb6: v = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  6,(XY+o)    */
+	case 0xb7: A = RES(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  6,A=(XY+o)  */
+	case 0xb8: B = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* RES  7,B=(XY+o)  */
+	case 0xb9: C = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* RES  7,C=(XY+o)  */
+	case 0xba: D = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* RES  7,D=(XY+o)  */
+	case 0xbb: E = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* RES  7,E=(XY+o)  */
+	case 0xbc: H = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* RES  7,H=(XY+o)  */
+	case 0xbd: L = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* RES  7,L=(XY+o)  */
+	case 0xbe: v = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* RES  7,(XY+o)    */
+	case 0xbf: A = RES(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* RES  7,A=(XY+o)  */
+	case 0xc0: B = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  0,B=(XY+o)  */
+	case 0xc1: C = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  0,C=(XY+o)  */
+	case 0xc2: D = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  0,D=(XY+o)  */
+	case 0xc3: E = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  0,E=(XY+o)  */
+	case 0xc4: H = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  0,H=(XY+o)  */
+	case 0xc5: L = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  0,L=(XY+o)  */
+	case 0xc6: v = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  0,(XY+o)    */
+	case 0xc7: A = SET(0, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  0,A=(XY+o)  */
+	case 0xc8: B = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  1,B=(XY+o)  */
+	case 0xc9: C = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  1,C=(XY+o)  */
+	case 0xca: D = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  1,D=(XY+o)  */
+	case 0xcb: E = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  1,E=(XY+o)  */
+	case 0xcc: H = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  1,H=(XY+o)  */
+	case 0xcd: L = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  1,L=(XY+o)  */
+	case 0xce: v = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  1,(XY+o)    */
+	case 0xcf: A = SET(1, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  1,A=(XY+o)  */
+	case 0xd0: B = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  2,B=(XY+o)  */
+	case 0xd1: C = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  2,C=(XY+o)  */
+	case 0xd2: D = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  2,D=(XY+o)  */
+	case 0xd3: E = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  2,E=(XY+o)  */
+	case 0xd4: H = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  2,H=(XY+o)  */
+	case 0xd5: L = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  2,L=(XY+o)  */
+	case 0xd6: v = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  2,(XY+o)    */
+	case 0xd7: A = SET(2, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  2,A=(XY+o)  */
+	case 0xd8: B = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  3,B=(XY+o)  */
+	case 0xd9: C = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  3,C=(XY+o)  */
+	case 0xda: D = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  3,D=(XY+o)  */
+	case 0xdb: E = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  3,E=(XY+o)  */
+	case 0xdc: H = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  3,H=(XY+o)  */
+	case 0xdd: L = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  3,L=(XY+o)  */
+	case 0xde: v = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  3,(XY+o)    */
+	case 0xdf: A = SET(3, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  3,A=(XY+o)  */
+	case 0xe0: B = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  4,B=(XY+o)  */
+	case 0xe1: C = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  4,C=(XY+o)  */
+	case 0xe2: D = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  4,D=(XY+o)  */
+	case 0xe3: E = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  4,E=(XY+o)  */
+	case 0xe4: H = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  4,H=(XY+o)  */
+	case 0xe5: L = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  4,L=(XY+o)  */
+	case 0xe6: v = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  4,(XY+o)    */
+	case 0xe7: A = SET(4, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  4,A=(XY+o)  */
+	case 0xe8: B = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  5,B=(XY+o)  */
+	case 0xe9: C = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  5,C=(XY+o)  */
+	case 0xea: D = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  5,D=(XY+o)  */
+	case 0xeb: E = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  5,E=(XY+o)  */
+	case 0xec: H = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  5,H=(XY+o)  */
+	case 0xed: L = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  5,L=(XY+o)  */
+	case 0xee: v = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  5,(XY+o)    */
+	case 0xef: A = SET(5, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  5,A=(XY+o)  */
+	case 0xf0: B = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  6,B=(XY+o)  */
+	case 0xf1: C = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  6,C=(XY+o)  */
+	case 0xf2: D = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  6,D=(XY+o)  */
+	case 0xf3: E = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  6,E=(XY+o)  */
+	case 0xf4: H = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  6,H=(XY+o)  */
+	case 0xf5: L = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  6,L=(XY+o)  */
+	case 0xf6: v = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  6,(XY+o)    */
+	case 0xf7: A = SET(6, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  6,A=(XY+o)  */
+	case 0xf8: B = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, B); break;	/* SET  7,B=(XY+o)  */
+	case 0xf9: C = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, C); break;	/* SET  7,C=(XY+o)  */
+	case 0xfa: D = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, D); break;	/* SET  7,D=(XY+o)  */
+	case 0xfb: E = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, E); break;	/* SET  7,E=(XY+o)  */
+	case 0xfc: H = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, H); break;	/* SET  7,H=(XY+o)  */
+	case 0xfd: L = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, L); break;	/* SET  7,L=(XY+o)  */
+	case 0xfe: v = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* SET  7,(XY+o)    */
+	case 0xff: A = SET(7, RM8(ea)); CLOCK_IN_OP(1); WM8(ea, A); break;	/* SET  7,A=(XY+o)  */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
 #endif
@@ -1430,196 +1459,203 @@ void Z80::OP_XY(uint8_t code)
 
 void Z80::OP_DD(uint8_t code)
 {
+	// Done: M1 + M1
+	uint8_t v;
+	
 	icount -= cc_xy[code];
 	
 	switch(code) {
-	case 0x09: ADD16(ix, bc); break;				/* ADD  IX,BC       */
-	case 0x19: ADD16(ix, de); break;				/* ADD  IX,DE       */
-	case 0x21: IX = FETCH16(); break;				/* LD   IX,w        */
-	case 0x22: ea = FETCH16(); WM16(ea, &ix); WZ = ea + 1; break;	/* LD   (w),IX      */
-	case 0x23: IX++; break;						/* INC  IX          */
-	case 0x24: HX = INC(HX); break;					/* INC  HX          */
-	case 0x25: HX = DEC(HX); break;					/* DEC  HX          */
-	case 0x26: HX = FETCH8(); break;				/* LD   HX,n        */
-	case 0x29: ADD16(ix, ix); break;				/* ADD  IX,IX       */
-	case 0x2a: ea = FETCH16(); RM16(ea, &ix); WZ = ea + 1; break;	/* LD   IX,(w)      */
-	case 0x2b: IX--; break;						/* DEC  IX          */
-	case 0x2c: LX = INC(LX); break;					/* INC  LX          */
-	case 0x2d: LX = DEC(LX); break;					/* DEC  LX          */
-	case 0x2e: LX = FETCH8(); break;				/* LD   LX,n        */
-	case 0x34: EAX(); WM8(ea, INC(RM8(ea))); break;			/* INC  (IX+o)      */
-	case 0x35: EAX(); WM8(ea, DEC(RM8(ea))); break;			/* DEC  (IX+o)      */
-	case 0x36: EAX(); WM8(ea, FETCH8()); break;			/* LD   (IX+o),n    */
-	case 0x39: ADD16(ix, sp); break;				/* ADD  IX,SP       */
-	case 0x44: B = HX; break;					/* LD   B,HX        */
-	case 0x45: B = LX; break;					/* LD   B,LX        */
-	case 0x46: EAX(); B = RM8(ea); break;				/* LD   B,(IX+o)    */
-	case 0x4c: C = HX; break;					/* LD   C,HX        */
-	case 0x4d: C = LX; break;					/* LD   C,LX        */
-	case 0x4e: EAX(); C = RM8(ea); break;				/* LD   C,(IX+o)    */
-	case 0x54: D = HX; break;					/* LD   D,HX        */
-	case 0x55: D = LX; break;					/* LD   D,LX        */
-	case 0x56: EAX(); D = RM8(ea); break;				/* LD   D,(IX+o)    */
-	case 0x5c: E = HX; break;					/* LD   E,HX        */
-	case 0x5d: E = LX; break;					/* LD   E,LX        */
-	case 0x5e: EAX(); E = RM8(ea); break;				/* LD   E,(IX+o)    */
-	case 0x60: HX = B; break;					/* LD   HX,B        */
-	case 0x61: HX = C; break;					/* LD   HX,C        */
-	case 0x62: HX = D; break;					/* LD   HX,D        */
-	case 0x63: HX = E; break;					/* LD   HX,E        */
-	case 0x64: break;						/* LD   HX,HX       */
-	case 0x65: HX = LX; break;					/* LD   HX,LX       */
-	case 0x66: EAX(); H = RM8(ea); break;				/* LD   H,(IX+o)    */
-	case 0x67: HX = A; break;					/* LD   HX,A        */
-	case 0x68: LX = B; break;					/* LD   LX,B        */
-	case 0x69: LX = C; break;					/* LD   LX,C        */
-	case 0x6a: LX = D; break;					/* LD   LX,D        */
-	case 0x6b: LX = E; break;					/* LD   LX,E        */
-	case 0x6c: LX = HX; break;					/* LD   LX,HX       */
-	case 0x6d: break;						/* LD   LX,LX       */
-	case 0x6e: EAX(); L = RM8(ea); break;				/* LD   L,(IX+o)    */
-	case 0x6f: LX = A; break;					/* LD   LX,A        */
-	case 0x70: EAX(); WM8(ea, B); break;				/* LD   (IX+o),B    */
-	case 0x71: EAX(); WM8(ea, C); break;				/* LD   (IX+o),C    */
-	case 0x72: EAX(); WM8(ea, D); break;				/* LD   (IX+o),D    */
-	case 0x73: EAX(); WM8(ea, E); break;				/* LD   (IX+o),E    */
-	case 0x74: EAX(); WM8(ea, H); break;				/* LD   (IX+o),H    */
-	case 0x75: EAX(); WM8(ea, L); break;				/* LD   (IX+o),L    */
-	case 0x77: EAX(); WM8(ea, A); break;				/* LD   (IX+o),A    */
-	case 0x7c: A = HX; break;					/* LD   A,HX        */
-	case 0x7d: A = LX; break;					/* LD   A,LX        */
-	case 0x7e: EAX(); A = RM8(ea); break;				/* LD   A,(IX+o)    */
-	case 0x84: ADD(HX); break;					/* ADD  A,HX        */
-	case 0x85: ADD(LX); break;					/* ADD  A,LX        */
-	case 0x86: EAX(); ADD(RM8(ea)); break;				/* ADD  A,(IX+o)    */
-	case 0x8c: ADC(HX); break;					/* ADC  A,HX        */
-	case 0x8d: ADC(LX); break;					/* ADC  A,LX        */
-	case 0x8e: EAX(); ADC(RM8(ea)); break;				/* ADC  A,(IX+o)    */
-	case 0x94: SUB(HX); break;					/* SUB  HX          */
-	case 0x95: SUB(LX); break;					/* SUB  LX          */
-	case 0x96: EAX(); SUB(RM8(ea)); break;				/* SUB  (IX+o)      */
-	case 0x9c: SBC(HX); break;					/* SBC  A,HX        */
-	case 0x9d: SBC(LX); break;					/* SBC  A,LX        */
-	case 0x9e: EAX(); SBC(RM8(ea)); break;				/* SBC  A,(IX+o)    */
-	case 0xa4: AND(HX); break;					/* AND  HX          */
-	case 0xa5: AND(LX); break;					/* AND  LX          */
-	case 0xa6: EAX(); AND(RM8(ea)); break;				/* AND  (IX+o)      */
-	case 0xac: XOR(HX); break;					/* XOR  HX          */
-	case 0xad: XOR(LX); break;					/* XOR  LX          */
-	case 0xae: EAX(); XOR(RM8(ea)); break;				/* XOR  (IX+o)      */
-	case 0xb4: OR(HX); break;					/* OR   HX          */
-	case 0xb5: OR(LX); break;					/* OR   LX          */
-	case 0xb6: EAX(); OR(RM8(ea)); break;				/* OR   (IX+o)      */
-	case 0xbc: CP(HX); break;					/* CP   HX          */
-	case 0xbd: CP(LX); break;					/* CP   LX          */
-	case 0xbe: EAX(); CP(RM8(ea)); break;				/* CP   (IX+o)      */
-	case 0xcb: EAX(); OP_XY(FETCH8()); break;			/* **   DD CB xx    */
-	case 0xe1: POP(ix); break;					/* POP  IX          */
-	case 0xe3: EXSP(ix); break;					/* EX   (SP),IX     */
-	case 0xe5: PUSH(ix); break;					/* PUSH IX          */
-	case 0xe9: PC = IX; break;					/* JP   (IX)        */
-	case 0xf9: SP = IX; break;					/* LD   SP,IX       */
+	case 0x09: ADD16(ix, bc); break;					/* ADD  IX,BC       */
+	case 0x19: ADD16(ix, de); break;					/* ADD  IX,DE       */
+	case 0x21: IX = FETCH16(); break;					/* LD   IX,w        */
+	case 0x22: ea = FETCH16(); WM16(ea, &ix); WZ = ea + 1; break;		/* LD   (w),IX      */
+	case 0x23: IX++; break;							/* INC  IX          */
+	case 0x24: HX = INC(HX); break;						/* INC  HX          */
+	case 0x25: HX = DEC(HX); break;						/* DEC  HX          */
+	case 0x26: HX = FETCH8(); break;					/* LD   HX,n        */
+	case 0x29: ADD16(ix, ix); break;					/* ADD  IX,IX       */
+	case 0x2a: ea = FETCH16(); RM16(ea, &ix); WZ = ea + 1; break;		/* LD   IX,(w)      */
+	case 0x2b: IX--; break;							/* DEC  IX          */
+	case 0x2c: LX = INC(LX); break;						/* INC  LX          */
+	case 0x2d: LX = DEC(LX); break;						/* DEC  LX          */
+	case 0x2e: LX = FETCH8(); break;					/* LD   LX,n        */
+	case 0x34: EAX(); CLOCK_IN_OP(5); v = INC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* INC  (IX+o)      */
+	case 0x35: EAX(); CLOCK_IN_OP(5); v = DEC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* DEC  (IX+o)      */
+	case 0x36: EAX(); v = FETCH8(); CLOCK_IN_OP(2); WM8(ea, v); break;	/* LD   (IX+o),n    */
+	case 0x39: ADD16(ix, sp); break;					/* ADD  IX,SP       */
+	case 0x44: B = HX; break;						/* LD   B,HX        */
+	case 0x45: B = LX; break;						/* LD   B,LX        */
+	case 0x46: EAX(); CLOCK_IN_OP(5); B = RM8(ea); break;			/* LD   B,(IX+o)    */
+	case 0x4c: C = HX; break;						/* LD   C,HX        */
+	case 0x4d: C = LX; break;						/* LD   C,LX        */
+	case 0x4e: EAX(); CLOCK_IN_OP(5); C = RM8(ea); break;			/* LD   C,(IX+o)    */
+	case 0x54: D = HX; break;						/* LD   D,HX        */
+	case 0x55: D = LX; break;						/* LD   D,LX        */
+	case 0x56: EAX(); CLOCK_IN_OP(5); D = RM8(ea); break;			/* LD   D,(IX+o)    */
+	case 0x5c: E = HX; break;						/* LD   E,HX        */
+	case 0x5d: E = LX; break;						/* LD   E,LX        */
+	case 0x5e: EAX(); CLOCK_IN_OP(5); E = RM8(ea); break;			/* LD   E,(IX+o)    */
+	case 0x60: HX = B; break;						/* LD   HX,B        */
+	case 0x61: HX = C; break;						/* LD   HX,C        */
+	case 0x62: HX = D; break;						/* LD   HX,D        */
+	case 0x63: HX = E; break;						/* LD   HX,E        */
+	case 0x64: break;							/* LD   HX,HX       */
+	case 0x65: HX = LX; break;						/* LD   HX,LX       */
+	case 0x66: EAX(); CLOCK_IN_OP(5); H = RM8(ea); break;			/* LD   H,(IX+o)    */
+	case 0x67: HX = A; break;						/* LD   HX,A        */
+	case 0x68: LX = B; break;						/* LD   LX,B        */
+	case 0x69: LX = C; break;						/* LD   LX,C        */
+	case 0x6a: LX = D; break;						/* LD   LX,D        */
+	case 0x6b: LX = E; break;						/* LD   LX,E        */
+	case 0x6c: LX = HX; break;						/* LD   LX,HX       */
+	case 0x6d: break;							/* LD   LX,LX       */
+	case 0x6e: EAX(); CLOCK_IN_OP(5); L = RM8(ea); break;			/* LD   L,(IX+o)    */
+	case 0x6f: LX = A; break;						/* LD   LX,A        */
+	case 0x70: EAX(); CLOCK_IN_OP(5); WM8(ea, B); break;			/* LD   (IX+o),B    */
+	case 0x71: EAX(); CLOCK_IN_OP(5); WM8(ea, C); break;			/* LD   (IX+o),C    */
+	case 0x72: EAX(); CLOCK_IN_OP(5); WM8(ea, D); break;			/* LD   (IX+o),D    */
+	case 0x73: EAX(); CLOCK_IN_OP(5); WM8(ea, E); break;			/* LD   (IX+o),E    */
+	case 0x74: EAX(); CLOCK_IN_OP(5); WM8(ea, H); break;			/* LD   (IX+o),H    */
+	case 0x75: EAX(); CLOCK_IN_OP(5); WM8(ea, L); break;			/* LD   (IX+o),L    */
+	case 0x77: EAX(); CLOCK_IN_OP(5); WM8(ea, A); break;			/* LD   (IX+o),A    */
+	case 0x7c: A = HX; break;						/* LD   A,HX        */
+	case 0x7d: A = LX; break;						/* LD   A,LX        */
+	case 0x7e: EAX(); CLOCK_IN_OP(5); A = RM8(ea); break;			/* LD   A,(IX+o)    */
+	case 0x84: ADD(HX); break;						/* ADD  A,HX        */
+	case 0x85: ADD(LX); break;						/* ADD  A,LX        */
+	case 0x86: EAX(); CLOCK_IN_OP(5); ADD(RM8(ea)); break;			/* ADD  A,(IX+o)    */
+	case 0x8c: ADC(HX); break;						/* ADC  A,HX        */
+	case 0x8d: ADC(LX); break;						/* ADC  A,LX        */
+	case 0x8e: EAX(); CLOCK_IN_OP(5); ADC(RM8(ea)); break;			/* ADC  A,(IX+o)    */
+	case 0x94: SUB(HX); break;						/* SUB  HX          */
+	case 0x95: SUB(LX); break;						/* SUB  LX          */
+	case 0x96: EAX(); CLOCK_IN_OP(5); SUB(RM8(ea)); break;			/* SUB  (IX+o)      */
+	case 0x9c: SBC(HX); break;						/* SBC  A,HX        */
+	case 0x9d: SBC(LX); break;						/* SBC  A,LX        */
+	case 0x9e: EAX(); CLOCK_IN_OP(5); SBC(RM8(ea)); break;			/* SBC  A,(IX+o)    */
+	case 0xa4: AND(HX); break;						/* AND  HX          */
+	case 0xa5: AND(LX); break;						/* AND  LX          */
+	case 0xa6: EAX(); CLOCK_IN_OP(5); AND(RM8(ea)); break;			/* AND  (IX+o)      */
+	case 0xac: XOR(HX); break;						/* XOR  HX          */
+	case 0xad: XOR(LX); break;						/* XOR  LX          */
+	case 0xae: EAX(); CLOCK_IN_OP(5); XOR(RM8(ea)); break;			/* XOR  (IX+o)      */
+	case 0xb4: OR(HX); break;						/* OR   HX          */
+	case 0xb5: OR(LX); break;						/* OR   LX          */
+	case 0xb6: EAX(); CLOCK_IN_OP(5); OR(RM8(ea)); break;			/* OR   (IX+o)      */
+	case 0xbc: CP(HX); break;						/* CP   HX          */
+	case 0xbd: CP(LX); break;						/* CP   LX          */
+	case 0xbe: EAX(); CLOCK_IN_OP(5); CP(RM8(ea)); break;			/* CP   (IX+o)      */
+	case 0xcb: EAX(); v = FETCH8(); CLOCK_IN_OP(2); OP_XY(v); break;	/* **   DD CB xx    */
+	case 0xe1: POP(ix); break;						/* POP  IX          */
+	case 0xe3: EXSP(ix); break;						/* EX   (SP),IX     */
+	case 0xe5: PUSH(ix); break;						/* PUSH IX          */
+	case 0xe9: PC = IX; break;						/* JP   (IX)        */
+	case 0xf9: SP = IX; break;						/* LD   SP,IX       */
 	default:   OP(code); break;
 	}
 }
 
 void Z80::OP_FD(uint8_t code)
 {
+	// Done: M1 + M1
+	uint8_t v;
+	
 	icount -= cc_xy[code];
 	
 	switch(code) {
-	case 0x09: ADD16(iy, bc); break;				/* ADD  IY,BC       */
-	case 0x19: ADD16(iy, de); break;				/* ADD  IY,DE       */
-	case 0x21: IY = FETCH16(); break;				/* LD   IY,w        */
-	case 0x22: ea = FETCH16(); WM16(ea, &iy); WZ = ea + 1; break;	/* LD   (w),IY      */
-	case 0x23: IY++; break;						/* INC  IY          */
-	case 0x24: HY = INC(HY); break;					/* INC  HY          */
-	case 0x25: HY = DEC(HY); break;					/* DEC  HY          */
-	case 0x26: HY = FETCH8(); break;				/* LD   HY,n        */
-	case 0x29: ADD16(iy, iy); break;				/* ADD  IY,IY       */
-	case 0x2a: ea = FETCH16(); RM16(ea, &iy); WZ = ea + 1; break;	/* LD   IY,(w)      */
-	case 0x2b: IY--; break;						/* DEC  IY          */
-	case 0x2c: LY = INC(LY); break;					/* INC  LY          */
-	case 0x2d: LY = DEC(LY); break;					/* DEC  LY          */
-	case 0x2e: LY = FETCH8(); break;				/* LD   LY,n        */
-	case 0x34: EAY(); WM8(ea, INC(RM8(ea))); break;			/* INC  (IY+o)      */
-	case 0x35: EAY(); WM8(ea, DEC(RM8(ea))); break;			/* DEC  (IY+o)      */
-	case 0x36: EAY(); WM8(ea, FETCH8()); break;			/* LD   (IY+o),n    */
-	case 0x39: ADD16(iy, sp); break;				/* ADD  IY,SP       */
-	case 0x44: B = HY; break;					/* LD   B,HY        */
-	case 0x45: B = LY; break;					/* LD   B,LY        */
-	case 0x46: EAY(); B = RM8(ea); break;				/* LD   B,(IY+o)    */
-	case 0x4c: C = HY; break;					/* LD   C,HY        */
-	case 0x4d: C = LY; break;					/* LD   C,LY        */
-	case 0x4e: EAY(); C = RM8(ea); break;				/* LD   C,(IY+o)    */
-	case 0x54: D = HY; break;					/* LD   D,HY        */
-	case 0x55: D = LY; break;					/* LD   D,LY        */
-	case 0x56: EAY(); D = RM8(ea); break;				/* LD   D,(IY+o)    */
-	case 0x5c: E = HY; break;					/* LD   E,HY        */
-	case 0x5d: E = LY; break;					/* LD   E,LY        */
-	case 0x5e: EAY(); E = RM8(ea); break;				/* LD   E,(IY+o)    */
-	case 0x60: HY = B; break;					/* LD   HY,B        */
-	case 0x61: HY = C; break;					/* LD   HY,C        */
-	case 0x62: HY = D; break;					/* LD   HY,D        */
-	case 0x63: HY = E; break;					/* LD   HY,E        */
-	case 0x64: break;						/* LD   HY,HY       */
-	case 0x65: HY = LY; break;					/* LD   HY,LY       */
-	case 0x66: EAY(); H = RM8(ea); break;				/* LD   H,(IY+o)    */
-	case 0x67: HY = A; break;					/* LD   HY,A        */
-	case 0x68: LY = B; break;					/* LD   LY,B        */
-	case 0x69: LY = C; break;					/* LD   LY,C        */
-	case 0x6a: LY = D; break;					/* LD   LY,D        */
-	case 0x6b: LY = E; break;					/* LD   LY,E        */
-	case 0x6c: LY = HY; break;					/* LD   LY,HY       */
-	case 0x6d: break;						/* LD   LY,LY       */
-	case 0x6e: EAY(); L = RM8(ea); break;				/* LD   L,(IY+o)    */
-	case 0x6f: LY = A; break;					/* LD   LY,A        */
-	case 0x70: EAY(); WM8(ea, B); break;				/* LD   (IY+o),B    */
-	case 0x71: EAY(); WM8(ea, C); break;				/* LD   (IY+o),C    */
-	case 0x72: EAY(); WM8(ea, D); break;				/* LD   (IY+o),D    */
-	case 0x73: EAY(); WM8(ea, E); break;				/* LD   (IY+o),E    */
-	case 0x74: EAY(); WM8(ea, H); break;				/* LD   (IY+o),H    */
-	case 0x75: EAY(); WM8(ea, L); break;				/* LD   (IY+o),L    */
-	case 0x77: EAY(); WM8(ea, A); break;				/* LD   (IY+o),A    */
-	case 0x7c: A = HY; break;					/* LD   A,HY        */
-	case 0x7d: A = LY; break;					/* LD   A,LY        */
-	case 0x7e: EAY(); A = RM8(ea); break;				/* LD   A,(IY+o)    */
-	case 0x84: ADD(HY); break;					/* ADD  A,HY        */
-	case 0x85: ADD(LY); break;					/* ADD  A,LY        */
-	case 0x86: EAY(); ADD(RM8(ea)); break;				/* ADD  A,(IY+o)    */
-	case 0x8c: ADC(HY); break;					/* ADC  A,HY        */
-	case 0x8d: ADC(LY); break;					/* ADC  A,LY        */
-	case 0x8e: EAY(); ADC(RM8(ea)); break;				/* ADC  A,(IY+o)    */
-	case 0x94: SUB(HY); break;					/* SUB  HY          */
-	case 0x95: SUB(LY); break;					/* SUB  LY          */
-	case 0x96: EAY(); SUB(RM8(ea)); break;				/* SUB  (IY+o)      */
-	case 0x9c: SBC(HY); break;					/* SBC  A,HY        */
-	case 0x9d: SBC(LY); break;					/* SBC  A,LY        */
-	case 0x9e: EAY(); SBC(RM8(ea)); break;				/* SBC  A,(IY+o)    */
-	case 0xa4: AND(HY); break;					/* AND  HY          */
-	case 0xa5: AND(LY); break;					/* AND  LY          */
-	case 0xa6: EAY(); AND(RM8(ea)); break;				/* AND  (IY+o)      */
-	case 0xac: XOR(HY); break;					/* XOR  HY          */
-	case 0xad: XOR(LY); break;					/* XOR  LY          */
-	case 0xae: EAY(); XOR(RM8(ea)); break;				/* XOR  (IY+o)      */
-	case 0xb4: OR(HY); break;					/* OR   HY          */
-	case 0xb5: OR(LY); break;					/* OR   LY          */
-	case 0xb6: EAY(); OR(RM8(ea)); break;				/* OR   (IY+o)      */
-	case 0xbc: CP(HY); break;					/* CP   HY          */
-	case 0xbd: CP(LY); break;					/* CP   LY          */
-	case 0xbe: EAY(); CP(RM8(ea)); break;				/* CP   (IY+o)      */
-	case 0xcb: EAY(); OP_XY(FETCH8()); break;			/* **   FD CB xx    */
-	case 0xe1: POP(iy); break;					/* POP  IY          */
-	case 0xe3: EXSP(iy); break;					/* EX   (SP),IY     */
-	case 0xe5: PUSH(iy); break;					/* PUSH IY          */
-	case 0xe9: PC = IY; break;					/* JP   (IY)        */
-	case 0xf9: SP = IY; break;					/* LD   SP,IY       */
+	case 0x09: ADD16(iy, bc); break;					/* ADD  IY,BC       */
+	case 0x19: ADD16(iy, de); break;					/* ADD  IY,DE       */
+	case 0x21: IY = FETCH16(); break;					/* LD   IY,w        */
+	case 0x22: ea = FETCH16(); WM16(ea, &iy); WZ = ea + 1; break;		/* LD   (w),IY      */
+	case 0x23: IY++; break;							/* INC  IY          */
+	case 0x24: HY = INC(HY); break;						/* INC  HY          */
+	case 0x25: HY = DEC(HY); break;						/* DEC  HY          */
+	case 0x26: HY = FETCH8(); break;					/* LD   HY,n        */
+	case 0x29: ADD16(iy, iy); break;					/* ADD  IY,IY       */
+	case 0x2a: ea = FETCH16(); RM16(ea, &iy); WZ = ea + 1; break;		/* LD   IY,(w)      */
+	case 0x2b: IY--; break;							/* DEC  IY          */
+	case 0x2c: LY = INC(LY); break;						/* INC  LY          */
+	case 0x2d: LY = DEC(LY); break;						/* DEC  LY          */
+	case 0x2e: LY = FETCH8(); break;					/* LD   LY,n        */
+	case 0x34: EAY(); CLOCK_IN_OP(5); v = INC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* INC  (IY+o)      */
+	case 0x35: EAY(); CLOCK_IN_OP(5); v = DEC(RM8(ea)); CLOCK_IN_OP(1); WM8(ea, v); break;	/* DEC  (IY+o)      */
+	case 0x36: EAY(); v = FETCH8(); CLOCK_IN_OP(2); WM8(ea, v); break;	/* LD   (IY+o),n    */
+	case 0x39: ADD16(iy, sp); break;					/* ADD  IY,SP       */
+	case 0x44: B = HY; break;						/* LD   B,HY        */
+	case 0x45: B = LY; break;						/* LD   B,LY        */
+	case 0x46: EAY(); CLOCK_IN_OP(5); B = RM8(ea); break;			/* LD   B,(IY+o)    */
+	case 0x4c: C = HY; break;						/* LD   C,HY        */
+	case 0x4d: C = LY; break;						/* LD   C,LY        */
+	case 0x4e: EAY(); CLOCK_IN_OP(5); C = RM8(ea); break;			/* LD   C,(IY+o)    */
+	case 0x54: D = HY; break;						/* LD   D,HY        */
+	case 0x55: D = LY; break;						/* LD   D,LY        */
+	case 0x56: EAY(); CLOCK_IN_OP(5); D = RM8(ea); break;			/* LD   D,(IY+o)    */
+	case 0x5c: E = HY; break;						/* LD   E,HY        */
+	case 0x5d: E = LY; break;						/* LD   E,LY        */
+	case 0x5e: EAY(); CLOCK_IN_OP(5); E = RM8(ea); break;			/* LD   E,(IY+o)    */
+	case 0x60: HY = B; break;						/* LD   HY,B        */
+	case 0x61: HY = C; break;						/* LD   HY,C        */
+	case 0x62: HY = D; break;						/* LD   HY,D        */
+	case 0x63: HY = E; break;						/* LD   HY,E        */
+	case 0x64: break;							/* LD   HY,HY       */
+	case 0x65: HY = LY; break;						/* LD   HY,LY       */
+	case 0x66: EAY(); CLOCK_IN_OP(5); H = RM8(ea); break;			/* LD   H,(IY+o)    */
+	case 0x67: HY = A; break;						/* LD   HY,A        */
+	case 0x68: LY = B; break;						/* LD   LY,B        */
+	case 0x69: LY = C; break;						/* LD   LY,C        */
+	case 0x6a: LY = D; break;						/* LD   LY,D        */
+	case 0x6b: LY = E; break;						/* LD   LY,E        */
+	case 0x6c: LY = HY; break;						/* LD   LY,HY       */
+	case 0x6d: break;							/* LD   LY,LY       */
+	case 0x6e: EAY(); CLOCK_IN_OP(5); L = RM8(ea); break;			/* LD   L,(IY+o)    */
+	case 0x6f: LY = A; break;						/* LD   LY,A        */
+	case 0x70: EAY(); CLOCK_IN_OP(5); WM8(ea, B); break;			/* LD   (IY+o),B    */
+	case 0x71: EAY(); CLOCK_IN_OP(5); WM8(ea, C); break;			/* LD   (IY+o),C    */
+	case 0x72: EAY(); CLOCK_IN_OP(5); WM8(ea, D); break;			/* LD   (IY+o),D    */
+	case 0x73: EAY(); CLOCK_IN_OP(5); WM8(ea, E); break;			/* LD   (IY+o),E    */
+	case 0x74: EAY(); CLOCK_IN_OP(5); WM8(ea, H); break;			/* LD   (IY+o),H    */
+	case 0x75: EAY(); CLOCK_IN_OP(5); WM8(ea, L); break;			/* LD   (IY+o),L    */
+	case 0x77: EAY(); CLOCK_IN_OP(5); WM8(ea, A); break;			/* LD   (IY+o),A    */
+	case 0x7c: A = HY; break;						/* LD   A,HY        */
+	case 0x7d: A = LY; break;						/* LD   A,LY        */
+	case 0x7e: EAY(); CLOCK_IN_OP(5); A = RM8(ea); break;			/* LD   A,(IY+o)    */
+	case 0x84: ADD(HY); break;						/* ADD  A,HY        */
+	case 0x85: ADD(LY); break;						/* ADD  A,LY        */
+	case 0x86: EAY(); CLOCK_IN_OP(5); ADD(RM8(ea)); break;			/* ADD  A,(IY+o)    */
+	case 0x8c: ADC(HY); break;						/* ADC  A,HY        */
+	case 0x8d: ADC(LY); break;						/* ADC  A,LY        */
+	case 0x8e: EAY(); CLOCK_IN_OP(5); ADC(RM8(ea)); break;			/* ADC  A,(IY+o)    */
+	case 0x94: SUB(HY); break;						/* SUB  HY          */
+	case 0x95: SUB(LY); break;						/* SUB  LY          */
+	case 0x96: EAY(); CLOCK_IN_OP(5); SUB(RM8(ea)); break;			/* SUB  (IY+o)      */
+	case 0x9c: SBC(HY); break;						/* SBC  A,HY        */
+	case 0x9d: SBC(LY); break;						/* SBC  A,LY        */
+	case 0x9e: EAY(); CLOCK_IN_OP(5); SBC(RM8(ea)); break;			/* SBC  A,(IY+o)    */
+	case 0xa4: AND(HY); break;						/* AND  HY          */
+	case 0xa5: AND(LY); break;						/* AND  LY          */
+	case 0xa6: EAY(); CLOCK_IN_OP(5); AND(RM8(ea)); break;			/* AND  (IY+o)      */
+	case 0xac: XOR(HY); break;						/* XOR  HY          */
+	case 0xad: XOR(LY); break;						/* XOR  LY          */
+	case 0xae: EAY(); CLOCK_IN_OP(5); XOR(RM8(ea)); break;			/* XOR  (IY+o)      */
+	case 0xb4: OR(HY); break;						/* OR   HY          */
+	case 0xb5: OR(LY); break;						/* OR   LY          */
+	case 0xb6: EAY(); CLOCK_IN_OP(5); OR(RM8(ea)); break;			/* OR   (IY+o)      */
+	case 0xbc: CP(HY); break;						/* CP   HY          */
+	case 0xbd: CP(LY); break;						/* CP   LY          */
+	case 0xbe: EAY(); CLOCK_IN_OP(5); CP(RM8(ea)); break;			/* CP   (IY+o)      */
+	case 0xcb: EAY(); v = FETCH8(); CLOCK_IN_OP(2); OP_XY(v); break;	/* **   FD CB xx    */
+	case 0xe1: POP(iy); break;						/* POP  IY          */
+	case 0xe3: EXSP(iy); break;						/* EX   (SP),IY     */
+	case 0xe5: PUSH(iy); break;						/* PUSH IY          */
+	case 0xe9: PC = IY; break;						/* JP   (IY)        */
+	case 0xf9: SP = IY; break;						/* LD   SP,IY       */
 	default:   OP(code); break;
 	}
 }
 
 void Z80::OP_ED(uint8_t code)
 {
+	// Done: M1 + M1
 	icount -= cc_ed[code];
 	
 	switch(code) {
@@ -1707,6 +1743,9 @@ void Z80::OP_ED(uint8_t code)
 
 void Z80::OP(uint8_t code)
 {
+	// Done: M1
+	uint8_t v;
+	
 	prevpc = PC - 1;
 	icount -= cc_op[code];
 	
@@ -1763,8 +1802,8 @@ void Z80::OP(uint8_t code)
 	case 0x31: SP = FETCH16(); break;										/* LD   SP,w        */
 	case 0x32: ea = FETCH16(); WM8(ea, A); WZ_L = (ea + 1) & 0xff; WZ_H = A; break;					/* LD   (w),A       */
 	case 0x33: SP++; break;												/* INC  SP          */
-	case 0x34: WM8(HL, INC(RM8(HL))); break;									/* INC  (HL)        */
-	case 0x35: WM8(HL, DEC(RM8(HL))); break;									/* DEC  (HL)        */
+	case 0x34: v = INC(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;							/* INC  (HL)        */
+	case 0x35: v = DEC(RM8(HL)); CLOCK_IN_OP(1); WM8(HL, v); break;							/* DEC  (HL)        */
 	case 0x36: WM8(HL, FETCH8()); break;										/* LD   (HL),n      */
 	case 0x37: F = (F & (SF | ZF | YF | XF | PF)) | CF | (A & (YF | XF)); break;					/* SCF              */
 	case 0x38: JR_COND(F & CF, 0x38); break;									/* JR   C,o         */
@@ -2064,7 +2103,7 @@ void Z80::initialize()
 #endif
 }
 
-void Z80::reset()
+void Z80::special_reset()
 {
 	PCD = CPU_START_ADDR;
 	SPD = 0;
@@ -2077,11 +2116,15 @@ void Z80::reset()
 	ea = 0;
 	
 	im = iff1 = iff2 = icr = 0;
-	after_halt = false;
-	after_ei = after_ldair = false;
+	after_halt = after_ei = false;
+	after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
-	
-	icount = extra_icount = busreq_icount = 0;
+}
+
+void Z80::reset()
+{
+	special_reset();
+	icount = dma_icount = wait_icount = 0;
 }
 
 void Z80::write_signal(int id, uint32_t data, uint32_t mask)
@@ -2095,6 +2138,8 @@ void Z80::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_CPU_BUSREQ) {
 		busreq = ((data & mask) != 0);
 		write_signals(&outputs_busack, busreq ? 0xffffffff : 0);
+	} else if(id == SIG_CPU_WAIT) {
+		wait = ((data & mask) != 0);
 #ifdef HAS_NSC800
 	} else if(id == SIG_NSC800_INT) {
 		intr_req_bit = (data & mask) ? (intr_req_bit | 1) : (intr_req_bit & ~1);
@@ -2120,72 +2165,131 @@ int Z80::run(int clock)
 {
 	if(clock == -1) {
 		// this is primary cpu
-		if(busreq) {
+		if(wait) {
+			// don't run cpu!
+			#ifdef USE_DEBUGGER
+				total_icount += 1;
+			#endif
+			return 1;
+		} else if(wait_icount > 0) {
+			// don't run cpu!
+			icount = wait_icount;
+			wait_icount = 0;
+			#ifdef USE_DEBUGGER
+				total_icount += icount;
+			#endif
+			return icount;
+		} else if(busreq || dma_icount > 0) {
 			// run dma once
 			#ifdef SINGLE_MODE_DMA
-				if(d_dma) {
+				if(d_dma && dma_icount == 0) {
 					d_dma->do_dma();
 				}
 			#endif
+			if(dma_icount > 0) {
+				icount = dma_icount;
+				dma_icount = 0;
+			} else {
+				icount = 1;
+			}
 			// don't run cpu!
-			int passed_icount = max(1, extra_icount);
-			// this is main cpu, icount is not used
-			/*icount = */extra_icount = 0;
 			#ifdef USE_DEBUGGER
-				total_icount += passed_icount;
+				total_icount += icount;
 			#endif
-			return passed_icount;
+			return icount;
 		} else {
 			// run only one opcode
-			if((extra_icount += busreq_icount) > 0) {
-				if(is_primary) {
-					update_extra_event(extra_icount);
-				}
-				#ifdef USE_DEBUGGER
-					total_icount += extra_icount;
-				#endif
-			}
-			icount = -extra_icount;
-			extra_icount = busreq_icount = 0;
+			icount = event_icount = event_done_icount = 0;
 			run_one_opecode();
-			return -icount;
-		}
-	} else {
-		icount += clock;
-		int first_icount = icount;
-		#ifdef USE_DEBUGGER
-			total_icount += extra_icount;
-		#endif
-		icount -= extra_icount;
-		extra_icount = 0;
-		
-		if(busreq) {
+			if(wait || wait_icount > 0) {
+				event_icount = (-icount) - (event_icount + event_done_icount);
+				#ifdef _DEBUG
+					assert(event_icount >= 0);
+				#endif
+				if(event_icount > 0) wait_icount += event_icount;
+			}
+			#ifdef USE_DEBUGGER
+				total_icount += (-icount);
+			#endif
 			// run dma once
 			#ifdef SINGLE_MODE_DMA
-				if(d_dma) {
+				if(d_dma && dma_icount == 0 && !(wait || wait_icount > 0)) {
+					d_dma->do_dma();
+				}
+			#endif
+			return (-icount);
+		}
+	} else if((icount += clock) > 0) {
+		int first_icount = icount;
+		int tmp_icount;
+		
+		if(busreq && !wait) {
+			if(dma_icount > 0) {
+				tmp_icount = min(icount, dma_icount);
+				#ifdef USE_DEBUGGER
+					total_icount += tmp_icount;
+				#endif
+				icount -= tmp_icount;
+				dma_icount -= tmp_icount;
+			}
+			// run dma once
+			#ifdef SINGLE_MODE_DMA
+				if(d_dma && dma_icount == 0) {
 					d_dma->do_dma();
 				}
 			#endif
 		} else {
-			// run cpu while given clocks
-			while(icount > 0 && !busreq) {
-				run_one_opecode();
+			// run cpu while given clocks remain
+			while(icount > 0 && !(busreq || wait)) {
+				if(dma_icount > 0) {
+					tmp_icount = min(icount, dma_icount);
+					#ifdef USE_DEBUGGER
+						total_icount += tmp_icount;
+					#endif
+					icount -= tmp_icount;
+					dma_icount -= tmp_icount;
+				} else {
+					// run only one opcode
+					#ifdef USE_DEBUGGER
+						tmp_icount = icount;
+					#endif
+					run_one_opecode();
+					#ifdef USE_DEBUGGER
+						total_icount += tmp_icount - icount;
+					#endif
+					// run dma once
+					#ifdef SINGLE_MODE_DMA
+						if(d_dma && dma_icount == 0) {
+							d_dma->do_dma();
+						}
+					#endif
+				}
 			}
 		}
-		// if busreq is raised, spin cpu while remained clock
-		if(icount > 0 && busreq) {
+		// spin cpu for remained clocks
+		if(icount > 0) {
+			if(dma_icount > 0 && !wait) {
+				dma_icount -= min(icount, dma_icount);
+			}
 			#ifdef USE_DEBUGGER
 				total_icount += icount;
 			#endif
 			icount = 0;
 		}
 		return first_icount - icount;
+	} else {
+		return 0;
 	}
 }
 
 void Z80::run_one_opecode()
 {
 	// rune one opecode
+	bool prev_after_ei = after_ei;
+	
+	after_halt = after_ei = false;
+	after_ldair = false;
+	
 #ifdef USE_DEBUGGER
 	bool now_debugging = d_debugger->now_debugging;
 	if(now_debugging) {
@@ -2204,31 +2308,20 @@ void Z80::run_one_opecode()
 		} else {
 			now_debugging = false;
 		}
-		
-		after_halt = after_ei = false;
-#if HAS_LDAIR_QUIRK
-		after_ldair = false;
-#endif
 		d_debugger->add_cpu_trace(PC);
-		int first_icount = icount;
 		OP(FETCHOP());
-		icount -= extra_icount;
-		extra_icount = 0;
-		total_icount += first_icount - icount;
 #if HAS_LDAIR_QUIRK
 		if(after_ldair) {
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 		}
 #endif
-#ifdef SINGLE_MODE_DMA
-		if(d_dma) {
-			d_dma->do_dma();
-		}
-#endif
-		if(!after_ei) {
+		if(prev_after_ei) {
+			d_pic->notify_intr_ei();
+			check_interrupt();
+			after_ei = false;
+		} else if(!after_ei) {
 			check_interrupt();
 		}
-		
 		if(now_debugging) {
 			if(!d_debugger->now_going) {
 				d_debugger->now_suspended = true;
@@ -2237,132 +2330,28 @@ void Z80::run_one_opecode()
 			d_io = d_io_stored;
 		}
 	} else {
-#endif
-		after_halt = after_ei = false;
-#if HAS_LDAIR_QUIRK
-		after_ldair = false;
-#endif
-#ifdef USE_DEBUGGER
 		d_debugger->add_cpu_trace(PC);
-		int first_icount = icount;
 #endif
 		OP(FETCHOP());
-#ifdef USE_DEBUGGER
-		icount -= extra_icount;
-		extra_icount = 0;
-		total_icount += first_icount - icount;
-#endif
 #if HAS_LDAIR_QUIRK
 		if(after_ldair) {
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 		}
 #endif
-#ifdef SINGLE_MODE_DMA
-		if(d_dma) {
-			d_dma->do_dma();
-		}
-#endif
-		if(!after_ei) {
+		if(prev_after_ei) {
+			d_pic->notify_intr_ei();
+			check_interrupt();
+			after_ei = false;
+		} else if(!after_ei) {
 			check_interrupt();
 		}
 #ifdef USE_DEBUGGER
 	}
-#endif
-	
-	// ei: run next opecode
-	if(after_ei) {
-#ifdef USE_DEBUGGER
-		bool now_debugging = d_debugger->now_debugging;
-		if(now_debugging) {
-			d_debugger->check_break_points(PC);
-			if(d_debugger->now_suspended) {
-				d_debugger->now_waiting = true;
-				emu->start_waiting_in_debugger();
-				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					emu->process_waiting_in_debugger();
-				}
-				emu->finish_waiting_in_debugger();
-				d_debugger->now_waiting = false;
-			}
-			if(d_debugger->now_debugging) {
-				d_mem = d_io = d_debugger;
-			} else {
-				now_debugging = false;
-			}
-			
-			after_halt = false;
-#if HAS_LDAIR_QUIRK
-			after_ldair = false;
-#endif
-			d_debugger->add_cpu_trace(PC);
-			int first_icount = icount;
-			OP(FETCHOP());
-			icount -= extra_icount;
-			extra_icount = 0;
-			total_icount += first_icount - icount;
-#if HAS_LDAIR_QUIRK
-			if(after_ldair) {
-				F &= ~PF;	// reset parity flag after LD A,I or LD A,R
-			}
-#endif
-#ifdef SINGLE_MODE_DMA
-			if(d_dma) {
-				d_dma->do_dma();
-			}
-#endif
-			d_pic->notify_intr_ei();
-			check_interrupt();
-			
-			if(now_debugging) {
-				if(!d_debugger->now_going) {
-					d_debugger->now_suspended = true;
-				}
-				d_mem = d_mem_stored;
-				d_io = d_io_stored;
-			}
-		} else {
-#endif
-			after_halt = false;
-#if HAS_LDAIR_QUIRK
-			after_ldair = false;
-#endif
-#ifdef USE_DEBUGGER
-			d_debugger->add_cpu_trace(PC);
-			int first_icount = icount;
-#endif
-			OP(FETCHOP());
-#ifdef USE_DEBUGGER
-			icount -= extra_icount;
-			extra_icount = 0;
-			total_icount += first_icount - icount;
-#endif
-#if HAS_LDAIR_QUIRK
-			if(after_ldair) {
-				F &= ~PF;	// reset parity flag after LD A,I or LD A,R
-			}
-#endif
-#ifdef SINGLE_MODE_DMA
-			if(d_dma) {
-				d_dma->do_dma();
-			}
-#endif
-			d_pic->notify_intr_ei();
-			check_interrupt();
-#ifdef USE_DEBUGGER
-		}
-#endif
-	}
-#ifndef USE_DEBUGGER
-	icount -= extra_icount;
-	extra_icount = 0;
 #endif
 }
 
 void Z80::check_interrupt()
 {
-#ifdef USE_DEBUGGER
-	int first_icount = icount;
-#endif
 	// check interrupt
 	if(intr_req_bit) {
 		if(intr_req_bit & NMI_REQ_BIT) {
@@ -2447,9 +2436,6 @@ void Z80::check_interrupt()
 #endif
 		}
 	}
-#ifdef USE_DEBUGGER
-	total_icount += first_icount - icount;
-#endif
 }
 
 #ifdef USE_DEBUGGER
@@ -3985,7 +3971,7 @@ void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_s
 }
 #endif
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool Z80::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3999,8 +3985,8 @@ bool Z80::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(total_icount);
 #endif
 	state_fio->StateValue(icount);
-	state_fio->StateValue(extra_icount);
-	state_fio->StateValue(busreq_icount);
+	state_fio->StateValue(dma_icount);
+	state_fio->StateValue(wait_icount);
 	state_fio->StateValue(prevpc);
 	state_fio->StateValue(pc.d);
 	state_fio->StateValue(sp.d);
@@ -4020,6 +4006,7 @@ bool Z80::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(R2);
 	state_fio->StateValue(ea);
 	state_fio->StateValue(busreq);
+	state_fio->StateValue(wait);
 	state_fio->StateValue(after_halt);
 	state_fio->StateValue(im);
 	state_fio->StateValue(iff1);

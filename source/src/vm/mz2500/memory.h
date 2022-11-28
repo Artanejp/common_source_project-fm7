@@ -14,9 +14,11 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_MEMORY_HBLANK	0
-#define SIG_MEMORY_VBLANK	1
-#define SIG_MEMORY_VRAM_SEL	2
+#define SIG_MEMORY_HBLANK_TEXT	0
+#define SIG_MEMORY_VBLANK_TEXT	1
+#define SIG_MEMORY_HBLANK_GRAPH	2
+#define SIG_MEMORY_VBLANK_GRAPH	3
+#define SIG_MEMORY_VRAM_SEL	4
 
 class MEMORY : public DEVICE
 {
@@ -40,16 +42,17 @@ private:
 	uint8_t page[8];
 	int page_type[16];
 	int page_wait[16];
-	bool is_vram[16];
 	uint8_t dic_bank;
 	uint8_t kanji_bank;
-	bool blank, hblank, vblank, busreq;
+	bool hblank_t, vblank_t, wait_t;
+	bool hblank_g, vblank_g, wait_g;
 	int extra_wait;
 	
 	void set_map(uint8_t data);
 	void set_map(uint8_t bank, uint8_t data);
 	
 	// MZ-2000/80B
+	bool is_4mhz;
 	uint8_t mode;
 	uint8_t vram_sel, vram_page;
 	void update_vram_map();

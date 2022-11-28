@@ -99,7 +99,7 @@ void initialize_config()
 			config.baud_high[drv] = true;
 		}
 	#endif
-	config.compress_state = true;
+	config.compress_state = config.drive_vm_in_opecode = true;
 	
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
@@ -216,6 +216,7 @@ void load_config(const _TCHAR* config_path)
 		}
 	#endif
 	config.compress_state = MyGetPrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
+	config.drive_vm_in_opecode = MyGetPrivateProfileBool(_T("Control"), _T("DriveVMInOpecode"), config.drive_vm_in_opecode, config_path);
 	
 	// recent files
 	#ifdef USE_CART
@@ -456,6 +457,7 @@ void save_config(const _TCHAR* config_path)
 		}
 	#endif
 	MyWritePrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
+	MyWritePrivateProfileBool(_T("Control"), _T("DriveVMInOpecode"), config.drive_vm_in_opecode, config_path);
 	
 	// recent files
 	#ifdef USE_CART

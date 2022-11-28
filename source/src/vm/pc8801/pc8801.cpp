@@ -686,7 +686,7 @@ void VM::initialize_sound(int rate, int samples)
 #ifdef SUPPORT_PC88_JAST
 	if(config.printer_type == 2) {
 		PCM8BIT *pcm8 = (PCM8BIT *)pc88prn;
-		pcm8->initialize_sound(rate, 8000);
+		pcm8->initialize_sound(rate, 32000);
 	}
 #endif
 }

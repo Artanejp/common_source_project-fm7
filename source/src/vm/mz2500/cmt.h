@@ -32,7 +32,7 @@ private:
 	DATAREC *d_drec;
 	
 #if defined(_MZ2500)
-	int boot_mode;
+	bool is_mz80b;
 #endif
 	uint8_t pa, pc;
 	bool play, rec;

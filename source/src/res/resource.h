@@ -115,6 +115,7 @@
 #define ID_CPU_POWER3                   40014
 #define ID_CPU_POWER4                   40015
 #define ID_FULL_SPEED                   40016
+#define ID_DRIVE_VM_IN_OPECODE          40017
 #define ID_AUTOKEY_START                40021
 #define ID_AUTOKEY_STOP                 40022
 #define ID_ROMAJI_TO_KANA               40023

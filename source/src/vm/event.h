@@ -36,8 +36,8 @@ private:
 	
 	int vclocks[MAX_LINES];
 	int power;
-	int event_remain, event_extra;
-	int cpu_remain, cpu_accum, cpu_done;
+	int event_clocks_remain;
+	int cpu_clocks_remain, cpu_clocks_accum, cpu_clocks_done, cpu_clocks_in_opecode;
 	uint64_t event_clocks;
 	
 	typedef struct event_t {
@@ -151,10 +151,15 @@ public:
 	}
 	uint32_t get_cpu_clocks(DEVICE* device)
 	{
-		for(int index = 0; index < dcount_cpu; index++) {
-			if(d_cpu[index].device == device) {
-				return d_cpu[index].cpu_clocks;
+		if(device != NULL) {
+			for(int index = 0; index < dcount_cpu; index++) {
+				if(d_cpu[index].device == device) {
+					return d_cpu[index].cpu_clocks;
+				}
 			}
+		}
+		if(d_cpu[0].device != NULL) {
+			return d_cpu[0].cpu_clocks;
 		}
 		return CPU_CLOCKS;
 	}
@@ -172,7 +177,7 @@ public:
 	{
 		return next_lines_per_frame;
 	}
-	void update_extra_event(int clock);
+	void update_event_in_opecode(int clock);
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
 	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	void cancel_event(DEVICE* device, int register_id);

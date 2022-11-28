@@ -22,7 +22,8 @@
 #define SIG_CPU_NMI		103
 #define SIG_CPU_BUSREQ		104
 #define SIG_CPU_HALTREQ		105
-#define SIG_CPU_DEBUG		106
+#define SIG_CPU_WAIT		106
+#define SIG_CPU_DEBUG		107
 
 #define SIG_PRINTER_DATA	201
 #define SIG_PRINTER_STROBE	202
@@ -665,12 +666,12 @@ public:
 		}
 		return event_manager->get_cpu_clocks(device);
 	}
-	virtual void update_extra_event(int clock)
+	virtual void update_event_in_opecode(int clock)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		event_manager->update_extra_event(clock);
+		event_manager->update_event_in_opecode(clock);
 	}
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 	{

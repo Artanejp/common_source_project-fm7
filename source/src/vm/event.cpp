@@ -69,8 +69,8 @@ void EVENT::reset()
 		}
 	}
 	
-	event_remain = event_extra = 0;
-	cpu_remain = cpu_accum = cpu_done = 0;
+	event_clocks_remain = 0;
+	cpu_clocks_remain = cpu_clocks_accum = cpu_clocks_done = 0;
 	
 	// reset sound
 	if(sound_buffer) {
@@ -133,81 +133,117 @@ void EVENT::drive()
 			vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
 		}
 		
-		if(event_remain < 0) {
-			if(-event_remain > vclocks[cur_vline]) {
+		if(event_clocks_remain < 0) {
+			if(-event_clocks_remain > vclocks[cur_vline]) {
 				update_event(vclocks[cur_vline]);
 			} else {
-				update_event(-event_remain);
+				update_event(-event_clocks_remain);
 			}
 		}
-		event_remain += vclocks[cur_vline];
-		cpu_remain += vclocks[cur_vline] << power;
+		event_clocks_remain += vclocks[cur_vline];
+		cpu_clocks_remain += vclocks[cur_vline] << power;
 		
-		while(event_remain > 0) {
-			int event_done = event_remain;
-			if(cpu_remain > 0) {
-				event_extra = 0;
-				int cpu_done_tmp;
+		while(event_clocks_remain > 0) {
+			int event_clocks_done = event_clocks_remain;
+			if(cpu_clocks_remain > 0) {
+				int cpu_clocks_done_tmp = 0;
 				if(dcount_cpu == 1) {
 					// run one opecode on primary cpu
-					cpu_done_tmp = d_cpu[0].device->run(-1);
+					cpu_clocks_in_opecode = 0;
+					cpu_clocks_done_tmp  = d_cpu[0].device->run(-1);
+					cpu_clocks_done_tmp -= cpu_clocks_in_opecode;
+					#ifdef _DEBUG
+						assert(cpu_clocks_done_tmp >= 0);
+					#endif
+					if(cpu_clocks_done_tmp < 0) cpu_clocks_done_tmp = 0;
 				} else {
 					// sync to sub cpus
-					if(cpu_done == 0) {
+					if(cpu_clocks_done == 0) {
 						// run one opecode on primary cpu
-						cpu_done = d_cpu[0].device->run(-1);
-					}
-					
-					// sub cpu runs continuously and no events will be fired while the given clocks,
-					// so I need to give small enough clocks...
-					cpu_done_tmp = (event_extra > 0 || cpu_done < 4) ? cpu_done : 4;
-					cpu_done -= cpu_done_tmp;
-					
-					for(int i = 1; i < dcount_cpu; i++) {
-						// run sub cpus
-						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
-						int sub_clock = d_cpu[i].accum_clocks >> 10;
-						if(sub_clock) {
-							d_cpu[i].accum_clocks -= sub_clock << 10;
-							d_cpu[i].device->run(sub_clock);
+						cpu_clocks_in_opecode = 0;
+						cpu_clocks_done  = d_cpu[0].device->run(-1);
+						cpu_clocks_done -= cpu_clocks_in_opecode;
+						#ifdef _DEBUG
+							assert(cpu_clocks_done >= 0);
+						#endif
+						if(cpu_clocks_done < 0) cpu_clocks_done = 0;
+						
+						// run sub cpus because the event has been aleady proceeded
+						if(cpu_clocks_in_opecode > 0) {
+							for(int i = 1; i < dcount_cpu; i++) {
+								// run sub cpus
+								d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_clocks_in_opecode;
+								int sub_clock = d_cpu[i].accum_clocks >> 10;
+								if(sub_clock) {
+									d_cpu[i].accum_clocks -= sub_clock << 10;
+									d_cpu[i].device->run(sub_clock);
+								}
+							}
 						}
 					}
-				}
-				cpu_remain -= cpu_done_tmp;
-				cpu_accum += cpu_done_tmp;
-				event_done = cpu_accum >> power;
-				cpu_accum -= event_done << power;
-				event_done -= event_extra;
-			}
-			if(event_done > 0) {
-				if(event_remain > 0) {
-					if(event_done > event_remain) {
-						update_event(event_remain);
+					if(cpu_clocks_done > 0) {
+						// sub cpu runs continuously and no events will be fired while the given clocks,
+						// so I need to give small enough clocks...
+						cpu_clocks_done_tmp = (cpu_clocks_done < 4) ? cpu_clocks_done : 4;
+						cpu_clocks_done -= cpu_clocks_done_tmp;
+						
+						for(int i = 1; i < dcount_cpu; i++) {
+							// run sub cpus
+							d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_clocks_done_tmp;
+							int sub_clock = d_cpu[i].accum_clocks >> 10;
+							if(sub_clock) {
+								d_cpu[i].accum_clocks -= sub_clock << 10;
+								d_cpu[i].device->run(sub_clock);
+							}
+						}
 					} else {
-						update_event(event_done);
+						cpu_clocks_done_tmp = 0;
 					}
 				}
-				event_remain -= event_done;
+				if(cpu_clocks_done_tmp > 0) {
+					cpu_clocks_remain -= cpu_clocks_done_tmp;
+					cpu_clocks_accum += cpu_clocks_done_tmp;
+					event_clocks_done = cpu_clocks_accum >> power;
+					cpu_clocks_accum -= event_clocks_done << power;
+				} else {
+					event_clocks_done = 0;
+				}
+			}
+			if(event_clocks_done > 0) {
+				if(event_clocks_remain > 0) {
+					if(event_clocks_done > event_clocks_remain) {
+						update_event(event_clocks_remain);
+					} else {
+						update_event(event_clocks_done);
+					}
+				}
+				event_clocks_remain -= event_clocks_done;
 			}
 		}
 	}
 }
 
-void EVENT::update_extra_event(int clock)
+void EVENT::update_event_in_opecode(int clock)
 {
 	// this is called from primary cpu while running one opecode
-	int event_done = clock >> power;
-	
-	if(event_done > 0) {
-		if(event_remain > 0) {
-			if(event_done > event_remain) {
-				update_event(event_remain);
-			} else {
-				update_event(event_done);
+	if(config.drive_vm_in_opecode) {
+		cpu_clocks_in_opecode += clock;
+		
+		cpu_clocks_remain -= clock;
+		cpu_clocks_accum += clock;
+		int event_clocks_done = cpu_clocks_accum >> power;
+		cpu_clocks_accum -= event_clocks_done << power;
+		
+		if(event_clocks_done > 0) {
+			if(event_clocks_remain > 0) {
+				if(event_clocks_done > event_clocks_remain) {
+					update_event(event_clocks_remain);
+				} else {
+					update_event(event_clocks_done);
+				}
 			}
+			event_clocks_remain -= event_clocks_done;
 		}
-		event_remain -= event_done;
-		event_extra += event_done;
 	}
 }
 
@@ -627,7 +663,7 @@ void EVENT::update_config()
 {
 	if(power != config.cpu_power) {
 		power = config.cpu_power;
-		cpu_accum = 0;
+		cpu_clocks_accum = 0;
 	}
 }
 
@@ -650,11 +686,11 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(d_cpu[i].accum_clocks);
 	}
 	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
-	state_fio->StateValue(event_remain);
-	state_fio->StateValue(event_extra);
-	state_fio->StateValue(cpu_remain);
-	state_fio->StateValue(cpu_accum);
-	state_fio->StateValue(cpu_done);
+	state_fio->StateValue(event_clocks_remain);
+	state_fio->StateValue(cpu_clocks_remain);
+	state_fio->StateValue(cpu_clocks_accum);
+	state_fio->StateValue(cpu_clocks_done);
+	state_fio->StateValue(cpu_clocks_in_opecode);
 	state_fio->StateValue(event_clocks);
 	for(int i = 0; i < MAX_EVENT; i++) {
 		if(loading) {

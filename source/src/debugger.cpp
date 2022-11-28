@@ -265,6 +265,8 @@ void* debugger_thread(void *lpx)
 		}
 		p->osd->sleep(10);
 	}
+	p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | /*OSD_CONSOLE_BLUE |*/ OSD_CONSOLE_INTENSITY);
+	my_printf(p->osd, _T("enter '?' to show the list of commands\n"));
 	
 	uint32_t dump_addr = 0;
 	uint32_t dasm_addr = cpu->get_next_pc();

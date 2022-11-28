@@ -12,8 +12,11 @@
 #include "memory.h"
 #include "../i8255.h"
 
-#define EVENT_HSYNC	0
-#define EVENT_BLINK	256
+#define EVENT_HDISP_TEXT_S	0
+#define EVENT_HDISP_TEXT_E	1
+#define EVENT_HDISP_GRAPH_S	2
+#define EVENT_HDISP_GRAPH_E	3
+#define EVENT_BLINK		4
 
 #define SCRN_640x400	1
 #define SCRN_640x200	2
@@ -124,14 +127,17 @@ void CRTC::initialize()
 	memset(textreg, 0, sizeof(textreg));
 	memset(cgreg, 0, sizeof(cgreg));
 	
+	textreg[0x03] = monitor_200line ? 38 : 17;
+	textreg[0x05] = textreg[0x03] + 200;
+	textreg[0x07] = monitor_200line ? 11 : 9;
+	textreg[0x08] = textreg[0x07] + 80;
+	
 	cgreg_num = 0x80;
 	cgreg[0x00] = cgreg[0x01] = cgreg[0x02] = cgreg[0x03] = cgreg[0x06] = 0xff;
 	GDEVS = 0; cgreg[0x08] = 0x00; cgreg[0x09] = 0x00;
 	GDEVE = monitor_200line ? 200 : 400; cgreg[0x0a] = GDEVE & 0xff; cgreg[0x0b] = GDEVE >> 8;
 	GDEHS = 0; cgreg[0x0c] = 0x00;
-	GDEHSC = (int)(CPU_CLOCKS * GDEHS / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 	GDEHE = 80; cgreg[0x0d] = GDEHE;
-	GDEHEC = (int)(CPU_CLOCKS * (GDEHE + 3) / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 	
 	for(int i = 0; i < 16; i++) {
 		palette_reg[i] = i;
@@ -148,7 +154,8 @@ void CRTC::initialize()
 	screen_mask = false;
 	blink = false;
 	latch[0] = latch[1] = latch[2] = latch[3] = 0;
-	hblank = vblank = false;
+	hblank_t = vblank_t = true;
+	hblank_g = vblank_g = true;
 	map_init = trans_init = true;
 	
 	// MZ-2000
@@ -392,11 +399,9 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 			break;
 		case 0x0c:
 			GDEHS = cgreg[0x0c] & 0x7f;
-			GDEHSC = (int)(CPU_CLOCKS * GDEHS / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 			break;
 		case 0x0d:
 			GDEHE = cgreg[0x0d] & 0x7f;
-			GDEHEC = (int)(CPU_CLOCKS * (GDEHE + 3) / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 			break;
 		// screen size
 		case 0x0e:
@@ -594,7 +599,7 @@ uint32_t CRTC::read_io8(uint32_t addr)
 	case 0xbd:
 		// read plane r
 		if(cgreg[7] & 0x10) {
-			return (vblank ? 0 : 0x80) | clear_flag;
+			return (vblank_g ? 0 : 0x80) | clear_flag;
 		} else {
 			return latch[1];
 		}
@@ -606,7 +611,7 @@ uint32_t CRTC::read_io8(uint32_t addr)
 		return latch[3];
 	case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 		// get blank state
-		return (vblank ? 0 : 1) | (hblank ? 0 : 2);
+		return (vblank_t ? 0 : 1) | (hblank_t ? 0 : 2);
 	}
 	return 0xff;
 }
@@ -626,41 +631,63 @@ void CRTC::write_signal(int id, uint32_t data, uint32_t mask)
 
 void CRTC::event_callback(int event_id, int err)
 {
-	if(event_id & EVENT_BLINK) {
+	if(event_id == EVENT_HDISP_TEXT_S) {
+		hblank_t = false;
+		d_mem->write_signal(SIG_MEMORY_HBLANK_TEXT, 0, 1);
+	} else if(event_id == EVENT_HDISP_TEXT_E) {
+		hblank_t = true;
+		d_mem->write_signal(SIG_MEMORY_HBLANK_TEXT, 1, 1);
+	} else if(event_id == EVENT_HDISP_GRAPH_S) {
+		hblank_g = false;
+		d_mem->write_signal(SIG_MEMORY_HBLANK_GRAPH, 0, 1);
+	} else if(event_id == EVENT_HDISP_GRAPH_E) {
+		hblank_g = true;
+		d_mem->write_signal(SIG_MEMORY_HBLANK_GRAPH, 1, 1);
+	} else if(event_id == EVENT_BLINK) {
 		blink = !blink;
-	} else {
-		set_hsync(event_id);
 	}
 }
 
 void CRTC::event_vline(int v, int clock)
 {
-	bool next = !(GDEVS <= v && v < GDEVE);	// vblank = true
-	if(vblank != next) {
-		d_pio->write_signal(SIG_I8255_PORT_B, next ? 0 : 1, 1);
-		d_int->write_signal(SIG_INTERRUPT_CRTC, next ? 1 : 0, 1);
-		d_mem->write_signal(SIG_MEMORY_VBLANK, next ? 1 : 0, 1);
-		vblank = next;
+	double clocks_per_char = get_event_clocks() / frames_per_sec / lines_per_frame / chars_per_line;
+	
+	// 2022.09.05 adjust hsync timing
+	// https://twitter.com/youkan700/status/794210717398286337
+	
+	// vblank/hblank of text screen
+	if(v == textreg[3] * (monitor_200line ? 1 : 2)) {
+		d_mem->write_signal(SIG_MEMORY_VBLANK_TEXT, 0, 1);
+		vblank_t = false;
+	} else if(v == textreg[5] * (monitor_200line ? 1 : 2)) {
+		d_mem->write_signal(SIG_MEMORY_VBLANK_TEXT, 1, 1);
+		vblank_t = true;
 	}
-	// complete clear screen
-	if(v == (monitor_200line ? 200 : 400)) {
+	if((textreg[7] & 0x7f) < (textreg[8] & 0x7f)) {
+		register_event_by_clock(this, EVENT_HDISP_TEXT_S, (int)(clocks_per_char * (textreg[7] & 0x7f) + 0.5) - 2, false, NULL);
+		register_event_by_clock(this, EVENT_HDISP_TEXT_E, (int)(clocks_per_char * (textreg[8] & 0x7f) + 0.5) + 6, false, NULL);
+	} else {
+		event_callback(EVENT_HDISP_TEXT_E, 0);
+	}
+	
+	// vblank/hblank of graph screen
+	if(v == GDEVS) {
+		d_pio->write_signal(SIG_I8255_PORT_B, 1, 1);
+		d_int->write_signal(SIG_INTERRUPT_CRTC, 0, 1);
+		d_mem->write_signal(SIG_MEMORY_VBLANK_GRAPH, 0, 1);
+		vblank_g = false;
+	} else if(v == GDEVE) {
+		d_pio->write_signal(SIG_I8255_PORT_B, 0, 1);
+		d_int->write_signal(SIG_INTERRUPT_CRTC, 1, 1);
+		d_mem->write_signal(SIG_MEMORY_VBLANK_GRAPH, 1, 1);
+		vblank_g = true;
 		clear_flag = 0;
 	}
-	// register hsync events
-	int clocks_per_line = (int)(CPU_CLOCKS / frames_per_sec / lines_per_frame);
-	if(GDEHSC < GDEHEC && (GDEHEC + 10) < clocks_per_line) {
-		register_event_by_clock(this, GDEHS, GDEHSC + 10, false, NULL);
-		register_event_by_clock(this, GDEHE, GDEHEC + 10, false, NULL);
-	}
-	set_hsync(0);
-}
-
-void CRTC::set_hsync(int h)
-{
-	bool next = !(GDEHS <= h && h < GDEHE);	// hblank = true
-	if(hblank != next) {
-		d_mem->write_signal(SIG_MEMORY_HBLANK, next ? 1 : 0, 1);
-		hblank = next;
+	if(GDEHS < GDEHE) {
+		register_event_by_clock(this, EVENT_HDISP_GRAPH_S, (int)(clocks_per_char * (GDEHS + 10) + 0.5) - 2, false, NULL);
+		register_event_by_clock(this, EVENT_HDISP_GRAPH_E, (int)(clocks_per_char * (GDEHE + 10) + 0.5) + 4, false, NULL);
+	} else {
+		event_callback(EVENT_HDISP_GRAPH_E, 0);
 	}
 }
 
@@ -2002,10 +2029,10 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(GDEVE);
 	state_fio->StateValue(GDEHS);
 	state_fio->StateValue(GDEHE);
-	state_fio->StateValue(GDEHSC);
-	state_fio->StateValue(GDEHEC);
-	state_fio->StateValue(hblank);
-	state_fio->StateValue(vblank);
+	state_fio->StateValue(hblank_t);
+	state_fio->StateValue(vblank_t);
+	state_fio->StateValue(hblank_g);
+	state_fio->StateValue(vblank_g);
 	state_fio->StateValue(blink);
 	state_fio->StateValue(clear_flag);
 	state_fio->StateArray(palette_reg, sizeof(palette_reg), 1);

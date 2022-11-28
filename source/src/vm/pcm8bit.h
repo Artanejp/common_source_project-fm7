@@ -24,6 +24,8 @@ private:
 	bool on, mute, realtime;
 	int changed;
 	int sample, prev_sample;
+	double dc_offset, ac_rate;
+	
 	uint32_t prev_clock, change_clock;
 	int max_vol, last_vol_l, last_vol_r;
 	int volume_l, volume_r;

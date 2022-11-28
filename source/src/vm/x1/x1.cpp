@@ -617,7 +617,7 @@ void VM::initialize_sound(int rate, int samples)
 	}
 	if(config.printer_type == 3) {
 		PCM8BIT *pcm8 = (PCM8BIT *)printer;
-		pcm8->initialize_sound(rate, 8000);
+		pcm8->initialize_sound(rate, 32000);
 	}
 	psg->initialize_sound(rate, 2000000, samples, 0, 0);
 #ifdef _X1TWIN

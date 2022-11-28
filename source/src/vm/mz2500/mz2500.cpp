@@ -227,10 +227,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf4, 0xf7, crtc);
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
 	
-	io->set_iowait_range_rw(0xc8, 0xc9, 1);
-	io->set_iowait_single_rw(0xcc, 3);
-	io->set_iowait_range_rw(0xd8, 0xdf, 1);
-	io->set_iowait_range_rw(0xe8, 0xeb, 1);
+	if(config.boot_mode == 0) {
+		io->set_iowait_range_rw(0xd8, 0xdf, 1);	// nfdcs
+		io->set_iowait_range_rw(0xe8, 0xeb, 1);	// npioc
+	}
+	io->set_iowait_range_rw(0xc8, 0xc9, 1);	// nopnc
+	io->set_iowait_single_rw(0xcc, 3);	// nrtcs
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -304,7 +306,7 @@ void VM::special_reset()
 //		device->special_reset();
 //	}
 	memory->special_reset();
-	cpu->reset();
+	cpu->special_reset();
 }
 
 void VM::run()
