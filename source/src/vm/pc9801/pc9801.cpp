@@ -224,12 +224,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
-#if defined(_PC9801) || defined(_PC9801E)
+#if /*defined(_PC9801) ||*/ defined(_PC9801E)
 	if((config.dipswitch & DIPSWITCH_2HD) && FILEIO::IsFileExisting(create_local_path(_T("2HDIF.ROM")))) {
 #endif
 		fdc_2hd = new UPD765A(this, emu);
 		fdc_2hd->set_device_name(_T("uPD765A FDC (2HD I/F)"));
-#if defined(_PC9801) || defined(_PC9801E)
+#if /*defined(_PC9801) ||*/ defined(_PC9801E)
 	} else {
 		fdc_2hd = NULL;
 	}

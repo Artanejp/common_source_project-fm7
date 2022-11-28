@@ -125,6 +125,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
         MENUITEM "Debug PC-80S31K CPU",         ID_OPEN_DEBUGGER1
+        MENUITEM "Debug PC-8801-16 CPU",        ID_OPEN_DEBUGGER2
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
@@ -191,6 +192,8 @@ BEGIN
         BEGIN
             MENUITEM "N88 mode"                     ID_VM_BOOT_MODE0
             MENUITEM "N mode"                       ID_VM_BOOT_MODE3
+            MENUITEM SEPARATOR
+            MENUITEM "PC-8801-16",                  ID_VM_DIPSWITCH10
         END
         POPUP "Floppy Drive"
         BEGIN

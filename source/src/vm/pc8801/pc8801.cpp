@@ -50,12 +50,19 @@
 #include "../ay_3_891x.h"
 #endif
 
-#if defined(SUPPORT_PC88_GSX8800) || defined(SUPPORT_PC88_PCG8100)
+#if defined(SUPPORT_PC88_GSX8800) || defined(SUPPORT_PC88_PCG8100) || defined(SUPPORT_PC88_16BIT)
 #include "../i8253.h"
 #endif
 
 #ifdef SUPPORT_PC88_JAST
 #include "../pcm8bit.h"
+#endif
+
+#if defined(SUPPORT_PC88_16BIT)
+#include "../i8259.h"
+#include "../i86.h"
+#include "../io.h"
+#include "../memory.h"
 #endif
 
 #ifdef SUPPORT_M88_DISKDRV
@@ -336,6 +343,19 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88pcg_pcm1 = pc88pcg_pcm2 = pc88pcg_pcm3 = NULL;
 	}
 #endif
+#ifdef SUPPORT_PC88_16BIT
+	if(config.dipswitch & DIPSWITCH_16BIT) {
+		pc88pit_16bit = new I8253(this, emu);
+		pc88pio_16bit = new I8255(this, emu);
+		pc88pic_16bit = new I8259(this, emu);
+		pc88cpu_16bit = new I86(this, emu);
+		pc88cpu_16bit->device_model = INTEL_8086;
+		pc88io_16bit = new IO(this, emu);
+		pc88mem_16bit = new MEMORY(this, emu);
+	} else {
+		pc88cpu_16bit = NULL;
+	}
+#endif
 #ifdef SUPPORT_M88_DISKDRV
 	if(config.dipswitch & DIPSWITCH_M88_DISKDRV) {
 		pc88diskio = new DiskIO(this, emu);
@@ -354,6 +374,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(pc88cpu_sub != NULL) {
 		pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	}
+#ifdef SUPPORT_PC88_16BIT
+	if(pc88cpu_16bit != NULL) {
+		pc88event->set_context_cpu(pc88cpu_16bit, 7987248);
+	}
+#endif
 	
 	// set sound device contexts
 	pc88event->set_context_sound(pc88pcm);
@@ -456,6 +481,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88->set_context_pcg_pcm3(pc88pcg_pcm3);
 	}
 #endif
+#ifdef SUPPORT_PC88_16BIT
+	if(config.dipswitch & DIPSWITCH_16BIT) {
+		pc88->set_context_pio_16bit(pc88pio_16bit);
+	}
+#endif
 #ifdef SUPPORT_M88_DISKDRV
 	if(config.dipswitch & DIPSWITCH_M88_DISKDRV) {
 		pc88->set_context_diskio(pc88diskio);
@@ -536,6 +566,51 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88pcg_pit->set_constant_clock(0, 3993624);
 		pc88pcg_pit->set_constant_clock(1, 3993624);
 		pc88pcg_pit->set_constant_clock(2, 3993624);
+	}
+#endif
+#ifdef SUPPORT_PC88_16BIT
+	if(config.dipswitch & DIPSWITCH_16BIT) {
+		memset(pc88rom_16bit, 0xff, sizeof(pc88rom_16bit));
+		memset(pc88ram_16bit, 0x00, sizeof(pc88ram_16bit));
+		
+		FILEIO* fio = new FILEIO();
+		if(fio->Fopen(create_local_path(_T("PC-8801-16_I86.ROM")), FILEIO_READ_BINARY)) {
+			fio->Fread(pc88rom_16bit, sizeof(pc88rom_16bit), 1);
+			fio->Fclose();
+		}
+		delete fio;
+		
+		pc88mem_16bit->set_memory_rw(0, sizeof(pc88ram_16bit) - 1, pc88ram_16bit);
+		pc88mem_16bit->set_memory_r(0xff000, 0xfffff, pc88rom_16bit);
+		
+		pc88io_16bit->set_iomap_alias_rw(0x00, pc88pit_16bit, 0);
+		pc88io_16bit->set_iomap_alias_rw(0x02, pc88pit_16bit, 1);
+		pc88io_16bit->set_iomap_alias_rw(0x04, pc88pit_16bit, 2);
+		pc88io_16bit->set_iomap_alias_w (0x06, pc88pit_16bit, 3);
+		pc88io_16bit->set_iomap_alias_rw(0x10, pc88pio_16bit, 0);
+		pc88io_16bit->set_iomap_alias_rw(0x12, pc88pio_16bit, 1);
+		pc88io_16bit->set_iomap_alias_rw(0x14, pc88pio_16bit, 2);
+		pc88io_16bit->set_iomap_alias_w (0x16, pc88pio_16bit, 3);
+		pc88io_16bit->set_iomap_alias_rw(0x20, pc88pic_16bit, 0);
+		pc88io_16bit->set_iomap_alias_rw(0x22, pc88pic_16bit, 1);
+		
+		pc88pit_16bit->set_context_ch0(pc88pic_16bit, SIG_I8259_IR0, 1);
+		pc88pit_16bit->set_context_ch1(pc88pit_16bit, SIG_I8253_CLOCK_2, 1);
+		pc88pit_16bit->set_context_ch2(pc88pic_16bit, SIG_I8259_IR7, 1);
+		pc88pit_16bit->set_constant_clock(0, 2995218);
+		pc88pit_16bit->set_constant_clock(1, 2995218);
+		pc88pio_16bit->set_context_port_a(pc88, SIG_PC88_16BIT_PORTA, 0xff, 0);
+		pc88pio_16bit->set_context_port_c(pc88, SIG_PC88_16BIT_PORTC, 0x82, 0); // PC7+PC1
+		pc88pio_16bit->set_context_port_c(pc88pic_16bit, SIG_I8259_IR1, 0x01, 0); // PC0
+		pc88pio_16bit->set_context_port_c(pc88pic_16bit, SIG_I8259_IR2, 0x08, 0); // PC3
+		pc88pic_16bit->set_context_cpu(pc88cpu_16bit);
+		pc88cpu_16bit->set_context_mem(pc88mem_16bit);
+		pc88cpu_16bit->set_context_io(pc88io_16bit);
+		pc88cpu_16bit->set_context_intr(pc88pic_16bit);
+#ifdef USE_DEBUGGER
+		pc88cpu_16bit->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+
 	}
 #endif
 	
@@ -620,6 +695,10 @@ DEVICE *VM::get_cpu(int index)
 		return pc88cpu;
 	} else if(index == 1) {
 		return pc88cpu_sub;
+#ifdef SUPPORT_PC88_16BIT
+	} else if(index == 2) {
+		return pc88cpu_16bit;
+#endif
 	}
 	return NULL;
 }
@@ -1032,7 +1111,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	12
+#define STATE_VERSION	13
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1053,6 +1132,9 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 			return false;
 		}
 	}
+#ifdef SUPPORT_PC88_16BIT
+	state_fio->StateArray(pc88ram_16bit, sizeof(pc88ram_16bit), 1);
+#endif
 	state_fio->StateValue(boot_mode);
 	return true;
 }

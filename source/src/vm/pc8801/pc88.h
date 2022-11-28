@@ -38,6 +38,10 @@
 #define SIG_PC88_GSX_IRQ	6
 #endif
 #define SIG_PC88_USART_OUT	7
+#ifdef SUPPORT_PC88_16BIT
+#define SIG_PC88_16BIT_PORTA	8
+#define SIG_PC88_16BIT_PORTC	9
+#endif
 
 #define CMT_BUFFER_SIZE		0x40000
 
@@ -151,6 +155,9 @@ private:
 #ifdef SUPPORT_PC88_PCG8100
 	DEVICE *d_pcg_pit, *d_pcg_pcm1, *d_pcg_pcm2, *d_pcg_pcm3;
 #endif
+#ifdef SUPPORT_PC88_16BIT
+	DEVICE *d_pio_16bit;
+#endif
 #ifdef SUPPORT_M88_DISKDRV
 	DEVICE *d_diskio;
 #endif
@@ -201,6 +208,10 @@ private:
 	uint8_t cdbios[0x10000];
 	bool cdbios_loaded;
 #endif
+#ifdef SUPPORT_PC88_16BIT
+	uint8_t boot_16bit[0x2000];
+	bool boot_16bit_loaded;
+#endif
 	
 	// i/o port
 	uint8_t port[256];
@@ -233,7 +244,9 @@ private:
 	void update_n80_read();
 #else
 	void update_low_write();
+	void update_low_write_sub();
 	void update_low_read();
+	void update_low_read_sub();
 #if defined(PC8801SR_VARIANT)
 	void update_tvram_memmap();
 #endif
@@ -355,6 +368,11 @@ private:
 	double cdda_volume;
 #endif
 	
+#ifdef SUPPORT_PC88_16BIT
+	uint8_t porta_16bit;
+	uint8_t portc_16bit;
+#endif
+	
 #ifdef NIPPY_PATCH
 	// dirty patch for NIPPY
 	bool nippy_patch;
@@ -387,6 +405,9 @@ public:
 		d_pcg_pcm1 = NULL;
 		d_pcg_pcm2 = NULL;
 		d_pcg_pcm3 = NULL;
+#endif
+#ifdef SUPPORT_PC88_16BIT
+		d_pio_16bit = NULL;
 #endif
 #ifdef SUPPORT_M88_DISKDRV
 		d_diskio = NULL;
@@ -528,6 +549,12 @@ public:
 	void set_context_pcg_pcm3(DEVICE* device)
 	{
 		d_pcg_pcm3 = device;
+	}
+#endif
+#ifdef SUPPORT_PC88_16BIT
+	void set_context_pio_16bit(DEVICE* device)
+	{
+		d_pio_16bit = device;
 	}
 #endif
 #ifdef SUPPORT_M88_DISKDRV

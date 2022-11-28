@@ -1455,7 +1455,7 @@ void UPD765A::cmd_specify()
 		head_unload_time = buffer[1] >> 1;
 		no_dma_mode = ((buffer[1] & 1) != 0);
 		shift_to_idle();
-		status = 0x80;//0xff;
+		status = S_RQM;//0xff;
 		break;
 	}
 }
