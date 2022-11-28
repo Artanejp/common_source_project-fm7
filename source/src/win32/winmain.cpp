@@ -443,6 +443,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HINSTANCE hInstance;
 	static HIMC himcPrev = 0;
+	static bool notified = false;
 	
 	switch(iMsg) {
 	case WM_CREATE:
@@ -466,22 +467,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 #ifdef USE_NOTIFY_POWER_OFF
 		// notify power off
-		if(emu) {
-			static bool notified = false;
-			if(!notified) {
-				emu->notify_power_off();
-				notified = true;
-				return 0;
-			}
+		if(emu && !notified) {
+			emu->notify_power_off();
+			notified = true;
+			return 0;
 		}
 #endif
 		// release window
 		if(now_fullscreen) {
 			ChangeDisplaySettings(NULL, 0);
+			now_fullscreen = false;
 		}
-		now_fullscreen = false;
-		if(hMenu != NULL && IsMenu(hMenu)) {
-			DestroyMenu(hMenu);
+		if(hMenu != NULL) {
+			if(IsMenu(hMenu)) {
+				DestroyMenu(hMenu);
+			}
 			hMenu = NULL;
 		}
 		if(hStatus != NULL) {
@@ -489,17 +489,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			hStatus = NULL;
 		}
 		DestroyWindow(hWnd);
+		timeEndPeriod(1);
+	case WM_ENDSESSION:
 		// release emulation core
 		if(emu) {
 			delete emu;
 			emu = NULL;
+			save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 		}
-		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
-		timeEndPeriod(1);
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_QUERYENDSESSION:
+#ifdef USE_NOTIFY_POWER_OFF
+		// notify power off and drive machine
+		if(emu && !notified) {
+			emu->notify_power_off();
+			emu->run();
+			notified = true;
+		}
+#endif
+		return TRUE;
 	case WM_ACTIVATE:
 		// thanks PC8801MA‰ü
 		if(LOWORD(wParam) != WA_INACTIVE) {

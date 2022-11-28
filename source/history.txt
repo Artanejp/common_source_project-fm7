@@ -1,3 +1,8 @@
+7/27/2022
+
+[WINMAIN] improve to release emulation core when Windows shuts down
+
+
 7/9/2022
 
 [MZ700] support SHARP MZ-700 (PAL)
