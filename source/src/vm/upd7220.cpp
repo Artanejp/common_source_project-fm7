@@ -185,7 +185,7 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 			process_cmd();
 		}
 		// set new command
-		cmdreg = (uint8_t)(data & 0xff);
+		cmdreg = data & 0xff;
 //		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 		params_count = 0;
 		check_cmd();
@@ -345,7 +345,7 @@ int UPD7220::cursor_bottom()
 void UPD7220::check_cmd()
 {
 	// check fifo buffer and process command if enough params in fifo
-	switch(cmdreg) {
+	switch(cmdreg & 0xff) {
 	case CMD_RESET:
 		cmd_reset();
 		break;
@@ -503,7 +503,7 @@ void UPD7220::check_cmd()
 
 void UPD7220::process_cmd()
 {
-	switch(cmdreg) {
+	switch(cmdreg & 0xff) {
 	case CMD_RESET:
 		cmd_reset();
 		break;

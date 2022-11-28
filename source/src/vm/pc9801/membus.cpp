@@ -387,24 +387,28 @@ inline bool MEMBUS::get_memory_addr(uint32_t *addr)
 			return true;
 		}
 		if(*addr < 0xa0000) {
-			*addr = (*addr & 0x1ffff) | window_80000h;
+			if((*addr = (*addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_24BIT) {
+				*addr &= 0xfffff;
+			}
 			return true;
 		}
 		if(*addr < 0xc0000) {
-			*addr = (*addr & 0x1ffff) | window_a0000h;
+			if((*addr = (*addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_24BIT) {
+				*addr &= 0xfffff;
+			}
 			return true;
 		}
 		if(*addr < UPPER_MEMORY_24BIT) {
 			return true;
 		}
-#if defined(SUPPORT_24BIT_ADDRESS)
-		*addr &= 0xfffff;
-#else
+#if defined(SUPPORT_32BIT_ADDRESS)
 		if(*addr < 0x1000000 || *addr >= UPPER_MEMORY_32BIT) {
 			*addr &= 0xfffff;
 		} else {
 			return false;
 		}
+#else
+		*addr &= 0xfffff;
 #endif
 	}
 	return false;
@@ -537,30 +541,8 @@ void MEMBUS::write_data32(uint32_t addr, uint32_t data)
 	uint32_t addr2 = addr & BANK_MASK;
 	
 	if(addr2 + 3 < bank_size) {
-		for(;;) {
-			if(addr < 0x80000) {
-				break;
-			}
-			if(addr < 0xa0000) {
-				addr = (addr & 0x1ffff) | window_80000h;
-				break;
-			}
-			if(addr < 0xc0000) {
-				addr = (addr & 0x1ffff) | window_a0000h;
-				break;
-			}
-			if(addr < UPPER_MEMORY_24BIT) {
-				break;
-			}
-#if defined(SUPPORT_24BIT_ADDRESS)
-			addr &= 0xfffff;
-#else
-			if(addr < 0x1000000 || addr >= UPPER_MEMORY_32BIT) {
-				addr &= 0xfffff;
-			} else {
-				return;
-			}
-#endif
+		if(!get_memory_addr(&addr)) {
+			return;
 		}
 		int bank = (addr & ADDR_MASK) >> addr_shift;
 		
