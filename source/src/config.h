@@ -106,6 +106,9 @@ typedef struct {
 	#if defined(USE_SHARED_DLL) || defined(USE_PRINTER_TYPE)
 		int printer_type;
 	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_SERIAL_TYPE)
+		int serial_type;
+	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
 		bool correct_disk_timing[/*USE_FLOPPY_DISK_TMP*/16];
 		bool ignore_disk_crc[/*USE_FLOPPY_DISK_TMP*/16];

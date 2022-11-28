@@ -25,6 +25,7 @@
 #include "../mz1p17.h"
 #include "../noise.h"
 //#include "../pcpr201.h"
+#include "../pcm8bit.h"
 #include "../prnfile.h"
 #include "../scsi_hdd.h"
 #include "../scsi_host.h"
@@ -134,6 +135,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		printer = new MZ1P17(this, emu);
 //	} else if(config.printer_type == 2) {
 //		printer = new PCPR201(this, emu);
+	} else if(config.printer_type == 3) {
+		printer = new PCM8BIT(this, emu);
 	} else {
 		printer = dummy;
 	}
@@ -185,6 +188,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	if(sound_type == 2) {
 		event->set_context_sound(opm2);
+	}
+	if(config.printer_type == 3) {
+		event->set_context_sound(printer);
 	}
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
@@ -609,6 +615,10 @@ void VM::initialize_sound(int rate, int samples)
 	if(sound_type == 2) {
 		opm2->initialize_sound(rate, 4000000, samples, 0);
 	}
+	if(config.printer_type == 3) {
+		PCM8BIT *pcm8 = (PCM8BIT *)printer;
+		pcm8->initialize_sound(rate, 8000);
+	}
 	psg->initialize_sound(rate, 2000000, samples, 0, 0);
 #ifdef _X1TWIN
 	pce->initialize_sound(rate);
@@ -653,17 +663,22 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 			opm2->set_volume(0, decibel_l, decibel_r);
 		}
 	} else if(ch == 3) {
-		drec->set_volume(0, decibel_l, decibel_r);
+		if(config.printer_type == 3) {
+			PCM8BIT *pcm8 = (PCM8BIT *)printer;
+			pcm8->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch == 4) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 5) {
 		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
-	} else if(ch == 5) {
+	} else if(ch == 6) {
 		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
 #if defined(_X1TWIN)
-	} else if(ch == 6) {
+	} else if(ch == 7) {
 		pce->set_volume(0, decibel_l, decibel_r);
 #endif
 	}

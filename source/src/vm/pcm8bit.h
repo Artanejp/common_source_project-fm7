@@ -4,22 +4,24 @@
 	Author : Takeda.Toshiya
 	Date   : 2022.07.03-
 
-	[ Speaker ]
+	[ 8bit PCM ]
 */
 
-#ifndef _SPEAKER_H_
-#define _SPEAKER_H_
+#ifndef _PCM8BIT_H_
+#define _PCM8BIT_H_
 
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
 
-#define SIG_SPEAKER_SAMPLE	0
+#define SIG_PCM8BIT_SAMPLE	0
+#define SIG_PCM8BIT_ON		1
+#define SIG_PCM8BIT_MUTE	2
 
-class SPEAKER : public DEVICE
+class PCM8BIT : public DEVICE
 {
 private:
-	bool realtime;
+	bool on, mute, realtime;
 	int changed;
 	int sample, prev_sample;
 	uint32_t prev_clock, change_clock;
@@ -29,12 +31,12 @@ private:
 	void update_realtime_render();
 	
 public:
-	SPEAKER(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	PCM8BIT(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
-		set_device_name(_T("Speaker"));
+		set_device_name(_T("8-Bit PCM Sound"));
 	}
-	~SPEAKER() {}
+	~PCM8BIT() {}
 	
 	// common functions
 	void initialize();

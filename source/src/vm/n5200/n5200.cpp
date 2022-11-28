@@ -90,7 +90,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 //???	sio_r->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);
 	sio_k->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 1);
-	sio_k->set_context_rst(keyboard, SIG_KEYBOARD_RST, 1);
+	sio_k->set_context_brk(keyboard, SIG_KEYBOARD_RST, 1);
 	sio_k->set_context_out(keyboard, SIG_KEYBOARD_RECV);
 	pit->set_context_ch0(pic, SIG_I8259_CHIP0 | SIG_I8259_IR0, 1);
 	pit->set_constant_clock(0, 1996800);

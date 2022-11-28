@@ -121,6 +121,9 @@ private:
 #ifdef USE_PRINTER_TYPE
 	int printer_type;
 #endif
+#ifdef USE_SERIAL_TYPE
+	int serial_type;
+#endif
 	bool now_suspended;
 	
 	// input

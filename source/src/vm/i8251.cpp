@@ -96,16 +96,18 @@ void I8251::write_io8(uint32_t addr, uint32_t data)
 				status &= ~(PE | OE | FE);
 			}
 			// dtr
-			write_signals(&outputs_dtr, (data & 2) ? 0xffffffff : 0);
-			// rst/sbrk
-			write_signals(&outputs_rst, (data & 8) ? 0xffffffff : 0);
+			write_signals(&outputs_dtr, (data & 0x02) ? 0xffffffff : 0);
+			// break
+			write_signals(&outputs_brk, (data & 0x08) ? 0xffffffff : 0);
+			// rts
+			write_signals(&outputs_rts, (data & 0x20) ? 0xffffffff : 0);
 			// rxen
-			rxen = ((data & 4) != 0);
+			rxen = ((data & 0x04) != 0);
 			if(rxen && !recv_buffer->empty() && recv_id == -1) {
 				register_event(this, EVENT_RECV, RECV_DELAY, false, &recv_id);
 			}
 			// txen
-			txen = ((data & 1) != 0);
+			txen = ((data & 0x01) != 0);
 			if(txen && !send_buffer->empty() && send_id == -1) {
 				register_event(this, EVENT_SEND, SEND_DELAY, false, &send_id);
 			}

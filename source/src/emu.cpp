@@ -82,6 +82,9 @@ EMU::EMU()
 #ifdef USE_PRINTER_TYPE
 	printer_type = config.printer_type;
 #endif
+#ifdef USE_SERIAL_TYPE
+	serial_type = config.serial_type;
+#endif
 	
 	// initialize osd
 #if defined(OSD_QT)
@@ -287,6 +290,10 @@ void EMU::reset()
 #ifdef USE_PRINTER_TYPE
 	reinitialize |= (printer_type != config.printer_type);
 	printer_type = config.printer_type;
+#endif
+#ifdef USE_SERIAL_TYPE
+	reinitialize |= (serial_type != config.serial_type);
+	serial_type = config.serial_type;
 #endif
 	if(reinitialize) {
 		// stop sound
@@ -3145,6 +3152,10 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #ifdef USE_PRINTER_TYPE
 				reinitialize |= (printer_type != config.printer_type);
 				printer_type = config.printer_type;
+#endif
+#ifdef USE_SERIAL_TYPE
+				reinitialize |= (serial_type != config.serial_type);
+				serial_type = config.serial_type;
 #endif
 				if(!(0 <= config.sound_frequency && config.sound_frequency < 8)) {
 					config.sound_frequency = 6;	// default: 48KHz

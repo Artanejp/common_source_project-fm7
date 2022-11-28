@@ -4,50 +4,63 @@
 	Author : Takeda.Toshiya
 	Date   : 2022.07.03-
 
-	[ Speaker ]
+	[ 8bit PCM ]
 */
 
-#include "speaker.h"
+#include "pcm8bit.h"
 
-void SPEAKER::initialize()
+void PCM8BIT::initialize()
 {
+	sample = prev_sample = 0;
+	on = true;
+	mute = false;
 	realtime = false;
+	changed = 0;
+	change_clock = 0;//get_current_clock();
 	last_vol_l = last_vol_r = 0;
 	
 	register_frame_event(this);
 }
 
-void SPEAKER::reset()
+void PCM8BIT::reset()
 {
-	changed = 0;
-	sample = prev_sample = 0;
-	prev_clock = change_clock = get_current_clock();
+	prev_clock = get_current_clock();
 }
 
-void SPEAKER::write_signal(int id, uint32_t data, uint32_t mask)
+void PCM8BIT::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_SPEAKER_SAMPLE) {
-		if(sample != (data & mask)) {
+	if(id == SIG_PCM8BIT_SAMPLE || id == SIG_PRINTER_DATA) {
+		// this device may be connected to printer port
+		int next = data & mask;
+		if(sample != next) {
 			// mute if signal is not changed in 2 frames
 			changed = 2;
 			update_realtime_render();
 			
-			sample = data & mask;
+			sample = next;
 			change_clock = get_current_clock();
 		}
+	} else if(id == SIG_PCM8BIT_ON) {
+		touch_sound();
+		on = ((data & mask) != 0);
+		update_realtime_render();
+	} else if(id == SIG_PCM8BIT_MUTE) {
+		touch_sound();
+		mute = ((data & mask) != 0);
+		update_realtime_render();
 	}
 }
 
-void SPEAKER::event_frame()
+void PCM8BIT::event_frame()
 {
 	if(changed > 0 && --changed == 0) {
 		update_realtime_render();
 	}
 }
 
-void SPEAKER::update_realtime_render()
+void PCM8BIT::update_realtime_render()
 {
-	bool value = (changed != 0);
+	bool value = (on && !mute && changed != 0);
 	
 	if(realtime != value) {
 		set_realtime_render(this, value);
@@ -55,9 +68,9 @@ void SPEAKER::update_realtime_render()
 	}
 }
 
-void SPEAKER::mix(int32_t* buffer, int cnt)
+void PCM8BIT::mix(int32_t* buffer, int cnt)
 {
-	if(changed) {
+	if(on && !mute && changed) {
 		uint32_t cur_clock = get_current_clock();
 		int cur_sample;
 		
@@ -99,20 +112,20 @@ void SPEAKER::mix(int32_t* buffer, int cnt)
 	}
 }
 
-void SPEAKER::set_volume(int ch, int decibel_l, int decibel_r)
+void PCM8BIT::set_volume(int ch, int decibel_l, int decibel_r)
 {
 	volume_l = decibel_to_volume(decibel_l);
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void SPEAKER::initialize_sound(int rate, int volume)
+void PCM8BIT::initialize_sound(int rate, int volume)
 {
 	max_vol = volume;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
-bool SPEAKER::process_state(FILEIO* state_fio, bool loading)
+bool PCM8BIT::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -120,6 +133,8 @@ bool SPEAKER::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
+	state_fio->StateValue(on);
+	state_fio->StateValue(mute);
 	state_fio->StateValue(realtime);
 	state_fio->StateValue(changed);
 	state_fio->StateValue(sample);

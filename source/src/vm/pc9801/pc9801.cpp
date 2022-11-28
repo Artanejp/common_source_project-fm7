@@ -49,6 +49,7 @@
 #include "../io.h"
 #include "../ls244.h"
 #include "../memory.h"
+#include "../midi.h"
 #include "../noise.h"
 #include "../not.h"
 #if !defined(SUPPORT_OLD_BUZZER)
@@ -90,6 +91,7 @@
 #if defined(SUPPORT_IDE_IF)
 #include "ide.h"
 #endif
+#include "serial.h"
 
 #if defined(SUPPORT_320KB_FDD_IF)
 #include "../pc80s31k.h"
@@ -103,6 +105,9 @@
 #include "../pc80s31k.h"
 #include "../z80.h"
 #include "../pc8801/pc88.h"
+#ifdef SUPPORT_PC88_JAST
+#include "../pcm8bit.h"
+#endif
 #ifdef SUPPORT_M88_DISKDRV
 #include "../pc8801/diskio.h"
 #endif
@@ -320,6 +325,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mouse = new MOUSE(this, emu);
+	serial = new SERIAL(this, emu);
 #if defined(SUPPORT_SASI_IF)
 	sasi = new SASI(this, emu);
 #endif
@@ -419,7 +425,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_tc1(fdc, SIG_UPD765A_TC, 1);
 #endif
 #endif
-//	sio_rs->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);
+	sio_rs->set_context_rxrdy(serial, SIG_SERIAL_RXR, 1);
+	sio_rs->set_context_txempty(serial, SIG_SERIAL_TXE, 1);
+	sio_rs->set_context_txrdy(serial, SIG_SERIAL_TXR, 1);
+	if(config.serial_type == 2) {
+		MIDI *midi = new MIDI(this, emu);
+		sio_rs->set_context_out(midi, SIG_MIDI_OUT);
+		midi->set_context_in(sio_rs, SIG_I8251_RECV, 0xff);
+	}
 	sio_kbd->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 1);
 	pit->set_context_ch0(pic, SIG_I8259_CHIP0 | SIG_I8259_IR0, 1);
 #if defined(SUPPORT_OLD_BUZZER)
@@ -446,9 +459,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	pio_sys->set_context_port_c(beep, SIG_PCM1BIT_MUTE, 0x08, 0);
 #endif
-	// sysport port.c bit2: enable txrdy interrupt
-	// sysport port.c bit1: enable txempty interrupt
-	// sysport port.c bit0: enable rxrdy interrupt
+	pio_sys->set_context_port_c(serial, SIG_SERIAL_PORT_C, 0x07, 0);
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
 	if(config.printer_type == 0) {
@@ -507,6 +518,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_display(display);
 	mouse->set_context_pic(pic);
 	mouse->set_context_pio(pio_mouse);
+	serial->set_context_pic(pic);
 	
 #if defined(SUPPORT_2HD_FDD_IF)
 	if(fdc_2hd) {
@@ -583,7 +595,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sio_cmt->set_context_out(cmt, SIG_CMT_OUT);
 //	sio_cmt->set_context_txrdy(cmt, SIG_CMT_TXRDY, 1);
 //	sio_cmt->set_context_rxrdy(cmt, SIG_CMT_RXRDY, 1);
-//	sio_cmt->set_context_txe(cmt, SIG_CMT_TXEMP, 1);
+//	sio_cmt->set_context_txempty(cmt, SIG_CMT_TXEMP, 1);
 	cmt->set_context_sio(sio_cmt);
 #endif
 	
@@ -931,18 +943,20 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88rtc = new UPD1990A(this, emu);
 	pc88rtc->set_device_name(_T("uPD1990A RTC (PC-8801)"));
 	pc88rtc->set_context_event_manager(pc88event);
+#ifdef SUPPORT_PC88_OPN1
 	pc88opn1 = new YM2203(this, emu);
-#ifdef USE_DEBUGGER
-	pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
-#endif
-#ifdef SUPPORT_PC88_OPNA
-	pc88opn1->set_device_name(_T("YM2608 OPNA (PC-8801)"));
-	pc88opn1->is_ym2608 = true;
-#else
-	pc88opn1->set_device_name(_T("YM2203 OPN (PC-8801)"));
-	pc88opn1->is_ym2608 = false;
-#endif
+	#ifdef USE_DEBUGGER
+		pc88opn1->set_context_debugger(new DEBUGGER(this, emu));
+	#endif
+	#ifdef SUPPORT_PC88_OPNA
+		pc88opn1->set_device_name(_T("YM2608 OPNA (PC-8801)"));
+		pc88opn1->is_ym2608 = true;
+	#else
+		pc88opn1->set_device_name(_T("YM2203 OPN (PC-8801)"));
+		pc88opn1->is_ym2608 = false;
+	#endif
 	pc88opn1->set_context_event_manager(pc88event);
+#endif
 	pc88cpu = new Z80(this, emu);
 	pc88cpu->set_device_name(_T("Z80 CPU (PC-8801)"));
 	pc88cpu->set_context_event_manager(pc88event);
@@ -953,6 +967,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	} else if(config.printer_type == 1) {
 //		pc88prn = new PCPR201(this, emu);
 //		pc88prn->set_context_event_manager(pc88event);
+#ifdef SUPPORT_PC88_JAST
+	} else if(config.printer_type == 2) {
+		pc88prn = new PCM8BIT(this, emu);
+		pc88prn->set_context_event_manager(pc88event);
+#endif
 	} else {
 		pc88prn = dummy;
 	}
@@ -990,8 +1009,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	
 	// set sound device contexts
-	pc88event->set_context_sound(pc88opn1);
 	pc88event->set_context_sound(pc88pcm);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88event->set_context_sound(pc88opn1);
+	}
+#endif
+#ifdef SUPPORT_PC88_JAST
+	if(config.printer_type == 2) {
+		pc88event->set_context_sound(pc88prn);
+	}
+#endif
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
 	pc88event->set_context_sound(pc88noise_head_up);
@@ -1003,7 +1031,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88->set_context_prn(pc88prn);
 	pc88->set_context_rtc(pc88rtc);
 	pc88->set_context_sio(pc88sio);
-	pc88->set_context_opn1(pc88opn1);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88->set_context_opn1(pc88opn1);
+	}
+#endif
 #ifdef SUPPORT_M88_DISKDRV
 	if(config.dipswitch & DIPSWITCH_M88_DISKDRV) {
 		pc88->set_context_diskio(pc88diskio);
@@ -1017,7 +1049,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pc88sio->set_context_rxrdy(pc88, SIG_PC88_USART_IRQ, 1);
 	pc88sio->set_context_out(pc88, SIG_PC88_USART_OUT);
-	pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
+	}
+#endif
 	
 	pc88sub->set_context_cpu(pc88cpu_sub);
 	pc88sub->set_context_fdc(pc88fdc_sub);
@@ -1188,8 +1224,11 @@ void VM::reset()
 	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
-	port_b |= 0x40; // RS-232C CS#, 1 = OFF
-	port_b |= 0x20; // RS-232C CD#, 1 = OFF
+	if(config.serial_type == SERIAL_TYPE_DEFAULT) {
+		// no device connected
+		port_b |= 0x40; // RS-232C CS#, 1 = OFF
+		port_b |= 0x20; // RS-232C CD#, 1 = OFF
+	}
 #if !defined(SUPPORT_HIRESO)
 //	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
 	port_b |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
@@ -1272,7 +1311,11 @@ void VM::reset()
 #endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	pc88opn1->set_reg(0x29, 3); // for Misty Blue
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88opn1->set_reg(0x29, 3); // for Misty Blue
+	}
+#endif
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 #endif
@@ -1375,12 +1418,22 @@ void VM::initialize_sound(int rate, int samples)
 	pc88event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	if(pc88opn1->is_ym2608) {
-		pc88opn1->initialize_sound(rate, 7987248, samples, 0, 0);
-	} else {
-		pc88opn1->initialize_sound(rate, 3993624, samples, 0, 0);
-	}
 	pc88pcm->initialize_sound(rate, 8000);
+#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		if(pc88opn1->is_ym2608) {
+			pc88opn1->initialize_sound(rate, 7987248, samples, 0, 0);
+		} else {
+			pc88opn1->initialize_sound(rate, 3993624, samples, 0, 0);
+		}
+	}
+#endif
+#ifdef SUPPORT_PC88_JAST
+	if(config.printer_type == 2) {
+		PCM8BIT *pcm8 = (PCM8BIT *)pc88prn;
+		pcm8->initialize_sound(rate, 8000);
+	}
+#endif
 #endif
 }
 
@@ -1438,15 +1491,32 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch-- == 0) {
 		beep->set_volume(0, decibel_l, decibel_r);
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
+#ifdef SUPPORT_PC88_OPN1
 	} else if(ch-- == 0) {
-		pc88opn1->set_volume(0, decibel_l, decibel_r);
+		if(pc88opn1 != NULL) {
+			pc88opn1->set_volume(0, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		pc88opn1->set_volume(1, decibel_l, decibel_r);
+		if(pc88opn1 != NULL) {
+			pc88opn1->set_volume(1, decibel_l, decibel_r);
+		}
 #if defined(SUPPORT_PC88_OPNA)
 	} else if(ch-- == 0) {
-		pc88opn1->set_volume(2, decibel_l, decibel_r);
+		if(pc88opn1 != NULL) {
+			pc88opn1->set_volume(2, decibel_l, decibel_r);
+		}
 	} else if(ch-- == 0) {
-		pc88opn1->set_volume(3, decibel_l, decibel_r);
+		if(pc88opn1 != NULL) {
+			pc88opn1->set_volume(3, decibel_l, decibel_r);
+		}
+#endif
+#endif
+#ifdef SUPPORT_PC88_JAST
+	} else if(ch-- == 0) {
+		if(config.printer_type == 2) {
+			PCM8BIT *pcm8 = (PCM8BIT *)pc88prn;
+			pcm8->set_volume(0, decibel_l, decibel_r);
+		}
 #endif
 	} else if(ch-- == 0) {
 		pc88pcm->set_volume(0, decibel_l, decibel_r);
@@ -1763,7 +1833,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	19
+#define STATE_VERSION	20
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

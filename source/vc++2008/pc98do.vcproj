@@ -405,6 +405,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\win32\osd_midi.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\win32\osd_screen.cpp"
 					>
 					<FileConfiguration
@@ -710,6 +730,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\midi.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\noise.cpp"
 					>
 					<FileConfiguration
@@ -771,6 +811,26 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pcm1bit.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\pcm8bit.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1259,6 +1319,26 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\serial.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1360,6 +1440,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\midi.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\noise.h"
 					>
 				</File>
@@ -1373,6 +1457,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pcm1bit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pcm8bit.h"
 					>
 				</File>
 				<File
@@ -1498,6 +1586,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc9801\pc9801.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\serial.h"
 					>
 				</File>
 			</Filter>

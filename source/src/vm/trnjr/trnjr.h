@@ -111,7 +111,7 @@ class EVENT;
 class I8255;
 class IO;
 class MIDI;
-class SPEAKER;
+class PCM8BIT;
 class TMPZ84C015;
 class Z80;
 
@@ -130,7 +130,7 @@ protected:
 	I8255* pio2;
 	IO* io;
 	MIDI* midi;
-	SPEAKER* speaker;
+	PCM8BIT* speaker;
 	TMPZ84C015* cpudev;
 	Z80* cpu;
 	

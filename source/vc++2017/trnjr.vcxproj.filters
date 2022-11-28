@@ -101,7 +101,7 @@
     <ClCompile Include="..\src\vm\midi.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\speaker.cpp">
+    <ClCompile Include="..\src\vm\pcm8bit.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\tmpz84c015.cpp">
@@ -166,7 +166,7 @@
     <ClInclude Include="..\src\vm\midi.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\speaker.h">
+    <ClInclude Include="..\src\vm\pcm8bit.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\tmpz84c015.h">

@@ -77,6 +77,9 @@ void initialize_config()
 	#if defined(USE_PRINTER_TYPE) && defined(PRINTER_TYPE_DEFAULT)
 		config.printer_type = PRINTER_TYPE_DEFAULT;
 	#endif
+	#if defined(USE_SERIAL_TYPE) && defined(SERIAL_TYPE_DEFAULT)
+		config.serial_type = SERIAL_TYPE_DEFAULT;
+	#endif
 	#if defined(USE_FLOPPY_DISK)
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 			#if defined(CORRECT_DISK_TIMING_DEFAULT)
@@ -193,8 +196,11 @@ void load_config(const _TCHAR* config_path)
 		config.scan_line = MyGetPrivateProfileBool(_T("Control"), _T("ScanLine"), config.scan_line, config_path);
 		config.scan_line_auto = MyGetPrivateProfileBool(_T("Control"), _T("ScanLineAuto"), config.scan_line_auto, config_path);
 	#endif
-	#ifdef USE_PRINTER
+	#ifdef USE_PRINTER_TYPE
 		config.printer_type = MyGetPrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
+	#endif
+	#ifdef USE_SERIAL_TYPE
+		config.serial_type = MyGetPrivateProfileInt(_T("Control"), _T("SerialType"), config.serial_type, config_path);
 	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
@@ -430,8 +436,11 @@ void save_config(const _TCHAR* config_path)
 		MyWritePrivateProfileBool(_T("Control"), _T("ScanLine"), config.scan_line, config_path);
 		MyWritePrivateProfileBool(_T("Control"), _T("ScanLineAuto"), config.scan_line_auto, config_path);
 	#endif
-	#ifdef USE_PRINTER
+	#ifdef USE_PRINTER_TYPE
 		MyWritePrivateProfileInt(_T("Control"), _T("PrinterType"), config.printer_type, config_path);
+	#endif
+	#ifdef USE_SERIAL_TYPE
+		MyWritePrivateProfileInt(_T("Control"), _T("SerialType"), config.serial_type, config_path);
 	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
@@ -604,7 +613,7 @@ void save_config(const _TCHAR* config_path)
 	#endif
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool process_config_state(void *f, bool loading)
 {
@@ -645,6 +654,9 @@ bool process_config_state(void *f, bool loading)
 	#endif
 	#ifdef USE_PRINTER_TYPE
 		state_fio->StateValue(config.printer_type);
+	#endif
+	#ifdef USE_SERIAL_TYPE
+		state_fio->StateValue(config.serial_type);
 	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {

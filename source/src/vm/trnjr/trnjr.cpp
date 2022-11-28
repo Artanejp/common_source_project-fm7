@@ -15,7 +15,7 @@
 #include "../i8255.h"
 #include "../io.h"
 #include "../midi.h"
-#include "../speaker.h"
+#include "../pcm8bit.h"
 #include "../tmpz84c015.h"
 #include "../z80.h"
 #include "../z80ctc.h"
@@ -45,7 +45,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio2->set_device_name(_T("8255 PIO (ROM Writer)"));
 	io = new IO(this, emu);
 	midi = new MIDI(this, emu);
-	speaker = new SPEAKER(this, emu);
+	speaker = new PCM8BIT(this, emu);
 	// TMPZ84C013
 	cpudev = new TMPZ84C015(this, emu);
 	cpudev->set_context_ctc(new Z80CTC(this, emu));
@@ -66,7 +66,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpudev->set_context_ctc_zc3(cpu, SIG_CPU_NMI, 1);
 	cpudev->set_context_sio_send(1, midi, SIG_MIDI_OUT);
 	pio1->set_context_port_a(display, SIG_DISPLAY_PORT_A, 0xff, 0);
-	pio1->set_context_port_b(speaker, SIG_SPEAKER_SAMPLE, 0xff, 0);
+	pio1->set_context_port_b(speaker, SIG_PCM8BIT_SAMPLE, 0xff, 0);
 	pio1->set_context_port_c(display, SIG_DISPLAY_PORT_C, 0xf0, 0);
 	midi->set_context_in(cpudev, SIG_TMPZ84C015_SIO_RECV_CH1, 0xff);
 	

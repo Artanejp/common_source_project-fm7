@@ -215,6 +215,7 @@
 #if defined(_PC98DOPLUS)
 	#define SUPPORT_PC88_OPNA
 #endif
+	#define SUPPORT_PC88_JAST
 	#define SUPPORT_QUASIS88_CMT
 	#define SUPPORT_M88_DISKDRV
 #endif
@@ -290,31 +291,51 @@
 #define USE_SCANLINE
 #define USE_SCREEN_FILTER
 #define USE_SOUND_TYPE		5
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-#if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1 + 1)
-#elif  defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 2 + 1 + 1)
-#elif !defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 4 + 1 + 1)
-#elif !defined(SUPPORT_PC98_OPNA) && !defined(SUPPORT_PC88_OPNA)
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 2 + 1 + 1)
-#endif
-#else
 #if defined(SUPPORT_PC98_OPNA)
-#if defined(SUPPORT_PC98_86PCM)
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1 + 1)
+	#if defined(SUPPORT_PC98_86PCM)
+		#define SOUND_VOLUME_PC98_86PCM	1
+	#endif
+	#define SOUND_VOLUME_PC98_OPN		4
 #else
-#define USE_SOUND_VOLUME	(4 + 1 + 1 + 1)
+	#define SOUND_VOLUME_PC98_OPN		2
 #endif
-#else
-#define USE_SOUND_VOLUME	(2 + 1 + 1 + 1)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	#if defined(SUPPORT_PC88_OPNA)
+		#define SOUND_VOLUME_PC88_OPN1	4
+	#else
+		#define SOUND_VOLUME_PC88_OPN1	2
+	#endif
+	#if defined(SUPPORT_PC88_JAST)
+		#define SOUND_VOLUME_PC88_JAST	1
+	#endif
+	#define SOUND_VOLUME_PC88_BEEP		1
 #endif
+#ifndef SOUND_VOLUME_PC98_86PCM
+	#define SOUND_VOLUME_PC98_86PCM		0
 #endif
+#ifndef SOUND_VOLUME_PC88_OPN1
+	#define SOUND_VOLUME_PC88_OPN1		0
+#endif
+#ifndef SOUND_VOLUME_PC88_JAST
+	#define SOUND_VOLUME_PC88_JAST		0
+#endif
+#ifndef SOUND_VOLUME_PC88_BEEP
+	#define SOUND_VOLUME_PC88_BEEP		0
+#endif
+#define USE_SOUND_VOLUME	(SOUND_VOLUME_PC98_OPN + SOUND_VOLUME_PC98_86PCM + 2 + SOUND_VOLUME_PC88_OPN1 + SOUND_VOLUME_PC88_JAST + SOUND_VOLUME_PC88_BEEP + 1)
 #define USE_JOYSTICK
 #define USE_MOUSE
+#define USE_MIDI
 #define USE_PRINTER
+#if (defined(_PC98DO) || defined(_PC98DOPLUS)) && defined(SUPPORT_PC88_JAST)
+#define USE_PRINTER_TYPE	4
+#else
 #define USE_PRINTER_TYPE	3
+#endif
+#define PRINTER_TYPE_DEFAULT	(USE_PRINTER_TYPE - 1)
+#define USE_SERIAL
+#define USE_SERIAL_TYPE		4
+#define SERIAL_TYPE_DEFAULT	(USE_SERIAL_TYPE - 1)
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -324,23 +345,26 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-#if defined(SUPPORT_PC98_OPNA)
-	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
-#if defined(SUPPORT_PC98_86PCM)
-	_T("86-Type PCM"),
-#endif
-#else
-	_T("OPN (FM)"), _T("OPN (PSG)"),
-#endif
+	#if defined(SUPPORT_PC98_OPNA)
+		_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
+		#if defined(SUPPORT_PC98_86PCM)
+			_T("86-Type PCM"),
+		#endif
+	#else
+		_T("OPN (FM)"), _T("OPN (PSG)"),
+	#endif
 	_T("PC-9801-14"), _T("Beep"),
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-#if defined(SUPPORT_PC88_OPNA)
-	_T("PC-88 (FM)"), _T("PC-88 (PSG)"), _T("PC-88 (ADPCM)"), _T("PC-88 (Rhythm)"),
-#else
-	_T("PC-88 (FM)"), _T("PC-88 (PSG)"),
-#endif
-	_T("PC-88 (Beep)"), 
-#endif
+	#if defined(_PC98DO) || defined(_PC98DOPLUS)
+		#if defined(SUPPORT_PC88_OPNA)
+			_T("PC-88 (FM)"), _T("PC-88 (PSG)"), _T("PC-88 (ADPCM)"), _T("PC-88 (Rhythm)"),
+		#else
+			_T("PC-88 (FM)"), _T("PC-88 (PSG)"),
+		#endif
+		#if defined(SUPPORT_PC88_JAST)
+			_T("PC-88 (JAST)"),
+		#endif
+		_T("PC-88 (Beep)"),
+	#endif
 	_T("Noise (FDD)"),
 };
 #endif
@@ -408,6 +432,7 @@ class JOYSTICK;
 class KEYBOARD;
 class MEMBUS;
 class MOUSE;
+class SERIAL;
 #if defined(SUPPORT_SASI_IF)
 class SASI;
 #endif
@@ -517,6 +542,7 @@ protected:
 	KEYBOARD* keyboard;
 	MEMBUS* memory;
 	MOUSE* mouse;
+	SERIAL* serial;
 #if defined(SUPPORT_SASI_IF)
 	SASI* sasi;
 #endif
@@ -554,7 +580,9 @@ protected:
 	I8255* pc88pio;
 	PCM1BIT* pc88pcm;
 	UPD1990A* pc88rtc;
+#ifdef SUPPORT_PC88_OPN1
 	YM2203* pc88opn1;
+#endif
 	Z80* pc88cpu;
 	
 	PC80S31K* pc88sub;

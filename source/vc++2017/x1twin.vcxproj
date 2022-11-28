@@ -345,6 +345,7 @@
     <ClCompile Include="..\src\vm\mcs48.cpp" />
     <ClCompile Include="..\src\vm\mz1p17.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
+    <ClCompile Include="..\src\vm\pcm8bit.cpp" />
     <ClCompile Include="..\src\vm\pcengine\pce.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\scsi_dev.cpp" />
@@ -406,6 +407,7 @@
     <ClInclude Include="..\src\vm\mcs48.h" />
     <ClInclude Include="..\src\vm\mz1p17.h" />
     <ClInclude Include="..\src\vm\noise.h" />
+    <ClInclude Include="..\src\vm\pcm8bit.h" />
     <ClInclude Include="..\src\vm\pcengine\pce.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\scsi_dev.h" />

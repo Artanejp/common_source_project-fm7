@@ -343,6 +343,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls244.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
+    <ClCompile Include="..\src\vm\midi.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\not.cpp" />
     <ClCompile Include="..\src\vm\pc9801\display.cpp" />
@@ -354,6 +355,7 @@
     <ClCompile Include="..\src\vm\pc9801\membus.cpp" />
     <ClCompile Include="..\src\vm\pc9801\mouse.cpp" />
     <ClCompile Include="..\src\vm\pc9801\pc9801.cpp" />
+    <ClCompile Include="..\src\vm\pc9801\serial.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\tms3631.cpp" />
@@ -365,6 +367,7 @@
     <ClCompile Include="..\src\win32\osd.cpp" />
     <ClCompile Include="..\src\win32\osd_console.cpp" />
     <ClCompile Include="..\src\win32\osd_input.cpp" />
+    <ClCompile Include="..\src\win32\osd_midi.cpp" />
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
@@ -398,6 +401,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls244.h" />
     <ClInclude Include="..\src\vm\memory.h" />
+    <ClInclude Include="..\src\vm\midi.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\not.h" />
     <ClInclude Include="..\src\vm\pc9801\display.h" />
@@ -409,6 +413,7 @@
     <ClInclude Include="..\src\vm\pc9801\membus.h" />
     <ClInclude Include="..\src\vm\pc9801\mouse.h" />
     <ClInclude Include="..\src\vm\pc9801\pc9801.h" />
+    <ClInclude Include="..\src\vm\pc9801\serial.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\tms3631.h" />

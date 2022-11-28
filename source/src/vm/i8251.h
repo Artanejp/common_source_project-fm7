@@ -36,7 +36,8 @@ private:
 	outputs_t outputs_txrdy;
 	outputs_t outputs_txe;
 	outputs_t outputs_dtr;
-	outputs_t outputs_rst;
+	outputs_t outputs_brk;
+	outputs_t outputs_rts;
 	
 	// buffer
 	FIFO *recv_buffer;
@@ -52,7 +53,8 @@ public:
 		initialize_output_signals(&outputs_txrdy);
 		initialize_output_signals(&outputs_txe);
 		initialize_output_signals(&outputs_dtr);
-		initialize_output_signals(&outputs_rst);
+		initialize_output_signals(&outputs_brk);
+		initialize_output_signals(&outputs_rts);
 		set_device_name(_T("8251 SIO"));
 	}
 	~I8251() {}
@@ -84,7 +86,7 @@ public:
 	{
 		register_output_signal(&outputs_txrdy, device, id, mask);
 	}
-	void set_context_txe(DEVICE* device, int id, uint32_t mask)
+	void set_context_txempty(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_txe, device, id, mask);
 	}
@@ -92,9 +94,13 @@ public:
 	{
 		register_output_signal(&outputs_dtr, device, id, mask);
 	}
-	void set_context_rst(DEVICE* device, int id, uint32_t mask)
+	void set_context_brk(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_rst, device, id, mask);
+		register_output_signal(&outputs_brk, device, id, mask);
+	}
+	void set_context_rts(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_rts, device, id, mask);
 	}
 };
 

@@ -54,6 +54,10 @@
 #include "../i8253.h"
 #endif
 
+#ifdef SUPPORT_PC88_JAST
+#include "../pcm8bit.h"
+#endif
+
 #ifdef SUPPORT_M88_DISKDRV
 #include "diskio.h"
 #endif
@@ -121,6 +125,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	} else if(config.printer_type == 1) {
 //		pc88prn = new PCPR201(this, emu);
 //		pc88prn->set_context_event_manager(pc88event);
+#ifdef SUPPORT_PC88_JAST
+	} else if(config.printer_type == 2) {
+		pc88prn = new PCM8BIT(this, emu);
+//		pc88prn->set_context_event_manager(pc88event);
+#endif
 	} else {
 		pc88prn = dummy;
 	}
@@ -379,6 +388,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88event->set_context_sound(pc88pcg_pcm1);
 		pc88event->set_context_sound(pc88pcg_pcm2);
 		pc88event->set_context_sound(pc88pcg_pcm3);
+	}
+#endif
+#ifdef SUPPORT_PC88_JAST
+	if(config.printer_type == 2) {
+		pc88event->set_context_sound(pc88prn);
 	}
 #endif
 	if(config.dipswitch & DIPSWITCH_FDD_5INCH) {
@@ -669,6 +683,12 @@ void VM::initialize_sound(int rate, int samples)
 		pc88pcg_pcm3->initialize_sound(rate, 8000);
 	}
 #endif
+#ifdef SUPPORT_PC88_JAST
+	if(config.printer_type == 2) {
+		PCM8BIT *pcm8 = (PCM8BIT *)pc88prn;
+		pcm8->initialize_sound(rate, 8000);
+	}
+#endif
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -781,6 +801,15 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		}
 		if(pc88pcg_pcm3 != NULL) {
 			pc88pcg_pcm3->set_volume(0, decibel_l, decibel_r);
+		}
+		return;
+	}
+#endif
+#ifdef SUPPORT_PC88_JAST
+	if(ch-- == 0) {
+		if(config.printer_type == 2) {
+			PCM8BIT *pcm8 = (PCM8BIT *)pc88prn;
+			pcm8->set_volume(0, decibel_l, decibel_r);
 		}
 		return;
 	}

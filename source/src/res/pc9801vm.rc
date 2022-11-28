@@ -183,6 +183,13 @@ BEGIN
             MENUITEM "PC-PR201",                ID_VM_PRINTER_TYPE1, GRAYED
             MENUITEM "None",                    ID_VM_PRINTER_TYPE2
         END
+        POPUP "Serial"
+        BEGIN
+            MENUITEM "Physical Comm Port",      ID_VM_SERIAL_TYPE0, GRAYED
+            MENUITEM "Named Pipe",              ID_VM_SERIAL_TYPE1, GRAYED
+            MENUITEM "MIDI Device",             ID_VM_SERIAL_TYPE2
+            MENUITEM "None",                    ID_VM_SERIAL_TYPE3
+        END
     END
     POPUP "Host"
     BEGIN
