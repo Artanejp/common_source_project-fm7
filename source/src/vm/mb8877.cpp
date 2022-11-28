@@ -1571,6 +1571,14 @@ bool MB8877::is_disk_inserted(int drv)
 	return false;
 }
 
+bool MB8877::is_disk_changed(int drv)
+{
+	if(drv < MAX_DRIVE) {
+		return disk[drv]->changed;
+	}
+	return false;
+}
+
 void MB8877::is_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_DRIVE) {

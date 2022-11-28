@@ -114,13 +114,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_context_zc1(sio, SIG_Z80SIO_RX_CLK_CH1, 1);
 	ctc->set_constant_clock(0, CPU_CLOCKS / 13);	// ŽÀ‘ª 307.6KHz
 	ctc->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13•ªŽü) / CTC:2•ªŽü / SIO:16•ªŽü = 9600 baud
-#if 0
-	ctc->set_constant_clock(2, CPU_CLOCKS / 320);	// ŽÀ‘ª 12.49KHz
-	ctc->set_constant_clock(3, CPU_CLOCKS / 1600);	// ŽÀ‘ª 2.499KHz
-#else
-	ctc->set_constant_clock(2, CPU_CLOCKS / 13 / 64); // TODO:
-	ctc->set_constant_clock(3, CPU_CLOCKS / 13 / 64); // ŽÀ‘ª’l‚¾‚ÆˆÀ’è‚µ‚Ä“®ì‚µ‚È‚¢ :(
-#endif
+	ctc->set_constant_clock(2, 12500);		// ŽÀ‘ª 12.49KHz
+	ctc->set_constant_clock(3, 2500);		// ŽÀ‘ª 2.499KHz
 	dma->set_context_memory(memory);
 	dma->set_context_io(io);
 	
@@ -131,7 +126,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
-	cpu->set_context_intr(pio);
 	cpu->set_context_dma(dma);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
@@ -150,14 +144,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		dev->set_context_intr(cpu, level++); \
 		parent_dev = dev; \
 	}
-	Z80_DAISY_CHAIN(pio);
-	Z80_DAISY_CHAIN(sio);
+	Z80_DAISY_CHAIN(dma);
 	Z80_DAISY_CHAIN(ctc);
 #ifdef _M68
 	// need to investigate M68 board :-(
 	Z80_DAISY_CHAIN(ctc2);
 #endif
-	Z80_DAISY_CHAIN(dma);
+	Z80_DAISY_CHAIN(sio);
+	Z80_DAISY_CHAIN(pio);
 	
 	// i/o bus
 	if(config.drive_type == 0) {
@@ -355,11 +349,18 @@ uint32_t VM::get_led_status()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
+	
+	if(fdc->is_disk_inserted(drv) && fdc->is_disk_changed(drv)) {
+		pio->write_signal(SIG_Z80PIO_PORT_B, 0x80, 0x80);
+	}
 }
 
 void VM::close_floppy_disk(int drv)
 {
-	fdc->close_disk(drv);
+	if(fdc->is_disk_inserted(drv)) {
+		fdc->close_disk(drv);
+		pio->write_signal(SIG_Z80PIO_PORT_B, 0x80, 0x80);
+	}
 }
 
 bool VM::is_floppy_disk_inserted(int drv)

@@ -31,7 +31,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 			d_fdc->set_drive_mfm(drv, ((data & 0x40) == 0));
 		}
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 0x20);
-		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10); // READY
+//		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10); // READY
 		break;
 	}
 }

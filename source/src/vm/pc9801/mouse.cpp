@@ -75,7 +75,7 @@ void MOUSE::event_callback(int event_id, int err)
 	}
 	if(cur_freq != (freq & 3)) {
 		cancel_event(this, register_id);
-		register_event(this, EVENT_TIMER, 1000000.0 / freq_table[freq & 3] + err, true, &register_id);
+		register_event(this, EVENT_TIMER, 1000000.0 / freq_table[freq & 3], true, &register_id);
 		cur_freq = freq & 3;
 	}
 }

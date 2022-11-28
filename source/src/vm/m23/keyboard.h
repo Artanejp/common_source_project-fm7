@@ -19,6 +19,8 @@ class KEYBOARD : public DEVICE
 private:
 	bool key_locked[4];
 	bool led_status[4];
+	uint8_t buffer[0x200];
+	uint16_t buffer_ptr;
 	
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

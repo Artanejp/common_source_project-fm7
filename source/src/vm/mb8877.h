@@ -218,6 +218,7 @@ public:
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool is_disk_inserted(int drv);
+	bool is_disk_changed(int drv);
 	void is_disk_protected(int drv, bool value);
 	bool is_disk_protected(int drv);
 	bool is_drive_ready();

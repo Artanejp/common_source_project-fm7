@@ -1,3 +1,15 @@
+5/28/2022
+
+[VM/MB8877] support to get if disk is changed
+[VM/Z80CTC] improve to raise irq in more precise frequency
+
+[M23] improve not to show busy in fdc status after seek command finished
+[M23] fix frequency of input clock to Z80CTC
+[M23] fix daisy chain order of Z80 family chips
+[M23/KEYBOARD] fix key map table
+[M23/KEYBOARD] support input port 0xEF to get keyboard type
+
+
 5/25/2022
 
 [WINMAIN] support showing indicator LEDs on status bar for any purposes

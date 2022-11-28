@@ -197,6 +197,11 @@ BEGIN
             MENUITEM "FD20 (5.25inch-1DD)",     ID_VM_DRIVE_TYPE1
             MENUITEM "DF44H (8inch-2D)",        ID_VM_DRIVE_TYPE2
         END
+        POPUP "Keyboard"
+        BEGIN
+            MENUITEM "ASCII Keyboard",          ID_VM_KEYBOARD_TYPE0
+            MENUITEM "JIS Keyboard",            ID_VM_KEYBOARD_TYPE1
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD
