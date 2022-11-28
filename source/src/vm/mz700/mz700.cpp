@@ -154,6 +154,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// memory mapped I/O
 	memory->set_context_pio(pio);
 	memory->set_context_pit(pit);
+#if defined(_MZ700) || defined(_MZ1500)
+	memory->set_context_joystick(joystick);
+#endif
 	
 #if defined(_MZ1500)
 	// psg mixer
@@ -161,14 +164,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	psg->set_context_psg_r(psg_r);
 #endif
 	
-#if defined(_MZ800)
-	// 8253:CLK#0 <- 1.10MHz
-	pit->set_constant_clock(0, 1100000);
-#else
-	// 8253:CLK#0 <- 895KHz
-	pit->set_constant_clock(0, CPU_CLOCKS / 4);
-	memory->set_context_joystick(joystick);
-#endif
+	// 8253:CLK#0 <- PAL: 1.1084MHz, NTSC: 894.88625kHz
+	pit->set_constant_clock(0, (uint32_t)(PHI_CLOCKS / 16.0 + 0.5));
 	
 #if defined(_MZ800) || defined(_MZ1500)
 	// 8253:OUT#0 AND 8255:PC0 -> SPEAKER
@@ -188,9 +185,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// 8253:OUT#0 -> Z80PIO:PA4
 	pit->set_context_ch0(pio_int, SIG_Z80PIO_PORT_A, 0x10);
 #endif
-	
-	// 8253:CLK#1 <- 15.7KHz
-	pit->set_constant_clock(1, CPU_CLOCKS / 228);
 	
 	// 8253:OUT#1 -> 8253:CLK#2
 	pit->set_context_ch1(pit, SIG_I8253_CLOCK_2, 1);
@@ -479,10 +473,10 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 #if defined(_MZ800)
-	psg->initialize_sound(rate, 3579545, 8000);
+	psg->initialize_sound(rate, CPU_CLOCKS, 8000);
 #elif defined(_MZ1500)
-	psg_l->initialize_sound(rate, 3579545, 8000);
-	psg_r->initialize_sound(rate, 3579545, 8000);
+	psg_l->initialize_sound(rate, CPU_CLOCKS, 8000);
+	psg_r->initialize_sound(rate, CPU_CLOCKS, 8000);
 #endif
 }
 

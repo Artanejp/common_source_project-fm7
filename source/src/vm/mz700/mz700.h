@@ -13,25 +13,34 @@
 #define _MZ700_H_
 
 #if defined(_MZ700)
-#define DEVICE_NAME		"SHARP MZ-700"
+#if defined(_PAL)
+#define DEVICE_NAME		"SHARP MZ-700 (PAL)"
+#define CONFIG_NAME		"mz700pal"
+#else
+#define DEVICE_NAME		"SHARP MZ-700 (NTSC)"
 #define CONFIG_NAME		"mz700"
+#endif
 #elif defined(_MZ800)
 #define DEVICE_NAME		"SHARP MZ-800"
 #define CONFIG_NAME		"mz800"
+#define _PAL
 #elif defined(_MZ1500)
 #define DEVICE_NAME		"SHARP MZ-1500"
 #define CONFIG_NAME		"mz1500"
 #endif
 
 // device informations for virtual machine
-#if defined(_MZ800)
-#define FRAMES_PER_SEC		(3546895.0 / 228.0 / 312.0)
-#define LINES_PER_FRAME		312
+#if defined(_PAL)
 #define CPU_CLOCKS		3546895
+//#define PHI_CLOCKS		(CPU_CLOCKS * 5)
+#define PHI_CLOCKS		(CPU_CLOCKS * 1136.0 / 228.0)
+#define LINES_PER_FRAME		312
+#define FRAMES_PER_SEC		(PHI_CLOCKS / 1136.0 / LINES_PER_FRAME)
 #else
-#define FRAMES_PER_SEC		(3579545.0 / 228.0 / 262.0)
-#define LINES_PER_FRAME		262
 #define CPU_CLOCKS		3579545
+#define PHI_CLOCKS		(CPU_CLOCKS * 4.0)
+#define LINES_PER_FRAME		262
+#define FRAMES_PER_SEC		(PHI_CLOCKS / 912.0 / LINES_PER_FRAME)
 #endif
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400

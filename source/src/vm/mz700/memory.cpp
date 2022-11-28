@@ -16,16 +16,39 @@
 #include "../z80pio.h"
 #endif
 
+// https://github.com/SHARPENTIERS/EmuZ-700-1500/blob/master/source/src/vm/mz700/memory.cpp
+#if defined(_PAL)
+#define BLANK_CLK_S		128	//  640 / 5 = 128
+#define BLANK_CLK_E		208	// 1040 / 5 = 208
+#define HSYNC_CLK_S		160
+#define HSYNC_CLK_E		176
+#define VBLANK_CLK		129	// 645 / 5 = 129
+#define VSYNC_CLK		131	// 657 / 5 = 131.4
+#define VSYNC_RST_S		245
+#define VSYNC_RST_E		(VSYNC_RST_S + 3)
+#else
+// http://www.maroon.dti.ne.jp/youkan/mz700/M60719/htiming.html
+#define BLANK_CLK_S		160	// 640 / 4 = 160
+#define BLANK_CLK_E		220	// 881 / 4 = 220.25
+#define HSYNC_CLK_S		180	// 720 / 4 = 180
+#define HSYNC_CLK_E		196	// 785 / 4 = 196.25
+#define VBLANK_CLK		161	// 645 / 4 = 161.25
+#define VSYNC_CLK		164	// 657 / 4 = 164.25
+#define VSYNC_RST_S		221
+#define VSYNC_RST_E		(VSYNC_RST_S + 3)
+#endif
+
 #define EVENT_TEMPO		0
 #define EVENT_BLINK		1
-#define EVENT_HBLANK		2
-#define EVENT_HSYNC_S		3
-#define EVENT_HSYNC_E		4
-#if defined(_MZ1500)
-#define EVENT_HBLANK_PCG	5
-#endif
-#define EVENT_VBLANK_S		6
-#define EVENT_VBLANK_E		7
+#define EVENT_BLANK_S		2
+#define EVENT_BLANK_PCG		3
+#define EVENT_BLANK_E		4
+#define EVENT_HSYNC_S		5
+#define EVENT_HSYNC_E		6
+#define EVENT_VBLANK_S		7
+#define EVENT_VBLANK_E		8
+#define EVENT_VSYNC_S		9
+#define EVENT_VSYNC_E		10
 
 #define MEM_BANK_MON_L		0x01
 #define MEM_BANK_MON_H		0x02
@@ -128,7 +151,6 @@ void MEMORY::initialize()
 	register_event_by_clock(this, EVENT_BLINK, CPU_CLOCKS / 3, true, NULL);	// 1.5hz * 2
 }
 
-
 void MEMORY::reset()
 {
 #if defined(_MZ800)
@@ -158,13 +180,14 @@ void MEMORY::reset()
 	sea = 125;
 #endif
 	blink = tempo = false;
-	vblank = vsync = true;
-	hblank = hsync = true;
+	blank = false;
+	vblank = vsync = false;
+	hblank = hsync = false;
 #if defined(_MZ700) || defined(_MZ1500)
-	hblank_vram = true;
-#if defined(_MZ1500)
-	hblank_pcg = true;
+	blank_vram = false;
 #endif
+#if defined(_MZ1500)
+	blank_pcg = false;
 #endif
 	
 #if defined(_MZ700)
@@ -219,40 +242,26 @@ void MEMORY::update_config()
 
 void MEMORY::event_vline(int v, int clock)
 {
-	// vblank / vsync
-#if defined(_MZ800)
-	set_vblank(v >= 200);
-	vsync = (v >= 240 && v <= 242);
-#else
-	vsync = (v >= 221 && v <= 223);
-#endif
-	
-	// hblank / hsync
-	set_hblank(false);
-#if defined(_MZ800)
-	register_event_by_clock(this, EVENT_HBLANK, 128, false, NULL);	// PAL 50Hz
-	register_event_by_clock(this, EVENT_HSYNC_S, 161, false, NULL);
-	register_event_by_clock(this, EVENT_HSYNC_E, 177, false, NULL);
-#else
-	register_event_by_clock(this, EVENT_HBLANK, 165, false, NULL);	// NTSC 60Hz
-//	register_event_by_clock(this, EVENT_HSYNC_S, 180, false, NULL);
-//	register_event_by_clock(this, EVENT_HSYNC_E, 194, false, NULL);
-	if (v == 199) {
-		register_event_by_clock(this, EVENT_VBLANK_S, 166, false, NULL);
-	} else if (v == 261) {
-		register_event_by_clock(this, EVENT_VBLANK_E, 166, false, NULL);
-	}
-#endif
-	
-#if defined(_MZ700) || defined(_MZ1500)
-	// memory wait for vram
-	hblank_vram = false;
+	register_event_by_clock(this, EVENT_BLANK_S, BLANK_CLK_S, false, NULL);
 #if defined(_MZ1500)
-	// memory wait for pcg
-	register_event_by_clock(this, EVENT_HBLANK_PCG, 170, false, NULL);
-	hblank_pcg = false;
+	register_event_by_clock(this, EVENT_BLANK_PCG, BLANK_CLK_S + 5, false, NULL);
 #endif
-#endif
+	register_event_by_clock(this, EVENT_BLANK_E, BLANK_CLK_E, false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_S, HSYNC_CLK_S, false, NULL);
+	register_event_by_clock(this, EVENT_HSYNC_E, HSYNC_CLK_E, false, NULL);
+	
+	if(v == 200 - 1) {
+		register_event_by_clock(this, EVENT_VBLANK_S, VBLANK_CLK, false, NULL);
+	} else if(v == LINES_PER_FRAME - 1) {
+		register_event_by_clock(this, EVENT_VBLANK_E, VBLANK_CLK, false, NULL);
+	}
+	if(v == VSYNC_RST_S - 1) {
+		register_event_by_clock(this, EVENT_VSYNC_S, VSYNC_CLK, false, NULL);
+	} else if(v == VSYNC_RST_E - 1) {
+		register_event_by_clock(this, EVENT_VSYNC_E, VSYNC_CLK, false, NULL);
+	}
+	set_hblank(false);
+	
 	
 	// draw one line
 	if(v < 200) {
@@ -268,31 +277,44 @@ void MEMORY::event_callback(int event_id, int err)
 	} else if(event_id == EVENT_BLINK) {
 		// 556 OUT (1.5KHz) -> 8255:PC6
 		d_pio->write_signal(SIG_I8255_PORT_C, (blink = !blink) ? 0xff : 0, 0x40);
-	} else if(event_id == EVENT_HBLANK) {
-		set_hblank(true);
+	} else if(event_id == EVENT_BLANK_S) {
 #if defined(_MZ700) || defined(_MZ1500)
-		if(hblank_vram) {
+		if(blank_vram) {
 			// wait because vram is accessed
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 		}
-		hblank_vram = true;
+		blank_vram = true;
 #endif
-	} else if(event_id == EVENT_HSYNC_S) {
-		hsync = true;
-	} else if(event_id == EVENT_HSYNC_E) {
-		hsync = false;
+		set_blank(true);
+		set_hblank(true);
+	} else if(event_id == EVENT_BLANK_PCG) {
 #if defined(_MZ1500)
-	} else if(event_id == EVENT_HBLANK_PCG) {
-		if(hblank_pcg) {
+		if(blank_pcg) {
 			// wait because pcg is accessed
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 		}
-		hblank_pcg = true;
+		blank_pcg = true;
 #endif
+	} else if(event_id == EVENT_BLANK_E) {
+		set_blank(false);
+#if defined(_MZ700) || defined(_MZ1500)
+		blank_vram = false;
+#endif
+#if defined(_MZ1500)
+		blank_pcg = false;
+#endif
+	} else if(event_id == EVENT_HSYNC_S) {
+		set_hsync(true);
+	} else if(event_id == EVENT_HSYNC_E) {
+		set_hsync(false);
 	} else if(event_id == EVENT_VBLANK_S) {
 		set_vblank(true);
 	} else if(event_id == EVENT_VBLANK_E) {
 		set_vblank(false);
+	} else if(event_id == EVENT_VSYNC_S) {
+		set_vsync(true);
+	} else if(event_id == EVENT_VSYNC_E) {
+		set_vsync(false);
 	}
 }
 
@@ -391,9 +413,9 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	if(mem_bank & MEM_BANK_PCG) {
 		if(0xd000 <= addr && addr <= 0xefff) {
 			// pcg wait
-			if(!hblank_pcg) {
+			if(!blank_pcg) {
 				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				hblank_pcg = true;
+				blank_pcg = true;
 			}
 		}
 	} else {
@@ -401,9 +423,9 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		if(mem_bank & MEM_BANK_MON_H) {
 			if(0xd000 <= addr && addr <= 0xdfff) {
 				// vram wait
-				if(!hblank_vram) {
+				if(!blank_vram) {
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-					hblank_vram = true;
+					blank_vram = true;
 				}
 			} else if(0xe000 <= addr && addr <= 0xe00f) {
 				// memory mapped i/o
@@ -496,9 +518,9 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	if(mem_bank & MEM_BANK_PCG) {
 		if(0xd000 <= addr && addr <= 0xefff) {
 			// pcg wait
-			if(!hblank_pcg) {
+			if(!blank_pcg) {
 				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-				hblank_pcg = true;
+				blank_pcg = true;
 			}
 		}
 	} else {
@@ -506,9 +528,9 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		if(mem_bank & MEM_BANK_MON_H) {
 			if(0xd000 <= addr && addr <= 0xdfff) {
 				// vram wait
-				if(!hblank_vram) {
+				if(!blank_vram) {
 					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-					hblank_vram = true;
+					blank_vram = true;
 				}
 			} else if(0xe000 <= addr && addr <= 0xe00f) {
 				// memory mapped i/o
@@ -664,6 +686,29 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 }
 #endif
 
+void MEMORY::set_blank(bool val)
+{
+	if(blank != val) {
+		// BLANK -> 8253:CLK1
+		d_pit->write_signal(SIG_I8253_CLOCK_1, val ? 0 : 1, 1);
+		blank = val;
+	}
+}
+
+void MEMORY::set_hblank(bool val)
+{
+	if(hblank != val) {
+		hblank = val;
+	}
+}
+
+void MEMORY::set_hsync(bool val)
+{
+	if(hsync != val) {
+		hsync = val;
+	}
+}
+
 void MEMORY::set_vblank(bool val)
 {
 	if(vblank != val) {
@@ -677,10 +722,10 @@ void MEMORY::set_vblank(bool val)
 	}
 }
 
-void MEMORY::set_hblank(bool val)
+void MEMORY::set_vsync(bool val)
 {
-	if(hblank != val) {
-		hblank = val;
+	if(vsync != val) {
+		vsync = val;
 	}
 }
 
@@ -1100,7 +1145,7 @@ void MEMORY::draw_screen()
 }
 #endif
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1146,15 +1191,16 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 #endif
 	state_fio->StateValue(blink);
 	state_fio->StateValue(tempo);
+	state_fio->StateValue(blank);
 	state_fio->StateValue(hblank);
 	state_fio->StateValue(hsync);
 	state_fio->StateValue(vblank);
 	state_fio->StateValue(vsync);
 #if defined(_MZ700) || defined(_MZ1500)
-	state_fio->StateValue(hblank_vram);
+	state_fio->StateValue(blank_vram);
 #endif
 #if defined(_MZ1500)
-	state_fio->StateValue(hblank_pcg);
+	state_fio->StateValue(blank_pcg);
 #endif
 #if defined(_MZ800)
 	state_fio->StateArray(palette_mz800_pc, sizeof(palette_mz800_pc), 1);
