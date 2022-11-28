@@ -376,6 +376,12 @@ public:
 	void recv_socket_data(int ch);
 #endif
 	
+	// midi
+#ifdef USE_MIDI
+	void send_to_midi(uint8_t data);
+	bool recv_from_midi(uint8_t *data);
+#endif
+	
 	// debugger
 #ifdef USE_DEBUGGER
 	void open_debugger(int cpu_index);

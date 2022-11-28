@@ -119,6 +119,11 @@ public:
 	{
 		register_output_signal(&counter[2].outputs, device, id, mask);
 	}
+	void set_context_zc3(DEVICE* device, int id, uint32_t mask)
+	{
+		// TMPZ84C015/TMPZ84C013 has ZC/TO3 pin
+		register_output_signal(&counter[2].outputs, device, id, mask);
+	}
 	void set_constant_clock(int ch, uint32_t hz)
 	{
 		counter[ch].freq = hz;

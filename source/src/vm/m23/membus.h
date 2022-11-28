@@ -1,5 +1,6 @@
 /*
 	SORD M23 Emulator 'Emu23'
+	SORD M68 Emulator 'Emu68'
 
 	Author : Takeda.Toshiya
 	Date   : 2022.05.21-
@@ -16,7 +17,11 @@ class MEMBUS : public MEMORY
 {
 private:
 	uint8_t ram[0x20000];
+#if defined(_M68)
+	uint8_t rom[0x1000];
+#else
 	uint8_t rom[0x800];
+#endif
 	
 	bool rom_selected;
 	bool page;

@@ -1,5 +1,6 @@
 /*
 	SORD M23 Emulator 'Emu23'
+	SORD M68 Emulator 'Emu68'
 
 	Author : Takeda.Toshiya
 	Date   : 2022.05.21-
@@ -44,9 +45,13 @@
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
+#ifdef _M68
+	config.drive_type = 2;
+#else
 	if(!(config.drive_type >= 0 && config.drive_type < 2)) {
 		config.drive_type = 0;
 	}
+#endif
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -116,6 +121,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13•ªŽü) / CTC:2•ªŽü / SIO:16•ªŽü = 9600 baud
 	ctc->set_constant_clock(2, 12500);		// ŽÀ‘ª 12.49KHz
 	ctc->set_constant_clock(3, 2500);		// ŽÀ‘ª 2.499KHz
+#ifdef _M68
+	ctc2->set_constant_clock(0, CPU_CLOCKS / 13);	// ŽÀ‘ª 307.6KHz
+	ctc2->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13•ªŽü) / CTC:2•ªŽü / SIO:16•ªŽü = 9600 baud
+	ctc2->set_constant_clock(2, 12500);		// ŽÀ‘ª 12.49KHz
+	ctc2->set_constant_clock(3, 2500);		// ŽÀ‘ª 2.499KHz
+#endif
 	dma->set_context_memory(memory);
 	dma->set_context_io(io);
 	

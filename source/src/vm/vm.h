@@ -225,6 +225,11 @@
 #include "m5/m5.h"
 #endif
 
+// SORD M68
+#ifdef _M68
+#include "m23/m23.h"
+#endif
+
 // SEIKO MAP-1010
 #ifdef _MAP1010
 #include "phc25/phc25.h"
@@ -586,6 +591,11 @@
 // NEC TK-85
 #ifdef _TK85
 #include "tk80bs/tk80bs.h"
+#endif
+
+// ESP TRN Junior
+#ifdef _TRNJR
+#include "trnjr/trnjr.h"
 #endif
 
 // GAKKEN TV BOY

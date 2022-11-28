@@ -1,5 +1,6 @@
 /*
 	SORD M23 Emulator 'Emu23'
+	SORD M68 Emulator 'Emu68'
 
 	Author : Takeda.Toshiya
 	Date   : 2022.05.21-
@@ -125,8 +126,8 @@ void MEMBUS::update_bank()
 		set_memory_rw(0x0000, 0xffff, ram);
 	}
 	if(rom_selected) {
-		set_memory_r(0x0000, 0x07ff, rom);
-		unset_memory_w(0x0000, 0x07ff);
+		set_memory_r(0x0000, sizeof(rom) - 1, rom);
+		unset_memory_w(0x0000, sizeof(rom) - 1);
 	}
 }
 

@@ -196,6 +196,9 @@ public:
 
 // osd common
 
+class FIFO;
+class FILEIO;
+
 #define OSD_CONSOLE_BLUE	1 // text color contains blue
 #define OSD_CONSOLE_GREEN	2 // text color contains green
 #define OSD_CONSOLE_RED		4 // text color contains red
@@ -255,8 +258,13 @@ typedef struct {
 	int result;
 } rec_video_thread_param_t;
 
-class FIFO;
-class FILEIO;
+#ifdef USE_MIDI
+typedef struct midi_thread_params_s {
+	FIFO *send_buffer;
+	FIFO *recv_buffer;
+	bool terminate;
+} midi_thread_params_t;
+#endif
 
 class OSD
 {
@@ -490,6 +498,15 @@ private:
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 #endif
 	
+	//midi
+#ifdef USE_MIDI
+	void initialize_midi();
+	void release_midi();
+	
+	HANDLE hMidiThread;
+	midi_thread_params_t midi_thread_params;
+#endif
+	
 public:
 	OSD()
 	{
@@ -704,6 +721,12 @@ public:
 	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
+#endif
+	
+	// common midi
+#ifdef USE_MIDI
+	void send_to_midi(uint8_t data);
+	bool recv_from_midi(uint8_t *data);
 #endif
 	
 	// win32 dependent

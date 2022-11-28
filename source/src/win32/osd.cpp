@@ -29,6 +29,9 @@ void OSD::initialize(int rate, int samples)
 #ifdef USE_SOCKET
 	initialize_socket();
 #endif
+#ifdef USE_MIDI
+	initialize_midi();
+#endif
 }
 
 void OSD::release()
@@ -43,6 +46,9 @@ void OSD::release()
 #endif
 #ifdef USE_SOCKET
 	release_socket();
+#endif
+#ifdef USE_MIDI
+	release_midi();
 #endif
 	GdiplusShutdown(gdiToken);
 }

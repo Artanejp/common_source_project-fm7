@@ -1,5 +1,6 @@
 /*
 	SORD M23 Emulator 'Emu23'
+	SORD M68 Emulator 'Emu68'
 
 	Author : Takeda.Toshiya
 	Date   : 2022.05.21-
@@ -19,10 +20,17 @@
 #endif
 
 // device informations for virtual machine
+#if defined(_M68)
+#define FRAMES_PER_SEC		56.42
+#define LINES_PER_FRAME 	432
+#define CHARS_PER_LINE		108
+#define HD46505_HORIZ_FREQ	24366
+#else
 #define FRAMES_PER_SEC		60
 #define LINES_PER_FRAME 	262
 #define CHARS_PER_LINE		114
 #define HD46505_HORIZ_FREQ	15750
+#endif
 #define CPU_CLOCKS		3993600
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400

@@ -71,6 +71,8 @@ private:
 	uint8_t fdi_header[4096];
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;
+	int solid_nsec2, solid_size2;
+	bool solid_mfm2;
 	
 	void set_sector_info(uint8_t *t);
 	void trim_buffer();
@@ -90,6 +92,7 @@ private:
 	
 	// solid image decoder (fdi/hdm/xdf/2d/img/sf7/tfd)
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
+	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm, int nsec2, int size2, bool mfm2);
 	
 	// internal routines for track
 	bool get_track_tmp(int trk, int side);
