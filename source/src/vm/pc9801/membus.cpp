@@ -115,7 +115,9 @@ void MEMBUS::initialize()
 		sound_bios_selected = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
 	}
 	if(sound_bios_selected) {
-		d_display->sound_bios_ok();
+		d_display->set_memsw_4(d_display->get_memsw_4() |  8);
+	} else {
+		d_display->set_memsw_4(d_display->get_memsw_4() & ~8);
 	}
 	update_sound_bios();
 #if defined(SUPPORT_SASI_IF)

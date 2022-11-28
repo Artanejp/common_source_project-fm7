@@ -237,9 +237,13 @@ public:
 		d_gdc_gfx = device;
 		ra_gfx = ra; cs_gfx = cs;
 	}
-	void sound_bios_ok()
+	void set_memsw_4(uint8_t value)
 	{
-		tvram[0x3fee] = 8;
+		tvram[0x3fee] = value;
+	}
+	uint8_t get_memsw_4()
+	{
+		return tvram[0x3fee];
 	}
 	void draw_screen();
 };

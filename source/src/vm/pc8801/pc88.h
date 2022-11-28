@@ -291,7 +291,7 @@ private:
 	bool draw_640x200_color_graph();
 	void draw_640x200_mono_graph();
 	void draw_640x200_attrib_graph();
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	void draw_640x400_mono_graph();
 	void draw_640x400_attrib_graph();
 #endif

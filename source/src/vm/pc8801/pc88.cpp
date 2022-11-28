@@ -71,7 +71,7 @@
 #else
 #define Port31_HCOLOR	false
 #endif
-#ifdef PC8801SR_VARIANT
+#ifdef PC8801_VARIANT
 #define Port31_400LINE	!(port[0x31] & 0x11)
 #else
 #define Port31_400LINE	false
@@ -510,7 +510,7 @@ void PC88::initialize()
 	register_event(this, EVENT_TIMER, 1000000.0 / 600.0, true, NULL);
 	register_event(this, EVENT_BEEP, 1000000.0 / 4800.0, true, NULL);
 	
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	// hack to update config.scan_line at first
 	hireso = !(config.monitor_type == 0);
 #else
@@ -529,7 +529,7 @@ void PC88::release()
 
 void PC88::reset()
 {
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	bool value = (config.monitor_type == 0);
 	if(hireso != value) {
 		// update config.scan_line when config.monitor_type is changed
@@ -2476,7 +2476,7 @@ void PC88::event_vline(int v, int clock)
 		memcpy(prev_port, port, sizeof(port));
 	}
 	// update palette
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	if(v < (disp_line <= 200 ? 200 : 400)) {
 #else
 	if(v < 200) {
@@ -2753,7 +2753,6 @@ void PC88::draw_screen()
 	if(Port31_HCOLOR) {
 		disp_color_graph = draw_640x200_color_graph();
 		emu->set_vm_screen_lines(200);
-#if defined(PC8801SR_VARIANT)
 	} else if(Port31_400LINE) {
 		if(hireso) {
 			draw_scanline_black = false;
@@ -2761,7 +2760,6 @@ void PC88::draw_screen()
 		draw_640x400_attrib_graph();
 //		draw_640x400_mono_graph();
 		emu->set_vm_screen_lines(400);
-#endif
 	} else {
 		if(hireso) {
 			draw_scanline_black = false;
@@ -2777,7 +2775,7 @@ void PC88::draw_screen()
 #endif
 	
 	// create palette for each scanline
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	int disp_line = crtc.height * crtc.char_height;
 	int ymax = (disp_line <= 200) ? 200 : 400;
 #else
@@ -2846,7 +2844,7 @@ void PC88::draw_screen()
 	}
 	
 	// copy to screen buffer
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 #if defined(SUPPORT_PC88_VAB)
 	// X88000
 	if(PortB4_VAB_DISP) {
@@ -3472,7 +3470,7 @@ void PC88::draw_640x200_attrib_graph()
 	}
 }
 
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 void PC88::draw_640x400_mono_graph()
 {
 	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS)) {
