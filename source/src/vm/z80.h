@@ -67,7 +67,7 @@ private:
 	
 	bool busreq, wait, after_halt;
 	uint8_t im, iff1, iff2, icr;
-	bool after_ei, after_ldair;
+	bool after_di, after_ei, after_ldair;
 	uint32_t intr_req_bit, intr_pend_bit;
 	
 	inline uint8_t RM8(uint32_t addr);

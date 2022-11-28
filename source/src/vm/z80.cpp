@@ -250,31 +250,31 @@ static const uint8_t cc_ex[0x100] = {
 
 inline uint8_t Z80::RM8(uint32_t addr)
 {
-	UPDATE_EVENT_IN_OP(2);
+	UPDATE_EVENT_IN_OP(1);
 #ifdef Z80_MEMORY_WAIT
 	int wait_clock;
 	uint8_t val = d_mem->read_data8w(addr, &wait_clock);
 	icount -= wait_clock;
-	CLOCK_IN_OP(1 + wait_clock);
+	CLOCK_IN_OP(2 + wait_clock);
 	return val;
 #else
 	uint8_t val = d_mem->read_data8(addr);
-	CLOCK_IN_OP(1);
+	CLOCK_IN_OP(2);
 	return val;
 #endif
 }
 
 inline void Z80::WM8(uint32_t addr, uint8_t val)
 {
-	UPDATE_EVENT_IN_OP(2);
+	UPDATE_EVENT_IN_OP(1);
 #ifdef Z80_MEMORY_WAIT
 	int wait_clock;
 	d_mem->write_data8w(addr, val, &wait_clock);
 	icount -= wait_clock;
-	CLOCK_IN_OP(1 + wait_clock);
+	CLOCK_IN_OP(2 + wait_clock);
 #else
 	d_mem->write_data8(addr, val);
-	CLOCK_IN_OP(1);
+	CLOCK_IN_OP(2);
 #endif
 }
 
@@ -297,11 +297,11 @@ inline uint8_t Z80::FETCHOP()
 	R++;
 	
 	// consider m1 cycle wait
-	UPDATE_EVENT_IN_OP(2);
+	UPDATE_EVENT_IN_OP(1);
 	int wait_clock;
 	uint8_t val = d_mem->fetch_op(pctmp, &wait_clock);
 	icount -= wait_clock;
-	CLOCK_IN_OP(2 + wait_clock);
+	CLOCK_IN_OP(3 + wait_clock);
 	return val;
 }
 
@@ -321,27 +321,27 @@ inline uint32_t Z80::FETCH16()
 
 inline uint8_t Z80::IN8(uint32_t addr)
 {
-	UPDATE_EVENT_IN_OP(3);
+	UPDATE_EVENT_IN_OP(2);
 #ifdef Z80_IO_WAIT
 	int wait_clock;
 	uint8_t val = d_io->read_io8w(addr, &wait_clock);
 	icount -= wait_clock;
-	CLOCK_IN_OP(1 + wait_clock);
+	CLOCK_IN_OP(2 + wait_clock);
 	return val;
 #else
 	uint8_t val = d_io->read_io8(addr);
-	CLOCK_IN_OP(1);
+	CLOCK_IN_OP(2);
 	return val;
 #endif
 }
 
 inline void Z80::OUT8(uint32_t addr, uint8_t val)
 {
-	UPDATE_EVENT_IN_OP(3);
+	UPDATE_EVENT_IN_OP(2);
 #ifdef HAS_NSC800
 	if((addr & 0xff) == 0xbb) {
 		icr = val;
-		CLOCK_IN_OP(1);
+		CLOCK_IN_OP(2);
 		return;
 	}
 #endif
@@ -349,10 +349,10 @@ inline void Z80::OUT8(uint32_t addr, uint8_t val)
 	int wait_clock;
 	d_io->write_io8w(addr, val, &wait_clock);
 	icount -= wait_clock;
-	CLOCK_IN_OP(1 + wait_clock);
+	CLOCK_IN_OP(2 + wait_clock);
 #else
 	d_io->write_io8(addr, val);
-	CLOCK_IN_OP(1);
+	CLOCK_IN_OP(2);
 #endif
 }
 
@@ -2001,7 +2001,7 @@ void Z80::OP(uint8_t code)
 	case 0xf0: RET_COND(!(F & SF), 0xf0); break;									/* RET  P           */
 	case 0xf1: POP(af); break;											/* POP  AF          */
 	case 0xf2: JP_COND(!(F & SF)); break;										/* JP   P,a         */
-	case 0xf3: iff1 = iff2 = 0; break;										/* DI               */
+	case 0xf3: iff1 = iff2 = 0; after_di = true; break;								/* DI               */
 	case 0xf4: CALL_COND(!(F & SF), 0xf4); break;									/* CALL P,a         */
 	case 0xf5: PUSH(af); break;											/* PUSH AF          */
 	case 0xf6: OR(FETCH8()); break;											/* OR   n           */
@@ -2287,7 +2287,7 @@ void Z80::run_one_opecode()
 	// rune one opecode
 	bool prev_after_ei = after_ei;
 	
-	after_halt = after_ei = false;
+	after_halt = after_di = after_ei = false;
 	after_ldair = false;
 	
 #ifdef USE_DEBUGGER
@@ -2315,11 +2315,12 @@ void Z80::run_one_opecode()
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 		}
 #endif
-		if(prev_after_ei) {
-			d_pic->notify_intr_ei();
-			check_interrupt();
-			after_ei = false;
-		} else if(!after_ei) {
+		if(!after_ei) {
+			// not just after EI is done
+			if(prev_after_ei && !after_di) {
+				// EI and any instruction (ex. RET, not DI/EI) are done
+				d_pic->notify_intr_ei();
+			}
 			check_interrupt();
 		}
 		if(now_debugging) {
@@ -2338,11 +2339,12 @@ void Z80::run_one_opecode()
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 		}
 #endif
-		if(prev_after_ei) {
-			d_pic->notify_intr_ei();
-			check_interrupt();
-			after_ei = false;
-		} else if(!after_ei) {
+		if(!after_ei) {
+			// not just after EI is done
+			if(prev_after_ei && !after_di) {
+				// EI and any instruction (ex. RET, not DI/EI) are done
+				d_pic->notify_intr_ei();
+			}
 			check_interrupt();
 		}
 #ifdef USE_DEBUGGER
@@ -2362,41 +2364,45 @@ void Z80::check_interrupt()
 			icount -= 11;
 			iff1 = 0;
 			intr_req_bit &= ~NMI_REQ_BIT;
+		}
 #ifdef HAS_NSC800
-		} else if((intr_req_bit & 1) && (icr & 1)) {
-			// INTR
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = d_pic->get_intr_ack() & 0xffff;
-			icount -= cc_op[0xcd] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~1;
-		} else if((intr_req_bit & 8) && (icr & 8)) {
-			// RSTA
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = 0x003c;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~8;
-		} else if((intr_req_bit & 4) && (icr & 4)) {
-			// RSTB
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = 0x0034;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~4;
-		} else if((intr_req_bit & 2) && (icr & 2)) {
-			// RSTC
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = 0x002c;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~2;
+		else if(iff1) {
+			if((intr_req_bit & 8) && (icr & 8)) {
+				// RSTA
+				LEAVE_HALT();
+				PUSH(pc);
+				PCD = WZ = 0x003c;
+				icount -= cc_op[0xff] + cc_ex[0xff];
+				iff1 = iff2 = 0;
+				intr_req_bit &= ~8;
+			} else if((intr_req_bit & 4) && (icr & 4)) {
+				// RSTB
+				LEAVE_HALT();
+				PUSH(pc);
+				PCD = WZ = 0x0034;
+				icount -= cc_op[0xff] + cc_ex[0xff];
+				iff1 = iff2 = 0;
+				intr_req_bit &= ~4;
+			} else if((intr_req_bit & 2) && (icr & 2)) {
+				// RSTC
+				LEAVE_HALT();
+				PUSH(pc);
+				PCD = WZ = 0x002c;
+				icount -= cc_op[0xff] + cc_ex[0xff];
+				iff1 = iff2 = 0;
+				intr_req_bit &= ~2;
+			} else if((intr_req_bit & 1) && (icr & 1)) {
+				// INTR
+				LEAVE_HALT();
+				PUSH(pc);
+				PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+				icount -= cc_op[0xcd] + cc_ex[0xff];
+				iff1 = iff2 = 0;
+				intr_req_bit &= ~1;
+			}
+		}
 #else
-		} else if(iff1) {
+		else if(iff1) {
 			// interrupt
 			LEAVE_HALT();
 			
@@ -2433,8 +2439,8 @@ void Z80::check_interrupt()
 			WZ = PCD;
 		} else {
 			intr_req_bit &= intr_pend_bit;
-#endif
 		}
+#endif
 	}
 }
 

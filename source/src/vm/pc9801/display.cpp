@@ -2978,8 +2978,6 @@ void DISPLAY::draw_chr_screen()
 		}
 		if((ytop += len) >= 25) break;
 	}
-	uint32_t *addr = &gdc_addr[0][0];
-	uint32_t *addr2 = addr + 160 * (sur + sdr);
 	
 	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
 	int cursor_top = d_gdc_chr->cursor_top();
@@ -2995,6 +2993,9 @@ void DISPLAY::draw_chr_screen()
 	int ysdr = bl * (sur + sdr);
 	int xofs = modereg1[MODE1_COLUMN] ? (FONT_WIDTH * 2) : FONT_WIDTH;
 	int addrofs = modereg1[MODE1_COLUMN] ? 2 : 1;
+	
+	uint32_t *addr  = &gdc_addr[0][0];
+	uint32_t *addr2 = addr;
 	
 	memset(screen_chr, 0, sizeof(screen_chr));
 	
@@ -3016,7 +3017,8 @@ void DISPLAY::draw_chr_screen()
 			uint8_t attr = tvram[(*addr) | 0x2000];
 			uint8_t color = (attr & ATTR_COL) ? (attr >> 5) : 8;
 			bool cursor = ((*addr) == cursor_addr);
-			addr += addrofs;
+			addr  += addrofs;
+			addr2 += addrofs;
 			if(kanji2nd) {
 				kanji2nd = 0;
 				offset = last + KANJI_2ND_OFS;
