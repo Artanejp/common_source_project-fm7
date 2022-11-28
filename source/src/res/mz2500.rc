@@ -213,6 +213,12 @@ BEGIN
     END
     POPUP "Device"
     BEGIN
+        POPUP "Boot"
+        BEGIN
+            MENUITEM "MZ-2500"                  ID_VM_BOOT_MODE0
+            MENUITEM "MZ-2000"                  ID_VM_BOOT_MODE1
+            MENUITEM "MZ-80B"                   ID_VM_BOOT_MODE2
+        END
         POPUP "Sound"
         BEGIN
             MENUITEM "Play FDD Noise",          ID_VM_SOUND_NOISE_FDD

@@ -16,6 +16,7 @@
 
 #define SIG_MEMORY_HBLANK	0
 #define SIG_MEMORY_VBLANK	1
+#define SIG_MEMORY_VRAM_SEL	2
 
 class MEMORY : public DEVICE
 {
@@ -37,17 +38,21 @@ private:
 	
 	uint8_t bank;
 	uint8_t page[8];
-	int page_type[8];
-	int page_wait[8];
-	bool is_vram[8];
+	int page_type[16];
+	int page_wait[16];
+	bool is_vram[16];
 	uint8_t dic_bank;
 	uint8_t kanji_bank;
 	bool blank, hblank, vblank, busreq;
 	int extra_wait;
 	
-	void write_data8_tmp(int b, uint32_t addr, uint32_t data);
-	uint32_t read_data8_tmp(int b, uint32_t addr);
 	void set_map(uint8_t data);
+	void set_map(uint8_t bank, uint8_t data);
+	
+	// MZ-2000/80B
+	uint8_t mode;
+	uint8_t vram_sel, vram_page;
+	void update_vram_map();
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

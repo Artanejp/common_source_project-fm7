@@ -116,7 +116,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer = new TIMER(this, emu);
 	
 	// set contexts
-	event->set_context_cpu(cpu);
+	event->set_context_cpu(cpu, config.boot_mode ? CPU_CLOCKS_LOW : CPU_CLOCKS);
 	event->set_context_sound(opn);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
@@ -138,6 +138,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit->set_constant_clock(0, 31250);
 	pio_i->set_context_port_a(cmt, SIG_CMT_PIO_PA, 0xff, 0);
 	pio_i->set_context_port_c(cmt, SIG_CMT_PIO_PC, 0xff, 0);
+	pio_i->set_context_port_a(crtc, SIG_CRTC_REVERSE, 0x10, 0);
 	pio_i->set_context_port_c(crtc, SIG_CRTC_MASK, 0x01, 0);
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	rtc->set_context_alarm(interrupt, SIG_INTERRUPT_RP5C15, 1);
@@ -149,6 +150,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	opn->set_context_port_a(mouse, SIG_MOUSE_SEL, 0x08, 0);
 	pio->set_context_port_a(crtc, SIG_CRTC_COLUMN_SIZE, 0x20, 0);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x1f, 0);
+	pio->set_context_port_a(memory, SIG_MEMORY_VRAM_SEL, 0xc0, 0);
 	sio->set_context_dtr(1, mouse, SIG_MOUSE_DTR, 1);
 	
 	calendar->set_context_rtc(rtc);
@@ -206,6 +208,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0xae, crtc);
 	io->set_iomap_range_rw(0xb0, 0xb3, serial);
 	io->set_iomap_range_rw(0xb4, 0xb5, memory);
+	io->set_iomap_single_w(0xb7, memory);
 	io->set_iomap_range_rw(0xb8, 0xb9, mz1r13);
 	io->set_iomap_range_rw(0xbc, 0xbf, crtc);
 	io->set_iomap_range_w(0xc6, 0xc7, interrupt);
@@ -245,6 +248,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
 		}
 	}
+	boot_mode = config.boot_mode;
 	monitor_type = config.monitor_type;
 }
 
@@ -281,7 +285,16 @@ void VM::reset()
 	}
 	
 	// set initial port status
-	opn->write_signal(SIG_YM2203_PORT_B, (monitor_type & 2) ? 0x77 : 0x37, 0xff);
+	uint8_t port_b = 0x37;
+	if(boot_mode == 1) {
+		port_b &= ~0x10;
+	} else if(boot_mode == 2) {
+		port_b &= ~0x20;
+	}
+	if(monitor_type & 2) {
+		port_b |= 0x40;
+	}
+	opn->write_signal(SIG_YM2203_PORT_B, port_b, 0xff);
 }
 
 void VM::special_reset()
@@ -591,7 +604,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -612,6 +625,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 			return false;
 		}
 	}
+	state_fio->StateValue(boot_mode);
 	state_fio->StateValue(monitor_type);
 	return true;
 }

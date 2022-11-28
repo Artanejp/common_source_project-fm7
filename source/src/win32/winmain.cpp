@@ -2953,6 +2953,9 @@ void open_tape_dialog(HWND hWnd, int drv, bool play)
 #elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat;*.gz\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+#elif defined(_MZ2500)
+		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.gz\0All Files (*.*)\0*.*\0\0")
+		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		play ? _T("Supported Files (*.wav;*.cas;*.tap;*.gz)\0*.wav;*.cas;*.tap;*.gz\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),

@@ -31,6 +31,9 @@ private:
 	DEVICE* d_pio;
 	DATAREC *d_drec;
 	
+#if defined(_MZ2500)
+	int boot_mode;
+#endif
 	uint8_t pa, pc;
 	bool play, rec;
 	bool now_play, now_rewind;
@@ -39,7 +42,7 @@ private:
 	int register_id_fwd;
 	int register_id_stop;
 	int register_id_eject;
-#ifndef _MZ80B
+#if !defined(_MZ80B)
 	int register_id_apss;
 	bool now_apss;
 	bool now_apss_tmp;

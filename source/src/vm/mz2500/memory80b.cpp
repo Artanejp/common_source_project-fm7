@@ -73,7 +73,7 @@ void MEMORY::initialize()
 	// crtc
 	back_color = 0;
 	text_color = vram_mask = 7;
-	width80 = reverse = false;
+	width80 = vgate = reverse = false;
 	
 #ifndef _MZ80B
 	for(int i = 0; i < 8; i++) {

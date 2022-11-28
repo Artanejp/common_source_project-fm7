@@ -26,6 +26,7 @@ void CRTC::initialize()
 	monitor_200line = ((config.monitor_type & 2) != 0);
 	scan_line = scan_tmp = (monitor_200line && config.scan_line);
 	monitor_digital = monitor_tmp = ((config.monitor_type & 1) != 0);
+	boot_mode = config.boot_mode;
 	
 	// thanks Mr.Sato (http://x1center.org/)
 	if(monitor_200line) {
@@ -143,15 +144,31 @@ void CRTC::initialize()
 	cg_mask256_init = false;
 	clear_flag = 0;
 	pal_select = false;
+	screen_reverse = false;
 	screen_mask = false;
 	blink = false;
 	latch[0] = latch[1] = latch[2] = latch[3] = 0;
 	hblank = vblank = false;
 	map_init = trans_init = true;
 	
+	// MZ-2000
+	memset(font, 0, sizeof(font));
+	vram_page = vram_mask = 0;
+	back_color = 0;
+	text_color = 7;
+	
 	// register events
 	register_vline_event(this);
 	register_event(this, EVENT_BLINK, 500000, true, NULL);
+}
+
+void CRTC::reset()
+{
+	// MZ-2000/80B
+	for(int i = 0, s = 0x6018, d = 0; i < 256; i++, d += 8, s += 32) {
+		memcpy(font + d, kanji1 + s, 8);
+	}
+	textreg[0x0f] &= ~3;
 }
 
 void CRTC::write_data8(uint32_t addr, uint32_t data)
@@ -426,10 +443,28 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xf4:
+		// MZ-2000/80B
+		if((textreg[0x0f] & 3) == 1) {
+			back_color = data & 7;
+			break;
+		} else if((textreg[0x0f] & 3) == 2) {
+			d_mem->write_io8(addr, data);
+			vram_page = data & 7;
+			break;
+		}
 		// textreg num
 		textreg_num = data;
 		break;
 	case 0xf5:
+		// MZ-2000/80B
+		if((textreg[0x0f] & 3) == 1) {
+			text_color = data;
+			break;
+		} else if((textreg[0x0f] & 3) == 2) {
+			d_mem->write_io8(addr, data);
+			vram_page = data & 7;
+			break;
+		}
 		// text/palette reg
 		if(textreg_num < 0x10) {
 			if(textreg_num == 0) {
@@ -450,6 +485,10 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 						palette256[i] = RGB_COLOR(r, g, b);
 					}
 					update256 = true;
+				}
+			} else if(textreg_num == 0x0f) {
+				if(textreg[0x0f] & 3) {
+					data = (data & ~3) | (textreg[0x0f] & 3);
 				}
 			}
 			textreg[textreg_num] = data;
@@ -498,6 +537,15 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xf6:
+		// MZ-2000/80B
+		if((textreg[0x0f] & 3) == 1) {
+			vram_mask = data;
+			break;
+		} else if((textreg[0x0f] & 3) == 2) {
+			d_mem->write_io8(addr, data);
+			vram_page = data & 7;
+			break;
+		}
 		// cg mask reg
 		prev = cg_mask;
 		cg_mask = (data & 7) | ((data & 1) ? 8 : 0);
@@ -507,6 +555,12 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xf7:
+		// MZ-2000/80B
+		if((textreg[0x0f] & 3) == 1 || (textreg[0x0f] & 3) == 2) {
+			d_mem->write_io8(addr, data);
+			vram_page = data & 7;
+			break;
+		}
 		// font size reg
 		font_size = ((data & 1) != 0);
 		break;
@@ -563,6 +617,8 @@ void CRTC::write_signal(int id, uint32_t data, uint32_t mask)
 		column_size = ((data & mask) != 0);	// from z80pio port a
 	} else if(id == SIG_CRTC_PALLETE) {
 		pal_select = ((data & mask) == 0);	// from ym2203 port a
+	} else if(id == SIG_CRTC_REVERSE) {
+		screen_reverse = ((data & mask) == 0);	// from i8255 port a
 	} else if(id == SIG_CRTC_MASK) {
 		screen_mask = ((data & mask) != 0);	// from i8255 port c
 	}
@@ -621,6 +677,15 @@ void CRTC::update_config()
 
 void CRTC::draw_screen()
 {
+	// MZ-2000/80B
+	if((textreg[0x0f] & 3) == 1 || boot_mode == 1) {
+		draw_screen_2000();
+		return;
+	} else if((textreg[0x0f] & 3) == 2 || boot_mode == 2) {
+		draw_screen_80b();
+		return;
+	}
+	
 	// update config
 	scan_line = scan_tmp;
 	
@@ -1735,7 +1800,178 @@ void CRTC::create_addr_map(int xmax, int ymax)
 	map_init = false;
 }
 
-#define STATE_VERSION	1
+// ----------------------------------------------------------------------------
+// draw screen (MZ-2000/80B)
+// ----------------------------------------------------------------------------
+
+void CRTC::draw_screen_2000()
+{
+	scrntype_t palette_color[8];
+	
+	for(int i = 0; i < 8; i++) {
+		palette_color[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
+	}
+	
+	// render text
+	uint8_t color = (text_color & 7) ? (text_color & 7) : 8;
+	
+	for(int y = 0, addr = 0; y < 200; y += 8) {
+		for(int x = 0; x < (column_size ? 80 : 40); x++) {
+			uint8_t code = tvram1[addr++];
+			for(int l = 0; l < 8; l++) {
+				uint8_t pat = font[(code << 3) + l];
+				uint8_t* d = &screen_txt[y + l][x << 3];
+				
+				d[0] = (pat & 0x80) ? color : 0;
+				d[1] = (pat & 0x40) ? color : 0;
+				d[2] = (pat & 0x20) ? color : 0;
+				d[3] = (pat & 0x10) ? color : 0;
+				d[4] = (pat & 0x08) ? color : 0;
+				d[5] = (pat & 0x04) ? color : 0;
+				d[6] = (pat & 0x02) ? color : 0;
+				d[7] = (pat & 0x01) ? color : 0;
+			}
+		}
+	}
+	
+	// render graphics
+//	if(config.monitor_type != MONITOR_TYPE_COLOR && (vram_mask & 8)) {
+//		memset(screen_gra, 0, sizeof(screen_gra));
+//	} else {
+		for(int y = 0, addr = 0; y < 200; y++) {
+			for(int x = 0; x < 80; x++) {
+				uint8_t b = (vram_mask & 1) ? vram_r[addr] : 0;
+				uint8_t r = (vram_mask & 2) ? vram_g[addr] : 0;
+				uint8_t g = (vram_mask & 4) ? vram_i[addr] : 0;
+				addr++;
+				uint8_t* d = &screen_gra[y][x << 3];
+				
+				d[0] = ((b & 0x01) >> 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
+				d[1] = ((b & 0x02) >> 1) | ((r & 0x02) >> 0) | ((g & 0x02) << 1);
+				d[2] = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04) >> 0);
+				d[3] = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1);
+				d[4] = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2);
+				d[5] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
+				d[6] = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4);
+				d[7] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
+			}
+		}
+//	}
+	
+	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
+	for(int y = 0; y < 200; y++) {
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src_txt = screen_txt[y];
+		uint8_t* src_gra = screen_gra[y];
+		
+		// VGATE (Forces display to be blank) or Reverse
+		if(screen_mask || screen_reverse) {
+			for(int x = 0; x < 640; x++) {
+				dest0[x] = 0;
+			}
+		} else {
+			if(text_color & 8) {
+				// graphics > text
+				for(int x = 0; x < 640; x++) {
+					uint8_t txt = src_txt[column_size ? x : (x >> 1)], gra = src_gra[x];
+					dest0[x] = palette_color[gra ? gra : txt ? (txt & 7) : back_color];
+				}
+			} else {
+				// text > graphics
+				for(int x = 0; x < 640; x++) {
+					uint8_t txt = src_txt[column_size ? x : (x >> 1)], gra = src_gra[x];
+					dest0[x] = palette_color[txt ? (txt & 7) : gra ? gra : back_color];
+				}
+			}
+		}
+		if(config.scan_line) {
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
+		} else {
+			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+		}
+	}
+	emu->screen_skip_line(true);
+}
+
+void CRTC::draw_screen_80b()
+{
+	scrntype_t palette_green[2];
+	
+	palette_green[screen_reverse ? 1 : 0] = RGB_COLOR(0, 0, 0);
+	palette_green[screen_reverse ? 0 : 1] = RGB_COLOR(0, 255, 0);
+	
+	// render text
+	uint8_t color = 1;
+	
+	for(int y = 0, addr = 0; y < 200; y += 8) {
+		for(int x = 0; x < (column_size ? 80 : 40); x++) {
+			uint8_t code = tvram1[addr++];
+			for(int l = 0; l < 8; l++) {
+				uint8_t pat = font[(code << 3) + l];
+				uint8_t* d = &screen_txt[y + l][x << 3];
+				
+				d[0] = (pat & 0x80) ? color : 0;
+				d[1] = (pat & 0x40) ? color : 0;
+				d[2] = (pat & 0x20) ? color : 0;
+				d[3] = (pat & 0x10) ? color : 0;
+				d[4] = (pat & 0x08) ? color : 0;
+				d[5] = (pat & 0x04) ? color : 0;
+				d[6] = (pat & 0x02) ? color : 0;
+				d[7] = (pat & 0x01) ? color : 0;
+			}
+		}
+	}
+	
+	// render graphics
+	if(!(vram_page & 6)) {
+		memset(screen_gra, 0, sizeof(screen_gra));
+	} else {
+		for(int y = 0, addr = 0; y < 200; y++) {
+			for(int x = 0; x < 40; x++) {
+				uint8_t pat;
+				pat  = (vram_page & 2) ? vram_b[addr] : 0;
+				pat |= (vram_page & 4) ? vram_r[addr] : 0;
+				addr++;
+				uint8_t* d = &screen_gra[y][x << 3];
+				
+				d[0] = (pat & 0x01) >> 0;
+				d[1] = (pat & 0x02) >> 1;
+				d[2] = (pat & 0x04) >> 2;
+				d[3] = (pat & 0x08) >> 3;
+				d[4] = (pat & 0x10) >> 4;
+				d[5] = (pat & 0x20) >> 5;
+				d[6] = (pat & 0x40) >> 6;
+				d[7] = (pat & 0x80) >> 7;
+			}
+		}
+	}
+	
+	// copy to real screen
+	emu->set_vm_screen_lines(200);
+	
+	for(int y = 0; y < 200; y++) {
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src_txt = screen_txt[y];
+		uint8_t* src_gra = screen_gra[y];
+		
+		for(int x = 0; x < 640; x++) {
+			uint8_t txt = src_txt[column_size ? x : (x >> 1)], gra = src_gra[x >> 1];
+			dest0[x] = palette_green[(txt || gra) ? 1 : 0];
+		}
+		if(config.scan_line) {
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
+		} else {
+			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+		}
+	}
+	emu->screen_skip_line(true);
+}
+
+#define STATE_VERSION	2
 
 bool CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1750,6 +1986,7 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(monitor_200line);
 	state_fio->StateValue(monitor_digital);
 	state_fio->StateValue(monitor_tmp);
+	state_fio->StateValue(boot_mode);
 	state_fio->StateValue(textreg_num);
 	state_fio->StateArray(textreg, sizeof(textreg), 1);
 	state_fio->StateValue(cgreg_num);
@@ -1773,6 +2010,7 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(clear_flag);
 	state_fio->StateArray(palette_reg, sizeof(palette_reg), 1);
 	state_fio->StateValue(pal_select);
+	state_fio->StateValue(screen_reverse);
 	state_fio->StateValue(screen_mask);
 	state_fio->StateArray(&priority16[0][0], sizeof(priority16), 1);
 	state_fio->StateArray(palette16, sizeof(palette16), 1);
@@ -1799,6 +2037,10 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(trans_color);
 	state_fio->StateValue(map_init);
 	state_fio->StateValue(trans_init);
+	state_fio->StateValue(vram_page);
+	state_fio->StateValue(vram_mask);
+	state_fio->StateValue(back_color);
+	state_fio->StateValue(text_color);
 	return true;
 }
 

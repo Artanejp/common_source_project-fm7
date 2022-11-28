@@ -18,6 +18,7 @@
 #define LINES_PER_FRAME 	448
 #define CHARS_PER_LINE		108
 #define CPU_CLOCKS		6000000
+#define CPU_CLOCKS_LOW		4000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
@@ -37,6 +38,7 @@
 
 // device informations for win32
 #define USE_SPECIAL_RESET
+#define USE_BOOT_MODE		3
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define USE_HARD_DISK		2
@@ -142,6 +144,7 @@ protected:
 	TIMER* timer;
 	
 	// monitor type cache
+	int boot_mode;
 	int monitor_type;
 	
 public:

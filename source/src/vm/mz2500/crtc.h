@@ -16,7 +16,8 @@
 
 #define SIG_CRTC_COLUMN_SIZE	0
 #define SIG_CRTC_PALLETE	1
-#define SIG_CRTC_MASK		2
+#define SIG_CRTC_REVERSE	2
+#define SIG_CRTC_MASK		3
 
 class CRTC : public DEVICE
 {
@@ -27,6 +28,7 @@ private:
 	bool scan_line, scan_tmp;
 	bool monitor_200line;
 	bool monitor_digital, monitor_tmp;
+	int boot_mode;
 	
 	double frames_per_sec;
 	int lines_per_frame, chars_per_line;
@@ -53,6 +55,7 @@ private:
 	uint8_t clear_flag;
 	uint8_t palette_reg[16];
 	bool pal_select;
+	bool screen_reverse;
 	bool screen_mask;
 	
 	// priority and palette
@@ -102,6 +105,17 @@ private:
 	
 	bool map_init, trans_init;
 	
+	// MZ-2000/80B
+	uint8_t vram_page, vram_mask;
+	uint8_t back_color, text_color;
+	
+	uint8_t font[0x800];
+	uint8_t screen_txt[200][640];
+	uint8_t screen_gra[200][640];
+	
+	void draw_screen_80b();
+	void draw_screen_2000();
+	
 public:
 	CRTC(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -111,6 +125,7 @@ public:
 	
 	// common functions
 	void initialize();
+	void reset();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
 	void write_io8(uint32_t addr, uint32_t data);
