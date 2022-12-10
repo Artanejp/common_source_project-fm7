@@ -92,7 +92,7 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
+	//void reset();
 	void run();
 	double get_frame_rate()
 	{
@@ -139,7 +139,7 @@ public:
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
 	
-	void update_config();
+	//void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
@@ -147,7 +147,7 @@ public:
 	// ----------------------------------------
 	
 	// devices
-	DEVICE* get_device(int id);
+	//DEVICE* get_device(int id);
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;

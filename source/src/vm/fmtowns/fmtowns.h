@@ -454,6 +454,7 @@ protected:
 	scrntype_t *d_renderbuffer[2][2]; // [bank][layer]
 	uint32_t renderbuffer_size[2][2];
 */
+	virtual void process_boot_sequence(uint32_t val);
 public:
 	// ----------------------------------------
 	// initialize
@@ -467,64 +468,62 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
-	void special_reset(int num);
-	void run();
+	void reset() override;
+	void special_reset(int num) override;
+	void run() override;
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 	
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
 	
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
 	
 	// user interface
 	// CARTs are IC CARD.Will implement something :-)
-	void open_cart(int drv, const _TCHAR* file_path);
-	void close_cart(int drv);
-	bool is_cart_inserted(int drv);
+	void open_cart(int drv, const _TCHAR* file_path) override;
+	void close_cart(int drv) override;
+	bool is_cart_inserted(int drv) override;
 	
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	uint32_t is_floppy_disk_accessed();
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	bool is_frame_skippable();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	bool is_frame_skippable() override;
 
-	void open_compact_disc(int drv, const _TCHAR* file_path);
-	void close_compact_disc(int drv);
-	bool is_compact_disc_inserted(int drv);
-	uint32_t is_compact_disc_accessed();
+	void open_compact_disc(int drv, const _TCHAR* file_path) override;
+	void close_compact_disc(int drv) override;
+	bool is_compact_disc_inserted(int drv) override;
+	uint32_t is_compact_disc_accessed() override;
 #if defined(USE_HARD_DISK)
-	void open_hard_disk(int drv, const _TCHAR* file_path);
-	void close_hard_disk(int drv);
-	bool is_hard_disk_inserted(int drv);
-	uint32_t is_hard_disk_accessed();
+	void open_hard_disk(int drv, const _TCHAR* file_path) override;
+	void close_hard_disk(int drv) override;
+	bool is_hard_disk_inserted(int drv) override;
+	uint32_t is_hard_disk_accessed() override;
 #endif	
 	void set_machine_type(uint16_t machine_id, uint16_t cpu_id);
-
 	void clear_sound_in();
 	int get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
 	int sound_in(int ch, int32_t* src, int samples);
 
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 	
-	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
@@ -532,9 +531,8 @@ public:
 	// ----------------------------------------
 	
 	// devices
-	DEVICE* get_device(int id);
+	//DEVICE* get_device(int id);
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
 };
-

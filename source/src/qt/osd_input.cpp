@@ -11,11 +11,8 @@
 #include <QApplication>
 #include <SDL.h>
 
-
-//#include "../emu.h"
 #include "../fifo.h"
 #include "../fileio.h"
-//#include "osd.h"
 
 #include "qt_input.h"
 #include "qt_gldraw.h"

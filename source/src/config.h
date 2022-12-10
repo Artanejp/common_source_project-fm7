@@ -308,6 +308,7 @@ typedef struct {
 	bool special_debug_fdc;	
 	bool print_statistics;
 
+	bool use_telnet;
 #if defined(_WIN32) && !defined(_USE_QT)
 	bool use_direct_input;
 	bool disable_dwm;

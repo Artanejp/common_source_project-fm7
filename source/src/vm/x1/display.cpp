@@ -606,6 +606,8 @@ void DISPLAY::event_frame()
 	bool hireso_old = hireso;
 	hireso = (vt_total >= 400);
 	if(!hireso) vt_ofs = max(vt_ofs - 2, 0);
+#else
+	vt_ofs = max(vt_ofs - 2, 0);
 #endif
 	int vlen;
 #ifdef _X1TURBO_FEATURE

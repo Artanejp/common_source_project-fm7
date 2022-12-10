@@ -125,11 +125,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
 	
 	// BIOS
 	memory->bios();
@@ -150,30 +148,14 @@ VM::~VM()
 	}
 }
 
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
-}
-
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------
 
-void VM::reset()
-{
-	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-}
 
 void VM::run()
 {
+	__UNLIKELY_IF(event == nullptr) return;
 	event->drive();
 }
 
@@ -197,6 +179,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
+	__UNLIKELY_IF(vdp == nullptr) return;
 	vdp->draw_screen();
 }
 
@@ -394,60 +377,29 @@ void VM::push_fast_rewind(int drv)
 
 bool VM::is_frame_skippable()
 {
+	if(event == nullptr) return false;
 	return event->is_frame_skippable();
 }
 
-void VM::update_config()
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
-	}
-}
 
 double VM::get_current_usec()
 {
-	if(event == NULL) return 0.0;
+	if(event == nullptr) return 0.0;
 	return event->get_current_usec();
 }
 
 uint64_t VM::get_current_clock_uint64()
 {
-		if(event == NULL) return (uint64_t)0;
-		return event->get_current_clock_uint64();
+	if(event == nullptr) return (uint64_t)0;
+	return event->get_current_clock_uint64();
 }
 
 #define STATE_VERSION	1
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		// Note: typeid(foo).name is fixed by recent ABI.Not dec 6.
- 		// const char *name = typeid(*device).name();
-		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
-		const char *name = device->get_device_name();
-		int len = (int)strlen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			if(loading) {
-				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			if(loading) {
-				printf("Class name Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
 	return true;
 }

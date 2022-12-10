@@ -470,11 +470,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
+	
 	if(!pseudo_sub_cpu) {
 		// load rom images after cpustate is allocated
 		cpu_sub->load_rom_image(create_local_path(SUB_ROM_FILE_NAME));
@@ -804,7 +803,24 @@ bool VM::is_floppy_disk_protected(int drv)
 
 uint32_t VM::is_floppy_disk_accessed()
 {
-	return fdc->read_signal(0);
+	if(floppy->get_motor_on()) {
+		int drv = fdc->read_signal(SIG_MB8877_DRIVEREG);
+		return 1 << drv;
+	}
+	return 0;
+}
+
+uint32_t VM::floppy_disk_indicator_color()
+{
+#ifdef _X1TURBO_FEATURE
+	if(floppy->get_motor_on()) {
+		int drv = fdc->read_signal(SIG_MB8877_DRIVEREG);
+		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2HD) {
+			return 1 << drv;
+		}
+	}
+#endif
+	return 0;
 }
 
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
@@ -1005,7 +1021,7 @@ void VM::update_config()
 void VM::update_dipswitch()
 {
 	// bit0		0=High 1=Standard
-	// bit1-3	000=5"2D 001=5"2DD 010=5"2HD
+	// bit1-3	000=5"2D 001=5"2DD 010=5"2HD 110=8"1S 111=SASI
 	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 7) << 1));
 }
 #endif
@@ -1026,28 +1042,9 @@ uint64_t VM::get_current_clock_uint64()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		// Note: typeid(foo).name is fixed by recent ABI.Not decr. 6.
- 		// const char *name = typeid(*device).name();
-		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
-		const char *name = device->get_device_name();
-		int len = (int)strlen(name);
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
+		return false;
+	}
 	state_fio->StateValue(pseudo_sub_cpu);
 	state_fio->StateValue(sound_type);
  	

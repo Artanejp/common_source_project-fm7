@@ -62,9 +62,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
+	initialize_devices();
 }
 
 VM::~VM()
@@ -217,22 +218,8 @@ void VM::update_config()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int len = (int)strlen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
-		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
 	}
 	return true;
 }

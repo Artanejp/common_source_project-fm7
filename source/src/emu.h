@@ -123,6 +123,7 @@ public:
 	double get_frame_rate() override;
 	int get_frame_interval() override;
 	bool is_frame_skippable() override;
+	const bool is_use_state() override;
 	int run() override;
 
 	void reset() override;
@@ -319,6 +320,7 @@ public:
 	void is_floppy_disk_protected(int drv, bool value)  override;
 	bool is_floppy_disk_protected(int drv)  override;
 	uint32_t is_floppy_disk_accessed()  override;
+	uint32_t floppy_disk_indicator_color() override;
 #endif
 
 	// user interface
@@ -391,6 +393,7 @@ public:
 #ifdef USE_STATE
 	void save_state(const _TCHAR* file_path)  override;
 	void load_state(const _TCHAR* file_path)  override;
+	const _TCHAR *state_file_path(int num) override;
 #endif
 };
 

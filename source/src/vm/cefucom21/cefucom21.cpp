@@ -430,22 +430,8 @@ uint64_t VM::get_current_clock_uint64()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int len = (int)strlen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
-		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
 	}
 	return true;
 }

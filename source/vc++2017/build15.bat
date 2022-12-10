@@ -99,6 +99,10 @@ msbuild.exe fp1100.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="W
 mkdir build_vc15\fp1100
 copy bin\x86\Release\fp1100.exe build_vc15\fp1100\.
 
+msbuild.exe fx9000p.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\fx9000p
+copy bin\x86\Release\fx9000p.exe build_vc15\fx9000p\.
+
 msbuild.exe gamegear.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\gamegear
 copy bin\x86\Release\gamegear.exe build_vc15\gamegear\.

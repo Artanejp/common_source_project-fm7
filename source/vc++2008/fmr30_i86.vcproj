@@ -1244,6 +1244,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\res\indicator\access_green.bmp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\indicator\access_off.bmp"
 				>
 			</File>

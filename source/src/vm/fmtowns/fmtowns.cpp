@@ -125,7 +125,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 */
 	
 	// create devices
-	first_device = last_device = NULL;
+	//first_device = last_device = nullptr;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 #if defined(_USE_QT)
@@ -188,7 +188,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi_host = new SCSI_HOST(this, emu);
 	
 	for(int i = 0; i < 7; i++) {
-		scsi_hdd[i] = NULL;
+		scsi_hdd[i] = nullptr;
 	}	
 #if defined(USE_HARD_DISK)
 	for(int i = 0; i < USE_HARD_DISK; i++) {
@@ -215,7 +215,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if 0
 	iccard2 = new TOWNS_ICCARD(this, emu);
 #else
-	iccard2 = NULL;
+	iccard2 = nullptr;
 #endif
 	for(int i = 0; i < 2; i++) {
 		joypad_2btn[i] = new JOYPAD_2BTN(this, emu);
@@ -458,7 +458,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
 	cpu->set_context_dma(dma);
-	cpu->set_context_bios(NULL);
+	cpu->set_context_bios(nullptr);
 	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
@@ -652,7 +652,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// Vram allocation may be before initialize().
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	// ToDo : Use config framework
 	int exram_size = config.current_ram_size;
@@ -688,71 +688,53 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->device_model = INTEL_80386;
 #endif	
 
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
 //	cpu->set_address_mask(0xffffffff);
 }
 
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-//		printf("DEVID=%d\n", device->this_device_id);
-		device->release();
-		delete device;
-		device = next_device;
-	}
-}
-
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
+	release_devices();
 }
 
 void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 {
-	if(memory != NULL) {
+	if(memory != nullptr) {
 		memory->set_cpu_id(cpu_id);
 		memory->set_machine_id(machine_id);
 	}
-	if(crtc != NULL) {
+	if(crtc != nullptr) {
 		crtc->set_cpu_id(cpu_id);
 		crtc->set_machine_id(machine_id);
 	}
-	if(timer != NULL) {
+	if(timer != nullptr) {
 		timer->set_cpu_id(cpu_id);
 		timer->set_machine_id(machine_id);
 	}
-	if(cdrom != NULL) {
+	if(cdrom != nullptr) {
 		cdrom->set_cpu_id(cpu_id);
 		cdrom->set_machine_id(machine_id);
 	}
-	if(scsi != NULL) {
+	if(scsi != nullptr) {
 		scsi->set_cpu_id(cpu_id);
 		scsi->set_machine_id(machine_id);
 	}
-	if(serialrom != NULL) {
+	if(serialrom != nullptr) {
 		serialrom->set_cpu_id(cpu_id);
 		serialrom->set_machine_id(machine_id);
 	}
-	if(floppy != NULL) {
+	if(floppy != nullptr) {
 		floppy->set_cpu_id(cpu_id);
 		floppy->set_machine_id(machine_id);
 	}
 #if defined(HAS_20PIX_FONTS)
-	if(fontrom_20pix != NULL) {
+	if(fontrom_20pix != nullptr) {
 		fontrom_20pix->set_cpu_id(cpu_id);
 		fontrom_20pix->set_machine_id(machine_id);
 	}
 #endif
-	if(vram != NULL) {
+	if(vram != nullptr) {
 		vram->set_cpu_id(cpu_id);
 		vram->set_machine_id(machine_id);
 	}
@@ -768,28 +750,38 @@ void VM::reset()
 {
 	// reset all devices
 	boot_seq = false;
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 //	cpu->set_address_mask(0xffffffff);
 }
 
 void VM::special_reset(int num)
 {
-	// reset all devices
 	boot_seq = true;
-	
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-	keyboard->special_reset(num);
 
-//	cpu->set_address_mask(0xffffffff);
+	// reset all devices
+	VM_TEMPLATE::reset();
+	//	cpu->set_address_mask(0xffffffff);
+	__LIKELY_IF(keyboard != nullptr) {
+		keyboard->special_reset(num);
+	}
 }
 
 void VM::run()
 {
-	event->drive();
+	__LIKELY_IF(event != nullptr) {
+		event->drive();
+	}
+}
+void VM::process_boot_sequence(uint32_t val)
+{
+	if(boot_seq) {
+		if(val != 0) {
+			if(keyboard != nullptr) {
+				keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
+			}
+			boot_seq = false;
+		}
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -802,7 +794,7 @@ DEVICE *VM::get_cpu(int index)
 	if(index == 0) {
 		return cpu;
 	}
-	return NULL;
+	return nullptr;
 }
 #endif
 
@@ -812,20 +804,11 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	crtc->draw_screen();
+	__LIKELY_IF(crtc != nullptr) {
+		crtc->draw_screen();
+	}
 }
 
-uint32_t VM::is_floppy_disk_accessed()
-{
-	uint32_t val = fdc->read_signal(0);
-	if(boot_seq) {
-		if(val != 0) {
-			keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
-			boot_seq = false;
-		}
-	}
-	return val;
-}
 
 // ----------------------------------------------------------------------------
 // soud manager
@@ -833,7 +816,7 @@ uint32_t VM::is_floppy_disk_accessed()
 
 void VM::initialize_sound(int rate, int samples)
 {
-	emu->lock_vm();
+//	emu->lock_vm();
 	// init sound manager
 	event->initialize_sound(rate, samples);
 	
@@ -864,21 +847,29 @@ void VM::initialize_sound(int rate, int samples)
 	line_in_ch = event->add_sound_in_source(rate, samples, 2);
 	mixer->set_context_line_in(line_in_ch, rate, samples);
 #endif
-	emu->unlock_vm();
+//	emu->unlock_vm();
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	return event->create_sound(extra_frames);
+	__LIKELY_IF(event != nullptr) {
+		return event->create_sound(extra_frames);
+	}
+	return VM_TEMPLATE::create_sound(extra_frames);
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	return event->get_sound_buffer_ptr();
+	__LIKELY_IF(event != nullptr) {
+		return event->get_sound_buffer_ptr();
+	}
+	return VM_TEMPLATE::get_sound_buffer_ptr();
 }
 
 void VM::clear_sound_in()
 {
+	__UNLIKELY_IF(event == nullptr) return;
+
 	event->clear_sound_in_source(adc_in_ch);
 	event->clear_sound_in_source(mic_in_ch);
 	event->clear_sound_in_source(line_in_ch);
@@ -887,7 +878,7 @@ void VM::clear_sound_in()
 
 int VM::get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
 {
-	if(dst == NULL) return 0;
+	if(dst == nullptr) return 0;
 	if(expect_samples <= 0) return 0;
 	int n_ch = -1;
 	switch(ch) {
@@ -902,7 +893,10 @@ int VM::get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_r
 		break;
 	}
 	if(n_ch < 0) return 0;
-	int samples = event->get_sound_in_data(n_ch, dst, expect_samples, expect_rate, expect_channels);
+	int samples = 0;
+	if(event != nullptr) {
+		samples = event->get_sound_in_data(n_ch, dst, expect_samples, expect_rate, expect_channels);
+	}
 	return samples;
 }
 
@@ -925,11 +919,10 @@ int VM::sound_in(int ch, int32_t* src, int samples)
 	if(n_ch < 0) return 0;
 
 	int ss = 0;
-	{
+	if(event != nullptr) {
 		emu->lock_vm();
 		ss =  event->write_sound_in_buffer(n_ch, src, samples);
 		emu->unlock_vm();
-
 	}
 	return ss;
 }
@@ -938,7 +931,7 @@ int VM::sound_in(int ch, int32_t* src, int samples)
 void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
-		if(scsi_hdd[drv] != NULL) {
+		if(scsi_hdd[drv] != nullptr) {
 			scsi_hdd[drv]->open(0, file_path, 512);
 		}
 	}
@@ -947,7 +940,7 @@ void VM::open_hard_disk(int drv, const _TCHAR* file_path)
 void VM::close_hard_disk(int drv)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
-		if(scsi_hdd[drv] != NULL) {
+		if(scsi_hdd[drv] != nullptr) {
 			scsi_hdd[drv]->close(0);
 		}
 	}
@@ -956,7 +949,7 @@ void VM::close_hard_disk(int drv)
 bool VM::is_hard_disk_inserted(int drv)
 {
 	if((drv < USE_HARD_DISK) && (drv < 8) && (drv >= 0)) {
-		if(scsi_hdd[drv] != NULL) {
+		if(scsi_hdd[drv] != nullptr) {
 			return scsi_hdd[drv]->mounted(0);
 		}
 	}
@@ -968,46 +961,41 @@ uint32_t VM::is_hard_disk_accessed()
 	uint32_t status = 0;
 	
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(scsi_hdd[drv] != NULL) {
+		if(scsi_hdd[drv] != nullptr) {
 			if(scsi_hdd[drv]->accessed(0)) {
 				status |= 1 << drv;
 			}
 		}
 	}
-	if(boot_seq) {
-		if(status != 0) {
-			keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
-			boot_seq = false;
-		}
-	}
+	process_boot_sequence(1);
 	return status;
 }
 #endif // USE_HARD_DISK
 
 void VM::open_compact_disc(int drv, const _TCHAR* file_path)
 {
-	cdrom->open(file_path);
+	if(cdrom != nullptr) {
+		cdrom->open(file_path);
+	}
 }
 
 void VM::close_compact_disc(int drv)
 {
-	cdrom->close();
+	if(cdrom != nullptr) {
+		cdrom->close();
+	}
 }
 
 bool VM::is_compact_disc_inserted(int drv)
 {
+	if(cdrom == nullptr) return false;
 	return cdrom->mounted();
 }
 
 uint32_t VM::is_compact_disc_accessed()
 {
 	uint32_t status = cdrom->accessed();
-	if(boot_seq) {
-		if(status != 0) {
-			keyboard->write_signal(SIG_KEYBOARD_BOOTSEQ_END, 0xffffffff, 0xffffffff);
-			boot_seq = false;
-		}
-	}
+	process_boot_sequence(1);
 	return status;
 }
 
@@ -1027,28 +1015,38 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 //	if(ch >= 10) ch++;
 #endif
 	if(ch == 0) { // BEEP
-		beep->set_volume(0, decibel_l, decibel_r);
+		if(beep != nullptr) {
+			beep->set_volume(0, decibel_l, decibel_r);
+		}
 	}
 	else if(ch == 1) { // CD-ROM
 		if(e_volumes[1] != nullptr) {
 			e_volumes[1]->set_volumes(0, decibel_l, 1, decibel_r);
-		} else {
+		} else if(cdrom != nullptr) {
 			cdrom->set_volume(0, decibel_l, decibel_r);
 		}
 	}	
 	else if(ch == 2) { // OPN2
-		opn2->set_volume(0, decibel_l, decibel_r);
+		if(opn2 != nullptr) {
+			opn2->set_volume(0, decibel_l, decibel_r);
+		}
 	}
 	else if(ch == 3) { // ADPCM
-		rf5c68->set_volume(0, decibel_l, decibel_r);
+		if(rf5c68 != nullptr) {
+			rf5c68->set_volume(0, decibel_l, decibel_r);
+		}
 	}
 	else if(ch == 4) { // SEEK, HEAD UP / DOWN
-		seek_sound->set_volume(0, decibel_l, decibel_r);
-		head_up_sound->set_volume(0, decibel_l, decibel_r);
-		head_down_sound->set_volume(0, decibel_l, decibel_r);
+		if(seek_sound != nullptr) {
+			seek_sound->set_volume(0, decibel_l, decibel_r);
+		}
+		if(head_up_sound != nullptr) {
+			head_up_sound->set_volume(0, decibel_l, decibel_r);
+		}
+		if(head_down_sound != nullptr) {
+			head_down_sound->set_volume(0, decibel_l, decibel_r);
+		}
 	}
-	
-
 }
 #endif
 
@@ -1058,12 +1056,16 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	keyboard->key_down(code);
+	__LIKELY_IF(keyboard != nullptr) {
+		keyboard->key_down(code);
+	}
 }
 
 void VM::key_up(int code)
 {
-	keyboard->key_up(code);
+	__LIKELY_IF(keyboard != nullptr) {
+		keyboard->key_up(code);
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -1073,12 +1075,12 @@ void VM::open_cart(int drv, const _TCHAR* file_path)
 {
 	switch(drv) {
 	case 0:
-		if(iccard1 != NULL) {
+		if(iccard1 != nullptr) {
 			iccard1->open_cart(file_path);
 		}
 		break;
 	case 1:
-		if(iccard2 != NULL) {
+		if(iccard2 != nullptr) {
 			iccard2->open_cart(file_path);
 		}
 		break;
@@ -1089,12 +1091,12 @@ void VM::close_cart(int drv)
 {
 	switch(drv) {
 	case 0:
-		if(iccard1 != NULL) {
+		if(iccard1 != nullptr) {
 			iccard1->close_cart();
 		}
 		break;
 	case 1:
-		if(iccard2 != NULL) {
+		if(iccard2 != nullptr) {
 			iccard2->close_cart();
 		}
 		break;
@@ -1105,12 +1107,12 @@ bool VM::is_cart_inserted(int drv)
 {
 	switch(drv) {
 	case 0:
-		if(iccard1 != NULL) {
+		if(iccard1 != nullptr) {
 			return iccard1->is_cart_inserted();
 		}
 		break;
 	case 1:
-		if(iccard2 != NULL) {
+		if(iccard2 != nullptr) {
 			return iccard2->is_cart_inserted();
 		}
 		break;
@@ -1121,85 +1123,88 @@ bool VM::is_cart_inserted(int drv)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	
-	fdc->open_disk(drv, file_path, bank);
-	floppy->change_disk(drv);
+	if(fdc != nullptr) {
+		fdc->open_disk(drv, file_path, bank);
+		floppy->change_disk(drv);
+	}
 }
 
 void VM::close_floppy_disk(int drv)
 {
-	fdc->close_disk(drv);
-//	floppy->change_disk(drv);
+	if(fdc != nullptr) {
+		fdc->close_disk(drv);
+	//	floppy->change_disk(drv);
+	}
+}
+uint32_t VM::is_floppy_disk_accessed()
+{
+	uint32_t val = fdc->read_signal(0);
+	process_boot_sequence(val);
+	return val;
 }
 
 bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->is_disk_inserted(drv);
+	if(fdc != nullptr) {
+		return fdc->is_disk_inserted(drv);
+	}
+	return VM_TEMPLATE::is_floppy_disk_inserted(drv);
 }
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc->is_disk_protected(drv, value);
+	__LIKELY_IF(fdc != nullptr) {
+		fdc->is_disk_protected(drv, value);
+	}
 }
 
 bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc->is_disk_protected(drv);
+	__LIKELY_IF(fdc != nullptr) {
+		return fdc->is_disk_protected(drv);
+	}
+	return VM_TEMPLATE::is_floppy_disk_protected(drv);
 }
 
 bool VM::is_frame_skippable()
 {
-	return event->is_frame_skippable();
+	__LIKELY_IF(event != nullptr) {
+		return event->is_frame_skippable();
+	}
+	return VM_TEMPLATE::is_frame_skippable();
 }
 
-void VM::update_config()
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
-	}
-}
 
 double VM::get_current_usec()
 {
-	if(event == NULL) return 0.0;
-	return event->get_current_usec();
+	__LIKELY_IF(event != nullptr) {
+		return event->get_current_usec();
+	}
+	return VM_TEMPLATE::get_current_usec();
 }
 
 uint64_t VM::get_current_clock_uint64()
 {
-		if(event == NULL) return (uint64_t)0;
+	__LIKELY_IF(event != nullptr) {
 		return event->get_current_clock_uint64();
+	}
+	return VM_TEMPLATE::get_current_clock_uint64();
 }
 
 #define STATE_VERSION	4
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		// Note: typeid(foo).name is fixed by recent ABI.Not decr. 6.
- 		// const char *name = typeid(*device).name();
-		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
-		const char *name = device->get_device_name();
-		int len = (int)strlen(name);
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
+		return false;
+	}
+	
 	// Machine specified.
-
 	state_fio->StateValue(boot_seq);
 	
+	if(loading) {
+		update_config();
+	}
 	return true;
 }
 

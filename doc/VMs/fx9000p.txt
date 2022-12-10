@@ -1,0 +1,22 @@
+"eFX-9000P" - CASIO FX-9000P emulator for Win32
+								4/5/2022
+
+--- ROM image
+
+	0000h - 2FFFh	BASIC.ROM
+	5000h - 5FFFh	OP1.ROM (optional)
+
+--- Key maps
+
+	PC		Virtual
+	--------------------------------
+	Page Up		ANS
+	Page Down	STAT
+	Home		CLS
+	End		C/S
+	Right Ctrl	COMP
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

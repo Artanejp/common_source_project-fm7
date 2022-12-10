@@ -55,6 +55,10 @@ public:
 	{
 		d_fdc = device;
 	}
+	bool get_motor_on()
+	{
+		return motor_on;
+	}
 };
 
 }

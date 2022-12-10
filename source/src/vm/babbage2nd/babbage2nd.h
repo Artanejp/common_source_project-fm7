@@ -133,39 +133,37 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
-	void run();
-	double get_frame_rate()
+	void run() override;
+	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;
 	}
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 	
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 	
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
 
 	// user interface
-	void load_binary(int drv, const _TCHAR* file_path);
-	void save_binary(int drv, const _TCHAR* file_path);
-	bool is_frame_skippable();
+	void load_binary(int drv, const _TCHAR* file_path) override;
+	void save_binary(int drv, const _TCHAR* file_path) override;
+	bool is_frame_skippable() override;
 	
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 	
-	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
@@ -173,7 +171,7 @@ public:
 	// ----------------------------------------
 	
 	// devices
-	DEVICE* get_device(int id);
+	//DEVICE* get_device(int id);
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
