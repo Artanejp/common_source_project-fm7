@@ -11,7 +11,7 @@
 #define _IO_H_
 
 #include "../vm.h"
-#include "../../emu.h"
+#include "../../emu_template.h"
 #include "../device.h"
 
 class HD46505;
@@ -20,6 +20,7 @@ class FIFO;
 #define SIG_IO_DISP	0
 #define SIG_IO_EAR	1
 
+namespace FX9000P {
 class IO : public DEVICE
 {
 private:
@@ -43,7 +44,7 @@ private:
 	void set_rtc(uint32_t addr, uint32_t data);
 	
 public:
-	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	IO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O"));
 	}
@@ -76,5 +77,6 @@ public:
 	void key_down(int code);
 	void draw_screen(uint8_t *vram);
 };
+}
 
 #endif

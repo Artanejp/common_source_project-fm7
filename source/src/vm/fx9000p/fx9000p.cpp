@@ -22,8 +22,9 @@
 #include "../debugger.h"
 #endif
 
-#include "io.h"
+#include "./io.h"
 
+using FX9000P::IO;
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -96,9 +97,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_memory_rw(0xc000, 0xefff, cmos);
 	
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
+	initialize_devices();
 }
 
 VM::~VM()
@@ -114,15 +116,6 @@ VM::~VM()
 	}
 }
 
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
-}
 
 // ----------------------------------------------------------------------------
 // drive virtual machine
@@ -131,7 +124,7 @@ DEVICE* VM::get_device(int id)
 
 void VM::run()
 {
-	if(event == nullptr) return;
+	__UNLIKELY_IF(event == nullptr) return;
 	event->drive();
 }
 
@@ -155,6 +148,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
+	__UNLIKELY_IF(io == nullptr) return;
 	io->draw_screen(vram);
 }
 
@@ -165,6 +159,7 @@ void VM::draw_screen()
 
 void VM::key_down(int code, bool repeat)
 {
+	__UNLIKELY_IF(io == nullptr) return;
 	if(!repeat) {
 		io->key_down(code);
 	}
@@ -181,19 +176,19 @@ void VM::key_up(int code)
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	if(event == nullptr) return;
+	__UNLIKELY_IF(event == nullptr) return;
 	event->initialize_sound(rate, samples);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	if(event == nullptr) return nullptr;
+	__UNLIKELY_IF(event == nullptr) return nullptr;
 	return event->create_sound(extra_frames);
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	if(event == nullptr) return 0;
+	__UNLIKELY_IF(event == nullptr) return 0;
 	return event->get_sound_buffer_ptr();
 }
 
@@ -295,7 +290,7 @@ void VM::push_fast_rewind(int drv)
 
 bool VM::is_frame_skippable()
 {
-	if(event == nullptr) return false;
+	__UNLIKELY_IF(event == nullptr) return false;
 	return event->is_frame_skippable();
 }
 

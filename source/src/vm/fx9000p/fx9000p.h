@@ -54,7 +54,9 @@ class HD46505;
 class MEMORY;
 class Z80;
 
-class IO;
+namespace FX9000P {
+	class IO;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -69,7 +71,7 @@ protected:
 	MEMORY* memory;
 	Z80* cpu;
 	
-	IO* io;
+	FX9000P::IO* io;
 	
 	// memory
 	uint8_t basic[0x3000];	// 0000h-2FFFh: BASIC ROM
@@ -143,7 +145,7 @@ public:
 	// ----------------------------------------
 	
 	// devices
-	DEVICE* get_device(int id);
+//	DEVICE* get_device(int id);
 //	DEVICE* dummy;
 //	DEVICE* first_device;
 //	DEVICE* last_device;

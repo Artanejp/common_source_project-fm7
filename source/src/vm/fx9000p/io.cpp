@@ -7,12 +7,13 @@
 	[ i/o ]
 */
 
-#include "io.h"
+#include "./io.h"
 #include "../hd46505.h"
 #include "../../fifo.h"
 
 #define EVENT_1SEC	0
 
+namespace FX9000P {
 /*
 	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
 00	"	$	(	=	>	UP	ANS	CLS	#	%	)	<	LEFT	DOWN	STAT	RIGHT
@@ -580,4 +581,6 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(op1_addr);
 	state_fio->StateValue(op1_data);
 	return true;
+}
+
 }
