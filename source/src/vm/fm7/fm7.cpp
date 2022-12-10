@@ -774,14 +774,14 @@ void VM::special_reset(int num)
 
 void VM::run()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		event->drive();
 	}
 }
 
 double VM::get_frame_rate()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->get_frame_rate();
 	}
 	return VM_TEMPLATE::get_frame_rate();
@@ -789,14 +789,14 @@ double VM::get_frame_rate()
 
 void VM::set_vm_frame_rate(double fps)
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		event->set_frames_per_sec(fps);
 	}
 }
 
 double VM::get_current_usec()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->get_current_usec();
 	}
 	return VM_TEMPLATE::get_current_usec();
@@ -804,7 +804,7 @@ double VM::get_current_usec()
 
 uint64_t VM::get_current_clock_uint64()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->get_current_clock_uint64();
 	}
 	return VM_TEMPLATE::get_current_clock_uint64();
@@ -855,6 +855,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
+	__UNLIKELY_IF(display == nullptr) return;
 	display->draw_screen();
 }
 
@@ -904,7 +905,7 @@ void VM::initialize_sound(int rate, int samples)
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		uint16_t* p = event->create_sound(extra_frames);
 		return p;
 	}
@@ -913,7 +914,7 @@ uint16_t* VM::create_sound(int* extra_frames)
 
 int VM::get_sound_buffer_ptr()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		int pos = event->get_sound_buffer_ptr();
 		return pos;
 	}
@@ -1006,7 +1007,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	if(keyboard == nullptr) return;
+	__UNLIKELY_IF(keyboard == nullptr) return;
 	if(!repeat) {
 		keyboard->key_down(code);
 	}
@@ -1014,26 +1015,26 @@ void VM::key_down(int code, bool repeat)
 
 void VM::key_up(int code)
 {
-	if(keyboard == nullptr) return;
+	__UNLIKELY_IF(keyboard == nullptr) return;
 	keyboard->key_up(code);
 }
 
 bool VM::get_caps_locked()
 {
-	if(keyboard == nullptr) return false;
+	__UNLIKELY_IF(keyboard == nullptr) return false;
 	return keyboard->get_caps_locked();
 }
 
 bool VM::get_kana_locked()
 {
-	if(keyboard == nullptr) return false;
+	__UNLIKELY_IF(keyboard == nullptr) return false;
 	return keyboard->get_kana_locked();
 }
 
 // Get INS status.Important with FM-7 series (^_^;
 uint32_t VM::get_led_status()
 {
-	if(keyboard == nullptr) return 0;
+	__UNLIKELY_IF(keyboard == nullptr) return 0;
 	return keyboard->read_signal(SIG_FM7KEY_LED_STATUS);
 }
 
@@ -1223,7 +1224,7 @@ bool VM::is_tape_recording(int drv)
 
 int VM::get_tape_position(int drv)
 {
-	if(drec != nullptr) {
+	__LIKELY_IF(drec != nullptr) {
 		return drec->get_tape_position();
 	}
 	return 0;
@@ -1231,7 +1232,7 @@ int VM::get_tape_position(int drv)
 
 const _TCHAR* VM::get_tape_message(int drv)
 {
-	if(drec != nullptr) {
+	__LIKELY_IF(drec != nullptr) {
 		return drec->get_message();
 	}
 	return nullptr;
@@ -1281,14 +1282,14 @@ void VM::push_apss_forward(int drv)
 
 void VM::push_apss_rewind(int drv)
 {
-	if(drec != nullptr) {
+	__UNLIKELY_IF(drec != nullptr) {
 		drec->do_apss(-1);
 	}
 }
 
 bool VM::is_frame_skippable()
 {
-	if(event == nullptr) {
+	__UNLIKELY_IF(event == nullptr) {
 		return false;
 	}
 	return event->is_frame_skippable();
@@ -1305,7 +1306,7 @@ void VM::update_dipswitch()
 
 void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks)
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		event->set_secondary_cpu_clock(cpu, clocks);
 	}
 }
@@ -1313,15 +1314,15 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks)
 #if defined(USE_BUBBLE)
 void VM::open_bubble_casette(int drv, const _TCHAR *path, int bank)
 {
-	if((drv >= 2) || (drv < 0)) return;
-	if(bubble_casette[drv] == nullptr) return;
+	__UNLIKELY_IF((drv >= 2) || (drv < 0)) return;
+	__UNLIKELY_IF(bubble_casette[drv] == nullptr) return;
 	bubble_casette[drv]->open((_TCHAR *)path, bank);
 }
 
 void VM::close_bubble_casette(int drv)
 {
-	if((drv >= 2) || (drv < 0)) return;
-	if(bubble_casette[drv] == nullptr) return;
+	__UNLIKELY_IF((drv >= 2) || (drv < 0)) return;
+	__UNLIKELY_IF(bubble_casette[drv] == nullptr) return;
 	bubble_casette[drv]->close();
 }
 

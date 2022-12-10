@@ -128,16 +128,10 @@ DEVICE* VM::get_device(int id)
 // drive virtual machine
 // ----------------------------------------------------------------------------
 
-void VM::reset()
-{
-	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-}
 
 void VM::run()
 {
+	if(event == nullptr) return;
 	event->drive();
 }
 
@@ -187,16 +181,19 @@ void VM::key_up(int code)
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
+	if(event == nullptr) return;
 	event->initialize_sound(rate, samples);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
+	if(event == nullptr) return nullptr;
 	return event->create_sound(extra_frames);
 }
 
 int VM::get_sound_buffer_ptr()
 {
+	if(event == nullptr) return 0;
 	return event->get_sound_buffer_ptr();
 }
 
@@ -298,36 +295,16 @@ void VM::push_fast_rewind(int drv)
 
 bool VM::is_frame_skippable()
 {
+	if(event == nullptr) return false;
 	return event->is_frame_skippable();
-}
-
-void VM::update_config()
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
-	}
 }
 
 #define STATE_VERSION	1
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
-		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
 	}
 	state_fio->StateArray(vram, sizeof(vram), 1);
 	state_fio->StateArray(dram, sizeof(dram), 1);

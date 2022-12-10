@@ -761,14 +761,14 @@ void VM::special_reset(int num)
 	// reset all devices
 	VM_TEMPLATE::reset();
 	//	cpu->set_address_mask(0xffffffff);
-	if(keyboard != nullptr) {
+	__LIKELY_IF(keyboard != nullptr) {
 		keyboard->special_reset(num);
 	}
 }
 
 void VM::run()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		event->drive();
 	}
 }
@@ -804,7 +804,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	if(crtc != nullptr) {
+	__LIKELY_IF(crtc != nullptr) {
 		crtc->draw_screen();
 	}
 }
@@ -852,7 +852,7 @@ void VM::initialize_sound(int rate, int samples)
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->create_sound(extra_frames);
 	}
 	return VM_TEMPLATE::create_sound(extra_frames);
@@ -860,7 +860,7 @@ uint16_t* VM::create_sound(int* extra_frames)
 
 int VM::get_sound_buffer_ptr()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->get_sound_buffer_ptr();
 	}
 	return VM_TEMPLATE::get_sound_buffer_ptr();
@@ -868,7 +868,7 @@ int VM::get_sound_buffer_ptr()
 
 void VM::clear_sound_in()
 {
-	if(event == nullptr) return;
+	__UNLIKELY_IF(event == nullptr) return;
 
 	event->clear_sound_in_source(adc_in_ch);
 	event->clear_sound_in_source(mic_in_ch);
@@ -1056,14 +1056,14 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	if(keyboard != nullptr) {
+	__LIKELY_IF(keyboard != nullptr) {
 		keyboard->key_down(code);
 	}
 }
 
 void VM::key_up(int code)
 {
-	if(keyboard != nullptr) {
+	__LIKELY_IF(keyboard != nullptr) {
 		keyboard->key_up(code);
 	}
 }
@@ -1153,14 +1153,14 @@ bool VM::is_floppy_disk_inserted(int drv)
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	if(fdc != nullptr) {
+	__LIKELY_IF(fdc != nullptr) {
 		fdc->is_disk_protected(drv, value);
 	}
 }
 
 bool VM::is_floppy_disk_protected(int drv)
 {
-	if(fdc != nullptr) {
+	__LIKELY_IF(fdc != nullptr) {
 		return fdc->is_disk_protected(drv);
 	}
 	return VM_TEMPLATE::is_floppy_disk_protected(drv);
@@ -1168,7 +1168,7 @@ bool VM::is_floppy_disk_protected(int drv)
 
 bool VM::is_frame_skippable()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->is_frame_skippable();
 	}
 	return VM_TEMPLATE::is_frame_skippable();
@@ -1177,7 +1177,7 @@ bool VM::is_frame_skippable()
 
 double VM::get_current_usec()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->get_current_usec();
 	}
 	return VM_TEMPLATE::get_current_usec();
@@ -1185,7 +1185,7 @@ double VM::get_current_usec()
 
 uint64_t VM::get_current_clock_uint64()
 {
-	if(event != nullptr) {
+	__LIKELY_IF(event != nullptr) {
 		return event->get_current_clock_uint64();
 	}
 	return VM_TEMPLATE::get_current_clock_uint64();

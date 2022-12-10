@@ -91,7 +91,7 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
+	//void reset();
 	void run();
 	double get_frame_rate()
 	{
@@ -135,7 +135,7 @@ public:
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
 	
-	void update_config();
+	//void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------

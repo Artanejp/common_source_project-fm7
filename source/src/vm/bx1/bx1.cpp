@@ -417,25 +417,8 @@ void VM::update_config()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			if(loading) {
-				printf("Class name len Error: DEVID=%d EXPECT=%s\n", device->this_device_id, name);
-			}
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
-		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;

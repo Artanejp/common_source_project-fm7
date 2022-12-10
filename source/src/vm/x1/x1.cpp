@@ -470,11 +470,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
-	strncpy(_git_revision, __GIT_REPO_VERSION, sizeof(_git_revision) - 1);
+	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
+	
 	if(!pseudo_sub_cpu) {
 		// load rom images after cpustate is allocated
 		cpu_sub->load_rom_image(create_local_path(SUB_ROM_FILE_NAME));
@@ -1043,28 +1042,9 @@ uint64_t VM::get_current_clock_uint64()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
- 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		// Note: typeid(foo).name is fixed by recent ABI.Not decr. 6.
- 		// const char *name = typeid(*device).name();
-		//       But, using get_device_name() instead of typeid(foo).name() 20181008 K.O
-		const char *name = device->get_device_name();
-		int len = (int)strlen(name);
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
- 			return false;
- 		}
-		if(!device->process_state(state_fio, loading)) {
-			if(loading) {
-				printf("Data loading Error: DEVID=%d\n", device->this_device_id);
-			}
- 			return false;
- 		}
- 	}
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
+		return false;
+	}
 	state_fio->StateValue(pseudo_sub_cpu);
 	state_fio->StateValue(sound_type);
  	
