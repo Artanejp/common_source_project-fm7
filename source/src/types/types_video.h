@@ -3,22 +3,22 @@
 #include "../types/scrntype_t.h"
 
 // ToDo: for MSVC, without C++11.
-typedef	 union {
+typedef union scrntype_vec8_u {
 	scrntype_t w[8];
 } scrntype_vec8_t;
-typedef	union {
+typedef	union scrntype_vec16_u {
 	scrntype_t w[16];
 } scrntype_vec16_t;
 
-typedef  union {
+typedef union uint8_vec8_u {
 	uint8_t w[8];
 } uint8_vec8_t;
 
-typedef union {
+typedef union uint16_vec8_u {
 	uint16_t w[8];
 } uint16_vec8_t;
 
-typedef union {
+typedef union uint32_vec8_t {
 	uint32_t w[8];
 } uint32_vec8_t;
 

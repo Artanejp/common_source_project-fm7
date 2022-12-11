@@ -94,11 +94,11 @@ private:
 	bool grcg_cg_mode, grcg_rw_mode;
 #endif
 #if defined(SUPPORT_EGC)
-	typedef union {
+	typedef union egcword_u {
 		uint8_t b[2];
 		uint16_t w;
 	} egcword_t;
-	typedef union {
+	typedef union egcquad_u {
 		uint8_t b[4][2];
 		uint16_t w[4];
 		uint32_t d[2];

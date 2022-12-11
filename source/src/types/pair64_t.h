@@ -2,7 +2,7 @@
 
 #include "./basic_types.h"
 
-typedef union pair64_t {
+typedef union pair64_u {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h7, h6, h5, h4, h3, h2, h, l;

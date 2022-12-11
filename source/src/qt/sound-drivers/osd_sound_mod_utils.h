@@ -37,10 +37,10 @@ namespace SOUND_MODULE {
 		if(words == 0) return 0;
 		const size_t wordsize = sizeof(T);
 		
-		typedef union _t_pair_t {
+		typedef union _t_pair_u {
 			T		data;
 			uint8_t	u8[sizeof(T)];
-		};
+		} _t_pair_t;
 		T* p = src;
 		T* q = dst;
 		

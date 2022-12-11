@@ -3,7 +3,7 @@
 #include "./basic_types.h"
 
 
-typedef union pair16_t {
+typedef union pair16_u {
 	struct {
 #ifdef __BIG_ENDIAN__
 		uint8_t h, l;

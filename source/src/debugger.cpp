@@ -321,6 +321,23 @@ void* debugger_thread(void *lpx)
 		helplist.push_back("! save_state <slot> - save state at top of next frame\n");
 		helplist.push_back("! load_state <slot> - load state\n");
 	}
+	if(!(p->osd->check_feature(_T("USE_FLOPPY_DISK")))) {
+		helplist.push_back("! mount_fd <drive> [<bank>] - mount floppy disk\n");
+		helplist.push_back("! unmount_fd <drive> - unmount floppy disk\n");
+	}
+	if(!(p->osd->check_feature(_T("USE_QUICK_DISK")))) {
+		helplist.push_back("! mount_qd <drive> [<bank>] - mount quick disk\n");
+		helplist.push_back("! unmount_qd <drive> - unmount quick disk\n");
+	}
+	if(!(p->osd->check_feature(_T("USE_HARD_DISK")))) {
+		helplist.push_back("! mount_hd <drive> [<bank>] - mount hard disk\n");
+		helplist.push_back("! unmount_hd <drive> - unmount hard disk\n");
+	}
+	if(!(p->osd->check_feature(_T("USE_TAPE")))) {
+		helplist.push_back("! mount_cmt <drive> - mount cassette tape\n");
+		helplist.push_back("! unmount_cmt <drive> - unmount cassette tape\n");
+	}
+	
 	helplist.push_back("!! <remark> - do nothing");
 
 	helplist.push_back("<value> - hexa, decimal(%%d), ascii('a')");
@@ -1766,9 +1783,93 @@ RESTART_GO:
 					} else {
 						my_printf(p->osd, _T("invalid parameter number\n"));
 					}
-				} else {
+				} else if(_tcsicmp(params[1], _T("MOUNT_FD")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_FLOPPY_DISK")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3 || num == 4) {
+						int drv = my_hexatoi(NULL, params[2]), bank = 0;
+						if(num == 4) {
+							bank = my_hexatoi(NULL, params[3]);
+						}
+						p->emu->open_floppy_disk(drv, cpu_debugger->file_path, bank);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("UNMOUNT_FD")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_FLOPPY_DISK")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]), bank = 0;
+						p->emu->close_floppy_disk(drv);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("MOUNT_QD")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_QUICK_DISK")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]);
+						p->emu->open_quick_disk(drv, cpu_debugger->file_path);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("UNMOUNT_QD")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_QUICK_DISK")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]);
+						p->emu->close_quick_disk(drv);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("MOUNT_HD")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_HARD_DISK")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]);
+						p->emu->open_hard_disk(drv, cpu_debugger->file_path);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("UNMOUNT_HD")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_HARD_DISK")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]);
+						p->emu->close_hard_disk(drv);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("MOUNT_CMT")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_TAPE")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]);
+						p->emu->play_tape(drv, cpu_debugger->file_path);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+				} else if(_tcsicmp(params[1], _T("UNMOUNT_CMT")) == 0) {
+					if(!(p->osd->check_feature(_T("USE_TAPE")))) {
+						my_printf(p->osd, _T("Sorry, this feature don't support at this VM.\n"));
+					} else
+					if(num == 3) {
+						int drv = my_hexatoi(NULL, params[2]);
+						p->emu->close_tape(drv);
+					} else {
+						my_printf(p->osd, _T("invalid parameter number\n"));
+					}
+			} else {
 					my_printf(p->osd, _T("unknown command ! %s\n"), params[1]);
 				}
+
 			} else if(_tcsicmp(params[0], _T("!!")) == 0) {
 				// do nothing
 			}  else if(_tcsicmp(params[0], _T("RH")) == 0) {

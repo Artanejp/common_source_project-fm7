@@ -47,7 +47,7 @@ class DEBUGGER;
 
 namespace FMTOWNS {
 	#pragma pack(1)
-	typedef union {
+	typedef union SUBC_u {
 		struct {
 			uint8_t P:1;
 			uint8_t Q:1;

@@ -25,7 +25,7 @@ private:
 	DEVICE *d_mem, *d_io;
 	DEBUGGER *d_debugger;
 	outputs_t outputs_wrote_mem;
-	typedef union {
+	typedef union regs_u {
 		uint16_t m[7][8];
 		uint16_t t[6*8+1+1];
 	} regs_t;

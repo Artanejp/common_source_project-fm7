@@ -111,6 +111,7 @@ typedef struct cur_time_s {
 	bool initialized;
 	DLL_PREFIX cur_time_s()
 	{
+		year = month = day = day_of_week = hour = minute = second = 0;
 		initialized = false;
 	}
 	void DLL_PREFIX increment();

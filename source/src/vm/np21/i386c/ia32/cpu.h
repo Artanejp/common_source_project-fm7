@@ -179,7 +179,7 @@ enum {
 //extern "C" {
 //#endif
 
-typedef union {
+typedef union REG32_u {
 #if defined(BYTESEX_LITTLE)
 	struct {
 		UINT8	l;
@@ -394,7 +394,7 @@ typedef enum {
 	ROUND_Chop    = 3
 } FP_RND;
 
-typedef union {
+typedef union FP_REG_u {
     floatx80 d;
     double d64;
     struct {
@@ -419,7 +419,7 @@ typedef struct {
     UINT32 d2;
 } FP_P_REG;
 
-typedef union {
+typedef union FP_INT_REG_u {
     struct {
         UINT32 m1;
         UINT32 m2;
@@ -440,7 +440,7 @@ typedef union {
     } l64;
 } FP_INT_REG;
 
-typedef union {
+typedef union XMM_REG_u {
     float f[4];
     double d[2];
     UINT8 ul8[16];

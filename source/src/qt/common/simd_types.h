@@ -43,7 +43,7 @@ typedef uint32_t v4ui  __attribute__ ((__vector_size__(16)));
 typedef int32_t v8ii   __attribute__ ((__vector_size__(32)));
 typedef uint32_t v8ui  __attribute__ ((__vector_size__(32)));
 
-typedef union 
+typedef union v2hi_u
 {
 	v2si v;
 	v2ii vv;
@@ -56,7 +56,7 @@ typedef union
 	int8_t  sb[8];
 } v2hi;
 
-typedef union 
+typedef union v4hi_u
 {
 	v4si v;
 	v4ii vv;
@@ -69,7 +69,7 @@ typedef union
 	int8_t  sb[16];
 } v4hi;
 
-typedef union 
+typedef union v8hi_u
 {
 	v8si v;
 	v8ii vv;
