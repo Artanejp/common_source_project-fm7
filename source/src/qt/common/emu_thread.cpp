@@ -371,19 +371,42 @@ void EmuThreadClass::doWork(const QString &params)
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			// After frame, delayed open
+#if 0 /* TRY: Move to EMU:: */
 			if(using_flags.get() != nullptr) {
-			for(int i = 0; i < using_flags->get_max_drive(); i++) {
-				if(fd_open_wait_count[i] > 0) {
-					fd_open_wait_count[i] -= run_frames;
-					if(fd_open_wait_count[i] <= 0) {
-						do_open_disk(i, fd_reserved_path[i], fd_reserved_bank[i]);
-						fd_reserved_path[i].clear();
-						fd_reserved_bank[i] = 0;
-						fd_open_wait_count[i] = 0;
+				for(int i = 0; i < using_flags->get_max_drive(); i++) {
+					if(fd_open_wait_count[i] > 0) {
+						fd_open_wait_count[i] -= run_frames;
+						if(fd_open_wait_count[i] <= 0) {
+							do_open_disk(i, fd_reserved_path[i], fd_reserved_bank[i]);
+							fd_reserved_path[i].clear();
+							fd_reserved_bank[i] = 0;
+							fd_open_wait_count[i] = 0;
+						}
 					}
 				}
 			}
+#else
+			if(using_flags.get() != nullptr) {
+				for(int i = 0; i < using_flags->get_max_drive(); i++) {
+					if(fd_open_wait_count[i] > 0) {
+						fd_open_wait_count[i] -= run_frames;
+						if(fd_open_wait_count[i] <= 0) {
+							if(p_emu->is_floppy_disk_inserted(i)) {
+								int bank = p_emu->d88_file[i].cur_bank;
+								emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, i, fd_reserved_path[i]);
+								emit sig_update_recent_disk(i);
+								emit sig_update_d88_list(i, bank);
+								fd_reserved_path[i].clear();
+								//fd_reserved_bank[i] = 0;
+								fd_open_wait_count[i] = 0;
+							} else {
+								fd_open_wait_count[i] = (int)(get_emu_frame_rate() * 0.2);
+							}
+						}
+					}
+				}
 			}
+#endif
 			if(!(half_count)) {
 				if(using_flags.get() != nullptr) {
 				if(using_flags->is_use_minimum_rendering()) {

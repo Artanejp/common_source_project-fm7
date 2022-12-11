@@ -2261,6 +2261,9 @@ void EMU::initialize_media()
 #endif
 }
 
+#if defined(_USE_QT)
+extern void DLL_PREFIX_I Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit);
+#endif
 
 void EMU::update_media()
 {
@@ -2510,7 +2513,6 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 	if(drv < USE_FLOPPY_DISK) {
 		d88_file[drv].bank_num = 0;
 		d88_file[drv].cur_bank = -1;
-		
 		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
 			FILEIO *fio = new FILEIO();
 			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -2523,16 +2525,23 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						char tmp[18];
 						fio->Fread(tmp, 17, 1);
 						tmp[17] = 0;
+	#if defined(_USE_QT)
+						memset(d88_file[drv].disk_name[d88_file[drv].bank_num], 0x00, 128);
+						if(strlen(tmp) > 0) {
+							Convert_CP932_to_UTF8(d88_file[drv].disk_name[d88_file[drv].bank_num], tmp, 127, 17);
+						}
+	#else /* not _USE_QT */
 						MultiByteToWideChar(CP_ACP, 0, tmp, -1, d88_file[drv].disk_name[d88_file[drv].bank_num], 18);
+	#endif
 #else
 						fio->Fread(d88_file[drv].disk_name[d88_file[drv].bank_num], 17, 1);
 						d88_file[drv].disk_name[d88_file[drv].bank_num][17] = 0;
 #endif
-						fio->Fseek(file_offset + 0x1c, SEEK_SET);
+						fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
 						file_offset += fio->FgetUint32_LE();
 						d88_file[drv].bank_num++;
 					}
-					my_tcscpy_s(d88_file[drv].path, _MAX_PATH, file_path;
+					my_tcscpy_s(d88_file[drv].path, _MAX_PATH, file_path);
 					d88_file[drv].cur_bank = bank;
 				} catch(...) {
 					d88_file[drv].bank_num = 0;
@@ -2540,11 +2549,12 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 				fio->Fclose();
 			}
 			delete fio;
-		
+		}
+
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
-			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 1);
+			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: Ejected"), drv + BASE_FLOPPY_DISK_NUM);
 #else
@@ -2563,6 +2573,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 	}
 }
 
+
 void EMU::close_floppy_disk(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
@@ -2578,7 +2589,7 @@ void EMU::close_floppy_disk(int drv)
 #endif
 	}
 }
-
+	
 bool EMU::is_floppy_disk_connected(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
@@ -2612,7 +2623,7 @@ bool EMU::is_floppy_disk_protected(int drv)
 		return false;
 	}
 }
-
+	
 uint32_t EMU::is_floppy_disk_accessed()
 {
 	return vm->is_floppy_disk_accessed();
@@ -2877,7 +2888,7 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 		tape_status[drv].play = false;
 	}
 }
-
+	
 void EMU::close_tape(int drv)
 {
 	if(drv < USE_TAPE) {
@@ -3028,11 +3039,7 @@ bool EMU::is_compact_disc_inserted(int drv)
 
 uint32_t EMU::is_compact_disc_accessed()
 {
-	if(drv < USE_COMPACT_DISC) {
-		return vm->is_compact_disc_accessed();
-	} else {
-		return 0;
-	}
+	return vm->is_compact_disc_accessed();
 }
 #endif
 

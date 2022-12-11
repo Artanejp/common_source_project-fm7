@@ -6,6 +6,8 @@
 
 #include "menu_flags.h"
 
+#include "../../fileio.h"
+
 //#if defined(USE_FLOPPY_DISK)
 
 #ifndef UPDATE_D88_LIST
@@ -110,12 +112,17 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	char path_shadow[PATH_MAX];
 
 	if(fname.length() <= 0) return;
-	drv = drv & 7;
+	if(using_flags->get_max_drive() <= drv) return;
+	if(!(FILEIO::IsFileExisting(fname.toLocal8Bit().constData()))) return; // File not found.	
+//	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
+
+	
 	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
 	strcpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
 	// Update List
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
+	
 //	if(emu) {
 		emit sig_close_disk(drv);
 		emit sig_open_disk(drv, fname, 0);
@@ -128,7 +135,7 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 			menu_fds[drv]->do_clear_inner_media();
 		}
 //	}
-	if(using_flags->get_max_drive() >= 2) {
+	if(using_flags->get_max_drive() > (drv + 1)) {
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			if(((drv & 1) == 0) && (drv + 1 < using_flags->get_max_drive()) && (1 < hRunEmu->get_d88_file_bank_num(drv))) {
 				int drv2 = drv + 1;
@@ -143,6 +150,7 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 		}
 	}
 }
+
 
 void Ui_MainWindowBase::do_update_d88_list(int drv, int bank)
 {

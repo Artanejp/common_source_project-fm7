@@ -511,79 +511,25 @@ void EmuThreadClassBase::do_close_disk(int drv)
 	//QMutexLocker _locker(&uiMutex);
 	if(using_flags->is_use_fd()) {
 		p_emu->close_floppy_disk(drv);
-		p_emu->d88_file[drv].bank_num = 0;
-		p_emu->d88_file[drv].cur_bank = -1;
-		fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 1.0);
+		//fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 1.0);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, QString::fromUtf8(""));
+		fd_reserved_path[drv].clear();
+		fd_open_wait_count[drv] = 0;
 	}
 }
 
 void EmuThreadClassBase::do_open_disk(int drv, QString path, int bank)
 {
 	if(!(using_flags->is_use_fd())) return;
+	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
+	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 	
-	//QMutexLocker _locker(&uiMutex);
-	if(fd_open_wait_count[drv] > 0) {
-		fd_reserved_path[drv] = path.toUtf8();
-		fd_reserved_bank[drv] = bank;
-		return;
-	}
-	QByteArray localPath = path.toLocal8Bit();
-	bool multiple_disk = false;
-	bool past_update = false;
-	p_emu->d88_file[drv].bank_num = 0;
-	p_emu->d88_file[drv].cur_bank = -1;
-	if(check_file_extension(localPath.constData(), ".d88") || check_file_extension(localPath.constData(), ".d77")) {
-		
-		FILEIO *fio = new FILEIO();
-		if(fio->Fopen(localPath.constData(), FILEIO_READ_BINARY)) {
-			try {
-				fio->Fseek(0, FILEIO_SEEK_END);
-				int file_size = fio->Ftell(), file_offset = 0;
-				while(file_offset + 0x2b0 <= file_size && p_emu->d88_file[drv].bank_num < using_flags->get_max_d88_banks()) {
-					fio->Fseek(file_offset, FILEIO_SEEK_SET);
-					char tmp[18];
-					memset(tmp, 0x00, sizeof(tmp));
-					fio->Fread(tmp, 17, 1);
-					memset(p_emu->d88_file[drv].disk_name[p_emu->d88_file[drv].bank_num], 0x00, 128);
-					if(strlen(tmp) > 0) Convert_CP932_to_UTF8(p_emu->d88_file[drv].disk_name[p_emu->d88_file[drv].bank_num], tmp, 127, 17);
-					
-					fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
-					file_offset += fio->FgetUint32_LE();
-					p_emu->d88_file[drv].bank_num++;
-				}
-				strcpy(p_emu->d88_file[drv].path, path.toUtf8().constData());
-				if(bank >= p_emu->d88_file[drv].bank_num) bank = p_emu->d88_file[drv].bank_num - 1;
-				if(bank < 0) bank = 0;
-				p_emu->d88_file[drv].cur_bank = bank;
-			}
-			catch(...) {
-				bank = 0;
-				p_emu->d88_file[drv].bank_num = 0;
-			}
-			past_update = true;
-		   	fio->Fclose();
-			if(((drv + 1) < using_flags->get_max_drive()) && ((bank + 1) < p_emu->d88_file[drv].bank_num)) {
-				multiple_disk = true;
-			}
-		}
-	   	delete fio;
-	} else {
-	   bank = 0;
-	}
-	if(multiple_disk) {
-		do_close_disk(drv + 1);
-		do_open_disk(drv + 1, path, bank + 1);  
-	}
-//	do_close_disk(drv);
-	p_emu->open_floppy_disk(drv, localPath.constData(), bank);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, path);
-	emit sig_update_recent_disk(drv);
-	if(past_update) {
-		emit sig_update_d88_list(drv, bank);
-	}
-
+	p_emu->open_floppy_disk(drv, file_path, bank);
+	
+	fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 0.05);
+	fd_reserved_path[drv] = path;
 }
+
 void EmuThreadClassBase::do_play_tape(int drv, QString name)
 {
 	if(using_flags->is_use_tape()) {

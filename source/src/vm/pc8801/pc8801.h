@@ -416,7 +416,7 @@ public:
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	// draw screen
 	void draw_screen() override;
