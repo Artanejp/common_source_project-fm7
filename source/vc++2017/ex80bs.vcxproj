@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F62D036D-7569-431B-9C55-C056A4D3145A}</ProjectGuid>
-    <RootNamespace>ex80</RootNamespace>
+    <RootNamespace>ex80bs</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -123,7 +123,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_EX80;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_EX80BS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -174,7 +174,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_EX80;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_EX80BS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -227,7 +227,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_EX80;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_EX80BS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -279,7 +279,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_EX80;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_EX80BS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -328,11 +328,10 @@
     <ClCompile Include="..\src\fifo.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
-    <ClCompile Include="..\src\vm\ex80\cmt.cpp" />
-    <ClCompile Include="..\src\vm\ex80\display.cpp" />
-    <ClCompile Include="..\src\vm\ex80\ex80.cpp" />
-    <ClCompile Include="..\src\vm\ex80\keyboard.cpp" />
-    <ClCompile Include="..\src\vm\ex80\memory.cpp" />
+    <ClCompile Include="..\src\vm\ex80bs\cmt.cpp" />
+    <ClCompile Include="..\src\vm\ex80bs\display.cpp" />
+    <ClCompile Include="..\src\vm\ex80bs\ex80bs.cpp" />
+    <ClCompile Include="..\src\vm\ex80bs\memory.cpp" />
     <ClCompile Include="..\src\vm\i8080.cpp" />
     <ClCompile Include="..\src\vm\i8251.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
@@ -355,11 +354,10 @@
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\event.h" />
-    <ClInclude Include="..\src\vm\ex80\cmt.h" />
-    <ClInclude Include="..\src\vm\ex80\display.h" />
-    <ClInclude Include="..\src\vm\ex80\ex80.h" />
-    <ClInclude Include="..\src\vm\ex80\keyboard.h" />
-    <ClInclude Include="..\src\vm\ex80\memory.h" />
+    <ClInclude Include="..\src\vm\ex80bs\cmt.h" />
+    <ClInclude Include="..\src\vm\ex80bs\display.h" />
+    <ClInclude Include="..\src\vm\ex80bs\ex80bs.h" />
+    <ClInclude Include="..\src\vm\ex80bs\memory.h" />
     <ClInclude Include="..\src\vm\f9368.h" />
     <ClInclude Include="..\src\vm\i8080.h" />
     <ClInclude Include="..\src\vm\i8251.h" />
@@ -371,36 +369,36 @@
     <ClInclude Include="..\src\win32\osd.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\res\ex80.ico" />
-    <Image Include="..\src\res\ex80\board.png" />
-    <Image Include="..\src\res\ex80\button00.png" />
-    <Image Include="..\src\res\ex80\button01.png" />
-    <Image Include="..\src\res\ex80\button02.png" />
-    <Image Include="..\src\res\ex80\button03.png" />
-    <Image Include="..\src\res\ex80\button04.png" />
-    <Image Include="..\src\res\ex80\button05.png" />
-    <Image Include="..\src\res\ex80\button06.png" />
-    <Image Include="..\src\res\ex80\button07.png" />
-    <Image Include="..\src\res\ex80\button08.png" />
-    <Image Include="..\src\res\ex80\button09.png" />
-    <Image Include="..\src\res\ex80\button10.png" />
-    <Image Include="..\src\res\ex80\button11.png" />
-    <Image Include="..\src\res\ex80\button12.png" />
-    <Image Include="..\src\res\ex80\button13.png" />
-    <Image Include="..\src\res\ex80\button14.png" />
-    <Image Include="..\src\res\ex80\button15.png" />
-    <Image Include="..\src\res\ex80\button16.png" />
-    <Image Include="..\src\res\ex80\button17.png" />
-    <Image Include="..\src\res\ex80\button18.png" />
-    <Image Include="..\src\res\ex80\button19.png" />
-    <Image Include="..\src\res\ex80\button20.png" />
-    <Image Include="..\src\res\ex80\button21.png" />
-    <Image Include="..\src\res\ex80\button22.png" />
-    <Image Include="..\src\res\ex80\button23.png" />
-    <Image Include="..\src\res\ex80\button24.png" />
+    <Image Include="..\src\res\ex80bs.ico" />
+    <Image Include="..\src\res\ex80bs\board.png" />
+    <Image Include="..\src\res\ex80bs\button00.png" />
+    <Image Include="..\src\res\ex80bs\button01.png" />
+    <Image Include="..\src\res\ex80bs\button02.png" />
+    <Image Include="..\src\res\ex80bs\button03.png" />
+    <Image Include="..\src\res\ex80bs\button04.png" />
+    <Image Include="..\src\res\ex80bs\button05.png" />
+    <Image Include="..\src\res\ex80bs\button06.png" />
+    <Image Include="..\src\res\ex80bs\button07.png" />
+    <Image Include="..\src\res\ex80bs\button08.png" />
+    <Image Include="..\src\res\ex80bs\button09.png" />
+    <Image Include="..\src\res\ex80bs\button10.png" />
+    <Image Include="..\src\res\ex80bs\button11.png" />
+    <Image Include="..\src\res\ex80bs\button12.png" />
+    <Image Include="..\src\res\ex80bs\button13.png" />
+    <Image Include="..\src\res\ex80bs\button14.png" />
+    <Image Include="..\src\res\ex80bs\button15.png" />
+    <Image Include="..\src\res\ex80bs\button16.png" />
+    <Image Include="..\src\res\ex80bs\button17.png" />
+    <Image Include="..\src\res\ex80bs\button18.png" />
+    <Image Include="..\src\res\ex80bs\button19.png" />
+    <Image Include="..\src\res\ex80bs\button20.png" />
+    <Image Include="..\src\res\ex80bs\button21.png" />
+    <Image Include="..\src\res\ex80bs\button22.png" />
+    <Image Include="..\src\res\ex80bs\button23.png" />
+    <Image Include="..\src\res\ex80bs\button24.png" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\res\ex80.rc">
+    <ResourceCompile Include="..\src\res\ex80bs.rc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

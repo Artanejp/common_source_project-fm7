@@ -192,11 +192,9 @@ public:
 };
 
 inline void I8080_BASE::INT(uint16_t v)
-{												\
-	if(afterHALT) {
-		PC++; afterHALT = 0;
-	}
-	PUSH16(PC); PC = (v);
+{												
+	PUSH16(PC);
+	PC = (v);
 }
 
 inline void I8080_BASE::RST(uint16_t n)

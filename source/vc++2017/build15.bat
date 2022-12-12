@@ -31,9 +31,9 @@ msbuild.exe colecovision.vcxproj /t:clean;rebuild /p:Configuration=Release;Platf
 mkdir build_vc15\colecovision
 copy bin\x86\Release\colecovision.exe build_vc15\colecovision\.
 
-msbuild.exe ex80.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
-mkdir build_vc15\ex80
-copy bin\x86\Release\ex80.exe build_vc15\ex80\.
+msbuild.exe ex80bs.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\ex80bs
+copy bin\x86\Release\ex80bs.exe build_vc15\ex80bs\.
 
 msbuild.exe familybasic.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\familybasic

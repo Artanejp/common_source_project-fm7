@@ -1,13 +1,12 @@
 cmake_minimum_required (VERSION 3.0)
 
-message("* vm/ex80")
+message("* vm/ex80bs")
 
-add_library(vm_emuex80
+add_library(vm_emuex80bs
 	../i8080.cpp
 	
 	cmt.cpp
 	display.cpp
-	keyboard.cpp
 	./memory.cpp
-	ex80.cpp
+	ex80bs.cpp
 )

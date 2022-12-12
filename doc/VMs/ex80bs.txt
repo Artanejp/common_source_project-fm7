@@ -1,0 +1,43 @@
+"eEX-80BS" - TOSHIBA EX-80BS Emulator for Win32
+								5/7/2022
+
+--- Internal ROM images for EX-80
+
+	MON.ROM		$0000-$07FF
+	PROM1.ROM	$0800-$0BFF (optional)
+	PROM2.ROM	$0C00-$0FFF (optional)
+	FONT.ROM	T3477A font (optional)
+
+
+--- Internal ROM images for EX-80BS
+
+	LV1BASIC.ROM	$3000-$3FFF (optional)
+	LV2BASIC.ROM	$1800-$3FFF (optional)
+	FONT1.ROM	TMM334 font (optional)
+	FONT2.ROM	TMM232C user-defined font (optional)
+
+
+--- Displays
+
+EX-80BS has both CRT and 8 7-segs LEDs.
+CRT is displayed at the left side of window.
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	CAN		PageUp
+	DEL		Delete
+	ETX		Escape
+	BS		Back Space
+	LF		Page Down
+	CR		Enter
+	KANA KIGOU	Alt
+	KANA LOCK	Kana
+
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

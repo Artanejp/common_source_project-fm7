@@ -1,6 +1,6 @@
 /*
  * Common Source code Project:
- * Ui->Qt->MainWindow for JR100 .
+ * Ui->Qt->MainWindow for EX-80BS .
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
  *   License : GPLv2
  *   History :
@@ -12,6 +12,7 @@
 #include <QMenu>
 
 #include "emu.h"
+#include "vm.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "qt_main.h"
@@ -19,7 +20,9 @@
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   int i; 
+   int i;
+   ConfigCPUBootMode(USE_BOOT_MODE);
+   
    actionGroup_DipSW1 = new QActionGroup(this);
    actionGroup_DipSW1->setExclusive(true);
 
@@ -71,6 +74,12 @@ void META_MainWindow::retranslateUi(void)
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("System Reset",  false);
 	
+	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
+	menuBootMode->setToolTipsVisible(false);
+	actionBootMode[0]->setText(QApplication::translate("Machine", "EX-80", 0));
+	actionBootMode[1]->setText(QApplication::translate("Machine", "EX-80BS Lv1 BASIC", 0));
+	actionBootMode[2]->setText(QApplication::translate("Machine", "EX-80BS Lv2 BASIC", 0));
+	
 	if(menu_BINs[0] != NULL) menu_BINs[0]->setTitle(QApplication::translate("MenuEX80", "RAM", 0));
 #ifdef USE_MOUSE
 	actionMouseEnable->setVisible(false);
@@ -88,6 +97,14 @@ void META_MainWindow::retranslateUi(void)
 	actionVramAddr[1]->setText(QApplication::translate("MenuEX80", "$8200-$83FF", 0));
 	actionVramAddr[2]->setText(QApplication::translate("MenuEX80", "$8400-$85FF", 0));
 	actionVramAddr[3]->setText(QApplication::translate("MenuEX80", "$8600-$87FF", 0));
+
+#if defined(USE_MONITOR_TYPE)
+	actionMonitorType[0]->setText(QApplication::translate("MenuEX80", "Show TV Monitor"));
+	actionMonitorType[1]->setText(QApplication::translate("MenuEX80", "Hide TV Monitor"));
+//	actionMonitorType[0]->setToolTipVisible(false);
+//	actionMonitorType[1]->setToolTipVisible(false);
+#endif	
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);

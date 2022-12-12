@@ -10,7 +10,7 @@
 #include "./cmt.h"
 #include "../i8251.h"
 
-namespace EX80 {
+namespace EX80BS {
 void CMT::initialize()
 {
 	fio = new FILEIO();

@@ -485,6 +485,10 @@ void I8080::check_interrupt()
 	// check interrupt
 	if(IM & IM_REQ) {
 		if(IM & IM_NMI) {
+			if(afterHALT) {
+				PC++;
+				afterHALT = false;
+			}
 			INT(0x24);
 			count -= 5;	// unknown
 			RIM_IEN = IM & IM_IEN;
@@ -496,16 +500,28 @@ void I8080::check_interrupt()
 #else
 			if(!(IM & IM_M7) && (IM & IM_I7)) {
 #endif
+				if(afterHALT) {
+					PC++;
+					afterHALT = false;
+				}
 				INT(0x3c);
 				count -= 7;	// unknown
 				RIM_IEN = 0;
 				IM &= ~(IM_IEN | IM_I7);
 			} else if(!(IM & IM_M6) && (IM & IM_I6)) {
+				if(afterHALT) {
+					PC++;
+					afterHALT = false;
+				}
 				INT(0x34);
 				count -= 7;	// unknown
 				RIM_IEN = 0;
 				IM &= ~(IM_IEN | IM_I6);
 			} else if(!(IM & IM_M5) && (IM & IM_I5)) {
+				if(afterHALT) {
+					PC++;
+					afterHALT = false;
+				}
 				INT(0x2c);
 				count -= 7;	// unknown
 				RIM_IEN = 0;
@@ -513,10 +529,14 @@ void I8080::check_interrupt()
 			} else
 #endif
 			if(IM & IM_INT) {
+				if(afterHALT) {
+					PC++;
+					afterHALT = false;
+				}
 				uint32_t vector = ACK_INTR();
 				uint8_t v0 = vector;
 				uint16_t v12 = vector >> 8;
-				// support JMP/CALL/RST only
+				// support JMP/CALL/RST/NOP only
 				//count -= cc_op[v0];
 #ifdef HAS_I8085
 				count -= cc_op_8085[v0];

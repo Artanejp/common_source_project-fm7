@@ -14,21 +14,26 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_DISPLAY_DMA		0
+#define SIG_DISPLAY_PC		0
 
-namespace EX80 {
+namespace EX80BS {
 class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
-	
-	uint8_t font[0x400];
-	uint8_t screen[8 * 29 * 2][8 * 12];
+	uint8_t font[0x400];	// EX-80
+	uint8_t font1[0x800];	// EX-80BS
+	uint8_t font2[0x800];	// EX-80BS (user defined)
+	uint8_t screen[TV_HEIGHT][TV_WIDTH];
 	
 	uint8_t *ram;
+	uint8_t *vram;
 	int odd_even;
-	bool dma;
+	uint8_t pc;
 	
+	void draw_tv();
+	void draw_bs();
+
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -37,12 +42,12 @@ public:
 	~DISPLAY() {}
 	
 	// common functions
-	void initialize();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_frame();
-	void event_vline(int v, int clock);
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_frame() override;
+	void event_vline(int v, int clock) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
@@ -52,6 +57,10 @@ public:
 	void set_ram_ptr(uint8_t* ptr)
 	{
 		ram = ptr;
+	}
+	void set_vram_ptr(uint8_t* ptr)
+	{
+		vram = ptr;
 	}
 	void draw_screen();
 };

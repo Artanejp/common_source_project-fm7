@@ -1,0 +1,33 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="background.png">../../../res/ex80bs/board.png</file>
+    <file alias="default.ico">../../../res/ex80bs.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/ex80bs.txt</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/ex80bs.ja_JP.qm</file>
+    <file alias="button00.png">../../../res/ex80bs/button00.png</file>
+    <file alias="button01.png">../../../res/ex80bs/button01.png</file>
+    <file alias="button02.png">../../../res/ex80bs/button02.png</file>
+    <file alias="button03.png">../../../res/ex80bs/button03.png</file>
+    <file alias="button04.png">../../../res/ex80bs/button04.png</file>
+    <file alias="button05.png">../../../res/ex80bs/button05.png</file>
+    <file alias="button06.png">../../../res/ex80bs/button06.png</file>
+    <file alias="button07.png">../../../res/ex80bs/button07.png</file>
+    <file alias="button08.png">../../../res/ex80bs/button08.png</file>
+    <file alias="button09.png">../../../res/ex80bs/button09.png</file>
+    <file alias="button10.png">../../../res/ex80bs/button10.png</file>
+    <file alias="button11.png">../../../res/ex80bs/button11.png</file>
+    <file alias="button12.png">../../../res/ex80bs/button12.png</file>
+    <file alias="button13.png">../../../res/ex80bs/button13.png</file>
+    <file alias="button14.png">../../../res/ex80bs/button14.png</file>
+    <file alias="button15.png">../../../res/ex80bs/button15.png</file>
+    <file alias="button16.png">../../../res/ex80bs/button16.png</file>
+    <file alias="button17.png">../../../res/ex80bs/button17.png</file>
+    <file alias="button18.png">../../../res/ex80bs/button18.png</file>
+    <file alias="button19.png">../../../res/ex80bs/button19.png</file>
+    <file alias="button20.png">../../../res/ex80bs/button20.png</file>
+    <file alias="button21.png">../../../res/ex80bs/button21.png</file>
+    <file alias="button22.png">../../../res/ex80bs/button22.png</file>
+    <file alias="button23.png">../../../res/ex80bs/button23.png</file>
+    <file alias="button24.png">../../../res/ex80bs/button24.png</file>
+</qresource>
+</RCC>

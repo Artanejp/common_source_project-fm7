@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ex80"
+	Name="ex80bs"
 	ProjectGUID="{F62D036D-7569-431B-9C55-C056A4D3145A}"
-	RootNamespace="ex80"
+	RootNamespace="ex80bs"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -43,17 +43,17 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/ex80.tlb"
+				TypeLibraryName=".\Debug/ex80bs.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_EX80"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_EX80BS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/ex80.pch"
+				PrecompiledHeaderFile=".\Debug/ex80bs.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -76,12 +76,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Debug/ex80.exe"
+				OutputFile=".\Debug/ex80bs.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/ex80.pdb"
+				ProgramDatabaseFile=".\Debug/ex80bs.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -99,7 +99,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/ex80.bsc"
+				OutputFile=".\Debug/ex80bs.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -139,19 +139,19 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/ex80.tlb"
+				TypeLibraryName=".\Release/ex80bs.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_EX80"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_EX80BS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
-				PrecompiledHeaderFile=".\Release/ex80.pch"
+				PrecompiledHeaderFile=".\Release/ex80bs.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -173,11 +173,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
-				OutputFile=".\Release/ex80.exe"
+				OutputFile=".\Release/ex80bs.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/ex80.pdb"
+				ProgramDatabaseFile=".\Release/ex80bs.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -195,7 +195,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/ex80.bsc"
+				OutputFile=".\Release/ex80bs.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -595,7 +595,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\ex80\cmt.cpp"
+					RelativePath="..\src\vm\ex80bs\cmt.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -615,7 +615,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\ex80\display.cpp"
+					RelativePath="..\src\vm\ex80bs\display.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -635,7 +635,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\ex80\ex80.cpp"
+					RelativePath="..\src\vm\ex80bs\ex80bs.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -655,27 +655,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\ex80\keyboard.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\ex80\memory.cpp"
+					RelativePath="..\src\vm\ex80bs\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -788,23 +768,19 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\ex80\cmt.h"
+					RelativePath="..\src\vm\ex80bs\cmt.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\ex80\display.h"
+					RelativePath="..\src\vm\ex80bs\display.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\ex80\ex80.h"
+					RelativePath="..\src\vm\ex80bs\ex80bs.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\ex80\keyboard.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\ex80\memory.h"
+					RelativePath="..\src\vm\ex80bs\memory.h"
 					>
 				</File>
 			</Filter>
@@ -814,11 +790,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\src\res\ex80.ico"
+				RelativePath="..\src\res\ex80bs.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80.rc"
+				RelativePath="..\src\res\ex80bs.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -840,107 +816,107 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\board.png"
+				RelativePath="..\src\res\ex80bs\board.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button00.png"
+				RelativePath="..\src\res\ex80bs\button00.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button01.png"
+				RelativePath="..\src\res\ex80bs\button01.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button02.png"
+				RelativePath="..\src\res\ex80bs\button02.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button03.png"
+				RelativePath="..\src\res\ex80bs\button03.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button04.png"
+				RelativePath="..\src\res\ex80bs\button04.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button05.png"
+				RelativePath="..\src\res\ex80bs\button05.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button06.png"
+				RelativePath="..\src\res\ex80bs\button06.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button07.png"
+				RelativePath="..\src\res\ex80bs\button07.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button08.png"
+				RelativePath="..\src\res\ex80bs\button08.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button09.png"
+				RelativePath="..\src\res\ex80bs\button09.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button10.png"
+				RelativePath="..\src\res\ex80bs\button10.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button11.png"
+				RelativePath="..\src\res\ex80bs\button11.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button12.png"
+				RelativePath="..\src\res\ex80bs\button12.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button13.png"
+				RelativePath="..\src\res\ex80bs\button13.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button14.png"
+				RelativePath="..\src\res\ex80bs\button14.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button15.png"
+				RelativePath="..\src\res\ex80bs\button15.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button16.png"
+				RelativePath="..\src\res\ex80bs\button16.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button17.png"
+				RelativePath="..\src\res\ex80bs\button17.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button18.png"
+				RelativePath="..\src\res\ex80bs\button18.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button19.png"
+				RelativePath="..\src\res\ex80bs\button19.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button20.png"
+				RelativePath="..\src\res\ex80bs\button20.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button21.png"
+				RelativePath="..\src\res\ex80bs\button21.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button22.png"
+				RelativePath="..\src\res\ex80bs\button22.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button23.png"
+				RelativePath="..\src\res\ex80bs\button23.png"
 				>
 			</File>
 			<File
-				RelativePath="..\src\res\ex80\button24.png"
+				RelativePath="..\src\res\ex80bs\button24.png"
 				>
 			</File>
 			<File

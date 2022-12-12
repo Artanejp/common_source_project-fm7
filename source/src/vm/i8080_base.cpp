@@ -793,7 +793,7 @@ void I8080_BASE::OP(uint8_t code)
 		break;
 	case 0x76: // HLT
 		PC--;
-		afterHALT = 1;
+		afterHALT = true;
 		break;
 	case 0x77: // MOV M,A
 		WM8(HL, _A);
