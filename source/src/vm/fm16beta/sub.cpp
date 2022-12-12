@@ -7,8 +7,8 @@
 	[ sub system ]
 */
 
-#include "sub.h"
-#include "mainbus.h"
+#include "./sub.h"
+#include "./main.h"
 #include "../pcm1bit.h"
 
 using ::MEMORY;

@@ -8,7 +8,7 @@
 */
 
 #include "./keyboard.h"
-#include "./mainbus.h"
+#include "./main.h"
 #include "../../fifo.h"
 
 namespace FM16BETA {

@@ -36,7 +36,7 @@
 
 #include "cmos.h"
 #include "keyboard.h"
-#include "mainbus.h"
+#include "main.h"
 #include "sub.h"
 
 using FM16BETA::CMOS;

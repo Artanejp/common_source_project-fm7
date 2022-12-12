@@ -8,7 +8,7 @@ set(VM_FM16BETA_LIB_SRCS
 	
      cmos.cpp
      keyboard.cpp
-     mainbus.cpp
+     main.cpp
      sub.cpp
 	 
      fm16beta.cpp

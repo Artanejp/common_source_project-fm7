@@ -7,8 +7,8 @@
 	[ main system ]
 */
 
-#ifndef _MAINBUS_H_
-#define _MAINBUS_H_
+#ifndef _EFM16BETA_MAIN_H_
+#define _EFM16BETA_MAIN_H_
 
 #include "../vm.h"
 #include "../memory.h"
@@ -158,4 +158,4 @@ public:
 };
 
 }
-#endif
+#endif /* _EFM16BETA_MAIN_H_ */

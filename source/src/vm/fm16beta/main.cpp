@@ -7,7 +7,7 @@
 	[ main system ]
 */
 
-#include "./mainbus.h"
+#include "./main.h"
 #include "./sub.h"
 #include "./keyboard.h"
 
