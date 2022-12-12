@@ -46,10 +46,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio = new I8255(this, emu);
 	kdc = new I8279(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMBUS(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x400;
 	
 	// set contexts
 	event->set_context_cpu(cpu);

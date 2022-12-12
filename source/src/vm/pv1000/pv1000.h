@@ -21,8 +21,6 @@
 #define SCREEN_HEIGHT		192
 #define LINES_PER_HBLANK 	51
 #define CLOCKS_PER_HBLANK	800
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
 
 // device informations for win32
 #define USE_CART		1

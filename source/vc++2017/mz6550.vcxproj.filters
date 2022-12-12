@@ -120,6 +120,9 @@
     <ClCompile Include="..\src\vm\ls393.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\memory.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\mz1p17.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -165,7 +168,7 @@
     <ClCompile Include="..\src\vm\mz5500\keyboard.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\mz5500\memory.cpp">
+    <ClCompile Include="..\src\vm\mz5500\membus.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\mz5500\mz5500.cpp">
@@ -228,6 +231,9 @@
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\ls393.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\memory.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz1p17.h">
@@ -293,7 +299,7 @@
     <ClInclude Include="..\src\vm\mz5500\keyboard.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\mz5500\memory.h">
+    <ClInclude Include="..\src\vm\mz5500\membus.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz5500\mz5500.h">

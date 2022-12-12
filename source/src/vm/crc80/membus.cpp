@@ -14,6 +14,5 @@ uint32_t MEMBUS::fetch_op(uint32_t addr, int *wait)
 	if((config.dipswitch & 1) && (addr & 0x8c00)) {
 		d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
 	}
-	*wait = 0;
-	return MEMORY::read_data8(addr);
+	return MEMORY::read_data8w(addr, wait);
 }

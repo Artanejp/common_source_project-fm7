@@ -21,8 +21,6 @@
 #define SCREEN_HEIGHT		192
 #define TMS9918A_VRAM_SIZE	0x4000
 //#define TMS9918A_LIMIT_SPRITES
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x1000
 
 // device informations for win32
 #define USE_CART		1

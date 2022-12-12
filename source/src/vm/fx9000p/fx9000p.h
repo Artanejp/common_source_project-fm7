@@ -21,9 +21,6 @@
 #define CPU_CLOCKS		2750000
 #define SCREEN_WIDTH		256
 #define SCREEN_HEIGHT		128
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x1000
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define USE_TAPE		1

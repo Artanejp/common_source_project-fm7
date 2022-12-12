@@ -36,16 +36,7 @@
 #define MAX_DRIVE		2
 #define UPD765A_SENCE_INTSTAT_RESULT
 #define UPD765A_EXT_DRVSEL
-#ifdef TYPE_SL
-#define I8259_MAX_CHIPS		1
-#else
-#define I8259_MAX_CHIPS		2
-#endif
-#if !(defined(_J3100SS) || defined(_J3100SE))
-#define HAS_I8254
-#endif
 #define SINGLE_MODE_DMA
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define USE_FLOPPY_DISK		2

@@ -217,11 +217,9 @@ void CRTC::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t CRTC::read_memory_mapped_io16(uint32_t addr)
+void CRTC::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t val = read_memory_mapped_io8(addr);
-	val |= read_memory_mapped_io8(addr + 1) << 8;
-	return val;
+	write_memory_mapped_io16(addr, data);
 }
 
 void CRTC::write_signal(int id, uint32_t data, uint32_t mask)

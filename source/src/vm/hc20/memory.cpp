@@ -433,7 +433,7 @@ void MEMORY::send_to_slave(uint8_t val)
 			special_cmd_masked = (cmd_buf->read() != 0xaa);
 		}
 		send_to_main(0x01);
-		break;	
+		break;
 	case 0x04: // closes masks for special commands
 		special_cmd_masked = true;
 		cmd_buf->read();
@@ -518,7 +518,7 @@ void MEMORY::send_to_slave(uint8_t val)
 			cmd_buf->clear();
 		}
 		send_to_main(0x01);
-		break;	
+		break;
 	case 0x12: // paper feed operation (1.2sec)
 		cmd_buf->read();
 		send_to_main(0x01);

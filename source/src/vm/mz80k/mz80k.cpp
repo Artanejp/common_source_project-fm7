@@ -80,6 +80,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
+	io->space = 0x100;
 	fdc = new MB8877(this, emu);	// mb8866
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -87,6 +88,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mz80aif = new MZ80AIF(this, emu);
 #elif defined(SUPPORT_MZ80FIO)
 	io = new IO(this, emu);
+	io->space = 0x100;
 	fdc = new T3444A(this, emu);	// t3444m
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));

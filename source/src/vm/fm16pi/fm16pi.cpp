@@ -50,11 +50,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	memory = new MEMORY(this, emu);
+	memory->space = 0x100000;
+	memory->bank_size = 0x4000;
+	memory->bus_width = 16;
 	rtc = new MSM58321(this, emu);
 	not_pit = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);

@@ -23,8 +23,6 @@
 #define TV_SCREEN_WIDTH		256
 #define TV_SCREEN_HEIGHT	192
 #define HAS_NSC800
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
 
 // device informations for win32
 #define TV_WINDOW_WIDTH		TV_SCREEN_WIDTH

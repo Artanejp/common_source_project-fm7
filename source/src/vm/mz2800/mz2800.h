@@ -22,10 +22,8 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define HAS_RP5C15
-#define IO_ADDR_MAX		0x8000
 #define SCSI_HOST_AUTO_ACK
 
 // device informations for win32

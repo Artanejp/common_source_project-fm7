@@ -476,6 +476,11 @@ uint32_t FM7_MAINMEM::read_data16(uint32_t addr)
 	return val;
 }
 
+uint32_t FM7_MAINMEM::read_data16w(uint32_t addr, int *wait)
+{
+	return read_data16(addr);
+}
+
 uint32_t FM7_MAINMEM::read_data32(uint32_t addr)
 {
 	uint32_t ah, a2, a3, al;
@@ -490,6 +495,11 @@ uint32_t FM7_MAINMEM::read_data32(uint32_t addr)
 	return val;
 }
 
+uint32_t FM7_MAINMEM::read_data32w(uint32_t addr, int *wait)
+{
+	return read_data32(addr);
+}
+
 void FM7_MAINMEM::write_data16(uint32_t addr, uint32_t data)
 {
 	uint32_t d = data;
@@ -497,6 +507,11 @@ void FM7_MAINMEM::write_data16(uint32_t addr, uint32_t data)
 	write_data8(addr + 1, d & 0xff);
 	d = d / 256;
 	write_data8(addr + 0, d & 0xff);
+}
+
+void FM7_MAINMEM::write_data16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_data16(addr, data);
 }
 
 void FM7_MAINMEM::write_data32(uint32_t addr, uint32_t data)
@@ -510,6 +525,11 @@ void FM7_MAINMEM::write_data32(uint32_t addr, uint32_t data)
 	write_data8(addr + 1, d & 0xff);
 	d = d / 256;
 	write_data8(addr + 0, d & 0xff);
+}
+
+void FM7_MAINMEM::write_data32w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_data32(addr, data);
 }
 
 

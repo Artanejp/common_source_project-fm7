@@ -42,7 +42,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	cpu = new MC6800(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x10000;
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x400;
 	fdc = new MC6843(this, emu);	// HD46503
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));

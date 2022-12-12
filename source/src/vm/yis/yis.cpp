@@ -34,6 +34,7 @@
 #include "floppy.h"
 #include "keyboard.h"
 #include "mapper.h"
+#include "membus.h"
 #include "sound.h"
 
 // ----------------------------------------------------------------------------
@@ -49,7 +50,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	cpu = new M6502(this, emu);	// YM-2002
 	io = new IO(this, emu);
-	memory = new MEMORY(this, emu);
+	io->space = 0x10000;
 	apu = new AM9511(this, emu);
 	beep = new BEEP(this, emu);
 	fdc = new MB8877(this, emu);
@@ -67,6 +68,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mapper = new MAPPER(this, emu);
+	memory = new MEMBUS(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x100;
 	sound = new SOUND(this, emu);
 	
 	// set contexts
@@ -293,7 +297,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

@@ -251,31 +251,20 @@ static const uint8_t cc_ex[0x100] = {
 inline uint8_t Z80::RM8(uint32_t addr)
 {
 	UPDATE_EVENT_IN_OP(1);
-#ifdef Z80_MEMORY_WAIT
-	int wait_clock;
+	int wait_clock = 0;
 	uint8_t val = d_mem->read_data8w(addr, &wait_clock);
 	icount -= wait_clock;
 	CLOCK_IN_OP(2 + wait_clock);
 	return val;
-#else
-	uint8_t val = d_mem->read_data8(addr);
-	CLOCK_IN_OP(2);
-	return val;
-#endif
 }
 
 inline void Z80::WM8(uint32_t addr, uint8_t val)
 {
 	UPDATE_EVENT_IN_OP(1);
-#ifdef Z80_MEMORY_WAIT
-	int wait_clock;
+	int wait_clock = 0;
 	d_mem->write_data8w(addr, val, &wait_clock);
 	icount -= wait_clock;
 	CLOCK_IN_OP(2 + wait_clock);
-#else
-	d_mem->write_data8(addr, val);
-	CLOCK_IN_OP(2);
-#endif
 }
 
 inline void Z80::RM16(uint32_t addr, pair32_t *r)
@@ -298,7 +287,7 @@ inline uint8_t Z80::FETCHOP()
 	
 	// consider m1 cycle wait
 	UPDATE_EVENT_IN_OP(1);
-	int wait_clock;
+	int wait_clock = 0;
 	uint8_t val = d_mem->fetch_op(pctmp, &wait_clock);
 	icount -= wait_clock;
 	CLOCK_IN_OP(3 + wait_clock);
@@ -322,17 +311,11 @@ inline uint32_t Z80::FETCH16()
 inline uint8_t Z80::IN8(uint32_t addr)
 {
 	UPDATE_EVENT_IN_OP(2);
-#ifdef Z80_IO_WAIT
-	int wait_clock;
+	int wait_clock = 0;
 	uint8_t val = d_io->read_io8w(addr, &wait_clock);
 	icount -= wait_clock;
 	CLOCK_IN_OP(2 + wait_clock);
 	return val;
-#else
-	uint8_t val = d_io->read_io8(addr);
-	CLOCK_IN_OP(2);
-	return val;
-#endif
 }
 
 inline void Z80::OUT8(uint32_t addr, uint8_t val)
@@ -345,15 +328,10 @@ inline void Z80::OUT8(uint32_t addr, uint8_t val)
 		return;
 	}
 #endif
-#ifdef Z80_IO_WAIT
-	int wait_clock;
+	int wait_clock = 0;
 	d_io->write_io8w(addr, val, &wait_clock);
 	icount -= wait_clock;
 	CLOCK_IN_OP(2 + wait_clock);
-#else
-	d_io->write_io8(addr, val);
-	CLOCK_IN_OP(2);
-#endif
 }
 
 #define EAX() do { \
@@ -2108,7 +2086,6 @@ void Z80::special_reset()
 	PCD = CPU_START_ADDR;
 	SPD = 0;
 	AFD = BCD = DED = HLD = 0;
-	IXD = IYD = 0xffff;	/* IX and IY are FFFF after a reset! */
 	F = ZF;			/* Zero flag is set */
 	I = R = R2 = 0;
 	WZD = PCD;
@@ -2123,6 +2100,7 @@ void Z80::special_reset()
 
 void Z80::reset()
 {
+	IXD = IYD = 0xffff;	/* IX and IY are FFFF after a reset! */
 	special_reset();
 	icount = dma_icount = wait_icount = 0;
 }
@@ -2447,26 +2425,26 @@ void Z80::check_interrupt()
 #ifdef USE_DEBUGGER
 void Z80::write_debug_data8(uint32_t addr, uint32_t data)
 {
-	int wait;
-	d_mem_stored->write_data8w(addr, data, &wait);
+	int wait_tmp;
+	d_mem_stored->write_data8w(addr, data, &wait_tmp);
 }
 
 uint32_t Z80::read_debug_data8(uint32_t addr)
 {
-	int wait;
-	return d_mem_stored->read_data8w(addr, &wait);
+	int wait_tmp;
+	return d_mem_stored->read_data8w(addr, &wait_tmp);
 }
 
 void Z80::write_debug_io8(uint32_t addr, uint32_t data)
 {
-	int wait;
-	d_io_stored->write_io8w(addr, data, &wait);
+	int wait_tmp;
+	d_io_stored->write_io8w(addr, data, &wait_tmp);
 }
 
 uint32_t Z80::read_debug_io8(uint32_t addr)
 {
-	int wait;
-	return d_io_stored->read_io8w(addr, &wait);
+	int wait_tmp;
+	return d_io_stored->read_io8w(addr, &wait_tmp);
 }
 
 bool Z80::write_debug_reg(const _TCHAR *reg, uint32_t data)
@@ -2553,7 +2531,7 @@ F'= [--------]  A'= 00  BC'= 0000  DE'= 0000  HL'= 0000  SP = 0000  PC = 0000
         I = 00  R = 00 (BC)= 0000 (DE)= 0000 (HL)= 0000 (SP)= 0000  EI:IFF2=0
 Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 */
-	int wait;
+	int wait_tmp;
 	my_stprintf_s(buffer, buffer_len,
 	_T("F = [%c%c%c%c%c%c%c%c]  A = %02X  BC = %04X  DE = %04X  HL = %04X  IX = %04X  IY = %04X\n")
 	_T("F'= [%c%c%c%c%c%c%c%c]  A'= %02X  BC'= %04X  DE'= %04X  HL'= %04X  SP = %04X  PC = %04X\n")
@@ -2566,7 +2544,7 @@ Clocks = 0 (0) Since Scanline = 0/0 (0/0)
 	(F2 & HF) ? _T('H') : _T('-'), (F2 & YF) ? _T('Y') : _T('-'), (F2 & ZF) ? _T('Z') : _T('-'), (F2 & SF) ? _T('S') : _T('-'),
 	A2, BC2, DE2, HL2, SP, PC,
 	I, R,
-	d_mem_stored->read_data16w(BC, &wait), d_mem_stored->read_data16w(DE, &wait), d_mem_stored->read_data16w(HL, &wait), d_mem_stored->read_data16w(SP, &wait),
+	d_mem_stored->read_data16w(BC, &wait_tmp), d_mem_stored->read_data16w(DE, &wait_tmp), d_mem_stored->read_data16w(HL, &wait_tmp), d_mem_stored->read_data16w(SP, &wait_tmp),
 	iff1 ? _T('E') : _T('D'), iff2,
 	total_icount, total_icount - prev_total_icount,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
@@ -2590,8 +2568,8 @@ int z80_dasm_ptr;
 int Z80::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	for(int i = 0; i < 4; i++) {
-		int wait;
-		z80_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
+		int wait_tmp;
+		z80_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait_tmp);
 	}
 	return dasm(pc, buffer, buffer_len, d_debugger->first_symbol);
 }

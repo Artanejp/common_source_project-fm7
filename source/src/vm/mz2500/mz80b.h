@@ -39,14 +39,7 @@
 #define HAS_MB8876
 #ifdef SUPPORT_QUICK_DISK
 #endif
-#ifdef SUPPORT_16BIT_BOARD
-#define I8259_MAX_CHIPS		1
-#endif
 #define PRINTER_STROBE_RISING_EDGE
-
-// memory wait
-#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
 
 // device informations for win32
 #define USE_SPECIAL_RESET

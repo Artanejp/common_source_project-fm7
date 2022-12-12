@@ -41,6 +41,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	cpu = new I8080(this, emu);	// i8085
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x2000;
 	rtc = new RP5C01(this, emu);
 	
 	io = new IO(this, emu);

@@ -73,6 +73,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	noise_seek = new NOISE(this, emu);
 	noise_head_down = new NOISE(this, emu);
 	noise_head_up = new NOISE(this, emu);

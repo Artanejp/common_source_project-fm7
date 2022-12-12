@@ -45,6 +45,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	cpu = new MC6800(this, emu);
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x100;
 	pcm = new PCM1BIT(this, emu);
 	
 	io = new IO(this, emu);

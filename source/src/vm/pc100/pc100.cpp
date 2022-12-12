@@ -56,7 +56,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	memory = new MEMORY(this, emu);
+	memory->space = 0x100000;
+	memory->bank_size = 0x8000;
+	memory->bus_width = 16;
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);

@@ -49,6 +49,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	// for main cpu
 	mainio = new IO(this, emu);
+	mainio->space = 0x100;
 	mainio->set_device_name(_T("I/O Bus (Main)"));
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
@@ -70,6 +71,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	subio = new IO(this, emu);
+	subio->space = 0x100;
 	subio->set_device_name(_T("I/O Bus (Sub)"));
 	ls244 = new LS244(this, emu);
 	not_data0 = new NOT(this, emu);

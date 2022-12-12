@@ -9,11 +9,9 @@
 
 #include "i8259.h"
 
-#define CHIP_MASK	(I8259_MAX_CHIPS - 1)
-
 void I8259::initialize()
 {
-	for(int c = 0; c < I8259_MAX_CHIPS; c++) {
+	for(int c = 0; c < 4; c++) {
 		pic[c].imr = 0xff;
 		pic[c].irr = pic[c].isr = pic[c].prio = 0;
 		pic[c].icw1 = pic[c].icw2 = pic[c].icw3 = pic[c].icw4 = 0;
@@ -24,7 +22,7 @@ void I8259::initialize()
 
 void I8259::reset()
 {
-	for(int c = 0; c < I8259_MAX_CHIPS; c++) {
+	for(int c = 0; c < 4; c++) {
 		pic[c].irr_tmp = 0;
 		pic[c].irr_tmp_id = -1;
 	}
@@ -32,7 +30,7 @@ void I8259::reset()
 
 void I8259::write_io8(uint32_t addr, uint32_t data)
 {
-	int c = (addr >> 1) & CHIP_MASK;
+	int c = (addr >> 1) % num_chips;
 	
 	if(addr & 1) {
 		if(pic[c].icw2_r) {
@@ -140,7 +138,7 @@ void I8259::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t I8259::read_io8(uint32_t addr)
 {
-	int c = (addr >> 1) & CHIP_MASK;
+	int c = (addr >> 1) % num_chips;
 	
 	if(addr & 1) {
 		return pic[c].imr;
@@ -166,18 +164,20 @@ uint32_t I8259::read_io8(uint32_t addr)
 
 void I8259::write_signal(int id, uint32_t data, uint32_t mask)
 {
+	int c = (id >> 3) % num_chips;
+	
 	if(data & mask) {
-		pic[id >> 3].irr |= 1 << (id & 7);
+		pic[c].irr |= 1 << (id & 7);
 		update_intr();
 	} else {
-		pic[id >> 3].irr &= ~(1 << (id & 7));
+		pic[c].irr &= ~(1 << (id & 7));
 		update_intr();
 	}
 }
 
 void I8259::event_callback(int event_id, int err)
 {
-	int c = event_id & CHIP_MASK;
+	int c = event_id % num_chips;
 	uint8_t irr = pic[c].irr;
 	
 	pic[c].irr |= pic[c].irr_tmp;
@@ -191,16 +191,18 @@ void I8259::event_callback(int event_id, int err)
 
 uint32_t I8259::read_signal(int id)
 {
-	return (pic[id >> 3].irr & (1 << (id & 7))) ? 1 : 0;
+	int c = (id >> 3) % num_chips;
+	
+	return (pic[c].irr & (1 << (id & 7))) ? 1 : 0;
 }
 
 void I8259::update_intr()
 {
 	bool intr = false;
 	
-	for(int c = 0; c < I8259_MAX_CHIPS; c++) {
+	for(int c = 0; c < num_chips; c++) {
 		uint8_t irr = pic[c].irr;
-		if(c + 1 < I8259_MAX_CHIPS) {
+		if(c + 1 < num_chips) {
 			// this is master
 			if(pic[c + 1].irr & (~pic[c + 1].imr)) {
 				// request from slave
@@ -220,7 +222,7 @@ void I8259::update_intr()
 			level = (level + 1) & 7;
 			bit = 1 << level;
 		}
-		if((c + 1 < I8259_MAX_CHIPS) && (pic[c].icw3 & bit)) {
+		if((c + 1 < num_chips) && (pic[c].icw3 & bit)) {
 			// check slave
 			continue;
 		}
@@ -273,7 +275,7 @@ uint32_t I8259::get_intr_ack()
 	return vector;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool I8259::process_state(FILEIO* state_fio, bool loading)
 {
@@ -283,7 +285,7 @@ bool I8259::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	for(int i = 0; i < array_length(pic); i++) {
+	for(int i = 0; i < num_chips; i++) {
 		state_fio->StateValue(pic[i].imr);
 		state_fio->StateValue(pic[i].isr);
 		state_fio->StateValue(pic[i].irr);

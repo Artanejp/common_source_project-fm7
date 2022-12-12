@@ -33,11 +33,9 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define I8259_MAX_CHIPS		2
 #define UPD7220_HORIZ_FREQ	24860
 #define Z80CTC_CLOCKS		2457600
 #define SINGLE_MODE_DMA
-#define IO_ADDR_MAX		0x400
 #define HAS_AY_3_8912
 #define PRINTER_STROBE_RISING_EDGE
 
@@ -92,7 +90,7 @@ class Z80SIO;
 
 class DISPLAY;
 class KEYBOARD;
-class MEMORY;
+class MEMBUS;
 class SYSPORT;
 
 class VM : public VM_TEMPLATE
@@ -136,7 +134,7 @@ protected:
 	
 	DISPLAY* display;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MEMBUS* memory;
 	SYSPORT* sysport;
 	
 public:

@@ -351,7 +351,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88cpu_16bit = new I86(this, emu);
 		pc88cpu_16bit->device_model = INTEL_8086;
 		pc88io_16bit = new IO(this, emu);
+		pc88io_16bit->space = 0x100;
+		pc88io_16bit->bus_width = 16;
 		pc88mem_16bit = new MEMORY(this, emu);
+		pc88mem_16bit->space = 0x100000;
+		pc88mem_16bit->bank_size = 0x1000;
+		pc88mem_16bit->bus_width = 16;
 	} else {
 		pc88cpu_16bit = NULL;
 	}

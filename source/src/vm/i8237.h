@@ -35,9 +35,10 @@ class DEBUGGER;
 class I8237 : public DEVICE
 {
 private:
-	DEVICE* d_mem;
+	DEVICE *d_cpu;
+	DEVICE *d_mem;
 #ifdef SINGLE_MODE_DMA
-	DEVICE* d_dma;
+	DEVICE *d_dma;
 #endif
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
@@ -65,11 +66,12 @@ private:
 	uint32_t tmp;
 	bool mode_word;
 	uint32_t addr_mask;
+	bool running;
 	
-	void write_mem(uint32_t addr, uint32_t data);
-	uint32_t read_mem(uint32_t addr);
-	void write_io(int ch, uint32_t data);
-	uint32_t read_io(int ch);
+	void write_mem(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_mem(uint32_t addr, int *wait);
+	void write_io(int ch, uint32_t data, int *wait);
+	uint32_t read_io(int ch, int *wait);
 	
 public:
 	I8237(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -79,6 +81,7 @@ public:
 			dma[i].bankreg = dma[i].incmask = 0;
 			initialize_output_signals(&dma[i].outputs_tc);
 		}
+		d_cpu = NULL;
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
@@ -100,10 +103,10 @@ public:
 	uint32_t read_signal(int id);
 	void do_dma();
 	// for debug
-	void write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data8(uint32_t addr);
-	void write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data16(uint32_t addr);
+	void write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_via_debugger_data8w(uint32_t addr, int *wait);
+	void write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_via_debugger_data16w(uint32_t addr, int *wait);
 #ifdef USE_DEBUGGER
 	bool is_debugger_available()
 	{
@@ -118,6 +121,10 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
+	}
 	void set_context_memory(DEVICE* device)
 	{
 		d_mem = device;

@@ -36,6 +36,7 @@ private:
 	DEVICE* d_vram_bus;
 	uint8_t* vram;
 	uint32_t vram_size;
+	uint32_t plane_size;
 	uint16_t vram_data_mask;
 	
 	// regs
@@ -81,7 +82,7 @@ private:
 	
 	// draw
 	int rt[RT_TABLEMAX + 1];
-	int dx, dy;	// from ead, dad
+	int dx, dy, plane;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
 	uint16_t pattern;
 	
@@ -132,6 +133,7 @@ public:
 		initialize_output_signals(&outputs_vsync);
 		d_vram_bus = NULL;
 		vram = NULL;
+		vram_size = plane_size = 0;
 		vram_data_mask = 0xffff;
 		width = 80;
 		set_device_name(_T("uPD7220 GDC"));
@@ -181,6 +183,10 @@ public:
 	{
 		set_vram_bus_ptr(device, size);
 		vram_data_mask = mask;
+	}
+	void set_plane_size(uint32_t size)
+	{
+		plane_size = size;
 	}
 	void set_screen_width(int value)
 	{

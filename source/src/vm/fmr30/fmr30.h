@@ -27,12 +27,9 @@
 #define MAX_DRIVE		2
 #define MAX_MEMCARD		2
 #define I86_PSEUDO_BIOS
-#define HAS_I8254
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define HAS_MB89311
 #define MB8877_NO_BUSY_AFTER_SEEK
-#define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
@@ -78,7 +75,7 @@ class BIOS;
 class CMOS;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class MEMBUS;
 class RTC;
 class SCSI;
 class SERIAL;
@@ -115,7 +112,7 @@ protected:
 	CMOS* cmos;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MEMBUS* memory;
 	RTC* rtc;
 	SCSI* scsi;
 	SERIAL* serial;

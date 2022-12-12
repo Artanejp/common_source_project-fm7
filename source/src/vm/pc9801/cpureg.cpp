@@ -19,7 +19,7 @@
 //#include "../i286_np21.h"
 #include "../i286.h"
 #endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 #include "../i86.h"
 #include "../i8255.h"
 #endif
@@ -118,13 +118,22 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
 {
 	if(cpu_mode) {
 		d_v30->set_intr_line(line, pending, bit);
 	} else {
 		d_cpu->set_intr_line(line, pending, bit);
+	}
+}
+
+void CPUREG::set_extra_clock(int clock)
+{
+	if(cpu_mode) {
+		d_v30->set_extra_clock(clock);
+	} else {
+		d_cpu->set_extra_clock(clock);
 	}
 }
 #endif
@@ -139,7 +148,7 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	state_fio->StateValue(cpu_mode);
 #endif
 	state_fio->StateValue(nmi_enabled);

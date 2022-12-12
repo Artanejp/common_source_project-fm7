@@ -64,16 +64,12 @@ public:
 	void reset();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
-#ifdef Z80_MEMORY_WAIT
-	void write_data8w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t read_data8w(uint32_t addr, int *wait);
-#endif
+//	void write_data8w(uint32_t addr, uint32_t data, int *wait);
+//	uint32_t read_data8w(uint32_t addr, int *wait);
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-#ifdef Z80_IO_WAIT
 	void write_io8w(uint32_t addr, uint32_t data, int *wait);
 	uint32_t read_io8w(uint32_t addr, int *wait);
-#endif
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_intr_ack();
 	void notify_intr_reti();

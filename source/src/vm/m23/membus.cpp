@@ -46,27 +46,26 @@ uint32_t MEMBUS::fetch_op(uint32_t addr, int *wait)
 	} else if(val == 0xc3) {
 		after_jump = true;
 	}
-	*wait = 0;
 	return val;
 }
 
-uint32_t MEMBUS::read_data8(uint32_t addr)
+uint32_t MEMBUS::read_data8w(uint32_t addr, int *wait)
 {
 	if(page_exchange) {
 		page_exchange = false;
 		return ram[(page ? 0 : 0x10000) | (addr & 0xffff)];
 	}
-	return MEMORY::read_data8(addr);
+	return MEMORY::read_data8w(addr, wait);
 }
 
-void MEMBUS::write_data8(uint32_t addr, uint32_t data)
+void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	if(page_exchange) {
 		page_exchange = false;
 		ram[(page ? 0 : 0x10000) | (addr & 0xffff)] = data;
 		return;
 	}
-	MEMORY::write_data8(addr, data);
+	MEMORY::write_data8w(addr, data, wait);
 }
 
 uint32_t MEMBUS::read_dma_data8w(uint32_t addr, int* wait)

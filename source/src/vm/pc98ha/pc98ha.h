@@ -31,10 +31,8 @@
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		1
 #define I86_PSEUDO_BIOS
-#define I8259_MAX_CHIPS		1
 //#define UPD765A_DMA_MODE
 //#define SINGLE_MODE_DMA
-#define IO_ADDR_MAX		0x10000
 #define IOBUS_RETURN_ADDR
 #ifdef _PC98HA
 //#define DOCKING_STATION
@@ -86,7 +84,7 @@ class BIOS;
 class CALENDAR;
 class FLOPPY;
 class KEYBOARD;
-class MEMORY;
+class MEMBUS;
 class NOTE;
 
 class VM : public VM_TEMPLATE
@@ -120,7 +118,7 @@ protected:
 	CALENDAR* calendar;
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
-	MEMORY* memory;
+	MEMBUS* memory;
 	NOTE* note;
 	
 public:

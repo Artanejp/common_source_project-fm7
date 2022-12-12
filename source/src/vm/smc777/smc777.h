@@ -31,7 +31,6 @@
 #define MAX_DRIVE		2
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define SUPPORT_MEDIA_TYPE_1DD
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #if defined(_SMC70)

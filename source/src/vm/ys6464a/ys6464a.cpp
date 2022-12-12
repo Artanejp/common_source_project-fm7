@@ -37,8 +37,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	io = new IO(this, emu);
+	io->space = 0x100;
 	pio = new I8255(this, emu);
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x2000;
 //	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 	

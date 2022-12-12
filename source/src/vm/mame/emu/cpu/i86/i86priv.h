@@ -91,15 +91,15 @@ enum BREGS {
 
 /************************************************************************/
 
-#define read_mem_byte(a)            cpustate->program->read_data8(a)
-#define read_mem_word(a)            cpustate->program->read_data16(a)
-#define write_mem_byte(a,d)         cpustate->program->write_data8((a),(d))
-#define write_mem_word(a,d)         cpustate->program->write_data16((a),(d))
+#define read_mem_byte(a)            read_mem_byte_(cpustate,(a))
+#define read_mem_word(a)            read_mem_word_(cpustate,(a))
+#define write_mem_byte(a,d)         write_mem_byte_(cpustate,(a),(d))
+#define write_mem_word(a,d)         write_mem_word_(cpustate,(a),(d))
 
-#define read_port_byte(a)       cpustate->io->read_io8(a)
-#define read_port_word(a)       cpustate->io->read_io16(a)
-#define write_port_byte(a,d)    cpustate->io->write_io8((a),(d))
-#define write_port_word(a,d)    cpustate->io->write_io16((a),(d))
+#define read_port_byte(a)       read_port_byte_(cpustate,(a))
+#define read_port_word(a)       read_port_word_(cpustate,(a))
+#define write_port_byte(a,d)    write_port_byte_(cpustate,(a),(d))
+#define write_port_word(a,d)    write_port_word_(cpustate,(a),(d))
 
 /************************************************************************/
 
@@ -126,10 +126,10 @@ enum BREGS {
 #define WriteByte(ea,val)       write_mem_byte((ea) & AMASK, val);
 #define WriteWord(ea,val)       write_mem_word((ea) & AMASK, val);
 
-#define FETCH                   (cpustate->program->read_data8(cpustate->pc++))
-#define FETCHOP                 (cpustate->program->read_data8(cpustate->pc++))
-#define PEEKOP(addr)            (cpustate->program->read_data8(addr))
-#define FETCHWORD(var)          { var = cpustate->program->read_data8(cpustate->pc); var += (cpustate->program->read_data8(cpustate->pc + 1) << 8); cpustate->pc += 2; }
+#define FETCH                   (read_mem_byte(cpustate->pc++))
+#define FETCHOP                 (read_mem_byte(cpustate->pc++))
+#define PEEKOP(addr)            (read_mem_byte(addr))
+#define FETCHWORD(var)          { var = read_mem_byte(cpustate->pc); var += (read_mem_byte(cpustate->pc + 1) << 8); cpustate->pc += 2; }
 #define CHANGE_PC(addr)
 #ifdef I80286
 #define PUSH(val)               { if(PM) i80286_check_permission(cpustate, SS, cpustate->regs.w[SP]-2, I80286_WORD, I80286_WRITE); cpustate->regs.w[SP] -= 2; WriteWord(((cpustate->base[SS] + cpustate->regs.w[SP]) & AMASK), val); }

@@ -179,6 +179,7 @@
 	#define SUPPORT_24BIT_ADDRESS
 #elif defined(HAS_I386) || defined(HAS_I486SX) || defined(HAS_I486DX)
 	#define SUPPORT_32BIT_ADDRESS
+	#define SUPPORT_32BIT_DATABUS
 	#if !defined(SUPPORT_HIRESO)
 		#define SUPPORT_BIOS_RAM
 	#endif
@@ -187,16 +188,9 @@
 	#define SUPPORT_PC98_86PCM
 	#define SUPPORT_PC98_86PCM_IRQ
 #endif
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	#define MEMORY_ADDR_MAX		0x1000000	// 16MB
-#else
-	#define MEMORY_ADDR_MAX		0x100000	// 1MB
-#endif
 //#if defined(SUPPORT_32BIT_ADDRESS)
 //	#define SUPPORT_SYSTEM_16MB
 //#endif
-#define MEMORY_BANK_SIZE		0x800
-#define IO_ADDR_MAX			0x10000
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	#define PC8801_VARIANT
@@ -247,10 +241,6 @@
 #define UPD7220_HORIZ_FREQ	32860
 #endif
 #define UPD7220_MSB_FIRST
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-#define Z80_MEMORY_WAIT
-#endif
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 

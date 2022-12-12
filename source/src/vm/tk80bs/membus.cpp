@@ -35,7 +35,7 @@ uint32_t MEMBUS::fetch_op(uint32_t addr, int *wait)
 		}
 	}
 #endif
-	return MEMORY::fetch_op(addr, wait);
+	return MEMORY::read_data8w(addr, wait);
 }
 
 #if defined(_TK85)

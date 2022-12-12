@@ -333,7 +333,7 @@
     <ClCompile Include="..\src\vm\fmr30\floppy.cpp" />
     <ClCompile Include="..\src\vm\fmr30\fmr30.cpp" />
     <ClCompile Include="..\src\vm\fmr30\keyboard.cpp" />
-    <ClCompile Include="..\src\vm\fmr30\memory.cpp" />
+    <ClCompile Include="..\src\vm\fmr30\membus.cpp" />
     <ClCompile Include="..\src\vm\fmr30\rtc.cpp" />
     <ClCompile Include="..\src\vm\fmr30\scsi.cpp" />
     <ClCompile Include="..\src\vm\fmr30\serial.cpp" />
@@ -349,6 +349,7 @@
     <ClCompile Include="..\src\vm\i8259.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
+    <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\scsi_dev.cpp" />
     <ClCompile Include="..\src\vm\scsi_hdd.cpp" />
@@ -376,7 +377,7 @@
     <ClInclude Include="..\src\vm\fmr30\floppy.h" />
     <ClInclude Include="..\src\vm\fmr30\fmr30.h" />
     <ClInclude Include="..\src\vm\fmr30\keyboard.h" />
-    <ClInclude Include="..\src\vm\fmr30\memory.h" />
+    <ClInclude Include="..\src\vm\fmr30\membus.h" />
     <ClInclude Include="..\src\vm\fmr30\rtc.h" />
     <ClInclude Include="..\src\vm\fmr30\scsi.h" />
     <ClInclude Include="..\src\vm\fmr30\serial.h" />
@@ -392,6 +393,7 @@
     <ClInclude Include="..\src\vm\i8259.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
+    <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\scsi_dev.h" />
     <ClInclude Include="..\src\vm\scsi_hdd.h" />

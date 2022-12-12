@@ -69,7 +69,7 @@ uint32_t MAIN::read_data8(uint32_t addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-#ifdef Z80_MEMORY_WAIT
+/*
 void MAIN::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	*wait = 0;
@@ -82,7 +82,7 @@ uint32_t MAIN::read_data8w(uint32_t addr, int *wait)
 	*wait = wait[addr >> 12];
 	return read_data8(addr);
 }
-#endif
+*/
 
 void MAIN::write_io8(uint32_t addr, uint32_t data)
 {
@@ -149,7 +149,6 @@ uint32_t MAIN::read_io8(uint32_t addr)
 	return val;
 }
 
-#ifdef Z80_IO_WAIT
 void MAIN::write_io8w(uint32_t addr, uint32_t data, int *wait)
 {
 	*wait = 1;
@@ -161,7 +160,6 @@ uint32_t MAIN::read_io8w(uint32_t addr, int *wait)
 	*wait = 1;
 	return read_io8(addr);
 }
-#endif
 
 static const uint8_t bits[5] = {
 	0x10, 0x01, 0x02, 0x04, 0x08

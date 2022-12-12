@@ -22,10 +22,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		200
 #define MAX_DRIVE		4
-#define I8259_MAX_CHIPS		1
-#define MEMORY_ADDR_MAX		0x100000
-#define MEMORY_BANK_SIZE	0x4000
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define USE_FLOPPY_DISK		2

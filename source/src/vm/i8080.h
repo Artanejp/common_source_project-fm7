@@ -66,124 +66,72 @@ private:
 	// memory
 	inline uint8_t RM8(uint16_t addr)
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
+		int wait = 0;
 		uint8_t val = d_mem->read_data8w(addr, &wait);
 		count -= wait;
 		return val;
-#else
-		return d_mem->read_data8(addr);
-#endif
 	}
 	inline void WM8(uint16_t addr, uint8_t val)
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
+		int wait = 0;
 		d_mem->write_data8w(addr, val, &wait);
 		count -= wait;
-#else
-		d_mem->write_data8(addr, val);
-#endif
 	}
 	
 	inline uint16_t RM16(uint16_t addr)
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
-		uint16_t val = d_mem->read_data16w(addr, &wait);
-		count -= wait;
-		return val;
-#else
-		return d_mem->read_data16(addr);
-#endif
+		pair16_t val;
+		val.b.l = RM8(addr    );
+		val.b.h = RM8(addr + 1);
+		return val.w;
 	}
 	inline void WM16(uint16_t addr, uint16_t val)
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
-		d_mem->write_data16w(addr, val, &wait);
-		count -= wait;
-#else
-		d_mem->write_data16(addr, val);
-#endif
+		WM8(addr    , (val     ) & 0xff);
+		WM8(addr + 1, (val >> 8) & 0xff);
 	}
 	inline uint8_t FETCHOP()
 	{
-		int wait;
+		int wait = 0;
 		uint8_t val = d_mem->fetch_op(PC++, &wait);
-#ifdef I8080_MEMORY_WAIT
 		count -= wait;
-#endif
 		return val;
 	}
 	inline uint8_t FETCH8()
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
-		uint8_t val = d_mem->read_data8w(PC++, &wait);
-		count -= wait;
-		return val;
-#else
-		return d_mem->read_data8(PC++);
-#endif
+		return RM8(PC++);
 	}
 	inline uint16_t FETCH16()
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
-		uint16_t val = d_mem->read_data16w(PC, &wait);
-		count -= wait;
-#else
-		uint16_t val = d_mem->read_data16(PC);
-#endif
+		uint16_t val = RM16(PC);
 		PC += 2;
 		return val;
 	}
 	inline uint16_t POP16()
 	{
-#ifdef I8080_MEMORY_WAIT
-		int wait;
-		uint16_t val = d_mem->read_data16w(SP, &wait);
-		count -= wait;
-#else
-		uint16_t val = d_mem->read_data16(SP);
-#endif
+		uint16_t val = RM16(SP);
 		SP += 2;
 		return val;
 	}
 	inline void PUSH16(uint16_t val)
 	{
 		SP -= 2;
-#ifdef I8080_MEMORY_WAIT
-		int wait;
-		d_mem->write_data16w(SP, val, &wait);
-		count -= wait;
-#else
-		d_mem->write_data16(SP, val);
-#endif
+		WM16(SP, val);
 	}
 	
 	// i/o
 	inline uint8_t IN8(uint8_t addr)
 	{
-#ifdef I8080_IO_WAIT
-		int wait;
+		int wait = 0;
 		uint8_t val = d_io->read_io8w(addr, &wait);
 		count -= wait;
 		return val;
-#else
-		return d_io->read_io8(addr);
-#endif
 	}
 	inline void OUT8(uint8_t addr, uint8_t val)
 	{
-#ifdef I8080_IO_WAIT
-		int wait;
+		int wait = 0;
 		d_io->write_io8w(addr, val, &wait);
 		count -= wait;
-#else
-		d_io->write_io8(addr, val);
-#endif
 	}
 	
 	// interrupt

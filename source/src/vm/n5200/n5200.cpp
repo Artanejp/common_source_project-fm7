@@ -64,7 +64,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_p = new I8255(this, emu);	// for printer
 	pio_p->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	rtc = new UPD1990A(this, emu);
 	gdc_c = new UPD7220(this, emu);
 	gdc_c->set_device_name(_T("uPD7220 GDC (Character)"));
@@ -99,6 +102,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_s->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
 	pic->set_context_cpu(cpu);
 	rtc->set_context_dout(pio_s, SIG_I8255_PORT_B, 1);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);	// 1MB
 	dma->set_context_ch3(fdc);	// 640KB

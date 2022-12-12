@@ -35,6 +35,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x800;
 	cpu = new Z80(this, emu);
 	
 	io = new IO(this, emu);

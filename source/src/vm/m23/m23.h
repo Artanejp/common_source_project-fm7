@@ -37,9 +37,6 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
 #define MB8877_NO_BUSY_AFTER_SEEK
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
-#define IO_ADDR_MAX		0x100
 #define SINGLE_MODE_DMA
 
 // device informations for win32

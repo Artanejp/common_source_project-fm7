@@ -25,8 +25,6 @@
 #define MC6847_ATTR_AS		0x02
 #define MC6847_ATTR_CSS		0x04
 #define HAS_AY_3_8910
-#define MEMORY_BANK_SIZE	0x400
-#define IO_ADDR_MAX		0x100
 
 // device informations for win32
 #define USE_TAPE		1

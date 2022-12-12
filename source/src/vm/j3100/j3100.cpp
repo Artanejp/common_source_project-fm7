@@ -71,8 +71,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #endif
 //	sio = new I8250(this, emu);
-	pit = new I8253(this, emu);	// i8254
+	pit = new I8253(this, emu);
+#if !(defined(_J3100SS) || defined(_J3100SE))
+	pit->device_model = INTEL_8254;
+	pit->set_device_name(_T("8254 PIT"));
+#endif
 	pic = new I8259(this, emu);
+#ifndef TYPE_SL
+	pic->num_chips = 2;
+#endif
 #ifdef TYPE_SL
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
@@ -80,6 +87,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I286(this, emu);
 #endif
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
@@ -117,6 +126,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// dmac
 	io->set_iomap_range_rw(0x00, 0x0f, dma);
 	io->set_iomap_range_w(0x80, 0x8f, dmareg);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);
 	dmareg->set_context_dma(dma);

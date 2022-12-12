@@ -12,14 +12,14 @@
 
 #include "memory.h"
 
-#define ADDR_MASK (addr_max - 1)
+#define ADDR_MASK (space - 1)
 #define BANK_MASK (bank_size - 1)
 
 void MEMORY::initialize()
 {
 	// allocate tables here to support multiple instances with different address range
 	if(rd_table == NULL) {
-		int bank_num = addr_max / bank_size;
+		int bank_num = space / bank_size;
 		
 		rd_dummy = (uint8_t *)malloc(bank_size);
 		wr_dummy = (uint8_t *)malloc(bank_size);
@@ -28,13 +28,8 @@ void MEMORY::initialize()
 		wr_table = (bank_t *)calloc(bank_num, sizeof(bank_t));
 		
 		for(int i = 0; i < bank_num; i++) {
-			rd_table[i].device = NULL;
 			rd_table[i].memory = rd_dummy;
-			rd_table[i].wait   = 0;
-			
-			wr_table[i].device = NULL;
 			wr_table[i].memory = wr_dummy;
-			wr_table[i].wait   = 0;
 		}
 		for(int i = 0;; i++) {
 			if(bank_size == (1 << i)) {
@@ -56,7 +51,7 @@ void MEMORY::release()
 
 uint32_t MEMORY::read_data8(uint32_t addr)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
+	int bank = get_bank(addr);
 	
 	if(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io8(addr);
@@ -67,7 +62,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
+	int bank = get_bank(addr);
 	
 	if(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io8(addr, data);
@@ -80,11 +75,18 @@ uint32_t MEMORY::read_data16(uint32_t addr)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		int bank = get_bank(addr);
 		
 		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io16(addr);
+			if(!(addr & 1)) {
+				return rd_table[bank].device->read_memory_mapped_io16(addr);
+			} else {
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8(addr    );
+				val |= rd_table[bank].device->read_memory_mapped_io8(addr + 1) << 8;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -107,11 +109,16 @@ void MEMORY::write_data16(uint32_t addr, uint32_t data)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		int bank = get_bank(addr);
 		
 		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io16(addr, data);
+			if(!(addr & 1)) {
+				wr_table[bank].device->write_memory_mapped_io16(addr, data);
+			} else {
+				wr_table[bank].device->write_memory_mapped_io8(addr    , (data     ) & 0xff);
+				wr_table[bank].device->write_memory_mapped_io8(addr + 1, (data >> 8) & 0xff);
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data     ) & 0xff
@@ -130,11 +137,24 @@ uint32_t MEMORY::read_data32(uint32_t addr)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		int bank = get_bank(addr);
 		
 		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io32(addr);
+			if(!(addr & 3)) {
+				return rd_table[bank].device->read_memory_mapped_io32(addr);
+			} else if(!(addr & 1)) {
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io16(addr    );
+				val |= rd_table[bank].device->read_memory_mapped_io16(addr + 2) << 16;
+				return val;
+			} else {
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8 (addr    );
+				val |= rd_table[bank].device->read_memory_mapped_io16(addr + 1) <<  8;
+				val |= rd_table[bank].device->read_memory_mapped_io8 (addr + 3) << 24;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -165,11 +185,20 @@ void MEMORY::write_data32(uint32_t addr, uint32_t data)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		int bank = get_bank(addr);
 		
 		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io32(addr, data);
+			if(!(addr & 3)) {
+				wr_table[bank].device->write_memory_mapped_io32(addr, data);
+			} else if(!(addr & 1)) {
+				wr_table[bank].device->write_memory_mapped_io16(addr    , (data      ) & 0xffff);
+				wr_table[bank].device->write_memory_mapped_io16(addr + 2, (data >> 16) & 0xffff);
+			} else {
+				wr_table[bank].device->write_memory_mapped_io8 (addr    , (data      ) & 0x00ff);
+				wr_table[bank].device->write_memory_mapped_io16(addr + 1, (data >>  8) & 0xffff);
+				wr_table[bank].device->write_memory_mapped_io8 (addr + 3, (data >> 24) & 0x00ff);
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data      ) & 0xff
@@ -192,11 +221,15 @@ void MEMORY::write_data32(uint32_t addr, uint32_t data)
 
 uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
+	int bank = get_bank(addr);
 	
 	*wait = rd_table[bank].wait;
+	
 	if(rd_table[bank].device != NULL) {
-		return rd_table[bank].device->read_memory_mapped_io8(addr);
+		int wait_tmp = 0;
+		uint32_t val = rd_table[bank].device->read_memory_mapped_io8w(addr, &wait_tmp);
+		if(!rd_table[bank].wait_registered) *wait = wait_tmp;
+		return val;
 	} else {
 		return rd_table[bank].memory[addr & BANK_MASK];
 	}
@@ -204,11 +237,14 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 
 void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
+	int bank = get_bank(addr);
 	
 	*wait = wr_table[bank].wait;
+	
 	if(wr_table[bank].device != NULL) {
-		wr_table[bank].device->write_memory_mapped_io8(addr, data);
+		int wait_tmp = 0;
+		wr_table[bank].device->write_memory_mapped_io8w(addr, data, &wait_tmp);
+		if(!wr_table[bank].wait_registered) *wait = wait_tmp;
 	} else {
 		wr_table[bank].memory[addr & BANK_MASK] = data;
 	}
@@ -218,13 +254,25 @@ uint32_t MEMORY::read_data16w(uint32_t addr, int* wait)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		int bank = get_bank(addr);
 		
-		*wait = rd_table[bank].wait * 2; // 8bit bus ???
+		*wait = rd_table[bank].wait * bus_access_times_16(addr2);
 		
 		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io16(addr);
+			if(!(addr & 1)) {
+				int wait_tmp = 0;
+				uint32_t val = rd_table[bank].device->read_memory_mapped_io16w(addr, &wait_tmp);
+				if(!rd_table[bank].wait_registered) *wait = wait_tmp;
+				return val;
+			} else {
+				int wait_l = 0, wait_h = 0;
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8w(addr    , &wait_l);
+				val |= rd_table[bank].device->read_memory_mapped_io8w(addr + 1, &wait_h) << 8;
+				if(!rd_table[bank].wait_registered) *wait = wait_l + wait_h;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -236,11 +284,11 @@ uint32_t MEMORY::read_data16w(uint32_t addr, int* wait)
 			#endif
 		}
 	} else {
-		int wait_0, wait_1;
+		int wait_l = 0, wait_h = 0;
 		uint32_t val;
-		val  = read_data8w(addr    , &wait_0);
-		val |= read_data8w(addr + 1, &wait_1) << 8;
-		*wait = wait_0 + wait_1;
+		val  = read_data8w(addr    , &wait_l);
+		val |= read_data8w(addr + 1, &wait_h) << 8;
+		*wait = wait_l + wait_h;
 		return val;
 	}
 }
@@ -249,13 +297,22 @@ void MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		int bank = get_bank(addr);
 		
-		*wait = wr_table[bank].wait * 2; // 8bit bus ???
+		*wait = wr_table[bank].wait * bus_access_times_16(addr2);
 		
 		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io16(addr, data);
+			if(!(addr & 1)) {
+				int wait_tmp = 0;
+				wr_table[bank].device->write_memory_mapped_io16w(addr, data, &wait_tmp);
+				if(!wr_table[bank].wait_registered) *wait = wait_tmp;
+			} else {
+				int wait_l = 0, wait_h = 0;
+				wr_table[bank].device->write_memory_mapped_io8w(addr    , (data     ) & 0xff, &wait_l);
+				wr_table[bank].device->write_memory_mapped_io8w(addr + 1, (data >> 8) & 0xff, &wait_h);
+				if(!wr_table[bank].wait_registered) *wait = wait_l + wait_h;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data     ) & 0xff
@@ -265,10 +322,10 @@ void MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 			#endif
 		}
 	} else {
-		int wait_0, wait_1;
-		write_data8w(addr    , (data     ) & 0xff, &wait_0);
-		write_data8w(addr + 1, (data >> 8) & 0xff, &wait_1);
-		*wait = wait_0 + wait_1;
+		int wait_l = 0, wait_h = 0;
+		write_data8w(addr    , (data     ) & 0xff, &wait_l);
+		write_data8w(addr + 1, (data >> 8) & 0xff, &wait_h);
+		*wait = wait_l + wait_h;
 	}
 }
 
@@ -276,13 +333,33 @@ uint32_t MEMORY::read_data32w(uint32_t addr, int* wait)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		int bank = get_bank(addr);
 		
-		*wait = rd_table[bank].wait * 4; // 8bit bus ???
+		*wait = rd_table[bank].wait * bus_access_times_32(addr2);
 		
 		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io32(addr);
+			if(!(addr & 3)) {
+				int wait_tmp = 0;
+				uint32_t val = rd_table[bank].device->read_memory_mapped_io32w(addr, &wait_tmp);
+				if(!rd_table[bank].wait_registered) *wait = wait_tmp;
+				return val;
+			} else if(!(addr & 1)) {
+				int wait_l = 0, wait_h = 0;
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io16w(addr    , &wait_l);
+				val |= rd_table[bank].device->read_memory_mapped_io16w(addr + 2, &wait_h) << 16;
+				if(!rd_table[bank].wait_registered) *wait = wait_l + wait_h;
+				return val;
+			} else {
+				int wait_l = 0, wait_m = 0, wait_h = 0;
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8w (addr    , &wait_l);
+				val |= rd_table[bank].device->read_memory_mapped_io16w(addr + 1, &wait_m) <<  8;
+				val |= rd_table[bank].device->read_memory_mapped_io8w (addr + 3, &wait_h) << 24;
+				if(!rd_table[bank].wait_registered) *wait = wait_l + wait_m + wait_h;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -296,19 +373,19 @@ uint32_t MEMORY::read_data32w(uint32_t addr, int* wait)
 			#endif
 		}
 	} else if(!(addr & 1)) {
-		int wait_0, wait_1;
+		int wait_l = 0, wait_h = 0;
 		uint32_t val;
-		val  = read_data16w(addr    , &wait_0);
-		val |= read_data16w(addr + 2, &wait_1) << 16;
-		*wait = wait_0 + wait_1;
+		val  = read_data16w(addr    , &wait_l);
+		val |= read_data16w(addr + 2, &wait_h) << 16;
+		*wait = wait_l + wait_h;
 		return val;
 	} else {
-		int wait_0, wait_1, wait_2;
+		int wait_l = 0, wait_m = 0, wait_h = 0;
 		uint32_t val;
-		val  = read_data8w (addr    , &wait_0);
-		val |= read_data16w(addr + 1, &wait_1) <<  8;
-		val |= read_data8w (addr + 3, &wait_2) << 24;
-		*wait = wait_0 + wait_1 + wait_2;
+		val  = read_data8w (addr    , &wait_l);
+		val |= read_data16w(addr + 1, &wait_m) <<  8;
+		val |= read_data8w (addr + 3, &wait_h) << 24;
+		*wait = wait_l + wait_m + wait_h;
 		return val;
 	}
 }
@@ -317,13 +394,28 @@ void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 	uint32_t addr2 = addr & BANK_MASK;
 	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
+	if(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		int bank = get_bank(addr);
 		
-		*wait = wr_table[bank].wait * 4; // 8bit bus ???
+		*wait = wr_table[bank].wait * bus_access_times_32(addr2);
 		
 		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io32(addr, data);
+			if(!(addr & 3)) {
+				int wait_tmp = 0;
+				wr_table[bank].device->write_memory_mapped_io32w(addr, data, &wait_tmp);
+				if(!wr_table[bank].wait_registered) *wait = wait_tmp;
+			} else if(!(addr & 1)) {
+				int wait_l = 0, wait_h = 0;
+				wr_table[bank].device->write_memory_mapped_io16w(addr    , (data      ) & 0xffff, &wait_l);
+				wr_table[bank].device->write_memory_mapped_io16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
+				if(!wr_table[bank].wait_registered) *wait = wait_l + wait_h;
+			} else {
+				int wait_l = 0, wait_m = 0, wait_h = 0;
+				wr_table[bank].device->write_memory_mapped_io8w (addr    , (data      ) & 0x00ff, &wait_l);
+				wr_table[bank].device->write_memory_mapped_io16w(addr + 1, (data >>  8) & 0xffff, &wait_m);
+				wr_table[bank].device->write_memory_mapped_io8w (addr + 3, (data >> 24) & 0x00ff, &wait_h);
+				if(!wr_table[bank].wait_registered) *wait = wait_l + wait_m + wait_h;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data      ) & 0xff
@@ -335,95 +427,18 @@ void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 			#endif
 		}
 	} else if(!(addr & 1)) {
-		int wait_0, wait_1;
-		write_data16w(addr    , (data      ) & 0xffff, &wait_0);
-		write_data16w(addr + 2, (data >> 16) & 0xffff, &wait_1);
-		*wait = wait_0 + wait_1;
+		int wait_l = 0, wait_h = 0;
+		write_data16w(addr    , (data      ) & 0xffff, &wait_l);
+		write_data16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
+		*wait = wait_l + wait_h;
 	} else {
-		int wait_0, wait_1, wait_2;
-		write_data8w (addr    , (data      ) & 0x00ff, &wait_0);
-		write_data16w(addr + 1, (data >>  8) & 0xffff, &wait_1);
-		write_data8w (addr + 3, (data >> 24) & 0x00ff, &wait_2);
-		*wait = wait_0 + wait_1 + wait_2;
+		int wait_l = 0, wait_m = 0, wait_h = 0;
+		write_data8w (addr    , (data      ) & 0x00ff, &wait_l);
+		write_data16w(addr + 1, (data >>  8) & 0xffff, &wait_m);
+		write_data8w (addr + 3, (data >> 24) & 0x00ff, &wait_h);
+		*wait = wait_l + wait_m + wait_h;
 	}
 }
-
-#ifdef MEMORY_DISABLE_DMA_MMIO
-uint32_t MEMORY::read_dma_data8(uint32_t addr)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(rd_table[bank].device != NULL) {
-//		return rd_table[bank].device->read_memory_mapped_io8(addr);
-		return 0xff;
-	} else {
-		return rd_table[bank].memory[addr & BANK_MASK];
-	}
-}
-
-void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(wr_table[bank].device != NULL) {
-//		wr_table[bank].device->write_memory_mapped_io8(addr, data);
-	} else {
-		wr_table[bank].memory[addr & BANK_MASK] = data;
-	}
-}
-
-uint32_t MEMORY::read_dma_data16(uint32_t addr)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(rd_table[bank].device != NULL) {
-//		return rd_table[bank].device->read_memory_mapped_io16(addr);
-		return 0xffff;
-	} else {
-		uint32_t val = read_dma_data8(addr);
-		val |= read_dma_data8(addr + 1) << 8;
-		return val;
-	}
-}
-
-void MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(wr_table[bank].device != NULL) {
-//		wr_table[bank].device->write_memory_mapped_io16(addr, data);
-	} else {
-		write_dma_data8(addr, data & 0xff);
-		write_dma_data8(addr + 1, (data >> 8) & 0xff);
-	}
-}
-
-uint32_t MEMORY::read_dma_data32(uint32_t addr)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(rd_table[bank].device != NULL) {
-//		return rd_table[bank].device->read_memory_mapped_io32(addr);
-		return 0xffffffff;
-	} else {
-		uint32_t val = read_dma_data16(addr);
-		val |= read_dma_data16(addr + 2) << 16;
-		return val;
-	}
-}
-
-void MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(wr_table[bank].device != NULL) {
-//		wr_table[bank].device->write_memory_mapped_io32(addr, data);
-	} else {
-		write_dma_data16(addr, data & 0xffff);
-		write_dma_data16(addr + 2, (data >> 16) & 0xffff);
-	}
-}
-#endif
 
 // register
 
@@ -486,6 +501,7 @@ void MEMORY::set_wait_r(uint32_t start, uint32_t end, int wait)
 	
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		rd_table[i].wait = wait;
+		rd_table[i].wait_registered = true;
 	}
 }
 
@@ -498,6 +514,7 @@ void MEMORY::set_wait_w(uint32_t start, uint32_t end, int wait)
 	
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		wr_table[i].wait = wait;
+		wr_table[i].wait_registered = true;
 	}
 }
 
@@ -524,6 +541,32 @@ void MEMORY::unset_memory_w(uint32_t start, uint32_t end)
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		wr_table[i].device = NULL;
 		wr_table[i].memory = wr_dummy;
+	}
+}
+
+void MEMORY::unset_wait_r(uint32_t start, uint32_t end)
+{
+	MEMORY::initialize();
+	
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
+	
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
+		rd_table[i].wait = 0;
+		rd_table[i].wait_registered = false;
+	}
+}
+
+void MEMORY::unset_wait_w(uint32_t start, uint32_t end)
+{
+	MEMORY::initialize();
+	
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
+	
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
+		wr_table[i].wait = 0;
+		wr_table[i].wait_registered = false;
 	}
 }
 

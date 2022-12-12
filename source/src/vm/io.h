@@ -14,10 +14,6 @@
 #include "../emu.h"
 #include "device.h"
 
-#ifndef IO_ADDR_MAX
-#define IO_ADDR_MAX 0x100
-#endif
-
 class IO : public DEVICE
 {
 private:
@@ -26,6 +22,7 @@ private:
 		DEVICE* dev;
 		uint32_t addr;
 		int wait;
+		bool wait_registered;
 		bool is_flipflop;
 	} wr_bank_t;
 	
@@ -33,19 +30,20 @@ private:
 		DEVICE* dev;
 		uint32_t addr;
 		int wait;
-		bool value_registered;
+		bool wait_registered;
 		uint32_t value;
+		bool value_registered;
 	} rd_bank_t;
 	
 	wr_bank_t *wr_table;
 	rd_bank_t *rd_table;
 	
-	void write_port8(uint32_t addr, uint32_t data, bool is_dma);
-	uint32_t read_port8(uint32_t addr, bool is_dma);
-	void write_port16(uint32_t addr, uint32_t data, bool is_dma);
-	uint32_t read_port16(uint32_t addr, bool is_dma);
-	void write_port32(uint32_t addr, uint32_t data, bool is_dma);
-	uint32_t read_port32(uint32_t addr, bool is_dma);
+	void write_port8(uint32_t addr, uint32_t data, bool is_dma, int *wait);
+	uint32_t read_port8(uint32_t addr, bool is_dma, int *wait);
+	void write_port16(uint32_t addr, uint32_t data, bool is_dma, int *wait);
+	uint32_t read_port16(uint32_t addr, bool is_dma, int *wait);
+	void write_port32(uint32_t addr, uint32_t data, bool is_dma, int *wait);
+	uint32_t read_port32(uint32_t addr, bool is_dma, int *wait);
 	
 public:
 	IO(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -53,7 +51,8 @@ public:
 #ifdef _IO_DEBUG_LOG
 		cpu_index = 0;
 #endif
-		addr_max = IO_ADDR_MAX;
+		space = 0x100;
+		bus_width = 8;
 		
 		wr_table = NULL;
 		rd_table = NULL;
@@ -83,6 +82,12 @@ public:
 	uint32_t read_dma_io16(uint32_t addr);
 	void write_dma_io32(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io32(uint32_t addr);
+	void write_dma_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_dma_io8w(uint32_t addr, int* wait);
+	void write_dma_io16w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_dma_io16w(uint32_t addr, int* wait);
+	void write_dma_io32w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_dma_io32w(uint32_t addr, int* wait);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
@@ -111,7 +116,8 @@ public:
 #ifdef _IO_DEBUG_LOG
 	int cpu_index;
 #endif
-	int addr_max;
+	uint32_t space;
+	int bus_width;
 };
 
 #endif

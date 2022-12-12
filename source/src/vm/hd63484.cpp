@@ -100,6 +100,16 @@ uint32_t HD63484::read_io16(uint32_t addr)
 	}
 }
 
+void HD63484::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io16(addr, data);
+}
+
+uint32_t HD63484::read_io16w(uint32_t addr, int *wait)
+{
+	return read_io16(addr);
+}
+
 void HD63484::event_vline(int v, int clock)
 {
 	vpos = v;

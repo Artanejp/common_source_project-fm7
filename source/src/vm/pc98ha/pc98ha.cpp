@@ -20,6 +20,7 @@
 #include "../i8259.h"
 #include "../i86.h"
 #include "../io.h"
+#include "../memory.h"
 #include "../noise.h"
 #include "../not.h"
 //#include "../pcpr201.h"
@@ -40,7 +41,7 @@
 #include "calendar.h"
 #include "floppy.h"
 #include "keyboard.h"
-#include "memory.h"
+#include "membus.h"
 #include "note.h"
 
 // ----------------------------------------------------------------------------
@@ -68,6 +69,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);	// V50
 	cpu->device_model = NEC_V30;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	not_busy = new NOT(this, emu);
 #ifdef _PC98HA
 	rtc = new UPD4991A(this, emu);
@@ -95,7 +98,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	calendar = new CALENDAR(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new MEMBUS(this, emu);
+	memory->space = 0x100000;
+	memory->bus_width = 16;
+	memory->bank_size = 0x4000;
 	note = new NOTE(this, emu);
 	
 	// set contexts
@@ -134,6 +140,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef _PC98LT
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
 #endif
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);	// 1MB
 	dma->set_context_ch3(fdc);	// 640KB
@@ -391,7 +398,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

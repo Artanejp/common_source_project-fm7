@@ -29,6 +29,7 @@ static void trace_fmt_ex(const char *fmt, ...)
 #include	"i386hax/haxfunc.h"
 #include	"i386hax/haxcore.h"
 #endif
+#include	"ia32/ia32.mcr"
 
 DEVICE *device_cpu;
 DEVICE *device_mem;
@@ -47,44 +48,62 @@ UINT32 codefetch_address;
 // ----
 REG8 MEMCALL memp_read8(UINT32 address) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data8(address);
+	REG8 value = device_mem->read_data8w(address, &wait);
+	CPU_WORKCLOCK(wait);
+	return value;
 }
 
 REG16 MEMCALL memp_read16(UINT32 address) {
 
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data16(address);
+	REG16 value = device_mem->read_data16w(address, &wait);
+	CPU_WORKCLOCK(wait);
+	return value;
 }
 
 UINT32 MEMCALL memp_read32(UINT32 address) {
 
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data32(address);
+	UINT32 value = device_mem->read_data32w(address, &wait);
+	CPU_WORKCLOCK(wait);
+	return value;
 }
 
 // ----
 REG8 MEMCALL memp_read8_codefetch(UINT32 address) {
 	
+	int wait = 0;
 #ifdef USE_DEBUGGER
 	codefetch_address = address & CPU_ADRSMASK;
-	return device_mem->read_data8(codefetch_address);
+	REG8 value = device_mem->read_data8w(codefetch_address, &wait);
 #else
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data8(address);
+	REG8 value = device_mem->read_data8w(address, &wait);
 #endif
+	CPU_WORKCLOCK(wait);
+	return value;
 }
 
 REG16 MEMCALL memp_read16_codefetch(UINT32 address) {
 
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data16(address);
+	REG16 value = device_mem->read_data16w(address, &wait);
+	CPU_WORKCLOCK(wait);
+	return value;
 }
 
 UINT32 MEMCALL memp_read32_codefetch(UINT32 address) {
 
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	return device_mem->read_data32(address);
+	UINT32 value = device_mem->read_data32w(address, &wait);
+	CPU_WORKCLOCK(wait);
+	return value;
 }
 
 // ----
@@ -104,38 +123,50 @@ UINT32 MEMCALL memp_read32_paging(UINT32 address) {
 
 void MEMCALL memp_write8(UINT32 address, REG8 value) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data8(address, value);
+	device_mem->write_data8w(address, value, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 void MEMCALL memp_write16(UINT32 address, REG16 value) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data16(address, value);
+	device_mem->write_data16w(address, value, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 void MEMCALL memp_write32(UINT32 address, UINT32 value) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data32(address, value);
+	device_mem->write_data32w(address, value, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 void MEMCALL memp_write8_paging(UINT32 address, REG8 value) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data8(address, value);
+	device_mem->write_data8w(address, value, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 void MEMCALL memp_write16_paging(UINT32 address, REG16 value) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data16(address, value);
+	device_mem->write_data16w(address, value, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 void MEMCALL memp_write32_paging(UINT32 address, UINT32 value) {
 	
+	int wait = 0;
 	address = address & CPU_ADRSMASK;
-	device_mem->write_data32(address, value);
+	device_mem->write_data32w(address, value, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 
@@ -339,32 +370,47 @@ void MEMCALL memr_writes(UINT seg, UINT off, const void *dat, UINT leng) {
 
 void IOOUTCALL iocore_out8(UINT port, REG8 dat)
 {
-	device_io->write_io8(port, dat);
+	int wait = 0;
+	device_io->write_io8w(port, dat, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 REG8 IOINPCALL iocore_inp8(UINT port)
 {
-	return device_io->read_io8(port);
+	int wait = 0;
+	REG8 dat = device_io->read_io8w(port, &wait);
+	CPU_WORKCLOCK(wait);
+	return dat;
 }
 
 void IOOUTCALL iocore_out16(UINT port, REG16 dat)
 {
-	device_io->write_io16(port, dat);
+	int wait = 0;
+	device_io->write_io16w(port, dat, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 REG16 IOINPCALL iocore_inp16(UINT port)
 {
-	return device_io->read_io16(port);
+	int wait = 0;
+	REG16 dat = device_io->read_io16w(port, &wait);
+	CPU_WORKCLOCK(wait);
+	return dat;
 }
 
 void IOOUTCALL iocore_out32(UINT port, UINT32 dat)
 {
-	device_io->write_io32(port, dat);
+	int wait = 0;
+	device_io->write_io32w(port, dat, &wait);
+	CPU_WORKCLOCK(wait);
 }
 
 UINT32 IOINPCALL iocore_inp32(UINT port)
 {
-	return device_io->read_io32(port);
+	int wait = 0;
+	UINT32 dat = device_io->read_io32w(port, &wait);
+	CPU_WORKCLOCK(wait);
+	return dat;
 }
 
 void dmax86(void)

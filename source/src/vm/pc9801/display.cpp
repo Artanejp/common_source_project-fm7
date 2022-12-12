@@ -331,6 +331,9 @@ void DISPLAY::initialize()
 	d_gdc_chr->set_vram_ptr(tvram, 0x2000);
 	d_gdc_chr->set_screen_width(80);
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x20000);
+#if !defined(SUPPORT_HIRESO)
+	d_gdc_gfx->set_plane_size(0x8000);
+#endif
 	d_gdc_gfx->set_screen_width(SCREEN_WIDTH >> 3);
 	
 	// register event
@@ -1047,6 +1050,16 @@ uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 #endif
 	}
 	return 0xffff;
+}
+
+void DISPLAY::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_memory_mapped_io16(addr, data);
+}
+
+uint32_t DISPLAY::read_memory_mapped_io16w(uint32_t addr, int *wait)
+{
+	return read_memory_mapped_io16(addr);
 }
 
 // Graphic GDC bus

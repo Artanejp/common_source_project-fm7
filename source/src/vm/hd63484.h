@@ -61,6 +61,8 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	void write_io16(uint32_t addr, uint32_t data);
 	uint32_t read_io16(uint32_t addr);
+	void write_io16w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_io16w(uint32_t addr, int *wait);
 	void event_vline(int v, int clock);
 	
 	// unique functions

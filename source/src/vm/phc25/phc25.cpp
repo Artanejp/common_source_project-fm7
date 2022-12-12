@@ -47,6 +47,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	vdp = new MC6847(this, emu);
 	not_vsync = new NOT(this, emu);
 	psg = new AY_3_891X(this, emu);

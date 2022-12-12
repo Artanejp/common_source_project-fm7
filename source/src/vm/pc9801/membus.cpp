@@ -377,9 +377,6 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 	#define UPPER_MEMORY_32BIT	0xfffc0000
 #endif
 
-#define ADDR_MASK (addr_max - 1)
-#define BANK_MASK (bank_size - 1)
-
 inline bool MEMBUS::get_memory_addr(uint32_t *addr)
 {
 	for(;;) {
@@ -414,176 +411,118 @@ inline bool MEMBUS::get_memory_addr(uint32_t *addr)
 	return false;
 }
 
-uint32_t MEMBUS::read_data8(uint32_t addr)
+// 4clk = wait when access memory on expansion board ???
+
+uint32_t MEMBUS::read_data8w(uint32_t addr, int *wait)
 {
 	if(!get_memory_addr(&addr)) {
+		*wait = 4;
 		return 0xff;
 	}
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(rd_table[bank].device != NULL) {
-		return rd_table[bank].device->read_memory_mapped_io8(addr);
-	} else {
-		return rd_table[bank].memory[addr & BANK_MASK];
-	}
+	return MEMORY::read_data8w(addr, wait);
 }
 
-void MEMBUS::write_data8(uint32_t addr, uint32_t data)
+void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	if(!get_memory_addr(&addr)) {
+		*wait = 4;
 		return;
 	}
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(wr_table[bank].device != NULL) {
-		wr_table[bank].device->write_memory_mapped_io8(addr, data);
-	} else {
-		wr_table[bank].memory[addr & BANK_MASK] = data;
-	}
+	MEMORY::write_data8w(addr, data, wait);
 }
 
-uint32_t MEMBUS::read_data16(uint32_t addr)
+uint32_t MEMBUS::read_data16w(uint32_t addr, int *wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 1 < bank_size) {
-		if(!get_memory_addr(&addr)) {
-			return 0xffff;
-		}
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io16(addr);
-		} else {
-			#ifdef __BIG_ENDIAN__
-				uint32_t val;
-				val  = rd_table[bank].memory[addr2    ];
-				val |= rd_table[bank].memory[addr2 + 1] <<  8;
-				return val;
-			#else
-				return *(uint16_t *)(rd_table[bank].memory + addr2);
-			#endif
-		}
-	} else {
-		uint32_t val;
-		val  = MEMBUS::read_data8(addr    );
-		val |= MEMBUS::read_data8(addr + 1) << 8;
-		return val;
+	if(!get_memory_addr(&addr)) {
+		*wait = 4 * bus_access_times_16(addr);
+		return 0xffff;
 	}
+	return MEMORY::read_data16w(addr, wait);
 }
 
-void MEMBUS::write_data16(uint32_t addr, uint32_t data)
+void MEMBUS::write_data16w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 1 < bank_size) {
-		if(!get_memory_addr(&addr)) {
-			return;
-		}
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io16(addr, data);
-		} else {
-			#ifdef __BIG_ENDIAN__
-				wr_table[bank].memory[addr2    ] = (data     ) & 0xff
-				wr_table[bank].memory[addr2 + 1] = (data >> 8) & 0xff
-			#else
-				*(uint16_t *)(wr_table[bank].memory + addr2) = data;
-			#endif
-		}
-	} else {
-		MEMBUS::write_data8(addr    , (data     ) & 0xff);
-		MEMBUS::write_data8(addr + 1, (data >> 8) & 0xff);
+	if(!get_memory_addr(&addr)) {
+		*wait = 4 * bus_access_times_16(addr);
+		return;
 	}
+	MEMORY::write_data16w(addr, data, wait);
 }
 
-uint32_t MEMBUS::read_data32(uint32_t addr)
+uint32_t MEMBUS::read_data32w(uint32_t addr, int *wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 3 < bank_size) {
-		if(!get_memory_addr(&addr)) {
-			return 0xffffffff;
-		}
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io32(addr);
-		} else {
-			#ifdef __BIG_ENDIAN__
-				uint32_t val;
-				val  = rd_table[bank].memory[addr2    ];
-				val |= rd_table[bank].memory[addr2 + 1] <<  8;
-				val |= rd_table[bank].memory[addr2 + 2] << 16;
-				val |= rd_table[bank].memory[addr2 + 3] << 24;
-				return val;
-			#else
-				return *(uint32_t *)(rd_table[bank].memory + addr2);
-			#endif
-		}
-	} else if(!(addr & 1)) {
-		uint32_t val;
-		val  = MEMBUS::read_data16(addr    );
-		val |= MEMBUS::read_data16(addr + 2) << 16;
-		return val;
-	} else {
-		uint32_t val;
-		val  = MEMBUS::read_data8 (addr    );
-		val |= MEMBUS::read_data16(addr + 1) <<  8;
-		val |= MEMBUS::read_data8 (addr + 3) << 24;
-		return val;
+	if(!get_memory_addr(&addr)) {
+		*wait = 4 * bus_access_times_32(addr);
+		return 0xffffffff;
 	}
+	return MEMORY::read_data32w(addr, wait);
 }
 
-void MEMBUS::write_data32(uint32_t addr, uint32_t data)
+void MEMBUS::write_data32w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 3 < bank_size) {
-		if(!get_memory_addr(&addr)) {
-			return;
-		}
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io32(addr, data);
-		} else {
-			#ifdef __BIG_ENDIAN__
-				wr_table[bank].memory[addr2    ] = (data      ) & 0xff
-				wr_table[bank].memory[addr2 + 1] = (data >>  8) & 0xff
-				wr_table[bank].memory[addr2 + 2] = (data >> 16) & 0xff
-				wr_table[bank].memory[addr2 + 3] = (data >> 24) & 0xff
-			#else
-				*(uint32_t *)(wr_table[bank].memory + addr2) = data;
-			#endif
-		}
-	} else if(!(addr & 1)) {
-		MEMBUS::write_data16(addr    , (data      ) & 0xffff);
-		MEMBUS::write_data16(addr + 2, (data >> 16) & 0xffff);
-	} else {
-		MEMBUS::write_data8 (addr    , (data      ) & 0x00ff);
-		MEMBUS::write_data16(addr + 1, (data >>  8) & 0xffff);
-		MEMBUS::write_data8 (addr + 3, (data >> 24) & 0x00ff);
+	if(!get_memory_addr(&addr)) {
+		*wait = 4 * bus_access_times_32(addr);
+		return;
 	}
-}
-
-uint32_t MEMBUS::read_dma_data8(uint32_t addr)
-{
-	if(dma_access_ctrl & 4) {
-		addr &= 0x000fffff;
-	}
-	return MEMBUS::read_data8(addr);
-}
-
-void MEMBUS::write_dma_data8(uint32_t addr, uint32_t data)
-{
-	if(dma_access_ctrl & 4) {
-		addr &= 0x000fffff;
-	}
-	MEMBUS::write_data8(addr, data);
+	MEMORY::write_data32w(addr, data, wait);
 }
 #endif
+
+uint32_t MEMBUS::read_dma_data8w(uint32_t addr, int *wait)
+{
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	if(dma_access_ctrl & 4) {
+		addr &= 0x000fffff;
+	}
+#endif
+	return MEMBUS::read_data8w(addr, wait);
+}
+
+void MEMBUS::write_dma_data8w(uint32_t addr, uint32_t data, int *wait)
+{
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+	if(dma_access_ctrl & 4) {
+		addr &= 0x000fffff;
+	}
+#endif
+	MEMBUS::write_data8w(addr, data, wait);
+}
+
+uint32_t MEMBUS::read_dma_data16w(uint32_t addr, int *wait)
+{
+	if(!(addr & 1)) {
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+		if(dma_access_ctrl & 4) {
+			addr &= 0x000fffff;
+		}
+#endif
+		return MEMBUS::read_data16w(addr, wait);
+	} else {
+		int wait_l = 0, wait_h = 0;
+		uint32_t val;
+		val  = read_dma_data8w(addr    , &wait_l);
+		val |= read_dma_data8w(addr + 1, &wait_h) << 8;
+		*wait = wait_l + wait_h;
+		return val;
+	}
+}
+
+void MEMBUS::write_dma_data16w(uint32_t addr, uint32_t data, int *wait)
+{
+	if(!(addr & 1)) {
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+		if(dma_access_ctrl & 4) {
+			addr &= 0x000fffff;
+		}
+#endif
+		MEMBUS::write_data16w(addr, data, wait);
+	} else {
+		int wait_l = 0, wait_h = 0;
+		write_dma_data8w(addr    , (data     ) & 0xff, &wait_l);
+		write_dma_data8w(addr + 1, (data >> 8) & 0xff, &wait_h);
+		*wait = wait_l + wait_h;
+	}
+}
 
 void MEMBUS::update_bios()
 {

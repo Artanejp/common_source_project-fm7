@@ -58,12 +58,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I286(this, emu);
 #endif
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER
 	dma->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	sio = new I8251(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	fdc_2hd = new MB8877(this, emu);
 	fdc_2hd->set_context_noise_seek(new NOISE(this, emu));
 	fdc_2hd->set_context_noise_head_down(new NOISE(this, emu));
@@ -80,12 +83,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mainbus = new MAIN(this, emu);
-	
-
-	
-	
+#if defined(HAS_I186)
+	mainbus->space = 0x0100000; // 1MB
+#elif defined(HAS_I286)
+	mainbus->space = 0x1000000; // 16MB
+#endif
+	mainbus->bank_size = 0x4000;
+	mainbus->bus_width = 16;
 	
 	subbus = new SUB(this, emu);
+	subbus->space = 0x10000;
+	subbus->bank_size = 0x80;
+	subbus->bus_width = 8;
 	
 	// set contexts
 	event->set_context_cpu(cpu, 8000000);
@@ -111,6 +120,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mainbus->set_context_sub(subbus);
 	mainbus->set_context_keyboard(keyboard);
 
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(mainbus);
 	dma->set_context_ch0(fdc_2d);
 	dma->set_context_ch1(fdc_2hd);
@@ -140,8 +150,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	crtc->set_context_disp(subbus, SIG_SUB_DISP, 1);
 	crtc->set_context_vsync(subbus, SIG_SUB_VSYNC, 1);
 	
-	subbus->addr_max = 0x10000;
-	subbus->bank_size = 0x80;
 	subbus->set_context_crtc(crtc);
 	subbus->set_chregs_ptr(crtc->get_regs());
 	subbus->set_context_pcm(pcm);

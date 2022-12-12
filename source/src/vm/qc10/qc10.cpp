@@ -64,7 +64,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit1->set_device_name(_T("8253 PIT (Sound/SIO)"));
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x100;
 	pcm = new PCM1BIT(this, emu);
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
@@ -88,12 +90,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	rtc->set_context_intr(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
+	dma0->set_context_cpu(cpu);
 	dma0->set_context_memory(memory);
 	dma0->set_context_ch0(fdc);
 	dma0->set_context_ch1(gdc);
 #ifdef SINGLE_MODE_DMA
 	dma0->set_context_child_dma(dma1);
 #endif
+	dma1->set_context_cpu(cpu);
 	dma1->set_context_memory(memory);
 	pit0->set_context_ch0(memory, SIG_MEMORY_PCM, 1);
 	pit0->set_context_ch1(pic, SIG_I8259_IR5 | SIG_I8259_CHIP1, 1);
@@ -113,6 +117,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic->set_context_cpu(cpu);
 	gdc->set_context_drq(dma0, SIG_I8237_CH1, 1);
 	gdc->set_vram_ptr(display->get_vram(), VRAM_SIZE);
+	gdc->set_screen_width(80);
 	// IR5 of I8259 #0 is from light pen
 	fdc->set_context_irq(pic, SIG_I8259_IR6 | SIG_I8259_CHIP0, 1);
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);

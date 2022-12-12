@@ -43,12 +43,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	not = new NOT(this, emu);
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
 	
 	display = new DISPLAY(this, emu);
 	memory = new MEMBUS(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x400;
 	
 	// set contexts
 	event->set_context_cpu(cpu);

@@ -24,6 +24,7 @@
 #endif
 #include "../io.h"
 #include "../mb8877.h"
+#include "../memory.h"
 #include "../noise.h"
 #include "../scsi_hdd.h"
 #include "../scsi_host.h"
@@ -37,7 +38,7 @@
 #include "cmos.h"
 #include "floppy.h"
 #include "keyboard.h"
-#include "memory.h"
+#include "membus.h"
 #include "rtc.h"
 #include "scsi.h"
 #include "serial.h"
@@ -68,7 +69,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sio_ch2 = new I8251(this, emu);	// RS-232C ch.2
 	sio_ch2->set_device_name(_T("8251 SIO (RS-232C #2)"));
 	pit = new I8253(this, emu);
+	pit->device_model = INTEL_8254;
+	pit->set_device_name(_T("8254 PIT"));
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 #if defined(HAS_I86)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
@@ -76,6 +80,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I286(this, emu);
 #endif
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -99,7 +105,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new MEMBUS(this, emu);
+#if defined(HAS_I86)
+	memory->space = 0x0100000; // 1MB
+#elif defined(HAS_I286)
+	memory->space = 0x1000000; // 16MB
+#endif
+	memory->bus_width = 16;
+	memory->bank_size = 0x1000;
 	rtc = new RTC(this, emu);
 	scsi = new SCSI(this, emu);
 	serial = new SERIAL(this, emu);
@@ -113,6 +126,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
@@ -422,7 +436,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

@@ -19,9 +19,6 @@
 #define CPU_CLOCKS		4000000
 #define SCREEN_WIDTH		768
 #define SCREEN_HEIGHT		512
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x1000
-#define IO_ADDR_MAX		0x100
 #define HAS_TMPZ84C013
 
 // device informations for win32

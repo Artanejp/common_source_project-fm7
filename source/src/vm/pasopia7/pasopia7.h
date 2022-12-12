@@ -40,7 +40,6 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #endif
 #define MAX_DRIVE		4
-#define IO_ADDR_MAX		0x100
 
 // device informations for win32
 #define USE_TAPE		1

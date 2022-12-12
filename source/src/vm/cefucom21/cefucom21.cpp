@@ -54,8 +54,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mcu_drec->set_context_noise_stop(new NOISE(this, emu));
 	mcu_drec->set_context_noise_fast(new NOISE(this, emu));
 	mcu_io = new IO(this, emu);
+	mcu_io->space = 0x100;
 	mcu_vdp = new MC6847(this, emu);
 	mcu_mem = new MEMORY(this, emu);
+	mcu_mem->space = 0x10000;
+	mcu_mem->bank_size = 0x800;
 	mcu_not = new NOT(this, emu);
 	mcu_cpu = new Z80(this, emu);
 	mcu_pio = new Z80PIO(this, emu);
@@ -65,7 +68,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcu_pio2 = new I8255(this, emu);
 	pcu_pio3 = new I8255(this, emu);
 	pcu_io = new IO(this, emu);
+	pcu_io->space = 0x100;
 	pcu_mem = new MEMORY(this, emu);
+	pcu_mem->space = 0x10000;
+	pcu_mem->bank_size = 0x1000;
 	pcu_rtc = new RP5C01(this, emu);
 	pcu_cpu = new Z80(this, emu);
 	pcu_ctc1 = new Z80CTC(this, emu);

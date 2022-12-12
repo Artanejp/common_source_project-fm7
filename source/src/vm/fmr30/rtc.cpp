@@ -71,6 +71,16 @@ void RTC::release()
 	delete fio;
 }
 
+void RTC::write_io8(uint32_t addr, uint32_t data)
+{
+	write_io16(addr, data);
+}
+
+uint32_t RTC::read_io8(uint32_t addr)
+{
+	return (uint8_t)read_io16(addr);
+}
+
 void RTC::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
@@ -105,6 +115,16 @@ uint32_t RTC::read_io16(uint32_t addr)
 		return rtibr;
 	}
 	return 0xffff;
+}
+
+void RTC::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io16(addr, data);
+}
+
+uint32_t RTC::read_io16w(uint32_t addr, int *wait)
+{
+	return read_io16(addr);
 }
 
 void RTC::event_callback(int event_id, int err)

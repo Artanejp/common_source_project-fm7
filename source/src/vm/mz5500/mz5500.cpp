@@ -23,6 +23,7 @@
 #endif
 #include "../io.h"
 #include "../ls393.h"
+#include "../memory.h"
 #include "../mz1p17.h"
 #include "../noise.h"
 #include "../not.h"
@@ -41,7 +42,7 @@
 
 #include "display.h"
 #include "keyboard.h"
-#include "memory.h"
+#include "membus.h"
 #include "sysport.h"
 
 // ----------------------------------------------------------------------------
@@ -68,6 +69,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 #if defined(_MZ6550)
 	cpu = new I286(this, emu);
 #else
@@ -75,6 +77,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->device_model = INTEL_8086;
 #endif
 	io = new IO(this, emu);
+	io->space = 0x400;
+	io->bus_width = 16;
 	div = new LS393(this, emu);
 	not_data0 = new NOT(this, emu);
 	not_data0->set_device_name(_T("NOT Gate (Printer Bit0)"));
@@ -112,7 +116,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new MEMBUS(this, emu);
+	memory->space = 0x100000;
+	memory->bus_width = 16;
+	memory->bank_size = 0x4000;
 	sysport = new SYSPORT(this, emu);
 	
 	// set contexts
@@ -132,6 +139,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
 		mz1p17->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
 	}
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch1(fdc);
 	pio->set_context_port_a(not_data0, SIG_NOT_INPUT, 0x01, 0);
@@ -190,6 +198,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard->set_context_pio(pio);
 	keyboard->set_context_pic(pic);
 	memory->set_context_cpu(cpu);
+	memory->set_context_dma(dma);
 	sysport->set_context_fdc(fdc);
 	sysport->set_context_ctc(ctc0);
 	sysport->set_context_sio(sio);
@@ -226,7 +235,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	io->set_iomap_range_rw(0x110, 0x17f, display);
 	io->set_iomap_range_rw(0x200, 0x20f, sio);
+#if defined(_MZ6500) || defined(_MZ6550)
+	io->set_iomap_range_rw(0x210, 0x213, ctc0);
+	io->set_iomap_range_rw(0x214, 0x217, ctc1);
+	io->set_iomap_range_rw(0x218, 0x21b, ctc0);
+	io->set_iomap_range_rw(0x21c, 0x21f, ctc1);
+#else
 	io->set_iomap_range_rw(0x210, 0x21f, ctc0);
+#endif
 	io->set_iomap_range_rw(0x220, 0x22f, rtc);
 	for(int i = 0x230; i < 0x240; i++) {
 		io->set_iomap_alias_rw(i, psg, ~i & 1);
@@ -234,6 +250,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_r(0x240, 0x25f, sysport);
 	io->set_iomap_range_w(0x260, 0x26f, sysport);
 	io->set_iomap_range_r(0x270, 0x27f, sysport);
+	
+	// memory and i/o wait
+#if defined(_MZ6500) || defined(_MZ6550)
+	memory->set_wait_rw(0x00000, 0xfffff, 1);
+	io->set_iowait_range_rw(0x000, 0x1ff, 1);
+#else
+	memory->set_wait_rw(0x80000, 0xfbfff, 1);
+#endif
+	io->set_iowait_range_rw(0x200, 0x37f, 3);
+	io->set_iowait_range_rw(0x380, 0x3ff, 1);
+	io->set_iowait_range_rw(0x210, 0x21f, 15); // CTC
+	io->set_iowait_range_rw(0x240, 0x26f, 15); // INT ACK/RET
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -430,7 +458,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

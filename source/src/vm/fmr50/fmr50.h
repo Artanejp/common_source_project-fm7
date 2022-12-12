@@ -74,10 +74,8 @@
 #define MAX_DRIVE		4
 #define MAX_MEMCARD		2
 #define I86_PSEUDO_BIOS
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define MB8877_NO_BUSY_AFTER_SEEK
-#define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
 
 // device informations for win32

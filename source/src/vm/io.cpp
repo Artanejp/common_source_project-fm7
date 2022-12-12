@@ -9,17 +9,17 @@
 
 #include "io.h"
 
-#define IO_ADDR_MASK (addr_max - 1)
+#define IO_ADDR_MASK (space - 1)
 
 void IO::initialize()
 {
 	// allocate tables here to support multiple instances with different address range
 	if(wr_table == NULL) {
-		wr_table = (wr_bank_t *)calloc(addr_max, sizeof(wr_bank_t));
-		rd_table = (rd_bank_t *)calloc(addr_max, sizeof(rd_bank_t));
+		wr_table = (wr_bank_t *)calloc(space, sizeof(wr_bank_t));
+		rd_table = (rd_bank_t *)calloc(space, sizeof(rd_bank_t));
 		
 		// vm->dummy must be generated first !
-		for(int i = 0; i < addr_max; i++) {
+		for(uint32_t i = 0; i < space; i++) {
 			wr_table[i].dev = rd_table[i].dev = vm->dummy;
 			wr_table[i].addr = rd_table[i].addr = i;
 		}
@@ -34,104 +34,144 @@ void IO::release()
 
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
-	write_port8(addr, data, false);
+	int wait = 0;
+	write_port8(addr, data, false, &wait);
 }
 
 uint32_t IO::read_io8(uint32_t addr)
 {
-	return read_port8(addr, false);
+	int wait = 0;
+	return read_port8(addr, false, &wait);
 }
 
 void IO::write_io16(uint32_t addr, uint32_t data)
 {
-	write_port16(addr, data, false);
+	int wait = 0;
+	write_port16(addr, data, false, &wait);
 }
 
 uint32_t IO::read_io16(uint32_t addr)
 {
-	return read_port16(addr, false);
+	int wait = 0;
+	return read_port16(addr, false, &wait);
 }
 
 void IO::write_io32(uint32_t addr, uint32_t data)
 {
-	write_port32(addr, data, false);
+	int wait = 0;
+	write_port32(addr, data, false, &wait);
 }
 
 uint32_t IO::read_io32(uint32_t addr)
 {
-	return read_port32(addr, false);
+	int wait = 0;
+	return read_port32(addr, false, &wait);
 }
 
 void IO::write_io8w(uint32_t addr, uint32_t data, int* wait)
 {
-	*wait = wr_table[addr & IO_ADDR_MASK].wait;
-	write_port8(addr, data, false);
+	write_port8(addr, data, false, wait);
 }
 
 uint32_t IO::read_io8w(uint32_t addr, int* wait)
 {
-	*wait = rd_table[addr & IO_ADDR_MASK].wait;
-	return read_port8(addr, false);
+	return read_port8(addr, false, wait);
 }
 
 void IO::write_io16w(uint32_t addr, uint32_t data, int* wait)
 {
-	*wait = wr_table[addr & IO_ADDR_MASK].wait;
-	write_port16(addr, data, false);
+	write_port16(addr, data, false, wait);
 }
 
 uint32_t IO::read_io16w(uint32_t addr, int* wait)
 {
-	*wait = rd_table[addr & IO_ADDR_MASK].wait;
-	return read_port16(addr, false);
+	return read_port16(addr, false, wait);
 }
 
 void IO::write_io32w(uint32_t addr, uint32_t data, int* wait)
 {
-	*wait = wr_table[addr & IO_ADDR_MASK].wait;
-	write_port32(addr, data, false);
+	write_port32(addr, data, false, wait);
 }
 
 uint32_t IO::read_io32w(uint32_t addr, int* wait)
 {
-	*wait = rd_table[addr & IO_ADDR_MASK].wait;
-	return read_port32(addr, false);
+	return read_port32(addr, false, wait);
 }
 
 void IO::write_dma_io8(uint32_t addr, uint32_t data)
 {
-	write_port8(addr, data, true);
+	int wait = 0;
+	write_port8(addr, data, true, &wait);
 }
 
 uint32_t IO::read_dma_io8(uint32_t addr)
 {
-	return read_port8(addr, true);
+	int wait = 0;
+	return read_port8(addr, true, &wait);
 }
 
 void IO::write_dma_io16(uint32_t addr, uint32_t data)
 {
-	write_port16(addr, data, true);
+	int wait = 0;
+	write_port16(addr, data, true, &wait);
 }
 
 uint32_t IO::read_dma_io16(uint32_t addr)
 {
-	return read_port16(addr, true);
+	int wait = 0;
+	return read_port16(addr, true, &wait);
 }
 
 void IO::write_dma_io32(uint32_t addr, uint32_t data)
 {
-	write_port32(addr, data, true);
+	int wait = 0;
+	write_port32(addr, data, true, &wait);
 }
 
 uint32_t IO::read_dma_io32(uint32_t addr)
 {
-	return read_port32(addr, true);
+	int wait = 0;
+	return read_port32(addr, true, &wait);
 }
 
-void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma)
+void IO::write_dma_io8w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_port8(addr, data, true, wait);
+}
+
+uint32_t IO::read_dma_io8w(uint32_t addr, int* wait)
+{
+	return read_port8(addr, true, wait);
+}
+
+void IO::write_dma_io16w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_port16(addr, data, true, wait);
+}
+
+uint32_t IO::read_dma_io16w(uint32_t addr, int* wait)
+{
+	return read_port16(addr, true, wait);
+}
+
+void IO::write_dma_io32w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_port32(addr, data, true, wait);
+}
+
+uint32_t IO::read_dma_io32w(uint32_t addr, int* wait)
+{
+	return read_port32(addr, true, wait);
+}
+
+void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 {
 	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
 	uint32_t addr2 = haddr | wr_table[laddr].addr;
+	int wait_tmp = 0;
+	
+	*wait = wr_table[laddr].wait;
+	
 #ifdef _IO_DEBUG_LOG
 	_TCHAR tmp[256] = {0};
 	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
@@ -146,17 +186,32 @@ void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma)
 	if(wr_table[laddr].is_flipflop) {
 		rd_table[laddr].value = data & 0xff;
 	} else if(is_dma) {
-		wr_table[laddr].dev->write_dma_io8(addr2, data & 0xff);
+		wr_table[laddr].dev->write_dma_io8w(addr2, data & 0xff, &wait_tmp);
+		if(!wr_table[laddr].wait_registered) *wait = wait_tmp;
 	} else {
-		wr_table[laddr].dev->write_io8(addr2, data & 0xff);
+		wr_table[laddr].dev->write_io8w(addr2, data & 0xff, &wait_tmp);
+		if(!wr_table[laddr].wait_registered) *wait = wait_tmp;
 	}
 }
 
-uint32_t IO::read_port8(uint32_t addr, bool is_dma)
+uint32_t IO::read_port8(uint32_t addr, bool is_dma, int *wait)
 {
 	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
 	uint32_t addr2 = haddr | rd_table[laddr].addr;
-	uint32_t val = rd_table[laddr].value_registered ? rd_table[laddr].value : is_dma ? rd_table[laddr].dev->read_dma_io8(addr2) : rd_table[laddr].dev->read_io8(addr2);
+	uint32_t val;
+	int wait_tmp = 0;
+	
+	*wait = rd_table[laddr].wait;
+	
+	if(rd_table[laddr].value_registered) {
+		val = rd_table[laddr].value;
+	} else if(is_dma) {
+		val = rd_table[laddr].dev->read_dma_io8w(addr2, &wait_tmp);
+		if(!rd_table[laddr].wait_registered) *wait = wait_tmp;
+	} else {
+		val = rd_table[laddr].dev->read_io8w(addr2, &wait_tmp);
+		if(!rd_table[laddr].wait_registered) *wait = wait_tmp;
+	}
 #ifdef _IO_DEBUG_LOG
 	_TCHAR tmp[256] = {0};
 	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
@@ -171,90 +226,174 @@ uint32_t IO::read_port8(uint32_t addr, bool is_dma)
 	return val & 0xff;
 }
 
-void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma)
+void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 {
-	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-	uint32_t addr2 = haddr | wr_table[laddr].addr;
+	if(bus_width >= 16 && !(addr & 1)) {
+		uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+		uint32_t addr2 = haddr | wr_table[laddr].addr;
+		int wait_tmp = 0;
+		
+		*wait = wr_table[laddr].wait;
+		
 #ifdef _IO_DEBUG_LOG
-	_TCHAR tmp[256] = {0};
-	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
-	}
-	if(cpu_index != 0) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
-	}
-	my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT16\t%04x,%04x\n"), get_cpu_pc(cpu_index), addr, data & 0xffff);
-	this->out_debug_log(tmp);
+		_TCHAR tmp[256] = {0};
+		if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
+		}
+		if(cpu_index != 0) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
+		}
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT16\t%04x,%04x\n"), get_cpu_pc(cpu_index), addr, data & 0xffff);
+		this->out_debug_log(tmp);
 #endif
-	if(wr_table[laddr].is_flipflop) {
-		rd_table[laddr].value = data & 0xffff;
-	} else if(is_dma) {
-		wr_table[laddr].dev->write_dma_io16(addr2, data & 0xffff);
+		if(wr_table[laddr].is_flipflop) {
+			rd_table[laddr].value = data & 0xffff;
+		} else if(is_dma) {
+			wr_table[laddr].dev->write_dma_io16w(addr2, data & 0xffff, &wait_tmp);
+			if(!wr_table[laddr].wait_registered) *wait = wait_tmp;
+		} else {
+			wr_table[laddr].dev->write_io16w(addr2, data & 0xffff, &wait_tmp);
+			if(!wr_table[laddr].wait_registered) *wait = wait_tmp;
+		}
 	} else {
-		wr_table[laddr].dev->write_io16(addr2, data & 0xffff);
+		int wait_l = 0, wait_h = 0;
+		write_port8(addr    , (data     ) & 0xff, is_dma, &wait_l);
+		write_port8(addr + 2, (data >> 8) & 0xff, is_dma, &wait_h);
+		*wait = wait_l + wait_h;
 	}
 }
 
-uint32_t IO::read_port16(uint32_t addr, bool is_dma)
+uint32_t IO::read_port16(uint32_t addr, bool is_dma, int *wait)
 {
-	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-	uint32_t addr2 = haddr | rd_table[laddr].addr;
-	uint32_t val = rd_table[laddr].value_registered ? rd_table[laddr].value : is_dma ? rd_table[laddr].dev->read_dma_io16(addr2) : rd_table[laddr].dev->read_io16(addr2);
+	if(bus_width >= 16 && !(addr & 1)) {
+		uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+		uint32_t addr2 = haddr | rd_table[laddr].addr;
+		uint32_t val;
+		int wait_tmp = 0;
+		
+		*wait = rd_table[laddr].wait;
+		
+		if(rd_table[laddr].value_registered) {
+			val = rd_table[laddr].value;
+		} else if(is_dma) {
+			val = rd_table[laddr].dev->read_dma_io16w(addr2, &wait_tmp);
+			if(!rd_table[laddr].wait_registered) *wait = wait_tmp;
+		} else {
+			val = rd_table[laddr].dev->read_io16w(addr2, &wait_tmp);
+			if(!rd_table[laddr].wait_registered) *wait = wait_tmp;
+		}
 #ifdef _IO_DEBUG_LOG
-	_TCHAR tmp[256] = {0};
-	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
-	}
-	if(cpu_index != 0) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
-	}
-	my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val & 0xffff);
-	this->out_debug_log(tmp);
+		_TCHAR tmp[256] = {0};
+		if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
+		}
+		if(cpu_index != 0) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
+		}
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN16\t%04x = %04x\n"), get_cpu_pc(cpu_index), addr, val & 0xffff);
+		this->out_debug_log(tmp);
 #endif
-	return val & 0xffff;
-}
-
-void IO::write_port32(uint32_t addr, uint32_t data, bool is_dma)
-{
-	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-	uint32_t addr2 = haddr | wr_table[laddr].addr;
-#ifdef _IO_DEBUG_LOG
-	_TCHAR tmp[256] = {0};
-	if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
-	}
-	if(cpu_index != 0) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
-	}
-	my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT32\t%04x,%08x\n"), get_cpu_pc(cpu_index), addr, data);
-	this->out_debug_log(tmp);
-#endif
-	if(wr_table[laddr].is_flipflop) {
-		rd_table[laddr].value = data;
-	} else if(is_dma) {
-		wr_table[laddr].dev->write_dma_io32(addr2, data);
+		return val & 0xffff;
 	} else {
-		wr_table[laddr].dev->write_io32(addr2, data);
+		int wait_l = 0, wait_h = 0;
+		uint32_t val;
+		val  = read_port8(addr    , is_dma, &wait_l);
+		val |= read_port8(addr + 1, is_dma, &wait_h) << 16;
+		*wait = wait_l + wait_h;
+		return val;
 	}
 }
 
-uint32_t IO::read_port32(uint32_t addr, bool is_dma)
+void IO::write_port32(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 {
-	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-	uint32_t addr2 = haddr | rd_table[laddr].addr;
-	uint32_t val = rd_table[laddr].value_registered ? rd_table[laddr].value : is_dma ? rd_table[laddr].dev->read_dma_io32(addr2) : rd_table[laddr].dev->read_io32(addr2);
+	if(bus_width >= 32 && !(addr & 3)) {
+		uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+		uint32_t addr2 = haddr | wr_table[laddr].addr;
+		int wait_tmp = 0;
+		
+		*wait = wr_table[laddr].wait;
+		
 #ifdef _IO_DEBUG_LOG
-	_TCHAR tmp[256] = {0};
-	if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
-	}
-	if(cpu_index != 0) {
-		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
-	}
-	my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN32\t%04x = %08x\n"), get_cpu_pc(cpu_index), laddr | haddr, val);
-	this->out_debug_log(tmp);
+		_TCHAR tmp[256] = {0};
+		if(!wr_table[laddr].dev->this_device_id && !wr_table[laddr].is_flipflop) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
+		}
+		if(cpu_index != 0) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
+		}
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tOUT32\t%04x,%08x\n"), get_cpu_pc(cpu_index), addr, data);
+		this->out_debug_log(tmp);
 #endif
-	return val;
+		if(wr_table[laddr].is_flipflop) {
+			rd_table[laddr].value = data;
+		} else if(is_dma) {
+			wr_table[laddr].dev->write_dma_io32w(addr2, data, &wait_tmp);
+			if(!wr_table[laddr].wait_registered) *wait = wait_tmp;
+		} else {
+			wr_table[laddr].dev->write_io32w(addr2, data, &wait_tmp);
+			if(!wr_table[laddr].wait_registered) *wait = wait_tmp;
+		}
+	} else if(!(addr & 1)) {
+		int wait_l = 0, wait_h = 0;
+		write_port16(addr    , (data      ) & 0xffff, is_dma, &wait_l);
+		write_port16(addr + 2, (data >> 16) & 0xffff, is_dma, &wait_h);
+		*wait = wait_l + wait_h;
+	} else {
+		int wait_l = 0, wait_m = 0, wait_h = 0;
+		write_port8 (addr    , (data      ) & 0x00ff, is_dma, &wait_l);
+		write_port16(addr + 1, (data >>  8) & 0xffff, is_dma, &wait_m);
+		write_port8 (addr + 3, (data >> 24) & 0x00ff, is_dma, &wait_h);
+		*wait = wait_l + wait_m + wait_h;
+	}
+}
+
+uint32_t IO::read_port32(uint32_t addr, bool is_dma, int *wait)
+{
+	if(bus_width >= 32 && !(addr & 3)) {
+		uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+		uint32_t addr2 = haddr | rd_table[laddr].addr;
+		uint32_t val;
+		int wait_tmp = 0;
+		
+		*wait = rd_table[laddr].wait;
+		
+		if(rd_table[laddr].value_registered) {
+			val = rd_table[laddr].value;
+		} else if(is_dma) {
+			val = rd_table[laddr].dev->read_dma_io32w(addr2, &wait_tmp);
+			if(!rd_table[laddr].wait_registered) *wait = wait_tmp;
+		} else {
+			val = rd_table[laddr].dev->read_io32w(addr2, &wait_tmp);
+			if(!rd_table[laddr].wait_registered) *wait = wait_tmp;
+		}
+#ifdef _IO_DEBUG_LOG
+		_TCHAR tmp[256] = {0};
+		if(!rd_table[laddr].dev->this_device_id && !rd_table[laddr].value_registered) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("UNKNOWN:\t"));
+		}
+		if(cpu_index != 0) {
+			my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("CPU=%d\t"), cpu_index);
+		}
+		my_sprintf_s(tmp + _tcslen(tmp), array_length(tmp) - _tcslen(tmp), _T("%06x\tIN32\t%04x = %08x\n"), get_cpu_pc(cpu_index), laddr | haddr, val);
+		this->out_debug_log(tmp);
+#endif
+		return val;
+	} else if(!(addr & 1)) {
+		int wait_l = 0, wait_h = 0;
+		uint32_t val;
+		val  = read_port16(addr    , is_dma, &wait_l);
+		val |= read_port16(addr + 2, is_dma, &wait_h) << 16;
+		*wait = wait_l + wait_h;
+		return val;
+	} else {
+		int wait_l = 0, wait_m = 0, wait_h = 0;
+		uint32_t val;
+		val  = read_port8 (addr    , is_dma, &wait_l);
+		val |= read_port16(addr + 1, is_dma, &wait_m) <<  8;
+		val |= read_port8 (addr + 3, is_dma, &wait_h) << 24;
+		*wait = wait_l + wait_m + wait_h;
+		return val;
+	}
 }
 
 // register
@@ -372,6 +511,7 @@ void IO::set_iowait_single_r(uint32_t addr, int wait)
 	IO::initialize();
 	
 	rd_table[addr & IO_ADDR_MASK].wait = wait;
+	rd_table[addr & IO_ADDR_MASK].wait_registered = true;
 }
 
 void IO::set_iowait_single_w(uint32_t addr, int wait)
@@ -379,6 +519,7 @@ void IO::set_iowait_single_w(uint32_t addr, int wait)
 	IO::initialize();
 	
 	wr_table[addr & IO_ADDR_MASK].wait = wait;
+	wr_table[addr & IO_ADDR_MASK].wait_registered = true;
 }
 
 void IO::set_iowait_single_rw(uint32_t addr, int wait)
@@ -393,6 +534,7 @@ void IO::set_iowait_range_r(uint32_t s, uint32_t e, int wait)
 	
 	for(uint32_t i = s; i <= e; i++) {
 		rd_table[i & IO_ADDR_MASK].wait = wait;
+		rd_table[i & IO_ADDR_MASK].wait_registered = true;
 	}
 }
 
@@ -402,6 +544,7 @@ void IO::set_iowait_range_w(uint32_t s, uint32_t e, int wait)
 	
 	for(uint32_t i = s; i <= e; i++) {
 		wr_table[i & IO_ADDR_MASK].wait = wait;
+		wr_table[i & IO_ADDR_MASK].wait_registered = true;
 	}
 }
 
@@ -421,7 +564,7 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	for(int i = 0; i < addr_max; i++) {
+	for(uint32_t i = 0; i < space; i++) {
 		state_fio->StateValue(rd_table[i].value);
 	}
 	return true;

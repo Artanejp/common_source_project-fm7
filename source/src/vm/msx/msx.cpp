@@ -64,6 +64,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 #if defined(_PX7)
 	ldp = new LD700(this, emu);
 #endif

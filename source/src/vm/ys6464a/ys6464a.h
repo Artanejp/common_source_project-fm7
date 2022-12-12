@@ -19,8 +19,6 @@
 #define CPU_CLOCKS		4000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		357
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x2000
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER

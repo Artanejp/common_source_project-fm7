@@ -20,9 +20,6 @@
 #define HAS_I8080
 #define SCREEN_WIDTH		960
 #define SCREEN_HEIGHT		670
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x400
-#define IO_ADDR_MAX		0x100
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER

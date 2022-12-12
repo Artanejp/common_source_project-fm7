@@ -236,9 +236,13 @@ class FM7_MAINMEM : public DEVICE
    
 	virtual uint32_t read_data16(uint32_t addr);
 	virtual void write_data16(uint32_t addr, uint32_t data);
+	virtual uint32_t read_data16w(uint32_t addr, int *wait);
+	virtual void write_data16w(uint32_t addr, uint32_t data, int *wait);
    
 	virtual uint32_t read_data32(uint32_t addr);
 	virtual void write_data32(uint32_t addr, uint32_t data);
+	virtual uint32_t read_data32w(uint32_t addr, int *wait);
+	virtual void write_data32w(uint32_t addr, uint32_t data, int *wait);
    
 	void initialize(void);
 	void iowait(void);

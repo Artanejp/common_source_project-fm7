@@ -43,9 +43,6 @@
 #define HAS_I8085
 #endif
 #define I8255_AUTO_HAND_SHAKE
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x200
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER

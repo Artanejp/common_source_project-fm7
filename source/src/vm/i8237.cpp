@@ -29,6 +29,7 @@ void I8237::reset()
 	low_high = false;
 	cmd = req = tc = 0;
 	mask = 0xff;
+	running = false;
 }
 
 void I8237::write_io8(uint32_t addr, uint32_t data)
@@ -188,22 +189,36 @@ void I8237::do_dma()
 		if((req & bit) && !(mask & bit)) {
 			// execute dma
 			while(req & bit) {
+				int wait = 0, wait_r = 0, wait_w = 0;
+				bool compressed = ((cmd & 0x09) == 0x08);
+				bool exptended = ((cmd & 0x20) == 0x20) && !compressed;
+				
+				if(!running) {
+					wait += 2; // S0
+					running = true;
+				}
 				switch(dma[ch].mode & 0x0c) {
 				case 0x00:
 					// verify
-					tmp = read_io(ch);
+					wait += compressed ? 5 : 7;
 					break;
 				case 0x04:
 					// io -> memory
-					tmp = read_io(ch);
-					write_mem(dma[ch].areg | (dma[ch].bankreg << 16), tmp);
+					tmp = read_io(ch, &wait_r);
+					write_mem(dma[ch].areg | (dma[ch].bankreg << 16), tmp, &wait_w);
+					wait += compressed ? 5 : 7;
+					if(exptended) wait += wait_r + wait_w;
 					break;
 				case 0x08:
 					// memory -> io
-					tmp = read_mem(dma[ch].areg | (dma[ch].bankreg << 16));
-					write_io(ch, tmp);
+					tmp = read_mem(dma[ch].areg | (dma[ch].bankreg << 16), &wait_r);
+					write_io(ch, tmp, &wait_w);
+					wait += compressed ? 5 : 7;
+					if(exptended) wait += wait_r + wait_w;
 					break;
 				}
+//				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
+				
 				if(dma[ch].mode & 0x20) {
 					dma[ch].areg--;
 					if(dma[ch].areg == 0xffff) {
@@ -228,10 +243,12 @@ void I8237::do_dma()
 					}
 					req &= ~bit;
 					tc |= bit;
+					running = false;
 					write_signals(&dma[ch].outputs_tc, 0xffffffff);
-#ifdef SINGLE_MODE_DMA
 				} else if((dma[ch].mode & 0xc0) == 0x40) {
 					// single mode
+					running = false;
+#ifdef SINGLE_MODE_DMA
 					break;
 #endif
 				}
@@ -245,79 +262,79 @@ void I8237::do_dma()
 #endif
 }
 
-void I8237::write_via_debugger_data8(uint32_t addr, uint32_t data)
+void I8237::write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait)
 {
-	d_mem->write_dma_data8(addr, data);
+	d_mem->write_dma_data8w(addr, data, wait);
 }
 
-uint32_t I8237::read_via_debugger_data8(uint32_t addr)
+uint32_t I8237::read_via_debugger_data8w(uint32_t addr, int *wait)
 {
-	return d_mem->read_dma_data8(addr);
+	return d_mem->read_dma_data8w(addr, wait);
 }
 
-void I8237::write_via_debugger_data16(uint32_t addr, uint32_t data)
+void I8237::write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait)
 {
-	d_mem->write_dma_data16(addr, data);
+	d_mem->write_dma_data16w(addr, data, wait);
 }
 
-uint32_t I8237::read_via_debugger_data16(uint32_t addr)
+uint32_t I8237::read_via_debugger_data16w(uint32_t addr, int *wait)
 {
-	return d_mem->read_dma_data16(addr);
+	return d_mem->read_dma_data16w(addr, wait);
 }
 
-void I8237::write_mem(uint32_t addr, uint32_t data)
+void I8237::write_mem(uint32_t addr, uint32_t data, int *wait)
 {
 	if(mode_word) {
 #ifdef USE_DEBUGGER
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
-			d_debugger->write_via_debugger_data16((addr << 1) & addr_mask, data);
+			d_debugger->write_via_debugger_data16w((addr << 1) & addr_mask, data, wait);
 		} else
 #endif
-		this->write_via_debugger_data16((addr << 1) & addr_mask, data);
+		this->write_via_debugger_data16w((addr << 1) & addr_mask, data, wait);
 	} else {
 #ifdef USE_DEBUGGER
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
-			d_debugger->write_via_debugger_data8(addr & addr_mask, data);
+			d_debugger->write_via_debugger_data8w(addr & addr_mask, data, wait);
 		} else
 #endif
-		this->write_via_debugger_data8(addr & addr_mask, data);
+		this->write_via_debugger_data8w(addr & addr_mask, data, wait);
 	}
 }
 
-uint32_t I8237::read_mem(uint32_t addr)
+uint32_t I8237::read_mem(uint32_t addr, int *wait)
 {
 	if(mode_word) {
 #ifdef USE_DEBUGGER
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
-			return d_debugger->read_via_debugger_data16((addr << 1) & addr_mask);
+			return d_debugger->read_via_debugger_data16w((addr << 1) & addr_mask, wait);
 		} else
 #endif
-		return this->read_via_debugger_data16((addr << 1) & addr_mask);
+		return this->read_via_debugger_data16w((addr << 1) & addr_mask, wait);
 	} else {
 #ifdef USE_DEBUGGER
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
-			return d_debugger->read_via_debugger_data8(addr & addr_mask);
+			return d_debugger->read_via_debugger_data8w(addr & addr_mask, wait);
 		} else
 #endif
-		return this->read_via_debugger_data8(addr & addr_mask);
+		return this->read_via_debugger_data8w(addr & addr_mask, wait);
 	}
 }
 
-void I8237::write_io(int ch, uint32_t data)
+void I8237::write_io(int ch, uint32_t data, int *wait)
 {
 	if(mode_word) {
-		dma[ch].dev->write_dma_io16(0, data);
+		dma[ch].dev->write_dma_io16w(0, data, wait);
 	} else {
-		dma[ch].dev->write_dma_io8(0, data);
+		dma[ch].dev->write_dma_io8w(0, data, wait);
 	}
 }
 
-uint32_t I8237::read_io(int ch)
+uint32_t I8237::read_io(int ch, int *wait)
 {
 	if(mode_word) {
-		return dma[ch].dev->read_dma_io16(0);
+		return dma[ch].dev->read_dma_io16w(0, wait);
 	} else {
-		return dma[ch].dev->read_dma_io8(0);
+		return dma[ch].dev->read_dma_io8w(0, wait);
 	}
 }
 
@@ -346,7 +363,7 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 }
 #endif
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool I8237::process_state(FILEIO* state_fio, bool loading)
 {
@@ -373,6 +390,7 @@ bool I8237::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(tmp);
 	state_fio->StateValue(mode_word);
 	state_fio->StateValue(addr_mask);
+	state_fio->StateValue(running);
 	return true;
 }
 

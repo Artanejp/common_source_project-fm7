@@ -122,6 +122,11 @@ void IO::write_io16(uint32_t addr, uint32_t data)
 	}
 }
 
+void IO::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io16(addr, data);
+}
+
 void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {

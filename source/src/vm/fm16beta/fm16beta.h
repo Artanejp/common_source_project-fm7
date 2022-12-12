@@ -31,18 +31,8 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 //#define MB8877_NO_BUSY_AFTER_SEEK
-
-#if defined(HAS_I186)
-#define MEMORY_ADDR_MAX		0x100000	// 1MB
-#elif defined(HAS_I286)
-#define MEMORY_ADDR_MAX		0x1000000	// 16MB
-#endif
-#define MEMORY_BANK_SIZE	0x4000
-
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define USE_FLOPPY_DISK		4

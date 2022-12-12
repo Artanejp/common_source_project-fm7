@@ -44,6 +44,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio2 = new I8255(this, emu);
 	pio2->set_device_name(_T("8255 PIO (ROM Writer)"));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	midi = new MIDI(this, emu);
 	speaker = new PCM8BIT(this, emu);
 	// TMPZ84C013
@@ -54,6 +55,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	
 	display = new DISPLAY(this, emu);
 	memory = new MEMBUS(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
 	
 	// set contexts
 	event->set_context_cpu(cpu);

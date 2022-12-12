@@ -32,11 +32,6 @@
 //#define DATAREC_FAST_REW_SPEED	10
 #define SCSI_HOST_AUTO_ACK
 
-// memory wait
-#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
-//#define Z80_NO_EVENT_IN_OPECODE
-
 // device informations for win32
 #define USE_SPECIAL_RESET
 #define USE_BOOT_MODE		3

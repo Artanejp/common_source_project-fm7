@@ -37,12 +37,12 @@ private:
 	uint8_t tvram[0x4000];
 #if !defined(SUPPORT_HIRESO)
 #if !defined(SUPPORT_2ND_VRAM)
-	__DECL_ALIGNED(4) uint8_t vram[0x20000];
+	/*__DECL_ALIGNED(4)*/ uint8_t vram[0x20000];
 #else
-	__DECL_ALIGNED(4) uint8_t vram[0x40000];
+	/*__DECL_ALIGNED(4)*/ uint8_t vram[0x40000];
 #endif
 #else
-	__DECL_ALIGNED(4) uint8_t vram[0x80000];
+	/*__DECL_ALIGNED(4)*/ uint8_t vram[0x80000];
 #endif
 	
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
@@ -73,7 +73,7 @@ private:
 #endif
 #if defined(SUPPORT_GRCG)
 	uint8_t grcg_mode, grcg_tile_ptr, grcg_tile[4];
-	__DECL_ALIGNED(16) uint16_t grcg_tile_word[4];
+	/*__DECL_ALIGNED(16)*/ uint16_t grcg_tile_word[4];
 #endif
 #if defined(SUPPORT_EGC)
 	typedef union {
@@ -213,12 +213,14 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	uint32_t read_memory_mapped_io8(uint32_t addr);
+	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	uint32_t read_memory_mapped_io16(uint32_t addr);
+	void write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_memory_mapped_io16w(uint32_t addr, int *wait);
 	void write_dma_io8(uint32_t addr, uint32_t data);
-	void write_dma_io16(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io8(uint32_t addr);
+	void write_dma_io16(uint32_t addr, uint32_t data);
 	uint32_t read_dma_io16(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 	

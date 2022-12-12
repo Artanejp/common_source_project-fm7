@@ -65,7 +65,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio0 = new I8255(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x8000;
+	io->bus_width = 16;
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -138,6 +141,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_host->set_context_msg(sasi, SIG_SASI_MSG, 1);
 	sasi_host->set_context_req(sasi, SIG_SASI_REQ, 1);
 	sasi_host->set_context_ack(sasi, SIG_SASI_ACK, 1);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(sasi);
 	dma->set_context_ch1(fdc);

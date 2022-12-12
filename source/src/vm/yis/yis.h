@@ -23,10 +23,6 @@
 //#define WINDOW_HEIGHT_ASPECT	480
 #define HAS_MSM5832
 #define MAX_DRIVE		2
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x100
-#define MEMORY_DISABLE_DMA_MMIO
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define USE_FLOPPY_DISK		2
@@ -73,7 +69,6 @@ class EVENT;
 
 class M6502;
 class IO;
-class MEMORY;
 class AM9511;
 class BEEP;
 class MB8877;
@@ -87,6 +82,7 @@ class DISPLAY;
 class FLOPPY;
 class KEYBOARD;
 class MAPPER;
+class MEMBUS;
 class SOUND;
 
 class VM : public VM_TEMPLATE
@@ -99,7 +95,6 @@ protected:
 	
 	M6502* cpu;
 	IO* io;
-	MEMORY* memory;
 	AM9511* apu;
 	BEEP* beep;
 	MB8877* fdc;
@@ -114,6 +109,7 @@ protected:
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
 	MAPPER* mapper;
+	MEMBUS* memory;
 	SOUND* sound;
 	
 	uint8_t rom[0x1000];

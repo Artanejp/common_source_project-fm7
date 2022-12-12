@@ -21,6 +21,11 @@
 #define SIG_I8253_GATE_1	4
 #define SIG_I8253_GATE_2	5
 
+enum {
+	INTEL_8253 = 0,
+	INTEL_8254,
+};
+
 class I8253 : public DEVICE
 {
 private:
@@ -38,11 +43,11 @@ private:
 		int mode;
 		bool delay;
 		bool start;
-#ifdef HAS_I8254
+//#ifdef HAS_I8254
 		bool null_count;
 		bool status_latched;
 		uint8_t status;
-#endif
+//#endif
 		// constant clock
 		uint64_t freq;
 		int register_id;
@@ -69,6 +74,7 @@ public:
 			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 		}
+		device_model = INTEL_8253;
 		set_device_name(_T("8253 PIT"));
 	}
 	~I8253() {}
@@ -103,6 +109,7 @@ public:
 	{
 		counter[ch].freq = hz;
 	}
+	int device_model;
 };
 
 #endif

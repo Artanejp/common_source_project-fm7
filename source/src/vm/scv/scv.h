@@ -21,9 +21,6 @@
 #define SCREEN_HEIGHT		222
 #define WINDOW_WIDTH_ASPECT	288
 
-// memory wait
-//#define UPD7801_MEMORY_WAIT
-
 // device informations for win32
 #define USE_CART		1
 #define USE_SOUND_VOLUME	2

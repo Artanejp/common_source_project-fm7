@@ -24,7 +24,6 @@
 #define UPD765A_WAIT_RESULT7
 #define UPD765A_EXT_DRVSEL
 #define UPD7220_HORIZ_FREQ	20920
-#define IO_ADDR_MAX		0x100
 #define PRINTER_STROBE_RISING_EDGE
 
 // device informations for win32

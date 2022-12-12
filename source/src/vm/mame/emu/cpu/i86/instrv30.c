@@ -1610,12 +1610,12 @@ inline UINT16 I8080_FETCH16(i8086_state *cpustate)
 
 inline UINT8 I8080_IN8(i8086_state *cpustate, UINT16 a)
 {
-	return cpustate->io->read_io8(a);
+	return read_port_byte(a);
 }
 
 inline void I8080_OUT8(i8086_state *cpustate, UINT16 a, UINT8 v)
 {
-	cpustate->io->write_io8(a, v);
+	write_port_byte(a, v);
 }
 
 #define I8080_INR(v) { \

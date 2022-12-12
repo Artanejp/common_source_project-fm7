@@ -43,6 +43,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
 	pcm = new PCM1BIT(this, emu);
 	lcd[0] = new UPD16434(this, emu);
 	lcd[0]->set_device_name(_T("uPD16434 LCD Controller #0"));

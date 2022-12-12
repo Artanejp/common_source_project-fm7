@@ -23,7 +23,7 @@ class I386;
 #else
 class I286;
 #endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 class I86;
 #endif
 
@@ -35,7 +35,7 @@ private:
 #else
 	I286 *d_cpu;
 #endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	I86 *d_v30;
 	DEVICE *d_pio;
 #endif
@@ -52,8 +52,9 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	void set_intr_line(bool line, bool pending, uint32_t bit);
+	void set_extra_clock(int clock);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
@@ -66,7 +67,7 @@ public:
 	{
 		d_cpu = device;
 	}
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	void set_context_v30(I86* device)
 	{
 		d_v30 = device;

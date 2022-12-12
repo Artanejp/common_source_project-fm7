@@ -26,6 +26,7 @@ class DEBUGGER;
 class UPD71071 : public DEVICE
 {
 private:
+	DEVICE* d_cpu;
 	DEVICE* d_mem;
 #ifdef SINGLE_MODE_DMA
 	DEVICE* d_dma;
@@ -45,6 +46,7 @@ private:
 	uint8_t b16, selch, base;
 	uint16_t cmd, tmp;
 	uint8_t req, sreq, mask, tc;
+	bool running;
 	
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -52,6 +54,7 @@ public:
 		for(int i = 0; i < 4; i++) {
 			dma[i].dev = vm->dummy;
 		}
+		d_cpu = NULL;
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
@@ -71,10 +74,10 @@ public:
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void do_dma();
 	// for debug
-	void write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data8(uint32_t addr);
-	void write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t read_via_debugger_data16(uint32_t addr);
+	void write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_via_debugger_data8w(uint32_t addr, int *wait);
+	void write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_via_debugger_data16w(uint32_t addr, int *wait);
 #ifdef USE_DEBUGGER
 	bool is_debugger_available()
 	{
@@ -89,6 +92,10 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
+	}
 	void set_context_memory(DEVICE* device)
 	{
 		d_mem = device;

@@ -54,6 +54,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	not_remote = new NOT(this, emu);
 	psg = new AY_3_891X(this, emu);
 	pcm = new PCM1BIT(this, emu);

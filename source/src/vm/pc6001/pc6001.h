@@ -65,10 +65,6 @@
 #define TIMER_PERIOD	(2000 / .999)
 #endif
 
-//memory wait
-#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
-
 // device informations for virtual machine
 #define FRAMES_PER_SEC		60
 #define LINES_PER_FRAME		262

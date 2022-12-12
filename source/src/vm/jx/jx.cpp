@@ -55,7 +55,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);
 //	cpu->device_model = INTEL_8088;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 8; // 8088
 	mem = new MEMORY(this, emu);
+	mem->space = 0x100000;
+	mem->bank_size = 0x4000;
+	mem->bus_width = 8; // 8088
 	pcm = new PCM1BIT(this, emu);
 	psg = new SN76489AN(this, emu);	// SN76496N
 	fdc = new UPD765A(this, emu);

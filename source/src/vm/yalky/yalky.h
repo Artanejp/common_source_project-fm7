@@ -25,8 +25,6 @@
 #define DATAREC_SOUND_LEFT
 #define DATAREC_FAST_FWD_SPEED	10
 #define DATAREC_FAST_REW_SPEED	10
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x100
 
 // device informations for win32
 #define USE_SPECIAL_RESET

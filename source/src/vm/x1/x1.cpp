@@ -86,6 +86,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	crtc = new HD46505(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x10000;
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));

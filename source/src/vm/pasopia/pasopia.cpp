@@ -61,6 +61,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio2 = new I8255(this, emu);
 	pio2->set_device_name(_T("8255 PIO (Sound/Data Recorder)"));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	flipflop = new LS393(this, emu); // LS74
 	not_remote = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);

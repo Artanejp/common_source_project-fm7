@@ -40,6 +40,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sio = new I8251(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	pcm = new PCM1BIT(this, emu);
 	cpu = new I8080(this, emu);
 	

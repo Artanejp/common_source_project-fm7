@@ -20,9 +20,6 @@
 #define SCREEN_WIDTH		160
 #define SCREEN_HEIGHT		64
 #define HAS_I8085
-#define I8080_MEMORY_WAIT
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x2000
 
 // device informations for win32
 #define WINDOW_MODE_BASE	3

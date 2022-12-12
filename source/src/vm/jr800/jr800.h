@@ -20,8 +20,6 @@
 #define SCREEN_WIDTH		192
 #define SCREEN_HEIGHT		64
 #define HAS_HD6301
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x100
 
 // device informations for win32
 #define WINDOW_MODE_BASE	3

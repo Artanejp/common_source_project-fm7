@@ -21,6 +21,9 @@ extern int i386_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom, int mod
 #define AMASK   0xfffff
 
 
+/***************************************************************************/
+/* cpu state                                                               */
+/***************************************************************************/
 /* I86 registers */
 union i8086basicregs
 {                                      /* eight general registers */
@@ -83,14 +86,72 @@ struct i8086_state
 
 #include "i86time.c"
 
-/***************************************************************************/
-/* cpu state                                                               */
-/***************************************************************************/
-
 
 static struct i80x86_timing timing;
 
 static UINT8 parity_table[256];
+
+/***************************************************************************/
+
+inline UINT8 read_mem_byte_(i8086_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT8 d = cpustate->program->read_data8w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline UINT16 read_mem_word_(i8086_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT16 d = cpustate->program->read_data16w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline void write_mem_byte_(i8086_state *cpustate, unsigned a, UINT8 d)
+{
+	int wait = 0;
+	cpustate->program->write_data8w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
+inline void write_mem_word_(i8086_state *cpustate, unsigned a, UINT16 d)
+{
+	int wait = 0;
+	cpustate->program->write_data16w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
+inline UINT8 read_port_byte_(i8086_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT8 d = cpustate->io->read_io8w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline UINT16 read_port_word_(i8086_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT16 d = cpustate->io->read_io16w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline void write_port_byte_(i8086_state *cpustate, unsigned a, UINT8 d)
+{
+	int wait = 0;
+	cpustate->io->write_io8w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
+inline void write_port_word_(i8086_state *cpustate, unsigned a, UINT16 d)
+{
+	int wait = 0;
+	cpustate->io->write_io16w(a, d, &wait);
+	cpustate->icount -= wait;
+}
 
 /* The interrupt number of a pending external interrupt pending NMI is 2.   */
 /* For INTR interrupts, the level is caught on the bus during an INTA cycle */

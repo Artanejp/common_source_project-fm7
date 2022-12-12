@@ -662,9 +662,7 @@ void UPD7220::cmd_csrform()
 void UPD7220::cmd_pitch()
 {
 	if(params_count > 0) {
-#ifndef UPD7220_FIXED_PITCH
 		pitch = params[0];
-#endif
 		cmdreg = -1;
 	}
 }
@@ -689,8 +687,14 @@ void UPD7220::cmd_vectw()
 
 void UPD7220::cmd_vecte()
 {
-	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = ead / pitch;
+	uint32_t ead2 = ead;
+	
+	if(plane_size) {
+		plane = ead2 / (plane_size >> 1);
+		ead2 %= (plane_size >> 1);
+	}
+	dx = ((ead2 % (width >> 1)) << 4) | (dad & 0x0f);
+	dy = ead2 / (width >> 1);
 	
 	// execute command
 	if(!(vect[0] & 0x78)) {
@@ -716,8 +720,14 @@ void UPD7220::cmd_vecte()
 
 void UPD7220::cmd_texte()
 {
-	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = ead / pitch;
+	uint32_t ead2 = ead;
+	
+	if(plane_size) {
+		plane = ead2 / (plane_size >> 1);
+		ead2 %= (plane_size >> 1);
+	}
+	dx = ((ead2 % (width >> 1)) << 4) | (dad & 0x0f);
+	dy = ead2 / (width >> 1);
 	
 	// execute command
 	if(!(vect[0] & 0x78)) {
@@ -925,7 +935,7 @@ uint8_t UPD7220::read_vram(uint32_t addr)
 void UPD7220::update_vect()
 {
 	dir = vect[0] & 7;
-	dif = vectdir[dir][0] + vectdir[dir][1] * pitch;
+	dif = vectdir[dir][0] + vectdir[dir][1] * width;
 	sl = vect[0] & 0x80;
 	dc = (vect[1] | (vect[ 2] << 8)) & 0x3fff;
 	d  = (vect[3] | (vect[ 4] << 8)) & 0x3fff;
@@ -1060,7 +1070,10 @@ void UPD7220::draw_vectt()
 		dx += vx2;
 		dy += vy2;
 	}
-	ead = (dx >> 4) + dy * pitch;
+	ead = (dx >> 4) + dy * (width >> 1);
+	if(plane_size) {
+		ead += (plane_size >> 1) * plane;
+	}
 	dad = dx & 0x0f;
 }
 
@@ -1162,7 +1175,10 @@ void UPD7220::draw_vectr()
 		dx -= vx2;
 		dy -= vy2;
 	}
-	ead = (dx >> 4) + dy * pitch;
+	ead = (dx >> 4) + dy * (width >> 1);
+	if(plane_size) {
+		ead += (plane_size >> 1) * plane;
+	}
 	dad = dx & 0x0f;
 }
 
@@ -1205,7 +1221,10 @@ void UPD7220::draw_text()
 		}
 		index = ((index - 1) & 7) | 8;
 	}
-	ead = (dx >> 4) + dy * pitch;
+	ead = (dx >> 4) + dy * (width >> 1);
+	if(plane_size) {
+		ead += (plane_size >> 1) * plane;
+	}
 	dad = dx & 0x0f;
 }
 
@@ -1214,6 +1233,9 @@ void UPD7220::draw_pset(int x, int y)
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
 	uint32_t addr = y * width + (x >> 3);
+	if(plane_size) {
+		addr += plane_size * plane;
+	}
 #ifdef UPD7220_MSB_FIRST
 	uint8_t bit = 0x80 >> (x & 7);
 #else
@@ -1237,7 +1259,7 @@ void UPD7220::draw_pset(int x, int y)
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1305,6 +1327,7 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(rt, sizeof(rt), 1);
 	state_fio->StateValue(dx);
 	state_fio->StateValue(dy);
+	state_fio->StateValue(plane);
 	state_fio->StateValue(dir);
 	state_fio->StateValue(dif);
 	state_fio->StateValue(sl);

@@ -47,6 +47,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	io = new IO(this, emu);
+	io->space = 0x10000;
 	flipflop = new LS393(this, emu);
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
@@ -73,6 +74,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	membus = new MEMBUS(this, emu);
+	membus->space = 0x10000;
+	membus->bank_size = 0x800;
 	rtc = new RTC(this, emu);
 	
 	// set contexts
