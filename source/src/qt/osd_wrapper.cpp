@@ -718,6 +718,7 @@ int OSD::draw_screen()
 	
 	// calculate screen size
 	// invalidate window
+	// ToDo: Support MAX_DRAW_RANGES. 20221212 K.O
 	emit sig_update_screen((void *)draw_screen_buffer, mapped);
 
 	first_draw_screen = self_invalidate = true;
