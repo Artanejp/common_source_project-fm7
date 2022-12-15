@@ -1200,11 +1200,21 @@ static void __FASTCALL I386OP(enter16)(i386_state *cpustate)           // Opcode
 
 	if(level > 0)
 	{
-		for(x=1;x<level-1;x++)
+		for(x=1;x<=level-1;x++)
 		{
-			REG16(BP) -= 2;
-			PUSH16(cpustate,READ16(cpustate,REG16(BP)));
-		}
+			UINT32 addr;
+			if(!STACK_32BIT)
+			{
+				REG16(BP) -= 2;
+				addr = REG16(BP);
+			}
+			else
+			{
+				REG32(EBP) -= 2;
+				addr = REG32(EBP);
+			}
+			PUSH16(cpustate,READ16(cpustate,i386_translate(cpustate, SS, addr, 0, 2)));
+ 		}
 		PUSH16(cpustate,frameptr);
 	}
 	REG16(BP) = frameptr;
@@ -1827,7 +1837,7 @@ static void __FASTCALL I386OP(push_cx)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(CX) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_dx)(i386_state *cpustate)           // Opcode 0x52
@@ -1841,7 +1851,7 @@ static void __FASTCALL I386OP(push_dx)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(DX) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_bx)(i386_state *cpustate)           // Opcode 0x53
@@ -1855,7 +1865,7 @@ static void __FASTCALL I386OP(push_bx)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(BX) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_sp)(i386_state *cpustate)           // Opcode 0x54
@@ -1869,7 +1879,7 @@ static void __FASTCALL I386OP(push_sp)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(SP) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_bp)(i386_state *cpustate)           // Opcode 0x55
@@ -1883,7 +1893,7 @@ static void __FASTCALL I386OP(push_bp)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(BP) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_si)(i386_state *cpustate)           // Opcode 0x56
@@ -1897,7 +1907,7 @@ static void __FASTCALL I386OP(push_si)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(SI) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_di)(i386_state *cpustate)           // Opcode 0x57
@@ -1911,7 +1921,7 @@ static void __FASTCALL I386OP(push_di)(i386_state *cpustate)           // Opcode
 		PUSH16(cpustate, REG16(DI) );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
+			CYCLES(cpustate,CYCLES_PUSH_REG_SHORT);
 }
 
 static void __FASTCALL I386OP(push_cs16)(i386_state *cpustate)         // Opcode 0x0e
@@ -1925,7 +1935,7 @@ static void __FASTCALL I386OP(push_cs16)(i386_state *cpustate)         // Opcode
 		PUSH16(cpustate, cpustate->sreg[CS].selector );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_SREG);
+			CYCLES(cpustate,CYCLES_PUSH_SREG);
 }
 
 static void __FASTCALL I386OP(push_ds16)(i386_state *cpustate)         // Opcode 0x1e
@@ -1939,7 +1949,7 @@ static void __FASTCALL I386OP(push_ds16)(i386_state *cpustate)         // Opcode
 		PUSH16(cpustate, cpustate->sreg[DS].selector );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_SREG);
+			CYCLES(cpustate,CYCLES_PUSH_SREG);
 }
 
 static void __FASTCALL I386OP(push_es16)(i386_state *cpustate)         // Opcode 0x06
@@ -1953,7 +1963,7 @@ static void __FASTCALL I386OP(push_es16)(i386_state *cpustate)         // Opcode
 		PUSH16(cpustate, cpustate->sreg[ES].selector );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_SREG);
+			CYCLES(cpustate,CYCLES_PUSH_SREG);
 }
 
 static void __FASTCALL I386OP(push_fs16)(i386_state *cpustate)         // Opcode 0x0f a0
@@ -1967,7 +1977,7 @@ static void __FASTCALL I386OP(push_fs16)(i386_state *cpustate)         // Opcode
 		PUSH16(cpustate, cpustate->sreg[FS].selector );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_SREG);
+			CYCLES(cpustate,CYCLES_PUSH_SREG);
 }
 
 static void __FASTCALL I386OP(push_gs16)(i386_state *cpustate)         // Opcode 0x0f a8
@@ -1981,7 +1991,7 @@ static void __FASTCALL I386OP(push_gs16)(i386_state *cpustate)         // Opcode
 		PUSH16(cpustate, cpustate->sreg[GS].selector );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_SREG);
+			CYCLES(cpustate,CYCLES_PUSH_SREG);
 }
 
 static void __FASTCALL I386OP(push_ss16)(i386_state *cpustate)         // Opcode 0x16
@@ -1995,7 +2005,7 @@ static void __FASTCALL I386OP(push_ss16)(i386_state *cpustate)         // Opcode
 		PUSH16(cpustate, cpustate->sreg[SS].selector );
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_SREG);
+			CYCLES(cpustate,CYCLES_PUSH_SREG);
 }
 
 static void __FASTCALL I386OP(push_i16)(i386_state *cpustate)          // Opcode 0x68
@@ -2010,7 +2020,7 @@ static void __FASTCALL I386OP(push_i16)(i386_state *cpustate)          // Opcode
 		PUSH16(cpustate,value);
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSH_IMM);
+			CYCLES(cpustate,CYCLES_PUSH_IMM);
 }
 
 static void __FASTCALL I386OP(pusha)(i386_state *cpustate)             // Opcode 0x60
@@ -2034,7 +2044,7 @@ static void __FASTCALL I386OP(pusha)(i386_state *cpustate)             // Opcode
 	}
 	else
 		FAULT(FAULT_SS,0)
-	CYCLES(cpustate,CYCLES_PUSHA);
+			CYCLES(cpustate,CYCLES_PUSHA);
 }
 
 static void __FASTCALL I386OP(pushf)(i386_state *cpustate)             // Opcode 0x9c
@@ -2045,14 +2055,14 @@ static void __FASTCALL I386OP(pushf)(i386_state *cpustate)             // Opcode
 	else
 		offset = (REG16(SP) - 2) & 0xffff;
 	//if(!PROTECTED_MODE || !V8086_MODE || ((cpustate->IOP1) && (cpustate->IOP2))) { 
-		if(i386_limit_check(cpustate,SS,offset,2) == 0)
-			PUSH16(cpustate, (get_flags(cpustate) & 0xffff));
-		else
-			FAULT(FAULT_SS,0)
-				//} else {
-				//	FAULT(FAULT_GP, 0)
-				//}
-	CYCLES(cpustate,CYCLES_PUSHF);
+	if(i386_limit_check(cpustate,SS,offset,2) == 0)
+		PUSH16(cpustate, (get_flags(cpustate) & 0xffff));
+	else
+		FAULT(FAULT_SS,0)
+			//} else {
+			//	FAULT(FAULT_GP, 0)
+			//}
+			CYCLES(cpustate,CYCLES_PUSHF);
 }
 
 static void __FASTCALL I386OP(ret_near16_i16)(i386_state *cpustate)    // Opcode 0xc2
@@ -2143,9 +2153,17 @@ static void __FASTCALL I386OP(shld16_i8)(i386_state *cpustate)         // Opcode
 		shift &= 31;
 		if( shift == 0 ) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (16-shift))) ? 1 : 0;
-			// ppro and above should be (dst >> (32-shift))
-			dst = (upper << (shift-16)) | (upper >> (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = cpustate->CF ^ (dst >> 15);
 			SetSZPF16(dst);
 		} else {
@@ -2189,8 +2207,12 @@ static void __FASTCALL I386OP(shld16_cl)(i386_state *cpustate)         // Opcode
 		shift &= 31;
 		if( shift == 0 ) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (16-shift))) ? 1 : 0;
-			dst = (upper << (shift-16)) | (upper >> (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & 1) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (32-shift))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = cpustate->CF ^ (dst >> 15);
 			SetSZPF16(dst);
 		} else {
@@ -2234,8 +2256,12 @@ static void __FASTCALL I386OP(shrd16_i8)(i386_state *cpustate)         // Opcode
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper << (shift-16)) | (dst >> (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {
@@ -2254,8 +2280,12 @@ static void __FASTCALL I386OP(shrd16_i8)(i386_state *cpustate)         // Opcode
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {
@@ -2279,8 +2309,12 @@ static void __FASTCALL I386OP(shrd16_cl)(i386_state *cpustate)         // Opcode
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {
@@ -2299,8 +2333,12 @@ static void __FASTCALL I386OP(shrd16_cl)(i386_state *cpustate)         // Opcode
 		shift &= 31;
 		if( shift == 0) {
 		} else if( shift > 15 ) {
-			cpustate->CF = (upper & (1 << (shift-1))) ? 1 : 0;
-			dst = (upper >> (shift-16)) | (upper << (32-shift));
+			if( shift == 16 ) {
+				cpustate->CF = (dst & (1 << 15)) ? 1 : 0;
+			} else {
+				cpustate->CF = (upper & (1 << (shift-17))) ? 1 : 0;
+			}
+			dst = (upper >> (shift-16)) | (dst << (32-shift));
 			cpustate->OF = ((dst >> 15) ^ (dst >> 14)) & 1;
 			SetSZPF16(dst);
 		} else {

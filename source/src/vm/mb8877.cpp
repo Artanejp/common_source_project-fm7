@@ -301,6 +301,7 @@ void MB8877::reset()
 		extended_mode = false;
 	}
 //#endif
+	update_ready();
 }
 
 void MB8877::write_io8(uint32_t addr, uint32_t data)
@@ -794,10 +795,12 @@ void MB8877::write_signal(int id, uint32_t data, uint32_t mask)
 		drvreg = data & _drive_mask;
 		drive_sel = true;
 		seekend_clock = get_current_clock();
+		update_ready();
 	} else if(id == SIG_MB8877_SIDEREG) {
 		sidereg = (data & mask) ? 1 : 0;
 	} else if(id == SIG_MB8877_MOTOR) {
 		motor_on = ((data & mask) != 0);
+		update_ready();
 	} 
 }
 
@@ -1603,6 +1606,10 @@ void MB8877::update_head_flag(int drv, bool head_load)
 	}
 }
 
+void MB8877::update_ready()
+{
+	write_signals(&outputs_rdy, is_drive_ready() ? 0xffffffff : 0);
+}
 // ----------------------------------------------------------------------------
 // media handler
 // ----------------------------------------------------------------------------
@@ -1892,6 +1899,7 @@ void MB8877::open_disk(int drv, const _TCHAR* file_path, int bank)
 		} else {
 			fdc[drv].count_immediate = false;
 		}
+		update_ready();
 	}
 }
 
@@ -1905,6 +1913,7 @@ void MB8877::close_disk(int drv)
 		}
 		update_head_flag(drv, false);
 		fdc[drv].count_immediate = false;
+		update_ready();
 	}
 }
 
@@ -1927,6 +1936,19 @@ bool MB8877::is_disk_protected(int drv)
 {
 	if(drv < _max_drive) {
 		return disk[drv]->write_protected;
+	}
+	return false;
+}
+
+bool MB8877::is_drive_ready()
+{
+	return is_drive_ready(drvreg);
+}
+
+bool MB8877::is_drive_ready(int drv)
+{
+	if(drv < _max_drive) {
+		return disk[drv]->inserted && motor_on;
 	}
 	return false;
 }

@@ -60,7 +60,7 @@ private:
 	uint8_t vector;
 
 	bool _SINGLE_MODE_DMA;
-	bool _DMA_DEBUG;
+	bool _DMA_DEBUG_LOG;
 
 	bool now_ready();
 	void request_bus();
@@ -80,7 +80,7 @@ public:
 		for(int i = 0; i < 6 * 8 + 1 + 1; i++) {
 			regs.t[i] = 0;
 		}
-		_SINGLE_MODE_DMA = _DMA_DEBUG = false;
+		_SINGLE_MODE_DMA = _DMA_DEBUG_LOG = false;
 		d_cpu = d_child = NULL;
 		d_debugger = NULL;
 		initialize_output_signals(&outputs_wrote_mem);

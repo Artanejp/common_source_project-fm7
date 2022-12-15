@@ -1073,8 +1073,8 @@ void OSD::set_features_debug(void)
 #ifdef _DEBUG_PC80S31K
 	add_feature(_T("_DEBUG_PC80S31K"), 1);
 #endif
-#ifdef DMA_DEBUG
-	add_feature(_T("DMA_DEBUG"), 1);
+#ifdef DMA_DEBUG_LOG
+	add_feature(_T("DMA_DEBUG_LOG"), 1);
 #endif
 #ifdef SIO_DEBUG
 	add_feature(_T("SIO_DEBUG"), 1);

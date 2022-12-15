@@ -29,6 +29,7 @@ private:
 	// output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
+	outputs_t outputs_rdy;
 
 	// drive noise
 	NOISE* d_noise_seek;
@@ -142,6 +143,7 @@ private:
 //#endif
 	void cmd_forceint();
 	void update_head_flag(int drv, bool head_load);
+	virtual void update_ready();
 	
 	// irq/dma
 	void __FASTCALL set_irq(bool val);
@@ -152,6 +154,7 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_rdy);
 		d_noise_seek = NULL;
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
@@ -182,23 +185,23 @@ public:
 	~MB8877() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
-	void __FASTCALL event_callback(int event_id, int err);
-	void update_config();
-	bool is_debugger_available()
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int ch) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	void update_config() override;
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
@@ -208,6 +211,10 @@ public:
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
+	}
+	void set_context_rdy(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_rdy, device, id, mask);
 	}
 	void set_context_noise_seek(NOISE* device)
 	{
@@ -242,6 +249,8 @@ public:
 	bool is_disk_inserted(int drv);
 	void is_disk_protected(int drv, bool value);
 	bool is_disk_protected(int drv);
+	bool is_drive_ready();
+	bool is_drive_ready(int drv);
 	uint8_t get_media_type(int drv);
 	void set_drive_type(int drv, uint8_t type);
 	uint8_t get_drive_type(int drv);
