@@ -270,7 +270,6 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	mainmem = new FM7_MAINMEM(this, emu);
 	display = new DISPLAY(this, emu);
 
-
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	g_rs232c_dtr = new AND(this, emu);
 	g_rs232c_dtr->set_mask(SIG_AND_BIT_0);
@@ -611,6 +610,7 @@ void VM::connect_bus(void)
 			//FDC
 			fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
 			fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
+			fdc->set_context_rdy(mainio, SIG_FM7_MAINIO_FDC_MOTOR, 0xffffffff); // OK?
 			mainio->set_context_fdc(fdc);
 		}
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
@@ -621,6 +621,7 @@ void VM::connect_bus(void)
 		//FDC
 		fdc_2HD->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ_2HD, 0x1);
 		fdc_2HD->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ_2HD, 0x1);
+		fdc_2HD->set_context_rdy(mainio, SIG_FM7_MAINIO_FDC_MOTOR_2HD, 0xffffffff); 
 		mainio->set_context_fdc_2HD(fdc_2HD);
 	}
 #endif	

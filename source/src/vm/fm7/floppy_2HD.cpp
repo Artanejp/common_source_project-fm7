@@ -46,14 +46,14 @@ void FM7_MAINIO::reset_fdc_2HD(void)
 	fdc_2HD_drvsel = 0x7c | (fdc_2HD->read_signal(SIG_MB8877_DRIVEREG) & 0x03);
 	irqreg_fdc_2HD = 0x00; //0b00000000;
 	//fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0);
-	fdc_2HD_motor = false;
+	//fdc_2HD_motor = false;
 		
 	if(event_fdc_motor_2HD >= 0) cancel_event(this, event_fdc_motor_2HD);
 	event_fdc_motor_2HD = -1;
 	//irqstat_2HD_fdc = false;
 	//irqmask_2HD_mfd = true;
 	if(connect_fdc_2HD) {
-		set_fdc_motor_2HD(fdc_2HD_motor);
+		set_fdc_motor_2HD(false);
 	}
 #endif
 }
@@ -171,8 +171,7 @@ uint8_t FM7_MAINIO::get_fdc_motor_2HD(void)
 #if defined(HAS_2HD)
 	uint8_t val = 0x7c; //0b01111100;
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return 0xff;
-	fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
-	fdc_2HD_motor = fdc_2HD_motor & (fdc_2HD->get_drive_type(fdc_2HD_drvsel & 3) != DRIVE_TYPE_UNK);
+	// 20221215 K.O OK?
 	if(fdc_2HD_motor) val |= 0x80;
 	val = val | (fdc_2HD_drvsel & 0x03);
 	// OK?
@@ -211,7 +210,6 @@ uint8_t FM7_MAINIO::get_fdc_fd1c_2HD(void)
 void FM7_MAINIO::set_fdc_fd1d_2HD(uint8_t val)
 {
 #if defined(HAS_2HD)
-	bool backup_motor = fdc_2HD_motor;
 	bool f;
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return;
 	if((val & 0x80) != 0) {
@@ -219,11 +217,12 @@ void FM7_MAINIO::set_fdc_fd1d_2HD(uint8_t val)
 	} else {
 		f = false;
 	}
-
-	fdc_2HD->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
+	drv = val & 0x03;
+	bool mdrv_flag = fdc_2HD->is_drive_ready(drv);
+	fdc_2HD->write_signal(SIG_MB8877_DRIVEREG, drv, 0x03);
 	fdc_2HD_drvsel = val;
 
-	if(f != backup_motor) {
+	if(f != mdrv_flag) {
 		if(event_fdc_motor_2HD >= 0) cancel_event(this, event_fdc_motor_2HD);
 		// OK?
 		if(f) {
@@ -319,9 +318,8 @@ void FM7_MAINIO::set_fdc_motor_2HD(bool flag)
 {
 #if defined(HAS_2HD)
 	if(!(connect_fdc_2HD) || (fdc_2HD == NULL)) return;
-	fdc_2HD->write_signal(SIG_MB8877_MOTOR, flag ? 0x01 : 0x00, 0x01);
-	fdc_2HD_motor = (fdc_2HD->read_signal(SIG_MB8877_MOTOR) != 0);
-	fdc_2HD_motor = fdc_2HD_motor & (fdc_2HD->get_drive_type(fdc_2HD_drvsel & 3) != DRIVE_TYPE_UNK);
+	// OK? 20221215 K.O
+	fdc_2HD->write_signal(SIG_MB8877_MOTOR, flag ? 0xffffffff : 0x00, 0xffffffff);
 #endif
 }
 

@@ -25,7 +25,7 @@
 #define USE_PRINTER_TYPE 4
 #define USE_AY_3_8910_AS_PSG
 
-#define INDEPENDENT_CAPS_KANA_LED
+//#define INDEPENDENT_CAPS_KANA_LED
 #define USE_KEY_LOCKED
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
@@ -384,6 +384,13 @@ static const _TCHAR *joy_button_captions[] = {
 	_T("Button #2(1st)"),
 	_T("Button #1(2nd)"),
 	_T("Button #2(2nd)"),
+};
+#endif
+#ifdef USE_LED_DEVICE
+static const _TCHAR *led_device_caption[] = {
+	_T("INS:"),
+	_T("KANA:"),
+	_T("CAP:"),
 };
 #endif
 

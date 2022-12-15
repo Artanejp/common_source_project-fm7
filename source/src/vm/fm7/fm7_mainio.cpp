@@ -103,6 +103,7 @@ FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVIC
 #if defined(HAS_2HD)	
 	drqstat_fdc_2hd = false;
 	irqstat_fdc_2hd = false;
+	
 #endif
 	// FD05
 	extdet_neg = false;
@@ -174,10 +175,13 @@ void FM7_MAINIO::initialize()
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
+	fdc_motor = false;
 	lpt_type = config.printer_type;
 	fdc_cmdreg = 0x00;
 #if defined(HAS_2HD)
 	event_fdc_motor_2HD = -1;
+	fdc_2HD_motor = false;
+	
 #endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
@@ -326,7 +330,9 @@ void FM7_MAINIO::reset()
 	// FD17
 	intstat_opn = false;
 	intstat_mouse = false;
-
+#if defined(HAS_2HD)
+	reset_fdc_2HD();
+#endif
 	do_irq();
 
 //#if !defined(_FM8)
@@ -1079,12 +1085,18 @@ void FM7_MAINIO::write_signal(int id, uint32_t data, uint32_t mask)
 	case FM7_MAINIO_FDC_IRQ:
 		set_irq_mfd(val_b);
 		break;
+	case SIG_FM7_MAINIO_FDC_MOTOR:
+		fdc_motor = ((data & mask) != 0) ? true : false;
+		break;
 #if defined(HAS_2HD)
 	case FM7_MAINIO_FDC_DRQ_2HD:
 		set_drq_mfd_2HD(val_b);
 		break;
 	case FM7_MAINIO_FDC_IRQ_2HD:
 		set_irq_mfd_2HD(val_b);
+		break;
+	case SIG_FM7_MAINIO_FDC_MOTOR_2HD:
+		fdc_2HD_motor = ((data & mask) != 0) ? true : false;
 		break;
 #endif
 #if defined(HAS_DMA)
