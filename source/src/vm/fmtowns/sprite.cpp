@@ -130,7 +130,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 			
 			// P1 get data
 __DECL_VECTORIZED_LOOP						
-			for(int xx = 0; xx != 32; xx++) {
+			for(int xx = 0; xx < 32; xx++) {
 				nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
 			}
 __DECL_VECTORIZED_LOOP						
