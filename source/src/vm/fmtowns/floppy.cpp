@@ -164,7 +164,8 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 			val = 0x01;
 		}
 		is_inserted[drvsel] = false;
-		if(d_fdc->is_disk_inserted(drvsel)) val |= 0x02;
+		//if(d_fdc->is_disk_inserted(drvsel)) val |= 0x02;
+		if(d_fdc->is_drive_ready(drvsel)) val |= 0x02;
 		val |= 0x04; // ToDo 5.25 inch
 		val |= 0x80; // 2 Drives (maybe default, will change) 20200925 K.O
 		return val;
