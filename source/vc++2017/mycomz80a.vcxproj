@@ -328,10 +328,12 @@
     <ClCompile Include="..\src\fifo.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
     <ClCompile Include="..\src\vm\datarec.cpp" />
+    <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\hd46505.cpp" />
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
+    <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\msm58321.cpp" />
     <ClCompile Include="..\src\vm\mycomz80a\display.cpp" />
     <ClCompile Include="..\src\vm\mycomz80a\keyboard.cpp" />
@@ -355,12 +357,14 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\res\resource.h" />
     <ClInclude Include="..\src\vm\datarec.h" />
+    <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\event.h" />
     <ClInclude Include="..\src\vm\hd46505.h" />
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\io.h" />
+    <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\msm58321.h" />
     <ClInclude Include="..\src\vm\mycomz80a\display.h" />
     <ClInclude Include="..\src\vm\mycomz80a\keyboard.h" />
@@ -374,6 +378,9 @@
     <ClInclude Include="..\src\win32\osd.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\src\res\indicator\access_green.bmp" />
+    <Image Include="..\src\res\indicator\access_off.bmp" />
+    <Image Include="..\src\res\indicator\access_on.bmp" />
     <Image Include="..\src\res\mycomz80a.ico" />
   </ItemGroup>
   <ItemGroup>

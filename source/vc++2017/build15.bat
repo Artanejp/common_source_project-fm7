@@ -133,6 +133,10 @@ copy bin\x86\Release\jx.exe build_vc15\jx\.
 mkdir build_vc15\jx_hires
 copy bin\x86\Release\jx.exe build_vc15\jx_hires\.
 
+msbuild.exe m23.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\m23
+copy bin\x86\Release\m23.exe build_vc15\m23\.
+
 msbuild.exe m5.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\m5
 copy bin\x86\Release\m5.exe build_vc15\m5\.

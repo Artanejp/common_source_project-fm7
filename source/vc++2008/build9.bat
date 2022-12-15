@@ -137,6 +137,10 @@ copy Release\jx.exe build_xp\jx\.
 mkdir build_xp\jx_hires
 copy Release\jx.exe build_xp\jx_hires\.
 
+devenv.com m23.vcproj /Rebuild Release
+mkdir build_xp\m23
+copy Release\m23.exe build_xp\m23\.
+
 devenv.com m5.vcproj /Rebuild Release
 mkdir build_xp\m5
 copy Release\m5.exe build_xp\m5\.
