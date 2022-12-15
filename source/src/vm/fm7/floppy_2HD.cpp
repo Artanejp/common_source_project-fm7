@@ -217,7 +217,7 @@ void FM7_MAINIO::set_fdc_fd1d_2HD(uint8_t val)
 	} else {
 		f = false;
 	}
-	drv = val & 0x03;
+	uint8_t drv = val & 0x03;
 	bool mdrv_flag = fdc_2HD->is_drive_ready(drv);
 	fdc_2HD->write_signal(SIG_MB8877_DRIVEREG, drv, 0x03);
 	fdc_2HD_drvsel = val;
