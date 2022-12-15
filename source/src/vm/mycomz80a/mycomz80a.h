@@ -22,9 +22,12 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
+#define HAS_MB8866
+#define MAX_DRIVE		4
 #define HAS_MSM5832
 
 // device informations for win32
+#define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define USE_KEY_LOCKED
 #define USE_AUTO_KEY		5
@@ -34,7 +37,7 @@
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
 
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	4
 #define SUPPORT_TV_RENDER
 #define USE_DEBUGGER
 #define USE_STATE
@@ -46,7 +49,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("CMT (Signal)"), _T("Noise (CMT)"),
+	_T("PSG"), _T("CMT (Signal)"), _T("Noise (CMT)"), _T("Noise (FDD)"),
 };
 #endif
 
@@ -58,6 +61,7 @@ class DATAREC;
 class HD46505;
 class I8255;
 class IO;
+class MB8877;
 class MSM5832;
 class SN76489AN;
 class Z80;
@@ -82,6 +86,7 @@ protected:
 	I8255* pio2;
 	I8255* pio3;
 	IO* io;
+	MB8877* fdc;
 	MSM5832* rtc;
 	SN76489AN* psg;
 	Z80* cpu;
@@ -130,6 +135,12 @@ public:
 	bool get_kana_locked();
 	
 	// user interface
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
+	uint32_t is_floppy_disk_accessed();
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);

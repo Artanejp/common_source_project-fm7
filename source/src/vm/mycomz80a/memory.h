@@ -19,6 +19,10 @@ namespace MYCOMZ80A {
 class MEMORY : public DEVICE
 {
 private:
+	DEVICE *d_cpu;
+	DEVICE *d_fdc;
+	DEVICE *d_pio;
+	
 	uint8_t* rbank[16];
 	uint8_t* wbank[16];
 	uint8_t wdmy[0x1000];
@@ -29,23 +33,43 @@ private:
 	
 	uint32_t addr_mask;
 	bool rom_sel;
+	uint8_t drv_sel, nmi_req;
 	
 	void update_memory_map();
 	
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_cpu = nullptr;
+		d_fdc = nullptr;
+		d_pio = nullptr;
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMORY() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void initialize() override;
+	void reset() override;
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
+	// unique functions
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
+	}
+	void set_context_fdc(DEVICE* device)
+	{
+		d_fdc = device;
+	}
+	void set_context_pio(DEVICE* device)
+	{
+		d_pio = device;
+	}
+
 };
 
 }
