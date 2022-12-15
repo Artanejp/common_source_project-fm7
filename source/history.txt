@@ -1,3 +1,15 @@
+5/25/2022
+
+[WINMAIN] support showing indicator LEDs on status bar for any purposes
+
+[VM/MB8877] support ready signal
+[VM/Z80CTC] improve for timer overrun case
+[VM/Z80SIO] improve receive interrupt (thanks Mr.YAT)
+
+[M23] support SORD M23
+[MYCOMZ80A] support floppy drives and nmi signal
+
+
 5/7/2022
 
 [VM/I8080] fix issue in the case CALL/RST performed by interrupt while halted
@@ -14,6 +26,7 @@
 [SMC777/MEMORY] improve screen renderer for scrolling
 [SMC777/MEMORY] improve joystick port not to keep trigger#2 pressed
 [SMC777/MEMORY] improve for key releasingg
+
 
 4/5/2022
 
@@ -84,6 +97,7 @@
 [BX1/DISPLAY] improve for drawing digitron display
 [BX1/KEYBOARD] improve I/O ports for detecting key pressed/released
 [BX1/PRINTER] add ugly patch for printer process
+
 
 1/24/2021
 
@@ -547,7 +561,7 @@
 12/1/2018
 
 [PC8801] enable/disable drawing scan line when monitor type is hireso/standard
-[PC8801/PC88] improve text attributes/rederer (thanks ePC-8801MAæ”¹)
+[PC8801/PC88] improve text attributes/rederer (thanks ePC-8801MA‰ü)
 [PC8801/PC88] fix analog back color
 [PC8801/PC88] improve routine to change palette for each scan line
 
@@ -705,7 +719,7 @@
 [VM/MB8877] improve for debugger
 [VM/TMS9918] improve for debugger
 [VM/UPD765A] improve for debugger
-[VM/UPD765A] fix read/write commands to check density (thanks PC8801MAæ”¹)
+[VM/UPD765A] fix read/write commands to check density (thanks PC8801MA‰ü)
 [VM/UPD765A] fix read diagnostics status for unformat/density mismatch case
 
 [PC8801/PC88] fix underline/upperline attributes
@@ -800,7 +814,7 @@
 12/14/2017
 
 [RESOURCE] change accelerators for switching full speed and roman/kana input
-[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MAæ”¹)
+[WINMAIN] fix to call ImmAssociateContext() in WM_ACTIVATE (thanks PC8801MA‰ü)
 
 [VM/HD46505] fix to force update event timing when R0-R9 are modified
 [VM/HUC6280] support to show clocks since starting scanline in debugger
@@ -872,21 +886,21 @@
 [EMU/DEBUGGER] support ut command (unassemble cpu trace)
 [EMU/DEBUGGER] fix < command to check if command file is correctly opened
 
-[EMU/OSD] fix initialize_screen_buffer() for RGB565 (thanks PC8801MAæ”¹)
+[EMU/OSD] fix initialize_screen_buffer() for RGB565 (thanks PC8801MA‰ü)
 [EMU/OSD] improve read_console_input() to get cursor key
 
 [VM/MCS48] support to show total cpu clocks in debugger
 [VM/MCS48] support cpu trace
 [VM/UPD7220] improve vsync/hsync timing
 [VM/UPD7220] improve status register to select vblank/hblank by sync command
-[VM/YM2151] improve not to load mamefm.dll again (thanks PC8801MAæ”¹)
-[VM/YM2203] improve not to load mamefm.dll again (thanks PC8801MAæ”¹)
+[VM/YM2151] improve not to load mamefm.dll again (thanks PC8801MA‰ü)
+[VM/YM2203] improve not to load mamefm.dll again (thanks PC8801MA‰ü)
 [VM/Z80] support to show total cpu clocks in debugger
 [VM/Z80] support cpu trace
 
-[PC8801MA] support OPN+OPN, OPNA+OPNA, and OPNA+OPN (thanks PC8801MAæ”¹)
-[PC8801MA] fix back space key issue (thanks PC8801MAæ”¹)
-[PC8801MA] fix bank switch of extrom (thanks PC8801MAæ”¹)
+[PC8801MA] support OPN+OPN, OPNA+OPNA, and OPNA+OPN (thanks PC8801MA‰ü)
+[PC8801MA] fix back space key issue (thanks PC8801MA‰ü)
+[PC8801MA] fix bank switch of extrom (thanks PC8801MA‰ü)
 [PC8801MA] fix not to apply digital palette in monochrome and digital mode
 [PC8801MA] fix to apply analog palette in monochrome and analog mode
 [PC8801MA] fix to apply reverse in text attribute to monochrome graphic
@@ -4050,7 +4064,7 @@ Fix typo (regist -> register, recieve -> receive)
 [VM/I8085] support 8080/8085 (based on MAME 8080/8085 core)
 [VM/I86] change class name from X86 to I86
 
-[MULTI8/KEYBOARD] fix the problem that cannot input the kana-character "ï½¨"
+[MULTI8/KEYBOARD] fix the problem that cannot input the kana-character "¨"
 [TK80] change cpu core from z80 to 8080
 [TK80/MEMORY] change user-defined rom address to $0c00-$7dff
 
