@@ -408,39 +408,39 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 			if(!(half_count)) {
-				if(using_flags.get() != nullptr) {
-				if(using_flags->is_use_minimum_rendering()) {
-#if defined(USE_MINIMUM_RENDERING)
-					req_draw |= p_emu->is_screen_changed();
-#else
-					req_draw = true;
-#endif
-				} else {
-					req_draw = true;
-				}
-				} else {
-					req_draw = true;
-				}
-
-#if defined(USE_KEY_LOCKED) && !defined(INDEPENDENT_CAPS_KANA_LED)
-				led_data = p_emu->get_caps_locked() ? 0x01 : 0x00;
-				led_data |= (p_emu->get_kana_locked() ? 0x02 : 0x00);
-#else
 				led_data = 0x00;
-#endif
-#if defined(USE_LED_DEVICE)
-#if !defined(INDEPENDENT_CAPS_KANA_LED)
-				led_data <<= USE_LED_DEVICE;
-#endif
-				led_data |= p_emu->get_led_status();
-#endif
-
-#if defined(USE_LED_DEVICE) || defined(USE_KEY_LOCKED)
-				if(led_data != led_data_old) {
-					emit sig_send_data_led((quint32)led_data);
-					led_data_old = led_data;
+				
+				USING_FLAGS *up = using_flags.get();
+				bool _ind_caps_kana = false;
+				bool _key_lock = false;
+				int _led_shift = 0;
+				if(up != nullptr) {
+					_ind_caps_kana = up->get_independent_caps_kana_led();
+					_key_lock = up->get_use_key_locked();
+					_led_shift = up->get_use_led_devices(); 
+					if(up->is_use_minimum_rendering()) {
+						req_draw |= p_emu->is_screen_changed();
+					} else {
+						req_draw = true;
+					}
+					if((_key_lock) && (_ind_caps_kana)) {
+						led_data |= ((p_emu->get_caps_locked()) ? 0x01 : 0x00);
+						led_data |= ((p_emu->get_kana_locked()) ? 0x02 : 0x00);
+						if(_led_shift > 0) {
+							led_data <<= _led_shift;
+						}
+					}
+				} else {
+					req_draw = true;
 				}
-#endif
+				led_data |= p_emu->get_led_status();
+
+				if((_led_shift > 0) || (_key_lock)) {
+					if(led_data != led_data_old) {
+						emit sig_send_data_led((quint32)led_data);
+						led_data_old = led_data;
+					}
+				}
 				sample_access_drv();
 				now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
 				if(config.full_speed) {
@@ -471,34 +471,18 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 				prev_skip = now_skip;
 			}
-#if 0
-			{
-				struct tm *timedat;
-				time_t nowtime;
-				char strbuf2[256];
-				char strbuf3[24];
-				struct timeval tv;
-				nowtime = time(NULL);
-				gettimeofday(&tv, NULL);
-				memset(strbuf2, 0x00, sizeof(strbuf2));
-				memset(strbuf3, 0x00, sizeof(strbuf3));
-				timedat = localtime(&nowtime);
-				strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
-				snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
-				printf("%s%s[EMU]::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d SRC = %d\n", strbuf2, strbuf3, run_frames, now_skip, interval, next_time, tick_timer.clockType());
-			}
-#endif			
 			if(next_time > tick_timer.elapsed()) {
 				//if(next_time > SDL_GetTicks()) {
 				//  update window if enough time
 				if(!req_draw) {
 					no_draw_count++;
 					int count_limit = (int)(FRAMES_PER_SEC / 3);
-#if defined(SUPPORT_TV_RENDER)
-					if(config.rendering_type == CONFIG_RENDER_TYPE_TV) {
-						count_limit = 0;
+					USING_FLAGS *up = using_flags.get();
+					if(up != nullptr) {
+						if((up->is_support_tv_render()) && (config.rendering_type == CONFIG_RENDER_TYPE_TV)) {
+							count_limit = 0;
+						}
 					}
-#endif
 					if(no_draw_count > count_limit) {
 						req_draw = true;
 						no_draw_count = 0;
@@ -510,11 +494,9 @@ void EmuThreadClass::doWork(const QString &params)
 				if(!(half_count)) 
 				{
 					double nd;
-					nd = emu->get_frame_rate();
+					nd = p_emu->get_frame_rate();
 					if(nr_fps != nd) emit sig_set_draw_fps(nd);
 					nr_fps = nd;
-				}
-				if(!(half_count)) {
 					//printf("DRAW %dmsec\n", tick_timer.elapsed());
 					if(multithread_draw) {
 						emit sig_draw_thread(req_draw);
@@ -538,7 +520,7 @@ void EmuThreadClass::doWork(const QString &params)
 				if(!(half_count)) 
 				{
 					double nd;
-					nd = emu->get_frame_rate();
+					nd = p_emu->get_frame_rate();
 					if(nr_fps != nd) emit sig_set_draw_fps(nd);
 					nr_fps = nd;
 				}
