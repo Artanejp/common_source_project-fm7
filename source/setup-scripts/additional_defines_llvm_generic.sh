@@ -72,3 +72,6 @@ if [ __x__"${BUILD_TYPE}" != __x__Debug ] ; then
 	fi
 	EXE_LDOPTS+=(-fwhole-program-vtables)
 fi
+#EXE_LDOPTS+=(-Wl,--allow-shlib-undefined)
+
+

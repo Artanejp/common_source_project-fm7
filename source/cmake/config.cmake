@@ -552,13 +552,13 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	endif()
 	if(USE_DEVICES_SHARED_LIB)
 		set(BUNDLE_LIBS
-			${BUNDLE_LIBS}
 			CSPosd
 			CSPcommon_vm
 			CSPfmgen
 			CSPgui
 			CSPemu_utils
 			CSPavio
+			${BUNDLE_LIBS}
 		)
 	else()
 		set(BUNDLE_LIBS
