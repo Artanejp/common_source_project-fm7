@@ -109,7 +109,7 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	int64_t _samples =
 		((int64_t)rate * latency_ms) / 1000;
 	size_t _chunk_bytes = (size_t)(_samples * m_wordsize);
-	int64_t _buffer_bytes = _chunk_bytes * 4;
+	int64_t _buffer_bytes = _chunk_bytes * 2;
 	
 	bool _need_restart = false;
 	if(need_resize_fileio) {
@@ -431,11 +431,18 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 		return -1;
 	}
 	int64_t _result = -1;
+	qint64 _size = m_chunk_bytes;
 	if(samples > 0) {
-		qint64 _size = (qint64)(samples * m_channels) * (qint64)m_wordsize;
+		_size = (qint64)(samples * m_channels) * (qint64)m_wordsize;
+	} else if(samples == 0) {
+		return _result;
+	}
+	if(_size > 0) {	
 		_result = (int64_t)q->write((const char *)datasrc, _size);
-	} else if(samples < 0) {
-		_result = (int64_t)q->write((const char *)datasrc, m_chunk_bytes);
+	}
+	if(_result > 0) {
+		_result = _result / (qint64)(m_channels * m_wordsize);
+		
 	}
 	return _result;
 }
@@ -696,7 +703,6 @@ int64_t M_BASE::get_bytes_left()
 	}
 	return 0;
 }
-
 	/* SOUND_MODULE::OUTPUT */
 	}
 	/* SOUND_MODULE */

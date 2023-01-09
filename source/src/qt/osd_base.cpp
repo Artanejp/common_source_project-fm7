@@ -69,7 +69,9 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	glContext = NULL;
 
 	m_sound_driver.reset();
-
+	m_sound_period = 0;
+	sound_initialized = false;
+	sound_ok = false;
 }
 
 OSD_BASE::~OSD_BASE()

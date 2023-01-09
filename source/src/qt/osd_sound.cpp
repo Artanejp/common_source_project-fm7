@@ -448,41 +448,54 @@ void OSD_BASE::update_sound(int* extra_frames)
 	if(sound_initialized) {
 		// Get sound driver 
 		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-		if(sound_drv.get() == nullptr) {
+		__UNLIKELY_IF(sound_drv.get() == nullptr) {
 			// ToDo: Fix delay.
+			sound_ok = false;
 			return;
 		}
-		
-		// Check enough to render accumlated
-		// source (= by VM) rendering data.
-		int sound_samples = sound_drv->get_sample_count();
-		// Check driver elapsed by real time.
-		if(sound_drv->is_driver_started()) {
-			if(!(sound_drv->check_elapsed_to_render())) {
-				return;
+		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
+			// ToDo: Fix delay.
+			__LIKELY_IF(!(sound_ok)) {
+				sound_drv->start();
+				__UNLIKELY_IF(p_config != nullptr) {
+					sound_drv->set_volume((int)(p_config->general_sound_level));
+				}
 			}
-		} else if(!(sound_ok) /*&& (sound_drv->config_ok())*/) {
-			sound_drv->start();
-			if(p_config != nullptr) {
-				sound_drv->set_volume((int)(p_config->general_sound_level));
-			}
-			//sound_drv->update_render_point_usec();
 			sound_ok = true;
 			return;
-		} else {
-#if 0			
-			int now_mixed_ptr = 0;
-			if(vm == nullptr) {
-				return;
-			}
-			now_mixed_ptr = vm->get_sound_buffer_ptr();
-			if(now_mixed_ptr < ((sound_samples * 100) / 100)) {
-				// Render even emulate 100% of latency.
-				return;
-			}
-#else
+		}
+
+		// Check enough to render accumlated
+		// source (= by VM) rendering data.
+		int64_t sound_samples = sound_drv->get_sample_count();
+		__UNLIKELY_IF(sound_samples <= 0) {
 			return;
-#endif
+		}
+		int _channels = sound_drv->get_channels();
+		size_t word_size = sound_drv->get_word_size();
+		int64_t _left = sound_drv->get_bytes_left();
+		// Pass 1: Check available to write.
+		__UNLIKELY_IF((_channels <= 0) || (word_size == 0)) {
+			return;
+		}
+		if(_left < (sound_samples * (int64_t)(word_size * _channels))) {
+			return;
+		}
+		// Pass 2: Check elapsed time.
+		int64_t latency_us    = sound_drv->get_latency_ms() * 1000;
+		int64_t elapsed_usec = sound_drv->driver_elapsed_usec() % (latency_us * 2);
+		//int64_t processed_usec = sound_drv->driver_processed_usec() % (latency_us * 2);
+		switch(m_sound_period) {
+		case 0:
+			if(elapsed_usec > latency_us) {
+				return;
+			}
+			break;
+		case 1:
+			if(elapsed_usec < latency_us) {
+				return;
+			}
+			break;
 		}
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
 		if(sound_buffer == nullptr) {
@@ -516,15 +529,12 @@ void OSD_BASE::update_sound(int* extra_frames)
 		}
 		// ToDo: Convert sound format.
 		if(sound_drv.get() != nullptr) {
-			if(!(sound_drv->check_enough_to_render())) {
-			// Buffer underflow.
-			//sound_drv->discard();
-			//sound_drv->update_render_point_usec();
-				return;
-			}
 			int64_t _result = 0;
 			_result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
-			sound_drv->update_render_point_usec();
+			if(_result > 0) {
+				m_sound_period = (m_sound_period + 1) % 2;
+				//printf("%d %ld\n", m_sound_period, _result);
+			}
 		}
 	}
 }
@@ -554,6 +564,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	if(sound_drv.get() != nullptr) {
 		sound_drv->initialize_sound(rate, samples, presented_rate, presented_samples);
 		//sound_drv->update_render_point_usec();
+		m_sound_period = 0;
 		sound_initialized = true;
 		sound_ok = false;
 	}
@@ -571,6 +582,8 @@ void OSD_BASE::release_sound()
 		//sound_drv->update_render_point_usec();
 		sound_drv->release_sound();
 	}
+	m_sound_period = 0;
+	
 }
 
 void OSD_BASE::do_update_master_volume(int level)
@@ -624,9 +637,10 @@ void OSD_BASE::stop_sound()
 	if(sound_drv.get() != nullptr) {
 		if(sound_ok && sound_drv->is_driver_started()) {
 			sound_drv->stop_sound();
+			m_sound_period = 0;
 		}
 	}
-	sound_initialized = false;
+	//sound_initialized = false;
 	sound_ok = false;
 }
 

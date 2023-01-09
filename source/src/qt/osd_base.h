@@ -182,7 +182,7 @@ private:
 	QAudioFormat m_audioInputFormat;
 	
 	#endif
-
+	uint8_t m_sound_period;
 protected:
 	EmuThreadClass		*parent_thread;
 	sdl_snddata_t		snddata;
