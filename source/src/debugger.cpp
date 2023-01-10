@@ -1938,13 +1938,15 @@ void EMU::initialize_debugger()
 
 void EMU::release_debugger()
 {
-	close_debugger();
+	for(int i = 0; i < 8; i++) { // ToDo 20230110 K.O
+		close_debugger(i);
+	}
 }
 
 void EMU::open_debugger(int cpu_index)
 {
 	if(!(now_debugging && debugger_thread_param.cpu_index == cpu_index)) {
-		close_debugger();
+		close_debugger(cpu_index);
 		if(vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL) {
 			debugger_thread_param.emu = this;
 			debugger_thread_param.osd = (OSD_BASE*)osd;
@@ -1967,8 +1969,9 @@ void EMU::open_debugger(int cpu_index)
 	}
 }
 
-void EMU::close_debugger()
+void EMU::close_debugger(int cpu_index)
 {
+	
 	if(now_debugging) {
 		if(debugger_thread_param.running) {
 			debugger_thread_param.request_terminate = true;
@@ -1979,17 +1982,19 @@ void EMU::close_debugger()
 //#elif !defined(_USE_QT)
 #else
 		pthread_join(debugger_thread_id, NULL);
-//#else
-//		volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
-//		p->running = false;
-		
-		//if(logfile != NULL && logfile->IsOpened()) {
-		//	logfile->Fclose();
-		//}
-		// initialize logfile
-		//logfile = NULL;
 #endif
 		now_debugging = false;
+		DEVICE *cpu = vm->get_cpu(cpu_index);
+		DEBUGGER *cpu_debugger = nullptr;
+		if(cpu != nullptr) {
+			cpu_debugger = (DEBUGGER*)cpu->get_debugger();
+		}
+		if((cpu != nullptr) && (cpu_debugger != nullptr)) {
+			cpu_debugger->now_debugging = false;
+			cpu_debugger->now_going = true;
+			// ToDo: Support multiple CPUs
+			debugger_thread_param.cpu_index = -1;
+		}
 	}
 }
 // Some functions move to emu.cpp . 20190221 K.O.

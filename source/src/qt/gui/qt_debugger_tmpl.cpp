@@ -183,9 +183,10 @@ void CSP_Debugger_Tmpl::closeEvent(QCloseEvent *event)
 	if(emu != nullptr) {
 		VM_TEMPLATE* p_vm = debugger_thread_param.vm;
 		if(p_vm != nullptr) {
+			// ToDo: Support multiple debuggers. 20230110 K.O
 			uint32_t cpu_index = debugger_thread_param.cpu_index;
 			if(emu->is_debugger_enabled(cpu_index)) {
-				emu->close_debugger();
+				emu->close_debugger(cpu_index);
 			}
 		}
 	}
@@ -291,7 +292,7 @@ CSP_Debugger_Tmpl::~CSP_Debugger_Tmpl()
 	if(emu != nullptr) {
 		uint32_t cpu_index = debugger_thread_param.cpu_index;
 		if(emu->is_debugger_enabled(cpu_index)) {
-			emu->close_debugger();
+			emu->close_debugger(cpu_index);
 		}
 	}
 	//emu.reset(); // Deallocate

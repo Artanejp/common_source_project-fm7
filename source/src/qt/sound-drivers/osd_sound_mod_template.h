@@ -216,6 +216,7 @@ public slots:
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 	virtual void release_sound();
 	virtual void mute_sound();
+	virtual void unmute_sound();
 	virtual void stop_sound();
 	
 	virtual void update_config() {}

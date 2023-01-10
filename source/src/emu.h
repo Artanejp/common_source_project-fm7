@@ -288,7 +288,7 @@ public:
 	// debugger
 #ifdef USE_DEBUGGER
 	void open_debugger(int cpu_index) override;
-	void close_debugger() override;
+	void close_debugger(int cpu_index) override;
 	bool is_debugger_enabled(int cpu_index) override;
 #endif
 	void start_waiting_in_debugger() override;

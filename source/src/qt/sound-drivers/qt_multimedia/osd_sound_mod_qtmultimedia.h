@@ -92,6 +92,7 @@ public slots:
 	virtual void release_sound() override;
 
 	virtual void mute_sound() override;
+	virtual void unmute_sound() override;
 	virtual void stop_sound() override;
 	
 	virtual void driver_state_changed(QAudio::State newState);

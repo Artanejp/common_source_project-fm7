@@ -225,6 +225,7 @@ int EMU::run()
 			load_state(state_file_path(request_load_state));
 		}
 		// NOTE: vm instance may be reinitialized in load_state
+		// ToDo: Support multiple debuggers. 20230110 K.O
 		if(!is_debugger_enabled(debugger_cpu_index)) {
 			for(int i = 0; i < 8; i++) {
 				if(is_debugger_enabled(i)) {
@@ -243,7 +244,7 @@ int EMU::run()
 			cpu_debugger->now_debugging = true;
 			debugger_thread_param.vm = vm;
 		} else {
-			close_debugger();
+			close_debugger(debugger_cpu_index);
 		}
 		request_save_state = request_load_state = -1;
 	}
@@ -2047,6 +2048,7 @@ void EMU::finish_waiting_in_debugger()
 #ifdef USE_DEBUGGER
 	osd->finish_waiting_in_debugger();
 	now_waiting_in_debugger = false;
+	osd->unmute_sound();
 #endif
 }
 

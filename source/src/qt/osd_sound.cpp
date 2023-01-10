@@ -621,6 +621,17 @@ void OSD_BASE::init_sound_device_list()
 		}
 	}
 }
+
+void OSD_BASE::unmute_sound()
+{
+	if(now_mute && sound_ok) {
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+		if(sound_drv.get() != nullptr) {
+			sound_drv->unmute_sound();
+		}
+		now_mute = false;
+	}
+}
 void OSD_BASE::mute_sound()
 {
 	if(!now_mute && sound_ok) {

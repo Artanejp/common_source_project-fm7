@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 8.9.1)
+SET(THIS_LIB_VERSION 8.10.0)
 
 set(s_qt_osd_headers
 	osd_base.h

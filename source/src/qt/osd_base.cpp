@@ -147,6 +147,7 @@ void OSD_BASE::restore()
 			play_movie();
 		}
 	}
+	unmute_sound();
 }
 
 

@@ -369,7 +369,7 @@ public:
 	virtual void release_debugger() { }
 	
 	virtual void open_debugger(int cpu_index) {}
-	virtual void close_debugger() {}
+	virtual void close_debugger(int cpu_index) {}
 	virtual bool is_debugger_enabled(int cpu_index) { return false; }
 	
 	bool now_debugging;

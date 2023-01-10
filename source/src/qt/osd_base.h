@@ -549,6 +549,7 @@ public:
 	// common sound
 	void update_sound(int* extra_frames);
 	void mute_sound();
+	void unmute_sound();
 	void stop_sound();
 	void start_record_sound();
 	void stop_record_sound();

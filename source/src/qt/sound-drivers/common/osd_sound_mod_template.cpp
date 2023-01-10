@@ -517,6 +517,10 @@ void M_BASE::mute_sound()
 {
 }
 
+void M_BASE::unmute_sound()
+{
+}
+
 void M_BASE::stop_sound()
 {
 }

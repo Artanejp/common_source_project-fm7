@@ -706,12 +706,11 @@ bool M_QT_MULTIMEDIA::is_driver_started()
 void M_QT_MULTIMEDIA::mute_sound()
 {
 	if(!(m_mute.load()) && (m_config_ok.load())) {
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		std::shared_ptr<QAudioSink> p = m_audioOutputSink;
-		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		std::shared_ptr<QAudioOutput> p = m_audioOutputSink;
-		#endif
-		
+	#endif
 		if(p.get() != nullptr) {
 			switch(p->state()) {
 			case QAudio::ActiveState:
@@ -726,6 +725,29 @@ void M_QT_MULTIMEDIA::mute_sound()
 	}
 	m_mute = true;
 }
+
+void M_QT_MULTIMEDIA::unmute_sound()
+{
+	if((m_mute.load()) && (m_config_ok.load())) {
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+		std::shared_ptr<QAudioSink> p = m_audioOutputSink;
+	#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		std::shared_ptr<QAudioOutput> p = m_audioOutputSink;
+	#endif
+		if(p.get() != nullptr) {
+			switch(p->state()) {
+			case QAudio::SuspendedState:
+				emit sig_discard_audio();
+				emit sig_resume_audio();
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	m_mute = false;	
+}
+
 
 void M_QT_MULTIMEDIA::do_discard_sound()
 {
