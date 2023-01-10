@@ -536,20 +536,17 @@ QString EmuThreadClassBase::get_d88_file_disk_name(int drive, int banknum)
 bool EmuThreadClassBase::is_floppy_disk_protected(int drive)
 {
 	if(using_flags.get() == nullptr) return false;
-	QMutexLocker _locker(&uiMutex);
 	if(!(using_flags->is_use_fd())) return false;
 
+	QMutexLocker _locker(&uiMutex);
 	bool _b = p_emu->is_floppy_disk_protected(drive);
 	return _b;
-
-	return false;
 }
 
 
 QString EmuThreadClassBase::get_d88_file_path(int drive)
 {
 	if(using_flags.get() == nullptr) return QString::fromUtf8("");
-	QMutexLocker _locker(&uiMutex);
 
 	if(!(using_flags->is_use_fd())) return QString::fromUtf8("");
 	if(drive < 0) return QString::fromUtf8("");
@@ -566,9 +563,9 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 void EmuThreadClassBase::set_floppy_disk_protected(int drive, bool flag)
 {
 	if(using_flags.get() == nullptr) return;
-	QMutexLocker _locker(&uiMutex);
 	if(!(using_flags->is_use_fd())) return;
 
+	QMutexLocker _locker(&uiMutex);
 	p_emu->is_floppy_disk_protected(drive, flag);
 
 }
