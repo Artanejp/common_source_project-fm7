@@ -9,6 +9,7 @@
 
 #include "./sub.h"
 #include "./main.h"
+#include "../upd7220.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -204,6 +205,10 @@ void SUB::draw_screen()
 
 void SUB::draw_chr_400line()
 {
+	uint8_t *ra_chr = d_gdc_chr->get_ra();
+	uint8_t *cs_chr = d_gdc_chr->get_cs();
+	int ead_chr = d_gdc_chr->get_ead();
+	
 	// mz3500sm p.28
 	int width = (disp[5] & 2) ? 1 : 2;	// 80/40 columns
 	int height = (disp[7] & 1) ? 20 : 16;	// 20/16 dots/ine
@@ -216,7 +221,7 @@ void SUB::draw_chr_400line()
 		ra |= ra_chr[4 * i + 3] << 24;
 		int src = ra & 0x1fff;
 		int len = ((ra >> 20) & 0x3ff) / height;
-		int caddr = ((cs_chr[0] & 0x80) && ((cs_chr[1] & 0x20) || !(cblink & 0x10))) ? (*ead_chr & 0x1fff) : -1;
+		int caddr = ((cs_chr[0] & 0x80) && ((cs_chr[1] & 0x20) || !(cblink & 0x10))) ? (ead_chr & 0x1fff) : -1;
 		
 		for(int y = ytop; y < (ytop + len) && y < ymax; y++) {
 			for(int x = 0; x < 80; x += width) {
@@ -325,6 +330,10 @@ void SUB::draw_chr_400line()
 
 void SUB::draw_chr_200line()
 {
+	uint8_t *ra_chr = d_gdc_chr->get_ra();
+	uint8_t *cs_chr = d_gdc_chr->get_cs();
+	int ead_chr = d_gdc_chr->get_ead();
+	
 	// mz3500sm p.28
 	int width = (disp[5] & 2) ? 1 : 2;	// 80/40 columns
 	int height = (disp[7] & 1) ? 10 : 8;	// 20/16 dots/ine
@@ -337,7 +346,7 @@ void SUB::draw_chr_200line()
 		ra |= ra_chr[4 * i + 3] << 24;
 		int src = ra & 0x1fff;
 		int len = ((ra >> 20) & 0x3ff) / height;
-		int caddr = ((cs_chr[0] & 0x80) && ((cs_chr[1] & 0x20) || !(cblink & 0x10))) ? (*ead_chr & 0x1fff) : -1;
+		int caddr = ((cs_chr[0] & 0x80) && ((cs_chr[1] & 0x20) || !(cblink & 0x10))) ? (ead_chr & 0x1fff) : -1;
 		
 		for(int y = ytop; y < (ytop + len) && y < ymax; y++) {
 			for(int x = 0; x < 80; x += width) {
@@ -442,6 +451,8 @@ void SUB::draw_chr_200line()
 
 void SUB::draw_gfx_400line()
 {
+	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
+	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;
@@ -488,6 +499,8 @@ void SUB::draw_gfx_400line()
 
 void SUB::draw_gfx_200line_16bit()
 {
+	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
+	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;
@@ -534,6 +547,8 @@ void SUB::draw_gfx_200line_16bit()
 
 void SUB::draw_gfx_200line_8bit()
 {
+	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
+	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;

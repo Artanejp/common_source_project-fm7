@@ -78,6 +78,8 @@ void UPD7220::initialize()
 	vsync = vblank = false;
 	master = false;
 	pitch = 40;	// 640dot
+	memset(ra, 0, sizeof(ra));
+	memset(cs, 0, sizeof(cs));
 	
 	// initial settings for 1st frame
 	vtotal = 0; //LINES_PER_FRAME;
@@ -87,7 +89,7 @@ void UPD7220::initialize()
 #ifdef CHARS_PER_LINE
 	h4 = CHARS_PER_LINE - v1 - v2 - v3;
 #else
-	h4 = width;
+	h4 = 80;
 #endif
 	
 	sync_changed = false;
@@ -596,6 +598,11 @@ void UPD7220::cmd_sync(bool flag)
 			sync[i] = params[i];
 			sync_changed = true;
 		}
+#ifndef UPD7220_FIXED_PITCH
+		if(i == 1) {
+			pitch = params[1] + 2;
+		}
+#endif
 	}
 	start = flag;
 	cmdreg = -1;
@@ -662,7 +669,9 @@ void UPD7220::cmd_csrform()
 void UPD7220::cmd_pitch()
 {
 	if(params_count > 0) {
+#ifndef UPD7220_FIXED_PITCH
 		pitch = params[0];
+#endif
 		cmdreg = -1;
 	}
 }
@@ -693,8 +702,8 @@ void UPD7220::cmd_vecte()
 		plane = ead2 / (plane_size >> 1);
 		ead2 %= (plane_size >> 1);
 	}
-	dx = ((ead2 % (width >> 1)) << 4) | (dad & 0x0f);
-	dy = ead2 / (width >> 1);
+	dx = ((ead2 % pitch) << 4) | (dad & 0x0f);
+	dy = ead2 / pitch;
 	
 	// execute command
 	if(!(vect[0] & 0x78)) {
@@ -726,8 +735,8 @@ void UPD7220::cmd_texte()
 		plane = ead2 / (plane_size >> 1);
 		ead2 %= (plane_size >> 1);
 	}
-	dx = ((ead2 % (width >> 1)) << 4) | (dad & 0x0f);
-	dy = ead2 / (width >> 1);
+	dx = ((ead2 % pitch) << 4) | (dad & 0x0f);
+	dy = ead2 / pitch;
 	
 	// execute command
 	if(!(vect[0] & 0x78)) {
@@ -935,7 +944,7 @@ uint8_t UPD7220::read_vram(uint32_t addr)
 void UPD7220::update_vect()
 {
 	dir = vect[0] & 7;
-	dif = vectdir[dir][0] + vectdir[dir][1] * width;
+	dif = vectdir[dir][0] + vectdir[dir][1] * pitch;
 	sl = vect[0] & 0x80;
 	dc = (vect[1] | (vect[ 2] << 8)) & 0x3fff;
 	d  = (vect[3] | (vect[ 4] << 8)) & 0x3fff;
@@ -1070,7 +1079,7 @@ void UPD7220::draw_vectt()
 		dx += vx2;
 		dy += vy2;
 	}
-	ead = (dx >> 4) + dy * (width >> 1);
+	ead = (dx >> 4) + dy * pitch;
 	if(plane_size) {
 		ead += (plane_size >> 1) * plane;
 	}
@@ -1175,7 +1184,7 @@ void UPD7220::draw_vectr()
 		dx -= vx2;
 		dy -= vy2;
 	}
-	ead = (dx >> 4) + dy * (width >> 1);
+	ead = (dx >> 4) + dy * pitch;
 	if(plane_size) {
 		ead += (plane_size >> 1) * plane;
 	}
@@ -1221,7 +1230,7 @@ void UPD7220::draw_text()
 		}
 		index = ((index - 1) & 7) | 8;
 	}
-	ead = (dx >> 4) + dy * (width >> 1);
+	ead = (dx >> 4) + dy * pitch;
 	if(plane_size) {
 		ead += (plane_size >> 1) * plane;
 	}
@@ -1232,7 +1241,7 @@ void UPD7220::draw_pset(int x, int y)
 {
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	uint32_t addr = y * width + (x >> 3);
+	uint32_t addr = y * (pitch << 1) + (x >> 3);
 	if(plane_size) {
 		addr += plane_size * plane;
 	}

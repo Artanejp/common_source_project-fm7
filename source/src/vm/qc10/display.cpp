@@ -95,6 +95,12 @@ void DISPLAY::event_frame()
 
 void DISPLAY::draw_screen()
 {
+	uint8_t *sync = d_gdc->get_sync();
+	uint8_t zoom = d_gdc->get_zoom();
+	uint8_t *ra = d_gdc->get_ra();
+	uint8_t *cs = d_gdc->get_cs();
+	int ead = d_gdc->get_ead();
+	
 	uint8_t cg = sync[0] & 0x22;
 	int al = (sync[6] | (sync[7] << 8)) & 0x3ff;
 	
@@ -109,7 +115,7 @@ void DISPLAY::draw_screen()
 		int line = (tmp >> 20) & 0x3ff;
 		bool gfx = (cg == 2) ? true : (cg == 0x20) ? false : ((tmp & 0x40000000) != 0);
 		bool wide = ((tmp & 0x80000000) != 0);
-		int caddr = ((cs[0] & 0x80) && ((cs[1] & 0x20) || !(blink & 0x10))) ? (*ead << 1) : -1;
+		int caddr = ((cs[0] & 0x80) && ((cs[1] & 0x20) || !(blink & 0x10))) ? (ead << 1) : -1;
 		
 #ifdef _COLOR_MONITOR
 //		if(gfx) {
@@ -264,13 +270,13 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to pc screen
-	if(*zoom) {
+	if(zoom) {
 		for(int y = 0, dy = 0; y < 400 && dy < 400; y++) {
 			uint8_t* src = screen[y];
 			
 			for(int x = 0, dx = 0; x < 640 && dx < 640; x++) {
 				scrntype_t col = palette_pc[src[x] & 0xf];
-				for(int zx = 0; zx < *zoom + 1; zx++) {
+				for(int zx = 0; zx < zoom + 1; zx++) {
 					if(dx >= 640) {
 						break;
 					}
@@ -278,7 +284,7 @@ void DISPLAY::draw_screen()
 				}
 			}
 			// copy line
-			for(int zy = 1; zy < *zoom + 1; zy++) {
+			for(int zy = 1; zy < zoom + 1; zy++) {
 				if(dy >= 400) {
 					break;
 				}

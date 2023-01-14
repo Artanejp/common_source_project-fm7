@@ -136,9 +136,9 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 			if(!(ctrlreg & 0x80) && (data & 0x80)) {
 				d_fdc->reset();
 			}
-#if !defined(SUPPORT_HIRESO)
-			if(!(addr == 0xcc && !(data & 0x20)))
-#endif
+//#if !defined(SUPPORT_HIRESO)
+//			if(!(addr == 0xcc && !(data & 0x20)))
+//#endif
 			{
 				d_fdc->write_signal(SIG_UPD765A_FREADY, data, 0x40);
 			}

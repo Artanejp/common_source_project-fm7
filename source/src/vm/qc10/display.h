@@ -36,8 +36,6 @@ private:
 	uint8_t screen[400][640];
 	scrntype_t tmp[640];
 	
-	uint8_t *sync, *zoom, *ra, *cs;
-	int* ead;
 	uint8_t bank;
 	int blink;
 	
@@ -68,26 +66,6 @@ public:
 #else
 		return vram;
 #endif
-	}
-	void set_sync_ptr(uint8_t* ptr)
-	{
-		sync = ptr;
-	}
-	void set_zoom_ptr(uint8_t* ptr)
-	{
-		zoom = ptr;
-	}
-	void set_ra_ptr(uint8_t* ptr)
-	{
-		ra = ptr;
-	}
-	void set_cs_ptr(uint8_t* ptr)
-	{
-		cs = ptr;
-	}
-	void set_ead_ptr(int* ptr)
-	{
-		ead = ptr;
 	}
 	void draw_screen();
 };

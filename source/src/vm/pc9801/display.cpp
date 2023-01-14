@@ -329,15 +329,14 @@ void DISPLAY::initialize()
 	
 	// set vram pointer to gdc
 	d_gdc_chr->set_vram_ptr(tvram, 0x2000);
-	d_gdc_chr->set_screen_width(80);
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x20000);
 #if !defined(SUPPORT_HIRESO)
 	d_gdc_gfx->set_plane_size(0x8000);
 #endif
-	d_gdc_gfx->set_screen_width(SCREEN_WIDTH >> 3);
 	
-	// register event
+	// register events
 	register_frame_event(this);
+	register_vline_event(this);
 }
 
 void DISPLAY::release()
@@ -458,6 +457,8 @@ void DISPLAY::reset()
 	font_code = 0;
 	font_line = 0;
 //	font_lr = 0;
+	
+	hireso = (config.monitor_type == 0);
 }
 
 void DISPLAY::event_frame()
@@ -468,6 +469,15 @@ void DISPLAY::event_frame()
 	} else if(crtv == 1) {
 		d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR2, 1, 1);
 		crtv = 0;
+	}
+}
+
+void DISPLAY::event_vline(int v, int clock)
+{
+	if(v == 15) {
+		memcpy(scroll_tmp, scroll, sizeof(scroll));
+	} else if(v == (hireso ? 400 : 200)) {
+		memcpy(tvram_tmp, tvram, sizeof(tvram));
 	}
 }
 
@@ -2797,10 +2807,23 @@ void DISPLAY::draw_screen()
 			draw_gfx_screen();
 		} else {
 			memset(screen_gfx, 0, sizeof(screen_gfx));
+			draw_width = SCREEN_WIDTH;
+			draw_height = SCREEN_HEIGHT;
 		}
-		for(int y = 0; y < SCREEN_HEIGHT; y++) {
+		int offset_x = (SCREEN_WIDTH - draw_width) >> 1;
+		int offset_y = (SCREEN_HEIGHT - draw_height) >> 1;
+		
+		for(int y = 0; y < offset_y; y++) {
 			scrntype_t *dest = emu->get_screen_buffer(y);
-			uint8_t *src_chr = screen_chr[y];
+			memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
+		}
+		for(int y = 0; y < draw_height; y++) {
+			scrntype_t *dest = emu->get_screen_buffer(offset_y + y);
+			if(draw_width != SCREEN_WIDTH) {
+				memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
+				dest += offset_x;
+			}
+			uint8_t *src_chr = screen_chr[hireso ? y : (y >> 1)];
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MDOE2_TXTSHIFT]) {
 				src_chr++;
@@ -2824,6 +2847,10 @@ void DISPLAY::draw_screen()
 			}
 #endif
 		}
+		for(int y = offset_y + draw_height; y < SCREEN_HEIGHT; y++) {
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
+		}
 	} else {
 		for(int y = 0; y < SCREEN_HEIGHT; y++) {
 			scrntype_t *dest = emu->get_screen_buffer(y);
@@ -2836,26 +2863,33 @@ void DISPLAY::draw_screen()
 
 void DISPLAY::draw_chr_screen()
 {
+	if(emu->now_waiting_in_debugger) {
+		memcpy(scroll_tmp, scroll, sizeof(scroll));
+		memcpy(tvram_tmp, tvram, sizeof(tvram));
+	}
+	
 	// scroll registers
-	int pl = scroll[SCROLL_PL] & 31;
+	int pl = scroll_tmp[SCROLL_PL] & 31;
 	if(pl) {
 		pl = 32 - pl;
 	}
-	int bl = scroll[SCROLL_BL] + pl + 1;
-	int cl = scroll[SCROLL_CL];
+	int bl = scroll_tmp[SCROLL_BL] + pl + 1;
+	int cl = scroll_tmp[SCROLL_CL];
 #if defined(SUPPORT_HIRESO)
 	bl <<= 1;
 	cl <<= 1;
 #endif
-	int ssl = scroll[SCROLL_SSL];
-	int sur = scroll[SCROLL_SUR] & 31;
+	int ssl = scroll_tmp[SCROLL_SSL];
+	int sur = scroll_tmp[SCROLL_SUR] & 31;
 	if(sur) {
 		sur = 32 - sur;
 	}
-	int sdr = scroll[SCROLL_SDR] + 1;
+	int sdr = scroll_tmp[SCROLL_SDR] + 1;
 	
 	// address from gdc
-	uint32_t gdc_addr[25][80] = {0};
+	uint8_t *ra_chr = d_gdc_chr->get_ra();
+	uint32_t gdc_addr[SCREEN_HEIGHT][80] = {0};
+	int ymax = SCREEN_HEIGHT / bl + ((SCREEN_HEIGHT % bl) != 0);
 	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
@@ -2863,20 +2897,20 @@ void DISPLAY::draw_chr_screen()
 		ra |= ra_chr[i * 4 + 2] << 16;
 		ra |= ra_chr[i * 4 + 3] << 24;
 		uint32_t sad = (ra << 1) & 0x1fff;
-		int len = (ra >> 20) & 0x3ff;
+		int len = ((ra >> 20) & 0x3ff) + 1;
 #if defined(SUPPORT_HIRESO)
 		len <<= 1;
 #endif
 		len /= bl;
-		if(!len) len = 25;
+		if(!len) len = ymax;
 		
-		for(int y = ytop; y < (ytop + len) && y < 25; y++) {
+		for(int y = ytop; y < (ytop + len) && y < ymax; y++) {
 			for(int x = 0; x < 80; x++) {
 				gdc_addr[y][x] = sad;
 				sad = (sad + 2) & 0x1fff;
 			}
 		}
-		if((ytop += len) >= 25) break;
+		if((ytop += len) >= ymax) break;
 	}
 	
 	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
@@ -2889,8 +2923,6 @@ void DISPLAY::draw_chr_screen()
 	bool attr_blink = d_gdc_chr->attr_blink();
 	
 	// render
-	int ysur = bl * sur;
-	int ysdr = bl * (sur + sdr);
 	int xofs = modereg1[MODE1_COLUMN] ? (FONT_WIDTH * 2) : FONT_WIDTH;
 	int addrofs = modereg1[MODE1_COLUMN] ? 2 : 1;
 	
@@ -2899,22 +2931,21 @@ void DISPLAY::draw_chr_screen()
 	
 	memset(screen_chr, 0, sizeof(screen_chr));
 	
-	for(int y = 0, cy = 0, ytop = 0; y < SCREEN_HEIGHT && cy < 25; y += bl, cy++) {
+	for(int y = 0, cy = 0, ytop = 0; y < SCREEN_HEIGHT && cy < ymax; y += bl, cy++) {
 		uint32_t gaiji1st = 0, last = 0, offset;
 		int kanji2nd = 0;
-		if(y == ysur) {
-			ytop = y;
-			y -= ssl;
-			ysur = SCREEN_HEIGHT;
+		if(cy == sur) {
+			ytop = bl * cy;
+			y = ytop - ssl;
 		}
-		if(y >= ysdr) {
-			y = ytop = ysdr;
+		if(cy == sur + sdr) {
+			ytop = bl * cy;
+			y = ytop;
 			addr = addr2;
-			ysdr = SCREEN_HEIGHT;
 		}
 		for(int x = 0, cx = 0; x < SCREEN_WIDTH && cx < 80; x += xofs, cx++) {
-			uint16_t code = tvram[(*addr)] | (tvram[(*addr) + 1] << 8);
-			uint8_t attr = tvram[(*addr) | 0x2000];
+			uint16_t code = tvram_tmp[(*addr)] | (tvram_tmp[(*addr) + 1] << 8);
+			uint8_t attr = tvram_tmp[(*addr) | 0x2000];
 			uint8_t color = (attr & ATTR_COL) ? (attr >> 5) : 8;
 			bool cursor = ((*addr) == cursor_addr);
 			addr  += addrofs;
@@ -3043,82 +3074,101 @@ void DISPLAY::draw_chr_screen()
 void DISPLAY::draw_gfx_screen()
 {
 	// address from gdc
-	uint32_t gdc_addr[SCREEN_HEIGHT][SCREEN_WIDTH >> 3] = {0};
-	int ytop = 0;
+	uint8_t *sync_gfx = d_gdc_gfx->get_sync();
+	int cr = sync_gfx[1] + 2;
+	int lf = sync_gfx[6] | ((sync_gfx[7] & 0x03) << 8);
+	int pitch = d_gdc_gfx->get_pitch();
 	
-	for(int i = 0; i < 4; i++) {
+	if(cr <= (SCREEN_WIDTH >> 4) && pitch <= (SCREEN_WIDTH >> 4)) {
+		cr <<= 1;
+		pitch <<= 1;
+	}
+#if !defined(SUPPORT_HIRESO)
+	if(lf <= (SCREEN_HEIGHT >> 1)) {
+		lf <<= 1;
+	}
+#else
+	lf <<= 1;
+#endif
+	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
+	uint8_t *cs_gfx = d_gdc_gfx->get_cs();
+	uint32_t gdc_addr[SCREEN_HEIGHT][SCREEN_WIDTH >> 3] = {0};
+	uint8_t blank[SCREEN_HEIGHT] = {0};
+	int ymax = min(lf, SCREEN_HEIGHT);
+	int xmax = min(pitch, SCREEN_WIDTH >> 3);
+	
+	memset(screen_gfx, 0, sizeof(screen_gfx));
+	
+	for(int i = 0, ytop = 0; i < 4 && ytop < ymax; i++) {
 		uint32_t ra = ra_gfx[i * 4];
 		ra |= ra_gfx[i * 4 + 1] << 8;
 		ra |= ra_gfx[i * 4 + 2] << 16;
 		ra |= ra_gfx[i * 4 + 3] << 24;
 		uint32_t sad = (ra << 1) & VRAM_PLANE_ADDR_MASK;
 		int len = (ra >> 20) & 0x3ff;
-		
-		for(int y = ytop; y < (ytop + len) && y < SCREEN_HEIGHT; y++) {
-			for(int x = 0; x < (SCREEN_WIDTH >> 3); x++) {
-				gdc_addr[y][x] = sad;
-				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
-			}
-		}
-		if((ytop += len) >= SCREEN_HEIGHT) break;
-	}
-	if(ytop < SCREEN_HEIGHT) {
-		// Madou Monogatari 1-2-3
-		uint32_t ra = ra_gfx[0];
-		ra |= ra_gfx[1] << 8;
-		ra |= ra_gfx[2] << 16;
-		ra |= ra_gfx[3] << 24;
-		uint32_t sad = (ra << 1) & VRAM_PLANE_ADDR_MASK;
-		
-		for(int y = 0; y < SCREEN_HEIGHT; y++) {
-			for(int x = 0; x < (SCREEN_WIDTH >> 3); x++) {
-				gdc_addr[y][x] = sad;
-				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
-			}
-		}
-	}
-	uint32_t *addr = &gdc_addr[0][0];
-	uint8_t *dest = &screen_gfx[0][0];
-	
-	for(int y = 0; y < SCREEN_HEIGHT; y++) {
-		for(int x = 0; x < SCREEN_WIDTH; x += 8) {
-			uint8_t b = vram_disp_b[(*addr)];
-			uint8_t r = vram_disp_r[(*addr)];
-			uint8_t g = vram_disp_g[(*addr)];
-#if defined(SUPPORT_16_COLORS)
-			uint8_t e = vram_disp_e[(*addr)];
+#if !defined(SUPPORT_HIRESO)
+		if(len == 0) len = ymax;
 #else
-			uint8_t e = 0;
+		len <<= 1;
 #endif
-			addr++;
-			
-			*dest++ = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((e & 0x80) >> 4);
-			*dest++ = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4) | ((e & 0x40) >> 3);
-			*dest++ = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3) | ((e & 0x20) >> 2);
-			*dest++ = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2) | ((e & 0x10) >> 1);
-			*dest++ = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1) | ((e & 0x08)     );
-			*dest++ = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     ) | ((e & 0x04) << 1);
-			*dest++ = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1) | ((e & 0x02) << 2);
-			*dest++ = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2) | ((e & 0x01) << 3);
-		}
-		if((cs_gfx[0] & 0x1f) == 1) {
-			// 200 line
-			if(modereg1[MODE1_200LINE]) {
-				if(config.scan_line) {
-					memset(dest, 0, SCREEN_WIDTH);
-				} else {
-					my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
-				}
-			} else {
-				my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
+		int lr = cs_gfx[0] & 0x1f;
+		if((ra >> 30) & 1) lr = 0;
+		
+		for(int y = 0, y2 = ytop; y < len && y2 < ymax; y++, y2++) {
+			for(int x = 0; x < xmax; x++) {
+				gdc_addr[y2][x] = (sad++) & VRAM_PLANE_ADDR_MASK;
 			}
-			dest += SCREEN_WIDTH;
+			if((lr || (hireso && modereg1[MODE1_200LINE])) && (y2 + 1) < ymax) {
+				if(modereg1[MODE1_200LINE]) {
+					blank[y2 + 1] = 1;
+				} else {
+					memcpy(gdc_addr[y2 + 1], gdc_addr[y2], sizeof(gdc_addr[0]));
+				}
+				y++;
+				y2++;
+			}
+		}
+		ytop += len; // * (1 + lr);
+	}
+	xmax = min(xmax, cr);
+	
+	for(int y = 0, y2 = 0; y < ymax; y++, y2++) {
+		if(!blank[y]) {
+			uint8_t *dest = &screen_gfx[y][0];
+			for(int x = 0; x < xmax; x++) {
+				uint32_t addr = gdc_addr[y2][x];
+				uint8_t b = vram_disp_b[addr];
+				uint8_t r = vram_disp_r[addr];
+				uint8_t g = vram_disp_g[addr];
+#if defined(SUPPORT_16_COLORS)
+				uint8_t e = vram_disp_e[addr];
+#else
+				uint8_t e = 0;
+#endif
+				*dest++ = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((e & 0x80) >> 4);
+				*dest++ = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4) | ((e & 0x40) >> 3);
+				*dest++ = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3) | ((e & 0x20) >> 2);
+				*dest++ = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2) | ((e & 0x10) >> 1);
+				*dest++ = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1) | ((e & 0x08)     );
+				*dest++ = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     ) | ((e & 0x04) << 1);
+				*dest++ = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1) | ((e & 0x02) << 2);
+				*dest++ = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2) | ((e & 0x01) << 3);
+			}
+		}
+		if(!hireso) {
+			if(config.scan_line) {
+				memset(screen_gfx[y + 1], 0, SCREEN_WIDTH);
+			} else {
+				my_memcpy(screen_gfx[y + 1], screen_gfx[y], SCREEN_WIDTH);
+			}
 			y++;
 		}
 	}
+	draw_width = xmax << 3;
+	draw_height = ymax;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3192,6 +3242,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(font_code);
 	state_fio->StateValue(font_line);
 //	state_fio->StateValue(font_lr);
+	state_fio->StateValue(hireso);
 	
 	// post process
 	if(loading) {

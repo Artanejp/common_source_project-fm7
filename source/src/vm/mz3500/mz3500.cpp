@@ -184,16 +184,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc->set_context_dout(ls244, SIG_LS244_INPUT, 0x01);
 	
 	gdc_chr->set_vram_ptr(subbus->get_vram_chr(), 0x2000, 0xfff);
-	subbus->set_sync_ptr_chr(gdc_chr->get_sync());
-	subbus->set_ra_ptr_chr(gdc_chr->get_ra());
-	subbus->set_cs_ptr_chr(gdc_chr->get_cs());
-	subbus->set_ead_ptr_chr(gdc_chr->get_ead());
+	subbus->set_context_gdc_chr(gdc_chr);
 	
 	gdc_gfx->set_vram_ptr(subbus->get_vram_gfx(), 0x18000);
-	subbus->set_sync_ptr_gfx(gdc_gfx->get_sync());
-	subbus->set_ra_ptr_gfx(gdc_gfx->get_ra());
-	subbus->set_cs_ptr_gfx(gdc_gfx->get_cs());
-	subbus->set_ead_ptr_gfx(gdc_gfx->get_ead());
+	subbus->set_context_gdc_gfx(gdc_gfx);
 	
 	kbd->set_context_subcpu(subcpu);
 	kbd->set_context_ls244(ls244);

@@ -14,10 +14,14 @@
 #include "../../emu.h"
 #include "../device.h"
 
+class UPD7220;
+
 class SUB : public DEVICE
 {
 private:
 	DEVICE *d_main;
+	UPD7220 *d_gdc_chr;
+	UPD7220 *d_gdc_gfx;
 	
 	// memory
 	uint8_t* rbank[32];	// 64KB / 2KB
@@ -31,11 +35,7 @@ private:
 	
 	// display
 	uint8_t vram_chr[0x2000];
-	uint8_t *sync_chr, *ra_chr, *cs_chr;
-	int* ead_chr;
 	uint8_t vram_gfx[0x18000];
-	uint8_t *sync_gfx, *ra_gfx, *cs_gfx;
-	int* ead_gfx;
 	uint8_t disp[16];
 	
 	uint8_t screen_chr[400][640];
@@ -84,41 +84,17 @@ public:
 	{
 		return vram_chr;
 	}
-	void set_sync_ptr_chr(uint8_t* ptr)
-	{
-		sync_chr = ptr;
-	}
-	void set_ra_ptr_chr(uint8_t* ptr)
-	{
-		ra_chr = ptr;
-	}
-	void set_cs_ptr_chr(uint8_t* ptr)
-	{
-		cs_chr = ptr;
-	}
-	void set_ead_ptr_chr(int* ptr)
-	{
-		ead_chr = ptr;
-	}
 	uint8_t* get_vram_gfx()
 	{
 		return vram_gfx;
 	}
-	void set_sync_ptr_gfx(uint8_t* ptr)
+	void set_context_gdc_chr(UPD7220* device)
 	{
-		sync_gfx = ptr;
+		d_gdc_chr = device;
 	}
-	void set_ra_ptr_gfx(uint8_t* ptr)
+	void set_context_gdc_gfx(UPD7220* device)
 	{
-		ra_gfx = ptr;
-	}
-	void set_cs_ptr_gfx(uint8_t* ptr)
-	{
-		cs_gfx = ptr;
-	}
-	void set_ead_ptr_gfx(int* ptr)
-	{
-		ead_gfx = ptr;
+		d_gdc_gfx = device;
 	}
 	void draw_screen();
 };

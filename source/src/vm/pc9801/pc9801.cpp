@@ -530,8 +530,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #endif
 	display->set_context_pic(pic);
-	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
-	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
+	display->set_context_gdc_chr(gdc_chr);
+	display->set_context_gdc_gfx(gdc_gfx);
 	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);
 	memory->set_context_display(display);

@@ -1,4 +1,20 @@
-12/5/2022
+12/17/2022-2
+
+[VM/I8237] fix verify operation
+[VM/I8237] fix bus reqeust period
+
+
+12/17/2022
+
+[VM/UPD765A] revirt fixes in 1/17/2021
+[VM/UPD7220] fix to consider PITCH to draw line
+
+[PC9801/DISPLAY] fix renderer to consider PITCH, C/R, C/L, L/R of GDC
+[PC9801/DISPLAY] fix renderer to consider timing of line counter controller
+[PC9801/FLOPPY] ignore AIE signal in write control register
+
+
+12/4/2022
 
 [VM/DEVICE] fix dma accessor with wait redirect to dma accessor without wait
 [VM/I86] support memory/io wait

@@ -191,10 +191,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
 	not_busy->set_context_out(pio, SIG_I8255_PORT_B, 0x01);
 	display->set_vram_ptr(memory->get_vram());
-	display->set_sync_ptr(gdc->get_sync());
-	display->set_ra_ptr(gdc->get_ra());
-	display->set_cs_ptr(gdc->get_cs());
-	display->set_ead_ptr(gdc->get_ead());
+	display->set_context_gdc(gdc);
 	keyboard->set_context_pio(pio);
 	keyboard->set_context_pic(pic);
 	memory->set_context_cpu(cpu);

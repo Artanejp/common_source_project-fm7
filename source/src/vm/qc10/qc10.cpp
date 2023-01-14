@@ -117,7 +117,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic->set_context_cpu(cpu);
 	gdc->set_context_drq(dma0, SIG_I8237_CH1, 1);
 	gdc->set_vram_ptr(display->get_vram(), VRAM_SIZE);
-	gdc->set_screen_width(80);
 	// IR5 of I8259 #0 is from light pen
 	fdc->set_context_irq(pic, SIG_I8259_IR6 | SIG_I8259_CHIP0, 1);
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
@@ -130,11 +129,6 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio->set_rx_clock(1, 9600 * 16);	// clock is from 8253 ch2 (1.9968MHz/13)
 	
 	display->set_context_gdc(gdc);
-	display->set_sync_ptr(gdc->get_sync());
-	display->set_zoom_ptr(gdc->get_zoom());
-	display->set_ra_ptr(gdc->get_ra());
-	display->set_cs_ptr(gdc->get_cs());
-	display->set_ead_ptr(gdc->get_ead());
 	floppy->set_context_fdc(fdc);
 	floppy->set_context_mem(memory);
 	keyboard->set_context_sio(sio);

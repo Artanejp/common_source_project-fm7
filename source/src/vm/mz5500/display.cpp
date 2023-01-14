@@ -8,6 +8,7 @@
 */
 
 #include "display.h"
+#include "../upd7220.h"
 
 static const int plane_priority[8][8] = {
 	{0, 1, 2, 3, 0, 1, 2, 3}, {0, 1, 2, 3, 4, 1, 2, 3},
@@ -224,7 +225,9 @@ uint32_t DISPLAY::read_io8(uint32_t addr)
 void DISPLAY::draw_screen()
 {
 	// render screen
+	uint8_t *cs = d_gdc->get_cs();
 	int ymax = (cs[0] & 1) ? 200 : 400;
+	
 	if(mode_r & 4) {
 		draw_320dot_screen(ymax);
 	} else {
@@ -265,6 +268,10 @@ void DISPLAY::draw_screen()
 
 void DISPLAY::draw_640dot_screen(int ymax)
 {
+	uint8_t *sync = d_gdc->get_sync();
+	uint8_t *ra = d_gdc->get_ra();
+	uint8_t *cs = d_gdc->get_cs();
+	
 	int al = (sync[6] | (sync[7] << 8)) & 0x3ff;
 	bool wy1 = false, wy2 = false, wy3 = false, wy4 = false;
 	
@@ -373,6 +380,10 @@ void DISPLAY::draw_640dot_screen(int ymax)
 
 void DISPLAY::draw_320dot_screen(int ymax)
 {
+	uint8_t *sync = d_gdc->get_sync();
+	uint8_t *ra = d_gdc->get_ra();
+	uint8_t *cs = d_gdc->get_cs();
+	
 	int al = (sync[6] | (sync[7] << 8)) & 0x3ff;
 	bool wy1 = false, wy2 = false, wy3 = false, wy4 = false;
 	

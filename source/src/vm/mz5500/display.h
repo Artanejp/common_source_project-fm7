@@ -21,14 +21,14 @@ class UPD7220;
 class DISPLAY : public DEVICE
 {
 private:
+	UPD7220 *d_gdc;
+	
 	uint8_t screen[400][640];
 	uint16_t tmp[640];
 	scrntype_t palette_pc_base[8];
 	scrntype_t palette_pc[8];
 	
 	uint8_t *vram_b, *vram_r, *vram_g, *mapram;
-	uint8_t *sync, *ra, *cs;
-	int* ead;
 	
 	uint8_t palette[8];
 	uint8_t back[5], reverse[5];
@@ -63,21 +63,9 @@ public:
 		vram_g = ptr + 0x20000;
 		mapram = ptr + 0x60000;
 	}
-	void set_sync_ptr(uint8_t* ptr)
+	void set_context_gdc(UPD7220* device)
 	{
-		sync = ptr;
-	}
-	void set_ra_ptr(uint8_t* ptr)
-	{
-		ra = ptr;
-	}
-	void set_cs_ptr(uint8_t* ptr)
-	{
-		cs = ptr;
-	}
-	void set_ead_ptr(int* ptr)
-	{
-		ead = ptr;
+		d_gdc = device;
 	}
 	void draw_screen();
 };

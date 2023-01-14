@@ -66,7 +66,6 @@ private:
 	int blink_rate;
 	bool low_high;
 	bool cmd_write_done;
-	int width;
 	
 	int cpu_clocks;
 #ifdef UPD7220_HORIZ_FREQ
@@ -135,7 +134,6 @@ public:
 		vram = NULL;
 		vram_size = plane_size = 0;
 		vram_data_mask = 0xffff;
-		width = 80;
 		set_device_name(_T("uPD7220 GDC"));
 	}
 	~UPD7220() {}
@@ -188,10 +186,6 @@ public:
 	{
 		plane_size = size;
 	}
-	void set_screen_width(int value)
-	{
-		width = value;
-	}
 #ifdef UPD7220_HORIZ_FREQ
 	void set_horiz_freq(int freq)
 	{
@@ -202,9 +196,13 @@ public:
 	{
 		return sync;
 	}
-	uint8_t* get_zoom()
+	uint8_t get_zoom()
 	{
-		return &zoom;
+		return zoom;
+	}
+	uint8_t get_pitch()
+	{
+		return pitch;
 	}
 	uint8_t* get_ra()
 	{
@@ -214,9 +212,9 @@ public:
 	{
 		return cs;
 	}
-	int* get_ead()
+	int get_ead()
 	{
-		return &ead;
+		return ead;
 	}
 	bool get_start()
 	{
