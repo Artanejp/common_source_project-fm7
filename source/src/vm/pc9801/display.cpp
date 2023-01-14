@@ -474,9 +474,19 @@ void DISPLAY::event_frame()
 
 void DISPLAY::event_vline(int v, int clock)
 {
-	if(v == 15) {
+	int pl = scroll[SCROLL_PL] & 31;
+	if(pl) {
+		pl = 32 - pl;
+	}
+	int bl = scroll[SCROLL_BL] + pl + 1;
+	int sur = scroll[SCROLL_SUR] & 31;
+	if(sur) {
+		sur = 32 - sur;
+	}
+	if(v == 15 + bl * sur) {
 		memcpy(scroll_tmp, scroll, sizeof(scroll));
-	} else if(v == (hireso ? 400 : 200)) {
+	}
+	if(v == (hireso ? 400 : 200)) {
 		memcpy(tvram_tmp, tvram, sizeof(tvram));
 	}
 }
@@ -2990,9 +3000,10 @@ void DISPLAY::draw_chr_screen()
 #else
 					uint16_t pattern = (l < cl && l < FONT_HEIGHT) ? (font[offset + l * 2] | (font[offset + l * 2 + 1] << 8)) : 0;
 #endif
-					if(!(attr & ATTR_ST)) {
+					if(!(attr & ATTR_ST) || ((attr & ATTR_BL) && attr_blink)) {
 						pattern = 0;
-					} else if(((attr & ATTR_BL) && attr_blink) || (attr & ATTR_RV)) {
+					}
+					if(attr & ATTR_RV) {
 						pattern = ~pattern;
 					}
 					if((attr & ATTR_UL) && l == (FONT_HEIGHT - 1)) {
