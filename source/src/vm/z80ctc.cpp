@@ -268,7 +268,7 @@ void Z80CTC::update_event(int ch, int err)
 			counter[ch].input = counter[ch].count * counter[ch].prescaler - counter[ch].clocks;
 //#ifdef Z80CTC_CLOCKS
 			if(_E_Z80CTC_CLOCKS) {
-				counter[ch].remain += (double)(counter[ch].input * cpu_clocks / Z80CTC_CLOCKS + err);
+				counter[ch].remain += (double)(counter[ch].input * cpu_clocks / __Z80CTC_CLOCKS + err);
 				counter[ch].period = (uint32_t)(counter[ch].remain);
 				counter[ch].remain -= ((double)counter[ch].period);
 			} else {
