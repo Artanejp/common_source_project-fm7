@@ -277,9 +277,17 @@ uint32_t YM2203::read_via_debugger_data8(uint32_t addr)
 	if(addr < 0x100) {
 		// YM2203
 		if(addr == 14) {
-			return (mode & 0x40) ? port[0].wreg : port[0].rreg;
+			if(is_port_a_input) {
+				return port[0].rreg;
+			} else {
+				return (mode & 0x40) ? port[0].wreg : port[0].rreg;
+			}
 		} else if(addr == 15) {
-			return (mode & 0x80) ? port[1].wreg : port[1].rreg;
+			if(is_port_b_input) {
+				return port[1].rreg;
+			} else {
+				return (mode & 0x80) ? port[1].wreg : port[1].rreg;
+			}
 		}
 		if(is_ym2608) {
 			return opna->GetReg(addr);

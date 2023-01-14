@@ -2834,13 +2834,13 @@ void DISPLAY::draw_screen()
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MODE2_16COLOR]) {
 #endif
-				for(int x = 0; x < SCREEN_WIDTH; x++) {
+				for(int x = 0; x < draw_width; x++) {
 					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx8[src_gfx[x] & 7];
 				}
 #if defined(SUPPORT_16_COLORS)
 			} else {
-				for(int x = 0; x < SCREEN_WIDTH; x++) {
+				for(int x = 0; x < draw_width; x++) {
 					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx16[src_gfx[x]];
 				}
@@ -3075,23 +3075,29 @@ void DISPLAY::draw_gfx_screen()
 {
 	// address from gdc
 	uint8_t *sync_gfx = d_gdc_gfx->get_sync();
+	uint8_t *cs_gfx = d_gdc_gfx->get_cs();
 	int cr = sync_gfx[1] + 2;
 	int lf = sync_gfx[6] | ((sync_gfx[7] & 0x03) << 8);
 	int pitch = d_gdc_gfx->get_pitch();
+	uint8_t lr = cs_gfx[0] & 0x1f, lr2 = 0;
 	
-	if(cr <= (SCREEN_WIDTH >> 4) && pitch <= (SCREEN_WIDTH >> 4)) {
+	if(pitch >= (cr << 1)) {
+		lr2 = 1;
+	}
+	if((cr << 1) <= (SCREEN_WIDTH >> 3)) {
 		cr <<= 1;
+	}
+	if((pitch << 1) <= (SCREEN_WIDTH >> 3)) {
 		pitch <<= 1;
 	}
 #if !defined(SUPPORT_HIRESO)
-	if(lf <= (SCREEN_HEIGHT >> 1)) {
+	if((lf << 1) <= SCREEN_HEIGHT) {
 		lf <<= 1;
 	}
 #else
 	lf <<= 1;
 #endif
 	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
-	uint8_t *cs_gfx = d_gdc_gfx->get_cs();
 	uint32_t gdc_addr[SCREEN_HEIGHT][SCREEN_WIDTH >> 3] = {0};
 	uint8_t blank[SCREEN_HEIGHT] = {0};
 	int ymax = min(lf, SCREEN_HEIGHT);
@@ -3111,18 +3117,23 @@ void DISPLAY::draw_gfx_screen()
 #else
 		len <<= 1;
 #endif
-		int lr = cs_gfx[0] & 0x1f;
-		if((ra >> 30) & 1) lr = 0;
+		uint8_t im = (ra >> 30) & 1;
 		
 		for(int y = 0, y2 = ytop; y < len && y2 < ymax; y++, y2++) {
 			for(int x = 0; x < xmax; x++) {
 				gdc_addr[y2][x] = (sad++) & VRAM_PLANE_ADDR_MASK;
 			}
-			if((lr || (hireso && modereg1[MODE1_200LINE])) && (y2 + 1) < ymax) {
+			if((lr && !im) || (hireso && modereg1[MODE1_200LINE])) {
+				if((y2 + 1) >= ymax) {
+					break;
+				}
 				if(modereg1[MODE1_200LINE]) {
 					blank[y2 + 1] = 1;
 				} else {
 					memcpy(gdc_addr[y2 + 1], gdc_addr[y2], sizeof(gdc_addr[0]));
+				}
+				if(lr2) {
+					sad += xmax;
 				}
 				y++;
 				y2++;

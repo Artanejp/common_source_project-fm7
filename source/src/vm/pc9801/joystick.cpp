@@ -32,12 +32,15 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// ym2203 port-b
 	select = data & mask;
+	event_frame();
 }
 
 void JOYSTICK::event_frame()
 {
 	if(select & 0x80) {
 		d_opn->write_signal(SIG_YM2203_PORT_A, ~joy_status[(select & 0x40) >> 6], 0x3f);
+	} else {
+		d_opn->write_signal(SIG_YM2203_PORT_A, ~0, 0x3f);
 	}
 }
 

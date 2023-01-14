@@ -308,6 +308,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		opn->set_device_name(_T("YM2203 OPN (PC-9801-26)"));
 		opn->is_ym2608 = false;
 #endif
+		opn->is_port_a_input = true;
 		fmsound = new FMSOUND(this, emu);
 		joystick = new JOYSTICK(this, emu);
 	} else if(sound_type == 2 || sound_type == 3) {

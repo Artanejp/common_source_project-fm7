@@ -1,3 +1,12 @@
+12/24/2022
+
+[VM/YM2203] support to force port a/b into input mode
+
+[PC9801/DISPLAY] fix crash issue when cr < pitch
+[PC9801/DISPLAY] improve for the case cr=40 and pitch=80
+[PC9801/JOYSTICK] improve to update port status when selection is changed
+
+
 12/22/2022
 
 [VM/DISK] improve for big endian environment

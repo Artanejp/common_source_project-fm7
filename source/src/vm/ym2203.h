@@ -90,6 +90,7 @@ public:
 		// default device type is YM2203
 		// please set is_ym2608 = true before YM2203::initializ() is called
 		is_ym2608 = false;
+		is_port_a_input = is_port_b_input = false;
 #ifdef USE_DEBUGGER
 		d_debugger = NULL;
 #endif
@@ -164,6 +165,8 @@ public:
 	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 	bool is_ym2608;
+	bool is_port_a_input;
+	bool is_port_b_input;
 };
 
 #endif
