@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace M23 {
 class APU : public DEVICE
 {
 private:
@@ -36,5 +37,5 @@ public:
 		d_apu = device;
 	}
 };
-
+}
 #endif

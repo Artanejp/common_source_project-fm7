@@ -16,6 +16,7 @@
 
 class MB8877;
 
+namespace M23 {
 class FLOPPY : public DEVICE
 {
 private:
@@ -37,5 +38,5 @@ public:
 		d_fdc = device;
 	}
 };
-
+}
 #endif

@@ -14,6 +14,7 @@
 
 class MB8877;
 
+namespace M23 {
 class IOBUS : public IO
 {
 private:
@@ -47,5 +48,5 @@ public:
 		d_fdc = device;
 	}
 };
-
+}
 #endif

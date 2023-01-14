@@ -7,8 +7,9 @@
 	[ keyboard ]
 */
 
-#include "keyboard.h"
+#include "./keyboard.h"
 
+namespace M23 {
 /*
 	S1	-> F8
 	S2	-> F9
@@ -136,3 +137,4 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

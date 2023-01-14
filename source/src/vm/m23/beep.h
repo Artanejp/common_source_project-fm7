@@ -12,6 +12,7 @@
 
 #include "../pcm1bit.h"
 
+namespace M23 {
 class BEEP: public PCM1BIT
 {
 private:
@@ -30,5 +31,6 @@ public:
 	uint32_t read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);
 };
+}
 
 #endif

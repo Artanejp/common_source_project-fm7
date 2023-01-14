@@ -7,8 +7,9 @@
 	[ apu ]
 */
 
-#include "apu.h"
+#include "./apu.h"
 
+namespace M23 {
 void APU::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -30,4 +31,5 @@ uint32_t APU::read_io8(uint32_t addr)
 		return d_apu->read_io8(addr);
 	}
 	return 0xff;
+}
 }

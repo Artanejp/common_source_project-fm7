@@ -7,9 +7,10 @@
 	[ i/o bus ]
 */
 
-#include "iobus.h"
+#include "./iobus.h"
 #include "../mb8877.h"
 
+namespace M23 {
 void IOBUS::initialize()
 {
 	IO::initialize();
@@ -90,4 +91,4 @@ bool IOBUS::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-
+}

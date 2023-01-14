@@ -7,9 +7,10 @@
 	[ fdc control ]
 */
 
-#include "floppy.h"
+#include "./floppy.h"
 #include "../mb8877.h"
 
+namespace M23 {
 void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
@@ -34,4 +35,5 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 //		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10); // READY
 		break;
 	}
+}
 }

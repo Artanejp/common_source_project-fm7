@@ -31,12 +31,19 @@
 #include "../debugger.h"
 #endif
 
-#include "apu.h"
-#include "beep.h"
-#include "display.h"
-#include "floppy.h"
-#include "keyboard.h"
-#include "membus.h"
+#include "./apu.h"
+#include "./beep.h"
+#include "./display.h"
+#include "./floppy.h"
+#include "./keyboard.h"
+#include "./membus.h"
+
+using M23::APU;
+using M23::BEEP;
+using M23::DISPLAY;
+using M23::FLOPPY;
+using M23::KEYBOARD;
+using M23::MEMBUS;
 
 // ----------------------------------------------------------------------------
 // initialize

@@ -89,12 +89,14 @@ class Z80DMA;
 class Z80PIO;
 class Z80SIO;
 
-class APU;
-class BEEP;
-class DISPLAY;
-class FLOPPY;
-class KEYBOARD;
-class MEMBUS;
+namespace M23 {
+	class APU;
+	class BEEP;
+	class DISPLAY;
+	class FLOPPY;
+	class KEYBOARD;
+	class MEMBUS;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -118,12 +120,12 @@ protected:
 	Z80PIO* pio;
 	Z80SIO* sio;
 	
-	APU* apu;
-	BEEP* beep;
-	DISPLAY* display;
-	FLOPPY* floppy;
-	KEYBOARD* keyboard;
-	MEMBUS* memory;
+	M23::APU* apu;
+	M23::BEEP* beep;
+	M23::DISPLAY* display;
+	M23::FLOPPY* floppy;
+	M23::KEYBOARD* keyboard;
+	M23::MEMBUS* memory;
 	
 public:
 	// ----------------------------------------

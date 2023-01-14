@@ -7,8 +7,9 @@
 	[ display ]
 */
 
-#include "display.h"
+#include "./display.h"
 
+namespace M23 {
 void DISPLAY::initialize()
 {
 	// load rom image
@@ -185,4 +186,4 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(vd_control);
 	return true;
 }
-
+}

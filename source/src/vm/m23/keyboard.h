@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace M23 {
 class KEYBOARD : public DEVICE
 {
 private:
@@ -50,5 +51,6 @@ public:
 	}
 	void key_down(int code);
 };
+}
 
 #endif

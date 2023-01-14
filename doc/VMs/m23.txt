@@ -1,0 +1,24 @@
+"Emu23" - SORD M23 emulator for Win32
+								5/25/2022
+
+--- Internal ROM image
+
+	BOOT.ROM	2KB
+	FONT.ROM	4KB (JIS + ASCII)
+
+--- Key maps
+
+	PC		Virtual
+	--------------------------------
+	F8		S1
+	F9		S2
+	F12		LF
+	Home		NUM 000
+	End		NUM =
+	Page Up		NMU C
+	Page Down	NUM E
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

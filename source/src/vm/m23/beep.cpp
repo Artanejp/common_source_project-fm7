@@ -7,8 +7,9 @@
 	[ beep ]
 */
 
-#include "beep.h"
+#include "./beep.h"
 
+namespace M23 {
 void BEEP::initialize()
 {
 	PCM1BIT::initialize();
@@ -52,4 +53,4 @@ bool BEEP::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(reg);
 	return true;
 }
-
+}

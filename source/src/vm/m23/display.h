@@ -14,6 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+namespace M23 {
 class DISPLAY : public DEVICE
 {
 private:
@@ -56,6 +57,7 @@ public:
 	}
 	void draw_screen();
 };
+}
 
 #endif
 
