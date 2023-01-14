@@ -73,7 +73,11 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 	//pCentralLayout->setGeometry(rect);
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
+	pCentralWidget->adjustSize();
+	
 	MainWindow->setCentralWidget(pCentralWidget);
+	MainWindow->adjustSize();
+	
 	//emit sig_set_display_osd(true);
 }
 
@@ -94,7 +98,10 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 	//pCentralLayout->setGeometry(rect);
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
+	pCentralWidget->adjustSize();
+	
 	MainWindow->setCentralWidget(pCentralWidget);
+	MainWindow->adjustSize();
 	//emit sig_set_display_osd(false);
 }
 
@@ -115,7 +122,10 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 	pCentralWidget->setGeometry(rect);
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
+	pCentralWidget->adjustSize();
+	
 	MainWindow->setCentralWidget(pCentralWidget);
+	MainWindow->adjustSize();
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_left()
