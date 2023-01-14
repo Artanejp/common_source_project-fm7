@@ -76,11 +76,11 @@
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
 #if defined(_MZ700)
-#define USE_SOUND_VOLUME	4
-#elif defined(_MZ800)
 #define USE_SOUND_VOLUME	5
-#elif defined(_MZ1500)
+#elif defined(_MZ800)
 #define USE_SOUND_VOLUME	6
+#elif defined(_MZ1500)
+#define USE_SOUND_VOLUME	7
 #endif
 #if defined(_MZ1500)
 #define USE_PRINTER
@@ -170,7 +170,7 @@ static const _TCHAR *sound_device_caption[] = {
 #elif defined(_MZ1500)
 	_T("PSG #1"), _T("PSG #2"),
 #endif
-	_T("Beep"), _T("CMT (Signal)"), _T("Noise (CMT)"), _T("Noise (FDD)"),
+	_T("Beep"), _T("CMT (Signal)"), _T("Noise (CMT)"), _T("Noise (FDD)"), _T("Noise (QD)"),
 };
 #endif
 

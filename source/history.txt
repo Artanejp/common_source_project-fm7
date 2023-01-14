@@ -1,3 +1,9 @@
+12/31/2022
+
+[MZ1500/QUICKDISK] support to play seek noise
+[PC9801/MOUSE] improve mouse counter
+
+
 12/30/2022
 
 [VM/I386_NP21] update to Neko Project 21/W ver0.86 rev88 beta4

@@ -181,6 +181,9 @@ typedef struct {
 	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
 		bool sound_noise_fdd;
 	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_QUICK_DISK)
+		bool sound_noise_qd;
+	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
 		bool sound_noise_cmt;
 		bool sound_tape_signal;

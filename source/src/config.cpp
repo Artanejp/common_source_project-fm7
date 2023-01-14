@@ -117,6 +117,9 @@ void initialize_config()
 	#ifdef USE_FLOPPY_DISK
 		config.sound_noise_fdd = true;
 	#endif
+	#ifdef USE_QUICK_DISK
+		config.sound_noise_qd = true;
+	#endif
 	#ifdef USE_TAPE
 		config.sound_noise_cmt = true;
 		config.sound_tape_signal = true;
@@ -313,10 +316,13 @@ void load_config(const _TCHAR* config_path)
 	config.sound_latency = MyGetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 	#ifdef USE_FLOPPY_DISK
-		config.sound_noise_fdd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);;
+		config.sound_noise_fdd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);
+	#endif
+	#ifdef USE_QUICK_DISK
+		config.sound_noise_qd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseQD"), config.sound_noise_qd, config_path);
 	#endif
 	#ifdef USE_TAPE
-		config.sound_noise_cmt = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);;
+		config.sound_noise_cmt = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
 		config.sound_tape_signal = MyGetPrivateProfileBool(_T("Sound"), _T("TapeSignal"), config.sound_tape_signal, config_path);
 		config.sound_tape_voice = MyGetPrivateProfileBool(_T("Sound"), _T("TapeVoice"), config.sound_tape_voice, config_path);
 	#endif
@@ -386,8 +392,8 @@ void load_config(const _TCHAR* config_path)
 	// qt
 	#ifdef _USE_QT
 		config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
-		config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
-		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
+		config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);
+		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);
 		config.use_opengl_filters = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
 		config.opengl_filter_num = MyGetPrivateProfileInt(_T("Qt"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
 		config.swap_kanji_pause = MyGetPrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);
@@ -556,6 +562,9 @@ void save_config(const _TCHAR* config_path)
 	#ifdef USE_FLOPPY_DISK
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);
 	#endif
+	#ifdef USE_QUICK_DISK
+		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseQD"), config.sound_noise_qd, config_path);
+	#endif
 	#ifdef USE_TAPE
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
 		MyWritePrivateProfileBool(_T("Sound"), _T("TapeSignal"), config.sound_tape_signal, config_path);
@@ -603,8 +612,8 @@ void save_config(const _TCHAR* config_path)
 	// qt
 	#ifdef _USE_QT
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
-		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
-		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
+		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("SwapKanjiPause"), config.swap_kanji_pause, config_path);

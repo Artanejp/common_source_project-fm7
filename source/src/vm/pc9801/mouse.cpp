@@ -82,17 +82,31 @@ void MOUSE::event_callback(int event_id, int err)
 
 void MOUSE::event_frame()
 {
-	dx += status[0];
-	if(dx > 64) {
-		dx = 64;
-	} else if(dx < -64) {
-		dx = -64;
+	int x = status[0];
+	int y = status[1];
+	
+	if(x > 32) {
+		x = 32;
+	} else if(x < -32) {
+		x = -32;
 	}
-	dy += status[1];
-	if(dy > 64) {
-		dy = 64;
-	} else if(dy < -64) {
-		dy = -64;
+	if(y > 32) {
+		y = 32;
+	} else if(y < -32) {
+		y = -32;
+	}
+	dx += x;
+	dy += y;
+	
+	if(dx > 127) {
+		dx = 127;
+	} else if(dx < -128) {
+		dx = -128;
+	}
+	if(dy > 127) {
+		dy = 127;
+	} else if(dy < -128) {
+		dy = -128;
 	}
 	update_mouse();
 }
