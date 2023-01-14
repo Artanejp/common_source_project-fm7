@@ -235,6 +235,7 @@ void I386::reset()
 		set_device_name(_T("Neko Processor II CPU"));
 		break;
 	}
+	i386cpuid.allow_movCS = 0;
 //	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
 	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;

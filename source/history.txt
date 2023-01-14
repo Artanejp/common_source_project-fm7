@@ -1,3 +1,8 @@
+12/30/2022
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev88 beta4
+
+
 12/29/2022
 
 [PC9801/DISPLAY] fix renderer to consider timing of line counter controller
