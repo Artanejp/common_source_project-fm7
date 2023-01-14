@@ -42,6 +42,7 @@ private:
 		int sysclock_id;
 		uint32_t input;
 		uint32_t period;
+		double remain;
 		uint32_t prev;
 		// interrupt
 		bool req_intr;

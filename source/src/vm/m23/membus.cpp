@@ -86,7 +86,7 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 	case 0xd0:
 		return (~config.dipswitch) & 0xff;
 	case 0xd1:
-		return page ? 0xff : 0;
+		return page ? 1 : 0;
 	}
 	return 0xff;
 }

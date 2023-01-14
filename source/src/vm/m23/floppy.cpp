@@ -16,7 +16,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 	case 0xb5:
 	case 0xc5:
 	case 0xcd:
-		// bit7 : ??? (BASIC‚Å‘€ì‚µ‚Ä‚¢‚é 0x10,0x50,0xd0)
+		// bit7 : ??? (BASICã§æ“ä½œã—ã¦ã„ã‚‹ 0x10,0x50,0xd0)
 		// bit6 : density (0=double, 1=single)
 		// bit5 : side
 		// bit4 : 1=ready ????
@@ -31,7 +31,7 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 			d_fdc->set_drive_mfm(drv, ((data & 0x40) == 0));
 		}
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 0x20);
-		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10); // READY
+//		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x10); // READY
 		break;
 	}
 }
