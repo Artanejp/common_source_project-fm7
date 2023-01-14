@@ -40,7 +40,7 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	ConfigCPUBootMode(1);
+//	ConfigCPUBootMode(1);
 }
 
 
