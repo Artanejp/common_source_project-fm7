@@ -7,8 +7,9 @@
 	[ memory bus ]
 */
 
-#include "membus.h"
+#include "./membus.h"
 
+namespace M23 {
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
@@ -157,4 +158,4 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-
+}

@@ -19,7 +19,7 @@ private:
 	uint8_t reg;
 	
 public:
-	BEEP(VM_TEMPLATE* parent_vm, EMU* parent_emu) : PCM1BIT(parent_vm, parent_emu)
+	BEEP(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : PCM1BIT(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Beep"));
 	}

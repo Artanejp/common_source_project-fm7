@@ -25,7 +25,7 @@ private:
 	uint32_t read_port(uint32_t addr);
 	
 public:
-	IOBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : IO(parent_vm, parent_emu)
+	IOBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : IO(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
