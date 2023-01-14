@@ -504,7 +504,8 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC) {
 				// read or multisector read
 				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
-					datareg = disk[drvreg]->sector[fdc[drvreg].index];
+					uint8_t mask = disk[drvreg]->unstable ? disk[drvreg]->unstable[fdc[drvreg].index] : 0;
+					datareg = (disk[drvreg]->sector[fdc[drvreg].index] & ~mask) | (rand() & mask);
 					//fdc[drvreg].index++;
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {

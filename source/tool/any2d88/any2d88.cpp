@@ -36,7 +36,11 @@ void main(int argc, char *argv[])
 		} else {
 			if(argc < 3 + arg_offset) {
 				char output[_MAX_PATH];
-				sprintf(output, "%s.d88", argv[arg_offset + 1]);
+				if(disk->is_d8e()) {
+					sprintf(output, "%s.d8e", argv[arg_offset + 1]);
+				} else {
+					sprintf(output, "%s.d88", argv[arg_offset + 1]);
+				}
 				disk->save_as_d88(output);
 			} else {
 				disk->save_as_d88(argv[arg_offset + 2]);

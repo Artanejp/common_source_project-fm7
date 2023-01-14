@@ -124,7 +124,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 	write_protected = false;
 	media_type = MEDIA_TYPE_UNK;
 	is_special_disk = 0;
-	is_solid_image = is_fdi_image = is_1dd_image = false;
+	is_d8e_image = is_1dd_image = is_solid_image = is_fdi_image = false;
 	trim_required = false;
 	track_mfm = drive_mfm;
 	
@@ -137,7 +137,8 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		file_size.d = fio->FileLength();
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		
-		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
+		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d8e")) ||
+		   check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
 			// d88 image
 			uint32_t offset = 0;
 			for(int i = 0; i < bank; i++) {
@@ -149,7 +150,9 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			fio->Fseek(offset, FILEIO_SEEK_SET);
 			fio->Fread(buffer, file_size.d, 1);
 			file_bank = bank;
-			if(check_file_extension(file_path, _T(".1dd"))) {
+			if(check_file_extension(file_path, _T(".d8e"))) {
+				is_d8e_image = true;
+			} else if(check_file_extension(file_path, _T(".1dd"))) {
 				is_1dd_image = true;
 				media_type = MEDIA_TYPE_2DD;
 			}
@@ -215,7 +218,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			try {
 				if(nfdr0_to_d88(fio) || nfdr1_to_d88(fio)) {
 					inserted = changed = true;
-					my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+					my_stprintf_s(dest_path, _MAX_PATH, is_d8e_image ? _T("%s.D8E") : _T("%s.D88"), file_path);
 				}
 			} catch(...) {
 				// failed to convert the disk image
@@ -718,7 +721,8 @@ void DISK::close()
 			uint8_t *pre_buffer = NULL, *post_buffer = NULL;
 			
 			// is this d88 format ?
-			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
+			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d8e")) ||
+			   check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
 				if(fio->Fopen(dest_path, FILEIO_READ_BINARY)) {
 					fio->Fseek(0, FILEIO_SEEK_END);
 					uint32_t total_size = fio->Ftell(), offset = 0;
@@ -795,7 +799,11 @@ void DISK::close()
 			}
 			
 			if((FILEIO::IsFileExisting(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
-				fio->Fopen(local_path(create_string(_T("temporary_saved_floppy_disk_#%d.d88"), drive_num)), FILEIO_WRITE_BINARY);
+				if(is_d8e_image) {
+					fio->Fopen(local_path(create_string(_T("temporary_saved_floppy_disk_#%d.D8E"), drive_num)), FILEIO_WRITE_BINARY);
+				} else {
+					fio->Fopen(local_path(create_string(_T("temporary_saved_floppy_disk_#%d.D88"), drive_num)), FILEIO_WRITE_BINARY);
+				}
 			}
 			if(fio->IsOpened()) {
 				if(pre_buffer) {
@@ -843,7 +851,7 @@ void DISK::close()
 	inserted = write_protected = false;
 	file_size.d = 0;
 	sector_size.sd = sector_num.sd = 0;
-	sector = NULL;
+	sector = unstable = NULL;
 }
 
 #ifdef _ANY2D88
@@ -1127,8 +1135,12 @@ bool DISK::make_track_tmp(int trk, int side)
 			if(p < track_size) track[p++] = am2;
 			crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ am2]);
 			// data
+			uint8_t *u = get_unstable_sector(sector, i);
 			for(int j = 0; j < data_size.sd; j++) {
-				if(p < track_size) track[p++] = t[0x10 + j];
+				if(p < track_size) {
+					uint8_t mask = u ? u[j] : 0;
+					track[p++] = (t[0x10 + j] & ~mask) | (rand() & mask);
+				}
 				crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0x10 + j]]);
 			}
 			if(p < track_size) track[p++] = (crc >> 8) & 0xff;
@@ -1157,7 +1169,7 @@ bool DISK::get_sector(int trk, int side, int index)
 bool DISK::get_sector_tmp(int trk, int side, int index)
 {
 	sector_size.sd = sector_num.sd = 0;
-	sector = NULL;
+	sector = unstable = NULL;
 	
 	// disk not inserted or invalid media type
 	if(!(inserted && check_media_type())) {
@@ -1187,6 +1199,7 @@ bool DISK::get_sector_tmp(int trk, int side, int index)
 	if(index >= sector_num.sd) {
 		return false;
 	}
+	unstable = get_unstable_sector(t, index);
 	
 	// skip sector
 	for(int i = 0; i < index; i++) {
@@ -1196,6 +1209,72 @@ bool DISK::get_sector_tmp(int trk, int side, int index)
 	}
 	set_sector_info(t);
 	return true;
+}
+
+int DISK::get_track_num(uint8_t *t)
+{
+	int position = (int)((LONG_PTR)t - (LONG_PTR)buffer);
+	int result = -1;
+	pair32_t offset;
+	
+	offset.read_4bytes_le_from(buffer + 0x1c);
+	
+	if(position < offset.sd) {
+		int max_tracks = 164;
+		
+		for(int track = 0; track < 164; track++) {
+			offset.read_4bytes_le_from(buffer + 0x20 + track * 4);
+			if(offset.sd != 0) {
+				if(offset.sd < 0x2b0) {
+					max_tracks = min((offset.sd - 0x20) >> 2, 164);
+				}
+				break;
+			}
+		}
+		for(int track = 0; track < max_tracks; track++) {
+			offset.read_4bytes_le_from(buffer + 0x20 + track * 4);
+			if(offset.sd != 0 && position >= offset.sd) {
+				if(position == offset.sd) {
+					result = track;
+					break;
+				} else if(position >= offset.sd) {
+					result = max(track, result);
+				}
+			}
+		}
+	}
+	return result;
+}
+
+uint8_t *DISK::get_unstable_sector(uint8_t *t, int index)
+{
+	int track = get_track_num(t);
+	
+	if(track >= 0) {
+		pair32_t offset, num, idx, data_size;
+		offset.read_4bytes_le_from(buffer + 0x20 + track * 4);
+		uint8_t* t = buffer + offset.d;
+		num.read_2bytes_le_from(t + 4);
+		
+		for(int i = 0; i < num.sd; i++) {
+			data_size.read_2bytes_le_from(t + 14);
+			t += data_size.sd + 0x10;
+		}
+		if(track == get_track_num(t)) {
+			num.read_2bytes_le_from(t + 4);
+			
+			for(int i = 0; i < num.sd; i++) {
+				idx.read_2bytes_le_from(t + 9);
+				
+				if(idx.sd == index) {
+					return t + 0x10;
+				}
+				data_size.read_2bytes_le_from(t + 14);
+				t += data_size.sd + 0x10;
+			}
+		}
+	}
+	return NULL;
 }
 
 void DISK::set_sector_info(uint8_t *t)
@@ -1361,7 +1440,8 @@ bool DISK::format_track_tmp(int trk, int side)
 	offset.write_4bytes_le_to(buffer + 0x20 + trkside * 4);
 	
 	trim_required = true;
-	sector_num.sd = 0;
+	sector_size.sd = sector_num.sd = 0;
+	sector = unstable = NULL;
 	track_mfm = drive_mfm;
 	
 	return true;
@@ -1460,6 +1540,16 @@ void DISK::trim_buffer()
 					dest_offset += data_size.sd + 0x10;
 					t += data_size.sd + 0x10;
 				}
+				if(trkside == get_track_num(t)) {
+					// unstable sectors
+					sector_num.read_2bytes_le_from(t + 4);
+					for(int i = 0; i < sector_num.sd; i++) {
+						data_size.read_2bytes_le_from(t + 14);
+						memcpy(tmp_buffer + dest_offset, t, data_size.sd + 0x10);
+						dest_offset += data_size.sd + 0x10;
+						t += data_size.sd + 0x10;
+					}
+				}
 			}
 		}
 		dest_trk_offset.write_4bytes_le_to(tmp_buffer + 0x20 + trkside * 4);
@@ -1553,16 +1643,57 @@ typedef struct {
 	uint8_t rsrv[9];
 	uint8_t protect;
 	uint8_t type;
-	uint32_t size;
-	uint32_t trkptr[164];
+	uint32_t size()
+	{
+		return size_[0] | (size_[1] << 8) | (size_[2] << 16) | (size_[3] << 24);
+	}
+	void size(uint32_t val)
+	{
+		size_[0] = (val >>  0) & 0xff;
+		size_[1] = (val >>  8) & 0xff;
+		size_[2] = (val >> 16) & 0xff;
+		size_[3] = (val >> 24) & 0xff;
+	}
+	uint8_t size_[4];
+	uint32_t trkptr(int trk)
+	{
+		return trkptr_[trk][0] | (trkptr_[trk][1] << 8) | (trkptr_[trk][2] << 16) | (trkptr_[trk][3] << 24);
+	}
+	void trkptr(int trk, uint32_t val)
+	{
+		trkptr_[trk][0] = (val >>  0) & 0xff;
+		trkptr_[trk][1] = (val >>  8) & 0xff;
+		trkptr_[trk][2] = (val >> 16) & 0xff;
+		trkptr_[trk][3] = (val >> 24) & 0xff;
+	}
+
+	uint8_t trkptr_[164][4];
 } d88_hdr_t;
 
 typedef struct {
 	uint8_t c, h, r, n;
-	uint16_t nsec;
+	uint16_t nsec()
+	{
+		return nsec_[0] | (nsec_[1] << 8);
+	}
+	void nsec(uint16_t val)
+	{
+		nsec_[0] = (val >> 0) & 0xff;
+		nsec_[1] = (val >> 8) & 0xff;
+	}
+	uint8_t nsec_[2];
 	uint8_t dens, del, stat;
 	uint8_t rsrv[5];
-	uint16_t size;
+	uint16_t size()
+	{
+		return size_[0] | (size_[1] << 8);
+	}
+	void size(uint16_t val)
+	{
+		size_[0] = (val >> 0) & 0xff;
+		size_[1] = (val >> 8) & 0xff;
+	}
+	uint8_t size_[2];
 } d88_sct_t;
 
 // teledisk image decoder
@@ -1856,12 +1987,24 @@ typedef struct {
 	uint8_t flag;
 	uint8_t dos;
 	uint8_t sides;
-	uint16_t crc;
+	uint16_t crc()
+	{
+		return crc_[0] | (crc_[1] << 8);
+	}
+	uint8_t crc_[2];
 } td_hdr_t;
 
 typedef struct {
-	uint16_t crc;
-	uint16_t len;
+	uint16_t crc()
+	{
+		return crc_[0] | (crc_[1] << 8);
+	}
+	uint8_t crc_[2];
+	uint16_t len()
+	{
+		return len_[0] | (len_[1] << 8);
+	}
+	uint8_t len_[2];
 	uint8_t ymd[3];
 	uint8_t hms[3];
 } td_cmt_t;
@@ -1921,7 +2064,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 	if(hdr.flag & 0x80) {
 		// skip comment
 		fio->Fread(&cmt, sizeof(td_cmt_t), 1);
-		fio->Fseek(cmt.len, FILEIO_SEEK_CUR);
+		fio->Fseek(cmt.len(), FILEIO_SEEK_CUR);
 	}
 	
 	// create d88 header
@@ -1939,7 +2082,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 	int trkcnt = 0, trkptr = sizeof(d88_hdr_t);
 	fio->Fread(&trk, sizeof(td_trk_t), 1);
 	while(trk.nsec != 0xff) {
-		d88_hdr.trkptr[trkcnt++] = trkptr;
+		d88_hdr.trkptr(trkcnt++, trkptr);
 		if(hdr.sides == 1) {
 			trkcnt++;
 		}
@@ -1959,16 +2102,16 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 			d88_sct.h = sct.h;
 			d88_sct.r = sct.r;
 			d88_sct.n = sct.n;
-			d88_sct.nsec = trk.nsec;
+			d88_sct.nsec(trk.nsec);
 			d88_sct.dens = (hdr.dens & 0x80) ? 0x40 : 0;
 			d88_sct.del = (sct.ctrl & 4) ? 0x10 : 0;
 			d88_sct.stat = (sct.ctrl & 2) ? 0xb0 : d88_sct.del;
-			d88_sct.size = secsize[sct.n & 3];
+			d88_sct.size(secsize[sct.n & 3]);
 			
 			// create sector image
 			if(sct.ctrl & 0x30) {
 				d88_sct.stat = 0xf0; // data mark missing
-				d88_sct.size = 0;
+				d88_sct.size(0);
 			} else {
 				// read sector source
 				int len = fio->Fgetc();
@@ -2019,14 +2162,14 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 			
 			// copy to d88
 			COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
-			COPYBUFFER(dst, d88_sct.size);
-			trkptr += sizeof(d88_sct_t) + d88_sct.size;
+			COPYBUFFER(dst, d88_sct.size());
+			trkptr += sizeof(d88_sct_t) + d88_sct.size();
 		}
 		// read next track
 		fio->Fread(&trk, sizeof(td_trk_t), 1);
 	}
 	d88_hdr.type = ((hdr.dens & 3) == 2) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
-	d88_hdr.size = trkptr;
+	d88_hdr.size(trkptr);
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	
 	if(temporary) {
@@ -2104,7 +2247,7 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 			if(trkcnt < trkside) {
 				trkcnt = trkside;
 			}
-			d88_hdr.trkptr[trkside] = trkptr;
+			d88_hdr.trkptr(trkside, trkptr);
 		}
 		if(img_mode == -1) {
 			img_mode = mode & 3;
@@ -2119,36 +2262,36 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 			d88_sct.h = hnum ? hnum[i] : head;
 			d88_sct.r = snum[i];
 			d88_sct.n = ssize;
-			d88_sct.nsec = sector_count;
+			d88_sct.nsec(sector_count);
 			d88_sct.dens = (mode < 3) ? 0x40 : 0;
 			
 			if(stype == 0 || stype > 8) {
 				d88_sct.stat = 0xf0; // data mark missing
-				d88_sct.size = 0;
+				d88_sct.size(0);
 			} else {
 				d88_sct.del  = (stype == 3 || stype == 4 || stype == 7 || stype == 8) ? 0x10 : 0;
 				d88_sct.stat = (stype == 5 || stype == 6 || stype == 7 || stype == 8) ? 0xb0 : d88_sct.del;
-				d88_sct.size = actual_size;
+				d88_sct.size(actual_size);
 				
 				// create sector image
 				if(stype == 2 || stype == 4 || stype == 6 || stype == 8) {
 					memset(dst, tmp_buffer[pos++], actual_size);
 				} else {
 					memcpy(dst, &tmp_buffer[pos], actual_size);
-					pos += d88_sct.size;
+					pos += d88_sct.size();
 				}
 			}
 			
 			// copy to d88
 			if(trkside < 164) {
 				COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
-				COPYBUFFER(dst, d88_sct.size);
-				trkptr += sizeof(d88_sct_t) + d88_sct.size;
+				COPYBUFFER(dst, d88_sct.size());
+				trkptr += sizeof(d88_sct_t) + d88_sct.size();
 			}
 		}
 	}
 	d88_hdr.type = (img_mode == 0) ? MEDIA_TYPE_2HD : (((trkcnt + 1) >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
-	d88_hdr.size = trkptr;
+	d88_hdr.size(trkptr);
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
 }
@@ -2277,7 +2420,7 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 				continue;
 			}
 			if((track << 1) + side < 164) {
-				d88_hdr.trkptr[(track << 1) + side] = trkptr;
+				d88_hdr.trkptr((track << 1) + side, trkptr);
 			}
 			
 			track_header tr;
@@ -2293,24 +2436,24 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 				d88_sct.h = sector.side;
 				d88_sct.r = sector.sector_id;
 				d88_sct.n = sector.sector_size_code;
-				d88_sct.nsec = tr.number_of_sector;
+				d88_sct.nsec(tr.number_of_sector);
 				if(extendformat) {
-					d88_sct.size = sector.data_length;
+					d88_sct.size(sector.data_length);
 					d88_sct.dens = (tr.rec_mode == 1) ? 0x40 : 0;
 				} else {
-					d88_sct.size = 128 << tr.sector_size_code;
+					d88_sct.size(128 << tr.sector_size_code);
 					d88_sct.dens = (tr.sector_size_code == 0) ? 0x40 : 0; // FIXME
 				}
 				d88_sct.del = (sector.fdc_status_reg1 == 0xb2) ? 0x10 : 0;
-				d88_sct.stat = (d88_sct.size == 0) ? 0xf0 : (sector.fdc_status_reg1 == 0xb5) ? 0xb0 : d88_sct.del;
+				d88_sct.stat = (d88_sct.size() == 0) ? 0xf0 : (sector.fdc_status_reg1 == 0xb5) ? 0xb0 : d88_sct.del;
 				
 				// copy to d88
 				if((track << 1) + side < 164) {
 					COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
-					COPYBUFFER(tmp_buffer + pos, d88_sct.size);
-					trkptr += sizeof(d88_sct_t) + d88_sct.size;
+					COPYBUFFER(tmp_buffer + pos, d88_sct.size());
+					trkptr += sizeof(d88_sct_t) + d88_sct.size();
 				}
-				total += d88_sct.size;
+				total += d88_sct.size();
 				
 				if(extendformat) {
 					pos += sector.data_length;
@@ -2321,43 +2464,123 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 		}
 	}
 	d88_hdr.type = (total < (368640 + 655360) / 2) ? MEDIA_TYPE_2D : (total < (737280 + 1228800) / 2) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2HD;
-	d88_hdr.size = trkptr;
+	d88_hdr.size(trkptr);
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
 }
 
 // nfd r0/r1 image decoder
 
+// from NFD r0形式ファイル構造仕様 2001/01/22 LED
+typedef struct {
+    BYTE  C;                            // C （0xFFの時セクタ無し）
+    BYTE  H;                            // H
+    BYTE  R;                            // R
+    BYTE  N;                            // N
+    BYTE  flMFM;                        // 0:FM / 1:MFM
+    BYTE  flDDAM;                       // 0:DAM / 1:DDAM
+    BYTE  byStatus;                     // READ DATA(FDDBIOS)の結果
+    BYTE  byST0;                        // READ DATA(FDDBIOS)の結果 ST0
+    BYTE  byST1;                        // READ DATA(FDDBIOS)の結果 ST1
+    BYTE  byST2;                        // READ DATA(FDDBIOS)の結果 ST2
+    BYTE  byPDA;                        // FDDBIOSで使用するアドレス
+    char Reserve1[5];                   // 予約
+}NFD_SECT_ID,*LP_NFD_SECT_ID;
+
+typedef struct {
+    char  szFileID[15];                 // 識別ID "T98FDDIMAGE.R0"
+    char  Reserve1[1];                  // 予約
+    char  szComment[0x100];             // イメージコメント(ASCIIz)
+    DWORD dwHeadSize()                  // ヘッダ部のサイズ
+    {
+      return byHeadSize[0] | (byHeadSize[1] << 8) | (byHeadSize[2] << 16) | (byHeadSize[3] << 24);
+    }
+    BYTE  byHeadSize[4];
+    BYTE  flProtect;                    // 0以外 : ライトプロテクト
+    BYTE  byHead;                       // ヘッド数
+    char  Reserve2[10];                 // 予約
+    NFD_SECT_ID si[163][26];            // セクタID(後述)
+    char  Reserve3[0x10];               // 予約
+}NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
+
+// from NFD r1形式ファイル構造仕様 2001/09/14 LED
+typedef struct {
+    char  szFileID[15];                         /* 識別ID "T98FDDIMAGE.R1"  */
+    char  Reserve1[1];                          /* 予約                     */
+    char szComment[0x100];                      /* コメント                 */
+    DWORD dwHeadSize()                          /* ヘッダのサイズ           */
+    {
+      return byHeadSize[0] | (byHeadSize[1] << 8) | (byHeadSize[2] << 16) | (byHeadSize[3] << 24);
+    }
+    BYTE byHeadSize[4];
+    BYTE flProtect;                             /* ライトプロテクト0以外    */
+    BYTE byHead;                                /* ヘッド数 1-2             */
+    char Reserv2[0x10-4-1-1];                   /* 予備                     */
+    DWORD dwTrackHead(int trk)                  /* トラックID位置           */
+    {
+      return byTrackHead[trk][0] | (byTrackHead[trk][1] << 8) | (byTrackHead[trk][2] << 16) | (byTrackHead[trk][3] << 24);
+    }
+    BYTE byTrackHead[164][4];
+    DWORD dwAddInfo()                           /* 追加情報ヘッダのアドレス */
+    {
+      return byAddInfo[0] | (byAddInfo[1] << 8) | (byAddInfo[2] << 16) | (byAddInfo[3] << 24);
+    }
+    BYTE byAddInfo[4];
+    char Reserv3[0x10-4];                       /* 予備                     */
+}NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
+
+typedef struct {
+    WORD wSector()                              /* セクタID数               */
+    {
+      return bySector[0] | (bySector[1] << 8);
+    }
+    BYTE bySector[2];
+    WORD wDiag()                                /* 特殊 ID数                */
+    {
+      return byDiag[0] | (byDiag[1] << 8);
+    }
+    BYTE byDiag[2];
+    char Reserv1[0x10-4];                       /* 予備                     */
+}NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
+
+typedef struct {
+    BYTE    C;                                  /* C                        */
+    BYTE    H;                                  /* H                        */
+    BYTE    R;                                  /* R                        */
+    BYTE    N;                                  /* N                        */
+    BYTE    flMFM;                              /* MFM(1)/FM(0)             */
+    BYTE    flDDAM;                             /* DDAM(1)/DAM(0)           */
+    BYTE    byStatus;                           /* READ DATA RESULT         */
+    BYTE    bySTS0;                             /* ST0                      */
+    BYTE    bySTS1;                             /* ST1                      */
+    BYTE    bySTS2;                             /* ST2                      */
+    BYTE    byRetry;                            /* RetryDataなし(0)あり(1-) */
+    BYTE    byPDA;                              /* PDA                      */
+    char Reserv1[0x10-12];                      /* 予備                     */
+}NFD_SECT_ID1,*LP_NFD_SECT_ID1;
+
+typedef struct {
+    BYTE    Cmd;                                /* Command                  */
+    BYTE    C;                                  /* C                        */
+    BYTE    H;                                  /* H                        */
+    BYTE    R;                                  /* R                        */
+    BYTE    N;                                  /* N                        */
+    BYTE    byStatus;                           /* READ DATA RESULT         */
+    BYTE    bySTS0;                             /* ST0                      */
+    BYTE    bySTS1;                             /* ST1                      */
+    BYTE    bySTS2;                             /* ST2                      */
+    BYTE    byRetry;                            /* RetryDataなし(0)あり(1-) */
+    DWORD   dwDataLen()
+    {
+      return byDataLen[0] | (byDataLen[1] << 8) | (byDataLen[2] << 16) | (byDataLen[3] << 24);
+    }
+    BYTE    byDataLen[4];
+    BYTE    byPDA;                              /* PDA                      */
+    char Reserv1[0x10-15];                      /* 予備                     */
+}NFD_DIAG_ID1,*LP_NFD_DIAG_ID1;
+
 bool DISK::nfdr0_to_d88(FILEIO *fio)
 {
-	// from NFD r0形式ファイル構造仕様 2001/01/22 LED
-	typedef struct {
-	    BYTE  C;                            // C （0xFFの時セクタ無し）
-	    BYTE  H;                            // H
-	    BYTE  R;                            // R
-	    BYTE  N;                            // N
-	    BYTE  flMFM;                        // 0:FM / 1:MFM
-	    BYTE  flDDAM;                       // 0:DAM / 1:DDAM
-	    BYTE  byStatus;                     // READ DATA(FDDBIOS)の結果
-	    BYTE  byST0;                        // READ DATA(FDDBIOS)の結果 ST0
-	    BYTE  byST1;                        // READ DATA(FDDBIOS)の結果 ST1
-	    BYTE  byST2;                        // READ DATA(FDDBIOS)の結果 ST2
-	    BYTE  byPDA;                        // FDDBIOSで使用するアドレス
-	    char Reserve1[5];                   // 予約
-	}NFD_SECT_ID,*LP_NFD_SECT_ID;
-	
-	typedef struct {
-	    char  szFileID[15];                 // 識別ID "T98FDDIMAGE.R0"
-	    char  Reserve1[1];                  // 予約
-	    char  szComment[0x100];             // イメージコメント(ASCIIz)
-	    DWORD dwHeadSize;                   // ヘッダ部のサイズ
-	    BYTE  flProtect;                    // 0以外 : ライトプロテクト
-	    BYTE  byHead;                       // ヘッド数
-	    char  Reserve2[10];                 // 予約
-	    NFD_SECT_ID si[163][26];            // セクタID(後述)
-	    char  Reserve3[0x10];               // 予約
-	}NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
-	
 	// check nfd header
 	NFD_FILE_HEAD head;
 	
@@ -2367,7 +2590,7 @@ bool DISK::nfdr0_to_d88(FILEIO *fio)
 	if(strncmp(head.szFileID, "T98FDDIMAGE.R0", 14) != 0) {
 		return false;
 	}
-	fio->Fseek(head.dwHeadSize, FILEIO_SEEK_SET);
+	fio->Fseek(head.dwHeadSize(), FILEIO_SEEK_SET);
 	
 	// create d88 header
 	d88_hdr_t d88_hdr;
@@ -2392,7 +2615,7 @@ bool DISK::nfdr0_to_d88(FILEIO *fio)
 			}
 		}
 		if(nsec) {
-			d88_hdr.trkptr[c] = trkptr;
+			d88_hdr.trkptr(c, trkptr);
 			
 			// read sectors in this track
 			for(int s = 0; s < 26; s++) {
@@ -2403,7 +2626,7 @@ bool DISK::nfdr0_to_d88(FILEIO *fio)
 					d88_sct.h = head.si[c][s].H;
 					d88_sct.r = head.si[c][s].R;
 					d88_sct.n = head.si[c][s].N;
-					d88_sct.nsec = nsec;
+					d88_sct.nsec(nsec);
 					d88_sct.dens = head.si[c][s].flMFM ? 0 : 0x40;
 					d88_sct.del = head.si[c][s].flDDAM ? 0x10 : 0;
 					if(head.si[c][s].byST1 & 0x20) {
@@ -2419,17 +2642,17 @@ bool DISK::nfdr0_to_d88(FILEIO *fio)
 					} else {
 						d88_sct.stat = d88_sct.del;
 					}
-					d88_sct.size = secsize[d88_sct.n & 3];
+					d88_sct.size(secsize[d88_sct.n & 3]);
 					
 					// create sector image
 					uint8_t dst[16384];
 					memset(dst, 0xe5, sizeof(dst));
-					fio->Fread(dst, d88_sct.size, 1);
+					fio->Fread(dst, d88_sct.size(), 1);
 					
 					// copy to d88
 					COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
-					COPYBUFFER(dst, d88_sct.size);
-					trkptr += sizeof(d88_sct_t) + d88_sct.size;
+					COPYBUFFER(dst, d88_sct.size());
+					trkptr += sizeof(d88_sct_t) + d88_sct.size();
 					
 					if(head.si[c][s].byPDA == 0x10) {
 						d88_hdr.type = MEDIA_TYPE_2DD;
@@ -2440,80 +2663,143 @@ bool DISK::nfdr0_to_d88(FILEIO *fio)
 			}
 		}
 	}
-	d88_hdr.size = trkptr;
+	d88_hdr.size(trkptr);
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
 }
 
 bool DISK::nfdr1_to_d88(FILEIO *fio)
 {
-	// from NFD r1形式ファイル構造仕様 2001/09/14 LED
-	typedef struct {
-//	    char szFileID[sizeof(NFD_FILE_ID1)];        /* 識別ID "T98FDDIMAGE.R1"  */
-//	    char Reserv1[0x10-sizeof(NFD_FILE_ID1)];    /* 予備                     */
-	    char  szFileID[15];                         /* 識別ID "T98FDDIMAGE.R1"  */
-	    char  Reserve1[1];                          /* 予約                     */
-	    char szComment[0x100];                      /* コメント                 */
-	    DWORD dwHeadSize;                           /* ヘッダのサイズ           */
-	    BYTE flProtect;                             /* ライトプロテクト0以外    */
-	    BYTE byHead;                                /* ヘッド数 1-2             */
-	    char Reserv2[0x10-4-1-1];                   /* 予備                     */
-	    DWORD dwTrackHead[164];                     /* トラックID位置           */
-	    DWORD dwAddInfo;                            /* 追加情報ヘッダのアドレス */
-	    char Reserv3[0x10-4];                       /* 予備                     */
-	}NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
-	
-	typedef struct {
-	    WORD wSector;                               /* セクタID数               */
-	    WORD wDiag;                                 /* 特殊 ID数                */
-	    char Reserv1[0x10-4];                       /* 予備                     */
-	}NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
-	
-	typedef struct {
-	    BYTE    C;                                  /* C                        */
-	    BYTE    H;                                  /* H                        */
-	    BYTE    R;                                  /* R                        */
-	    BYTE    N;                                  /* N                        */
-	    BYTE    flMFM;                              /* MFM(1)/FM(0)             */
-	    BYTE    flDDAM;                             /* DDAM(1)/DAM(0)           */
-	    BYTE    byStatus;                           /* READ DATA RESULT         */
-	    BYTE    bySTS0;                             /* ST0                      */
-	    BYTE    bySTS1;                             /* ST1                      */
-	    BYTE    bySTS2;                             /* ST2                      */
-	    BYTE    byRetry;                            /* RetryDataなし(0)あり(1-) */
-	    BYTE    byPDA;                              /* PDA                      */
-	    char Reserv1[0x10-12];                      /* 予備                     */
-	}NFD_SECT_ID1,*LP_NFD_SECT_ID1;
-	
-	typedef struct {
-	    BYTE    Cmd;                                /* Command                  */
-	    BYTE    C;                                  /* C                        */
-	    BYTE    H;                                  /* H                        */
-	    BYTE    R;                                  /* R                        */
-	    BYTE    N;                                  /* N                        */
-	    BYTE    byStatus;                           /* READ DATA RESULT         */
-	    BYTE    bySTS0;                             /* ST0                      */
-	    BYTE    bySTS1;                             /* ST1                      */
-	    BYTE    bySTS2;                             /* ST2                      */
-	    BYTE    byRetry;                            /* RetryDataなし(0)あり(1-) */
-	    DWORD   dwDataLen;
-	    BYTE    byPDA;                              /* PDA                      */
-	    char Reserv1[0x10-15];                      /* 予備                     */
-	}NFD_DIAG_ID1,*LP_NFD_DIAG_ID1;
-	
 	// check nfd header
-	NFD_FILE_HEAD1 head;
+	NFD_FILE_HEAD1 tmp;
 	
 	fio->Fseek(0, FILEIO_SEEK_SET);
-	fio->Fread(&head, sizeof(head), 1);
+	fio->Fread(&tmp, sizeof(tmp), 1);
 	
-	if(strncmp(head.szFileID, "T98FDDIMAGE.R1", 14) != 0) {
+	if(strncmp(tmp.szFileID, "T98FDDIMAGE.R1", 14) != 0) {
 		return false;
 	}
-	fio->Fseek(head.dwHeadSize, FILEIO_SEEK_SET);
+	fio->Fseek(0, FILEIO_SEEK_SET);
 	
-	// not implemented yet :-(
-	return false;
+	uint8_t *buf = (uint8_t *)malloc(tmp.dwHeadSize());
+	fio->Fread(buf, tmp.dwHeadSize(), 1);
+	NFD_FILE_HEAD1 *head = (NFD_FILE_HEAD1 *)buf;
+	
+	// create d88 header
+	d88_hdr_t d88_hdr;
+	d88_sct_t d88_sct;
+	
+	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "NFD R1");
+	d88_hdr.protect = head->flProtect;
+	
+	file_size.d = 0;
+	COPYBUFFER(&d88_hdr, sizeof(d88_hdr_t));
+	
+	// create tracks
+	int trkptr = sizeof(d88_hdr_t);
+	
+	for(int c = 0; c < 164; c++) {
+		int offset = head->dwTrackHead(c);
+		
+		if(offset) {
+			NFD_TRACK_ID1 *track = (NFD_TRACK_ID1 *)(buf + offset);
+			offset += sizeof(NFD_TRACK_ID1);
+			
+			d88_hdr.trkptr(c, trkptr);
+			
+			// read sectors in this track
+			int unstable_sec_num = 0, unstable_sec_ptr = 0;
+			
+			for(int s = 0; s < track->wSector(); s++) {
+				NFD_SECT_ID1 *sect = (NFD_SECT_ID1 *)(buf + offset);
+				offset += sizeof(NFD_SECT_ID1);
+				
+				// create d88 sector header
+				memset(&d88_sct, 0, sizeof(d88_sct_t));
+				d88_sct.c = sect->C;
+				d88_sct.h = sect->H;
+				d88_sct.r = sect->R;
+				d88_sct.n = sect->N;
+				d88_sct.nsec(track->wSector());
+				d88_sct.dens = sect->flMFM ? 0 : 0x40;
+				d88_sct.del = sect->flDDAM ? 0x10 : 0;
+				if(sect->bySTS1 & 0x20) {
+					if(sect->bySTS2 & 0x20) {
+						d88_sct.stat = 0xb0; // data crc error
+					} else {
+						d88_sct.stat = 0xa0; // id crc error
+					}
+				} else if(sect->bySTS1 & 0x01) {
+					d88_sct.stat = 0xe0; // address mark missing
+				} else if(sect->bySTS2 & 0x01) {
+					d88_sct.stat = 0xf0; // data mark missing
+				} else {
+					d88_sct.stat = d88_sct.del;
+				}
+				d88_sct.size(secsize[d88_sct.n & 3]);
+				
+				// create sector image
+				uint8_t dst[16384], dst_tmp[16384];
+				uint8_t unstable[16384] = {0}, unstable_sec_exists = 0;
+				
+				memset(dst, 0xe5, sizeof(dst));
+				fio->Fread(dst, d88_sct.size(), 1);
+				
+				for(int r = 0; r < sect->byRetry; r++) {
+					fio->Fread(dst_tmp, d88_sct.size(), 1);
+					for(int i = 0; i < d88_sct.size(); i++) {
+						unstable[i] |= dst[i] ^ dst_tmp[i];
+						unstable_sec_exists |= unstable[i];
+					}
+				}
+				
+				// copy to d88
+				COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
+				COPYBUFFER(dst, d88_sct.size());
+				trkptr += sizeof(d88_sct_t) + d88_sct.size();
+				
+				if(sect->byPDA == 0x10) {
+					d88_hdr.type = MEDIA_TYPE_2DD;
+				} else {
+					d88_hdr.type = MEDIA_TYPE_2HD;
+				}
+				
+				// unstable sector
+				if(unstable_sec_exists) {
+					// index of parent sector in this track
+					d88_sct.rsrv[0] = (s >> 0) & 0xff;
+					d88_sct.rsrv[1] = (s >> 8) & 0xff;
+					memcpy(tmp_buffer + unstable_sec_ptr, &d88_sct, sizeof(d88_sct_t));
+					unstable_sec_ptr += sizeof(d88_sct_t);
+					memcpy(tmp_buffer + unstable_sec_ptr, unstable, d88_sct.size());
+					unstable_sec_ptr += d88_sct.size();
+					unstable_sec_num++;
+				}
+			}
+			for(int s = 0; s < track->wDiag(); s++) {
+				NFD_DIAG_ID1 *diag = (NFD_DIAG_ID1 *)(buf + offset);
+				offset += sizeof(NFD_DIAG_ID1);
+				fio->Fseek(diag->dwDataLen() * (diag->byRetry + 1), FILEIO_SEEK_CUR);
+			}
+			if(unstable_sec_num) {
+				// copy unstable sectors to d88
+				uint8_t *t = tmp_buffer;
+				for(int s = 0; s < unstable_sec_num; s++) {
+					((d88_sct_t *)t)->nsec(unstable_sec_num);
+					t += sizeof(d88_sct_t) + ((d88_sct_t *)t)->size();
+				}
+				COPYBUFFER(tmp_buffer, unstable_sec_ptr);
+				trkptr += unstable_sec_ptr;
+				is_d8e_image = true;
+			}
+		}
+	}
+	free(buf);
+	
+	d88_hdr.size(trkptr);
+	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
+	return true;
 }
 
 // solid image decoder
@@ -2561,7 +2847,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	
 	for(int c = 0; c < ncyl; c++) {
 		for(int h = 0; h < nside; h++) {
-			d88_hdr.trkptr[t++] = trkptr;
+			d88_hdr.trkptr(t++, trkptr);
 			if(nside == 1) {
 				t++;
 			}
@@ -2574,11 +2860,11 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 				d88_sct.h = h;
 				d88_sct.r = s + 1;
 				d88_sct.n = n;
-				d88_sct.nsec = nsec;
+				d88_sct.nsec(nsec);
 				d88_sct.dens = mfm ? 0 : 0x40;
 				d88_sct.del = 0;
 				d88_sct.stat = 0;
-				d88_sct.size = size;
+				d88_sct.size(size);
 				
 				// create sector image
 				uint8_t dst[16384];
@@ -2598,12 +2884,12 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 		}
 	}
 	d88_hdr.type = (type == MEDIA_TYPE_144) ? MEDIA_TYPE_2HD : type;
-	d88_hdr.size = trkptr;
+	d88_hdr.size(trkptr);
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
 }
 
-#define STATE_VERSION	14
+#define STATE_VERSION	15
 
 bool DISK::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2618,6 +2904,7 @@ bool DISK::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(orig_file_size);
 	state_fio->StateValue(orig_crc32);
 	state_fio->StateValue(trim_required);
+	state_fio->StateValue(is_d8e_image);
 	state_fio->StateValue(is_1dd_image);
 	state_fio->StateValue(is_solid_image);
 	state_fio->StateValue(is_fdi_image);
@@ -2649,8 +2936,11 @@ bool DISK::process_state(FILEIO* state_fio, bool loading)
 	if(loading) {
 		int offset = state_fio->FgetInt32_LE();
 		sector = (offset != -1) ? buffer + offset : NULL;
+		offset = state_fio->FgetInt32_LE();
+		unstable = (offset != -1) ? buffer + offset : NULL;
 	} else {
-		state_fio->FputInt32_LE(sector ? (int)(sector - buffer) : -1);
+		state_fio->FputInt32_LE(sector ? (int)((LONG_PTR)sector - (LONG_PTR)buffer) : -1);
+		state_fio->FputInt32_LE(unstable ? (int)((LONG_PTR)unstable - (LONG_PTR)buffer) : -1);
 	}
 	state_fio->StateValue(sector_size.sd);
 	state_fio->StateArray(id, sizeof(id), 1);

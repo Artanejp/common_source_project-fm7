@@ -1109,8 +1109,11 @@ uint32_t UPD765A::read_sector()
 		}
 		// sector number is matched
 		if(disk[drv]->invalid_format) {
-			memset(buffer, disk[drv]->drive_mfm ? 0x4e : 0xff, sizeof(buffer));
-			memcpy(buffer, disk[drv]->sector, disk[drv]->sector_size.sd);
+			for(int j = 0; j < disk[drv]->sector_size.sd; j++) {
+				uint8_t mask = disk[drv]->unstable ? disk[drv]->unstable[j] : 0;
+				buffer[j] = (disk[drv]->sector[j] & ~mask) | (rand() & mask);
+			}
+			memset(buffer + disk[drv]->sector_size.sd, disk[drv]->drive_mfm ? 0x4e : 0xff, sizeof(buffer) - disk[drv]->sector_size.sd);
 		} else {
 			memcpy(buffer, disk[drv]->track + disk[drv]->data_position[i], disk[drv]->get_track_size() - disk[drv]->data_position[i]);
 			memcpy(buffer + disk[drv]->get_track_size() - disk[drv]->data_position[i], disk[drv]->track, disk[drv]->data_position[i]);

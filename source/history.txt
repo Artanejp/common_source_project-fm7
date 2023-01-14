@@ -1,3 +1,12 @@
+12/22/2022
+
+[VM/DISK] improve for big endian environment
+[VM/DISK] support T98-NEXT nfd r1 floppy disk image
+[VM/DISK] support enhanced d88 format (.d8e) for unstable sector data
+[VM/MB8877] support unstable sector data
+[VM/UPD765A] support unstable sector data
+
+
 12/17/2022-2
 
 [VM/I8237] fix verify operation
