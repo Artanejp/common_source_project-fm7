@@ -1,0 +1,28 @@
+"eCRC-80" - Computer Research CRC-80 Emulator for Win32
+								6/8/2022
+
+--- Internal ROM images
+
+	MON.ROM		$0000-$03FF
+	TTY.ROM		$0400-$07FF
+	EXT.ROM		$0800-$0BFF
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	GO		F1
+	DA		F2
+	AD		F3
+	INC		F4
+	DEC		F5
+	LD		F6
+	STP		F7
+	ST		F8
+	0-9,A-F		0-9,A-F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

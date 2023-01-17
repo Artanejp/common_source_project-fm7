@@ -40,6 +40,11 @@
 #include "colecovision/colecovision.h"
 #endif
 
+// Computer Research CRC-80
+#ifdef _CRC80
+#include "crc80/crc80.h"
+#endif
+
 // TOSHIBA EX-80BS
 #ifdef _EX80BS
 #include "ex80bs/ex80bs.h"

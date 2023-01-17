@@ -1,10 +1,10 @@
 /*
  * Common Source code Project:
- * Ui->Qt->MainWindow for SORE M23 / M68.
- * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * Ui->Qt->MainWindow for SORD M23 / M68.
+ * (C) 2023 K.Ohta <whatisthis.sowhat _at_ gmail.com>
  *   License : GPLv2
  *   History :
- * Jan 14, 2022 : Split from eMP85
+ * Jan 14, 2023 : Split from eMP85
  */
 
 #include <QApplication>

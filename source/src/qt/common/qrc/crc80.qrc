@@ -1,0 +1,33 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="background.png">../../../res/crc80/board.png</file>
+    <file alias="default.ico">../../../res/crc80.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/crc80.txt</file>
+    <file alias="button00.png">../../../res/crc80/button00.png</file>
+    <file alias="button01.png">../../../res/crc80/button01.png</file>
+    <file alias="button02.png">../../../res/crc80/button02.png</file>
+    <file alias="button03.png">../../../res/crc80/button03.png</file>
+    <file alias="button04.png">../../../res/crc80/button04.png</file>
+    <file alias="button05.png">../../../res/crc80/button05.png</file>
+    <file alias="button06.png">../../../res/crc80/button06.png</file>
+    <file alias="button07.png">../../../res/crc80/button07.png</file>
+    <file alias="button08.png">../../../res/crc80/button08.png</file>
+    <file alias="button09.png">../../../res/crc80/button09.png</file>
+    <file alias="button10.png">../../../res/crc80/button10.png</file>
+    <file alias="button11.png">../../../res/crc80/button11.png</file>
+    <file alias="button12.png">../../../res/crc80/button12.png</file>
+    <file alias="button13.png">../../../res/crc80/button13.png</file>
+    <file alias="button14.png">../../../res/crc80/button14.png</file>
+    <file alias="button15.png">../../../res/crc80/button15.png</file>
+    <file alias="button16.png">../../../res/crc80/button16.png</file>
+    <file alias="button17.png">../../../res/crc80/button17.png</file>
+    <file alias="button18.png">../../../res/crc80/button18.png</file>
+    <file alias="button19.png">../../../res/crc80/button19.png</file>
+    <file alias="button20.png">../../../res/crc80/button20.png</file>
+    <file alias="button21.png">../../../res/crc80/button21.png</file>
+    <file alias="button22.png">../../../res/crc80/button22.png</file>
+    <file alias="button23.png">../../../res/crc80/button23.png</file>
+    <file alias="button24.png">../../../res/crc80/button24.png</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/crc80.ja_JP.qm</file>
+</qresource>
+</RCC>

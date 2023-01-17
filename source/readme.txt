@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								5/25/2022
+								6/8/2022
 
 --- What's this ?
 
@@ -22,6 +22,8 @@ This archive includes the all source codes of emulators listed below:
 		EmuGaki		PV-2000
 	COLECO
 		yaCOLECOVISION	ColecoVision
+	Computer Research
+		eCRC-80		CRC-80
 	EPOCH
 		eSCV		Super Cassette Vision
 	EPSON

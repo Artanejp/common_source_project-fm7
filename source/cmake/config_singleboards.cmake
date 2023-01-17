@@ -1,4 +1,5 @@
 set(BUILD_BABBAGE2ND ON CACHE BOOL "Build Gijutsu-Hyoron-Sha Babbage-2nd")
+set(BUILD_CRC80 ON CACHE BOOL "Build Computer Research CRC-80")
 set(BUILD_MP85 ON CACHE BOOL "Build MITEC MP-85")
 set(BUILD_SMB80TE ON CACHE BOOL "Build SHARP SM-B-80TE")
 set(BUILD_TK80 ON CACHE BOOL "Build NEC TK-80")
@@ -10,6 +11,12 @@ if(BUILD_BABBAGE2ND)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/babbage2nd.qrc)
 	ADD_VM(babbage2nd emubabbage2nd _BABBAGE2ND)
 endif()
+
+if(BUILD_CRC80)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/crc80.qrc)
+	ADD_VM(crc80 emucrc80 _CRC80)
+endif()
+
 if(BUILD_MP85)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/mp85.qrc)
 	ADD_VM(mp85 emump85 _MP85)

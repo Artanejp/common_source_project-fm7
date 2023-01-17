@@ -35,6 +35,10 @@ devenv.com colecovision.vcproj /Rebuild Release
 mkdir build_xp\colecovision
 copy Release\colecovision.exe build_xp\colecovision\.
 
+devenv.com crc80.vcproj /Rebuild Release
+mkdir build_xp\crc80
+copy Release\crc80.exe build_xp\crc80\.
+
 devenv.com ex80bs.vcproj /Rebuild Release
 mkdir build_xp\ex80bs
 copy Release\ex80bs.exe build_xp\ex80bs\.
