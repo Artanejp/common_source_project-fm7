@@ -41,9 +41,8 @@ add_library(CSPosd SHARED
 )
 set_std(CSPosd)
 
-
 if(WIN32)
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPosd PUBLIC
 	  CSPemu_utils
 	  Qt::Core
@@ -52,10 +51,11 @@ if(WIN32)
 	  Qt::Widgets
 	  Qt::Network
 	  Qt::Multimedia
+	  Qt::Core5Compat
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  elseif(USE_QT_5)
+  else()
 	target_link_libraries(CSPosd
 	  PUBLIC CSPemu_utils
 	  Qt5::Core
@@ -79,17 +79,18 @@ if(WIN32)
 	VERSION ${THIS_LIB_VERSION}
 	)
 else()
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPosd PUBLIC
 		Qt::Core
 		Qt::Gui
 		Qt::Widgets
 		Qt::Network
 		Qt::Multimedia
+		Qt::Core5Compat
 		${SDL2_LIBRARIES}
 		${ADDITIONAL_DLL_LIBRARIES}
 		)
-	elseif(USE_QT_5)
+	else()
 	target_link_libraries(CSPosd PUBLIC
 		Qt5::Core
 		Qt5::Gui

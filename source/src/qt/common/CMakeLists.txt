@@ -41,13 +41,13 @@ if(WIN32)
 endif()
 #cotire(${EXEC_TARGET})
 
-if(USE_QT_6)
+if(CHECK_QT_6)
   if(USE_SOCKET)
     QT_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL Network Qt5CoreCompat)
   else()
     QT_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL Qt5CoreCompat)
   endif()
-elseif(USE_QT_5)
+else()
   if(USE_SOCKET)
     QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL Network)
   else()
@@ -57,25 +57,12 @@ endif()
 
 
 if(WIN32)
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	find_package(Qt6Core)
-  elseif(USE_QT_5)
+  else()
 	find_package(Qt5Core)
   endif()
   target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} -lpthread)
-#  target_link_libraries(${EXEC_TARGET}
-#	${LOCAL_LIBS}
-#	${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPgui.dll.a
-#	${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPavio.dll.a
-
-#	#${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPcommon_vm.dll.a
-#	${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libvm_common_vm.a
-#	${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPfmgen.dll.a
-#	${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPosd.dll.a
-#	${CMAKE_SOURCE_DIR}/../../build-cmake/bin-win32/libCSPemu_utils.dll.a
-#	${BUNDLE_LIBS}
-#	-lpthread
-#	)
 else()
   target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} -lpthread)
 endif()

@@ -221,8 +221,10 @@ echo ${ADDITONAL_DEFINES_FILE}
 
 if [ $USE_QT6 -ne 0 ] ; then
 	CMAKE_OPTS+=(-DUSE_QT_6=ON)
+	CMAKE_OPTS+=(-DUSE_QT_5=OFF)
 else
 	CMAKE_OPTS+=(-DUSE_QT_6=OFF)
+	CMAKE_OPTS+=(-DUSE_QT_5=ON)
 fi
 
 if [ $USE_LTO -ne 0 ] ; then

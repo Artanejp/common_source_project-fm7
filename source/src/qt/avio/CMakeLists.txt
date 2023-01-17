@@ -29,7 +29,7 @@ if(WIN32)
 	${s_qt_avio_srcs}
 	${s_qt_avio_headers_MOC}
 	)
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPavio PUBLIC
 	  PRIVATE ${LIBAV_LIBRARIES}
 	  CSPosd
@@ -39,7 +39,7 @@ if(WIN32)
 	  Qt::Widgets
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  elseif(USE_QT_5)
+  else()
 	target_link_libraries(CSPavio PUBLIC
 	  PRIVATE ${LIBAV_LIBRARIES}
 	  CSPosd
@@ -72,7 +72,7 @@ else()
 	)
   set_std(CSPavio)
 
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPavio PUBLIC
 	  ${LIBAV_LIBRARIES}
 	  Qt::Core
@@ -80,7 +80,7 @@ else()
 	  Qt::Widgets
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  elseif(USE_QT_5)
+  else()
 	target_link_libraries(CSPavio PUBLIC
 	  ${LIBAV_LIBRARIES}
 	  Qt5::Core

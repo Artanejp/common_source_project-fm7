@@ -144,14 +144,14 @@ set(s_qt_gui_srcs
 add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
 
 MAKE_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-if(USE_QT_6)
+if(CHECK_QT_6)
   QT_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
               ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
 		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/shaders.qrc
   		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/i18n_global.qrc
 		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/icons.qrc
 		      )
-elseif(USE_QT_5)
+else()
   QT5_ADD_RESOURCES(s_qt_gui_RCC ${RESOURCE}
               ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/commontexts.qrc
 		      ${CMAKE_CURRENT_SOURCE_DIR}/../common/qrc/shaders.qrc
@@ -168,7 +168,7 @@ if(WIN32)
 	${s_qt_gui_RCC}
 	)
   
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPgui 
 	  PRIVATE 	  CSPosd
 	  CSPavio
@@ -180,7 +180,7 @@ if(WIN32)
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  elseif(USE_QT_5)
+  else()
 	target_link_libraries(CSPgui 
 	  PRIVATE 	  CSPosd
 	  CSPavio
@@ -216,7 +216,7 @@ else()
   #add_precompiled_header(CSPgui pch_list
   #		SOURCE_CXX pch.cpp FORCEINCLUDE
   #)
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPgui PUBLIC
 	  Qt::Core
 	  Qt::Gui
@@ -225,7 +225,7 @@ else()
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  elseif(USE_QT_5)	
+  else()	
 	target_link_libraries(CSPgui PUBLIC
 	  Qt5::Core
 	  Qt5::Gui

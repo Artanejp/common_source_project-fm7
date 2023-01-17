@@ -26,14 +26,14 @@ if(WIN32)
 	${s_qt_emuutils_headers_MOC}
 	)
 
-  if(USE_QT_6)
+  if(CHECK_QT_6)
 	target_link_libraries(CSPemu_utils PRIVATE
 	  Qt::Core
 	  ${ZLIB_LIBRARIES}
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  elseif(USE_QT_5)
+  else()
 	target_link_libraries(CSPemu_utils PRIVATE
 	  Qt5::Core
 	  ${ZLIB_LIBRARIES}
