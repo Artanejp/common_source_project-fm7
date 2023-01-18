@@ -1,5 +1,6 @@
 /*
 	SORD M23 Emulator 'Emu23'
+	SORD M68 Emulator 'Emu68'
 
 	Author : Takeda.Toshiya
 	Date   : 2022.05.21-
@@ -53,9 +54,13 @@ using M23::MEMBUS;
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
+#ifdef _M68
+	config.drive_type = 2;
+#else
 	if(!(config.drive_type >= 0 && config.drive_type < 2)) {
 		config.drive_type = 0;
 	}
+#endif
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -125,6 +130,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13分周) / CTC:2分周 / SIO:16分周 = 9600 baud
 	ctc->set_constant_clock(2, 12500);		// 実測 12.49KHz
 	ctc->set_constant_clock(3, 2500);		// 実測 2.499KHz
+#ifdef _M68
+	ctc2->set_constant_clock(0, CPU_CLOCKS / 13);	// 実測 307.6KHz
+	ctc2->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13分周) / CTC:2分周 / SIO:16分周 = 9600 baud
+	ctc2->set_constant_clock(2, 12500);		// 実測 12.49KHz
+	ctc2->set_constant_clock(3, 2500);		// 実測 2.499KHz
+#endif
 	dma->set_context_memory(memory);
 	dma->set_context_io(io);
 
@@ -198,10 +209,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf8, 0xfb, sio);
 	io->set_iomap_range_rw(0xfc, 0xff, ctc);
 	
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+	initialize_devices();
+//
+//	for(DEVICE* device = first_device; device; device = device->next_device) {
+//		device->initialize();
+//	}
 	for(int drv = 0; drv < MAX_DRIVE; drv++) {
 		static const struct {
 			uint8_t type;
@@ -222,12 +238,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
+
+//	for(DEVICE* device = first_device; device;) {
+//		DEVICE *next_device = device->next_device;
+//		device->release();
+//		delete device;
+//		device = next_device;
+//	}
 }
 
 DEVICE* VM::get_device(int id)
@@ -408,22 +426,8 @@ void VM::update_config()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
-		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
 	}
 	return true;
 }
