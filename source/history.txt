@@ -1,3 +1,17 @@
+7/3/2022
+
+[WIN32/MIDI] support MIDI device
+
+[VM/DISK] support solid images that has 1st track with different format
+[VM/DISK] support solid image for SORD M68
+[VM/MIDI] support MIDI port device
+[VM/SPEAKER] support analog speaker device
+[VM/TMPZ84C015] support TMPZ84C015 and TMPZ84C013
+[VM/Z80CTC] support ZC/TO3 output for TMPZ84C015 and TMPZ84C013
+
+[TRNJR] support ESP TRN Junior
+
+
 6/8/2022
 
 [CRC80] support Computer Research CRC-80

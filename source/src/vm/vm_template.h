@@ -73,6 +73,12 @@ public:
 	virtual uint8_t* get_socket_recv_buffer1(int ch);
 	virtual void inc_socket_recv_buffer_ptr(int ch, int size);
 
+	// MIDI
+	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch) {}
+	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch) {}
+	virtual void __FASTCALL ready_receive_from_midi(int ch, double timestamp_usec) {}
+	virtual void __FASTCALL request_stop_to_send_to_midi(int ch, double timestamp_usec) {}
+
 	// notify key
 	virtual void key_down(int code, bool repeat);
 	virtual void key_up(int code);

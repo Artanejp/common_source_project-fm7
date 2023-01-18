@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 8.10.0)
+SET(THIS_LIB_VERSION 8.11.0)
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -17,6 +17,7 @@ SET(s_qt_osd_srcs
 	osd_screen.cpp
 	osd_console.cpp
 	osd_input.cpp
+	osd_midi.cpp
 	osd_printer.cpp
 	osd_socket.cpp
 	osd_sound.cpp

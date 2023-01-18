@@ -2028,6 +2028,76 @@ void EMU::recv_socket_data(int ch)
 }
 #endif
 
+// ----------------------------------------------------------------------------
+// MIDI
+// ----------------------------------------------------------------------------
+
+#ifdef USE_MIDI
+void EMU::send_to_midi(uint8_t data, int ch, double timestamp_usec)
+{
+	osd->send_to_midi(data, ch, timestamp_usec);
+}
+
+bool EMU::recv_from_midi(uint8_t *data, int ch, double timestamp_usec)
+{
+	return osd->recv_from_midi(data, ch, timestamp_usec);
+}
+// ToDo: Will implement timeout function.
+bool EMU::send_to_midi_timeout(uint8_t data, int ch, uint64_t timeout_ms, double timestamp_usec)
+{
+	// ToDo: will implement handshake.
+	// Q: Need to check VM's timeout status?
+	return osd->send_to_midi_timeout(data, ch, timeout_ms, timestamp_usec);
+}
+
+bool EMU::recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms, double timestamp_usec)
+{
+	// ToDo: will implement handshake.
+	// Q: Need to check VM's timeout status?
+	return osd->recv_from_midi_timeout(data, ch, timeout_ms, timestamp_usec);
+}
+
+//void EMU::notify_timeout_sending_to_midi(int ch)
+//{
+//	vm->notify_timeout_sending_to_midi(ch);
+//}
+//void EMU::notify_timeout_receiving_from_midi(int ch)
+//{
+//	vm->notify_timeout_receiving_from_midi(ch);
+//}
+
+void EMU::reset_to_midi(int ch, double timestamp_usec)
+{
+	osd->reset_to_midi(ch, timestamp_usec);
+}
+
+void EMU::initialize_midi_device(bool handshake_from_midi, bool handshake_to_midi, int ch)
+{
+	osd->initialize_midi_device(handshake_from_midi, handshake_to_midi, ch);
+}
+
+//void EMU::ready_receive_from_midi(int ch, double timestamp_usec)
+//{
+//	vm->ready_receive_from_midi(ch, timestamp_usec);
+//}
+
+void EMU::ready_send_to_midi(int ch, double timestamp_usec)
+{
+	osd->ready_send_to_midi(ch,timestamp_usec);
+}
+
+void EMU::request_stop_to_receive_from_midi(int ch, double timestamp_usec)
+{
+	osd->request_stop_to_receive_from_midi(ch, timestamp_usec);
+}
+
+//void EMU::request_stop_to_send_to_midi(int ch, double timestamp_usec)
+//{
+//	vm->request_stop_to_send_to_midi(ch, timestamp_usec);
+//}
+
+
+#endif
 // ---------------------------------------------------------------------------
 // debugger (some functions needed by libCSPcommon_vm 20190221 K.O)
 // ---------------------------------------------------------------------------

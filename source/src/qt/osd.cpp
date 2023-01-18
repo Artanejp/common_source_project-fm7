@@ -1191,10 +1191,11 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 	initialize_input();
 	initialize_printer();
 	initialize_screen();
+	initialize_midi();
+	
 	initialize_sound(rate, samples, presented_rate, presented_samples);
 	if(get_use_movie_player() || get_use_video_capture()) initialize_video();
 	if(get_use_socket()) initialize_socket();
-
 }
 
 void OSD::release()
@@ -1203,6 +1204,8 @@ void OSD::release()
 	release_input();
 	release_printer();
 	release_screen();
+	release_midi();
+	
 	release_sound();
 	if(get_use_movie_player() || get_use_video_capture()) release_video();
 	if(get_use_socket()) release_socket();

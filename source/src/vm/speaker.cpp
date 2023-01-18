@@ -7,7 +7,8 @@
 	[ Speaker ]
 */
 
-#include "speaker.h"
+#include "./speaker.h"
+#include "../types/util_sound.h"
 
 void SPEAKER::initialize()
 {

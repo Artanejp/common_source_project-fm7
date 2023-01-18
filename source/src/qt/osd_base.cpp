@@ -60,10 +60,6 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	vm = NULL;
 	
 	SupportedFeatures.clear();
-	midi_receivers.clear();
-	midi_senders.clear();
-	sio_receivers.clear();
-	sio_senders.clear();
 	
 	is_glcontext_shared = false;
 	glContext = NULL;

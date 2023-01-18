@@ -80,8 +80,6 @@ class USING_FLAGS;
 class CSP_logger;
 
 class QOpenGLContext;
-class MIDI_REDIRECTOR;
-class SIO_REDIRECTOR;
 namespace SOUND_MODULE {
 	namespace OUTPUT {
 		class M_BASE;
@@ -106,15 +104,6 @@ typedef struct {
 	} v;
 } supportedlist_t;
 
-typedef struct {
-	int id; // Unique id
-	MIDI_REDIRECTOR* dev;
-} external_midi_port_t;
-
-typedef struct {
-	int id; // Unique id
-	SIO_REDIRECTOR* dev;
-} external_sio_t;
 
 typedef struct {
 	SDL_AudioFormat format;
@@ -192,10 +181,6 @@ protected:
 	
 	QOpenGLContext *glContext;
 	bool is_glcontext_shared;
-	QList<external_midi_port_t> midi_receivers;
-	QList<external_midi_port_t> midi_senders;
-	QList<external_sio_t> sio_receivers;
-	QList<external_sio_t> sio_senders;
 	
 	QList<supportedlist_t> SupportedFeatures;
 	
@@ -372,6 +357,26 @@ protected:
 	bool host_mode[SOCKET_MAX];
 	int socket_delay[SOCKET_MAX];
 
+	// MIDI : Will implement
+	virtual void initialize_midi();
+	virtual void release_midi();
+	
+	virtual void __FASTCALL send_to_midi(uint8_t data, int ch, double timestamp_usec);
+	virtual bool __FASTCALL recv_from_midi(uint8_t* data, int ch, double timestamp_usec);
+	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, int ch, uint64_t timeout_ms, double timestamp_usec);
+	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms, double timestamp_usec);
+	// Note: Belows maybe make Qt SLOTs.
+	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch);
+	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch);
+	
+	virtual void reset_to_midi(int ch, double timestamp_usec);
+	virtual void initialize_midi_device(bool handshake_from_midi, bool handshake_to_midi, int ch);
+	virtual void __FASTCALL ready_receive_from_midi(int ch, double timestamp_usec);
+	virtual void __FASTCALL ready_send_to_midi(int ch, double timestamp_usec);
+	
+	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch, double timestamp_usec);
+	virtual void __FASTCALL request_stop_to_send_to_midi(int ch, double timestamp_usec);
+
 	// wrapper
 	int max_vm_nodes;
 	QList<device_node_t> device_node_list;
@@ -415,45 +420,6 @@ public:
 	virtual void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	// sound
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
-	virtual bool push_midi_data(int id, uint32_t data) {
-		return true; // Dummy
-	}
-	virtual int bind_midi_receiver_port(MIDI_REDIRECTOR* dev) {
-		int n = midi_receivers.count();
-		external_midi_port_t s;
-		s.id = n + 1;
-		s.dev = dev;
-		midi_receivers.push_back(s);
-		return s.id; // Dummy
-	}
-	virtual int bind_midi_send_to(MIDI_REDIRECTOR* dev) {
-		int n = midi_senders.count();
-		external_midi_port_t s;
-		s.id = n + 1;
-		s.dev = dev;
-		midi_senders.push_back(s);
-		return s.id; // Dummy
-	}
-	// UART
-	virtual bool push_sio_data(int id, uint32_t data) {
-		return true; // Dummy
-	}
-	virtual int bind_sio_receiver_port(SIO_REDIRECTOR* dev) {
-		int n = sio_receivers.count();
-		external_sio_t s;
-		s.id = n + 1;
-		s.dev = dev;
-		sio_receivers.push_back(s);
-		return s.id; // Dummy
-	}
-	virtual int bind_sio_send_to(SIO_REDIRECTOR* dev) {
-		int n = sio_senders.count();
-		external_sio_t s;
-		s.id = n + 1;
-		s.dev = dev;
-		sio_senders.push_back(s);
-		return s.id; // Dummy
-	}
 
 	virtual void release();
 	void power_off();

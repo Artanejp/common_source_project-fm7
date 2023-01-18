@@ -377,10 +377,11 @@ public:
 	// Send / Receive with timeout.
 	// If timeout (no connection) , OSD calls EMU::notify_timeout_*_midi(ch) .
 	// If Success to communication, OSD calls ready_*_midi(ch, timestamp).
-	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, uint64_t timeout_ms = 0, int ch = 0, double timestamp_usec = 0.0) { return true; /* dummy send. */ }
-	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data,  uint64_t timeout_ms = 0,  int ch = 0, double timestamp_usec = 0.0) { return false; }
-	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch = 0) {}
-	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch = 0) {}
+	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, int ch = 0, uint64_t timeout_ms = 0, double timestamp_usec = 0.0) { return true; /* dummy send. */ }
+	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data, int ch = 0, uint64_t timeout_ms = 0, double timestamp_usec = 0.0) { return false; }
+	
+	//virtual void __FASTCALL notify_timeout_sending_to_midi(int ch = 0) {}
+	//virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch = 0) {}
 	
 	// Reset physical midi device(s). nagative value will reset all.
 	virtual void __FASTCALL reset_to_midi(int ch = -1, double timestamp_usec = 0.0) {}
@@ -390,10 +391,10 @@ public:
 												   bool handshake_to_midi = false,
 												   int ch = 0)
 	{}
-	virtual void __FASTCALL ready_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) {}
+	//virtual void __FASTCALL ready_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) {}
 	virtual void __FASTCALL ready_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
 	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) {}
-	virtual void __FASTCALL request_stop_to_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
+	//virtual void __FASTCALL request_stop_to_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
 	
 	// debugger
 	virtual void initialize_debugger() { }

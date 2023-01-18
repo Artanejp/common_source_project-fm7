@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 7.3.0)
+SET(THIS_LIB_VERSION 7.5.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -58,7 +58,7 @@ set(s_vm_common_vm_srcs
 	../memory.cpp
 	../msm5205.cpp
 	../msm58321_base.cpp
-	../midi_redirector.cpp
+	../midi.cpp
 
 #	../mz1p17.cpp
 #	../n2a03.cpp
@@ -77,12 +77,19 @@ set(s_vm_common_vm_srcs
 	../scsi_dev.cpp
 	../scsi_hdd.cpp
 #	../scsi_host.cpp
-	../sio_redirector.cpp
+
 	
 	../sn76489an.cpp
+
+	../speaker.cpp
+	
 #	../sy6522.cpp
 	../t3444a.cpp
 	../tf20.cpp
+
+	../tmpz84c013.cpp
+	../tmpz84c015.cpp
+	
 	../tms3631.cpp
 	../tms9918a.cpp
 #	../tms9995.cpp

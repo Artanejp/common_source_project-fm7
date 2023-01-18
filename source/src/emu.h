@@ -284,7 +284,17 @@ public:
 	void send_socket_data(int ch)  override;
 	void recv_socket_data(int ch)  override;
 #endif
-	
+	// MIDI
+#ifdef USE_MIDI
+	void __FASTCALL send_to_midi(uint8_t data, int ch = 0, double timestamp_usec = 0.0) override;
+	bool __FASTCALL recv_from_midi(uint8_t *data, int ch = 0, double timestamp_usec = 0.0) override;
+	bool __FASTCALL send_to_midi_timeout(uint8_t data, int ch = 0, uint64_t timeout_ms = 0, double timestamp_usec = 0.0) override;
+	bool __FASTCALL recv_from_midi_timeout(uint8_t* data, int ch = 0, uint64_t timeout_ms = 0, double timestamp_usec = 0.0) override;
+	void reset_to_midi(int ch = -1, double timestamp_usec = 0.0) override;
+	void initialize_midi_device(bool handshake_from_midi = false, bool handshake_to_midi = false, int ch = -1) override;
+	void __FASTCALL ready_send_to_midi(int ch = 0, double timestamp_usec = 0.0) override;
+	void __FASTCALL request_stop_to_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) override;
+#endif
 	// debugger
 #ifdef USE_DEBUGGER
 	void open_debugger(int cpu_index) override;

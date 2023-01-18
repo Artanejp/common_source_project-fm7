@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								6/8/2022
+								7/3/2022
 
 --- What's this ?
 
@@ -31,6 +31,8 @@ This archive includes the all source codes of emulators listed below:
 		eHC-40		HC-40/PX-4
 		eHC-80		HC-80/PX-8/Geneva
 		eQC-10		QC-10 / QX-10
+	ESP
+		eTRNJunior	TRN Junior
 	FUJITSU
 		eFM8		FM-8 (by Mr.Artane.)
 		eFM7		FM-7 (by Mr.Artane.)
