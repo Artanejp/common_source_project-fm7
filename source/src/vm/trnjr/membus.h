@@ -26,7 +26,7 @@ public:
 	~MEMBUS() {}
 	
 	// common function
-	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) ovrride;
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) override;
 	
 	// unique function
 	void set_context_cpudev(DEVICE* device)

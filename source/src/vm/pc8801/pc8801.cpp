@@ -510,10 +510,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
+	initialize_devices();
+
+//	for(DEVICE* device = first_device; device; device = device->next_device) {
 //		printf("DEV NAME=%s ID=%d\n", device->this_device_name, device->this_device_id);
-		device->initialize();
-	}
+//		device->initialize();
+//	}
 #ifdef SUPPORT_PC88_FDD_8INCH
 	if(config.dipswitch & DIPSWITCH_FDD_8INCH) {
 		pc88fdc_8inch->set_drive_type(0, DRIVE_TYPE_2HD);
@@ -526,12 +531,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
+//	for(DEVICE* device = first_device; device;) {
+//		DEVICE *next_device = device->next_device;
+//		device->release();
+//		delete device;
+//		device = next_device;
+//	}
 }
 
 

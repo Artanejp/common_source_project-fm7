@@ -1,0 +1,26 @@
+"eTRNJunior" - ESP TRN Junior Emulator for Win32
+								7/3/2022
+
+--- Internal ROM images
+
+	MON.ROM		$0000-$7FFF
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	REG		F1
+	INC		F2
+	DEC		F3
+	RUN		F4
+	STEP		F5
+	WRT		F6
+	ADRS		F7
+	SHFT		F8
+	0-9,A-F		0-9,A-F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://takeda-toshiya.my.coocan.jp/

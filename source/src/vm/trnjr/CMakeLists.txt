@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.0)
 
-message("* vm/trnjr")
+message("* vm/emutrnjr")
 
-add_library(vm_trnjr
+add_library(vm_emutrnjr
 	display.cpp
-	keyboard.cpp
+	membus.cpp
 	
 	trnjr.cpp
 )

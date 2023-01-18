@@ -361,22 +361,6 @@ protected:
 	virtual void initialize_midi();
 	virtual void release_midi();
 	
-	virtual void __FASTCALL send_to_midi(uint8_t data, int ch, double timestamp_usec);
-	virtual bool __FASTCALL recv_from_midi(uint8_t* data, int ch, double timestamp_usec);
-	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, int ch, uint64_t timeout_ms, double timestamp_usec);
-	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms, double timestamp_usec);
-	// Note: Belows maybe make Qt SLOTs.
-	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch);
-	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch);
-	
-	virtual void reset_to_midi(int ch, double timestamp_usec);
-	virtual void initialize_midi_device(bool handshake_from_midi, bool handshake_to_midi, int ch);
-	virtual void __FASTCALL ready_receive_from_midi(int ch, double timestamp_usec);
-	virtual void __FASTCALL ready_send_to_midi(int ch, double timestamp_usec);
-	
-	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch, double timestamp_usec);
-	virtual void __FASTCALL request_stop_to_send_to_midi(int ch, double timestamp_usec);
-
 	// wrapper
 	int max_vm_nodes;
 	QList<device_node_t> device_node_list;
@@ -600,6 +584,23 @@ public:
 	virtual void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	virtual void send_socket_data(int ch);
 	virtual void recv_socket_data(int ch);
+
+	// common MIDI
+	virtual void __FASTCALL send_to_midi(uint8_t data, int ch, double timestamp_usec);
+	virtual bool __FASTCALL recv_from_midi(uint8_t* data, int ch, double timestamp_usec);
+	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, int ch, uint64_t timeout_ms, double timestamp_usec);
+	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms, double timestamp_usec);
+	// Note: Belows maybe make Qt SLOTs.
+	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch);
+	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch);
+	
+	virtual void reset_to_midi(int ch, double timestamp_usec);
+	virtual void initialize_midi_device(bool handshake_from_midi, bool handshake_to_midi, int ch);
+	virtual void __FASTCALL ready_receive_from_midi(int ch, double timestamp_usec);
+	virtual void __FASTCALL ready_send_to_midi(int ch, double timestamp_usec);
+	
+	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch, double timestamp_usec);
+	virtual void __FASTCALL request_stop_to_send_to_midi(int ch, double timestamp_usec);
 
 	// win32 dependent
 	void update_screen();

@@ -103,21 +103,26 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
+	initialize_devices();
+//	for(DEVICE* device = first_device; device; device = device->next_device) {
+//		device->initialize();
+//	}
 	pio->write_signal(SIG_Z80PIO_PORT_B, (config.dipswitch & 2) ? 0 : 0xff, 0x10);
 }
 
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
+//	for(DEVICE* device = first_device; device;) {
+//		DEVICE *next_device = device->next_device;
+//		device->release();
+//		delete device;
+//		device = next_device;
+//	}
 }
 
 DEVICE* VM::get_device(int id)

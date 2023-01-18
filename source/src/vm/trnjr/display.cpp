@@ -10,6 +10,9 @@
 #include "./display.h"
 #include "../i8255.h"
 
+#include "../vm.h"
+
+
 namespace TRNJR {
 	
 static const int led_pattern[LED_SIZE_Y][LED_SIZE_X] = {

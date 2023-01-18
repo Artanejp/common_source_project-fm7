@@ -98,20 +98,25 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x80, 0x81, kdc);
 	
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
+	initialize_devices();
+//	for(DEVICE* device = first_device; device; device = device->next_device) {
+//		device->initialize();
+//	}
 }
 
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
+//	for(DEVICE* device = first_device; device;) {
+//		DEVICE *next_device = device->next_device;
+//		device->release();
+//		delete device;
+//		device = next_device;
+//	}
 }
 
 DEVICE* VM::get_device(int id)
