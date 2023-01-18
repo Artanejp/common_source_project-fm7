@@ -411,6 +411,10 @@ msbuild.exe tvboy.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Wi
 mkdir build_vc15\tvboy
 copy bin\x86\Release\tvboy.exe build_vc15\tvboy\.
 
+msbuild.exe trnjr.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\trnjr
+copy bin\x86\Release\trnjr.exe build_vc15\trnjr\.
+
 msbuild.exe x07.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\x07
 copy bin\x86\Release\x07.exe build_vc15\x07\.

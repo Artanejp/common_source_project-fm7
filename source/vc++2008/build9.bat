@@ -415,6 +415,10 @@ devenv.com tvboy.vcproj /Rebuild Release
 mkdir build_xp\tvboy
 copy Release\tvboy.exe build_xp\tvboy\.
 
+devenv.com trnjr.vcproj /Rebuild Release
+mkdir build_xp\trnjr
+copy Release\trnjr.exe build_xp\trnjr\.
+
 devenv.com x07.vcproj /Rebuild Release
 mkdir build_xp\x07
 copy Release\x07.exe build_xp\x07\.
