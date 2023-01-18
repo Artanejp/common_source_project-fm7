@@ -364,6 +364,37 @@ public:
 	virtual void send_socket_data(int ch) {}
 	virtual void recv_socket_data(int ch) {}
 
+	// MIDI
+	// Note: OSD's API will be different from upstream.
+	//       Because, will use libPortMidi to access devices,
+	//       seems to need timestamp (to send data).
+	//       See, https://portmedia.sourceforge.net/portmidi/ .
+	//       Optionally, set timestamp for relative usec at VM.
+	// 20230118 K.O
+	virtual void __FASTCALL send_to_midi(uint8_t data, int ch = 0, double timestamp_usec = 0.0) {}
+	virtual bool __FASTCALL recv_from_midi(uint8_t* data, int ch = 0, double timestamp_usec = 0.0) { return false; }
+
+	// Send / Receive with timeout.
+	// If timeout (no connection) , OSD calls EMU::notify_timeout_*_midi(ch) .
+	// If Success to communication, OSD calls ready_*_midi(ch, timestamp).
+	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, uint64_t timeout_ms = 0, int ch = 0, double timestamp_usec = 0.0) { return true; /* dummy send. */ }
+	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data,  uint64_t timeout_ms = 0,  int ch = 0, double timestamp_usec = 0.0) { return false; }
+	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch = 0) {}
+	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch = 0) {}
+	
+	// Reset physical midi device(s). nagative value will reset all.
+	virtual void __FASTCALL reset_to_midi(int ch = -1, double timestamp_usec = 0.0) {}
+	// Belows are interface between osd and vm/devices.
+	// Some interface devices on VM may have handshake (maybe via UART).
+	virtual void __FASTCALL initialize_midi_device(bool handshake_from_midi = false,
+												   bool handshake_to_midi = false,
+												   int ch = 0)
+	{}
+	virtual void __FASTCALL ready_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) {}
+	virtual void __FASTCALL ready_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
+	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) {}
+	virtual void __FASTCALL request_stop_to_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
+	
 	// debugger
 	virtual void initialize_debugger() { }
 	virtual void release_debugger() { }
