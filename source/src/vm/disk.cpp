@@ -48,40 +48,72 @@ static const int secsize[8] = {
 
 static uint8_t tmp_buffer[DISK_BUFFER_SIZE];
 
+// Note: Should set full fields per definitions due to security reason. 20230118 K.O
 static const fd_format_t fd_formats_base[] = {
-	{ MEDIA_TYPE_2D,  35, 1, 16,  128, FM  },	// 1S	70KB
-	{ MEDIA_TYPE_2D,  35, 2, 16,  128, FM  },	// 2S	140KB
-	{ MEDIA_TYPE_2DD, 77, 1, 26,  128, FM  },	// 1S	250KB
-	{ MEDIA_TYPE_2D,  40, 1,  8,  512, MFM },	// 1D	160KB
-	{ MEDIA_TYPE_2D,  40, 1,  9,  512, MFM },	// 1D	180KB
-	{ MEDIA_TYPE_2D,  40, 1, 10,  512, MFM },	// 1D	200KB
+	{ MEDIA_TYPE_2D,  35, 1, 16,  128,  FM, 	// 1S	70KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  35, 2, 16,  128,  FM, 	// 2S	140KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2DD, 77, 1, 26,  128,  FM, 	// 1S	250KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  40, 1,  8,  512, MFM, 	// 1D	160KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  40, 1,  9,  512, MFM,	 	// 1D	180KB
+							  0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  40, 1, 10,  512, MFM,		// 1D	200KB
+	                          0,    0,  FM },	
 //#if defined(SUPPORT_MEDIA_TYPE_1DD)
-//	{ MEDIA_TYPE_2DD, 70, 1,  8,  512, MFM },	// 1DD	280KB
-//	{ MEDIA_TYPE_2DD, 70, 1,  9,  512, MFM },	// 1DD	315KB
-//	{ MEDIA_TYPE_2DD, 70, 1, 10,  512, MFM },	// 1DD	350KB
-//	{ MEDIA_TYPE_2DD, 80, 1,  8,  512, MFM },	// 1DD	320KB
-//	{ MEDIA_TYPE_2DD, 80, 1,  9,  512, MFM },	// 1DD	360KB
-//	{ MEDIA_TYPE_2DD, 80, 1, 10,  512, MFM },	// 1DD	400KB
+//	{ MEDIA_TYPE_2DD, 70, 1,  8,  512, MFM,		// 1DD	280KB
+//	                          0,    0,  FM },	
+//	{ MEDIA_TYPE_2DD, 70, 1,  9,  512, MFM,		// 1DD	315KB
+//	                          0,    0,  FM },	
+//	{ MEDIA_TYPE_2DD, 70, 1, 10,  512, MFM,		// 1DD	350KB
+//	                          0,    0,  FM },	
+//	{ MEDIA_TYPE_2DD, 80, 1,  8,  512, MFM,		// 1DD	320KB
+//	                          0,    0,  FM },	
+//	{ MEDIA_TYPE_2DD, 80, 1,  9,  512, MFM,		// 1DD	360KB
+//	                          0,    0,  FM },	
+//	{ MEDIA_TYPE_2DD, 80, 1, 10,  512, MFM,		// 1DD	400KB
+//	                          0,    0,  FM },	
 //#else
-	{ MEDIA_TYPE_2D,  35, 2,  8,  512, MFM },	// 2D	280KB
-	{ MEDIA_TYPE_2D,  35, 2,  9,  512, MFM },	// 2D	315KB
-	{ MEDIA_TYPE_2D,  35, 2, 10,  512, MFM },	// 2D	350KB
-	{ MEDIA_TYPE_2D,  40, 2,  8,  512, MFM },	// 2D	320KB
-	{ MEDIA_TYPE_2D,  40, 2,  9,  512, MFM },	// 2D	360KB
-	{ MEDIA_TYPE_2D,  40, 2, 10,  512, MFM },	// 2D	400KB
+	{ MEDIA_TYPE_2D,  35, 2,  8,  512, MFM,		// 2D	280KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  35, 2,  9,  512, MFM,		// 2D	315KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  35, 2, 10,  512, MFM,		// 2D	350KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  40, 2,  8,  512, MFM,		// 2D	320KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  40, 2,  9,  512, MFM,		// 2D	360KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  40, 2, 10,  512, MFM,		// 2D	400KB
+	                          0,    0,  FM },	
 //#endif
-	{ MEDIA_TYPE_2DD, 80, 2,  8,  512, MFM },	// 2DD	640KB
-	{ MEDIA_TYPE_2DD, 80, 2,  9,  512, MFM },	// 2DD	720KB
-	{ MEDIA_TYPE_2DD, 81, 2,  9,  512, MFM },	// 2DD	729KB, ASCII MSX
-	{ MEDIA_TYPE_2DD, 80, 2, 10,  512, MFM },	// 2DD	800KB
-	{ MEDIA_TYPE_2HD, 77, 2, 26,  256, MFM },	// 2HD	1001KB, MITSUBISHI/IBM
-	{ MEDIA_TYPE_2HD, 80, 2, 15,  512, MFM },	// 2HC	1200KB, TOSHIBA/IBM
-	{ MEDIA_TYPE_2HD, 77, 2,  8, 1024, MFM },	// 2HD	1232KB, NEC
-	{ MEDIA_TYPE_144, 80, 2, 18,  512, MFM },	// 2HD	1440KB
-	{ MEDIA_TYPE_144, 80, 2, 21,  512, MFM },	// 2HD	1680KB
-	{ MEDIA_TYPE_144, 82, 2, 21,  512, MFM },	// 2HD	1722KB
-	{ MEDIA_TYPE_144, 80, 2, 36,  512, MFM },	// 2ED	2880KB
-	{ -1, 0, 0, 0, 0 },
+	{ MEDIA_TYPE_2DD, 80, 2,  8,  512, MFM,		// 2DD	640KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2DD, 80, 2,  9,  512, MFM,		// 2DD	720KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2DD, 81, 2,  9,  512, MFM,		// 2DD	729KB, ASCII MSX
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2DD, 80, 2, 10,  512, MFM,		// 2DD	800KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2HD, 77, 2, 26,  128,  FM,
+	                         26,  256, MFM },	// 2HD	998KB, SORD M68
+	{ MEDIA_TYPE_2HD, 77, 2, 26,  256, MFM,		// 2HD	1001KB, MITSUBISHI/IBM
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2HD, 80, 2, 15,  512, MFM,		// 2HC	1200KB, TOSHIBA/IBM
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2HD, 77, 2,  8, 1024, MFM,		// 2HD	1232KB, NEC
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_144, 80, 2, 18,  512, MFM,		// 2HD	1440KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_144, 80, 2, 21,  512, MFM,		// 2HD	1680KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_144, 82, 2, 21,  512, MFM,		// 2HD	1722KB
+	                          0,    0,  FM },	
+	{ MEDIA_TYPE_144, 80, 2, 36,  512, MFM,		// 2ED	2880KB
+	                          0,    0,  FM },	
+	{ -1, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 #define IS_VALID_TRACK(offset) ((offset) >= 0x20 && (offset) < sizeof(buffer))
@@ -96,33 +128,33 @@ void DISK::setup_fd_formats(void)
 	if(osd->check_feature(_T("_SC3000"))) {
 		checked = true;
 		type_sc3000 = true;
-		nt = { MEDIA_TYPE_2D,  40, 1, 16,  256, MFM };	// 1D	160KB
+		nt = { MEDIA_TYPE_2D,  40, 1, 16,  256, MFM, 0, 0, FM };	// 1D	160KB
 	} else if(osd->check_feature(_T("SMC70")) || osd->check_feature(_T("_SMC777"))) {
 		checked = true;
 		type_smc70 = true;
-		nt = { MEDIA_TYPE_2DD, 70, 1, 16,  256, MFM };	// 1DD	280KB
+		nt = { MEDIA_TYPE_2DD, 70, 1, 16,  256, MFM, 0, 0, FM };	// 1DD	280KB
 	} else if (osd->check_feature(_T("_X1")) || osd->check_feature(_T("_X1TWIN"))) {
 		checked = true;
 		type_x1 = true;
-		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM };	// 2D	320KB
+		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM, 0, 0, FM };	// 2D	320KB
 	} else if(osd->check_feature(_T("_X1TURBO")) || osd->check_feature(_T("_X1TURBOZ"))) {
 		checked = true;
 		type_x1 = true;
 		type_x1turbo = true;
-		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM };	// 2D	320KB
+		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM, 0, 0, FM };	// 2D	320KB
 	} else if(osd->check_feature(_T("_M5"))) {
 		checked = true;
 		type_m5 = true;
-		nt = { MEDIA_TYPE_2D,  40, 2, 18,  256, MFM };	// 2D	360KB
+		nt = { MEDIA_TYPE_2D,  40, 2, 18,  256, MFM, 0, 0, FM };	// 2D	360KB
 	} else if(osd->check_feature(_T("_MZ80B")) || osd->check_feature(_T("_MZ2000")) ||
 			  osd->check_feature(_T("_MZ2200")) || osd->check_feature(_T("_MZ2500"))) {
 		checked = true;
 		type_mz80b = true;
-		nt = { MEDIA_TYPE_2DD, 80, 2, 16,  256, MFM };	// 2DD	640KB
+		nt = { MEDIA_TYPE_2DD, 80, 2, 16,  256, MFM, 0, 0, FM };	// 2DD	640KB
 	} else if (osd->check_feature(_T("_YIS"))) {
 		checked = true;
 		type_yis = true;
-		nt = { MEDIA_TYPE_2DD,  80, 1, 16,  256, MFM };	// 1DD	320KB
+		nt = { MEDIA_TYPE_2DD,  80, 1, 16,  256, MFM, 0, 0, FM };	// 1DD	320KB
 	}
 	if(osd->check_feature(_T("_FM7")) || osd->check_feature(_T("_FM8"))) {
 		checked = false;
@@ -150,13 +182,17 @@ void DISK::setup_fd_formats(void)
 	}
 #else // _ANY2D88
 	type_any2d88 = true;
-#endif	
+#endif
+	int _xpos = 0;
 	if(checked) {
 		fd_formats[0] = nt;
-		memcpy(&fd_formats[1], fd_formats_base, sizeof(fd_formats_base));
-	} else {
-		memcpy(&fd_formats[0], fd_formats_base, sizeof(fd_formats_base));
-	}		
+		_xpos++;
+	}
+	// OOPs: Check security reason X-) 20230118 K.O
+	for(int i = 0; i < (sizeof(fd_formats_base) / sizeof(fd_format_t)); i++) {
+		if(i >= ((sizeof(fd_formats) / sizeof(fd_format_t)) - _xpos)) break;
+		fd_formats[i + _xpos] = fd_formats_base[i];
+	}
 }
 
 void DISK::open(const _TCHAR* file_path, int bank)
@@ -424,10 +460,16 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			// check solid image file format
 			for(int i = 0;; i++) {
 				const fd_format_t *p = &fd_formats[i];
+				uint32_t length;
 				if(p->type == -1) {
 					break;
 				}
-				if(file_size.d == (uint32_t)(p->ncyl * p->nside * p->nsec * p->size)) {
+				if(p->nsec2 == 0) {
+					length = (uint32_t)(p->ncyl * p->nside * p->nsec * p->size);
+				} else {
+					length = (uint32_t)(p->nsec * p->size + (p->ncyl * p->nside - 1) * p->nsec2 * p->size2);
+				}
+				if(file_size.d == length) {
 					fio->Fseek(0, FILEIO_SEEK_SET);
 					int type = p->type;
 					int ncyl = p->ncyl;
@@ -456,7 +498,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 //#endif
 					try {
 //						if(solid_to_d88(fio, p->type, p->ncyl, p->nside, p->nsec, p->size, p->mfm)) {
-						if(solid_to_d88(fio, type, ncyl, nside, nsec, size, p->mfm)) {
+						if(solid_to_d88(fio, type, ncyl, nside, nsec, size, p->mfm, p->nsec2, p->size2, p->mfm2)) {
 							inserted = changed = is_solid_image = true;
 						}
 					} catch(...) {
@@ -799,6 +841,9 @@ void DISK::close()
 			if(is_solid_image) {
 				bool formatted = false;
 				int tracks = 0;
+				int tmp_nsec = solid_nsec;
+				int tmp_size = solid_size;
+				bool tmp_mfm = solid_mfm;
 				
 				for(int trkside = 0; trkside < 164; trkside++) {
 					pair32_t offset;
@@ -816,18 +861,23 @@ void DISK::close()
 					pair32_t sector_num, data_size;
 					sector_num.read_2bytes_le_from(t + 4);
 					
-					if(sector_num.sd != solid_nsec) {
+					if(sector_num.sd != tmp_nsec) {
 						formatted = true;
 					}
 					for(int i = 0; i < sector_num.sd; i++) {
 						data_size.read_2bytes_le_from(t + 14);
-						if(data_size.sd != solid_size) {
+						if(data_size.sd != tmp_size) {
 							formatted = true;
 						}
-						if(t[6] != (solid_mfm ? 0 : 0x40)) {
+						if(t[6] != (tmp_mfm ? 0 : 0x40)) {
 							formatted = true;
 						}
 						t += data_size.sd + 0x10;
+					}
+					if(solid_nsec2 != 0) {
+						tmp_nsec = solid_nsec2;
+						tmp_size = solid_size2;
+						tmp_mfm  = solid_mfm2;
 					}
 				}
 				if(tracks != (solid_ncyl * solid_nside)) {
@@ -2573,6 +2623,11 @@ bool DISK::nfdr1_to_d88(FILEIO *fio)
 
 bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm)
 {
+	return solid_to_d88(fio, type, ncyl, nside, nsec, size, mfm, 0, 0, false);
+}
+
+bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm, int nsec2, int size2, bool mfm2)
+{
 	int n = 0, t = 0;
 	
 	media_type = type;
@@ -2581,6 +2636,9 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	solid_nsec = nsec;
 	solid_size = size;
 	solid_mfm = mfm;
+	solid_nsec2 = nsec2;
+	solid_size2 = size2;
+	solid_mfm2 = mfm2;
 	
 	// create d88 header
 	d88_hdr_t d88_hdr;
@@ -2635,6 +2693,11 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 				COPYBUFFER(dst, size);
 				trkptr += sizeof(d88_sct_t) + size;
 			}
+			if(nsec2 != 0) {
+				nsec = nsec2;
+				size = size2;
+				mfm  = mfm2;
+			}
 		}
 	}
 	d88_hdr.type = (type == MEDIA_TYPE_144) ? MEDIA_TYPE_2HD : type;
@@ -2643,7 +2706,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	return true;
 }
 
-#define STATE_VERSION	13
+#define STATE_VERSION	14
 
 bool DISK::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2667,6 +2730,9 @@ bool DISK::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(solid_nsec);
 	state_fio->StateValue(solid_size);
 	state_fio->StateValue(solid_mfm);
+	state_fio->StateValue(solid_nsec2);
+	state_fio->StateValue(solid_size2);
+	state_fio->StateValue(solid_mfm2);
 	state_fio->StateValue(inserted);
 	state_fio->StateValue(ejected);
 	state_fio->StateValue(write_protected);

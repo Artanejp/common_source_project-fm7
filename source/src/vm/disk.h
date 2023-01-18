@@ -53,6 +53,8 @@ typedef struct {
 	int type;
 	int ncyl, nside, nsec, size;
 	bool mfm;
+	int nsec2, size2;
+	bool mfm2;
 } fd_format_t;
 
 class CSP_Logger;
@@ -83,6 +85,8 @@ private:
 	uint8_t fdi_header[4096];
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;
+	int solid_nsec2, solid_size2;
+	bool solid_mfm2;
 
 	bool type_sc3000;
 	bool type_smc70;
@@ -116,6 +120,8 @@ private:
 	
 	// solid image decoder (fdi/hdm/xdf/2d/img/sf7/tfd)
 	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
+	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm, int nsec2, int size2, bool mfm2);
+	
 	void setup_fd_formats(void);
 	
 	// internal routines for track
