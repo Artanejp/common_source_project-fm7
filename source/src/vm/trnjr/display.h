@@ -10,13 +10,14 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "../vm.h"
-#include "../../emu.h"
+#include "../vm_template.h"
+#include "../../emu_template.h"
 #include "../device.h"
 
 #define SIG_DISPLAY_PORT_A	0
 #define SIG_DISPLAY_PORT_C	1
 
+namespace TRNJR {
 class DISPLAY : public DEVICE
 {
 private:
@@ -28,17 +29,17 @@ private:
 	void update_keyboard();
 	
 public:
-	DISPLAY(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Display/Keyboard"));
 	}
 	~DISPLAY() {}
 	
 	// common functions
-	void initialize();
-	void write_signal(int id, uint32_t data, uint32_t mask);
-	void event_vline(int v, int clock);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_vline(int v, int clock) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)
@@ -48,5 +49,6 @@ public:
 	void draw_screen();
 };
 
+}
 #endif
 

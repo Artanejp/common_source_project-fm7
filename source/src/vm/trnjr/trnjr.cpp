@@ -16,7 +16,7 @@
 #include "../io.h"
 #include "../midi.h"
 #include "../speaker.h"
-#include "../tmpz84c015.h"
+#include "../tmpz84c013.h"
 #include "../z80.h"
 #include "../z80ctc.h"
 #include "../z80sio.h"
@@ -25,8 +25,11 @@
 #include "../debugger.h"
 #endif
 
-#include "display.h"
-#include "membus.h"
+#include "./display.h"
+#include "./membus.h"
+
+using TRNJR::DISPLAY;
+using TRNJR::MEMBUS;
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -47,7 +50,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	midi = new MIDI(this, emu);
 	speaker = new SPEAKER(this, emu);
 	// TMPZ84C013
-	cpudev = new TMPZ84C015(this, emu);
+	cpudev = new TMPZ84C013(this, emu);
 	cpudev->set_context_ctc(new Z80CTC(this, emu));
 	cpudev->set_context_sio(new Z80SIO(this, emu));
 	cpu = new Z80(this, emu);
@@ -100,20 +103,25 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //	io->set_iomap_range_rw(0x6c, 0x6f, fdc ); // uPD72605
 	
 	// initialize all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+#if defined(__GIT_REPO_VERSION)
+	set_git_repo_version(__GIT_REPO_VERSION);
+#endif
+	initialize_devices();
+//	for(DEVICE* device = first_device; device; device = device->next_device) {
+//		device->initialize();
+//	}
 }
 
 VM::~VM()
 {
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
+	release_devices();
+//	for(DEVICE* device = first_device; device;) {
+//		DEVICE *next_device = device->next_device;
+//		device->release();
+//		delete device;
+//		device = next_device;
+//	}
 }
 
 DEVICE* VM::get_device(int id)
@@ -235,31 +243,15 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->update_config();
-	}
+	VM_TEMPLATE::update_config();
 }
 
 #define STATE_VERSION	1
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		const _TCHAR *name = char_to_tchar(typeid(*device).name() + 6); // skip "class "
-		int len = (int)_tcslen(name);
-		
-		if(!state_fio->StateCheckInt32(len)) {
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
-			return false;
-		}
-		if(!device->process_state(state_fio, loading)) {
-			return false;
-		}
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;

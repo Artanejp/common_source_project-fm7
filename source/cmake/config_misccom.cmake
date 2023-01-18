@@ -37,6 +37,8 @@ set(BUILD_SMC777 ON CACHE BOOL "Build SONY SMC-777")
 
 set(BUILD_TVBOY ON CACHE BOOL "Build GAKKEN TV BOY")
 
+set(BUILD_TRNJR ON CACHE BOOL "Build ESP TRN Junior")
+
 set(BUILD_X07 ON CACHE BOOL "Build CANON X07")
 set(BUILD_YALKY ON CACHE BOOL "Build Yuasa Kyouiku System YALKY")
 set(BUILD_YIS ON CACHE BOOL "Build YAMAHA YIS")
@@ -153,6 +155,11 @@ endif()
 if(BUILD_TVBOY)
 	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/tvboy.qrc)
 	ADD_VM(tvboy emutvboy _TVBOY)
+endif()
+
+if(BUILD_TRNJR)
+	set(RESOURCE ${PROJECT_SOURCE_DIR}/src/qt/common/qrc/trnjr.qrc)
+	ADD_VM(trnjr emutrnjr _TRNJR)
 endif()
 
 if(BUILD_X07)

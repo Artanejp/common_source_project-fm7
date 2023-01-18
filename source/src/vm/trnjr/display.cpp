@@ -7,9 +7,11 @@
 	[ display / keyboard ]
 */
 
-#include "display.h"
+#include "./display.h"
 #include "../i8255.h"
 
+namespace TRNJR {
+	
 static const int led_pattern[LED_SIZE_Y][LED_SIZE_X] = {
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -187,3 +189,4 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+}

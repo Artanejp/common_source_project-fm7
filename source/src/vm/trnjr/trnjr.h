@@ -112,11 +112,13 @@ class I8255;
 class IO;
 class MIDI;
 class SPEAKER;
-class TMPZ84C015;
+class TMPZ84C013;
 class Z80;
 
-class DISPLAY;
-class MEMBUS;
+namespace TRNJR {
+	class DISPLAY;
+	class MEMBUS;
+}
 
 class VM : public VM_TEMPLATE
 {
@@ -131,11 +133,11 @@ protected:
 	IO* io;
 	MIDI* midi;
 	SPEAKER* speaker;
-	TMPZ84C015* cpudev;
+	TMPZ84C013* cpudev;
 	Z80* cpu;
 	
-	DISPLAY* display;
-	MEMBUS* memory;
+	TRNJR::DISPLAY* display;
+	TRNJR::MEMBUS* memory;
 	
 	// memory
 	uint8_t rom[0x8000];
@@ -154,39 +156,39 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
-	void run();
-	double get_frame_rate()
+	void reset() override;
+	void run() override;
+	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;
 	}
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 	
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
 	
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
 	
 	// user interface
-	void load_binary(int drv, const _TCHAR* file_path);
-	void save_binary(int drv, const _TCHAR* file_path);
-	bool is_frame_skippable();
+	void load_binary(int drv, const _TCHAR* file_path) override;
+	void save_binary(int drv, const _TCHAR* file_path) override;
+	bool is_frame_skippable() override;
 	
-	void update_config();
+	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------

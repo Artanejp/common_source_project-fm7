@@ -12,20 +12,21 @@
 
 #include "../memory.h"
 
+namespace TRNJR {
 class MEMBUS : public MEMORY
 {
-private:
+protected:
 	DEVICE *d_cpudev;
 	
 public:
-	MEMBUS(VM_TEMPLATE* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}
 	
 	// common function
-	uint32_t fetch_op(uint32_t addr, int *wait);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) ovrride;
 	
 	// unique function
 	void set_context_cpudev(DEVICE* device)
@@ -33,5 +34,7 @@ public:
 		d_cpudev = device;
 	}
 };
+
+}
 
 #endif
