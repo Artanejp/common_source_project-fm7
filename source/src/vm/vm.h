@@ -167,6 +167,7 @@
 #if defined(_FMTOWNS2_HR20) || defined(_FMTOWNS2_HR100) || defined(_FMTOWNS2_HR200)
 #include "fmtowns/fmtowns.h"
 #endif
+
 // CASIO FP-200
 #ifdef _FP200
 #include "fp200/fp200.h"
@@ -250,6 +251,11 @@
 // SORD m5
 #ifdef _M5
 #include "m5/m5.h"
+#endif
+
+// SORD M68
+#ifdef _M68
+#include "m23/m23.h"
 #endif
 
 // SEIKO MAP-1010
@@ -615,6 +621,11 @@
 #include "tk80bs/tk80bs.h"
 #endif
 
+// ESP TRN Junior
+#ifdef _TRNJR
+#include "trnjr/trnjr.h"
+#endif
+
 // GAKKEN TV BOY
 #ifdef _TVBOY
 #include "tvboy/tvboy.h"
@@ -695,12 +706,14 @@
 #if defined(USE_FLOPPY_DISK) && !defined(BASE_FLOPPY_DISK_NUM)
 	#define BASE_FLOPPY_DISK_NUM	1
 #endif
-
 #if defined(USE_QUICK_DISK) && !defined(BASE_QUICK_DISK_NUM)
 	#define BASE_QUICK_DISK_NUM	1
 #endif
 #if defined(USE_HARD_DISK) && !defined(BASE_HARD_DISK_NUM)
 	#define BASE_HARD_DISK_NUM	1
+#endif
+#if defined(USE_TAPE) && !defined(BASE_TAPE_NUM)
+	#define BASE_TAPE_NUM		1
 #endif
 #if defined(USE_COMPACT_DISC) && !defined(BASE_COMPACT_DISC_NUM)
 	#define BASE_COMPACT_DISC_NUM	1
@@ -713,9 +726,6 @@
 #endif
 #if defined(USE_BUBBLE) && !defined(BASE_BUBBLE_NUM)
 	#define BASE_BUBBLE_NUM		1
-#endif
-#if defined(USE_TAPE) && !defined(BASE_TAPE_NUM)
-        #define BASE_TAPE_NUM           1
 #endif
 
 #ifndef KEY_KEEP_FRAMES
