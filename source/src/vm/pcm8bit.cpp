@@ -84,7 +84,7 @@ void PCM8BIT::mix(int32_t* buffer, int cnt)
 		prev_sample = sample;
 		prev_clock = cur_clock;
 		
-		int volume = max_vol * cur_sample / 256;
+		int volume = (max_vol * cur_sample) / 32; // Up volume 20230120 K.O
 		
 		last_vol_l = apply_volume(volume, volume_l);
 		last_vol_r = apply_volume(volume, volume_r);
