@@ -8,6 +8,7 @@
 */
 
 #include "./pcm8bit.h"
+#include "../types/util_sound.h"
 
 void PCM8BIT::initialize()
 {
