@@ -1,3 +1,14 @@
+7/8/2022
+
+[VM/I8251] support outputting RTS signal
+[VM/PCM8BIT] rename SPEAKER class to PCM8BIT
+
+[PC8801] support JAST SOUND
+[PC9801] support serial MIDI port
+[PC9801/SERIAL] support irq from serial port
+[X1] support JAST SOUND
+
+
 7/3/2022
 
 [WIN32/MIDI] support MIDI device

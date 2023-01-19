@@ -411,13 +411,13 @@ devenv.com tk85.vcproj /Rebuild Release
 mkdir build_xp\tk85
 copy Release\tk85.exe build_xp\tk85\.
 
-devenv.com tvboy.vcproj /Rebuild Release
-mkdir build_xp\tvboy
-copy Release\tvboy.exe build_xp\tvboy\.
-
 devenv.com trnjr.vcproj /Rebuild Release
 mkdir build_xp\trnjr
 copy Release\trnjr.exe build_xp\trnjr\.
+
+devenv.com tvboy.vcproj /Rebuild Release
+mkdir build_xp\tvboy
+copy Release\tvboy.exe build_xp\tvboy\.
 
 devenv.com x07.vcproj /Rebuild Release
 mkdir build_xp\x07

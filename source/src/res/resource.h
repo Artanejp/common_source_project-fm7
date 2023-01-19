@@ -307,6 +307,17 @@
 #define ID_VM_PRINTER_TYPE7             41148
 #define ID_VM_PRINTER_MENU_END          41148
 
+#define ID_VM_SERIAL_MENU_START         41151
+#define ID_VM_SERIAL_TYPE0              41151
+#define ID_VM_SERIAL_TYPE1              41152
+#define ID_VM_SERIAL_TYPE2              41153
+#define ID_VM_SERIAL_TYPE3              41154
+#define ID_VM_SERIAL_TYPE4              41155
+#define ID_VM_SERIAL_TYPE5              41156
+#define ID_VM_SERIAL_TYPE6              41157
+#define ID_VM_SERIAL_TYPE7              41158
+#define ID_VM_SERIAL_MENU_END           41158
+
 #define ID_HOST_MENU_START              41201
 #define ID_HOST_REC_MOVIE_60FPS         41201
 #define ID_HOST_REC_MOVIE_30FPS         41202

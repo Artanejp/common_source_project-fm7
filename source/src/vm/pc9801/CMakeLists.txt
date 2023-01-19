@@ -14,6 +14,7 @@ set(BASIC_VM_FILES
 	keyboard.cpp
 	dmareg.cpp
 	membus.cpp
+	serial.cpp
 	
     pc9801.cpp
 )

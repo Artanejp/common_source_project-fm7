@@ -1,6 +1,6 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 7.5.0)
+SET(THIS_LIB_VERSION 7.5.1)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
@@ -69,7 +69,10 @@ set(s_vm_common_vm_srcs
 	../or.cpp
 	../pc6031.cpp
 	../pc80s31k.cpp
+	
 	../pcm1bit.cpp
+	../pcm8bit.cpp
+	
 	../prnfile.cpp
 	../ptf20.cpp
 	../rp5c01.cpp
@@ -81,8 +84,6 @@ set(s_vm_common_vm_srcs
 	
 	../sn76489an.cpp
 
-	../speaker.cpp
-	
 #	../sy6522.cpp
 	../t3444a.cpp
 	../tf20.cpp

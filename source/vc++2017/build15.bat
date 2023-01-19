@@ -407,13 +407,13 @@ msbuild.exe tk85.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win
 mkdir build_vc15\tk85
 copy bin\x86\Release\tk85.exe build_vc15\tk85\.
 
-msbuild.exe tvboy.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
-mkdir build_vc15\tvboy
-copy bin\x86\Release\tvboy.exe build_vc15\tvboy\.
-
 msbuild.exe trnjr.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\trnjr
 copy bin\x86\Release\trnjr.exe build_vc15\trnjr\.
+
+msbuild.exe tvboy.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\tvboy
+copy bin\x86\Release\tvboy.exe build_vc15\tvboy\.
 
 msbuild.exe x07.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\x07

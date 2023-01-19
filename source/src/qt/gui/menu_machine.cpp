@@ -80,6 +80,22 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 		actionPrintDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
 		actionPrintDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to printer port.", 0));
 	}
+	if(using_flags->is_use_serial()) {
+		menuSerialDevice->setTitle(QApplication::translate("MenuMachine", "Serial (Need RESET)", 0));
+		i = 1;
+		actionSerialDevice[0]->setText(QApplication::translate("MenuMachine", "Phisical PORT", 0));
+		actionSerialDevice[0]->setToolTip(QApplication::translate("MenuMachine", "Send phisical (HOST DEFINED) serial port.\nWill implement to available.", 0));
+		if(using_flags->get_use_printer_type() > 0) {
+			for(i = 1; i < (using_flags->get_use_printer_type() - 1); i++) {
+				tmps2.setNum(i + 1);
+				tmps = QApplication::translate("MenuMachine", "Serial", 0) + tmps2;
+				actionSerialDevice[i]->setText(tmps); 
+				actionSerialDevice[i]->setToolTip(tmps); 
+			}
+		}
+		actionSerialDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
+		actionSerialDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to serial port.", 0));
+	}
 	if(using_flags->get_use_monitor_type() > 0) {
 		menuMonitorType->setTitle(QApplication::translate("MenuMachine", "Monitor Type", 0));
 		menuMonitorType->setToolTipsVisible(true);

@@ -332,7 +332,7 @@
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\midi.cpp" />
-    <ClCompile Include="..\src\vm\speaker.cpp" />
+    <ClCompile Include="..\src\vm\pcm8bit.cpp" />
     <ClCompile Include="..\src\vm\tmpz84c015.cpp" />
     <ClCompile Include="..\src\vm\trnjr\display.cpp" />
     <ClCompile Include="..\src\vm\trnjr\membus.cpp" />
@@ -362,7 +362,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\midi.h" />
-    <ClInclude Include="..\src\vm\speaker.h" />
+    <ClInclude Include="..\src\vm\pcm8bit.h" />
     <ClInclude Include="..\src\vm\tmpz84c015.h" />
     <ClInclude Include="..\src\vm\trnjr\display.h" />
     <ClInclude Include="..\src\vm\trnjr\membus.h" />

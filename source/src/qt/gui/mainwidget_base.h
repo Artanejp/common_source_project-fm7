@@ -471,6 +471,7 @@ private:
 	void ConfigDriveType(void);
 	void ConfigSoundDeviceType(void);
 	void ConfigPrinterType(void);
+	void ConfigSerialType(void);
 	void ConfigMonitorType(void);
 
 	// About Status bar
@@ -560,6 +561,7 @@ protected:
 	QActionGroup *actionGroup_DriveType;
 	QActionGroup *actionGroup_SoundDevice;
 	QActionGroup *actionGroup_PrintDevice;
+	QActionGroup *actionGroup_SerialDevice;
 	QActionGroup *actionGroup_SetFixedCpu;
 	QMenu *menuDeviceType;
 	QMenu *menuKeyboardType;
@@ -568,6 +570,7 @@ protected:
 	QMenu *menuDriveType;
 	QMenu *menuSoundDevice;
 	QMenu *menuPrintDevice;
+	QMenu *menuSerialDevice;
 	QMenu *menu_SetFixedCpu;
 	
 	Action_Control *actionDeviceType[16];
@@ -577,6 +580,7 @@ protected:
 	Action_Control *actionDriveType[8];
 	Action_Control *actionSoundDevice[32]; //
 	Action_Control *actionPrintDevice[16];
+	Action_Control *actionSerialDevice[16];
 	Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
 
 	
@@ -880,6 +884,7 @@ public slots:
 	void set_gl_scan_line_vert(bool);
 	void set_gl_scan_line_horiz(bool);
 	void set_printer_device();
+	void set_serial_device();
 	void do_show_about(void);
 	void do_browse_document(void);
 

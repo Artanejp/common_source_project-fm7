@@ -119,9 +119,13 @@ protected:
 	bool use_notify_power_off;
 
 	bool use_one_board_computer;
+	
 	bool use_printer;
 	int use_printer_type;
 
+	bool use_serial;
+	int use_serial_type;
+	
 	bool use_qd;
 	int max_qd;
 	int base_qd_num;
@@ -297,9 +301,13 @@ public:
 	bool is_use_notify_power_off() { return use_notify_power_off; }
 
 	bool is_use_one_board_computer() { return use_one_board_computer; }
+	
 	bool is_use_printer() { return use_printer; }
 	int get_use_printer_type() { return use_printer_type; }
-
+	
+	bool is_use_serial() { return use_serial; }
+	int get_use_serial_type() { return use_serial_type; }
+	
 	bool is_use_qd() { return use_qd; }
 	int get_max_qd() { return max_qd; }
 	int get_base_quick_disk_num() { return base_qd_num; }

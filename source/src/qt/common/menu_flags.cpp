@@ -23,51 +23,9 @@ const int s_freq_table[8] = {
 
 USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 {
-	p_osd = NULL;
-	use_alt_f10_key = false;
-	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
-	use_auto_key_no_caps = use_auto_key_release =
-	use_auto_key_shift = use_binary_file = false;
-	
-	max_binary = 0;
-	base_binary_num = 0;
-	
-	use_bitmap = false;
-	use_boot_mode = 0;
-
-	use_bubble = false;
-	max_bubble =  max_b77_banks = 0;
-
-	use_cart = false;
-	max_cart = 0;
-	
-	base_cart_num = 0;
-	base_fd_num = 1;
-	base_qd_num = 1;
-	base_hd_num = 1;
-	base_cd_num = 1;
-	base_ld_num = 1;
-	base_binary_num = 1;
-	base_bubble_num = 1;
-
-	use_cpu_type = 0;
-
-	use_compact_disc = use_debugger = false;
-	max_compact_disc = 0;
-	base_cd_num = 0;
-	
-	use_device_type = 0;
-	use_dipswitch = false;
-
-	use_drive_type = 0;
-
-	use_fd = false;
-	base_fd_num = 1;
-	max_drive = max_d88_banks = 0;
 	#if defined(USE_FLOPPY_TYPE_BIT)
 	floppy_type_bit = USE_FLOPPY_TYPE_BIT;
 	#endif
-	max_draw_ranges = 0;
 
 	#if defined(USE_VARIABLE_MEMORY)
 	use_ram_size = true;
@@ -79,50 +37,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 		ram_size_order = RAM_SIZE_ORDER;
 		#endif
 	#endif
-	use_hd = false;
-	max_hd = 0;
-	base_hd_num = 1;
-	
-	use_joystick = use_joy_button_captions = false;
-	num_joy_button_captions = 0;
-
-	use_laser_disc = false;
-	max_laser_disc = 0;
-	base_ld_num = 0;
-
-	max_memcard = 0;
-	use_minimum_rendering = use_dig_resolution = false;
-	use_monitor_type = 0;
-	use_mouse = false;
-	use_movie_player = false;
-	use_notify_power_off = false;
-
-	use_one_board_computer = false;
-	use_printer = false;
-	use_printer_type = 0;
-
-	use_qd = false;
-	max_qd = 0;
-	base_qd_num = 1;
-	
-	use_scanline = use_screen_rotate = false;
-	screen_mode_num = 1;
-
-
-	use_sound_device_type = 0;
-	use_sound_volume = 0;
-	without_sound = false;
-	use_sound_files_fdd = false;
-	use_sound_files_relay = false;
-	
-	use_special_reset = false;
-
-	use_state = false;
-
-	use_tape = use_tape_baud = use_tape_button = use_tape_ptr = false;
-	use_vm_auto_key_table = false;
-	support_tv_render = false;
-	
+		
 	real_screen_width  = SCREEN_WIDTH;
 	real_screen_height = SCREEN_HEIGHT;
 #if defined(USE_CUSTOM_SCREEN_ZOOM_FACTOR)
@@ -146,11 +61,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #endif
 	screen_width_aspect = WINDOW_WIDTH_ASPECT;
 	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
-	max_button = 0;
-	vm_buttons_d = NULL;
 
-	use_vertical_pixel_lines = false;
-	tape_binary_only = false;
 #if defined(DEVICE_NAME)
 	device_name = QString::fromUtf8(DEVICE_NAME);
 #else
@@ -161,7 +72,8 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #else
 	config_name = QString::fromUtf8("");
 #endif
-	
+
+	// Machine definitions
 	machine_pasopia_variants = false;
 #if defined(_PASOPIA7) || defined(_PASOPIA)
 	machine_pasopia_variants = true;
@@ -409,6 +321,12 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	use_printer = true;
 	#if defined(USE_PRINTER_TYPE)
 		use_printer_type = USE_PRINTER_TYPE;
+	#endif	
+#endif
+#if defined(USE_SERIAL)
+	use_serial = true;
+	#if defined(USE_SERIAL_TYPE)
+		use_serial_type = USE_SERIAL_TYPE;
 	#endif	
 #endif
 #if defined(USE_SCANLINE)

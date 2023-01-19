@@ -16,8 +16,8 @@ CRITICAL_SECTION recv_cs;
 unsigned __stdcall midi_thread(void *lpx)
 {
 	volatile midi_thread_params_t *p = (midi_thread_params_t *)lpx;
+	int midi_out_initialized = -1;
 	HMIDIOUT hMidi = NULL;
-	MMRESULT result = midiOutOpen(&hMidi, MIDI_MAPPER, NULL, NULL, CALLBACK_NULL);
 	
 	while(!p->terminate) {
 		while(true) {
@@ -78,7 +78,14 @@ unsigned __stdcall midi_thread(void *lpx)
 			LeaveCriticalSection(&send_cs);
 			
 			if(length > 0) {
-				if(result == MMSYSERR_NOERROR) {
+				if(midi_out_initialized == -1) {
+					if(midiOutOpen(&hMidi, MIDI_MAPPER, NULL, NULL, CALLBACK_NULL) == MMSYSERR_NOERROR) {
+						midi_out_initialized = 1;
+					} else {
+						midi_out_initialized = 0;
+					}
+				}
+				if(midi_out_initialized == 1) {
 					if(buffer[0] == 0xf0) {
 						// system exclusive
 						MIDIHDR mhMidi;
@@ -110,9 +117,9 @@ unsigned __stdcall midi_thread(void *lpx)
 				break;
 			}
 		}
-		Sleep(10);
+		Sleep(0);
 	}
-	if(result == MMSYSERR_NOERROR) {
+	if(midi_out_initialized == 1) {
 		midiOutClose(hMidi);
 	}
 	_endthreadex(0);

@@ -610,6 +610,56 @@ void Ui_MainWindowBase::set_printer_device(void)
 	emit sig_emu_update_config();
 }
 
+void Ui_MainWindowBase::ConfigSerialType(void)
+{
+	if(using_flags->is_use_serial()) {
+		int i;
+		QString tmps;
+		int ilim = 2;
+		if(using_flags->get_use_serial_type() > 0) ilim = using_flags->get_use_serial_type();
+		menuSerialDevice = new QMenu(menuMachine);
+		menuSerialDevice->setObjectName(QString::fromUtf8("menu_SerialDevice"));
+		menuSerialDevice->setToolTipsVisible(true);
+		
+		actionGroup_SerialDevice = new QActionGroup(this);
+		actionGroup_SerialDevice->setObjectName(QString::fromUtf8("actionGroup_SerialDevice"));
+		actionGroup_SerialDevice->setExclusive(true);
+		menuMachine->addAction(menuSerialDevice->menuAction());
+
+		for(i = 0; i < ilim; i++) {
+			actionSerialDevice[i] = new Action_Control(this, using_flags);
+			actionSerialDevice[i]->setCheckable(true);
+			actionSerialDevice[i]->setData(QVariant(i));
+			if(i == p_config->serial_type) actionSerialDevice[i]->setChecked(true); // Need to write configure
+			tmps = QString::fromUtf8("actionSerialDevice_");
+			actionSerialDevice[i]->setObjectName(tmps + QString::number(i));
+			menuSerialDevice->addAction(actionSerialDevice[i]);
+			actionGroup_SerialDevice->addAction(actionSerialDevice[i]);
+			connect(actionSerialDevice[i], SIGNAL(triggered()),
+					this, SLOT(set_serial_device()));
+		}
+	}
+}
+
+void Ui_MainWindowBase::set_serial_device(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int p_type = cp->data().value<int>();
+	
+	// 0 = PRNFILE
+	if(p_type < 0) p_type = 0; // OK?
+	if(using_flags->get_use_serial_type() > 0) {
+		if(p_type >= using_flags->get_use_serial_type()) {
+			p_type = using_flags->get_use_serial_type() - 1;
+		}
+	} else {
+		if(p_type >= 8) p_type = 0;
+	}
+	p_config->serial_type = p_type;
+	emit sig_emu_update_config();
+}
+
 void Ui_MainWindowBase::setTextAndToolTip(QAction *p, QString text, QString tooltip)
 {
 	if(p == nullptr) return;

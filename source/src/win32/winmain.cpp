@@ -869,6 +869,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.printer_type = LOWORD(wParam) - ID_VM_PRINTER_TYPE0;
 			break;
 #endif
+#ifdef USE_SERIAL_TYPE
+		case ID_VM_SERIAL_TYPE0: case ID_VM_SERIAL_TYPE1: case ID_VM_SERIAL_TYPE2: case ID_VM_SERIAL_TYPE3:
+		case ID_VM_SERIAL_TYPE4: case ID_VM_SERIAL_TYPE5: case ID_VM_SERIAL_TYPE6: case ID_VM_SERIAL_TYPE7:
+			config.serial_type = LOWORD(wParam) - ID_VM_SERIAL_TYPE0;
+			break;
+#endif
 		case ID_HOST_REC_MOVIE_60FPS: case ID_HOST_REC_MOVIE_30FPS: case ID_HOST_REC_MOVIE_15FPS:
 			if(emu) {
 				static const int fps[3] = {60, 30, 15};
@@ -1932,6 +1938,15 @@ void update_vm_printer_menu(HMENU hMenu)
 }
 #endif
 
+#ifdef USE_SERIAL_TYPE
+void update_vm_serial_menu(HMENU hMenu)
+{
+	if(config.serial_type >= 0 && config.serial_type < USE_SERIAL_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_SERIAL_TYPE0, ID_VM_SERIAL_TYPE0 + USE_SERIAL_TYPE - 1, ID_VM_SERIAL_TYPE0 + config.serial_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
 void update_host_menu(HMENU hMenu)
 {
 	bool now_rec = true, now_stop = true;
@@ -2421,8 +2436,13 @@ void update_popup_menu(HWND hWnd, HMENU hMenu)
 	}
 #endif
 #ifdef USE_PRINTER_TYPE
-	else if(id >= ID_VM_PRINTER_MENU_START && id <= ID_VM_PRINTER_MENU_START) {
+	else if(id >= ID_VM_PRINTER_MENU_START && id <= ID_VM_PRINTER_MENU_END) {
 		update_vm_printer_menu(hMenu);
+	}
+#endif
+#ifdef USE_SERIAL_TYPE
+	else if(id >= ID_VM_SERIAL_MENU_START && id <= ID_VM_SERIAL_MENU_END) {
+		update_vm_serial_menu(hMenu);
 	}
 #endif
 	else if(id >= ID_HOST_MENU_START && id <= ID_HOST_MENU_END) {

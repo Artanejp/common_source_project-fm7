@@ -344,6 +344,7 @@
     <ClCompile Include="..\src\vm\pc8801\pc88.cpp" />
     <ClCompile Include="..\src\vm\pc8801\pc8801.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
+    <ClCompile Include="..\src\vm\pcm8bit.cpp" />
     <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\scsi_cdrom.cpp" />
     <ClCompile Include="..\src\vm\scsi_dev.cpp" />
@@ -390,6 +391,7 @@
     <ClInclude Include="..\src\vm\pc8801\pc88.h" />
     <ClInclude Include="..\src\vm\pc8801\pc8801.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
+    <ClInclude Include="..\src\vm\pcm8bit.h" />
     <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\scsi_cdrom.h" />
     <ClInclude Include="..\src\vm\scsi_dev.h" />

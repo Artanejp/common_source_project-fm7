@@ -112,9 +112,9 @@
 // CZ-8BS1 x1
 #define SOUND_TYPE_DEFAULT	1
 # if defined(_X1TWIN)
-# define USE_SOUND_VOLUME	7
+# define USE_SOUND_VOLUME	8
 # else
-# define USE_SOUND_VOLUME	6
+# define USE_SOUND_VOLUME	7
 # endif
 #define SUPPORT_TV_RENDER
 #define USE_JOYSTICK
@@ -125,7 +125,7 @@
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_MOUSE
 #define USE_PRINTER
-#define USE_PRINTER_TYPE	4
+#define USE_PRINTER_TYPE	5
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_CPU_Z80
@@ -137,7 +137,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("CZ-8BS1 #1"), _T("CZ-8BS1 #2"), _T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
+	_T("PSG"), _T("CZ-8BS1 #1"), _T("CZ-8BS1 #2"), _T("JAST SOUND"), _T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
 #if defined(_X1TWIN)
 	_T("PC Engine PSG"),
 #endif

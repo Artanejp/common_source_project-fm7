@@ -85,6 +85,7 @@ protected:
 	uint32_t dipswitch;
 	int sound_type;
 	int printer_type;
+	int serial_type;
 	
 	bool now_suspended;
 	// input
@@ -145,6 +146,7 @@ public:
 		dipswitch = 0x00000000;
 		sound_type = 0;
 		printer_type = 0;
+		serial_type = 0;
 		
 		now_suspended = false;
 		
