@@ -2,5 +2,6 @@
 <qresource>
     <file alias="default.ico">../../../res/m68.ico</file>
     <file alias="bios_and_keys.txt">../../../../../doc/VMs/m23.txt</file>
+    <file alias="machine.ja_JP.qm">../../../res/i18n/ja/m23.ja_JP.qm</file>
 </qresource>
 </RCC>

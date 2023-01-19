@@ -82,19 +82,41 @@ void Ui_MainWindowBase::retranslateMachineMenu(void)
 	}
 	if(using_flags->is_use_serial()) {
 		menuSerialDevice->setTitle(QApplication::translate("MenuMachine", "Serial (Need RESET)", 0));
-		i = 1;
-		actionSerialDevice[0]->setText(QApplication::translate("MenuMachine", "Phisical PORT", 0));
-		actionSerialDevice[0]->setToolTip(QApplication::translate("MenuMachine", "Send phisical (HOST DEFINED) serial port.\nWill implement to available.", 0));
+		QString _stdnames[3] = {
+			QApplication::translate("MenuMachine", "Physical PORT", 0),
+			QApplication::translate("MenuMachine", "Named Pipe", 0),
+			QApplication::translate("MenuMachine", "MIDI Device", 0),
+		};
+		QString _stdtooltips[3] = {
+			QApplication::translate("MenuMachine", "Use physical (HOST DEFINED) serial port.\nWill implement to available.", 0),
+			QApplication::translate("MenuMachine", "Use HOST named pipe (a.k.a. FIFO FILE) as serial device.\nWill implement to available.", 0),
+			QApplication::translate("MenuMachine", "Connect to  MIDI (pseudo) device.\nWill implement to available.", 0),
+		};
 		if(using_flags->get_use_printer_type() > 0) {
-			for(i = 1; i < (using_flags->get_use_printer_type() - 1); i++) {
+			for(i = 0; i < 3; i++) {
+				if(actionSerialDevice[i] != nullptr) {
+					tmps2.setNum(i + 1);
+					actionSerialDevice[i]->setText(_stdnames[i]);
+					actionSerialDevice[i]->setToolTip(_stdtooltips[i]);
+					actionSerialDevice[i]->setObjectName(QString::fromUtf8("actionSerialDevice") + tmps2);
+				}
+			}
+			for(i = 3; i < (using_flags->get_use_printer_type() - 1); i++) {
+				if(actionSerialDevice[i] != nullptr) {
+					tmps2.setNum(i + 1);
+					tmps = QApplication::translate("MenuMachine", "Serial", 0) + tmps2;
+					actionSerialDevice[i]->setText(tmps); 
+					actionSerialDevice[i]->setToolTip(tmps);
+					actionSerialDevice[i]->setObjectName(QString::fromUtf8("actionSerialDevice") + tmps2);
+				}
+			}
+			if(actionSerialDevice[i] != nullptr) {
 				tmps2.setNum(i + 1);
-				tmps = QApplication::translate("MenuMachine", "Serial", 0) + tmps2;
-				actionSerialDevice[i]->setText(tmps); 
-				actionSerialDevice[i]->setToolTip(tmps); 
+				actionSerialDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
+				actionSerialDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to serial port.", 0));
+				actionSerialDevice[i]->setObjectName(QString::fromUtf8("actionSerialDevice") + tmps2);
 			}
 		}
-		actionSerialDevice[i]->setText(QApplication::translate("MenuMachine", "Not Connect", 0));
-		actionSerialDevice[i]->setToolTip(QApplication::translate("MenuMachine", "None devices connect to serial port.", 0));
 	}
 	if(using_flags->get_use_monitor_type() > 0) {
 		menuMonitorType->setTitle(QApplication::translate("MenuMachine", "Monitor Type", 0));

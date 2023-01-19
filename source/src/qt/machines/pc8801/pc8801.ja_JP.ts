@@ -302,11 +302,11 @@ PC-8001mk2SR以降のソフトウェアのみが利用できます。</translati
     </message>
     <message>
         <source>Using YM2608(OPNA) as FM sounder.</source>
-        <translation>YM2608(OPNA)をFM音源として使います。</translation>
+        <translation type="vanished">YM2608(OPNA)をFM音源として使います。</translation>
     </message>
     <message>
         <source>Using YM2203(OPN) and YM2608(OPNA) as FM sounder.</source>
-        <translation>YM2203(OPN)とYM2608(OPNA)の両方をFM音源として使います。</translation>
+        <translation type="vanished">YM2203(OPN)とYM2608(OPNA)の両方をFM音源として使います。</translation>
     </message>
     <message>
         <source>PC-8801-23 (OPNA).</source>
@@ -399,6 +399,18 @@ This effects only after restarting this emulator.</source>
 This effects only after restarting this emulator.</source>
         <translation>M88スタイルの仮想ドライブ機能を有効にします。
 エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Using Twin YM2203(OPN) as FM sounder.</source>
+        <translation>FM音源としてOPN(YM2203)二枚を接続します。</translation>
+    </message>
+    <message>
+        <source>None.</source>
+        <translation>なし</translation>
+    </message>
+    <message>
+        <source>Use JAST SOUND : PCM sound unit.</source>
+        <translation>ジャストサウンド(PCM音源)をプリンタポートにつなぎます。</translation>
     </message>
 </context>
 </TS>

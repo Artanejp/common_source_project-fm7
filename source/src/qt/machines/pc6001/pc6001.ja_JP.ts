@@ -19,22 +19,22 @@
 <context>
     <name>MenuPC6001</name>
     <message>
-        <location filename="MainWindow.cpp" line="66"/>
+        <location filename="MainWindow.cpp" line="25"/>
         <source>Main CPU</source>
         <translation>メインCPU</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="67"/>
+        <location filename="MainWindow.cpp" line="26"/>
         <source>Sub  CPU</source>
         <translation>サブCPU</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="68"/>
+        <location filename="MainWindow.cpp" line="27"/>
         <source>PC-80S31K</source>
         <translation>PC-80S31K(外付けドライブ)のCPU</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="76"/>
+        <location filename="MainWindow.cpp" line="35"/>
         <source>NEC PC-PR201 kanji serial printer.</source>
         <translation>NEC PC-PR201漢字シリアルプリンタ</translation>
     </message>

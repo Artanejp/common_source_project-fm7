@@ -4,22 +4,22 @@
 <context>
     <name>Machine</name>
     <message>
-        <location filename="MainWindow.cpp" line="76"/>
+        <location filename="MainWindow.cpp" line="77"/>
         <source>BOOT Mode</source>
         <translation>起動モード</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="78"/>
+        <location filename="MainWindow.cpp" line="79"/>
         <source>EX-80</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="79"/>
+        <location filename="MainWindow.cpp" line="80"/>
         <source>EX-80BS Lv1 BASIC</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="80"/>
+        <location filename="MainWindow.cpp" line="81"/>
         <source>EX-80BS Lv2 BASIC</source>
         <translation></translation>
     </message>
@@ -27,72 +27,72 @@
 <context>
     <name>MenuEX80</name>
     <message>
-        <location filename="MainWindow.cpp" line="82"/>
+        <location filename="MainWindow.cpp" line="83"/>
         <source>RAM</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="86"/>
+        <location filename="MainWindow.cpp" line="87"/>
         <source>SW1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="87"/>
+        <location filename="MainWindow.cpp" line="88"/>
         <source>STEP</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="88"/>
+        <location filename="MainWindow.cpp" line="89"/>
         <source>AUTO</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="90"/>
+        <location filename="MainWindow.cpp" line="91"/>
         <source>SW2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="91"/>
+        <location filename="MainWindow.cpp" line="92"/>
         <source>CHAR</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="92"/>
+        <location filename="MainWindow.cpp" line="93"/>
         <source>BIT</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="94"/>
+        <location filename="MainWindow.cpp" line="95"/>
         <source>VRAM Address</source>
         <translation>VRAMアドレス</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="95"/>
+        <location filename="MainWindow.cpp" line="96"/>
         <source>$8000-$81FF</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="96"/>
+        <location filename="MainWindow.cpp" line="97"/>
         <source>$8200-$83FF</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="97"/>
+        <location filename="MainWindow.cpp" line="98"/>
         <source>$8400-$85FF</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="98"/>
+        <location filename="MainWindow.cpp" line="99"/>
         <source>$8600-$87FF</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="101"/>
+        <location filename="MainWindow.cpp" line="102"/>
         <source>Show TV Monitor</source>
         <translation>テレビモニタを表示する</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="102"/>
+        <location filename="MainWindow.cpp" line="103"/>
         <source>Hide TV Monitor</source>
         <translation>テレビモニタを消す</translation>
     </message>

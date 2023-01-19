@@ -10,6 +10,9 @@
 #ifndef _FM7_H_
 #define _FM7_H_
 
+// ToDo: Will implement around MIDI I/F (via RS-232C).
+// 20230120 K.O
+
 #define USE_TAPE 1
 #define USE_TAPE_PTR
 #define USE_SCANLINE

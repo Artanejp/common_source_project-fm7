@@ -199,6 +199,12 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC88", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[1]->setEnabled(false);
+	
+	#if defined(SUPPORT_PC88_JAST)
+	actionPrintDevice[2]->setText(QString::fromUtf8("JAST SOUND"));
+	actionPrintDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Use JAST SOUND : PCM sound unit.", 0));
+	actionPrintDevice[2]->setEnabled(true);
+	#endif
 #endif
 
 	

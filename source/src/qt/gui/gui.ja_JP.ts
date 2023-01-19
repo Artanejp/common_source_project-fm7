@@ -18,6 +18,12 @@
         <source>Set Font</source>
         <translation>フォント変更</translation>
     </message>
+    <message>
+        <source>Emulator still not start
+Please wait.</source>
+        <translation>エミュレータがまだ開始していません。
+しばらくお待ちください。</translation>
+    </message>
 </context>
 <context>
     <name>JoykeyDialog</name>
@@ -1653,6 +1659,58 @@ This will effect after restarting this emulator.</source>
         <translation>(拡張)メモリのサイズを設定します。
 エミュレータの再起動後に有効になります。</translation>
     </message>
+    <message>
+        <source>Serial (Need RESET)</source>
+        <translation>シリアルポート(要リセット)</translation>
+    </message>
+    <message>
+        <source>Phisical PORT</source>
+        <translation type="vanished">物理ポート</translation>
+    </message>
+    <message>
+        <source>Named Pipe</source>
+        <translation>名前付きパイプ</translation>
+    </message>
+    <message>
+        <source>MIDI Device</source>
+        <translation>MIDIデバイス</translation>
+    </message>
+    <message>
+        <source>Use phisical (HOST DEFINED) serial port.
+Will implement to available.</source>
+        <translation type="vanished">（ホストによる）物理的なシリアルポートに接続します。
+今後使えるようにします。</translation>
+    </message>
+    <message>
+        <source>Use HOST named pipe (a.k.a. FIFO FILE) as serial device.
+Will implement to available.</source>
+        <translation>ホストの名前付きパイプ(別名FIFO)に接続します。
+今後使えるようにします。</translation>
+    </message>
+    <message>
+        <source>Connect to  MIDI (pseudo) device.
+Will implement to available.</source>
+        <translation>(疑似)MIDIデバイスに接続します。
+今後使えるようにします。</translation>
+    </message>
+    <message>
+        <source>Serial</source>
+        <translation>シリアルポート</translation>
+    </message>
+    <message>
+        <source>None devices connect to serial port.</source>
+        <translation>何も接続されていません。</translation>
+    </message>
+    <message>
+        <source>Physical PORT</source>
+        <translation>物理ポート</translation>
+    </message>
+    <message>
+        <source>Use physical (HOST DEFINED) serial port.
+Will implement to available.</source>
+        <translation>（ホストによる）物理的なシリアルポートに接続します。
+今後使えるようにします。</translation>
+    </message>
 </context>
 <context>
     <name>MenuMedia</name>
@@ -2180,11 +2238,11 @@ OpenGL 2.0では無効です。</translation>
     </message>
     <message>
         <source>Play CMT sound</source>
-        <translation>カセットレコーダの音を出す</translation>
+        <translation type="vanished">カセットレコーダの音を出す</translation>
     </message>
     <message>
         <source>Play sound from CMTs.</source>
-        <translation>カセットレコーダの音を鳴らす</translation>
+        <translation type="vanished">カセットレコーダの音を鳴らす</translation>
     </message>
     <message>
         <source>Output to:</source>
@@ -2239,6 +2297,22 @@ See HELP-&gt;READMEs-&gt;Bios and Key assigns</source>
         <translation>カセットテープレコーダのボタンの音と、リレーの音を鳴らします。
 音声ファイルが必要です。
 詳しくは、「ヘルプ」→「READMEs」→「BIOSとキー割り当て」の項目をお読みください。</translation>
+    </message>
+    <message>
+        <source>Play CMT Signal</source>
+        <translation>テープのシグナルを鳴らす</translation>
+    </message>
+    <message>
+        <source>Play Signal from CMTs.</source>
+        <translation>CMTからの信号を鳴らします。</translation>
+    </message>
+    <message>
+        <source>Play CMT Voice</source>
+        <translation>テープの声を鳴らす</translation>
+    </message>
+    <message>
+        <source>Play Audio/Voice from CMTs.</source>
+        <translation>CMTからの声や音楽を鳴らします。</translation>
     </message>
 </context>
 <context>
