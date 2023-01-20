@@ -556,6 +556,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				d_cpu->set_shutdown_flag(1);
 			}
 			// Todo: Implement true power off.
+			emu->notify_power_off();
 //			emu->power_off();
 		} else {
 			poff_status = false;

@@ -270,6 +270,7 @@
 //#define _IO_DEBUG_LOG
 
 // device informations for win32
+#define USE_NOTIFY_POWER_OFF
 #define USE_CPU_TYPE			2
 #define USE_FLOPPY_DISK			4 // ??
 #define USE_CART				2
