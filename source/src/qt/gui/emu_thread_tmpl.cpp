@@ -34,14 +34,15 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	bBlockTask = true;
 	using_flags = p;
 	p_config = p->get_config_ptr();
-	p_emu = NULL;
-	p_osd = NULL;
+	p_emu = nullptr;
+	p_osd = nullptr;
+	poweroff_notified = false; // OK?
 
 	is_shared_glcontext = false;
-	glContext = NULL;
+	glContext = nullptr;
 	glContext = new QOpenGLContext(this);
 
-	if(glContext != NULL) {
+	if(glContext != nullptr) {
 		glContext->setShareContext(rootWindow->getGraphicsView()->context());
 		glContext->create();
 	}
@@ -87,6 +88,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 		}
 	}
 	QMutexLocker _n(&keyMutex);
+	
 
 	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
@@ -455,7 +457,7 @@ void EmuThreadClassBase::print_framerate(int frames)
 			QString message;
 			//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 
-			if(get_power_state() == false){ 	 
+			if((poweroff_notified) || (p_emu == nullptr)) { 	 
 				my_stprintf_s(buf, 255, _T("*Power OFF*"));
 			} else if(now_skip) {
 				int ratio = (int)(100.0 * (((double)total_frames / get_emu_frame_rate())  * 2.0) + 0.5);
@@ -816,12 +818,6 @@ void EmuThreadClassBase::get_bubble_string(void)
 		}
 	}
 
-}
-
-bool EmuThreadClassBase::get_power_state(void)
-{
-	if(using_flags.get() == nullptr) return true;
-	return MainWindow->GetPowerState();
 }
 
 double EmuThreadClassBase::get_emu_frame_rate(void)

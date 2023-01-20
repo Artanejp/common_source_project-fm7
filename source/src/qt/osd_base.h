@@ -406,6 +406,9 @@ public:
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 
 	virtual void release();
+	
+	void notify_power_off(); // For USE_NOTIFY_POWER_OFF .
+	
 	void power_off();
 	void suspend();
 	void restore();
@@ -756,6 +759,8 @@ signals:
 	int sig_add_keyname_table(uint32_t, QString);
 
 	int sig_change_virtual_media(int, int, QString);
+
+	int sig_notify_power_off(void); // To GUI 20230120 K.O
 };
 QT_END_NAMESPACE
 

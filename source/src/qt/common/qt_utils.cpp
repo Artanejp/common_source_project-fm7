@@ -69,7 +69,6 @@ extern DLL_PREFIX_I std::string cpp_confdir;
 extern DLL_PREFIX_I std::string my_procname;
 extern DLL_PREFIX_I std::string sRssDir;
 bool now_menuloop = false;
-static int close_notified = 0;
 // timing control
 
 // screen
@@ -451,30 +450,13 @@ void Ui_MainWindow::OnWindowMove(void)
 }
 
 
-#ifdef USE_NOTIFY_POWER_OFF
-bool Ui_MainWindow::GetPowerState(void)
-{
-	if(close_notified == 0) return true;
-	return false;
-}
-#endif
 
 #include <string>
 
 void Ui_MainWindow::OnMainWindowClosed(void)
 {
 	// notify power off
-#ifdef USE_NOTIFY_POWER_OFF
-	if(emu) {
-		if(!close_notified) {
-			emu->lock_vm();
-			emu->notify_power_off();
-			emu->unlock_vm();
-			close_notified = 1;
-			return; 
-		}
-	}
-#endif
+	emit sig_notify_power_off();
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
@@ -1331,7 +1313,6 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->retranselateUi_Depended_OSD();
 //	QMetaObject::connectSlotsByName(rMainWindow);
    	EmuThreadClass *hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
-
    
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
@@ -1358,6 +1339,7 @@ int MainLoop(int argc, char *argv[])
 	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
 	emu->get_osd()->update_keyname_table();
 
+	QObject::connect(rMainWindow, SIGNAL(sig_notify_power_off()), hRunEmu, SLOT(do_notify_power_off()), Qt::QueuedConnection);
 
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta

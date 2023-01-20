@@ -42,9 +42,6 @@ public:
 	void OnWindowMove(void);
 	void OnWindowRedraw(void);
 	void OnMainWindowClosed(void);
-#if defined(USE_NOTIFY_POWER_OFF)
-	bool GetPowerState(void);
-#endif	
 	int GetBubbleBankNum(int drv);
 	int GetBubbleCurrentBankNum(int drv);
 	bool GetBubbleCasetteIsProtected(int drv);

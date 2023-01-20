@@ -390,6 +390,7 @@ void EMU::special_reset(int num)
 void EMU::notify_power_off()
 {
 	vm->notify_power_off();
+	osd->notify_power_off(); // To GUI 20230120 K.O
 }
 #endif
 

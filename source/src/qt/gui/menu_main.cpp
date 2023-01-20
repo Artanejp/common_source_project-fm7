@@ -1106,11 +1106,6 @@ void Ui_MainWindowBase::OnWindowRedraw(void)
 {
 }
 
-bool Ui_MainWindowBase::GetPowerState(void)
-{
-	return true;
-}
-
 void Ui_MainWindowBase::OnMainWindowClosed(void)
 {
 }

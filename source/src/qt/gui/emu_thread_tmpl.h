@@ -65,6 +65,8 @@ class DLL_PREFIX EmuThreadClassBase : public QThread {
 protected:
 	EMU *p_emu;
 	OSD_BASE *p_osd;
+
+	bool poweroff_notified;
 	
 	bool now_skip;
 	bool calc_message;
@@ -166,7 +168,6 @@ protected:
 	double get_emu_frame_rate(void);
 	int get_message_count(void);
 	void dec_message_count(void);
-	bool get_power_state(void);
 
 	virtual const _TCHAR *get_device_name(void);
 	virtual void resetEmu() { }
@@ -242,7 +243,8 @@ public:
 public slots:
 	void doExit(void);
 	
-	void do_reset();
+	void do_reset(void);
+	void do_notify_power_off(void);
 	void do_special_reset(void);
 	void do_load_state();
 	void do_save_state();

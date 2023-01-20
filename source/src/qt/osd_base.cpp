@@ -285,6 +285,11 @@ void OSD_BASE::vm_reset(void)
 	}
 }
 
+void OSD_BASE::notify_power_off(void)
+{
+	emit sig_notify_power_off();
+}
+
 int OSD_BASE::get_vm_buttons_code(int num)
 {
 	return 0;

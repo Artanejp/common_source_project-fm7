@@ -731,7 +731,6 @@ public:
 	void OnCpuPower(int mode);
 	bool get_wave_shaper(int drive);
 	bool get_direct_load_mzt(int drive);
-	virtual bool GetPowerState(void);
 	void set_logger(std::shared_ptr<CSP_Logger> logger) { csp_logger = logger; }
 	std::shared_ptr<CSP_Logger> get_logger() { return csp_logger; }
 
@@ -954,6 +953,7 @@ signals:
 	int sig_open_disk(int, QString);
 	
 	int closed(void);
+	int sig_notify_power_off(void);
 	int sig_quit_all(void);
 	int sig_vm_reset(void);
 	int sig_vm_specialreset(int);

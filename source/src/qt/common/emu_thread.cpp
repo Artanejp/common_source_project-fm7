@@ -41,7 +41,8 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p_osd = emu->get_osd();
 	p->set_emu(emu);
 	p->set_osd((OSD*)p_osd);
-
+	poweroff_notified = false;
+	
 	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
 	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT(_open_cart(int, QString)));
@@ -64,6 +65,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
+	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -148,6 +150,8 @@ void EmuThreadClass::doWork(const QString &params)
 	double nr_fps = -1.0;
 	int _queue_begin;
 	bool multithread_draw = config.use_separate_thread_draw;
+
+	bool state_power_off = false;
 	
 	doing_debug_command = false;
 	ctext.clear();
@@ -368,6 +372,12 @@ void EmuThreadClass::doWork(const QString &params)
 					if(nr_fps >= 1.0) emit sig_set_draw_fps(nr_fps);
 				}
 			}
+			#ifdef USE_NOTIFY_POWER_OFF
+			if((poweroff_notified) && !(state_power_off))  {
+				p_emu->notify_power_off();
+				state_power_off = true;
+			}
+			#endif
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			// After frame, delayed open
@@ -566,6 +576,12 @@ void EmuThreadClass::doWork(const QString &params)
 	} while(1);
 _exit:
 	//emit quit_draw_thread();
+	#ifdef USE_NOTIFY_POWER_OFF
+	if((poweroff_notified) && !(state_power_off) && (p_emu != nullptr))  {
+		p_emu->notify_power_off();
+		state_power_off = true;
+	}
+	#endif
 	
 	if(csp_logger != NULL) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
