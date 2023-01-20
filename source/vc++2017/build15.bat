@@ -197,6 +197,10 @@ msbuild.exe mz700.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Wi
 mkdir build_vc15\mz700
 copy bin\x86\Release\mz700.exe build_vc15\mz700\.
 
+msbuild.exe mz700pal.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\mz700pal
+copy bin\x86\Release\mz700pal.exe build_vc15\mz700pal\.
+
 msbuild.exe mz800.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\mz800
 copy bin\x86\Release\mz800.exe build_vc15\mz800\.

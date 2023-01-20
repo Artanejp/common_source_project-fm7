@@ -38,7 +38,10 @@ add_library(vm_${EXE_NAME}
 )
 else()
 # MZ700
-add_library(vm_${EXE_NAME}
+	if("${U_EXE_NAME}" STREQUAL "EMUMZ700PAL")
+		target_compile_definitions(emumz700pal PUBLIC _PAL)
+	endif()
+	add_library(vm_${EXE_NAME}
 	./cmos.cpp
 	./emm.cpp
 	./joystick.cpp
@@ -48,7 +51,5 @@ add_library(vm_${EXE_NAME}
 	./ramfile.cpp
 	
 	./mz700.cpp
-)
-
-
+	)
 endif()

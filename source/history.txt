@@ -1,3 +1,9 @@
+7/9/2022
+
+[MZ700] support SHARP MZ-700 (PAL)
+[MZ700/MEMORY] improve timing of CRTC signals (thanks Mr.Koucha-Youkan, Mr. hlide fremen)
+
+
 7/8/2022
 
 [VM/I8251] support outputting RTS signal

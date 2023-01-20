@@ -88,17 +88,22 @@ private:
 	uint8_t priority, palette[8];
 #endif
 	bool blink, tempo;
+	bool blank;
 	bool hblank, hsync;
 	bool vblank, vsync;
 #if defined(_MZ700) || defined(_MZ1500)
-	bool hblank_vram;
+	bool blank_vram;
 #endif
 #if defined(_MZ1500)
-	bool hblank_pcg;
+	bool blank_pcg;
 #endif
-	void __FASTCALL set_vblank(bool val);
-	void __FASTCALL set_hblank(bool val);
 	
+	void __FASTCALL set_blank(bool val);
+	void __FASTCALL set_hblank(bool val);
+	void __FASTCALL set_hsync(bool val);
+	void __FASTCALL set_vblank(bool val);
+	void __FASTCALL set_vsync(bool val);
+
 	// renderer
 #if defined(_MZ800)
 	uint8_t screen[200][640];
