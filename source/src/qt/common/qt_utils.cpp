@@ -68,17 +68,6 @@ extern DLL_PREFIX_I std::string cpp_homedir;
 extern DLL_PREFIX_I std::string cpp_confdir;
 extern DLL_PREFIX_I std::string my_procname;
 extern DLL_PREFIX_I std::string sRssDir;
-bool now_menuloop = false;
-// timing control
-
-// screen
-unsigned int desktop_width;
-unsigned int desktop_height;
-//int desktop_bpp;
-int prev_window_mode = 0;
-bool now_fullscreen = false;
-
-int window_mode_count;
 
 void Ui_MainWindow::do_set_mouse_enable(bool flag)
 {
@@ -524,11 +513,6 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	do_release_emu_resources();
 	hRunEmu = NULL;
 
-	// release window
-	if(now_fullscreen) {
-		//ChangeDisplaySettings(NULL, 0);
-	}
-	now_fullscreen = false;
 	return;
 }
 

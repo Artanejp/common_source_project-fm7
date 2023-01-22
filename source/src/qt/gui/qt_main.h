@@ -30,7 +30,6 @@ extern std::string DLL_PREFIX cpp_homedir;
 extern std::string DLL_PREFIX cpp_confdir;
 extern std::string DLL_PREFIX my_procname;
 extern std::string DLL_PREFIX sRssDir;
-extern bool DLL_PREFIX now_menuloop;
 
 extern const int DLL_PREFIX screen_mode_width[];
 extern const int DLL_PREFIX screen_mode_height[];

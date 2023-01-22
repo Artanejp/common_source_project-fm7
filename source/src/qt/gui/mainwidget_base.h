@@ -695,7 +695,6 @@ public:
 	void setCoreApplication(QApplication *p);
 	void createContextMenu(void);
 	void setupUi(void);
-	virtual void set_window(int mode);
 	// Belows are able to re-implement.
 	virtual void retranslateUi(void);
 	virtual void retranslateUI_Help(void);

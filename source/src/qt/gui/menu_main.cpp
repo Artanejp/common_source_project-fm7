@@ -966,22 +966,6 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 // Move from common/qt_main.cpp
 // menu
 DLL_PREFIX std::string cpp_confdir;
-extern std::string my_procname;
-extern bool now_menuloop;
-// timing control
-
-// screen
-extern unsigned int desktop_width;
-extern unsigned int desktop_height;
-//int desktop_bpp;
-extern int prev_window_mode;
-extern bool now_fullscreen;
-extern int window_mode_count;
-
-void Ui_MainWindowBase::set_window(int mode)
-{
-	//	static LONG style = WS_VISIBLE;
-}
 
 void Ui_MainWindowBase::do_emu_update_volume_level(int num, int level)
 {

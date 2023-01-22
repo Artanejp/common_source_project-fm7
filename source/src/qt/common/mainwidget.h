@@ -28,7 +28,6 @@ public:
 	Ui_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindow();
 
-	void set_window(int mode);
 	// Belows are able to re-implement.
 	//virtual void retranslateUi(void);
 	//void retranslateUI_Help(void);
