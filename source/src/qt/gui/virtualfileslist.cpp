@@ -1,12 +1,13 @@
+#include <QAction>
 #include "./virtualfileslist.h"
 
-VirtualFilesList::VirtualFilesList(const _TCHAR* listptr = nullptr,
-								   const unsigned int pathlen = _MAX_PATH,
-								   const unsigned int list_size = MAX_HISTORY,
-								   QObject *parent = nullptr) :
+VirtualFilesList::VirtualFilesList(_TCHAR* listptr,
+								   unsigned int pathlen,
+								   unsigned int list_size,
+								   QObject *parent) :
 		m_dstptr(listptr),
 		m_length(pathlen),
-		m_size(list_size),
+		m_list_size(list_size),
 		QObject(parent)
 {
 	m_list.clear();
@@ -73,7 +74,7 @@ size_t VirtualFilesList::updateListFromConfig()
 		}
 		p = &(p[m_length]);
 	}
-	delete tmps;
+	delete [] tmps;
 	return m_list.count();
 }
 void VirtualFilesList::resetUiList()
@@ -95,7 +96,7 @@ size_t VirtualFilesList::updateToConfigFromList()
 	if(m_dstptr == nullptr) return 0;
 	if(m_length == 0)       return 0;
 	if(m_list_size == 0)    return 0;
-	_TCHAR* p = dstptr;
+	_TCHAR* p = m_dstptr;
 	size_t ncount = 0;
 	for(auto i = m_list.begin(); i != m_list.end(); ++i) {
 		QString s = *i;
@@ -113,29 +114,34 @@ size_t VirtualFilesList::updateToConfigFromList()
 // SLOTS
 void VirtualFilesList::do_replace_list_from_ui()
 {
-	QStringList l = qobject_cast<QStringList>(QObject::sender());
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	QStringList l = cp->data().value<QStringList>();
+	
 	do_replace_list(l);
 }
 	
 void VirtualFilesList::do_select_item_from_ui()
 {
-	QString s = qobject_cast<QString>(QObject::sender());
-	do_update_list(s);
-	resetUiList(); // Update UI and config.
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	QString s = cp->data().value<QString>();
+	
+	do_update_list_and_ui(s);
 }
 void VirtualFilesList::do_update_list(QString s)
 {
 	if(s.isEmpty()) return; // Noop
 	ssize_t npos = search(s);
 	if((npos >= 0) && (npos < m_list.size())) {
-		m_list.remove(npos);
+		m_list.removeAt(npos);
 	}
 	m_list.push_front(s);
 	if(m_list.size() > m_list_size) {
-		m_list.resize(m_list_size);
-		#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-		m_list.squeeze();
-		#endif
+		size_t __last = m_list.size();
+		for(size_t i = m_list_size; i < __last; i++) {
+			m_list.removeAt(i);
+		}
 	}
 	updateToConfigFromList();
 }
@@ -151,7 +157,7 @@ void VirtualFilesList::do_replace_list(QStringList l)
 {
 	m_list.clear();
 	size_t ncount = 0;
-	for(auto p = l.begin(); p != l.end(); ++l) {
+	for(auto p = l.begin(); p != l.end(); ++p) {
 		if(!((*p).isEmpty())) {
 			m_list.append(*p);
 			ncount++;

@@ -4,8 +4,8 @@
 #include <QString>
 #include <QStringList>
 
-#include "../../types/basic_types.h"
-#include "../../types/system_dep.h"
+#include "../../common.h"
+#include "../../config.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -14,12 +14,12 @@ class DLL_PREFIX VirtualFilesList : public QObject {
 protected:
 	QStringList m_list;
 	unsigned int m_length;
-	unsigned int list_size;
+	unsigned int m_list_size;
 	_TCHAR* m_dstptr;
 public:
-	VirtualFilesList(const _TCHAR* listptr = nullptr,
-					 const unsigned int pathlen = _MAX_PATH,
-					 const unsigned int list_size = MAX_HISTORY,
+	VirtualFilesList(_TCHAR* listptr = nullptr,
+					 unsigned int pathlen = _MAX_PATH,
+					 unsigned int list_size = MAX_HISTORY,
 					 QObject *parent = nullptr);
 	~VirtualFilesList();
 	
@@ -31,7 +31,7 @@ public:
 	ssize_t search(QString s);
 	
 	size_t updateListFromConfig();
-	void resetUiList()
+	void resetUiList();
 	size_t updateToConfigFromList();
 public slots:
 	// Maybe Update from UI (or EMU_THREAD)
@@ -62,14 +62,14 @@ protected:
 	int m_path_len;
 	int m_element_size;
 	int m_list_size;
-	QStringList bank_list;
+	QStringList m_bank_list;
 public:
 	VirtualBanksList(int drive = 0,
-					 const _TCHAR* path = nullptr,
-					 const unsigned int path_len = _MAX_PATH,
-					 const unsigned int name_len = 128,
-					 const unsigned int list_size = 64,
-					 QObject parent = nullptr
+					 _TCHAR* path = nullptr,
+					 unsigned int path_len = _MAX_PATH,
+					 unsigned int name_len = 128,
+					 unsigned int list_size = 64,
+					 QObject* parent = nullptr
 		) :
 	m_cur_bank(0),
 	m_bank_num(0),
@@ -77,12 +77,16 @@ public:
 	m_element_size(name_len),
 	QObject(parent)
 	{
-		bank_list.clear();
+		m_bank_list.clear();
 	}
 	~VirtualBanksList() {}
 	int get_bank_num()
 	{
 		return m_bank_num;
+	}
+	int get_cur_bank()
+	{
+		return m_cur_bank;
 	}
 	void reset(const _TCHAR* path = nullptr,
 			  const int pathlen = 0,
@@ -90,8 +94,6 @@ public:
 			  const int bank_num = 0,
 			  const int cur_bank = 0);
 	void set_cur_bank(int num);
-	int get_cur_bank();
-	int get_bank_num();
 	// Aliases
 	int pos()
 	{
@@ -103,6 +105,7 @@ public:
 	}
 	int element_length()
 	{
+		return m_element_size;
 	}
 };
 

@@ -1,12 +1,12 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 7.7.0)
+set(THIS_LIB_VERSION 7.8.0)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
 	  qt_glpack.h
-	  
+
 	  gl/qt_glutil_gl_tmpl.h
 	  gl2/qt_glutil_gl2_0.h
 	  gl3/qt_glutil_gl3_0.h
@@ -16,6 +16,8 @@ set(s_qt_gui_headers
 	  commonclasses.h
 	  sound_dialog.h
 	  mouse_dialog.h
+
+	  virtualfileslist.h
 	  
 	  mainwidget_base.h
 	  menu_metaclass.h
@@ -70,6 +72,9 @@ set(s_qt_gui_srcs
 	  gl4_5/qt_glutil_gl4_5.cpp
 	  gles2/qt_glutil_gles_2.cpp
 	  qt_glevents.cpp
+
+	  virtualfileslist.cpp
+
 	  qt_dialogs.cpp
 	  qt_lineeditplus.cpp
 	  

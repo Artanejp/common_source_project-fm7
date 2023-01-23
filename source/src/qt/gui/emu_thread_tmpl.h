@@ -51,8 +51,8 @@ class USING_FLAGS;
 class Ui_MainWindowBase;
 
 class VirtualFilesList;
-class B77BanksList;
-class D88BanksList;
+class VirtualBanksList;
+class Menu_MetaClass;
 
 //class META_MainWindow;
 
@@ -168,7 +168,7 @@ protected:
 	QList<VirtualFilesList *> vCartFilesList;
 	QList<VirtualFilesList *> vCompactDiscFilesList;
 	
-	QList<VirtualFilesList *> vFloppyFileList; // 16
+	QList<VirtualFilesList *> vFloppyDiskFilesList; // 16
 	QList<VirtualBanksList *> vD88BanksList; // 64
 	
 	QList<VirtualFilesList *> vHardDiskFilesList;
@@ -269,19 +269,34 @@ public:
 	VirtualFilesList* getBinaryFilesList(int drv = 0);
 	
 	VirtualFilesList* getBubbleFilesList(int drv = 0);
-	B77SlotsList*     getB77SlotsList(int drv = 0);
+	VirtualBanksList* getB77BanksList(int drv = 0);
 	
 	VirtualFilesList* getCartFilesList(int drv = 0);
 	VirtualFilesList* getCompactDiscFilesList(int drv = 0);
 	
-	VirtualFilesList* getFloppyFilesList(int drv = 0);
-	D88SlotsList*     getD88SlotsList(int drv = 0);
+	VirtualFilesList* getFloppyDiskFilesList(int drv = 0);
+	VirtualBanksList* getD88BanksList(int drv = 0);
 	
 	VirtualFilesList* getHardDiskFilesList(int drv = 0);
 	VirtualFilesList* getLaserDiscFilesList(int drv = 0);
 	VirtualFilesList* getQuickDiskFilesList(int drv = 0);
 	VirtualFilesList* getTapeFilesList(int drv = 0);
 
+	template <class X>
+		X* getVirtualMediaListPtr(int drv, QList<X*> *lst)
+	{
+		if(lst == nullptr) return nullptr;
+		if(lst->isEmpty()) return nullptr;
+		if(lst->count() <= drv) return nullptr;
+		return lst->at(drv);
+	}
+	
+	void appendVirualFilesList(
+		QList<VirtualFilesList*> *lst,
+		const _TCHAR* listptr,
+		unsigned int pathlen,
+		unsigned int list_size,
+		Menu_MetaClass *target);
 public slots:
 	void doExit(void);
 	

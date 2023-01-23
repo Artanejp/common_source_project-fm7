@@ -285,6 +285,7 @@ void Menu_MetaClass::do_clear_inner_media(void)
 	}
 }
 
+
 void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 {
 	QString tmps;
