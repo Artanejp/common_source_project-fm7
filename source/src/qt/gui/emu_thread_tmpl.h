@@ -27,9 +27,10 @@
 #include "common.h"
 #include "commonclasses.h"
 #include "fileio.h"
-#include "emu.h"
+#include "emu_template.h"
 
 //#include "menuclasses.h"
+
 #include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "config.h"
@@ -40,12 +41,19 @@
 #endif
 #define MAX_COMMAND_LEN	64
 
-class EMU;
 class QWaitCondition;
 class QOpenGLContext;
-class USING_FLAGS;
-class Ui_MainWindowBase;
+
+class EMU_TEMPLATE;
 class OSD_BASE;
+class USING_FLAGS;
+
+class Ui_MainWindowBase;
+
+class VirtualFilesList;
+class B77BanksList;
+class D88BanksList;
+
 //class META_MainWindow;
 
 QT_BEGIN_NAMESPACE
@@ -60,10 +68,11 @@ typedef struct {
 	bool repeat;
 } key_queue_t;
 
+
 class DLL_PREFIX EmuThreadClassBase : public QThread {
 	Q_OBJECT
 protected:
-	EMU *p_emu;
+	EMU_TEMPLATE *p_emu;
 	OSD_BASE *p_osd;
 
 	bool poweroff_notified;
@@ -150,6 +159,23 @@ protected:
 	QString clipBoardText;
 	QStringList vMovieQueue;
 
+	// Standard 8 files.
+	QList<VirtualFilesList *> vBinaryFilesList;
+	
+	QList<VirtualFilesList *> vBubbleFilesList;
+	QList<VirtualBanksList *> vB77BanksList; // 16
+	
+	QList<VirtualFilesList *> vCartFilesList;
+	QList<VirtualFilesList *> vCompactDiscFilesList;
+	
+	QList<VirtualFilesList *> vFloppyFileList; // 16
+	QList<VirtualBanksList *> vD88BanksList; // 64
+	
+	QList<VirtualFilesList *> vHardDiskFilesList;
+	QList<VirtualFilesList *> vLaserDiscFilesList;
+	QList<VirtualFilesList *> vQuickDiskFilesList;
+	QList<VirtualFilesList *> vTapeFilesList;
+	
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);
 	int parse_command_queue(QStringList _l, int _begin);
@@ -239,6 +265,22 @@ public:
 	bool is_floppy_disk_protected(int drive);
 	void set_floppy_disk_protected(int drive, bool flag);
 	QString get_d88_file_path(int drive);
+	
+	VirtualFilesList* getBinaryFilesList(int drv = 0);
+	
+	VirtualFilesList* getBubbleFilesList(int drv = 0);
+	B77SlotsList*     getB77SlotsList(int drv = 0);
+	
+	VirtualFilesList* getCartFilesList(int drv = 0);
+	VirtualFilesList* getCompactDiscFilesList(int drv = 0);
+	
+	VirtualFilesList* getFloppyFilesList(int drv = 0);
+	D88SlotsList*     getD88SlotsList(int drv = 0);
+	
+	VirtualFilesList* getHardDiskFilesList(int drv = 0);
+	VirtualFilesList* getLaserDiscFilesList(int drv = 0);
+	VirtualFilesList* getQuickDiskFilesList(int drv = 0);
+	VirtualFilesList* getTapeFilesList(int drv = 0);
 
 public slots:
 	void doExit(void);
@@ -311,7 +353,6 @@ signals:
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);
 	int sig_finished(void);
-	int call_emu_thread(EMU *);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_disk(int);
 	int sig_update_recent_hard_disk(int);

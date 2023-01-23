@@ -116,7 +116,6 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	if(!(FILEIO::IsFileExisting(fname.toLocal8Bit().constData()))) return; // File not found.	
 //	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
-
 	
 	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drv], listFDs[drv]);
 	strcpy(p_config->initial_floppy_disk_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
