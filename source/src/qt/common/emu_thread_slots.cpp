@@ -520,14 +520,89 @@ void EmuThreadClassBase::do_close_disk(int drv)
 
 void EmuThreadClassBase::do_open_disk(int drv, QString path, int bank)
 {
+	if(path.isEmpty()) return;
+	if(path.isNull()) return;
+	
+	if(using_flags.get() == nullptr) return;
 	if(!(using_flags->is_use_fd())) return;
+	
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
-	
+
+	bool reserved = p_emu->is_floppy_disk_inserted(drv));
 	p_emu->open_floppy_disk(drv, file_path, bank);
 	
 	fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 0.05);
 	fd_reserved_path[drv] = path;
+}
+
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_floppy_disk(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_fd())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_drive())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_floppy_disk_dir, 	__dir, _MAX_PATH - 1);
+
+	emit sig_ui_update_floppy_list(drive, list);
+	emit sig_ui_clear_d88(drive);
+	
+	bool _f = check_file_extension(path_shadow, ".d88");
+	_f |= check_file_extension(path_shadow, ".d77");
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+ 
+	if(_f) {
+		if(p_emu != nullptr) {
+			int slot = p_emu->d88_file[drive].cur_bank;
+			for(int i = 0; i < p_emu->d88_file[drive].bank_num; i++) {
+				if(i >= 64) break;
+				_TCHAR tmpname[128] = {0};
+				my_strcpy_s(tmpname, 127, p_emu->d88_file[drive].disk_name[i]);
+				QString tmps = QString::fromLocal8Bit(tmpname);
+				emit sig_ui_update_d88(drive, i, tmps);
+				if(i == slot) {
+					emit sig_ui_select_d88(drive, i);
+					relpath = tmps;
+				}
+			}
+		}
+	}
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drive, relpath);
+}
+
+void EmuThreadClassBase::done_close_floppy_disk(int drive)
+{
+	emit sig_ui_close_floppy_disk(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drive, QString::fromUtf8(""));
+}
+
+void EmuThreadClassBase::done_select_d88(int drive, int slot)
+{
+	if(p_emu == nullptr) return;
+
+	if(slot < 0) return;
+	if(slot >= 64) return;
+	if(p_emu->d88_file[drive].bank_num < 0) return;
+	if(p_emu->d88_file[drive].bank_num >= 64) return;
+	if(p_emu->d88_file[drive].bank_num <= slot) return;
+	p_emu->d88_file[drive].cur_bank = slot;
+	emit sig_ui_select_d88(drive, slot);
+	
+	_TCHAR tmpname[128] = {0};
+	my_strcpy_s(tmpname, 127, p_emu->d88_file[drive].disk_name[slot]);
+	QString tmps = QString::fromLocal8Bit(tmpname);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drive, tmps);
 }
 
 void EmuThreadClassBase::do_play_tape(int drv, QString name)
@@ -605,6 +680,34 @@ void EmuThreadClassBase::do_cmt_push_apss_rewind(int drv)
 	}
 }
 
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_tape(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_tape())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_tape())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_tape_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_tape_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_tape_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drive, relpath);
+}
+void EmuThreadClassBase::done_close_tape(int drive)
+{
+	emit sig_ui_close_tape(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drive, QString::fromUtf8(""));
+}
 
 void EmuThreadClassBase::do_write_protect_quickdisk(int drv, bool flag)
 {
@@ -631,6 +734,33 @@ void EmuThreadClassBase::do_open_quickdisk(int drv, QString path)
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, path);
 	}
 }
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_quick_disk(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_qd())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_qd())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_quick_disk_path[drive], list);
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_quick_disk_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_quick_disk_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drive, relpath);
+}
+void EmuThreadClassBase::done_close_quick_disk(int drive)
+{
+	emit sig_ui_close_quick_disk(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drive, QString::fromUtf8(""));
+}
 
 void EmuThreadClassBase::do_open_cdrom(int drv, QString path)
 {
@@ -647,6 +777,34 @@ void EmuThreadClassBase::do_eject_cdrom(int drv)
 		p_emu->close_compact_disc(drv);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, QString::fromUtf8(""));
 	}
+}
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_compact_disc(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_compact_disc())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_cd())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_compact_disc_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_compact_disc_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_compact_disc_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drive, relpath);
+}
+void EmuThreadClassBase::done_close_compact_disc(int drive)
+{
+	emit sig_ui_close_compact_disc(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drive, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_close_hard_disk(int drv)
@@ -665,6 +823,34 @@ void EmuThreadClassBase::do_open_hard_disk(int drv, QString path)
 		p_emu->open_hard_disk(drv, path.toLocal8Bit().constData());
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drv, path);
 	}
+}
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_hard_disk(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_hdd())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_hdd())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_hard_disk_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_hard_disk_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_hard_disk_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drive, relpath);
+}
+void EmuThreadClassBase::done_close_hard_disk(int drive)
+{
+	emit sig_ui_close_hard_disk(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, drive, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_close_cart(int drv)
@@ -685,6 +871,34 @@ void EmuThreadClassBase::do_open_cart(int drv, QString path)
 	}
 }
 
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_cart(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_cart())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_cart())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_cart_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_cart_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_cart_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CART, drive, relpath);
+}
+void EmuThreadClassBase::done_close_cart(int drive)
+{
+	emit sig_ui_close_cart(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_CART, drive, QString::fromUtf8(""));
+}
 
 void EmuThreadClassBase::do_close_laser_disc(int drv)
 {
@@ -702,6 +916,34 @@ void EmuThreadClassBase::do_open_laser_disc(int drv, QString path)
 		p_emu->open_laser_disc(drv, path.toLocal8Bit().constData());
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, path);
 	}
+}
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_laser_disc(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_laser_disc())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_ld())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_laser_disc_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_laser_disc_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_laser_disc_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drive, relpath);
+}
+void EmuThreadClassBase::done_close_laser_disc(int drive)
+{
+	emit sig_ui_close_laser_disc(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_load_binary(int drv, QString path)
@@ -722,6 +964,33 @@ void EmuThreadClassBase::do_save_binary(int drv, QString path)
 	}
 }
 
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_binary(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_binary_file())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_binary())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drive], list);
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_binary_dir, __dir, _MAX_PATH - 1);
+
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	emit sig_ui_update_binary_list(drive, list);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drive, relpath);
+}
+void EmuThreadClassBase::done_close_binary(int drive)
+{
+	emit sig_ui_close_binary(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
+}
 
 void EmuThreadClassBase::do_write_protect_bubble_casette(int drv, bool flag)
 {
@@ -738,7 +1007,7 @@ void EmuThreadClassBase::do_close_bubble_casette(int drv)
 		p_emu->close_bubble_casette(drv);
 		p_emu->b77_file[drv].bank_num = 0;
 		p_emu->b77_file[drv].cur_bank = -1;
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
+//		emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
 	}
 }
 
@@ -790,6 +1059,71 @@ void EmuThreadClassBase::do_open_bubble_casette(int drv, QString path, int bank)
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, path);
 	emit sig_update_recent_bubble(drv);
 	
+}
+// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
+void EmuThreadClassBase::done_open_bubble(int drive, QString path)
+{
+	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+
+	if(!(using_flags->is_use_bubble())) return;
+	if((drive < 0) || (drive >= using_flags->get_max_bubble())) return;
+
+	QStringList list;
+	_TCHAR path_shadow[_MAX_PATH] = {0};
+	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drive], list);
+	
+	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
+	strncpy(p_config->initial_bubble_casette_dir, __dir, _MAX_PATH - 1);
+
+	emit sig_ui_update_bubble_casette_list(drive, list);
+	emit sig_ui_clear_b77(drive);
+	
+	QString relpath = QString::fromUtf8("");
+	if(strlen(&(__dir[0])) > 1) {
+		relpath = QString::fromLocal8Bit(&(__dir[1]));
+	}
+	bool _f = check_file_extension(path_shadow, ".b77");
+	if(_f) {
+		if(p_emu != nullptr) {
+			int slot = p_emu->b77_file[drive].cur_bank;
+			for(int i = 0; i < p_emu->b77_file[drive].bank_num; i++) {
+				if(i >= 16) break;
+				_TCHAR tmpname[128] = {0};
+				my_strcpy_s(tmpname, 127, p_emu->b77_file[drive].bubble_name[i]);
+				QString tmps = QString::fromLocal8Bit(tmpname);
+				emit sig_ui_update_b77(drive, i, tmps);
+				if(i == slot) {
+					emit sig_ui_select_b77(drive, i);
+					relpath = tmps;
+				}
+			}
+		}
+	}
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, relpath);
+}
+
+void EmuThreadClassBase::done_close_bubble_casette(int drive)
+{
+	emit sig_ui_close_bubble_casette(drive);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, QString::fromUtf8(""));
+}
+
+void EmuThreadClassBase::done_select_b77(int drive, int slot)
+{
+	if(p_emu == nullptr) return;
+
+	if(slot < 0) return;
+	if(slot >= 16) return;
+	if(p_emu->b77_file[drive].bank_num < 0) return;
+	if(p_emu->b77_file[drive].bank_num >= 64) return;
+	if(p_emu->b77_file[drive].bank_num <= slot) return;
+	p_emu->b77_file[drive].cur_bank = slot;
+	_TCHAR tmpname[128] = {0};
+	my_strcpy_s(tmpname, 127, p_emu->b77_file[drive].bubble_name[slot]);
+	QString tmps = QString::fromLocal8Bit(tmpname);
+	emit sig_ui_select_b77(drive, slot);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, tmps);
 }
 
 // Debugger

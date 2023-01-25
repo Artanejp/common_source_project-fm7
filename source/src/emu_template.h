@@ -12,6 +12,8 @@
 #include <assert.h>
 #include "common.h"
 #include "config.h"
+// For UIs
+#include "osdcall_types.h"
 
 //#include "vm/vm_template.h"
 #if defined(_USE_QT)
@@ -459,7 +461,7 @@ public:
 	virtual bool is_floppy_disk_protected(int drv) { return false;}
 	virtual uint32_t is_floppy_disk_accessed() { return 0x00000000; }
 	virtual uint32_t floppy_disk_indicator_color() { return 0x00000000; }
-
+	
 	// cartridge
 	virtual void open_cart(int drv, const _TCHAR* file_path) {}
 	virtual void close_cart(int drv) {}
@@ -471,6 +473,10 @@ public:
 	virtual bool is_quick_disk_connected(int drv) { return false; }
 	virtual bool is_quick_disk_inserted(int drv) { return false; }
 	virtual uint32_t is_quick_disk_accessed() { return 0x00000000; }
+	virtual bool get_quick_disk_status(int drive = 0, _TCHAR* media_name, size_t buflen, bool& play, int& wait_count, int& cur_bank)
+	{
+		return false;
+	}
 
 	// hard disk
 	virtual bool create_blank_hard_disk(const _TCHAR* file_path,
@@ -480,6 +486,10 @@ public:
 	virtual void close_hard_disk(int drv) {}
 	virtual bool is_hard_disk_inserted(int drv) { return false; }
 	virtual uint32_t is_hard_disk_accessed() { return 0x00000000; }
+	virtual bool get_hard_disk_status(int drive = 0, _TCHAR* media_name, size_t buflen, bool& play, int& wait_count, int& cur_bank)
+	{
+		return false;
+	}
 	
 	// tape (CMT)
 	virtual void play_tape(int drv, const _TCHAR* file_path) {}
@@ -539,6 +549,12 @@ public:
 	virtual void save_state(const _TCHAR* file_path) {}
 	virtual void load_state(const _TCHAR* file_path) {}
 	virtual const _TCHAR *state_file_path(int num) { return (const _TCHAR*)_T("."); }
+
+	// messaging proxies.
+	// These are mostly used for replying mounting virtual media.
+	// 20230125 K.O
+	virtual void __FASTCALL osdcall_string(EMU_MEDIA_TYPE media_type, int drive,  EMU_MESSAGE_TYPE message_type, _TCHAR* message) {}
+	virtual void __FASTCALL osdcall_int(EMU_MEDIA_TYPE media_type, int drive,  EMU_MESSAGE_TYPE message_type, int64_t data) { }
 
 };
 

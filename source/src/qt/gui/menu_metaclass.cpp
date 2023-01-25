@@ -53,7 +53,6 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	initial_dir = QString::fromUtf8("");
 	
 	ext_filter.clear();
-	history.clear();
 	inner_media_list.clear();
 	window_title = QString::fromUtf8("");
 
@@ -256,28 +255,42 @@ void Menu_MetaClass::do_update_histories(QStringList lst)
 {
 	int ii;
 	QString tmps;
-	
-	history.clear();
-	for(ii = 0; ii < MAX_HISTORY; ii++) {
-		tmps = QString::fromUtf8("");
-		if(ii < lst.size()) tmps = lst.value(ii);
-		history << tmps;
-		action_recent_list[ii]->setText(tmps);
-		if(!tmps.isEmpty()) {
-			action_recent_list[ii]->setVisible(true);
-		} else {
-			action_recent_list[ii]->setVisible(false);
-		}			
+	for(int i = 0; i < lst.size(); i++) {
+		if(i >= MAX_HISTORY) break;
+		action_recent_list[i]->setText(lst.at(i));
+		action_recent_list[i]->setVisible(true);
 	}
+	for(int i = lst.size(); i < MAX_HISTORY; i++) {
+		action_recent_list[i]->setText(QString::fromUtf8(""));
+		action_recent_list[i]->setVisible(false);
+	}	
 }
 
+void Menu_MetaClass::do_add_media(QStringList path)
+{
+	if(path.isEmpty()) return;
+	if(path.isNull()) return;
+	
+	QStringList list;
+	list.clear();
+	list.append(path);
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		if(action_recent_list[i] != nullptr) {
+			QString tmps = action_recent_list[i]->text();
+			if(tmps != path) {
+				list.append(tmps);
+			}
+		}
+	}
+	do_update_histories(list);
+}
 void Menu_MetaClass::do_clear_inner_media(void)
 {
 	int ii;
 	inner_media_list.clear();
 	if(use_d88_menus) {
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
-			if(action_select_media_list[ii] != NULL) {
+			if(action_select_media_list[ii] != nullptr) {
 				action_select_media_list[ii]->setText(QString::fromUtf8(""));
 				action_select_media_list[ii]->setVisible(false);
 			}

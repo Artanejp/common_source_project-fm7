@@ -89,3 +89,21 @@ void Ui_MainWindowBase::ConfigFloppyMenu(void)
 		ConfigFloppyMenuSub(i);
 	}
 }
+
+void Uo_MainWindowBase::do_update_floppy_history(int drive, QStringList lst)
+{
+	if((drive < 0) || (drive >= using_flags->get_max_drive())) {
+		if(menu_fds[drv] != nullptr) {
+			menu_fds[drv]->do_update_histories(lst);
+		}
+	}
+}
+
+void Uo_MainWindowBase::do_insert_floppy_history(int drive, QString path)
+{
+	if((drive < 0) || (drive >= using_flags->get_max_drive())) {
+		if(menu_fds[drv] != nullptr) {
+			menu_fds[drv]->do_update_histories(lst);
+		}
+	}
+}
