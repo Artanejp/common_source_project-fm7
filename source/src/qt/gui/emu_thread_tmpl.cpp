@@ -255,6 +255,7 @@ void EmuThreadClassBase::sample_access_drv(void)
 	if(using_flags->is_use_bubble()) get_bubble_string();
 }
 
+
 void EmuThreadClassBase::do_update_config()
 {
 	bUpdateConfigReq = true;
