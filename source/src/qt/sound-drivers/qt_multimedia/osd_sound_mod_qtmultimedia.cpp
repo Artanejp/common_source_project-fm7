@@ -105,6 +105,7 @@ void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 
 void M_QT_MULTIMEDIA::update_driver_fileio()
 {
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_driver_fileio = m_fileio;
 }
 
@@ -237,8 +238,8 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	tmp_output_device = get_device_by_name(QString::fromStdString(m_device_name));
 	QAudioFormat tmp_output_format = tmp_output_device.preferredFormat();
 	
-	int _channels = m_channels;
-	int _rate = m_rate;
+	int _channels = m_channels.load();
+	int _rate = m_rate.load();
 	set_audio_format(tmp_output_device, tmp_output_format, _channels, _rate);
 	if((_channels > 0) && (_rate > 0)) {
 		m_channels = _channels;
@@ -266,8 +267,8 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 		m_rate = m_audioOutputSink->format().sampleRate();
 		m_config_ok = true;
 	}
-	m_samples = ((qint64)m_latency_ms * (qint64)(m_rate)) / 1000;
-	if(m_samples <= 0) {
+	m_samples = ((qint64)m_latency_ms.load() * (qint64)(m_rate.load())) / 1000;
+	if(m_samples.load() <= 0) {
 		m_samples = 4800;
 	}
 	update_driver_fileio();
@@ -355,8 +356,13 @@ void M_QT_MULTIMEDIA::do_set_device_by_name(QString driver_name)
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QAudioDeviceInfo dest_device = get_device_by_name(driver_name);
 #endif
-
-	setup_device(dest_device, m_rate, m_channels, m_latency_ms, true);
+	int _rate = m_rate.load();
+	int _channels = m_channels.load();
+	int _latency = m_latency_ms.load();
+	setup_device(dest_device, _rate, _channels, _latency, true);
+	m_rate = _rate;
+	m_channels = _channels;
+	m_latency_ms = _latency;
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -371,10 +377,11 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 	
 	if(!(force_reinit)) {
 		// If already initialized and not changed, skip.
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		if((m_audioOutputDevice == dest_device)
-		   && (rate == m_rate)
-		   && (channels == m_channels)
-		   && (latency_ms == m_latency_ms)
+		   && (rate == m_rate.load())
+		   && (channels == m_channels.load())
+		   && (latency_ms == m_latency_ms.load())
 		   && (m_audioOutputSink.get() != nullptr)
 		   && (m_fileio.get() != nullptr)) {
 			if(m_fileio->isOpen()) {
@@ -393,7 +400,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 	}
 	bool force_req_reinit = false;
 	if(!(force_reinit)) {
-		if(m_latency_ms != latency_ms) {
+		if(m_latency_ms.load() != latency_ms) {
 			force_req_reinit = true;
 		}
 		if(m_audioOutputSink.get() != nullptr) {
@@ -447,7 +454,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 		m_before_rendered = 0;
 		
 		if(m_audioOutputSink.get() != nullptr) {
-			m_audioOutputSink->setBufferSize(m_chunk_bytes);
+			m_audioOutputSink->setBufferSize(m_chunk_bytes.load());
 			connect(m_audioOutputSink.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
 			channels = m_audioOutputSink->format().channelCount();
 			rate = m_audioOutputSink->format().sampleRate();
@@ -467,6 +474,8 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			}
 
 			recalc_samples(rate, latency_ms, true, true);
+			
+			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 			m_config_ok = (m_fileio.get() != nullptr);
 			if(m_config_ok.load()) {
 				real_reconfig_sound(rate, channels, latency_ms);
@@ -479,6 +488,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 				((int64_t)rate * latency_ms) / 1000;
 			if(_samples < 100) _samples = 100;
 			if(m_fileio.get() != nullptr) {
+				std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 				if(m_fileio->isOpen()) {
 					m_fileio->close();
 				}
@@ -491,7 +501,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			m_channels = channels;
 		}
 	}
-	__debug_log_func(_T("Result: rate=%d channels=%d latency=%dmSec reinit=%d"), m_rate, m_channels, m_latency_ms, force_reinit);
+	__debug_log_func(_T("Result: rate=%d channels=%d latency=%dmSec reinit=%d"), m_rate.load(), m_channels.load(), m_latency_ms.load(), force_reinit);
 	if(m_audioOutputSink.get() != nullptr) {
 		update_driver_fileio();
 		emit sig_start_audio();
@@ -589,6 +599,7 @@ void M_QT_MULTIMEDIA::do_sound_start()
 		//m_driver_fileio->reset();
 		return;
 	}
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_driver_fileio->reset();
 	p->setBufferSize(m_chunk_bytes);
 	p->start(m_driver_fileio.get());
@@ -680,11 +691,13 @@ int64_t M_QT_MULTIMEDIA::driver_processed_usec()
 
 bool M_QT_MULTIMEDIA::is_driver_started()
 {
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	bool _b = M_BASE::is_driver_started();
 	std::shared_ptr<SOUND_BUFFER_QT> q = m_driver_fileio;
 	if(q.get() == nullptr) {
 		return false;
 	}
+	
 	if(!(q->isOpen())) {
 		return false;
 	}
@@ -751,6 +764,7 @@ void M_QT_MULTIMEDIA::unmute_sound()
 
 void M_QT_MULTIMEDIA::do_discard_sound()
 {
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> q = m_driver_fileio;
 	if(q.get() != nullptr) {
 		q->reset();

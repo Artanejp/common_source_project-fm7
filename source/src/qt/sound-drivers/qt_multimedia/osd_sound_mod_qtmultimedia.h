@@ -57,7 +57,7 @@ protected:
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QAudioDevice get_device_by_name(QString driver_name);
-	void setup_device(QAudioDevice dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
+	void setup_device(QAudioDevice dest_device, int& rate, int& channels, int& latency_ms, bool force_reinit = false);
 #else
 	QAudioDeviceInfo get_device_by_name(QString driver_name);
 	void setup_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);

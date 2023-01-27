@@ -45,22 +45,22 @@ namespace SOUND_MODULE {
 	set_osd(parent);
 	m_fileio.reset();
 	
-	if(m_channels < 1) m_channels = 1;
-	recalc_samples(m_rate, m_latency_ms, true, false);
+	if(m_channels.load() < 1) m_channels = 1;
+	recalc_samples(m_rate.load(), m_latency_ms.load(), true, false);
 	
 	bool _reinit = (deviceIO == nullptr) ? true : false;
 	if(!(_reinit)) {
 		if(deviceIO->isOpen()) {
 			deviceIO->close();
 		}
-		if(deviceIO->resize(m_buffer_bytes)) {
+		if(deviceIO->resize(m_buffer_bytes.load())) {
 			m_fileio.reset(deviceIO);
 		} else {
 			_reinit = true;
 		}
 	}
 	if(_reinit) {
-		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes, this));
+		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes.load(), this));
 	}
 	update_driver_fileio();
 	m_loglevel = CSP_LOG_INFO;
@@ -108,14 +108,15 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	if(latency_ms < 1) latency_ms = 1;
 	int64_t _samples =
 		((int64_t)rate * latency_ms) / 1000;
-	size_t _chunk_bytes = (size_t)(_samples * m_wordsize);
+	size_t _chunk_bytes = (size_t)(_samples * m_wordsize.load());
 	int64_t _buffer_bytes = _chunk_bytes * 2;
 	
 	bool _need_restart = false;
 	if(need_resize_fileio) {
 		bool __reinit = true;
 		if(m_fileio.get() != nullptr) {
-			if(_buffer_bytes != m_buffer_bytes) {
+			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+			if(_buffer_bytes != m_buffer_bytes.load()) {
 				bool _is_opened = m_fileio->isOpen(); 
 				if(_is_opened) {
 					m_fileio->close();
@@ -128,6 +129,7 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 			}
 		}
 		if(__reinit) {
+			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 			m_fileio.reset(new SOUND_BUFFER_QT(_buffer_bytes, this));
 			update_driver_fileio();
 			_need_restart = true;
@@ -143,6 +145,7 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 
 bool M_BASE::reopen_fileio(bool force_reopen)
 {
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> sp = m_fileio;
 	if(sp.get() != nullptr) {
 		if(force_reopen) {
@@ -238,14 +241,14 @@ bool M_BASE::wait_driver_stopped(int64_t timeout_msec)
 
 std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(SOUND_BUFFER_QT *p)
 {
-	
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	bool _f = is_running_sound();
 	if(m_fileio.get() != nullptr) {
 		_f &= m_fileio->isOpen();
 	}
 	stop();
 	if(p == nullptr) {
-		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes, this));
+		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes.load(), this));
 	} else {
 		m_fileio.reset(p);
 	}
@@ -258,6 +261,7 @@ std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(SOUND_BUFFER_QT *p)
 
 std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(std::shared_ptr<SOUND_BUFFER_QT> ps)
 {
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	bool _f = is_running_sound();
 	if(m_fileio.get() != nullptr) {
 		_f &= m_fileio->isOpen();
@@ -274,15 +278,16 @@ std::shared_ptr<SOUND_BUFFER_QT> M_BASE::set_io_device(std::shared_ptr<SOUND_BUF
 
 bool M_BASE::update_latency(int latency_ms, bool force)
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+
 	if(latency_ms <= 0) {
 		return false;
 	}
-	if(!(force) && (m_latency_ms == latency_ms)) return true;
+	if(!(force) && (m_latency_ms.load() == latency_ms)) return true;
 	
 	stop();
 	recalc_samples(m_rate, latency_ms, true, true);
 	if(m_fileio.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		m_fileio->reset();
 	}
 	return (start() && (m_fileio.get() != nullptr));
@@ -292,12 +297,14 @@ bool M_BASE::update_latency(int latency_ms, bool force)
 bool M_BASE::reconfig_sound(int rate, int channels)
 {
 	// ToDo
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	if((rate != m_rate) || (channels != m_channels)) {
-		if(real_reconfig_sound(rate, channels, m_latency_ms)) {
+	if((rate != m_rate.load()) || (channels != m_channels.load())) {
+		int _latency = m_latency_ms.load();
+		bool _b = real_reconfig_sound(rate, channels, _latency);
+		m_latency_ms = _latency;
+		if(_b) {
 			m_rate = rate;
 			m_channels = channels;
-			m_config_ok = update_latency(m_latency_ms, true);
+			m_config_ok = update_latency(m_latency_ms.load(), true);
 			return m_config_ok.load();
 		}
 	}
@@ -307,6 +314,7 @@ bool M_BASE::reconfig_sound(int rate, int channels)
 bool M_BASE::release_driver_fileio()
 {
 	if(m_fileio.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		m_fileio->close();
 		disconnect(m_fileio.get(), nullptr, this, nullptr);
 		disconnect(this, nullptr, m_fileio.get(), nullptr);
@@ -333,23 +341,23 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 	if(rate <= 0) rate = 8000; // OK?
 	
 	int _latency_ms = (samples * 1000) / rate;
-	int channels = m_channels;
+	int channels = m_channels.load();
 	if(real_reconfig_sound(rate, channels, _latency_ms)) {
 		m_config_ok = true;
 		config_t* p_config = get_config_ptr();
 		if(p_config != nullptr) {
 			set_volume((int)(p_config->general_sound_level));
 		}
-		__debug_log_func("Success. Sample rate=%d samples=%d", m_rate, m_samples);
+		__debug_log_func("Success. Sample rate=%d samples=%d", m_rate.load(), m_samples.load());
 	} else {
 		m_config_ok = false;
 		__debug_log_func("Failed.");
 	}
 	if(presented_rate != nullptr) {
-		*presented_rate = m_rate;
+		*presented_rate = m_rate.load();
 	}
 	if(presented_samples != nullptr) {
-		*presented_samples = m_samples;
+		*presented_samples = m_samples.load();
 	}
 }
 	
@@ -369,16 +377,16 @@ void M_BASE::release_sound()
 bool M_BASE::check_elapsed_to_render()
 {
 	//const int64_t sound_us_now = driver_processed_usec();
-	if(m_rate <= 0) return false;
+	if(m_rate.load() <= 0) return false;
 	if(!(is_driver_started())) {
 		return false;
 	}
 	const int64_t sound_us_now = driver_elapsed_usec();
-	const int64_t  _period_usec = m_latency_ms * 1000;
-	int64_t _diff = sound_us_now - m_before_rendered;
-	if((_diff < 0) && ((INT64_MAX - m_before_rendered) <= _period_usec))  {
+	const int64_t  _period_usec = m_latency_ms.load() * 1000;
+	int64_t _diff = sound_us_now - m_before_rendered.load();
+	if((_diff < 0) && ((INT64_MAX - m_before_rendered.load()) <= _period_usec))  {
 			// For uS overflow
-		_diff = sound_us_now + (INT64_MAX - m_before_rendered);
+		_diff = sound_us_now + (INT64_MAX - m_before_rendered.load());
 	}
 	if(_diff < 0) {
 		_diff = 0;
@@ -411,7 +419,6 @@ config_t* M_BASE::get_config_ptr()
 
 void M_BASE::update_render_point_usec()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_before_rendered = driver_elapsed_usec();
 	//m_before_rendered = driver_processed_usec();
 }
@@ -419,19 +426,22 @@ void M_BASE::update_render_point_usec()
 bool M_BASE::check_enough_to_render()
 {
 	int64_t _left = get_bytes_left();
-	return ((m_chunk_bytes < _left) ? true : false);
+	return ((m_chunk_bytes.load() < _left) ? true : false);
 }
 
 int64_t M_BASE::update_sound(void* datasrc, int samples)
 {
-	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;	
+	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;
 	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
 	if(q.get() == nullptr) return -1;
+	if(datasrc == nullptr) return -1;
+	
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(!(is_driver_started()) ||  !(q->isOpen())) {
 		return -1;
 	}
 	int64_t _result = -1;
-	qint64 _size = m_chunk_bytes;
+	qint64 _size = m_chunk_bytes.load();
 	if(samples > 0) {
 		_size = (qint64)(samples * m_channels) * (qint64)m_wordsize;
 	} else if(samples == 0) {
@@ -638,58 +648,51 @@ bool M_BASE::is_io_device_exists()
 
 int64_t M_BASE::get_buffer_bytes()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	return m_buffer_bytes;
+	return m_buffer_bytes.load();
 }
 
 int64_t M_BASE::get_chunk_bytes()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	return m_chunk_bytes;
+	return m_chunk_bytes.load();
 }
 
 int M_BASE::get_latency_ms()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	return m_latency_ms;
+	return m_latency_ms.load();
 }
 	
 int M_BASE::get_channels()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	return m_channels;
+	return m_channels.load();
 }
 
 int M_BASE::get_sample_rate()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	return m_rate;
+	return m_rate.load();
 }
 
 size_t M_BASE::get_word_size()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	return m_wordsize;
+	return m_wordsize.load();
 }
 
 void M_BASE::get_buffer_parameters(int& channels, int& rate,
 													 int& latency_ms, size_t& word_size,
 													 int& chunk_bytes, int& buffer_bytes)
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	channels = m_channels;
-	rate = m_rate;
-	latency_ms = m_latency_ms;
-	word_size = m_wordsize;
-	chunk_bytes = m_chunk_bytes;
-	buffer_bytes = m_buffer_bytes;
+	channels = m_channels.load();
+	rate = m_rate.load();
+	latency_ms = m_latency_ms.load();
+	word_size = m_wordsize.load();
+	chunk_bytes = m_chunk_bytes.load();
+	buffer_bytes = m_buffer_bytes.load();
 }
 
 int64_t M_BASE::get_bytes_available()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> p = m_fileio;
 	if(p.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		return p->bytesAvailable();
 	}
 	return 0;
@@ -697,11 +700,10 @@ int64_t M_BASE::get_bytes_available()
 
 int64_t M_BASE::get_bytes_left()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> p = m_fileio;
-	
 	if(p.get() != nullptr) {
-		int64_t n = m_buffer_bytes - p->bytesAvailable();
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		int64_t n = m_buffer_bytes.load() - p->bytesAvailable();
 		if(n < 0) n = 0;
 		return n;
 	}

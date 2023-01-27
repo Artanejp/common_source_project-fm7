@@ -57,15 +57,15 @@ protected:
 	std::atomic<bool>					m_prev_started;
 	std::atomic<bool>					m_mute;
 
-	int64_t								m_chunk_bytes;
-	int64_t								m_buffer_bytes;
-	int64_t								m_before_rendered;
-	int									m_samples;
+	std::atomic<int64_t>				m_chunk_bytes;
+	std::atomic<int64_t>				m_buffer_bytes;
+	std::atomic<int64_t>				m_before_rendered;
+	std::atomic<int>					m_samples;
 	
-	int									m_rate;
-	int									m_latency_ms;
-	int									m_channels;
-	size_t								m_wordsize;
+	std::atomic<int>					m_rate;
+	std::atomic<int>					m_latency_ms;
+	std::atomic<int>					m_channels;
+	std::atomic<size_t>					m_wordsize;
 	std::atomic<void*>					m_extconfig_ptr;
 	std::atomic<int>					m_extconfig_bytes;
 	std::atomic<int>					m_loglevel;
@@ -237,11 +237,11 @@ public slots:
 	}
 	bool update_rate(int rate)
 	{
-		return reconfig_sound(rate, m_channels);
+		return reconfig_sound(rate, m_channels.load());
 	}
 	bool update_channels(int channels)
 	{
-		return reconfig_sound(m_rate, channels);
+		return reconfig_sound(m_rate.load(), channels);
 	}
 	bool update_latency(int latency_ms, bool fortce = false);
 	bool reconfig_sound(int rate, int channels);

@@ -44,7 +44,7 @@
 #endif
 
 #include <cstdint>
-
+#include <cmath>
 #include "./sound-drivers/sound_buffer_qt.h"
 #include "./sound-drivers/osd_sound_mod_template.h"
 
@@ -484,7 +484,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 		// Pass 2: Check elapsed time.
 		int64_t latency_us    = sound_drv->get_latency_ms() * 1000;
 		int64_t elapsed_usec = sound_drv->driver_elapsed_usec() % (latency_us * 2);
-		//int64_t processed_usec = sound_drv->driver_processed_usec() % (latency_us * 2);
+		//int64_t jitter = (int64_t)std::llround((1.0e6 / vm_frame_rate()));
+		
 		switch(m_sound_period) {
 		case 0:
 			if(elapsed_usec > latency_us) {
