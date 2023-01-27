@@ -82,6 +82,7 @@ public:
 	}
 public slots:
 	virtual void open() override;
+	virtual void do_update_params();
 } CSP_DiskDialog;
 
 class CSP_CreateDiskDialog : public QWidget {

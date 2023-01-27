@@ -206,6 +206,7 @@ void Menu_MetaClass::do_finish(int i)
 
 void Menu_MetaClass::do_open_dialog()
 {
+	// ToDo : Load State of Qt.
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
 		char app[PATH_MAX];
@@ -241,13 +242,14 @@ void Menu_MetaClass::do_open_dialog()
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
 
 	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()), Qt::QueuedConnection); 
+	dlg->do_update_params(); // update Extensions, directories
 
 	dlg->setModal(false);
 	dialogs.append(dlg);
 	
 	//dlg->open();
-	dlg->show();
-	//dlg->exec();
+	//dlg->show();
+	dlg->exec();
 	//emit sig_show();
 	return;
 }

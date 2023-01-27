@@ -58,6 +58,12 @@ void CSP_DiskDialog::open()
 	//show();
 }
 
+void CSP_DiskDialog::do_update_params()
+{
+	setDirectory(param->getDirectory());
+	setNameFilters(param->getNameFilters());
+}
+
 CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidget(parent)
 {
 	__real_media_type = 0x00;
