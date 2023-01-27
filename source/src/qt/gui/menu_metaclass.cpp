@@ -12,7 +12,6 @@
 #include <QStyle>
 #include <QApplication>
 #include <QMenuBar>
-#include <QThreadPool>
 
 //#include "emu.h"
 //#include "vm.h"
@@ -43,7 +42,6 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	object_desc = QString::fromUtf8("Obj_") + desc;
 	object_desc.append(tmps);
 	setObjectName(object_desc);
-	
 
 	for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 		action_select_media_list[ii] = NULL;
@@ -54,6 +52,9 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	
 	ext_filter.clear();
 	history.clear();
+
+	dialogs.clear();
+	
 	inner_media_list.clear();
 	window_title = QString::fromUtf8("");
 
@@ -62,7 +63,6 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	icon_write_protected = QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton);
 	icon_write_enabled = QIcon();
 	setToolTipsVisible(true);
-
 	
 	connect(this, SIGNAL(sig_emu_update_config()), p_wid, SLOT(do_emu_update_config()));
 	
@@ -73,6 +73,12 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 
 Menu_MetaClass::~Menu_MetaClass()
 {
+	for(auto i = dialogs.begin(); i != dialogs.end(); ++i) {
+		if((*i) != nullptr) {
+			dialogs.erase(i);
+			(*i)->deleteLater();
+		}
+	}
 }
 
 
@@ -214,8 +220,7 @@ void Menu_MetaClass::do_open_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-	
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
 	dlg->setOption(QFileDialog::ReadOnly, false);
 	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
@@ -235,22 +240,25 @@ void Menu_MetaClass::do_open_dialog()
 	}
 	dlg->setWindowTitle(tmps);
 	
+
+	dlg->setModal(false);
+
+
 	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
 	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
 	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
 	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
 
-	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()), Qt::QueuedConnection); 
+	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()), Qt::QueuedConnection); 
 	dlg->do_update_params(); // update Extensions, directories
 
-	dlg->setModal(false);
 	dialogs.append(dlg);
 	
 	//dlg->open();
 	//dlg->show();
-	dlg->exec();
-	//emit sig_show();
+	//dlg->exec();
+	emit sig_show();
 	return;
 }
 

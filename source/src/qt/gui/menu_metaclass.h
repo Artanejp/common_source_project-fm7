@@ -24,6 +24,7 @@
 class EMU_TEMPLATE;
 
 QT_BEGIN_NAMESPACE
+class QThread;
 class QMenuBar;
 class QAction;
 class QActionGroup;
