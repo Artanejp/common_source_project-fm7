@@ -699,6 +699,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;
 			}
 			status_accept(1, 0x00, 0x00);
+		} else {
+			set_delay_ready(); // OK? 20230127 K.O
 		}
 		cdrom_debug_log(_T("CMD SET CDDA STATE(%02X)"), command);
 		break;
@@ -709,6 +711,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;
 			}
 			status_accept(0, 0x00, 0x00);
+		} else {
+			set_delay_ready(); // OK? 20230127 K.O
 		}
 		break;
 	case CDROM_COMMAND_SET_STATE: // 80h
@@ -758,6 +762,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				break;
 			}
 			status_accept(0, 0x00, 0x00);
+		} else {
+			set_delay_ready(); // OK? 20230127 K.O
 		}
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
@@ -770,6 +776,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			if(!(status_media_changed_or_not_ready(false))) {
 				status_accept(0, 0x00, 0x00);
 			}
+		} else {
+			set_delay_ready(); // OK? 20230127 K.O
 		}
 		break;
 	case CDROM_COMMAND_STOP_CDDA: // 84h
@@ -1469,6 +1477,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		event_cdda_delay_play = -1;
 		databuffer->clear();
+		send_mcu_ready(); // OK? 20230127 K.O
 		if(prefetch_audio_sectors(1) < 1) {
 			set_cdda_status(CDDA_OFF);
 			set_subq();
