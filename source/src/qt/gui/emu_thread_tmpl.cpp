@@ -211,7 +211,7 @@ void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 	}
 }
 
-
+// New UI
 void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 {
 	key_queue_t sp;
@@ -254,6 +254,8 @@ void EmuThreadClassBase::sample_access_drv(void)
 	if(using_flags->is_use_compact_disc()) get_cd_string();
 	if(using_flags->is_use_bubble()) get_bubble_string();
 }
+
+
 
 
 void EmuThreadClassBase::do_update_config()

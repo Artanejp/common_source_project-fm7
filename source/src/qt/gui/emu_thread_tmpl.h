@@ -360,6 +360,36 @@ public slots:
 	void set_romakana(bool flag);
 	void do_close_debugger(void);
 
+	// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI (menu_foo[bar]))
+	void done_open_floppy_disk(int drive, QString path);
+	void done_close_floppy_disk(int drive);
+	void done_select_d88(int drive, int slot);
+	
+	void done_open_tape(int drive, QString path);
+	void done_close_tape(int drive);
+
+	void done_open_quick_disk(int drive, QString path);
+	void done_close_quick_disk(int drive);
+
+	void done_open_compact_disc(int drive, QString path);
+	void done_close_compact_disc(int drive);
+	
+	void done_open_hard_disk(int drive, QString path);
+	void done_close_hard_disk(int drive);
+	
+	void done_open_cart(int drive, QString path);
+	void done_close_cart(int drive);
+
+	void done_open_laser_disc(int drive, QString path);
+	void done_close_laser_disc(int drive);
+	
+	void done_open_binary(int drive, QString path);
+	void done_close_binary(int drive);
+
+	void done_open_bubble(int drive, QString path);
+	void done_close_bubble(int drive);
+	void done_select_b77(int drive, int slot);
+
 signals:
 	int message_changed(QString);
 	int window_title_changed(QString);
@@ -412,6 +442,41 @@ signals:
 	int sig_set_draw_fps(double);
 	int sig_draw_one_turn(bool);
 	int sig_update_d88_list(int, int);
+
+// Signal from (EMU:: -> OSD:: ->) EMU_THREAD -> GUI(menu_foo[bar])
+	int sig_ui_update_floppy_list(int, QStringList);
+	int sig_ui_close_floppy_disk(int);
+	int sig_ui_clear_d88(int);
+	int sig_ui_update_d88(int, int, QString);
+	int sig_ui_select_d88(int, int);
+	
+	int sig_ui_update_tape_list(int, QStringList);
+	int sig_ui_close_tape(int);
+
+	int sig_ui_update_quick_disk_list(int, QStringList);
+	int sig_ui_close_quick_disk(int);
+	
+	int sig_ui_update_compact_disc_list(int, QStringList);
+	int sig_ui_close_compact_disc(int);
+
+	int sig_ui_update_hard_disk_list(int, QStringList);
+	int sig_ui_close_hard_disk(int);
+	
+	int sig_ui_update_cart_list(int, QStringList);
+	int sig_ui_close_cart_disk(int);
+	
+	int sig_ui_update_laser_disc_list(int, QStringList);
+	int sig_ui_close_laser_disc(int);
+
+	int sig_ui_update_binary_list(int, QStringList);
+	int sig_ui_close_binary(int);
+	
+	int sig_ui_update_bubble_casette_list(int, QStringList);
+	int sig_ui_close_bubble_casette(int);
+	int sig_ui_clear_b77(int);
+	int sig_ui_update_b77(int, int, QString);
+	int sig_ui_select_b77(int, int);
+	
 };
 
 QT_END_NAMESPACE

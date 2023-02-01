@@ -19,6 +19,8 @@
 #include "fifo.h"
 #include "fileio.h"
 
+#include "osdcall_types.h"
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -159,6 +161,22 @@ EMU::~EMU()
 #endif
 }
 
+// messaging proxies.
+// These are mostly used for replying mounting virtual media.
+// 20230125 K.O
+void EMU::osdcall_string(int media_type, int drive,int message_type, _TCHAR* message)
+{
+	__LIKELY_IF(osd != nullptr) {
+		osd->string_message_from_emu(media_type, drive, message_type, message);
+	}
+}
+
+void EMU::osdcall_int(EMU_MEDIA_TYPE media_type, int drive, EMU_MESSAGE_TYPE message_type, int64_t data)
+{
+	__LIKELY_IF(osd != nullptr) {
+		osd->int_message_from_emu(media_type, drive, message_type, data);
+	}
+}
 
 
 #ifdef OSD_QT
@@ -2630,7 +2648,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 			}
 			delete fio;
 		}
-
+	
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
@@ -2713,6 +2731,7 @@ uint32_t EMU::floppy_disk_indicator_color()
 {
 	return vm->floppy_disk_indicator_color();
 }
+
 #endif
 
 #ifdef USE_QUICK_DISK
@@ -2916,6 +2935,7 @@ uint32_t EMU::is_hard_disk_accessed()
 {
 	return vm->is_hard_disk_accessed();
 }
+
 #endif
 
 #ifdef USE_TAPE
@@ -3174,6 +3194,7 @@ uint32_t EMU::is_laser_disc_accessed()
 {
 	return vm->is_laser_disc_accessed();
 }
+
 #endif
 
 #ifdef USE_BINARY_FILE
