@@ -671,12 +671,16 @@ Sint16* OSD_BASE::create_sound(int *extra_frames)
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 
-void OSD_BASE::string_message_to_binary(int media_type, int drive, int message_type, _TCHAR* message)
+void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message)
 {
+//	switch(media_type) {
+//	case EMU_MEDIA_TYPE::BINARY:
+//	}
 }
-void OSD_BASE::string_message_from_emu(int media_type, int drive, int message_type, _TCHAR* message)
+
+void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data)
 {
-	switch(media_type) {
-	case EMU_MEDIA_TYPE::BINARY:
-	}
+//	switch(media_type) {
+//	case EMU_MEDIA_TYPE::BINARY:
+//	}
 }

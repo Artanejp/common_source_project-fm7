@@ -405,6 +405,8 @@ public:
 	void load_state(const _TCHAR* file_path)  override;
 	const _TCHAR *state_file_path(int num) override;
 #endif
+	void __FASTCALL osdcall_string(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message) override;
+	void __FASTCALL osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, int64_t data) override;
 };
 
 #endif // _EMU_H_

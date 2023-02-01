@@ -164,14 +164,14 @@ EMU::~EMU()
 // messaging proxies.
 // These are mostly used for replying mounting virtual media.
 // 20230125 K.O
-void EMU::osdcall_string(int media_type, int drive,int message_type, _TCHAR* message)
+void EMU::osdcall_string(EMU_MEDIA_TYPE::type_t media_type, int drive,EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message)
 {
 	__LIKELY_IF(osd != nullptr) {
 		osd->string_message_from_emu(media_type, drive, message_type, message);
 	}
 }
 
-void EMU::osdcall_int(EMU_MEDIA_TYPE media_type, int drive, EMU_MESSAGE_TYPE message_type, int64_t data)
+void EMU::osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data)
 {
 	__LIKELY_IF(osd != nullptr) {
 		osd->int_message_from_emu(media_type, drive, message_type, data);

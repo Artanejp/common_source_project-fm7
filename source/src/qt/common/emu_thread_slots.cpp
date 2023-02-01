@@ -529,7 +529,7 @@ void EmuThreadClassBase::do_open_disk(int drv, QString path, int bank)
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-	bool reserved = p_emu->is_floppy_disk_inserted(drv));
+	bool reserved = p_emu->is_floppy_disk_inserted(drv);
 	p_emu->open_floppy_disk(drv, file_path, bank);
 	
 	fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 0.05);
@@ -892,12 +892,12 @@ void EmuThreadClassBase::done_open_cart(int drive, QString path)
 		relpath = QString::fromLocal8Bit(&(__dir[1]));
 	}
 	emit sig_ui_update_cart_list(drive, list);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CART, drive, relpath);
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drive, relpath);
 }
 void EmuThreadClassBase::done_close_cart(int drive)
 {
 	emit sig_ui_close_cart(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CART, drive, QString::fromUtf8(""));
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drive, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_close_laser_disc(int drv)
@@ -943,7 +943,7 @@ void EmuThreadClassBase::done_open_laser_disc(int drive, QString path)
 void EmuThreadClassBase::done_close_laser_disc(int drive)
 {
 	emit sig_ui_close_laser_disc(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, QString::fromUtf8(""));
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drive, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_load_binary(int drv, QString path)
@@ -989,7 +989,7 @@ void EmuThreadClassBase::done_open_binary(int drive, QString path)
 void EmuThreadClassBase::done_close_binary(int drive)
 {
 	emit sig_ui_close_binary(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drive, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_write_protect_bubble_casette(int drv, bool flag)
@@ -1103,7 +1103,7 @@ void EmuThreadClassBase::done_open_bubble(int drive, QString path)
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, relpath);
 }
 
-void EmuThreadClassBase::done_close_bubble_casette(int drive)
+void EmuThreadClassBase::done_close_bubble(int drive)
 {
 	emit sig_ui_close_bubble_casette(drive);
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, QString::fromUtf8(""));

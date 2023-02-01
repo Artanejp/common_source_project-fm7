@@ -266,39 +266,44 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	return;
 }
 
+void Menu_MetaClass::do_insert_history(QString path)
+{
+	QStringList lst;
+	for(int i = 0; i < MAX_HISTORY ; i++) {
+		if(action_recent_list[i] != nullptr) {
+			QString tmpstr = action_recent_list[i]->text();
+			lst.append(tmpstr);
+		}
+	}
+	if(lst.at(0) == path) {
+		// None changed.
+		return;
+	}
+	QStringList lst2;
+	lst2.clear();
+	for(size_t i = 0 ; i < lst.size(); i++) {
+		if(path != lst.at(i)) lst2.append(lst.at(i));
+	}
+	lst2.push_front(path);
+	do_update_histories(lst2);
+}
 void Menu_MetaClass::do_update_histories(QStringList lst)
 {
-	int ii;
 	QString tmps;
+	int ptr = 0;
 	for(int i = 0; i < lst.size(); i++) {
 		if(i >= MAX_HISTORY) break;
 		action_recent_list[i]->setText(lst.at(i));
 		action_recent_list[i]->setVisible(true);
+		ptr++;
 	}
-	for(int i = lst.size(); i < MAX_HISTORY; i++) {
+	for(int i = ptr; i < MAX_HISTORY; i++) {
 		action_recent_list[i]->setText(QString::fromUtf8(""));
 		action_recent_list[i]->setVisible(false);
 	}	
 }
 
-void Menu_MetaClass::do_add_media(QStringList path)
-{
-	if(path.isEmpty()) return;
-	if(path.isNull()) return;
-	
-	QStringList list;
-	list.clear();
-	list.append(path);
-	for(int i = 0; i < MAX_HISTORY; i++) {
-		if(action_recent_list[i] != nullptr) {
-			QString tmps = action_recent_list[i]->text();
-			if(tmps != path) {
-				list.append(tmps);
-			}
-		}
-	}
-	do_update_histories(list);
-}
+
 void Menu_MetaClass::do_clear_inner_media(void)
 {
 	int ii;

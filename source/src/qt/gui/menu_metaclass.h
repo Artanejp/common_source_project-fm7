@@ -117,11 +117,13 @@ public slots:
 	void do_open_media(int drv, QString name);
 	void do_insert_media(void);
 	void do_eject_media(void);
+
 	void do_open_inner_media(void);
 	void do_open_recent_media(void);
 	void do_write_protect_media(void);
 	void do_write_unprotect_media(void);
 	void do_add_media_extension(QString ext, QString description);
+	
 	void do_set_initialize_directory(const char *dir);
 	virtual void do_open_dialog(void);
 	void do_clear_inner_media(void);
@@ -129,6 +131,8 @@ public slots:
 	void do_update_inner_media(QStringList lst, int num);
 	void do_update_inner_media_bubble(QStringList lst, int num);
 	void do_update_histories(QStringList lst);
+	void do_insert_history(QString path);
+
 	void do_set_window_title(QString s);
 	void do_close_window();
 	void do_finish(int i);

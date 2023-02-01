@@ -90,20 +90,20 @@ void Ui_MainWindowBase::ConfigFloppyMenu(void)
 	}
 }
 
-void Uo_MainWindowBase::do_update_floppy_history(int drive, QStringList lst)
+void Ui_MainWindowBase::do_update_floppy_history(int drive, QStringList lst)
 {
 	if((drive < 0) || (drive >= using_flags->get_max_drive())) {
-		if(menu_fds[drv] != nullptr) {
-			menu_fds[drv]->do_update_histories(lst);
+		if(menu_fds[drive] != nullptr) {
+			menu_fds[drive]->do_update_histories(lst);
 		}
 	}
 }
 
-void Uo_MainWindowBase::do_insert_floppy_history(int drive, QString path)
+void Ui_MainWindowBase::do_insert_floppy_history(int drive, QString path)
 {
 	if((drive < 0) || (drive >= using_flags->get_max_drive())) {
-		if(menu_fds[drv] != nullptr) {
-			menu_fds[drv]->do_update_histories(lst);
+		if(menu_fds[drive] != nullptr) {
+			menu_fds[drive]->do_insert_history(path);
 		}
 	}
 }

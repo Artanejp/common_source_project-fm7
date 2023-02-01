@@ -12,6 +12,7 @@
 #pragma once
 
 namespace EMU_MEDIA_TYPE {
+	typedef uint64_t type_t ;
 	enum  {
 		NONE,
 		BINARY,
@@ -33,6 +34,7 @@ namespace EMU_MEDIA_TYPE {
 
 
 namespace EMU_MESSAGE_TYPE {
+	typedef uint64_t type_t ;
 	enum {
 		NONE,
 		MEDIA_MOUNTED,
@@ -42,4 +44,3 @@ namespace EMU_MESSAGE_TYPE {
 		MESSAGE_END
 	};
 }
-

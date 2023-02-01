@@ -906,6 +906,9 @@ public slots:
 	void do_set_visible_virtual_media_left();
 	void do_set_visible_virtual_media_right();
 
+	void do_update_floppy_history(int drive, QStringList lst);
+	void do_insert_floppy_history(int drive, QString path);
+
 	void do_set_emulate_cursor_as(void);
 	void do_set_logging_fdc(bool onoff);	
 	void do_set_separate_thread_draw(bool f);

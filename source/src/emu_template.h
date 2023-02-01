@@ -473,7 +473,7 @@ public:
 	virtual bool is_quick_disk_connected(int drv) { return false; }
 	virtual bool is_quick_disk_inserted(int drv) { return false; }
 	virtual uint32_t is_quick_disk_accessed() { return 0x00000000; }
-	virtual bool get_quick_disk_status(int drive = 0, _TCHAR* media_name, size_t buflen, bool& play, int& wait_count, int& cur_bank)
+	virtual bool get_quick_disk_status(int drive, _TCHAR* media_name, size_t buflen, bool& play, int& wait_count, int& cur_bank)
 	{
 		return false;
 	}
@@ -486,7 +486,7 @@ public:
 	virtual void close_hard_disk(int drv) {}
 	virtual bool is_hard_disk_inserted(int drv) { return false; }
 	virtual uint32_t is_hard_disk_accessed() { return 0x00000000; }
-	virtual bool get_hard_disk_status(int drive = 0, _TCHAR* media_name, size_t buflen, bool& play, int& wait_count, int& cur_bank)
+	virtual bool get_hard_disk_status(int drive, _TCHAR* media_name, size_t buflen, bool& play, int& wait_count, int& cur_bank)
 	{
 		return false;
 	}
@@ -553,8 +553,8 @@ public:
 	// messaging proxies.
 	// These are mostly used for replying mounting virtual media.
 	// 20230125 K.O
-	virtual void __FASTCALL osdcall_string(EMU_MEDIA_TYPE media_type, int drive,  EMU_MESSAGE_TYPE message_type, _TCHAR* message) {}
-	virtual void __FASTCALL osdcall_int(EMU_MEDIA_TYPE media_type, int drive,  EMU_MESSAGE_TYPE message_type, int64_t data) { }
+	virtual void __FASTCALL osdcall_string(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message) {}
+	virtual void __FASTCALL osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, int64_t data) { }
 
 };
 

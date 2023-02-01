@@ -53,7 +53,7 @@ void Menu_FDClass::do_open_dialog()
 	do_open_dialog_common(dlg);
 
 	disconnect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
-	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), p_wid, SLOT(_open_media(int, QString)));
+	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
 	emit sig_show();
 }
 void Menu_FDClass::do_open_dialog_create_fd()

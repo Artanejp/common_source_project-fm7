@@ -30,6 +30,8 @@
 #define SOCKET_BUFFER_MAX 0x100000
 #include "../config.h"
 #include "osd_types.h"
+// For UIs
+#include "osdcall_types.h"
 
 #define N_MAX_BUTTONS 128
 
@@ -681,6 +683,10 @@ public:
 	void finish_waiting_in_debugger();
 	void process_waiting_in_debugger();
 
+	// Messaging wrapper from EMU:: to OSD::
+	void __FASTCALL string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t  message_type, _TCHAR* message);
+	void __FASTCALL int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data);
+									   
 public slots:
 	void enable_mouse();
 	void disable_mouse();
@@ -714,9 +720,6 @@ public slots:
 	void do_set_host_sound_output_device(QString device_name);
 	void do_update_master_volume(int level);
 
-	// Messaging wrapper from EMU:: to OSD::
-	void __FASTCALL string_message_from_emu(EMU_MEDIA_TYPE media_type, int drive, EMU_MESSAGE_TYPE  message_type, _TCHAR* message);
-	void __FASTCALL int_message_from_emu(EMU_MEDIA_TYPE media_type, int drive, EMU_MESSAGE_TYPE message_type, int64_t data);
 signals:
 	int sig_update_screen(void *, bool);
 	int sig_save_screen(const char *);
@@ -773,7 +776,7 @@ signals:
 	int sig_notify_error_virtual_media(int type, int drive, int64_t status);
 	int sig_notify_select_d88(int drive, int cur_bank);
 	int sig_notify_update_d88_list(int drive, int bank_num, QStringList names);
-	int sig_notify_clear_b77_list(int drive, int cur_bank);
+	int sig_notify_clear_d88_list(int drive, int cur_bank);
 	
 	int sig_notify_select_b77(int drive, int cur_bank);
 	int sig_notify_update_b77_list(int drive, int bank_num, QStringList names);

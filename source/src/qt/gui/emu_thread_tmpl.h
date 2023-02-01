@@ -463,7 +463,7 @@ signals:
 	int sig_ui_close_hard_disk(int);
 	
 	int sig_ui_update_cart_list(int, QStringList);
-	int sig_ui_close_cart_disk(int);
+	int sig_ui_close_cart(int);
 	
 	int sig_ui_update_laser_disc_list(int, QStringList);
 	int sig_ui_close_laser_disc(int);

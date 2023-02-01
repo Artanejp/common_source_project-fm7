@@ -40,28 +40,30 @@ extern const int DLL_PREFIX screen_mode_height[];
 
 #ifndef UPDATE_HISTORY
 #define UPDATE_HISTORY(path, recent, list) { \
-	int no = MAX_HISTORY - 1; \
-	bool found = false; \
-	for(int i = 0; i < MAX_HISTORY; i++) { \
-		if(strcmp(recent[i], path) == 0) { \
-			no = i; \
-			found = true; \
-			break; \
-		} \
-	} \
-	if(found) { \
-		strcpy(recent[MAX_HISTORY - 1], ""); \
-	} \
-	for(int i = no; i > 0; i--) { \
-		strcpy(recent[i], recent[i - 1]); \
-	} \
-	strcpy(recent[0], path); \
-	list.clear(); \
-	for(int i = 0; i < MAX_HISTORY; i++) { \
-		QString _tmps = QString::fromLocal8Bit(recent[i]); \
-		list << _tmps; \
-	} \
-}
+		if(strlen(path) > 0) {								\
+			if(strcmp(recent[0], path) != 0) {				\
+				for(int i = (MAX_HISTORY - 1); i > 0; i--) {	\
+					strcpy(recent[i], recent[i - 1]);			\
+				}												\
+				strcpy(recent[0], path);						\
+				list.clear();									\
+				for(int i = 0; i < MAX_HISTORY; i++) {					\
+					QString _tmps = QString::fromLocal8Bit(recent[i]);	\
+					bool found = false;									\
+					for(int j = i - 1; j >= 0; j--) {						\
+						QString _tmps2 = QString::fromLocal8Bit(recent[j]); \
+						if(_tmps2 == _tmps) {							\
+							found = true;								\
+							break;										\
+						}												\
+					}													\
+					if(!found) {										\
+						list << _tmps;									\
+					}													\
+				}														\
+			}															\
+		}																\
+	}
 #endif
 
 #ifndef SETUP_HISTORY
