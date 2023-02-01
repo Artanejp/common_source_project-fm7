@@ -45,7 +45,7 @@ namespace SOUND_MODULE {
 	set_osd(parent);
 	m_fileio.reset();
 	
-	if(m_channels.load() < 1) m_channels = 1;
+	if(m_channels.load() <= 1) m_channels = 2;
 	recalc_samples(m_rate.load(), m_latency_ms.load(), true, false);
 	
 	bool _reinit = (deviceIO == nullptr) ? true : false;
@@ -108,7 +108,7 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	if(latency_ms < 1) latency_ms = 1;
 	int64_t _samples =
 		((int64_t)rate * latency_ms) / 1000;
-	size_t _chunk_bytes = (size_t)(_samples * m_wordsize.load());
+	size_t _chunk_bytes = (size_t)(_samples * m_wordsize.load() * m_channels.load());
 	int64_t _buffer_bytes = _chunk_bytes * 2;
 	
 	bool _need_restart = false;
@@ -443,7 +443,7 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 	int64_t _result = -1;
 	qint64 _size = m_chunk_bytes.load();
 	if(samples > 0) {
-		_size = (qint64)(samples * m_channels) * (qint64)m_wordsize;
+		_size = (qint64)samples * (qint64)(m_channels.load() * m_wordsize.load());
 	} else if(samples == 0) {
 		return _result;
 	}
@@ -451,7 +451,7 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 		_result = (int64_t)q->write((const char *)datasrc, _size);
 	}
 	if(_result > 0) {
-		_result = _result / (qint64)(m_channels * m_wordsize);
+		_result = _result / (qint64)(m_channels.load() * m_wordsize.load());
 		
 	}
 	return _result;

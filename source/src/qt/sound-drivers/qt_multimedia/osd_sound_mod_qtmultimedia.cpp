@@ -241,10 +241,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	int _channels = m_channels.load();
 	int _rate = m_rate.load();
 	set_audio_format(tmp_output_device, tmp_output_format, _channels, _rate);
-	if((_channels > 0) && (_rate > 0)) {
-		m_channels = _channels;
-		m_rate = _rate;
-	} else {
+	if((_channels <= 0) || (_rate <= 0)) {
 		tmp_output_format = tmp_output_device.preferredFormat();
 		_channels = tmp_output_format.channelCount();
 		_rate     = tmp_output_format.sampleRate();
@@ -268,9 +265,11 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 		m_config_ok = true;
 	}
 	m_samples = ((qint64)m_latency_ms.load() * (qint64)(m_rate.load())) / 1000;
-	if(m_samples.load() <= 0) {
-		m_samples = 4800;
+	if(m_samples.load() <= 100) {
+		m_samples = 100;
 	}
+	m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
+	m_buffer_bytes = m_chunk_bytes.load() * 2;
 	update_driver_fileio();
 
 	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
@@ -472,7 +471,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 				memset(_ccp->sound_device_name, 0x00, sizeof(_ccp->sound_device_name));
 				my_tcscpy_s(_ccp->sound_device_name, (sizeof(_ccp->sound_device_name) / sizeof(_TCHAR)) - 1, _tmpname.toUtf8().constData());
 			}
-
+			m_channels = channels;
 			recalc_samples(rate, latency_ms, true, true);
 			
 			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -486,7 +485,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			
 			int64_t _samples =
 				((int64_t)rate * latency_ms) / 1000;
-			if(_samples < 100) _samples = 100;
+			if(_samples <= 100) _samples = 100;
 			if(m_fileio.get() != nullptr) {
 				std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 				if(m_fileio->isOpen()) {
@@ -499,6 +498,8 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			m_latency_ms = latency_ms;
 			m_rate = rate;
 			m_channels = channels;
+			m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
+			m_buffer_bytes = m_chunk_bytes.load() * 2;
 		}
 	}
 	__debug_log_func(_T("Result: rate=%d channels=%d latency=%dmSec reinit=%d"), m_rate.load(), m_channels.load(), m_latency_ms.load(), force_reinit);
@@ -554,6 +555,7 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 		channels = 2;
 		m_config_ok = false;
 	}
+	m_channels = channels;
 	if(recalc_samples(rate, latency_ms, true, false)) {
 		m_prev_started = m_mute = false;
 	}

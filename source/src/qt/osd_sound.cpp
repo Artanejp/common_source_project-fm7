@@ -458,7 +458,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 			__LIKELY_IF(!(sound_ok)) {
 				sound_drv->start();
 				__UNLIKELY_IF(p_config != nullptr) {
-					sound_drv->set_volume((int)(p_config->general_sound_level));
+					do_update_master_volume((int)(p_config->general_sound_level));
 				}
 			}
 			sound_ok = true;
@@ -553,9 +553,8 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 													 nullptr,
 													 0));
 		init_sound_device_list();
-		emit sig_update_sound_output_list();
 		if(p_config != nullptr) {
-			m_sound_driver->set_volume((int)(p_config->general_sound_level));
+			do_update_master_volume((int)(p_config->general_sound_level));
 		}
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
