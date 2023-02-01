@@ -166,6 +166,10 @@ packages/*
 publish/
 source/*/build/*
 source/build/*
+source/*/build-qt5/*
+source/build-qt5/*
+source/*/build-qt6/*
+source/build-qt6/*
 source/build-cmake/*/build-win32/*
 source/build-cmake/*/build/*
 source/src/vm/libcpu_newdev/mame0185/*
