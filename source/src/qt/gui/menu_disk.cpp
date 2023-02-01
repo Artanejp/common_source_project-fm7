@@ -47,6 +47,15 @@ void Menu_FDClass::do_set_create_mask(quint8 type, bool flag)
 	}
 }
 
+void Menu_FDClass::do_open_dialog()
+{
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
+	do_open_dialog_common(dlg);
+
+	disconnect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
+	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), p_wid, SLOT(_open_media(int, QString)));
+	emit sig_show();
+}
 void Menu_FDClass::do_open_dialog_create_fd()
 {
 	CSP_CreateDiskDialog dlg(type_mask);
@@ -192,8 +201,10 @@ void Menu_FDClass::connect_menu_device_sub(void)
 			this, SLOT(do_set_disk_count_immediate(bool)));
 
 	connect(action_create_fd, SIGNAL(triggered()), this, SLOT(do_open_dialog_create_fd()));
-	
+
+	// Need Change
    	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
+
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
 	
 	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(write_protect_fd(int, bool)));	

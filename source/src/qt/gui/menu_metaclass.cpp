@@ -212,6 +212,12 @@ void Menu_MetaClass::do_finish(int i)
 
 void Menu_MetaClass::do_open_dialog()
 {
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
+	do_open_dialog_common(dlg);
+	emit sig_show();
+}	
+void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
+{
 	// ToDo : Load State of Qt.
 	if(initial_dir.isEmpty()) { 
 		QDir dir;
@@ -220,7 +226,7 @@ void Menu_MetaClass::do_open_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
+
 	dlg->setOption(QFileDialog::ReadOnly, false);
 	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
@@ -239,10 +245,8 @@ void Menu_MetaClass::do_open_dialog()
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
 	dlg->setWindowTitle(tmps);
-	
 
 	dlg->setModal(false);
-
 
 	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
 	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
@@ -258,7 +262,6 @@ void Menu_MetaClass::do_open_dialog()
 	//dlg->open();
 	//dlg->show();
 	//dlg->exec();
-	emit sig_show();
 	return;
 }
 

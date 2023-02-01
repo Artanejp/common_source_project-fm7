@@ -88,6 +88,7 @@ protected:
 	
 	void create_pulldown_menu_sub(void);
 	void retranslate_pulldown_menu_sub(void);
+	void do_open_dialog_common(CSP_DiskDialog* dlg);
   
 	QString window_title;
 	QString initial_dir;
@@ -122,7 +123,7 @@ public slots:
 	void do_write_unprotect_media(void);
 	void do_add_media_extension(QString ext, QString description);
 	void do_set_initialize_directory(const char *dir);
-	void do_open_dialog(void);
+	virtual void do_open_dialog(void);
 	void do_clear_inner_media(void);
 	void do_select_inner_media(int num);
 	void do_update_inner_media(QStringList lst, int num);

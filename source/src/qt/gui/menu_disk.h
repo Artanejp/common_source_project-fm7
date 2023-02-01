@@ -25,13 +25,14 @@ protected:
 public:
 	Menu_FDClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_FDClass();
-	void create_pulldown_menu_device_sub();
-	void connect_menu_device_sub(void);
-	void retranslate_pulldown_menu_device_sub(void);
+	void create_pulldown_menu_device_sub() override;
+	void connect_menu_device_sub(void) override;
+	void retranslate_pulldown_menu_device_sub(void) override;
 
 public slots:
 	void do_set_create_mask(quint8 type, bool flag);
 	
+	void do_open_dialog(void) override;
 	void do_open_dialog_create_fd();
 	void do_create_media(quint8 media_type, QString name);
 	
