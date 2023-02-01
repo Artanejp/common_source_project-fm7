@@ -2368,12 +2368,16 @@ void EMU::update_media()
 #ifdef USE_FLOPPY_DISK
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
-			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
+			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & 0x7f);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, floppy_disk_status[drv].path);
 #else
 			out_message(_T("FD: %s"), floppy_disk_status[drv].path);
 #endif
+			osd->string_message_from_emu(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & 0xff),
+										 drv,
+										 EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+										 floppy_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2472,7 +2476,11 @@ void EMU::restore_media()
 #ifdef USE_FLOPPY_DISK
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].path[0] != _T('\0')) {
-			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
+			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & 0x7f);
+			osd->string_message_from_emu(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & 0xff),
+										 drv,
+										 EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+										 floppy_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2640,7 +2648,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						d88_file[drv].bank_num++;
 					}
 					my_tcscpy_s(d88_file[drv].path, _MAX_PATH, file_path);
-					d88_file[drv].cur_bank = bank;
+					d88_file[drv].cur_bank = bank & 0x7f;
 				} catch(...) {
 					d88_file[drv].bank_num = 0;
 				}
@@ -2659,12 +2667,16 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 			out_message(_T("FD: Ejected"));
 #endif
 		} else if(floppy_disk_status[drv].wait_count == 0) {
-			vm->open_floppy_disk(drv, file_path, bank);
+			vm->open_floppy_disk(drv, file_path, bank & 0x7f);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, file_path);
 #else
 			out_message(_T("FD: %s"), file_path);
 #endif
+			osd->string_message_from_emu(EMU_MEDIA_TYPE::FLOPPY_DISK | (bank & 0xff),
+										 drv,
+										 EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+										 (_TCHAR *)file_path);
 		}
 		my_tcscpy_s(floppy_disk_status[drv].path, _MAX_PATH, file_path);
 		floppy_disk_status[drv].bank = bank;

@@ -908,6 +908,7 @@ public slots:
 
 	void do_update_floppy_history(int drive, QStringList lst);
 	void do_insert_floppy_history(int drive, QString path);
+	void do_ui_floppy_insert_history(int drv, QString fname, quint64 bank);
 
 	void do_set_emulate_cursor_as(void);
 	void do_set_logging_fdc(bool onoff);	

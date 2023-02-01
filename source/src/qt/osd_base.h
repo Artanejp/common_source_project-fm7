@@ -769,19 +769,7 @@ signals:
 	int sig_notify_power_off(void); // To GUI 20230120 K.O
 
 	// To GUI 20230125 K.O
-	int sig_notify_opened_virtual_media(int type, int drive, QString path);
-	int sig_notify_closed_virtual_media(int type, int drive);
-	int sig_notify_update_virtual_media_list(int type, int drive, QStringList names);
-	
-	int sig_notify_error_virtual_media(int type, int drive, int64_t status);
-	int sig_notify_select_d88(int drive, int cur_bank);
-	int sig_notify_update_d88_list(int drive, int bank_num, QStringList names);
-	int sig_notify_clear_d88_list(int drive, int cur_bank);
-	
-	int sig_notify_select_b77(int drive, int cur_bank);
-	int sig_notify_update_b77_list(int drive, int bank_num, QStringList names);
-	int sig_notify_clear_b77_list(int drive, int cur_bank);
-	
+	int sig_ui_floppy_insert_history(int, QString, quint64);
 };
 
 QT_END_NAMESPACE

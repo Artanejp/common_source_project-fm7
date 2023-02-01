@@ -676,6 +676,21 @@ void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int dr
 //	switch(media_type) {
 //	case EMU_MEDIA_TYPE::BINARY:
 //	}
+	QString tmps;
+	uint64_t _type = media_type & (31 << 16);
+	uint64_t _slot = media_type & 255;
+	switch(_type) {
+		case EMU_MEDIA_TYPE::FLOPPY_DISK :
+			if(message != nullptr) {
+				tmps = QString::fromLocal8Bit(message);
+			}
+			switch(message_type) {
+			case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
+				emit sig_ui_floppy_insert_history(drive, tmps, _slot);
+				break;
+			}
+			break;
+	}
 }
 
 void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data)

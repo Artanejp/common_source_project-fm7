@@ -92,10 +92,9 @@ void Ui_MainWindowBase::ConfigFloppyMenu(void)
 
 void Ui_MainWindowBase::do_update_floppy_history(int drive, QStringList lst)
 {
-	if((drive < 0) || (drive >= using_flags->get_max_drive())) {
-		if(menu_fds[drive] != nullptr) {
-			menu_fds[drive]->do_update_histories(lst);
-		}
+	if((drive < 0) || (drive >= using_flags->get_max_drive())) return;
+	if(menu_fds[drive] != nullptr) {
+		menu_fds[drive]->do_update_histories(lst);
 	}
 }
 

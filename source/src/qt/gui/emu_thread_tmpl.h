@@ -259,6 +259,8 @@ public:
 	void sample_access_drv(void);
 	bool now_debugging();
 
+	EMU_TEMPLATE *get_emu() { return p_emu; }
+
 	int get_d88_file_cur_bank(int drive);
 	int get_d88_file_bank_num(int drive);
 	QString get_d88_file_disk_name(int drive, int banknum);

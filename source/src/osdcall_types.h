@@ -14,21 +14,21 @@
 namespace EMU_MEDIA_TYPE {
 	typedef uint64_t type_t ;
 	enum  {
-		NONE,
-		BINARY,
-		BUBBLE_CASETTE,
-		CARTRIDGE,
-		COMPACT_DISC,		
-		FLOPPY_DISK,
-		HARD_DISK,
-		LASER_DISC,
-		QUICK_DISK,
-		TAPE,
+		NONE = 0 << 16,
+		BINARY = 1 << 16,
+		BUBBLE_CASETTE = 2 << 16,
+		CARTRIDGE = 3 << 16,
+		COMPACT_DISC = 4 << 16,		
+		FLOPPY_DISK = 5 << 16,
+		HARD_DISK = 6 << 16,
+		LASER_DISC = 7 << 16,
+		QUICK_DISK = 8 << 16,
+		TAPE = 9 << 16,
 		
-		AUDIO,
-		VIDEO,
-		ANY_MEDIA,
-		END
+		AUDIO = (1 << 18) + (30 << 16),
+		VIDEO = (2 << 18) + (30 << 16),
+		ANY_MEDIA = (7 << 18) + (30 << 16),
+		END = UINT64_MAX
 	};
 }
 

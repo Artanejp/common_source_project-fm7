@@ -117,6 +117,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	int drvs;
 	
 	hRunEmu = m;
+	if(hRunEmu == nullptr) return;
+	OSD_BASE* p_osd = hRunEmu->get_emu()->get_osd();
+	
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), this, SLOT(do_set_mouse_enable(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
@@ -162,6 +165,10 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
 	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
+	connect(p_osd, SIGNAL(sig_ui_floppy_insert_history(int, QString, quint64)),
+					 this, SLOT(do_ui_floppy_insert_history(int, QString, quint64)),
+					 Qt::QueuedConnection);
+
 	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
 		menu_fds[ii]->setEmu(emu);
@@ -473,7 +480,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		delete hDrawEmu;
 		hDrawEmu = nullptr;
 	}
-	if(hRunEmu != NULL) {
+	if(hRunEmu != nullptr) {
 		OnCloseDebugger();
 		OSD* op = (OSD*)(emu->get_osd());
 		if(op != nullptr) {
@@ -511,7 +518,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 #endif
 	do_release_emu_resources();
-	hRunEmu = NULL;
+	hRunEmu = nullptr;
 
 	return;
 }
@@ -1296,41 +1303,42 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->getWindow()->show();
 	rMainWindow->retranselateUi_Depended_OSD();
 //	QMetaObject::connectSlotsByName(rMainWindow);
-   	EmuThreadClass *hRunEmu = new EmuThreadClass(rMainWindow, using_flags);
-   
-	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
+   	EmuThreadClass *hRunEmu_Real = new EmuThreadClass(rMainWindow, using_flags);
+	OSD_BASE* p_osd = hRunEmu_Real->get_emu()->get_osd();
+	
+	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
 		rMainWindow->do_update_device_node_name(i, using_flags->get_vm_node_name(i));
 	}
-	p_logger->set_osd((OSD*)(emu->get_osd()));
+	p_logger->set_osd((OSD*)p_osd);
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
 	
 	// ToDo: Update raltime.
-	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)(emu->get_osd()), SLOT(do_set_host_sound_output_device(QString)));
+	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)p_osd, SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
 
-	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_update_sound_output_list()), rMainWindow, SLOT(do_update_sound_output_list()));
-	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_clear_sound_output_list()), rMainWindow, SLOT(do_clear_sound_output_list()));
-	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_append_sound_output_list(QString)), rMainWindow, SLOT(do_append_sound_output_list(QString)));
+	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_sound_output_list()), rMainWindow, SLOT(do_update_sound_output_list()));
+	QObject::connect((OSD*)p_osd, SIGNAL(sig_clear_sound_output_list()), rMainWindow, SLOT(do_clear_sound_output_list()));
+	QObject::connect((OSD*)p_osd, SIGNAL(sig_append_sound_output_list(QString)), rMainWindow, SLOT(do_append_sound_output_list(QString)));
 					 
-	QObject::connect(rMainWindow, SIGNAL(sig_update_master_volume(int)), (OSD*)(emu->get_osd()), SLOT(do_update_master_volume(int)));
+	QObject::connect(rMainWindow, SIGNAL(sig_update_master_volume(int)), (OSD*)p_osd, SLOT(do_update_master_volume(int)));
 	
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 
-	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_clear_keyname_table()),	 rMainWindow, SLOT(do_clear_keyname_table()));
-	QObject::connect((OSD*)(emu->get_osd()), SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
-	emu->get_osd()->update_keyname_table();
+	QObject::connect((OSD*)p_osd, SIGNAL(sig_clear_keyname_table()),	 rMainWindow, SLOT(do_clear_keyname_table()));
+	QObject::connect((OSD*)p_osd, SIGNAL(sig_add_keyname_table(uint32_t, QString)),	 rMainWindow, SLOT(do_add_keyname_table(uint32_t, QString)));
+	p_osd->update_keyname_table();
 
-	QObject::connect(rMainWindow, SIGNAL(sig_notify_power_off()), hRunEmu, SLOT(do_notify_power_off()), Qt::QueuedConnection);
+	QObject::connect(rMainWindow, SIGNAL(sig_notify_power_off()), hRunEmu_Real, SLOT(do_notify_power_off()), Qt::QueuedConnection);
 
 	GLDrawClass *pgl = rMainWindow->getGraphicsView();
 	pgl->do_set_texture_size(NULL, -1, -1);  // It's very ugly workaround (;_;) 20191028 K.Ohta
 //	pgl->setFixedSize(pgl->width(), pgl->height());
 	// main loop
-	rMainWindow->LaunchEmuThread(hRunEmu);
-
+	rMainWindow->LaunchEmuThread(hRunEmu_Real);
+	
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif
