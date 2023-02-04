@@ -38,43 +38,82 @@ extern const int DLL_PREFIX screen_mode_height[];
 #define MAX_HISTORY 8
 #endif
 
-#ifndef UPDATE_HISTORY
-#define UPDATE_HISTORY(path, recent, list) { \
-		if(strlen(path) > 0) {								\
-			if(strcmp(recent[0], path) != 0) {				\
-				for(int i = (MAX_HISTORY - 1); i > 0; i--) {	\
-					strcpy(recent[i], recent[i - 1]);			\
-				}												\
-				strcpy(recent[0], path);						\
-				list.clear();									\
-				for(int i = 0; i < MAX_HISTORY; i++) {					\
-					QString _tmps = QString::fromLocal8Bit(recent[i]);	\
-					bool found = false;									\
-					for(int j = i - 1; j >= 0; j--) {						\
-						QString _tmps2 = QString::fromLocal8Bit(recent[j]); \
-						if(_tmps2 == _tmps) {							\
-							found = true;								\
-							break;										\
-						}												\
-					}													\
-					if(!found) {										\
-						list << _tmps;									\
-					}													\
-				}														\
-			}															\
-		}																\
+static inline void SETUP_HISTORY(void* recent, QStringList& list, const ssize_t width = MAX_HISTORY)
+{
+	if(recent == nullptr) return;
+	
+	list.clear();
+	const size_t length = _MAX_PATH;
+	_TCHAR* p = (_TCHAR *)recent;
+	for(int i = 0; i < width; i++) {
+		QString _tmps = QString::fromLocal8Bit(p);
+		list << _tmps;
+		p = &(p[length]);
 	}
-#endif
-
-#ifndef SETUP_HISTORY
-#define SETUP_HISTORY(recent, list) { \
-	list.clear(); \
-	for(int i = 0; i < MAX_HISTORY; i++) { \
-		QString _tmps = QString::fromLocal8Bit(recent[i]); \
-		list << _tmps; \
-	} \
 }
-#endif
+
+static inline void WRITEBACK_TO_HISTORY(void* recent, QStringList list, const ssize_t width = MAX_HISTORY)
+{
+	const size_t length = _MAX_PATH;
+	if(recent == nullptr) return;
+	
+	_TCHAR* p = (_TCHAR *)recent;
+	// Clear LIST 
+	for(int i = 0; i < width; i++) {
+		memset(p, 0x00, length);
+		p = &(p[length]);
+	}
+	// Update List
+	p = (_TCHAR *)recent;
+	for(int i = 0; i < width; i++) {
+		if(i >= list.size()) break;
+		my_tcscpy_s(p, length - 1, list.at(i).toLocal8Bit().constData());
+		p = &(p[length]);
+	}
+}
+
+static inline QStringList SHRINK_HISTORY(QStringList list, const ssize_t width = MAX_HISTORY)
+{
+	QStringList tmpl2;
+	for(auto _l = list.begin(); _l != list.end(); ++_l) {
+		if(tmpl2.size() >= width) break;
+		tmpl2.push_back((*_l));
+	}
+	return tmpl2;
+}
+static inline void UPDATE_HISTORY(QString path, void *recent, QStringList& list, const ssize_t width = MAX_HISTORY)
+{
+	if(recent == nullptr) return;
+	// Set temporally list
+	QStringList tmpl;
+	SETUP_HISTORY(recent, tmpl, width);
+	
+	if(!(path.isEmpty())) {
+		tmpl.push_front(path);
+	}
+	QString tmps = tmpl.at(0);
+	// Remove Duplicates
+	ssize_t ix = 0;
+	do {
+		ix = tmpl.indexOf(tmps, 1);
+		if(ix > 0) {
+			tmpl.removeAt(ix);
+		}
+	} while((ix > 0) && (ix < width));
+	// copy list, shrink to MAX_HISTORY.
+	QStringList tmpl2 = SHRINK_HISTORY(tmpl, width);
+	WRITEBACK_TO_HISTORY(recent, tmpl2, width);
+	list = tmpl2;
+}
+	
+static inline void UPDATE_HISTORY(_TCHAR *path, void *recent, QStringList& list, const ssize_t width = MAX_HISTORY)
+{
+	
+	if(recent == nullptr) return;
+	if(path == nullptr) return;
+	QString _path = QString::fromLocal8Bit(path);
+	UPDATE_HISTORY(_path, recent, list, width);
+}
 
 //extern DLL_PREFIX_I _TCHAR* get_parent_dir(const _TCHAR *file);
 extern DLL_PREFIX_I void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
