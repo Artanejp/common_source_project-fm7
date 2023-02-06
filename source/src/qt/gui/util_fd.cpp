@@ -21,9 +21,13 @@
 //extern class EMU *emu;
 
 
-int Ui_MainWindowBase::write_protect_fd(int drv, bool flag)
+int Ui_MainWindowBase::do_emu_write_protect_floppy_disk(int drv, bool flag)
 {
-	if((drv < 0) || (drv >= using_flags->get_max_drive())) return -1;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return -1;
+	
+	if((drv < 0) || (drv >= p->get_max_drive())) return -1;
+	
 	emit sig_write_protect_floppy_disk(drv, flag);
 	return 0;
 }

@@ -498,7 +498,7 @@ void EmuThreadClassBase::do_stop_auto_key(void)
 	}
 }
 
-void EmuThreadClassBase::do_write_protect_disk(int drv, bool flag)
+void EmuThreadClassBase::do_write_protect_floppy_disk(int drv, bool flag)
 {
 	//QMutexLocker _locker(&uiMutex);
 	std::shared_ptr<USING_FLAGS> p = using_flags;
@@ -542,24 +542,27 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 	fd_reserved_path[drv] = path;
 }
 
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_select_d88(int drive, int slot)
+
+void EmuThreadClassBase::do_select_floppy_disk_d88(int drive, int slot)
 {
 	if(p_emu == nullptr) return;
-
-	if(slot < 0) return;
-	if(slot >= 64) return;
-	if(p_emu->d88_file[drive].bank_num < 0) return;
-	if(p_emu->d88_file[drive].bank_num >= 64) return;
-	if(p_emu->d88_file[drive].bank_num <= slot) return;
-	p_emu->d88_file[drive].cur_bank = slot;
-	emit sig_ui_select_d88(drive, slot);
 	
-	_TCHAR tmpname[128] = {0};
-	my_strcpy_s(tmpname, 127, p_emu->d88_file[drive].disk_name[slot]);
-	QString tmps = QString::fromLocal8Bit(tmpname);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drive, tmps);
+	int bank_num = p_emu->d88_file[drive].bank_num;
+	if(bank_num <= 0) return;
+	
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	if(p.get() == nullptr) return;
+	if(p->get_max_d88_banks() <= slot) slot = p->get_max_d88_banks() - 1;
+	if(slot < 0) return;
+	if(bank_num <= slot) return;
+	
+	if((p_emu->is_floppy_disk_inserted(drive)) &&
+	   (slot != p_emu->d88_file[drive].cur_bank)) {
+		QString path = get_d88_file_path(drive);
+		do_open_floppy_disk(drive, path, slot);
+	}
 }
+
 
 void EmuThreadClassBase::do_play_tape(int drv, QString name)
 {

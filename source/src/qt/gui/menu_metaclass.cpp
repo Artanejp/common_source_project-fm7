@@ -31,7 +31,6 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	menu_root = root_entry;
 
 	//p_emu = ep;
-	p_emu = NULL;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 	
@@ -315,6 +314,9 @@ void Menu_MetaClass::do_clear_inner_media(void)
 				action_select_media_list[ii]->setVisible(false);
 			}
 		}
+		if(action_select_media_list[0] != nullptr) {
+			action_select_media_list[0]->setChecked(true);
+		}
 	}
 }
 
@@ -322,8 +324,6 @@ void Menu_MetaClass::do_clear_inner_media(void)
 void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 {
 	QString tmps;
-	if(num < 0) return;
-	
 	if(use_d88_menus) {
 		//inner_media_list.clear();
 		do_clear_inner_media();
@@ -333,21 +333,17 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 		for(auto _l = lst.begin(); _l != lst.end(); ++_l) {
 			if(count >= _n) break;
 			//inner_media_list.push_back((*_l));
+			//printf("do_update_inner_media: num=%d count=%d val=%s\n", num, count, (*_l).toLocal8Bit().constData());
 			if(action_select_media_list[count] != nullptr) {
 				action_select_media_list[count]->setText((*_l));
-				action_select_media_list[count]->setChecked((count == num) ? true : false);
+				if(count == num) {
+					action_select_media_list[count]->setChecked(true);
+				}
 				action_select_media_list[count]->setVisible(true);
 			}
 			count++;
 		}
-		if((num >= count) || (num < 0)) {
-			if(action_select_media_list[0] != nullptr) {
-				action_select_media_list[0]->setChecked(true);
-			}
-		}
 	}
-	
-	//emit sig_update_inner_fd(media_drive, inner_media_list, action_select_media_list, lst , num, use_d88_menus);
 }
 
 void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
@@ -580,6 +576,6 @@ void Menu_MetaClass::retranslateUi(void)
 
 void Menu_MetaClass::setEmu(EMU_TEMPLATE *p)
 {
-	p_emu = p;
+
 }
 

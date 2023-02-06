@@ -160,20 +160,24 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		}
 	}
 #if defined(USE_FLOPPY_DISK)
-	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)), hRunEmu, SLOT(do_write_protect_disk(int, bool)));
+	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)), hRunEmu, SLOT(do_write_protect_floppy_disk(int, bool)));
 	connect(this, SIGNAL(sig_open_floppy_disk(int, QString, int)), hRunEmu, SLOT(do_open_floppy_disk(int, QString, int)));
 	connect(this, SIGNAL(sig_close_floppy_disk(int)), hRunEmu, SLOT(do_close_floppy_disk(int)));
-	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
 	connect(p_osd, SIGNAL(sig_ui_floppy_insert_history(int, QString, quint64)),
 					 this, SLOT(do_ui_floppy_insert_history(int, QString, quint64)),
 					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_floppy_disk_write_protect(int, quint64)),
+			this, SLOT(do_ui_write_protect_floppy_disk(int, quint64)),
+			Qt::QueuedConnection); 
 
 	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
-		menu_fds[ii]->setEmu(emu);
-		connect(menu_fds[ii], SIGNAL(sig_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)),
-				this, SLOT(do_update_inner_fd(int ,QStringList , class Action_Control **, QStringList , int, bool)));
+		if(menu_fds[ii] != nullptr) {
+			connect(menu_fds[ii], SIGNAL(sig_set_inner_slot(int, int)),
+					hRunEmu, SLOT(do_select_floppy_disk_d88(int, int)),
+					Qt::QueuedConnection);
+		}
 	}
 #endif
 #if defined(USE_HARD_DISK)
@@ -227,7 +231,6 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	//connect(hRunEmu, SIGNAL(sig_change_osd_bubble(int, QString)), this, SLOT(do_change_osd_bubble(int, QString)));
 	drvs = USE_BUBBLE;
 	for(int ii = 0; ii < drvs; ii++) {
-		menu_bubbles[ii]->setEmu(emu);
 		connect(menu_bubbles[ii],
 				SIGNAL(sig_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool)),
 				this,

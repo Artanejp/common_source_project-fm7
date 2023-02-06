@@ -51,7 +51,6 @@ protected:
 	std::shared_ptr<USING_FLAGS> using_flags;
 	QWidget *p_wid;
 	QMenuBar *menu_root;
-	EMU_TEMPLATE *p_emu;
 	config_t *p_config;
 	
 	QMenu *menu_inner_media;
@@ -144,8 +143,6 @@ signals:
 	int sig_set_recent_media(int, int);
 	int sig_set_inner_slot(int, int);
 	int sig_insert_media(int);
-	int sig_update_inner_fd(int drv, QStringList base, class Action_Control **action_select_media_list,
-							QStringList lst, int num, bool use_d88_menus);
 	int sig_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
 								QStringList lst, int num, bool use_d88_menus);
 	int sig_emu_update_config();

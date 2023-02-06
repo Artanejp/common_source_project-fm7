@@ -283,7 +283,7 @@ public slots:
 	void do_set_display_size(int w, int h, int ww, int wh);
 	void moved_mouse(double x, double y, double globalx, double globaly);
 
-	void do_write_protect_disk(int drv, bool flag);
+	void do_write_protect_floppy_disk(int drv, bool flag);
 	void do_close_floppy_disk(int);
 	void do_open_floppy_disk(int, QString, int);
 	
@@ -325,9 +325,9 @@ public slots:
 	void set_romakana(bool flag);
 	void do_close_debugger(void);
 
+
+	void do_select_floppy_disk_d88(int drive, int slot);
 	// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI (menu_foo[bar]))
-	void done_select_d88(int drive, int slot);
-	
 	void done_open_tape(int drive, QString path);
 	void done_close_tape(int drive);
 
@@ -362,7 +362,6 @@ signals:
 	int sig_screen_size(int, int);
 	int sig_finished(void);
 	int sig_mouse_enable(bool);
-	int sig_update_recent_disk(int);
 	int sig_update_recent_hard_disk(int);
 	
 	int sig_change_osd(int, int, QString);
@@ -398,13 +397,11 @@ signals:
 	int sig_open_cdrom(int, QString);
 	int sig_open_laser_disc(int, QString);
 	
-	int sig_set_d88_num(int, int);
 	int sig_set_b77_num(int, int);
 
 	// From emu_thread_slots.cpp .
 	int sig_set_draw_fps(double);
 	int sig_draw_one_turn(bool);
-	int sig_update_d88_list(int, int);
 
 // Signal from (EMU:: -> OSD:: ->) EMU_THREAD -> GUI(menu_foo[bar])
 	int sig_ui_update_floppy_list(int, QStringList);

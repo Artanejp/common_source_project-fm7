@@ -49,8 +49,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	connect(this, SIGNAL(sig_open_cmt_load(int, QString)), MainWindow, SLOT(do_open_read_cmt(int, QString)));
 	connect(this, SIGNAL(sig_open_cmt_write(int, QString)), MainWindow, SLOT(do_open_write_cmt(int, QString)));
 	connect(this, SIGNAL(sig_open_fd(int, QString)), MainWindow, SLOT(_open_disk(int, QString)));
-	connect(this, SIGNAL(sig_update_d88_list(int, int)), MainWindow, SLOT(do_update_d88_list(int, int)));
-	connect(this, SIGNAL(sig_open_d88_fd(int, QString, int)), this, SLOT(do_open_disk(int, QString, int)));
+
 	connect(this, SIGNAL(sig_open_quick_disk(int, QString)), MainWindow, SLOT(_open_quick_disk(int, QString)));
 	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
 	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
@@ -59,8 +58,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	connect(this, SIGNAL(sig_open_laser_disc(int, QString)), MainWindow, SLOT(do_open_laserdisc(int, QString)));
 	
 	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
-	
-	connect(this, SIGNAL(sig_set_d88_num(int, int)), MainWindow, SLOT(set_d88_slot(int, int)));
+
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
 
 	p_osd->setParent(this);
@@ -381,42 +379,6 @@ void EmuThreadClass::doWork(const QString &params)
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			// After frame, delayed open
-#if 0 /* TRY: Move to EMU:: */
-			if(using_flags.get() != nullptr) {
-				for(int i = 0; i < using_flags->get_max_drive(); i++) {
-					if(fd_open_wait_count[i] > 0) {
-						fd_open_wait_count[i] -= run_frames;
-						if(fd_open_wait_count[i] <= 0) {
-							do_open_disk(i, fd_reserved_path[i], fd_reserved_bank[i]);
-							fd_reserved_path[i].clear();
-							fd_reserved_bank[i] = 0;
-							fd_open_wait_count[i] = 0;
-						}
-					}
-				}
-			}
-#else
-			if(using_flags.get() != nullptr) {
-				for(int i = 0; i < using_flags->get_max_drive(); i++) {
-					if(fd_open_wait_count[i] > 0) {
-						fd_open_wait_count[i] -= run_frames;
-						if(fd_open_wait_count[i] <= 0) {
-							if(p_emu->is_floppy_disk_inserted(i)) {
-								int bank = p_emu->d88_file[i].cur_bank;
-								emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, i, fd_reserved_path[i]);
-								emit sig_update_recent_disk(i);
-								emit sig_update_d88_list(i, bank);
-								fd_reserved_path[i].clear();
-								//fd_reserved_bank[i] = 0;
-								fd_open_wait_count[i] = 0;
-							} else {
-								fd_open_wait_count[i] = (int)(get_emu_frame_rate() * 0.2);
-							}
-						}
-					}
-				}
-			}
-#endif
 			if(!(half_count)) {
 				led_data = 0x00;
 				

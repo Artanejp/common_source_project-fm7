@@ -2378,6 +2378,10 @@ void EMU::update_media()
 							drv,
 							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
 							floppy_disk_status[drv].path);
+			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
+						(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
 		}
 	}
 #endif
@@ -2505,6 +2509,10 @@ void EMU::restore_media()
 							drv,
 							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
 							floppy_disk_status[drv].path);
+			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
+						(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
 		}
 	}
 #endif
@@ -2702,6 +2710,10 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						drv,
 						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
 						0);	
+			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
+						0);
 	} else if(floppy_disk_status[drv].wait_count == 0) {
 			vm->open_floppy_disk(drv, file_path, bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
@@ -2713,6 +2725,10 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						   drv,
 						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
 						   (_TCHAR *)file_path);
+			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
+						(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
 		}
 		my_tcscpy_s(floppy_disk_status[drv].path, _MAX_PATH, file_path);
 		floppy_disk_status[drv].bank = bank;
@@ -2736,6 +2752,10 @@ void EMU::close_floppy_disk(int drv)
 		osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
 					drv,
 					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
+		osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
 					0);
 	}
 }
@@ -2763,6 +2783,10 @@ void EMU::is_floppy_disk_protected(int drv, bool value)
 	if(drv < USE_FLOPPY_DISK) {
 		vm->is_floppy_disk_protected(drv, value);
 	}
+	osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+				drv,
+				EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
+				(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
 }
 
 bool EMU::is_floppy_disk_protected(int drv)

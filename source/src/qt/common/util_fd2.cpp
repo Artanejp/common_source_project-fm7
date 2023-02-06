@@ -24,43 +24,22 @@
 
 
 //extern DLL_PREFIX_I EMU *emu;
-int Ui_MainWindowBase::set_d88_slot(int drive, int num)
-{
-	QString path;
-	if((num < 0) || (num >= 64)) return -1;
-	//path = QString::fromUtf8(emu->d88_file[drive].path);
-	path = hRunEmu->get_d88_file_path(drive);
-	menu_fds[drive]->do_select_inner_media(num);
 
-	if(hRunEmu->get_d88_file_cur_bank(drive) != num) {
-		emit sig_close_floppy_disk(drive);
-		emit sig_open_floppy_disk(drive, path, num & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
-		if(hRunEmu->is_floppy_disk_protected(drive)) {
-			menu_fds[drive]->do_set_write_protect(true);
-		} else {
-			menu_fds[drive]->do_set_write_protect(false);
-		}
-	}
-	return 0;
-}
-
-void Ui_MainWindowBase::do_update_recent_disk(int drv)
+void Ui_MainWindowBase::do_ui_write_protect_floppy_disk(int drive, quint64 flag)
 {
-	if(hRunEmu == NULL) return;
-	menu_fds[drv]->do_update_histories(listFDs[drv]);
-	menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
-	if(hRunEmu != NULL) {
-//		if(hRunEmu->get_d88_file_cur_bank(drv) != num) {
-			if(hRunEmu->is_floppy_disk_protected(drv)) {
-				menu_fds[drv]->do_set_write_protect(true);
-			} else {
-				menu_fds[drv]->do_set_write_protect(false);
-			}
-//		}
+	if(drive < 0) return;
+	
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drive)) return;
+	if(menu_fds[drive] != nullptr) return;
+	
+	if(flag != 0) {
+		menu_fds[drive]->do_set_write_protect(true);
+	} else {
+		menu_fds[drive]->do_set_write_protect(false);
 	}
 }
-
-
 extern const _TCHAR* DLL_PREFIX_I get_parent_dir(const _TCHAR* file);
 
 int Ui_MainWindowBase::set_recent_disk(int drv, int num) 
@@ -100,6 +79,7 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 		UPDATE_D88_LIST(drv, listD88[drv]);
 	}
 	menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	
 }
 
 void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
@@ -123,6 +103,18 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 			}
 		}
 	}
+}
+
+void Ui_MainWindowBase::do_set_write_protect_floppy_disk(int drive, bool flag)
+{	
+	if(drive < 0) return;
+	if(menu_fds[drive] == nullptr) return;
+	
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drive)) return;
+
+	menu_fds[drive]->do_set_write_protect(flag);
 }
 
 void Ui_MainWindowBase::do_update_d88_list(int drv, int bank)

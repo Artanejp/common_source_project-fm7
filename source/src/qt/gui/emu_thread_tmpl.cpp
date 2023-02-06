@@ -393,7 +393,7 @@ int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
 					const _TCHAR *path_shadow = (const _TCHAR *)(fileInfo.absoluteFilePath().toLocal8Bit().constData());
 					if(_dom_type == QString::fromUtf8("vFloppyDisk")) {
 						if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
-							emit sig_open_d88_fd(_dom_num, fileInfo.absoluteFilePath(), _slot);
+
 							emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, _dom_num, fileInfo.absoluteFilePath());;
 						} else {
 							emit sig_open_fd(_dom_num, fileInfo.absoluteFilePath());
@@ -566,7 +566,7 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 	
 	if(drive < using_flags->get_max_drive()) {
 		QMutexLocker _locker(&uiMutex);
-		QString _n = QString::fromUtf8((const char *)(&(p_emu->d88_file[drive].path)));
+		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].path)));
 		return _n;
 	}
 

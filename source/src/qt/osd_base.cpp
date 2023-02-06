@@ -709,7 +709,13 @@ void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive
 		// Below are update message to UI.
 		return;  // ToDo: Implement
 	}
-//	switch(media_type) {
-//	case EMU_MEDIA_TYPE::BINARY:
-//	}
+	switch(_type) {
+		case EMU_MEDIA_TYPE::FLOPPY_DISK :
+			switch(message_type) {
+			case EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT :
+				emit sig_floppy_disk_write_protect(drive, data);
+				break;
+			}
+			break;
+	}
 }

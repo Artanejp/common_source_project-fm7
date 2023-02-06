@@ -770,6 +770,7 @@ signals:
 
 	// To GUI 20230125 K.O
 	int sig_ui_floppy_insert_history(int, QString, quint64);
+	int sig_floppy_disk_write_protect(int, quint64);
 };
 
 QT_END_NAMESPACE
