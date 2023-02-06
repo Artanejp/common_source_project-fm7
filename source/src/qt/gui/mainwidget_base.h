@@ -974,9 +974,9 @@ signals:
 	int sig_screen_multiply(double);
 	int sig_update_master_volume(int);
 	
-	int sig_write_protect_disk(int drv, bool flag);
-	int sig_open_disk(int, QString, int);
-	int sig_close_disk(int);
+	int sig_write_protect_floppy_disk(int drv, bool flag);
+	int sig_open_floppy_disk(int, QString, int);
+	int sig_close_floppy_disk(int);
 	int sig_open_hard_disk(int, QString);
 	int sig_close_hard_disk(int);
 	int sig_play_tape(int ,QString);

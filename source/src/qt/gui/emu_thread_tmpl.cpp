@@ -500,12 +500,17 @@ void EmuThreadClassBase::print_framerate(int frames)
 
 int EmuThreadClassBase::get_d88_file_cur_bank(int drive)
 {
-	if(using_flags.get() == nullptr) return -1;
-	if(!(using_flags->is_use_fd())) return -1;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return -1;
+	if(!(p->is_use_fd())) return -1;
 
-	if(drive < using_flags->get_max_drive()) {
+	if((drive < p->get_max_drive()) && (p_emu != nullptr)) {
 		QMutexLocker _locker(&uiMutex);
-		return p_emu->d88_file[drive].cur_bank;
+		int bank_num = p_emu->d88_file[drive].bank_num;
+		int cur_bank = p_emu->d88_file[drive].cur_bank;
+		if((bank_num > 0) && (cur_bank < bank_num)) {
+			return cur_bank;
+		}
 	}
 
 	return -1;
@@ -854,88 +859,6 @@ bool EmuThreadClassBase::now_debugging()
 	}
 }
 
-VirtualFilesList* EmuThreadClassBase::getBinaryFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vBinaryFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getBubbleFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vBubbleFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualBanksList* EmuThreadClassBase::getB77BanksList(int drv)
-{
-	QList<VirtualBanksList*> *p = &vB77BanksList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getCartFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vCartFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getCompactDiscFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vCompactDiscFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getFloppyDiskFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vFloppyDiskFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualBanksList* EmuThreadClassBase::getD88BanksList(int drv)
-{
-	QList<VirtualBanksList*> *p = &vD88BanksList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getHardDiskFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vHardDiskFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getLaserDiscFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vLaserDiscFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getQuickDiskFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vQuickDiskFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-VirtualFilesList* EmuThreadClassBase::getTapeFilesList(int drv)
-{
-	QList<VirtualFilesList*> *p = &vTapeFilesList;
-	return getVirtualMediaListPtr(drv, p);
-}
-
-void EmuThreadClassBase::appendVirualFilesList(
-	QList<VirtualFilesList*> *lst,
-	const _TCHAR* listptr,
-	unsigned int pathlen,
-	unsigned int list_size,
-	Menu_MetaClass *target)
-{
-	if(lst == nullptr) return;
-	if(target == nullptr) return;
-	VirtualFilesList* ptr = new VirtualFilesList((_TCHAR *)listptr, pathlen, list_size, this);
-	if(ptr == nullptr) return;
-	
-	lst->append(ptr);
-	
-	connect(ptr, SIGNAL(sig_replace_ui_list(QStringList)), target, SLOT(do_update_histories(QStringList)));
-}
 
 #if defined(Q_OS_LINUX)
 //#undef _GNU_SOURCE

@@ -24,14 +24,14 @@
 int Ui_MainWindowBase::write_protect_fd(int drv, bool flag)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_drive())) return -1;
-	emit sig_write_protect_disk(drv, flag);
+	emit sig_write_protect_floppy_disk(drv, flag);
 	return 0;
 }
   
 
 void Ui_MainWindowBase::eject_fd(int drv) 
 {
-	emit sig_close_disk(drv);
+	emit sig_close_floppy_disk(drv);
 	menu_fds[drv]->do_clear_inner_media();
 }
 

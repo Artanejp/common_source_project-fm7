@@ -677,8 +677,15 @@ void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int dr
 //	case EMU_MEDIA_TYPE::BINARY:
 //	}
 	QString tmps;
-	uint64_t _type = media_type & (31 << 16);
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
 	uint64_t _slot = media_type & 255;
+	bool is_ui_message = ((media_type & EMU_MEDIA_TYPE::UI_MESSAGE_MASK) != 0) ? true : false;
+	if(is_ui_message) {
+		// Below are update message to UI.
+		return;  // ToDo: Implement
+	}
+	
+	// Below are update status to UI.
 	switch(_type) {
 		case EMU_MEDIA_TYPE::FLOPPY_DISK :
 			if(message != nullptr) {
@@ -695,6 +702,13 @@ void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int dr
 
 void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data)
 {
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+	bool is_ui_message = ((media_type & EMU_MEDIA_TYPE::UI_MESSAGE_MASK) != 0) ? true : false;
+	if(is_ui_message) {
+		// Below are update message to UI.
+		return;  // ToDo: Implement
+	}
 //	switch(media_type) {
 //	case EMU_MEDIA_TYPE::BINARY:
 //	}

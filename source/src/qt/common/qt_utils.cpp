@@ -160,9 +160,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		}
 	}
 #if defined(USE_FLOPPY_DISK)
-	connect(this, SIGNAL(sig_write_protect_disk(int, bool)), hRunEmu, SLOT(do_write_protect_disk(int, bool)));
-	connect(this, SIGNAL(sig_open_disk(int, QString, int)), hRunEmu, SLOT(do_open_disk(int, QString, int)));
-	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
+	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)), hRunEmu, SLOT(do_write_protect_disk(int, bool)));
+	connect(this, SIGNAL(sig_open_floppy_disk(int, QString, int)), hRunEmu, SLOT(do_open_floppy_disk(int, QString, int)));
+	connect(this, SIGNAL(sig_close_floppy_disk(int)), hRunEmu, SLOT(do_close_floppy_disk(int)));
 	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
 	connect(p_osd, SIGNAL(sig_ui_floppy_insert_history(int, QString, quint64)),
@@ -382,7 +382,7 @@ void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name
 		if(drv < USE_FLOPPY_DISK) {
 			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
 			if(emu->create_blank_floppy_disk(path, media_type)) {
-				emit sig_open_disk(drv, name, 0);
+				emit sig_open_floppy_disk(drv, name, 0);
 			}
 		}
 #endif

@@ -2368,16 +2368,16 @@ void EMU::update_media()
 #ifdef USE_FLOPPY_DISK
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
-			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & 0x7f);
+			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, floppy_disk_status[drv].path);
 #else
 			out_message(_T("FD: %s"), floppy_disk_status[drv].path);
 #endif
-			osd->string_message_from_emu(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & 0xff),
-										 drv,
-										 EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-										 floppy_disk_status[drv].path);
+			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							floppy_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2390,6 +2390,10 @@ void EMU::update_media()
 #else
 			out_message(_T("QD: %s"), quick_disk_status[drv].path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2402,6 +2406,10 @@ void EMU::update_media()
 #else
 			out_message(_T("HD: %s"), hard_disk_status[drv].path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::HARD_DISK,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)hard_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2418,6 +2426,10 @@ void EMU::update_media()
 #else
 			out_message(_T("CMT: %s"), tape_status[drv].path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::TAPE,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)tape_status[drv].path);
  		}
 	}
 #endif
@@ -2430,6 +2442,10 @@ void EMU::update_media()
 #else
 			out_message(_T("CD: %s"), compact_disc_status[drv].path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::COMPACT_DISC,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)compact_disc_status[drv].path);
 		}
 	}
 #endif
@@ -2442,18 +2458,26 @@ void EMU::update_media()
 #else
 			out_message(_T("LD: %s"), laser_disc_status[drv].path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::LASER_DISC,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)laser_disc_status[drv].path);
 		}
 	}
 #endif
 #ifdef USE_BUBBLE
 	for(int drv = 0; drv < USE_BUBBLE; drv++) {
 		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
-			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_BUBBLE > 1
 			out_message(_T("Bubble%d: %s"), drv + BASE_BUBBLE_NUM, bubble_casette_status[drv].path);
 #else
 			out_message(_T("Bubble: %s"), bubble_casette_status[drv].path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bubble_casette_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)bubble_casette_status[drv].path);
 		}
 	}
 #endif
@@ -2476,11 +2500,11 @@ void EMU::restore_media()
 #ifdef USE_FLOPPY_DISK
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].path[0] != _T('\0')) {
-			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & 0x7f);
-			osd->string_message_from_emu(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & 0xff),
-										 drv,
-										 EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-										 floppy_disk_status[drv].path);
+			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							floppy_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2544,6 +2568,10 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 		}
 		my_tcscpy_s(cart_status[drv].path, _MAX_PATH, file_path);
 		out_message(_T("Cart%d: %s"), drv + 1, file_path);
+		osdcall_string(EMU_MEDIA_TYPE::CARTRIDGE,
+					   drv,
+					   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+					   (_TCHAR *)file_path);
 #if !defined(_USE_QT)		
 		// restart recording
 		bool s = osd->now_record_sound;
@@ -2567,6 +2595,10 @@ void EMU::close_cart(int drv)
 #else
 		out_message(_T("Cart: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::CARTRIDGE,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 #if !defined(_USE_QT)		
 		// stop recording
 		stop_record_video();
@@ -2648,7 +2680,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						d88_file[drv].bank_num++;
 					}
 					my_tcscpy_s(d88_file[drv].path, _MAX_PATH, file_path);
-					d88_file[drv].cur_bank = bank & 0x7f;
+					d88_file[drv].cur_bank = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
 				} catch(...) {
 					d88_file[drv].bank_num = 0;
 				}
@@ -2666,17 +2698,21 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("FD: Ejected"));
 #endif
-		} else if(floppy_disk_status[drv].wait_count == 0) {
-			vm->open_floppy_disk(drv, file_path, bank & 0x7f);
+			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);	
+	} else if(floppy_disk_status[drv].wait_count == 0) {
+			vm->open_floppy_disk(drv, file_path, bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, file_path);
 #else
 			out_message(_T("FD: %s"), file_path);
 #endif
-			osd->string_message_from_emu(EMU_MEDIA_TYPE::FLOPPY_DISK | (bank & 0xff),
-										 drv,
-										 EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-										 (_TCHAR *)file_path);
+			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK),
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR *)file_path);
 		}
 		my_tcscpy_s(floppy_disk_status[drv].path, _MAX_PATH, file_path);
 		floppy_disk_status[drv].bank = bank;
@@ -2697,6 +2733,10 @@ void EMU::close_floppy_disk(int drv)
 #else
 		out_message(_T("FD: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 	}
 }
 	
@@ -2759,6 +2799,10 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("QD: Ejected"));
 #endif
+			osdcall_int(EMU_MEDIA_TYPE::QUICK_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		} else if(quick_disk_status[drv].wait_count == 0) {
 			vm->open_quick_disk(drv, file_path);
 #if USE_QUICK_DISK > 1
@@ -2766,6 +2810,10 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("QD: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(quick_disk_status[drv].path, _MAX_PATH, file_path);
 	}
@@ -2781,6 +2829,10 @@ void EMU::close_quick_disk(int drv)
 #else
 		out_message(_T("QD: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::QUICK_DISK,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 	}
 }
 
@@ -2907,6 +2959,10 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("HD: Unmounted"));
 #endif
+			osdcall_int((EMU_MEDIA_TYPE::HARD_DISK,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+							0);
 		} else if(hard_disk_status[drv].wait_count == 0) {
 			vm->open_hard_disk(drv, file_path);
 #if USE_HARD_DISK > 1
@@ -2914,6 +2970,10 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("HD: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::HARD_DISK,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(hard_disk_status[drv].path, _MAX_PATH, file_path);
 		my_tcscpy_s(config.last_hard_disk_path[drv], _MAX_PATH, file_path);
@@ -2930,6 +2990,10 @@ void EMU::close_hard_disk(int drv)
 #else
 		out_message(_T("HD: Unmounted"));
 #endif
+		osdcall_int((EMU_MEDIA_TYPE::HARD_DISK,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		config.last_hard_disk_path[drv][0] = '\0';
 	}
 }
@@ -2963,6 +3027,10 @@ void EMU::play_tape(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("CMT: Ejected"));
 #endif
+			osdcall_int(EMU_MEDIA_TYPE::TAPE,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		} else if(tape_status[drv].wait_count == 0) {
 			vm->play_tape(drv, file_path);
 #if USE_TAPE > 1
@@ -2970,6 +3038,10 @@ void EMU::play_tape(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("CMT: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::TAPE,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(tape_status[drv].path, _MAX_PATH, file_path);
 		tape_status[drv].play = true;
@@ -2988,6 +3060,10 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("CMT: Ejected"));
 #endif
+			osdcall_int(EMU_MEDIA_TYPE::TAPE,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		} else if(tape_status[drv].wait_count == 0) {
 			vm->rec_tape(drv, file_path);
 #if USE_TAPE > 1
@@ -2995,6 +3071,10 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("CMT: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::TAPE,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(tape_status[drv].path, _MAX_PATH, file_path);
 		tape_status[drv].play = false;
@@ -3011,6 +3091,10 @@ void EMU::close_tape(int drv)
 #else
 		out_message(_T("CMT: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 	}
 }
 
@@ -3115,6 +3199,10 @@ void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("CD: Ejected"));
 #endif
+			osdcall_int(EMU_MEDIA_TYPE::COMPACT_DISC,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		} else if(compact_disc_status[drv].wait_count == 0) {
 			vm->open_compact_disc(drv, file_path);
 #if USE_COMPACT_DISC > 1
@@ -3122,6 +3210,10 @@ void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("CD: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::COMPACT_DISC,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(compact_disc_status[drv].path, _MAX_PATH, file_path);
 	}
@@ -3137,6 +3229,10 @@ void EMU::close_compact_disc(int drv)
 #else
 		out_message(_T("CD: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::COMPACT_DISC,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 	}
 }
 
@@ -3168,6 +3264,10 @@ void EMU::open_laser_disc(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("LD: Ejected"));
 #endif
+			osdcall_int(EMU_MEDIA_TYPE::LASER_DISC,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		} else if(laser_disc_status[drv].wait_count == 0) {
 			vm->open_laser_disc(drv, file_path);
 #if USE_LASER_DISC > 1
@@ -3175,6 +3275,10 @@ void EMU::open_laser_disc(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("LD: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::LASER_DISC,
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(laser_disc_status[drv].path, _MAX_PATH, file_path);
 	}
@@ -3190,6 +3294,10 @@ void EMU::close_laser_disc(int drv)
 #else
 		out_message(_T("LD: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::LASER_DISC,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 	}
 }
 
@@ -3253,6 +3361,10 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("Bubble: Ejected"));
 #endif
+			osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
+						drv,
+						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+						0);
 		} else if(bubble_casette_status[drv].wait_count == 0) {
 			vm->open_bubble_casette(drv, file_path, bank);
 #if USE_BUBBLE > 1
@@ -3260,6 +3372,10 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("Bubble: %s"), file_path);
 #endif
+			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bank & EMU_MEDIA_TYPE::MULIPLE_SLOT_MASK),
+							drv,
+							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(bubble_casette_status[drv].path, _MAX_PATH, file_path);
 		bubble_casette_status[drv].bank = bank;
@@ -3276,6 +3392,10 @@ void EMU::close_bubble_casette(int drv)
 #else
 		out_message(_T("Bubble: Ejected"));
 #endif
+		osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
+					drv,
+					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+					0);
 	}
 }
 

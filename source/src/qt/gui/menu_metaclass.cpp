@@ -44,7 +44,7 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	setObjectName(object_desc);
 
 	for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
-		action_select_media_list[ii] = NULL;
+		action_select_media_list[ii] = nullptr;
 	}
 	use_write_protect = true;
 	use_d88_menus = false;
@@ -189,7 +189,7 @@ void Menu_MetaClass::do_add_media_extension(QString ext, QString description)
 void Menu_MetaClass::do_select_inner_media(int num)
 {
 	if(use_d88_menus && (num < using_flags->get_max_d88_banks())) {
-		if(action_select_media_list[num] != NULL) {
+		if(action_select_media_list[num] != nullptr) {
 			action_select_media_list[num]->setChecked(true);
 		}
 	}
@@ -307,7 +307,7 @@ void Menu_MetaClass::do_update_histories(QStringList lst)
 void Menu_MetaClass::do_clear_inner_media(void)
 {
 	int ii;
-	inner_media_list.clear();
+	//inner_media_list.clear();
 	if(use_d88_menus) {
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			if(action_select_media_list[ii] != nullptr) {
@@ -322,8 +322,32 @@ void Menu_MetaClass::do_clear_inner_media(void)
 void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 {
 	QString tmps;
-	inner_media_list.clear();
-	emit sig_update_inner_fd(media_drive, inner_media_list, action_select_media_list, lst , num, use_d88_menus);
+	if(num < 0) return;
+	
+	if(use_d88_menus) {
+		//inner_media_list.clear();
+		do_clear_inner_media();
+		int _n = using_flags->get_max_d88_banks();
+		if(_n <= 0) return;
+		int count = 0;
+		for(auto _l = lst.begin(); _l != lst.end(); ++_l) {
+			if(count >= _n) break;
+			//inner_media_list.push_back((*_l));
+			if(action_select_media_list[count] != nullptr) {
+				action_select_media_list[count]->setText((*_l));
+				action_select_media_list[count]->setChecked((count == num) ? true : false);
+				action_select_media_list[count]->setVisible(true);
+			}
+			count++;
+		}
+		if((num >= count) || (num < 0)) {
+			if(action_select_media_list[0] != nullptr) {
+				action_select_media_list[0]->setChecked(true);
+			}
+		}
+	}
+	
+	//emit sig_update_inner_fd(media_drive, inner_media_list, action_select_media_list, lst , num, use_d88_menus);
 }
 
 void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)

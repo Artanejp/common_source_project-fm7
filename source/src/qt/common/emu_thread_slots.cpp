@@ -501,15 +501,19 @@ void EmuThreadClassBase::do_stop_auto_key(void)
 void EmuThreadClassBase::do_write_protect_disk(int drv, bool flag)
 {
 	//QMutexLocker _locker(&uiMutex);
-	if(using_flags->is_use_fd()) {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if((p->get_max_drive() > drv) && (p->is_use_fd())) {
 		p_emu->is_floppy_disk_protected(drv, flag);
 	}
 }
 
-void EmuThreadClassBase::do_close_disk(int drv)
+void EmuThreadClassBase::do_close_floppy_disk(int drv)
 {
 	//QMutexLocker _locker(&uiMutex);
-	if(using_flags->is_use_fd()) {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if((p->get_max_drive() > drv) && (p->is_use_fd())) {
 		p_emu->close_floppy_disk(drv);
 		//fd_open_wait_count[drv] = (int)(get_emu_frame_rate() * 1.0);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drv, QString::fromUtf8(""));
@@ -518,13 +522,15 @@ void EmuThreadClassBase::do_close_disk(int drv)
 	}
 }
 
-void EmuThreadClassBase::do_open_disk(int drv, QString path, int bank)
+void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 {
 	if(path.isEmpty()) return;
 	if(path.isNull()) return;
 	
-	if(using_flags.get() == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
 	if(!(using_flags->is_use_fd())) return;
+	if(!((p->get_max_drive() > drv) && (p->is_use_fd()))) return; 
 	
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
@@ -537,56 +543,6 @@ void EmuThreadClassBase::do_open_disk(int drv, QString path, int bank)
 }
 
 // Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_floppy_disk(int drive, QString path)
-{
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
-
-	if(!(using_flags->is_use_fd())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_drive())) return;
-
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_floppy_disk_path[drive], list);
-	
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_floppy_disk_dir, 	__dir, _MAX_PATH - 1);
-
-	emit sig_ui_update_floppy_list(drive, list);
-	emit sig_ui_clear_d88(drive);
-	
-	bool _f = check_file_extension(path_shadow, ".d88");
-	_f |= check_file_extension(path_shadow, ".d77");
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
- 
-	if(_f) {
-		if(p_emu != nullptr) {
-			int slot = p_emu->d88_file[drive].cur_bank;
-			for(int i = 0; i < p_emu->d88_file[drive].bank_num; i++) {
-				if(i >= 64) break;
-				_TCHAR tmpname[128] = {0};
-				my_strcpy_s(tmpname, 127, p_emu->d88_file[drive].disk_name[i]);
-				QString tmps = QString::fromLocal8Bit(tmpname);
-				emit sig_ui_update_d88(drive, i, tmps);
-				if(i == slot) {
-					emit sig_ui_select_d88(drive, i);
-					relpath = tmps;
-				}
-			}
-		}
-	}
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drive, relpath);
-}
-
-void EmuThreadClassBase::done_close_floppy_disk(int drive)
-{
-	emit sig_ui_close_floppy_disk(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, drive, QString::fromUtf8(""));
-}
-
 void EmuThreadClassBase::done_select_d88(int drive, int slot)
 {
 	if(p_emu == nullptr) return;

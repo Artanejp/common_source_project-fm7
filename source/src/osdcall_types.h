@@ -25,11 +25,19 @@ namespace EMU_MEDIA_TYPE {
 		QUICK_DISK = 8 << 16,
 		TAPE = 9 << 16,
 		
-		AUDIO = (1 << 18) + (30 << 16),
-		VIDEO = (2 << 18) + (30 << 16),
-		ANY_MEDIA = (7 << 18) + (30 << 16),
+		AUDIO = (28 << 16),
+		VIDEO = (29 << 16),
+		ANY_MEDIA = (127 << 16),
+		UI_MEDIA_MASK = (127 << 16),
+		UI_MESSAGE_MASK = ((0xffffffff) << 32),
+
+		EMU_SLOT_MASK = 0x7f,
+		MULTIPLE_SLOT_MASK = 0xff,
+
 		END = UINT64_MAX
 	};
+	const type_t MULTIPLE_SLOT_DETECT_MASK = ((~EMU_SLOT_MASK) & MULTIPLE_SLOT_MASK);
+
 }
 
 
