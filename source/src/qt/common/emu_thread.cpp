@@ -42,7 +42,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p->set_emu(emu);
 	p->set_osd((OSD*)p_osd);
 	poweroff_notified = false;
-	
+
 	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
 	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT(_open_cart(int, QString)));
@@ -53,10 +53,10 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	connect(this, SIGNAL(sig_open_quick_disk(int, QString)), MainWindow, SLOT(_open_quick_disk(int, QString)));
 	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
 	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
-	
+
 	connect(this, SIGNAL(sig_open_cdrom(int, QString)), MainWindow, SLOT(do_open_cdrom(int, QString)));
 	connect(this, SIGNAL(sig_open_laser_disc(int, QString)), MainWindow, SLOT(do_open_laserdisc(int, QString)));
-	
+
 	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
 
 	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
@@ -143,14 +143,14 @@ void EmuThreadClass::doWork(const QString &params)
 	bool gl_crt_filter_bak = config.use_opengl_filters;
 	int opengl_filter_num_bak = config.opengl_filter_num;
 	//uint32_t key_mod_old = 0xffffffff;
-	int no_draw_count = 0;	
+	int no_draw_count = 0;
 	bool prevRecordReq = false;
 	double nr_fps = -1.0;
 	int _queue_begin;
 	bool multithread_draw = config.use_separate_thread_draw;
 
 	bool state_power_off = false;
-	
+
 	doing_debug_command = false;
 	ctext.clear();
 //	draw_timing = false;
@@ -185,9 +185,6 @@ void EmuThreadClass::doWork(const QString &params)
 	for(int i = 0; i < using_flags->get_max_drive(); i++) {
 		fd_text[i].clear();
 		fd_lamp[i] = QString::fromUtf8("×");
-		fd_open_wait_count[i] = 0;
-		fd_reserved_path[i].clear();
-		fd_reserved_bank[i] = 0;
 	}
 	for(int i = 0; i < using_flags->get_max_tape(); i++) {
 		cmt_text[i].clear();
@@ -206,7 +203,7 @@ void EmuThreadClass::doWork(const QString &params)
 	}
 	_queue_begin = parse_command_queue(virtualMediaList, 0);
 	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
-	
+
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
    		if((MainWindow == NULL) || (bBlockTask)) {
@@ -237,7 +234,7 @@ void EmuThreadClass::doWork(const QString &params)
 					emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, ii, config.last_hard_disk_path[ii]);
 				}
 			}
-			
+
 			first = false;
 			}
 		}
@@ -296,7 +293,7 @@ void EmuThreadClass::doWork(const QString &params)
 				req_draw = true;
 			}
 			if(bStartRecordMovieReq != false) {
-				if(!prevRecordReq && (record_fps > 0) && (record_fps < 75)) { 		
+				if(!prevRecordReq && (record_fps > 0) && (record_fps < 75)) {
 					p_emu->start_record_video(record_fps);
 					prevRecordReq = true;
 				}
@@ -307,7 +304,7 @@ void EmuThreadClass::doWork(const QString &params)
 					prevRecordReq = false;
 				}
 			}
-#if defined(USE_LASER_DISC) || defined(USE_MOVIE_PLAYER)	   
+#if defined(USE_LASER_DISC) || defined(USE_MOVIE_PLAYER)
 			if(turn_count < 128) {
 				turn_count++;
 			} else {
@@ -329,7 +326,7 @@ void EmuThreadClass::doWork(const QString &params)
 			// 20221011 K.O
 			// Note: Maybe not need below, cause lock-up at starting debugger.
 			//emit sig_is_enable_mouse(p_emu->is_mouse_enabled());
-#endif			
+#endif
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
 				if(bUpdateVolumeReq[ii]) {
@@ -342,7 +339,7 @@ void EmuThreadClass::doWork(const QString &params)
 				while(!is_empty_key()) {
 					key_queue_t sp;
 					dequeue_key(&sp);
-					//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat); 
+					//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat);
 					switch(sp.type) {
 					case KEY_QUEUE_UP:
 						key_mod = sp.mod;
@@ -363,7 +360,7 @@ void EmuThreadClass::doWork(const QString &params)
 					}
 				}
 			}
-			
+
 			if(!(half_count)  && (multithread_draw)) {
 				if(nr_fps < 0.0) {
 					nr_fps = get_emu_frame_rate();
@@ -381,7 +378,7 @@ void EmuThreadClass::doWork(const QString &params)
 			// After frame, delayed open
 			if(!(half_count)) {
 				led_data = 0x00;
-				
+
 				USING_FLAGS *up = using_flags.get();
 				bool _ind_caps_kana = false;
 				bool _key_lock = false;
@@ -389,7 +386,7 @@ void EmuThreadClass::doWork(const QString &params)
 				if(up != nullptr) {
 					_ind_caps_kana = up->get_independent_caps_kana_led();
 					_key_lock = up->get_use_key_locked();
-					_led_shift = up->get_use_led_devices(); 
+					_led_shift = up->get_use_led_devices();
 					if(up->is_use_minimum_rendering()) {
 						req_draw |= p_emu->is_screen_changed();
 					} else {
@@ -463,7 +460,7 @@ void EmuThreadClass::doWork(const QString &params)
 					no_draw_count = 0;
 					//emit sig_draw_thread(true);
 				}
-				if(!(half_count)) 
+				if(!(half_count))
 				{
 					double nd;
 					nd = p_emu->get_frame_rate();
@@ -489,7 +486,7 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
-				if(!(half_count)) 
+				if(!(half_count))
 				{
 					double nd;
 					nd = p_emu->get_frame_rate();
@@ -544,7 +541,7 @@ _exit:
 		state_power_off = true;
 	}
 	#endif
-	
+
 	if(csp_logger != NULL) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 							  "EmuThread : EXIT");
@@ -557,6 +554,3 @@ const _TCHAR *EmuThreadClass::get_device_name(void)
 {
 	return (const _TCHAR *)_T(DEVICE_NAME);
 }
-
-
-
