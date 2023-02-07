@@ -2983,7 +2983,7 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("HD: Unmounted"));
 #endif
-			osdcall_int((EMU_MEDIA_TYPE::HARD_DISK,
+			osdcall_int(EMU_MEDIA_TYPE::HARD_DISK,
 							drv,
 							EMU_MESSAGE_TYPE::MEDIA_REMOVED,
 							0);
@@ -3014,7 +3014,7 @@ void EMU::close_hard_disk(int drv)
 #else
 		out_message(_T("HD: Unmounted"));
 #endif
-		osdcall_int((EMU_MEDIA_TYPE::HARD_DISK,
+		osdcall_int(EMU_MEDIA_TYPE::HARD_DISK,
 						drv,
 						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
 						0);
@@ -3396,7 +3396,7 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("Bubble: %s"), file_path);
 #endif
-			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bank & EMU_MEDIA_TYPE::MULIPLE_SLOT_MASK),
+			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK),
 							drv,
 							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
 							(_TCHAR*)file_path);
