@@ -61,7 +61,7 @@ EMU::EMU() : EMU()
 	memset(b77_file, 0, sizeof(b77_file));
 #endif
 	// load sound config
-	
+
 	if(!(0 <= config.sound_frequency && config.sound_frequency < 8)) {
 		config.sound_frequency = 6;	// default: 48KHz
 	}
@@ -92,7 +92,7 @@ EMU::EMU() : EMU()
 	// initialize b77 file info
 	memset(b77_file, 0, sizeof(b77_file));
 #endif
-	
+
 	// initialize osd
 #if defined(OSD_QT)
 	osd = new OSD(p, csp_logger);
@@ -114,7 +114,7 @@ EMU::EMU() : EMU()
 # if defined(_USE_QT)
 	osd->reset_vm_node();
 	osd->update_keyname_table();
-# endif	
+# endif
 #ifdef USE_AUTO_KEY
 	initialize_auto_key();
 #endif
@@ -281,18 +281,18 @@ int EMU::run()
 //#ifdef USE_JOYSTICK
 //	update_joystick();
 //#endif
-	
+
 #ifdef USE_SOCKET
 #if !defined(_USE_QT) // Temporally
  	osd->update_socket();
 #endif
 #endif
 	update_media();
-	
+
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
 	osd->update_sound(&extra_frames);
-	
+
 	// drive virtual machine
 	if(extra_frames == 0) {
 		osd->lock_vm();
@@ -310,7 +310,7 @@ void EMU::reset()
 	stop_auto_key();
 	config.romaji_to_kana = false;
 #endif
-	
+
 	// check if virtual machine should be reinitialized
 	bool reinitialize = false;
 #ifdef USE_CPU_TYPE
@@ -337,7 +337,7 @@ void EMU::reset()
 		// stop sound
 		osd->stop_sound();
 		// reinitialize virtual machine
-		osd->lock_vm();		
+		osd->lock_vm();
 		delete vm;
 		vm = nullptr;
 		osd->vm = nullptr;
@@ -370,16 +370,16 @@ void EMU::reset()
 		osd->unlock_vm();
 	} else {
 		// reset virtual machine
-		osd->lock_vm();		
+		osd->lock_vm();
 		vm->reset();
-		osd->unlock_vm();		
+		osd->unlock_vm();
 	}
-	
+
 #if !defined(_USE_QT) // Temporally
 	// restart recording
 	osd->restart_record_sound();
 	osd->restart_record_video();
-#endif	
+#endif
 }
 
 #ifdef USE_SPECIAL_RESET
@@ -391,16 +391,16 @@ void EMU::special_reset(int num)
 	stop_auto_key();
 	config.romaji_to_kana = false;
 #endif
-	
+
 	// reset virtual machine
-	osd->lock_vm();		
+	osd->lock_vm();
 	vm->special_reset(num);
 	osd->unlock_vm();
 	// restart recording
 #if !defined(_USE_QT) // Temporally
 	restart_record_sound();
 	restart_record_video();
-#endif	
+#endif
 }
 #endif
 
@@ -520,7 +520,7 @@ void EMU::key_lost_focus()
 void EMU::press_button(int num)
 {
 	int code = vm_buttons[num].code;
-	
+
 	if(code) {
 		osd->key_down_native(code, false);
 		osd->get_key_buffer()[code] = KEY_KEEP_FRAMES;
@@ -1154,7 +1154,7 @@ int EMU::get_auto_key_code(int code)
 	static bool initialized = false;
 #ifdef USE_KEYBOARD_TYPE
 	static int keyboard_type = -1;
-	
+
 	if(keyboard_type != config.keyboard_type) {
 		initialized = false;
 		keyboard_type = config.keyboard_type;
@@ -1234,7 +1234,7 @@ void EMU::set_auto_key_list(char *buf, int size)
 	bool prev_kana = false;
 #endif
 	auto_key_buffer->clear();
-	
+
 	for(int i = 0; i < size; i++) {
 		int code = buf[i] & 0xff;
 		if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
@@ -1277,7 +1277,7 @@ void EMU::set_auto_key_list(char *buf, int size)
 						continue;
 					}
 				}
-#endif				
+#endif
 #if defined(USE_TWO_STROKE_AUTOKEY_DAKUON)
 				if((buf[i + 1] & 0xff) == 0xde) { // Is Dakuon
 					for(int jj = 0; ; jj++) {
@@ -1301,7 +1301,7 @@ void EMU::set_auto_key_list(char *buf, int size)
 						continue;
 					}
 				}
-#endif				
+#endif
 			}
 #if defined(USE_AUTO_KEY_CAPS_LOCK)
 			// use caps lock key to switch uppercase/lowercase of alphabet
@@ -1396,7 +1396,7 @@ void EMU::set_auto_key_char(char code)
 		codes[2] = codes[3];
 		codes[3] = (code >= 'A' && code <= 'Z') ? ('a' + (code - 'A')) : code & 0xff;
 		codes[4] = '\0';
-		
+
 		if(codes[2] == 'n' && !is_vowel(codes[3])) {
 			set_auto_key_code(0xdd); // 'ﾝ'
 			if(codes[3] == 'n') {
@@ -1571,7 +1571,7 @@ void EMU::update_auto_key()
 void EMU::update_joystick()
 {
 	uint8_t *key_buffer = osd->get_key_buffer();
-	
+
 	uint32_t *joyp = osd->get_joy_buffer();
 	uint32_t joy_buffer[4];
 	memset(joy_status, 0, sizeof(joy_status));
@@ -1579,7 +1579,7 @@ void EMU::update_joystick()
 		joy_buffer[i] = joyp[i];
 	}
 	osd->release_joy_buffer(joyp);
-	
+
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
 			if(config.joy_buttons[i][j] < 0) {
@@ -1732,7 +1732,7 @@ void EMU::get_invalidated_rect(int *left, int *top, int *right, int *bottom)
 		int y1 = vm_ranges[i].y;
 		int x2 = x1 + vm_ranges[i].width;
 		int y2 = y1 + vm_ranges[i].height;
-		
+
 		*left   = (i == 0) ? x1 : min(x1, *left  );
 		*top    = (i == 0) ? y1 : min(y1, *top   );
 		*right  = (i == 0) ? x2 : max(x2, *right );
@@ -2027,7 +2027,7 @@ void EMU::disconnect_socket(int ch)
 {
 	osd->disconnect_socket(ch);
 }
- 
+
 bool EMU::listen_socket(int ch)
 {
 	return osd->listen_socket(ch);
@@ -2184,15 +2184,15 @@ static _TCHAR prev_buffer[2048] = {0};
 void EMU::out_debug_log(const _TCHAR* format, ...)
 {
 	common_initialize();
-	
+
 #ifdef _DEBUG_LOG
 	va_list ap;
 	_TCHAR buffer[2048];
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(buffer, 2048, format, ap);
 	va_end(ap);
-	
+
 	if(_tcscmp(prev_buffer, buffer) == 0) {
 		return;
 	}
@@ -2220,12 +2220,12 @@ void EMU::force_out_debug_log(const _TCHAR* format, ...)
 #ifdef _DEBUG_LOG
 	va_list ap;
 	_TCHAR buffer[1024];
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	my_tcscpy_s(prev_buffer, 1024, buffer);
-	
+
 #if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
 	std::shared_ptr<CSP_Logger> lp = csp_logger;
     lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
@@ -2247,7 +2247,7 @@ void EMU::out_message(const _TCHAR* format, ...)
 {
 //#if defined(_USE_QT)
 //	_TCHAR mes_buf[1024];
-//#endif	
+//#endif
 	va_list ap;
 	va_start(ap, format);
 	my_vstprintf_s(message, 1024, format, ap); // Security for MSVC:C6386.
@@ -2580,7 +2580,7 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 					   drv,
 					   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
 					   (_TCHAR *)file_path);
-#if !defined(_USE_QT)		
+#if !defined(_USE_QT)
 		// restart recording
 		bool s = osd->now_record_sound;
 		bool v = osd->now_record_video;
@@ -2589,7 +2589,7 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 
 		if(s) osd->start_record_sound();
 		if(v) osd->start_record_video(-1);
-#endif		
+#endif
 	}
 }
 
@@ -2607,11 +2607,11 @@ void EMU::close_cart(int drv)
 					drv,
 					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
 					0);
-#if !defined(_USE_QT)		
+#if !defined(_USE_QT)
 		// stop recording
 		stop_record_video();
 		stop_record_sound();
-#endif		
+#endif
 	}
 }
 
@@ -2639,12 +2639,12 @@ bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 		uint32_t size;
 		uint32_t trkptr[164];
 	} d88_hdr;
-	
+
 	memset(&d88_hdr, 0, sizeof(d88_hdr));
 	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "BLANK");
 	d88_hdr.type = type;
 	d88_hdr.size = sizeof(d88_hdr);
-	
+
 	FILEIO *fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(&d88_hdr, sizeof(d88_hdr), 1);
@@ -2696,7 +2696,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 			}
 			delete fio;
 		}
-	
+
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
@@ -2709,7 +2709,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
 						drv,
 						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-						0);	
+						0);
 			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
 						drv,
 						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
@@ -2741,7 +2741,7 @@ void EMU::close_floppy_disk(int drv)
 	if(drv < USE_FLOPPY_DISK) {
 		d88_file[drv].bank_num = 0;
 		d88_file[drv].cur_bank = -1;
-		
+
 		vm->close_floppy_disk(drv);
 		clear_media_status(&floppy_disk_status[drv]);
 #if USE_FLOPPY_DISK > 1
@@ -2759,7 +2759,7 @@ void EMU::close_floppy_disk(int drv)
 					0);
 	}
 }
-	
+
 bool EMU::is_floppy_disk_connected(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
@@ -2797,7 +2797,7 @@ bool EMU::is_floppy_disk_protected(int drv)
 		return false;
 	}
 }
-	
+
 uint32_t EMU::is_floppy_disk_accessed()
 {
 	return vm->is_floppy_disk_accessed();
@@ -2901,7 +2901,7 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 			uint8_t reserved[0xe2];
 		} nhd_header_t;
 		nhd_header_t header;
-		
+
 		memset(&header, 0, sizeof(header));
 		strcpy(header.sig, "T98HDDIMAGE.R0");
 		header.header_size = sizeof(header);
@@ -2909,7 +2909,7 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 		header.surfaces = surfaces;
 		header.sectors = sectors;
 		header.sector_size = sector_size;
-		
+
 		FILEIO *fio = new FILEIO();
 		if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(&header, sizeof(header), 1);
@@ -2940,7 +2940,7 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 			uint8_t padding[0x1000 - sizeof(int32_t) * 8];
 		} hdi_header_t;
 		hdi_header_t header;
-		
+
 		memset(&header, 0, sizeof(header));
 		header.hdd_type = 0; // ???
 		header.header_size = sizeof(header);
@@ -2949,7 +2949,7 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 		header.sectors = sectors;
 		header.surfaces = surfaces;
 		header.cylinders = cylinders;
-		
+
 		FILEIO *fio = new FILEIO();
 		if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(&header, sizeof(header), 1);
@@ -3104,7 +3104,7 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 		tape_status[drv].play = false;
 	}
 }
-	
+
 void EMU::close_tape(int drv)
 {
 	if(drv < USE_TAPE) {
@@ -3540,7 +3540,7 @@ void EMU::load_state(const _TCHAR* file_path)
 		stop_auto_key();
 		config.romaji_to_kana = false;
 #endif
-		
+
 		save_state(create_local_path(_T("$temp$.sta")));
 		if(!load_state_tmp(file_path)) {
 			out_debug_log(_T("failed to load state file\n"));
@@ -3626,7 +3626,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 				reinitialize |= (sound_latency != config.sound_latency);
 				sound_frequency = config.sound_frequency;
 				sound_latency = config.sound_latency;
-				
+
 				if(reinitialize) {
 					// stop sound
 					//osd->lock_vm();
@@ -3640,7 +3640,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					osd->reset_vm_node();
 					osd->update_keyname_table();
 					osd->reset_screen_buffer();
-# endif	
+# endif
 					vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
 					for(int i = 0; i < USE_SOUND_VOLUME; i++) {
