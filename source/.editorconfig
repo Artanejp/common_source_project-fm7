@@ -1,0 +1,38 @@
+root = true
+[*]
+# インデント時のスタイル設定（tab/space）
+indent_style = tab
+# インデント時のサイズ設定
+indent_size = 4
+# 改行コード設定（lf/cr/crlf）
+end_of_line = lf
+# 文字コード設定（latin1/utf-8/utf-8-bom/utf-16be/utf-16le/...）
+charset = utf-8
+# 文末スペースの設定（true=削除）
+trim_trailing_whitespace = true
+# 最終行の改行設定（true=改行あり）
+insert_final_newline = true
+
+[*.cpp,*.c,*.h,*.h]
+indent_style = tab
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.mcr]
+indent_style = tab
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.cmake, CMakeLists.txt]
+indent_style = tab
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
