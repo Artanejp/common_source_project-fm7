@@ -58,9 +58,9 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	max_vm_nodes = 0;
 	p_logger = logger;
 	vm = NULL;
-	
+
 	SupportedFeatures.clear();
-	
+
 	is_glcontext_shared = false;
 	glContext = NULL;
 
@@ -87,7 +87,7 @@ const _TCHAR *OSD_BASE::get_lib_osd_version()
 #if defined(__LIBOSD_VERSION)
 	return (const _TCHAR *)__LIBOSD_VERSION;
 #endif
-	return p;	  
+	return p;
 }
 
 QOpenGLContext *OSD_BASE::get_gl_context()
@@ -151,8 +151,8 @@ void OSD_BASE::debug_log(int level, const char *fmt, ...)
 {
 	char strbuf[4096];
 	va_list ap;
-	
-	va_start(ap, fmt);	
+
+	va_start(ap, fmt);
 	vsnprintf(strbuf, 4095, fmt, ap);
 	debug_log(level, 0, strbuf);
 	va_end(ap);
@@ -162,8 +162,8 @@ void OSD_BASE::debug_log(int level, int domain_num, const char *fmt, ...)
 {
 	char strbuf[4096];
 	va_list ap;
-	
-	va_start(ap, fmt);	
+
+	va_start(ap, fmt);
 	vsnprintf(strbuf, 4095, fmt, ap);
 	debug_log(level, domain_num, strbuf);
 	va_end(ap);
@@ -293,7 +293,7 @@ void OSD_BASE::notify_power_off(void)
 int OSD_BASE::get_vm_buttons_code(int num)
 {
 	return 0;
-}	
+}
 
 QString OSD_BASE::get_vm_config_name(void)
 {
@@ -528,7 +528,7 @@ double OSD_BASE::get_feature_double_value(const _TCHAR *key)
 			return l.v.fvalue;
 		}
 	}
-	return std::numeric_limits<double>::quiet_NaN(); // You don't use (0.0 / 0.0). 
+	return std::numeric_limits<double>::quiet_NaN(); // You don't use (0.0 / 0.0).
 }
 
 int64_t OSD_BASE::get_feature_int64_value(const _TCHAR *key)
@@ -598,13 +598,13 @@ uint8_t OSD_BASE::get_feature_uint8_value(const _TCHAR *key)
 void OSD_BASE::start_waiting_in_debugger()
 {
 	// ToDo: Wait for rising up debugger window.
-	debug_mutex.lock(); 
+	debug_mutex.lock();
 }
 
 void OSD_BASE::finish_waiting_in_debugger()
 {
 	// ToDo: Wait for closing up debugger window.
-	debug_mutex.unlock(); 
+	debug_mutex.unlock();
 }
 
 void OSD_BASE::process_waiting_in_debugger()
@@ -684,16 +684,24 @@ void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int dr
 		// Below are update message to UI.
 		return;  // ToDo: Implement
 	}
-	
+
 	// Below are update status to UI.
+	if(message != nullptr) {
+		tmps = QString::fromLocal8Bit(message);
+	}
 	switch(_type) {
 		case EMU_MEDIA_TYPE::FLOPPY_DISK :
-			if(message != nullptr) {
-				tmps = QString::fromLocal8Bit(message);
-			}
 			switch(message_type) {
+				 // From EMU::open_floppy_disk
 			case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
 				emit sig_ui_floppy_insert_history(drive, tmps, _slot);
+				break;
+			}
+			break;
+		case EMU_MEDIA_TYPE::TAPE :
+			switch(message_type) {
+			case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
+				emit sig_ui_tape_play_insert_history(drive, tmps);
 				break;
 			}
 			break;
@@ -712,8 +720,12 @@ void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive
 	switch(_type) {
 		case EMU_MEDIA_TYPE::FLOPPY_DISK :
 			switch(message_type) {
+				 // From EMU::close_floppy_disk
+			case EMU_MESSAGE_TYPE::MEDIA_REMOVED :
+				emit sig_ui_floppy_close(drive);
+				break;
 			case EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT :
-				emit sig_floppy_disk_write_protect(drive, data);
+				emit sig_ui_floppy_write_protect(drive, data);
 				break;
 			}
 			break;

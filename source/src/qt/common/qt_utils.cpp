@@ -82,7 +82,7 @@ void Ui_MainWindow::do_set_mouse_enable(bool flag)
 		emu->disable_mouse();
 	}
 	emu->unlock_vm();
-#endif	
+#endif
 }
 
 void Ui_MainWindow::do_toggle_mouse(void)
@@ -99,7 +99,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 		emu->disable_mouse();
 	}
 	emu->unlock_vm();
-#endif	
+#endif
 }
 
 void Ui_MainWindow::rise_movie_dialog(void)
@@ -115,11 +115,11 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	GLDrawClass *glv = this->getGraphicsView();
 
 	int drvs;
-	
+
 	hRunEmu = m;
 	if(hRunEmu == nullptr) return;
 	OSD_BASE* p_osd = hRunEmu->get_emu()->get_osd();
-	
+
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), this, SLOT(do_set_mouse_enable(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
@@ -129,7 +129,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	if(action_ResetFixedCpu != nullptr) {
 		connect(action_ResetFixedCpu, SIGNAL(triggered()),
 				hRunEmu, SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
-		
+
 	}
 	for(int i = 0 ; i < 128 ; i++) {
 		if(action_SetFixedCpu[i] == nullptr) break;
@@ -138,7 +138,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	}
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
-	
+
 	for(int i = 0 ; i < using_flags->get_use_special_reset_num() ; i++) {
 		if(actionSpecial_Reset[i] != nullptr) {
 			connect(actionSpecial_Reset[i], SIGNAL(triggered()), hRunEmu, SLOT(do_special_reset()));
@@ -152,7 +152,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(do_stop_record_sound()));
 	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(do_set_display_size(int, int, int, int)));
 	connect(this, SIGNAL(sig_emu_thread_to_fixed_cpu(int)), hRunEmu, SLOT(set_emu_thread_to_fixed_cpu(int)));
-	
+
 	if(using_flags->is_use_state()) {
 		for(int i = 0; i < 10; i++) {
 			connect(actionLoad_State[i], SIGNAL(triggered()), hRunEmu, SLOT(do_load_state())); // OK?
@@ -167,9 +167,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(p_osd, SIGNAL(sig_ui_floppy_insert_history(int, QString, quint64)),
 					 this, SLOT(do_ui_floppy_insert_history(int, QString, quint64)),
 					 Qt::QueuedConnection);
-	connect(p_osd, SIGNAL(sig_floppy_disk_write_protect(int, quint64)),
+	connect(p_osd, SIGNAL(sig_ui_floppy_write_protect(int, quint64)),
 			this, SLOT(do_ui_write_protect_floppy_disk(int, quint64)),
-			Qt::QueuedConnection); 
+			Qt::QueuedConnection);
 
 	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
@@ -213,7 +213,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_close_cdrom(int)), hRunEmu, SLOT(do_eject_cdrom(int)));
 	//connect(hRunEmu, SIGNAL(sig_change_osd_cdrom(QString)), this, SLOT(do_change_osd_cdrom(QString)));
 	// ToDo: multiple CDs
-#endif	
+#endif
 #if defined(USE_LASER_DISC)
 	connect(this, SIGNAL(sig_open_laserdisc(int, QString)), hRunEmu, SLOT(do_open_laser_disc(int, QString)));
 	connect(this, SIGNAL(sig_close_laserdisc(int)), hRunEmu, SLOT(do_close_laser_disc(int)));
@@ -238,12 +238,12 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 			);
 	}
 #endif
-	
+
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
 	connect(hRunEmu, SIGNAL(sig_mouse_enable(bool)),
 			this, SLOT(do_set_mouse_enable(bool)));
 
-	
+
 	hRunEmu->set_tape_play(false);
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)), Qt::QueuedConnection);
@@ -252,15 +252,15 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)));
 	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()));
 	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu, SLOT(set_romakana(bool)));
-#endif	
+#endif
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
-	
+
 	hDrawEmu = new DrawThreadClass((OSD*)(emu->get_osd()), csp_logger, this);
 	emu->set_parent_handler((EmuThreadClass*)hRunEmu, hDrawEmu);
-	
+
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
@@ -307,7 +307,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 			glv, SLOT(resizeGL(int, int)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_change_osd(int, int, QString)), driveData, SLOT(updateMessage(int, int, QString)), Qt::QueuedConnection);
-	
+
 	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
@@ -328,22 +328,22 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 //	connect(this, SIGNAL(sig_start_saving_movie()),	hRunEmu, SLOT(do_start_record_video()));
 	connect(actionStart_Record_Movie, SIGNAL(triggered()), hRunEmu, SLOT(do_start_record_video()));
 	connect(actionStop_Record_Movie, SIGNAL(triggered()), hRunEmu, SLOT(do_stop_record_video()));
-	
+
 	connect(hSaveMovieThread, SIGNAL(sig_set_state_saving_movie(bool)), this, SLOT(do_set_state_saving_movie(bool)));
 
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_save_as_movie(QString, int, int)),
 			hSaveMovieThread, SLOT(do_open(QString, int, int)));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
-	
+
 	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
 	actionStop_Record_Movie->setVisible(false);
-	
+
 	connect(this, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect(this, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
- 
+
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
-   
+
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
 	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
 			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection);
@@ -413,14 +413,14 @@ void Ui_MainWindow::LaunchJoyThread(void)
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
-#endif	
+#endif
 }
 
 void Ui_MainWindow::StopJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
 	emit quit_joy_thread();
-#endif	
+#endif
 }
 
 void Ui_MainWindow::delete_joy_thread(void)
@@ -465,7 +465,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	emit quit_emu_thread();
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
-	
+
 	if(hSaveMovieThread != nullptr) {
 		// When recording movie, stopping will spend a lot of seconds.
 		if(!(hSaveMovieThread->wait(60 * 1000))) { // 60 Sec
@@ -475,7 +475,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		delete hSaveMovieThread;
 		hSaveMovieThread = NULL;
 	}
-   
+
 	if(hDrawEmu != nullptr) {
 		if(!(hDrawEmu->wait(1000))) {
 			hDrawEmu->terminate();
@@ -534,7 +534,7 @@ void LostFocus(QWidget *widget)
 		emu->key_lost_focus();
 	}
 }
- 
+
 }  // extern "C"
 
 void Ui_MainWindow::do_release_emu_resources(void)
@@ -549,12 +549,12 @@ extern void DLL_PREFIX_I get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 extern _TCHAR* DLL_PREFIX_I get_parent_dir(_TCHAR* file);
 extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
-#if defined(Q_OS_CYGWIN)	
+#if defined(Q_OS_CYGWIN)
 #include <sys/stat.h>
 #endif
 static void my_util_mkdir(std::string n)
 {
-#if !defined(Q_OS_CYGWIN)	
+#if !defined(Q_OS_CYGWIN)
 		QDir dir = QDir::current();
 		dir.mkdir( QString::fromStdString(n));
 #else
@@ -562,8 +562,8 @@ static void my_util_mkdir(std::string n)
 		if(stat(n.c_str(), &st) != 0) {
 			_mkdir(n.c_str()); // Not found
 		}
-#endif   
-}	
+#endif
+}
 
 static void setup_logs(void)
 {
@@ -594,7 +594,7 @@ static void setup_logs(void)
 	}
 #else
 	cpp_homedir = ".";
-#endif	
+#endif
 	cpp_homedir = cpp_homedir + delim;
 
 #if !defined(CSP_OS_WINDOWS)
@@ -606,7 +606,7 @@ static void setup_logs(void)
 
 	cpp_confdir = cpp_confdir + "CommonSourceCodeProject" + delim;
 	my_util_mkdir(cpp_confdir);
-	
+
 	cpp_confdir = cpp_confdir + my_procname + delim;
 	my_util_mkdir(cpp_confdir);
    //AG_MkPath(cpp_confdir.c_str());
@@ -956,7 +956,7 @@ void SetOptions(QCommandLineParser *cmdparser)
 
 	SetOptions_Sub(cmdparser);
 	QStringList _cl;
-	
+
 	for(int i = 0; i < 8; i++) {
 		_opt_fds[i] = NULL;
 		_opt_hdds[i] = NULL;
@@ -969,7 +969,7 @@ void SetOptions(QCommandLineParser *cmdparser)
 		_opt_cmts[i] = NULL;
 		_opt_lds[i] = NULL;
 		_opt_cds[i] = NULL;
-	}		
+	}
 
 	SetFDOptions(cmdparser);
 	SetHDDOptions(cmdparser);
@@ -980,7 +980,7 @@ void SetOptions(QCommandLineParser *cmdparser)
 	SetQuickDiskOptions(cmdparser);
 	SetLDOptions(cmdparser); // Temporally disabled.
 	SetCDOptions(cmdparser);
-	
+
     cmdparser->addOption(*_opt_envver);
     cmdparser->addOption(*_opt_dump_envver);
 }
@@ -996,7 +996,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 #else
 	delim = "/";
 #endif
-	ProcessCmdLine_Sub(cmdparser, _l);	
+	ProcessCmdLine_Sub(cmdparser, _l);
 	{
 		char tmps[128];
 		std::string localstr;
@@ -1061,7 +1061,7 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, QStringList *_l)
 	case CONFIG_RENDER_PLATFORM_OPENGL_MAIN:
 	case CONFIG_RENDER_PLATFORM_OPENGL_CORE:
 		QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
-		QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true); // Enable shared contexts.		
+		QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true); // Enable shared contexts.
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
 		break;
 	case CONFIG_RENDER_PLATFORM_OPENGL_ES:
@@ -1129,16 +1129,16 @@ void OpeningMessage(std::shared_ptr<CSP_Logger>p_logger, std::string archstr)
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "(C) Toshiya Takeda / Qt Version K.Ohta");
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Architecture: %s", archstr.c_str());
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Use -h or --help for help.");
-	
+
 	//p_logger->debug_log(AGAR_LOG_INFO, " -? is print help(s).");
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Home = %s, Resource directory = %s",
 						  cpp_homedir.c_str(),
 						  sRssDir.c_str()); // Debug
-	
+
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Config dir = %s, config_file = %s",
 						  cpp_confdir.c_str(),
 						  config_fullpath.c_str()); // Debug
-	
+
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DIPSW VALUE IS 0x%08x", config.dipswitch);
 	if(virtualMediaList.size() >= 2) {
 		for(int i = 0; i < virtualMediaList.size(); i += 2) {
@@ -1194,11 +1194,11 @@ void SetupLogger(std::shared_ptr<CSP_Logger> csp_logger, QObject *parent, std::s
 	csp_logger->set_log_stdout(CSP_LOG_DEBUG, true);
 	csp_logger->set_log_stdout(CSP_LOG_INFO, true);
 	csp_logger->set_log_stdout(CSP_LOG_WARN, true);
-	
+
 	csp_logger->set_state_log(0, config.state_log_to_recording);
 	csp_logger->set_state_log(1, config.state_log_to_syslog);
 	csp_logger->set_state_log(2, config.state_log_to_console);
-	
+
 	for(int ii = 0; ii < _size; ii++) {
 		for(int jj = 0; jj < 8; jj++) {
 			csp_logger->set_device_node_log(ii, 1, jj, config.dev_log_to_syslog[ii][jj]);
@@ -1223,7 +1223,7 @@ int MainLoop(int argc, char *argv[])
 #else
 	delim = "/";
 #endif
-	
+
 	QApplication *GuiMain = NULL;
 	GuiMain = new QApplication(argc, argv);
 	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
@@ -1255,7 +1255,7 @@ int MainLoop(int argc, char *argv[])
 	_envvers = QProcessEnvironment::systemEnvironment();
 
 	std::shared_ptr<CSP_Logger>p_logger = std::shared_ptr<CSP_Logger>(new CSP_Logger(GuiMain, config.log_to_syslog, config.log_to_console, emustr.c_str()));
-	set_debug_logger(p_logger);	
+	set_debug_logger(p_logger);
 	SetupLogger(p_logger, GuiMain, emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
 	OpeningMessage(p_logger, archstr);
 	SetupSDL(p_logger);
@@ -1297,7 +1297,7 @@ int MainLoop(int argc, char *argv[])
 			}
 		}
 	}
-	
+
 //	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
 	// initialize emulation core
 	rMainWindow = new META_MainWindow(using_flags, p_logger);
@@ -1308,7 +1308,7 @@ int MainLoop(int argc, char *argv[])
 //	QMetaObject::connectSlotsByName(rMainWindow);
    	EmuThreadClass *hRunEmu_Real = new EmuThreadClass(rMainWindow, using_flags);
 	OSD_BASE* p_osd = hRunEmu_Real->get_emu()->get_osd();
-	
+
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_device_node_name(int, const _TCHAR *)),
 					 rMainWindow, SLOT(do_update_device_node_name(int, const _TCHAR *)));
 	for(int i = 0; i < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1); i++) {
@@ -1316,7 +1316,7 @@ int MainLoop(int argc, char *argv[])
 	}
 	p_logger->set_osd((OSD*)p_osd);
 	p_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "InitInstance() OK.");
-	
+
 	// ToDo: Update raltime.
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)p_osd, SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
@@ -1324,9 +1324,9 @@ int MainLoop(int argc, char *argv[])
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_sound_output_list()), rMainWindow, SLOT(do_update_sound_output_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_clear_sound_output_list()), rMainWindow, SLOT(do_clear_sound_output_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_append_sound_output_list(QString)), rMainWindow, SLOT(do_append_sound_output_list(QString)));
-					 
+
 	QObject::connect(rMainWindow, SIGNAL(sig_update_master_volume(int)), (OSD*)p_osd, SLOT(do_update_master_volume(int)));
-	
+
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 
@@ -1341,7 +1341,7 @@ int MainLoop(int argc, char *argv[])
 //	pgl->setFixedSize(pgl->width(), pgl->height());
 	// main loop
 	rMainWindow->LaunchEmuThread(hRunEmu_Real);
-	
+
 #if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
 #endif
@@ -1371,13 +1371,13 @@ void Ui_MainWindow::do_update_inner_fd(int drv, QStringList base, class Action_C
 			}
 		}
 	}
-#endif	
+#endif
 }
 
 void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
 				       QStringList lst, int num, bool use_d88_menus)
 {
-#if defined(USE_BUBBLE)	
+#if defined(USE_BUBBLE)
 	if(use_d88_menus) {
 		for(int ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
 			if(ii < emu->b77_file[drv].bank_num) {
@@ -1393,7 +1393,7 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 			}
 		}
 	}
-#endif	
+#endif
 }
 
 int Ui_MainWindow::GetBubbleBankNum(int drv)
@@ -1471,7 +1471,7 @@ void Ui_MainWindow::OnOpenDebugger()
 
 	// ToDo: Multiple debugger 20221105 K.O
  	if((emu->now_debugging ) || (emu->hDebugger.get() != nullptr)) /* OnCloseDebugger(); */ return;
-	
+
 	if(!(emu->now_debugging && emu->debugger_thread_param.cpu_index == no)) {
 		//emu->close_debugger();
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
@@ -1483,14 +1483,14 @@ void Ui_MainWindow::OnOpenDebugger()
 			}
 			QString objNameStr = QString("EmuDebugThread");
 			emu->hDebugger->setObjectName(objNameStr);
-			
+
 			emu->hDebugger->debugger_thread_param.osd = (OSD_BASE *)(emu->get_osd());
 			emu->hDebugger->debugger_thread_param.emu = emu;
 			emu->hDebugger->debugger_thread_param.vm = vm;
 			emu->hDebugger->debugger_thread_param.cpu_index = no;
 			emu->hDebugger->debugger_thread_param.running = false;
 			emu->hDebugger->debugger_thread_param.request_terminate = false;
-			
+
 			emu->stop_record_sound();
 			emu->stop_record_video();
 			//emu->now_debugging = true;
@@ -1537,15 +1537,15 @@ QString Ui_MainWindow::get_system_version()
 	QString libcommon_ver;
 	QString libfmgen_ver;
 	QString build_date;
-	
+
 	QString outstr;
-	
+
 	aviover.clear();
 	common_vmver.clear();
 	vm_gitver.clear();
 	osdver.clear();
 	libcommon_ver.clear();
-	
+
 	if(hSaveMovieThread != NULL) {
 		aviover = hSaveMovieThread->get_avio_version();
 	}
@@ -1565,13 +1565,13 @@ QString Ui_MainWindow::get_system_version()
 			}
 		}
 	}
-	
+
 	const _TCHAR *pp = get_lib_common_version();
 	if(pp != NULL) {
 		libcommon_ver = QString::fromUtf8(pp);
 	}
 	libfmgen_ver = QString::fromUtf8(FM::get_libfmgen_version());
-	
+
 	outstr.clear();
 	outstr.append(QString::fromUtf8("<FONT SIZE=+1>"));
 	if(!(common_vmver.isEmpty())) {

@@ -148,7 +148,7 @@ typedef struct {
 	int read_pos;
 	int read_data_len;
 	int read_buffer_len;
-	
+
 	uint8_t *read_buffer_ptr;
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
@@ -168,10 +168,10 @@ private:
 	qint64 elapsed_us_before_rendered;
 	SOUND_BUFFER_QT *m_audioOutput;
 	SOUND_BUFFER_QT *m_audioInput;
-	
+
 	QAudioFormat m_audioOutputFormat;
 	QAudioFormat m_audioInputFormat;
-	
+
 	#endif
 	uint8_t m_sound_period;
 protected:
@@ -180,21 +180,21 @@ protected:
 	std::shared_ptr<USING_FLAGS>			using_flags;
 	config_t			*p_config;
 	std::shared_ptr<CSP_Logger> p_logger;
-	
+
 	QOpenGLContext *glContext;
 	bool is_glcontext_shared;
-	
+
 	QList<supportedlist_t> SupportedFeatures;
-	
+
 	bool __USE_AUTO_KEY;
-   
+
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
 	bool locked_vm;
 	// console
-	virtual void initialize_console();	
+	virtual void initialize_console();
 	virtual void release_console();
-	
+
 	FILE *hStdIn, *hStdOut;
 	QString console_cmd_str;
 
@@ -207,10 +207,10 @@ protected:
 	void key_down_sub(int code, bool repeat);
 	void key_up_sub(int code);
 	CSP_KeyTables *key_table;
-	
+
 	bool dinput_key_ok;
 //	bool dinput_joy_ok;
-	
+
 	uint8_t keycode_conv[256];
 	uint8_t key_status[256];	// windows key code mapping
 	uint8_t key_dik_prev[256];
@@ -227,14 +227,14 @@ protected:
 	 * 0  - 3:
 	 * joystick #1, - #4 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons)
 	 * 4  - 11:
-	 * ANALOG #1 - #4 AXIS LEFT X,Y : VALUE 65536 - 0 (RAW VALUE PLUS 32768) 
+	 * ANALOG #1 - #4 AXIS LEFT X,Y : VALUE 65536 - 0 (RAW VALUE PLUS 32768)
 	 * 12 - 19:
 	 * ANALOG #1 - #4 AXIS RIGHT X,Y : VALUE = 65536 - 0 (RAW VALUE PLUS 32768)
 	 * 20 - 23:
 	 * ANALOG #1 - #4 DIGITAL DIR (b0 = UP, b1 = DOWN, b2 = LEFT, b3 = RIGHT)
 	 */
 	uint32_t joy_status[32];
-	
+
 	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
 	double mouse_ptrx;
@@ -243,13 +243,13 @@ protected:
 	double mouse_oldx;
 	double mouse_oldy;
 	//Qt::CursorShape mouse_shape;
-	
+
 	QImage background_image;
 	QImage button_images[N_MAX_BUTTONS];
 	QImage rec_image_buffer;
-	
+
 	// printer
-	
+
 	// screen
 	void initialize_screen();
 	void release_screen();
@@ -258,44 +258,44 @@ protected:
 	void release_screen_buffer(bitmap_t *buffer);
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	virtual scrntype_t *get_buffer(bitmap_t *p, int y);
-	
+
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	virtual int add_video_frames();
-	
+
 	bitmap_t vm_screen_buffer;
 	bitmap_t video_screen_buffer;
 	bitmap_t* draw_screen_buffer;
 	int vm_window_width, vm_window_height;
 	int vm_window_width_aspect, vm_window_height_aspect;
-	
+
 	int host_window_width, host_window_height;
 	bool host_window_mode;
 	int base_window_width, base_window_height;
 	int vm_screen_width, vm_screen_height;
 	int draw_screen_width, draw_screen_height;
 	int rec_video_nsec, rec_video_fps_nsec;
-	
+
 	_TCHAR video_file_name[_MAX_PATH];
 	int rec_video_fps;
-	
+
 	uint64_t dwAVIFileSize;
 	uint64_t lAVIFrames;
 
 	rec_video_thread_param_t rec_video_thread_param;
-	
+
 	bool first_draw_screen;
 	bool first_invalidate;
 	bool self_invalidate;
-	
+
 	// sound
-#if defined(USE_SDL2)   
+#if defined(USE_SDL2)
 	SDL_AudioDeviceID audio_dev_id;
 #else
 	int audio_dev_id;
 #endif
 	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	void release_sound();
-#if 0	
+#if 0
 	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
 	static void audio_callback(void *udata, Uint8 *stream, int len);
 	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
@@ -306,7 +306,7 @@ protected:
 	bool sound_ok, sound_started, now_mute;
 	bool sound_first_half;
 	QStringList sound_device_list;
-	
+
 	_TCHAR sound_file_name[_MAX_PATH];
 	FILEIO* rec_sound_fio;
 	int rec_sound_bytes;
@@ -332,7 +332,7 @@ protected:
 	// video device
 	virtual void initialize_video();
 	virtual void release_video();
-  
+
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
@@ -354,7 +354,7 @@ protected:
 	// socket
 	virtual void initialize_socket();
 	virtual void release_socket();
-	
+
 	bool is_tcp[SOCKET_MAX];
 	bool host_mode[SOCKET_MAX];
 	int socket_delay[SOCKET_MAX];
@@ -362,13 +362,13 @@ protected:
 	// MIDI : Will implement
 	virtual void initialize_midi();
 	virtual void release_midi();
-	
+
 	// wrapper
 	int max_vm_nodes;
 	QList<device_node_t> device_node_list;
 	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
-	
+
 	virtual bool get_use_socket(void);
 	virtual bool get_use_auto_key(void);
 	virtual bool get_dont_keeep_key_pressed(void);
@@ -388,7 +388,7 @@ protected:
 public:
 	OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger);
 	~OSD_BASE();
-	
+
 	// common
 	VM_TEMPLATE* vm;
 	//EMU* emu;
@@ -402,15 +402,15 @@ public:
 	std::recursive_timed_mutex log_mutex;
 	int host_cpus;
 	bool now_auto_key;
-	
+
 	virtual void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	// sound
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 
 	virtual void release();
-	
+
 	void notify_power_off(); // For USE_NOTIFY_POWER_OFF .
-	
+
 	void power_off();
 	void suspend();
 	void restore();
@@ -425,7 +425,7 @@ public:
 	virtual void close_console();
 	virtual unsigned int get_console_code_page();
 	virtual bool is_console_closed();
-	
+
 	void set_console_text_attribute(unsigned short attr);
 	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, int length);
@@ -470,7 +470,7 @@ public:
 	void release_printer();
 	void open_printer_file();
 	void close_printer_file();
-	
+
 	// common screen
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
@@ -516,9 +516,9 @@ public:
 	{
 		return sound_device_list;
 	}
-	
+
 	int get_sound_device_num();
-	
+
 	bool now_record_sound;
 	int get_sound_rate();
 
@@ -554,7 +554,7 @@ public:
 	void show_capture_dev_pin();
 	void show_capture_dev_source();
 	void set_capture_dev_channel(int ch);
-	
+
 	// common printer
 	void create_bitmap(bitmap_t *bitmap, int width, int height);
 	void release_bitmap(bitmap_t *bitmap);
@@ -565,7 +565,7 @@ public:
 
 	void clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b);
 	int get_text_width(bitmap_t *bitmap, font_t *font, const char *text);
-	
+
 	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8_t r, uint8_t g, uint8_t b);
 	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
 	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b);
@@ -598,12 +598,12 @@ public:
 	// Note: Belows maybe make Qt SLOTs.
 	virtual void __FASTCALL notify_timeout_sending_to_midi(int ch);
 	virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch);
-	
+
 	virtual void reset_to_midi(int ch, double timestamp_usec);
 	virtual void initialize_midi_device(bool handshake_from_midi, bool handshake_to_midi, int ch);
 	virtual void __FASTCALL ready_receive_from_midi(int ch, double timestamp_usec);
 	virtual void __FASTCALL ready_send_to_midi(int ch, double timestamp_usec);
-	
+
 	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch, double timestamp_usec);
 	virtual void __FASTCALL request_stop_to_send_to_midi(int ch, double timestamp_usec);
 
@@ -614,7 +614,7 @@ public:
 
 	_TCHAR *console_input_string(void);
 	void clear_console_input_string(void);
-	
+
 	void lock_vm(void);
 	void unlock_vm(void);
 	void force_unlock_vm(void);
@@ -622,24 +622,24 @@ public:
 	virtual const _TCHAR *get_lib_common_vm_version();
 	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
-	
+
 	// Wrapper
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
 	virtual void reset_vm_node(void);
-	
+
 	void set_device_name(int id, char *name);
-	
+
 	void set_vm_node(int id, const _TCHAR *name);
 	const _TCHAR *get_vm_node_name(int id);
 	int get_vm_node_size(void);
-	
+
 	int get_key_name_table_size(void);
 	uint32_t get_scancode_by_vk(uint32_t vk);
 	uint32_t get_vk_by_scancode(uint32_t scancode);
 	const _TCHAR *get_key_name_by_scancode(uint32_t scancode);
 	const _TCHAR *get_key_name_by_vk(uint32_t vk);
-	
+
 	// Get #define S to value.You may use inside of VM/ .
 	virtual void set_features(void) {}
 	void add_feature(const _TCHAR *key, double value);
@@ -659,7 +659,7 @@ public:
 	int32_t get_feature_int32_value(const _TCHAR *key);
 	int16_t get_feature_int16_value(const _TCHAR *key);
 	int8_t get_feature_int8_value(const _TCHAR *key);
-	
+
 	uint64_t get_feature_uint64_value(const _TCHAR *key);
 	uint32_t get_feature_uint32_value(const _TCHAR *key);
 	uint16_t get_feature_uint16_value(const _TCHAR *key);
@@ -686,23 +686,23 @@ public:
 	// Messaging wrapper from EMU:: to OSD::
 	void __FASTCALL string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t  message_type, _TCHAR* message);
 	void __FASTCALL int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data);
-									   
+
 public slots:
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();
-	
+
 	void upload_bitmap(QImage *p);
 	void set_buttons();
-	
+
 	int no_draw_screen();
 
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);
-	
+
 	void close_debugger_console();
 	void do_close_debugger_thread();
-	
+
 	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
 	void do_start_record_video();
 	virtual void do_decode_movie(int frames);
@@ -712,7 +712,7 @@ public slots:
 	virtual int draw_screen();
 
 	void do_draw(bool flag);
-	
+
 	void set_dbg_completion_list(std::list<std::string> *p);
 	void clear_dbg_completion_list(void);
 	void set_hdd_image_name(int drv, _TCHAR *filename);
@@ -729,7 +729,7 @@ signals:
 	int sig_resize_vm_lines(int);
 	int sig_put_string_debugger(QString);
 	int sig_console_input_string(QString);
-	int sig_enqueue_video(int, int, int, QImage *); 
+	int sig_enqueue_video(int, int, int, QImage *);
 	int sig_enqueue_audio(int16_t *data, int size);
 	int sig_movie_set_width(int);
 	int sig_movie_set_height(int);
@@ -770,7 +770,49 @@ signals:
 
 	// To GUI 20230125 K.O
 	int sig_ui_floppy_insert_history(int, QString, quint64);
-	int sig_floppy_disk_write_protect(int, quint64);
+	int sig_ui_floppy_close(int);
+	int sig_ui_floppy_write_protect(int, quint64);
+
+	int sig_ui_quick_disk_insert_history(int, QString);
+	int sig_ui_quick_disk_close(int);
+	int sig_ui_quick_disk_write_protect(int, quint64);
+
+	int sig_ui_hard_disk_insert_history(int, QString);
+	int sig_ui_hard_disk_close(int);
+
+	int sig_ui_cartridge_insert_history(int, QString);
+	int sig_ui_cartridge_eject(int);
+
+	int sig_ui_tape_play_insert_history(int, QString);
+	int sig_ui_tape_record_insert_history(int, QString);
+	int sig_ui_tape_eject(int);
+	int sig_ui_tape_position(int, int);
+	int sig_ui_tape_message(int, QString);
+
+	int sig_ui_tape_push_play(int);
+	int sig_ui_tape_push_stop(int);
+	int sig_ui_tape_push_fast_forward(int);
+	int sig_ui_tape_push_fast_rewind(int);
+	int sig_ui_tape_push_apss_forward(int);
+	int sig_ui_tape_push_apss_rewind(int);
+	int sig_ui_tape_push_pause(int, bool);
+
+	int sig_ui_compact_disc_insert_history(int, QString);
+	int sig_ui_compact_disc_eject(int);
+	int sig_ui_compact_disc_pause(int);
+
+	int sig_ui_laser_disc_insert_history(int, QString);
+	int sig_ui_laser_disc_eject(int);
+	int sig_ui_laser_disc_pause(int);
+
+	int sig_ui_binary_loading_insert_history(int, QString);
+	int sig_ui_binary_saving_insert_history(int, QString);
+	int sig_ui_binary_closed(int);
+
+	int sig_ui_bubble_insert_history(int, QString, quint64);
+	int sig_ui_bubble_close(int);
+	int sig_ui_bubble_write_protect(int, quint64);
+
 };
 
 QT_END_NAMESPACE
