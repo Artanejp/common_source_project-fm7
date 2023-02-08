@@ -2374,14 +2374,12 @@ void EMU::update_media()
 #else
 			out_message(_T("FD: %s"), floppy_disk_status[drv].path);
 #endif
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
 			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
-							drv,
-							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-							floppy_disk_status[drv].path);
-			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
-						(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
+						   drv,
+						   mess,
+						   floppy_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2394,6 +2392,7 @@ void EMU::update_media()
 #else
 			out_message(_T("QD: %s"), quick_disk_status[drv].path);
 #endif
+			// ToDo: Write Protect
 			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
 						   drv,
 						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
@@ -2430,9 +2429,13 @@ void EMU::update_media()
 #else
 			out_message(_T("CMT: %s"), tape_status[drv].path);
 #endif
+			// ToDo: Write protect.
+			EMU_MESSAGE_TYPE::type_t mess;
+			mess = 	(tape_status[drv].play) ? EMU_MESSAGE_TYPE::PLAY : EMU_MESSAGE_TYPE::RECORD;
+			mess |= EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
 			osdcall_string(EMU_MEDIA_TYPE::TAPE,
 						   drv,
-						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   mess,
 						   (_TCHAR *)tape_status[drv].path);
  		}
 	}
@@ -2478,9 +2481,13 @@ void EMU::update_media()
 #else
 			out_message(_T("Bubble: %s"), bubble_casette_status[drv].path);
 #endif
+			// ToDo: Write protect.
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
+
 			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bubble_casette_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
 						   drv,
-						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   mess,
 						   (_TCHAR *)bubble_casette_status[drv].path);
 		}
 	}
@@ -2498,6 +2505,13 @@ void EMU::restore_media()
 			} else {
 				vm->open_cart(drv, cart_status[drv].path);
 			}
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			// ToDo: write protect
+			osdcall_string(EMU_MEDIA_TYPE::CARTRIDGE,
+						   drv,
+						   mess,
+						   cart_status[drv].path);
+
 		}
 	}
 #endif
@@ -2505,14 +2519,12 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].path[0] != _T('\0')) {
 			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
 			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
-							drv,
-							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-							floppy_disk_status[drv].path);
-			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
-						(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
+						   drv,
+						   mess,
+						   floppy_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2520,6 +2532,13 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_QUICK_DISK; drv++) {
 		if(quick_disk_status[drv].path[0] != _T('\0')) {
 			vm->open_quick_disk(drv, quick_disk_status[drv].path);
+
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			// ToDo: write protect
+			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
+						   drv,
+						   mess,
+						   quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2527,6 +2546,11 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(hard_disk_status[drv].path[0] != _T('\0')) {
 			vm->open_hard_disk(drv, hard_disk_status[drv].path);
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			osdcall_string(EMU_MEDIA_TYPE::HARD_DISK,
+						   drv,
+						   mess,
+						   quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2535,6 +2559,11 @@ void EMU::restore_media()
 		if(tape_status[drv].path[0] != _T('\0')) {
 			if(tape_status[drv].play) {
 				vm->play_tape(drv, tape_status[drv].path);
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			osdcall_string(EMU_MEDIA_TYPE::HARD_DISK,
+						   drv,
+						   mess,
+						   tape_status[drv].path);
 			} else {
 				tape_status[drv].path[0] = _T('\0');
 			}
@@ -2710,10 +2739,6 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						drv,
 						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
 						0);
-			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
-						0);
 	} else if(floppy_disk_status[drv].wait_count == 0) {
 			vm->open_floppy_disk(drv, file_path, bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
@@ -2721,14 +2746,12 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("FD: %s"), file_path);
 #endif
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
 			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK),
 						   drv,
-						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   mess,
 						   (_TCHAR *)file_path);
-			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
-						(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
 		}
 		my_tcscpy_s(floppy_disk_status[drv].path, _MAX_PATH, file_path);
 		floppy_disk_status[drv].bank = bank;
@@ -2752,10 +2775,6 @@ void EMU::close_floppy_disk(int drv)
 		osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
 					drv,
 					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-					0);
-		osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-					drv,
-					EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
 					0);
 	}
 }
@@ -2783,10 +2802,14 @@ void EMU::is_floppy_disk_protected(int drv, bool value)
 	if(drv < USE_FLOPPY_DISK) {
 		vm->is_floppy_disk_protected(drv, value);
 	}
+	EMU_MESSAGE_TYPE::type_t mess =
+		(value) ?
+		(EMU_MESSAGE_TYPE::WRITE_PROTECT | EMU_MESSAGE_TYPE::MEDIA_OTHERS)
+		: EMU_MESSAGE_TYPE::MEDIA_OTHERS;
 	osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
 				drv,
-				EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT,
-				(is_floppy_disk_protected(drv)) ?  UINT64_MAX : 0);
+				mess,
+				0);
 }
 
 bool EMU::is_floppy_disk_protected(int drv)
@@ -3097,7 +3120,7 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 #endif
 			osdcall_string(EMU_MEDIA_TYPE::TAPE,
 							drv,
-							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED | EMU_MESSAGE_TYPE::RECORD,
 							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(tape_status[drv].path, _MAX_PATH, file_path);
@@ -3171,6 +3194,10 @@ void EMU::push_play(int drv)
 {
 	if(drv < USE_TAPE) {
 		vm->push_play(drv);
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::TAPE_PLAY,
+					0);
 	}
 }
 
@@ -3178,6 +3205,10 @@ void EMU::push_stop(int drv)
 {
 	if(drv < USE_TAPE) {
 		vm->push_stop(drv);
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::TAPE_STOP,
+					0);
 	}
 }
 
@@ -3185,6 +3216,10 @@ void EMU::push_fast_forward(int drv)
 {
 	if(drv < USE_TAPE) {
 		vm->push_fast_forward(drv);
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::TAPE_FF,
+					0);
 	}
 }
 
@@ -3192,6 +3227,10 @@ void EMU::push_fast_rewind(int drv)
 {
 	if(drv < USE_TAPE) {
 		vm->push_fast_rewind(drv);
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::TAPE_REW,
+					0);
 	}
 }
 
@@ -3199,6 +3238,10 @@ void EMU::push_apss_forward(int drv)
 {
 	if(drv < USE_TAPE) {
 		vm->push_apss_forward(drv);
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::TAPE_APSS_FF,
+					0);
 	}
 }
 
@@ -3206,6 +3249,10 @@ void EMU::push_apss_rewind(int drv)
 {
 	if(drv < USE_TAPE) {
 		vm->push_apss_rewind(drv);
+		osdcall_int(EMU_MEDIA_TYPE::TAPE,
+					drv,
+					EMU_MESSAGE_TYPE::TAPE_APSS_REW,
+					0);
 	}
 }
 #endif
@@ -3351,6 +3398,10 @@ void EMU::load_binary(int drv, const _TCHAR* file_path)
 		} else {
 			vm->load_binary(drv, file_path);
 		}
+		osdcall_string(EMU_MEDIA_TYPE::BINARY,
+					   drv,
+					   EMU_MESSAGE_TYPE::MEDIA_MOUNTED | EMU_MESSAGE_TYPE::LOAD,
+					   (_TCHAR*)file_path);
 #if USE_BINARY_FILE > 1
 		out_message(_T("Load Binary%d: %s"), drv + BASE_BINARY_FILE_NUM, file_path);
 #else
@@ -3368,6 +3419,10 @@ void EMU::save_binary(int drv, const _TCHAR* file_path)
 #else
 		out_message(_T("Save Binary: %s"), file_path);
 #endif
+		osdcall_string(EMU_MEDIA_TYPE::BINARY,
+					   drv,
+					   EMU_MESSAGE_TYPE::MEDIA_MOUNTED | EMU_MESSAGE_TYPE::SAVE,
+					   (_TCHAR*)file_path);
 	}
 }
 
@@ -3396,9 +3451,11 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("Bubble: %s"), file_path);
 #endif
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
 			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK),
 							drv,
-							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+							mess,
 							(_TCHAR*)file_path);
 		}
 		my_tcscpy_s(bubble_casette_status[drv].path, _MAX_PATH, file_path);
@@ -3445,6 +3502,12 @@ void EMU::is_bubble_casette_protected(int drv, bool flag)
 {
 	if(drv < USE_BUBBLE) {
 		vm->is_bubble_casette_protected(drv, flag);
+		EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_OTHERS;
+		mess |= ((flag) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
+		osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
+					drv,
+					mess,
+					0);
 		return;
 	} else {
 		return;

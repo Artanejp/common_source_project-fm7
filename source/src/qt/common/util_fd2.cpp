@@ -28,13 +28,13 @@
 void Ui_MainWindowBase::do_ui_write_protect_floppy_disk(int drive, quint64 flag)
 {
 	if(drive < 0) return;
-	
+
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drive)) return;
 	if(menu_fds[drive] != nullptr) return;
-	
-	if(flag != 0) {
+
+	if((flag & EMU_MESSAGE_TYPE::WRITE_PROTECT) != 0) {
 		menu_fds[drive]->do_set_write_protect(true);
 	} else {
 		menu_fds[drive]->do_set_write_protect(false);
@@ -42,7 +42,7 @@ void Ui_MainWindowBase::do_ui_write_protect_floppy_disk(int drive, quint64 flag)
 }
 extern const _TCHAR* DLL_PREFIX_I get_parent_dir(const _TCHAR* file);
 
-int Ui_MainWindowBase::set_recent_disk(int drv, int num) 
+int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 {
 	QString s_path;
 
@@ -60,7 +60,7 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 {
 	if(fname.length() <= 0) return;
 	if(using_flags->get_max_drive() <= drv) return;
-	
+
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), _MAX_PATH - 1);
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;
@@ -79,7 +79,7 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 		UPDATE_D88_LIST(drv, listD88[drv]);
 	}
 	menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
-	
+
 }
 
 void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
@@ -88,7 +88,7 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 
 	if(fname.length() <= 0) return;
 	if(using_flags->get_max_drive() <= drv) return;
-	if(!(FILEIO::IsFileExisting(fname.toLocal8Bit().constData()))) return; // File not found.	
+	if(!(FILEIO::IsFileExisting(fname.toLocal8Bit().constData()))) return; // File not found.
 //	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	emit sig_close_floppy_disk(drv);
@@ -105,17 +105,6 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	}
 }
 
-void Ui_MainWindowBase::do_set_write_protect_floppy_disk(int drive, bool flag)
-{	
-	if(drive < 0) return;
-	if(menu_fds[drive] == nullptr) return;
-	
-	std::shared_ptr<USING_FLAGS>p = using_flags;
-	if(p.get() == nullptr) return;
-	if(!(p->is_use_fd()) || (p->get_max_drive() <= drive)) return;
-
-	menu_fds[drive]->do_set_write_protect(flag);
-}
 
 void Ui_MainWindowBase::do_update_d88_list(int drv, int bank)
 {

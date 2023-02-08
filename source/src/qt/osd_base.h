@@ -385,6 +385,13 @@ protected:
 	virtual int get_vm_buttons_code(int num);
 	virtual void update_input_mouse();
 
+	// Messaging.
+	virtual void __FASTCALL osdcall_message_str(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message);
+	virtual void __FASTCALL osdcall_message_int(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data);
+	virtual void __FASTCALL osdcall_mount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString path);
+	virtual void __FASTCALL osdcall_unmount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type);
+	virtual void __FASTCALL osdcall_misc(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message_str, int64_t data);
+
 public:
 	OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger);
 	~OSD_BASE();

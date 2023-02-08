@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
 namespace CSP_Ui_MainWidgets {
 	struct DipSwitchPair { // config.dipswitch
 		uint32_t data; // DipSwitch data
-		uint32_t mask; // DipSwitch bit mask 
+		uint32_t mask; // DipSwitch bit mask
 	};
 	struct MachineFeaturePair { // config.machine_features[devnum]
 		int devnum; // Index of device.
@@ -141,7 +141,7 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 		SET_ACTION_SINGLE_DIPSWITCH_NEGATIVE(__action,__dipsw_val_mask,__condval); \
 		connect(__action, __signal1, this, __slot1);					\
 	}
-	
+
 #define SET_ACTION_ANYVALUES(__action,__vars) {							\
 		__action = new Action_Control(this, using_flags);				\
 		__action->setCheckable(true);									\
@@ -224,7 +224,7 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 		connect(__action, SIGNAL(triggered()), this, SLOT(do_browse_document())); \
 		__menu->addAction(__action);									\
 	}
-	
+
 
 #define SET_ACTION_CONTROL_ARRAY(__start,__end,							\
 								 __parent,__using_flags,				\
@@ -321,7 +321,7 @@ private:
 	Action_Control *actionScanLine;
 	Action_Control *actionGLScanLineHoriz;
 	Action_Control *actionGLScanLineVert;
-	
+
 	Action_Control *actionRotate[4];
 	Action_Control *actionCRT_Filter;
 	Action_Control *actionOpenGL_Filter;
@@ -396,7 +396,7 @@ private:
 	Action_Control *actionHelp_History_MR_TANAM;
 	Action_Control *actionHelp_License;
 	Action_Control *actionHelp_License_JP;
-	
+
 	// Led: OSD.
 	bool flags_led[32];
 	bool flags_led_bak[32];
@@ -406,7 +406,7 @@ private:
 	uint32_t osd_led_data;
 
 	// Inner functions
-	
+
 	void ConfigCpuSpeed(void);
 	void ConfigControlMenu(void);
 	void connectActions_ControlMenu(void);
@@ -417,7 +417,7 @@ private:
 
 	void CreateEmulatorMenu(void);
 	void ConfigEmulatorMenu(void);
-	
+
 	void CreateFloppyMenu(int drv, int drv_base);
 	void CreateFloppyPulldownMenu(int drv);
 	void ConfigFloppyMenuSub(int drv);
@@ -435,10 +435,10 @@ private:
 	virtual bool GetBubbleCasetteIsProtected(int drv) { return false; }
 	virtual QString GetBubbleB77FileName(int drv) { return QString::fromUtf8(""); }
 	virtual QString GetBubbleB77BubbleName(int drv, int num) { return QString::fromUtf8(""); }
-	
+
 	void CreateCMTMenu(int drive, int drv_base);
 	void ConfigCMTMenu(void);
-   
+
 	void ConfigQuickDiskMenu(void);
 	void ConfigQuickDiskMenuSub(int drv);
 	void CreateQuickDiskPulldownMenu(int drv);
@@ -453,7 +453,7 @@ private:
 	void ConfigCDROMMenu(void);
 	void ConfigCDROMMenuSub(void);
 	void CreateCDROMPulldownMenu(void);
-	
+
 	void CreateLaserdiscMenu(int drv, int drv_base);
 	void ConfigLaserdiscMenu(void);
 	void ConfigLaserdiscMenuSub(void);
@@ -484,7 +484,7 @@ protected:
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	QMap<uint32_t, QString>phys_key_name_map; // VK, NAME
-	
+
 	GLDrawClass *graphicsView;
 	CSP_DockDisks *driveData;
 	QWidget *pCentralWidget;
@@ -494,7 +494,7 @@ protected:
 
 	QTimer *statusUpdateTimer;
 	QTimer *ledUpdateTimer;
-	
+
 	const float screen_multiply_table[16] = {
 		0.5, 1.0, 1.5, 2.0,
 		2.25, 2.5, 3.0, 3.5,
@@ -519,7 +519,7 @@ protected:
 	QStringList listBINs[8];
 	QStringList listFDs[16];
 	QStringList listHDDs[16];
-	
+
 	QStringList listD88[16];
 	QStringList listBubbles[8];
 	QStringList listB77[8];
@@ -572,7 +572,7 @@ protected:
 	QMenu *menuPrintDevice;
 	QMenu *menuSerialDevice;
 	QMenu *menu_SetFixedCpu;
-	
+
 	Action_Control *actionDeviceType[16];
 	Action_Control *actionKeyboardType[16];
 	Action_Control *actionJoystickType[16];
@@ -583,7 +583,7 @@ protected:
 	Action_Control *actionSerialDevice[16];
 	Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
 
-	
+
 	Action_Control *actionStart_Record_Movie;
 	Action_Control *actionStop_Record_Movie;
 	Action_Control *action_SetupMovie; // 15, 24, 30, 60
@@ -591,8 +591,8 @@ protected:
 	QMenu *menuMonitorType;
 	QActionGroup *actionGroup_MonitorType;
 	Action_Control *actionMonitorType[16];
-	
-	// Menus    
+
+	// Menus
 	QMenu *menuControl;
 	QMenu *menuState;
 	QMenu *menuCopy_Paste;
@@ -603,7 +603,7 @@ protected:
 	QMenu *menuScreenSize;
 	QMenu *menuScreen_Render;
 	QMenu *menuScreen_Rotate;
-	
+
 	QMenu *menuCpuType;
 	QMenu *menuBootMode;
 	QMenu *menuSound;
@@ -620,7 +620,7 @@ protected:
 	QMenu *menuHelp_Histories;
 
 	QMenu *menuMachineFeatures[32];
-	
+
 	Menu_FDClass *menu_fds[16];
 	Menu_QDClass *menu_QDs[8];
 	Menu_CMTClass *menu_CMT[8];
@@ -637,7 +637,7 @@ protected:
 
 	QLabel *cdrom_StatusBar;
 	QString osd_str_cdrom;
-	
+
 	QLabel *laserdisc_StatusBar;
 	QString osd_str_laserdisc;
 	QLabel *bubble_StatusBar[8];
@@ -649,7 +649,7 @@ protected:
 	class DrawThreadClass *hDrawEmu;
 	class JoyThreadClass *hRunJoy;
 	class MOVIE_SAVER *hSaveMovieThread;
-	
+
 	int max_vm_nodes;
 	bool ui_retranslate_completed;
 	bool about_to_close;
@@ -724,7 +724,7 @@ public:
 	GLDrawClass *getGraphicsView(void) { return graphicsView; }
 	QStatusBar *getStatusBar(void) { return statusbar;}
 	QImage *getBitmapImage(void) { return bitmapImage; }
-	
+
 	virtual void OnMainWindowClosed(void);
 	// Basic Action Definition
 	void OnCpuPower(int mode);
@@ -771,17 +771,17 @@ public slots:
 	virtual void rise_movie_dialog(void);
 	void do_set_state_saving_movie(bool state);
 	void set_osd_virtual_media(bool f);
-	
+
 	virtual void OnOpenDebugger(void);
 	virtual void OnCloseDebugger(void);
-	void doBeforeCloseMainWindow(void);	
+	void doBeforeCloseMainWindow(void);
 	void set_gl_crt_filter(bool);
 	void do_set_cpu_power(void)
 	{
 		QAction *cp = qobject_cast<QAction*>(QObject::sender());
 		if(cp == nullptr) return;
 		int pw = cp->data().value<int>();
-		
+
 		OnCpuPower(pw);
 	}
 	virtual void on_actionExit_triggered();
@@ -796,8 +796,8 @@ public slots:
 	void do_open_cdrom(int drv, QString path);
 	void do_swap_cdaudio_byteorder(int drv, bool value);
 
-	int set_recent_laserdisc(int drv, int num); 
-	void do_eject_laserdisc(int drv); 
+	int set_recent_laserdisc(int drv, int num);
+	void do_eject_laserdisc(int drv);
 	void do_open_laserdisc(int drv, QString path);
 
 	void CreateBinaryMenu(int drv, int drv_base);
@@ -808,7 +808,7 @@ public slots:
 	void _open_binary_load(int drive, const QString fname);
 	void _open_binary_save(int drive, const QString fname);
 
-	int set_recent_quick_disk(int drive, int num); 
+	int set_recent_quick_disk(int drive, int num);
 	int write_protect_Qd(int drv, bool flag);
 	void _open_quick_disk(int drv, const QString fname);
 	void eject_Qd(int drv);
@@ -816,10 +816,10 @@ public slots:
 
 	void _open_cart(int drv, const QString fname);
 	void eject_cmt(int drv);
-	
+
 	void do_change_boot_mode();
 	void do_change_cpu_type();
-	
+
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(int drive, bool f);
@@ -850,10 +850,9 @@ public slots:
 	virtual int set_recent_bubble(int drv, int num) { return 0; }
 	virtual void _open_bubble(int drv, const QString fname) { }
 	virtual void eject_bubble(int drv) { }
-	
+
 	void _open_disk(int drv, const QString fname);
 	int set_recent_disk(int, int);
-	void do_set_write_protect_floppy_disk(int drive, bool flag);
 
 	void _open_hard_disk(int drv, const QString fname);
 	void do_update_recent_hard_disk(int);
@@ -866,7 +865,7 @@ public slots:
 	void do_set_sound_tape_signal(bool f);
 	void do_set_sound_tape_voice(bool f);
 	void do_set_host_sound_output_device(void);
-	void do_set_host_sound_name(int num, QString sname);	
+	void do_set_host_sound_name(int num, QString sname);
 	void set_monitor_type(void);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);
@@ -889,7 +888,7 @@ public slots:
 	void do_set_sound_files_relay(bool f);
 	void do_set_conslog(bool);
 	void do_set_syslog(bool);
-	void do_update_device_node_name(int id, const _TCHAR *name);	
+	void do_update_device_node_name(int id, const _TCHAR *name);
 	void do_set_dev_log_to_console(bool f);
 	void do_set_dev_log_to_syslog(bool f);
 	void do_set_roma_kana(bool f);
@@ -911,7 +910,7 @@ public slots:
 	void do_ui_write_protect_floppy_disk(int drv, quint64 flag);
 
 	void do_set_emulate_cursor_as(void);
-	void do_set_logging_fdc(bool onoff);	
+	void do_set_logging_fdc(bool onoff);
 	void do_set_separate_thread_draw(bool f);
 	void do_set_print_cpu_statistics(bool flag);
 	// ToDo: GUI
@@ -931,7 +930,7 @@ public slots:
 	void do_set_single_dipswitch(bool f);
 	void do_set_single_dipswitch_negative(bool f);
 	void do_set_multi_dipswitch();
-	
+
 	void do_clear_sound_output_list();
 	void do_update_sound_output_list();
 	void do_append_sound_output_list(QString _name);
@@ -954,7 +953,7 @@ signals:
 	int on_insert_fd(int);
 	int on_eject_fd(int);
 	int sig_open_disk(int, QString);
-	
+
 	int closed(void);
 	int sig_notify_power_off(void);
 	int sig_quit_all(void);
@@ -973,7 +972,7 @@ signals:
 	int sig_resize_osd(int);
 	int sig_screen_multiply(double);
 	int sig_update_master_volume(int);
-	
+
 	int sig_write_protect_floppy_disk(int drv, bool flag);
 	int sig_open_floppy_disk(int, QString, int);
 	int sig_close_floppy_disk(int);
@@ -1012,7 +1011,7 @@ signals:
 	int sig_set_roma_kana(bool);
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
-	
+
 	int sig_emu_thread_to_fixed_cpu(int);
 	int sig_add_keyname_table(uint32_t, QString);
 
@@ -1022,7 +1021,7 @@ signals:
 	int sig_start_draw_thread(void);
 	int sig_emu_launched(void);
 	int sig_glv_set_fixed_size(int, int);
-	
+
 	int sig_set_device_node_log(int, int, int, bool);
 	int sig_set_device_node_log(int, int, bool*, int, int);
 	int sig_set_device_node_log(int, int, int*, int, int);

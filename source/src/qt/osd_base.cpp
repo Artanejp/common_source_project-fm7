@@ -671,63 +671,239 @@ Sint16* OSD_BASE::create_sound(int *extra_frames)
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 
+void OSD_BASE::osdcall_message_str(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+}
+
+void OSD_BASE::osdcall_message_int(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+}
+
+void OSD_BASE::osdcall_mount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString path)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+	switch(_type) {
+	case EMU_MEDIA_TYPE::BINARY :
+		if((message_type & EMU_MESSAGE_TYPE::MEDIA_PLAYREC_MASK) == 0)
+		{
+			emit sig_ui_binary_loading_insert_history(drive, path);
+		} else {
+			emit sig_ui_binary_saving_insert_history(drive, path);
+		}
+		break;
+	case EMU_MEDIA_TYPE::BUBBLE_CASETTE :
+		emit sig_ui_bubble_insert_history(drive,
+										  path,
+										  (quint64)_slot);
+		emit sig_ui_bubble_write_protect(drive,
+										 (quint64)(message_type & EMU_MESSAGE_TYPE::WRITE_PROTECT));
+		break;
+	case EMU_MEDIA_TYPE::CARTRIDGE :
+		emit sig_ui_cartridge_insert_history(drive,
+											 path);
+		break;
+	case EMU_MEDIA_TYPE::COMPACT_DISC :
+		emit sig_ui_compact_disc_insert_history(drive,
+												path);
+		break;
+	case EMU_MEDIA_TYPE::FLOPPY_DISK :
+		emit sig_ui_floppy_insert_history(drive,
+										  path,
+										  (quint64)_slot);
+		emit sig_ui_floppy_write_protect(drive,
+										 (quint64)(message_type & EMU_MESSAGE_TYPE::WRITE_PROTECT));
+		break;
+	case EMU_MEDIA_TYPE::HARD_DISK :
+		emit sig_ui_hard_disk_insert_history(drive,
+											 path);
+		break;
+	case EMU_MEDIA_TYPE::LASER_DISC :
+		emit sig_ui_laser_disc_insert_history(drive,
+											  path);
+		break;
+	case EMU_MEDIA_TYPE::QUICK_DISK :
+		// ToDo: Write protect and bank
+		emit sig_ui_quick_disk_insert_history(drive,
+											  path);
+		break;
+	case EMU_MEDIA_TYPE::TAPE :
+		if((message_type & EMU_MESSAGE_TYPE::RECORD) != 0) {
+			emit sig_ui_tape_record_insert_history(drive, path);
+		} else {
+			emit sig_ui_tape_play_insert_history(drive, path);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void OSD_BASE::osdcall_unmount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+	switch(_type) {
+	case EMU_MEDIA_TYPE::BINARY :
+		emit sig_ui_binary_closed(drive);
+		break;
+	case EMU_MEDIA_TYPE::BUBBLE_CASETTE :
+		emit sig_ui_binary_closed(drive);
+		break;
+	case EMU_MEDIA_TYPE::CARTRIDGE :
+		emit sig_ui_cartridge_eject(drive);
+		break;
+	case EMU_MEDIA_TYPE::COMPACT_DISC :
+		emit sig_ui_compact_disc_eject(drive);
+		break;
+	case EMU_MEDIA_TYPE::FLOPPY_DISK :
+		emit sig_ui_floppy_close(drive);
+		break;
+	case EMU_MEDIA_TYPE::HARD_DISK :
+		emit sig_ui_hard_disk_close(drive);
+		break;
+	case EMU_MEDIA_TYPE::LASER_DISC :
+		emit sig_ui_laser_disc_eject(drive);
+		break;
+	case EMU_MEDIA_TYPE::QUICK_DISK :
+		emit sig_ui_quick_disk_close(drive);
+		break;
+	case EMU_MEDIA_TYPE::TAPE :
+		// ToDo: close by rec/play.
+		emit sig_ui_tape_eject(drive);
+		break;
+	default:
+		break;
+	}
+}
+
+void OSD_BASE::osdcall_misc(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message_str, int64_t data)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+
+	switch(_type) {
+	case EMU_MEDIA_TYPE::BINARY :
+		// ToDO : write protect.
+		break;
+	case EMU_MEDIA_TYPE::BUBBLE_CASETTE :
+		emit sig_ui_bubble_write_protect(drive,
+										 (quint64)(message_type & EMU_MESSAGE_TYPE::WRITE_PROTECT));
+		break;
+	case EMU_MEDIA_TYPE::CARTRIDGE :
+		// ToDo
+		break;
+	case EMU_MEDIA_TYPE::COMPACT_DISC :
+		// ToDo
+		break;
+	case EMU_MEDIA_TYPE::FLOPPY_DISK :
+		// ToDo
+		emit sig_ui_floppy_write_protect(drive,
+										 (quint64)(message_type & EMU_MESSAGE_TYPE::WRITE_PROTECT));
+		break;
+	case EMU_MEDIA_TYPE::HARD_DISK :
+		// ToDo
+		break;
+	case EMU_MEDIA_TYPE::LASER_DISC :
+		// ToDo
+		break;
+	case EMU_MEDIA_TYPE::QUICK_DISK :
+		// ToDo: Write protect and bank
+		break;
+	case EMU_MEDIA_TYPE::TAPE :
+	{
+
+		bool is_pause_unpause = ((message_type & EMU_MESSAGE_TYPE::TOGGLE_PAUSE) != 0) ? true : false;
+
+		if(!(is_pause_unpause)) {
+			switch(message_type & EMU_MESSAGE_TYPE::MEDIA_FFREW_MASK) {
+			case EMU_MESSAGE_TYPE::TAPE_FF:
+				emit sig_ui_tape_push_fast_forward(drive);
+				break;
+			case EMU_MESSAGE_TYPE::TAPE_REW:
+				emit sig_ui_tape_push_fast_rewind(drive);
+				break;
+			case EMU_MESSAGE_TYPE::TAPE_APSS_FF:
+				emit sig_ui_tape_push_apss_forward(drive);
+				break;
+			case EMU_MESSAGE_TYPE::TAPE_APSS_REW:
+				emit sig_ui_tape_push_apss_rewind(drive);
+				break;
+			default:
+				// ToDo: write protect
+				break;
+			}
+		}
+	}
+	break;
+	}
+}
+
 void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message)
 {
 //	switch(media_type) {
 //	case EMU_MEDIA_TYPE::BINARY:
 //	}
 	QString tmps;
-	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
-	uint64_t _slot = media_type & 255;
-	bool is_ui_message = ((media_type & EMU_MEDIA_TYPE::UI_MESSAGE_MASK) != 0) ? true : false;
-	if(is_ui_message) {
-		// Below are update message to UI.
-		return;  // ToDo: Implement
-	}
-
+	tmps.clear();
 	// Below are update status to UI.
 	if(message != nullptr) {
 		tmps = QString::fromLocal8Bit(message);
 	}
-	switch(_type) {
-		case EMU_MEDIA_TYPE::FLOPPY_DISK :
-			switch(message_type) {
-				 // From EMU::open_floppy_disk
-			case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
-				emit sig_ui_floppy_insert_history(drive, tmps, _slot);
-				break;
-			}
+	EMU_MESSAGE_TYPE::type_t message_mode
+		= message_type & EMU_MESSAGE_TYPE::MEDIA_MODE_MASK;
+	switch(message_type & (EMU_MESSAGE_TYPE::TYPE_MASK))
+	{
+	case EMU_MESSAGE_TYPE::TYPE_MESSAGE:
+		osdcall_message_str(media_type, drive, message_type, tmps);
+		break;
+	case EMU_MESSAGE_TYPE::TYPE_MEDIA:
+		switch(message_mode) {
+		case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
+			osdcall_mount(media_type, drive, message_type, tmps);
 			break;
-		case EMU_MEDIA_TYPE::TAPE :
-			switch(message_type) {
-			case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
-				emit sig_ui_tape_play_insert_history(drive, tmps);
-				break;
-			}
+		case EMU_MESSAGE_TYPE::MEDIA_REMOVED :
+			osdcall_unmount(media_type, drive, message_type);
 			break;
+		case EMU_MESSAGE_TYPE::MEDIA_OTHERS  :
+			osdcall_misc(media_type, drive, message_type, tmps, INT64_MIN);
+			break;
+		default:
+			break;
+		}
+	default:
+		break;
 	}
 }
 
+
 void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data)
 {
-	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
-	uint64_t _slot = media_type & 255;
-	bool is_ui_message = ((media_type & EMU_MEDIA_TYPE::UI_MESSAGE_MASK) != 0) ? true : false;
-	if(is_ui_message) {
-		// Below are update message to UI.
-		return;  // ToDo: Implement
-	}
-	switch(_type) {
-		case EMU_MEDIA_TYPE::FLOPPY_DISK :
-			switch(message_type) {
-				 // From EMU::close_floppy_disk
-			case EMU_MESSAGE_TYPE::MEDIA_REMOVED :
-				emit sig_ui_floppy_close(drive);
-				break;
-			case EMU_MESSAGE_TYPE::MEDIA_WRITE_PROTECT :
-				emit sig_ui_floppy_write_protect(drive, data);
-				break;
-			}
+	EMU_MESSAGE_TYPE::type_t message_mode
+		= message_type & EMU_MESSAGE_TYPE::MEDIA_MODE_MASK;
+	switch(message_type & (EMU_MESSAGE_TYPE::TYPE_MASK))
+	{
+	case EMU_MESSAGE_TYPE::TYPE_MESSAGE:
+		osdcall_message_int(media_type, drive, message_type, data);
+		break;
+	case EMU_MESSAGE_TYPE::TYPE_MEDIA:
+		switch(message_mode) {
+		case EMU_MESSAGE_TYPE::MEDIA_MOUNTED :
+			// ToDo.
 			break;
+		case EMU_MESSAGE_TYPE::MEDIA_REMOVED :
+			osdcall_unmount(media_type, drive, message_type);
+			break;
+		case EMU_MESSAGE_TYPE::MEDIA_OTHERS  :
+			osdcall_misc(media_type, drive, message_type, QString::fromUtf8(""), data);
+			break;
+		default:
+			break;
+		}
+		break;
 	}
 }
