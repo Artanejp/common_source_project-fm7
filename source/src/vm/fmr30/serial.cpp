@@ -15,7 +15,7 @@ namespace FMR30 {
 
 void SERIAL::initialize()
 {
-	memset(sioctrl, sizeof(sioctrl), 1);
+	memset(sioctrl, 0x00, sizeof(sioctrl));
 }
 
 void SERIAL::write_io8(uint32_t addr, uint32_t data)
@@ -131,7 +131,7 @@ void SERIAL::update_intr(int ch)
 		SIG_I8259_CHIP0 | SIG_I8259_IR4,	// rs-232c ch.1
 		SIG_I8259_CHIP1 | SIG_I8259_IR4		// rs-232c ch.2
 	};
-	
+
 	if((sioctrl[ch].rxrdy && (sioctrl[ch].ctrl & 0x40)) || (sioctrl[ch].txrdy && (sioctrl[ch].ctrl & 0x20))) {
 		d_pic->write_signal(pic_ids[ch], 1, 1);
 		sioctrl[ch].intstat |=  4;
@@ -152,7 +152,7 @@ bool SERIAL::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	//state_fio->StateBuffer(sioctrl, sizeof(sioctrl), 1);
-	for(int i = 0; i < 4; i++) {	
+	for(int i = 0; i < 4; i++) {
 		state_fio->StateValue(sioctrl[i].baud);
 		state_fio->StateValue(sioctrl[i].ctrl);
 		state_fio->StateValue(sioctrl[i].rxrdy);
