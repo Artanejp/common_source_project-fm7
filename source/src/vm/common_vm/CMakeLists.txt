@@ -1,13 +1,13 @@
 message("* vm/common_vm")
 
-SET(THIS_LIB_VERSION 7.5.2)
+SET(THIS_LIB_VERSION 7.6.0)
 
 #include(cotire)
 set(s_vm_common_vm_srcs
 
 	../device.cpp
 	../vm_template.cpp
-	
+
 	../315-5124.cpp
 	../am9511.cpp
 	../and.cpp
@@ -54,7 +54,7 @@ set(s_vm_common_vm_srcs
 	../mc6847_base.cpp
 	../mc6850.cpp
 	../mcs48_base.cpp
-	
+
 	../memory.cpp
 	../msm5205.cpp
 	../msm58321_base.cpp
@@ -69,10 +69,10 @@ set(s_vm_common_vm_srcs
 	../or.cpp
 	../pc6031.cpp
 	../pc80s31k.cpp
-	
+
 	../pcm1bit.cpp
 	../pcm8bit.cpp
-	
+
 	../prnfile.cpp
 	../ptf20.cpp
 	../rp5c01.cpp
@@ -81,7 +81,7 @@ set(s_vm_common_vm_srcs
 	../scsi_hdd.cpp
 #	../scsi_host.cpp
 
-	
+
 	../sn76489an.cpp
 
 #	../sy6522.cpp
@@ -90,7 +90,7 @@ set(s_vm_common_vm_srcs
 
 	../tmpz84c013.cpp
 	../tmpz84c015.cpp
-	
+
 	../tms3631.cpp
 	../tms9918a.cpp
 #	../tms9995.cpp
@@ -139,10 +139,10 @@ set(s_vm_common_vm_srcs
 #	../np21/i286c/i286c_rp.cpp
 #	../np21/i286c/i286c_sf.cpp
 #	../np21/i286c/v30patch.cpp
-	
+
 	../i386_np21.cpp
 	../np21/i386c/cpucore.cpp
- 	../np21/i386c/cpumem.cpp		   
+ 	../np21/i386c/cpumem.cpp
     ../np21/i386c/ia32/cpu.cpp
      ../np21/i386c/ia32/cpu_io.cpp
      ../np21/i386c/ia32/cpu_mem.cpp
@@ -175,7 +175,7 @@ set(s_vm_common_vm_srcs
      ../np21/i386c/ia32/instructions/fpu/fpemul_dosbox2.cpp
      ../np21/i386c/ia32/instructions/fpu/fpemul_softfloat.cpp
      ../np21/i386c/ia32/instructions/fpu/softfloat/softfloat.cpp
-		   
+
     ../np21/i386c/ia32/instructions/mmx/3dnow.cpp
     ../np21/i386c/ia32/instructions/mmx/mmx.cpp
     ../np21/i386c/ia32/instructions/sse/sse.cpp
@@ -195,7 +195,7 @@ if(WIN32)
   add_library(CSPcommon_vm SHARED
 	${s_vm_common_vm_srcs}
     )
-   
+
   target_link_libraries(CSPcommon_vm PRIVATE
 	CSPosd
 	CSPemu_utils
@@ -219,7 +219,7 @@ else()
   add_library(CSPcommon_vm SHARED
     ${s_vm_common_vm_srcs}
 	)
-  set_target_properties(CSPcommon_vm PROPERTIES 
+  set_target_properties(CSPcommon_vm PROPERTIES
     SOVERSION ${THIS_LIB_VERSION}
     VERSION ${THIS_LIB_VERSION}
 	)
@@ -227,4 +227,3 @@ else()
   #  cotire(CSPcommon_vm)
   INSTALL(TARGETS CSPcommon_vm DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
-

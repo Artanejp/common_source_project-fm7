@@ -1,6 +1,6 @@
 message("* qt/avio")
 
-SET(THIS_LIB_VERSION 7.4.5)
+SET(THIS_LIB_VERSION 7.5.0)
 set(s_qt_avio_headers
 	csp_avio_basic.h
 	movie_saver.h
@@ -51,7 +51,7 @@ if(WIN32)
 	  )
   endif()
   #QT5_USE_MODULES(CSPavio Widgets Core Gui OpenGL)
-  set_target_properties(CSPavio PROPERTIES 
+  set_target_properties(CSPavio PROPERTIES
 	SOVERSION ${THIS_LIB_VERSION}
 	VERSION ${THIS_LIB_VERSION}
 	)
@@ -90,10 +90,9 @@ else()
 	  )
   endif()
 
-  set_target_properties(CSPavio PROPERTIES 
+  set_target_properties(CSPavio PROPERTIES
 	SOVERSION ${THIS_LIB_VERSION}
 	VERSION ${THIS_LIB_VERSION}
 	)
   INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
-

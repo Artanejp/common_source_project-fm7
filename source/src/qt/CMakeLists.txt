@@ -1,10 +1,10 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 8.12.1)
+SET(THIS_LIB_VERSION 9.0.0)
 
 set(s_qt_osd_headers
 	osd_base.h
 	osd_socket.h
-	
+
 	sound-drivers/sound_buffer_qt.h
 	sound-drivers/osd_sound_mod_template.h
 	sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.h
@@ -24,12 +24,12 @@ SET(s_qt_osd_srcs
 	osd_video.cpp
 	qudpsocket2.cpp
 	qtcpsocket2.cpp
-	
+
 	sound-drivers/common/sound_buffer_qt.cpp
 	sound-drivers/common/osd_sound_mod_template.cpp
 	sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.cpp
 
-	
+
 	${s_qt_osd_headers_MOC}
 )
 add_definitions(-D__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
@@ -75,7 +75,7 @@ if(WIN32)
     EXPORT_FILE_NAME CSPosd_Export.h
     STATIC_DEFINE CSPgosd_BUILT_AS_STATIC
 	)
-  set_target_properties(CSPosd PROPERTIES 
+  set_target_properties(CSPosd PROPERTIES
 	SOVERSION ${THIS_LIB_VERSION}
 	VERSION ${THIS_LIB_VERSION}
 	)
@@ -102,11 +102,9 @@ else()
 		${ADDITIONAL_DLL_LIBRARIES}
 		)
 	endif()
-	set_target_properties(CSPosd PROPERTIES 
+	set_target_properties(CSPosd PROPERTIES
 	  SOVERSION ${THIS_LIB_VERSION}
 	  VERSION ${THIS_LIB_VERSION}
 	  )
 	INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
-
-

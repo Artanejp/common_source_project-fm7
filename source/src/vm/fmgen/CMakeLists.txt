@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 
 message("* vm/fmgen")
-SET(THIS_LIB_VERSION 5.4.5)
+SET(THIS_LIB_VERSION 5.5.0)
 add_definitions(-D__LIBFMGEN_VERSION=\"libCSPfmgen.${THIS_LIB_VERSION}\")
 
 SET(s_vm_fmgen_srcs
@@ -41,7 +41,7 @@ else()
       add_library(CSPfmgen SHARED
                  ${s_vm_fmgen_srcs}
 		 )
-      set_target_properties(CSPfmgen PROPERTIES 
+      set_target_properties(CSPfmgen PROPERTIES
                         SOVERSION ${THIS_LIB_VERSION}
 			VERSION ${THIS_LIB_VERSION}
 			)

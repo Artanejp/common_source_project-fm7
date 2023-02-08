@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 7.8.0)
+set(THIS_LIB_VERSION 8.0.0)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h
@@ -12,13 +12,13 @@ set(s_qt_gui_headers
 	  gl3/qt_glutil_gl3_0.h
 	  gl4_5/qt_glutil_gl4_5.h
 	  gles2/qt_glutil_gles_2.h
-	  
+
 	  commonclasses.h
 	  sound_dialog.h
 	  mouse_dialog.h
 
 	  virtualfileslist.h
-	  
+
 	  mainwidget_base.h
 	  menu_metaclass.h
 	  menu_disk.h
@@ -43,19 +43,19 @@ set(s_qt_gui_headers
 	  dialog_set_key_combo.h
 	  dialog_movie.h
 	  dialog_memory.h
-	  
+
 	  display_log.h
-	  
+
 	  tab_movie_general.h
 	  tab_movie_h264.h
 	  tab_movie_mpeg4.h
 
 	  dock_disks.h
-	  
+
 	  draw_thread.h
 	  joy_thread.h
 	  emu_thread_tmpl.h
-	  
+
 	  qt_debugger_tmpl.h
 	  qt_lineeditplus.h
 )
@@ -77,7 +77,7 @@ set(s_qt_gui_srcs
 
 	  qt_dialogs.cpp
 	  qt_lineeditplus.cpp
-	  
+
 	  qt_input.cpp
 	  qt_drawitem.cpp
 	  menu_control.cpp
@@ -112,7 +112,7 @@ set(s_qt_gui_srcs
 	  sound_dialog.cpp
 	  mouse_dialog.cpp
 	  dialog_memory.cpp
-	  
+
 	  dropdown_keyset.cpp
 	  dropdown_joystick.cpp
 	  dropdown_jsbutton.cpp
@@ -120,18 +120,18 @@ set(s_qt_gui_srcs
 
 	  dropdown_joykey.cpp
 	  dropdown_joykeybutton.cpp
-	  
+
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
 	  dialog_movie.cpp
 	  display_log.cpp
-	  
+
 	  tab_movie_general.cpp
 	  tab_movie_h264.cpp
 	  tab_movie_mpeg4.cpp
 
 	  dock_disks.cpp
-	  
+
 	  draw_thread.cpp
 	  joy_thread.cpp
 	  emu_thread_tmpl.cpp
@@ -140,7 +140,7 @@ set(s_qt_gui_srcs
 	  qt_debugger_tmpl.cpp
 
 	  menu_flags_tmpl.cpp
-	  
+
 	  ../common/util_fd2.cpp
 	  ../common/util_hdd2.cpp
 #	  ../common/util_bubble2.cpp
@@ -172,9 +172,9 @@ if(WIN32)
 	${s_qt_gui_headers_MOC}
 	${s_qt_gui_RCC}
 	)
-  
+
   if(CHECK_QT_6)
-	target_link_libraries(CSPgui 
+	target_link_libraries(CSPgui
 	  PRIVATE 	  CSPosd
 	  CSPavio
 	  CSPemu_utils
@@ -186,7 +186,7 @@ if(WIN32)
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
   else()
-	target_link_libraries(CSPgui 
+	target_link_libraries(CSPgui
 	  PRIVATE 	  CSPosd
 	  CSPavio
 	  CSPemu_utils
@@ -230,7 +230,7 @@ else()
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  else()	
+  else()
 	target_link_libraries(CSPgui PUBLIC
 	  Qt5::Core
 	  Qt5::Gui
@@ -241,7 +241,7 @@ else()
 	  )
   endif()
 
-  set_target_properties(CSPgui PROPERTIES 
+  set_target_properties(CSPgui PROPERTIES
 	SOVERSION ${THIS_LIB_VERSION}
 	VERSION ${THIS_LIB_VERSION}
 	)

@@ -1,11 +1,11 @@
 message("* qt/emuutils")
 
-SET(THIS_LIB_VERSION 7.7.1)
+SET(THIS_LIB_VERSION 7.8.0)
 
 set(s_qt_emuutils_headers
 	../gui/csp_logger.h
 	)
-	
+
 set(s_qt_emuutils_srcs
   ../../common.cpp
   ../../config_dll.cpp
@@ -40,7 +40,7 @@ if(WIN32)
 	  ${SDL2_LIBRARIES}
 	  ${ADDITIONAL_DLL_LIBRARIES}
 	  )
-  endif()	  
+  endif()
   set_target_properties(CSPemu_utils PROPERTIES
 	SOVERSION ${THIS_LIB_VERSION}
 	VERSION ${THIS_LIB_VERSION}
@@ -58,7 +58,7 @@ else()
 	${s_qt_emuutils_srcs}
 	${s_qt_emuutils_headers_MOC}
 	)
-  set_target_properties(CSPemu_utils PROPERTIES 
+  set_target_properties(CSPemu_utils PROPERTIES
 	SOVERSION ${THIS_LIB_VERSION}
 	VERSION ${THIS_LIB_VERSION}
 	)
