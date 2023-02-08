@@ -820,19 +820,10 @@ public slots:
 	void do_change_boot_mode();
 	void do_change_cpu_type();
 
-	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
-	void set_wave_shaper(int drive, bool f);
-	void set_direct_load_from_mzt(int drive, bool f);
 	void do_open_write_cmt(int drive, QString);
 	void do_open_read_cmt(int drive, QString path);
 
-	void do_push_play_tape(int drive);
-	void do_push_stop_tape(int drive);
-	void do_push_fast_forward_tape(int drive);
-	void do_push_rewind_tape(int drive);
-	void do_push_apss_forward_tape(int drive);
-	void do_push_apss_rewind_tape(int drive);
 	void set_cmt_sound(bool);
 
 	int do_emu_write_protect_floppy_disk(int drv, bool flag);
@@ -905,9 +896,12 @@ public slots:
 	void do_set_visible_virtual_media_right();
 
 	void do_update_floppy_history(int drive, QStringList lst);
-	void do_insert_floppy_history(int drive, QString path);
 	void do_ui_floppy_insert_history(int drv, QString fname, quint64 bank);
 	void do_ui_write_protect_floppy_disk(int drv, quint64 flag);
+
+	void do_ui_tape_play_insert_history(int drv, QString fname);
+	void do_ui_tape_record_insert_history(int drv, QString fname);
+	void do_ui_write_protect_tape(int drv, quint64 flag);
 
 	void do_set_emulate_cursor_as(void);
 	void do_set_logging_fdc(bool onoff);

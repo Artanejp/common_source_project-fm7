@@ -25,15 +25,15 @@ int Ui_MainWindowBase::do_emu_write_protect_floppy_disk(int drv, bool flag)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return -1;
-	
+
 	if((drv < 0) || (drv >= p->get_max_drive())) return -1;
-	
+
 	emit sig_write_protect_floppy_disk(drv, flag);
 	return 0;
 }
-  
 
-void Ui_MainWindowBase::eject_fd(int drv) 
+
+void Ui_MainWindowBase::eject_fd(int drv)
 {
 	emit sig_close_floppy_disk(drv);
 	menu_fds[drv]->do_clear_inner_media();
@@ -48,11 +48,11 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 		QString desc1 = "Floppy Disk";
 		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Floppy"), using_flags, this, drv, drv_base);
 		menu_fds[drv]->create_pulldown_menu();
-		
+
 		menu_fds[drv]->do_clear_inner_media();
 		menu_fds[drv]->do_add_media_extension(ext, desc1);
 
-	
+
 		SETUP_HISTORY(p_config->recent_floppy_disk_path[drv], listFDs[drv]);
 		menu_fds[drv]->do_update_histories(listFDs[drv]);
 		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
@@ -81,7 +81,7 @@ void Ui_MainWindowBase::retranslateFloppyMenu(int drv, int basedrv, QString spec
 	drive_name = QString::fromUtf8("[") + QString::number(basedrv) + QString::fromUtf8(":] ");
 	drive_name = drive_name + specName;
 	//drive_name += QString::number(basedrv);
-  
+
 	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
 	menu_fds[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 	menu_fds[drv]->retranslateUi();
@@ -99,14 +99,5 @@ void Ui_MainWindowBase::do_update_floppy_history(int drive, QStringList lst)
 	if((drive < 0) || (drive >= using_flags->get_max_drive())) return;
 	if(menu_fds[drive] != nullptr) {
 		menu_fds[drive]->do_update_histories(lst);
-	}
-}
-
-void Ui_MainWindowBase::do_insert_floppy_history(int drive, QString path)
-{
-	if((drive < 0) || (drive >= using_flags->get_max_drive())) {
-		if(menu_fds[drive] != nullptr) {
-			menu_fds[drive]->do_insert_history(path);
-		}
 	}
 }

@@ -29,8 +29,9 @@ class QMenuBar;
 class QAction;
 class QActionGroup;
 class QFileDialog;
-class CSP_DiskDialog;
 
+class CSP_DiskDialog;
+class EmuThreadClassBase;
 class USING_FLAGS;
 class Action_Control;
 
@@ -52,7 +53,7 @@ protected:
 	QWidget *p_wid;
 	QMenuBar *menu_root;
 	config_t *p_config;
-	
+
 	QMenu *menu_inner_media;
 	QMenu *menu_history;
 	QMenu *menu_write_protect;
@@ -61,7 +62,7 @@ protected:
 	QIcon icon_eject;
 	QIcon icon_write_protected;
 	QIcon icon_write_enabled;
-	
+
 	class Action_Control *action_insert;
 	class Action_Control *action_eject;
 	class Action_Control *action_recent;
@@ -74,21 +75,21 @@ protected:
 	QActionGroup *action_group_recent;
 	QActionGroup *action_group_inner_media;
 	QActionGroup *action_group_protect;
-	
+
 	QString object_desc;
-	
+
 	int media_drive;
 	int base_drive;
-	
+
 	bool use_write_protect;
 	bool use_d88_menus;
-	
+
 	bool write_protect;
-	
+
 	void create_pulldown_menu_sub(void);
 	void retranslate_pulldown_menu_sub(void);
 	void do_open_dialog_common(CSP_DiskDialog* dlg);
-  
+
 	QString window_title;
 	QString initial_dir;
 	QStringList ext_filter;
@@ -110,6 +111,8 @@ public:
 	bool getWriteProtect(void) {
 		return write_protect;
 	}
+	virtual void connect_via_emu_thread(EmuThreadClassBase *p);
+
 	//QAction *menuAction(void);
 public slots:
 	void do_set_write_protect(bool f);
@@ -122,7 +125,7 @@ public slots:
 	void do_write_protect_media(void);
 	void do_write_unprotect_media(void);
 	void do_add_media_extension(QString ext, QString description);
-	
+
 	void do_set_initialize_directory(const char *dir);
 	virtual void do_open_dialog(void);
 	void do_clear_inner_media(void);
@@ -135,7 +138,7 @@ public slots:
 	void do_set_window_title(QString s);
 	void do_close_window();
 	void do_finish(int i);
-	
+
 signals:
 	int sig_open_media(int, QString);
 	int sig_eject_media(int);

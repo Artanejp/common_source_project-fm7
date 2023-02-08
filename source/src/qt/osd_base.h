@@ -795,6 +795,7 @@ signals:
 	int sig_ui_tape_eject(int);
 	int sig_ui_tape_position(int, int);
 	int sig_ui_tape_message(int, QString);
+	int sig_ui_tape_write_protect(int, quint64);
 
 	int sig_ui_tape_push_play(int);
 	int sig_ui_tape_push_stop(int);

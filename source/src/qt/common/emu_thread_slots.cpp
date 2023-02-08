@@ -20,6 +20,8 @@
 #include "csp_logger.h"
 #include "../gui/menu_flags.h"
 #include "dock_disks.h"
+#include "menu_metaclass.h"
+
 // buttons
 #ifdef MAX_BUTTONS
 #define MAX_FONT_SIZE 32
@@ -508,7 +510,16 @@ void EmuThreadClassBase::do_write_protect_floppy_disk(int drv, bool flag)
 	}
 }
 
-void EmuThreadClassBase::do_close_floppy_disk(int drv)
+void EmuThreadClassBase::do_close_floppy_disk()
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_floppy_disk_internal(drv);
+}
+
+void EmuThreadClassBase::sub_close_floppy_disk_internal(int drv)
 {
 	//QMutexLocker _locker(&uiMutex);
 	std::shared_ptr<USING_FLAGS> p = using_flags;
@@ -556,7 +567,6 @@ void EmuThreadClassBase::do_select_floppy_disk_d88(int drive, int slot)
 	}
 }
 
-
 void EmuThreadClassBase::do_play_tape(int drv, QString name)
 {
 	if(p_emu == nullptr) return;
@@ -577,58 +587,120 @@ void EmuThreadClassBase::do_rec_tape(int drv, QString name)
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
 	}
 }
-
-void EmuThreadClassBase::do_close_tape(int drv)
+void EmuThreadClassBase::sub_close_tape_internal(int drv)
 {
 	if(using_flags->is_use_tape()) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_tape(drv);
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, QString::fromUtf8(""));
+		//emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, QString::fromUtf8(""));
 	}
 }
 
-void EmuThreadClassBase::do_cmt_push_play(int drv)
+void EmuThreadClassBase::do_close_tape()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_tape_internal(drv);
+}
+
+void EmuThreadClassBase::do_cmt_wave_shaper(bool stat)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
+	// ToDo: Need update config?
+	if(p_config != nullptr) {
+		p_config->wave_shaper[drv] = stat;
+	}
+}
+void EmuThreadClassBase::do_cmt_direct_load_from_mzt(bool stat)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
+	if(p_config != nullptr) {
+		p_config->direct_load_mzt[drv] = stat;
+	}
+}
+
+void EmuThreadClassBase::do_cmt_push_play()
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
 	if(using_flags->is_use_tape()) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_play(drv);
 	}
 }
 
-void EmuThreadClassBase::do_cmt_push_stop(int drv)
+void EmuThreadClassBase::do_cmt_push_stop()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
 	if(using_flags->is_use_tape()) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_stop(drv);
 	}
 }
 
-void EmuThreadClassBase::do_cmt_push_fast_forward(int drv)
+void EmuThreadClassBase::do_cmt_push_fast_forward()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
 	if(using_flags->is_use_tape()) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_fast_forward(drv);
 	}
 }
 
-void EmuThreadClassBase::do_cmt_push_fast_rewind(int drv)
+void EmuThreadClassBase::do_cmt_push_fast_rewind()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
 	if(using_flags->is_use_tape()) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_fast_rewind(drv);
 	}
 }
 
-void EmuThreadClassBase::do_cmt_push_apss_forward(int drv)
+void EmuThreadClassBase::do_cmt_push_apss_forward()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
 	if(using_flags->is_use_tape()) {
 		////QMutexLocker _locker(&uiMutex);
 		p_emu->push_apss_forward(drv);
 	}
 }
 
-void EmuThreadClassBase::do_cmt_push_apss_rewind(int drv)
+void EmuThreadClassBase::do_cmt_push_apss_rewind()
 {
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	// ToDo: limit drive.
 	if(using_flags->is_use_tape()) {
 		////QMutexLocker _locker(&uiMutex);
 		p_emu->push_apss_rewind(drv);

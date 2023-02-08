@@ -40,9 +40,12 @@
 #include "qt_gldraw.h"
 #include "../gui/gl2/qt_glutil_gl2_0.h"
 #include "csp_logger.h"
+
 #include "dock_disks.h"
 #include "menu_disk.h"
+#include "menu_cmt.h"
 #include "menu_bubble.h"
+
 #include "menu_flags_ext.h"
 #include "dialog_movie.h"
 #include "../avio/movie_saver.h"
@@ -187,16 +190,28 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
 #endif
 #if defined(USE_TAPE)
+	for(int ii = 0; ii < USE_TAPE; ii++) {
+		if(ii >= USE_TAPE_TMP) break;
+		Menu_CMTClass *mp = menu_CMT[ii];
+		if(mp != nullptr) {
+			mp->connect_via_emu_thread(hRunEmu);
+		}
+	}
 	connect(this, SIGNAL(sig_play_tape(int, QString)), hRunEmu, SLOT(do_play_tape(int, QString)));
 	connect(this, SIGNAL(sig_rec_tape(int, QString)),  hRunEmu, SLOT(do_rec_tape(int, QString)));
-	connect(this, SIGNAL(sig_close_tape(int)),   hRunEmu, SLOT(do_close_tape(int)));
+
+	connect(p_osd, SIGNAL(sig_ui_tape_play_insert_history(int, QString)),
+					 this, SLOT(do_ui_tape_play_insert_history(int, QString)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_tape_record_insert_history(int, QString)),
+					 this, SLOT(do_ui_tape_record_insert_history(int, QString)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_tape_write_protect(int, quint64)),
+			this, SLOT(do_ui_write_protect_tape(int, quint64)),
+			Qt::QueuedConnection);
+
 	//connect(hRunEmu, SIGNAL(sig_change_osd_cmt(QString)), this, SLOT(do_change_osd_cmt(QString)));
-	connect(this, SIGNAL(sig_cmt_push_play(int)), hRunEmu, SLOT(do_cmt_push_play(int)));
-	connect(this, SIGNAL(sig_cmt_push_stop(int)), hRunEmu, SLOT(do_cmt_push_stop(int)));
-	connect(this, SIGNAL(sig_cmt_push_fast_forward(int)), hRunEmu, SLOT(do_cmt_push_fast_forward(int)));
-	connect(this, SIGNAL(sig_cmt_push_fast_rewind(int)),  hRunEmu, SLOT(do_cmt_push_fast_rewind(int)));
-	connect(this, SIGNAL(sig_cmt_push_apss_forward(int)), hRunEmu, SLOT(do_cmt_push_apss_forward(int)));
-	connect(this, SIGNAL(sig_cmt_push_apss_rewind(int)),  hRunEmu, SLOT(do_cmt_push_apss_rewind(int)));
+
 #endif
 #if defined(USE_QUICK_DISK)
 	connect(this, SIGNAL(sig_write_protect_quickdisk(int, bool)), hRunEmu, SLOT(do_write_protect_quickdisk(int, bool)));

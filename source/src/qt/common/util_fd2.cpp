@@ -84,13 +84,13 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 
 void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 {
-	char path_shadow[PATH_MAX];
+	char path_shadow[_MAX_PATH];
 
 	if(fname.length() <= 0) return;
 	if(using_flags->get_max_drive() <= drv) return;
 	if(!(FILEIO::IsFileExisting(fname.toLocal8Bit().constData()))) return; // File not found.
 //	drv = drv & 7;
-	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), _MAX_PATH - 1);
 	emit sig_close_floppy_disk(drv);
 	emit sig_open_floppy_disk(drv, fname, 0);
 

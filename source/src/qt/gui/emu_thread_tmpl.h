@@ -230,6 +230,10 @@ protected:
 		QMutexLocker n(&keyMutex);
 		key_fifo->clear();
 	};
+	// Thread HOOK.
+	void sub_close_floppy_disk_internal(int drv);
+
+	void sub_close_tape_internal(int drv);
 
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
@@ -248,7 +252,6 @@ public:
 	bool is_floppy_disk_protected(int drive);
 	void set_floppy_disk_protected(int drive, bool flag);
 	QString get_d88_file_path(int drive);
-
 
 public slots:
 	void doExit(void);
@@ -281,7 +284,7 @@ public slots:
 	void moved_mouse(double x, double y, double globalx, double globaly);
 
 	void do_write_protect_floppy_disk(int drv, bool flag);
-	void do_close_floppy_disk(int);
+	void do_close_floppy_disk();
 	void do_open_floppy_disk(int, QString, int);
 
 	void do_close_hard_disk(int);
@@ -289,13 +292,16 @@ public slots:
 
 	void do_play_tape(int drv, QString name);
 	void do_rec_tape(int drv, QString name);
-	void do_close_tape(int drv);
-	void do_cmt_push_play(int drv);
-	void do_cmt_push_stop(int drv);
-	void do_cmt_push_fast_forward(int drv);
-	void do_cmt_push_fast_rewind(int drv);
-	void do_cmt_push_apss_forward(int drv);
-	void do_cmt_push_apss_rewind(int drv);
+	void do_close_tape();
+
+	void do_cmt_push_play();
+	void do_cmt_push_stop();
+	void do_cmt_push_fast_forward();
+	void do_cmt_push_fast_rewind();
+	void do_cmt_push_apss_forward();
+	void do_cmt_push_apss_rewind();
+	void do_cmt_direct_load_from_mzt(bool stat);
+	void do_cmt_wave_shaper(bool stat);
 
 	void do_write_protect_quickdisk(int drv, bool flag);
 	void do_close_quickdisk(int drv);
