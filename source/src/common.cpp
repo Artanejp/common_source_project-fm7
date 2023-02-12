@@ -282,10 +282,10 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 	std::string s;
 	memset(sstr, 0x00, sizeof(sstr));
 	memset(sval, 0x00, sizeof(sval));
-	snprintf(sval, 128, "%d", nDefault); 
+	snprintf(sval, 128, "%d", nDefault);
 	MyGetPrivateProfileString(lpAppName,lpKeyName, sval, sstr, 128, lpFileName);
 	s = sstr;
-	
+
 	if(s.empty()) {
 		i = nDefault;
 	} else {
@@ -438,12 +438,12 @@ __DECL_VECTORIZED_LOOP
 // With _bit_trans_table_scrn_t.
 void DLL_PREFIX ConvertByteToPackedPixelByColorTable2(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_scrn_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table)
 {
-	
+
     __DECL_ALIGNED(32) std::valarray<scrntype_t> tmpd(8);
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmpdd(8);
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> colors(8);
 	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
-	
+
 	for(int i = 0; i < bytes; i++) {
 		scrntype_t* vtp = (scrntype_t*)___assume_aligned(&(vt[src[i]]), sizeof(scrntype_vec8_t));
 __DECL_VECTORIZED_LOOP
@@ -451,7 +451,7 @@ __DECL_VECTORIZED_LOOP
 			tmpd[j] = vtp[j];
 		}
 		tmpdd = ~tmpd;
-		
+
 __DECL_VECTORIZED_LOOP
 		for(int j = 0; j < 8; j++) {
 			colors[j] = on_color_table[j];
@@ -480,13 +480,13 @@ __DECL_VECTORIZED_LOOP
 // -- 20181105 K.O
 void DLL_PREFIX ConvertByteToSparceUint16(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask)
 {
-	
+
     __DECL_ALIGNED(32) std::valarray<uint16_t> tmpd(8);
     __DECL_ALIGNED(16) std::valarray<uint16_t> __masks(8);
 	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
 
 	__masks = mask;
-	
+
 	for(int i = 0; i < bytes; i++) {
 	__DECL_VECTORIZED_LOOP
 		for(int j = 0; j < 8; j++) {
@@ -507,7 +507,7 @@ __DECL_VECTORIZED_LOOP
 // -- 20181105 K.O
 void DLL_PREFIX ConvertByteToSparceUint8(uint8_t *src, uint16_t* dst, int bytes, _bit_trans_table_t *tbl, uint16_t mask)
 {
-	
+
     __DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
     __DECL_ALIGNED(16) std::valarray<uint16_t> __masks(8);
 	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
@@ -532,14 +532,14 @@ __DECL_VECTORIZED_LOOP
 
 void DLL_PREFIX ConvertByteToPackedPixelByColorTable(uint8_t *src, scrntype_t* dst, int bytes, _bit_trans_table_t *tbl, scrntype_t *on_color_table, scrntype_t* off_color_table)
 {
-	
+
     __DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
     __DECL_ALIGNED(32) std::valarray<scrntype_t> tmpdd(8);
     __DECL_ALIGNED(16) std::valarray<bool> tmpdet(8);
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> on_tbl(8);	
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> off_tbl(8);	
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> on_tbl(8);
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> off_tbl(8);
 	uint16_vec8_t*  vt = (uint16_vec8_t*)___assume_aligned(&(tbl->plane_table[0]), sizeof(uint16_vec8_t));
-	
+
 	// Sorry, not aligned.
 
 	for(int i = 0; i < bytes; i++) {
@@ -548,7 +548,7 @@ __DECL_VECTORIZED_LOOP
 			tmpd[j] = vt[src[i]].w[j];
 		}
 		tmpdet = (tmpd == (uint16_t)0);
-		
+
 __DECL_VECTORIZED_LOOP
 		for(int j = 0; j < 8; j++) {
 			on_tbl[j] = on_color_table[j];
@@ -591,7 +591,7 @@ void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst,
 	__DECL_ALIGNED(16) std::valarray<uint32_t> offset(src->voffset, 4);
 	const uint32_t mask = src->addrmask;
 	const uint32_t offsetmask = src->addrmask2;
-	
+
 	__UNLIKELY_IF(src->palette == NULL) {
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 8; i++) {
@@ -605,7 +605,7 @@ __DECL_VECTORIZED_LOOP
 	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
 	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
 	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
-	
+
 	__DECL_ALIGNED(8) std::valarray<uint8_t> brg(4);
 	__DECL_ALIGNED(8) std::valarray<uint8_t> rmask((const uint8_t)0, 4);
 	__DECL_VECTORIZED_LOOP
@@ -618,9 +618,9 @@ __DECL_VECTORIZED_LOOP
 		_g,
 		_n
 	};
-	
+
 	const int shift = src->shift;
-	
+
 	x = src->begin_pos;
 	uint32_t n = x;
 	__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(RGBA_COLOR(31, 31, 31, 255), 8);
@@ -709,7 +709,7 @@ void DLL_PREFIX Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst
 	__DECL_ALIGNED(16) uint32_t beginaddr[4];
 	uint32_t mask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		offset[i] = src->voffset[i];
@@ -731,7 +731,7 @@ __DECL_VECTORIZED_LOOP
 	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
 	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
 	uint8_t *np = &(src->data[3][src->baseaddress[3]]);
-	
+
 	__DECL_ALIGNED(8) std::valarray<uint8_t> brgn(4);
 	__DECL_ALIGNED(8) std::valarray<uint8_t> rmask((const uint8_t)0, 4);
 	__DECL_VECTORIZED_LOOP
@@ -746,23 +746,23 @@ __DECL_VECTORIZED_LOOP
 	};
 	int shift = src->shift;
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8); 
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
 	x = src->begin_pos;
-	
+
 	uint32_t xn = x;
-	if(dst2 == NULL) {	
+	if(dst2 == NULL) {
 		for(uint32_t xx = 0; xx < src->render_width; xx++) {
 			brgn[_b] =  bp[(offset[0] + xn) & mask];
 			brgn[_r] =  rp[(offset[1] + xn) & mask];
 			brgn[_g] =  gp[(offset[2] + xn) & mask];
 			brgn[_n] =  gp[(offset[3] + xn) & mask];
 			brgn &= rmask;
-			
+
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vb(vpb[brgn[_b]].w, 8);
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vr(vpr[brgn[_r]].w, 8);
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vg(vpg[brgn[_g]].w, 8);
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vn(vpn[brgn[_n]].w, 8);
-			
+
 			tmpd = vb;
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
@@ -797,12 +797,12 @@ __DECL_VECTORIZED_LOOP
 			brgn[_g] =  gp[(offset[2] + xn) & mask];
 			brgn[_n] =  gp[(offset[3] + xn) & mask];
 			brgn &= rmask;
-			
+
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vb(vpb[brgn[_b]].w, 8);
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vr(vpr[brgn[_r]].w, 8);
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vg(vpg[brgn[_g]].w, 8);
 			__DECL_ALIGNED(16) std::valarray<uint16_t> vn(vpn[brgn[_n]].w, 8);
-			
+
 			tmpd = vb;
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
@@ -813,7 +813,7 @@ __DECL_VECTORIZED_LOOP
 				tmpd = tmpd << (uint16_t)(-shift);
 			}
 			xn = (xn + 1) & offsetmask;
-			
+
 	__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				tmp_dd[i] = palette[tmpd[i]];
@@ -851,7 +851,7 @@ void DLL_PREFIX Render2NColors_Line(_render_command_data_t *src, scrntype_t *dst
 //		if(src->data[i] == NULL) return;
 //	}
 	std::valarray<scrntype_t> palette(src->palette, 8);
-	
+
 	uint16_vec8_t* vp[16];
 	for(int i = 0; i < planes; i++) {
 		vp[i] = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[i], sizeof(uint16_vec8_t));
@@ -870,17 +870,17 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < planes; i++) {
 		pp[i] = &(src->data[i][src->baseaddress[i]]);
 	}
-	
+
 	int shift = src->shift;
 	__DECL_ALIGNED(16) std::valarray<bool> is_render(src->is_render, 16);
 	__DECL_ALIGNED(16) std::valarray<uint8_t> rmask((const uint8_t)0, 16);
 
 	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8); 
+	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
 	for(int i = 0; i < planes; i++) {
 		if(is_render[i]) rmask[i] = 0xff;
 	}
-	
+
 	x = src->begin_pos;
 	if(dst2 == NULL) {
 		uint32_t n = x;
@@ -893,7 +893,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			d &= rmask;
 			tmpd = 0;
-			
+
 			for(int i = 0; i < planes; i++) {
 				__DECL_ALIGNED(16) std::valarray<uint16_t> tmpr(vp[i][d[i]].w, 8);
 				tmpd |= tmpr;
@@ -934,7 +934,7 @@ __DECL_VECTORIZED_LOOP
 			}
 			d &= rmask;
 			tmpd = 0;
-			
+
 			for(int i = 0; i < planes; i++) {
 				__DECL_ALIGNED(16) std::valarray<uint16_t> tmpr(vp[i][d[i]].w, 8);
 				tmpd |= tmpr;
@@ -975,7 +975,7 @@ void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t 
 	__DECL_ALIGNED(32) uint8_t* srcp[8];
 	__DECL_ALIGNED(32) uint32_t offset[8] = {0};
 	uint16_vec8_t* bp[8] ;
-		
+
 
 	for(int i = 0; i < planes; i++) {
 		bp[i] = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[i]->plane_table[0]), sizeof(uint16_vec8_t));
@@ -984,7 +984,7 @@ void DLL_PREFIX Convert2NColorsToByte_Line(_render_command_data_t *src, uint8_t 
 	uint32_t addrmask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
 	int shift = src->shift;
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < planes; i++) {
 		offset[i] = src->voffset[i];
@@ -1015,7 +1015,7 @@ __DECL_VECTORIZED_LOOP
 			dst[i] = (uint8_t)(dat[i]);
 		}
 		dst += 8;
-		
+
 	}
 }
 
@@ -1027,7 +1027,7 @@ void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uin
 	uint8_t* srcp[8];
 	__DECL_ALIGNED(32) uint32_t offset[8] = {0};
 	uint16_vec8_t* bp[8] ;
-		
+
 
 	for(int i = 0; i < planes; i++) {
 		bp[i] = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[i]->plane_table[0]), sizeof(uint16_vec8_t));
@@ -1036,7 +1036,7 @@ void DLL_PREFIX Convert2NColorsToByte_LineZoom2(_render_command_data_t *src, uin
 	uint32_t addrmask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
 	int shift = src->shift;
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < planes; i++) {
 		offset[i] = src->voffset[i];
@@ -1087,11 +1087,11 @@ void DLL_PREFIX Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *
 	uint16_vec8_t* bpb = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[0]->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t* bpr = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[1]->plane_table[0]), sizeof(uint16_vec8_t));
 	uint16_vec8_t* bpg = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[2]->plane_table[0]), sizeof(uint16_vec8_t));
-	
+
 	uint32_t addrmask = src->addrmask;
 	uint32_t offsetmask = src->addrmask2;
 	int shift = src->shift;
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 3; i++) {
 		offset[i] = src->voffset[i];
@@ -1129,7 +1129,7 @@ __DECL_VECTORIZED_LOOP
 		dst += 8;
 	}
 }
-	
+
 
 #ifndef _MSC_VER
 struct to_upper {  // Refer from documentation of libstdc++, GCC5.
@@ -1163,7 +1163,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 {
 	static _TCHAR app_path[_MAX_PATH];
 	static bool initialized = false;
-	
+
 	if(!initialized) {
 #if defined(_WIN32) && !defined(_USE_QT)
 		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
@@ -1180,7 +1180,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 #endif
 		std::string csppath = cpp_homedir + "CommonSourceCodeProject" + delim ;
 		_my_mkdir(csppath);
-	   
+
 		std::string cpath = csppath + my_procname + delim;
 		_my_mkdir(cpath);
 		strncpy(app_path, cpath.c_str(), _MAX_PATH - 1);
@@ -1194,7 +1194,7 @@ const _TCHAR *DLL_PREFIX get_initial_current_path()
 {
 	static _TCHAR current_path[_MAX_PATH];
 	static bool initialized = false;
-	
+
 	if(!initialized) {
 #if defined(_WIN32) && !defined(_USE_QT)
 		GetCurrentDirectory(_MAX_PATH, current_path);
@@ -1224,7 +1224,7 @@ const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...)
 	_TCHAR file_name[_MAX_PATH];
 	//printf("%d %d\n", table_index, output_index);
 	va_list ap;
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
@@ -1236,7 +1236,7 @@ void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *f
 {
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
@@ -1250,11 +1250,11 @@ const _TCHAR *DLL_PREFIX create_absolute_path(const _TCHAR *format, ...)
 	unsigned int output_index = (table_index++) & 7;
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
-	
+
 	if(is_absolute_path(file_name)) {
 		my_tcscpy_s(file_path[output_index], _MAX_PATH, file_name);
 	} else {
@@ -1267,11 +1267,11 @@ void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR
 {
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
-	
+
 	if(is_absolute_path(file_name)) {
 		my_tcscpy_s(file_path, length, file_name);
 	} else {
@@ -1292,7 +1292,7 @@ bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
 const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension)
 {
 	cur_time_t cur_time;
-	
+
 	get_host_time(&cur_time);
 	return create_local_path(_T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), cur_time.year, cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second, extension);
 }
@@ -1308,7 +1308,7 @@ const _TCHAR *DLL_PREFIX create_date_file_name(const _TCHAR *extension)
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	cur_time_t cur_time;
-	
+
 	get_host_time(&cur_time);
 	my_stprintf_s(file_name[output_index], _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), cur_time.year, cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second, extension);
 	return (const _TCHAR *)file_name[output_index];
@@ -1330,12 +1330,12 @@ bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 	std::transform(s_ext.begin(), s_ext.end(), s_ext.begin(), to_upper());
 	if(s_fpath.length() < s_ext.length()) return false;
 	pos = s_fpath.rfind(s_ext.c_str(), s_fpath.length());
-	if((pos != (int)std::string::npos) && (pos >= ((int)s_fpath.length() - (int)s_ext.length()))) return true; 
+	if((pos != (int)std::string::npos) && (pos >= ((int)s_fpath.length() - (int)s_ext.length()))) return true;
 	return false;
 #else
 	size_t nam_len = _tcslen(file_path);
 	size_t ext_len = _tcslen(ext);
-	
+
 	return (nam_len >= ext_len && _tcsncicmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
 #endif
 }
@@ -1345,21 +1345,21 @@ const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_pat
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
-	
+
 	my_tcscpy_s(path[output_index], _MAX_PATH, file_path);
 #if defined(_WIN32) && defined(_MSC_VER)
 	PathRemoveExtension(path[output_index]);
 #elif defined(_USE_QT)
 	QString delim;
 	delim = QString::fromUtf8(".");
-	QString tmp_path = QString::fromUtf8(file_path);
+	QString tmp_path = QString::fromLocal8Bit(file_path);
 	int n = tmp_path.lastIndexOf(delim);
 	if(n > 0) {
 		tmp_path = tmp_path.left(n);
 	}
 	//printf("%s\n", tmp_path.toUtf8().constData());
 	memset(path[output_index], 0x00, sizeof(_TCHAR) * _MAX_PATH);
-	strncpy(path[output_index], tmp_path.toUtf8().constData(), _MAX_PATH - 1);
+	strncpy(path[output_index], tmp_path.toLocal8Bit().constData(), _MAX_PATH - 1);
 #else
 #endif
 	return (const _TCHAR *)path[output_index];
@@ -1375,12 +1375,12 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 		my_tcscpy_s(dst, dst_len, tmp);
 	}
 #elif defined(_USE_QT)
-	QString tmp_path = QString::fromUtf8(src);
+	QString tmp_path = QString::fromLocal8Bit(src);
 	QFileInfo info(tmp_path);
 	my_tcscpy_s(dst, dst_len, info.absoluteFilePath().toLocal8Bit().constData());
 #else
 	// write code for your environment
-	
+
 #endif
 }
 
@@ -1389,7 +1389,7 @@ const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
-	
+
 #ifdef _WIN32
 	_TCHAR *ptr;
 	GetFullPathName(file, _MAX_PATH, path[output_index], &ptr);
@@ -1403,7 +1403,7 @@ const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 #else
 	delim = QString::fromUtf8("/");
 #endif
-	QString tmp_path = QString::fromUtf8(file);
+	QString tmp_path = QString::fromLocal8Bit(file);
 	int n = tmp_path.lastIndexOf(delim);
 	if(n > 0) {
 		tmp_path = tmp_path.left(n);
@@ -1411,7 +1411,7 @@ const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 	}
 	//printf("%s\n", tmp_path.toUtf8().constData());
 	memset(path[output_index], 0x00, sizeof(_TCHAR) * _MAX_PATH);
-	strncpy(path[output_index], tmp_path.toUtf8().constData(), _MAX_PATH - 1);
+	strncpy(path[output_index], tmp_path.toLocal8Bit().constData(), _MAX_PATH - 1);
 #else
 	// write code for your environment
 #endif
@@ -1422,7 +1422,7 @@ const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
 {
 	// char to wchar_t
 	static wchar_t ws[4096];
-	
+
 #if defined(_WIN32) || defined(_USE_QT)
 	mbstowcs(ws, cs, strlen(cs));
 #else
@@ -1435,10 +1435,8 @@ const char *DLL_PREFIX wchar_to_char(const wchar_t *ws)
 {
 	// wchar_t to char
 	static char cs[4096];
-	
-#ifdef _WIN32
-	wcstombs(cs, ws, wcslen(ws));
-#elif defined(_USE_QT)
+
+#if defined(_WIN32) || defined(_USE_QT)
 	wcstombs(cs, ws, wcslen(ws));
 #else
 	// write code for your environment
@@ -1515,7 +1513,7 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 		// NA
 		0xff85, 0xff86, 0xff87, 0xff88, 0xff89,
 		// HA/BA/PA
-		0xff8a, 0xff8a, 0xff8a, 0xff8b, 0xff8b, 0xff8b, 0xff8c, 0xff8c, 0xff8c, 
+		0xff8a, 0xff8a, 0xff8a, 0xff8b, 0xff8b, 0xff8b, 0xff8c, 0xff8c, 0xff8c,
 		0xff8d, 0xff8d, 0xff8d, 0xff8e, 0xff8e, 0xff8e,
 		// MA
 		0xff8f, 0xff90, 0xff91, 0xff92, 0xff93,
@@ -1553,7 +1551,7 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 		// Nx
 		L_NORMAL,   L_NORMAL,  L_NORMAL,   L_NORMAL,   L_NORMAL,
 		// Hx
-		L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON, 
+		L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,  L_NORMAL,   L_DAKUON,  L_HANDAKUON,
 		// Mx
 		L_NORMAL,   L_NORMAL,  L_NORMAL,   L_NORMAL,   L_NORMAL,
 		// Yx
@@ -1564,7 +1562,7 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 		L_SMALL_WA, L_NORMAL, L_WI, L_WE, L_NORMAL, L_NORMAL, L_VU, L_XKA, L_XKE
 	};
 
-	uint32_t tmp = 0;	
+	uint32_t tmp = 0;
 	if((in < 0xFF5F) && (in > 0xFF00)) { // ALPHABET
 		out = in - 0xff00 + 0x20; // Zenkaku alphabet to Hankaku alphabet
 		buf[0] = out;
@@ -1590,10 +1588,10 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 		return 1;
 	} else if(in == 0x3001) {// Ten
 		buf[0] = 0xff64;
-		return 1; 
+		return 1;
 	} else if((in == 0x300c) || (in == 0x300d)){// KagiKakko
 		buf[0] = 0xff62 + (in - 0x300c);
-		return 1; 
+		return 1;
 	} else {
 		buf[0] = in;
 		return 1;
@@ -1648,7 +1646,7 @@ const _TCHAR *DLL_PREFIX  create_string(const _TCHAR* format, ...)
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	va_list ap;
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(buffer[output_index], 1024, format, ap);
 	va_end(ap);
@@ -1717,7 +1715,7 @@ uint32_t DLL_PREFIX  get_crc32(uint8_t data[], int size)
 	if(!_crc_initialized) {
 		init_crc32_table();
 	}
-	
+
 	uint32_t c = ~0;
 	for(int i = 0; i < size; i++) {
 		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
@@ -1842,7 +1840,7 @@ void DLL_PREFIX cur_time_t::update_day_of_week()
 bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	
+
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -1862,7 +1860,7 @@ const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
-	
+
 	if(first_symbol != NULL) {
 		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
 			if(symbol->addr == addr) {
@@ -1879,7 +1877,7 @@ const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHA
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
-	
+
 	if(first_symbol != NULL) {
 		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
 			if(symbol->addr == addr) {
@@ -1897,9 +1895,9 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 	static _TCHAR name[8][1024];
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
-	
+
 	my_stprintf_s(name[output_index], 1024, format, addr);
-	
+
 	if(first_symbol != NULL) {
 		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
 			if(symbol->addr == addr) {
@@ -1924,7 +1922,7 @@ bool DLL_PREFIX write_dummy_wav_header(void *__fio)
 	uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
 
 	if(!fio->IsOpened()) return false;
-	
+
 	memset(dummy, 0, sizeof(dummy));
 	fio->Fwrite(dummy, sizeof(dummy), 1);
 	return true;
@@ -1934,7 +1932,7 @@ bool DLL_PREFIX set_wav_header(wav_header_t *header, wav_chunk_t *first_chunk, u
 							   uint16_t bits, size_t file_length)
 {
 	uint32_t length = (uint32_t) file_length;
-	
+
 	if(header == NULL) return false;
 	if(first_chunk == NULL) return false;
 
@@ -1959,7 +1957,7 @@ bool DLL_PREFIX set_wav_header(wav_header_t *header, wav_chunk_t *first_chunk, u
 
 	memcpy(&(header->riff_chunk.id), "RIFF", 4);
 	header->riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
-	
+
 	memcpy(&(header->wave), "WAVE", 4);
 	memcpy(&(header->fmt_chunk.id), "fmt ", 4);
 	header->fmt_chunk.size = __fmt_chunk_size.get_4bytes_le_to();
@@ -1990,12 +1988,12 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 	FILEIO *fio = (FILEIO *)__fio;
 	if(!fio->IsOpened()) return false;
 
-	
+
 	int16_t *left_buffer = NULL;
 	int16_t *right_buffer = NULL;
 	size_t samples = 0;
 	uint32_t sample_rate = 0;
-	
+
 	wav_header_t header;
 	wav_chunk_t  chunk;
 
@@ -2032,7 +2030,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 			delete fio;
 			return false;
 		}
-		
+
 		samples = (size_t)(__chunk_size.d / __channels.u16);
 		int16_t data_l, data_r;
 		union {
@@ -2047,7 +2045,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 				uint8_t l, h, h2, h3;
 			} b;
 		} pair32;
-		
+
 		if(samples > 0) {
 			if(__sample_bits.u16 == 16) {
 				samples /= 2;
@@ -2093,7 +2091,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
 						data_l = pair16.s16;
-						
+
 						left_buffer[i] = data_l;
 						right_buffer[i] = data_l;
 					}
@@ -2102,7 +2100,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
 						data_l = pair16.s16;
-						
+
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
 						data_r = pair16.s16;
@@ -2119,7 +2117,7 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 						pair32.b.h2 = fio->FgetUint8();
 						pair32.b.h3 = fio->FgetUint8();
 						data_l = (int16_t)(pair32.s32 / 65536);
-						
+
 						left_buffer[i] = data_l;
 						right_buffer[i] = data_l;
 					}
@@ -2130,13 +2128,13 @@ bool DLL_PREFIX load_wav_to_stereo(void *__fio, int16_t **left_buf, int16_t **ri
 						pair32.b.h2 = fio->FgetUint8();
 						pair32.b.h3 = fio->FgetUint8();
 						data_l = (int16_t)(pair32.s32 / 65536);
-						
+
 						pair32.b.l = fio->FgetUint8();
 						pair32.b.h = fio->FgetUint8();
 						pair32.b.h2 = fio->FgetUint8();
 						pair32.b.h3 = fio->FgetUint8();
 						data_r = (int16_t)(pair32.s32 / 65536);
-						
+
 						left_buffer[i] = data_l;
 						right_buffer[i] = data_r;
 					}
@@ -2168,11 +2166,11 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 	FILEIO *fio = (FILEIO *)__fio;
 	if(!fio->IsOpened()) return false;
 
-	
+
 	int16_t *left_buffer = NULL;
 	size_t samples = 0;
 	uint32_t sample_rate = 0;
-	
+
 	wav_header_t header;
 	wav_chunk_t  chunk;
 
@@ -2209,7 +2207,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 			delete fio;
 			return false;
 		}
-		
+
 		samples = (size_t)(__chunk_size.d / __channels.u16);
 		int16_t data_l, data_r;
 		int32_t data32_l, data32_r;
@@ -2225,7 +2223,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 				uint8_t l, h, h2, h3;
 			} b;
 		} pair32;
-		
+
 		if(samples > 0) {
 			if(__sample_bits.u16 == 16) {
 				samples /= 2;
@@ -2263,7 +2261,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
 						data_l = pair16.s16;
-						
+
 						left_buffer[i] = data_l;
 					}
 				} else if(__channels.s16 == 2) {
@@ -2271,7 +2269,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
 						data_l = pair16.s16;
-						
+
 						pair16.b.l = fio->FgetUint8();
 						pair16.b.h = fio->FgetUint8();
 						data_r = pair16.s16;
@@ -2287,7 +2285,7 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 						pair32.b.h2 = fio->FgetUint8();
 						pair32.b.h3 = fio->FgetUint8();
 						data_l = (int16_t)(pair32.s32 / 65536);
-						
+
 						left_buffer[i] = data_l;
 					}
 				} else if(__channels.s16 == 2) {
@@ -2297,13 +2295,13 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 						pair32.b.h2 = fio->FgetUint8();
 						pair32.b.h3 = fio->FgetUint8();
 						data32_l = pair32.s32 / 65536;
-						
+
 						pair32.b.l = fio->FgetUint8();
 						pair32.b.h = fio->FgetUint8();
 						pair32.b.h2 = fio->FgetUint8();
 						pair32.b.h3 = fio->FgetUint8();
 						data32_r = pair32.s32 / 65536;
-						
+
 						left_buffer[i] = (int16_t)((data32_l + data32_r) / 2);
 					}
 				}
@@ -2336,7 +2334,7 @@ void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_fre
 	if(alpha >= 1.0f) alpha = 1.0f;
 	if(alpha <= 0.0f) alpha = 0.0f;
 	float ialpha = 1.0f - alpha;
-	
+
 	__DECL_ALIGNED(16) float tmp_v[samples * 2 + 4]; // 2ch stereo
 	__DECL_ALIGNED(16) float tmp_h[samples * 2 + 4];
 	for(int i = 0; i < (samples * 2); i ++) {
@@ -2358,7 +2356,7 @@ void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_fre
 		for(int i = 0; i < (samples * 2); i++) {
 			dst[i] = (int32_t)(tmp_v[i]);
 		}
-	}			
+	}
 }
 
 // From https://en.wikipedia.org/wiki/Low-pass_filter
@@ -2366,25 +2364,25 @@ void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq
 {
 	if(dst == NULL) return;
 	if(src == NULL) return;
-		
+
 	double ifreq = 1.0 / ((double)lpf_freq * (2.0 * M_PI));
 	double isample = 1.0 / (double)sample_freq;
 	float alpha = (float)(isample * quality / (ifreq + isample));
 	if(alpha >= 1.0f) alpha = 1.0f;
 	if(alpha <= 0.0f) alpha = 0.0f;
 	float ialpha = 1.0f - alpha;
-	
+
 	__DECL_ALIGNED(16) float tmp_v[samples * 2 + 4]; // 2ch stereo
 	__DECL_ALIGNED(16) float tmp_h[samples * 2 + 4];
-	
+
 	for(int i = 0; i < (samples * 2); i++) {
 		tmp_h[i] = (float)(src[i]);
 	}
 	tmp_v[0] = tmp_h[0];
 	tmp_v[1] = tmp_h[1];
 	for(int i = 2; i < (samples * 2); i += 2) {
-		tmp_v[i + 0] = tmp_h[i + 0] + alpha * tmp_v[i - 2 + 0] * ialpha; 
-		tmp_v[i + 1] = tmp_h[i + 1] + alpha * tmp_v[i - 2 + 1] * ialpha; 
+		tmp_v[i + 0] = tmp_h[i + 0] + alpha * tmp_v[i - 2 + 0] * ialpha;
+		tmp_v[i + 1] = tmp_h[i + 1] + alpha * tmp_v[i - 2 + 1] * ialpha;
 	}
 	if(is_add) {
 		for(int i = 0; i < (samples * 2); i++) {
@@ -2394,7 +2392,7 @@ void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq
 		for(int i = 0; i < (samples * 2); i++) {
 			dst[i] = (int32_t)(tmp_v[i]);
 		}
-	}			
+	}
 }
 
 
