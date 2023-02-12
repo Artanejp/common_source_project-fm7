@@ -27,19 +27,20 @@ public:
 	~Menu_FDClass();
 	void create_pulldown_menu_device_sub() override;
 	void connect_menu_device_sub(void) override;
+	void connect_via_emu_thread(EmuThreadClassBase *p) override;
 	void retranslate_pulldown_menu_device_sub(void) override;
 
 public slots:
 	void do_set_create_mask(quint8 type, bool flag);
-	
+
 	void do_open_dialog(void) override;
 	void do_open_dialog_create_fd();
 	void do_create_media(quint8 media_type, QString name);
-	
+
 	void do_set_disk_count_immediate(bool flag);
 	void do_set_ignore_crc_error(bool flag);
 	void do_set_correct_disk_timing(bool flag);
-	
+
 signals:
 	int sig_create_d88_media(int, quint8, QString);
 };

@@ -252,6 +252,7 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 
 	dlg->setModal(false);
 
+	// ToDo: Be more sotisficated .
 	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString)));
 	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
 	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);

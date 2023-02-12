@@ -232,7 +232,7 @@ protected:
 	};
 	// Thread HOOK.
 	void sub_close_floppy_disk_internal(int drv);
-
+	void sub_close_hard_disk_internal(int drv);
 	void sub_close_tape_internal(int drv);
 
 public:
@@ -285,9 +285,10 @@ public slots:
 
 	void do_write_protect_floppy_disk(int drv, bool flag);
 	void do_close_floppy_disk();
-	void do_open_floppy_disk(int, QString, int);
+	void do_open_floppy_disk(int drive, QString fname, int slot);
+	void do_close_floppy_disk_ui(int drive);
 
-	void do_close_hard_disk(int);
+	void do_close_hard_disk();
 	void do_open_hard_disk(int, QString);
 
 	void do_play_tape(int drv, QString name);
@@ -331,17 +332,11 @@ public slots:
 
 	void do_select_floppy_disk_d88(int drive, int slot);
 	// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI (menu_foo[bar]))
-	void done_open_tape(int drive, QString path);
-	void done_close_tape(int drive);
-
 	void done_open_quick_disk(int drive, QString path);
 	void done_close_quick_disk(int drive);
 
 	void done_open_compact_disc(int drive, QString path);
 	void done_close_compact_disc(int drive);
-
-	void done_open_hard_disk(int drive, QString path);
-	void done_close_hard_disk(int drive);
 
 	void done_open_cart(int drive, QString path);
 	void done_close_cart(int drive);

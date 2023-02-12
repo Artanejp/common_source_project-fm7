@@ -12,6 +12,7 @@
 #include "mainwidget_base.h"
 #include "qt_dialogs.h"
 #include "csp_logger.h"
+#include "dock_disks.h"
 
 #include "menu_cmt.h"
 #include "menu_flags.h"
@@ -131,7 +132,7 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 
 	if(menu_CMT[drive] == nullptr) return;
 	_TCHAR path_shadow[_MAX_PATH] = {0};
-	my_tcscpy_s(path_shadow, _MAX_PATH - 1, path.toLocal8Bit().constData());
+	my_strncpy_s(path_shadow, 1, path.toLocal8Bit().constData(), _MAX_PATH - 1);
 
 	emit sig_close_tape(drive);
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;
@@ -163,10 +164,18 @@ void Ui_MainWindowBase::do_ui_tape_play_insert_history(int drv, QString fname)
 		menu_CMT[drv]->do_set_initialize_directory(p_config->initial_tape_dir);
 		menu_CMT[drv]->do_update_histories(listCMT[drv]);
 	}
+	// ToDO: Replace signal model.
+	if(driveData != nullptr) {
+		driveData->updateMediaFileName(CSP_DockDisks_Domain_CMT, drv, fname);
+	}
 }
 void Ui_MainWindowBase::do_ui_tape_record_insert_history(int drv, QString fname)
 {
 	do_ui_tape_play_insert_history(drv, fname);
+	// ToDO: Replace signal model.
+	if(driveData != nullptr) {
+		driveData->updateMediaFileName(CSP_DockDisks_Domain_CMT, drv, fname);
+	}
 }
 
 void Ui_MainWindowBase::do_ui_write_protect_tape(int drive, quint64 flag)
@@ -176,7 +185,7 @@ void Ui_MainWindowBase::do_ui_write_protect_tape(int drive, quint64 flag)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_tape()) || (p->get_max_tape() <= drive)) return;
-	if(menu_CMT[drive] != nullptr) return;
+	if(menu_CMT[drive] == nullptr) return;
 
 	if((flag & EMU_MESSAGE_TYPE::WRITE_PROTECT) != 0) {
 		menu_CMT[drive]->do_set_write_protect(true);
@@ -185,6 +194,19 @@ void Ui_MainWindowBase::do_ui_write_protect_tape(int drive, quint64 flag)
 	}
 }
 
+void Ui_MainWindowBase::do_ui_eject_tape(int drive)
+{
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_tape()) || (p->get_max_tape() <= drive)) return;
+	if(menu_CMT[drive] != nullptr) return;
+
+	menu_CMT[drive]->do_clear_inner_media();
+	// ToDO: Replace signal model.
+	if(driveData != nullptr) {
+		driveData->updateMediaFileName(CSP_DockDisks_Domain_CMT, drive, QString::fromUtf8(""));
+	}
+}
 void Ui_MainWindowBase::retranslateCMTMenu(int drive)
 {
 	if(using_flags->is_use_tape() && (using_flags->get_max_tape() > drive)) {

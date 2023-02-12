@@ -44,6 +44,7 @@
 #include "dock_disks.h"
 #include "menu_disk.h"
 #include "menu_cmt.h"
+#include "menu_harddisk.h"
 #include "menu_bubble.h"
 
 #include "menu_flags_ext.h"
@@ -160,20 +161,32 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		}
 	}
 #if defined(USE_FLOPPY_DISK)
-	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)), hRunEmu, SLOT(do_write_protect_floppy_disk(int, bool)));
-	connect(this, SIGNAL(sig_open_floppy_disk(int, QString, int)), hRunEmu, SLOT(do_open_floppy_disk(int, QString, int)));
-	connect(this, SIGNAL(sig_close_floppy_disk(int)), hRunEmu, SLOT(do_close_floppy_disk(int)));
+	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)),
+			hRunEmu, SLOT(do_write_protect_floppy_disk(int, bool)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_open_floppy_disk(int, QString, int)),
+			hRunEmu, SLOT(do_open_floppy_disk(int, QString, int)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_close_floppy_disk_ui(int)),
+			hRunEmu, SLOT(do_close_floppy_disk_ui(int)),
+		Qt::QueuedConnection);
 	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
+
+	// ToDo: eject from EMU_THREAD:: .
 	connect(p_osd, SIGNAL(sig_ui_floppy_insert_history(int, QString, quint64)),
 					 this, SLOT(do_ui_floppy_insert_history(int, QString, quint64)),
 					 Qt::QueuedConnection);
 	connect(p_osd, SIGNAL(sig_ui_floppy_write_protect(int, quint64)),
 			this, SLOT(do_ui_write_protect_floppy_disk(int, quint64)),
 			Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_floppy_close(int)),
+			this, SLOT(do_ui_eject_floppy_disk(int)),
+			Qt::QueuedConnection);
 
 	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
 		if(menu_fds[ii] != nullptr) {
+			menu_fds[ii]->connect_via_emu_thread(hRunEmu);
 			connect(menu_fds[ii], SIGNAL(sig_set_inner_slot(int, int)),
 					hRunEmu, SLOT(do_select_floppy_disk_d88(int, int)),
 					Qt::QueuedConnection);
@@ -181,10 +194,31 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	}
 #endif
 #if defined(USE_HARD_DISK)
-	connect(this, SIGNAL(sig_open_hard_disk(int, QString)), hRunEmu, SLOT(do_open_hard_disk(int, QString)));
-	connect(this, SIGNAL(sig_close_hard_disk(int)), hRunEmu, SLOT(do_close_hard_disk(int)));
-	connect(hRunEmu, SIGNAL(sig_update_recent_hard_disk(int)), this, SLOT(do_update_recent_hard_disk(int)));
-	//connect(hRunEmu, SIGNAL(sig_change_osd_fd(int, QString)), this, SLOT(do_change_osd_fd(int, QString)));
+	for(int ii = 0; ii < USE_HARD_DISK; ii++) {
+		if(ii >= USE_HARD_DISK_TMP) break;
+		Menu_HDDClass *mp = menu_hdds[ii];
+		if(mp != nullptr) {
+			mp->connect_via_emu_thread(hRunEmu);
+		}
+	}
+	connect(this, SIGNAL(sig_open_hard_disk(int, QString)),
+			hRunEmu, SLOT(do_open_hard_disk(int, QString)),
+			Qt::QueuedConnection);
+//	connect(this, SIGNAL(sig_close_hard_disk(int)),
+//			hRunEmu, SLOT(do_close_hard_disk(int)),
+//			Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_hard_disk_insert_history(int, QString)),
+					 this, SLOT(do_ui_hard_disk_insert_history(int, QString)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_hard_disk_close(int)),
+			this, SLOT(do_ui_eject_hard_disk(int)),
+			Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_hard_disk_close(int)),
+					 this, SLOT(do_ui_eject_hard_disk(int)),
+					 Qt::QueuedConnection);
+
 #endif
 #if defined(USE_TAPE)
 	for(int ii = 0; ii < USE_TAPE; ii++) {
@@ -206,9 +240,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(p_osd, SIGNAL(sig_ui_tape_write_protect(int, quint64)),
 			this, SLOT(do_ui_write_protect_tape(int, quint64)),
 			Qt::QueuedConnection);
-
-	//connect(hRunEmu, SIGNAL(sig_change_osd_cmt(QString)), this, SLOT(do_change_osd_cmt(QString)));
-
+	connect(p_osd, SIGNAL(sig_ui_tape_eject(int)),
+			this, SLOT(do_ui_eject_tape(int)),
+			Qt::QueuedConnection);
 #endif
 #if defined(USE_QUICK_DISK)
 	connect(this, SIGNAL(sig_write_protect_quickdisk(int, bool)), hRunEmu, SLOT(do_write_protect_quickdisk(int, bool)));

@@ -10,9 +10,8 @@
 #include "mainwidget_base.h"
 #include "menu_disk.h"
 
+#include "emu_thread_tmpl.h"
 #include "qt_dialogs.h"
-//#include "emu.h"
-
 
 Menu_FDClass::Menu_FDClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
@@ -59,8 +58,8 @@ void Menu_FDClass::do_open_dialog()
 void Menu_FDClass::do_open_dialog_create_fd()
 {
 	CSP_CreateDiskDialog dlg(type_mask);
-	
-	if(initial_dir.isEmpty()) { 
+
+	if(initial_dir.isEmpty()) {
 		QDir dir;
 		char app[PATH_MAX];
 		initial_dir = dir.currentPath();
@@ -93,7 +92,7 @@ void Menu_FDClass::do_open_dialog_create_fd()
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
 	dlg.dlg->setWindowTitle(tmps);
-	
+
 	QObject::connect(&dlg, SIGNAL(sig_create_disk(quint8, QString)), this, SLOT(do_create_media(quint8, QString)));
 	QObject::connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
 
@@ -113,7 +112,7 @@ void Menu_FDClass::do_set_correct_disk_timing(bool flag)
 	if(cp == nullptr) return;
 	int drive = cp->data().value<int>();
 	if(p_config == nullptr) return;
-	
+
 	p_config->correct_disk_timing[drive] = flag;
 	emit sig_emu_update_config();
 }
@@ -124,7 +123,7 @@ void Menu_FDClass::do_set_disk_count_immediate(bool flag)
 	if(cp == nullptr) return;
 	int drive = cp->data().value<int>();
 	if(p_config == nullptr) return;
-	
+
 	p_config->disk_count_immediate[drive] = flag;
 	emit sig_emu_update_config();
 }
@@ -134,7 +133,7 @@ void Menu_FDClass::do_set_ignore_crc_error(bool flag)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int drive = cp->data().value<int>();
-	
+
 	if(p_config == nullptr) return;
 	p_config->ignore_disk_crc[drive] = flag;
 	emit sig_emu_update_config();
@@ -144,7 +143,7 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 {
 	config_t *p;
 	struct CSP_Ui_Menu::DriveIndexPair tmp;
-	
+
 	action_ignore_crc_error = new Action_Control(p_wid, using_flags);
 	action_ignore_crc_error->setVisible(true);
 	action_ignore_crc_error->setCheckable(true);
@@ -153,8 +152,8 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	QVariant _tmp_ic;
 	_tmp_ic.setValue(tmp);
 	action_ignore_crc_error->setData(_tmp_ic);
-	
-	
+
+
 	action_correct_timing = new Action_Control(p_wid, using_flags);
 	action_correct_timing->setVisible(true);
 	action_correct_timing->setCheckable(true);
@@ -168,7 +167,7 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	QVariant _tmp_ci;
 	_tmp_ci.setValue(tmp);
 	action_count_immediate->setData(_tmp_ci);
-	
+
 	action_create_fd = new Action_Control(p_wid, using_flags);
 	action_create_fd->setVisible(true);
 	action_create_fd->setCheckable(false);
@@ -178,7 +177,7 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 		if(p->correct_disk_timing[media_drive]) action_correct_timing->setChecked(true);
 		if(p->ignore_disk_crc[media_drive]) action_ignore_crc_error->setChecked(true);
 		if(p->disk_count_immediate[media_drive]) action_count_immediate->setChecked(true);
-	}		
+	}
 }
 
 
@@ -190,13 +189,13 @@ void Menu_FDClass::connect_menu_device_sub(void)
 	this->addAction(action_ignore_crc_error);
 	this->addAction(action_correct_timing);
 	this->addAction(action_count_immediate);
-	
+
 	connect(action_ignore_crc_error, SIGNAL(toggled(bool)),
 			this, SLOT(do_set_ignore_crc_error(bool)));
-	
+
 	connect(action_correct_timing, SIGNAL(toggled(bool)),
 			this, SLOT(do_set_correct_disk_timing(bool)));
-	
+
 	connect(action_count_immediate, SIGNAL(toggled(bool)),
 			this, SLOT(do_set_disk_count_immediate(bool)));
 
@@ -206,28 +205,32 @@ void Menu_FDClass::connect_menu_device_sub(void)
    	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
 
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
-	
-	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_emu_write_protect_floppy_disk(int, bool)));	
+
+	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_emu_write_protect_floppy_disk(int, bool)));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_disk(int, int)));
 }
+
+void Menu_FDClass::connect_via_emu_thread(EmuThreadClassBase *p)
+{
+	if(p == nullptr) return;
+	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_close_floppy_disk()), Qt::QueuedConnection);
+}
+
 
 void Menu_FDClass::retranslate_pulldown_menu_device_sub(void)
 {
 	action_insert->setIcon(icon_floppy);
 	action_insert->setToolTip(QApplication::translate("MenuMedia", "Insert virtual floppy disk file.", 0));
 	action_eject->setToolTip(QApplication::translate("MenuMedia", "Eject virtual floppy disk.", 0));
-	
+
 	action_ignore_crc_error->setText(QApplication::translate("MenuMedia", "Ignore CRC error", 0));
 	action_ignore_crc_error->setToolTip(QApplication::translate("MenuMedia", "Ignore CRC error of virtual floppy.\nUseful for some softwares,\n but causes wrong working with some softwares.", 0));
 	action_correct_timing->setText(QApplication::translate("MenuMedia", "Correct transfer timing", 0));
 	action_correct_timing->setToolTip(QApplication::translate("MenuMedia", "Correct transferring timing.\nUseful for some softwares\n needs strict transfer timing.", 0));
-	
+
 	action_create_fd->setText(QApplication::translate("MenuMedia", "Create Virtual Floppy", 0));
 	action_create_fd->setToolTip(QApplication::translate("MenuMedia", "Create and mount virtual blank-floppy disk.\nThis makes only D88/D77 format.", 0));
 
 	action_count_immediate->setText(QApplication::translate("MenuMedia", "Immediate increment", 0));
 	action_count_immediate->setToolTip(QApplication::translate("MenuMedia", "Increment data pointer immediately.\nThis is test hack for MB8877.\nUseful for some softwares\n needs strict transfer timing.", 0));
 }
-
-
-

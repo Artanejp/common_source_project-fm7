@@ -846,7 +846,6 @@ public slots:
 	int set_recent_disk(int, int);
 
 	void _open_hard_disk(int drv, const QString fname);
-	void do_update_recent_hard_disk(int);
 	int set_recent_hard_disk(int, int);
 
 	void start_record_sound(bool rec);
@@ -897,10 +896,15 @@ public slots:
 
 	void do_update_floppy_history(int drive, QStringList lst);
 	void do_ui_floppy_insert_history(int drv, QString fname, quint64 bank);
+	void do_ui_eject_floppy_disk(int drv);
 	void do_ui_write_protect_floppy_disk(int drv, quint64 flag);
+
+	void do_ui_eject_hard_disk(int drv);
+	void do_ui_hard_disk_insert_history(int drv, QString fname);
 
 	void do_ui_tape_play_insert_history(int drv, QString fname);
 	void do_ui_tape_record_insert_history(int drv, QString fname);
+	void do_ui_eject_tape(int drive);
 	void do_ui_write_protect_tape(int drv, quint64 flag);
 
 	void do_set_emulate_cursor_as(void);
@@ -969,7 +973,7 @@ signals:
 
 	int sig_write_protect_floppy_disk(int drv, bool flag);
 	int sig_open_floppy_disk(int, QString, int);
-	int sig_close_floppy_disk(int);
+	int sig_close_floppy_disk_ui(int);
 	int sig_open_hard_disk(int, QString);
 	int sig_close_hard_disk(int);
 	int sig_play_tape(int ,QString);
