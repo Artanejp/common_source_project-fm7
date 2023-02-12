@@ -62,9 +62,6 @@ class META_MainWindow *rMainWindow;
 
 
 // buttons
-#ifdef MAX_BUTTONS
-#define MAX_FONT_SIZE 32
-#endif
 
 // menu
 extern DLL_PREFIX_I std::string cpp_homedir;

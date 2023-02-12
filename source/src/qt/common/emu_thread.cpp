@@ -25,9 +25,6 @@
 #include "../../fileio.h"
 
 // buttons
-#ifdef MAX_BUTTONS
-#define MAX_FONT_SIZE 32
-#endif
 #define MAX_SKIP_FRAMES 10
 
 extern EMU *emu;
