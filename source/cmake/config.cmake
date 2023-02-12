@@ -16,7 +16,7 @@ if(HAS_STD_CXX20)
 	set(CSP_BUILD_WITH_CXX20 OFF CACHE BOOL "Build with C++20 specification compilers.This is a very experimental feature.If not set, will build with C++11 specification.")
 else()
 	set(CSP_BUILD_WITH_CXX20 OFF)
-endif()					 
+endif()
 # Note: Belows are temporally disabled, not implemented older CMake.
 # Check HOST NAME
 #cmake_host_system_information(RESULT OSNAME QUERY OS_NAME)
@@ -25,7 +25,7 @@ endif()
 #message("* HOST: OSNAME=" ${OSNAME} " RELEASE=" ${OSVERSION} " ARCH=" ${OSARCH} " OSARCH=" ${CMAKE_LIBRARY_ARCHITECTURE})
 
 set(NEED_REPLACE_LIBDIR OFF)
-if((UNIX) AND (NOT DEFINED LIBCSP_INSTALL_DIR)) 
+if((UNIX) AND (NOT DEFINED LIBCSP_INSTALL_DIR))
 	# Modify LIBDIR if supports MULTI-ARCH.
 	# ToDo: Another OSs i.e)Fedora
 	if(EXISTS "/etc/lsb-release")
@@ -94,7 +94,7 @@ endif()
 
 if(NOT CHECK_QT_6)
 	FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Gui OpenGL Network Multimedia REQUIRED)
-endif()	
+endif()
 
 if(CHECK_QT_6)
 	set(WITH_QT_VERSION_MAJOR 6)
@@ -153,7 +153,7 @@ if(USE_OPENGL)
 endif()
 #set(IS_ENABLE_LTO FALSE)
 #if(CMAKE_VERSION VERSION_GREATER 3.8)
-#  if(USE_LTO) 
+#  if(USE_LTO)
 #	include(CheckIPOSupported)
 #  endif()
 #endif()
@@ -229,7 +229,7 @@ add_definitions(-D__BUILD_DATE=\"${__build_date}\")
 include(FindLibAV)
 if(LIBAV_FOUND)
 	add_definitions(-DUSE_LIBAV)
-	
+
 	if(USE_MOVIE_SAVER)
 		add_definitions(-DUSE_MOVIE_SAVER)
 	endif()
@@ -243,7 +243,7 @@ else()
 	set(USE_MOVIE_LOADER OFF)
 	set(LIBAV_LIBRARIES "")
 endif()
-    
+
 if(USE_SDL2)
    if(CMAKE_CROSSCOMPILING)
       include_directories(${SDL2_INCLUDE_DIRS})
@@ -273,11 +273,11 @@ if(ZLIB_FOUND)
 endif()
 
 # GCC Only?
-if(CMAKE_COMPILER_IS_GNUCC) 
+if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flax-vector-conversions")
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX) 
+if(CMAKE_COMPILER_IS_GNUCXX)
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -flax-vector-conversions")
 endif()
 
@@ -429,15 +429,16 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
   else()
 	QT5_ADD_RESOURCES(RESOURCE_${EXE_NAME} ${RESOURCE})
 	QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
-  endif()	
+  endif()
 	set(QT_COMMON_BASE
 		${COMMON_DIRECTORY}/main.cpp
 		${COMMON_DIRECTORY}/qt_utils.cpp
 		${COMMON_DIRECTORY}/menu_flags.cpp
 		${COMMON_DIRECTORY}/emu_thread.cpp
-#		${COMMON_DIRECTORY}/emu_thread_slots.cpp
+		${COMMON_DIRECTORY}/mainwidget.cpp
+
 		${COMMON_DIRECTORY}/util_bubble2.cpp
-		${COMMON_DIRECTORY}/util_main.cpp
+
 		${COMMON_DIRECTORY}/../osd.cpp
 		${COMMON_DIRECTORY}/../osd_wrapper.cpp
 	)
@@ -458,7 +459,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${QT_COMMON_BASE}
 	)
 	else()
-		add_executable(${EXE_NAME} 
+		add_executable(${EXE_NAME}
 			${PROJECT_SOURCE_DIR}/src/vm/event.cpp
 			${PROJECT_SOURCE_DIR}/src/emu.cpp
 			${QT_COMMON_BASE}
@@ -466,7 +467,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${RESOURCE_${EXE_NAME}}
 		)
     endif()
-	
+
 	if(CHECK_QT_6)
 	  set(QT_LIBRARIES ${QT_LIBRARIES}
 		Qt6::Widgets Qt6::Core Qt6::Gui Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Multimedia Qt6::Network Qt6::Core5Compat)
@@ -474,8 +475,8 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 	  set(QT_LIBRARIES ${QT_LIBRARIES}
 		Qt5::Widgets Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Multimedia Qt5::Network)
 	endif()
-  
-	target_include_directories(${EXE_NAME} 
+
+	target_include_directories(${EXE_NAME}
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/qt/machines/${VM_NAME}"
 		PRIVATE "${PROJECT_SOURCE_DIR}/src/vm/${VM_NAME}"
 	)
@@ -511,9 +512,9 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${QT_LIBRARIES}
 			${ZLIB_LIBRARIES}
 		)
-	else()		
+	else()
 		add_definitions(-D_UNICODE)
-		set(BUNDLE_LIBS 
+		set(BUNDLE_LIBS
 			${OPENMP_LIBRARY}
 			${SDL_LIBS}
 			${ADDITIONAL_LIBRARIES}
@@ -524,7 +525,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
        )
 	endif()
 	if(WIN32)
-	   set(LOCAL_LIBS     
+	   set(LOCAL_LIBS
            qt_${EXE_NAME}
 		   vm_${EXE_NAME}
 #		   vm_common_vm
@@ -533,7 +534,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		   common_${EXE_NAME}
 		   )
 	else()
-	   set(LOCAL_LIBS     
+	   set(LOCAL_LIBS
            qt_${EXE_NAME}
 		   vm_${EXE_NAME}
 		   ${VM_APPEND_LIBS}
@@ -627,17 +628,15 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 #			libpthread.a
 			-lpthread
 		)
-	else()	
+	else()
 		target_link_libraries(${EXE_NAME}
 			${LOCAL_LIBS}
 			${BUNDLE_LIBS}
 			-lpthread)
 	endif()
-	install(TARGETS ${EXE_NAME} 
+	install(TARGETS ${EXE_NAME}
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION "${CMAKE_LIBRARY_ARCHITECTURE}"
 		ARCHIVE DESTINATION "${CMAKE_LIBRARY_ARCHITECTURE}"
 	)
 endfunction()
-
-

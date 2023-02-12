@@ -11,16 +11,13 @@ endif()
 MAKE_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
 
 set(QT_COMMON_BASE
-#      main.cpp 
       qt_utils.cpp
 	  menu_flags.cpp
-	  
+
 	  emu_thread.cpp
-#	  emu_thread_slots.cpp
-##	  util_fd2.cpp
-#	  util_hdd2.cpp
+	  mainwidget.cpp
+
 	  util_bubble2.cpp
-	  util_main.cpp
 	  ../osd.cpp
 	  ../osd_wrapper.cpp
 )
@@ -68,4 +65,3 @@ else()
 endif()
 
 install(TARGETS ${EXEC_TARGET} DESTINATION bin)
-
