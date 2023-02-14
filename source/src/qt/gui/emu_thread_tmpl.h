@@ -234,6 +234,7 @@ protected:
 	void sub_close_floppy_disk_internal(int drv);
 	void sub_close_hard_disk_internal(int drv);
 	void sub_close_tape_internal(int drv);
+	void sub_close_laser_disc_internal(int drv);
 
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
@@ -311,8 +312,9 @@ public slots:
 	void do_close_cart(int drv);
 	void do_open_cart(int drv, QString path);
 
-	void do_close_laser_disc(int drv);
 	void do_open_laser_disc(int drv, QString path);
+	void do_close_laser_disc();
+	void do_close_laser_disc_ui(int drive);
 
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
@@ -331,6 +333,7 @@ public slots:
 
 
 	void do_select_floppy_disk_d88(int drive, int slot);
+
 	// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI (menu_foo[bar]))
 	void done_open_quick_disk(int drive, QString path);
 	void done_close_quick_disk(int drive);
@@ -340,9 +343,6 @@ public slots:
 
 	void done_open_cart(int drive, QString path);
 	void done_close_cart(int drive);
-
-	void done_open_laser_disc(int drive, QString path);
-	void done_close_laser_disc(int drive);
 
 	void done_open_binary(int drive, QString path);
 	void done_close_binary(int drive);
@@ -380,6 +380,7 @@ signals:
 	int sig_romakana_mode(bool);
 	int sig_set_access_lamp(int, bool);
 
+	// ToDo: Make deprecated.
 	int sig_open_binary_load(int, QString);
 	int sig_open_binary_save(int, QString);
 	int sig_open_cart(int, QString);
@@ -402,29 +403,14 @@ signals:
 	int sig_draw_one_turn(bool);
 
 // Signal from (EMU:: -> OSD:: ->) EMU_THREAD -> GUI(menu_foo[bar])
-	int sig_ui_update_floppy_list(int, QStringList);
-	int sig_ui_close_floppy_disk(int);
-	int sig_ui_clear_d88(int);
-	int sig_ui_update_d88(int, int, QString);
-	int sig_ui_select_d88(int, int);
-
-	int sig_ui_update_tape_list(int, QStringList);
-	int sig_ui_close_tape(int);
-
 	int sig_ui_update_quick_disk_list(int, QStringList);
 	int sig_ui_close_quick_disk(int);
 
 	int sig_ui_update_compact_disc_list(int, QStringList);
 	int sig_ui_close_compact_disc(int);
 
-	int sig_ui_update_hard_disk_list(int, QStringList);
-	int sig_ui_close_hard_disk(int);
-
 	int sig_ui_update_cart_list(int, QStringList);
 	int sig_ui_close_cart(int);
-
-	int sig_ui_update_laser_disc_list(int, QStringList);
-	int sig_ui_close_laser_disc(int);
 
 	int sig_ui_update_binary_list(int, QStringList);
 	int sig_ui_close_binary(int);

@@ -42,10 +42,17 @@
 #include "csp_logger.h"
 
 #include "dock_disks.h"
-#include "menu_disk.h"
-#include "menu_cmt.h"
-#include "menu_harddisk.h"
+
+#include "menu_binary.h"
 #include "menu_bubble.h"
+#include "menu_cart.h"
+#include "menu_cmt.h"
+#include "menu_compactdisc.h"
+#include "menu_disk.h"
+#include "menu_harddisk.h"
+#include "menu_laserdisc.h"
+#include "menu_quickdisk.h"
+
 
 #include "menu_flags_ext.h"
 #include "dialog_movie.h"
@@ -204,8 +211,8 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_open_hard_disk(int, QString)),
 			hRunEmu, SLOT(do_open_hard_disk(int, QString)),
 			Qt::QueuedConnection);
-//	connect(this, SIGNAL(sig_close_hard_disk(int)),
-//			hRunEmu, SLOT(do_close_hard_disk(int)),
+//	connect(this, SIGNAL(sig_close_hard_disk_ui(int)),
+//			hRunEmu, SLOT(do_close_hard_disk_ui(int)),
 //			Qt::QueuedConnection);
 
 	connect(p_osd, SIGNAL(sig_ui_hard_disk_insert_history(int, QString)),
@@ -214,10 +221,6 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(p_osd, SIGNAL(sig_ui_hard_disk_close(int)),
 			this, SLOT(do_ui_eject_hard_disk(int)),
 			Qt::QueuedConnection);
-
-	connect(p_osd, SIGNAL(sig_ui_hard_disk_close(int)),
-					 this, SLOT(do_ui_eject_hard_disk(int)),
-					 Qt::QueuedConnection);
 
 #endif
 #if defined(USE_TAPE)
@@ -261,8 +264,27 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	// ToDo: multiple CDs
 #endif
 #if defined(USE_LASER_DISC)
-	connect(this, SIGNAL(sig_open_laserdisc(int, QString)), hRunEmu, SLOT(do_open_laser_disc(int, QString)));
-	connect(this, SIGNAL(sig_close_laserdisc(int)), hRunEmu, SLOT(do_close_laser_disc(int)));
+	for(int ii = 0; ii < USE_LASER_DISC; ii++) {
+		if(ii >= USE_LASER_DISC_TMP) break;
+		Menu_LaserdiscClass *mp = menu_Laserdisc[ii];
+		if(mp != nullptr) {
+			mp->connect_via_emu_thread(hRunEmu);
+		}
+	}
+	connect(this, SIGNAL(sig_open_laserdisc(int, QString)),
+			hRunEmu, SLOT(do_open_laser_disc(int, QString)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_close_laserdisc_ui(int)),
+			hRunEmu, SLOT(do_close_laser_disc_ui(int)),
+			Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_laser_disc_insert_history(int, QString)),
+					 this, SLOT(do_ui_laser_disc_insert_history(int, QString)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_laser_disc_eject(int)),
+			this, SLOT(do_ui_eject_laser_disc(int)),
+			Qt::QueuedConnection);
+
 	// ToDo: multiple LDs
 #endif
 #if defined(USE_BINARY_FILE)

@@ -116,7 +116,6 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
-	if(!(using_flags->is_use_fd())) return;
 	if(!((p->get_max_drive() > drv) && (p->is_use_fd()))) return;
 
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
@@ -479,9 +478,25 @@ void EmuThreadClassBase::done_close_cart(int drive)
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drive, QString::fromUtf8(""));
 }
 
-void EmuThreadClassBase::do_close_laser_disc(int drv)
+void EmuThreadClassBase::do_close_laser_disc_ui(int drive)
 {
-	if(using_flags->is_use_laser_disc()) {
+	sub_close_laser_disc_internal(drive);
+}
+
+void EmuThreadClassBase::do_close_laser_disc()
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_laser_disc_internal(drv);
+}
+
+void EmuThreadClassBase::sub_close_laser_disc_internal(int drv)
+{
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if((p->is_use_laser_disc()) && (p->get_max_ld() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_laser_disc(drv);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, QString::fromUtf8(""));
@@ -490,39 +505,17 @@ void EmuThreadClassBase::do_close_laser_disc(int drv)
 
 void EmuThreadClassBase::do_open_laser_disc(int drv, QString path)
 {
-	if(using_flags->is_use_laser_disc()) {
-		//QMutexLocker _locker(&uiMutex);
-		p_emu->open_laser_disc(drv, path.toLocal8Bit().constData());
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drv, path);
-	}
-}
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_laser_disc(int drive, QString path)
-{
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+	if(path.isEmpty()) return;
+	if(path.isNull()) return;
 
-	if(!(using_flags->is_use_laser_disc())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_ld())) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!((p->get_max_ld() > drv) && (p->is_use_laser_disc()))) return;
 
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_laser_disc_path[drive], list);
+	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
+	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_laser_disc_dir, __dir, _MAX_PATH - 1);
-
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
-	emit sig_ui_update_laser_disc_list(drive, list);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drive, relpath);
-}
-void EmuThreadClassBase::done_close_laser_disc(int drive)
-{
-	emit sig_ui_close_laser_disc(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, drive, QString::fromUtf8(""));
+	p_emu->open_laser_disc(drv, file_path);
 }
 
 void EmuThreadClassBase::do_load_binary(int drv, QString path)

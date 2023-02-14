@@ -57,16 +57,16 @@ void Ui_MainWindowBase::do_ui_hard_disk_insert_history(int drv, QString fname)
 
 	my_strncpy_s(path_shadow, _MAX_PATH,
 				fname.toLocal8Bit().constData(),
-				_MAX_PATH - 1 );
+				_TRUNCATE);
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;
 
 	UPDATE_HISTORY(path_shadow, p_config->recent_hard_disk_path[drv], listHDDs[drv]);
 
 	memset(p_config->initial_hard_disk_dir, 0x00, sizeof(p_config->initial_hard_disk_dir));
 	my_strncpy_s(p_config->initial_hard_disk_dir,
-				(sizeof(p_config->initial_hard_disk_dir) - 1) / sizeof(_TCHAR),
+				sizeof(p_config->initial_hard_disk_dir) / sizeof(_TCHAR),
 				 get_parent_dir((const _TCHAR *)path_shadow),
-				(sizeof(p_config->initial_hard_disk_dir) - 1) / sizeof(_TCHAR));
+				 _TRUNCATE);
 
 	if(menu_hdds[drv] != nullptr) {
 		menu_hdds[drv]->do_set_initialize_directory(p_config->initial_hard_disk_dir);

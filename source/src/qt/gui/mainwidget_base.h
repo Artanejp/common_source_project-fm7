@@ -798,7 +798,11 @@ public slots:
 
 	int set_recent_laserdisc(int drv, int num);
 	void do_eject_laserdisc(int drv);
+	void do_ui_eject_laser_disc(int drv);
 	void do_open_laserdisc(int drv, QString path);
+	void do_update_laser_disc_history(int drive, QStringList lst);
+
+	void do_ui_laser_disc_insert_history(int drv, QString fname);
 
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
@@ -992,8 +996,11 @@ signals:
 	int sig_open_cart(int drv, QString path);
 	int sig_open_cdrom(int drv, QString path);
 	int sig_close_cdrom(int drv);
-	int sig_close_laserdisc(int drv);
+
+	int sig_close_laser_disc(int drv);
+	int sig_close_laserdisc_ui(int drv);
 	int sig_open_laserdisc(int drv, QString path);
+
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
 	int sig_write_protect_bubble(int, bool);

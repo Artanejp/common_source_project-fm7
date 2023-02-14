@@ -132,7 +132,7 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 
 	if(menu_CMT[drive] == nullptr) return;
 	_TCHAR path_shadow[_MAX_PATH] = {0};
-	my_strncpy_s(path_shadow, 1, path.toLocal8Bit().constData(), _MAX_PATH - 1);
+	my_strncpy_s(path_shadow, _MAX_PATH , path.toLocal8Bit().constData(), _TRUNCATE);
 
 	emit sig_close_tape(drive);
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;

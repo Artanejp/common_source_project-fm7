@@ -2,7 +2,7 @@
  * Qt / Tape Menu, Utilities
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
  * License : GPLv2
- *   History : 
+ *   History :
  *     Mar 20 2016 : Start
  */
 #include <QApplication>
@@ -12,8 +12,7 @@
 #include "menu_laserdisc.h"
 
 #include "qt_dialogs.h"
-//#include "emu.h"
-
+#include "emu_thread_tmpl.h"
 
 Menu_LaserdiscClass::Menu_LaserdiscClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
@@ -38,6 +37,11 @@ void Menu_LaserdiscClass::connect_menu_device_sub(void)
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_laserdisc(int, int)));
 }
 
+void Menu_LaserdiscClass::connect_via_emu_thread(EmuThreadClassBase *p)
+{
+	if(p == nullptr) return;
+	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_close_laser_disc()), Qt::QueuedConnection);
+}
 
 void Menu_LaserdiscClass::retranslate_pulldown_menu_device_sub(void)
 {
