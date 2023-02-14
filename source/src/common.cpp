@@ -89,32 +89,142 @@ void DLL_PREFIX common_initialize()
 
 errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
 {
-	_tcscat(strDestination, strSource);
+	__UNLIKELY_IF(strDestination == nullptr) return EINVAL;
+	__UNLIKELY_IF(numberOfElements < 1) {
+		return EINVAL;
+	}
+	__UNLIKELY_IF(numberOfElements == 1) {
+		strDestination[0] = '\0';
+		return ERANGE;
+	}
+	__UNLIKELY_IF(strSource == nullptr) {
+//		strDestination[0] = '\0'; // What?
+		return EINVAL;
+	}
+
+	std::string _src(strSource);
+	std::string _dst(strDestination);
+	_dst.append(_src);
+	// Sanitize string
+	memset(strDestination, 0x00, numberOfElements);
+	_dst.copy(strDestination, numberOfElements - 1);
+
 	return 0;
 }
 
 errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
 {
-	strcpy(strDestination, strSource);
+	__UNLIKELY_IF(strDestination == nullptr) return EINVAL;
+	__UNLIKELY_IF(numberOfElements < 1) {
+		return EINVAL;
+	}
+	__UNLIKELY_IF(numberOfElements == 1) {
+		strDestination[0] = '\0';
+		return ERANGE;
+	}
+	__UNLIKELY_IF(strSource == nullptr) {
+		strDestination[0] = '\0'; // What?
+		return EINVAL;
+	}
+	// Sanitize string
+	memset(strDestination, 0x00, numberOfElements);
+
+	size_t count = strlen(strSource);
+	__UNLIKELY_IF(count == 0) {
+		return ERANGE;
+	}
+	if(count >= numberOfElements) {
+		count = numberOfElements - 1;
+	}
+	strncpy(strDestination, strSource, count);
+
 	return 0;
 }
 
 errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
 {
-	_tcscpy(strDestination, strSource);
+	__UNLIKELY_IF(strDestination == nullptr) return EINVAL;
+	__UNLIKELY_IF(numberOfElements < 1) {
+		return EINVAL;
+	}
+	__UNLIKELY_IF(numberOfElements == 1) {
+		strDestination[0] = '\0';
+		return ERANGE;
+	}
+	__UNLIKELY_IF(strSource == nullptr) {
+		strDestination[0] = '\0'; // What?
+		return EINVAL;
+	}
+	// Sanitize string
+	memset(strDestination, 0x00, numberOfElements);
+	size_t count = strlen(strSource);
+	__UNLIKELY_IF(count == 0) {
+		return ERANGE;
+	}
+	__UNLIKELY_IF(count >= numberOfElements) {
+		count = numberOfElements - 1;
+	}
+	_tcsncpy(strDestination, strSource,  count);
 	return 0;
 }
 
 errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count)
 {
+	bool truncated = false;
+	__UNLIKELY_IF(strDestination == nullptr) return EINVAL;
+	__UNLIKELY_IF(numberOfElements < 1) {
+		return EINVAL;
+	}
+	__UNLIKELY_IF(numberOfElements == 1) {
+		strDestination[0] = '\0';
+		return ERANGE;
+	}
+	__UNLIKELY_IF(strSource == nullptr) {
+		strDestination[0] = '\0'; // What?
+		return EINVAL;
+	}
+
+	// Sanitize string
+	memset(strDestination, 0x00, numberOfElements);
+	__UNLIKELY_IF((numberOfElements <= count) || (count == _TRUNCATE)) {
+		count = numberOfElements - 1;
+		truncated = true;
+	}
+	__UNLIKELY_IF(count == 0) {
+		return ERANGE;
+	}
 	strncpy(strDestination, strSource, count);
-	return 0;
+	return (truncated) ? STRUNCATE : 0;
 }
 
 errno_t DLL_PREFIX my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count)
 {
+	bool truncated = false;
+	__UNLIKELY_IF(strDestination == nullptr) return EINVAL;
+	__UNLIKELY_IF(numberOfElements < 1) {
+		return EINVAL;
+	}
+	__UNLIKELY_IF(numberOfElements == 1) {
+		strDestination[0] = '\0';
+		return ERANGE;
+	}
+	__UNLIKELY_IF(strSource == nullptr) {
+		strDestination[0] = '\0'; // What?
+		return EINVAL;
+	}
+
+	// Sanitize string
+	memset(strDestination, 0x00, numberOfElements);
+	__UNLIKELY_IF((numberOfElements <= count) || (count == _TRUNCATE)) {
+		count = numberOfElements - 1;
+		truncated = true;
+	}
+	__UNLIKELY_IF(count == 0) {
+		return ERANGE;
+	}
 	_tcsncpy(strDestination, strSource, count);
-	return 0;
+
+	return (truncated) ? STRUNCATE : 0;
 }
 
 char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context)

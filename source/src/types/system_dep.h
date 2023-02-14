@@ -49,7 +49,7 @@
 	#endif
 #endif
 #ifdef __GNUC__
-	#if defined(Q_OS_CYGWIN) 
+	#if defined(Q_OS_CYGWIN)
 		#define CSP_OS_GCC_CYGWIN
 		#define CSP_OS_WINDOWS
 	#elif defined(Q_OS_WIN) || defined(__WIN32) || defined(__WIN64)
@@ -125,4 +125,13 @@
 	#include <cmath>
 	#define my_isfinite std::isfinite
 	#define my_log2 log2
+#endif
+
+// From stdlib.h, of WINE.
+#if !defined(_TRUNCATE)
+	#define _TRUNCATE ((size_t) - 1)
+#endif
+// From errno.h, of WINE.
+#if !defined(STRUNCATE)
+#  define STRUNCATE 80
 #endif
