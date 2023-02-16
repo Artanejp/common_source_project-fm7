@@ -821,6 +821,11 @@ signals:
 	int sig_ui_bubble_close(int);
 	int sig_ui_bubble_write_protect(int, quint64);
 
+	// To Logger.
+	int sig_debug_log(int, int, QString);
+	int sig_logger_reset();
+	int sig_logger_set_device_name(int, QString);
+	int sig_logger_set_cpu_name(int, QString);
 };
 
 QT_END_NAMESPACE

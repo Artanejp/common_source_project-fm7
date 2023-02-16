@@ -41,7 +41,7 @@ extern const int DLL_PREFIX screen_mode_height[];
 static inline void SETUP_HISTORY(void* recent, QStringList& list, const ssize_t width = MAX_HISTORY)
 {
 	if(recent == nullptr) return;
-	
+
 	list.clear();
 	const size_t length = _MAX_PATH;
 	_TCHAR* p = (_TCHAR *)recent;
@@ -56,9 +56,9 @@ static inline void WRITEBACK_TO_HISTORY(void* recent, QStringList list, const ss
 {
 	const size_t length = _MAX_PATH;
 	if(recent == nullptr) return;
-	
+
 	_TCHAR* p = (_TCHAR *)recent;
-	// Clear LIST 
+	// Clear LIST
 	for(int i = 0; i < width; i++) {
 		memset(p, 0x00, length);
 		p = &(p[length]);
@@ -87,7 +87,7 @@ static inline void UPDATE_HISTORY(QString path, void *recent, QStringList& list,
 	// Set temporally list
 	QStringList tmpl;
 	SETUP_HISTORY(recent, tmpl, width);
-	
+
 	if(!(path.isEmpty())) {
 		tmpl.push_front(path);
 	}
@@ -105,13 +105,14 @@ static inline void UPDATE_HISTORY(QString path, void *recent, QStringList& list,
 	WRITEBACK_TO_HISTORY(recent, tmpl2, width);
 	list = tmpl2;
 }
-	
+
 static inline void UPDATE_HISTORY(_TCHAR *path, void *recent, QStringList& list, const ssize_t width = MAX_HISTORY)
 {
-	
+
 	if(recent == nullptr) return;
 	if(path == nullptr) return;
 	QString _path = QString::fromLocal8Bit(path);
+	//QString _path = QString::fromUtf8(path);
 	UPDATE_HISTORY(_path, recent, list, width);
 }
 

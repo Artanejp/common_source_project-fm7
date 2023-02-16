@@ -42,7 +42,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	image_tmp_data_path.clear();
 
 	get_long_full_path_name(file_path, full_path_cue, sizeof(full_path_cue));
-	
+
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_cue);
 
 	size_t _arg1_ptr;
@@ -64,7 +64,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	cue_enum.insert(std::make_pair("INDEX", CUE_INDEX));
 	cue_enum.insert(std::make_pair("PREGAP", CUE_PREGAP));
 
-	
+
 	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
 		line_buf.clear();
 		for(int i = 0; i < 100; i++) {
@@ -75,7 +75,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		bool is_eof = false;
 		int sptr = 0;
 		bool have_filename = false;
-//		int _nr_num = 0;			
+//		int _nr_num = 0;
 		while(1) {
 			line_buf.clear();
 			int _np = 0;
@@ -95,7 +95,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			_arg1.clear();
 			_arg2.clear();
 			_arg3.clear();
-			
+
 			ptr = line_buf.find_first_not_of((const char*)" \t");
 			if(ptr == std::string::npos) {
 				goto _n_continue;
@@ -141,7 +141,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				if((nr_current_track > 0) && (nr_current_track < 100)) {
 					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
 					_arg2 = _arg2.substr(0, _arg2_ptr_s - 1);
-					
+
 					toc_table[nr_current_track].pregap = get_frames_from_msf(_arg2.c_str());
 				}
 				break;
@@ -203,11 +203,12 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			for(int i = 1; i < track_num; i++) {
 				toc_table[i].index0 += toc_table[i].lba_offset;
 				toc_table[i].index1 += toc_table[i].lba_offset;
+#if 1
 				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
 									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
 									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
 									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
-				//#endif
+#endif
 			}
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 			toc_table[0].physical_size = 2352;
@@ -225,25 +226,25 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	// Not Cue FILE.
 	return is_cue;
 }
-	
+
 bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath)
 {
 	size_t _arg2_ptr;
 	size_t _arg3_ptr;
 	std::string _arg3;
-	
+
 	_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
 	if(_arg2_ptr == std::string::npos) return false;
-					
+
 	_arg2 = _arg2.substr(_arg2_ptr);
 	_arg3_ptr = _arg2.find_first_of((const char *)"\"");
 	if(_arg3_ptr == std::string::npos) return false;
 	_arg2 = _arg2.substr(0, _arg3_ptr);
-	
+
 	imgpath.clear();
 	imgpath = std::string(parent_dir);
 	imgpath.append(_arg2);
-	
+
 //	cdrom_debug_log(_T("**FILE %s\n"), imgpath.c_str());
 
 	return true;
@@ -254,13 +255,13 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 	size_t _arg2_ptr_s;
 	size_t _arg2_ptr;
 	_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-					
+
 	std::string _arg3 = _arg2.substr(_arg2_ptr_s);
 	_arg2 = _arg2.substr(0, _arg2_ptr_s);
 	size_t _arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
 	size_t _arg3_ptr_s;
 	int _nr_num = atoi(_arg2.c_str());
-				
+
 	// Set image file
 	if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
 		std::map<std::string, int> cue_type;
@@ -275,7 +276,7 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 
 		nr_current_track = _nr_num;
 		_arg3 = _arg3.substr(_arg3_ptr);
-		
+
 		memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
 		strncpy((char *)(track_data_path[_nr_num - 1]), imgpath.c_str(), _MAX_PATH - 1);
 //		image_tmp_data_path.clear();
@@ -283,10 +284,10 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 //		have_filename = false;
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
 		_arg3.substr(0, _arg3_ptr_s);
-						
+
 		std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
 					   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
-						
+
 		toc_table[nr_current_track].is_audio = false;
 		toc_table[nr_current_track].index0 = 0;
 		toc_table[nr_current_track].index1 = 0;
@@ -300,10 +301,10 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 			track_type = MODE_NONE;
 		}
 		toc_table[nr_current_track].type = track_type;
-					
+
 		switch(track_type) {
 		case MODE_AUDIO:
-			toc_table[nr_current_track].is_audio = true; 
+			toc_table[nr_current_track].is_audio = true;
 			toc_table[nr_current_track].logical_size = 2352;
 			break;
 		case MODE_MODE1_2048:
@@ -351,17 +352,17 @@ int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
 	if((nr_current_track > 0) && (nr_current_track < 100)) {
 		_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
 		if(_arg2_ptr_s == std::string::npos) return -1;;
-		
+
 		_arg3 = _arg2.substr(_arg2_ptr_s);
 		_arg2 = _arg2.substr(0, _arg2_ptr_s);
 		_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
 		if(_arg3_ptr == std::string::npos) return -1;
-		
+
 		_arg3 = _arg3.substr(_arg3_ptr);
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
 		_arg3.substr(0, _arg3_ptr_s);
 		index = atoi(_arg2.c_str());
-		
+
 		switch(index) {
 		case 0:
 			toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
@@ -376,5 +377,5 @@ int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
 	}
 	return index;
 }
-	
+
 }

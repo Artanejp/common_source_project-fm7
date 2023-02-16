@@ -2444,6 +2444,7 @@ void EMU::update_media()
 	for(int drv = 0; drv < USE_COMPACT_DISC; drv++) {
 		if(compact_disc_status[drv].wait_count != 0 && --compact_disc_status[drv].wait_count == 0) {
 			vm->open_compact_disc(drv, compact_disc_status[drv].path);
+			//printf(_T("update_media(): LOAD CDROM: %s\n"), compact_disc_status[drv].path);
 #if USE_COMPACT_DISC > 1
 			out_message(_T("CD%d: %s"), drv + BASE_COMPACT_DISC_NUM, compact_disc_status[drv].path);
 #else
@@ -2559,11 +2560,11 @@ void EMU::restore_media()
 		if(tape_status[drv].path[0] != _T('\0')) {
 			if(tape_status[drv].play) {
 				vm->play_tape(drv, tape_status[drv].path);
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			osdcall_string(EMU_MEDIA_TYPE::HARD_DISK,
-						   drv,
-						   mess,
-						   tape_status[drv].path);
+				EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+				osdcall_string(EMU_MEDIA_TYPE::TAPE,
+							   drv,
+							   mess,
+							   tape_status[drv].path);
 			} else {
 				tape_status[drv].path[0] = _T('\0');
 			}
@@ -2574,6 +2575,11 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_COMPACT_DISC; drv++) {
 		if(compact_disc_status[drv].path[0] != _T('\0')) {
 			vm->open_compact_disc(drv, compact_disc_status[drv].path);
+			//printf(_T("restore_media(): LOAD CDROM: %s\n"), compact_disc_status[drv].path);
+			osdcall_string(EMU_MEDIA_TYPE::COMPACT_DISC,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   (_TCHAR*)compact_disc_status[drv].path);
 		}
 	}
 #endif
@@ -2581,6 +2587,10 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_LASER_DISC; drv++) {
 		if(laser_disc_status[drv].path[0] != _T('\0')) {
 			vm->open_laser_disc(drv, laser_disc_status[drv].path);
+			osdcall_string(EMU_MEDIA_TYPE::LASER_DISC,
+						   drv,
+						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+						   laser_disc_status[drv].path);
 		}
 	}
 #endif
@@ -2588,6 +2598,13 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_BUBBLE; drv++) {
 		if(bubble_casette_status[drv].path[0] != _T('\0')) {
 			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+			mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
+
+			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bubble_casette_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
+						   drv,
+						   mess,
+						   (_TCHAR *)bubble_casette_status[drv].path);
 		}
 	}
 #endif
@@ -3261,9 +3278,11 @@ void EMU::push_apss_rewind(int drv)
 void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 {
 	if(drv < USE_COMPACT_DISC) {
+		//printf(_T("open_compact_disc(): CALLED: %s\n"), file_path);
 		if(vm->is_compact_disc_inserted(drv)) {
 			vm->close_compact_disc(drv);
 			// wait 0.5sec
+			clear_media_status(&compact_disc_status[drv]);
 			compact_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_COMPACT_DISC > 1
 			out_message(_T("CD%d: Ejected"), drv + BASE_COMPACT_DISC_NUM);
@@ -3276,6 +3295,7 @@ void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 						0);
 		} else if(compact_disc_status[drv].wait_count == 0) {
 			vm->open_compact_disc(drv, file_path);
+			//printf(_T("open_compact_disc(): LOAD CDROM: %s\n"), file_path);
 #if USE_COMPACT_DISC > 1
 			out_message(_T("CD%d: %s"), drv + BASE_COMPACT_DISC_NUM, file_path);
 #else
@@ -3286,7 +3306,7 @@ void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
 							(_TCHAR*)file_path);
 		}
-		my_tcscpy_s(compact_disc_status[drv].path, _MAX_PATH, file_path);
+		my_tcscpy_s(compact_disc_status[drv].path,  _MAX_PATH, file_path);
 	}
 }
 
@@ -3295,6 +3315,7 @@ void EMU::close_compact_disc(int drv)
 	if(drv < USE_COMPACT_DISC) {
 		vm->close_compact_disc(drv);
 		clear_media_status(&compact_disc_status[drv]);
+		compact_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_COMPACT_DISC > 1
 		out_message(_T("CD%d: Ejected"), drv + BASE_COMPACT_DISC_NUM);
 #else

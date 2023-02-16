@@ -89,8 +89,8 @@ namespace FMTOWNS {
 #pragma pack()
 #pragma pack(1)
 	/*!
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	typedef struct {
 		cd_data_head_t header;
@@ -113,7 +113,7 @@ namespace FMTOWNS {
 #pragma pack()
 #pragma pack(1)
 	/*!
-	 * @note 
+	 * @note
 	 * @note 20201116 K.O
 	 */
 	typedef union cdimage_buffer_s {
@@ -160,7 +160,7 @@ enum {
 	CCD_PREGAP_MODE = 0x201,
 	CCD_PREGAP_SUBC
 };
-	
+
 enum {
 	CDROM_READ_MODE1 = 1,
 	CDROM_READ_MODE2 = 2,
@@ -222,9 +222,9 @@ enum {
 	TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H	= 0x04,
 	TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H	= 0x08,
 	TOWNS_CD_ACCEPT_MEDIA_CHANGED	= 0x09,
-	TOWNS_CD_ACCEPT_WAIT			= 0x0d, 
+	TOWNS_CD_ACCEPT_WAIT			= 0x0d,
 };
-		
+
 // status[1] @ status[0] == 21h
 // From Tsugaru Thanks to Yamakawa-San.
 enum {
@@ -252,7 +252,7 @@ enum {
 	TOWNS_CD_PAUSE_CDDA,
 	TOWNS_CD_UNPAUSE_CDDA,
 };
-	
+
 /*class TOWNS_CDROM : public SCSI_CDROM */
 class TOWNS_CDROM: public DEVICE {
 protected:
@@ -266,13 +266,13 @@ protected:
 	// For Debugging, will remove 20200822 K.O
 	DEVICE* d_cpu;
 	DEVICE* d_dmac;
-	
+
 	uint32_t max_fifo_length;
 	uint32_t fifo_length;
-	
+
 	uint16_t cpu_id;
 	uint16_t machine_id;
-	
+
 	uint8_t data_reg;
 	bool dma_transfer;
 	bool pio_transfer;
@@ -281,13 +281,13 @@ protected:
 
 	bool cdrom_halted;
 	bool status_seek;
-	
+
 	SUBC_t subq_buffer[98]; // OK?
 	int subq_bitptr;
 	int subq_bitwidth;
 	bool subq_overrun;
 	bool is_playing;
-	
+
 	int stat_track;
 
 	bool is_cue;
@@ -301,9 +301,9 @@ protected:
 		int physical_size;
 		int logical_size;
 	} toc_table[108];
-	_TCHAR track_data_path[100][_MAX_PATH];
+	_TCHAR track_data_path[101][_MAX_PATH];
 	_TCHAR img_file_path_bak[_MAX_PATH];
-	bool with_filename[100];
+	bool with_filename[101];
 
 	uint32_t cdda_start_frame;
 	uint32_t cdda_end_frame;
@@ -313,7 +313,7 @@ protected:
 	int cdda_repeat_count;
 	bool cdda_interrupt;
 	int cdda_buffer_ptr;
-	
+
 	int mix_loop_num;
 	int current_track;
 	int read_sector;
@@ -322,7 +322,7 @@ protected:
 
 	int next_seek_lba;
 	int read_mode;
-	
+
 	uint8_t prev_command;
 	uint8_t latest_command;
 	uint8_t reserved_command;
@@ -336,9 +336,9 @@ protected:
 	bool dma_intr;
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
-	
+
 	bool mcuint_val;
-	
+
 	int event_drq;
 	int event_seek;
 	int event_next_sector;
@@ -352,10 +352,10 @@ protected:
 	int event_delay_command;
 	int event_time_out;
 	int event_eot;
-	
+
 	int cdda_sample_l;
 	int cdda_sample_r;
-		
+
 	int _decibel_l;
 	int _decibel_r;
 	int volume_l;
@@ -363,7 +363,7 @@ protected:
 
 	bool mute_left;
 	bool mute_right;
-	
+
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
@@ -374,7 +374,7 @@ protected:
 	uint8_t param_queue[8];
 
 	bool command_received;
-	
+
 	double seek_time;
 	int track_num;
 	uint32_t max_logical_block;
@@ -385,7 +385,7 @@ protected:
 	uint32_t read_lba;
 
 	bool cdrom_prefetch;
-	
+
 	int extra_status;
 	void play_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
@@ -410,32 +410,32 @@ protected:
 	virtual bool seek_relative_frame_in_image(uint32_t frame_no);
     virtual int prefetch_audio_sectors(int sectors);
 	virtual int __FASTCALL dequeue_audio_data(pair16_t& left, pair16_t& right);
-	
+
 	virtual void read_cdrom();
-	virtual int read_sectors_image(int sectors, uint32_t& transferred_bytes);	
+	virtual int read_sectors_image(int sectors, uint32_t& transferred_bytes);
 
 	bool check_notready_and_changed(bool force_int);
-	
+
 	virtual void execute_command(uint8_t command);
-	
+
 	bool __FASTCALL status_not_ready(bool forceint);
 	bool __FASTCALL status_media_changed(bool forceint);
 	bool __FASTCALL status_media_changed_or_not_ready(bool forceint);
-	
+
 	void __FASTCALL status_hardware_error(bool forceint);
 	void __FASTCALL status_parameter_error(bool forceint);
 	void __FASTCALL status_read_done(bool forceint);
 	void __FASTCALL status_data_ready(bool forceint);
-	
+
 	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3);
 	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
-	
+
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
 	void set_delay_ready_nostatus();
 	void set_delay_ready_eot();
 	void set_delay_ready_cddareply();
-	
+
 	uint32_t cdrom_get_adr(int trk);
 
 	void __FASTCALL set_dma_intr(bool val);
@@ -447,7 +447,7 @@ protected:
 	 * @param use_mask true when masking mcu and dma.
 	 */
 	void __FASTCALL set_intrs_force(bool mcu, bool dma, bool use_mask = false);
-	
+
 	void __FASTCALL make_bitslice_subc_q(uint8_t *data, int bitwidth);
 	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
 
@@ -458,11 +458,11 @@ protected:
 
 	virtual bool open_iso_file(const _TCHAR* file_path);
 	virtual bool open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path);
-	
+
 	virtual uint8_t read_subq();
 	virtual uint8_t get_subq_status();
 	virtual void set_subq(void);
-	
+
 	virtual int get_track_noop(uint32_t lba);
 	virtual void get_track_by_track_num(int track);
 	virtual uint32_t get_image_cur_position();
@@ -501,9 +501,9 @@ public:
 		status_queue = NULL;
 		_decibel_l = 0;
 		_decibel_r = 0;
-		
+
 		memset(subq_buffer, 0x00, sizeof(subq_buffer));
-		
+
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_mcuint);
 		set_device_name(_T("FM-Towns CD-ROM drive"));
@@ -520,13 +520,13 @@ public:
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	
+
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
-	
+
 	virtual void __FASTCALL event_callback(int event_id, int err);
 	virtual void __FASTCALL mix(int32_t* buffer, int cnt);
-	
+
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 
 	virtual bool mounted();
@@ -548,7 +548,7 @@ public:
 		return 0x1fff; // Will change
 	}
 
-	
+
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
 	virtual void get_volume(int ch, int& decibel_l, int& decibel_r);
 	virtual bool read_buffer(int sectors);
@@ -628,7 +628,7 @@ public:
 	{
 		cpu_id = val & 0x07;
 	}
-	
+
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_mcuint, dev, id, mask);
@@ -648,5 +648,5 @@ public:
 	}
 };
 
-	
+
 }

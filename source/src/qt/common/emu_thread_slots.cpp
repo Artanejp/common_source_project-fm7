@@ -355,8 +355,10 @@ void EmuThreadClassBase::sub_close_compact_disc_internal(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
+
 	if((p->is_use_compact_disc()) && (p->get_max_cd() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
+
 		p_emu->close_compact_disc(drv);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, QString::fromUtf8(""));
 	}
@@ -368,7 +370,7 @@ void EmuThreadClassBase::do_open_compact_disc(int drv, QString path)
 	if(path.isNull()) return;
 
 	std::shared_ptr<USING_FLAGS>up = using_flags;
-	if(up.get() != nullptr) return;
+	if(up.get() == nullptr) return;
 	if(!((up->get_max_cd() > drv) && (up->is_use_compact_disc()))) return;
 
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
@@ -388,7 +390,7 @@ void EmuThreadClassBase::do_eject_compact_disc()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	sub_close_laser_disc_internal(drv);
+	sub_close_compact_disc_internal(drv);
 }
 
 

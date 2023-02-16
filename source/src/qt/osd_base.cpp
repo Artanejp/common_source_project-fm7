@@ -68,6 +68,11 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	m_sound_period = 0;
 	sound_initialized = false;
 	sound_ok = false;
+
+	connect(this, SIGNAL(sig_debug_log(int, int, QString)), p_logger.get(), SLOT(do_debug_log(int, int, QString)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_logger_reset()), p_logger.get(), SLOT(reset()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_logger_set_device_name(int, QString)), p_logger.get(), SLOT(do_set_device_name(int, QString)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_logger_set_cpu_name(int, QString)), p_logger.get(), SLOT(do_set_cpu_name(int, QString)), Qt::QueuedConnection);
 }
 
 OSD_BASE::~OSD_BASE()
@@ -373,19 +378,24 @@ void OSD_BASE::reset_vm_node(void)
 {
 	device_node_t sp;
 	device_node_list.clear();
-	p_logger->reset();
+	emit sig_logger_reset();
 	max_vm_nodes = 0;
 }
 
 void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
 {
-	p_logger->debug_log(level, domain_num, strbuf);
+	QString tmps = QString::fromLocal8Bit(strbuf);
+	emit sig_debug_log(level, domain_num, tmps);
 }
 
 
 void OSD_BASE::set_device_name(int id, char *name)
 {
-	p_logger->set_device_name(id, (char *)name);
+	if(name != nullptr) {
+		emit sig_logger_set_device_name(id, QString::fromUtf8(name));
+	} else {
+		emit sig_logger_set_device_name(id, QString::fromUtf8(""));
+	}
 }
 
 void OSD_BASE::set_vm_node(int id, const _TCHAR *name)

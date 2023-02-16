@@ -793,7 +793,7 @@ public slots:
 
 	int set_recent_compact_disc(int drv, int num);
 	void do_eject_compact_disc(int drv);
-	void do_open_compact_disc(int drv, QString path);
+	void do_open_compact_disc_ui(int drv, QString path);
 	void do_update_compact_disc_history(int drive, QStringList lst);
 	void do_ui_compact_disc_insert_history(int drv, QString fname);
 	void do_ui_eject_compact_disc(int drv);

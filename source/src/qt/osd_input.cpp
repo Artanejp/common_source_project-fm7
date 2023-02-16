@@ -75,7 +75,7 @@ void OSD_BASE::initialize_input()
 	}
 	delete fio;
 	now_auto_key = false;
-	
+
 	// initialize shift+numpad conversion
 	memset(key_converted, 0, sizeof(key_converted));
 	key_shift_pressed = key_shift_released = false;
@@ -115,9 +115,9 @@ void OSD_BASE::update_input_mouse()
 		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
 		diffx = (diffx * factor) / 8192.0;
 		diffy = (diffy * factor) / 8192.0;
-		
+
 		mouse_status[0] = (int32_t)rint(diffx);
-		mouse_status[1] = (int32_t)rint(diffy); 
+		mouse_status[1] = (int32_t)rint(diffy);
 		mouse_status[2] = mouse_button;
 		//printf("Mouse delta(%d, %d)\n", delta_x, delta_y);
 		mouse_oldx = mouse_ptrx;
@@ -169,7 +169,7 @@ void OSD_BASE::update_input()
 					status[vk[i]] = 1;
 				}
 			}
-		} else if(p_config->joy_to_key_type == 1) { // 2468			
+		} else if(p_config->joy_to_key_type == 1) { // 2468
 			std::lock_guard<std::recursive_timed_mutex>  n(joystick_mutex);
 			static const int vk[] = {VK_NUMPAD8, VK_NUMPAD2, VK_NUMPAD4, VK_NUMPAD6};
 			for(int i = 0; i < 4; i++) {
@@ -191,7 +191,7 @@ void OSD_BASE::update_input()
 			case 0x01       : status[VK_NUMPAD8] = 1; break; // up
 			case 0x01 + 0x08: status[VK_NUMPAD9] = 1; break; // up-right
 			}
-		} else if(p_config->joy_to_key_type == 3) { // 1235			
+		} else if(p_config->joy_to_key_type == 3) { // 1235
 			static const int vk[] = {VK_NUMPAD5, VK_NUMPAD2, VK_NUMPAD1, VK_NUMPAD3};
 			std::lock_guard<std::recursive_timed_mutex>  n(joystick_mutex);
 			for(int i = 0; i < 4; i++) {
@@ -258,7 +258,7 @@ void OSD_BASE::update_input()
 				}
 			}
 		}
-	}		   			
+	}
 	// release keys
 	if(lost_focus && !now_auto_key) {
 		// we lost key focus so release all pressed keys
@@ -286,7 +286,7 @@ void OSD_BASE::update_input()
 
 	// update mouse status
 	//update_input_mouse();
-	
+
 }
 
 void OSD_BASE::key_down(int code, bool extended, bool repeat)
@@ -353,7 +353,7 @@ void OSD_BASE::key_down(int code, bool extended, bool repeat)
 			default:
 				break;
 			}
-   
+
 //			if(code == VK_LSHIFT || code == VK_RSHIFT) {
 			if(code == VK_LSHIFT) {
 				key_shift_pressed = true;
@@ -440,7 +440,9 @@ void OSD_BASE::key_up(int code, bool extended)
 //#ifdef USE_AUTO_KEY
 	if(!__USE_AUTO_KEY || (!now_auto_key && !p_config->romaji_to_kana)) {
 //#endif
-		//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, "KEY UP %d", code);
+		// _TCHAR __tmps1[128] = {0};
+		// my_stprintf_s(__tmps1, sizeof(__tmps1) - 1, "KEY UP %d", code);
+		//emit sig_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_OSD, QString::fromUtf8(__tmps));
 		//if(!dinput_key_available) {
 			if(code == VK_SHIFT) {
 				if((key_status[VK_LSHIFT] & 0x80) && !(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
@@ -495,7 +497,7 @@ void OSD_BASE::key_up(int code, bool extended)
 			default:
 				break;
 			}
-					
+
 //			if(code == VK_LSHIFT || code == VK_RSHIFT) {
 				if(code == VK_LSHIFT) {
 					key_shift_pressed = false;
@@ -555,7 +557,7 @@ void OSD_BASE::key_up(int code, bool extended)
 void OSD_BASE::key_down_native(int code, bool repeat)
 {
 	bool keep_frames = false;
-	
+
 	if(code == 0xf0) {
 		code = VK_CAPITAL;
 		keep_frames = true;
@@ -584,11 +586,11 @@ void OSD_BASE::key_down_native(int code, bool repeat)
 	uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
-	
+
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
-	
+
 	if(code == VK_LSHIFT || code == VK_RSHIFT) {
 		if(prev_shift == 0 && key_status[VK_SHIFT] != 0) {
 			vm_key_down(VK_SHIFT, repeat);
@@ -617,15 +619,15 @@ void OSD_BASE::key_up_native(int code)
 		return;
 	}
 	vm_key_up(code);
-	
+
 	uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
-	
+
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
-	
+
 	if(code == VK_LSHIFT || code == VK_RSHIFT) {
 		if(prev_shift != 0 && key_status[VK_SHIFT] == 0) {
 			vm_key_up(VK_SHIFT);
@@ -644,7 +646,7 @@ void OSD_BASE::key_up_native(int code)
 void OSD_BASE::key_down_sub(int code, bool repeat)
 {
 	bool keep_frames = false;
-	
+
 	if(code == 0xf0) {
 		code = VK_CAPITAL;
 		keep_frames = true;
@@ -658,7 +660,7 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
-	
+
 
 	if(get_dont_keeep_key_pressed()) {
 		if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU || code == VK_MENU)) {
@@ -673,11 +675,11 @@ void OSD_BASE::key_down_sub(int code, bool repeat)
 	uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
-	
+
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
-	
+
 	{
 		if(keep_frames) {
 			repeat = false;
@@ -721,7 +723,7 @@ void OSD_BASE::key_up_sub(int code)
 	if((key_status[code] &= 0x7f) != 0) {
 		return;
 	}
-	
+
 	uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
@@ -804,7 +806,7 @@ void OSD_BASE::press_button(int num)
 {
 	if(get_one_board_micro_computer()) {
 		int code = get_vm_buttons_code(num);
-		
+
 		if(code) {
 			key_down_sub(code, false);
 			key_status[code] = KEY_KEEP_FRAMES;
@@ -823,7 +825,7 @@ void OSD_BASE::enable_mouse()
 		std::lock_guard<std::recursive_timed_mutex>  n(mouse_mutex);
 		double xx = (double)(get_screen_width() / 2);
 		double yy = (double)(get_screen_height() / 2);
-		
+
 		mouse_oldx = xx;
 		mouse_oldy = yy;
 		mouse_ptrx = xx;
@@ -864,19 +866,19 @@ void OSD_BASE::set_mouse_pointer(double x, double y)
 {
 	if((mouse_enabled)) {
 		std::lock_guard<std::recursive_timed_mutex>  n(mouse_mutex);
-		
+
 		mouse_ptrx = x;
 		mouse_ptry = y;
 	}
 }
 
-void OSD_BASE::set_mouse_button(int button) 
+void OSD_BASE::set_mouse_button(int button)
 {
 	std::lock_guard<std::recursive_timed_mutex> n(mouse_mutex);
 	mouse_button = button;
 }
 
-int32_t OSD_BASE::get_mouse_button() 
+int32_t OSD_BASE::get_mouse_button()
 {
 	std::lock_guard<std::recursive_timed_mutex> n(mouse_mutex);
 	return mouse_button;
@@ -903,7 +905,7 @@ void OSD_BASE::update_keyname_table(void)
 		}
 	}
 }
-	
+
 const _TCHAR *OSD_BASE::get_key_name_by_scancode(uint32_t scancode)
 {
 	if(vm != NULL) {

@@ -27,13 +27,14 @@ void Ui_MainWindowBase::CreateCDROMMenu(int drv, int drv_base)
 
 	menu_CDROM[drv]->create_pulldown_menu();
 	// Translate Menu
+	ext_play = "*.ccd *.cue *.iso *.gz";
+	desc_play = "Compact Disc";
+	menu_CDROM[drv]->do_clear_inner_media();
+	menu_CDROM[drv]->do_add_media_extension(ext_play, desc_play);
+
 	SETUP_HISTORY(p_config->recent_compact_disc_path[drv], listCDROM[drv]);
 	menu_CDROM[drv]->do_update_histories(listCDROM[drv]);
 	menu_CDROM[drv]->do_set_initialize_directory(p_config->initial_compact_disc_dir);
-
-	ext_play = "*.ccd *.cue *.iso *.bin *.gz";
-	desc_play = "Compact Disc";
-	menu_CDROM[drv]->do_add_media_extension(ext_play, desc_play);
 
 }
 
@@ -59,7 +60,7 @@ int Ui_MainWindowBase::set_recent_compact_disc(int drv, int num)
 
 	s_path = QString::fromLocal8Bit(p_config->recent_compact_disc_path[drv][num]);
 	if(s_path.isEmpty()) return -1;
-	do_open_compact_disc(drv, s_path);
+	do_open_compact_disc_ui(drv, s_path);
 	return 0;
 }
 
@@ -88,21 +89,17 @@ void Ui_MainWindowBase::do_ui_compact_disc_insert_history(int drv, QString fname
 	if(p.get() == nullptr) return;
 	if(fname.length() <= 0) return;
 
-	if(using_flags->get_max_cd() <= drv) return;
+	if(p->get_max_cd() <= drv) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
 	my_strncpy_s(path_shadow, _MAX_PATH, fname.toLocal8Bit().constData(), _TRUNCATE);
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;
 
-	UPDATE_HISTORY(path_shadow, p_config->recent_compact_disc_path[drv], listCDROM[drv]);
+	UPDATE_HISTORY(fname, p_config->recent_compact_disc_path[drv], listCDROM[drv]);
 	my_strncpy_s(p_config->initial_compact_disc_dir,
 				 sizeof(p_config->initial_compact_disc_dir) / sizeof(_TCHAR),
 				 get_parent_dir((const _TCHAR*)path_shadow),
-				 _TRUNCATE);
-	my_strncpy_s(path_shadow,
-				 _MAX_PATH,
-				 fname.toLocal8Bit().constData(),
 				 _TRUNCATE);
 	menu_CDROM[drv]->do_set_initialize_directory(p_config->initial_compact_disc_dir);
 	do_update_compact_disc_history(drv, listCDROM[drv]);
@@ -113,7 +110,7 @@ void Ui_MainWindowBase::do_ui_compact_disc_insert_history(int drv, QString fname
 	}
 }
 
-void Ui_MainWindowBase::do_open_compact_disc(int drv, QString path)
+void Ui_MainWindowBase::do_open_compact_disc_ui(int drv, QString path)
 {
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;

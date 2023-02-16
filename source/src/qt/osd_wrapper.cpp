@@ -122,7 +122,7 @@ int OSD::get_vm_buttons_code(int num)
 #else
 	return 0;
 #endif
-}	
+}
 
 
 QString OSD::get_vm_config_name(void)
@@ -163,14 +163,14 @@ void OSD::initialize_screen()
 	host_window_width = base_window_width = WINDOW_WIDTH;
 	host_window_height = base_window_height = WINDOW_HEIGHT;
 	host_window_mode = true;
-	
+
 	vm_screen_width = SCREEN_WIDTH;
 	vm_screen_height = SCREEN_HEIGHT;
 	vm_window_width = WINDOW_WIDTH;
 	vm_window_height = WINDOW_HEIGHT;
 	vm_window_width_aspect = WINDOW_WIDTH_ASPECT;
 	vm_window_height_aspect = WINDOW_HEIGHT_ASPECT;
-	
+
 	QColor col(0, 0, 0, 255);
 
 	vm_screen_buffer.width = SCREEN_WIDTH;
@@ -178,7 +178,7 @@ void OSD::initialize_screen()
 	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
 	vm_screen_buffer.pImage.fill(col);
 	now_record_video = false;
-	
+
 	first_draw_screen = false;
 	first_invalidate = true;
 	self_invalidate = false;
@@ -234,14 +234,14 @@ void OSD::initialize_video()
 	connect(this, SIGNAL(sig_movie_seek_frame(bool, int)), movie_loader, SLOT(do_seek_frame(bool, int)));
 	//connect(this, SIGNAL(sig_movie_mute(bool, bool)), movie_loader, SLOT(do_mute(bool, bool)));
 	connect(movie_loader, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
-#endif	
+#endif
 }
 
 void OSD::release_video()
 {
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	delete movie_loader;
-#endif	
+#endif
 	movie_loader = NULL;
 }
 
@@ -254,7 +254,7 @@ bool OSD::open_movie_file(const _TCHAR* file_path)
 	if(movie_loader != NULL) {
 		ret = movie_loader->open(QString::fromUtf8(file_path));
 	}
-#endif	
+#endif
 	return ret;
 }
 
@@ -281,7 +281,7 @@ uint32_t OSD::get_cur_movie_frame()
 		}
 		return (uint32_t)pos;
 	}
-#endif	
+#endif
 	return 0;
 }
 
@@ -305,7 +305,7 @@ void OSD::do_decode_movie(int frames)
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	//movie_loader->do_decode_frames(frames, SCREEN_WIDTH, SCREEN_HEIGHT);
 	movie_loader->do_decode_frames(frames, vm_window_width_aspect, vm_window_height_aspect);
-#endif	
+#endif
 }
 
 void OSD::get_video_buffer()
@@ -360,7 +360,7 @@ void OSD::release_socket()
 			udp_socket[i] = NULL;
 		}
 	}
-#endif	
+#endif
 }
 
 
@@ -375,7 +375,7 @@ void OSD::do_notify_socket_connected(int ch)
 	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	vm->notify_socket_connected(ch);
-#endif	
+#endif
 }
 
 
@@ -414,7 +414,7 @@ void OSD::update_socket()
 				}
 			}
 		}
-		if((p != nullptr) && (vm != nullptr)) {	
+		if((p != nullptr) && (vm != nullptr)) {
 			// recv
 			bytes = p->bytesAvailable();
 			if(bytes > 0) {
@@ -422,7 +422,7 @@ void OSD::update_socket()
 				uint8_t* buf0 = vm->get_socket_recv_buffer0(i, &size0, &size1);
 				uint8_t* buf1 = vm->get_socket_recv_buffer1(i);
 				qint64 size;
-				
+
 				if(bytes > (qint64)(size0 + size1)) {
 					bytes = (qint64)(size0 + size1);
 				}
@@ -444,7 +444,7 @@ void OSD::update_socket()
 			}
 		}
 	}
-#endif	
+#endif
 }
 
 bool OSD::initialize_socket_tcp(int ch)
@@ -469,7 +469,7 @@ bool OSD::initialize_socket_tcp(int ch)
 	connect(tcp_socket[ch], SIGNAL(sig_connected(int)), this, SLOT(do_notify_socket_connected(int)));
 	connect(tcp_socket[ch], SIGNAL(disconnected()), tcp_socket[ch], SLOT(do_disconnected()));
 	connect(tcp_socket[ch], SIGNAL(sig_disconnected(int)), this, SLOT(do_notify_socket_disconnected(int)));
-#endif	
+#endif
 	return true;
 }
 
@@ -494,7 +494,7 @@ bool OSD::initialize_socket_udp(int ch)
 	connect(udp_socket[ch], SIGNAL(sig_connected(int)), this, SLOT(do_notify_socket_connected(int)));
 	connect(udp_socket[ch], SIGNAL(disconnected()), udp_socket[ch], SLOT(do_disconnected()));
 	connect(udp_socket[ch], SIGNAL(sig_disconnected(int)), this, SLOT(do_notify_socket_disconnected(int)));
-#endif	
+#endif
 	return true;
 }
 
@@ -550,7 +550,7 @@ void OSD::disconnect_socket(int ch)
 	}
 	if(vm == nullptr) return;
 	vm->notify_socket_disconnected(ch);
-#endif	
+#endif
 }
 
 bool OSD::listen_socket(int ch)
@@ -565,7 +565,7 @@ bool OSD::listen_socket(int ch)
 	//connect(udp_socket[ch], SIGNAL(sig_connected(int)), this, SLOT(do_notify_socket_connected(int)));
 	//connect(udp_socket[ch], SIGNAL(disconnected()), udp_socket[ch], SLOT(do_disconnected()));
 	//connect(udp_socket[ch], SIGNAL(sig_disconnected(int)), this, SLOT(do_notify_socket_disconnected(int)));
-#endif	
+#endif
 	return false;
 }
 
@@ -599,7 +599,7 @@ void OSD::send_socket_data_tcp(int ch)
 			vm->inc_socket_send_buffer_ptr(ch, (int)size2);
 		}
 	}
-#endif	
+#endif
 }
 
 void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
@@ -618,7 +618,7 @@ void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 				return;
 			}
 			qint64 size2 = 0;
-			
+
 			if(udp_socket[ch] != NULL) {
 				size2 = udp_socket[ch]->writeDatagram((const char *)buf, (qint64)size, addr, (quint16)port);
 				if(size2 < 0) {
@@ -632,7 +632,7 @@ void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 			vm->inc_socket_send_buffer_ptr(ch, (int)size2);
 		}
 	}
-#endif	
+#endif
 }
 
 void OSD::send_socket_data(int ch)
@@ -715,14 +715,14 @@ int OSD::draw_screen()
 		return 0;
 	}
 	draw_screen_buffer = &vm_screen_buffer;
-	
+
 	// calculate screen size
 	// invalidate window
 	// ToDo: Support MAX_DRAW_RANGES. 20221212 K.O
 	emit sig_update_screen((void *)draw_screen_buffer, mapped);
 
 	first_draw_screen = self_invalidate = true;
-	
+
 	// record avi file
 	if(now_record_video) {
 		add_video_frames();
@@ -792,7 +792,7 @@ int OSD::add_video_frames()
 			counter++;
 		}
 	}
-	
+
 	if(using_flags->is_use_one_board_computer()) {
 		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
@@ -832,7 +832,7 @@ int OSD::add_video_frames()
 				if(pixel != 0x000000ff) {
 					rec_image_buffer.setPixel(xx, yy, pixel);
 				}
-#endif				
+#endif
 			}
 		}
 		if(i > 0) {
@@ -851,7 +851,9 @@ int OSD::add_video_frames()
 			emit sig_enqueue_video(i, vm_screen_width, vm_screen_height, &video_result);
 			//i--;
 		}
-		//p_logger->debug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_SCREEN,  "Push Video %d frames\n", counter);
+		// _TCHAR __tmps1[128] = {0};
+		// my_stprintf_s(__tmps1, sizeof(__tmps1) - 1, "Push Video %d frames\n", counter);
+		//emit sig_debug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_SCREEN, QString::fromUtf8(__tmps1) );
 	}
 	return counter;
 }
@@ -903,14 +905,19 @@ void OSD::reset_vm_node(void)
 
 	device_node_t sp;
 	device_node_list.clear();
-	p_logger->reset();
+	emit sig_logger_reset();
+
 	max_vm_nodes = 0;
 	if(vm == NULL) return;
 	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
 		sp.id = p->this_device_id;
 		sp.name = p->this_device_name;
-		p_logger->set_device_name(sp.id, (char *)sp.name);
-		p_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,  "Device %d :%s", sp.id, sp.name);
+		emit sig_logger_set_device_name(sp.id, QString::fromUtf8(sp.name));
+
+		_TCHAR tmps2[512] = {0};
+		my_stprintf_s(tmps2, sizeof(tmps2) - 1, "Device %d :%s", sp.id, sp.name);
+		emit sig_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, QString::fromUtf8(tmps2));
+
 		device_node_list.append(sp);
 		if(max_vm_nodes <= p->this_device_id) max_vm_nodes = p->this_device_id + 1;
 	}
@@ -918,4 +925,3 @@ void OSD::reset_vm_node(void)
 		emit sig_update_device_node_name(p->this_device_id, p->this_device_name);
 	}
 }
-

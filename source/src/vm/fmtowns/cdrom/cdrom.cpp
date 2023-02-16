@@ -2591,6 +2591,7 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 		// get image file name
 		if(open_ccd_file(file_path, img_file_path)) {
 			strncpy(img_file_path_bak, img_file_path, _MAX_PATH - 1);
+//			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
 		}
 	}
 

@@ -265,7 +265,7 @@ uint32_t DEVICE::read_dma_data32w(uint32_t addr, int* wait)
 {
 	return read_data32w(addr, wait);
 }
-	
+
 //<! i/o bus
 
 void DEVICE::write_io8(uint32_t addr, uint32_t data)
@@ -448,7 +448,7 @@ uint32_t DEVICE::read_dma_io32w(uint32_t addr, int* wait)
 {
 	return read_io32w(addr, wait);
 }
-	
+
 // memory mapped i/o
 void DEVICE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
@@ -657,7 +657,7 @@ uint32_t DEVICE::get_intr_ack()
 
 void DEVICE::update_intr()
 {
-	
+
 }
 
 void DEVICE::notify_intr_reti()
@@ -667,7 +667,7 @@ void DEVICE::notify_intr_reti()
 void DEVICE::notify_intr_ei()
 {
 }
-	
+
 void DEVICE::do_dma()
 {
 }
@@ -697,7 +697,7 @@ uint32_t DEVICE::get_next_pc()
 {
 	return 0;
 }
-	
+
 //<! bios
 bool DEVICE::bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles)
 {
@@ -747,7 +747,7 @@ int DEVICE::release_sound_in_source(int bank)
 	if(event_manager == NULL) return -1;
 	return event_manager->release_sound_in_source(bank);
 }
-	
+
 bool DEVICE::is_sound_in_source_exists(int bank)
 {
 	if(event_manager == NULL) {
@@ -1028,7 +1028,7 @@ uint32_t DEVICE::get_cpu_pc(int index)
 }
 
 uint64_t DEVICE::get_current_clock_uint64()
-{ 
+{
 	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
@@ -1078,7 +1078,7 @@ int DEVICE::get_lines_per_frame()
 // Force render sound immediately when device's status has changed.
 // You must call this after you changing registers (or anything).
 // If has problems, try set_realtime_render.
-// See mb8877.cpp and ym2203.cpp. 
+// See mb8877.cpp and ym2203.cpp.
 // -- 20161010 K.O
 void DEVICE::touch_sound(void)
 {
@@ -1145,7 +1145,7 @@ void DEVICE::set_device_name(const _TCHAR *format, ...)
 	if(format != NULL) {
 		va_list ap;
 		_TCHAR buffer[1024];
-		
+
 		va_start(ap, format);
 		my_vstprintf_s(buffer, 1024, format, ap);
 		va_end(ap);
@@ -1160,16 +1160,16 @@ void DEVICE::set_device_name(const _TCHAR *format, ...)
 void DEVICE::out_debug_log(const char *fmt, ...)
 {
 #if defined(_USE_QT)
-	__UNLIKELY_IF(p_logger == NULL) return;
-   	char strbuf[4096];
+ 	__UNLIKELY_IF(osd == nullptr) return;
+  	char strbuf[4096] = {0};
 	va_list ap;
-	
+
 	va_start(ap, fmt);
 	vsnprintf(strbuf, 4095, fmt, ap);
-	p_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
 	va_end(ap);
+	osd->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0,  strbuf);
 #else
-	char strbuf[4096];
+	char strbuf[4096] = {0};
 	va_list ap;
 
 	va_start(ap, fmt);
@@ -1183,14 +1183,15 @@ void DEVICE::out_debug_log_with_switch(bool logging, const char *fmt, ...)
 {
 	if(!(logging)) return;
 #if defined(_USE_QT)
-	__UNLIKELY_IF(p_logger == NULL) return;
-   	char strbuf[4096];
+	__UNLIKELY_IF(osd == nullptr) return;
+   	char strbuf[4096] = {0};
 	va_list ap;
-	
+
 	va_start(ap, fmt);
 	vsnprintf(strbuf, 4095, fmt, ap);
-	p_logger->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, "%s", strbuf);
 	va_end(ap);
+	osd->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, strbuf);
+
 #else
 	char strbuf[4096];
 	va_list ap;
@@ -1456,7 +1457,7 @@ const _TCHAR *DEVICE::get_lib_common_vm_version(void)
 	return (const _TCHAR *)__LIBRARY_NAME;
 #else
 	return (const _TCHAR *)"\0";
-#endif	
+#endif
 }
 
 
@@ -1482,4 +1483,3 @@ bool DEVICE::process_state(FILEIO* state_fio, bool loading)
 		return true;
 	}
 }
-

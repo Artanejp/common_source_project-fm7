@@ -1,7 +1,7 @@
 /*
  * Log functions
  * (C) 2014-06-30 K.Ohta
- * 
+ *
  * History:
  *  Dec 30, 2014 Move from XM7/SDL, this was Ohta's original code.
  * Licence : GPLv2
@@ -30,7 +30,7 @@
 
 #define CSP_LOG_ON 1
 #define CSP_LOG_OFF 0
-   
+
 #define CSP_LOG_DEBUG 0
 #define CSP_LOG_INFO 1
 #define CSP_LOG_WARN 2
@@ -129,7 +129,7 @@ public:
 	void run() override;
 public slots:
 	void do_message(QString header, QString message);
-	
+
 };
 
 class DLL_PREFIX CSP_Logger: public QObject {
@@ -151,7 +151,7 @@ private:
 	bool level_state_out_record;
 	bool level_state_out_syslog;
 	bool level_state_out_console;
-	
+
 	QString loglist;
 	QString log_sysname;
 	QStringList component_names;
@@ -159,7 +159,7 @@ private:
 	QStringList cpu_names;
 	QStringList device_names;
 	CSP_Log_ConsoleThread *console_printer;
-	
+
 	// Device
 	bool level_dev_out_record[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Record to log chain
 	bool level_dev_out_syslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1][CSP_LOG_LEVELS]; // Syslog chain
@@ -169,7 +169,7 @@ private:
 	bool level_cpu_out_record[8][CSP_LOG_LEVELS]; // Record to log chain
 	bool level_cpu_out_syslog[8][CSP_LOG_LEVELS]; // Syslog chain
 	bool level_cpu_out_console[8][CSP_LOG_LEVELS]; // Console log chain
-	
+
 	QVector<CSP_LoggerLine *> squeue;
 #if QT_VERSION >= 0x051400
 	QRecursiveMutex *lock_mutex;
@@ -188,7 +188,6 @@ public:
 	~CSP_Logger();
 	void set_osd(OSD_BASE *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
-	void reset(void);
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
 	void debug_log(int level, int domain_num, char *strbuf);
@@ -197,7 +196,7 @@ public:
 	void set_log_syslog(int level, bool sw);
 	void set_log_stdout(int level, bool sw);
 	bool get_status(void);
-	
+
 	void set_emu_vm_name(const char *devname);
 	void set_device_name(int num, char *devname);
 	void set_cpu_name(int num, char *devname);
@@ -211,11 +210,14 @@ public:
 	int64_t copy_log(char *buffer, int64_t buf_size, int64_t *lines = NULL, char *domainname = NULL, bool utf8 = true, bool forget = false, int64_t start = 0, int64_t start_size = 0, int64_t *end_line = 0);
 	void *get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
 public slots:
+	void reset(void);
 	void do_debug_log(int level, int domain_num, QString mes);
 	void set_device_node_log(int device_id, int to_output, int type, bool flag);
 	void set_device_node_log(int to_output, int type, bool* flags, int start, int devices);
 	void set_device_node_log(int to_output, int type, int *flags, int start, int devices);
-	
+	void do_set_device_name(int num, QString devname);
+	void do_set_cpu_name(int num, QString devname);
+
 signals:
 	int sig_console_message(QString, QString);
 	int sig_console_quit();

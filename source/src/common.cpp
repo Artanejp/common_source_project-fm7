@@ -108,7 +108,6 @@ errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, 
 	// Sanitize string
 	memset(strDestination, 0x00, numberOfElements);
 	_dst.copy(strDestination, numberOfElements - 1);
-
 	return 0;
 }
 
@@ -137,7 +136,6 @@ errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, co
 		count = numberOfElements - 1;
 	}
 	strncpy(strDestination, strSource, count);
-
 	return 0;
 }
 
@@ -1486,8 +1484,11 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 	}
 #elif defined(_USE_QT)
 	QString tmp_path = QString::fromLocal8Bit(src);
+//	QString tmp_path = QString::fromUtf8(src);
 	QFileInfo info(tmp_path);
+//	strncpy(dst, info.absoluteFilePath().toLocal8Bit().constData(), dst_len);
 	my_tcscpy_s(dst, dst_len, info.absoluteFilePath().toLocal8Bit().constData());
+//	my_tcscpy_s(dst, dst_len, info.absoluteFilePath().toUtf8().constData());
 #else
 	// write code for your environment
 

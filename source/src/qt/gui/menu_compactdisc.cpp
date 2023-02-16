@@ -18,6 +18,16 @@ Menu_CompactDiscClass::Menu_CompactDiscClass(QMenuBar *root_entry, QString desc,
 {
 	use_write_protect = false;
 	use_d88_menus = false;
+}
+
+Menu_CompactDiscClass::~Menu_CompactDiscClass()
+{
+}
+
+
+void Menu_CompactDiscClass::create_pulldown_menu_device_sub(void)
+{
+	//
 	action_swap_byteorder = new Action_Control(p_wid, using_flags);
 
 	struct CSP_Ui_Menu::DriveIndexPair tmp;
@@ -29,6 +39,7 @@ Menu_CompactDiscClass::Menu_CompactDiscClass(QMenuBar *root_entry, QString desc,
 	action_swap_byteorder->setVisible(true);
 	action_swap_byteorder->setCheckable(true);
 
+	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() != nullptr) {
 		action_swap_byteorder->setChecked(p->is_cdaudio_swap_byteorder(media_drive));
 	} else {
@@ -37,21 +48,11 @@ Menu_CompactDiscClass::Menu_CompactDiscClass(QMenuBar *root_entry, QString desc,
 	addAction(action_swap_byteorder);
 }
 
-Menu_CompactDiscClass::~Menu_CompactDiscClass()
-{
-}
-
-
-void Menu_CompactDiscClass::create_pulldown_menu_device_sub(void)
-{
-	//
-}
-
 
 void Menu_CompactDiscClass::connect_menu_device_sub(void)
 {
 
-	connect(this, SIGNAL(sig_open_media(int, QString)),	p_wid, SLOT(do_open_compact_disc(int, QString)));
+	connect(this, SIGNAL(sig_open_media(int, QString)),	p_wid, SLOT(do_open_compact_disc_ui(int, QString)));
 	connect(this, SIGNAL(sig_eject_media(int)),	p_wid, SLOT(do_eject_compact_disc(int)));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_compact_disc(int, int)));
 	// Will move to EMUTHREADCLASS?
@@ -63,6 +64,7 @@ void Menu_CompactDiscClass::connect_via_emu_thread(EmuThreadClassBase *p)
 	if(p == nullptr) return;
 	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_eject_compact_disc()), Qt::QueuedConnection);
 }
+
 
 void Menu_CompactDiscClass::retranslate_pulldown_menu_device_sub(void)
 {

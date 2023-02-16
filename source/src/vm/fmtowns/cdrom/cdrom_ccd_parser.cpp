@@ -18,6 +18,7 @@ namespace FMTOWNS {
 bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 {
 	my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
+
 	if(!FILEIO::IsFileExisting(img_file_path)) {
 		my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.gz"), get_file_path_without_extensiton(file_path));
 		if(!FILEIO::IsFileExisting(img_file_path)) {
@@ -38,6 +39,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 	image_tmp_data_path.clear();
 
 	get_long_full_path_name(file_path, full_path_ccd, sizeof(full_path_ccd));
+//	out_debug_log(_T("open_ccd_file(): file_path = %s  / full_path_ccd = %s"), file_path, full_path_ccd);
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_ccd);
 	std::map<std::string, int> ccd_phase;
 	std::map<std::string, int> ccd_enum;
@@ -46,9 +48,9 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 	ccd_phase.insert(std::make_pair("[ENTRY ", CCD_PHASE_ENTRY));
 	ccd_phase.insert(std::make_pair("[SESSION ", CCD_PHASE_SESSION));
 	ccd_phase.insert(std::make_pair("[TRACK ", CCD_PHASE_TRACK));
-	ccd_phase.insert(std::make_pair("[CLONECDCD] ", CCD_PHASE_CLONECD));
+	ccd_phase.insert(std::make_pair("[CLONECD] ", CCD_PHASE_CLONECD));
 	ccd_phase.insert(std::make_pair("[DISC] ", CCD_PHASE_DISC));
-	
+
 	// [Entry foo]
 	// ToDo:
 	// Support AMin/ASec/AFrame and PMin/PSec/PFrame.
@@ -120,6 +122,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 					// Convert String to upper.
 					std::transform(line_buf.begin(), line_buf.end(), line_buf.begin(),
 					   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
+//					out_debug_log(_T("FILE_PATH=\"%s\"  line=\"%s\""), file_path, line_buf.c_str());
 					//
 					// Check Phase
 					;
@@ -139,12 +142,12 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 								} catch (std::out_of_range &e) {
 									arg2 = "";
 								}
-								
+
 							}
 						} else if(ptr2 != std::string::npos) {
 							token.resize(ptr2 + 1);
 						}
-						
+
 						try {
 							tmp_phase = ccd_phase.at(token);
 						} catch (std::out_of_range &e) {
@@ -154,6 +157,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 						if(tmp_phase != CCD_PHASE_NULL) {
 							phase = tmp_phase;
 						}
+//						out_debug_log(_T("open_ccd_file(): file_path = %s  / full_path_ccd = %s"), file_path, full_path_ccd);
 						switch(phase) {
 						case CCD_PHASE_ENTRY:
 							phase_arg = string_to_numeric(arg2);
@@ -206,7 +210,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 						}
 						switch(phase) {
 						case CCD_PHASE_SESSION:
-							
+
 							// ToDo: Imprement around pregap.
 							break;
 						case CCD_PHASE_DISC:
@@ -330,6 +334,8 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 								break;
 							}
 							break;
+						default:
+							break;
 						}
 					}
 				_n_continue:
@@ -363,20 +369,27 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 							toc_table[i].lba_offset = 0;
 							toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index0;
 						}
+
 //						if((track_num == 2) && (max_logical_block > 0)) {
 //							toc_table[track_num - 1].lba_size -= 1;
 //							max_logical_block--;
 //						}
+
+						// ToDo: Will fix brakes insize of *file_ptr . 20230217 K.O
+#if 1
 						for(int i = 1; i < track_num; i++) {
 //							toc_table[i].index0 += toc_table[i].lba_offset;
 //							toc_table[i].index1 += toc_table[i].lba_offset;
-							out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
-											i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
-											toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
-											toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
+
+							out_debug_log(_T("TRACK#%d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d"),
+
+										  i, ((toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352")),
+										  toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
+										  toc_table[i].lba_size, toc_table[i].lba_offset);
 							//#endif
 						}
-
+#endif
+//						out_debug_log(_T("open_ccd_file(): track_num = %d file_path = %s  / full_path_ccd = %s"), track_num, file_path, full_path_ccd);
 						break;
 					}
 				}
@@ -398,7 +411,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 		if((max_logical_block = fio_img->FileLength() / 2352) > 0) {
 			// read ccd file
 			FILEIO* fio = new FILEIO();
-			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+			if(fio->Fopen(file_path, FILEIO_READ_ASCII)) {
 				char line[1024] = {0};
 				char *ptr;
 				int track = -1;
@@ -407,20 +420,20 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 						track = -1;
 					} else if((ptr = strstr(line, "Point=0x")) != NULL) {
 						if((track = hexatoi(ptr + 8)) > 0 && track < 0xa0) {
-							if((track + 1) > track_num) {
+							if(((track + 1) > track_num) && (track <= 100)) {
 								track_num = track + 1;
 							}
 						}
 					} else if((ptr = strstr(line, "Control=0x")) != NULL) {
-						if(track > 0 && track < 0xa0) {
+						if(track > 0 && track <= 100) {
 							toc_table[track].is_audio = (hexatoi(ptr + 10) != 4);
 						}
 					} else if((ptr = strstr(line, "ALBA=-")) != NULL) {
-						if(track > 0 && track < 0xa0) {
+						if(track > 0 && track <= 100) {
 							toc_table[track].pregap = atoi(ptr + 6);
 						}
 					} else if((ptr = strstr(line, "PLBA=")) != NULL) {
-						if(track > 0 && track < 0xa0) {
+						if(track > 0 && track <= 100) {
 							toc_table[track + 1].index0 = atoi(ptr + 5);
 						}
 					} else if((ptr = strstr(line, "[TRACK ")) != NULL) {
@@ -433,20 +446,20 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 							char numbuf[3] = {0};
 							strncpy(numbuf, ptr + 7, (size_t)n);
 							track = atoi(numbuf);
-							if((track + 1) > track_num) {
+							if(((track + 1) > track_num) && (track <= 100)) {
 								track_num = track + 1;
 							}
 						}
 					} else if((ptr = strstr(line, "INDEX 0=")) != NULL) {
-						if(track > 0 && track < 0xa0) {
+						if(track > 0 && track <= 100) {
 							toc_table[track].index0 = atoi(ptr + 8);
 						}
 					} else if((ptr = strstr(line, "INDEX 1=")) != NULL) {
-						if(track > 0 && track < 0xa0) {
+						if(track > 0 && track <= 100) {
 							toc_table[track].index1 = atoi(ptr + 8);
 						}
 					} else if((ptr = strstr(line, "MODE=")) != NULL) {
-						if(track > 0 && track < 0xa0) {
+						if(track > 0 && track <= 100) {
 							int mode;
 							mode = atoi(ptr + 5);
 							switch(mode) {
@@ -480,6 +493,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 				toc_table[0].physical_size = 0;
 				toc_table[0].logical_size = 0;
 				if(track_num > 0) {
+					if(track_num > 100) track_num = 101;
 					for(int i = 1; i < track_num; i++) {
 						// ToDo: Some types.
 						toc_table[i].physical_size = 2352;
