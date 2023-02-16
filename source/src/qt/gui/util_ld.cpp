@@ -66,7 +66,7 @@ int Ui_MainWindowBase::set_recent_laserdisc(int drv, int num)
 
 void Ui_MainWindowBase::do_eject_laserdisc(int drv)
 {
-	emit sig_close_laserdisc_ui(drv);
+	emit sig_close_laser_disc_ui(drv);
 }
 
 void Ui_MainWindowBase::do_ui_eject_laser_disc(int drv)
@@ -125,8 +125,8 @@ void Ui_MainWindowBase::do_open_laserdisc(int drv, QString fname)
 	if(fnamep == nullptr) return;
 	if(!(FILEIO::IsFileExisting(fnamep))) return; // File not found.
 
-	emit sig_close_laserdisc_ui(drv);
-	emit sig_open_laserdisc(drv, fname);
+	emit sig_close_laser_disc_ui(drv);
+	emit sig_open_laser_disc(drv, fname);
 
 	return;
 }

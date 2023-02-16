@@ -791,10 +791,13 @@ public slots:
 	void eject_cart(int);
 	void set_recent_cart(int, int);
 
-	int set_recent_cdrom(int drv, int num);
-	void do_eject_cdrom(int drv);
-	void do_open_cdrom(int drv, QString path);
-	void do_swap_cdaudio_byteorder(int drv, bool value);
+	int set_recent_compact_disc(int drv, int num);
+	void do_eject_compact_disc(int drv);
+	void do_open_compact_disc(int drv, QString path);
+	void do_update_compact_disc_history(int drive, QStringList lst);
+	void do_ui_compact_disc_insert_history(int drv, QString fname);
+	void do_ui_eject_compact_disc(int drv);
+	void do_swap_cdaudio_byteorder(bool value);
 
 	int set_recent_laserdisc(int drv, int num);
 	void do_eject_laserdisc(int drv);
@@ -994,12 +997,13 @@ signals:
 	int sig_open_quickdisk(int drv, QString path);
 	int sig_close_cart(int drv);
 	int sig_open_cart(int drv, QString path);
-	int sig_open_cdrom(int drv, QString path);
-	int sig_close_cdrom(int drv);
+
+	int sig_open_compact_disc(int drv, QString path);
+	int sig_eject_compact_disc_ui(int drv);
 
 	int sig_close_laser_disc(int drv);
-	int sig_close_laserdisc_ui(int drv);
-	int sig_open_laserdisc(int drv, QString path);
+	int sig_close_laser_disc_ui(int drv);
+	int sig_open_laser_disc(int drv, QString path);
 
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);

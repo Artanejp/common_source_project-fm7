@@ -43,20 +43,19 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
 	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT(_open_cart(int, QString)));
-	connect(this, SIGNAL(sig_open_cmt_load(int, QString)), MainWindow, SLOT(do_open_read_cmt(int, QString)));
-	connect(this, SIGNAL(sig_open_cmt_write(int, QString)), MainWindow, SLOT(do_open_write_cmt(int, QString)));
-	connect(this, SIGNAL(sig_open_fd(int, QString)), MainWindow, SLOT(_open_disk(int, QString)));
+
 
 	connect(this, SIGNAL(sig_open_quick_disk(int, QString)), MainWindow, SLOT(_open_quick_disk(int, QString)));
 	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
 	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
 
-	connect(this, SIGNAL(sig_open_cdrom(int, QString)), MainWindow, SLOT(do_open_cdrom(int, QString)));
-	connect(this, SIGNAL(sig_open_laser_disc(int, QString)), MainWindow, SLOT(do_open_laserdisc(int, QString)));
+// ToDo: Will remove due to change messaging flow.
+//	connect(this, SIGNAL(sig_open_fd(int, QString)), MainWindow, SLOT(_open_disk(int, QString)));
+//	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
 
-	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
-
-	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
+//	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
+//	connect(this, SIGNAL(sig_open_cmt_load(int, QString)), MainWindow, SLOT(do_open_read_cmt(int, QString)));
+//	connect(this, SIGNAL(sig_open_cmt_write(int, QString)), MainWindow, SLOT(do_open_write_cmt(int, QString)));
 
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);

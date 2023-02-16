@@ -350,50 +350,47 @@ void EmuThreadClassBase::done_close_quick_disk(int drive)
 	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drive, QString::fromUtf8(""));
 }
 
-void EmuThreadClassBase::do_open_cdrom(int drv, QString path)
+
+void EmuThreadClassBase::sub_close_compact_disc_internal(int drv)
 {
-	if(using_flags->is_use_compact_disc()) {
-		//QMutexLocker _locker(&uiMutex);
-		p_emu->open_compact_disc(drv, path.toLocal8Bit().constData());
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, path);
-	}
-}
-void EmuThreadClassBase::do_eject_cdrom(int drv)
-{
-	if(using_flags->is_use_compact_disc()) {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if((p->is_use_compact_disc()) && (p->get_max_cd() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_compact_disc(drv);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drv, QString::fromUtf8(""));
 	}
 }
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_compact_disc(int drive, QString path)
+
+void EmuThreadClassBase::do_open_compact_disc(int drv, QString path)
 {
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+	if(path.isEmpty()) return;
+	if(path.isNull()) return;
 
-	if(!(using_flags->is_use_compact_disc())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_cd())) return;
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() != nullptr) return;
+	if(!((up->get_max_cd() > drv) && (up->is_use_compact_disc()))) return;
 
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_compact_disc_path[drive], list);
+	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
+	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_compact_disc_dir, __dir, _MAX_PATH - 1);
-
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
-	emit sig_ui_update_compact_disc_list(drive, list);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drive, relpath);
+	p_emu->open_compact_disc(drv, file_path);
 }
-void EmuThreadClassBase::done_close_compact_disc(int drive)
+
+void EmuThreadClassBase::do_eject_compact_disc_ui(int drive)
 {
-	emit sig_ui_close_compact_disc(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, drive, QString::fromUtf8(""));
+	sub_close_compact_disc_internal(drive);
 }
+
+void EmuThreadClassBase::do_eject_compact_disc()
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_laser_disc_internal(drv);
+}
+
 
 void EmuThreadClassBase::sub_close_hard_disk_internal(int drv)
 {

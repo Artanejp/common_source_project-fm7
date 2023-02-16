@@ -231,11 +231,11 @@ protected:
 		key_fifo->clear();
 	};
 	// Thread HOOK.
+	void sub_close_compact_disc_internal(int drv);
 	void sub_close_floppy_disk_internal(int drv);
 	void sub_close_hard_disk_internal(int drv);
-	void sub_close_tape_internal(int drv);
 	void sub_close_laser_disc_internal(int drv);
-
+	void sub_close_tape_internal(int drv);
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClassBase();
@@ -316,8 +316,9 @@ public slots:
 	void do_close_laser_disc();
 	void do_close_laser_disc_ui(int drive);
 
-	void do_eject_cdrom(int drv);
-	void do_open_cdrom(int drv, QString path);
+	void do_eject_compact_disc_ui(int drv);
+	void do_eject_compact_disc();
+	void do_open_compact_disc(int drv, QString path);
 
 	void do_load_binary(int drv, QString path);
 	void do_save_binary(int drv, QString path);
@@ -337,9 +338,6 @@ public slots:
 	// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI (menu_foo[bar]))
 	void done_open_quick_disk(int drive, QString path);
 	void done_close_quick_disk(int drive);
-
-	void done_open_compact_disc(int drive, QString path);
-	void done_close_compact_disc(int drive);
 
 	void done_open_cart(int drive, QString path);
 	void done_close_cart(int drive);

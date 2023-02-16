@@ -258,10 +258,27 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_close_cart(int)), hRunEmu, SLOT(do_close_cart(int)));
 #endif
 #if defined(USE_COMPACT_DISC)
-	connect(this, SIGNAL(sig_open_cdrom(int, QString)), hRunEmu, SLOT(do_open_cdrom(int, QString)));
-	connect(this, SIGNAL(sig_close_cdrom(int)), hRunEmu, SLOT(do_eject_cdrom(int)));
-	//connect(hRunEmu, SIGNAL(sig_change_osd_cdrom(QString)), this, SLOT(do_change_osd_cdrom(QString)));
-	// ToDo: multiple CDs
+	for(int ii = 0; ii < USE_COMPACT_DISC; ii++) {
+		if(ii >= USE_COMPACT_DISC_TMP) break;
+		Menu_CompactDiscClass *mp = menu_CDROM[ii];
+		if(mp != nullptr) {
+			mp->connect_via_emu_thread(hRunEmu);
+		}
+	}
+	connect(this, SIGNAL(sig_open_compact_disc(int, QString)),
+			hRunEmu, SLOT(do_open_compact_disc(int, QString)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_eject_compact_disc_ui(int)),
+			hRunEmu, SLOT(do_eject_compact_disc_ui(int)),
+			Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_compact_disc_insert_history(int, QString)),
+					 this, SLOT(do_ui_compact_disc_insert_history(int, QString)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_compact_disc_eject(int)),
+			this, SLOT(do_ui_eject_compact_disc(int)),
+			Qt::QueuedConnection);
+
 #endif
 #if defined(USE_LASER_DISC)
 	for(int ii = 0; ii < USE_LASER_DISC; ii++) {
@@ -271,10 +288,10 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 			mp->connect_via_emu_thread(hRunEmu);
 		}
 	}
-	connect(this, SIGNAL(sig_open_laserdisc(int, QString)),
+	connect(this, SIGNAL(sig_open_laser_disc(int, QString)),
 			hRunEmu, SLOT(do_open_laser_disc(int, QString)),
 			Qt::QueuedConnection);
-	connect(this, SIGNAL(sig_close_laserdisc_ui(int)),
+	connect(this, SIGNAL(sig_close_laser_disc_ui(int)),
 			hRunEmu, SLOT(do_close_laser_disc_ui(int)),
 			Qt::QueuedConnection);
 
