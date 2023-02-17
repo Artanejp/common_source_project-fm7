@@ -44,18 +44,9 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
 	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT(_open_cart(int, QString)));
 
-
-	connect(this, SIGNAL(sig_open_quick_disk(int, QString)), MainWindow, SLOT(_open_quick_disk(int, QString)));
 	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
 	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
 
-// ToDo: Will remove due to change messaging flow.
-//	connect(this, SIGNAL(sig_open_fd(int, QString)), MainWindow, SLOT(_open_disk(int, QString)));
-//	connect(this, SIGNAL(sig_open_hdd(int, QString)), MainWindow, SLOT(_open_hard_disk(int, QString)));
-
-//	connect(this, SIGNAL(sig_set_b77_num(int, int)), MainWindow, SLOT(set_b77_slot(int, int)));
-//	connect(this, SIGNAL(sig_open_cmt_load(int, QString)), MainWindow, SLOT(do_open_read_cmt(int, QString)));
-//	connect(this, SIGNAL(sig_open_cmt_write(int, QString)), MainWindow, SLOT(do_open_write_cmt(int, QString)));
 
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
@@ -89,16 +80,22 @@ void EmuThreadClass::resetEmu()
 
 void EmuThreadClass::specialResetEmu(int num)
 {
-	if(using_flags.get() == nullptr) return;
-	if(using_flags->is_use_special_reset()) {
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_special_reset()) {
 		p_emu->special_reset(num);
 	}
 }
 
 void EmuThreadClass::loadState()
 {
-	if(using_flags.get() == nullptr) return;
-	if(!(using_flags->is_use_state())) return;
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(!(p->is_use_state())) return;
 
 	if(!lStateFile.isEmpty()) {
 		p_emu->load_state(lStateFile.toLocal8Bit().constData());
@@ -108,8 +105,11 @@ void EmuThreadClass::loadState()
 
 void EmuThreadClass::saveState()
 {
-	if(using_flags.get() == nullptr) return;
-	if(!(using_flags->is_use_state())) return;
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(!(p->is_use_state())) return;
 
 	if(!sStateFile.isEmpty()) {
 		p_emu->save_state(sStateFile.toLocal8Bit().constData());

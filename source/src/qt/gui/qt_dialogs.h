@@ -23,7 +23,7 @@
 
 QT_BEGIN_NAMESPACE
 typedef class DLL_PREFIX CSP_DiskParams : public QObject
-{   
+{
 Q_OBJECT
 Q_DISABLE_COPY(CSP_DiskParams)
 public:
@@ -49,20 +49,19 @@ public:
 	void setNameFilters(QStringList _name) { ext_filter = _name; }
 	QStringList getNameFilters() { return ext_filter; }
 signals:
-	int sig_open_disk(int, QString);
-	int sig_close_disk(int);
+	int sig_open_media(int, QString);
+
 	int sig_open_cart(int, QString);
 	int sig_close_cart(int);
-	int sig_open_cmt(bool, QString);
-	int sig_close_cmt();
+
 	int sig_open_binary_file(int, QString, bool);
-	int sig_open_quick_disk(int, QString);
 public slots:
-	void _open_disk(const QString fname);
+	void _open_media(const QString fname);
+
 	void _open_cart(const QString fname);
-	void _open_cmt(const QString fname);
+
 	void _open_binary(QString);
-	void _open_quick_disk(QString);
+
 private:
 	int drive;
 	bool play;
@@ -117,7 +116,7 @@ class CSP_CreateHardDiskDialog : public QWidget {
 	QSpinBox _sectors;
 	QSpinBox _surfaces;
 	QSpinBox _cylinders;
-	
+
 	QLabel _label_preset_type;
 	QLabel _label_sector_size;
 	QLabel _label_sectors;
@@ -126,7 +125,7 @@ class CSP_CreateHardDiskDialog : public QWidget {
 	QLabel type_label;
 	QLabel _size_label_label;
 	QLabel _size_label;
-	
+
 	QGridLayout layout;
 
 	int media_drv;

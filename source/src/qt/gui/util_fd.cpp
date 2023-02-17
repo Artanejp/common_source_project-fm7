@@ -52,7 +52,12 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 	{
 		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.nfd *.fdi *.hdm *.hd5 *.hd4 *.hdb *.dd9 *.dd6 *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
 		QString desc1 = "Floppy Disk";
-		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Floppy"), using_flags, this, drv, drv_base);
+
+		std::shared_ptr<USING_FLAGS> p = using_flags;
+		if(p_config == nullptr) return;
+		if(p.get() == nullptr) return;
+
+		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Floppy"), p, this, drv, drv_base);
 		menu_fds[drv]->create_pulldown_menu();
 
 		menu_fds[drv]->do_clear_inner_media();

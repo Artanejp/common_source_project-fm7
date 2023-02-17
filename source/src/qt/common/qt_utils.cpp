@@ -248,10 +248,34 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 			Qt::QueuedConnection);
 #endif
 #if defined(USE_QUICK_DISK)
-	connect(this, SIGNAL(sig_write_protect_quickdisk(int, bool)), hRunEmu, SLOT(do_write_protect_quickdisk(int, bool)));
-	connect(this, SIGNAL(sig_open_quickdisk(int, QString)), hRunEmu, SLOT(do_open_quickdisk(int, QString)));
-	connect(this, SIGNAL(sig_close_quickdisk(int)), hRunEmu, SLOT(do_close_quickdisk(int)));
-	//connect(hRunEmu, SIGNAL(sig_change_osd_qd(int, QString)), this, SLOT(do_change_osd_qd(int, QString)));
+	for(int ii = 0; ii < USE_QUICK_DISK; ii++) {
+		if(ii >= USE_QUICK_DISK) break;
+		Menu_QDClass *mp = menu_QDs[ii];
+		if(mp != nullptr) {
+			mp->connect_via_emu_thread(hRunEmu);
+		}
+	}
+
+	connect(this, SIGNAL(sig_write_protect_quick_disk(int, bool)),
+			hRunEmu, SLOT(do_write_protect_quick_disk(int, bool)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_open_quick_disk(int, QString)),
+			hRunEmu, SLOT(do_open_quick_disk(int, QString)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_close_quick_disk_ui(int)),
+			hRunEmu, SLOT(do_close_quick_disk_ui(int)),
+		Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_quick_disk_write_protect(int, quint64)),
+			this, SLOT(do_ui_quick_disk_write_protect(int, quint64)),
+			Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_quick_disk_insert_history(int, QString)),
+					 this, SLOT(do_ui_quick_disk_insert_history(int, QString)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_quick_disk_close(int)),
+			this, SLOT(do_ui_eject_quick_disk(int)),
+			Qt::QueuedConnection);
+
 #endif
 #if defined(USE_CART)
 	connect(this, SIGNAL(sig_open_cart(int, QString)), hRunEmu, SLOT(do_open_cart(int, QString)));

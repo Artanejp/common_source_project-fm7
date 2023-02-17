@@ -26,8 +26,11 @@
 void EmuThreadClassBase::do_start_auto_key(QString ctext)
 {
 	//QMutexLocker _locker(&uiMutex);
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
 
-	if(using_flags->is_use_auto_key()) {
+	if(p->is_use_auto_key()) {
 		QTextCodec *codec = QTextCodec::codecForName("Shift-Jis");
 		QByteArray array;
 		QVector<uint> ucs4_src = ctext.toUcs4();
@@ -69,13 +72,20 @@ void EmuThreadClassBase::do_stop_auto_key(void)
 	//QMutexLocker _locker(&uiMutex);
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,
 	//					  "AutoKey: stop\n");
-	if(using_flags->is_use_auto_key()) {
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_auto_key()) {
 		p_emu->stop_auto_key();
 	}
 }
 
 void EmuThreadClassBase::do_write_protect_floppy_disk(int drv, bool flag)
 {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
 	//QMutexLocker _locker(&uiMutex);
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -100,6 +110,9 @@ void EmuThreadClassBase::do_close_floppy_disk_ui(int drive)
 
 void EmuThreadClassBase::sub_close_floppy_disk_internal(int drv)
 {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
 	//QMutexLocker _locker(&uiMutex);
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -113,6 +126,8 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 {
 	if(path.isEmpty()) return;
 	if(path.isNull()) return;
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
 
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -120,6 +135,7 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
+
 
 	p_emu->open_floppy_disk(drv, file_path, bank);
 
@@ -138,13 +154,17 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 
 void EmuThreadClassBase::do_select_floppy_disk_d88(int drive, int slot)
 {
+	if(drive < 0) return;
 	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(!((p->is_use_fd()) && (p->get_max_drive() > drive))) return;
 
 	int bank_num = p_emu->d88_file[drive].bank_num;
 	if(bank_num <= 0) return;
 
-	std::shared_ptr<USING_FLAGS>p = using_flags;
-	if(p.get() == nullptr) return;
 	if(p->get_max_d88_banks() <= slot) slot = p->get_max_d88_banks() - 1;
 	if(slot < 0) return;
 	if(bank_num <= slot) return;
@@ -158,11 +178,14 @@ void EmuThreadClassBase::do_select_floppy_disk_d88(int drive, int slot)
 
 void EmuThreadClassBase::do_play_tape(int drv, QString name)
 {
+	if(name.isEmpty()) return;
+	if(drv < 0) return;
 	if(p_emu == nullptr) return;
-	std::shared_ptr<USING_FLAGS>p = using_flags;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 
-	if(p->is_use_tape()) {
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->play_tape(drv, name.toLocal8Bit().constData());
 	}
@@ -170,7 +193,14 @@ void EmuThreadClassBase::do_play_tape(int drv, QString name)
 
 void EmuThreadClassBase::do_rec_tape(int drv, QString name)
 {
-	if(using_flags->is_use_tape()) {
+	if(name.isEmpty()) return;
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->rec_tape(drv, name.toLocal8Bit().constData());
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
@@ -178,7 +208,13 @@ void EmuThreadClassBase::do_rec_tape(int drv, QString name)
 }
 void EmuThreadClassBase::sub_close_tape_internal(int drv)
 {
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_tape(drv);
 		//emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, QString::fromUtf8(""));
@@ -200,9 +236,15 @@ void EmuThreadClassBase::do_cmt_wave_shaper(bool stat)
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
 	// ToDo: Need update config?
-	if(p_config != nullptr) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+	if(p_config == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		p_config->wave_shaper[drv] = stat;
 	}
 }
@@ -213,7 +255,14 @@ void EmuThreadClassBase::do_cmt_direct_load_from_mzt(bool stat)
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
 	// ToDo: limit drive.
-	if(p_config != nullptr) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+	if(p_config == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		p_config->direct_load_mzt[drv] = stat;
 	}
 }
@@ -224,8 +273,13 @@ void EmuThreadClassBase::do_cmt_push_play()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_play(drv);
 	}
@@ -237,8 +291,13 @@ void EmuThreadClassBase::do_cmt_push_stop()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_stop(drv);
 	}
@@ -250,8 +309,13 @@ void EmuThreadClassBase::do_cmt_push_fast_forward()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_fast_forward(drv);
 	}
@@ -263,8 +327,13 @@ void EmuThreadClassBase::do_cmt_push_fast_rewind()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->push_fast_rewind(drv);
 	}
@@ -276,8 +345,13 @@ void EmuThreadClassBase::do_cmt_push_apss_forward()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		////QMutexLocker _locker(&uiMutex);
 		p_emu->push_apss_forward(drv);
 	}
@@ -289,65 +363,73 @@ void EmuThreadClassBase::do_cmt_push_apss_rewind()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
-	// ToDo: limit drive.
-	if(using_flags->is_use_tape()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_tape()) && (p->get_max_tape() > drv)) {
 		////QMutexLocker _locker(&uiMutex);
 		p_emu->push_apss_rewind(drv);
 	}
 }
 
 // QuickDisk
-void EmuThreadClassBase::do_write_protect_quickdisk(int drv, bool flag)
+void EmuThreadClassBase::do_write_protect_quick_disk(int drv, bool flag)
 {
-	if(using_flags->is_use_qd()) {
-		////QMutexLocker _locker(&uiMutex);
-		//p_emu->write_protect_Qd(drv, flag);
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+
+	if((p->get_max_qd() > drv) && (p->is_use_qd())) {
+		p_emu->is_quick_disk_protected(drv, flag);
 	}
 }
-
-void EmuThreadClassBase::do_close_quickdisk(int drv)
+void EmuThreadClassBase::do_close_quick_disk()
 {
-	if(using_flags->is_use_qd()) {
-		//QMutexLocker _locker(&uiMutex);
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_quick_disk_internal(drv);
+}
+
+void EmuThreadClassBase::do_close_quick_disk_ui(int drive)
+{
+	sub_close_quick_disk_internal(drive);
+}
+
+void EmuThreadClassBase::sub_close_quick_disk_internal(int drv)
+{
+	//QMutexLocker _locker(&uiMutex);
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+
+	if((p->get_max_qd() > drv) && (p->is_use_qd())) {
 		p_emu->close_quick_disk(drv);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, QString::fromUtf8(""));
 	}
 }
 
-void EmuThreadClassBase::do_open_quickdisk(int drv, QString path)
+void EmuThreadClassBase::do_open_quick_disk(int drv, QString path)
 {
-	if(using_flags->is_use_qd()) {
-		//QMutexLocker _locker(&uiMutex);
-		p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drv, path);
-	}
-}
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_quick_disk(int drive, QString path)
-{
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
+	if(path.isEmpty()) return;
+	if(path.isNull()) return;
+	if(drv < 0) return;
 
-	if(!(using_flags->is_use_qd())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_qd())) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!((p->get_max_qd() > drv) && (p->is_use_qd()))) return;
+	if(p_emu == nullptr) return;
 
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_quick_disk_path[drive], list);
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_quick_disk_dir, __dir, _MAX_PATH - 1);
+	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
+	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
-	emit sig_ui_update_quick_disk_list(drive, list);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drive, relpath);
-}
-void EmuThreadClassBase::done_close_quick_disk(int drive)
-{
-	emit sig_ui_close_quick_disk(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, drive, QString::fromUtf8(""));
+	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
 }
 
 
@@ -355,6 +437,8 @@ void EmuThreadClassBase::sub_close_compact_disc_internal(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
 
 	if((p->is_use_compact_disc()) && (p->get_max_cd() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
@@ -368,6 +452,8 @@ void EmuThreadClassBase::do_open_compact_disc(int drv, QString path)
 {
 	if(path.isEmpty()) return;
 	if(path.isNull()) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
 
 	std::shared_ptr<USING_FLAGS>up = using_flags;
 	if(up.get() == nullptr) return;
@@ -398,6 +484,9 @@ void EmuThreadClassBase::sub_close_hard_disk_internal(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+
 	if((p->get_max_hdd() > drv) && (p->is_use_hdd())) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_hard_disk(drv);
@@ -421,8 +510,10 @@ void EmuThreadClassBase::do_open_hard_disk(int drv, QString path)
 
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
 
-	if(p->is_use_hdd()) {
+	if((p->is_use_hdd()) && (p->get_max_hdd() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 		if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
@@ -432,7 +523,12 @@ void EmuThreadClassBase::do_open_hard_disk(int drv, QString path)
 
 void EmuThreadClassBase::do_close_cart(int drv)
 {
-	if(using_flags->is_use_cart()) {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+
+	if((p->is_use_cart()) && (drv < p->get_max_cart())) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_cart(drv);
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, QString::fromUtf8(""));
@@ -441,41 +537,19 @@ void EmuThreadClassBase::do_close_cart(int drv)
 
 void EmuThreadClassBase::do_open_cart(int drv, QString path)
 {
-	if(using_flags->is_use_cart()) {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(path.isEmpty()) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+
+	if((p->is_use_cart()) && (drv < p->get_max_cart())) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->open_cart(drv, path.toLocal8Bit().constData());
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, path);
 	}
 }
 
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_cart(int drive, QString path)
-{
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
-
-	if(!(using_flags->is_use_cart())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_cart())) return;
-
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_cart_path[drive], list);
-
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_cart_dir, __dir, _MAX_PATH - 1);
-
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
-	emit sig_ui_update_cart_list(drive, list);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drive, relpath);
-}
-void EmuThreadClassBase::done_close_cart(int drive)
-{
-	emit sig_ui_close_cart(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drive, QString::fromUtf8(""));
-}
 
 void EmuThreadClassBase::do_close_laser_disc_ui(int drive)
 {
@@ -488,6 +562,7 @@ void EmuThreadClassBase::do_close_laser_disc()
 	if(cp == nullptr) return;
 	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
 	int drv = tmp.drive;
+
 	sub_close_laser_disc_internal(drv);
 }
 
@@ -495,6 +570,8 @@ void EmuThreadClassBase::sub_close_laser_disc_internal(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
 	if((p->is_use_laser_disc()) && (p->get_max_ld() > drv)) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_laser_disc(drv);
@@ -506,6 +583,8 @@ void EmuThreadClassBase::do_open_laser_disc(int drv, QString path)
 {
 	if(path.isEmpty()) return;
 	if(path.isNull()) return;
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
 
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -519,53 +598,38 @@ void EmuThreadClassBase::do_open_laser_disc(int drv, QString path)
 
 void EmuThreadClassBase::do_load_binary(int drv, QString path)
 {
-	if(using_flags->is_use_binary_file()) {
-		//QMutexLocker _locker(&uiMutex);
-		p_emu->load_binary(drv, path.toLocal8Bit().constData());
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, path);
-	}
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!((p->get_max_binary() > drv) && (p->is_use_binary_file()))) return;
+
+	//QMutexLocker _locker(&uiMutex);
+	p_emu->load_binary(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, path);
 }
 
 void EmuThreadClassBase::do_save_binary(int drv, QString path)
 {
-	if(using_flags->is_use_binary_file()) {
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!((p->get_max_binary() > drv) && (p->is_use_binary_file()))) return;
+
 		//QMutexLocker _locker(&uiMutex);
-		p_emu->save_binary(drv, path.toLocal8Bit().constData());
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
-	}
-}
-
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_binary(int drive, QString path)
-{
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
-
-	if(!(using_flags->is_use_binary_file())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_binary())) return;
-
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drive], list);
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_binary_dir, __dir, _MAX_PATH - 1);
-
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
-	emit sig_ui_update_binary_list(drive, list);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drive, relpath);
-}
-void EmuThreadClassBase::done_close_binary(int drive)
-{
-	emit sig_ui_close_binary(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drive, QString::fromUtf8(""));
+	p_emu->save_binary(drv, path.toLocal8Bit().constData());
+	emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, drv, QString::fromUtf8(""));
 }
 
 void EmuThreadClassBase::do_write_protect_bubble_casette(int drv, bool flag)
 {
-	if(using_flags->is_use_bubble()) {
+	if(p_emu == nullptr) return;
+	if(drv < 0) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_bubble()) && (drv < p->get_max_bubble())) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->is_bubble_casette_protected(drv, flag);
 	}
@@ -573,7 +637,12 @@ void EmuThreadClassBase::do_write_protect_bubble_casette(int drv, bool flag)
 
 void EmuThreadClassBase::do_close_bubble_casette(int drv)
 {
-	if(using_flags->is_use_bubble()) {
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if((p->is_use_bubble()) && (drv < p->get_max_bubble())) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->close_bubble_casette(drv);
 		p_emu->b77_file[drv].bank_num = 0;
@@ -584,7 +653,13 @@ void EmuThreadClassBase::do_close_bubble_casette(int drv)
 
 void EmuThreadClassBase::do_open_bubble_casette(int drv, QString path, int bank)
 {
-	if(!(using_flags->is_use_bubble())) return;
+	if(path.isEmpty()) return;
+	if(drv < 0) return;
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(!((p->is_use_bubble()) && (drv < p->get_max_bubble()))) return;
 
 	//QMutexLocker _locker(&uiMutex);
 	QByteArray localPath = path.toLocal8Bit();
@@ -599,7 +674,7 @@ void EmuThreadClassBase::do_open_bubble_casette(int drv, QString path, int bank)
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
-				while(file_offset + 0x2b0 <= file_size && p_emu->b77_file[drv].bank_num < using_flags->get_max_b77_banks()) {
+				while(file_offset + 0x2b0 <= file_size && p_emu->b77_file[drv].bank_num < p->get_max_b77_banks()) {
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 					char tmp[18];
 					memset(tmp, 0x00, sizeof(tmp));
@@ -631,98 +706,43 @@ void EmuThreadClassBase::do_open_bubble_casette(int drv, QString path, int bank)
 	emit sig_update_recent_bubble(drv);
 
 }
-// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI)
-void EmuThreadClassBase::done_open_bubble(int drive, QString path)
-{
-	if((using_flags.get() == nullptr) || (p_config == nullptr)) return;
-
-	if(!(using_flags->is_use_bubble())) return;
-	if((drive < 0) || (drive >= using_flags->get_max_bubble())) return;
-
-	QStringList list;
-	_TCHAR path_shadow[_MAX_PATH] = {0};
-	strncpy(path_shadow, path.toLocal8Bit().constData(), _MAX_PATH - 1);
-	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drive], list);
-
-	const _TCHAR* __dir = get_parent_dir((const _TCHAR *)path_shadow);
-	strncpy(p_config->initial_bubble_casette_dir, __dir, _MAX_PATH - 1);
-
-	emit sig_ui_update_bubble_casette_list(drive, list);
-	emit sig_ui_clear_b77(drive);
-
-	QString relpath = QString::fromUtf8("");
-	if(strlen(&(__dir[0])) > 1) {
-		relpath = QString::fromLocal8Bit(&(__dir[1]));
-	}
-	bool _f = check_file_extension(path_shadow, ".b77");
-	if(_f) {
-		if(p_emu != nullptr) {
-			int slot = p_emu->b77_file[drive].cur_bank;
-			for(int i = 0; i < p_emu->b77_file[drive].bank_num; i++) {
-				if(i >= 16) break;
-				_TCHAR tmpname[128] = {0};
-				my_strcpy_s(tmpname, 127, p_emu->b77_file[drive].bubble_name[i]);
-				QString tmps = QString::fromLocal8Bit(tmpname);
-				emit sig_ui_update_b77(drive, i, tmps);
-				if(i == slot) {
-					emit sig_ui_select_b77(drive, i);
-					relpath = tmps;
-				}
-			}
-		}
-	}
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, relpath);
-}
-
-void EmuThreadClassBase::done_close_bubble(int drive)
-{
-	emit sig_ui_close_bubble_casette(drive);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, QString::fromUtf8(""));
-}
-
-void EmuThreadClassBase::done_select_b77(int drive, int slot)
-{
-	if(p_emu == nullptr) return;
-
-	if(slot < 0) return;
-	if(slot >= 16) return;
-	if(p_emu->b77_file[drive].bank_num < 0) return;
-	if(p_emu->b77_file[drive].bank_num >= 64) return;
-	if(p_emu->b77_file[drive].bank_num <= slot) return;
-	p_emu->b77_file[drive].cur_bank = slot;
-	_TCHAR tmpname[128] = {0};
-	my_strcpy_s(tmpname, 127, p_emu->b77_file[drive].bubble_name[slot]);
-	QString tmps = QString::fromLocal8Bit(tmpname);
-	emit sig_ui_select_b77(drive, slot);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drive, tmps);
-}
-
 // Debugger
 
 void EmuThreadClassBase::do_close_debugger(void)
 {
-	if(using_flags->is_use_debugger()) {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_debugger()) {
 		emit sig_quit_debugger();
 	}
 }
 
 void EmuThreadClassBase::set_romakana(bool flag)
 {
-	if(using_flags->is_use_auto_key()) {
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_auto_key()) {
 		p_emu->set_auto_key_char(flag ? 1 : 0);
 	}
 }
 
 void EmuThreadClassBase::moved_mouse(double x, double y, double globalx, double globaly)
 {
-	if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+	if(p_osd == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_one_board_computer() || (p->get_max_button() > 0)) {
 		mouse_x = x;
 		mouse_y = y;
 //		bool flag = p_osd->is_mouse_enabled();
 //		if(!flag) return;
 //		printf("Mouse Moved: %g, %g\n", x, y);
 //		p_osd->set_mouse_pointer(floor(x), floor(y));
-	} else if(using_flags->is_use_mouse()) {
+	} else if(p->is_use_mouse()) {
 //		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
 //		mouse_x = (int)(floor((globalx * factor) / 8192.0));
 //		mouse_y = (int)(floor((globaly * factor) / 8192.0));
@@ -739,9 +759,13 @@ void EmuThreadClassBase::moved_mouse(double x, double y, double globalx, double 
 void EmuThreadClassBase::button_pressed_mouse_sub(Qt::MouseButton button)
 {
 
-	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
+	if(p_osd == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_one_board_computer() || p->is_use_mouse() || (p->get_max_button() > 0)) {
 		int stat = p_osd->get_mouse_button();
-		bool flag = (p_osd->is_mouse_enabled() || using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0));
+		bool flag = (p_osd->is_mouse_enabled() || p->is_use_one_board_computer() || (p->get_max_button() > 0));
 		switch(button) {
 		case Qt::LeftButton:
 			stat |= 0x01;
@@ -765,7 +789,11 @@ void EmuThreadClassBase::button_pressed_mouse_sub(Qt::MouseButton button)
 void EmuThreadClassBase::button_released_mouse_sub(Qt::MouseButton button)
 {
 
-	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse() || (using_flags->get_max_button() > 0)) {
+	if(p_osd == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_one_board_computer() || p->is_use_mouse() || (p->get_max_button() > 0)) {
 		int stat = p_osd->get_mouse_button();
 		switch(button) {
 		case Qt::LeftButton:
@@ -791,11 +819,13 @@ void EmuThreadClassBase::do_notify_power_off()
 
 void EmuThreadClassBase::do_set_display_size(int w, int h, int ww, int wh)
 {
+	if(p_emu == nullptr) return;
 	p_emu->suspend();
 	p_emu->set_host_window_size(w, h, true);
 }
 
 void EmuThreadClassBase::dec_message_count(void)
 {
+	if(p_emu == nullptr) return;
 	p_emu->message_count--;
 }

@@ -11,13 +11,12 @@
 #include "menu_quickdisk.h"
 
 #include "qt_dialogs.h"
-//#include "emu.h"
+#include "emu_thread_tmpl.h"
 
 Menu_QDClass::Menu_QDClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
-	QString tmps;
 	use_write_protect = true;
-	tmps.setNum(drv);
+	use_d88_menus = false;
 }
 
 Menu_QDClass::~Menu_QDClass()
@@ -28,21 +27,23 @@ void Menu_QDClass::create_pulldown_menu_device_sub(void)
 {
 }
 
+void Menu_QDClass::connect_via_emu_thread(EmuThreadClassBase *p)
+{
+	if(p == nullptr) return;
+	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_close_quick_disk()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p, SLOT(do_write_protect_quick_disk(int, bool)), Qt::QueuedConnection);
+}
 
 void Menu_QDClass::connect_menu_device_sub(void)
 {
-	this->addSeparator();
-   
-   	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_quick_disk(int, QString)));
-	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_Qd(int)));
-	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(write_protect_Qd(int, bool)));	
+   	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(do_open_quick_disk_ui(int, QString)));
+
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_quick_disk(int, int)));
+	//connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_emu_write_protect_quick_disk(int, bool)));
+
 }
 
 void Menu_QDClass::retranslate_pulldown_menu_device_sub(void)
 {
 
 }
-
-
-

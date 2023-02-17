@@ -53,7 +53,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 		is_shared_glcontext = true;
 //		printf("Context sharing succeeded.ADDR=%08x GLES=%s\n", glContext, (glContext->isOpenGLES()) ? "YES" : "NO");
 	}
-	
+
 	bRunThread = true;
 	thread_id = (Qt::HANDLE)0;
 	queue_fixed_cpu = -1;
@@ -67,7 +67,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	calc_message = true;
 	mouse_flag = false;
 	vMovieQueue.clear();
-	
+
 	drawCond = new QWaitCondition();
 //	keyMutex = new QMutex(QMutex::Recursive);
 
@@ -91,7 +91,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 		}
 	}
 	QMutexLocker _n(&keyMutex);
-	
+
 
 	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
@@ -100,7 +100,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 };
 
 EmuThreadClassBase::~EmuThreadClassBase() {
-	
+
 	delete drawCond;
 
 	key_fifo->release();
@@ -115,7 +115,7 @@ void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
 	volume_balance[num] = balance;
 	right = level + balance;
 	left  = level - balance;
-	p_config->sound_volume_l[num] = left;	
+	p_config->sound_volume_l[num] = left;
 	p_config->sound_volume_r[num] = right;
 }
 
@@ -126,7 +126,7 @@ void EmuThreadClassBase::calc_volume_from_level(int num, int level)
 	volume_avg[num] = level;
 	right = level + balance;
 	left  = level - balance;
-	p_config->sound_volume_l[num] = left;	
+	p_config->sound_volume_l[num] = left;
 	p_config->sound_volume_r[num] = right;
 }
 
@@ -140,7 +140,7 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 	if(using_flags.get() == nullptr) return;
 	if(using_flags->is_use_mouse()) {
 		button_pressed_mouse_sub(button);
-	} else {		
+	} else {
 		if(using_flags->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
@@ -249,7 +249,7 @@ void EmuThreadClassBase::sample_access_drv(void)
 	if(using_flags.get() == nullptr) return;
 	if(using_flags->is_use_qd()) get_qd_string();
 	if(using_flags->is_use_fd()) get_fd_string();
-	if(using_flags->is_use_hdd()) get_hdd_string();	
+	if(using_flags->is_use_hdd()) get_hdd_string();
 	if(using_flags->is_use_tape() && !using_flags->is_tape_binary_only()) get_tape_string();
 	if(using_flags->is_use_compact_disc()) get_cd_string();
 	if(using_flags->is_use_bubble()) get_bubble_string();
@@ -297,7 +297,7 @@ void EmuThreadClassBase::do_special_reset(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if(num < 0) return;
 	if(using_flags.get() != nullptr) {
 		if(num >= using_flags->get_use_special_reset_num()) return;
@@ -311,7 +311,7 @@ void EmuThreadClassBase::do_load_state(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString s = cp->data().toString();
-	
+
 	lStateFile = s;
 	bLoadStateReq = true;
 }
@@ -321,7 +321,7 @@ void EmuThreadClassBase::do_save_state(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString s = cp->data().toString();
-	
+
 	sStateFile = s;
 	bSaveStateReq = true;
 }
@@ -463,7 +463,7 @@ void EmuThreadClassBase::print_framerate(int frames)
 			QString message;
 			//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 
-			if((poweroff_notified) || (p_emu == nullptr)) { 	 
+			if((poweroff_notified) || (p_emu == nullptr)) {
 				my_stprintf_s(buf, 255, _T("*Power OFF*"));
 			} else if(now_skip) {
 				int ratio = (int)(100.0 * (((double)total_frames / get_emu_frame_rate())  * 2.0) + 0.5);
@@ -487,12 +487,12 @@ void EmuThreadClassBase::print_framerate(int frames)
 				emit window_title_changed(message);
 				update_fps_time += 1000;
 				total_frames = draw_frames = 0;
-				
+
 			}
 			if(update_fps_time <= current_time) {
 				update_fps_time = current_time + 1000;
 			}
-			calc_message = false;  
+			calc_message = false;
 		} else {
 			calc_message = true;
 		}
@@ -563,7 +563,7 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 
 	if(!(using_flags->is_use_fd())) return QString::fromUtf8("");
 	if(drive < 0) return QString::fromUtf8("");
-	
+
 	if(drive < using_flags->get_max_drive()) {
 		QMutexLocker _locker(&uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].path)));
@@ -708,7 +708,7 @@ void EmuThreadClassBase::get_qd_string(void)
 		}
 		lamp_stat = false;
 	}
-}	
+}
 
 void EmuThreadClassBase::get_tape_string()
 {
@@ -731,7 +731,7 @@ void EmuThreadClassBase::get_tape_string()
 					tmpstr = QString::fromUtf8("<FONT COLOR=RED><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
 				} else {
 					tmpstr = QString::fromUtf8("<FONT COLOR=GREEN><B>") + tmpstr + QString::fromUtf8("</B></FONT>");
-				}					
+				}
 			}
 		} else {
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>   EMPTY   </FONT>");
@@ -758,10 +758,10 @@ void EmuThreadClassBase::get_hdd_string(void)
 	for(int i = 0; i < (int)using_flags->get_max_hdd(); i++) {
 		if(p_emu->is_hard_disk_inserted(i)) {
 			if((access_drv & (1 << i)) != 0) {
-				alamp = QString::fromUtf8("<FONT COLOR=LIME>■</FONT>");  // 
+				alamp = QString::fromUtf8("<FONT COLOR=LIME>■</FONT>");  //
 				lamp_stat = true;
 			} else {
-				alamp = QString::fromUtf8("<FONT COLOR=BLUE>□</FONT>");  // 
+				alamp = QString::fromUtf8("<FONT COLOR=BLUE>□</FONT>");  //
 			}
 		} else {
 			alamp = QString::fromUtf8("×");
@@ -772,7 +772,7 @@ void EmuThreadClassBase::get_hdd_string(void)
 			hdd_text[i] = tmpstr;
 		}
 		if(alamp != hdd_lamp[i]) {
-			emit sig_set_access_lamp(i + 16, lamp_stat); 
+			emit sig_set_access_lamp(i + 16, lamp_stat);
 			emit sig_change_access_lamp(CSP_DockDisks_Domain_HD, i, alamp);
 			hdd_lamp[i] = alamp;
 		}
@@ -793,7 +793,7 @@ void EmuThreadClassBase::get_cd_string(void)
 				tmpstr = QString::fromUtf8("<FONT COLOR=DEEPSKYBLUE>●</FONT>");  // U+1F4BF OPTICAL DISC
 			} else {
 				tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>○</FONT>");  // U+1F4BF OPTICAL DISC
-			}				
+			}
 		} else {
 			tmpstr = QString::fromUtf8("×");
 		}
@@ -840,7 +840,7 @@ double EmuThreadClassBase::get_emu_frame_rate(void)
 int EmuThreadClassBase::get_message_count(void)
 {
 	if(using_flags.get() == nullptr) return 0;
-	return p_emu->message_count;	
+	return p_emu->message_count;
 }
 
 const _TCHAR *EmuThreadClassBase::get_emu_message(void)

@@ -2,7 +2,7 @@
  * Qt / Tape Menu, Utilities
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
  * License : GPLv2
- *   History : 
+ *   History :
  *     Jan 13 2015 : Start
  */
 #include <QApplication>
@@ -39,7 +39,7 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 		QString tmps;
 		action_group_save_recent = new QActionGroup(p_wid);
 		action_group_save_recent->setExclusive(true);
-		
+
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
 			action_recent_save_list[ii] = new Action_Control(p_wid, using_flags);
@@ -49,14 +49,14 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 			QVariant _tmpv;
 			_tmpv.setValue(tmp);
 			action_recent_save_list[ii]->setData(_tmpv);
-			
+
 			action_recent_save_list[ii]->setText(tmps);
 			action_group_save_recent->addAction(action_recent_save_list[ii]);
 			if(!tmps.isEmpty()) {
 				action_recent_save_list[ii]->setVisible(true);
 			} else {
 				action_recent_save_list[ii]->setVisible(false);
-			}			
+			}
 		}
 	}
 }
@@ -73,9 +73,9 @@ void Menu_BinaryClass::do_update_histories(QStringList lst)
 {
 	int ii;
 	QString tmps;
-	
+
 	Menu_MetaClass::do_update_histories(lst);
-	
+
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
 		tmps = QString::fromUtf8("");
 		if(ii < lst.size()) tmps = lst.value(ii);
@@ -84,7 +84,7 @@ void Menu_BinaryClass::do_update_histories(QStringList lst)
 			action_recent_save_list[ii]->setVisible(true);
 		} else {
 			action_recent_save_list[ii]->setVisible(false);
-		}			
+		}
 	}
 }
 
@@ -115,8 +115,8 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 void Menu_BinaryClass::do_open_save_dialog()
 {
 	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-	
-	if(initial_dir.isEmpty()) { 
+
+	if(initial_dir.isEmpty()) {
 		QDir dir;
 		char app[PATH_MAX];
 		initial_dir = dir.currentPath();
@@ -132,17 +132,17 @@ void Menu_BinaryClass::do_open_save_dialog()
 	dlg->setDirectory(initial_dir);
 	dlg->setNameFilters(ext_filter);
 
-	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString))); 
-	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)),
+	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_media(QString)));
+	connect(dlg->param, SIGNAL(sig_open_media(int, QString)),
 					 this, SLOT(do_open_media_save(int, QString)));
-	
-	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
-	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection); 
-	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection); 
-	
+
+	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);
+	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
+	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
+
 	dialogs.append(dlg);
 	dlg->setModal(false);
-	
+
 	dlg->show();
 	//dlg.exec();
 	return;
@@ -158,4 +158,3 @@ void Menu_BinaryClass::retranslate_pulldown_menu_device_sub(void)
 	//menu_history_save->setTitle(QApplication::translate("MenuMedia", "Recently Saved", 0));
 	menu_history->setTitle(QApplication::translate("MenuMedia", "Recently Loaded", 0));
 }
-

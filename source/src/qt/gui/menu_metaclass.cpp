@@ -220,14 +220,15 @@ void Menu_MetaClass::do_open_dialog()
 	do_open_dialog_common(dlg);
 	emit sig_show();
 }
+
 void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 {
 	// ToDo : Load State of Qt.
 	if(initial_dir.isEmpty()) {
 		QDir dir;
-		char app[PATH_MAX];
+		char app[_MAX_PATH];
 		initial_dir = dir.currentPath();
-		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
+		strncpy(app, initial_dir.toLocal8Bit().constData(), _MAX_PATH - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 
@@ -253,8 +254,8 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	dlg->setModal(false);
 
 	// ToDo: Be more sotisficated .
-	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_disk(QString)));
-	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
+	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_media(QString)));
+	connect(dlg->param, SIGNAL(sig_open_media(int, QString)), this, SLOT(do_open_media(int, QString)), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);

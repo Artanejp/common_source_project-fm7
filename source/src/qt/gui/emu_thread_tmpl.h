@@ -235,6 +235,7 @@ protected:
 	void sub_close_floppy_disk_internal(int drv);
 	void sub_close_hard_disk_internal(int drv);
 	void sub_close_laser_disc_internal(int drv);
+	void sub_close_quick_disk_internal(int drv);
 	void sub_close_tape_internal(int drv);
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
@@ -305,9 +306,10 @@ public slots:
 	void do_cmt_direct_load_from_mzt(bool stat);
 	void do_cmt_wave_shaper(bool stat);
 
-	void do_write_protect_quickdisk(int drv, bool flag);
-	void do_close_quickdisk(int drv);
-	void do_open_quickdisk(int drv, QString path);
+	void do_write_protect_quick_disk(int drv, bool flag);
+	void do_close_quick_disk();
+	void do_close_quick_disk_ui(int drv);
+	void do_open_quick_disk(int drv, QString path);
 
 	void do_close_cart(int drv);
 	void do_open_cart(int drv, QString path);
@@ -326,28 +328,13 @@ public slots:
 	void do_write_protect_bubble_casette(int drv, bool flag);
 	void do_close_bubble_casette(int);
 	void do_open_bubble_casette(int, QString, int);
+	void do_select_floppy_disk_d88(int drive, int slot);
 
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
 	void set_romakana(bool flag);
 	void do_close_debugger(void);
 
-
-	void do_select_floppy_disk_d88(int drive, int slot);
-
-	// Signal from EMU:: -> OSD:: -> EMU_THREAD (-> GUI (menu_foo[bar]))
-	void done_open_quick_disk(int drive, QString path);
-	void done_close_quick_disk(int drive);
-
-	void done_open_cart(int drive, QString path);
-	void done_close_cart(int drive);
-
-	void done_open_binary(int drive, QString path);
-	void done_close_binary(int drive);
-
-	void done_open_bubble(int drive, QString path);
-	void done_close_bubble(int drive);
-	void done_select_b77(int drive, int slot);
 
 signals:
 	int message_changed(QString);
@@ -363,6 +350,8 @@ signals:
 	int sig_change_osd(int, int, QString);
 	int sig_change_access_lamp(int, int, QString);
 	int sig_change_virtual_media(int, int, QString);
+
+	int sig_ui_update_config();
 
 	int sig_update_recent_bubble(int);
 	int sig_change_osd_bubble(int, QString);

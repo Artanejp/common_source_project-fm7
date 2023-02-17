@@ -82,19 +82,19 @@ protected:
 	// misc
 	int sound_frequency, sound_latency;
 	int sound_rate, sound_samples;
-	
+
 	int cpu_type;
 	uint32_t dipswitch;
 	int sound_type;
 	int printer_type;
 	int serial_type;
-	
+
 	bool now_suspended;
 	// input
 	FIFO* auto_key_buffer;
 	int auto_key_phase, auto_key_shift;
 	bool shift_pressed;
-	
+
 	uint32_t joy_status[4];
 
 	typedef struct {
@@ -103,7 +103,7 @@ protected:
 		int bank;
 		int wait_count;
 	} media_status_t;
-	
+
 	media_status_t cart_status[16];
 	media_status_t floppy_disk_status[16];
 	media_status_t quick_disk_status[16];
@@ -138,25 +138,25 @@ public:
 		memset(&debugger_thread_param, 0x00, sizeof(debugger_thread_t));
 
 		memset(app_path, 0x00, sizeof(app_path));
-		
+
 		sound_frequency = 44100;
 		sound_latency = 100;
 		sound_rate = 44100;
 		sound_samples = 4410;
-	
+
 		cpu_type = 0;
 		dipswitch = 0x00000000;
 		sound_type = 0;
 		printer_type = 0;
 		serial_type = 0;
-		
+
 		now_suspended = false;
-		
+
 		auto_key_buffer = NULL;
 		auto_key_phase = 0;
 		auto_key_shift = 0;
 		shift_pressed = false;
-		
+
 		memset(joy_status, 0x00, sizeof(joy_status));
 		for(int i = 0; i < 16; i++) {
 			memset(&(cart_status[i]), 0x00, sizeof(media_status_t));
@@ -168,11 +168,11 @@ public:
 			memset(&(laser_disc_status[i]), 0x00, sizeof(media_status_t));
 			memset(&(bubble_casette_status[i]), 0x00, sizeof(media_status_t));
 		}
-		
+
 #if defined(OSD_QT)
 		csp_logger = p_logger;
 		debugger_thread_id = (pthread_t)0;
-		
+
 		// ToDo: Multiple debugger 20221105 K.O
 		hDebugger.reset();
 #elif defined(OSD_WIN32)
@@ -180,7 +180,7 @@ public:
 #else
 		debugger_thread_id = 0;
 #endif
-		
+
 		message_count = 0;
 		debug_log = NULL;
 	}
@@ -203,7 +203,7 @@ public:
 	virtual int get_frame_interval() { return 1; }
 	virtual bool is_frame_skippable() { return false; }
 	virtual const bool is_use_state() { return false; }
-	
+
 	virtual int run() { return 1; }
 
 	virtual void reset() {}
@@ -211,19 +211,19 @@ public:
 	virtual void notify_power_off() {}
 	virtual void power_off() {}
 	virtual void suspend() {}
-	
+
 	// around locking VM, these are useful for multi-threaded environment.
  	virtual void lock_vm() {}
  	virtual void unlock_vm() {}
 	virtual void force_unlock_vm() {}
 	virtual bool is_vm_locked() { return false; }
-	
+
 	// input
 	// around Keyboard.
 	virtual void key_down(int code, bool extended, bool repeat) {}
 	virtual void key_up(int code, bool extended) {}
 	virtual void key_char(char code) {}
-	
+
 	virtual bool get_caps_locked() { return false; }
 	virtual bool get_kana_locked() { return false; }
 	virtual void key_lost_focus() {}
@@ -241,7 +241,7 @@ public:
 	// Joystick buffer should be with locking and sampling.
 	virtual const uint32_t* get_joy_buffer() { return dummy_joy_buffer; }
 	virtual void release_joy_buffer(const uint32_t* ptr) { };
-	
+
 	// Mouse buffer should be with locking and sampling.
 	virtual const int32_t* get_mouse_buffer() { return dummy_mouse_buffer; }
 	virtual const int32_t  get_mouse_button() { return 0; }
@@ -269,7 +269,7 @@ public:
 	virtual int draw_screen() { return 1; }
 	virtual scrntype_t* get_screen_buffer(int y) { return NULL;}
 	virtual void screen_skip_line(bool skip_line) {}
-	
+
 	// One-board-micro-computer
 	virtual void get_invalidated_rect(int *left, int *top, int *right, int *bottom) {}
 	virtual void reload_bitmap() {}
@@ -290,7 +290,7 @@ public:
 	virtual void start_record_sound() {}
 	virtual void stop_record_sound() {}
 	virtual bool is_sound_recording() { return false; }
-	
+
 	// video device
 	virtual void get_video_buffer() {}
 	virtual void mute_video_dev(bool l, bool r) {}
@@ -357,14 +357,14 @@ public:
 	virtual void notify_socket_disconnected(int ch) {}
 	virtual bool initialize_socket_tcp(int ch) { return false; }
 	virtual bool initialize_socket_udp(int ch) { return false; }
-	
+
 	virtual bool connect_socket(int ch, uint32_t ipaddr, int port) {return false;}
 	virtual void disconnect_socket(int ch) {}
-	
+
 	virtual bool listen_socket(int ch) { return false; }
 	virtual void send_socket_data_tcp(int ch) {}
 	virtual void send_socket_data_udp(int ch, uint32_t ipaddr, int port) {}
-	
+
 	virtual void send_socket_data(int ch) {}
 	virtual void recv_socket_data(int ch) {}
 
@@ -383,10 +383,10 @@ public:
 	// If Success to communication, OSD calls ready_*_midi(ch, timestamp).
 	virtual bool __FASTCALL send_to_midi_timeout(uint8_t data, int ch = 0, uint64_t timeout_ms = 0, double timestamp_usec = 0.0) { return true; /* dummy send. */ }
 	virtual bool __FASTCALL recv_from_midi_timeout(uint8_t* data, int ch = 0, uint64_t timeout_ms = 0, double timestamp_usec = 0.0) { return false; }
-	
+
 	//virtual void __FASTCALL notify_timeout_sending_to_midi(int ch = 0) {}
 	//virtual void __FASTCALL notify_timeout_receiving_from_midi(int ch = 0) {}
-	
+
 	// Reset physical midi device(s). nagative value will reset all.
 	virtual void __FASTCALL reset_to_midi(int ch = -1, double timestamp_usec = 0.0) {}
 	// Belows are interface between osd and vm/devices.
@@ -399,15 +399,15 @@ public:
 	virtual void __FASTCALL ready_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
 	virtual void __FASTCALL request_stop_to_receive_from_midi(int ch = 0, double timestamp_usec = 0.0) {}
 	//virtual void __FASTCALL request_stop_to_send_to_midi(int ch = 0, double timestamp_usec = 0.0) {}
-	
+
 	// debugger
 	virtual void initialize_debugger() { }
 	virtual void release_debugger() { }
-	
+
 	virtual void open_debugger(int cpu_index) {}
 	virtual void close_debugger(int cpu_index) {}
 	virtual bool is_debugger_enabled(int cpu_index) { return false; }
-	
+
 	bool now_debugging;
 	int debugger_cpu_index, debugger_target_id;
 	int request_save_state, request_load_state;
@@ -427,11 +427,11 @@ public:
 	virtual void finish_waiting_in_debugger() {}
 	virtual void process_waiting_in_debugger() {}
 	bool now_waiting_in_debugger;
-	
+
 	// debug log
 	virtual void out_debug_log(const _TCHAR* format, ...) {}
 	virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-   
+
 	virtual void out_message(const _TCHAR* format, ...) {}
 	int message_count;
 	_TCHAR message[1024];
@@ -456,12 +456,12 @@ public:
 	virtual void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) {}
 	virtual void close_floppy_disk(int drv) {}
 	virtual bool is_floppy_disk_connected(int drv) { return false;}
-	virtual bool is_floppy_disk_inserted(int drv) { return false;} 
+	virtual bool is_floppy_disk_inserted(int drv) { return false;}
 	virtual void is_floppy_disk_protected(int drv, bool value) {}
 	virtual bool is_floppy_disk_protected(int drv) { return false;}
 	virtual uint32_t is_floppy_disk_accessed() { return 0x00000000; }
 	virtual uint32_t floppy_disk_indicator_color() { return 0x00000000; }
-	
+
 	// cartridge
 	virtual void open_cart(int drv, const _TCHAR* file_path) {}
 	virtual void close_cart(int drv) {}
@@ -477,6 +477,8 @@ public:
 	{
 		return false;
 	}
+	virtual void is_quick_disk_protected(int drv, bool value) { }
+	virtual bool is_quick_disk_protected(int drv) { return false;}
 
 	// hard disk
 	virtual bool create_blank_hard_disk(const _TCHAR* file_path,
@@ -490,7 +492,7 @@ public:
 	{
 		return false;
 	}
-	
+
 	// tape (CMT)
 	virtual void play_tape(int drv, const _TCHAR* file_path) {}
 	virtual void rec_tape(int drv, const _TCHAR* file_path) {}
@@ -557,4 +559,3 @@ public:
 	virtual void __FASTCALL osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, int64_t data) { }
 
 };
-

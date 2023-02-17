@@ -816,9 +816,10 @@ public slots:
 	void _open_binary_save(int drive, const QString fname);
 
 	int set_recent_quick_disk(int drive, int num);
-	int write_protect_Qd(int drv, bool flag);
-	void _open_quick_disk(int drv, const QString fname);
-	void eject_Qd(int drv);
+
+	void do_open_quick_disk_ui(int drv, const QString fname);
+	int do_emu_write_protect_quick_disk(int drv, bool flag);
+	void do_eject_quick_disk(int drv);
 
 
 	void _open_cart(int drv, const QString fname);
@@ -909,6 +910,11 @@ public slots:
 	void do_ui_eject_hard_disk(int drv);
 	void do_ui_hard_disk_insert_history(int drv, QString fname);
 
+	void do_update_quick_disk_history(int drive, QStringList lst);
+	void do_ui_quick_disk_write_protect(int drive, quint64 flag);
+	void do_ui_quick_disk_insert_history(int drive, QString fname);
+	void do_ui_eject_quick_disk(int drv);
+
 	void do_ui_tape_play_insert_history(int drv, QString fname);
 	void do_ui_tape_record_insert_history(int drv, QString fname);
 	void do_ui_eject_tape(int drive);
@@ -957,7 +963,6 @@ signals:
 	int on_open_debugger(int);
 	int on_insert_fd(int);
 	int on_eject_fd(int);
-	int sig_open_disk(int, QString);
 
 	int closed(void);
 	int sig_notify_power_off(void);
@@ -992,9 +997,10 @@ signals:
 	int sig_cmt_push_fast_rewind(int);
 	int sig_cmt_push_apss_forward(int);
 	int sig_cmt_push_apss_rewind(int);
-	int sig_write_protect_quickdisk(int drv, bool flag);
-	int sig_close_quickdisk(int drv);
-	int sig_open_quickdisk(int drv, QString path);
+
+	int sig_write_protect_quick_disk(int drv, bool flag);
+	int sig_close_quick_disk_ui(int drv);
+	int sig_open_quick_disk(int drv, QString path);
 	int sig_close_cart(int drv);
 	int sig_open_cart(int drv, QString path);
 
@@ -1007,9 +1013,11 @@ signals:
 
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
+
 	int sig_write_protect_bubble(int, bool);
 	int sig_open_bubble(int, QString , int);
 	int sig_close_bubble(int);
+
 	int sig_led_update(QRectF);
 	int sig_start_auto_key(QString);
 	int sig_stop_auto_key(void);

@@ -51,8 +51,9 @@ void Menu_FDClass::do_open_dialog()
 	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
 	do_open_dialog_common(dlg);
 
-	disconnect(dlg->param, SIGNAL(sig_open_disk(int, QString)), this, SLOT(do_open_media(int, QString)));
-	connect(dlg->param, SIGNAL(sig_open_disk(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
+	disconnect(dlg->param, SIGNAL(sig_open_media(int, QString)), this, SLOT(do_open_media(int, QString)));
+	connect(dlg->param, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)), Qt::QueuedConnection);
+
 	emit sig_show();
 }
 void Menu_FDClass::do_open_dialog_create_fd()
@@ -152,7 +153,6 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	QVariant _tmp_ic;
 	_tmp_ic.setValue(tmp);
 	action_ignore_crc_error->setData(_tmp_ic);
-
 
 	action_correct_timing = new Action_Control(p_wid, using_flags);
 	action_correct_timing->setVisible(true);

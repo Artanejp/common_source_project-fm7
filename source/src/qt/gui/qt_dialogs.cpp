@@ -19,12 +19,12 @@
 #include "commonclasses.h"
 //#include "menuclasses.h"
 
-void CSP_DiskParams::_open_disk(QString s)
+void CSP_DiskParams::_open_media(QString s)
 {
 	int d = getDrive();
 	//int n = d + CSP_LOG_TYPE_VFILE_FLOPPY;
 	//csp_logger->debug_log(CSP_LOG_INFO, n, "Try to open media image: %s", s.toLocal8Bit().constData());
-	emit sig_open_disk(d, s);
+	emit sig_open_media(d, s);
 }
 
 void CSP_DiskParams::_open_cart(QString s)
@@ -32,21 +32,9 @@ void CSP_DiskParams::_open_cart(QString s)
 	int d = getDrive();
 	emit sig_open_cart(d, s);
 }
-void CSP_DiskParams::_open_cmt(QString s)
-{
-	emit sig_open_cmt(play, s);
-}
 
 void CSP_DiskParams::_open_binary(QString s) {
 	emit sig_open_binary_file(drive, s, play);
-}
-
-void CSP_DiskParams::_open_quick_disk(QString s)
-{
-	int d = getDrive();
-	//int n = d + CSP_LOG_TYPE_VFILE_FLOPPY;
-	//csp_logger->debug_log(CSP_LOG_INFO, n, "Try to open media image: %s", s.toLocal8Bit().constData());
-	emit sig_open_quick_disk(d, s);
 }
 
 
@@ -74,16 +62,16 @@ CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidg
 	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setFileMode(QFileDialog::AnyFile);
-		
+
 	param = new CSP_FileParams();
 	if(masks[0]) media_type.addItem(QString::fromUtf8("2D"),  (const quint8)0x00);
 	if(masks[1]) media_type.addItem(QString::fromUtf8("2DD"), (const quint8)0x10);
 	if(masks[2]) media_type.addItem(QString::fromUtf8("2HD"), (const quint8)0x20);
 	if(masks[3]) media_type.addItem(QString::fromUtf8("2HD/1.44M"), (const quint8)0x30);
-					
+
 	type_label.setText(QApplication::translate("MenuMedia", "Virtual FD type:", 0));
 	type_label.setToolTip(QApplication::translate("MenuMedia", "Select type of virtual floppy.", 0));
-	
+
 	layout.addWidget(&type_label, 1, 0);
 	layout.addWidget(&media_type, 1, 1);
 	layout.addWidget(dlg, 2, 0, 2, 4);
@@ -103,7 +91,7 @@ CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, i
 	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setFileMode(QFileDialog::AnyFile);
-		
+
 	if(sector_size < 0) sector_size = 0;
 	if(sector_size > 4) sector_size = 4;
 	_sector_size.addItem(QString::fromUtf8("256bytes"));
@@ -121,7 +109,7 @@ CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, i
 	_label_cylinders.setText(QString::fromUtf8("Cylinders"));
 	_label_preset_type.setText(QString::fromUtf8("Preset size"));
 	media_drv = drive;
-	
+
 	if(sectors < 15) sectors = 15;
 	if(sectors > 33) sectors = 33;
 	if(surfaces < 2) surfaces = 2;
@@ -149,14 +137,14 @@ CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, i
 	_preset_type.addItem(QString::fromUtf8("500MB"));
 	_preset_type.addItem(QString::fromUtf8("540MB"));
 	_size_label_label.setText(QString::fromUtf8("Total Size:"));
-	
+
 	layout.addWidget(&_label_preset_type, 1, 0);
 	layout.addWidget(&_preset_type, 1, 1);
 	layout.addWidget(&_label_sector_size, 2, 0);
 	layout.addWidget(&_sector_size, 2, 1);
 	layout.addWidget(&_label_sectors, 2, 2);
 	layout.addWidget(&_sectors, 2, 3);
-	
+
 	layout.addWidget(&_label_surfaces, 3, 0);
 	layout.addWidget(&_surfaces, 3, 1);
 	layout.addWidget(&_label_cylinders, 3, 2);
@@ -204,7 +192,7 @@ void CSP_CreateHardDiskDialog::do_update_values(int dummy)
 	if(secnum < 0) secnum = 0;
 	if(secnum > 4) secnum = 4;
 	uint64_t totalsize = (secsize[secnum] * (uint64_t)secs * (uint64_t)heads * (uint64_t)cyl);
-	do_update_total_size(totalsize);	
+	do_update_total_size(totalsize);
 }
 void CSP_CreateHardDiskDialog::do_preset(int num)
 {
@@ -237,4 +225,3 @@ void CSP_CreateHardDiskDialog::do_update_total_size(uint64_t size)
 	QString label = QString("%1MB (%2bytes)").arg(nsize).arg(size);
 	_size_label.setText(label);
 }
-

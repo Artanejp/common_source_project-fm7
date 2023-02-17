@@ -2784,6 +2784,7 @@ void EMU::close_floppy_disk(int drv)
 
 		vm->close_floppy_disk(drv);
 		clear_media_status(&floppy_disk_status[drv]);
+		floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_FLOPPY_DISK > 1
 		out_message(_T("FD%d: Ejected"), drv + BASE_FLOPPY_DISK_NUM);
 #else
@@ -2888,6 +2889,7 @@ void EMU::close_quick_disk(int drv)
 	if(drv < USE_QUICK_DISK) {
 		vm->close_quick_disk(drv);
 		clear_media_status(&quick_disk_status[drv]);
+		quick_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_QUICK_DISK > 1
 		out_message(_T("QD%d: Ejected"), drv + BASE_QUICK_DISK_NUM);
 #else
@@ -3049,6 +3051,7 @@ void EMU::close_hard_disk(int drv)
 	if(drv < USE_HARD_DISK) {
 		vm->close_hard_disk(drv);
 		clear_media_status(&hard_disk_status[drv]);
+		hard_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_HARD_DISK > 1
 		out_message(_T("HD%d: Unmounted"), drv + BASE_HARD_DISK_NUM);
 #else
@@ -3150,6 +3153,7 @@ void EMU::close_tape(int drv)
 	if(drv < USE_TAPE) {
 		vm->close_tape(drv);
 		clear_media_status(&tape_status[drv]);
+		tape_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_TAPE > 1
 		out_message(_T("CMT%d: Ejected"), drv + BASE_TAPE_NUM);
 #else
@@ -3381,6 +3385,7 @@ void EMU::close_laser_disc(int drv)
 	if(drv < USE_LASER_DISC) {
 		vm->close_laser_disc(drv);
 		clear_media_status(&laser_disc_status[drv]);
+		laser_disc_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_LASER_DISC > 1
 		out_message(_T("LD%d: Ejected"), drv + BASE_LASER_DISC_NUM);
 #else
@@ -3489,6 +3494,7 @@ void EMU::close_bubble_casette(int drv)
 	if(drv < USE_BUBBLE) {
 		vm->close_bubble_casette(drv);
 		clear_media_status(&bubble_casette_status[drv]);
+		bubble_casette_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #if USE_BUBBLE > 1
 		out_message(_T("Bubble%d: Ejected"), drv + BASE_BUBBLE_NUM);
 #else
