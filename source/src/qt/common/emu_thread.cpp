@@ -27,7 +27,7 @@
 // buttons
 #define MAX_SKIP_FRAMES 10
 
-extern EMU *emu;
+EMU* DLL_PREFIX emu;
 
 EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent)
 	: EmuThreadClassBase(rootWindow, p, parent)

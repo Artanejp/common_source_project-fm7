@@ -61,7 +61,6 @@
 #include "../../vm/vm_limits.h"
 #include "../../vm/fmgen/fmgen.h"
 
-EMU* emu;
 //QApplication *GuiMain = NULL;
 extern config_t config;
 
@@ -80,33 +79,39 @@ extern DLL_PREFIX_I std::string sRssDir;
 void Ui_MainWindow::do_set_mouse_enable(bool flag)
 {
 #ifdef USE_MOUSE
-	if(emu == NULL) return;
-	emu->lock_vm();
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	p_emu->lock_vm();
 	if(flag) {
 		graphicsView->grabMouse();
-		emu->enable_mouse();
+		p_emu->enable_mouse();
 	} else {
 		graphicsView->releaseMouse();
-		emu->disable_mouse();
+		p_emu->disable_mouse();
 	}
-	emu->unlock_vm();
+	p_emu->unlock_vm();
 #endif
 }
 
 void Ui_MainWindow::do_toggle_mouse(void)
 {
 #ifdef USE_MOUSE
-	if(emu == NULL) return;
-	emu->lock_vm();
-	bool flag = emu->is_mouse_enabled();
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(emu == nullptr) return;
+
+	p_emu->lock_vm();
+	bool flag = p_emu->is_mouse_enabled();
 	if(!flag) {
 		graphicsView->grabMouse();
-		emu->enable_mouse();
+		p_emu->enable_mouse();
 	} else {
 		graphicsView->releaseMouse();
-		emu->disable_mouse();
+		p_emu->disable_mouse();
 	}
-	emu->unlock_vm();
+	p_emu->unlock_vm();
 #endif
 }
 
@@ -126,7 +131,11 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 
 	hRunEmu = m;
 	if(hRunEmu == nullptr) return;
-	OSD_BASE* p_osd = hRunEmu->get_emu()->get_osd();
+	EMU_TEMPLATE* p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	OSD_BASE* p_osd = p_emu->get_osd();
+	if(p_osd == nullptr) return;
 
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), this, SLOT(do_set_mouse_enable(bool)));
@@ -367,22 +376,24 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 
-	hDrawEmu = new DrawThreadClass((OSD*)(emu->get_osd()), csp_logger, this);
-	emu->set_parent_handler((EmuThreadClass*)hRunEmu, hDrawEmu);
+//	hDrawEmu = new DrawThreadClass((OSD*)(p_osd()), csp_logger, this);
+	hDrawEmu = new DrawThreadClass((OSD*)p_osd, csp_logger, nullptr);
+	p_emu->set_parent_handler((EmuThreadClass*)hRunEmu, hDrawEmu);
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
 	QImage result2 = result->convertToFormat(QImage::Format_ARGB32);
 	glv->updateBitmap(&result2);
-	emu->get_osd()->upload_bitmap(&result2);
+	p_osd()->upload_bitmap(&result2);
 	delete result;
 	delete reader;
-	emu->get_osd()->set_buttons();
+	p_osd()->set_buttons();
 #endif
+
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)), Qt::DirectConnection);
-	//connect((OSD*)(emu->get_osd()), SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
+	//connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)), Qt::QueuedConnection);
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
@@ -397,7 +408,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
 		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
 	}
-	//connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), (OSD*)(emu->get_osd()), SLOT(do_draw(bool)));
+	//connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), (OSD*)p_osd, SLOT(do_draw(bool)));
 	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
@@ -422,7 +433,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)), Qt::QueuedConnection);
 
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_req_encueue_video(int, int, int)),
+	connect((OSD*)p_osd, SIGNAL(sig_req_encueue_video(int, int, int)),
 			hDrawEmu, SLOT(do_req_encueue_video(int, int, int)));
 	connect(hRunEmu, SIGNAL(sig_finished()), glv, SLOT(releaseKeyCode(void)));
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
@@ -431,7 +442,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
-	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, (OSD*)(emu->get_osd()), &config);
+	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, (OSD*)p_osd, &config);
 
 	// SAVING MOVIES
 //	connect(this, SIGNAL(sig_start_saving_movie()),	hRunEmu, SLOT(do_start_record_video()));
@@ -440,9 +451,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 
 	connect(hSaveMovieThread, SIGNAL(sig_set_state_saving_movie(bool)), this, SLOT(do_set_state_saving_movie(bool)));
 
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_save_as_movie(QString, int, int)),
+	connect((OSD*)p_osd, SIGNAL(sig_save_as_movie(QString, int, int)),
 			hSaveMovieThread, SLOT(do_open(QString, int, int)));
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
+	connect((OSD*)p_osd, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
 
 	actionStop_Record_Movie->setIcon(QIcon(":/icon_process_stop.png"));
 	actionStop_Record_Movie->setVisible(false);
@@ -450,11 +461,11 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
 	connect(this, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
 
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
+	connect((OSD*)p_osd, SIGNAL(sig_movie_set_width(int)), hSaveMovieThread, SLOT(do_set_width(int)));
+	connect((OSD*)p_osd, SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
 
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
+	connect((OSD*)p_osd, SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
+	connect((OSD*)p_osd, SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
 			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection);
 	connect(glv->extfunc, SIGNAL(sig_push_image_to_movie(int, int, int, QImage *)),
 			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)));
@@ -469,9 +480,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(hRunEmu, SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_set_access_lamp(int, bool)), graphicsView, SLOT(do_display_osd_leds(int, bool)), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)), Qt::QueuedConnection);
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
-	connect((OSD*)(emu->get_osd()), SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
+	connect((OSD*)p_osd, SIGNAL(sig_change_virtual_media(int, int, QString)), driveData, SLOT(updateMediaFileName(int, int, QString)));
+	connect((OSD*)p_osd, SIGNAL(sig_enable_mouse()), glv, SLOT(do_enable_mouse()));
+	connect((OSD*)p_osd, SIGNAL(sig_disable_mouse()), glv, SLOT(do_disable_mouse()));
 
 	connect(this, SIGNAL(sig_unblock_task()), hRunEmu, SLOT(do_unblock()));
 	connect(this, SIGNAL(sig_block_task()), hRunEmu, SLOT(do_block()));
@@ -489,11 +500,15 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 
 void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name)
 {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
 	if(!(name.isEmpty()) && (drv >= 0)) {
 #if defined(USE_FLOPPY_DISK)
 		if(drv < USE_FLOPPY_DISK) {
 			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
-			if(emu->create_blank_floppy_disk(path, media_type)) {
+			if(p_emu->create_blank_floppy_disk(path, media_type)) {
 				emit sig_open_floppy_disk(drv, name, 0);
 			}
 		}
@@ -503,11 +518,15 @@ void Ui_MainWindow::do_create_d88_media(int drv, quint8 media_type, QString name
 
 void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name)
 {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
 	if(!(name.isEmpty()) && (drv >= 0)) {
 #if defined(USE_HARD_DISK)
 		if(drv < USE_HARD_DISK) {
 			const _TCHAR* path = (const _TCHAR *)(name.toLocal8Bit().data());
-			if(emu->create_blank_hard_disk(path, sector_size, sectors, surfaces, cylinders)) {
+			if(p_emu->create_blank_hard_disk(path, sector_size, sectors, surfaces, cylinders)) {
 				emit sig_open_hard_disk(drv, name);
 			}
 		}
@@ -518,7 +537,11 @@ void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, i
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, using_flags, &config);
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	hRunJoy = new JoyThreadClass(p_emu, using_flags, &config);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -545,15 +568,22 @@ void Ui_MainWindow::on_actionExit_triggered()
 
 void Ui_MainWindow::OnWindowRedraw(void)
 {
-	if(emu) {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+	if(p_emu) {
 		//emu->update_screen();
 	}
 }
 
 void Ui_MainWindow::OnWindowMove(void)
 {
-	if(emu) {
-		emu->suspend();
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	if(p_emu) {
+		p_emu->suspend();
 	}
 }
 
@@ -594,7 +624,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 	if(hRunEmu != nullptr) {
 		OnCloseDebugger();
-		OSD* op = (OSD*)(emu->get_osd());
+		OSD* op = (OSD*)p_osd;
 		if(op != nullptr) {
 			op->setParent(this);
 			op->moveToThread(this->thread());
@@ -629,29 +659,17 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		hRunJoy = nullptr;
 	}
 #endif
-	do_release_emu_resources();
-	hRunEmu = nullptr;
+//	do_release_emu_resources();
 
 	return;
 }
 
-extern "C" {
 
-void LostFocus(QWidget *widget)
-{
-	if(emu) {
-		emu->key_lost_focus();
-	}
-}
 
-}  // extern "C"
-
+// Will remove.
 void Ui_MainWindow::do_release_emu_resources(void)
 {
-	if(emu) {
-		delete emu;
-		emu = NULL;
-	}
+	emit sig_quit_emu_thread();
 }
 
 extern void DLL_PREFIX_I get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
@@ -1465,9 +1483,13 @@ void Ui_MainWindow::do_update_inner_fd(int drv, QStringList base, class Action_C
 				       QStringList lst, int num, bool use_d88_menus)
 {
 #if defined(USE_FLOPPY_DISK)
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
 	if(use_d88_menus) {
-		for(int ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
-			if(ii < emu->d88_file[drv].bank_num) {
+		for(int ii = 0; ii < up->get_max_d88_banks(); ii++) {
+			if(ii < p_emu->d88_file[drv].bank_num) {
 				base << lst.value(ii);
 				action_select_media_list[ii]->setText(lst.value(ii));
 				action_select_media_list[ii]->setVisible(true);
@@ -1487,9 +1509,13 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 				       QStringList lst, int num, bool use_d88_menus)
 {
 #if defined(USE_BUBBLE)
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
 	if(use_d88_menus) {
-		for(int ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
-			if(ii < emu->b77_file[drv].bank_num) {
+		for(int ii = 0; ii < up->get_max_b77_banks(); ii++) {
+			if(ii < p_emu->b77_file[drv].bank_num) {
 				base << lst.value(ii);
 				action_select_media_list[ii]->setText(lst.value(ii));
 				action_select_media_list[ii]->setVisible(true);
@@ -1508,8 +1534,12 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 int Ui_MainWindow::GetBubbleBankNum(int drv)
 {
 #if MAX_BUBBLE
-	if((emu != NULL) && (drv >= 0) && (drv < MAX_BUBBLE)) {
-		return emu->b77_file[drv].bank_num;
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	if((drv >= 0) && (drv < MAX_BUBBLE)) {
+		return p_emu->b77_file[drv].bank_num;
 	}
 #endif
 	return 0;
@@ -1518,8 +1548,12 @@ int Ui_MainWindow::GetBubbleBankNum(int drv)
 int Ui_MainWindow::GetBubbleCurrentBankNum(int drv)
 {
 #if MAX_BUBBLE
-	if((emu != NULL) && (drv >= 0) && (drv < MAX_BUBBLE)) {
-		return emu->b77_file[drv].cur_bank;
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	if((drv >= 0) && (drv < MAX_BUBBLE)) {
+		return p_emu->b77_file[drv].cur_bank;
 	}
 #endif
 	return 0;
@@ -1528,11 +1562,14 @@ int Ui_MainWindow::GetBubbleCurrentBankNum(int drv)
 bool Ui_MainWindow::GetBubbleCasetteIsProtected(int drv)
 {
 #if MAX_BUBBLE
-	if(emu != NULL) {
-		if((drv >= 0) && (drv < MAX_BUBBLE)) {
-			return emu->is_bubble_casette_protected(drv);
-		}
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) return;
+
+	if((drv >= 0) && (drv < MAX_BUBBLE)) {
+		return p_emu->is_bubble_casette_protected(drv);
 	}
+
 #endif
 	return false;
 }
@@ -1541,9 +1578,12 @@ QString Ui_MainWindow::GetBubbleB77FileName(int drv)
 {
 	QString ans = QString::fromUtf8("");
 #if MAX_BUBBLE
-	if(emu != NULL) {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+
+	if(p_emu != nullptr) {
 		if((drv < MAX_BUBBLE) && (drv >= 0)) {
-			ans = QString::fromLocal8Bit(emu->b77_file[drv].path);
+			ans = QString::fromLocal8Bit(p_emu->b77_file[drv].path);
 		}
 	}
 #endif
@@ -1554,10 +1594,13 @@ QString Ui_MainWindow::GetBubbleB77BubbleName(int drv, int num)
 {
 	QString ans = QString::fromUtf8("");
 #if MAX_BUBBLE
-	if(emu != NULL) {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+
+	if(p_emu != nullptr) {
 		if((drv < MAX_BUBBLE) && (drv >= 0)) {
 			if((num >= 0) && (num < MAX_B77_BANKS)) {
-				ans = QString::fromLocal8Bit(emu->b77_file[drv].bubble_name[num]);
+				ans = QString::fromLocal8Bit(p_emu->b77_file[drv].bubble_name[num]);
 			}
 		}
 	}
@@ -1576,68 +1619,76 @@ void Ui_MainWindow::OnOpenDebugger()
 
 	if((no < 0) || (no >= MAX_CPU)) return;
 	//emu->open_debugger(no);
-	VM *vm = static_cast<VM*>(emu->get_vm());
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+
+	VM *vm = static_cast<VM*>(p_emu->get_vm());
 
 	// ToDo: Multiple debugger 20221105 K.O
- 	if((emu->now_debugging ) || (emu->hDebugger.get() != nullptr)) /* OnCloseDebugger(); */ return;
+ 	if((p_emu->now_debugging ) || (p_emu->hDebugger.get() != nullptr)) /* OnCloseDebugger(); */ return;
 
-	if(!(emu->now_debugging && emu->debugger_thread_param.cpu_index == no)) {
-		//emu->close_debugger();
+	if(!(p_emu->now_debugging && p_emu->debugger_thread_param.cpu_index == no)) {
+		//p_emu->close_debugger();
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
 			QString windowName = QString::fromUtf8(vm->get_cpu(no)->get_device_name());
 			windowName = QString::fromUtf8("Debugger ") + windowName;
-			emu->hDebugger.reset(new CSP_Debugger(emu, this));
-			if(emu->hDebugger.get() == nullptr) {
+			p_emu->hDebugger.reset(new CSP_Debugger(emu, this));
+			if(p_emu->hDebugger.get() == nullptr) {
 				return;
 			}
 			QString objNameStr = QString("EmuDebugThread");
-			emu->hDebugger->setObjectName(objNameStr);
+			p_emu->hDebugger->setObjectName(objNameStr);
 
-			emu->hDebugger->debugger_thread_param.osd = (OSD_BASE *)(emu->get_osd());
-			emu->hDebugger->debugger_thread_param.emu = emu;
-			emu->hDebugger->debugger_thread_param.vm = vm;
-			emu->hDebugger->debugger_thread_param.cpu_index = no;
-			emu->hDebugger->debugger_thread_param.running = false;
-			emu->hDebugger->debugger_thread_param.request_terminate = false;
+			p_emu->hDebugger->debugger_thread_param.osd = (OSD_BASE *)(p_emu->get_osd());
+			p_emu->hDebugger->debugger_thread_param.emu = p_emu;
+			p_emu->hDebugger->debugger_thread_param.vm = vm;
+			p_emu->hDebugger->debugger_thread_param.cpu_index = no;
+			p_emu->hDebugger->debugger_thread_param.running = false;
+			p_emu->hDebugger->debugger_thread_param.request_terminate = false;
 
-			emu->stop_record_sound();
-			emu->stop_record_video();
-			//emu->now_debugging = true;
-			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger.get(), SLOT(doExit()));
-			connect(this, SIGNAL(destroyed()), emu->hDebugger.get(), SLOT(do_destroy_thread()));
-			//connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(close()));
-			connect(emu->hDebugger.get(), SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
-			connect(emu->hDebugger.get(), SIGNAL(sig_put_string(QString)), emu->hDebugger.get(), SLOT(put_string(QString)));
-			emu->hDebugger->show();
-			emu->hDebugger->run();
-			emu->hDebugger->setWindowTitle(windowName);
+			p_emu->stop_record_sound();
+			p_emu->stop_record_video();
+			//p_emu->now_debugging = true;
+			connect(this, SIGNAL(quit_debugger_thread()), p_emu->hDebugger.get(), SLOT(doExit()));
+			connect(this, SIGNAL(destroyed()), p_emu->hDebugger.get(), SLOT(do_destroy_thread()));
+			//connect(this, SIGNAL(quit_debugger_thread()), p_emu->hDebugger, SLOT(close()));
+			connect(p_emu->hDebugger.get(), SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
+			connect(p_emu->hDebugger.get(), SIGNAL(sig_put_string(QString)), p_emu->hDebugger.get(), SLOT(put_string(QString)));
+			p_emu->hDebugger->show();
+			p_emu->hDebugger->run();
+			p_emu->hDebugger->setWindowTitle(windowName);
 		}
 	}
 }
 
 void Ui_MainWindow::OnCloseDebugger(void )
 {
-	if(emu == nullptr) {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+	if(p_emu == nullptr) {
 		return;
 	}
-//	emu->close_debugger();
+//	p_emu->close_debugger();
 	// ToDo: Multiple debugger 20221105 K.O
- 	if((emu->now_debugging) && (emu->hDebugger.get() != nullptr)) {
-		if(emu->hDebugger->debugger_thread_param.running) {
+ 	if((p_emu->now_debugging) && (p_emu->hDebugger.get() != nullptr)) {
+		if(p_emu->hDebugger->debugger_thread_param.running) {
 			emit quit_debugger_thread();
-			//if(!(emu->hDebugger->wait(2000))) {
-			//	emu->hDebugger->terminate();
+			//if(!(p_emu->hDebugger->wait(2000))) {
+			//	p_emu->hDebugger->terminate();
 			//	QThread::msleep(100);
 			//}
 		}
  	}
-	emu->hDebugger.reset();
-	emu->now_debugging = false;
+	p_emu->hDebugger.reset();
+	p_emu->now_debugging = false;
 }
 #endif
 
 QString Ui_MainWindow::get_system_version()
 {
+	if(hRunEmu == nullptr) return;
+	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
+
 	QString guiver = get_gui_version();
 	QString aviover;
 	QString vm_gitver;
@@ -1658,11 +1709,12 @@ QString Ui_MainWindow::get_system_version()
 	if(hSaveMovieThread != NULL) {
 		aviover = hSaveMovieThread->get_avio_version();
 	}
-	if(emu != NULL) {
-		if(emu->get_osd() != NULL) {
-			_TCHAR *cvp = (_TCHAR *)emu->get_osd()->get_lib_common_vm_version();
-			_TCHAR *gvp = (_TCHAR *)emu->get_osd()->get_lib_common_vm_git_version();
-			_TCHAR *ovp = (_TCHAR *)emu->get_osd()->get_lib_osd_version();
+
+	if(p_emu != nullptr) {
+		if(p_emu->get_osd() != NULL) {
+			_TCHAR *cvp = (_TCHAR *)p_emu->get_osd()->get_lib_common_vm_version();
+			_TCHAR *gvp = (_TCHAR *)p_emu->get_osd()->get_lib_common_vm_git_version();
+			_TCHAR *ovp = (_TCHAR *)p_emu->get_osd()->get_lib_osd_version();
 			if(cvp != NULL) {
 				common_vmver = QString::fromUtf8(cvp);
 			}

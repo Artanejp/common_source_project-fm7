@@ -656,9 +656,10 @@ protected:
 
 	virtual float getScreenMultiply(int num)
 	{
-		if(using_flags == nullptr) return 0.0f;
+		std::shared_ptr<USING_FLAGS> up = using_flags;
+		if(up.get() == nullptr) return 0.0f;
 		if((num < 0) || (num > 15)) return 0.0f;
-		if(using_flags->get_screen_width() > 320) {
+		if(up->get_screen_width() > 320) {
 			return screen_multiply_table[num];
 		} else {
 			return screen_multiply_table_mini[num];
