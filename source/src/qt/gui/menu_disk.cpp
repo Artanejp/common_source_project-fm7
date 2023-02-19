@@ -206,7 +206,7 @@ void Menu_FDClass::connect_menu_device_sub(void)
 
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
 
-	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_emu_write_protect_floppy_disk(int, bool)));
+//	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_emu_write_protect_floppy_disk(int, bool)));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_disk(int, int)));
 }
 
@@ -214,6 +214,8 @@ void Menu_FDClass::connect_via_emu_thread(EmuThreadClassBase *p)
 {
 	if(p == nullptr) return;
 	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_close_floppy_disk()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p, SLOT(do_write_protect_floppy_disk(int, bool)));
+
 }
 
 

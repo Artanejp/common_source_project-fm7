@@ -17,13 +17,13 @@
 #include "qt_dialogs.h"
 //#include "csp_logger.h"
 
-int Ui_MainWindowBase::write_protect_bubble(int drv, bool flag)
+int Ui_MainWindowBase::do_write_protect_bubble(int drv, bool flag)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_bubble())) return -1;
 	emit sig_write_protect_bubble(drv, flag);
 	return 0;
 }
- 
+
 
 // Common Routine
 
@@ -34,7 +34,7 @@ void Ui_MainWindowBase::CreateBubbleMenu(int drv, int drv_base)
 		QString desc1 = "Bubble Casette";
 		menu_bubbles[drv] = new Menu_BubbleClass(menubar, QString::fromUtf8("Obj_Bubble"), using_flags, this, drv);
 		menu_bubbles[drv]->create_pulldown_menu();
-		
+
 		menu_bubbles[drv]->do_clear_inner_media();
 		menu_bubbles[drv]->do_add_media_extension(ext, desc1);
 		SETUP_HISTORY(p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
@@ -62,7 +62,7 @@ void Ui_MainWindowBase::retranslateBubbleMenu(int drv, int basedrv)
 {
 	QString drive_name = (QApplication::translate("MainWindow", "Bubble ", 0));
 	drive_name += QString::number(basedrv);
-  
+
 	if((drv < 0) || (drv >= 8)) return;
 	menu_bubbles[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 	menu_bubbles[drv]->retranslateUi();

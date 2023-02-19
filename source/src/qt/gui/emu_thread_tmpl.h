@@ -311,8 +311,10 @@ public slots:
 	void do_close_quick_disk_ui(int drv);
 	void do_open_quick_disk(int drv, QString path);
 
-	void do_close_cart(int drv);
-	void do_open_cart(int drv, QString path);
+
+	void do_open_cartridge(int drv, QString path);
+	void do_close_cartridge();
+	void do_close_cartridge_ui(int drv);
 
 	void do_open_laser_disc(int drv, QString path);
 	void do_close_laser_disc();
@@ -326,8 +328,10 @@ public slots:
 	void do_save_binary(int drv, QString path);
 
 	void do_write_protect_bubble_casette(int drv, bool flag);
-	void do_close_bubble_casette(int);
-	void do_open_bubble_casette(int, QString, int);
+	void do_close_bubble_casette();
+	void do_close_bubble_casette_ui(int drive);
+	void do_open_bubble_casette(int drv, QString path, int bank);
+
 	void do_select_floppy_disk_d88(int drive, int slot);
 
 	void do_start_auto_key(QString text);

@@ -168,9 +168,9 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		}
 	}
 #if defined(USE_FLOPPY_DISK)
-	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)),
-			hRunEmu, SLOT(do_write_protect_floppy_disk(int, bool)),
-			Qt::QueuedConnection);
+//	connect(this, SIGNAL(sig_write_protect_floppy_disk(int, bool)),
+//			hRunEmu, SLOT(do_write_protect_floppy_disk(int, bool)),
+//			Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_open_floppy_disk(int, QString, int)),
 			hRunEmu, SLOT(do_open_floppy_disk(int, QString, int)),
 			Qt::QueuedConnection);

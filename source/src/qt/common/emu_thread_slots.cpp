@@ -521,7 +521,20 @@ void EmuThreadClassBase::do_open_hard_disk(int drv, QString path)
 	}
 }
 
-void EmuThreadClassBase::do_close_cart(int drv)
+void EmuThreadClassBase::do_close_cartridge()
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_cartridge_internal(drv);
+}
+void EmuThreadClassBase::do_close_cartidge_ui(int drv)
+{
+	sub_close_cartridge_internal(drv);
+}
+
+void EmuThreadClassBase::sub_close_cartidge_internal(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -546,7 +559,6 @@ void EmuThreadClassBase::do_open_cart(int drv, QString path)
 	if((p->is_use_cart()) && (drv < p->get_max_cart())) {
 		//QMutexLocker _locker(&uiMutex);
 		p_emu->open_cart(drv, path.toLocal8Bit().constData());
-		emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, drv, path);
 	}
 }
 
@@ -635,7 +647,21 @@ void EmuThreadClassBase::do_write_protect_bubble_casette(int drv, bool flag)
 	}
 }
 
-void EmuThreadClassBase::do_close_bubble_casette(int drv)
+void EmuThreadClassBase::do_close_bubble_casette()
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	struct CSP_Ui_Menu::DriveIndexPair tmp = cp->data().value<CSP_Ui_Menu::DriveIndexPair>();
+	int drv = tmp.drive;
+	sub_close_bubble_casette_internal(drv);
+}
+
+void EmuThreadClassBase::do_close_bubble_casette_ui(int drive)
+{
+	sub_close_bubble_casette_internal(drive);
+}
+
+void EmuThreadClassBase::sub_close_bubble_casette_internal(int drv)
 {
 	if(drv < 0) return;
 	if(p_emu == nullptr) return;
@@ -647,7 +673,7 @@ void EmuThreadClassBase::do_close_bubble_casette(int drv)
 		p_emu->close_bubble_casette(drv);
 		p_emu->b77_file[drv].bank_num = 0;
 		p_emu->b77_file[drv].cur_bank = -1;
-//		emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
+		emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, QString::fromUtf8(""));
 	}
 }
 
@@ -702,10 +728,43 @@ void EmuThreadClassBase::do_open_bubble_casette(int drv, QString path, int bank)
 	   bank = 0;
 	}
 	p_emu->open_bubble_casette(drv, localPath.constData(), bank);
-	emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, drv, path);
-	emit sig_update_recent_bubble(drv);
 
+#if 0 /* Open multiple slots in .B77 . */
+	if((p->get_max_bubble() > (drv + 1)) && ((drv & 1) == 0) /* EVEN DRIVE NUM */ &&
+	   ((bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK) == 0)) {
+		if(check_file_extension(file_path, ".b77")) {
+			if((bank + 1) < p_emu->b77_file[drv].bank_num) {
+				p_emu->open_bubble_casette(drv + 1, file_path, (bank + 1) | EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK);
+			}
+		}
+	}
+#endif
 }
+
+void EmuThreadClassBase::do_select_bubble_casette_b77(int drive, int slot)
+{
+	if(drive < 0) return;
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(!((p->is_use_bubble()) && (p->get_max_dbubble() > drive))) return;
+
+	int bank_num = p_emu->b77_file[drive].bank_num;
+	if(bank_num <= 0) return;
+
+	if(p->get_max_d88_banks() <= slot) slot = p->get_max_b77_banks() - 1;
+	if(slot < 0) return;
+	if(bank_num <= slot) return;
+
+	if((p_emu->is_bubble_casette_inserted(drive)) &&
+	   (slot != p_emu->b77_file[drive].cur_bank)) {
+		QString path = get_b77_file_path(drive);
+		do_open_bubble_casette(drive, path, slot);
+	}
+}
+
 // Debugger
 
 void EmuThreadClassBase::do_close_debugger(void)
