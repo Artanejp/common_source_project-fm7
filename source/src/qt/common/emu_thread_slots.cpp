@@ -136,7 +136,6 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-
 	p_emu->open_floppy_disk(drv, file_path, bank);
 
 	if((p->get_max_drive() > (drv + 1)) && ((drv & 1) == 0) /* EVEN DRIVE NUM */ &&
@@ -148,7 +147,6 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 			}
 		}
 	}
-
 }
 
 

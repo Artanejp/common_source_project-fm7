@@ -73,15 +73,16 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 
 	mouse_x = 0;
 	mouse_y = 0;
-	if(using_flags.get() != nullptr) {
-		if(using_flags->is_use_tape() && !using_flags->is_tape_binary_only()) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if((p.get() != nullptr) && (p_config != nullptr)) {
+		if(up->is_use_tape() && !(up->is_tape_binary_only())) {
 			tape_play_flag = false;
 			tape_rec_flag = false;
 			tape_pos = 0;
 		}
 
-		if(using_flags->get_use_sound_volume() > 0) {
-			for(int i = 0; i < using_flags->get_use_sound_volume(); i++) {
+		if(up->get_use_sound_volume() > 0) {
+			for(int i = 0; i < up->get_use_sound_volume(); i++) {
 				bUpdateVolumeReq[i] = true;
 				volume_avg[i] = (p_config->sound_volume_l[i] +
 								 p_config->sound_volume_r[i]) / 2;
@@ -137,19 +138,20 @@ void EmuThreadClassBase::doExit(void)
 
 void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 {
-	if(using_flags.get() == nullptr) return;
-	if(using_flags->is_use_mouse()) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->is_use_mouse()) {
 		button_pressed_mouse_sub(button);
 	} else {
-		if(using_flags->get_max_button() > 0) {
-			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
+		if(up->get_max_button() > 0) {
+			button_desc_t *vm_buttons_d = up->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
 			int _x = (int)rint(mouse_x);
 			int _y = (int)rint(mouse_y);
 			switch(button) {
 			case Qt::LeftButton:
 //			case Qt::RightButton:
-				for(int i = 0; i < using_flags->get_max_button(); i++) {
+				for(int i = 0; i < up->get_max_button(); i++) {
 					if((_x >= vm_buttons_d[i].x) &&
 					   (_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
 						if((_y >= vm_buttons_d[i].y) &&
@@ -176,19 +178,20 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 
 void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
 {
-	if(using_flags.get() == nullptr) return;
-	if(using_flags->is_use_mouse()) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->is_use_mouse()) {
 		button_released_mouse_sub(button);
 	} else {
-		if(using_flags->get_max_button() > 0) {
-			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
+		if(up->get_max_button() > 0) {
+			button_desc_t *vm_buttons_d = up->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
 			int _x = (int)rint(mouse_x);
 			int _y = (int)rint(mouse_y);
 			switch(button) {
 			case Qt::LeftButton:
 //			case Qt::RightButton:
-				for(int i = 0; i < using_flags->get_max_button(); i++) {
+				for(int i = 0; i < up->get_max_button(); i++) {
 					if((_x >= vm_buttons_d[i].x) &&
 					   (_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
 						if((_y >= vm_buttons_d[i].y) &&
@@ -246,13 +249,16 @@ void EmuThreadClassBase::resize_screen(int screen_width, int screen_height, int 
 
 void EmuThreadClassBase::sample_access_drv(void)
 {
-	if(using_flags.get() == nullptr) return;
-	if(using_flags->is_use_qd()) get_qd_string();
-	if(using_flags->is_use_fd()) get_fd_string();
-	if(using_flags->is_use_hdd()) get_hdd_string();
-	if(using_flags->is_use_tape() && !using_flags->is_tape_binary_only()) get_tape_string();
-	if(using_flags->is_use_compact_disc()) get_cd_string();
-	if(using_flags->is_use_bubble()) get_bubble_string();
+	if(p_emu == nullptr) return;
+
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->is_use_qd()) get_qd_string();
+	if(up->is_use_fd()) get_fd_string();
+	if(up->is_use_hdd()) get_hdd_string();
+	if(up->is_use_tape() && !(up->is_tape_binary_only())) get_tape_string();
+	if(up->is_use_compact_disc()) get_cd_string();
+	if(up->is_use_bubble()) get_bubble_string();
 }
 
 
@@ -299,8 +305,10 @@ void EmuThreadClassBase::do_special_reset(void)
 	int num = cp->data().value<int>();
 
 	if(num < 0) return;
-	if(using_flags.get() != nullptr) {
-		if(num >= using_flags->get_use_special_reset_num()) return;
+
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() != nullptr) {
+		if(num >= up->get_use_special_reset_num()) return;
 	}
 	bSpecialResetReq = true;
 	specialResetNum = num;
@@ -341,9 +349,10 @@ void EmuThreadClassBase::do_stop_record_video()
 
 void EmuThreadClassBase::do_update_volume_level(int num, int level)
 {
-	if(using_flags.get() == nullptr) return;
-	if(using_flags->get_use_sound_volume() > 0) {
-		if((num < using_flags->get_use_sound_volume()) && (num >= 0)) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->get_use_sound_volume() > 0) {
+		if((num < up->get_use_sound_volume()) && (num >= 0)) {
 			calc_volume_from_level(num, level);
 			bUpdateVolumeReq[num] = true;
 		}
@@ -352,9 +361,10 @@ void EmuThreadClassBase::do_update_volume_level(int num, int level)
 
 void EmuThreadClassBase::do_update_volume_balance(int num, int level)
 {
-	if(using_flags.get() == nullptr) return;
-	if(using_flags->get_use_sound_volume() > 0) {
-		if((num < using_flags->get_use_sound_volume()) && (num >= 0)) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->get_use_sound_volume() > 0) {
+		if((num < up->get_use_sound_volume()) && (num >= 0)) {
 			calc_volume_from_balance(num, level);
 			bUpdateVolumeReq[num] = true;
 		}
@@ -506,10 +516,9 @@ int EmuThreadClassBase::get_d88_file_cur_bank(int drive)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return -1;
 	if(!(p->is_use_fd())) return -1;
-	if(using_flags.get() == nullptr) return -1;
 
 	if((drive < p->get_max_drive()) && (p_emu != nullptr)) {
-		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&uiMutex);
 		int bank_num = p_emu->d88_file[drive].bank_num;
 		int cur_bank = p_emu->d88_file[drive].cur_bank;
 		if((bank_num > 0) && (cur_bank < bank_num)) {
@@ -528,7 +537,6 @@ int EmuThreadClassBase::get_d88_file_bank_num(int drive)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return -1;
 	if(!(p->is_use_fd())) return -1;
-	if(using_flags.get() == nullptr) return -1;
 
 	if(drive < p->get_max_drive()) {
 //		QMutexLocker _locker(&uiMutex);
@@ -547,10 +555,9 @@ QString EmuThreadClassBase::get_d88_file_disk_name(int drive, int banknum)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return QString::fromUtf8("");
 	if(!(p->is_use_fd())) return QString::fromUtf8("");
-	if(using_flags.get() == nullptr) return QString::fromUtf8("");
 
 	if((drive < p->get_max_drive()) && (banknum < get_d88_file_bank_num(drive))) {
-		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].disk_name[banknum][0])));
 		return _n;
 	}
@@ -567,7 +574,6 @@ bool EmuThreadClassBase::is_floppy_disk_protected(int drive)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return QString::fromUtf8("");
 	if(!(p->is_use_fd())) return QString::fromUtf8("");
-	if(using_flags.get() == nullptr) return QString::fromUtf8("");
 
 //	QMutexLocker _locker(&uiMutex);
 	bool _b = p_emu->is_floppy_disk_protected(drive);
@@ -583,7 +589,6 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return QString::fromUtf8("");
 	if(!(p->is_use_fd())) return QString::fromUtf8("");
-	if(using_flags.get() == nullptr) return QString::fromUtf8("");
 
 	if(drive < up->get_max_drive()) {
 //		QMutexLocker _locker(&uiMutex);
@@ -639,7 +644,7 @@ int EmuThreadClassBase::get_b77_file_bank_num(int drive)
 }
 
 
-QString EmuThreadClassBase::get_b77_file_disk_name(int drive, int banknum)
+QString EmuThreadClassBase::get_b77_file_media_name(int drive, int banknum)
 {
 	if(drive < 0) return QString::fromUtf8("");
 	if(p_emu == nullptr) return QString::fromUtf8("");
@@ -649,7 +654,7 @@ QString EmuThreadClassBase::get_b77_file_disk_name(int drive, int banknum)
 	if(!(p->is_use_bubble())) return QString::fromUtf8("");
 
 	if((drive < p->get_max_bubble()) && (banknum < get_b77_file_bank_num(drive))) {
-		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->b77_file[drive].disk_name[banknum][0])));
 		return _n;
 	}
@@ -673,6 +678,17 @@ bool EmuThreadClassBase::is_bubble_casette_protected(int drive)
 }
 
 
+void EmuThreadClassBase::set_bubble_casette_protected(int drive, bool flag)
+{
+	if(drive < 0) return;
+
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_bubble())) return;
+//	QMutexLocker _locker(&uiMutex);
+	p_emu->is_bubble_casette_protected(drive, flag);
+}
+
 QString EmuThreadClassBase::get_b77_file_path(int drive)
 {
 	if(drive < 0) return QString::fromUtf8("");
@@ -681,8 +697,6 @@ QString EmuThreadClassBase::get_b77_file_path(int drive)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return QString::fromUtf8("");
 	if(!(p->is_use_bubble())) return QString::fromUtf8("");
-
-	if(using_flags.get() == nullptr) return
 
 	if(drive < p->get_max_bubble()) {
 //		QMutexLocker _locker(&uiMutex);
@@ -839,8 +853,6 @@ void EmuThreadClassBase::get_tape_string()
 	bool readwrite;
 	bool inserted;
 
-	if(using_flags.get() == nullptr) return;
-	if(!(@->is_use_tape()) || (p->is_tape_binary_only())) return;
 	for(int i = 0; i < p->get_max_tape(); i++) {
 		inserted = p_emu->is_tape_inserted(i);
 		readwrite = false;
@@ -906,12 +918,13 @@ void EmuThreadClassBase::get_hdd_string(void)
 }
 void EmuThreadClassBase::get_cd_string(void)
 {
-	if(using_flags.get() == nullptr) return;
-	if(!(using_flags->is_use_compact_disc())) return;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(!(up->is_use_compact_disc())) return;
 
 	QString tmpstr;
 	uint32_t access_drv = p_emu->is_compact_disc_accessed();
-	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
+	for(int i = 0; i < (int)up->get_max_cd(); i++) {
 		if(p_emu->is_compact_disc_inserted(i)) {
 			if((access_drv & (1 << i)) != 0) {
 				tmpstr = QString::fromUtf8("<FONT COLOR=DEEPSKYBLUE>●</FONT>");  // U+1F4BF OPTICAL DISC
@@ -932,14 +945,15 @@ void EmuThreadClassBase::get_cd_string(void)
 
 void EmuThreadClassBase::get_bubble_string(void)
 {
-	if(using_flags.get() == nullptr) return;
-	if(!(using_flags->is_use_bubble())) return;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(!(up->is_use_bubble())) return;
 
 	uint32_t access_drv;
 	int i;
 	QString alamp;
 	QString tmpstr;
-	for(i = 0; i < using_flags->get_max_bubble() ; i++) {
+	for(i = 0; i < up->get_max_bubble() ; i++) {
 		if(p_emu->is_bubble_casette_inserted(i)) {
 			alamp = QString::fromUtf8("● ");
 			//tmpstr = alamp + QString::fromUtf8(" ");
@@ -957,26 +971,30 @@ void EmuThreadClassBase::get_bubble_string(void)
 
 double EmuThreadClassBase::get_emu_frame_rate(void)
 {
-	if(using_flags.get() == nullptr) return 30.0;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if((up.get() == nullptr) || (p_emu == nullptr)) return 30.0;
 	return p_emu->get_frame_rate();
 }
 
 int EmuThreadClassBase::get_message_count(void)
 {
-	if(using_flags.get() == nullptr) return 0;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if((up.get() == nullptr) || (p_emu == nullptr)) return 0;
 	return p_emu->message_count;
 }
 
 const _TCHAR *EmuThreadClassBase::get_emu_message(void)
 {
-	if(using_flags.get() == nullptr) return ((const _TCHAR *)_T(""));
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if((up.get() == nullptr) || (p_emu == nullptr)) return ((const _TCHAR *)_T(""));
 	return (const _TCHAR *)(p_emu->message);
 }
 
 bool EmuThreadClassBase::now_debugging()
 {
-	if(using_flags.get() == nullptr) return false;
-	if(using_flags->is_use_debugger()) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return false;
+	if(up->is_use_debugger()) {
 		return p_emu->now_debugging;
 	} else {
 		return false;

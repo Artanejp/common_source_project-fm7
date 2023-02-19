@@ -255,6 +255,13 @@ public:
 	void set_floppy_disk_protected(int drive, bool flag);
 	QString get_d88_file_path(int drive);
 
+	int get_b77_file_cur_bank(int drive);
+	int get_b77_file_bank_num(int drive);
+	QString get_b77_file_media_name(int drive, int banknum);
+	bool is_bubble_casette_protected(int drive);
+	void set_bubble_casette_protected(int drive, bool flag);
+	QString get_b77_file_path(int drive);
+
 public slots:
 	void doExit(void);
 
@@ -333,6 +340,7 @@ public slots:
 	void do_open_bubble_casette(int drv, QString path, int bank);
 
 	void do_select_floppy_disk_d88(int drive, int slot);
+	void do_select_bubble_casette_b77(int drive, int slot);
 
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);

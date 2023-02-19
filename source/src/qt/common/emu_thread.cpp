@@ -175,33 +175,42 @@ void EmuThreadClass::doWork(const QString &params)
 	clear_key_queue();
 	bool half_count = false;
 	std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
 
-	if(using_flags.get() != nullptr) {
-	for(int i = 0; i < using_flags->get_max_qd(); i++) qd_text[i].clear();
-	for(int i = 0; i < using_flags->get_max_drive(); i++) {
-		fd_text[i].clear();
-		fd_lamp[i] = QString::fromUtf8("×");
+	bool is_up_null = (u_p.get() == nullptr);
+	if(is_up_null) {
+		for(int i = 0; i < u_p->get_max_qd(); i++) qd_text[i].clear();
+		for(int i = 0; i < u_p->get_max_drive(); i++) {
+			fd_text[i].clear();
+			fd_lamp[i] = QString::fromUtf8("×");
+		}
+		for(int i = 0; i < u_p->get_max_tape(); i++) {
+			cmt_text[i].clear();
+		}
+		for(int i = 0; i < (int)u_p->get_max_cd(); i++) {
+			cdrom_text[i] = QString::fromUtf8("×");
+		}
+		for(int i = 0; i < (int)u_p->get_max_ld(); i++) {
+			laserdisc_text[i].clear();
+		}
+		for(int i = 0; i < (int)u_p->get_max_hdd(); i++) {
+			hdd_text[i].clear();
+			hdd_lamp[i].clear();
+		}
+		for(int i = 0; i < u_p->get_max_bubble(); i++) bubble_text[i].clear();
 	}
-	for(int i = 0; i < using_flags->get_max_tape(); i++) {
-		cmt_text[i].clear();
-	}
-	for(int i = 0; i < (int)using_flags->get_max_cd(); i++) {
-		cdrom_text[i] = QString::fromUtf8("×");
-	}
-	for(int i = 0; i < (int)using_flags->get_max_ld(); i++) {
-		laserdisc_text[i].clear();
-	}
-	for(int i = 0; i < (int)using_flags->get_max_hdd(); i++) {
-		hdd_text[i].clear();
-		hdd_lamp[i].clear();
-	}
-	for(int i = 0; i < using_flags->get_max_bubble(); i++) bubble_text[i].clear();
-	}
+
 	_queue_begin = parse_command_queue(virtualMediaList, 0);
 	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
 
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
+		// Chack whether using_flags exists.
+		if(is_up_null) {
+			u_p = using_flags;
+		}
+		is_up_null = (u_p.get() == nullptr);
+
    		if((MainWindow == NULL) || (bBlockTask)) {
 			if(bRunThread == false){
 				goto _exit;
@@ -215,20 +224,17 @@ void EmuThreadClass::doWork(const QString &params)
 			queue_fixed_cpu = -1;
 		}
 		if(first) {
-			if(using_flags.get() != nullptr) {
+			if(!(is_up_null)) {
 
-			if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
-			for(int ii = 0; ii < using_flags->get_max_drive(); ii++ ) {
+			if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
+			for(int ii = 0; ii < u_p->get_max_drive(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
 			}
-			for(int ii = 0; ii < using_flags->get_max_cd(); ii++ ) {
+			for(int ii = 0; ii < u_p->get_max_cd(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, ii, cdrom_text[ii]);
 			}
-			for(int ii = 0; ii < using_flags->get_max_hdd(); ii++ ) {
+			for(int ii = 0; ii < u_p->get_max_hdd(); ii++ ) {
 				emit sig_change_access_lamp(CSP_DockDisks_Domain_HD, ii, hdd_text[ii]);
-				if(config.last_hard_disk_path[ii][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[ii])) {
-					emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, ii, config.last_hard_disk_path[ii]);
-				}
 			}
 
 			first = false;
@@ -261,8 +267,8 @@ void EmuThreadClass::doWork(const QString &params)
 				bSaveStateReq = false;
 			}
 
-			if(using_flags.get() != nullptr) {
-			if(using_flags->is_use_minimum_rendering()) {
+			if(!(is_up_null)) {
+			if(u_p->is_use_minimum_rendering()) {
 				if((vert_line_bak != config.opengl_scanline_vert) ||
 				   (horiz_line_bak != config.opengl_scanline_horiz) ||
 				   (gl_crt_filter_bak != config.use_opengl_filters) ||
@@ -318,11 +324,6 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			}
 #endif
-#if defined(USE_MOUSE)	// Will fix
-			// 20221011 K.O
-			// Note: Maybe not need below, cause lock-up at starting debugger.
-			//emit sig_is_enable_mouse(p_emu->is_mouse_enabled());
-#endif
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
 				if(bUpdateVolumeReq[ii]) {
@@ -331,7 +332,7 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			}
 #endif
-			{
+			if(p_osd != nullptr) {
 				while(!is_empty_key()) {
 					key_queue_t sp;
 					dequeue_key(&sp);
@@ -374,16 +375,14 @@ void EmuThreadClass::doWork(const QString &params)
 			// After frame, delayed open
 			if(!(half_count)) {
 				led_data = 0x00;
-
-				USING_FLAGS *up = using_flags.get();
 				bool _ind_caps_kana = false;
 				bool _key_lock = false;
 				int _led_shift = 0;
-				if(up != nullptr) {
-					_ind_caps_kana = up->get_independent_caps_kana_led();
-					_key_lock = up->get_use_key_locked();
-					_led_shift = up->get_use_led_devices();
-					if(up->is_use_minimum_rendering()) {
+				if(!(is_up_null)) {
+					_ind_caps_kana = u_p->get_independent_caps_kana_led();
+					_key_lock = u_p->get_use_key_locked();
+					_led_shift = u_p->get_use_led_devices();
+					if(u_p->is_use_minimum_rendering()) {
 						req_draw |= p_emu->is_screen_changed();
 					} else {
 						req_draw = true;
@@ -442,9 +441,8 @@ void EmuThreadClass::doWork(const QString &params)
 				if(!req_draw) {
 					no_draw_count++;
 					int count_limit = (int)(FRAMES_PER_SEC / 3);
-					USING_FLAGS *up = using_flags.get();
-					if(up != nullptr) {
-						if((up->is_support_tv_render()) && (config.rendering_type == CONFIG_RENDER_TYPE_TV)) {
+					if(!(is_up_null)) {
+						if((u_p->is_support_tv_render()) && (config.rendering_type == CONFIG_RENDER_TYPE_TV)) {
 							count_limit = 0;
 						}
 					}
