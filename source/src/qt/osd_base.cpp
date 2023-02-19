@@ -762,7 +762,7 @@ void OSD_BASE::osdcall_unmount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU
 		emit sig_ui_binary_closed(drive);
 		break;
 	case EMU_MEDIA_TYPE::BUBBLE_CASETTE :
-		emit sig_ui_binary_closed(drive);
+		emit sig_ui_bubble_closed(drive);
 		break;
 	case EMU_MEDIA_TYPE::CARTRIDGE :
 		emit sig_ui_cartridge_eject(drive);

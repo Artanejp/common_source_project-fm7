@@ -11,6 +11,7 @@
 #include "menu_disk.h"
 #include "menu_bubble.h"
 
+#include "emu_thread_tmpl.h"
 #include "qt_dialogs.h"
 
 Menu_BubbleClass::Menu_BubbleClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
@@ -23,7 +24,7 @@ Menu_BubbleClass::~Menu_BubbleClass()
 {
 }
 
-void Menu_HDDClass::connect_via_emu_thread(EmuThreadClassBase *p)
+void Menu_BubbleClass::connect_via_emu_thread(EmuThreadClassBase *p)
 {
 	if(p == nullptr) return;
 	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_close_bubble_casette()), Qt::QueuedConnection);

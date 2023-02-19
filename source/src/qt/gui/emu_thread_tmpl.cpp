@@ -32,7 +32,8 @@
 //#include "csp_logger.h"
 #include "menu_flags.h"
 
-EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent) : QThread(parent) {
+EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent) : QThread(parent)
+{
 	MainWindow = rootWindow;
 	bBlockTask = true;
 	using_flags = p;
@@ -91,16 +92,17 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 			}
 		}
 	}
-	QMutexLocker _n(&keyMutex);
+	connect(this, SIGNAL(sig_draw_finished()), glv, SLOT(releaseKeyCode(void)));
+	connect(this, SIGNAL(sig_emu_finished()), rootWindow->getGraphicsView(), SLOT(deleteLater()));
 
+	QMutexLocker _n(&keyMutex);
 
 	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
+}
 
-
-};
-
-EmuThreadClassBase::~EmuThreadClassBase() {
+EmuThreadClassBase::~EmuThreadClassBase()
+{
 
 	delete drawCond;
 
@@ -568,12 +570,12 @@ QString EmuThreadClassBase::get_d88_file_disk_name(int drive, int banknum)
 
 bool EmuThreadClassBase::is_floppy_disk_protected(int drive)
 {
-	if(drive < 0) return QString::fromUtf8("");
-	if(p_emu == nullptr) return QString::fromUtf8("");
+	if(drive < 0) return false;
+	if(p_emu == nullptr) return false;
 
 	std::shared_ptr<USING_FLAGS> p = using_flags;
-	if(p.get() == nullptr) return QString::fromUtf8("");
-	if(!(p->is_use_fd())) return QString::fromUtf8("");
+	if(p.get() == nullptr) return false;
+	if(!(p->is_use_fd())) return false;
 
 //	QMutexLocker _locker(&uiMutex);
 	bool _b = p_emu->is_floppy_disk_protected(drive);
@@ -590,7 +592,7 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 	if(p.get() == nullptr) return QString::fromUtf8("");
 	if(!(p->is_use_fd())) return QString::fromUtf8("");
 
-	if(drive < up->get_max_drive()) {
+	if(drive < p->get_max_drive()) {
 //		QMutexLocker _locker(&uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].path)));
 		return _n;
@@ -655,7 +657,7 @@ QString EmuThreadClassBase::get_b77_file_media_name(int drive, int banknum)
 
 	if((drive < p->get_max_bubble()) && (banknum < get_b77_file_bank_num(drive))) {
 //		QMutexLocker _locker(&uiMutex);
-		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->b77_file[drive].disk_name[banknum][0])));
+		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->b77_file[drive].bubble_name[banknum][0])));
 		return _n;
 	}
 
@@ -884,7 +886,7 @@ void EmuThreadClassBase::get_hdd_string(void)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
-	if(!(p->is_use_hd())) return;
+	if(!(p->is_use_hdd())) return;
 
 	QString tmpstr, alamp;
 	uint32_t access_drv = p_emu->is_hard_disk_accessed();

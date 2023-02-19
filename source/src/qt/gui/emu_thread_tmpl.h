@@ -231,6 +231,8 @@ protected:
 		key_fifo->clear();
 	};
 	// Thread HOOK.
+	void sub_close_bubble_casette_internal(int drv);
+	void sub_close_cartridge_internal(int drv);
 	void sub_close_compact_disc_internal(int drv);
 	void sub_close_floppy_disk_internal(int drv);
 	void sub_close_hard_disk_internal(int drv);
@@ -355,7 +357,8 @@ signals:
 	int quit_draw_thread(void);
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);
-	int sig_finished(void);
+	int sig_emu_finished(void);
+	int sig_draw_finished(void);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_hard_disk(int);
 

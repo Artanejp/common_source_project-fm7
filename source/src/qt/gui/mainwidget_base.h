@@ -842,9 +842,10 @@ public slots:
 	virtual void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name) { }
 	void do_update_d88_list(int drv, int bank);
 
-	// Bubble Casette
-	int write_protect_bubble(int drv, bool flag);
-
+	void do_update_bubble_history(int drive, QStringList lst);
+	void do_ui_bubble_insert_history(int drv, QString fname, quint64 bank);
+	void do_ui_eject_bubble_casette(int drv);
+	void do_ui_bubble_write_protect(int drv, quint64 flag);
 	virtual int set_b77_slot(int drive, int num) { return 0; }
 	virtual void do_update_recent_bubble(int drv) { }
 	virtual int set_recent_bubble(int drv, int num) { return 0; }
@@ -951,7 +952,7 @@ public slots:
 	void do_start_draw_thread();
 signals:
 	int message_changed(QString);
-	int quit_emu_thread();
+	int sig_quit_emu_thread();
 	int call_joy_thread(EMU_TEMPLATE *);
 	int quit_joy_thread();
 	int quit_draw_thread();
@@ -1017,7 +1018,7 @@ signals:
 
 	int sig_write_protect_bubble(int, bool);
 	int sig_open_bubble(int, QString , int);
-	int sig_close_bubble(int);
+	int sig_close_bubble_ui(int);
 
 	int sig_led_update(QRectF);
 	int sig_start_auto_key(QString);

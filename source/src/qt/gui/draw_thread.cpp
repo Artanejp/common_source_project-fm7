@@ -29,7 +29,7 @@
 #include "config.h"
 
 
-DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger,QObject *parent) : QThread(parent) {
+DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger,QObject *parent) : /*QThread(parent) */ QThread(nullptr) {
 	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
 	p_osd = o;
@@ -55,10 +55,10 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
 	connect(this, SIGNAL(sig_update_screen(void *, bool)), glv, SLOT(update_screen(void *, bool)), Qt::QueuedConnection);
-	
+
 	connect(this, SIGNAL(sig_update_osd()), glv, SLOT(update_osd()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
-	
+
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
 	use_separate_thread_draw = true;
@@ -170,7 +170,7 @@ void DrawThreadClass::do_draw_one_turn(bool _req_draw)
 		if(ncount == 0) emit sig_update_osd();
 	}
 	ncount++;
-	if(ncount >= 8) ncount = 0; 
+	if(ncount >= 8) ncount = 0;
 	if(rec_frame_count > 0) {
 		emit sig_push_frames_to_avio(rec_frame_count,
 									 rec_frame_width, rec_frame_height);
@@ -197,10 +197,10 @@ void DrawThreadClass::doWork(const QString &param)
 		renderSemaphore = s;
 	}
 	do {
-		double __fps = p_osd->vm_frame_rate(); // FPS; 
+		double __fps = p_osd->vm_frame_rate(); // FPS;
 		vrate = 1.0e3 / __fps; // to Msec
 		_rate = (wait_refresh < emu_frame_rate) ? emu_frame_rate : wait_refresh;
-		if((vrate * 2.0) > _rate) _rate = vrate * 2.0; 
+		if((vrate * 2.0) > _rate) _rate = vrate * 2.0;
 		drate = (double)elapsed / 1.0e6; // nsec to msec
 		wait_factor = (int)nearbyint(_rate);
 //		if(_rate >= drate) {
@@ -217,7 +217,7 @@ void DrawThreadClass::doWork(const QString &param)
 			rendered = true;
 		} else {
 			rendered = false;
-		}			
+		}
 		/*printf("RATE:%f VM_RATE:%f ELAPSED:%f WAIT_FACTOR:%d RENDER=%s\n", _rate, vrate, drate,  wait_factor,
 		  (rendered) ? "YES" : "NO");*/
 		if(!bRunThread) goto __exit;
@@ -236,7 +236,7 @@ __exit:
 
 void DrawThreadClass::do_change_refresh_rate(qreal rate)
 {
-	refresh_rate = rate;	
+	refresh_rate = rate;
 	wait_refresh = 1000.0 / (refresh_rate * 2.0);
 	wait_count += (wait_refresh * 1.0);
 }
@@ -247,7 +247,7 @@ void DrawThreadClass::do_update_screen(void *p, bool is_mapped)
 	bDrawReq = true;
 	mapped_drawn = is_mapped;
 }
-	
+
 void DrawThreadClass::do_req_encueue_video(int count, int width, int height)
 {
 	rec_frame_width = width;
@@ -283,7 +283,7 @@ void DrawThreadClass::req_unmap_screen_texture()
 		if(glv->is_ready_to_map_vram_texture()) {
 				emit sig_unmap_texture();
 				textureMappingSemaphore->acquire();
-				
+
 				//glv->do_unmap_vram_texture();
 				//mapping_status = false;
 				//mapping_pointer = NULL;
@@ -293,4 +293,3 @@ void DrawThreadClass::req_unmap_screen_texture()
 		}
 	}
 }
-

@@ -62,8 +62,10 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 
 void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quint64 bank)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	if(p.get() == nullptr) return;
 	if(fname.length() <= 0) return;
-	if(using_flags->get_max_drive() <= drv) return;
+	if(p->get_max_drive() <= drv) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 

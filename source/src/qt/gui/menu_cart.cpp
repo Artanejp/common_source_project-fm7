@@ -15,7 +15,9 @@
 #include "menu_metaclass.h"
 #include "menu_cart.h"
 
+#include "emu_thread_tmpl.h"
 #include "qt_dialogs.h"
+
 Menu_CartClass::Menu_CartClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent, int drv, int base_drv) : Menu_MetaClass(root_entry, desc, p, parent, drv, base_drv)
 {
 	use_write_protect = false;
@@ -26,6 +28,13 @@ Menu_CartClass::~Menu_CartClass()
 {
 }
 
+void Menu_CartClass::connect_via_emu_thread(EmuThreadClassBase *p)
+{
+	if(p == nullptr) return;
+	connect(action_eject, SIGNAL(triggered()), p, SLOT(do_close_cartridge()), Qt::QueuedConnection);
+
+}
+
 void Menu_CartClass::create_pulldown_menu_device_sub(void)
 {
 }
@@ -34,7 +43,7 @@ void Menu_CartClass::create_pulldown_menu_device_sub(void)
 void Menu_CartClass::connect_menu_device_sub(void)
 {
    	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_cart(int, QString)));
-	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_cart(int)));
+//	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_cart(int)));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cart(int, int)));
 }
 
@@ -43,7 +52,7 @@ void Menu_CartClass::retranslate_pulldown_menu_device_sub(void)
 	int drv = media_drive;
 	QString drive_name = (QApplication::translate("MenuMedia", "Cartridge ", 0));
 	drive_name += QString::number(drv);
-  
+
 	if((drv < 0) || (drv >= 8)) return;
 	action_insert->setText(QApplication::translate("MenuMedia", "Insert", 0));
 	action_eject->setText(QApplication::translate("MenuMedia", "Eject", 0));

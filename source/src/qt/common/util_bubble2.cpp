@@ -51,19 +51,33 @@ void Ui_MainWindow::do_update_recent_bubble(int drv)
 }
 
 
-int Ui_MainWindow::set_recent_bubble(int drv, int num) 
+int Ui_MainWindow::set_recent_bubble(int drv, int num)
 {
+	QString s_path;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return -1;
+	if(p_config == nullptr) return -1;
+
+	if(p->get_max_bubble() <= drv) return -1;
+	if((num < 0) || (num >= MAX_HISTORY)) return -1;
+	s_path = QString::fromLocal8Bit(p_config->recent_bubble_casette_path[drv][num]);
+	if(!(s_path.isEmpty())) {
+		_open_bubble(drv, s_path);
+		return 0;
+	}
+	return -1;
+#if 0
 	QString s_path;
 	char path_shadow[PATH_MAX];
 	int i;
 
-	
+
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_bubble_casette_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	UPDATE_HISTORY(path_shadow, p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
-   
+
 	strcpy(p_config->initial_bubble_casette_dir, get_parent_dir((const _TCHAR *)path_shadow));
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
 	{
@@ -79,6 +93,7 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
 		}
 	}
 	return 0;
+#endif
 }
 
 void Ui_MainWindow::_open_bubble(int drv, const QString fname)
@@ -107,7 +122,7 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 	}
 }
 
-void Ui_MainWindow::eject_bubble(int drv) 
+void Ui_MainWindow::eject_bubble(int drv)
 {
 	int i;
 	emit sig_close_bubble(drv);

@@ -527,12 +527,12 @@ void EmuThreadClassBase::do_close_cartridge()
 	int drv = tmp.drive;
 	sub_close_cartridge_internal(drv);
 }
-void EmuThreadClassBase::do_close_cartidge_ui(int drv)
+void EmuThreadClassBase::do_close_cartridge_ui(int drv)
 {
 	sub_close_cartridge_internal(drv);
 }
 
-void EmuThreadClassBase::sub_close_cartidge_internal(int drv)
+void EmuThreadClassBase::sub_close_cartridge_internal(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -546,7 +546,7 @@ void EmuThreadClassBase::sub_close_cartidge_internal(int drv)
 	}
 }
 
-void EmuThreadClassBase::do_open_cart(int drv, QString path)
+void EmuThreadClassBase::do_open_cartridge(int drv, QString path)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -747,7 +747,7 @@ void EmuThreadClassBase::do_select_bubble_casette_b77(int drive, int slot)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 
-	if(!((p->is_use_bubble()) && (p->get_max_dbubble() > drive))) return;
+	if(!((p->is_use_bubble()) && (p->get_max_bubble() > drive))) return;
 
 	int bank_num = p_emu->b77_file[drive].bank_num;
 	if(bank_num <= 0) return;

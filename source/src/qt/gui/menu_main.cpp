@@ -91,7 +91,7 @@ Ui_MainWindowBase::~Ui_MainWindowBase()
 {
 	// May need delete items via QVector.
 	do_clear_sound_output_list();
-	
+
 	graphicsView->releaseKeyboard();
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
 	if(driveData != NULL) delete driveData;
@@ -169,7 +169,7 @@ void Ui_MainWindowBase::do_browse_document()
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString fname = cp->data().toString();
-	
+
 	Dlg_BrowseText *dlg = new Dlg_BrowseText(fname, using_flags);
 	dlg->show();
 }
@@ -219,7 +219,7 @@ void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
 	} else {
 		action_DevLogToConsole[id]->setEnabled(false);
 		action_DevLogToConsole[id]->setVisible(false);
-		
+
 #if !defined(Q_OS_WIN)
 		action_DevLogToSyslog[id]->setEnabled(false);
 		action_DevLogToSyslog[id]->setVisible(false);
@@ -245,7 +245,7 @@ void Ui_MainWindowBase::do_set_dev_log_to_console(bool f)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	p_config->dev_log_to_console[num][0] = f;
 }
@@ -275,7 +275,7 @@ void Ui_MainWindowBase::do_set_emulate_cursor_as(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num < 0) || (num > 2)) return;
 	p_config->cursor_as_ten_key = num;
 	emit sig_emu_update_config();
@@ -286,7 +286,7 @@ void Ui_MainWindowBase::do_set_dev_log_to_syslog(bool f)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	csp_logger->set_device_node_log(num, 2, CSP_LOG_DEBUG, f);
 	p_config->dev_log_to_syslog[num][0] = f;
 }
@@ -296,7 +296,7 @@ void Ui_MainWindowBase::do_select_render_platform(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	int _major = 0;
 	int _minor = 0;
 	int _type = -1;
@@ -375,7 +375,7 @@ void Ui_MainWindowBase::setupUi(void)
 		ConfigSoundMenu();
 	}
 	if(using_flags->is_use_binary_file()) {
-		ConfigBinaryMenu(); 
+		ConfigBinaryMenu();
 	}
 	if(using_flags->is_use_qd()) {
 		ConfigQuickDiskMenu();
@@ -393,7 +393,7 @@ void Ui_MainWindowBase::setupUi(void)
 	if(using_flags->is_use_bubble()) {
 		ConfigBubbleMenu();
 	}
-	ConfigEmulatorMenu();	
+	ConfigEmulatorMenu();
 	actionAbout = new Action_Control(this, using_flags);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 
@@ -417,10 +417,10 @@ void Ui_MainWindowBase::setupUi(void)
 					// major == 3
 					if(p_config->render_minor_version < 0) p_config->render_minor_version = 0;
 					if(p_config->render_minor_version > 1) p_config->render_minor_version = 1;
-				}					
+				}
 				fmt.setVersion(p_config->render_major_version , p_config->render_minor_version ); // Requires >=Qt-4.8.0
 				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES(v%d.%d).", p_config->render_major_version, p_config->render_minor_version);
-			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) { 
+			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
 				fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
 				fmt.setVersion(4, 7); // Requires >=Qt-4.8.0
 				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
@@ -440,15 +440,15 @@ void Ui_MainWindowBase::setupUi(void)
 		connect(this, SIGNAL(sig_set_display_osd(bool)), graphicsView, SLOT(do_set_display_osd(bool)));
 		connect(this, SIGNAL(sig_set_led_width(int)), graphicsView, SLOT(do_set_led_width(int)));
 	}
-	
+
 	bitmapImage = NULL;
 	driveData = new CSP_DockDisks(this, using_flags);
 	MainWindow->setDockOptions(QMainWindow::AnimatedDocks);
 	if(p_config->virtual_media_position > 0) {
 		driveData->setVisible(true);
-	} else {	
+	} else {
 		driveData->setVisible(false);
-	}	
+	}
 
 	pCentralWidget = new QWidget(this);
 	pCentralLayout = new QVBoxLayout(pCentralWidget);
@@ -484,7 +484,7 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	pCentralWidget->setLayout(pCentralLayout);
 	MainWindow->setCentralWidget(pCentralWidget);
-	
+
 	if(p_config->focus_with_click) {
 		graphicsView->setFocusPolicy(Qt::ClickFocus);
 		graphicsView->setFocus(Qt::MouseFocusReason);
@@ -492,7 +492,7 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setFocusPolicy(Qt::NoFocus);
 		graphicsView->setFocus(Qt::ActiveWindowFocusReason);
 	}
-	
+
 	driveData->setOrientation(p_config->virtual_media_position);
 	connect(this, SIGNAL(sig_set_orientation_osd(int)), driveData, SLOT(setOrientation(int)));
 	connect(graphicsView, SIGNAL(sig_resize_osd(int)), driveData, SLOT(setScreenWidth(int)));
@@ -505,7 +505,7 @@ void Ui_MainWindowBase::setupUi(void)
 	statusbar->setObjectName(QString::fromUtf8("statusbar"));
 	MainWindow->setStatusBar(statusbar);
 	initStatusBar();
-	
+
 	menubar = new QMenuBar(this);
 	menubar->setObjectName(QString::fromUtf8("menubar"));
 	menubar->setGeometry(QRect(0, 0, 1288, 27));
@@ -519,7 +519,7 @@ void Ui_MainWindowBase::setupUi(void)
 	}
 	menuCpu_Speed = createMenuNode(menuControl, QString::fromUtf8("menuCpu_Speed"));
 	menuDebugger = createMenuNode(menuControl, QString::fromUtf8("menuDebugger"));
-	
+
 	if(using_flags->is_use_fd()) {
 		int base_drv = using_flags->get_base_floppy_disk_num();
 		for(int i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, base_drv + i);
@@ -571,7 +571,7 @@ void Ui_MainWindowBase::setupUi(void)
 	//connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(updateGL(void)));
 
 	menuMachine = createMenuNode(menubar, QString::fromUtf8("menuMachine"));
-	
+
 	if(using_flags->is_use_mouse()) {
 		SET_ACTION_SINGLE_CONNECT(actionMouseEnable, true , true, false, SIGNAL(toggled(bool)), SLOT(do_set_mouse_enable(bool)));
 //		actionMouseEnable = new Action_Control(this, using_flags);
@@ -589,7 +589,7 @@ void Ui_MainWindowBase::setupUi(void)
 		connect(action_RAMSize, SIGNAL(triggered()), this, SLOT(do_show_ram_size_dialog()));
 		menuMachine->addSeparator();
 	}
-		
+
 
 	ConfigDeviceType();
 	ConfigMouseType();
@@ -601,13 +601,13 @@ void Ui_MainWindowBase::setupUi(void)
 	ConfigSerialType();
 	ConfigMonitorType();
 	ConfigMachineFeatures();
-	
+
 	if(!using_flags->is_without_sound()) {
 		menuSound = createMenuNode(menubar, QString::fromUtf8("menuSound"));
 	}
 	menuEmulator = createMenuNode(menubar, QString::fromUtf8("menuEmulator"));
 	menuHELP = createMenuNode(menubar, QString::fromUtf8("menuHelp"));
-	
+
 	MainWindow->setMenuBar(menubar);
 
 	menubar->addAction(menuControl->menuAction());
@@ -685,11 +685,11 @@ void Ui_MainWindowBase::setupUi(void)
 		CreateSoundMenu();
 	}
 	CreateEmulatorMenu();
-  
+
 	menuHELP->addAction(actionAbout);
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(do_show_about()));
 	menuHELP->addSeparator();
-	
+
 	actionHelp_AboutQt = new Action_Control(this, using_flags);
 	actionHelp_AboutQt->setObjectName(QString::fromUtf8("menuHelp_AboutQt"));
 	menuHELP->addAction(actionHelp_AboutQt);
@@ -725,10 +725,10 @@ void Ui_MainWindowBase::setupUi(void)
 	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History_Relnote, "menuHelp_History_Relnote", "RELEASENOTE.txt");
 	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History_ChangeLog, "menuHelp_History_Changelog", "ChangeLog.txt");
 	SET_HELP_MENUENTRY(menuHelp_Histories, actionHelp_History_MR_TANAM, "menuHelp_History_MR_TANAM", "history_by_mr_tanam.txt");
-	
+
 	SET_HELP_MENUENTRY(menuHELP, actionHelp_License, "menuHelp_License", "LICENSE.txt");
 	SET_HELP_MENUENTRY(menuHELP, actionHelp_License_JP, "menuHelp_License_JP", "LICENSE.ja.txt");
-	
+
 	if(p_config->window_mode <= 0) p_config->window_mode = 0;
 	if(p_config->window_mode >= using_flags->get_screen_mode_num()) p_config->window_mode = using_flags->get_screen_mode_num() - 1;
 	w = using_flags->get_screen_width();
@@ -766,10 +766,10 @@ void Ui_MainWindowBase::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
-	
+
 	connect(this, SIGNAL(sig_screen_multiply(double)), graphicsView, SLOT(do_set_screen_multiply(double)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_glv_set_fixed_size(int, int)), graphicsView, SLOT(do_set_fixed_size(int, int)), Qt::QueuedConnection);
-	
+
 	set_screen_size(w, h);
 	set_screen_aspect(p_config->window_stretch_type);
 	if(actionScreenSize[p_config->window_mode] != nullptr) {
@@ -798,10 +798,10 @@ void Ui_MainWindowBase::setupUi(void)
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
 #if !defined(Q_OS_WIN)
 	connect(action_LogToSyslog, SIGNAL(toggled(bool)), this, SLOT(do_set_syslog(bool)));
-#endif	
+#endif
 	connect(action_LogToConsole, SIGNAL(toggled(bool)), this, SLOT(do_set_conslog(bool)));
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Menu OK");
-	   
+
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 
@@ -818,7 +818,7 @@ void Ui_MainWindowBase::setupUi(void)
 	VolumeLowIcon = QIcon(":/icon_volume_low.png");
 	VolumeMidIcon = QIcon(":/icon_volume_mid.png");
 	VolumeHighIcon = QIcon(":/icon_volume_high.png");
-	
+
 	ExitIcon = QIcon(":/icon_exit.png");
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "setupUI() OK");
@@ -842,13 +842,13 @@ void Ui_MainWindowBase::retranslateUI_Help(void)
 	actionHelp_AboutQt->setText(QApplication::translate("MenuHelp", "About Qt", 0));
 	actionHelp_AboutQt->setToolTip(QApplication::translate("MenuHelp", "Display Qt version.", 0));
 	actionHelp_AboutQt->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
-	
+
 	actionAbout->setText(QApplication::translate("MenuHelp", "About...", 0));
 	actionAbout->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
 	actionAbout->setToolTip(QApplication::translate("MenuHelp", "About this emulator.", 0));
 
 	menuHelp_Readme->setTitle(QApplication::translate("MenuHelp", "READMEs", 0));
-	
+
 	actionHelp_README->setText(QApplication::translate("MenuHelp", "General Document", 0));
 	actionHelp_README_QT->setText(QApplication::translate("MenuHelp", "About Qt ports", 0));
 	actionHelp_README_Artane->setText(QApplication::translate("MenuHelp", "About Qt ports (Japanese).", 0));
@@ -959,7 +959,7 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 	connect(this, SIGNAL(quit_emulator_all()), CoreApplication, SLOT(closeAllWindows()));
 	connect(actionHelp_AboutQt, SIGNAL(triggered()),
 			this->CoreApplication, SLOT(aboutQt()));
-	
+
 }
 
 #include <string>
@@ -989,14 +989,14 @@ void Ui_MainWindowBase::doChangeMessage_EmuThread(QString message)
 
 void Ui_MainWindowBase::StopEmuThread(void)
 {
-	emit quit_emu_thread();
+	emit sig_quit_emu_thread();
 }
 
 void Ui_MainWindowBase::delete_emu_thread(void)
 {
 	//do_release_emu_resources();
 	emit sig_quit_all();
-}  
+}
 // Utility
 #include <QActionGroup>
 #include <QTextCodec>
@@ -1044,7 +1044,7 @@ void Ui_MainWindowBase::do_set_window_title(QString s)
 	}
 	tmps = tmps + QString::fromUtf8(")");
 	MainWindow->setWindowTitle(tmps);
-	
+
 }
 
 void Ui_MainWindowBase::do_set_mouse_enable(bool flag)
@@ -1111,4 +1111,3 @@ void Ui_MainWindowBase::OnCloseDebugger(void)
  * This is main for Qt.
  */
 DLL_PREFIX std::shared_ptr<CSP_Logger> csp_logger;
-

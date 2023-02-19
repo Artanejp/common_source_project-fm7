@@ -38,9 +38,9 @@ public:
 	}
 public slots:
 	void do_set_window_focus_type(bool flag);
-	
+
 signals:
-	int quit_emu_thread(void);
+	int sig_quit_emu_thread(void);
 	int sig_set_dev_log_to_console(int, bool);
 	int sig_set_dev_log_to_syslog(int, bool);
 	int sig_set_window_focus_type(bool);
@@ -48,6 +48,3 @@ signals:
 QT_END_NAMESPACE
 
 #endif
-
-
- 

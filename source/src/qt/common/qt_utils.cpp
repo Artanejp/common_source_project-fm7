@@ -100,7 +100,8 @@ void Ui_MainWindow::do_toggle_mouse(void)
 #ifdef USE_MOUSE
 	if(hRunEmu == nullptr) return;
 	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
-	if(emu == nullptr) return;
+	if(p_emu == nullptr) return;
+	if(graphicsView == nullptr) return;
 
 	p_emu->lock_vm();
 	bool flag = p_emu->is_mouse_enabled();
@@ -153,7 +154,6 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		connect(action_SetFixedCpu[i], SIGNAL(triggered()),
 				hRunEmu, SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
 	}
-	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(do_reset()));
 
 	for(int i = 0 ; i < using_flags->get_use_special_reset_num() ; i++) {
@@ -311,7 +311,6 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(p_osd, SIGNAL(sig_ui_compact_disc_eject(int)),
 			this, SLOT(do_ui_eject_compact_disc(int)),
 			Qt::QueuedConnection);
-
 #endif
 #if defined(USE_LASER_DISC)
 	for(int ii = 0; ii < USE_LASER_DISC; ii++) {
@@ -342,24 +341,38 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_save_binary(int, QString)), hRunEmu, SLOT(do_save_binary(int, QString)));
 #endif
 #if defined(USE_BUBBLE)
-	connect(this, SIGNAL(sig_write_protect_bubble(int, bool)), hRunEmu, SLOT(do_write_protect_bubble_casette(int, bool)));
-	connect(this, SIGNAL(sig_open_bubble(int, QString, int)), hRunEmu, SLOT(do_open_bubble_casette(int, QString, int)));
-	connect(this, SIGNAL(sig_close_bubble(int)), hRunEmu, SLOT(do_close_bubble_casette(int)));
-	connect(hRunEmu, SIGNAL(sig_update_recent_bubble(int)), this, SLOT(do_update_recent_bubble(int)));
-	//connect(hRunEmu, SIGNAL(sig_change_osd_bubble(int, QString)), this, SLOT(do_change_osd_bubble(int, QString)));
-	drvs = USE_BUBBLE;
-	for(int ii = 0; ii < drvs; ii++) {
-		connect(menu_bubbles[ii],
-				SIGNAL(sig_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool)),
-				this,
-				SLOT(do_update_inner_bubble(int ,QStringList , class Action_Control **, QStringList , int, bool))
-			);
+	for(int ii = 0; ii < USE_BUBBLE; ii++) {
+		if(ii >= USE_BUBBLE_TMP) break;
+		Menu_BubbleClass *mp = menu_bubbles[ii];
+		if(mp != nullptr) {
+			mp->connect_via_emu_thread(hRunEmu);
+			connect(mp, SIGNAL(sig_set_inner_slot(int, int)),
+					hRunEmu, SLOT(do_select_bubble_casette_b77(int, int)),
+					Qt::QueuedConnection);
+		}
 	}
+	connect(this, SIGNAL(sig_open_bubble(int, QString, int)),
+			hRunEmu, SLOT(do_open_bubble_casette(int, QString, int)),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_close_bubble_ui(int)),
+			hRunEmu, SLOT(do_close_bubble_ui(int)),
+			Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_bubble_insert_history(int, QString, quint64)),
+			this, SLOT(do_ui_bubble_casette_insert_history(int, QString, ouint64)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_bubble_write_protect(int, quint64)),
+			this, SLOT(do_ui_bubble_write_protect(int, quint64)),
+					 Qt::QueuedConnection);
+	connect(p_osd, SIGNAL(sig_ui_bubble_closed(int)),
+			this, SLOT(do_ui_eject_bubble_casette(int)),
+			Qt::QueuedConnection);
+
 #endif
 
-	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
+	connect(this, SIGNAL(sig_quit_emu_thread()), hRunEmu, SLOT(doExit()), Qt::QueuedConnection);
 	connect(hRunEmu, SIGNAL(sig_mouse_enable(bool)),
-			this, SLOT(do_set_mouse_enable(bool)));
+			this, SLOT(do_set_mouse_enable(bool)), Qt::QueuedConnection);
 
 
 	hRunEmu->set_tape_play(false);
@@ -367,17 +380,16 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)), Qt::QueuedConnection);
 #endif
 #ifdef USE_AUTO_KEY
-	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)));
-	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()));
-	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu, SLOT(set_romakana(bool)));
+	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu, SLOT(set_romakana(bool)), Qt::QueuedConnection);
 #endif
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 
-//	hDrawEmu = new DrawThreadClass((OSD*)(p_osd()), csp_logger, this);
-	hDrawEmu = new DrawThreadClass((OSD*)p_osd, csp_logger, nullptr);
+	hDrawEmu = new DrawThreadClass((OSD*)p_osd, csp_logger, this);
 	p_emu->set_parent_handler((EmuThreadClass*)hRunEmu, hDrawEmu);
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -404,24 +416,24 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
 		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
 		} else*/ {
-		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)), Qt::DirectConnection);
+		connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)));
 		connect(hRunEmu, SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
 		connect(hRunEmu, SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
 	}
 	//connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), (OSD*)p_osd, SLOT(do_draw(bool)));
 	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
-	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()),  Qt::QueuedConnection);
 
 	connect(glv, SIGNAL(sig_notify_move_mouse(double, double, double, double)),
-			hRunEmu, SLOT(moved_mouse(double, double, double, double)));
+			hRunEmu, SLOT(moved_mouse(double, double, double, double)), Qt::QueuedConnection);
 	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
-	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
+	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)), Qt::QueuedConnection);
 	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),
-			hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
+			hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)), Qt::QueuedConnection);
 #ifdef USE_MOUSE
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
-			this, SLOT(do_toggle_mouse(void)));
-	connect(glv, SIGNAL(sig_toggle_grab_mouse()), this, SLOT(do_toggle_mouse()));
+			this, SLOT(do_toggle_mouse(void)),  Qt::QueuedConnection);
+	connect(glv, SIGNAL(sig_toggle_grab_mouse()), this, SLOT(do_toggle_mouse()),  Qt::QueuedConnection);
 #endif
 	connect(hRunEmu, SIGNAL(sig_resize_screen(int, int)),
 			glv, SLOT(resizeGL(int, int)), Qt::QueuedConnection);
@@ -435,8 +447,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 
 	connect((OSD*)p_osd, SIGNAL(sig_req_encueue_video(int, int, int)),
 			hDrawEmu, SLOT(do_req_encueue_video(int, int, int)));
-	connect(hRunEmu, SIGNAL(sig_finished()), glv, SLOT(releaseKeyCode(void)));
-	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
+
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 
@@ -601,7 +612,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 #endif
 	emit quit_draw_thread();
 	emit quit_joy_thread();
-	emit quit_emu_thread();
+	emit sig_quit_emu_thread();
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
 
@@ -624,10 +635,12 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 	if(hRunEmu != nullptr) {
 		OnCloseDebugger();
-		OSD* op = (OSD*)p_osd;
-		if(op != nullptr) {
-			op->setParent(this);
-			op->moveToThread(this->thread());
+		if(hRunEmu->get_emu() != nullptr) {
+			OSD* op = (OSD*)(hRunEmu->get_emu()->get_osd());
+			if(op != nullptr) {
+				op->setParent(this);
+				op->moveToThread(this->thread());
+			}
 		}
 		hRunEmu->quit();
 		if(!(hRunEmu->wait(2000))) {
@@ -1486,6 +1499,8 @@ void Ui_MainWindow::do_update_inner_fd(int drv, QStringList base, class Action_C
 	if(hRunEmu == nullptr) return;
 	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
 	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
 
 	if(use_d88_menus) {
 		for(int ii = 0; ii < up->get_max_d88_banks(); ii++) {
@@ -1512,6 +1527,8 @@ void Ui_MainWindow::do_update_inner_bubble(int drv, QStringList base, class Acti
 	if(hRunEmu == nullptr) return;
 	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
 	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
 
 	if(use_d88_menus) {
 		for(int ii = 0; ii < up->get_max_b77_banks(); ii++) {
@@ -1632,7 +1649,7 @@ void Ui_MainWindow::OnOpenDebugger()
 		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
 			QString windowName = QString::fromUtf8(vm->get_cpu(no)->get_device_name());
 			windowName = QString::fromUtf8("Debugger ") + windowName;
-			p_emu->hDebugger.reset(new CSP_Debugger(emu, this));
+			p_emu->hDebugger.reset(new CSP_Debugger(p_emu, this));
 			if(p_emu->hDebugger.get() == nullptr) {
 				return;
 			}
@@ -1686,7 +1703,7 @@ void Ui_MainWindow::OnCloseDebugger(void )
 
 QString Ui_MainWindow::get_system_version()
 {
-	if(hRunEmu == nullptr) return;
+	if(hRunEmu == nullptr) return QString::fromUtf8("");
 	EMU_TEMPLATE *p_emu = hRunEmu->get_emu();
 
 	QString guiver = get_gui_version();
