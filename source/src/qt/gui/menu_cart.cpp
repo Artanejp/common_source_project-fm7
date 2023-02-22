@@ -42,7 +42,7 @@ void Menu_CartClass::create_pulldown_menu_device_sub(void)
 
 void Menu_CartClass::connect_menu_device_sub(void)
 {
-   	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_cart(int, QString)));
+   	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(do_open_cartridge_ui(int, QString)));
 //	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_cart(int)));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cart(int, int)));
 }
