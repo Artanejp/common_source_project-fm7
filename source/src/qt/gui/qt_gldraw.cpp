@@ -2,7 +2,7 @@
  * qt_gldraw.cpp
  * (c) 2011 K.Ohta <whatisthis.sowhat@gmail.com>
  * Modified to Common Source code Project, License is changed to GPLv2.
- * 
+ *
  */
 
 
@@ -136,7 +136,7 @@ GLDrawClass::GLDrawClass(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Log
 	enable_mouse = true;
 	using_flags = p;
 	p_config = p->get_config_ptr();
-	
+
 	filename_screen_pixmap.clear();
 	//imgptr = NULL;
 	extfunc = NULL;
@@ -145,13 +145,13 @@ GLDrawClass::GLDrawClass(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Log
 	draw_width = using_flags->get_screen_width();
 	draw_height = using_flags->get_screen_height();
 	draw_item = new CSP_DrawItem(48, 48);
-	
+
 	delay_update = false;
-	
+
 	emu_launched = false;
 	run_vm = true;
 
-	
+
 	this->initKeyCode();
 }
 
@@ -160,7 +160,6 @@ GLDrawClass::~GLDrawClass()
 	if(extfunc != NULL) delete extfunc;
 	if(draw_item != NULL) delete draw_item;
 //	this->releaseKeyCode();
-	emit sig_finished();
 
 }
 
@@ -236,7 +235,7 @@ void GLDrawClass::do_unmap_vram_texture()
 {
 	if(extfunc != NULL) {
 		if(extfunc->is_ready_to_map_vram_texture()) {
-			extfunc->unmap_vram_texture();	
+			extfunc->unmap_vram_texture();
 			return;
 		}
 	}
@@ -265,7 +264,7 @@ QString GLDrawClass::getRenderString()
 				_head = QString::fromUtf8("OpenGL (Core) v");
 			} else {
 				_head = QString::fromUtf8("OpenGL (Main) v");
-			}				
+			}
 		}
 		s = QString::fromUtf8("Host:&nbsp;");
 		s = s + _head + QString::number(major) +

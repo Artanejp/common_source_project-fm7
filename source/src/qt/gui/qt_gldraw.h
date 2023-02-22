@@ -2,7 +2,7 @@
  * qt_gldraw.h
  * (c) 2011 K.Ohta <whatisthis.sowhat@gmail.com>
  * Modified to Common Source code Project, License is changed to GPLv2.
- * 
+ *
  */
 #ifndef _CSP_QT_GLDRAW_H
 #define _CSP_QT_GLDRAW_H
@@ -37,27 +37,27 @@ struct NativeVirtualKeyCode {
 	uint32_t key;
 };
 
-class DLL_PREFIX GLDrawClass: public QOpenGLWidget 
+class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 {
 	Q_OBJECT
  private:
 	std::shared_ptr<CSP_Logger> csp_logger;
 	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
-	
+
 	bool enable_mouse;
 	GLfloat screen_width, screen_height;
 	int vram_width;
 	int vram_height;
 	int draw_width;
 	int draw_height;
-	
+
 	bool delay_update;
-	
+
  protected:
 	bool run_vm;
 	QString render_string;
-	
+
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
@@ -69,7 +69,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	bool QueryGLExtensions(const char *str);
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
-	
+
 	QString filename_screen_pixmap;
 	bool save_pixmap_req;
 	void SaveToPixmap(void);
@@ -80,12 +80,12 @@ public:
 	GLDrawClass(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0, const QSurfaceFormat &fmt = QSurfaceFormat::defaultFormat());
 	~GLDrawClass();
 	GLDraw_Tmpl *extfunc;
-	
+
 	QSize minimumSizeHint() const;
 	QSize sizeHint() const;
 	QSize getCanvasSize();
 	QSize getDrawSize();
-	
+
 	QStringList *getKeyNames(void);
 	QStringList *getVKNames(void);
 	keydef_table_t *get_key_table(int index);
@@ -97,7 +97,7 @@ public:
 	uint32_t get_scan_from_index(int index);
 	const char *get_key_vk_name(int index);
 	quint32 getModState(void) { return modifier;}
-	
+
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
 	void drawUpdateTexture(void *p, bool was_mapped);
@@ -118,7 +118,7 @@ public:
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
-	
+
 	void update_screen(void *p, bool was_mapped);
 	void update_osd(void);
 	void resizeGL(int width, int height);
@@ -130,10 +130,10 @@ public slots:
 	void setSmoosing(bool);
 	void setDrawGLGridVert(bool);
 	void setDrawGLGridHoriz(bool);
-	void setVirtualVramSize(int ,int);	
+	void setVirtualVramSize(int ,int);
 	void setChangeBrightness(bool);
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
-	
+
 	void updateBitmap(QImage *);
 
 	void set_emu_launched(void);
@@ -143,7 +143,7 @@ public slots:
 	void do_save_frame_screen(const char *);
 	void do_set_texture_size(QImage *p, int w, int h);
 	void do_set_horiz_lines(int lines);
-	
+
 	void do_set_screen_multiply(float mul);
 	void do_set_screen_multiply(double mul);
 	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);
@@ -168,7 +168,7 @@ signals:
 	void sig_toggle_grab_mouse();
 	void sig_resize_uibar(int, int);
 	void sig_draw_timing(void);
-	int sig_finished(void);
+
 	int sig_key_down(uint32_t, uint32_t, bool);
 	int sig_key_up(uint32_t, uint32_t);
 	int sig_set_display_osd(bool);
