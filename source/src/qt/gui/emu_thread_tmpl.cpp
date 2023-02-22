@@ -92,7 +92,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 			}
 		}
 	}
-	connect(this, SIGNAL(sig_draw_finished()), glv, SLOT(releaseKeyCode(void)));
+	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(releaseKeyCode(void)));
 	connect(this, SIGNAL(sig_emu_finished()), rootWindow->getGraphicsView(), SLOT(deleteLater()));
 
 	QMutexLocker _n(&keyMutex);

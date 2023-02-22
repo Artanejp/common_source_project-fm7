@@ -23,7 +23,7 @@ class Ui_MainWindow : public Ui_MainWindowBase
 {
 	Q_OBJECT
 protected:
-	
+
 public:
 	Ui_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindow();
@@ -41,22 +41,12 @@ public:
 	void OnWindowMove(void);
 	void OnWindowRedraw(void);
 	void OnMainWindowClosed(void);
-	int GetBubbleBankNum(int drv);
-	int GetBubbleCurrentBankNum(int drv);
-	bool GetBubbleCasetteIsProtected(int drv);
-	QString GetBubbleB77FileName(int drv);
+
 	QString GetBubbleB77BubbleName(int drv, int num);
 	QString get_system_version();
 	QString get_build_date();
 
 public slots:
-#if defined(USE_BUBBLE)
-	int set_b77_slot(int drive, int num);
-	void do_update_recent_bubble(int drv);
-	int set_recent_bubble(int drv, int num);
-	void _open_bubble(int drv, const QString fname);
-	void eject_bubble(int drv);
-#endif
 	void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name);
 	void do_create_d88_media(int drv, quint8 media_type, QString name);
 #if defined(USE_DEBUGGER)
@@ -69,20 +59,13 @@ public slots:
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	void rise_movie_dialog(void);
-	void do_update_inner_fd(int drv, QStringList base, class Action_Control **action_select_media_list,
-							QStringList lst, int num, bool use_d88_menus);
-	void do_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
-							QStringList lst, int num, bool use_d88_menus);
-
 signals:
 	int sig_movie_set_width(int);
 	int sig_movie_set_height(int);
 
 	//virtual void redraw_status_bar(void);
-	
+
 };
 QT_END_NAMESPACE
 
 #endif
-
-
