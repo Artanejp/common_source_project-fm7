@@ -49,8 +49,8 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return -1;
 	if(p_config == nullptr) return -1;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return -1;
 
-	if(p->get_max_drive() <= drv) return -1;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_floppy_disk_path[drv][num]);
 	if(!(s_path.isEmpty())) {
@@ -64,8 +64,8 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 {
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
 	if(fname.length() <= 0) return;
-	if(p->get_max_drive() <= drv) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
@@ -109,8 +109,9 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 {
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
 	if(fname.length() <= 0) return;
-	if(p->get_max_drive() <= drv) return;
+
 
 	const _TCHAR *fnamep = (const _TCHAR*)(fname.toLocal8Bit().constData());
 	if(fnamep == nullptr) return;
@@ -125,7 +126,13 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 
 void Ui_MainWindowBase::do_update_d88_list(int drv, int bank)
 {
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
+
 	UPDATE_D88_LIST(drv, listD88[drv]);
-	menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	if(menu_fds[drv] != nullptr) {
+		menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	}
 }
 //#endif
