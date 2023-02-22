@@ -406,10 +406,10 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
 	QImage result2 = result->convertToFormat(QImage::Format_ARGB32);
 	glv->updateBitmap(&result2);
-	p_osd()->upload_bitmap(&result2);
+	p_osd->upload_bitmap(&result2);
 	delete result;
 	delete reader;
-	p_osd()->set_buttons();
+	p_osd->set_buttons();
 #endif
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
