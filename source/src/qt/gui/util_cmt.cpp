@@ -103,10 +103,6 @@ bool Ui_MainWindowBase::get_direct_load_mzt(int drive)
 	return true;
 }
 
-void Ui_MainWindowBase::eject_cmt(int drv)
-{
-	emit sig_close_tape(drv);
-}
 
 void Ui_MainWindowBase::do_open_read_cmt(int drive, QString path)
 {
