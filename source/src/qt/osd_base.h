@@ -745,10 +745,14 @@ signals:
 	int sig_save_as_movie(QString, int, int);
 	int sig_stop_saving_movie();
 
+	int sig_movie_open(QString);
 	int sig_movie_play();
 	int sig_movie_stop();
 	int sig_movie_pause(bool);
 	int sig_movie_seek_frame(bool, int);
+	int sig_movie_mute(bool, bool);
+	int sig_movie_eject();
+	int sig_movie_quit();
 
 	int sig_set_sound_device(QString);
 	int sig_set_sound_volume(double);
@@ -818,7 +822,7 @@ signals:
 	int sig_ui_binary_closed(int);
 
 	int sig_ui_bubble_insert_history(int, QString, quint64);
-	int sig_ui_bubble_close(int);
+	int sig_ui_bubble_closed(int);
 	int sig_ui_bubble_write_protect(int, quint64);
 
 	// To Logger.

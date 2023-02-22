@@ -437,8 +437,6 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		${COMMON_DIRECTORY}/emu_thread.cpp
 		${COMMON_DIRECTORY}/mainwidget.cpp
 
-		${COMMON_DIRECTORY}/util_bubble2.cpp
-
 		${COMMON_DIRECTORY}/../osd.cpp
 		${COMMON_DIRECTORY}/../osd_wrapper.cpp
 	)

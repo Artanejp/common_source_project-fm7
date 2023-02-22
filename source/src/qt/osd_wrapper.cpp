@@ -223,15 +223,18 @@ double OSD::get_window_mode_power(int mode)
 
 void OSD::initialize_video()
 {
-	movie_loader = NULL;
+	movie_loader = nullptr;
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	movie_loader = new MOVIE_LOADER(this, &config);
 	//connect(movie_loader, SIGNAL(sig_send_audio_frame(uint8_t *, long)), this, SLOT(do_run_movie_audio_callback2(uint8_t *, long)));
+	connect(this, SIGNAL(sig_movie_open(QString)), movie_loader, SLOT(do_open(QString)));
 	connect(movie_loader, SIGNAL(sig_movie_end(bool)), this, SLOT(do_video_movie_end(bool)));
 	connect(this, SIGNAL(sig_movie_play(void)), movie_loader, SLOT(do_play()));
 	connect(this, SIGNAL(sig_movie_stop(void)), movie_loader, SLOT(do_stop()));
 	connect(this, SIGNAL(sig_movie_pause(bool)), movie_loader, SLOT(do_pause(bool)));
 	connect(this, SIGNAL(sig_movie_seek_frame(bool, int)), movie_loader, SLOT(do_seek_frame(bool, int)));
+	connect(this, SIGNAL(sig_movie_eject()), movie_loader, SLOT(do_eject()));
+	connect(this, SIGNAL(sig_movie_quit()), movie_loader, SLOT(do_abort_movie_loader()));
 	//connect(this, SIGNAL(sig_movie_mute(bool, bool)), movie_loader, SLOT(do_mute(bool, bool)));
 	connect(movie_loader, SIGNAL(sig_decoding_error(int)), this, SLOT(do_video_decoding_error(int)));
 #endif
@@ -239,32 +242,25 @@ void OSD::initialize_video()
 
 void OSD::release_video()
 {
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	delete movie_loader;
-#endif
-	movie_loader = NULL;
+	emit sig_movie_quit();
+//#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+//	delete movie_loader;
+//#endif
+//	movie_loader = NULL;
 }
 
 
 bool OSD::open_movie_file(const _TCHAR* file_path)
 {
 	bool ret = false;
-	if(file_path == NULL) return ret;
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	if(movie_loader != NULL) {
-		ret = movie_loader->open(QString::fromUtf8(file_path));
-	}
-#endif
-	return ret;
+	if(file_path ==nullptr) return false;
+	emit sig_movie_open(QString::fromLocal8Bit(file_path));
+	return true;
 }
 
 void OSD::close_movie_file()
 {
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	if(movie_loader != NULL) {
-		movie_loader->close();
-	}
-#endif
+	emit sig_movie_eject();
 	now_movie_play = false;
 	now_movie_pause = false;
 }

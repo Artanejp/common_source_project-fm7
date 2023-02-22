@@ -1034,6 +1034,13 @@ OpenGL 2.0では無効です。</translation>
     </message>
 </context>
 <context>
+    <name>MenuBubble</name>
+    <message>
+        <source>Select B77 Image</source>
+        <translation>B77内部イメージ選択</translation>
+    </message>
+</context>
+<context>
     <name>MenuControl</name>
     <message>
         <source>Reset</source>

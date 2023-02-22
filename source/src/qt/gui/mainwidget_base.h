@@ -430,12 +430,6 @@ private:
 	void CreateBubblePulldownMenu(int drv);
 	void ConfigBubbleMenuSub(int drv);
 	void ConfigBubbleMenu(void);
-	virtual int GetBubbleBankNum(int drv) { return 0; }
-	virtual int GetBubbleCurrentBankNum(int drv) { return 0; }
-	virtual bool GetBubbleCasetteIsProtected(int drv) { return false; }
-	virtual QString GetBubbleB77FileName(int drv) { return QString::fromUtf8(""); }
-	virtual QString GetBubbleB77BubbleName(int drv, int num) { return QString::fromUtf8(""); }
-
 	void CreateCMTMenu(int drive, int drv_base);
 	void ConfigCMTMenu(void);
 
@@ -789,8 +783,6 @@ public slots:
 	void do_emu_full_speed(bool f);
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
-	void eject_cart(int);
-	void set_recent_cart(int, int);
 
 	int set_recent_compact_disc(int drv, int num);
 	void do_eject_compact_disc(int drv);
@@ -822,9 +814,12 @@ public slots:
 	int do_emu_write_protect_quick_disk(int drv, bool flag);
 	void do_eject_quick_disk(int drv);
 
-
-	void _open_cart(int drv, const QString fname);
-	void eject_cmt(int drv);
+	void do_ui_cartridge_insert_history(int drv, QString fname);
+	void do_ui_eject_cartridge(int drv);
+	void set_recent_cart(int drv, int num);
+	void do_open_cartridge_ui(int drv, QString path);
+	void do_eject_cartridge(int drv);
+	void do_update_cartridge_history(int drive, QStringList lst);
 
 	void do_change_boot_mode();
 	void do_change_cpu_type();
@@ -846,11 +841,10 @@ public slots:
 	void do_ui_bubble_insert_history(int drv, QString fname, quint64 bank);
 	void do_ui_eject_bubble_casette(int drv);
 	void do_ui_bubble_write_protect(int drv, quint64 flag);
-	virtual int set_b77_slot(int drive, int num) { return 0; }
-	virtual void do_update_recent_bubble(int drv) { }
-	virtual int set_recent_bubble(int drv, int num) { return 0; }
-	virtual void _open_bubble(int drv, const QString fname) { }
-	virtual void eject_bubble(int drv) { }
+
+	int set_recent_bubble(int drv, int num);
+	void _open_bubble(int drv, const QString fname);
+	void do_update_b77_list(int drv, int bank);
 
 	void _open_disk(int drv, const QString fname);
 	int set_recent_disk(int, int);
@@ -1003,8 +997,9 @@ signals:
 	int sig_write_protect_quick_disk(int drv, bool flag);
 	int sig_close_quick_disk_ui(int drv);
 	int sig_open_quick_disk(int drv, QString path);
-	int sig_close_cart(int drv);
-	int sig_open_cart(int drv, QString path);
+
+	int sig_eject_cartridge_ui(int drv);
+	int sig_open_cartridge(int drv, QString path);
 
 	int sig_open_compact_disc(int drv, QString path);
 	int sig_eject_compact_disc_ui(int drv);

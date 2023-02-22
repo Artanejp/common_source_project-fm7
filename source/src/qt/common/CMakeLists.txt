@@ -17,7 +17,6 @@ set(QT_COMMON_BASE
 	  emu_thread.cpp
 	  mainwidget.cpp
 
-	  util_bubble2.cpp
 	  ../osd.cpp
 	  ../osd_wrapper.cpp
 )
