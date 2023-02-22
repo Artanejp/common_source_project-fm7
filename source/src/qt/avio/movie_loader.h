@@ -44,7 +44,7 @@ typedef struct {
 } sound_data_queue_t;
 
 QT_BEGIN_NAMESPACE
-class OSD;
+class OSD_BASE;
 
 #if QT_VERSION >= 0x051400
 class QRecursiveMutex;
@@ -79,14 +79,14 @@ private:
 	int64_t video_frame_count; // = 0;
 	int64_t duration_us;
 	int64_t audio_total_samples;
-	
+
 	int refcount; // = 0
 	int decode_packet(int *got_frame, int cached);
 	int open_codec_context(int *stream_idx, AVFormatContext *fmt_ctx, AVCodecContext **ctx, enum AVMediaType type);
 	int get_format_from_sample_fmt(const char **fmt, enum AVSampleFormat sample_fmt);
 #endif
 protected:
-	OSD *p_osd;
+	OSD_BASE *p_osd;
 	config_t *p_cfg;
 
 #if QT_VERSION >= 0x051400
@@ -101,7 +101,7 @@ protected:
 	int sound_rate;
 	bool now_opening;
 	QString _filename;
-	
+
 	bool use_hwaccel;
 	QString video_format;
 	QString video_codec;
@@ -110,25 +110,25 @@ protected:
 
 	bool now_pausing;
 	bool now_playing;
-	
+
 	int src_width, src_height;
 	int dst_width, dst_height;
 	int old_dst_width, old_dst_height;
 
 	QQueue<sound_data_queue_t *> sound_data_queue;
 public:
-	MOVIE_LOADER(OSD *osd, config_t *cfg);
+	MOVIE_LOADER(OSD_BASE *osd, config_t *cfg);
 	~MOVIE_LOADER();
 	bool open(QString filename);
 	void close();
-	
-	void get_video_frame(void);	
+
+	void get_video_frame(void);
 	double  get_movie_frame_rate(void);
 	int get_movie_sound_rate(void);
 
 	QReadWriteLock frame_lock;
 	QWaitCondition lock_cond;
-	
+
 	uint64_t get_current_frame(void);
 	bool is_playing(void);
 	bool is_pausing(void);
@@ -140,16 +140,20 @@ public:
 			p_logger->debug_log(type, subtype, args...);
 		}
 	}
-	
+
 public slots:
+	void do_abort_movie_loader();
 	void do_set_dst_geometry(int width, int height);
 	void do_set_enable_hwaccel_decoding(bool enable);
 	void do_set_enable_hwaccel_scaling(bool enable);
 	void do_set_dst_pixfmt(int type);
-	
+
 	void do_play();
 	void do_stop();
 	void do_pause(bool flag);
+	void do_eject();
+	void do_open(QString filename);
+
 //	void do_fast_forward(int ticks);
 //	void do_fast_rewind(int ticks);
 	void do_mute(bool left, bool right);
@@ -157,7 +161,7 @@ public slots:
 	void do_decode_frames(int frames, int width, int height);
 	void do_seek_frame(bool relative, int frames);
 	void do_dequeue_audio();
-	
+
 signals:
 	int sig_send_audio_frame(uint8_t *, long); // Call callback.
 	int sig_movie_end(bool); // MOVIE END
@@ -166,4 +170,3 @@ signals:
 };
 QT_END_NAMESPACE
 #endif //_QT_OSD_MOVIE_LOADER_H
-

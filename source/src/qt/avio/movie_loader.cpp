@@ -5,7 +5,7 @@
  *  History: June 30, 2016 : Initial. This refer from sample of ffmpeg .
  */
 
-#include "../osd.h"
+#include "../osd_base.h"
 #include "movie_loader.h"
 #include "csp_logger.h"
 
@@ -18,27 +18,27 @@
 #endif
 #include <QMutexLocker>
 
-MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
+MOVIE_LOADER::MOVIE_LOADER(OSD_BASE *osd, config_t *cfg) : QObject(NULL)
 {
 	p_osd = osd;
 	p_cfg = cfg;
 	p_logger = osd->get_logger();
-	
+
 #if QT_VERSION >= 0x051400
 	video_mutex = new QRecursiveMutex();
 	snd_write_lock = new QRecursiveMutex();
 #else
 	video_mutex = new QMutex(QMutex::Recursive);
 	snd_write_lock = new QMutex(QMutex::Recursive);
-#endif	
+#endif
 	frame_rate = 29.97;
 	video_frame_count = 0;
 	duration_us = 0;
 	audio_total_samples = 0;
-	
+
 	now_opening = false;
 	use_hwaccel = false;
-	
+
 	_filename.clear();
 
 	video_format.clear();
@@ -48,7 +48,7 @@ MOVIE_LOADER::MOVIE_LOADER(OSD *osd, config_t *cfg) : QObject(NULL)
 
 	now_pausing = false;
 	now_playing = false;
-	
+
 	src_width = 640;
 	src_height = 200;
 	dst_width = 640;
@@ -85,6 +85,11 @@ MOVIE_LOADER::~MOVIE_LOADER()
 	delete video_mutex;
 }
 
+void MOVIE_LOADER::do_abort_movie_loader()
+{
+	do_eject();
+	deleteLater();
+}
 
 #if defined(USE_LIBAV)
 int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
@@ -148,9 +153,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		return ret;
 	}
 	int decoded = pkt->size;
-	
+
 	*got_frame = 0;
-	
+
 	if (pkt->stream_index == video_stream_idx) {
 		/* decode video frame */
 #if (LIBAVCODEC_VERSION_MAJOR > 56)
@@ -185,7 +190,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				for(int i = 0; i < 4; i++) av_free(video_dst_data[i]);
 				ret = av_image_alloc(video_dst_data, video_dst_linesize,
 									 dst_width, dst_height, AV_PIX_FMT_RGBA, 1);
-				
+
 				if(ret < 0) {
 					out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Could not re-allocate output buffer\n");
 					old_dst_width = dst_width;
@@ -197,7 +202,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				old_dst_height = dst_height;
 				//video_mutex->unlock();
 			}
-			
+
 //			char str_buf2[AV_TS_MAX_STRING_SIZE] = {0};
 
 
@@ -207,7 +212,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 			//			  cached ? "(cached)" : "",
 			//			  video_frame_count++, frame->coded_picture_number,
 			//			  str_buf2);
-			
+
             /* copy decoded frame to destination buffer:
              * this is required since rawvideo expects non aligned data */
 			if(sws_context == NULL) {
@@ -223,7 +228,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 								  "MOVIE_LOADER: Could not initialize the conversion context\n");
 					return -1;
 				}
-				
+
 			}
 			video_mutex->lock();
 			sws_scale(sws_context,
@@ -250,7 +255,7 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		 * Sample: fate-suite/lossless-audio/luckynight-partial.shn
 		 * Also, some decoders might over-read the packet. */
 		decoded = FFMIN(ret, pkt->size);
-			
+
 		if (*got_frame) {
 			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
 //			char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
@@ -329,7 +334,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
     AVCodecContext *dec_ctx = NULL;
     AVCodec *__dec = NULL;
     AVDictionary *opts = NULL;
-	
+
     ret = av_find_best_stream(_fmt_ctx, type, -1, -1, NULL, 0);
     if (ret < 0) {
         out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find %s stream in input file '%s'\n",
@@ -338,7 +343,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
     } else {
         stream_index = ret;
         st = _fmt_ctx->streams[stream_index];
-		
+
         /* find decoder for the stream */
 #if LIBAVCODEC_VERSION_MAJOR <= 56
 		dec_ctx = st->codec;
@@ -402,19 +407,24 @@ int MOVIE_LOADER::get_format_from_sample_fmt(const char **fmt,
 
 #endif // USE_LIBAV
 
+void MOVIE_LOADER::do_open(QString filename)
+{
+	open(filename);
+}
+
 bool MOVIE_LOADER::open(QString filename)
 {
     int ret = 0;
 	_filename = filename;
 	if(_filename.isEmpty()) return false;
-	
+
 	mod_frames = 0.0;
 	req_transfer = true;
-	
+
 	duration_us = 0;
 	video_frame_count = 0;
 	audio_total_samples = 0;
-	
+
     /* register all formats and codecs */
 #if (LIBAVCODEC_VERSION_MAJOR <= 56)
     av_register_all();
@@ -477,7 +487,7 @@ bool MOVIE_LOADER::open(QString filename)
 	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
 	av_opt_set_int	   (swr_context, "out_sample_rate",	   sound_rate,	0);
 	av_opt_set_sample_fmt(swr_context, "out_sample_fmt",   AV_SAMPLE_FMT_S16,	 0);
-	
+
 	/* initialize the resampling context */
 	if ((ret = swr_init(swr_context)) < 0) {
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Failed to initialize the resampling context\n");
@@ -563,7 +573,7 @@ void MOVIE_LOADER::close(void)
 		sws_freeContext(sws_context);
 	}
 	swr_free(&swr_context);
-	
+
 	video_mutex->lock();
 	req_transfer = true;
 	if(frame != NULL) av_frame_free(&frame);
@@ -588,7 +598,7 @@ void MOVIE_LOADER::close(void)
 	swr_context = NULL;
 	video_frame_count = 0;
 	duration_us = 0;
-	
+
 	now_playing = false;
 	now_pausing = false;
 	out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "MOVIE_LOADER: Close movie.");
@@ -636,6 +646,11 @@ void MOVIE_LOADER::do_stop()
 	duration_us = 0;
 	// Still not closing.
 }
+void MOVIE_LOADER::do_eject()
+{
+	do_stop();
+	close();
+}
 
 void MOVIE_LOADER::do_pause(bool flag)
 {
@@ -665,7 +680,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 
 	if(width > 0) dst_width = width;
 	if(height > 0) dst_height = height;
-	
+
 	if(real_frames <= 0) {
 		do_dequeue_audio();
 		///if(frames < 0) emit sig_decoding_error(MOVIE_LOADER_ILL_FRAME_NUMBER);
@@ -687,7 +702,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 			if(video_dst_data[0] != NULL) {
 				uint32_t *q;
 				video_mutex->lock();
-				for(int yy = 0; yy < dst_height; yy++) { 
+				for(int yy = 0; yy < dst_height; yy++) {
 					q = (uint32_t *)(&(video_dst_data[0][yy * video_dst_linesize[0]]));
 					if((q != NULL) && (dst_width != 0)) {
 						memset(q, 0x00, dst_width * sizeof(uint32_t));
@@ -704,7 +719,7 @@ void MOVIE_LOADER::do_decode_frames(int frames, int width, int height)
 		v_f = (av_rescale_rnd(video_frame_count, 1000000000, (int64_t)(frame_rate * 1000.0), AV_ROUND_UP) < duration_us);
 		a_f = (av_rescale_rnd(audio_total_samples, 1000000, sound_rate, AV_ROUND_UP) < duration_us);
 		//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_LOADER, "%lld usec. V=%lld A=%lld, %d - %d\n", duration_us, video_frame_count, audio_total_samples, v_f, a_f);
-		if(!a_f && !v_f) break; 
+		if(!a_f && !v_f) break;
 		if(av_read_frame(fmt_ctx, pkt) < 0) {
 			this->close();
 			return;
@@ -775,7 +790,7 @@ __DECL_VECTORIZED_LOOP
 			for(; xx > 0; xx--) {
 				*q++ = col;
 			}
-#endif		   
+#endif
 		}
 	}
 }
@@ -789,7 +804,7 @@ void MOVIE_LOADER::do_dequeue_audio()
 {
 	long audio_data_size = 0;
 	sound_data_queue_t *tmpq = NULL;
-	
+
 	snd_write_lock->lock();
 	int il = sound_data_queue.count();
 	while(il > 0) {
@@ -828,7 +843,7 @@ void MOVIE_LOADER::do_dequeue_audio()
 		//if(p_osd != NULL) p_osd->do_run_movie_audio_callback(tmpdata, dptr / (sizeof(int16_t) * 2));
 		if(p_osd != NULL) p_osd->do_run_movie_audio_callback(tmpdata, dptr);
 	}
-}	
+}
 
 void MOVIE_LOADER::do_set_enable_hwaccel_decoding(bool enable)
 {
