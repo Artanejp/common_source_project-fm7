@@ -51,15 +51,9 @@ public:
 signals:
 	int sig_open_media(int, QString);
 
-	int sig_open_cart(int, QString);
-	int sig_close_cart(int);
-
 	int sig_open_binary_file(int, QString, bool);
 public slots:
 	void _open_media(const QString fname);
-
-	void _open_cart(const QString fname);
-
 	void _open_binary(QString);
 
 private:

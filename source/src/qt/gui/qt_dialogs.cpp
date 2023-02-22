@@ -27,11 +27,6 @@ void CSP_DiskParams::_open_media(QString s)
 	emit sig_open_media(d, s);
 }
 
-void CSP_DiskParams::_open_cart(QString s)
-{
-	int d = getDrive();
-	emit sig_open_cart(d, s);
-}
 
 void CSP_DiskParams::_open_binary(QString s) {
 	emit sig_open_binary_file(drive, s, play);
