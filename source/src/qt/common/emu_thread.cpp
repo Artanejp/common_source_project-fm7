@@ -47,7 +47,6 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 //	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
 //	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
 
-
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
 	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
@@ -70,7 +69,6 @@ int EmuThreadClass::get_interval(void)
 #include <QStringList>
 #include <QFileInfo>
 
-extern QStringList virtualMediaList; // {TYPE, POSITION}
 
 void EmuThreadClass::resetEmu()
 {
@@ -200,9 +198,9 @@ void EmuThreadClass::doWork(const QString &params)
 		for(int i = 0; i < u_p->get_max_bubble(); i++) bubble_text[i].clear();
 	}
 
-	_queue_begin = parse_command_queue(virtualMediaList, 0);
+//	_queue_begin = parse_command_queue(virtualMediaList);
+//	virtualMediaList.clear();
 	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
-
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
 		// Chack whether using_flags exists.
@@ -244,6 +242,10 @@ void EmuThreadClass::doWork(const QString &params)
 		sleep_period = 0;
 		if(p_emu) {
 			// drive machine
+			if(!(half_count)) { // OK?
+				_queue_begin = parse_command_queue(virtualMediaList);
+				virtualMediaList.clear();
+			}
 			if(bLoadStateReq != false) {
 				loadState();
 				bLoadStateReq = false;
@@ -266,7 +268,6 @@ void EmuThreadClass::doWork(const QString &params)
 				saveState();
 				bSaveStateReq = false;
 			}
-
 			if(!(is_up_null)) {
 			if(u_p->is_use_minimum_rendering()) {
 				if((vert_line_bak != config.opengl_scanline_vert) ||
@@ -306,24 +307,6 @@ void EmuThreadClass::doWork(const QString &params)
 					prevRecordReq = false;
 				}
 			}
-#if defined(USE_LASER_DISC) || defined(USE_MOVIE_PLAYER)
-			if(turn_count < 128) {
-				turn_count++;
-			} else {
-				if(vMovieQueue.size() >= 2) {
-					for(int ii = 0; ii < vMovieQueue.size(); ii += 2) {
-						QString _dom = vMovieQueue.at(ii);
-						QString _path = vMovieQueue.at(ii + 1);
-						bool _num_ok;
-						int _dom_num = _dom.right(1).toInt(&_num_ok);
-						if(!_num_ok) _dom_num = 0;
-						emit sig_open_laser_disc(_dom_num, _path);
-					}
-					vMovieQueue.clear();
-					//turn_count = 0;
-				}
-			}
-#endif
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
 				if(bUpdateVolumeReq[ii]) {
@@ -525,6 +508,10 @@ void EmuThreadClass::doWork(const QString &params)
 		}
 //		printf("HALF=%s %dmsec\n", (half_count) ? "YES" : "NO ", tick_timer.elapsed());
 		half_count = !(half_count);
+//		if(!(half_count)) { // OK?
+//			_queue_begin = parse_command_queue(virtualMediaList);
+//			virtualMediaList.clear();
+//		}
 		//SDL_Delay(sleep_period);
 	} while(1);
 _exit:

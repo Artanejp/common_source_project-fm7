@@ -23,6 +23,7 @@
 #include "qt_gldraw.h"
 #include "common.h"
 #include "dock_disks.h"
+#include "../../osdcall_types.h"
 
 #include "./virtualfileslist.h"
 #include "menu_metaclass.h"
@@ -67,7 +68,6 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	skip_frames = 0;
 	calc_message = true;
 	mouse_flag = false;
-	vMovieQueue.clear();
 
 	drawCond = new QWaitCondition();
 //	keyMutex = new QMutex(QMutex::Recursive);
@@ -94,6 +94,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	}
 	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(releaseKeyCode(void)));
 	connect(this, SIGNAL(sig_emu_finished()), rootWindow->getGraphicsView(), SLOT(deleteLater()));
+	virtualMediaList.clear();
 
 	QMutexLocker _n(&keyMutex);
 
@@ -372,88 +373,166 @@ void EmuThreadClassBase::do_update_volume_balance(int num, int level)
 		}
 	}
 }
-
-int EmuThreadClassBase::parse_command_queue(QStringList _l, int _begin)
+int EmuThreadClassBase::parse_drive(QString key)
 {
-	int _ret = _l.size() / 2;
-	for(int i = _begin * 2; i < _l.size(); i+= 2) {
-		QString _dom = _l.at(i);
-		QString _file = _l.at(i + 1);
-		QString _dom_type = _dom.left(_dom.size() - 1);
-		int _dom_num;
-		bool _num_ok;
-		_dom_num = _dom.right(1).toInt(&_num_ok);
-		if(_num_ok) {
-			if((_dom_type == QString::fromUtf8("vFloppyDisk")) ||
-			   (_dom_type == QString::fromUtf8("vBubble"))) {
-				int _n = _file.indexOf(QString::fromUtf8("@"));
-				int _slot = 0;
-				QFileInfo fileInfo;
-				if((_n > 0) && (_n < 4)) {
-					_slot = _file.left(_n).toInt(&_num_ok);
-					if(_num_ok) {
-						fileInfo = QFileInfo(_file.right(_file.size() - (_n + 1)));
-					} else {
-						fileInfo = QFileInfo(_file);
-						_slot = 0;
-					}
-				} else {
-					fileInfo = QFileInfo(_file);
-					_slot = 0;
-				}
-				if(fileInfo.isFile()) {
-					const _TCHAR *path_shadow = (const _TCHAR *)(fileInfo.absoluteFilePath().toLocal8Bit().constData());
-					if(_dom_type == QString::fromUtf8("vFloppyDisk")) {
-						if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+	int index = 0;
+	for(int i = (key.size() - 1); i != 0; --i) {
+		if((key.at(i) < '0') || (key.at(i) > '9')) break;
+		index++;
+	}
+	if(index <= 0) return 0;
+	if(index > 2) index = 2;
+	QString s = key.right(index);
+	return s.toInt();
+}
 
-							emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, _dom_num, fileInfo.absoluteFilePath());;
-						} else {
-							emit sig_open_fd(_dom_num, fileInfo.absoluteFilePath());
-							emit sig_change_virtual_media(CSP_DockDisks_Domain_FD, _dom_num, fileInfo.absoluteFilePath());;
-						}
-					} else 	if(_dom_type == QString::fromUtf8("vHardDisk")) {
-						emit sig_open_hdd(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_HD, _dom_num, fileInfo.absoluteFilePath());;
-					} else if(_dom_type == QString::fromUtf8("vBubble")) {
-						if(check_file_extension(path_shadow, ".b77")) {
-							emit sig_open_b77_bubble(_dom_num, fileInfo.absoluteFilePath(), _slot);
-							emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, _dom_num, fileInfo.absoluteFilePath());;
-						} else {
-							emit sig_open_bubble(_dom_num, fileInfo.absoluteFilePath());
-							emit sig_change_virtual_media(CSP_DockDisks_Domain_Bubble, _dom_num, fileInfo.absoluteFilePath());;
-						}
-					}
-				}
-			} else {
-				QFileInfo fileInfo = QFileInfo(_file);
-				if(fileInfo.isFile()) {
-					if(_dom_type == QString::fromUtf8("vQuickDisk")) {
-						emit sig_open_quick_disk(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_QD, _dom_num, fileInfo.absoluteFilePath());;
-				} else if(_dom_type == QString::fromUtf8("vCmt")) {
-						emit sig_open_cmt_load(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, _dom_num, fileInfo.absoluteFilePath());;
-					} else if(_dom_type == QString::fromUtf8("vBinary")) {
-						emit sig_open_binary_load(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_Binary, _dom_num, fileInfo.absoluteFilePath());;
-					} else if(_dom_type == QString::fromUtf8("vCart")) {
-						emit sig_open_cart(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_Cart, _dom_num, fileInfo.absoluteFilePath());;
-					} else if(_dom_type == QString::fromUtf8("vLD")) {
-						vMovieQueue.append(_dom);
-						vMovieQueue.append(fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_LD, _dom_num, fileInfo.absoluteFilePath());;
-						//emit sig_open_laser_disc(_dom_num, fileInfo.absoluteFilePath());
-					} else if(_dom_type == QString::fromUtf8("vCD")) {
-						emit sig_open_cdrom(_dom_num, fileInfo.absoluteFilePath());
-						emit sig_change_virtual_media(CSP_DockDisks_Domain_CD, _dom_num, fileInfo.absoluteFilePath());;
+void EmuThreadClassBase::parse_file(QString val, QString& filename)
+{
+	ssize_t check_at = val.lastIndexOf(QString::fromUtf8("@"));
+	if((check_at < 0) || (check_at >= (val.size() - 1))) { // Not Found
+		filename = val;
+	} else {
+		QString tmps = val.right(check_at + 1);
+		filename = tmps;
+	}
+}
+
+void EmuThreadClassBase::parse_file_slot(QString val, QString& filename, bool& protect_changed, bool& is_protected, int& slot )
+{
+	ssize_t check_at = val.lastIndexOf(QString::fromUtf8("@"));
+	protect_changed = false;
+	if((check_at < 0) || (check_at >= (val.size() - 1))) { // Not Found
+		filename = val;
+	} else {
+		QString tmps = val.right(check_at + 1);
+		filename = tmps;
+		ssize_t _at2 = val.indexOf(QString::fromUtf8("@"));
+		while((_at2 < val.size()) && (_at2 >= 0))  {
+			ssize_t _at3 = val.indexOf(QString::fromUtf8("@"), _at2 + 1);
+			if(_at3 <= (_at2 + 1)) {
+				break;
+			}
+			QString tmps2 = val.mid(_at2 + 1, _at3 - _at2);
+			if(!(tmps2.isEmpty())) {
+				if(tmps2.toLower() == QString::fromUtf8("wp")) {
+					is_protected = true;
+					protect_changed = true;
+				} else if(tmps2.toLower() == QString::fromUtf8("w")) {
+					is_protected = false;
+					protect_changed = true;
+				} else {
+					bool _ok;
+					int _t = tmps.toInt(&_ok);
+					if(_ok) {
+						slot = _t & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
 					}
 				}
 			}
+			_at2 = _at3;
 		}
 	}
-	_ret = _ret - _begin;
-	if(_ret < 0) _ret = 0;
+}
+
+int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
+{
+	int _ret = 0;
+	for(auto _s = __list.constBegin(); _s != __list.constEnd(); ++_s) {
+		QString _key = _s.key();
+		QString _val = _s.value();
+		printf("%s %s\n", _key.toLocal8Bit().constData(), _val.toLocal8Bit().constData());
+		int slot = 0;
+		QString _file = QString::fromUtf8("");
+		bool is_protected = false;
+		bool protect_changed = false;
+		if(!(_key.isEmpty())) {
+			int drv = parse_drive(_key);
+			if(_key.contains("vBinary", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_load_binary(drv, _file);
+				_ret++;
+			} else if(_key.contains("vSaveBinary", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_save_binary(drv, _file);
+				_ret++;
+			} else if(_key.contains("vBubble", Qt::CaseInsensitive)) {
+				parse_file_slot(_val, _file, protect_changed, is_protected, slot);
+				do_open_bubble_casette(drv, _file, slot);
+				if(protect_changed) {
+					do_write_protect_bubble_casette(drv, is_protected);
+				}
+				_ret++;
+			} else if(_key.contains("vCart", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_open_cartridge(drv, _file);
+				_ret++;
+			} else if(_key.contains("vCompactDisc", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_open_compact_disc(drv, _file);
+				_ret++;
+			} else if(_key.contains("vFloppy", Qt::CaseInsensitive)) {
+				parse_file_slot(_val, _file, protect_changed, is_protected, slot);
+				do_open_floppy_disk(drv, _file, slot);
+				if(protect_changed) {
+					do_write_protect_floppy_disk(drv, is_protected);
+				}
+				_ret++;
+			} else if(_key.contains("vHardDisk", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_open_hard_disk(drv, _file);
+				_ret++;
+			} else if(_key.contains("vLaserDisc", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_open_laser_disc(drv, _file);
+				_ret++;
+			} else if(_key.contains("vQuickDisk", Qt::CaseInsensitive)) {
+				parse_file_slot(_val, _file, protect_changed, is_protected, slot);
+				do_open_quick_disk(drv, _file);
+				if(protect_changed) {
+					do_write_protect_quick_disk(drv, is_protected);
+				}
+				_ret++;
+			} else if(_key.contains("vTape", Qt::CaseInsensitive)) {
+				parse_file(_val, _file);
+				do_play_tape(drv, _file);
+				_ret++;
+			} else if(_key.contains("vSaveCMT", Qt::CaseInsensitive)) {
+				parse_file_slot(_val, _file, protect_changed, is_protected, slot);
+				if(!(is_protected) && (protect_changed)) {
+					do_rec_tape(drv, _file);
+				}
+				_ret++;
+			} else if(_key.contains("vCloseBubble", Qt::CaseInsensitive)) {
+				do_close_bubble_casette_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseCart", Qt::CaseInsensitive)) {
+				do_close_cartridge_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseCompactDisc", Qt::CaseInsensitive)) {
+				do_eject_compact_disc_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseFloppy", Qt::CaseInsensitive)) {
+				do_close_floppy_disk_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseHardDisk", Qt::CaseInsensitive)) {
+				do_close_hard_disk_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseLaserDisc", Qt::CaseInsensitive)) {
+				do_close_laser_disc_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseQuickDisk", Qt::CaseInsensitive)) {
+				do_close_quick_disk_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseTape", Qt::CaseInsensitive)) {
+				do_close_tape_ui(drv);
+				_ret++;
+			} else if(_key.contains("vCloseSaveCMT", Qt::CaseInsensitive)) {
+				do_close_tape_ui(drv);
+				_ret++;
+			}
+			// ToDo: Write Protect
+			// ToDo: Choose SLOT
+		}
+	}
 	return _ret;
 }
 

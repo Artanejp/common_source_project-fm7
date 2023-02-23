@@ -204,6 +204,12 @@ void EmuThreadClassBase::do_rec_tape(int drv, QString name)
 		emit sig_change_virtual_media(CSP_DockDisks_Domain_CMT, drv, name);
 	}
 }
+
+void EmuThreadClassBase::do_close_tape_ui(int drv)
+{
+	sub_close_tape_internal(drv);
+}
+
 void EmuThreadClassBase::sub_close_tape_internal(int drv)
 {
 	if(drv < 0) return;
@@ -477,6 +483,10 @@ void EmuThreadClassBase::do_eject_compact_disc()
 	sub_close_compact_disc_internal(drv);
 }
 
+void EmuThreadClassBase::do_close_hard_disk_ui(int drv)
+{
+	sub_close_hard_disk_internal(drv);
+}
 
 void EmuThreadClassBase::sub_close_hard_disk_internal(int drv)
 {

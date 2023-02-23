@@ -15,6 +15,8 @@
 #include <QString>
 #include <QStringList>
 #include <QElapsedTimer>
+#include <QMap>
+
 #if QT_VERSION >= 0x051400
 	#include <QRecursiveMutex>
 #else
@@ -74,6 +76,8 @@ class DLL_PREFIX EmuThreadClassBase : public QThread {
 protected:
 	EMU_TEMPLATE *p_emu;
 	OSD_BASE *p_osd;
+
+	QMap<QString, QString> virtualMediaList;
 
 	bool poweroff_notified;
 
@@ -154,12 +158,11 @@ protected:
 	QString bubble_text[16];
 
 	QString clipBoardText;
-	QStringList vMovieQueue;
 
 	// Standard 8 files.
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);
-	int parse_command_queue(QStringList _l, int _begin);
+	int parse_command_queue(QMap<QString, QString> __list);
 
 	void button_pressed_mouse_sub(Qt::MouseButton button);
 	void button_released_mouse_sub(Qt::MouseButton button);
@@ -239,6 +242,11 @@ protected:
 	void sub_close_laser_disc_internal(int drv);
 	void sub_close_quick_disk_internal(int drv);
 	void sub_close_tape_internal(int drv);
+
+	int parse_drive(QString key);
+	void parse_file(QString val, QString& filename);
+	void parse_file_slot(QString val, QString& filename, bool& protect_changed, bool& is_protected, int& slot );
+
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClassBase();
@@ -249,7 +257,18 @@ public:
 	bool now_debugging();
 
 	EMU_TEMPLATE *get_emu() { return p_emu; }
-
+	void addVirtualMediaList(const QString key, const QString value)
+	{
+		virtualMediaList.insert(key, value);
+	}
+	ssize_t setVirtualMediaList(const QMap<QString, QString>value)
+	{
+		virtualMediaList.clear();
+		for(auto _i = value.constBegin(); _i != value.constEnd(); ++_i) {
+			virtualMediaList.insert(_i.key(), _i.value());
+		}
+		return virtualMediaList.count();
+	}
 	int get_d88_file_cur_bank(int drive);
 	int get_d88_file_bank_num(int drive);
 	QString get_d88_file_disk_name(int drive, int banknum);
@@ -300,11 +319,13 @@ public slots:
 	void do_close_floppy_disk_ui(int drive);
 
 	void do_close_hard_disk();
-	void do_open_hard_disk(int, QString);
+	void do_close_hard_disk_ui(int drv);
+	void do_open_hard_disk(int drv, QString fname);
 
 	void do_play_tape(int drv, QString name);
 	void do_rec_tape(int drv, QString name);
 	void do_close_tape();
+	void do_close_tape_ui(int drv);
 
 	void do_cmt_push_play();
 	void do_cmt_push_stop();
@@ -319,7 +340,6 @@ public slots:
 	void do_close_quick_disk();
 	void do_close_quick_disk_ui(int drv);
 	void do_open_quick_disk(int drv, QString path);
-
 
 	void do_open_cartridge(int drv, QString path);
 	void do_close_cartridge();

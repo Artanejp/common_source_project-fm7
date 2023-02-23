@@ -56,84 +56,102 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 	return;
 }
 
-QCommandLineOption *_opt_homedir;
-QCommandLineOption *_opt_cfgfile;
-QCommandLineOption *_opt_cfgdir;
-QCommandLineOption *_opt_resdir;
-QCommandLineOption *_opt_opengl;
-QCommandLineOption *_opt_envver;
-QCommandLineOption *_opt_dump_envver;
-QCommandLineOption *_opt_dipsw_on;
-QCommandLineOption *_opt_dipsw_off;
-QProcessEnvironment _envvers;
+QProcessEnvironment _envvars;
 
-bool _b_dump_envver;
+bool _b_dump_envvar;
 std::string config_fullpath;
 
-DLL_PREFIX void SetOptions_Sub(QCommandLineParser *cmdparser)
+DLL_PREFIX QList<QCommandLineOption> SetOptions_Sub(QCommandLineParser *parser)
 {
+	QList<QCommandLineOption> _ret;
 	QStringList _cl;
     _cl.append("d");
     _cl.append("homedir");
-    _opt_homedir = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom home directory."), "homedir");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom home directory."), QCoreApplication::translate("main", "DIRECTORY PATH")));
     _cl.clear();
-   
+
     _cl.append("c");
     _cl.append("cfgfile");
-    _opt_cfgfile = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom config file (without path)."), "cfgfile");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom config file (without path)."), QCoreApplication::translate("main", "PATH")));
     _cl.clear();
-   
-    _opt_cfgdir = new QCommandLineOption("cfgdir", QCoreApplication::translate("main", "Custom config directory."), "cfgdir");
+
 
     _cl.append("r");
     _cl.append("res");
-    _opt_resdir = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), "resdir");
+    _cl.append("resdir");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Custom resource directory (ROMs, WAVs, etc)."), QCoreApplication::translate("main", "DIRECTORY PATH")));
     _cl.clear();
 
     _cl.append("on");
     _cl.append("dipsw-on");
-    _opt_dipsw_on = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), "onbit");
+    _cl.append("onbit");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn on <onbit> of dip switch."), QCoreApplication::translate("main", "Bit to SET")));
     _cl.clear();
-   
+
     _cl.append("off");
     _cl.append("dipsw-off");
-    _opt_dipsw_off = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), "offbit");
+    _cl.append("offbit");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Turn off <offbit> of dip switch."), QCoreApplication::translate("main", "Bit to RESET")));
     _cl.clear();
-	
+
     _cl.append("g");
     _cl.append("gl");
     _cl.append("opengl");
     _cl.append("render");
-    _opt_opengl = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type."), "{  GL2 | GL | GL3 | GL4 | GL4_CORE | GLES | ES2 | ES3}");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type."), "render", QCoreApplication::translate("main", "Renderer TYPE")));
     _cl.clear();
-	
+
+    _ret.append(QCommandLineOption("gl2", QCoreApplication::translate("main", "Force set using renderer type to OpenGL v2.")));
+    _ret.append(QCommandLineOption("gl3", QCoreApplication::translate("main", "Force set using renderer type to OpenGL v3(main profile).")));
+
+    _cl.append("gl4");
+    _cl.append("gl4core");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type to OpenGL v4(core profile).")));
+	_cl.clear();
+
+    _cl.append("gl43");
+    _cl.append("gl4_3");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type to OpenGL v4.3(core profile).")));
+	_cl.clear();
+    _cl.append("gl46");
+    _cl.append("gl4_6");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type to OpenGL v4.6(core profile).")));
+	_cl.clear();
+
+    _cl.append("gles");
+    _cl.append("gles2");
+    _cl.append("es2");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type to OpenGL ESv2.")));
+	_cl.clear();
+
+    _cl.append("gles3");
+    _cl.append("es3");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Force set using renderer type to OpenGL ESv3.")));
+	_cl.clear();
+
     _cl.append("v");
     _cl.append("env");
-    _cl.append("envver");
-    _opt_envver = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Set / Delete environment variable."), "{NAME[=VAL] | -NAME}");
+    _cl.append("envvar");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Set / Delete environment variable."), QCoreApplication::translate("main", "NAME=VALUE")));
     _cl.clear();
 
     _cl.append("dump-env");
-    _cl.append("dump-envver");
-    _opt_dump_envver = new QCommandLineOption(_cl, QCoreApplication::translate("main", "Dump environment variables."), "");
+    _cl.append("dump-envvar");
+    _ret.append(QCommandLineOption(_cl, QCoreApplication::translate("main", "Dump environment variables.")));
     _cl.clear();
 
-    cmdparser->addOption(*_opt_opengl);
-    cmdparser->addOption(*_opt_homedir);
-    cmdparser->addOption(*_opt_cfgfile);
-    cmdparser->addOption(*_opt_cfgdir);
-    cmdparser->addOption(*_opt_resdir);
-    cmdparser->addOption(*_opt_dipsw_on);
-    cmdparser->addOption(*_opt_dipsw_off);
+	if(parser != nullptr) {
+		parser->addOptions(_ret);
+	}
+	return _ret;
 }
 
-DLL_PREFIX void ProcessCmdLine_Sub(QCommandLineParser *cmdparser, QStringList *_l)
+DLL_PREFIX void ProcessCmdLine_Sub(QCommandLineParser *cmdparser)
 {
-	char homedir[PATH_MAX];
+	char homedir[_MAX_PATH] = {0};
 	std::string delim;
-	memset(homedir, 0x00, PATH_MAX);
-	if(cmdparser->isSet(*_opt_homedir)) {
-		strncpy(homedir, cmdparser->value(*_opt_homedir).toLocal8Bit().constData(), PATH_MAX - 1);
+	if(cmdparser->isSet("homedir")) {
+		strncpy(homedir, cmdparser->value("homedir").toLocal8Bit().constData(), _MAX_PATH - 1);
 		cpp_homedir = homedir;
 		size_t _len = cpp_homedir.length() - 1;
 		size_t _pos = cpp_homedir.rfind(delim);
@@ -142,14 +160,13 @@ DLL_PREFIX void ProcessCmdLine_Sub(QCommandLineParser *cmdparser, QStringList *_
 			cpp_homedir.append(delim);
 		}
 	} else {
-		cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
+		cpp_homedir.copy(homedir, _MAX_PATH - 1, 0);
 	}
 
-	if(cmdparser->isSet(*_opt_cfgdir)) {
-		char tmps[PATH_MAX];
+	if(cmdparser->isSet("cfgfile")) {
+		char tmps[_MAX_PATH] = {0};
 		std::string tmpstr;
-		memset(tmps, 0x00, PATH_MAX);
-		strncpy(tmps, cmdparser->value(*_opt_cfgdir).toLocal8Bit().constData(), PATH_MAX - 1);
+		strncpy(tmps, cmdparser->value("cfgfile").toLocal8Bit().constData(), _MAX_PATH - 1);
 		cpp_confdir = tmps;
 		size_t _len = cpp_confdir.length() - 1;
 		size_t _pos = cpp_confdir.rfind(delim);
@@ -158,11 +175,10 @@ DLL_PREFIX void ProcessCmdLine_Sub(QCommandLineParser *cmdparser, QStringList *_
 			cpp_confdir.append(delim);
 		}
 	}
-	if(cmdparser->isSet(*_opt_resdir)) {
-		char tmps[PATH_MAX];
+	if(cmdparser->isSet("resdir")) {
+		char tmps[_MAX_PATH] = {0};
 		std::string tmpstr;
-		memset(tmps, 0x00, PATH_MAX);
-		strncpy(tmps, cmdparser->value(*_opt_resdir).toLocal8Bit().constData(), PATH_MAX - 1);
+		strncpy(tmps, cmdparser->value("resdir").toLocal8Bit().constData(), _MAX_PATH - 1);
 		sRssDir = tmps;
 		size_t _len = sRssDir.length() - 1;
 		size_t _pos = sRssDir.rfind(delim);
@@ -171,12 +187,12 @@ DLL_PREFIX void ProcessCmdLine_Sub(QCommandLineParser *cmdparser, QStringList *_
 			sRssDir.append(delim);
 		}
 	}
-	
-	if(cmdparser->isSet(*_opt_envver)) {
-		QStringList nList = cmdparser->values(*_opt_envver);
+
+	if(cmdparser->isSet("envvar")) {
+		QStringList nList = cmdparser->values("envvar");
 		QString tv;
 		//QProcessEnvironment ev = QProcessEnvironment::systemEnvironment();
-		QProcessEnvironment ev = _envvers;
+		QProcessEnvironment ev = _envvars;
 		if(nList.size() > 0) {
 			for(int i = 0; i < nList.size(); i++) {
 				tv = nList.at(i);
@@ -208,11 +224,11 @@ DLL_PREFIX void ProcessCmdLine_Sub(QCommandLineParser *cmdparser, QStringList *_
 					if(tv.length() > 0) ev.insert(tv, QString::fromUtf8(""));
 				}
 			}
-			_envvers.swap(ev);
+			_envvars.swap(ev);
 		}
 	}
-	_b_dump_envver = false;
-	if(cmdparser->isSet(*_opt_dump_envver)) {
-		_b_dump_envver = true;
+	_b_dump_envvar = false;
+	if(cmdparser->isSet("dump-envvar")) {
+		_b_dump_envvar = true;
 	}
 }
