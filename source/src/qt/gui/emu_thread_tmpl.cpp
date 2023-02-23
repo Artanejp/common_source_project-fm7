@@ -439,7 +439,7 @@ int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
 	for(auto _s = __list.constBegin(); _s != __list.constEnd(); ++_s) {
 		QString _key = _s.key();
 		QString _val = _s.value();
-		printf("%s %s\n", _key.toLocal8Bit().constData(), _val.toLocal8Bit().constData());
+		//printf("%s %s\n", _key.toLocal8Bit().constData(), _val.toLocal8Bit().constData());
 		int slot = 0;
 		QString _file = QString::fromUtf8("");
 		bool is_protected = false;
