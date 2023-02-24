@@ -322,6 +322,7 @@ include_directories(
 				"${PROJECT_SOURCE_DIR}/src/vm"
 				"${PROJECT_SOURCE_DIR}/src/qt/common"
 				"${PROJECT_SOURCE_DIR}/src/qt/gui"
+				"${PROJECT_SOURCE_DIR}/src/qt/emu_thread"
 				"${PROJECT_SOURCE_DIR}/src/qt/debugger"
 				"${PROJECT_SOURCE_DIR}/src/qt"
 )

@@ -31,7 +31,7 @@
 #include "mainwidget.h"
 #include "commonclasses.h"
 #include "config.h"
-#include "../gui/emu_thread_tmpl.h"
+#include "emu_thread_tmpl.h"
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -52,13 +52,13 @@ protected:
 	void specialResetEmu(int num);
 	void loadState();
 	void saveState();
-	
+
 public:
 	EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClass();
 	void run() { doWork("");}
 	int get_interval(void);
-						  
+
 public slots:
 	void doWork(const QString &param);
 

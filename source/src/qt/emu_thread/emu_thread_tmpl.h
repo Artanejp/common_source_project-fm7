@@ -7,8 +7,7 @@
 	History : 2015.11.10 Split from qt_main.h
 	[ win32 main ] -> [ Qt main ] -> [Emu Thread]
 */
-#ifndef _CSP_QT_EMU_THREAD_TMPL_H
-#define _CSP_QT_EMU_THREAD_TMPL_H
+#pragma once
 
 #include <QThread>
 #include <QQueue>
@@ -446,5 +445,3 @@ signals:
 };
 
 QT_END_NAMESPACE
-
-#endif

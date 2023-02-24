@@ -14,7 +14,7 @@
 
 #include <SDL.h>
 
-#include "../gui/emu_thread_tmpl.h"
+#include "./emu_thread_tmpl.h"
 
 #include "qt_gldraw.h"
 #include "csp_logger.h"

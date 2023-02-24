@@ -54,7 +54,7 @@ set(s_qt_gui_headers
 
 	  draw_thread.h
 	  joy_thread.h
-	  emu_thread_tmpl.h
+	  ../emu_thread/emu_thread_tmpl.h
 
 	  qt_debugger_tmpl.h
 	  qt_lineeditplus.h
@@ -141,11 +141,9 @@ set(s_qt_gui_srcs
 
 	  util_fd2.cpp
 	  util_hdd2.cpp
-#	  ../common/util_bubble2.cpp
-#	  qt_main.cpp
 
-	  emu_thread_tmpl.cpp
-	  ../common/emu_thread_slots.cpp
+	  ../emu_thread/emu_thread_tmpl.cpp
+	  ../emu_thread/emu_thread_slots.cpp
 )
 add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
 

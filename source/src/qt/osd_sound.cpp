@@ -10,18 +10,18 @@
   Note: 20220715 K.Ohta : This will be based on QtMultimedia's audio driver,
 		But this still has a lot of delay.Will fix or discard.
   Quote from "Audio Overview" of Qt6.3.1 's documentation;
-	https://doc.qt.io/qt-6/audiooverview.html 
+	https://doc.qt.io/qt-6/audiooverview.html
 	Push and Pull
-		The low level audio classes can operate in two modes - push and pull. 
-		In pull mode, the audio device is started by giving it a QIODevice. 
-		For an output device, the QAudioSink class will pull data from the 
-		QIODevice (using QIODevice::read()) when more audio data is required. 
+		The low level audio classes can operate in two modes - push and pull.
+		In pull mode, the audio device is started by giving it a QIODevice.
+		For an output device, the QAudioSink class will pull data from the
+		QIODevice (using QIODevice::read()) when more audio data is required.
 		Conversely, for pull mode with QAudioSource, when audio data is available
 		then the data will be written directly to the QIODevice.
-		
+
 		In push mode, the audio device provides a QIODevice instance that can be
-		written or read to as needed. 
-		Typically, this results in simpler code but more buffering, 
+		written or read to as needed.
+		Typically, this results in simpler code but more buffering,
 		which may affect latency.
 */
 
@@ -48,7 +48,7 @@
 #include "./sound-drivers/sound_buffer_qt.h"
 #include "./sound-drivers/osd_sound_mod_template.h"
 
-#include "../gui/emu_thread_tmpl.h"
+#include "emu_thread_tmpl.h"
 
 int OSD_BASE::get_sound_device_num()
 {
@@ -102,7 +102,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 	int sndlen, sndpos, bufsize;
 	int spos = 0;
 	int format_len = 1;
-	
+
 	len3 = len;
 	memset(stream, 0x00, len);
 	switch(pData->sound_format) {
@@ -121,12 +121,12 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		format_len = sizeof(float);
 		break;
 	}
-	
-	
+
+
 	if(pData->p_config->general_sound_level < INT16_MIN) pData->p_config->general_sound_level = INT16_MIN;
 	if(pData->p_config->general_sound_level > INT16_MAX)  pData->p_config->general_sound_level = INT16_MAX;
 	*pData->snd_total_volume = (uint8_t)(((uint32_t)(pData->p_config->general_sound_level + (-INT16_MIN))) >> 9);
-		
+
 	do {
 		sndlen = *(pData->sound_data_len);
 		bufsize = *(pData->sound_buffer_size);
@@ -134,11 +134,11 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 		if(*pData->sound_exit) {
 			return;
 		}
-		
+
 		sndpos = sndpos * format_len;
 		sndlen = sndlen * format_len; // ToDo: Multiple format
 		bufsize = bufsize * format_len; // ToDo: Multiple format
-		
+
 		if(sndlen >= len) sndlen = len;
 		if((sndpos + sndlen) >= bufsize) { // Need to wrap
 			int len2 = bufsize - sndpos;
@@ -181,7 +181,7 @@ void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 #else
 			SDL_MixAudio(s, p, len2, *(pData->snd_total_volume));
 #endif
-			*(pData->sound_write_pos) += (len2 / format_len); 
+			*(pData->sound_write_pos) += (len2 / format_len);
 			if(*(pData->sound_buffer_size) <= *(pData->sound_write_pos)) {
 				*(pData->sound_write_pos) = 0;
 			}
@@ -242,7 +242,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		// ToDo: Close physical device.
 		if(!pre_initialized) {
 			sound_capturing_emu[ch] = false;
-			
+
 			sound_capture_desc[ch].physical_dev = 0;
 			sound_capture_desc[ch].read_format = AUDIO_S16SYS;
 			sound_capture_desc[ch].read_rate = 0;
@@ -280,7 +280,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		capturing_sound[num] = false;
 	}
 	#endif
-	
+
 	sound_rate = rate;
 	sound_samples = samples;
 	rec_sound_buffer_ptr = 0;
@@ -295,9 +295,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	sound_buf_ptr = NULL;
 	sound_initialized = false;
 	// initialize direct sound
-	
+
 	snd_total_volume = 127;
-   
+
 	snddata.sound_buf_ptr = (uint8_t**)(&sound_buf_ptr);
 	snddata.sound_buffer_size = &sound_buffer_size;
 	snddata.sound_write_pos = &sound_write_pos;
@@ -306,7 +306,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	snddata.sound_exit = &sound_exit;
 	snddata.sound_debug = &sound_debug;
 	snddata.p_config = p_config;
-	
+
 	snd_spec_req.format = AUDIO_S16SYS;
 	snd_spec_req.channels = 2;
 	snd_spec_req.freq = sound_rate;
@@ -389,13 +389,13 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		break;
 	}
 	sound_buffer_size = sound_samples * snd_spec_presented.channels * 2;
-	sound_buf_ptr = (uint8_t *)malloc(sound_buffer_size * format_len); 
+	sound_buf_ptr = (uint8_t *)malloc(sound_buffer_size * format_len);
 	if(sound_buf_ptr == NULL) {
-	#if defined(USE_SDL2)   	   
+	#if defined(USE_SDL2)
 		SDL_CloseAudioDevice(audio_dev_id);
-	#else	   
+	#else
 		SDL_CloseAudio();
-	#endif	   
+	#endif
 		return;
 	}
 
@@ -424,12 +424,12 @@ void OSD_BASE::release_sound()
 		}
 	}
 	#endif
-	#if defined(USE_SDL2)   
+	#if defined(USE_SDL2)
 	//SDL_PauseAudioDevice(audio_dev_id, 1);
 	SDL_CloseAudioDevice(audio_dev_id);
-	#else   
+	#else
 	SDL_CloseAudio();
-	#endif   
+	#endif
 	stop_record_sound();
 	if(sound_buf_ptr != NULL) free(sound_buf_ptr);
 	sound_buf_ptr = NULL;
@@ -443,10 +443,10 @@ void OSD_BASE::release_sound()
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
-	
+
 	now_mute = false;
 	if(sound_initialized) {
-		// Get sound driver 
+		// Get sound driver
 		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 		__UNLIKELY_IF(sound_drv.get() == nullptr) {
 			// ToDo: Fix delay.
@@ -485,7 +485,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		int64_t latency_us    = sound_drv->get_latency_ms() * 1000;
 		int64_t elapsed_usec = sound_drv->driver_elapsed_usec() % (latency_us * 2);
 		//int64_t jitter = (int64_t)std::llround((1.0e6 / vm_frame_rate()));
-		
+
 		switch(m_sound_period) {
 		case 0:
 			if(elapsed_usec > latency_us) {
@@ -558,7 +558,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		}
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-	
+
 	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
 	if(sound_drv.get() != nullptr) {
@@ -576,14 +576,14 @@ void OSD_BASE::release_sound()
 	sound_exit = true;
 	sound_initialized = false;
 	sound_ok = false;
-	
+
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
 		//sound_drv->update_render_point_usec();
 		sound_drv->release_sound();
 	}
 	m_sound_period = 0;
-	
+
 }
 
 void OSD_BASE::do_update_master_volume(int level)
@@ -683,13 +683,13 @@ void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1,
 	union {
 #if defined(__LITTLE_ENDIAN__)
 		uint8_t l, h, h1, h2;
-#else		
+#else
 		uint8_t h2, h1, h, l;
 #endif
 		float f;
 		uint32_t d;
 	} float_data;
-	
+
 	switch(snddata.sound_format) {
 		// S16SYS
 	case AUDIO_S8:
@@ -952,13 +952,13 @@ void OSD_BASE::convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1,
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
-	
+
 	now_mute = false;
 	if(sound_ok) {
 		uint32_t play_c, size1, size2;
 		//uint32_t offset;
 		uint8_t *ptr1, *ptr2;
-		
+
 		// start play
 		// check current position
 		play_c = sound_write_pos;
@@ -1039,7 +1039,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 						size2 = 0;
 						ptr2 = NULL;
 					}
-#if defined(USE_SDL2)   
+#if defined(USE_SDL2)
 					SDL_LockAudioDevice(audio_dev_id);
 #else
 					SDL_LockAudio();
@@ -1060,7 +1060,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 					sound_data_pos = sound_data_pos + ssize;
 					if(sound_data_pos >= sound_buffer_size) sound_data_pos = sound_data_pos - sound_buffer_size;
 					if(!sound_started) sound_started = true;
-#if defined(USE_SDL2)   
+#if defined(USE_SDL2)
 					SDL_UnlockAudioDevice(audio_dev_id);
 #else
 					SDL_UnlockAudio();
@@ -1069,7 +1069,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 					SDL_PauseAudioDevice(audio_dev_id, 0);
 			}
 		}
-	   
+
 //	        SDL_PauseAudioDevice(audio_dev_id, 0);
 		sound_first_half = !sound_first_half;
 	}
@@ -1080,13 +1080,13 @@ void OSD_BASE::mute_sound()
 	if(!now_mute && sound_ok) {
 		// check current position
 		uint32_t size1, size2;
-	    
+
 		uint8_t *ptr1, *ptr2;
 		// WIP
 		int ssize;
 		int pos;
 		int pos2;
-#if defined(USE_SDL2)   
+#if defined(USE_SDL2)
 		SDL_LockAudioDevice(audio_dev_id);
 #else
 		SDL_LockAudio();
@@ -1121,7 +1121,7 @@ void OSD_BASE::mute_sound()
 			size2 = 0;
 			ptr2 = NULL;
 		}
-		
+
 		if(ptr1) {
 			memset(ptr1, 0x00, size1 * format_len);
 		}
@@ -1129,7 +1129,7 @@ void OSD_BASE::mute_sound()
 			memset(ptr2, 0x00, size2 * format_len);
 		}
 		sound_data_pos = (sound_data_pos + ssize) % sound_buffer_size;
-#if defined(USE_SDL2)   
+#if defined(USE_SDL2)
 		SDL_UnlockAudioDevice(audio_dev_id);
 #else
 		SDL_UnlockAudio();
@@ -1142,11 +1142,11 @@ void OSD_BASE::stop_sound()
 {
 	if(sound_ok && sound_started) {
 		//sound_exit = true;
-#if defined(USE_SDL2)   
+#if defined(USE_SDL2)
 		SDL_PauseAudioDevice(audio_dev_id, 1);
-#else   
+#else
 		SDL_PauseAudio(1);
-#endif   
+#endif
 		sound_started = false;
 		//sound_exit = false;
 	}
@@ -1163,7 +1163,7 @@ int OSD_BASE::get_sound_rate()
 
 void OSD_BASE::start_record_sound()
 {
-   
+
 	if(!now_record_sound) {
 		//LockVM();
 		QDateTime nowTime = QDateTime::currentDateTime();
@@ -1178,7 +1178,7 @@ void OSD_BASE::start_record_sound()
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
 			write_dummy_wav_header((void *)rec_sound_fio);
-			
+
 			rec_sound_bytes = 0;
 			rec_sound_buffer_ptr = 0;
 			now_record_sound = true;
@@ -1202,7 +1202,7 @@ void OSD_BASE::stop_record_sound()
 			// update wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
-	#if 0		
+	#if 0
 			if(!set_wav_header(&wav_header, &wav_chunk, 2, snd_spec_presented.freq, 16,
 							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
 	#else
@@ -1223,7 +1223,7 @@ void OSD_BASE::stop_record_sound()
 		//UnlockVM();
 	}
 	#endif /* Temporally Disable  Caoptuing Sound 20220921 K.O */
-		
+
 }
 
 void OSD_BASE::restart_record_sound()
@@ -1276,9 +1276,9 @@ void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sampl
 {
 	if(ch < 0) return nullptr;
 	if(ch >= MAX_CAPTURE_SOUNDS) return nullptr;
-	
+
 	void *p = nullptr;
-#if 0	
+#if 0
 	close_capture_sound_emu(ch);
 	sound_capture_desc[ch].rate = rate;
 	sound_capture_desc[ch].channels = channels;
@@ -1291,7 +1291,7 @@ void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sampl
 			stat = open_sound_capture_device(physical_device_num, (rate < 44100) ? 44100 : rate, (channels > 2) ? channels : 2);
 		}
 	}
-	
+
 
 	if(stat) {
 		switch(sample_type) {
@@ -1322,13 +1322,13 @@ void *OSD_BASE::open_capture_sound_emu(int ch, int rate, int channels, int sampl
 #endif
 	return p;
 }
-	
+
 bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels)
 {
 	if(num < 0) return false;
 	if(num >= MAX_SOUND_CAPTURE_DEVICES) return false;
 	if(sound_capture_device_list.count() <= num) return false;
-#if 0	
+#if 0
 	SDL_AudioSpec req;
 	SDL_AudioSpec desired;
 	req.freq = req_rate;
@@ -1338,7 +1338,7 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 	req.samples = (sizeof(sound_capture_buffer[num]) / sizeof(int16_t)) / req_channels;
 	req.callback = &(this->audio_capture_callback);
 	req.userdata = (void *)(&(sound_capture_dev_desc[num].userdata));
-	
+
 	if(!(capturing_sound[num])) {
 		sound_capture_desc[num].physical_dev = SDL_OpenAudioDevice((const char *)sound_capture_device_list.value(num).toUtf8().constData(), 1, &req, &desired, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
 		if(sound_capture_desc[num].physical_dev <= 0) {
@@ -1378,7 +1378,7 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 		default:
 			break;
 		}
-		
+
 		sound_capture_dev_desc[num].userdata.buffer_size = buflen;
 		sound_capture_dev_desc[num].userdata.format = desired.format;
 		sound_capture_dev_desc[num].userdata.readlen = 0;
@@ -1387,7 +1387,7 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 		sound_capture_dev_desc[num].userdata.writepos = 0;
 		sound_capture_dev_desc[num].userdata.read_buffer_ptr = &(sound_capture_buffer[num][0]);
 		memset(&(sound_capture_buffer[num][0]), 0x00, buflen);
-		
+
 		for(int ch = 0; ch < MAX_SOUND_CAPTURE_DEVICES; ch++) {
 			if(sound_capture_desc[ch].physical_dev == num) {
 				sound_capture_desc[ch].read_format = desired.format;
@@ -1398,14 +1398,14 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 				sound_capture_desc[ch].read_samples = desired.samples;
 				sound_capture_desc[ch].read_callback = desired.callback;
 				sound_capture_desc[ch].read_userdata = desired.userdata;
-				
+
 				sound_capture_desc[ch].read_pos = 0;
 				sound_capture_desc[ch].read_data_len = 0;
 				sound_capture_desc[ch].read_buffer_len = buflen;
 				sound_capture_desc[ch].read_buffer_ptr = (uint8_t *)(&(sound_capture_buffer[num][0]));
 
-				
-			}				
+
+			}
 		}
 	}
 #endif
@@ -1415,7 +1415,7 @@ bool OSD_BASE::open_sound_capture_device(int num, int req_rate, int req_channels
 bool OSD_BASE::close_sound_capture_device(int num, bool force)
 {
 	// ToDo: Check capturing entries
-#if 0	
+#if 0
 	if((capturing_sound[num]) && (sound_capture_desc[num].physical_dev > 0)) {
 		SDL_CloseAudioDevice(sound_capture_desc[num].physical_dev);
 	}
