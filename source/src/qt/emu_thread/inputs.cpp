@@ -26,7 +26,7 @@
 #include "menu_flags.h"
 
 
-void EmuThreadClassBase::moved_mouse(double x, double y, double globalx, double globaly)
+void EmuThreadClassBase::do_move_mouse(double x, double y, double globalx, double globaly)
 {
 	if(p_osd == nullptr) return;
 	std::shared_ptr<USING_FLAGS> p = using_flags;
@@ -109,7 +109,7 @@ void EmuThreadClassBase::button_released_mouse_sub(Qt::MouseButton button)
 	}
 }
 
-void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
+void EmuThreadClassBase::do_press_button_mouse(Qt::MouseButton button)
 {
 	std::shared_ptr<USING_FLAGS> up = using_flags;
 	if(up.get() == nullptr) return;
@@ -149,7 +149,7 @@ void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
 	}
 }
 
-void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
+void EmuThreadClassBase::do_release_button_mouse(Qt::MouseButton button)
 {
 	std::shared_ptr<USING_FLAGS> up = using_flags;
 	if(up.get() == nullptr) return;

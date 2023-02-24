@@ -298,19 +298,19 @@ public slots:
 	void do_update_volume_level(int num, int level);
 	void do_update_volume_balance(int num, int level);
 
-	void button_pressed_mouse(Qt::MouseButton);
-	void button_released_mouse(Qt::MouseButton);
+	void do_press_button_mouse(Qt::MouseButton);
+	void do_release_button_mouse(Qt::MouseButton);
 	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
 	void do_key_up(uint32_t vk, uint32_t mod);
-	void print_framerate(int frames);
-	void set_emu_thread_to_fixed_cpu(int cpunum);
+	void do_print_framerate(int frames);
+	void do_set_emu_thread_to_fixed_cpu(int cpunum);
 	void do_block();
 	void do_unblock();
 	void do_start_emu_thread();
 	void do_set_emu_thread_to_fixed_cpu_from_action();
 	// From emu_thread_slots.cpp .
 	void do_set_display_size(int w, int h, int ww, int wh);
-	void moved_mouse(double x, double y, double globalx, double globaly);
+	void do_move_mouse(double x, double y, double globalx, double globaly);
 
 	void do_write_protect_floppy_disk(int drv, bool flag);
 	void do_close_floppy_disk();

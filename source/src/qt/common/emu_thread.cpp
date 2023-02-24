@@ -218,7 +218,7 @@ void EmuThreadClass::doWork(const QString &params)
 			continue;
 		}
 		if(queue_fixed_cpu >= 0) {
-			set_emu_thread_to_fixed_cpu(queue_fixed_cpu);
+			do_set_emu_thread_to_fixed_cpu(queue_fixed_cpu);
 			queue_fixed_cpu = -1;
 		}
 		if(first) {

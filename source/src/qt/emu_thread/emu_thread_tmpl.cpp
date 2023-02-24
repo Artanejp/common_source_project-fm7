@@ -398,7 +398,7 @@ int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
 }
 
 
-void EmuThreadClassBase::print_framerate(int frames)
+void EmuThreadClassBase::do_print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
 	if(calc_message) {

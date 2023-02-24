@@ -169,7 +169,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(do_start_record_sound()));
 	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(do_stop_record_sound()));
 	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(do_set_display_size(int, int, int, int)));
-	connect(this, SIGNAL(sig_emu_thread_to_fixed_cpu(int)), hRunEmu, SLOT(set_emu_thread_to_fixed_cpu(int)));
+	connect(this, SIGNAL(sig_emu_thread_to_fixed_cpu(int)), hRunEmu, SLOT(do_set_emu_thread_to_fixed_cpu(int)));
 
 	if(using_flags->is_use_state()) {
 		for(int i = 0; i < 10; i++) {
@@ -415,8 +415,8 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
 
-	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)), Qt::DirectConnection);
-	//connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
+	//connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(do_print_framerate(int)), Qt::DirectConnection);
+	connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(do_print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(hDrawEmu, SIGNAL(finished()), hDrawEmu, SLOT(deleteLater()));
@@ -438,11 +438,11 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
 	connect(glv, SIGNAL(sig_notify_move_mouse(double, double, double, double)),
-			hRunEmu, SLOT(moved_mouse(double, double, double, double)), Qt::QueuedConnection);
+			hRunEmu, SLOT(do_move_mouse(double, double, double, double)), Qt::QueuedConnection);
 	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
-	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
+	        hRunEmu, SLOT(do_press_button_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),
-			hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
+			hRunEmu, SLOT(do_release_button_mouse(Qt::MouseButton)));
 
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
 	connect(this, SIGNAL(sig_emu_launched()), glv, SLOT(set_emu_launched()));
