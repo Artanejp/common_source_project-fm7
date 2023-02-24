@@ -16,7 +16,7 @@
 #include <QWidget>
 #include <QOpenGLContext>
 
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "emu_thread_tmpl.h"
 #include "mainwidget_base.h"
@@ -25,7 +25,7 @@
 #include "dock_disks.h"
 #include "../../osdcall_types.h"
 
-#include "./virtualfileslist.h"
+#include "virtualfileslist.h"
 #include "menu_metaclass.h"
 
 //#include "../../romakana.h"
@@ -111,132 +111,10 @@ EmuThreadClassBase::~EmuThreadClassBase()
 	delete key_fifo;
 };
 
-void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
-{
-	int level = volume_avg[num];
-	int right;
-	int left;
-	volume_balance[num] = balance;
-	right = level + balance;
-	left  = level - balance;
-	p_config->sound_volume_l[num] = left;
-	p_config->sound_volume_r[num] = right;
-}
-
-void EmuThreadClassBase::calc_volume_from_level(int num, int level)
-{
-	int balance = volume_balance[num];
-	int right,left;
-	volume_avg[num] = level;
-	right = level + balance;
-	left  = level - balance;
-	p_config->sound_volume_l[num] = left;
-	p_config->sound_volume_r[num] = right;
-}
 
 void EmuThreadClassBase::doExit(void)
 {
 	bRunThread = false;
-}
-
-void EmuThreadClassBase::button_pressed_mouse(Qt::MouseButton button)
-{
-	std::shared_ptr<USING_FLAGS> up = using_flags;
-	if(up.get() == nullptr) return;
-	if(up->is_use_mouse()) {
-		button_pressed_mouse_sub(button);
-	} else {
-		if(up->get_max_button() > 0) {
-			button_desc_t *vm_buttons_d = up->get_vm_buttons();
-			if(vm_buttons_d == NULL) return;
-			int _x = (int)rint(mouse_x);
-			int _y = (int)rint(mouse_y);
-			switch(button) {
-			case Qt::LeftButton:
-//			case Qt::RightButton:
-				for(int i = 0; i < up->get_max_button(); i++) {
-					if((_x >= vm_buttons_d[i].x) &&
-					   (_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
-						if((_y >= vm_buttons_d[i].y) &&
-						   (_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
-							if(vm_buttons_d[i].code != 0x00) {
-								key_queue_t sp;
-								sp.code = vm_buttons_d[i].code;
-								sp.mod = key_mod;
-								sp.repeat = false;
-								enqueue_key_down(sp);
-							} else {
-								bResetReq = true;
-							}
-						}
-					}
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-}
-
-void EmuThreadClassBase::button_released_mouse(Qt::MouseButton button)
-{
-	std::shared_ptr<USING_FLAGS> up = using_flags;
-	if(up.get() == nullptr) return;
-	if(up->is_use_mouse()) {
-		button_released_mouse_sub(button);
-	} else {
-		if(up->get_max_button() > 0) {
-			button_desc_t *vm_buttons_d = up->get_vm_buttons();
-			if(vm_buttons_d == NULL) return;
-			int _x = (int)rint(mouse_x);
-			int _y = (int)rint(mouse_y);
-			switch(button) {
-			case Qt::LeftButton:
-//			case Qt::RightButton:
-				for(int i = 0; i < up->get_max_button(); i++) {
-					if((_x >= vm_buttons_d[i].x) &&
-					   (_x < (vm_buttons_d[i].x + vm_buttons_d[i].width))) {
-						if((_y >= vm_buttons_d[i].y) &&
-						   (_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
-							if(vm_buttons_d[i].code != 0x00) {
-								key_queue_t sp;
-								sp.code = vm_buttons_d[i].code;
-								sp.mod = key_mod;
-								sp.repeat = false;
-								enqueue_key_up(sp);
-							}
-						}
-					}
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-}
-
-// New UI
-void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
-{
-	key_queue_t sp;
-	sp.code = vk;
-	sp.mod = mod;
-	sp.repeat = repeat;
-	//key_changed = true;
-	enqueue_key_down(sp);
-	key_mod = mod;
-}
-
-void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
-{
-	key_queue_t sp;
-	sp.code = vk;
-	sp.mod = mod;
-	sp.repeat = false;
-	enqueue_key_up(sp);
-	key_mod = mod;
 }
 
 void EmuThreadClassBase::set_tape_play(bool flag)
@@ -249,23 +127,6 @@ void EmuThreadClassBase::resize_screen(int screen_width, int screen_height, int 
 	emit sig_resize_screen(screen_width, screen_height);
 	emit sig_resize_osd(screen_width);
 }
-
-void EmuThreadClassBase::sample_access_drv(void)
-{
-	if(p_emu == nullptr) return;
-
-	std::shared_ptr<USING_FLAGS> up = using_flags;
-	if(up.get() == nullptr) return;
-	if(up->is_use_qd()) get_qd_string();
-	if(up->is_use_fd()) get_fd_string();
-	if(up->is_use_hdd()) get_hdd_string();
-	if(up->is_use_tape() && !(up->is_tape_binary_only())) get_tape_string();
-	if(up->is_use_compact_disc()) get_cd_string();
-	if(up->is_use_bubble()) get_bubble_string();
-}
-
-
-
 
 void EmuThreadClassBase::do_update_config()
 {
@@ -537,11 +398,6 @@ int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
 }
 
 
-const _TCHAR *EmuThreadClassBase::get_device_name(void)
-{
-	return (const _TCHAR *)_T("TEST");
-}
-
 void EmuThreadClassBase::print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
@@ -788,48 +644,18 @@ QString EmuThreadClassBase::get_b77_file_path(int drive)
 	return QString::fromUtf8("");
 }
 
-
-#if defined(Q_OS_LINUX)
-//#define _GNU_SOURCE
-#include <unistd.h>
-#include <sched.h>
-#include <pthread.h>
-#endif
-
-void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu_from_action(void)
+void EmuThreadClassBase::sample_access_drv(void)
 {
-	QAction *cp = qobject_cast<QAction*>(QObject::sender());
-	if(cp == nullptr) return;
-	int cpunum = cp->data().value<int>();
-	set_emu_thread_to_fixed_cpu(cpunum);
-}
+	if(p_emu == nullptr) return;
 
-void EmuThreadClassBase::set_emu_thread_to_fixed_cpu(int cpunum)
-{
-#if defined(Q_OS_LINUX)
-	if(thread_id == (Qt::HANDLE)nullptr) {
-		queue_fixed_cpu = cpunum;
-		return;
-	}
-
-	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-	cpu_set_t *mask;
-	mask = CPU_ALLOC(cpus);
-	CPU_ZERO_S(CPU_ALLOC_SIZE(cpus), mask);
-	if((cpunum < 0) || (cpunum >= cpus)) {
-		for(int i = 0; i < cpus; i++ ) {
-			CPU_SET(i, mask);
-		}
-	} else {
-		CPU_SET(cpunum, mask);
-	}
-//	sched_setaffinity((pid_t)thread_id, CPU_ALLOC_SIZE(cpus), (const cpu_set_t*)mask);
-	pthread_setaffinity_np(*((pthread_t*)thread_id), CPU_ALLOC_SIZE(cpus),(const cpu_set_t *)mask);
-	CPU_FREE(mask);
-#else
-	return;
-#endif
-	return;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->is_use_qd()) get_qd_string();
+	if(up->is_use_fd()) get_fd_string();
+	if(up->is_use_hdd()) get_hdd_string();
+	if(up->is_use_tape() && !(up->is_tape_binary_only())) get_tape_string();
+	if(up->is_use_compact_disc()) get_cd_string();
+	if(up->is_use_bubble()) get_bubble_string();
 }
 
 void EmuThreadClassBase::get_fd_string(void)

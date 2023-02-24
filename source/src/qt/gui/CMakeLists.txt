@@ -143,6 +143,8 @@ set(s_qt_gui_srcs
 	  util_hdd2.cpp
 
 	  ../emu_thread/emu_thread_tmpl.cpp
+	  ../emu_thread/utils.cpp
+	  ../emu_thread/inputs.cpp
 	  ../emu_thread/emu_thread_slots.cpp
 )
 add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
