@@ -392,7 +392,7 @@ void Ui_MainWindow::LaunchEmuThread(EmuThreadClassBase *m)
 #ifdef USE_AUTO_KEY
 	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()), Qt::QueuedConnection);
-	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu, SLOT(set_romakana(bool)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu, SLOT(do_set_roma_kana(bool)), Qt::QueuedConnection);
 #endif
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");

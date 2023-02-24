@@ -28,9 +28,6 @@
 #include "virtualfileslist.h"
 #include "menu_metaclass.h"
 
-//#include "../../romakana.h"
-
-//#include "csp_logger.h"
 #include "menu_flags.h"
 
 EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent) : QThread(parent)

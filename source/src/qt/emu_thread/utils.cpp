@@ -11,6 +11,7 @@
 #include <QWidget>
 
 #include "config.h"
+#include "emu_template.h"
 #include "emu_thread_tmpl.h"
 #include "mainwidget_base.h"
 #include "common.h"
@@ -49,6 +50,7 @@ const _TCHAR *EmuThreadClassBase::get_device_name(void)
 {
 	return (const _TCHAR *)_T("TEST");
 }
+
 
 #if defined(Q_OS_LINUX)
 //#define _GNU_SOURCE

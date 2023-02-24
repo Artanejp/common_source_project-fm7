@@ -56,65 +56,10 @@ EmuThreadClass::~EmuThreadClass()
 {
 }
 
-
-int EmuThreadClass::get_interval(void)
-{
-	static int64_t accum = 0;
-	accum += (p_emu->get_frame_interval() / 2);
-	int interval = accum >> 10;
-	accum -= interval << 10;
-	return interval;
-}
-
 #include <QStringList>
 #include <QFileInfo>
 
 
-void EmuThreadClass::resetEmu()
-{
-	clear_key_queue();
-	p_emu->reset();
-}
-
-void EmuThreadClass::specialResetEmu(int num)
-{
-	if(p_emu == nullptr) return;
-	std::shared_ptr<USING_FLAGS> p = using_flags;
-	if(p.get() == nullptr) return;
-
-	if(p->is_use_special_reset()) {
-		p_emu->special_reset(num);
-	}
-}
-
-void EmuThreadClass::loadState()
-{
-	if(p_emu == nullptr) return;
-	std::shared_ptr<USING_FLAGS> p = using_flags;
-	if(p.get() == nullptr) return;
-
-	if(!(p->is_use_state())) return;
-
-	if(!lStateFile.isEmpty()) {
-		p_emu->load_state(lStateFile.toLocal8Bit().constData());
-		lStateFile.clear();
-	}
-}
-
-void EmuThreadClass::saveState()
-{
-	if(p_emu == nullptr) return;
-	std::shared_ptr<USING_FLAGS> p = using_flags;
-	if(p.get() == nullptr) return;
-
-	if(!(p->is_use_state())) return;
-
-	if(!sStateFile.isEmpty()) {
-		p_emu->save_state(sStateFile.toLocal8Bit().constData());
-		sStateFile.clear();
-	}
-
-}
 
 void EmuThreadClass::doWork(const QString &params)
 {

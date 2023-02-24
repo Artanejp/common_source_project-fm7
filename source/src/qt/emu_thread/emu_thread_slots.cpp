@@ -726,16 +726,6 @@ void EmuThreadClassBase::do_close_debugger(void)
 	}
 }
 
-void EmuThreadClassBase::set_romakana(bool flag)
-{
-	if(p_emu == nullptr) return;
-	std::shared_ptr<USING_FLAGS> p = using_flags;
-	if(p.get() == nullptr) return;
-
-	if(p->is_use_auto_key()) {
-		p_emu->set_auto_key_char(flag ? 1 : 0);
-	}
-}
 
 void EmuThreadClassBase::do_notify_power_off()
 {

@@ -178,11 +178,13 @@ protected:
 	int get_message_count(void);
 	void dec_message_count(void);
 
+	int get_interval(void);
+
 	virtual const _TCHAR *get_device_name(void);
-	virtual void resetEmu() { }
-	virtual void specialResetEmu(int num) { }
-	virtual void loadState() { }
-	virtual void saveState() { }
+	void resetEmu();
+	void specialResetEmu(int num);
+	void loadState();
+	void saveState();
 
 	void enqueue_key_up(key_queue_t s) {
 		QMutexLocker n(&keyMutex);
@@ -281,7 +283,6 @@ public:
 	bool is_bubble_casette_protected(int drive);
 	void set_bubble_casette_protected(int drive, bool flag);
 	QString get_b77_file_path(int drive);
-
 public slots:
 	void doExit(void);
 
@@ -365,7 +366,7 @@ public slots:
 
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
-	void set_romakana(bool flag);
+	void do_set_roma_kana(bool flag);
 	void do_close_debugger(void);
 
 

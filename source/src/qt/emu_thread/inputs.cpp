@@ -14,6 +14,7 @@
 #include <QTextCodec>
 
 #include "config.h"
+#include "emu_template.h"
 #include "emu_thread_tmpl.h"
 #include "mainwidget_base.h"
 #include "common.h"
@@ -264,5 +265,16 @@ void EmuThreadClassBase::do_stop_auto_key(void)
 
 	if(p->is_use_auto_key()) {
 		p_emu->stop_auto_key();
+	}
+}
+
+void EmuThreadClassBase::do_set_roma_kana(bool flag)
+{
+	if(p_emu == nullptr) return;
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+
+	if(p->is_use_auto_key()) {
+		p_emu->set_auto_key_char(flag ? 1 : 0);
 	}
 }
