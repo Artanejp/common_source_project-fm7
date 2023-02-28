@@ -89,17 +89,17 @@ static const uint8_t pseudo_sasi_bios[] = {
 	#define UPPER_MEMORY_32BIT	0xfffc0000
 #endif
 #endif
-	
+
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
-	
+
 	// RAM
 	memset(ram, 0x00, sizeof(ram));
 	// VRAM
 	gvram_wait_val = 0;
 	tvram_wait_val = 0;
-	
+
 	// BIOS
 	memset(bios, 0xff, sizeof(bios));
 	if(!read_bios(_T("IPL.ROM"), bios, sizeof(bios))) {
@@ -132,24 +132,24 @@ void MEMBUS::initialize()
 	memset(itf, 0xff, sizeof(itf));
 	read_bios(_T("ITF.ROM"), itf, sizeof(itf));
 //	memcpy(itf, pseudo_itfrom, (sizeof(itf) > sizeof(pseudo_itfrom)) ? sizeof(pseudo_itfrom) : sizeof(itf));
-	
+
 	itf_selected = true;
 #endif
-	
+
 	// EXT BIOS
 #if defined(_PC9801) || defined(_PC9801E)
 	memset(fd_bios_2hd, 0xff, sizeof(fd_bios_2hd));
-	if(config.dipswitch & 1) {
+	if(config.dipswitch &  DIPSWITCH_2HD) {
 		read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
 	}
 //	read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
-	
+
 	memset(fd_bios_2dd, 0xff, sizeof(fd_bios_2dd));
-	if(config.dipswitch & 2) {
+	if(config.dipswitch &  DIPSWITCH_2DD) {
 		read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
 	}
 //	read_bios(_T("2DDIF.ROM"), fd_bios_2dd, sizeof(fd_bios_2dd));
-	
+
  	set_memory_r(0xd6000, 0xd6fff, fd_bios_2dd);
  	set_memory_r(0xd7000, 0xd7fff, fd_bios_2hd);
 #endif
@@ -170,7 +170,7 @@ void MEMBUS::initialize()
 	} else {
 		//d_display->sound_bios_off();
 		sound_bios_selected = false;
-	}		
+	}
 #if defined(SUPPORT_SASI_IF)
 	sasi_bios_load = false;
 	memset(sasi_bios, 0xff, sizeof(sasi_bios));
@@ -194,8 +194,8 @@ void MEMBUS::initialize()
 	ide_bios_selected = (read_bios(_T("IDE.ROM"), ide_bios, sizeof(ide_bios)) != 0);
 	ide_bios_bank = 0;
 #endif
-//	page08_intram_selected = false;	
-	page08_intram_selected = true;	
+//	page08_intram_selected = false;
+	page08_intram_selected = true;
 	// EMS
 #if defined(SUPPORT_NEC_EMS)
 	memset(nec_ems, 0, sizeof(nec_ems));
@@ -234,7 +234,7 @@ void MEMBUS::reset()
 #else
 	shadow_ram_selected = false;
 #endif
-	
+
 #if !defined(SUPPORT_HIRESO)
 	if((sound_bios_load)  && ((config.sound_type & 1) == 0)){
 		using_sound_bios = true;
@@ -291,7 +291,7 @@ void MEMBUS::reset()
 	window_a0000h = 0x120000;
 #endif
 #endif
-	page08_intram_selected = true;	
+	page08_intram_selected = true;
 
 	update_bios();
 }
@@ -340,7 +340,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 //			unset_memory_rw(0xb0000, 0xbffff);
 //			set_memory_mapped_io_rw(0xb0000, 0xbffff, d_display);
 //			update_bios();
-//	#endif		
+//	#endif
 #endif
 			break;
 		case 0x22:
@@ -355,7 +355,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 //			unset_memory_rw(0xb0000, 0xbffff);
 //			set_memory_rw(0xb0000, 0xbffff, &(ram[0xb0000]));
 //			update_bios();
-//	#endif		
+//	#endif
 #endif
 			break;
 		case 0xc0:
@@ -370,7 +370,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			}
 #endif
 #if defined(SUPPORT_SCSI_IF)
-			// Changing ROM/RAM maybe select SCSI I/F board.(Still not tested)20190321 K.O 
+			// Changing ROM/RAM maybe select SCSI I/F board.(Still not tested)20190321 K.O
 			//if(scsi_bios_selected) {
 				if(scsi_bios_ram_selected) {
 					scsi_bios_ram_selected = false;
@@ -394,7 +394,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			break;
 		case 0xc4:
 #if defined(SUPPORT_SCSI_IF)
-			// Changing ROM/RAM maybe select SCSI I/F board.(Still not tested)20190321 K.O 
+			// Changing ROM/RAM maybe select SCSI I/F board.(Still not tested)20190321 K.O
 			if(scsi_bios_selected) {
 				if(!scsi_bios_ram_selected) {
 					scsi_bios_ram_selected = true;
@@ -436,7 +436,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		ems_protected_base = (uint32_t)(data & 0x0f) << 20;
 		update_bios();
 		break;
-#endif		
+#endif
 #if defined(SUPPORT_HIRESO)
 	case 0x0091:
 		{
@@ -506,7 +506,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 			bool _bak;
 /*
   //Note: THIS is disabled due to enable bios at startup.
-#if !defined(SUPPORT_HIRESO) // 20190521 K.O 
+#if !defined(SUPPORT_HIRESO) // 20190521 K.O
 			if(sound_bios_load && (using_sound_bios)) {
 				_bak = sound_bios_selected;
 				sound_bios_selected = ((data & 0x80) != 0);
@@ -654,7 +654,7 @@ void MEMBUS::write_signal(int ch, uint32_t data, uint32_t mask)
 	}
 }
 
-		
+
 uint32_t MEMBUS::read_signal(int ch)
 {
 	switch(ch) {
@@ -673,7 +673,7 @@ void MEMBUS::config_intram()
 //	set_memory_rw(0x00000, (sizeof(ram) >= 0xa0000) ? 0x9ffff :  (sizeof(ram) - 1), ram);
 	#else
 	set_memory_rw(0x00000, (sizeof(ram) >= 0xc0000) ? 0xbffff :  (sizeof(ram) - 1), ram);
-	#endif	
+	#endif
 #else
 	set_memory_rw(0x00000, 0xbffff, ram);
 #endif
@@ -681,9 +681,9 @@ void MEMBUS::config_intram()
 	if(sizeof(ram) > 0x100000) {
 		set_memory_rw(0x100000, (sizeof(ram) >= 0xe00000) ? 0xdfffff : (sizeof(ram) - 1), ram + 0x100000);
 	} else {
-		unset_memory_rw(0x00100000, 0x00efffff); 
+		unset_memory_rw(0x00100000, 0x00efffff);
 	}
-	unset_memory_rw((sizeof(ram) >= 0x00e00000) ? 0x00e00000 : sizeof(ram), 0x00efffff); 
+	unset_memory_rw((sizeof(ram) >= 0x00e00000) ? 0x00e00000 : sizeof(ram), 0x00efffff);
 #endif
 }
 
@@ -752,7 +752,7 @@ void MEMBUS::update_bios_ipl_and_itf()
 		set_memory_r(0x00100000 - sizeof(itf), 0x000fffff, itf);
 	} else
 #endif
-	{	
+	{
 #if defined(SUPPORT_BIOS_RAM)
 		if(bios_ram_selected) {
 			set_memory_rw(0x100000 - sizeof(bios), 0xfffff, ram + 0x100000 - sizeof(bios));
@@ -776,7 +776,7 @@ void MEMBUS::update_bios_window(uint32_t window_addr, uint32_t begin)
 	if((page08_intram_selected) /*&& (shadow_ram_selected)*/){
 		set_wait_rw(begin, end, bank08_wait);
 		if((window_addr == 0x80000) || (window_addr >= 0x100000)) {
-			if((window_addr + 0x1ffff) < sizeof(ram)) { 
+			if((window_addr + 0x1ffff) < sizeof(ram)) {
 				set_memory_rw(begin, end, &(ram[window_addr]));
 			} else {
 				unset_memory_rw(begin, end);
@@ -823,7 +823,7 @@ void MEMBUS::update_bios_window(uint32_t window_addr, uint32_t begin)
 					set_memory_r(head_address, end, &(bios[0x00000]));
 				}
 			}
-		} else {  // less than 0x80000h 
+		} else {  // less than 0x80000h
 			//set_memory_rw(begin, end, &(ram[begin]));
 			unset_memory_rw(begin, end);
 		}
@@ -867,7 +867,7 @@ void MEMBUS::update_bios_window(uint32_t window_addr, uint32_t begin)
 			}
 		}
 	}
-#endif	
+#endif
 }
 void MEMBUS::update_bios()
 {
@@ -898,7 +898,7 @@ void MEMBUS::update_bios()
 	if(sizeof(ram) > 0x10000) {
 		set_wait_rw(0x00100000, (sizeof(ram) >= 0x00e00000) ? 0x00dfffff : (sizeof(ram) - 1), exmem_wait);
 	}
-#endif	
+#endif
 	if(shadow_ram_selected) {
 //		set_wait_rw(0xa0000, 0xbffff, bank08_wait);
 		set_wait_rw(0xa0000, 0xbffff, intram_wait);
@@ -914,10 +914,10 @@ void MEMBUS::update_bios()
 		if((window_a0000h == 0xc0000)) {
 #if defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
-				//copy_table_rw(0xa0000, 0xc0000, 0xdffff); 
+				//copy_table_rw(0xa0000, 0xc0000, 0xdffff);
 				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
 			} else {
-				copy_table_rw(0xa0000, 0xc0000, 0xdffff); 
+				copy_table_rw(0xa0000, 0xc0000, 0xdffff);
 			}
 #else
 			copy_table_rw(0xa0000, 0xc0000, 0xdffff);
@@ -926,23 +926,23 @@ void MEMBUS::update_bios()
 #if defined(_PC9801RA) || defined(_PC9801RA2) || defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 	#if !defined(SUPPORT_HIRESO)
-				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff); 
+				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff);
 				set_memory_rw(0xa0000, 0xa7fff, &(ram[window_a0000h]));
 		#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0xa8000, 0xbffff, ram + 0x100000 - sizeof(bios));
 		#endif
 	#else
-				//copy_table_rw(0xa0000, 0xe0000, 0xeffff); 
+				//copy_table_rw(0xa0000, 0xe0000, 0xeffff);
 				set_memory_rw(0xa0000, 0xaffff, &(ram[window_a0000h]));
 		#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0xb0000, 0xbffff, ram + 0x100000 - sizeof(bios));
 		#endif
 	#endif
 			} else {
-				copy_table_rw(0xa0000, 0xe0000, 0xfffff); 
+				copy_table_rw(0xa0000, 0xe0000, 0xfffff);
 			}
 #else
-			copy_table_rw(0xa0000, 0xe0000, 0xfffff); 
+			copy_table_rw(0xa0000, 0xe0000, 0xfffff);
 #endif
 		} else if((window_a0000h >= 0x80000) && ((window_a0000h + 0x1ffff) < sizeof(ram)) && !((window_a0000h >= 0xa0000) && (window_a0000h <= 0xfffff))) {
 			set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
@@ -952,7 +952,7 @@ void MEMBUS::update_bios()
 			} else {
 				unset_memory_rw(0xa0000, 0xbffff);
 			}
-			
+
 		}
 	} //else {
 	//	// NOOP
@@ -969,7 +969,7 @@ void MEMBUS::update_bios()
 	#else
 	// ToDo
 	#endif
-#endif	
+#endif
 	// ToDo: PC9821
 #if defined(SUPPORT_32BIT_ADDRESS)
 	unset_memory_rw(0x00f00000, (UPPER_MEMORY_32BIT & 0x00ffffff) - 1);
@@ -1138,7 +1138,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	if(!MEMORY::process_state(state_fio, loading)) {
  		return false;
  	}
- 	
+
  	// post process
 	if(loading) {
 		config_intram();

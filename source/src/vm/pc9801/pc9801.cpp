@@ -168,14 +168,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit_clock_8mhz = false;
 #endif
 	int pit_clocks = pit_clock_8mhz ? 1996812 : 2457600;
-	
+
 	sound_type = config.sound_type;
-	
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 #if defined(SUPPORT_OLD_BUZZER)
 	beep = new BEEP(this, emu);
 #else
@@ -208,7 +208,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_prn = new I8255(this, emu);		// for printer
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
-	
+
 #if defined(HAS_I86)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
@@ -235,13 +235,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		v30 = NULL;
 	}
-#endif	
+#endif
 	io = new IO(this, emu);
 	rtcreg = new LS244(this, emu);
 	rtcreg->set_device_name(_T("74LS244 (RTC)"));
 	//memory = new MEMORY(this, emu);
 	memory = new MEMBUS(this, emu);
-	
+
 	not_busy = new NOT(this, emu);
 	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 #if defined(HAS_I86) || defined(HAS_V30)
@@ -251,7 +251,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
 #if defined(_PC9801) || defined(_PC9801E)
-	if((config.dipswitch & 1) && FILEIO::IsFileExisting(create_local_path(_T("2HDIF.ROM")))) {
+	if((config.dipswitch & DIPSWITCH_2HD) && FILEIO::IsFileExisting(create_local_path(_T("2HDIF.ROM")))) {
 #endif
 		fdc_2hd = new UPD765A(this, emu);
 		fdc_2hd->set_device_name(_T("uPD765A FDC (2HD I/F)"));
@@ -263,7 +263,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 #if defined(_PC9801) || defined(_PC9801E)
-	if((config.dipswitch & 2) && FILEIO::IsFileExisting(create_local_path(_T("2DDIF.ROM")))) {
+	if((config.dipswitch & DIPSWITCH_2DD) && FILEIO::IsFileExisting(create_local_path(_T("2DDIF.ROM")))) {
 #endif
 		fdc_2dd = new UPD765A(this, emu);
 		fdc_2dd->set_device_name(_T("uPD765A FDC (2DD I/F)"));
@@ -307,7 +307,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	gdc_chr->set_device_name(_T("uPD7220 GDC (Character)"));
 	gdc_gfx = new UPD7220(this, emu);
 	gdc_gfx->set_device_name(_T("uPD7220 GDC (Graphics)"));
-	
+
 	if(sound_type == 0 || sound_type == 1) {
 		opn = new YM2203(this, emu);
 #ifdef USE_DEBUGGER
@@ -339,7 +339,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		printer = dummy;
 	}
-	
+
 #if defined(SUPPORT_CMT_IF)
 	cmt = new CMT(this, emu);
 #endif
@@ -362,10 +362,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(SUPPORT_IDE_IF)
 	ide = new IDE(this, emu);
 #endif
-	
+
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
-	if((config.dipswitch & 4) && (FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM"))) || FILEIO::IsFileExisting(create_local_path(_T("PC88.ROM"))))) {
+	if((config.dipswitch & DIPSWITCH_2D) && (FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM"))) || FILEIO::IsFileExisting(create_local_path(_T("PC88.ROM"))))) {
 		pio_sub = new I8255(this, emu);
 		pio_sub->set_device_name(_T("8255 PIO (320KB FDD)"));
 		pc80s31k = new PC80S31K(this, emu);
@@ -381,7 +381,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		cpu_sub = NULL;
 	}
 #endif
-	
+
 	/* IRQ	0  PIT
 		1  KEYBOARD
 		2  CRTV
@@ -396,12 +396,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		11 (INT42) FDC (1MB I/F)
 		12 (INT5) PC-9801-26(K)/86 or PC-9801-14
 		13 (INT6) MOUSE (STANDARD)
-		14 
+		14
 		15 (RESERVED)
 	*/
-	
+
 	// set contexts
-	
+
 #if defined(UPPER_I386)
 	// ToDo: Implement
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
@@ -413,13 +413,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 			event->set_context_cpu(v30, 9984060);
 		}
 	}
-#endif	
+#endif
 #if defined(SUPPORT_320KB_FDD_IF)
 	if(cpu_sub) {
 		event->set_context_cpu(cpu_sub, 4000000);
 	}
 #endif
-	
+
 	// set sound device contexts
 	event->set_context_sound(beep);
 	if(sound_type == 0 || sound_type == 1) {
@@ -433,7 +433,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(noise_seek);
 	event->set_context_sound(noise_head_down);
 	event->set_context_sound(noise_head_up);
-	
+
 	// set other device contexts
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
@@ -524,7 +524,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic->set_context_cpu(cpu);
 #endif
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
-	
+
 	if(sound_type == 0 || sound_type == 1) {
 		opn->set_context_irq(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1);
 		opn->set_context_port_b(joystick, SIG_JOYSTICK_SELECT, 0xc0, 0);
@@ -543,7 +543,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pit_14->set_constant_clock(2, 1996800 / 8);
 		pit_14->set_context_ch2(pic, SIG_I8259_CHIP1 | SIG_I8259_IR4, 1);
 	}
-	
+
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	cpureg->set_context_cpu(cpu);
 #if !defined(SUPPORT_HIRESO)
@@ -564,17 +564,17 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_context_gdc_chr(gdc_chr, gdc_chr->get_ra());
 	display->set_context_gdc_gfx(gdc_gfx, gdc_gfx->get_ra(), gdc_gfx->get_cs());
 	display->set_context_gdc_freq(pio_sys, SIG_I8255_PORT_A, 0x80);
-	
+
 	//pio_sys->set_context_port_b(display, SIG_DISPLAY98_HIGH_RESOLUTION, 0x08, 0); // SHUT1
 	display->set_context_pio_prn(pio_prn);
-	
+
 	dmareg->set_context_dma(dma);
 	keyboard->set_context_sio(sio_kbd);
 	memory->set_context_display(display);
 	mouse->set_context_pic(pic);
 	mouse->set_context_pio(pio_mouse);
 	serial->set_context_pic(pic);
-	
+
 #if defined(SUPPORT_2HD_FDD_IF)
 	if(fdc_2hd) {
 		fdc_2hd->set_context_irq(floppy, SIG_FLOPPY_2HD_IRQ, 1);
@@ -608,7 +608,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	floppy->set_context_dma(dma);
 	floppy->set_context_pic(pic);
-	
+
 #if defined(SUPPORT_SASI_IF)
 #if !defined(SUPPORT_HIRESO)
 	sasi_host->set_context_irq(pio_sys, SIG_I8255_PORT_B, 0x10);
@@ -643,7 +643,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_cpu(cpu);
 	sasi_bios->set_context_pic(pic);
 	sasi_bios->set_context_cpureg(cpureg);
-	
+
 	cpu->set_context_bios(sasi_bios);
 	#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
 	if(v30 != NULL) {
@@ -675,7 +675,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	}
 #endif
-	
+
 #if defined(SUPPORT_CMT_IF)
 	sio_cmt->set_context_out(cmt, SIG_CMT_OUT);
 //	sio_cmt->set_context_txrdy(cmt, SIG_CMT_TXRDY, 1);
@@ -683,7 +683,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio_cmt->set_context_txempty(cmt, SIG_CMT_TXEMP, 1);
 	cmt->set_context_sio(sio_cmt);
 #endif
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -696,7 +696,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 
-	
+
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
 	if(pc80s31k && pio_sub && fdc_sub && cpu_sub) {
@@ -725,13 +725,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	}
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_alias_rw(0x0000, pic, 0);
 	io->set_iomap_alias_rw(0x0002, pic, 1);
 	io->set_iomap_alias_rw(0x0008, pic, 2);
 	io->set_iomap_alias_rw(0x000a, pic, 3);
-	
+
 	io->set_iomap_alias_rw(0x0001, dma, 0x00);
 	io->set_iomap_alias_rw(0x0003, dma, 0x01);
 	io->set_iomap_alias_rw(0x0005, dma, 0x02);
@@ -755,7 +755,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_w(0x0029, dmareg);
 #endif
-	
+
 #if defined(SUPPORT_32BIT_ADDRESS)
 	// ToDo: OVER 16MB MEMORIES.
 //	io->set_iomap_single_w(0x0e05, dmareg);
@@ -763,12 +763,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	io->set_iomap_single_w(0x0e09, dmareg);
 //	io->set_iomap_single_w(0x0e0b, dmareg);
 #endif
-	
+
 	io->set_iomap_single_w(0x0020, rtcreg);
-	
+
 	io->set_iomap_alias_rw(0x0030, sio_rs, 0);
 	io->set_iomap_alias_rw(0x0032, sio_rs, 1);
-	
+
 #if !(defined(_PC9821AP) || defined(_PC9821AS) || defined(_PC9821AE) || defined(_PC98H) || defined(_PC98LT_VARIANTS))
 	io->set_iomap_alias_r(0x0031, pio_sys, 0);
 #else
@@ -778,15 +778,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_r(0x0033, pio_sys, 1); // PORTB should be read only.
 	io->set_iomap_alias_rw(0x0035, pio_sys, 2);
 	io->set_iomap_alias_w (0x0037, pio_sys, 3);
-	
+
 	io->set_iomap_alias_rw(0x0040, pio_prn, 0);
 	io->set_iomap_alias_rw(0x0042, pio_prn, 1);
 	io->set_iomap_alias_rw(0x0044, pio_prn, 2);
 	io->set_iomap_alias_w (0x0046, pio_prn, 3);
-	
+
 	io->set_iomap_alias_rw(0x0041, sio_kbd, 0);
 	io->set_iomap_alias_rw(0x0043, sio_kbd, 1);
-	
+
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_w(0x0050, cpureg); // NMI
 	io->set_iomap_single_w(0x0052, cpureg); // NMI
@@ -797,17 +797,17 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0x005e, cpureg);
 	io->set_iomap_single_rw(0x005f, cpureg);
 #endif
-	
+
 #if defined(SUPPORT_320KB_FDD_IF)
 	io->set_iomap_alias_rw(0x0051, pio_fdd, 0);
 	io->set_iomap_alias_rw(0x0053, pio_fdd, 1);
 	io->set_iomap_alias_rw(0x0055, pio_fdd, 2);
 	io->set_iomap_alias_w (0x0057, pio_fdd, 3);
 #endif
-	
+
 	io->set_iomap_alias_rw(0x0060, gdc_chr, 0);
 	io->set_iomap_alias_rw(0x0062, gdc_chr, 1);
-	
+
 	io->set_iomap_single_w(0x0064, display);
 	io->set_iomap_single_w(0x0068, display);
 #if defined(SUPPORT_16_COLORS)
@@ -815,7 +815,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	io->set_iomap_single_w(0x006c, display);
 	io->set_iomap_single_w(0x006e, display);
-	
+
 	io->set_iomap_single_w(0x0070, display);
 	io->set_iomap_single_w(0x0072, display);
 	io->set_iomap_single_w(0x0074, display);
@@ -831,7 +831,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0x00a6, display);
 #endif
 #endif
-	
+
 #if defined(SUPPORT_SASI_IF)
 	io->set_iomap_single_rw(0x0080, sasi);
 	io->set_iomap_single_rw(0x0082, sasi);
@@ -855,10 +855,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x074c, ide);
 	io->set_iomap_single_rw(0x074e, ide);
 #endif
-	
+
 	io->set_iomap_alias_rw(0x00a0, gdc_gfx, 0);
 	io->set_iomap_alias_rw(0x00a2, gdc_gfx, 1);
-	
+
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 	io->set_iomap_single_rw(0x00a4, display);
 	io->set_iomap_single_rw(0x00a6, display);
@@ -867,7 +867,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x00aa, display);
 	io->set_iomap_single_rw(0x00ac, display);
 	io->set_iomap_single_rw(0x00ae, display);
-	
+
 	io->set_iomap_single_rw(0x00a1, display);
 	io->set_iomap_single_rw(0x00a3, display);
 	io->set_iomap_single_rw(0x00a5, display);
@@ -875,12 +875,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(SUPPORT_EGC)
 	io->set_iomap_range_rw(0x04a0, 0x04af, display); // EGC REGS
 #endif
-	
+
 	io->set_iomap_alias_rw(0x0071, pit, 0);
 	io->set_iomap_alias_rw(0x0073, pit, 1);
 	io->set_iomap_alias_rw(0x0075, pit, 2);
 	io->set_iomap_alias_w (0x0077, pit, 3);
-	
+
 #if defined(SUPPORT_2HD_FDD_IF)
 	if(fdc_2hd) {
 #endif
@@ -913,14 +913,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 #endif
 #endif
-	
+
 #if defined(SUPPORT_CMT_IF)
 	io->set_iomap_alias_rw(0x0091, sio_cmt, 0);
 	io->set_iomap_alias_rw(0x0093, sio_cmt, 1);
 	io->set_iomap_single_w(0x0095, cmt);
 	io->set_iomap_single_w(0x0097, cmt);
 #endif
-	
+
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	io->set_iomap_single_rw(0x00f0, cpureg);
 	io->set_iomap_single_rw(0x00f2, cpureg);
@@ -928,7 +928,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(UPPER_I386)
 	io->set_iomap_single_rw(0x00f6, cpureg);
 #endif
-	
+
 	if(sound_type == 0 || sound_type == 1) {
 		io->set_iomap_single_rw(0x0188, fmsound);
 		io->set_iomap_single_rw(0x018a, fmsound);
@@ -960,7 +960,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		io->set_iovalue_single_r(0x018e, 0x80); // INT5
 //		io->set_iovalue_single_r(0x018e, 0xc0); // INT6
 	}
-	
+
 #if defined(SUPPORT_ITF_ROM)
 	io->set_iomap_single_w(0x043d, memory);
 #endif
@@ -986,15 +986,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(SUPPORT_NEC_EMS)
 	io->set_iomap_single_w(0x08e9, memory);
-#endif	
-	
+#endif
+
 #if !(defined(_PC9801) || defined(_PC9801E) || defined(SUPPORT_HIRESO))
 	io->set_iomap_alias_rw(0x3fd9, pit, 0);
 	io->set_iomap_alias_rw(0x3fdb, pit, 1);
 	io->set_iomap_alias_rw(0x3fdd, pit, 2);
 	io->set_iomap_alias_w (0x3fdf, pit, 3);
 #endif
-	
+
 #if !defined(SUPPORT_HIRESO)
 	io->set_iomap_alias_rw(0x7fd9, pio_mouse, 0);
 	io->set_iomap_alias_rw(0x7fdb, pio_mouse, 1);
@@ -1008,14 +1008,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0067, pio_mouse, 3);
 #endif
 	// ToDo: MIDI@0xe0d0 - e0d3
-	
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	// create devices
 	pc88event = new EVENT(this, emu);
 	pc88event->set_device_name(_T("Event Manager (PC-8801)"));
 	pc88event->set_frames_per_sec(60);
 	pc88event->set_lines_per_frame(260);
-	
+
 	pc88 = new PC88(this, emu);
 	pc88->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
@@ -1047,7 +1047,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88cpu = new Z80(this, emu);
 	pc88cpu->set_device_name(_T("Z80 CPU (PC-8801)"));
 	pc88cpu->set_context_event_manager(pc88event);
-	
+
 	if(config.printer_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
 		pc88prn->set_context_event_manager(pc88event);
@@ -1058,11 +1058,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else if(config.printer_type == 2) {
 		pc88prn = new PCM8BIT(this, emu);
 		pc88prn->set_context_event_manager(pc88event);
-#endif		
+#endif
 	} else {
 		pc88prn = dummy;
 	}
-	
+
 	pc88sub = new PC80S31K(this, emu);
 	pc88sub->set_device_name(_T("PC-80S31K (PC-8801 Sub)"));
 	pc88sub->set_context_event_manager(pc88event);
@@ -1084,7 +1084,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_device_name(_T("Z80 CPU (PC-8801 Sub)"));
 	pc88cpu_sub->set_context_event_manager(pc88event);
-	
+
 #ifdef SUPPORT_M88_DISKDRV
 	if(config.dipswitch & DIPSWITCH_M88_DISKDRV) {
 		pc88diskio = new DiskIO(this, emu);
@@ -1093,11 +1093,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88diskio = NULL;
 	}
 #endif
-	
+
 	// set cpu device contexts
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type == 1) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
-	
+
 	// set sound device contexts
 	pc88event->set_context_sound(pc88pcm);
 #ifdef SUPPORT_PC88_OPN1
@@ -1113,7 +1113,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pc88event->set_context_sound(pc88noise_seek);
 	pc88event->set_context_sound(pc88noise_head_down);
 	pc88event->set_context_sound(pc88noise_head_up);
-	
+
 	// set other device contexts
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_pcm(pc88pcm);
@@ -1144,7 +1144,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88opn1->set_context_irq(pc88, SIG_PC88_OPN1_IRQ, 1);
 	}
 #endif
-	
+
 	pc88sub->set_context_cpu(pc88cpu_sub);
 	pc88sub->set_context_fdc(pc88fdc_sub);
 	pc88sub->set_context_pio(pc88pio_sub);
@@ -1175,10 +1175,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
-	initialize_ports();
+
 	set_cpu_clock_with_switch(config.cpu_type);
-	
+
 #if defined(_PC9801) || defined(_PC9801E)
 	if(fdc_2hd) {
 		fdc_2hd->get_disk_handler(0)->drive_num = 0;
@@ -1276,7 +1275,7 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 		pit_clock_8mhz = true;
 	}  else {
 		pit_clock_8mhz = false;
-	}		
+	}
 #endif
 	uint32_t waitfactor;
 	if(CPU_CLOCKS > cpu_clocks) {
@@ -1298,7 +1297,7 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 	if(v30 != NULL) {
 		v30->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
 	}
-#endif	
+#endif
 	uint8_t prn_port_b = 0x00;
 	if(pit_clock_8mhz) {
 		prn_port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
@@ -1330,7 +1329,7 @@ void VM::set_wait(int dispmode, int clock)
 	intram_wait = 0;
 	if(clock == 0) { // FAST CLOCK (20MHz)
 		cpuclock = 20000000;
-#if defined(_SUPPORT_HIRESO)		
+#if defined(_SUPPORT_HIRESO)
 		if(dispmode != 0) { // Low RESO
 			exboards_wait = 12;
 		} else {
@@ -1342,7 +1341,7 @@ void VM::set_wait(int dispmode, int clock)
 		io_wait = 10;
 	} else {
 		cpuclock = 16000000;
-#if defined(_SUPPORT_HIRESO)		
+#if defined(_SUPPORT_HIRESO)
 		if(dispmode != 0) { // Low RESO
 			exboards_wait = 10;
 		} else {
@@ -1354,7 +1353,7 @@ void VM::set_wait(int dispmode, int clock)
 		io_wait = 8;
 	}
 	gvram_wait = intram_wait + 1; // OK?
-	
+
 #elif defined(_PC98XL2)
 	// ToDo: V30
 	cpuclock = 16000000;
@@ -1378,7 +1377,7 @@ void VM::set_wait(int dispmode, int clock)
 		// inta_wait = 14;
 	}
 	gvram_wait = intram_wait + 1; // OK?
-	
+
 #elif defined(_PC98XL)
 	if(dispmode == 0) {
 		intram_wait = 1;
@@ -1406,7 +1405,7 @@ void VM::set_wait(int dispmode, int clock)
 		cpuclock = (clock == 0) ? 10000000 : 8000000;
 	}
 	gvram_wait = intram_wait + 1; // OK?
-	
+
 #elif defined(_PC9801VM21) || defined(_PC9801VX)
 	// ToDo: V30
 	// They are for 80286.
@@ -1429,7 +1428,7 @@ void VM::set_wait(int dispmode, int clock)
 		exmem_wait    = 1;
 		exboards_wait = 4;
 		// inta_wait = 5;
-	}		
+	}
 	gvram_wait = intram_wait + 1; // OK?
 #elif defined(_PC9801U) || defined(_PC9801VF) || defined(_PC9801VM) || defined(_PC9801UV)
 	if(clock == 0) { // FAST CLOCK (10MHz)
@@ -1440,7 +1439,7 @@ void VM::set_wait(int dispmode, int clock)
 		cpuclock = 8000000;
 		intram_wait = 0;
 		io_wait = 2;
-	}		
+	}
 	slotmem_wait  = intram_wait;
 	exmem_wait    = intram_wait;
 	exboards_wait = intram_wait;
@@ -1468,7 +1467,7 @@ void VM::set_wait(int dispmode, int clock)
 		cpuclock = 5000000;
 		intram_wait = 0;
 		io_wait = 1;
-	}		
+	}
 	slotmem_wait  = intram_wait;
 	exmem_wait    = intram_wait;
 	exboards_wait = intram_wait;
@@ -1492,12 +1491,64 @@ void VM::set_wait(int dispmode, int clock)
 	memory->write_signal(SIG_TVRAM_WAIT, waitval, 0xfffff); // OK?
 	memory->write_signal(SIG_GVRAM_WAIT, gvram_wait, 0xfffff); // OK?
 //	memory->write_signal(SIG_GVRAM_WAIT, waitval, 0xfffff); // OK?
-}	
+}
 
 void VM::initialize_ports()
 {
-	uint8_t port_b, port_c;
-	
+	// initial device settings
+	uint8_t port_a, port_b, port_c;
+
+	port_a  = 0xf0; // Clear mouse buttons and counters
+	port_b  = 0x00;
+#if defined(_PC98XA)
+	port_b |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
+#else
+#if defined(SUPPORT_HIRESO)
+	port_b |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
+#endif
+	port_b |= 0x40; // DIP SW 3-6, 1 = Enable internal RAM 80000h-9FFFFh
+#if defined(_PC98RL)
+	port_b |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
+#endif
+#if defined(USE_CPU_TYPE)
+	if(config.cpu_type == 1 || config.cpu_type == 3) {
+#if !defined(SUPPORT_HIRESO)
+		port_b |= 0x02; // SPDSW, 1 = 10MHz, 0 = 12MHz
+#else
+		port_b |= 0x01; // SPDSW, 1 = 8/16MHz, 0 = 10/20MHz
+#endif
+	}
+#endif
+#endif
+	port_c  = 0x00;
+#if defined(SUPPORT_HIRESO)
+//	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hireso Mode
+#endif
+#if defined(HAS_V30) || defined(HAS_V33)
+	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
+#endif
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+	if(config.cpu_type == 2 || config.cpu_type == 3) {
+		port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
+	}
+#endif
+	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
+
+#if 1
+	port_a  = ~(config.dipswitch >> 16) & 0xff;
+#else
+	port_a  = 0x00;
+	port_a |= 0x80; // DIP SW 2-8, 1 = GDC 2.5MHz, 0 = GDC 5MHz
+	port_a |= 0x40; // DIP SW 2-7, 1 = Do not control FD motor
+	port_a |= 0x20; // DIP SW 2-6, 1 = Enable internal HD
+//	port_a |= 0x10; // DIP SW 2-5, 1 = Initialize memory switch
+//	port_a |= 0x08; // DIP SW 2-4, 1 = 20 lines, 0 = 25 lines
+//	port_a |= 0x04; // DIP SW 2-3, 1 = 40 columns, 0 = 80 columns
+	port_a |= 0x02; // DIP SW 2-2, 1 = BASIC mode, 0 = Terminal mode
+	port_a |= 0x01; // DIP SW 2-1, 1 = Normal mode, 0 = LT mode
+#endif
 	port_b  = 0x00;
 	port_b |= 0x80; // RS-232C CI#, 1 = OFF
 	if(config.serial_type == SERIAL_TYPE_DEFAULT) {
@@ -1507,7 +1558,9 @@ void VM::initialize_ports()
 	}
 #if !defined(SUPPORT_HIRESO)
 //	port_b |= 0x10; // INT3, 1 = Active, 0 = Inactive
-	port_b |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	if(config.monitor_type == 0) {
+		port_b |= 0x08; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
+	}
 #else
 	port_b |= 0x10; // SHUT0
 	port_b |= 0x08; // SHUT1
@@ -1515,81 +1568,87 @@ void VM::initialize_ports()
 //	port_b |= 0x04; // IMCK, 1 = Parity error occurs in internal RAM
 //	port_b |= 0x02; // EMCK, 1 = Parity error occurs in external RAM
 //	port_b |= 0x01; // CDAT
-	
-	port_c = 0x80; // SHUT0
+	port_c  = 0x00;
+	port_c |= 0x80; // SHUT0
 	port_c |= 0x40; // PSTBM, 1 = Mask printer's PSTB#
 	port_c |= 0x20; // SHUT1
 	port_c |= 0x10; // MCHKEN, 1 = Enable parity check for RAM
 	port_c |= 0x08; // BUZ, 1 = Stop buzzer
-//	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
-//	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
+	port_c |= 0x04; // TXRE, 1 = Enable IRQ from RS-232C 8251A TXRDY
+	port_c |= 0x02; // TXEE, 1 = Enable IRQ from RS-232C 8251A TXEMPTY
 	port_c |= 0x01; // RXRE, 1 = Enable IRQ from RS-232C 8251A RXRDY
-//	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
+	pio_sys->write_signal(SIG_I8255_PORT_A, port_a, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_C, port_c, 0xff);
 
-	uint8_t port_b2;
-	port_b2  = 0x00;
-
-#if !defined(SUPPORT_HIRESO)
-	#if defined(_PC9801)
+	port_b  = 0x00;
+#if defined(_PC9801)
 //	port_b |= 0x80; // TYP1, 0 = PC-9801 (first)
 //	port_b |= 0x40; // TYP0, 0
-	#elif defined(_PC9801U)
-	port_b2 |= 0x80; // TYP1, 1 = PC-9801U
-	port_b2 |= 0x40; // TYP0, 1
-	#else
-	port_b2 |= 0x80; // TYP1, 1 = Other PC-9801 series
-//	port_b2 |= 0x40; // TYP0, 0
-	#endif
-	if(pit_clock_8mhz) {
-		port_b2 |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
-	}
-	port_b2 |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
-//	port_b2 |= 0x08; // HGC OFF
-	port_b2 |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
-	#if defined(HAS_V30) || defined(HAS_V33)
-	port_b2 |= 0x00; // CPUT, 1 = V30/V33, 0 = 80x86
-	#endif
-	#if defined(_PC9801VF) || defined(_PC9801U)
-	port_b2 |= 0x01; // VF, 1 = PC-9801VF/U
-	#endif
-#else /* HIRESO */
-	port_b2 = 0xff;
-#endif
-	pio_prn->write_signal(SIG_I8255_PORT_B, port_b2, 0xff);
-	uint8_t port_c2;
-	port_c2 = 0x00;
-#if defined(SUPPORT_HIRESO)
-	port_c2 |= 0x04; // PSTB inactive
-	port_c2 |= 0x02; // RST287/RST387
-	port_c2 |= 0x01; // INPUT PRIME=NOP
-#endif
-	pio_prn->write_signal(SIG_I8255_PORT_C, port_c2, 0x7f);  // EXCEPTS IR8 (BIT3) and BIT1(RST287/RST387)
-	uint8_t port_a3, port_b3, port_c3;
-	port_a3  = 0xf0; // Clear mouse buttons and counters
-	port_b3  = 0x00;
-#if defined(_PC98XA)
-	port_b3 |= (uint8_t)((RAM_SIZE - 0x100000) / 0x40000);
+#elif defined(_PC9801U)
+	port_b |= 0x80; // TYP1, 1 = PC-9801U
+	port_b |= 0x40; // TYP0, 1
 #else
-#if defined(SUPPORT_HIRESO)
-	port_b3 |= 0x80; // DIP SW 1-4, 1 = External FDD #3/#4, 0 = #1/#2
+	port_b |= 0x80; // TYP1, 1 = Other PC-9801 series
+//	port_b |= 0x40; // TYP0, 0
 #endif
-#if defined(_PC98RL)
-	port_b3 |= 0x10; // DIP SW 3-3, 1 = DMA ch.0 for SASI-HDD
+	if(pit_clock_8mhz) {
+		port_b |= 0x20; // MOD, 1 = System clock 8MHz, 0 = 5/10MHz
+	}
+	port_b |= 0x10; // DIP SW 1-3, 1 = Don't use LCD
+#if !defined(SUPPORT_16_COLORS)
+	port_b |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
 #endif
-#endif	
-	port_c3  = 0x00;
-#if defined(SUPPORT_HIRESO)
-//	port_c3 |= (config.monitor_type == 0) ? 0x08 : 0x00; // DIP SW 1-1, 1 = Hiresolution CRT, 0 = Standard CRT
-	port_c3 |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hirezo Mode
-#endif
+	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if defined(HAS_V30) || defined(HAS_V33)
-	port_c3 |= 0x00; // DIP SW 3-8, 1 = V30, 0 = 80x86
+	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
 #endif
-	pio_mouse->write_signal(SIG_I8255_PORT_A, port_a3, 0xff);
-	pio_mouse->write_signal(SIG_I8255_PORT_B, port_b3, 0xff);
-	pio_mouse->write_signal(SIG_I8255_PORT_C, port_c3, 0xff);
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+	if(cpureg->cpu_mode) {
+		port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
+	}
+#endif
+#if defined(_PC9801VF) || defined(_PC9801U)
+	port_b |= 0x01; // VF, 1 = PC-9801VF/U
+#endif
+	pio_prn->write_signal(SIG_I8255_PORT_B, port_b, 0xff);
+
+#if defined(SUPPORT_320KB_FDD_IF)
+	pio_fdd->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
+	pio_fdd->write_signal(SIG_I8255_PORT_B, 0xff, 0xff);
+	pio_fdd->write_signal(SIG_I8255_PORT_C, 0xff, 0xff);
+#endif
+#if defined(SUPPORT_2DD_FDD_IF)
+	if(fdc_2dd) {
+		fdc_2dd->write_signal(SIG_UPD765A_FREADY, 1, 1);	// 2DD FDC RDY is pulluped
+	}
+#endif
+
+	if(sound_type == 0 || sound_type == 1) {
+//		opn->write_signal(SIG_YM2203_PORT_A, 0x3f, 0xff);	// PC-9801-26(K) INT0
+//		opn->write_signal(SIG_YM2203_PORT_A, 0xbf, 0xff);	// PC-9801-26(K) INT41
+		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);	// PC-9801-26(K) INT5
+//		opn->write_signal(SIG_YM2203_PORT_A, 0x7f, 0xff);	// PC-9801-26(K) INT6
+	}
+
+#if defined(SUPPORT_OLD_BUZZER)
+	beep->write_signal(SIG_BEEP_ON, 1, 1);
+	beep->write_signal(SIG_BEEP_MUTE, 1, 1);
+#else
+	beep->write_signal(SIG_PCM1BIT_ON, 1, 1);
+	beep->write_signal(SIG_PCM1BIT_MUTE, 1, 1);
+#endif
+
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	#ifdef SUPPORT_PC88_OPN1
+	if(pc88opn1 != NULL) {
+		pc88opn1->set_reg(0x29, 3); // for Misty Blue
+	}
+	#endif
+	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
+	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
+#endif
+
 }
 
 void VM::reset()
@@ -1597,19 +1656,19 @@ void VM::reset()
 	// Set resolution before resetting.
 	// initial device settings
 #if defined(USE_MONITOR_TYPE) /*&& defined(SUPPORT_HIRESO)*/
-#if !defined(SUPPORT_HIRESO)
+	#if !defined(SUPPORT_HIRESO)
 	io->set_iovalue_single_r(0x0467, 0xfd); // Detect high-reso.
 //	io->set_iovalue_single_r(0x0ca0, 0xff); // Detect high-reso.
-#endif
+	#endif
 	if(config.monitor_type == 0) {
-#if defined(SUPPORT_HIRESO)
+	#if defined(SUPPORT_HIRESO)
 //		io->set_iovalue_single_r(0x0431, 0x00);
-#else
+	#else
 //		io->set_iovalue_single_r(0x0431, 0x04);
-#endif
+	#endif
 		gdc_gfx->set_horiz_freq(24830);
 		gdc_chr->set_horiz_freq(24830);
-		
+
 	} else { // WIP
 //		io->set_iovalue_single_r(0x0431, 0x04); // bit2: 1 = Normal mode, 0 = Hireso mode
 		gdc_gfx->set_horiz_freq(15750);
@@ -1633,43 +1692,9 @@ void VM::reset()
 	set_wait(config.monitor_type, config.cpu_type);
 #else
 	set_wait(0, config.cpu_type);
-#endif	
-	
-#if defined(SUPPORT_320KB_FDD_IF)
-	pio_fdd->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
-	pio_fdd->write_signal(SIG_I8255_PORT_B, 0xff, 0xff);
-	pio_fdd->write_signal(SIG_I8255_PORT_C, 0xff, 0xff);
 #endif
-#if defined(SUPPORT_2DD_FDD_IF)
-	if(fdc_2dd) {
-		fdc_2dd->write_signal(SIG_UPD765A_FREADY, 1, 1);	// 2DD FDC RDY is pulluped
-	}
-#endif
-	
-	if(sound_type == 0 || sound_type == 1) {
-//		opn->write_signal(SIG_YM2203_PORT_A, 0x3f, 0xff);	// PC-9801-26(K) INT0
-//		opn->write_signal(SIG_YM2203_PORT_A, 0xbf, 0xff);	// PC-9801-26(K) INT41
-		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);	// PC-9801-26(K) INT5
-//		opn->write_signal(SIG_YM2203_PORT_A, 0x7f, 0xff);	// PC-9801-26(K) INT6
-	}
-	
-#if defined(SUPPORT_OLD_BUZZER)
-	beep->write_signal(SIG_BEEP_ON, 1, 1);
-	beep->write_signal(SIG_BEEP_MUTE, 1, 1);
-#else
-	beep->write_signal(SIG_PCM1BIT_ON, 1, 1);
-	beep->write_signal(SIG_PCM1BIT_MUTE, 1, 1);
-#endif
-	
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-	#ifdef SUPPORT_PC88_OPN1
-	if(pc88opn1 != NULL) {
-		pc88opn1->set_reg(0x29, 3); // for Misty Blue
-	}
-	#endif
-	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
-	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
-#endif
+	// initial device settings
+	initialize_ports();
 }
 
 void VM::run()
@@ -1744,7 +1769,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 #if defined(SUPPORT_OLD_BUZZER)
 	beep->initialize_sound(rate, 2400, 8000);
@@ -1767,11 +1792,11 @@ void VM::initialize_sound(int rate, int samples)
 	} else if(sound_type == 2 || sound_type == 3) {
 		tms3631->initialize_sound(rate, 8000);
 	}
-	
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	// init sound manager
 	pc88event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_OPN1
@@ -1944,7 +1969,7 @@ bool VM::get_kana_locked()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	UPD765A *controller = get_floppy_disk_controller(drv);
-	
+
 	if(controller != NULL) {
 		controller->open_disk(drv & 1, file_path, bank);
 	}
@@ -1953,7 +1978,7 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 void VM::close_floppy_disk(int drv)
 {
 	UPD765A *controller = get_floppy_disk_controller(drv);
-	
+
 	if(controller != NULL) {
 		controller->close_disk(drv & 1);
 	}
@@ -1963,7 +1988,7 @@ void VM::close_floppy_disk(int drv)
 bool VM::is_floppy_disk_connected(int drv)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	return (handler != NULL);
 }
 #endif
@@ -1971,7 +1996,7 @@ bool VM::is_floppy_disk_connected(int drv)
 bool VM::is_floppy_disk_inserted(int drv)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	if(handler != NULL) {
 		return handler->inserted;
 	}
@@ -1981,7 +2006,7 @@ bool VM::is_floppy_disk_inserted(int drv)
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	if(handler != NULL) {
 		handler->write_protected = value;
 	}
@@ -1990,7 +2015,7 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	if(handler != NULL) {
 		return handler->write_protected;
 	}
@@ -2000,7 +2025,7 @@ bool VM::is_floppy_disk_protected(int drv)
 uint32_t VM::is_floppy_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		status = pc88fdc_sub->read_signal(0) & 3;
@@ -2010,7 +2035,7 @@ uint32_t VM::is_floppy_disk_accessed()
 #else
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv += 2) {
 		UPD765A *controller = get_floppy_disk_controller(drv);
-		
+
 		if(controller != NULL) {
 			status |= (controller->read_signal(0) & 3) << drv;
 		}
@@ -2050,7 +2075,7 @@ UPD765A *VM::get_floppy_disk_controller(int drv)
 DISK *VM::get_floppy_disk_handler(int drv)
 {
 	UPD765A *controller = get_floppy_disk_controller(drv);
-	
+
 	if(controller != NULL) {
 		return controller->get_disk_handler(drv & 1);
 	}
@@ -2107,7 +2132,7 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 #if defined(SUPPORT_SASI_IF)
 		if(sasi_hdd->accessed(drv)) {
@@ -2230,7 +2255,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		set_wait(config.monitor_type, config.cpu_type);
 #else
 		set_wait(0, config.cpu_type);
-#endif	
+#endif
 	}
  	return true;
 }

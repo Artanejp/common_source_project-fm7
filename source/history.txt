@@ -1,3 +1,15 @@
+8/27/2022
+
+[VM/I386_NP21] fix DOSBOX FPU code
+[VM/SCSI_DEV] fix inquiry command to send product revision
+
+[MZ700] support MZ-1E05/MZ-1E14/MZ-1R12
+[MZ800/MEMORY] improve vram wait
+
+[PC9801] support dip switch #2
+[PC9801/DISPLAY] improve to save/load memory switch
+
+
 7/27/2022
 
 [WINMAIN] improve to release emulation core when Windows shuts down
@@ -3118,7 +3130,7 @@
 [VM/YM2203] support mamefm.dll(V1)
 
 [PC8801MA/PC88] fix text attributes based on m88
-[PC8801MA/PC88] fix to update memory wait in reset() 
+[PC8801MA/PC88] fix to update memory wait in reset()
 [PC9801/DISPLAY] fix to check gdc start status
 
 
@@ -4598,13 +4610,13 @@ In this release:
 [VM/Z80CTC] drive counter when it reaches the terminal count or read the count registers
 [VM/Z80PIC] accept the interrupt request when it is running
 
-[MULTI8/HD46505] dont use hsync event and use the event callback to drive the hsync signal 
-[MZ2500/CRTC] dont use hsync event and use the event callback to drive the hsync signal 
+[MULTI8/HD46505] dont use hsync event and use the event callback to drive the hsync signal
+[MZ2500/CRTC] dont use hsync event and use the event callback to drive the hsync signal
 [MZ2500/MEMORY] support the memory wait in display period
-[MZ2500/Z80PIC] accept the interrupt request when it is running 
-[MZ2500/Z80PIC] recognize the i8253 clock signal as level, or edge only for MUDER CLUB, KUGYOKUDEN and RELICS 
-[PASOPIA] reimplement EmuPIA under the common source code project 
-[PASOPIA7/HD46505] dont use hsync event and use the event callback to drive the hsync signal 
+[MZ2500/Z80PIC] accept the interrupt request when it is running
+[MZ2500/Z80PIC] recognize the i8253 clock signal as level, or edge only for MUDER CLUB, KUGYOKUDEN and RELICS
+[PASOPIA] reimplement EmuPIA under the common source code project
+[PASOPIA7/HD46505] dont use hsync event and use the event callback to drive the hsync signal
 
 
 12/31/2006
@@ -4623,7 +4635,7 @@ In this release:
 [MZ2500] reimplement EmuZ-2500 under the common source code project
 [MZ2500] support the ethernet card function designed by Mr.Oh!Ishi
 [MZ2500/CRTC] support the super impose function
-[MZ2500/MEMORY] support VRAM access wait 
+[MZ2500/MEMORY] support VRAM access wait
 
 
 12/7/2006

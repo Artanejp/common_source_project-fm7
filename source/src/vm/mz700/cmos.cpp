@@ -15,14 +15,14 @@
 #define ADDR_MASK	(DATA_SIZE - 1)
 
 namespace MZ700 {
-	
+
 void CMOS::initialize()
 {
 	// init memory
 	data_buffer = (uint8_t *)malloc(DATA_SIZE);
 	memset(data_buffer, 0, DATA_SIZE);
 	modified = false;
-	
+
 	// load cmos image
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
@@ -43,7 +43,7 @@ void CMOS::release()
 		}
 		delete fio;
 	}
-	
+
 	// release memory
 	free(data_buffer);
 }
@@ -77,7 +77,7 @@ uint32_t CMOS::read_io8(uint32_t addr)
 	switch(addr & 0xff) {
 	case 0xf8:
 		data_addr = 0;
-		return 0xff;
+		break;
 	case 0xf9:
 		return data_buffer[(data_addr++) & ADDR_MASK];
 	}

@@ -510,6 +510,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\disk.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\event.cpp"
 					>
 					<FileConfiguration
@@ -590,6 +610,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\mb8877.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\noise.cpp"
 					>
 					<FileConfiguration
@@ -649,6 +689,26 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath="..\src\vm\z80sio.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 			<Filter
 				Name="VM Driver Source Files"
@@ -676,6 +736,26 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mz700\emm.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\mz700\floppy.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -795,6 +875,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\mz700\quickdisk.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\mz700\ramfile.cpp"
 					>
 					<FileConfiguration
@@ -875,6 +975,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\disk.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\event.h"
 					>
 				</File>
@@ -888,6 +992,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\io.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\mb8877.h"
 					>
 				</File>
 				<File
@@ -910,6 +1018,10 @@
 					RelativePath="..\src\vm\z80.h"
 					>
 				</File>
+				<File
+					RelativePath="..\src\vm\z80sio.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="VM Driver Header Files"
@@ -921,6 +1033,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\mz700\emm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\mz700\floppy.h"
 					>
 				</File>
 				<File
@@ -944,6 +1060,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\mz700\quickdisk.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\mz700\ramfile.h"
 					>
 				</File>
@@ -953,6 +1073,18 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
+			<File
+				RelativePath="..\src\res\indicator\access_green.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_off.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\indicator\access_on.bmp"
+				>
+			</File>
 			<File
 				RelativePath="..\src\res\mz700.ico"
 				>

@@ -775,6 +775,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_VM_DIPSWITCH24: case ID_VM_DIPSWITCH25: case ID_VM_DIPSWITCH26: case ID_VM_DIPSWITCH27:
 		case ID_VM_DIPSWITCH28: case ID_VM_DIPSWITCH29: case ID_VM_DIPSWITCH30: case ID_VM_DIPSWITCH31:
 			config.dipswitch ^= (1 << (LOWORD(wParam) - ID_VM_DIPSWITCH0));
+			if(emu) {
+				emu->update_config();
+			}
 			break;
 #endif
 #ifdef USE_DEVICE_TYPE

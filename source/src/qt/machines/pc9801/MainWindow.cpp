@@ -48,7 +48,7 @@ void META_MainWindow::retranslateUi(void)
 #else
 	actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Enabled)", 0));
 	actionSoundDevice[1]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Disabled)", 0));
-#endif	
+#endif
 	actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "PC-9801-14 (BIOS Enabled)", 0));
 	actionSoundDevice[3]->setText(QApplication::translate("MainWindow", "PC-9801-14 (BIOS Disabled)", 0));
 	actionSoundDevice[4]->setText(QApplication::translate("MainWindow", "None", 0));
@@ -74,7 +74,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSUB_V30->setToolTip(QApplication::translate("MainWindow", "Enable emulation of V30 SUB CPU.\nThis may make emulation speed slower.\nYou must restart emulator after reboot.", 0));
 #endif
 #endif
-	
+
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 # if  defined(_PC98DO)
@@ -103,7 +103,7 @@ void META_MainWindow::retranslateUi(void)
 	actionCpuType[0]->setText(QString::fromUtf8("80286 8MHz"));
 	actionCpuType[1]->setVisible(false);
 # endif
-#endif	
+#endif
 #if !defined(SUPPORT_HIRESO)
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) == 0) {
@@ -118,39 +118,56 @@ void META_MainWindow::retranslateUi(void)
 	menuRunCpu->setTitle(QApplication::translate("MainWindow", "Running CPU (DIPSW 3-8)", 0));
 #endif
 #endif
-	
-	actionRAM_512K->setText(QApplication::translate("MainWindow", "512KB RAM", 0));
-	actionRAM_512K->setToolTip(QApplication::translate("MainWindow", "Set lower RAM size to 512KB(not 640KB).\nMaybe for backward compatibility.", 0));
+
+//	actionRAM_512K->setText(QApplication::translate("MainWindow", "512KB RAM", 0));
+//	actionRAM_512K->setToolTip(QApplication::translate("MainWindow", "Set lower RAM size to 512KB(not 640KB).\nMaybe for backward compatibility.", 0));
+
 	actionINIT_MEMSW->setText(QApplication::translate("MainWindow", "INIT MEMSW(need RESET)", 0));
 	actionINIT_MEMSW->setToolTip(QApplication::translate("MainWindow", "Initialize memory switch.\nEffects after resetting.", 0));
+
+
 	actionGDC_FAST->setText(QApplication::translate("MainWindow", "FAST GDC", 0));
-	actionGDC_FAST->setToolTip(QApplication::translate("MainWindow", "Set GDC clock to 5MHz when checked.\nSet to 2.5MHz wjhen not checked.", 0));
+	actionGDC_FAST->setToolTip(QApplication::translate("MainWindow", "Set GDC clock to 5MHz when checked.\nSet to 2.5MHz when not checked.", 0));
+	actionFDD_INTFDD_OFF->setText(QApplication::translate("MainWindow", "DOESN'T CONTROL MOTOR", 0));
+	actionFDD_INTFDD_OFF->setToolTip(QApplication::translate("MainWindow", "Machine doesn't control FDD's motor.", 0));
+	actionINTHDD_ON->setText(QApplication::translate("MainWindow", "Enable internal HDD", 0));
+	actionINTHDD_ON->setToolTip(QApplication::translate("MainWindow", "Enable to use internal hard disk drive(s).", 0));
+	actionHEIGHT20->setText(QApplication::translate("MainWindow", "20 lines", 0));
+	actionHEIGHT20->setToolTip(QApplication::translate("MainWindow", "Set screen height to 20 lines.\nIf not check, set to 25 lines.", 0));
+	actionWIDTH40->setText(QApplication::translate("MainWindow", "40 columns", 0));
+	actionWIDTH40->setToolTip(QApplication::translate("MainWindow", "Set screen width to 40 columns.\nIf not check, set to 80 columns.", 0));
+	actionTERMINAL->setText(QApplication::translate("MainWindow", "Terminal mode", 0));
+	actionTERMINAL->setToolTip(QApplication::translate("MainWindow", "Start with terminal mode.\nIf not check, starting with BASIC mode.", 0));
+
+	actionLT->setText(QApplication::translate("MainWindow", "LT MODE", 0));
+	actionLT->setToolTip(QApplication::translate("MainWindow", "Start with PC98LT mode.", 0));
+
 #if defined(SUPPORT_EGC)
 	actionEGC->setText(QApplication::translate("MainWindow", "USE EGC", 0));
 	actionEGC->setToolTip(QApplication::translate("MainWindow", "Use Enhanced Graphic controller when checked.", 0));
 #endif
-	
+
 #ifdef USE_BOOT_MODE
 # ifdef _PC98DO
 	menuBootMode->setTitle(QApplication::translate("MainWindow", "Machine Mode", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QString::fromUtf8("PC-98"));
 	actionBootMode[1]->setText(QString::fromUtf8("N88-V1(S) Mode"));
-	actionBootMode[2]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
+	actionBootMode[2]->setText(QString::fromUtf8("N88-V1(H) Mode"));
 	actionBootMode[3]->setText(QString::fromUtf8("N88-V2 Mode"));
 	actionBootMode[4]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
 	actionBootMode[0]->setToolTip(QApplication::translate("MainWindow", "PC-9801 Mode.\nYou can run softwares of PC-9801 series.\nMay be earlier than PC-9801VM.", 0));
 	actionBootMode[1]->setToolTip(QApplication::translate("MainWindow", "PC8801 V1(Standard) Mode.\nYou can run softwares of PC-8801/mk2.", 0));
-	actionBootMode[2]->setToolTip(QApplication::translate("MainWindow", "PC8801 V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));	
+	actionBootMode[2]->setToolTip(QApplication::translate("MainWindow", "PC8801 V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));
 	actionBootMode[3]->setToolTip(QApplication::translate("MainWindow", "PC8801 V2 Mode.\nYou can run only softwares for PC-8801SR or later.", 0));
 	actionBootMode[4]->setToolTip(QApplication::translate("MainWindow", "PC8801 N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 # endif
 #endif
-	
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
    	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MainWindow", "Simulate waiting memory.", 0));
-	
+
 	actionCMD_Sing->setText(QApplication::translate("MainWindow", "Support CMD SING", 0));
 	actionCMD_Sing->setToolTip(QApplication::translate("MainWindow", "Enable PCM supporting for \"CMD SING\" command.", 0));
 	actionPalette->setText(QApplication::translate("MainWindow", "Change palette only within VBLANK.", 0));
@@ -166,7 +183,7 @@ void META_MainWindow::retranslateUi(void)
 	actionQuasiS88CMT->setText(QApplication::translate("MainWindow", "Enable QUASIS88 CMT", 0));
 	actionQuasiS88CMT->setToolTip(QApplication::translate("MainWindow", "Enable loading QuasiS88 style CMT images.", 0));
 #endif
-	
+
 #endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
@@ -186,7 +203,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_PC9801) || defined(_PC9801E)
 	actionConnect2DD->setText(QApplication::translate("MainWindow", "Connect 2DD Drive", 0));
 	actionConnect2HD->setText(QApplication::translate("MainWindow", "Connect 2HD Drive", 0));
-#endif	
+#endif
 	// End.
 	// Set Labels
 #ifdef USE_DEBUGGER
@@ -194,14 +211,14 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[1]->setVisible(false);
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
-#if defined(_PC9801) || defined(_PC9801E)	
+#if defined(_PC9801) || defined(_PC9801E)
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0));
 	actionDebugger[1]->setVisible(true);
 #elif defined(_PC98DO)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "PC-98 Main CPU", 0));
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "PC-88 Main CPU", 0));
 	actionDebugger[2]->setText(QApplication::translate("MainWindow", "PC-88 Sub CPU", 0));
-	
+
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
 #elif defined(HAS_I286)
@@ -223,7 +240,7 @@ void META_MainWindow::retranslateUi(void)
 #ifdef USE_MONITOR_TYPE
 	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "High Resolution", 0));
 	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Standard Resolution", 0));
-#endif	
+#endif
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -254,37 +271,56 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(menuRunCpu->menuAction());
 #endif
 #endif
-   
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionRAM_512K, ((0x1) << DIPSWITCH_POSITION_RAM512K), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
-	menuMachine->addAction(actionRAM_512K);
-	
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT_NEGATIVE(actionINIT_MEMSW, ((0x1) << DIPSWITCH_POSITION_NOINIT_MEMSW), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch_negative(bool)));
-	menuMachine->addAction(actionINIT_MEMSW);
+//	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionRAM_512K, ((0x1) << DIPSWITCH_POSITION_RAM512K), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+//	menuMachine->addAction(actionRAM_512K);
 
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionGDC_FAST, ((0x1) << DIPSWITCH_POSITION_GDC_FAST), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionGDC_FAST);
-	
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_INTFDD_OFF, ((0x1) << DIPSWITCH_POSITION_INTFDD_OFF), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addAction(actionFDD_INTFDD_OFF);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionINTHDD_ON, ((0x1) << DIPSWITCH_POSITION_INTHDD_ON), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addAction(actionINTHDD_ON);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT_NEGATIVE(actionINIT_MEMSW, ((0x1) << DIPSWITCH_POSITION_NOINIT_MEMSW), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch_negative(bool)));
+	menuMachine->addAction(actionINIT_MEMSW);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT_NEGATIVE(actionHEIGHT20, ((0x1) << DIPSWITCH_POSITION_TEXT_HEIGHT25), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch_nagative(bool)));
+	menuMachine->addAction(actionHEIGHT20);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT_NEGATIVE(actionWIDTH40, ((0x1) << DIPSWITCH_POSITION_TEXT_WIDTH80), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch_negative(bool)));
+	menuMachine->addAction(actionWIDTH40);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionTERMINAL, ((0x1) << DIPSWITCH_POSITION_TERMINAL_MODE), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addAction(actionTERMINAL);
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionLT, ((0x1) << DIPSWITCH_POSITION_LT_MODE), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addAction(actionLT);
+
 #if defined(SUPPORT_EGC)
+	menuMachine->addSeparator();
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionEGC, ((0x1) << DIPSWITCH_POSITION_EGC), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionEGC);
 #endif
-	
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionMemoryWait, 0x0001, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addSeparator();
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionMemoryWait, DIPSWITCH_MEMWAIT, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionMemoryWait);
-	
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionPalette, 0x1 << 5, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionPalette, DIPSWITCH_PALETTE, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionPalette);
 
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_5Inch, 0x1 << 6, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_5Inch, DIPSWITCH_5INCH_FDD, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionFDD_5Inch);
-	
+
 #if defined(SUPPORT_M88_DISKDRV)
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionM88DRV, 0x1 << 8, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionM88DRV, DIPSWITCH_M88_DISKDRV, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionM88DRV);
 #endif
 #if defined(SUPPORT_QUASIS88_CMT)
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionQuasiS88CMT, 0x1 << 9, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionQuasiS88CMT, DIPSWITCH_QUASIS88_CMT, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionQuasiS88CMT);
 #endif
 #if defined(SUPPORT_QUASIS88_CMT) || defined(SUPPORT_M88_DISKDRV)
@@ -293,15 +329,15 @@ void META_MainWindow::setupUI_Emu(void)
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionCMD_Sing, DIPSWITCH_CMDSING, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionCMD_Sing);
 	menuMachine->addSeparator();
-#endif   
+#endif
 #if defined(SUPPORT_320KB_FDD_IF)
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2D, 0x0004, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2D, DIPSWITCH_2D, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionConnect2D);
 #endif
 #if defined(_PC9801) || defined(_PC9801E)
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2DD, 0x0002, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2DD, DIPSWITCH_2DD, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionConnect2DD);
-	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2HD, 0x0001, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionConnect2HD, DIPSWITCH_2HD, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionConnect2HD);
 #endif
 #ifdef USE_BOOT_MODE
@@ -323,6 +359,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

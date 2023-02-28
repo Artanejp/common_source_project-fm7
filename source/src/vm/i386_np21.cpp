@@ -24,7 +24,7 @@ void I386::initialize()
 	_USE_DEBUGGER     = osd->check_feature("USE_DEBUGGER");
 //	realclock = get_cpu_clocks(this);
 	device_cpu = this;
-	
+
 //#ifdef USE_DEBUGGER
 	if(_USE_DEBUGGER) {
 		device_mem_stored = device_mem;
@@ -62,7 +62,7 @@ void I386::reset()
 		i386cpuid.cpu_family = CPU_80386_FAMILY;
 		i386cpuid.cpu_model = CPU_80386_MODEL;
 		i386cpuid.cpu_stepping = CPU_80386_STEPPING;
-		i386cpuid.cpu_feature = CPU_FEATURES_80386; 
+		i386cpuid.cpu_feature = CPU_FEATURES_80386;
 //		i386cpuid.cpu_feature = CPU_FEATURES_80386 | CPU_FEATURE_FPU; // 20200501 TMP K.O
 		i386cpuid.cpu_feature_ex = CPU_FEATURES_EX_80386;
 		i386cpuid.cpu_feature_ecx = CPU_FEATURES_ECX_80386;
@@ -257,16 +257,16 @@ void I386::reset()
 		break;
 	}
 	osd->set_vm_node(this_device_id, (char *)this_device_name);
-	
-	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
+
+//	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
-//	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
+	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
 	fpu_initialize();
- 	
+
 	UINT32 PREV_CPU_ADRSMASK = CPU_ADRSMASK;
-	
+
 	realclock = get_cpu_clocks(this);
-	
+
 	CPU_RESET();
 //	CPU_ADRSMASK = address_mask;
 	CPU_TYPE = 0;
@@ -275,7 +275,7 @@ void I386::reset()
 	CPU_IP = 0xfff0;
 	CPU_ADRSMASK = PREV_CPU_ADRSMASK;
 	CPU_CLEARPREFETCH();
-	
+
 	remained_cycles = extra_cycles = 0;
 	i386_memory_wait = 0;
 	waitcount = 0;
@@ -295,12 +295,12 @@ bool I386::check_interrupts()
 int I386::run_one_opecode()
 {
 //#ifdef USE_DEBUGGER
-	
+
 	bool now_debugging = false;
 	__LIKELY_IF((_USE_DEBUGGER) && (device_debugger != NULL)) {
 		now_debugging = device_debugger->now_debugging;
 	}
-	
+
 	__UNLIKELY_IF(now_debugging) {
 		device_debugger->check_break_points(get_next_pc());
 		__UNLIKELY_IF(device_debugger->now_suspended) {
@@ -384,7 +384,7 @@ int I386::run(int cycles)
 		remained_cycles += cycles + extra_cycles;
 		extra_cycles = 0;
 		int first_cycles = remained_cycles;
-		
+
 		// run cpu while given clocks
 		__LIKELY_IF(!(busreq)) {
 			while(remained_cycles > 0 && !busreq) {
@@ -449,7 +449,7 @@ uint32_t I386::convert_address(uint32_t cs_base, uint32_t eip)
 {
 	if(CPU_STAT_PM) {
 		uint32_t addr = cs_base + eip;
-		
+
 		if(CPU_STAT_PAGING) {
 			uint32_t pde_addr = CPU_STAT_PDE_BASE + ((addr >> 20) & 0xffc);
 			uint32_t pde = device_mem->read_data32(pde_addr);
@@ -725,7 +725,7 @@ bool I386::get_debug_regs_description(_TCHAR *buffer, size_t buffer_len)
 				  _T("CR0-CR4     : SYSTEM REGISTERs\n")
 				  _T("MXCSR       : \n")
 				  _T("\n")
-		);				  
+		);
 	return true;
 }
 bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
@@ -738,7 +738,7 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	_TCHAR sregstr[512] = {0};
 	_TCHAR dbgregstr[512] = {0};
 	_TCHAR testregstr[512] = {0};
-#if 1	
+#if 1
 	for(int i = 0; i < 6; i++) {
 		_TCHAR segdesc[128] = {0};
 		my_stprintf_s(segdesc, 127, _T("%s: %04X BASE=%08X LIMIT=%08X (PAGED BASE=%08X) \n"),
@@ -762,7 +762,7 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		my_stprintf_s(tdesc, 31, _T(" %08X"), CPU_STATSAVE.cpu_regs.tr[i]);
 		my_tcscat_s(testregstr, 511, tdesc);
 	}
-		
+
 	if(CPU_STAT_PM) {
 		// ToDo: Dump/Convert PDE/PTE TABLE.
 		_TCHAR pde_desc[256] = {0};
@@ -777,17 +777,17 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X\n")
 		_T("ESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
 	    _T("%s%s")
-	    _T("PC=%08X ")			  
+	    _T("PC=%08X ")
 		_T("EIP=%08X PREV_EIP=%08X PREV_ESP=%08X\n")
 		_T("CRx=%08X %08X %08X %08X %08X MXCSR=%08X\n")
-		_T("GDTR: BASE=%08X LIMIT=%08X / LDTR: BASE=%08X LIMIT=%08X\n") 
+		_T("GDTR: BASE=%08X LIMIT=%08X / LDTR: BASE=%08X LIMIT=%08X\n")
 		_T("IDTR: BASE=%08X LIMIT=%08X / TR:   BASE=%08X LIMIT=%08X\n")
 	    _T("%s\n%s\n")
 		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 		(CPU_STAT_VM86) ? _T("VM86") : _T("    "),
-		(CPU_STAT_PAGING) ? _T("PAGE") : _T("    "),   
-		(CPU_STAT_SS32) ? _T("SS32") : _T("    "),   
-		(CPU_STAT_WP) ? _T("WP") : _T("  "),   
+		(CPU_STAT_PAGING) ? _T("PAGE") : _T("    "),
+		(CPU_STAT_SS32) ? _T("SS32") : _T("    "),
+		(CPU_STAT_WP) ? _T("WP") : _T("  "),
 		CPU_STAT_USER_MODE, CPU_STAT_CPL,
 		CPU_EFLAG,
 		(CPU_EFLAG & RF_FLAG)  ? _T("RF  ") : _T("    "),
@@ -806,7 +806,7 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
 	    sregstr,
-	    pde_desc,			  
+	    pde_desc,
 	    get_pc(),
  	    CPU_EIP, CPU_PREV_EIP, CPU_PREV_ESP,
 		CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR,
@@ -821,25 +821,25 @@ bool I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		_T("EFLAGS=%08X FLAG=[%s%s%s%s][%c%c%c%c%c%c%c%c%c]\n")
 		_T("EAX=%08X  EBX=%08X  ECX=%08X  EDX=%08X  \nESP=%08X  EBP=%08X  ESI=%08X  EDI=%08X\n")
 	    _T("%s")
-	    _T("PC=%08X ")			  
+	    _T("PC=%08X ")
 		_T("IP=%04X  PREV_IP=%04X PREV_SP=%04X\n")
-		_T("CRx=%08X %08X %08X %08X %08X MXCSR=%08X\n")			  
+		_T("CRx=%08X %08X %08X %08X %08X MXCSR=%08X\n")
 	    _T("%s\n%s\n")
 		_T("Clocks = %llu (%llu) Since Scanline = %d/%d (%d/%d)"),
 		(CPU_STAT_VM86) ? _T("VM86 ") : _T("     "),
-		(CPU_STAT_PAGING) ? _T("PAGE ") : _T("     "),   
-		(CPU_STAT_SS32) ? _T("SS32 ") : _T("     "),   
-		(CPU_STAT_WP) ? _T("WP ") : _T("   "),   
+		(CPU_STAT_PAGING) ? _T("PAGE ") : _T("     "),
+		(CPU_STAT_SS32) ? _T("SS32 ") : _T("     "),
+		(CPU_STAT_WP) ? _T("WP ") : _T("   "),
 		CPU_STAT_USER_MODE, CPU_STAT_CPL,
-		CPU_EFLAG,					  
+		CPU_EFLAG,
 		(CPU_EFLAG & RF_FLAG) ? _T("RF  ") : _T("    "), (CPU_EFLAG & VM_FLAG) ? _T("VM  ") : _T("    "), (CPU_EFLAG & VIF_FLAG) ? _T("VIF ") : _T("    "), (CPU_EFLAG & VIP_FLAG) ? _T("VIP ") : _T("    "),
 		(CPU_FLAG & O_FLAG) ? _T('O') : _T('-'), (CPU_FLAG & D_FLAG) ? _T('D') : _T('-'), (CPU_FLAG & I_FLAG) ? _T('I') : _T('-'), (CPU_FLAG & T_FLAG) ? _T('T') : _T('-'), (CPU_FLAG & S_FLAG) ? _T('S') : _T('-'),
 		(CPU_FLAG & Z_FLAG) ? _T('Z') : _T('-'), (CPU_FLAG & A_FLAG) ? _T('A') : _T('-'), (CPU_FLAG & P_FLAG) ? _T('P') : _T('-'), (CPU_FLAG & C_FLAG) ? _T('C') : _T('-'),
 		CPU_EAX, CPU_EBX, CPU_ECX, CPU_EDX, CPU_ESP, CPU_EBP, CPU_ESI, CPU_EDI,
 		sregstr,
 		(((CPU_STAT_SREGBASE(CPU_CS_INDEX) & 0xfffff ) + CPU_IP) & 0x000fffff),
-		CPU_IP, CPU_STATSAVE.cpu_regs.prev_eip.w.w, CPU_STATSAVE.cpu_regs.prev_esp.w.w, 
-		CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR,			  
+		CPU_IP, CPU_STATSAVE.cpu_regs.prev_eip.w.w, CPU_STATSAVE.cpu_regs.prev_esp.w.w,
+		CPU_CR0, CPU_CR1, CPU_CR2, CPU_CR3, CPU_CR4, CPU_MXCSR,
 		dbgregstr, testregstr,
 		total_cycles, total_cycles - prev_total_cycles,
 		get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
@@ -862,7 +862,7 @@ bool I386::debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_
 		my_stprintf_s(prefix, 127, _T("*IRQ %X HAPPENED*"), (uint32_t)(userdata >> 32));
 	}  else {
 		my_stprintf_s(prefix, 127, _T("*CALL TO %08X*"), (uint32_t)userdata);
-	}		
+	}
 	_TCHAR dasmbuf[1024] = {0};
 	size = debug_dasm_with_userdata(pc, dasmbuf, 1023, userdata);
 	if(size <= 0) {
@@ -876,7 +876,7 @@ int I386::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_le
 {
 	uint32_t eip = pc - (CPU_CS << 4);
 	uint8_t oprom[16];
-	
+
 	for(int i = 0; i < 16; i++) {
 		int wait;
 		oprom[i] = device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
@@ -979,7 +979,6 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(waitcount);
 	state_fio->StateValue(i386_memory_wait);
 	state_fio->StateValue(address_mask);
-	
+
 	return true;
 }
-

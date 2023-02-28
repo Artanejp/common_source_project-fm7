@@ -158,8 +158,10 @@
 #define DIPSWITCH_POSITION_TEXT_WIDTH80  (16 + 3 - 1)
 #define DIPSWITCH_POSITION_TEXT_HEIGHT25 (16 + 4 - 1)
 #define DIPSWITCH_POSITION_NOINIT_MEMSW  (16 + 5 - 1)
-#define DIPSWITCH_POSITION_INTFDD_OFF    (16 + 6 - 1)
-#define DIPSWITCH_POSITION_DISABLE_VFKEY (16 + 7 - 1)
+//#define DIPSWITCH_POSITION_INTFDD_OFF    (16 + 6 - 1)
+//#define DIPSWITCH_POSITION_DISABLE_VFKEY (16 + 7 - 1)
+#define DIPSWITCH_POSITION_INTHDD_ON     (16 + 6 - 1)
+#define DIPSWITCH_POSITION_INTFDD_OFF    (16 + 7 - 1)
 #define DIPSWITCH_POSITION_GDC_FAST      (16 + 8 - 1)
 
 // SW3
@@ -302,23 +304,32 @@
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 
 // device informations for win32
-#define USE_DIPSWITCH
 #if defined(_PC9801) || defined(_PC9801E)
-#define USE_FLOPPY_DISK		6
-#define USE_DIPSWITCH
-#define DIPSWITCH_DEFAULT	(1 + 2 + 4)
+#define USE_FLOPPY_DISK			6
+#define DIPSWITCH_2HD			0x01
+#define DIPSWITCH_2DD			0x02
+#define DIPSWITCH_2D			0x04
+#define DIPSWITCH_DEFAULT_LO	(DIPSWITCH_2HD + DIPSWITCH_2DD + DIPSWITCH_2D)
 #elif defined(_PC98DO) || defined(_PC98DOPLUS)
-#define USE_BOOT_MODE		5
-#define DIPSWITCH_MEMWAIT	0x01
-#define DIPSWITCH_CMDSING	0x10
-#define DIPSWITCH_PALETTE	0x20
+#define USE_BOOT_MODE			5
+#define DIPSWITCH_MEMWAIT		0x01
+#define DIPSWITCH_CMDSING		0x10
+#define DIPSWITCH_PALETTE		0x20
+#define DIPSWITCH_5INCH_FDD		0x40
 #define DIPSWITCH_M88_DISKDRV	0x100
 #define DIPSWITCH_QUASIS88_CMT	0x200
-#define DIPSWITCH_DEFAULT	(/*DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100 + */DIPSWITCH_CMDSING)
+#define DIPSWITCH_DEFAULT_LO	(/*DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100 + */DIPSWITCH_CMDSING)
 #define USE_FLOPPY_DISK		4
 #else
+
+#define DIPSWITCH_DEFAULT_LO	0
 #define USE_FLOPPY_DISK		2
 #endif
+
+#define USE_DIPSWITCH
+#define DIPSWITCH_DEFAULT_HI	(4 | 8)
+#define DIPSWITCH_DEFAULT	(DIPSWITCH_DEFAULT_LO | (DIPSWITCH_DEFAULT_HI << 16))
+
 #if defined(SUPPORT_SASI_IF) || defined(SUPPORT_SCSI_IF) || defined(SUPPORT_IDE_IF)
 #define USE_HARD_DISK		2
 #define I86_PSEUDO_BIOS
@@ -394,7 +405,7 @@
 #define I8259_PC98_HACK
 
 #define USE_STATE
-#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88) 
+#if defined(HAS_I86) || defined(HAS_I186) || defined(HAS_I88)
 #define USE_CPU_I86
 #elif defined(HAS_V30)
 #define USE_CPU_I86
@@ -545,10 +556,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 #if defined(SUPPORT_OLD_BUZZER)
 	BEEP* beep;
 #else
@@ -610,7 +621,7 @@ protected:
 	UPD7220* gdc_chr;
 	UPD7220* gdc_gfx;
 	YM2203* opn;
-	
+
 #if defined(SUPPORT_CMT_IF)
 	PC9801::CMT* cmt;
 #endif
@@ -637,13 +648,13 @@ protected:
 #if defined(SUPPORT_IDE_IF)
 	PC9801::IDE* ide;
 #endif
-	
+
 	// PC-9801-14
 	TMS3631* tms3631;
 	I8253* pit_14;
 	I8255* pio_14;
 	LS244* maskreg_14;
-	
+
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
 	I8255* pio_sub;
@@ -651,14 +662,14 @@ protected:
 	UPD765A* fdc_sub;
 	Z80* cpu_sub;
 #endif
-	
+
 	// misc
 	bool pit_clock_8mhz;
 	int sound_type;
-	
+
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	EVENT* pc88event;
-	
+
 	PC88DEV::PC88* pc88;
 	DEVICE* pc88prn;
 	I8251* pc88sio;
@@ -669,7 +680,7 @@ protected:
 	YM2203* pc88opn1;
 	#endif
 	Z80* pc88cpu;
-	
+
 	PC80S31K* pc88sub;
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
@@ -677,14 +688,14 @@ protected:
 	NOISE* pc88noise_head_down;
 	NOISE* pc88noise_head_up;
 	Z80* pc88cpu_sub;
-	
+
 #ifdef SUPPORT_M88_DISKDRV
 	PC88DEV::DiskIO* pc88diskio;
 #endif
-	
+
 	int boot_mode;
 #endif
-	
+
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);
 	DISK *get_floppy_disk_handler(int drv);
@@ -693,27 +704,27 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -721,13 +732,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -751,19 +762,19 @@ public:
 	bool is_tape_inserted(int drv);
 #endif
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
 	void set_cpu_clock_with_switch(int speed_type); // 0 = High / 1 = Low / Others = (WIP)
 	void set_wait(int dispmode, int clock); // Set waitfor memories and IOs.
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

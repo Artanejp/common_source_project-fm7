@@ -18,7 +18,7 @@ class  DLL_PREFIX SCSI_HDD : public SCSI_DEV
 {
 private:
 	HARDDISK* disk[8];
-	
+
 //protected:
 //	csp_state_utils *state_entry;
 
@@ -26,7 +26,7 @@ private:
 	int sector_size[8];
 	uint64_t cur_position[8];
 public:
-	SCSI_HDD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
+	SCSI_HDD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_DEV(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 8; i++) {
 			disk[i] = NULL;
@@ -34,6 +34,7 @@ public:
 		}
 		my_sprintf_s(vendor_id, 9, "NECITSU");
 		my_sprintf_s(product_id, 17, "SCSI-HDD");
+		my_sprintf_s(product_rev, 5, "1.0");
 		device_type = 0x00;
 		is_removable = false;
 		is_hot_swappable = true; //false;
@@ -42,15 +43,15 @@ public:
 		bytes_per_sec = 0x500000; // 5MB/sec
 		data_req_delay = 0.1;
 		step_period = 3000; // 3ms
-		
+
 //		default_drive_size = 0x2800000;	// 40MB
 		set_device_name(_T("SCSI HDD"));
 	}
 	~SCSI_HDD() {}
-	
+
 	// common functions
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// virtual scsi functions
 	void release();
 	void reset();
@@ -61,7 +62,7 @@ public:
 	bool read_buffer(int length);
 	bool write_buffer(int length);
 	double get_seek_time(uint64_t new_position, uint64_t length);
-	
+
 	// unique functions
 	void set_disk_handler(int drv, HARDDISK* device)
 	{
@@ -80,7 +81,7 @@ public:
 	void close(int drv);
 	bool mounted(int drv);
 	bool accessed(int drv);
-	
+
 	int step_period;
 
 	// virtual scsi functions
@@ -96,7 +97,7 @@ public:
 		set_device_name(_T("SASI Hard Disk Drive"));
 	}
 	~SASI_HDD() {}
-	
+
 	// virtual scsi functions
 	virtual void out_debug_log(const _TCHAR *format, ...);
 	void start_command();
@@ -104,4 +105,3 @@ public:
 };
 
 #endif
-

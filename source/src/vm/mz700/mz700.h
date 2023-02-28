@@ -48,10 +48,8 @@
 #define IO_ADDR_MAX		0x100
 #define Z80_MEMORY_WAIT
 #define Z80_IO_WAIT
-#if defined(_MZ800) || defined(_MZ1500)
 #define MAX_DRIVE		4
 #define HAS_MB8876
-#endif
 #if defined(_MZ1500)
 #define MZ1P17_SW1_4_ON
 #endif
@@ -63,10 +61,8 @@
 #define USE_BOOT_MODE		2
 #endif
 #define USE_TAPE		1
-#if defined(_MZ800) || defined(_MZ1500)
 #define USE_FLOPPY_DISK		2
 #define USE_QUICK_DISK		1
-#endif
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
@@ -83,7 +79,7 @@
 #define USE_SCREEN_FILTER
 #define USE_SCANLINE
 #if defined(_MZ700)
-#define USE_SOUND_VOLUME	3
+#define USE_SOUND_VOLUME	4
 #elif defined(_MZ800)
 #define USE_SOUND_VOLUME	5
 #elif defined(_MZ1500)
@@ -179,11 +175,7 @@ static const _TCHAR *sound_device_caption[] = {
 #elif defined(_MZ1500)
 	_T("PSG #1"), _T("PSG #2"),
 #endif
-	_T("Beep"), _T("CMT (Signal)"),
-#if defined(_MZ800) || defined(_MZ1500)
-	_T("Noise (FDD)"),
-#endif
-	_T("Noise (CMT)"),
+	_T("Beep"), _T("CMT (Signal)"), _T("Noise (CMT)"), _T("Noise (FDD)"),
 };
 #endif
 
@@ -209,34 +201,32 @@ class DATAREC;
 class I8253;
 class I8255;
 class IO;
+class MB8877;
 class PCM1BIT;
 class Z80;
+class Z80SIO;
 
 namespace MZ700 {
-//class CMOS;
+	class CMOS;
 	class EMM;
+	class FLOPPY;
 #if defined(_MZ700) || defined(_MZ1500)
 	class JOYSTICK;
 #endif
 	class KANJI;
 	class KEYBOARD;
 	class MEMORY;
-	class RAMFILE;
-}
-
-#if defined(_MZ800) || defined(_MZ1500)
-class MB8877;
-class NOT;
-class SN76489AN;
-class Z80PIO;
-class Z80SIO;
-namespace MZ700 {
-	class FLOPPY;
 #if defined(_MZ1500)
 	class PSG;
 #endif
 	class QUICKDISK;
+	class RAMFILE;
 }
+
+#if defined(_MZ800) || defined(_MZ1500)
+class NOT;
+class SN76489AN;
+class Z80PIO;
 #endif
 
 class VM : public VM_TEMPLATE
@@ -244,28 +234,31 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	AND* and_int;
 	DATAREC* drec;
+	MB8877* fdc;
 	I8253* pit;
 	I8255* pio;
 	IO* io;
 	PCM1BIT* pcm;
+	Z80SIO* sio_qd;	// QD
 	Z80* cpu;
-	
-//	MZ700::CMOS* cmos;
+
+	MZ700::CMOS* cmos;
 	MZ700::EMM* emm;
+	MZ700::FLOPPY* floppy;
 	MZ700::KANJI* kanji;
 	MZ700::KEYBOARD* keyboard;
 	MZ700::MEMORY* memory;
+	MZ700::QUICKDISK* qd;
 	MZ700::RAMFILE* ramfile;
-	
+
 #if defined(_MZ800) || defined(_MZ1500)
 	AND* and_snd;
-	MB8877* fdc;
 #if defined(_MZ800)
 	NOT* not_pit;
 	SN76489AN* psg;
@@ -278,99 +271,95 @@ protected:
 #endif
 	Z80PIO* pio_int;
 	Z80SIO* sio_rs;	// RS-232C
-	Z80SIO* sio_qd;	// QD
-	
-	MZ700::FLOPPY* floppy;
+
 #if defined(_MZ1500)
 	MZ700::PSG* psg;
 #endif
-	MZ700::QUICKDISK* qd;
 #endif
 #if defined(_MZ700) || defined(_MZ1500)
 	MZ700::JOYSTICK* joystick;
 #endif
-	
-#if defined(_MZ800)
+
+
+#if defined(_MZ700)
+	int dipswitch;
+#elif defined(_MZ800)
 	int boot_mode;
 #endif
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
-	void reset();
-	void run();
-	double get_frame_rate()
+	void reset() override;
+	void run() override;
+	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;
 	}
-	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
-	
 	// draw screen
-	void draw_screen();
-	
+	void draw_screen() override;
+
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
-	
+
 	// user interface
-	void play_tape(int drv, const _TCHAR* file_path);
-	void rec_tape(int drv, const _TCHAR* file_path);
-	void close_tape(int drv);
-	bool is_tape_inserted(int drv);
-	bool is_tape_playing(int drv);
-	bool is_tape_recording(int drv);
-	int get_tape_position(int drv);
-	const _TCHAR* get_tape_message(int drv);
-	void push_play(int drv);
-	void push_stop(int drv);
-	void push_fast_forward(int drv);
-	void push_fast_rewind(int drv);
-	void push_apss_forward(int drv) {}
-	void push_apss_rewind(int drv) {}
-#if defined(_MZ800) || defined(_MZ1500)
-	void open_quick_disk(int drv, const _TCHAR* file_path);
-	void close_quick_disk(int drv);
-	bool is_quick_disk_inserted(int drv);
-	uint32_t is_quick_disk_accessed();
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
-#endif
-	bool is_frame_skippable();
-	
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
-	
-	void update_config();
+	void play_tape(int drv, const _TCHAR* file_path) override;
+	void rec_tape(int drv, const _TCHAR* file_path) override;
+	void close_tape(int drv) override;
+	bool is_tape_inserted(int drv) override;
+	bool is_tape_playing(int drv) override;
+	bool is_tape_recording(int drv) override;
+	int get_tape_position(int drv) override;
+	const _TCHAR* get_tape_message(int drv) override;
+	void push_play(int drv) override;
+	void push_stop(int drv) override;
+	void push_fast_forward(int drv) override;
+	void push_fast_rewind(int drv) override;
+	void push_apss_forward(int drv)  override {}
+	void push_apss_rewind(int drv)  override {}
+	void open_quick_disk(int drv, const _TCHAR* file_path) override;
+	void close_quick_disk(int drv) override;
+	bool is_quick_disk_inserted(int drv) override;
+	uint32_t is_quick_disk_accessed() override;
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
+	bool is_frame_skippable() override;
+
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
+
+	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
-	DEVICE* get_device(int id);
+	DEVICE* get_device(int id) override;
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;

@@ -40,11 +40,11 @@ private:
 	DEVICE *d_pic;
 	DEVICE *d_pio_prn;
 	UPD7220 *d_gdc_chr, *d_gdc_gfx;
-	
+
 	outputs_t output_gdc_freq;
 	uint8_t *ra_chr;
 	uint8_t *ra_gfx, *cs_gfx;
-	
+
 	uint8_t tvram[0x4000];
 	uint32_t vram_bank;
 #if !defined(SUPPORT_HIRESO)
@@ -56,7 +56,7 @@ private:
 #else
 	__DECL_ALIGNED(4) uint8_t vram[0x80000];
 #endif
-	
+
 #if defined(SUPPORT_2ND_VRAM) && !defined(SUPPORT_HIRESO)
 	uint8_t vram_disp_sel;
 	uint8_t vram_draw_sel;
@@ -68,7 +68,7 @@ private:
 	uint8_t *vram_disp_e;
 #endif
 	uint8_t *vram_draw;
-	
+
 	scrntype_t palette_chr[8];
 	scrntype_t palette_gfx8[8];
 	uint8_t digipal[4];
@@ -76,7 +76,7 @@ private:
 	scrntype_t palette_gfx16[16];
 	uint8_t anapal[16][3], anapal_sel;
 #endif
-	
+
 	uint8_t crtv;
 	uint8_t scroll[6];
 	uint8_t modereg1[8];
@@ -104,7 +104,7 @@ private:
 		uint32_t d[2];
 		uint64_t q;
 	} egcquad_t;
-	
+
 	uint16_t egc_access;
 	uint16_t egc_fgbg;
 	uint16_t egc_ope;
@@ -122,10 +122,10 @@ private:
 	uint32_t egc_stack;
 	uint8_t* egc_inptr;
 	uint8_t* egc_outptr;
-	
+
 	int tmp_inptr_ofs;
 	int tmp_outptr_ofs;
-	
+
 	__DECL_ALIGNED(16) egcword_t egc_mask2;
 	__DECL_ALIGNED(16) egcword_t egc_srcmask;
 	uint8_t egc_srcbit;
@@ -143,7 +143,7 @@ private:
 	__DECL_ALIGNED(16) static const uint32_t egc_maskdword[16][2];
 #endif
 	bool display_high;
-	
+
 #if !defined(SUPPORT_HIRESO)
 	#define FONT_SIZE	16
 	#define FONT_WIDTH	8
@@ -156,17 +156,17 @@ private:
 	#define KANJI_2ND_OFS	(FONT_SIZE * 0x80)
 	#define KANJI_FONT_SIZE	(FONT_SIZE * 2)
 	#define ANK_FONT_OFS	(KANJI_FONT_SIZE * 0x4000)
-	
+
 	uint8_t font[ANK_FONT_OFS + FONT_SIZE * 0x400];
 	uint16_t font_code;
 	uint8_t font_line;
 //	uint16_t font_lr;
 	bool b_gfx_ff;
-	
+
 	uint8_t screen_chr[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
 	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];
 	uint32_t bank_table[0x10];
-	
+
 #if !defined(SUPPORT_HIRESO)
 	void __FASTCALL kanji_copy(uint8_t *dst, uint8_t *src, int from, int to);
 #else
@@ -227,9 +227,7 @@ private:
 #endif
 	void draw_chr_screen();
 	void draw_gfx_screen();
-	
-	void init_memsw();
-	void save_memsw();
+
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -242,7 +240,7 @@ public:
 		set_device_name(_T("Display"));
 	}
 	~DISPLAY() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -260,7 +258,7 @@ public:
 	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_context_gdc_freq(DEVICE *device, int id, int mask)
 	{
@@ -296,4 +294,3 @@ public:
 };
 }
 #endif
-

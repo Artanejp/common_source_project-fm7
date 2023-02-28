@@ -100,7 +100,7 @@ static const _TCHAR* scsi_phase_name[9] = {
 #define SCSI_STATUS_GOOD	0x00	// Status Good
 #define SCSI_STATUS_CHKCOND	0x02	// Check Condition
 #define SCSI_STATUS_CONDMET	0x04	// Condition Met
-#define SCSI_STATUS_BUSY	0x08	// Busy 
+#define SCSI_STATUS_BUSY	0x08	// Busy
 #define SCSI_STATUS_INTERM	0x10	// Intermediate
 #define SCSI_STATUS_INTCDMET	0x14	// Intermediate-Condition Met
 #define SCSI_STATUS_RESCONF	0x18	// Reservation Conflict
@@ -148,20 +148,20 @@ protected:
 	outputs_t outputs_clrq; // Request host to clear data queue.
 	outputs_t outputs_next_sector; // Signal for boundary of sector(s).
 	outputs_t outputs_completed; // Signal for transfer completed of CD-ROM.
-	
+
 	uint32_t data_bus;
 	bool sel_status, atn_status, ack_status, rst_status;
 	bool selected, atn_pending;
-	
+
 	int phase, next_phase, next_req;
 	int event_sel, event_phase, event_req;
 	int local_data_pos;
-	
+
 	uint32_t first_req_clock;
 	double next_req_usec;
-	
+
 	uint8_t sense_code;
-	
+
 	bool _SCSI_HOST_WIDE;
 	bool _SCSI_DEV_IMMEDIATE_SELECT;
 	bool __SCSI_DEBUG_LOG;
@@ -169,6 +169,19 @@ protected:
 public:
 	SCSI_DEV(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		memset(vendor_id, 0x00, sizeof(vendor_id));
+		memset(product_id, 0x00, sizeof(product_id));
+		memset(product_rev, 0x00, sizeof(product_rev));
+
+		is_removable = false;
+		is_hot_swappable = false;
+
+		scsi_id = 0; // Temporally 0.
+		device_type = 0x00; // Temporally SCSI HDD.
+		seek_time = 10.0e3; // Temporally 10.0 mSec.
+		bytes_per_sec = 1000 * 1000; // Temporally 1MBytes per Sec.
+		data_req_delay = 100.0; // Temporally 100.0 uSec.
+
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_bsy);
 		initialize_output_signals(&outputs_cd);
@@ -178,15 +191,17 @@ public:
 		initialize_output_signals(&outputs_clrq);
 		initialize_output_signals(&outputs_next_sector);
 		initialize_output_signals(&outputs_completed);
+
+		// Internal state.
 		_SCSI_HOST_WIDE = false;
 		_SCSI_DEV_IMMEDIATE_SELECT = false;
 		__SCSI_DEBUG_LOG = false;
 		_OUT_DEBUG_LOG = false;
-		
+
 		set_device_name(_T("SCSI DEVICE"));
 	}
 	~SCSI_DEV() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -195,7 +210,7 @@ public:
 	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 	virtual void out_debug_log(const char *fmt, ...);
-	
+
 	// unique functions
 	void set_context_interface(DEVICE* device)
 	{
@@ -212,7 +227,7 @@ public:
 		register_output_signal(&outputs_msg, device, SIG_SCSI_MSG, 1 << scsi_id);
 		register_output_signal(&outputs_req, device, SIG_SCSI_REQ, 1 << scsi_id);
 		register_output_signal(&outputs_clrq, device, SIG_SCSI_CLEAR_QUEUE, 1 << scsi_id);
-		
+
 	}
 	void set_context_completed(DEVICE* device, int id, uint32_t mask)
 	{
@@ -239,7 +254,7 @@ public:
 	void set_msg(int value);
 	void set_req(int value);
 	void set_req_delay(int value, double usec);
-	
+
 	virtual void reset_device() {}
 	virtual bool is_device_existing()
 	{
@@ -269,7 +284,7 @@ public:
 	virtual void start_command();
 	virtual bool read_buffer(int length);
 	virtual bool write_buffer(int length);
-	
+
 	uint8_t get_cur_command()
 	{
 		return command[0];
@@ -280,21 +295,21 @@ public:
 	}
 	uint8_t command[12];
 	int command_index;
-	
+
 	FIFO *buffer;
 	uint64_t position, remain;
-	
+
 	char vendor_id[8 + 1];
 	char product_id[16 + 1];
+	char product_rev[4 + 1];
 	uint8_t device_type;
 	bool is_removable;
 	bool is_hot_swappable;
 	double seek_time;
 	int bytes_per_sec;
 	double data_req_delay;
-	
+
 	int scsi_id;
 };
 
 #endif
-

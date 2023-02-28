@@ -53,7 +53,7 @@ void SCSI_DEV::reset()
 	data_bus = 0;
 	sel_status = atn_status = ack_status = rst_status = false;
 	selected = atn_pending = false;
-	
+
 	event_sel = event_phase = event_req = -1;
 	set_phase(SCSI_PHASE_BUS_FREE);
 	set_sense_code(SCSI_SENSE_NOSENSE);
@@ -66,12 +66,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 		data_bus = data & mask;
 //		out_debug_log(_T("DATA=%04X"), data_bus);
 		break;
-		
+
 	case SIG_SCSI_SEL:
 		{
 			bool prev_status = sel_status;
 			sel_status = ((data & mask) != 0);
-			
+
 			if(phase != SCSI_PHASE_BUS_FREE) {
 				// this device is already selected
 			} else if(!prev_status && sel_status) {
@@ -107,12 +107,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}
 		break;
-		
+
 	case SIG_SCSI_ATN:
 		{
 			bool prev_status = atn_status;
 			atn_status = ((data & mask) != 0);
-			
+
 			if(phase == SCSI_PHASE_BUS_FREE) {
 				// this device is not selected
 			} else if(!prev_status && atn_status) {
@@ -130,7 +130,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}
 		break;
-		
+
 	case SIG_SCSI_ACK:
 		{
 /*
@@ -170,7 +170,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 				switch(phase) {
 				case SCSI_PHASE_DATA_OUT:
 					buffer->write(data_bus);
-					
+
 					// check defect list length in format unit data
 					if(command[0] == SCSI_CMD_FORMAT) {
 						if(buffer->count() == 4) {
@@ -178,11 +178,11 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						}
 					}
 					break;
-					
+
 				case SCSI_PHASE_COMMAND:
 					command[command_index++] = data_bus;
 					break;
-					
+
 				case SCSI_PHASE_MESSAGE_OUT:
 					buffer->write(data_bus);
 					break;
@@ -255,7 +255,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 						}
 						break;
-						
+
 					case SCSI_PHASE_DATA_IN:
 						if(--remain > 0) {
 							// update buffer
@@ -307,7 +307,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 						}
 						break;
-						
+
 					case SCSI_PHASE_COMMAND:
 						if(command_index < get_command_length(command[0])) {
 							// request next command
@@ -319,7 +319,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							start_command();
 						}
 						break;
-						
+
 					case SCSI_PHASE_STATUS:
 						// create message data table
 						remain = 1;
@@ -329,7 +329,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 						set_dat(buffer->read());
 						set_phase_delay(SCSI_PHASE_MESSAGE_IN, 1.0);
 						break;
-						
+
 					case SCSI_PHASE_MESSAGE_OUT:
 						if((buffer->read() & 0xb8) == 0x80) {
 							// identify, change to command phase
@@ -341,7 +341,7 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 							set_phase_delay(SCSI_PHASE_BUS_FREE, 10.0);
 						}
 						break;
-						
+
 					case SCSI_PHASE_MESSAGE_IN:
 						if(--remain > 0) {
 							// request to read next data
@@ -357,12 +357,12 @@ void SCSI_DEV::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}
 		break;
-		
+
 	case SIG_SCSI_RST:
 		{
 			bool prev_status = rst_status;
 			rst_status = ((data & mask) != 0);
-			
+
 			if(!prev_status & rst_status) {
 				// L -> H
 				out_debug_log(_T("RST signal raised\n"));
@@ -393,7 +393,7 @@ void SCSI_DEV::event_callback(int event_id, int err)
 		event_phase = -1;
 		set_phase(next_phase);
 		break;
-		
+
 	case EVENT_REQ:
 		event_req = -1;
 		set_req(next_req);
@@ -411,7 +411,7 @@ void SCSI_DEV::set_phase(int value)
 	set_io (value & 1);
 	set_msg(value & 2);
 	set_cd (value & 4);
-	
+
 	if(value == SCSI_PHASE_BUS_FREE) {
 		if(phase != value) {
 			write_signals(&outputs_clrq, 0xffffffff);
@@ -426,7 +426,7 @@ void SCSI_DEV::set_phase(int value)
 		first_req_clock = 0;
 //		set_bsy(true);
 		set_req_delay(1, 10.0);
-		
+
 	}
 	phase = value;
 }
@@ -539,7 +539,7 @@ void SCSI_DEV::start_command()
 		}
 		set_phase_delay(SCSI_PHASE_STATUS, 1000.0);
 		break;
-		
+
 	case SCSI_CMD_REQ_SENSE:
 		out_debug_log(_T("Command: Request Sense\n"));
 		// start position
@@ -563,13 +563,14 @@ void SCSI_DEV::start_command()
 		set_dat(buffer->read());
 		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
-		
+
 	case SCSI_CMD_INQUIRY:
 		out_debug_log(_T("Command: Inquiry\n"));
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
 		position *= physical_block_size();
 		// transfer length
+		remain = 36;
 		// create inquiry data table
 		buffer->clear();
 		buffer->write(device_type);
@@ -592,12 +593,18 @@ void SCSI_DEV::start_command()
 		for(int i = (int)strlen(product_id); i < 16; i++) {
 			buffer->write(0x20);
 		}
+		for(int i = 0; i < (int)strlen(product_rev) && i < 4; i++) {
+			buffer->write(product_rev[i]);
+		}
+		for(int i = (int)strlen(product_rev); i < 4; i++) {
+			buffer->write(0x20);
+		}
 		// change to data in phase
 		set_dat(buffer->read());
-		remain = buffer->count();
+//		remain = buffer->count();
 		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
-		
+
 	case SCSI_CMD_RD_CAPAC:
 		out_debug_log(_T("Command: Read Capacity\n"));
 		// start position
@@ -620,7 +627,7 @@ void SCSI_DEV::start_command()
 //		set_phase_delay(SCSI_PHASE_DATA_IN, 10.0);
 		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
-		
+
 	case SCSI_CMD_FORMAT:
 		out_debug_log(_T("Command: Format Unit\n"));
 		if(command[1] & 0x10) {
@@ -633,7 +640,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 1000.0);
 		}
 		break;
-		
+
 	case SCSI_CMD_RD_DEFECT:
 		out_debug_log(_T("Command: Read Defect Data\n"));
 		// transfer length
@@ -648,7 +655,7 @@ void SCSI_DEV::start_command()
 		set_dat(buffer->read());
 		set_phase_delay(SCSI_PHASE_DATA_IN, 1000.0);
 		break;
-		
+
 	case SCSI_CMD_READ6:
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
@@ -678,7 +685,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
-		
+
 	case SCSI_CMD_WRITE6:
 		// start position
 		position = (command[1] & 0x1f) * 0x10000 + command[2] * 0x100 + command[3];
@@ -700,7 +707,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
-		
+
 	case SCSI_CMD_READ10:
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
@@ -731,7 +738,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
-		
+
 	case SCSI_CMD_WRITE10:
 		goto WRITE10;
 	case SCSI_CMD_WRT_VERIFY:
@@ -757,7 +764,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
-		
+
 	case SCSI_CMD_READ12:
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
@@ -789,7 +796,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
-		
+
 	case SCSI_CMD_WRITE12:
 		// start position
 		position = command[2] * 0x1000000 + command[3] * 0x10000 + command[4] * 0x100 + command[5];
@@ -812,7 +819,7 @@ void SCSI_DEV::start_command()
 			set_phase_delay(SCSI_PHASE_STATUS, 10.0);
 		}
 		break;
-		
+
 	default:
 		out_debug_log(_T("Command: Unknown %02X\n"), command[0]);
 		set_dat(SCSI_STATUS_GOOD);

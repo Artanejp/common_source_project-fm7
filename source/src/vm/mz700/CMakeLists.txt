@@ -4,37 +4,31 @@ message("* vm/${EXE_NAME}")
 
 string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
 
-if("${U_EXE_NAME}" STREQUAL "EMUMZ800")
-add_library(vm_${EXE_NAME}
+set(VM_MZ700BASE_LIB_SRCS
 	./cmos.cpp
 	./emm.cpp
+	./floppy.cpp
 	./kanji.cpp
-	./joystick.cpp
 	./keyboard.cpp
 	./memory.cpp
-	./ramfile.cpp
-	./floppy.cpp
+
 	./quickdisk.cpp
-	
+	./ramfile.cpp
+
 	./mz700.cpp
+)
+
+if("${U_EXE_NAME}" STREQUAL "EMUMZ800")
+add_library(vm_${EXE_NAME}
+	${VM_MZ700BASE_LIB_SRCS}
 )
 elseif("${U_EXE_NAME}" STREQUAL "EMUMZ1500")
 add_library(vm_${EXE_NAME}
 	../mz1p17.cpp
-
-	./cmos.cpp
-	./emm.cpp
 	./joystick.cpp
-	./kanji.cpp
-	./keyboard.cpp
-	./memory.cpp
-	./ramfile.cpp
-	./floppy.cpp
-	./quickdisk.cpp
-	./ramfile.cpp
 	./psg.cpp
-	
-	./mz700.cpp
+	${VM_MZ700BASE_LIB_SRCS}
+
 )
 else()
 # MZ700
@@ -42,14 +36,7 @@ else()
 		target_compile_definitions(emumz700pal PUBLIC _PAL)
 	endif()
 	add_library(vm_${EXE_NAME}
-	./cmos.cpp
-	./emm.cpp
-	./joystick.cpp
-	./kanji.cpp
-	./keyboard.cpp
-	./memory.cpp
-	./ramfile.cpp
-	
-	./mz700.cpp
+		./joystick.cpp
+		${VM_MZ700BASE_LIB_SRCS}
 	)
 endif()

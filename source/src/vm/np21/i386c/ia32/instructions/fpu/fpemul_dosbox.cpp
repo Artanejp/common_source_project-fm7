@@ -103,7 +103,7 @@ static const FPU_PTR zero_ptr = { 0, 0, 0 };
 /*
  * FPU interface
  */
- 
+
 static INLINE UINT FPU_GET_TOP(void) {
 	return (FPU_STATUSWORD & 0x3800)>>11;
 }
@@ -158,7 +158,7 @@ static void FPU_FLDCW(UINT32 addr)
 static UINT16 FPU_GetTag(void)
 {
 	UINT i;
-	
+
 	UINT16 tag=0;
 	for(i=0;i<8;i++)
 		tag |= ( (FPU_STAT.tag[i]&3) <<(2*i));
@@ -167,7 +167,7 @@ static UINT16 FPU_GetTag(void)
 static UINT8 FPU_GetTag8(void)
 {
 	UINT i;
-	
+
 	UINT8 tag=0;
 	for(i=0;i<8;i++)
 		tag |= ( (FPU_STAT.tag[i]==TAG_Empty ? 0 : 1) <<(i));
@@ -177,7 +177,7 @@ static UINT8 FPU_GetTag8(void)
 static INLINE void FPU_SetTag(UINT16 tag)
 {
 	UINT i;
-	
+
 	for(i=0;i<8;i++){
 		FPU_STAT.tag[i] = (FP_TAG)((tag >>(2*i))&3);
 
@@ -186,7 +186,7 @@ static INLINE void FPU_SetTag(UINT16 tag)
 static INLINE void FPU_SetTag8(UINT8 tag)
 {
 	UINT i;
-	
+
 	for(i=0;i<8;i++){
 		FPU_STAT.tag[i] = (((tag>>i)&1) == 0 ? TAG_Empty : TAG_Valid);
 	}
@@ -218,6 +218,7 @@ static void FPU_PREP_PUSH(void){
 
 static void FPU_FPOP(void){
 	FPU_STAT.tag[FPU_STAT_TOP] = TAG_Empty;
+	FPU_STAT.mmxenable = 0;
 	//maybe set zero in it as well
 	FPU_STAT_TOP = ((FPU_STAT_TOP+1)&7);
 //	LOG(LOG_FPU,LOG_ERROR)("popped from %d  %g off the stack",top,fpu.regs[top].d64);
@@ -226,7 +227,7 @@ static void FPU_FPOP(void){
 
 static double FROUND(double in){
 	switch(FPU_STAT.round){
-	case ROUND_Nearest:	
+	case ROUND_Nearest:
 		if (in-floor(in)>0.5) return (floor(in)+1);
 		else if (in-floor(in)<0.5) return (floor(in));
 		else return ((((SINT64)(floor(in)))&1)!=0)?(floor(in)+1):(floor(in));
@@ -249,23 +250,23 @@ static double FROUND(double in){
 #define BIAS80 16383
 #define BIAS64 1023
 
-static void FPU_FLD80(UINT32 addr, UINT reg) 
+static void FPU_FLD80(UINT32 addr, UINT reg)
 {
 	FP_REG result;
 	SINT64 exp64, exp64final;
 	SINT64 blah;
 	SINT64 mant64;
 	SINT64 sign;
-	
+
 	struct {
 		SINT16 begin;
 		FP_REG eind;
 	} test;
-	
+
 	test.eind.l.lower = fpu_memoryread_d(addr);
 	test.eind.l.upper = fpu_memoryread_d(addr+4);
 	test.begin = fpu_memoryread_w(addr+8);
-   
+
 	exp64 = (((test.begin&0x7fff) - BIAS80));
 	blah = ((exp64 >0)?exp64:-exp64)&0x3ff;
 	exp64final = ((exp64 >0)?blah:-blah) +BIAS64;
@@ -295,20 +296,20 @@ static void FPU_FLD80(UINT32 addr, UINT reg)
 	FPU_STAT.reg[reg].d64 = result.d64;
 	//return result.d64;
 
-	//mant64= test.mant80/2***64    * 2 **53 
+	//mant64= test.mant80/2***64    * 2 **53
 }
 
-static void FPU_ST80(UINT32 addr,UINT reg) 
+static void FPU_ST80(UINT32 addr,UINT reg)
 {
 	SINT64 sign80;
 	SINT64 exp80, exp80final;
 	SINT64 mant80, mant80final;
-	
+
 	struct {
 		SINT16 begin;
 		FP_REG eind;
 	} test;
-	
+
 	sign80 = (FPU_STAT.reg[reg].ll&QWORD_CONST(0x8000000000000000))?1:0;
 	exp80 =  FPU_STAT.reg[reg].ll&QWORD_CONST(0x7ff0000000000000);
 	exp80final = (exp80>>52);
@@ -318,7 +319,11 @@ static void FPU_ST80(UINT32 addr,UINT reg)
 		// Elvira wants the 8 and tcalc doesn't
 		mant80final |= QWORD_CONST(0x8000000000000000);
 		//Ca-cyber doesn't like this when result is zero.
-		exp80final += (BIAS80 - BIAS64);
+		if((exp80final & 0x7ff) == 0x7ff) {
+			exp80final = 0x7fff;
+		} else {
+			exp80final += (BIAS80 - BIAS64);
+		}
 	}
 	test.begin = ((SINT16)(sign80)<<15)| (SINT16)(exp80final);
 	test.eind.ll = mant80final;
@@ -333,7 +338,7 @@ static void FPU_FLD_F32(UINT32 addr,UINT store_to) {
 		float f;
 		UINT32 l;
 	}	blah;
-	
+
 	blah.l = fpu_memoryread_d(addr);
 	FPU_STAT.reg[store_to].d64 = (double)(blah.f);
 }
@@ -363,17 +368,17 @@ static void FPU_FLD_I32(UINT32 addr,UINT store_to) {
 
 static void FPU_FLD_I64(UINT32 addr,UINT store_to) {
 	FP_REG blah;
-	
+
 	blah.l.lower = fpu_memoryread_d(addr);
 	blah.l.upper = fpu_memoryread_d(addr+4);
 	FPU_STAT.reg[store_to].d64 = (double)(blah.ll);
 }
 
-static void FPU_FBLD(UINT32 addr,UINT store_to) 
+static void FPU_FBLD(UINT32 addr,UINT store_to)
 {
 	UINT i;
 	double temp;
-	
+
 	UINT64 val = 0;
 	UINT in = 0;
 	UINT64 base = 1;
@@ -413,7 +418,7 @@ static void FPU_FST_F32(UINT32 addr) {
 		float f;
 		UINT32 l;
 	}	blah;
-	
+
 	//should depend on rounding method
 	blah.f = (float)(FPU_STAT.reg[FPU_STAT_TOP].d64);
 	fpu_memorywrite_d(addr,blah.l);
@@ -438,20 +443,20 @@ static void FPU_FST_I32(UINT32 addr) {
 
 static void FPU_FST_I64(UINT32 addr) {
 	FP_REG blah;
-	
+
 	blah.ll = (SINT64)(FROUND(FPU_STAT.reg[FPU_STAT_TOP].d64));
 	fpu_memorywrite_d(addr,blah.l.lower);
 	fpu_memorywrite_d(addr+4,blah.l.upper);
 }
 
-static void FPU_FBST(UINT32 addr) 
+static void FPU_FBST(UINT32 addr)
 {
 	FP_REG val;
 	UINT p;
 	UINT i;
 	BOOL sign;
 	double temp;
-	
+
 	val = FPU_STAT.reg[FPU_STAT_TOP];
 	sign = FALSE;
 	if(FPU_STAT.reg[FPU_STAT_TOP].ll & QWORD_CONST(0x8000000000000000)) { //sign
@@ -463,7 +468,7 @@ static void FPU_FBST(UINT32 addr)
 	for(i=0;i<9;i++){
 		val.d64=temp;
 		temp = (double)((SINT64)(floor(val.d64/10.0)));
-		p = (UINT)(val.d64 - 10.0*temp);  
+		p = (UINT)(val.d64 - 10.0*temp);
 		val.d64=temp;
 		temp = (double)((SINT64)(floor(val.d64/10.0)));
 		p |= ((UINT)(val.d64 - 10.0*temp)<<4);
@@ -578,7 +583,7 @@ static void FPU_FSUBR(UINT st, UINT other){
 }
 
 static void FPU_FXCH(UINT st, UINT other){
-	FP_TAG tag; 
+	FP_TAG tag;
 	FP_REG reg;
 
 	tag = FPU_STAT.tag[other];
@@ -595,8 +600,8 @@ static void FPU_FST(UINT st, UINT other){
 }
 
 static void FPU_FCOM(UINT st, UINT other){
-	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) || 
-		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) || 
+	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) ||
+		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) ||
 		(_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
 		FPU_SET_C3(1);
 		FPU_SET_C2(1);
@@ -623,8 +628,8 @@ static void FPU_FCOM(UINT st, UINT other){
 	return;
 }
 static void FPU_FCOMI(UINT st, UINT other){
-	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) || 
-		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) || 
+	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) ||
+		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) ||
 		(_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
 		CPU_FLAGL = (CPU_FLAGL & ~Z_FLAG) | Z_FLAG;
 		CPU_FLAGL = (CPU_FLAGL & ~P_FLAG) | P_FLAG;
@@ -652,11 +657,11 @@ static void FPU_FCOMI(UINT st, UINT other){
 }
 
 static void FPU_FUCOM(UINT st, UINT other){
-	//does atm the same as fcom 
+	//does atm the same as fcom
 	FPU_FCOM(st,other);
 }
 static void FPU_FUCOMI(UINT st, UINT other){
-	//does atm the same as fcomi 
+	//does atm the same as fcomi
 	FPU_FCOMI(st,other);
 }
 
@@ -726,7 +731,7 @@ static void FPU_FPREM(void){
 	valdiv = FPU_STAT.reg[FPU_ST(1)].d64;
 	ressaved = (SINT64)( (valtop/valdiv) );
 // Some backups
-//	Real64 res=valtop - ressaved*valdiv; 
+//	Real64 res=valtop - ressaved*valdiv;
 //      res= fmod(valtop,valdiv);
 	FPU_STAT.reg[FPU_STAT_TOP].d64 = valtop - ressaved*valdiv;
 	FPU_SET_C0((UINT)(ressaved&4));
@@ -739,16 +744,16 @@ static void FPU_FPREM1(void){
 	double valtop;
 	double valdiv, quot, quotf;
 	SINT64 ressaved;
-	
+
 	valtop = FPU_STAT.reg[FPU_STAT_TOP].d64;
 	valdiv = FPU_STAT.reg[FPU_ST(1)].d64;
 	quot = valtop/valdiv;
 	quotf = floor(quot);
-	
+
 	if (quot-quotf>0.5) ressaved = (SINT64)(quotf+1);
 	else if (quot-quotf<0.5) ressaved = (SINT64)(quotf);
 	else ressaved = (SINT64)(((((SINT64)(quotf))&1)!=0)?(quotf+1):(quotf));
-	
+
 	FPU_STAT.reg[FPU_STAT_TOP].d64 = valtop - ressaved*valdiv;
 	FPU_SET_C0((UINT)(ressaved&4));
 	FPU_SET_C3((UINT)(ressaved&2));
@@ -758,10 +763,10 @@ static void FPU_FPREM1(void){
 
 static void FPU_FXAM(void){
 	if(FPU_STAT.reg[FPU_STAT_TOP].ll & QWORD_CONST(0x8000000000000000))	//sign
-	{ 
+	{
 		FPU_SET_C1(1);
-	} 
-	else 
+	}
+	else
 	{
 		FPU_SET_C1(0);
 	}
@@ -781,7 +786,7 @@ static void FPU_FXAM(void){
 		return;
 	}
 	if(FPU_STAT.reg[FPU_STAT_TOP].d64 == 0.0)		//zero or normalized number.
-	{ 
+	{
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);
 	}
 	else
@@ -814,9 +819,9 @@ static void FPU_FSCALE(void){
 
 static void FPU_FSTENV(UINT32 addr)
 {
-//	descriptor_t *sdp = &CPU_CS_DESC;	
+//	descriptor_t *sdp = &CPU_CS_DESC;
 	FPU_SET_TOP(FPU_STAT_TOP);
-	
+
 //	switch ((CPU_CR0 & 1) | (SEG_IS_32BIT(sdp) ? 0x100 : 0x000))
 	switch ((CPU_CR0 & 1) | (CPU_INST_OP32 ? 0x100 : 0x000))
 	{
@@ -826,20 +831,20 @@ static void FPU_FSTENV(UINT32 addr)
 		fpu_memorywrite_w(addr+4,FPU_GetTag());
 		fpu_memorywrite_w(addr+10,FPU_LASTINSTOP);
 		break;
-		
+
 	case 0x100: case 0x101:
 		fpu_memorywrite_d(addr+0,(UINT32)(FPU_CTRLWORD));
 		fpu_memorywrite_d(addr+4,(UINT32)(FPU_STATUSWORD));
-		fpu_memorywrite_d(addr+8,(UINT32)(FPU_GetTag()));	
-		fpu_memorywrite_d(addr+20,FPU_LASTINSTOP);			
+		fpu_memorywrite_d(addr+8,(UINT32)(FPU_GetTag()));
+		fpu_memorywrite_d(addr+20,FPU_LASTINSTOP);
 		break;
 	}
 }
 
 static void FPU_FLDENV(UINT32 addr)
 {
-//	descriptor_t *sdp = &CPU_CS_DESC;	
-	
+//	descriptor_t *sdp = &CPU_CS_DESC;
+
 //	switch ((CPU_CR0 & 1) | (SEG_IS_32BIT(sdp) ? 0x100 : 0x000)) {
 	switch ((CPU_CR0 & 1) | (CPU_INST_OP32 ? 0x100 : 0x000)) {
 	case 0x000: case 0x001:
@@ -848,12 +853,12 @@ static void FPU_FLDENV(UINT32 addr)
 		FPU_SetTag(fpu_memoryread_w(addr+4));
 		FPU_LASTINSTOP = fpu_memoryread_w(addr+10);
 		break;
-		
+
 	case 0x100: case 0x101:
 		FPU_SetCW((UINT16)fpu_memoryread_d(addr+0));
 		FPU_STATUSWORD = (UINT16)fpu_memoryread_d(addr+4);
 		FPU_SetTag((UINT16)fpu_memoryread_d(addr+8));
-		FPU_LASTINSTOP = (UINT16)fpu_memoryread_d(addr+20);		
+		FPU_LASTINSTOP = (UINT16)fpu_memoryread_d(addr+20);
 		break;
 	}
 	FPU_STAT_TOP = FPU_GET_TOP();
@@ -863,9 +868,9 @@ static void FPU_FSAVE(UINT32 addr)
 {
 	UINT start;
 	UINT i;
-	
+
 //	descriptor_t *sdp = &CPU_CS_DESC;
-	
+
 	FPU_FSTENV(addr);
 //	start = ((SEG_IS_32BIT(sdp))?28:14);
 	start = ((CPU_INST_OP32)?28:14);
@@ -880,9 +885,9 @@ static void FPU_FRSTOR(UINT32 addr)
 {
 	UINT start;
 	UINT i;
-	
+
 //	descriptor_t *sdp = &CPU_CS_DESC;
-	
+
 	FPU_FLDENV(addr);
 //	start = ((SEG_IS_32BIT(sdp))?28:14);
 	start = ((CPU_INST_OP32)?28:14);
@@ -895,9 +900,9 @@ static void FPU_FRSTOR(UINT32 addr)
 static void FPU_FXSAVE(UINT32 addr){
 	UINT start;
 	UINT i;
-	
+
 //	descriptor_t *sdp = &CPU_CS_DESC;
-	
+
 	//FPU_FSTENV(addr);
 	FPU_SET_TOP(FPU_STAT_TOP);
 	fpu_memorywrite_w(addr+0,FPU_CTRLWORD);
@@ -927,9 +932,9 @@ static void FPU_FXSAVE(UINT32 addr){
 static void FPU_FXRSTOR(UINT32 addr){
 	UINT start;
 	UINT i;
-	
+
 //	descriptor_t *sdp = &CPU_CS_DESC;
-	
+
 	//FPU_FLDENV(addr);
 	FPU_SetCW(fpu_memoryread_w(addr+0));
 	FPU_STATUSWORD = fpu_memoryread_w(addr+2);
@@ -964,7 +969,7 @@ void DB_FPU_FXSAVERSTOR(void){
 	GET_PCBYTE((op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION2(); // XXX: 根拠無し
 	switch(idx){
 	case 0: // FXSAVE
@@ -1004,13 +1009,13 @@ void DB_FPU_FXSAVERSTOR(void){
 }
 
 static void FPU_FXTRACT(void) {
-	// function stores real bias in st and 
+	// function stores real bias in st and
 	// pushes the significant number onto the stack
 	// if double ever uses a different base please correct this function
 	FP_REG test;
 	SINT64 exp80, exp80final;
 	double mant;
-	
+
 	test = FPU_STAT.reg[FPU_STAT_TOP];
 	exp80 =  test.ll&QWORD_CONST(0x7ff0000000000000);
 	exp80final = (exp80>>52) - BIAS64;
@@ -1066,6 +1071,7 @@ static void FPU_FLDZ(void){
 	FPU_PREP_PUSH();
 	FPU_STAT.reg[FPU_STAT_TOP].d64 = 0.0;
 	FPU_STAT.tag[FPU_STAT_TOP] = TAG_Zero;
+	FPU_STAT.mmxenable = 0;
 }
 
 
@@ -1089,8 +1095,8 @@ static INLINE void FPU_FDIVR_EA(UINT op1){
 }
 static INLINE void FPU_FCOM_EA(UINT op1){
 	FPU_FCOM(op1,8);
-} 
- 
+}
+
 /*
  * FPU interface
  */
@@ -1111,6 +1117,7 @@ FPU_FINIT(void)
 		//FPU_STAT.reg[i].ll = 0;
 	}
 	FPU_STAT.tag[8] = TAG_Valid; // is only used by us
+	FPU_STAT.mmxenable = 0;
 }
 void DB_FPU_FINIT(void){
 	int i;
@@ -1138,7 +1145,7 @@ static void EA_TREE(UINT op)
 	UINT idx;
 
 	idx = (op >> 3) & 7;
-	
+
 		switch (idx) {
 		case 0:	/* FADD (単精度実数) */
 			TRACEOUT(("FADD EA"));
@@ -1175,7 +1182,7 @@ static void EA_TREE(UINT op)
 			break;
 		default:
 			break;
-		}	
+		}
 }
 
 // d8
@@ -1190,7 +1197,7 @@ DB_ESC0(void)
 	TRACEOUT(("use FPU d8 %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	fpu_checkexception();
 	if (op >= 0xc0) {
@@ -1249,18 +1256,18 @@ DB_ESC1(void)
 	TRACEOUT(("use FPU d9 %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	if(!(op < 0xc0 && idx>=4)){
 		fpu_checkexception();
 	}
-	if (op >= 0xc0) 
+	if (op >= 0xc0)
 	{
 		switch (idx) {
 		case 0: /* FLD ST(0), ST(i) */
 			{
 				UINT reg_from;
-			
+
 				TRACEOUT(("FLD STi"));
 				reg_from = FPU_ST(sub);
 				FPU_PREP_PUSH();
@@ -1283,7 +1290,7 @@ DB_ESC1(void)
 			FPU_FST(FPU_STAT_TOP,FPU_ST(sub));
 			FPU_FPOP();
 			break;
-		
+
 		case 4:
 			switch (sub) {
 			case 0x0:	/* FCHS */
@@ -1315,44 +1322,44 @@ DB_ESC1(void)
 				break;
 			}
 			break;
-			
+
 		case 5:
 			switch (sub) {
 			case 0x0:	/* FLD1 */
 				TRACEOUT(("FLD1"));
 				FPU_FLD1();
 				break;
-				
+
 			case 0x1:	/* FLDL2T */
 				TRACEOUT(("FLDL2T"));
 				FPU_FLDL2T();
 				break;
-				
+
 			case 0x2:	/* FLDL2E */
 				TRACEOUT(("FLDL2E"));
 				FPU_FLDL2E();
 				break;
-				
+
 			case 0x3:	/* FLDPI */
 				TRACEOUT(("FLDPI"));
 				FPU_FLDPI();
 				break;
-				
+
 			case 0x4:	/* FLDLG2 */
 				TRACEOUT(("FLDLG2"));
 				FPU_FLDLG2();
 				break;
-				
+
 			case 0x5:	/* FLDLN2 */
 				TRACEOUT(("FLDLN2"));
 				FPU_FLDLN2();
 				break;
-				
+
 			case 0x6:	/* FLDZ */
 				TRACEOUT(("FLDZ"));
 				FPU_FLDZ();
 				break;
-				
+
 			case 0x07: /* ILLEGAL */
 				break;
 			}
@@ -1364,38 +1371,38 @@ DB_ESC1(void)
 				TRACEOUT(("F2XM1"));
 				FPU_F2XM1();
 				break;
-				
+
 			case 0x1:	/* FYL2X */
 				TRACEOUT(("FYL2X"));
 				FPU_FYL2X();
 				break;
-				
+
 			case 0x2:	/* FPTAN */
 				TRACEOUT(("FPTAN"));
 				FPU_FPTAN();
 				break;
-				
+
 			case 0x3:	/* FPATAN */
 				TRACEOUT(("FPATAN"));
 				FPU_FPATAN();
 				break;
-				
+
 			case 0x4:	/* FXTRACT */
 				TRACEOUT(("FXTRACT"));
 				FPU_FXTRACT();
 				break;
-				
+
 			case 0x5:	/* FPREM1 */
 				TRACEOUT(("FPREM1"));
 				FPU_FPREM1();
 				break;
-				
+
 			case 0x6:	/* FDECSTP */
 				TRACEOUT(("FDECSTP"));
 				FPU_SET_C1(0);
 				FPU_STAT_TOP = (FPU_STAT_TOP - 1) & 7;
 				break;
-				
+
 			case 0x7:	/* FINCSTP */
 				TRACEOUT(("FINCSTP"));
 				FPU_SET_C1(0);
@@ -1403,47 +1410,47 @@ DB_ESC1(void)
 				break;
 			}
 			break;
-			
+
 		case 7:
 			switch (sub) {
 			case 0x0:	/* FPREM */
 				TRACEOUT(("FPREM"));
 				FPU_FPREM();
 				break;
-				
+
 			case 0x1:	/* FYL2XP1 */
 				TRACEOUT(("FYL2XP1"));
 				FPU_FYL2XP1();
 				break;
-				
+
 			case 0x2:	/* FSQRT */
 				TRACEOUT(("FSQRT"));
 				FPU_FSQRT();
 				break;
-				
+
 			case 0x3:	/* FSINCOS */
 				TRACEOUT(("FSINCOS"));
 				FPU_FSINCOS();
 				break;
-				
+
 			case 0x4:	/* FRNDINT */
 				TRACEOUT(("FRNDINT"));
 				FPU_FRNDINT();
 				break;
-				
+
 			case 0x5:	/* FSCALE */
 				TRACEOUT(("FSCALE"));
 				FPU_FSCALE();
 				break;
-				
+
 			case 0x6:	/* FSIN */
 				TRACEOUT(("FSIN"));
-				FPU_FSIN();				
+				FPU_FSIN();
 				break;
-				
+
 			case 0x7:	/* FCOS */
 				TRACEOUT(("FCOS"));
-				FPU_FCOS();	
+				FPU_FCOS();
 				break;
 			}
 			break;
@@ -1460,13 +1467,13 @@ DB_ESC1(void)
 			FPU_PREP_PUSH();
 			FPU_FLD_F32(madr,FPU_STAT_TOP);
 			break;
-			
+
 		case 1:	/* UNKNOWN */
 			break;
 
 		case 2:	/* FST (単精度実数) */
 			TRACEOUT(("FST float"));
-			FPU_FST_F32(madr);			
+			FPU_FST_F32(madr);
 			break;
 
 		case 3:	/* FSTP (単精度実数) */
@@ -1477,7 +1484,7 @@ DB_ESC1(void)
 
 		case 4:	/* FLDENV */
 			TRACEOUT(("FLDENV"));
-			FPU_FLDENV(madr);		
+			FPU_FLDENV(madr);
 			break;
 
 		case 5:	/* FLDCW */
@@ -1513,7 +1520,7 @@ DB_ESC2(void)
 	TRACEOUT(("use FPU da %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	fpu_checkexception();
 	if (op >= 0xc0) {
@@ -1543,12 +1550,12 @@ DB_ESC2(void)
 				FPU_FPOP();
 				FPU_FPOP();
 				break;
-				
+
 			default:
 				break;
 			}
 			break;
-			
+
 		default:
 			break;
 		}
@@ -1571,12 +1578,12 @@ DB_ESC3(void)
 	TRACEOUT(("use FPU db %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	if(!(op >= 0xc0 && idx==4)){
 		fpu_checkexception();
 	}
-	if (op >= 0xc0) 
+	if (op >= 0xc0)
 	{
 		/* Fxxx ST(0), ST(i) */
 		switch (idx) {
@@ -1601,22 +1608,22 @@ DB_ESC3(void)
 			case 0: /* FNENI */
 			case 1: /* FNDIS */
 				break;
-				
+
 			case 2: /* FCLEX */
 				TRACEOUT(("FCLEX"));
 				FPU_FCLEX();
 				break;
-				
+
 			case 3: /* FNINIT/FINIT */
 				TRACEOUT(("FNINIT/FINIT"));
 				FPU_FINIT();
 				break;
-				
+
 			case 4: /* FNSETPM */
 			case 5: /* FRSTPM */
 				FPU_FNOP();
 				break;
-				
+
 			default:
 				break;
 			}
@@ -1627,7 +1634,7 @@ DB_ESC3(void)
 			break;
 		case 6: /* FCOMI */
 			TRACEOUT(("ESC3: FCOMI"));
-			FPU_FCOMI(FPU_STAT_TOP,FPU_ST(sub));	
+			FPU_FCOMI(FPU_STAT_TOP,FPU_ST(sub));
 			break;
 		default:
 			break;
@@ -1640,7 +1647,7 @@ DB_ESC3(void)
 			FPU_PREP_PUSH();
 			FPU_FLD_I32(madr,FPU_STAT_TOP);
 			break;
-			
+
 		case 1:	/* FISTTP (DWORD) */
 			if(i386cpuid.cpu_family >= CPU_PENTIUM_4_FAMILY)
 			{
@@ -1653,24 +1660,24 @@ DB_ESC3(void)
 				FPU_FPOP();
 			}
 			break;
-			
+
 		case 2:	/* FIST (DWORD) */
 			TRACEOUT(("FIST"));
 			FPU_FST_I32(madr);
 			break;
-			
+
 		case 3:	/* FISTP (DWORD) */
 			TRACEOUT(("FISTP"));
 			FPU_FST_I32(madr);
 			FPU_FPOP();
 			break;
-			
+
 		case 5:	/* FLD (拡張実数) */
 			TRACEOUT(("FLD 80 Bits Real"));
 			FPU_PREP_PUSH();
 			FPU_FLD_F80(madr);
 			break;
-			
+
 		case 7:	/* FSTP (拡張実数) */
 			TRACEOUT(("FSTP 80 Bits Real"));
 			FPU_FST_F80(madr);
@@ -1695,7 +1702,7 @@ DB_ESC4(void)
 	TRACEOUT(("use FPU dc %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	fpu_checkexception();
 	if (op >= 0xc0) {
@@ -1711,11 +1718,11 @@ DB_ESC4(void)
 			break;
 		case 2: /* FCOM */
 			TRACEOUT(("ESC4: FCOM"));
-			FPU_FCOM(FPU_STAT_TOP,FPU_ST(sub));			
+			FPU_FCOM(FPU_STAT_TOP,FPU_ST(sub));
 			break;
 		case 3: /* FCOMP */
 			TRACEOUT(("ESC4: FCOMP"));
-			FPU_FCOM(FPU_STAT_TOP,FPU_ST(sub));	
+			FPU_FCOM(FPU_STAT_TOP,FPU_ST(sub));
 			FPU_FPOP();
 			break;
 		case 4:	/* FSUBR */
@@ -1776,6 +1783,7 @@ DB_ESC5(void)
 		case 0:	/* FFREE */
 			TRACEOUT(("FFREE"));
 			FPU_STAT.tag[FPU_ST(sub)]=TAG_Empty;
+			FPU_STAT.mmxenable = 0;
 			break;
 		case 1: /* FXCH */
 			TRACEOUT(("FXCH"));
@@ -1865,7 +1873,7 @@ DB_ESC6(void)
 	TRACEOUT(("use FPU de %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	fpu_checkexception();
 	if (op >= 0xc0) {
@@ -1890,7 +1898,7 @@ DB_ESC6(void)
 			}
 			FPU_FCOM(FPU_STAT_TOP,FPU_ST(1));
 			FPU_FPOP(); /* extra pop at the bottom*/
-			break;			
+			break;
 		case 4:	/* FSUBRP */
 			TRACEOUT(("FSUBRP"));
 			FPU_FSUBR(FPU_ST(sub),FPU_STAT_TOP);
@@ -1937,7 +1945,7 @@ DB_ESC7(void)
 	TRACEOUT(("use FPU df %.2x", op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	
+
 	fpu_check_NM_EXCEPTION();
 	if(!(op >= 0xc0 && idx==4 && sub==0)){
 		fpu_checkexception();
@@ -1948,13 +1956,14 @@ DB_ESC7(void)
 		case 0: /* FFREEP */
 			TRACEOUT(("FFREEP"));
 			FPU_STAT.tag[FPU_ST(sub)]=TAG_Empty;
+			FPU_STAT.mmxenable = 0;
 			FPU_FPOP();
 			break;
 		case 1: /* FXCH */
 			TRACEOUT(("FXCH"));
 			FPU_FXCH(FPU_STAT_TOP,FPU_ST(sub));
 			break;
-		
+
 		case 2:
 		case 3: /* FSTP */
 			TRACEOUT(("FSTP"));
@@ -1970,19 +1979,19 @@ DB_ESC7(void)
 				FPU_SET_TOP(FPU_STAT_TOP);
 				CPU_AX = FPU_STATUSWORD;
 				break;
-				
+
 			default:
 				break;
 			}
 			break;
 		case 5: /* FUCOMIP */
 			TRACEOUT(("ESC7: FUCOMIP"));
-			FPU_FUCOMI(FPU_STAT_TOP,FPU_ST(sub));	
+			FPU_FUCOMI(FPU_STAT_TOP,FPU_ST(sub));
 			FPU_FPOP();
 			break;
 		case 6: /* FCOMIP */
 			TRACEOUT(("ESC7: FCOMIP"));
-			FPU_FCOMI(FPU_STAT_TOP,FPU_ST(sub));	
+			FPU_FCOMI(FPU_STAT_TOP,FPU_ST(sub));
 			FPU_FPOP();
 			break;
 		default:

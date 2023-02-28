@@ -1159,7 +1159,6 @@ RDTSC(void)
 		}else{
 			tsc_tmp = CPU_MSR_TSC;
 		}
-		//tsc_tmp /= 1000;
 		CPU_EDX = ((tsc_tmp >> 32) & 0xffffffff);
 		CPU_EAX = (tsc_tmp & 0xffffffff);
 	}else{
@@ -1239,7 +1238,7 @@ SYSENTER(void)
 	CPU_CS = (UINT32)i386msr.reg.ia32_sysenter_cs;
 
 	CPU_SS = CPU_CS + 8;
-	
+
 	CPU_ESP = (UINT32)i386msr.reg.ia32_sysenter_esp;
 	CPU_EIP = (UINT32)i386msr.reg.ia32_sysenter_eip;
 
@@ -1273,7 +1272,7 @@ SYSEXIT(void)
 	CPU_CS = (UINT32)i386msr.reg.ia32_sysenter_cs + 16;
 
 	CPU_SS = (UINT32)i386msr.reg.ia32_sysenter_cs + 24;
-	
+
 	CPU_ESP = CPU_ECX;
 	CPU_EIP = CPU_EDX;
 

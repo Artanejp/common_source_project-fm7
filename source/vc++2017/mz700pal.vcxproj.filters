@@ -89,6 +89,9 @@
     <ClCompile Include="..\src\vm\datarec.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\disk.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\event.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -101,6 +104,9 @@
     <ClCompile Include="..\src\vm\io.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\mb8877.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\noise.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -110,10 +116,16 @@
     <ClCompile Include="..\src\vm\z80.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\z80sio.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\mz700\cmos.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\mz700\emm.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\mz700\floppy.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\mz700\joystick.cpp">
@@ -129,6 +141,9 @@
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\mz700\mz700.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\mz700\quickdisk.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\mz700\ramfile.cpp">
@@ -166,6 +181,9 @@
     <ClInclude Include="..\src\vm\device.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\disk.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\event.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -176,6 +194,9 @@
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\io.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\mb8877.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\noise.h">
@@ -193,10 +214,16 @@
     <ClInclude Include="..\src\vm\z80.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\z80sio.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\mz700\cmos.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz700\emm.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\mz700\floppy.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz700\joystick.h">
@@ -214,6 +241,9 @@
     <ClInclude Include="..\src\vm\mz700\mz700.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\mz700\quickdisk.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\mz700\ramfile.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
@@ -222,6 +252,15 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\src\res\indicator\access_green.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\indicator\access_off.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\src\res\indicator\access_on.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
     <Image Include="..\src\res\mz700.ico">
       <Filter>Resource Files</Filter>
     </Image>

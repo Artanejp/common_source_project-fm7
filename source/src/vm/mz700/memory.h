@@ -21,7 +21,7 @@ class DISPLAY;
 #endif
 
 namespace MZ700 {
-	
+
 class MEMORY : public DEVICE
 {
 private:
@@ -32,18 +32,18 @@ private:
 #if defined(_MZ700) || defined(_MZ1500)
 	DEVICE *d_joystick;
 #endif
-	
+
 	// memory
 	uint8_t* rbank[32];
 	uint8_t* wbank[32];
 	uint8_t wdmy[0x800];
 	uint8_t rdmy[0x800];
-	
+
 	uint8_t ipl[0x1000];	// IPL 4KB
 #if defined(_MZ800)
 	uint8_t ext[0x2000];	// MZ-800 IPL 8KB
-#elif defined(_MZ1500)
-	uint8_t ext[0x1800];	// MZ-1500 EXT 6KB
+#else
+	uint8_t ext[0x1800];	// MZ-700 / MZ-1500 EXT 6KB
 #endif
 	uint8_t font[0x1000];	// CGROM 4KB
 #if defined(_MZ700)
@@ -70,7 +70,7 @@ private:
 #elif defined(_MZ1500)
 	uint8_t pcg_bank;
 #endif
-	
+
 	void update_map_low();
 	void update_map_middle();
 	void update_map_high();
@@ -78,7 +78,7 @@ private:
 	int __FASTCALL vram_page_mask(uint8_t f);
 	int __FASTCALL vram_addr(int addr);
 #endif
-	
+
 	// crtc
 #if defined(_MZ800)
 	uint16_t sof;
@@ -91,13 +91,11 @@ private:
 	bool blank;
 	bool hblank, hsync;
 	bool vblank, vsync;
-#if defined(_MZ700) || defined(_MZ1500)
 	bool blank_vram;
-#endif
-#if defined(_MZ1500)
+#if defined(_MZ800) || defined(_MZ1500)
 	bool blank_pcg;
 #endif
-	
+
 	void __FASTCALL set_blank(bool val);
 	void __FASTCALL set_hblank(bool val);
 	void __FASTCALL set_hsync(bool val);
@@ -112,7 +110,7 @@ private:
 	uint8_t screen[200][320];
 #endif
 	scrntype_t palette_pc[8];
-	
+
 #if defined(_MZ800)
 	void __FASTCALL draw_line_320x200_2bpp(int v);
 	void __FASTCALL draw_line_320x200_4bpp(int v);
@@ -121,14 +119,14 @@ private:
 	void __FASTCALL draw_line_mz700(int v);
 #endif
 	void __FASTCALL draw_line(int v);
-	
+
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMORY() {}
-	
+
 	// common functions
 	void initialize();
 	void reset();
@@ -146,7 +144,7 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
@@ -177,4 +175,3 @@ public:
 
 }
 #endif
-
