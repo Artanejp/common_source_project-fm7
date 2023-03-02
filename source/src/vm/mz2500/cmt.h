@@ -32,7 +32,10 @@ class CMT : public DEVICE
 private:
 	DEVICE* d_pio;
 	DATAREC *d_drec;
-	
+
+#if defined(_MZ2500)
+	int boot_mode;
+#endif
 	uint8_t pa, pc;
 	bool play, rec;
 	bool now_play, now_rewind;
@@ -41,32 +44,32 @@ private:
 	int register_id_fwd;
 	int register_id_stop;
 	int register_id_eject;
-#ifndef _MZ80B
+#if !defined(_MZ80B)
 	int register_id_apss;
 	bool now_apss;
 	bool now_apss_tmp;
 #endif
 	int register_id_ipl;
-	
+
 	void fast_forward();
 	void fast_rewind();
 	void forward();
 	void stop();
-	
+
 public:
 	CMT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("CMT I/F"));
 	}
 	~CMT() {}
-	
+
 	// common functions
 	void initialize();
 	void reset();
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique function
 	void set_context_pio(DEVICE* device)
 	{
@@ -83,4 +86,3 @@ public:
 }
 
 #endif
-

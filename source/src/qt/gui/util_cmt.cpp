@@ -24,6 +24,8 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 	QString ext_rec;
 	QString desc_play;
 	QString desc_rec;
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() == nullptr) return;
 
 	listCMT[drive].clear();
 	menu_CMT[drive] = new Menu_CMTClass(menubar, QString::fromUtf8("CMT"), using_flags, this, drive, base_drv);
@@ -36,28 +38,33 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 	menu_CMT[drive]->do_update_histories(listCMT[drive]);
 	menu_CMT[drive]->do_set_initialize_directory(p_config->initial_tape_dir);
 
-	if(using_flags->is_machine_pc6001()) {
-		ext_play = "*.wav *.p6 *.cas *.gz";
-		ext_rec = "*.wav *.p6 *.cas";
-	} else if(using_flags->is_machine_pc8001_variants()) {
+	if(up->is_machine_pc6001_variants()) {
+		ext_play = "*.wav  *.cas *.p6 *.p6t *.gz";
+		ext_rec = "*.wav  *.cas *.p6 *.p6t";
+	} else if(up->is_machine_pc8001_variants()) {
 		ext_play = "*.cas *.cmt *.n80 *.t88 *.gz";
 		ext_rec  = "*.cas *.cmt";
-	} else if(using_flags->is_machine_mz80a_variants()) {
-		ext_play = "*.wav *.cas *.mzt *.mzf *.m12 *.t77 *.gz";
-		ext_rec = "*.wav *.cas *.t77";
-	} else if(using_flags->is_machine_mz80b_variants()) {
-		ext_play = "*.wav *.cas *.mzt *.mzf *.mti *.mtw *.dat *.gz";
-		ext_rec =  "*.wav *.cas";
-	} else if(using_flags->is_machine_x1_series()) {
+	} else if(up->is_machine_mz80a_variants()) {
+		ext_play = "*.wav *.cas *.mzt *.mzf *.m12 *.gz";
+		ext_rec = "*.wav *.cas";
+	} else if(up->is_machine_mz80b_variants()) {
+		if(up->is_machine_mz2500()) {
+			ext_play = "*.wav *.cas *.mzt *.mzf *.mti *.gz";
+			ext_rec =  "*.wav *.cas";
+		} else {
+			ext_play = "*.wav *.cas *.mzt *.mzf *.mti *.mtw *.dat *.gz";
+			ext_rec =  "*.wav *.cas";
+		}
+	} else if(up->is_machine_x1_series()) {
 		ext_play = "*.wav *.cas *.tap *.t77 *.gz";
 		ext_rec =  "*.wav *.cas *.t77";
-	} else if(using_flags->is_machine_fm7_series()) {
+	} else if(up->is_machine_fm7_series()) {
 		ext_play = "*.wav *.t77 *.gz";
 		ext_rec = "*.wav *.t77";
-	} else if(using_flags->is_machine_basicmaster_variants()) {
+	} else if(up->is_machine_basicmaster_variants()) {
 		ext_play = "*.wav *.bin *.gz";
 		ext_rec = "*.wav";
-	} else if(using_flags->is_tape_binary_only()) {
+	} else if(up->is_tape_binary_only()) {
 		ext_play = "*.cas *.cmt *.gz";
 		ext_rec = "*.cas *.cmt";
 	} else {
@@ -147,7 +154,9 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 void Ui_MainWindowBase::do_ui_tape_play_insert_history(int drv, QString fname)
 {
 	if(fname.length() <= 0) return;
-	if(using_flags->get_max_tape() <= drv) return;
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->get_max_tape() <= drv) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), _MAX_PATH - 1);
@@ -205,7 +214,9 @@ void Ui_MainWindowBase::do_ui_eject_tape(int drive)
 }
 void Ui_MainWindowBase::retranslateCMTMenu(int drive)
 {
-	if(using_flags->is_use_tape() && (using_flags->get_max_tape() > drive)) {
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() == nullptr) return;
+	if(up->is_use_tape() && (up->get_max_tape() > drive)) {
 		menu_CMT[drive]->retranslateUi();
 	}
 }

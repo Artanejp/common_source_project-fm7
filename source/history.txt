@@ -1,3 +1,9 @@
+8/30/2022
+
+[MZ2200/KEYBOARD] change key assign for SFTLOCK from CapsLock to Ctrl
+[MZ2500] support MZ-2000/80B mode
+
+
 8/27/2022
 
 [VM/I386_NP21] fix DOSBOX FPU code

@@ -82,7 +82,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -126,7 +126,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio->set_device_name(_T("Z80 PIO(KEYBOARD/CRTC)"));
 	sio->set_device_name(_T("Z80 SIO(MOUSE)"));
 
-	
+
 	calendar = new CALENDAR(this, emu);
 	cmt = new CMT(this, emu);
 	crtc = new CRTC(this, emu);
@@ -144,7 +144,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
 	// set contexts
-	event->set_context_cpu(cpu);
+	event->set_context_cpu(cpu, config.boot_mode ? CPU_CLOCKS_LOW : CPU_CLOCKS);
 	event->set_context_sound(opn);
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
@@ -154,24 +154,25 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);
 	drec->set_context_end(cmt, SIG_CMT_END, 1);
 	drec->set_context_top(cmt, SIG_CMT_TOP, 1);
-	
+
 	pit->set_context_ch0(interrupt, SIG_INTERRUPT_I8253, 1);
 	pit->set_context_ch0(pit, SIG_I8253_CLOCK_1, 1);
 	pit->set_context_ch1(pit, SIG_I8253_CLOCK_2, 1);
 	pit->set_constant_clock(0, 31250);
 	pio_i->set_context_port_a(cmt, SIG_CMT_PIO_PA, 0xff, 0);
 	pio_i->set_context_port_c(cmt, SIG_CMT_PIO_PC, 0xff, 0);
+	pio_i->set_context_port_a(crtc, SIG_CRTC_REVERSE, 0x10, 0);
 	pio_i->set_context_port_c(crtc, SIG_CRTC_MASK, 0x01, 0);
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
 	//pcm->set_realtime_render(true);
 
-	
+
 	rtc->set_context_alarm(interrupt, SIG_INTERRUPT_RP5C15, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
 	sasi_host->set_context_irq(mz1e30, SIG_MZ1E30_IRQ, 1);
@@ -181,8 +182,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	opn->set_context_port_a(mouse, SIG_MOUSE_SEL, 0x08, 0);
 	pio->set_context_port_a(crtc, SIG_CRTC_COLUMN_SIZE, 0x20, 0);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x1f, 0);
+	pio->set_context_port_a(memory, SIG_MEMORY_VRAM_SEL, 0xc0, 0);
 	sio->set_context_dtr(1, mouse, SIG_MOUSE_DTR, 1);
-	
+
 	calendar->set_context_rtc(rtc);
 	cmt->set_context_pio(pio_i);
 	cmt->set_context_drec(drec);
@@ -200,7 +202,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
 	mz1e30->set_context_host(sasi_host);
-	if(config.printer_type == 0) {  
+	if(config.printer_type == 0) {
 		printer->set_context_prn(new PRNFILE(this, emu));
 	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
@@ -213,7 +215,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	serial->set_context_sio(sio);
 	timer->set_context_pit(pit);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -221,14 +223,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	pio->set_context_intr(cpu, 0);
 	pio->set_context_child(sio);
 	sio->set_context_intr(cpu, 1);
 	sio->set_context_child(interrupt);
 	interrupt->set_context_intr(cpu, 2);
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x60, 0x63, w3100a);
 	io->set_iomap_range_rw(0xa0, 0xa3, serial);
@@ -238,6 +240,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0xae, crtc);
 	io->set_iomap_range_rw(0xb0, 0xb3, serial);
 	io->set_iomap_range_rw(0xb4, 0xb5, memory);
+	io->set_iomap_single_w(0xb7, memory);
 	io->set_iomap_range_rw(0xb8, 0xb9, mz1r13);
 	io->set_iomap_range_rw(0xbc, 0xbf, crtc);
 	io->set_iomap_range_w(0xc6, 0xc7, interrupt);
@@ -255,12 +258,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_w(0xf0, 0xf3, timer);
 	io->set_iomap_range_rw(0xf4, 0xf7, crtc);
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
-	
+
 	io->set_iowait_range_rw(0xc8, 0xc9, 1);
 	io->set_iowait_single_rw(0xcc, 3);
 	io->set_iowait_range_rw(0xd8, 0xdf, 1);
 	io->set_iowait_range_rw(0xe8, 0xeb, 1);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -279,6 +282,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
 		}
 	}
+	boot_mode = config.boot_mode;
 	monitor_type = config.monitor_type;
 }
 
@@ -313,9 +317,18 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// set initial port status
-	opn->write_signal(SIG_YM2203_PORT_B, (monitor_type & 2) ? 0x77 : 0x37, 0xff);
+	uint8_t port_b = 0x37;
+	if(boot_mode == 1) {
+		port_b &= ~0x10;
+	} else if(boot_mode == 2) {
+		port_b &= ~0x20;
+	}
+	if(monitor_type & 2) {
+		port_b |= 0x40;
+	}
+	opn->write_signal(SIG_YM2203_PORT_B, port_b, 0xff);
 }
 
 void VM::special_reset(int num)
@@ -369,7 +382,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	opn->initialize_sound(rate, 2000000, samples, 0, -8);
 	pcm->initialize_sound(rate, 4096);
@@ -456,7 +469,7 @@ void VM::inc_socket_recv_buffer_ptr(int ch, int size)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
 		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
 			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
@@ -518,7 +531,7 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(sasi_hdd->accessed(drv)) {
 			status |= 1 << drv;
@@ -531,7 +544,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
 	bool opened = drec->play_tape(file_path);
-	
+
 	if(opened && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -544,7 +557,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
 	bool opened = drec->rec_tape(file_path);
-	
+
 	if(opened && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);
@@ -637,7 +650,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -645,6 +658,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	// Machine specified.
+	state_fio->StateValue(boot_mode);
 	state_fio->StateValue(monitor_type);
 	return true;
 }

@@ -18,6 +18,7 @@
 #define LINES_PER_FRAME 	448
 #define CHARS_PER_LINE		108
 #define CPU_CLOCKS		6000000
+#define CPU_CLOCKS_LOW		4000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
@@ -37,6 +38,7 @@
 
 // device informations for win32
 #define USE_SPECIAL_RESET	1
+#define USE_BOOT_MODE		3
 #define USE_FLOPPY_DISK		4
 #define USE_TAPE		1
 #define USE_HARD_DISK		2
@@ -109,10 +111,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	DATAREC* drec;
 	I8253* pit;
 	I8255* pio_i;
@@ -127,7 +129,7 @@ protected:
 	Z80* cpu;
 	Z80PIO* pio;
 	Z80SIO* sio;
-	
+
 	MZ2500::CALENDAR* calendar;
 	MZ2500::CMT* cmt;
 	MZ2500::CRTC* crtc;
@@ -144,36 +146,37 @@ protected:
 	MZ2500::PRINTER* printer;
 	MZ2500::SERIAL* serial;
 	MZ2500::TIMER* timer;
-	
+
 	// monitor type cache
+	int boot_mode;
 	int monitor_type;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -181,7 +184,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// socket
 	void notify_socket_connected(int ch);
 	void notify_socket_disconnected(int ch);
@@ -190,7 +193,7 @@ public:
 	uint8_t* get_socket_recv_buffer0(int ch, int* size0, int* size1);
 	uint8_t* get_socket_recv_buffer1(int ch);
 	void inc_socket_recv_buffer_ptr(int ch, int size);
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -217,17 +220,17 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

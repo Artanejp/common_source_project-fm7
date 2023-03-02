@@ -16,6 +16,7 @@ class OSD;
 class USING_FLAGS_EXT : public USING_FLAGS
 {
 private:
+
 public:
 	USING_FLAGS_EXT(config_t *cfg);
 	~USING_FLAGS_EXT();
@@ -29,6 +30,6 @@ public:
 	const _TCHAR *get_sound_device_name();
 	const int get_sound_sample_rate(int num);
 };
-	
+
 
 #endif //#ifndef __CSP_QT_COMMON_MENU_FLAGS_H

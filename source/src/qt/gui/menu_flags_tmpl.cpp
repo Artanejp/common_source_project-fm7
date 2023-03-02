@@ -1,16 +1,17 @@
 #include "common.h"
 #include "menu_flags.h"
+#include "osd_base.h"
 
 USING_FLAGS::USING_FLAGS(config_t *cfg)
 {
 	p_osd = nullptr;
 	p_emu = nullptr;
-	
+
 	use_alt_f10_key = false;
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
 	use_auto_key_shift = use_binary_file = false;
-	
+
 	max_binary = 0;
 	use_bitmap = false;
 	use_boot_mode = 0;
@@ -20,27 +21,27 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_cart = false;
 	max_cart = 0;
-	
+
 	use_compact_disc = false;
 	max_compact_disc = 0;
-	
+
 	use_fd = false;
 	max_drive = max_d88_banks = 0;
 	floppy_type_bit = 0x00000000;
 	use_drive_type = 0;
-	
+
 	use_hd = false;
 	max_hd = 0;
-	
+
 	use_laser_disc = false;
 	max_laser_disc = 0;
-	
+
 	use_qd = false;
 	max_qd = 0;
-	
+
 	use_tape = use_tape_baud = use_tape_button = use_tape_ptr = false;
 	max_tape = 0;
-	
+
 	base_binary_num = 1;
 	base_bubble_num = 1;
 	base_cart_num = 1;
@@ -59,14 +60,14 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_keyboard_type = -1;
 	use_dipswitch = false;
 	use_machine_features = 0;
-	
+
 	max_draw_ranges = 0;
-	
+
 	use_ram_size = false;
 	max_ram_size = 1;
 	min_ram_size = 0;
 	ram_size_order = 1024 * 1024;
-	
+
 	use_joystick = use_joy_button_captions = false;
 	num_joy_button_captions = 0;
 
@@ -82,13 +83,13 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_notify_power_off = false;
 
 	use_one_board_computer = false;
-	
+
 	use_printer = false;
 	use_printer_type = 0;
 
 	use_serial = false;
 	use_serial_type = 0;
-	
+
 	use_scanline = use_screen_rotate = false;
 	screen_mode_num = 1;
 	custom_screen_zoom_factor = 0.0;
@@ -98,7 +99,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	without_sound = false;
 	use_sound_files_fdd = false;
 	use_sound_files_relay = false;
-	
+
 	use_special_reset = false;
 	special_reset_num = 0;
 
@@ -111,10 +112,10 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
 	use_auto_key_shift = use_binary_file = false;
-	
+
 	max_binary = 0;
 	base_binary_num = 0;
-	
+
 	use_bitmap = false;
 	use_boot_mode = 0;
 
@@ -123,7 +124,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 	use_cart = false;
 	max_cart = 0;
-	
+
 	base_cart_num = 0;
 	base_fd_num = 1;
 	base_qd_num = 1;
@@ -138,7 +139,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_compact_disc = use_debugger = false;
 	max_compact_disc = 0;
 	base_cd_num = 0;
-	
+
 	use_device_type = 0;
 	use_dipswitch = false;
 
@@ -149,11 +150,11 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	max_drive = max_d88_banks = 0;
 
 	max_draw_ranges = 0;
-	
+
 	use_hd = false;
 	max_hd = 0;
 	base_hd_num = 1;
-	
+
 	use_joystick = use_joy_button_captions = false;
 	num_joy_button_captions = 0;
 
@@ -175,7 +176,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_qd = false;
 	max_qd = 0;
 	base_qd_num = 1;
-	
+
 	use_scanline = use_screen_rotate = false;
 	screen_mode_num = 1;
 
@@ -184,7 +185,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	without_sound = false;
 	use_sound_files_fdd = false;
 	use_sound_files_relay = false;
-	
+
 	use_special_reset = false;
 
 	use_state = false;
@@ -197,36 +198,37 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 #define SCREEN_HEIGHT 400
 	real_screen_width  = SCREEN_WIDTH;
 	real_screen_height = SCREEN_HEIGHT;
-	
+
 	screen_width = SCREEN_WIDTH;
 	screen_height = SCREEN_HEIGHT;
 
 	screen_x_zoom = 1.0f;
 	screen_y_zoom = 1.0f;
-#define _WINDOW_WIDTH_ASPECT 640   
-#define _WINDOW_HEIGHT_ASPECT 480   
+#define _WINDOW_WIDTH_ASPECT 640
+#define _WINDOW_HEIGHT_ASPECT 480
 	screen_width_aspect = _WINDOW_WIDTH_ASPECT;
 	screen_height_aspect = _WINDOW_HEIGHT_ASPECT;
-	
+
 	max_button = 0;
 	vm_buttons_d = nullptr;
 	max_ranges = 0;
 	vm_ranges_d = nullptr;
-	
+
 	use_vertical_pixel_lines = false;
 	tape_binary_only = false;
-	
+
 	device_name = QString::fromUtf8("");
 	config_name = QString::fromUtf8("");
-	
+
 	machine_pasopia_variants = false;
 	machine_basicmaster_variants = false;
 	machine_tk80_series  = false;
 	machine_cmt_mz_series  = false;
-	machine_pc6001  = false;
+	machine_pc6001_variants  = false;
 	machine_pc8001_variants = false;
 	machine_mz80a_variants = false;
 	machine_mz80b_variants = false;
+	machine_mz2500 = false;
 	machine_x1_series = false;
 	machine_fm7_series = false;
 	machine_gamegear = false;
@@ -271,7 +273,7 @@ int USING_FLAGS::get_s_freq_table(int num)
 {
 	return 48000;
 }
-																		
+
 int USING_FLAGS::get_vm_node_size(void)
 {
 	return 0;
@@ -324,4 +326,22 @@ bool USING_FLAGS::is_support_phy_key_name()
 	return false;
 }
 
+bool USING_FLAGS::check_feature(const _TCHAR* key)
+{
+	if(p_osd == nullptr) return false;
+	return p_osd->check_feature(key);
+}
 
+bool USING_FLAGS::check_feature(const QString key)
+{
+	if(p_osd == nullptr) return false;
+	if(key.isEmpty()) return false;
+
+	const _TCHAR* p_key = (const _TCHAR *)(key.toUtf8().constData());
+	return p_osd->check_feature(p_key);
+}
+
+bool USING_FLAGS::check_vm_name(const QString name)
+{
+	return check_feature(name);
+}

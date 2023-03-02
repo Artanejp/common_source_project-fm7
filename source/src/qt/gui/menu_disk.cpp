@@ -62,9 +62,9 @@ void Menu_FDClass::do_open_dialog_create_fd()
 
 	if(initial_dir.isEmpty()) {
 		QDir dir;
-		char app[PATH_MAX];
+		char app[_MAX_PATH];
 		initial_dir = dir.currentPath();
-		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
+		strncpy(app, initial_dir.toLocal8Bit().constData(), _MAX_PATH - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 

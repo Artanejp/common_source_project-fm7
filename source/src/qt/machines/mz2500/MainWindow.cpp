@@ -26,7 +26,9 @@ void META_MainWindow::setupUI_Emu(void)
 #ifdef USE_CPU_TYPE
 	ConfigCPUTypes(USE_CPU_TYPE);
 #endif
- 
+#if defined(_MZ2500) && defined(USE_BOOT_MODE)
+	ConfigCPUBootMode(USE_BOOT_MODE);
+#endif
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -41,6 +43,12 @@ void META_MainWindow::retranslateUi(void)
 	menuCpuType->setTitle(QApplication::translate("MachineMZ2500", "CPU Frequency", 0));
 	actionCpuType[0]->setText(QString::fromUtf8("4MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("6MHz"));
+#endif
+#if defined(_MZ2500) && defined(USE_BOOT_MODE)
+	menuBootMode->setTitle(QApplication::translate("MachineMZ2500", "Boot as", 0));
+	actionBootMode[0]->setText(QString::fromUtf8("MZ-2500"));
+	actionBootMode[1]->setText(QString::fromUtf8("MZ-2000"));
+	actionBootMode[2]->setText(QString::fromUtf8("MZ-80B"));
 #endif
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachineMZ2500", "Floppy Type", 0));
@@ -60,7 +68,7 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QString::fromUtf8("MZ-1P17 (MZ-3)"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 thermal printer (MZ-1).", 0));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMZ2500", "Sharp MZ-1P17 thermal printer (MZ-3).", 0));
-#endif	
+#endif
 #endif
 #if defined(USE_MONITOR_TYPE)
 #if defined(_MZ2500)
@@ -107,6 +115,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

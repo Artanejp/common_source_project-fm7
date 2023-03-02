@@ -16,6 +16,7 @@
 
 #define SIG_MEMORY_HBLANK	0
 #define SIG_MEMORY_VBLANK	1
+#define SIG_MEMORY_VRAM_SEL	2
 
 namespace MZ2500 {
 
@@ -23,7 +24,7 @@ class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_cpu, *d_crtc;
-	
+
 	uint8_t* rbank[32];
 	uint8_t* wbank[32];
 	uint8_t wdmy[0x800];
@@ -36,28 +37,32 @@ private:
 	uint8_t dic[0x40000];	// Dictionary ROM 256KB
 	uint8_t kanji[0x40000];	// Kanji ROM (low) / Kanji ROM (high) 128KB + 128KB
 	uint8_t phone[0x8000];	// Phone ROM 32KB
-	
+
 	uint8_t bank;
 	uint8_t page[8];
-	int page_type[8];
-	int page_wait[8];
-	bool is_vram[8];
+	int page_type[16];
+	int page_wait[16];
+	bool is_vram[16];
 	uint8_t dic_bank;
 	uint8_t kanji_bank;
 	bool blank, hblank, vblank, busreq;
 	int extra_wait;
-	
-	void __FASTCALL write_data8_tmp(int b, uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8_tmp(int b, uint32_t addr);
+
 	void __FASTCALL set_map(uint8_t data);
-	
+	void __FASTCALL set_map(uint8_t bank, uint8_t data);
+
+	// MZ-2000/80B
+	uint8_t mode;
+	uint8_t vram_sel, vram_page;
+	void update_vram_map();
+
 public:
 	MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus(MZ2500)"));
 	}
 	~MEMORY() {}
-	
+
 	// common functions
 	void initialize();
 	void reset();
@@ -71,7 +76,7 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
@@ -101,4 +106,3 @@ public:
 
 }
 #endif
-

@@ -32,7 +32,7 @@
 #endif
 
 namespace MZ80B {
-	
+
 #define SET_BANK(s, e, w, r, v) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
@@ -58,7 +58,7 @@ void MEMORY::initialize()
 	memset(vram, 0, sizeof(vram));
 	memset(tvram, 0, sizeof(tvram));
 	memset(ipl, 0xff, sizeof(ipl));
-	
+
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
@@ -69,14 +69,14 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	vram_sel = vram_page = 0;
-	
+
 	// crtc
 	back_color = 0;
 	text_color = vram_mask = 7;
-	width80 = reverse = false;
-	
+	width80 = vgate = reverse = false;
+
 #ifndef _MZ80B
 	for(int i = 0; i < 8; i++) {
 		palette_color[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
@@ -89,7 +89,7 @@ void MEMORY::initialize()
 	}
 	pio3039_data = 0;
 	pio3039_txt_sw = true;
-	
+
 	palette_green[0] = RGB_COLOR(0, 0, 0);
 	palette_green[1] = RGB_COLOR(0, 255, 0);
 #endif
@@ -102,7 +102,7 @@ void MEMORY::reset()
 	SET_BANK(0x0000, 0x07ff, wdmy, ipl, false);
 	SET_BANK(0x0800, 0x7fff, wdmy, rdmy, false);
 	SET_BANK(0x8000, 0xffff, ram, ram, false);
-	
+
 	ipl_selected = true;
 	update_vram_map();
 }
@@ -111,7 +111,7 @@ void MEMORY::special_reset(int num)
 {
 	// reset
 	SET_BANK(0x0000, 0xffff, ram, ram, false);
-	
+
 	ipl_selected = false;
 	update_vram_map();
 }
@@ -291,7 +291,7 @@ void MEMORY::load_dat_image(const _TCHAR* file_path)
 		memset(ram, 0, sizeof(ram));
 		memset(vram, 0, sizeof(vram));
 		memset(tvram, 0, sizeof(tvram));
-		
+
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 		vm->special_reset(0);
@@ -303,7 +303,7 @@ bool MEMORY::load_mzt_image(const _TCHAR* file_path)
 {
 	bool result = false;
 	bool is_mtw = check_file_extension(file_path, _T(".mtw"));
-	
+
 	if(is_mtw || ipl_selected) {
 		FILEIO* fio = new FILEIO();
 		if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -311,13 +311,13 @@ bool MEMORY::load_mzt_image(const _TCHAR* file_path)
 			fio->Fread(header, sizeof(header), 1);
 			uint16_t size = header[0x12] | (header[0x13] << 8);
 			uint16_t offs = header[0x14] | (header[0x15] << 8);
-			
+
 //			if(header[0] == 0x01 && (is_mtw || size > 0x7e00)) {
 			if(header[0] == 0x01 && offs == 0) {
 				memset(ram, 0, sizeof(ram));
 				memset(vram, 0, sizeof(vram));
 				memset(tvram, 0, sizeof(tvram));
-				
+
 				fio->Fread(ram, size, 1);
 				vm->special_reset(0);
 				result = true;
@@ -343,7 +343,7 @@ void MEMORY::draw_screen()
 			for(int l = 0; l < 8; l++) {
 				uint8_t pat = font[(code << 3) + l];
 				uint8_t* d = &screen_txt[y + l][x << 3];
-				
+
 				d[0] = (pat & 0x80) ? color : 0;
 				d[1] = (pat & 0x40) ? color : 0;
 				d[2] = (pat & 0x20) ? color : 0;
@@ -355,7 +355,7 @@ void MEMORY::draw_screen()
 			}
 		}
 	}
-	
+
 	// render graphics
 #ifndef _MZ80B
 //	if(config.monitor_type != MONITOR_TYPE_COLOR && (vram_mask & 8)) {
@@ -372,7 +372,7 @@ void MEMORY::draw_screen()
 				uint8_t g = vram_g[addr];
 				addr++;
 				uint8_t* d = &screen_gra[y][x << 3];
-				
+
 				d[0] = ((b & 0x01) >> 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 				d[1] = ((b & 0x02) >> 1) | ((r & 0x02) >> 0) | ((g & 0x02) << 1);
 				d[2] = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04) >> 0);
@@ -396,7 +396,7 @@ void MEMORY::draw_screen()
 				uint8_t pat = vram_1[addr] | vram_2[addr];
 				addr++;
 				uint8_t* d = &screen_gra[y][x << 3];
-				
+
 				d[0] = (pat & 0x01) >> 0;
 				d[1] = (pat & 0x02) >> 1;
 				d[2] = (pat & 0x04) >> 2;
@@ -408,13 +408,13 @@ void MEMORY::draw_screen()
 			}
 		}
 	}
-	
+
 	// 80B built-in monitor (PIO-3039 character)
 	for(int y = 0; y < 200; y++) {
 		uint8_t* dest0 = screen_80b_green[y];
 		uint8_t* src_txt = screen_txt[y];
 		uint8_t* src_gra = screen_gra[y];
-		
+
 		// VGATE (Forces display to be blank)
 		if(vgate) {
 			for(int x = 0; x < 640; x++) {
@@ -442,20 +442,20 @@ void MEMORY::draw_screen()
 			}
 		}
 	}
-	
+
 	// PIO-3039 GRAPHIC 1,2
 	uint8_t *gvram_1 = vram + 0x0000;
 	uint8_t *gvram_2 = vram + 0x4000;
-	
+
 	for(int y = 0, addr = 0; y < 200; y++) {
 		for(int x = 0; x < 40; x++) {
 			uint8_t pat1 = gvram_1[addr];
 			uint8_t pat2 = gvram_2[addr];
 			addr++;
-			
+
 			uint8_t* d1 = &screen_80b_vram1[y][x << 4];
 			uint8_t* d2 = &screen_80b_vram2[y][x << 4];
-			
+
 			d1[0]  = d1[1]  = (pat1 & 0x01) >> 0;
 			d1[2]  = d1[3]  = (pat1 & 0x02) >> 1;
 			d1[4]  = d1[5]  = (pat1 & 0x04) >> 2;
@@ -464,7 +464,7 @@ void MEMORY::draw_screen()
 			d1[10] = d1[11] = (pat1 & 0x20) >> 5;
 			d1[12] = d1[13] = (pat1 & 0x40) >> 6;
 			d1[14] = d1[15] = (pat1 & 0x80) >> 7;
-			
+
 			d2[0]  = d2[1]  = (pat2 & 0x01) >> 0;
 			d2[2]  = d2[3]  = (pat2 & 0x02) >> 1;
 			d2[4]  = d2[5]  = (pat2 & 0x04) >> 2;
@@ -476,14 +476,14 @@ void MEMORY::draw_screen()
 		}
 	}
 #endif
-	
+
 	// copy to real screen
 	if(config.monitor_type == MONITOR_TYPE_COLOR_GREEN || config.monitor_type == MONITOR_TYPE_GREEN_COLOR) {
 		emu->set_vm_screen_size(1280, 400, 1280, 400, 1280, 480);
 	} else {
 		emu->set_vm_screen_size(640, 400, 640, 400, 640, 480);
 	}
-	
+
 #ifndef _MZ80B
 	if(config.monitor_type != MONITOR_TYPE_GREEN) {
 		// color monitor
@@ -493,7 +493,7 @@ void MEMORY::draw_screen()
 			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
 			uint8_t* src_txt = screen_txt[y];
 			uint8_t* src_gra = screen_gra[y];
-			
+
 			// VGATE (Forces display to be blank) or Reverse
 			if(vgate || reverse) {
 				for(int x = 0; x < 640; x++) {
@@ -524,7 +524,7 @@ void MEMORY::draw_screen()
 	if(config.monitor_type != MONITOR_TYPE_COLOR) {
 		// green monitor
 		int offset = (config.monitor_type == MONITOR_TYPE_COLOR_GREEN) ? 640 : 0;
-		
+
 		// VGATE (Forces display to be blank)
 		if(vgate) {
 			for(int y = 0; y < 200; y++) {
@@ -546,7 +546,7 @@ void MEMORY::draw_screen()
 					scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
 					scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
 					uint8_t* src_txt = screen_txt[y];
-					
+
 					for(int x = 0; x < 640; x++) {
 						uint8_t txt = src_txt[width80 ? x : (x >> 1)];
 						dest0[x] = palette_green[txt ? 1 : 0];
@@ -564,7 +564,7 @@ void MEMORY::draw_screen()
 					scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
 					uint8_t* src_txt = screen_txt[y];
 					uint8_t* src_gra = screen_gra[y];
-					
+
 					for(int x = 0; x < 640; x++) {
 						uint8_t txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
 						dest0[x] = palette_green[(txt || gra) ? 1 : 0];
@@ -591,7 +591,7 @@ void MEMORY::draw_screen()
 			uint8_t* v1 = screen_80b_vram1[y];
 			uint8_t* v2 = screen_80b_vram2[y];
 			uint8_t* gr = screen_80b_green[y];
-			
+
 			for(int x = 0; x < 640; x++) {
 				dest0[x] = pio3039_color[pio3039_palette[(pio3039_txt_sw ? (gr[x] ? 4 : 0) : 0) + (v2[x] ? 2 : 0) + (v1[x] ? 1 : 0)]];
 			}
@@ -610,7 +610,7 @@ void MEMORY::draw_screen()
 			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0) + offset;
 			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1) + offset;
 			uint8_t* src_80b = screen_80b_green[y];
-			
+
 			for(int x = 0; x < 640; x++) {
 				dest0[x] = palette_green[src_80b[x] ? 1 : 0];
 			}
@@ -652,7 +652,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pio3039_txt_sw);
 	state_fio->StateValue(pio3039_data);
 #endif
-	
+
 	// post process
 	if(loading) {
 		if(ipl_selected) {

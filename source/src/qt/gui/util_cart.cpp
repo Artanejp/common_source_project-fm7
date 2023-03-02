@@ -114,7 +114,7 @@ void Ui_MainWindowBase::CreateCartMenu(int drv, int drv_base)
 	} else if(using_flags->is_machine_mastersystem()) {
 		ext = "*.rom *.bin *.sms *.gz";
 		desc = "Game Cartridge";
-	} else if(using_flags->is_machine_pc6001()) {
+	} else if(using_flags->is_machine_pc6001_variants()) {
 		ext = "*.rom *.bin *.60 *.gz";
 		desc = "Game Cartridge";
 	} else if(using_flags->is_machine_has_pcengine()) {

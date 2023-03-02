@@ -11,7 +11,7 @@ static const _TCHAR *sound_device_caption[] = {""};
 static const _TCHAR *joy_button_captions[] = {""};
 #endif
 
-const int s_freq_table[8] = {
+static const int s_freq_table[8] = {
 		2000, 4000, 8000, 11025, 22050, 44100,
 #ifdef OVERRIDE_SOUND_FREQ_48000HZ
 		OVERRIDE_SOUND_FREQ_48000HZ,
@@ -37,7 +37,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 		ram_size_order = RAM_SIZE_ORDER;
 		#endif
 	#endif
-		
+
 	real_screen_width  = SCREEN_WIDTH;
 	real_screen_height = SCREEN_HEIGHT;
 #if defined(USE_CUSTOM_SCREEN_ZOOM_FACTOR)
@@ -81,7 +81,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	machine_tk80_series = false;
 #if defined(_TK80BS) || defined(_TK80)
 	machine_tk80_series = true;
-#endif	
+#endif
 	machine_cmt_mz_series = false;
 #if defined(_MZ80A) || defined(_MZ80K)  || \
 	defined(_MZ1200) || defined(_MZ700) || \
@@ -90,22 +90,11 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	defined(_MZ2200) || defined(_MZ2500)
 	machine_cmt_mz_series = true;
 #endif
-	machine_pc6001 = false;
-	machine_pc8001_variants = false;
-	machine_mz80a_variants = false;
-	machine_mz80b_variants = false;
-	machine_x1_series = false;
-	machine_fm7_series = false;
-	machine_gamegear = false;
-	machine_mastersystem = false;
-	machine_has_pcengine = false;
-	machine_sc3000 = false;
-	machine_z80tvgame = false;
-	
+
 #if defined(_PC6001) || defined(_PC6001MK2) || \
 	defined(_PC6001MK2SR) || \
 	defined(_PC6601) || defined(_PC6601SR)
-	machine_pc6001 = true;
+	machine_pc6001_variants = true;
 #endif
 #if defined(_PC8001) || defined(PC8001MK2) || \
 	defined(_PC8001SR) || \
@@ -122,6 +111,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	defined(_MZ2200) || defined(_MZ2500)
 	machine_mz80b_variants = true;
 #endif
+#if defined(_MZ2500)
+	machine_mz2500 = true;
+#endif
 #if defined(_X1) || defined(_X1TURBO) || \
 	defined(_X1TURBOZ) || defined(_X1TWIN)
 	machine_x1_series = true;
@@ -134,7 +126,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	defined(_FM77AV40) || defined(_FM77AV40EX) || \
 	defined(_FM77AV40SX)
 	machine_fm7_series = true;
-#endif	
+#endif
 #if defined(_GAMEGEAR)
 	machine_gamegear = true;
 #endif
@@ -154,7 +146,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	machine_basicmaster_variants = true;
 #endif
 
-#if defined(USE_ALT_F10_KEY)	
+#if defined(USE_ALT_F10_KEY)
 	use_alt_f10_key = true;
 #endif
 #if defined(USE_AUTO_KEY)
@@ -267,7 +259,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_DIPSWITCH)
 	use_dipswitch = true;
 #endif
-#if defined(USE_MACHINE_FEATURES)	
+#if defined(USE_MACHINE_FEATURES)
 	use_machine_features = USE_MACHINE_FEATURES;
 #endif
 #if defined(USE_DRIVE_TYPE)
@@ -281,7 +273,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	#if defined(USE_JOY_BUTTON_CAPTIONS)
 		use_joy_button_captions = true;
 		num_joy_button_captions = sizeof(joy_button_captions) / sizeof(_TCHAR *);
-	#endif	
+	#endif
 #endif
 #if defined(USE_KEY_LOCKED)
 	use_key_locked = true;
@@ -316,18 +308,18 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #endif
 #if defined(ONE_BOARD_MICRO_COMPUTER)
 	use_one_board_computer = true;
-#endif		
+#endif
 #if defined(USE_PRINTER)
 	use_printer = true;
 	#if defined(USE_PRINTER_TYPE)
 		use_printer_type = USE_PRINTER_TYPE;
-	#endif	
+	#endif
 #endif
 #if defined(USE_SERIAL)
 	use_serial = true;
 	#if defined(USE_SERIAL_TYPE)
 		use_serial_type = USE_SERIAL_TYPE;
-	#endif	
+	#endif
 #endif
 #if defined(USE_SCANLINE)
 	use_scanline = true;
@@ -340,7 +332,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #endif
 #if defined(USE_SOUND_TYPE)
 	use_sound_device_type = USE_SOUND_TYPE;
-#endif	
+#endif
 #if defined(USE_SOUND_VOLUME)
 	use_sound_volume = USE_SOUND_VOLUME;
 #endif
@@ -356,7 +348,7 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #if defined(USE_SPECIAL_RESET)
 	use_special_reset = true;
 	special_reset_num = USE_SPECIAL_RESET;
-#endif	
+#endif
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;
 #endif
@@ -368,19 +360,19 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	max_ranges = sizeof(vm_ranges) / sizeof(vm_ranges_t);
 	vm_ranges_d = (vm_ranges_t *)vm_ranges;
 #endif
-	
+
 #if defined(USE_VERTICAL_PIXEL_LINES)
 	use_vertical_pixel_lines = true;
 #endif
 #if defined(TAPE_BINARY_ONLY)
 	tape_binary_only = true;
-#endif	
+#endif
 #if defined(_SCREEN_MODE_NUM)
 	screen_mode_num = _SCREEN_MODE_NUM;
 #endif
 #if defined(USE_STATE)
 	use_state = true;
-#endif   
+#endif
 	p_config = &config;
 }
 
@@ -398,7 +390,7 @@ const _TCHAR *USING_FLAGS_EXT::get_joy_button_captions(int num)
 	}
 #else
 	return "";
-#endif	
+#endif
 }
 
 const _TCHAR *USING_FLAGS_EXT::get_sound_device_caption(int num)
@@ -411,7 +403,7 @@ const _TCHAR *USING_FLAGS_EXT::get_sound_device_caption(int num)
 	}
 #else
 	return "";
-#endif	
+#endif
 }
 
 
@@ -421,7 +413,7 @@ int USING_FLAGS_EXT::get_s_freq_table(int num)
 	if(num >= (int)(sizeof(s_freq_table) / sizeof(int))) return s_freq_table[sizeof(s_freq_table) / sizeof(int) - 1];
 	return s_freq_table[num];
 }
-																		
+
 int USING_FLAGS_EXT::get_vm_node_size(void)
 {
 	if(p_emu == NULL) return 0;
