@@ -357,51 +357,49 @@ int I386::run(int cycles)
 {
 	// Prefer to run as one step (cycles == -1). 20220210 K.O
 	__LIKELY_IF(cycles == -1) {
-		int passed_cycles;
+		if(_SINGLE_MODE_DMA) {
+			__LIKELY_IF(device_dma != NULL) {
+				device_dma->do_dma();
+			}
+		}
+		int __cycles;
 		__UNLIKELY_IF(busreq) {
 			// don't run cpu!
-//#ifdef SINGLE_MODE_DMA
-			__LIKELY_IF(_SINGLE_MODE_DMA) {
-				if(device_dma != NULL) device_dma->do_dma();
-			}
-//#endif
-			// 80386 CPI: 4.9
-			int __cycles = 5;
-			if(extra_cycles > 0) {
-				__cycles += extra_cycles;
-				extra_cycles = 0;
-			}
-			__UNLIKELY_IF(_USE_DEBUGGER) {
-				total_cycles += __cycles;
-			}
-			cpu_wait(5, i386_memory_wait);
-			return __cycles;
+			// 80386 CPI: 4.9, minimum clocks may be 5.
+			__cycles = 5;
 		} else {
 			// run only one opcode
-			int __cycles = run_one_opecode();
-			int tmp_extra_cycles = 0;
-			if(extra_cycles > 0) {
-				tmp_extra_cycles = extra_cycles;
-				extra_cycles = 0;
+			__cycles = run_one_opecode();
+			__UNLIKELY_IF(__cycles < 1) {
+				__cycles = 1;
 			}
-			__UNLIKELY_IF(_USE_DEBUGGER) {
-				total_cycles += __cycles;
-			}
-			cpu_wait(__cycles, i386_memory_wait);
-			return __cycles + tmp_extra_cycles;
 		}
+		int tmp_extra_cycles = 0;
+		__UNLIKELY_IF(extra_cycles > 0) {
+			tmp_extra_cycles = extra_cycles;
+			extra_cycles = 0;
+		}
+		__UNLIKELY_IF(_USE_DEBUGGER) {
+			total_cycles += __cycles;
+		}
+		cpu_wait(__cycles, i386_memory_wait); // OK?
+		return __cycles + tmp_extra_cycles;
 //#ifdef USE_DEBUGGER
 //#endif
 	} else {
 		// Secondary
-//		remained_cycles += cycles + extra_cycles;
 		remained_cycles += cycles;
-		extra_cycles = 0;
+		int tmp_extra_cycles = 0;
+		__UNLIKELY_IF(extra_cycles > 0) {
+			tmp_extra_cycles = extra_cycles;
+			extra_cycles = 0;
+		}
 		int first_cycles = remained_cycles;
 
 		// run cpu while given clocks
 		__LIKELY_IF(!(busreq)) {
 			while(remained_cycles > 0 && !busreq) {
+				// ToDo: for _SINGLE_MODE_DMA 20230305 K.O
 				remained_cycles -= run_one_opecode();
 				//			remained_cycles -= run(-1);
 				__UNLIKELY_IF(busreq) break;
@@ -418,7 +416,7 @@ int I386::run(int cycles)
 		}
 		int passed_cycles = first_cycles - remained_cycles;
 		//cpu_wait(passed_cycles, i386_memory_wait);
-		return passed_cycles;
+		return passed_cycles + tmp_extra_cycles;
 	}
 }
 
