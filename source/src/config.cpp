@@ -33,12 +33,12 @@ BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, L
 {
 	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value), lpFileName);
 }
- 
+
 BOOL MyWritePrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool Value, LPCTSTR lpFileName)
 {
 	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value ? 1 : 0), lpFileName);
 }
- 
+
 bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault, LPCTSTR lpFileName)
 {
 	return (MyGetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
@@ -48,9 +48,9 @@ void initialize_config()
 {
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
-	config.window_mode = 1;	
+	config.window_mode = 1;
 	// memo: set only non zero value
-	config.full_speed = false;	
+	config.full_speed = false;
 
 	// console / telnet
 	config.use_telnet = false;
@@ -121,9 +121,9 @@ void initialize_config()
 			config.swap_audio_byteorder[drv] = false;
 		}
 	#endif
-		
-	config.compress_state = true;
-	
+
+	config.compress_state = config.drive_vm_in_opecode = true;
+
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
 		config.fullscreen_stretch_type = 1;	// Stretch (Aspect)
@@ -172,7 +172,7 @@ void initialize_config()
 	// debug
 	config.special_debug_fdc = false;
 	config.print_statistics = false;
-	
+
 	// win32
 	#if defined(_WIN32) && !defined(_USE_QT)
 		#ifndef ONE_BOARD_MICRO_COMPUTER
@@ -182,39 +182,39 @@ void initialize_config()
 		config.use_dinput = true;
 		config.show_status_bar = true;
 	#endif
-	
+
 	// qt
 	#ifdef _USE_QT
 		config.use_separate_thread_draw = true;
-		config.use_osd_virtual_media = true;		
+		config.use_osd_virtual_media = true;
 		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
 		config.render_major_version = 2; // For crash with some devices.
 		config.render_minor_version = 0;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
-		
+
 		config.use_opengl_scanline = false;
 		config.opengl_scanline_vert = false;
 		config.opengl_scanline_horiz = false;
 		config.use_opengl_filters = false;
 		config.opengl_filter_num = 0;
 		config.focus_with_click = false;
-		
+
 		config.video_width = 640;
 		config.video_height = 480;
 		config.video_codec_type = 0; // MPEG4
-	
+
 		config.video_h264_bitrate = 512;
 		config.video_h264_bframes = 4;
 		config.video_h264_b_adapt = 2;
 		config.video_h264_minq = 14;
 		config.video_h264_maxq = 25;
 		config.video_h264_subme = 8;
-		
+
 		config.video_mpeg4_bitrate = 512;
 		config.video_mpeg4_bframes = 4;
 		config.video_mpeg4_minq = 1;
 		config.video_mpeg4_maxq = 20;
-		
+
 		config.audio_codec_type = 0;
 		config.video_threads = 0;
 		config.audio_bitrate = 160;
@@ -230,8 +230,8 @@ void initialize_config()
 		}
 		config.state_log_to_console = false;
 		config.state_log_to_syslog = false;
-		config.state_log_to_recording = false; 
-		
+		config.state_log_to_recording = false;
+
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 		config.virtual_media_position = 2; // Down.
 		for(int drv = 0; drv < 16; drv++) {
@@ -241,9 +241,9 @@ void initialize_config()
 		config.cursor_as_ten_key = CONFIG_CURSOR_AS_CURSOR;
 		memset(config.debugwindow_font, 0x00, sizeof(config.debugwindow_font));
 		memset(config.logwindow_font, 0x00, sizeof(config.logwindow_font));
-		
+
 	#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) \
-	    || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)		
+	    || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		config.numpad_enter_as_fullkey = false;
 	#else
 		config.numpad_enter_as_fullkey = true;
@@ -262,7 +262,7 @@ void load_config(const _TCHAR *config_path)
 	int drv, i;
 	// initial settings
 	initialize_config();
-	
+
 	// control
 	#ifdef USE_BOOT_MODE
 		config.boot_mode = MyGetPrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
@@ -280,7 +280,7 @@ void load_config(const _TCHAR *config_path)
 				MyGetPrivateProfileInt(_T("Control"),
 									   create_string(_T("MachineFeatures%d"), ii),
 									   config.machine_features[ii], config_path);
-			
+
 		}
 	#endif
 	#ifdef USE_DEVICE_TYPE
@@ -333,7 +333,8 @@ void load_config(const _TCHAR *config_path)
 			config.baud_high[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("BaudHigh%d"), drv + 1), config.baud_high[drv], config_path);
 		}
 	#endif
-	config.compress_state = MyGetPrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);		
+	config.compress_state = MyGetPrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
+	config.drive_vm_in_opecode = MyGetPrivateProfileBool(_T("Control"), _T("DriveVMInOpecode"), config.drive_vm_in_opecode, config_path);
 		// recent files
 	#ifdef USE_CART
 		MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialCartDir"), _T(""), config.initial_cart_dir, _MAX_PATH, config_path);
@@ -408,7 +409,7 @@ void load_config(const _TCHAR *config_path)
 			}
 		}
 	#endif
-	
+
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
 		config.window_mode = MyGetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
@@ -419,7 +420,7 @@ void load_config(const _TCHAR *config_path)
 //		#endif
 	#endif
 
-	
+
 	// filter
 	#ifdef USE_SCREEN_FILTER
 		config.filter_type = MyGetPrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);
@@ -457,7 +458,7 @@ void load_config(const _TCHAR *config_path)
 			#endif
 		}
 	#endif
-	
+
 	#if defined(_WIN32) && !defined(_USE_QT)
 		// for compatibilities
 		#ifdef _X1_H_
@@ -521,7 +522,7 @@ void load_config(const _TCHAR *config_path)
 	// qt
 	#ifdef _USE_QT
 		config.use_separate_thread_draw = MyGetPrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
-		config.use_osd_virtual_media = MyGetPrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path); 
+		config.use_osd_virtual_media = MyGetPrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path);
 		config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
 		config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
 		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
@@ -534,7 +535,7 @@ void load_config(const _TCHAR *config_path)
 
 		config.general_sound_level = MyGetPrivateProfileInt(_T("Qt"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
 		config.focus_with_click = MyGetPrivateProfileBool(_T("Qt"), _T("FocusWithClick"), config.focus_with_click, config_path);
-		
+
 		if(config.rendering_type < 0) config.rendering_type = 0;
 		if(config.rendering_type >= CONFIG_RENDER_TYPE_END) config.rendering_type = CONFIG_RENDER_TYPE_END - 1;
 
@@ -564,49 +565,49 @@ void load_config(const _TCHAR *config_path)
 		if(config.video_width < 128) config.video_width = 128;
 		config.video_height  = MyGetPrivateProfileInt(_T("Qt"), _T("VideoHeight"), 480, config_path);
 		if(config.video_height < 80) config.video_height = 80;
-		
+
 		config.video_codec_type = MyGetPrivateProfileInt(_T("Qt"), _T("VideoCodecType"), 1, config_path);
 		if(config.video_codec_type > 1) config.video_codec_type = 1;
 		if(config.video_codec_type < 0) config.video_codec_type = 0;
-		
+
 		config.audio_codec_type = MyGetPrivateProfileInt(_T("Qt"), _T("AudioCodecType"), 0, config_path);
 		if(config.video_codec_type > 2) config.audio_codec_type = 2;
 		if(config.video_codec_type < 0) config.audio_codec_type = 0;
-		
+
 		config.video_h264_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("H264Bitrate"), 3500, config_path);
 		if(config.video_h264_bitrate < 64) config.video_h264_bitrate = 64;
-		
+
 		config.video_h264_bframes = MyGetPrivateProfileInt(_T("Qt"), _T("H264BFrames"), 4, config_path);
 		if(config.video_h264_bframes < 0) config.video_h264_bframes = 0;
 		if(config.video_h264_bframes > 10) config.video_h264_bframes = 10;
-		
+
 		config.video_h264_b_adapt = MyGetPrivateProfileInt(_T("Qt"), _T("H264BAdapt"), 2, config_path);
 		if(config.video_h264_b_adapt < 0) config.video_h264_b_adapt = 0;
 		if(config.video_h264_b_adapt > 2) config.video_h264_b_adapt = 2;
-		
+
 		config.video_h264_subme   = MyGetPrivateProfileInt(_T("Qt"), _T("H264Subme"), 7, config_path);
 		if(config.video_h264_subme < 0) config.video_h264_subme = 0;
 		if(config.video_h264_subme > 11) config.video_h264_subme = 11;
-		
+
 		config.video_h264_minq   = MyGetPrivateProfileInt(_T("Qt"), _T("H264MinQ"), 15, config_path);
 		if(config.video_h264_minq < 0) config.video_h264_minq = 0;
 		if(config.video_h264_minq > 63) config.video_h264_minq = 63;
-		
+
 		config.video_h264_maxq   = MyGetPrivateProfileInt(_T("Qt"), _T("H264MaxQ"), 28, config_path);
 		if(config.video_h264_maxq < 0) config.video_h264_maxq = 0;
 		if(config.video_h264_maxq > 63) config.video_h264_maxq = 63;
-		
+
 		config.video_mpeg4_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4Bitrate"), 1500, config_path);
 		if(config.video_mpeg4_bitrate < 64) config.video_mpeg4_bitrate = 64;
-		
+
 		config.video_mpeg4_bframes = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4BFrames"), 2, config_path);
 		if(config.video_mpeg4_bframes < 0) config.video_mpeg4_bframes = 0;
 		if(config.video_mpeg4_bframes > 10) config.video_mpeg4_bframes = 10;
-		
+
 		config.video_mpeg4_minq   = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4MinQ"), 1, config_path);
 		if(config.video_mpeg4_minq < 1) config.video_mpeg4_minq = 1;
 		if(config.video_mpeg4_minq > 31) config.video_mpeg4_minq = 31;
-		
+
 		config.video_mpeg4_maxq   = MyGetPrivateProfileInt(_T("Qt"), _T("MPEG4MaxQ"), 15, config_path);
 		if(config.video_mpeg4_maxq < 1) config.video_mpeg4_maxq = 1;
 		if(config.video_mpeg4_maxq > 31) config.video_mpeg4_maxq = 31;
@@ -616,22 +617,22 @@ void load_config(const _TCHAR *config_path)
 			config.video_mpeg4_maxq  = config.video_mpeg4_minq;
 			config.video_mpeg4_minq = n;
 		}
-		
+
 		config.video_threads = MyGetPrivateProfileInt(_T("Qt"), _T("VideoThreads"), 0, config_path);
 		if(config.video_threads < 0) config.video_threads = 0;
 		if(config.video_threads > 16) config.video_threads = 16;
-		
+
 		config.audio_bitrate = MyGetPrivateProfileInt(_T("Qt"), _T("AudioBitrate"), 224, config_path);
 		if(config.audio_bitrate < 16) config.audio_bitrate = 16;
 		if(config.audio_bitrate > 448) config.audio_bitrate = 448;
-		
+
 		config.video_frame_rate = MyGetPrivateProfileInt(_T("Qt"), _T("VideoFramerate"), 60, config_path);
 		if(config.video_frame_rate < 15) config.video_frame_rate = 15;
 		if(config.video_frame_rate > 75) config.video_frame_rate = 75;
 		// Logging
 		config.log_to_syslog = MyGetPrivateProfileBool(_T("Qt"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 		config.log_to_console = MyGetPrivateProfileBool(_T("Qt"), _T("WriteToConsole"), config.log_to_console, config_path);
-		
+
 		for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
 			uint32_t flags = 0;
 			flags = MyGetPrivateProfileInt(_T("Qt"), create_string(_T("SyslogEnabled%d"), ii), 0xffff, config_path);
@@ -658,7 +659,7 @@ void load_config(const _TCHAR *config_path)
 		config.virtual_media_position = MyGetPrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
 	#endif
 }
-		
+
 void save_config(const _TCHAR *config_path)
 {
 	int drv, i;
@@ -672,8 +673,8 @@ void save_config(const _TCHAR *config_path)
 		pt->Fclose();
 		delete pt;
 	}
-	
-#endif	
+
+#endif
 	// control
 	#ifdef USE_BOOT_MODE
 		MyWritePrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
@@ -690,7 +691,7 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileInt(_T("Control"),
 									   create_string(_T("MachineFeatures%d"), ii),
 									   config.machine_features[ii], config_path);
-			
+
 		}
 	#endif
 	#ifdef USE_DEVICE_TYPE
@@ -744,9 +745,8 @@ void save_config(const _TCHAR *config_path)
 		}
 	#endif
 	MyWritePrivateProfileBool(_T("Control"), _T("CompressState"), config.compress_state, config_path);
-	
- 	// recent files
-	
+	MyWritePrivateProfileBool(_T("Control"), _T("DriveVMInOpecode"), config.drive_vm_in_opecode, config_path);
+
 	// recent files
 	#ifdef USE_CART
 		MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialCartDir"), config.initial_cart_dir, config_path);
@@ -797,7 +797,7 @@ void save_config(const _TCHAR *config_path)
 			}
 
  		}
-		
+
  	#endif
 	#ifdef USE_LASER_DISC
 		MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), config.initial_laser_disc_dir, config_path);
@@ -823,7 +823,7 @@ void save_config(const _TCHAR *config_path)
 			}
  		}
 	#endif
-	
+
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
 		MyWritePrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
@@ -838,7 +838,7 @@ void save_config(const _TCHAR *config_path)
 	#ifdef USE_SCREEN_FILTER
 		MyWritePrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);
 	#endif
-		
+
 	// sound
 		MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 		MyWritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
@@ -867,7 +867,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileString(_T("Sound"), _T("YM2151GenDll"), config.mame2151_dll_path, config_path);
 		MyWritePrivateProfileString(_T("Sound"), _T("YM2608GenDll"), config.mame2608_dll_path, config_path);
 	#endif
-	
+
 	// input
 	#ifdef USE_JOYSTICK
 		for(int i = 0; i < 4; i++) {
@@ -881,7 +881,7 @@ void save_config(const _TCHAR *config_path)
 		for(int j = 0; j < 4; j++) {
 			MyWritePrivateProfileBool(_T("Input"), create_string(_T("JoyEmulateDpad%d"), j), config.emulated_joystick_dpad[j], config_path);
 		}
-		
+
 		MyWritePrivateProfileBool(_T("Input"), _T("UseJoyToKey"), config.use_joy_to_key, config_path);
 		MyWritePrivateProfileInt(_T("Input"), _T("JoyToKeyType"), config.joy_to_key_type, config_path);
 		MyWritePrivateProfileBool(_T("Input"), _T("JoyToKeyNumPad5"), config.joy_to_key_numpad5, config_path);
@@ -901,7 +901,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileString(_T("Printer"), _T("PrinterDll"), config.printer_dll_path, config_path);
 	#endif
 
-	
+
 	// win32
 	#if defined(_WIN32) && !defined(_USE_QT)
 		MyWritePrivateProfileBool(_T("Win32"), _T("UseTelnet"), config.use_telnet, config_path);
@@ -916,7 +916,7 @@ void save_config(const _TCHAR *config_path)
 	#endif
 	#ifdef _USE_QT
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
-		MyWritePrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path); 
+		MyWritePrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
 		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
@@ -946,34 +946,34 @@ void save_config(const _TCHAR *config_path)
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
-			MyWritePrivateProfileString(_T("Qt"), (const _TCHAR *)name, 
+			MyWritePrivateProfileString(_T("Qt"), (const _TCHAR *)name,
 										config.assigned_joystick_name[i], config_path);
 		}
-	#endif	
+	#endif
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoWidth"), config.video_width, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoHeight"), config.video_height, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoCodecType"), config.video_codec_type, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("AudioCodecType"), config.audio_codec_type, config_path);
-		
+
 		MyWritePrivateProfileInt(_T("Qt"), _T("H264Bitrate"), config.video_h264_bitrate, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("H264BFrames"), config.video_h264_bframes, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("H264BAdapt"), config.video_h264_b_adapt, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("H264MinQ"), config.video_h264_minq, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("H264MaxQ"), config.video_h264_maxq, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("H264Subme"), config.video_h264_subme, config_path);
-		
+
 		MyWritePrivateProfileInt(_T("Qt"), _T("MPEG4Bitrate"), config.video_mpeg4_bitrate, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("MPEG4BFrames"), config.video_mpeg4_bframes, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("MPEG4MinQ"), config.video_mpeg4_minq, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("MPEG4MaxQ"), config.video_mpeg4_maxq, config_path);
-		
+
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoThreads"), config.video_threads, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("AudioBitrate"), config.audio_bitrate, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("VideoFramerate"), config.video_frame_rate, config_path);
-		
+
 		MyWritePrivateProfileBool(_T("Qt"), _T("WriteToSyslog"), config.log_to_syslog, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("WriteToConsole"), config.log_to_console, config_path);
-		
+
 		for(int ii = 0; ii < (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1) ; ii++) {
 			uint32_t flags = 0;
 			flags = 0;
@@ -982,14 +982,14 @@ void save_config(const _TCHAR *config_path)
 				if(config.dev_log_to_syslog[ii][jj]) flags |= 0x0001;
 			}
 			MyWritePrivateProfileInt(_T("Qt"), create_string(_T("SyslogEnabled%d"), ii), flags, config_path);
-			
+
 			flags = 0;
 			for(int jj = 0; jj < 8; jj++) {
 				flags <<= 1;
 				if(config.dev_log_to_console[ii][jj]) flags |= 0x0001;
 			}
 			MyWritePrivateProfileInt(_T("Qt"), create_string(_T("ConsoleLogEnabled%d"), ii), flags, config_path);
-			
+
 			flags = 0;
 			for(int jj = 0; jj < 8; jj++) {
 				flags <<= 1;
@@ -1000,9 +1000,9 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);
-		
+
 		MyWritePrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
-	#endif	
+	#endif
 }
 
 #define STATE_VERSION	7
@@ -1010,7 +1010,7 @@ void save_config(const _TCHAR *config_path)
 bool process_config_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	
+
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -1058,7 +1058,7 @@ bool process_config_state(void *f, bool loading)
 	#endif
 	state_fio->StateValue(config.sound_frequency);
 	state_fio->StateValue(config.sound_latency);
-	
+
 	#if defined(USE_FIXED_CONFIG) || defined(USE_SCANLINE)
 	state_fio->StateValue(config.scan_line);
 	#endif
@@ -1073,7 +1073,6 @@ bool process_config_state(void *f, bool loading)
 	state_fio->StateValue(config.current_ram_size);
 	#endif
 	state_fio->StateValue(config.cpu_power);
-	
+
 	return true;
 }
-

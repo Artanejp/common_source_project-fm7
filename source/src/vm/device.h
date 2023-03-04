@@ -63,12 +63,12 @@ public:
 	 *  destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]".
 	 */
 	~DEVICE(void);
-	
+
 	/*!
 	 * @brief Initialize a DEVICE.
 	 * @note Initializing VM must be after initializing OSD.
 	 * @note You may call DEVICE::initialize() FOO::initialize() of inherited class.
-	 */ 
+	 */
 	virtual void initialize();
 	/*!
 	 * @brief De-Allocate resources before DESTRUCTION this class.
@@ -77,7 +77,7 @@ public:
 	virtual void release();
 	//!< Sound input functions
 	/*!
-	 * @brief clear a temporaly sound buffer to zero. 
+	 * @brief clear a temporaly sound buffer to zero.
 	 * @param bank bank number of temporaly sound buffer.
 	 */
 	virtual void clear_sound_in_source(int bank);
@@ -99,7 +99,7 @@ public:
 	 * @note this function may be before (or after) initialize().
 	 */
 	virtual int release_sound_in_source(int bank);
-	
+
 	/*!
 	 * @brief check whether a temporaly sound buffer exists.
 	 * @param bank number wish to check.
@@ -241,7 +241,7 @@ public:
 	 * @note normally returns true when saving.
 	 */
 	virtual bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	/*!
 	 * @brief get linear address from segment:offset model.
 	 * @param segment number of segment.
@@ -254,7 +254,7 @@ public:
 	 * @deprecated this function will not use from bios
 	 */
 	virtual uint32_t __FASTCALL translate_address(int segment, uint32_t offset);
-	
+
 	//<! memory bus
 	/*!
 	 * @brief write a 8bit width data to memory .
@@ -420,7 +420,7 @@ public:
 	 * @return read value.
 	 */
 	virtual uint32_t __FASTCALL read_dma_data32w(uint32_t addr, int* wait);
-	
+
 	//<! i/o bus
 	/*!
 	 * @brief write 8bit width data to I/O bus.
@@ -578,7 +578,7 @@ public:
 	 * @return read value from I/O.
 	 */
 	virtual uint32_t __FASTCALL read_dma_io32w(uint32_t addr, int* wait);
-	
+
 	// memory mapped i/o
 	/*!
 	  @brief write 8bit width data to this device's MMIO (or MEMORY).
@@ -670,7 +670,7 @@ public:
 	  @note This method is called from another device, normally MEMORY BUS.
 	*/
 	virtual uint32_t __FASTCALL read_memory_mapped_io32w(uint32_t addr, int* wait);
-	
+
 	//<! device to device
 	/*!
 	 * @struct output_t
@@ -682,7 +682,7 @@ public:
 		uint32_t mask;	//<! value mask of this signal
 		int shift;		//<! shifting value to write.
 	} output_t;
-	
+
 	/*!
 	 * @struct outputs_t
 	 * @brief multiple output port.
@@ -696,7 +696,7 @@ public:
 	 * @param items pointer of multiple output port.
 	 * @note must call before using a multiple output port.
 	 * @note items must be pointer, not be multiple output port.
-	 */ 
+	 */
 	virtual void initialize_output_signals(outputs_t *items);
 	/*!
 	 * @brief register a port to multiple output port
@@ -749,7 +749,7 @@ public:
 	 * @retval 0 default value.
 	 */
 	virtual uint32_t __FASTCALL read_signal(int ch);
-	
+
 	//<! z80 daisy chain
 	/*!
 	 * @brief set target device for INTR signal
@@ -759,25 +759,25 @@ public:
 	 */
 	virtual void set_context_intr(DEVICE* device, uint32_t bit);
 	/*!
-	 * @brief register child (slave) device to this device.	
+	 * @brief register child (slave) device to this device.
 	 * @param device pointer of child device.
 	 */
 	virtual void set_context_child(DEVICE* device);
-	
+
 	/*!
-	 * @brief get  child (slave) device of this device.	
+	 * @brief get  child (slave) device of this device.
 	 * @return pointer of child device.
 	 * @retval nullptr child not exists.
 	 * @retval NULL child not exists.
 	 */
 	virtual DEVICE *get_context_child();
-	
+
 	/*!
 	 * @brief send interrupt (IEI) signal from device to device
 	 * @param val interrupt status value
 	 */
 	virtual void __FASTCALL set_intr_iei(bool val);
-	
+
 	/*!
 	 * @brief send interrupt signal from device to cpu
 	 * @param line signal value
@@ -785,7 +785,7 @@ public:
 	 * @param bit interrupt bit to update.
 	 */
 	virtual void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit);
-	
+
 	// interrupt cpu to device
 	/*!
 	  @brief get acknowledge value from this device.
@@ -806,12 +806,12 @@ public:
 	  @brief notify EI signal to this device from CPU.
 	 */
 	virtual void notify_intr_ei();
-	
+
 	/*!
 	  @brief do a DMA transfer cycle.
 	 */
 	virtual void __FASTCALL do_dma();
-	
+
 	//<! cpu
 	/*!
 	  @brief run instruction(s) of CPU
@@ -827,7 +827,7 @@ public:
 	 */
 	virtual void __FASTCALL set_extra_clock(int clock);
 	/*!
-	  @brief get extra clocks 
+	  @brief get extra clocks
 	  @return extra clocks
 	  @retval 0 default value.
 	 */
@@ -845,7 +845,7 @@ public:
 	 * @note normally this value contains current instruction address.
 	 */
 	virtual uint32_t get_next_pc();
-	
+
 	//<! bios
 	/*!
 	 * @brief hook of pseudo bios for i86 (16bit) variants
@@ -861,7 +861,7 @@ public:
 	virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles);
 	/*!
 	 * @brief hook of INTxx pseudo bios for i86 (16bit) variants
-	 * @param intnum number of software interrupt 
+	 * @param intnum number of software interrupt
 	 * @param regs array of general purpose registes
 	 * @param sregs array of segment registers
 	 * @param ZeroFlag pointer to get ZeroFlag
@@ -885,7 +885,7 @@ public:
 	virtual bool bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag, int* cycles, uint64_t* total_cycles);
 	/*!
 	 * @brief hook of INTxx pseudo bios for i386 (32bit) variants
-	 * @param intnum number of software interrupt 
+	 * @param intnum number of software interrupt
 	 * @param regs array of general purpose registes
 	 * @param sregs array of segment registers
 	 * @param ZeroFlag pointer to get ZeroFlag
@@ -916,9 +916,9 @@ public:
 	*/
 	virtual bool __FASTCALL address_translate_for_bios(int space, int intention, uint64_t &taddress);
 	// misc
-   
+
 	// event manager
-	DEVICE* event_manager; //<! event manager for this device (normally EVENT::). 
+	DEVICE* event_manager; //<! event manager for this device (normally EVENT::).
 	/*!
 	 * @brief set event manager of this device
 	 * @param device pointer if event manager.
@@ -947,7 +947,7 @@ public:
 	 * @brief get cpu clocks of target device
 	 * @param device target device
 	 * @return cpu clocks value (by HZ).
-	 * @retval CPU_CLOCKS when target is *not* CPU 
+	 * @retval CPU_CLOCKS when target is *not* CPU
 	 */
 	virtual uint32_t __FASTCALL get_cpu_clocks(DEVICE* device);
 	/*!
@@ -955,7 +955,7 @@ public:
 	 * @param clock clocks period for primary CPU.
 	 * @note this is called from primary cpu while running one opecode
 	*/
-	virtual void __FASTCALL update_extra_event(int clock);
+	virtual void __FASTCALL update_event_in_opecode(int clock);
 	/*!
 	 * @brief register a event of device to event manager by microseconds.
 	 * @param device target device (normally this)
@@ -1040,14 +1040,14 @@ public:
 	 */
 	virtual void register_vline_event(DEVICE* device);
 	/*!
-	  @brief inspect scheduled remain clocks until happened a event. 
+	  @brief inspect scheduled remain clocks until happened a event.
 	  @param register_id event id what wish to check remain.
 	  @return remain clock count until happen this event.
 	  @retval 0 already happened or evenr_id dont' exists.
 	 */
 	virtual uint32_t __FASTCALL get_event_remaining_clock(int register_id);
 	/*!
-	  @brief inspect scheduled remain uSecs until happened a event. 
+	  @brief inspect scheduled remain uSecs until happened a event.
 	  @param register_id event id what wish to check remain.
 	  @return remain time by uSecs until happen this event.
 	  @retval 0.0 already happened or evenr_id dont' exists.
@@ -1140,7 +1140,7 @@ public:
 	  @brief Force render sound immediately when device's status has changed.
 	  @note You must call this after you changing registers (or enything).
 	  @note If has problems, try set_realtime_render.
-	  @note See mb8877.cpp and ym2203.cpp. 
+	  @note See mb8877.cpp and ym2203.cpp.
 	  @note -- 20161010 K.O
 	*/
 	virtual void touch_sound(void);
@@ -1166,9 +1166,9 @@ public:
 	  @param new_frames_per_sec frame rate expect to update.
 	  @param new_lines_per_frame number of vertical lines expect to update.
 	  @note any parameters has no means, as of DEVICE definitions.
-	*/ 
+	*/
 	virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	
+
 	//<! event callback
 	/*!
 	  @brief event handler of this device
@@ -1180,19 +1180,19 @@ public:
 	/*!
 	  @brief fixed handler before processing a frame.
 	  @note must call register_frame_event(this) before using (normally initialize()).
-	*/  
+	*/
 	virtual void event_pre_frame();
 	/*!
 	  @brief fixed handler processing a top of frame.
 	  @note must call register_frame_event(this) before using (normally initialize()).
-	*/  
+	*/
 	virtual void event_frame();
 	/*!
 	  @brief fixed handler per begin of vertical lines.
 	  @param v position of vertical line.
 	  @param clock relative clocks
 	  @note must call register_vline_event(this) before using (normally initialize()).
-	*/  
+	*/
 	virtual void event_vline(int v, int clock);
 	/*!
 	  @brief fixed handler per a pixel (HSYNC).
@@ -1200,9 +1200,9 @@ public:
 	  @param h pixel offset position of this vertical line.
 	  @param clock relative clocks
 	  @note this still not be used.
-	*/  
+	*/
 	virtual void __FASTCALL event_hsync(int v, int h, int clock);
-	
+
 	// sound
 	/*!
 	  @brief render sound samples
@@ -1220,9 +1220,9 @@ public:
 	  @note +1 equals +0.5dB (same as fmgen)
 	*/
 	virtual void set_volume(int ch, int decibel_l, int decibel_r);
-	
+
 	/*!
-	  @brief get render sound volume values 
+	  @brief get render sound volume values
 	  @param ch local channel to set volume
 	  @param decibel_l left volume value by 0.5 decibel
 	  @param decivel_r right volume value by 0.5 decibel
@@ -1235,25 +1235,6 @@ public:
 	  @param format name of this device (printf style)
 	*/
 	virtual void set_device_name(const _TCHAR *format, ...);
-/*
-	These functions are used for debugging non-cpu device
-	Insert debugger between standard read/write functions and these functions for checking breakpoints
-
-	void DEVICE::write_data8(uint32_t addr, uint32_t data)
-	{
-		if(debugger != NULL && debugger->now_device_debugging) {
-			// debugger->mem = this;
-			// debugger->mem->write_via_debugger_data8(addr, data)
-			debugger->write_via_debugger_data8(addr, data);
-		} else {
-			this->write_via_debugger_data8(addr, data);
-		}
-	}
-	void DEVICE::write_via_debugger_data8(uint32_t addr, uint32_t data)
-	{
-		// write memory
-	}
-*/
 	/*!
 	  @brief write 8bit data to memory from debugger.
 	  @param addr target address to write.
@@ -1374,7 +1355,7 @@ public:
 	  @param data data to write.
 	  @param wait pointer of wait result value.
 	*/
-	virtual void __FASTCALL write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait); 
+	virtual void __FASTCALL write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait);
 	/*!
 	  @brief read 8bit data to debugger from I/O bus with wait.
 	  @param addr target address to read.
@@ -1588,7 +1569,7 @@ public:
 	 @return results.
 	 @retval true this device has description of registers.
 	 @retval false this device doesn't have descpriction of registers.
-	*/ 
+	*/
 	virtual bool get_debug_regs_description(_TCHAR *buffer, size_t buffer_len);
 	/*!
 	  @brief disassemble one instruction.
@@ -1635,10 +1616,10 @@ public:
 	const _TCHAR *get_lib_common_vm_version(void);
 
 	_TCHAR this_device_name[128];	//<! name of this device
-	
+
 	DEVICE* prev_device;	//<! previous device pointer of this device chain
 	DEVICE* next_device;	//<! next device pointer of this device chain
-	int this_device_id;		//<! ID of this device 
+	int this_device_id;		//<! ID of this device
 };
 
 #endif

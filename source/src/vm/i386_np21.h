@@ -56,7 +56,7 @@ class  DLL_PREFIX I386 : public DEVICE
 private:
 	DEVICE *device_pic;
 	outputs_t outputs_extreset;
-	
+
 //#ifdef USE_DEBUGGER
 //	DEBUGGER *device_debugger;
 	DEVICE *device_mem_stored;
@@ -70,12 +70,12 @@ private:
 	uint32_t PREV_CS_BASE;
 	uint32_t waitfactor;
 	int64_t waitcount;
-	
+
 	bool _USE_DEBUGGER;
 	bool _I86_PSEUDO_BIOS;
 	bool _SINGLE_MODE_DMA;
 	uint32_t address_mask;
-	
+
 	int run_one_opecode();
 	uint32_t __FASTCALL convert_address(uint32_t cs, uint32_t eip);
 	inline void __FASTCALL cpu_wait(int clocks, int64_t& memory_wait);
@@ -95,7 +95,7 @@ public:
 		device_model = DEFAULT;
 	}
 	~I386() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -148,7 +148,7 @@ public:
 	virtual bool debug_rewind_call_trace(uint32_t pc, int &size, _TCHAR* buffer, size_t buffer_len, uint64_t userdata = 0);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique function
 	void set_context_mem(DEVICE* device);
 //	{
@@ -193,7 +193,10 @@ public:
 inline void __FASTCALL I386::cpu_wait(int clocks, int64_t& memory_wait)
 {
 	__UNLIKELY_IF(clocks < 0) {
-		clocks = 0;
+		return;
+	}
+	__LIKELY_IF(waitfactor <= 65536) {
+		return;
 	}
 	int64_t wfactor = waitfactor;
 	int64_t wcount = waitcount;

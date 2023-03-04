@@ -64,7 +64,7 @@ void TOWNS_MEMORY::config_page_d0_e0()
 	if(!(dma_is_vram)) {
 		set_memory_rw          (0x000d0000, 0x000effff, ram_paged);
 	} else {
-		if(select_d0_dict) { 
+		if(select_d0_dict) {
 			set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary);
 			set_memory_r           (0x000da000, 0x000effff, rd_dummy);
 			set_memory_w           (0x000da000, 0x000effff, wr_dummy);
@@ -79,7 +79,7 @@ void TOWNS_MEMORY::config_page_d0_e0()
 void TOWNS_MEMORY::config_page_f8_rom()
 {
 	set_memory_mapped_io_rw (0x000f8000, 0x000fffff, this);
-//		
+//
 //	if(select_d0_rom) {
 //		set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
 //		set_memory_w	       (0x000f8000, 0x000fffff, wr_dummy);
@@ -87,20 +87,20 @@ void TOWNS_MEMORY::config_page_f8_rom()
 //		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 //	}
 }
-	
+
 void TOWNS_MEMORY::config_page00()
 {
 	config_page_c0();
 	config_page_d0_e0();
 	config_page_f8_rom();
 }
-	
+
 void TOWNS_MEMORY::initialize()
 {
 //	if(initialized) return;
 	MEMORY::initialize();
 //	DEVICE::initialize();
-	
+
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
 	poff_status = false;
@@ -126,7 +126,7 @@ void TOWNS_MEMORY::initialize()
 
 	bank_mask = BANK_MASK;
 	addr_mask = ADDR_MASK;
-	
+
 	initialized = true;
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
@@ -137,32 +137,32 @@ void TOWNS_MEMORY::initialize()
 			set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
 			memset(extra_ram, 0x00, extram_size);
 		}
-	}		
+	}
 	memset(ram_page0, 0x00, sizeof(ram_page0));
 	memset(ram_pagec, 0x00, sizeof(ram_pagec));
 	memset(ram_paged, 0x00, sizeof(ram_paged));
 	memset(ram_pagef, 0x00, sizeof(ram_pagef));
-	
+
 	select_d0_dict = false;
 	select_d0_rom = true;
-	
+
 	dma_is_vram = true;
 	// Lower 100000h
 	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
 	config_page00();
-	
+
 	set_memory_mapped_io_rw(0x80000000, 0x8007ffff, d_vram);
 	set_memory_mapped_io_rw(0x80100000, 0x8017ffff, d_vram);
 	set_memory_mapped_io_rw(0x81000000, 0x8101ffff, d_sprite);
-	
+
 //	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
 //	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
 	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
 
 	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
 	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
-	
+
 	set_memory_mapped_io_r (0xc2000000, 0xc207ffff, d_msdos);
 	set_memory_mapped_io_r (0xc2080000, 0xc20fffff, d_dictionary);
 	set_memory_mapped_io_r (0xc2100000, 0xc213ffff, d_font);
@@ -172,24 +172,24 @@ void TOWNS_MEMORY::initialize()
 	}
 	set_memory_mapped_io_rw(0xc2200000, 0xc2200fff, d_pcm);
 	set_memory_mapped_io_r (0xfffc0000, 0xffffffff, d_sysrom);
-	
+
 	set_wait_values();
 	// Another devices are blank
-	
+
 	// load rom image
 	// ToDo: More smart.
 	vram_size = 0x80000; // OK?
 }
 
-	
+
 void TOWNS_MEMORY::set_wait_values()
 {
-	uint32_t waitfactor = 1 << 16;
+	uint32_t waitfactor = 0;
 	if(cpu_clock_val < get_cpu_clocks(d_cpu)) {
 		waitfactor = (uint32_t)(((double)get_cpu_clocks(d_cpu) / (double)cpu_clock_val) * 65536.0);
 	}
 	d_cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
-	
+
 	set_wait_rw(0x00000000, 0x000bffff, mem_wait_val);
 	set_wait_rw(0x000d0000, 0x000fffff, mem_wait_val);
 	if(dma_is_vram) {
@@ -198,7 +198,7 @@ void TOWNS_MEMORY::set_wait_values()
 		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
 	}
 	set_wait_rw(0x00100000, 0x00100000 + (extram_size & 0x3ff00000) - 1, mem_wait_val);
-   
+
 	// ToDo: Extend I/O Slots
 	set_wait_rw(0x80000000, 0x800fffff, vram_wait_val);
 	set_wait_rw(0x80100000, 0x801fffff, vram_wait_val);
@@ -221,7 +221,7 @@ void TOWNS_MEMORY::release()
 	if(rd_dummy != NULL) free(rd_dummy);
 	if(wr_table != NULL) free(wr_table);
 	if(wr_dummy != NULL) free(wr_dummy);
-	
+
 	if(extra_ram != NULL) {
 		free(extra_ram);
 		extra_ram = NULL;
@@ -242,7 +242,7 @@ void TOWNS_MEMORY::reset()
 	config_page00();
 
 	set_wait_values();
-#if 1	
+#if 1
 	__LIKELY_IF(d_cpu != NULL) {
 		d_cpu->set_address_mask(0xffffffff);
 	}
@@ -281,7 +281,7 @@ void TOWNS_MEMORY::update_machine_features()
 	}
 	// 0025h: NMICNT
 	if(machine_id >= 0x0500) { // After CX
-		reg_misc4 = 0x7f; 
+		reg_misc4 = 0x7f;
 	} else {
 		reg_misc4 = 0xff;
 	}
@@ -422,7 +422,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 			}
 		}
 		break;
-	   
+
 	case 0x05ec:
 		if(machine_id >= 0x0200) { // Towns2H/2F : Is this hidden register after Towns 1F/2F/1H/2H? -> Yes
 			val = 0x00;
@@ -549,7 +549,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		} else {
 			software_reset = false;
 		}
-		
+
 		if((data & 0x40) != 0) {
 			poff_status = true;
 			__LIKELY_IF(d_cpu != NULL) {
@@ -564,7 +564,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				d_cpu->set_shutdown_flag(0);
 			}
 		}
-		
+
 		if(software_reset) {
 			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->reset();
@@ -577,7 +577,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
 			}
 		}
-		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O	
+		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
@@ -897,13 +897,13 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 		*wait = wr_table[bank].wait;
 	}
 	return val;
-	
+
 }
 
 uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-	
+
 	__UNLIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io8(addr);
 	} else {
@@ -914,7 +914,7 @@ uint32_t TOWNS_MEMORY::read_dma_data8(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_dma_data16(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-	
+
 	__UNLIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io16(addr);
 	} else {
@@ -936,14 +936,14 @@ uint32_t TOWNS_MEMORY::read_dma_data16(uint32_t addr)
 uint32_t TOWNS_MEMORY::read_dma_data32(uint32_t addr)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-	
+
 	__UNLIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io32(addr);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = 0;
-		
+
 		__UNLIKELY_IF((naddr + 3) > bank_mask) {
 			n.b.l  = rd_table[bank].memory[naddr];
 			n.b.h  = read_dma_data8(addr + 1);
@@ -962,7 +962,7 @@ uint32_t TOWNS_MEMORY::read_dma_data32(uint32_t addr)
 void TOWNS_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-	
+
 	__UNLIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io8(addr, data);
 	} else {
@@ -973,14 +973,14 @@ void TOWNS_MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 void TOWNS_MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-	
+
 	__UNLIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io16(addr, data);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = data;
-		
+
 		__UNLIKELY_IF((naddr + 1) > bank_mask) {
 			wr_table[bank].memory[naddr] = n.b.l;
 			write_dma_data8(addr + 1, n.b.h);
@@ -994,14 +994,14 @@ void TOWNS_MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 void TOWNS_MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & addr_mask) >> addr_shift;
-	
+
 	__UNLIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io32(addr, data);
 	} else {
 		uint32_t naddr = addr & bank_mask;
 		pair32_t n;
 		n.d = data;
-		
+
 		__UNLIKELY_IF((naddr + 3) > bank_mask) {
 			wr_table[bank].memory[naddr] = n.b.l;
 			write_dma_data8(addr + 1, n.b.h);
@@ -1019,7 +1019,7 @@ void TOWNS_MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
 uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 {
 	uint32_t val = read_dma_data8(addr);
-	
+
 	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
@@ -1030,7 +1030,7 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 {
 	uint32_t val = read_dma_data16(addr);
-	
+
 	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
@@ -1041,7 +1041,7 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 {
 	uint32_t val = read_dma_data32(addr);
-	
+
 	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
@@ -1052,7 +1052,7 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_dma_data8(addr, data);
-	
+
 	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
@@ -1063,7 +1063,7 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_dma_data16(addr, data);
-	
+
 	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
@@ -1074,7 +1074,7 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_dma_data32(addr, data);
-	
+
 	__LIKELY_IF(wait != NULL) {
 		int bank = (addr & addr_mask) >> addr_shift;
 		*wait = wr_table[bank].wait;
@@ -1091,7 +1091,7 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->write_signal(SIG_CPU_NMI, data, mask);
 			}
-		}			
+		}
 	} else if(ch == SIG_CPU_NMI) {
 		// Check protect
 		if(!(nmi_mask)) {
@@ -1163,7 +1163,7 @@ uint32_t TOWNS_MEMORY::read_signal(int ch)
 		return 6; // OK?
 	} else if(ch == SIG_FMTOWNS_VRAM_WAIT) {
 		return (uint32_t)vram_wait_val;
-	} 
+	}
 	return 0;
 }
 
@@ -1183,28 +1183,28 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
-	
+
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
 	state_fio->StateValue(machine_id);
 	state_fio->StateValue(cpu_id);
 	state_fio->StateValue(is_compatible);
-	
+
 	state_fio->StateValue(mem_wait_val);
 	state_fio->StateValue(vram_wait_val);
 	state_fio->StateValue(wait_register);
-	
+
 	state_fio->StateValue(dma_is_vram);
 	state_fio->StateValue(nmi_vector_protect);
 	state_fio->StateValue(software_reset);
 	state_fio->StateValue(poff_status);
 	state_fio->StateValue(reset_happened);
-	
+
 	state_fio->StateValue(extra_nmi_val);
 	state_fio->StateValue(extra_nmi_mask);
 	state_fio->StateValue(nmi_mask);
-	
+
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
 	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);
 	state_fio->StateArray(ram_paged,  sizeof(ram_paged), 1);
@@ -1213,7 +1213,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(select_d0_rom);
 	state_fio->StateValue(select_d0_dict);
 	state_fio->StateValue(ankcg_enabled);
-	
+
 	state_fio->StateValue(vram_wait_val);
 	state_fio->StateValue(mem_wait_val);
 	state_fio->StateValue(vram_size);
@@ -1221,7 +1221,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 
 	if(loading) {
 		update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
-		
+
 		uint32_t length_tmp = state_fio->FgetUint32_LE();
 		if(extra_ram != NULL) {
 			free(extra_ram);

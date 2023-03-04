@@ -25,20 +25,21 @@ void EVENT::initialize()
 		config.cpu_power = 0;
 	}
 	power = config.cpu_power;
-	
+	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
+
 	// initialize sound buffer
 	sound_buffer = NULL;
 	sound_tmp = NULL;
-	
+
 	dont_skip_frames = 0;
 	prev_skip = next_skip = false;
 	sound_changed = false;
-	
+
 	// temporary
 	frame_clocks = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC + 0.5);
 	vline_start_clock = 0;
 	cur_vline = 0;
-	vline_clocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5);
+	vclocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5);
 }
 
 void EVENT::initialize_sound(int rate, int samples)
@@ -151,10 +152,11 @@ void EVENT::reset()
 			cancel_event(NULL, i);
 		}
 	}
-	
-	event_remain = event_extra = 0;
-	cpu_remain = cpu_accum = cpu_done = 0;
-	
+
+	event_clocks_remain = 0;
+	cpu_clocks_remain = cpu_clocks_accum = cpu_clocks_done = 0;
+	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
+
 	// reset sound
 	if(sound_buffer) {
 		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
@@ -171,29 +173,36 @@ void EVENT::reset()
 
 void EVENT::drive()
 {
-	if(event_half) goto skip1;
+	// Update cache from config.drive_vm_in_opecode .
+	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
+	if(event_half) {
+		goto skip1;
+	}
+
 	// raise pre frame events to update timing settings
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_pre_frame();
 	}
-	
+
 	// generate clocks per line
 	if(frames_per_sec != next_frames_per_sec || lines_per_frame != next_lines_per_frame) {
 		frames_per_sec = next_frames_per_sec;
 		lines_per_frame = next_lines_per_frame;
-		
+
 		frame_clocks = (int)((double)d_cpu[0].cpu_clocks / frames_per_sec + 0.5);
 		int remain = frame_clocks;
-		
+
 		for(int i = 0; i < lines_per_frame; i++) {
-			assert(i < MAX_LINES);
-			vline_clocks[i] = (int)(frame_clocks / lines_per_frame);
-			remain -= vline_clocks[i];
+			//assert(i < MAX_LINES);
+			__UNLIKELY_IF(i >= MAX_LINES) break;
+			vclocks[i] = (int)(frame_clocks / lines_per_frame);
+			remain -= vclocks[i];
 		}
 		for(int i = 0; i < remain; i++) {
 			int index = (int)((double)lines_per_frame * (double)i / (double)remain);
-			assert(index < MAX_LINES);
-			vline_clocks[index]++;
+			//assert(index < MAX_LINES);
+			__UNLIKELY_IF(index >= MAX_LINES) break;
+			vclocks[index]++;
 		}
 		for(int i = 1; i < dcount_cpu; i++) {
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
@@ -205,25 +214,23 @@ void EVENT::drive()
 			}
 		}
 	}
-		
+
 	// run virtual machine for 1 frame period
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_frame();
 	}
-	
 	cur_vline = 0;
 	vline_start_clock = get_current_clock();
-	
 	for(int i = 0; i < vline_event_count; i++) {
-		vline_event[i]->event_vline(cur_vline, vline_clocks[cur_vline]);
+		vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
 	}
-	this->register_event_by_clock(this, EVENT_VLINE, vline_clocks[cur_vline], false, NULL);
-	
-	if(event_remain < 0) {
-		if(-event_remain > vline_clocks[cur_vline]) {
-			update_event(vline_clocks[cur_vline]);
+	register_event_by_clock(this, EVENT_VLINE, vclocks[cur_vline], false, NULL);
+
+	if(event_clocks_remain < 0) {
+		if(-event_clocks_remain > vclocks[cur_vline]) {
+			update_event(vclocks[cur_vline]);
 		} else {
-			update_event(-event_remain);
+			update_event(-event_clocks_remain);
 		}
 	}
 skip1:
@@ -234,120 +241,126 @@ skip1:
 		_fclocks = frame_clocks / 2;
 	}
 	event_half = !(event_half);
-//	event_remain += frame_clocks;
-//	cpu_remain += frame_clocks << power;
-	event_remain += _fclocks;
-	cpu_remain += _fclocks << power;
-	
-	while(event_remain > 0) {
-		int event_done = event_remain;
-		__LIKELY_IF(cpu_remain > 0) {
+	event_clocks_remain += _fclocks;
+	cpu_clocks_remain += _fclocks << power;
+
+	while(event_clocks_remain > 0) {
+		int event_clocks_done = event_clocks_remain;
+		__LIKELY_IF(cpu_clocks_remain > 0) {
 			event_extra = 0;
-			int cpu_done_tmp;
+			int cpu_clocks_done_tmp;
 			__LIKELY_IF(dcount_cpu == 1) {
 				// run one opecode on primary cpu
-//				cpu_done_tmp = d_cpu[0].device->run(-1);
-				cpu_done_tmp = d_cpu[0].device->run(-1);
+				cpu_clocks_in_opecode = 0;
+				cpu_clocks_done_tmp  = d_cpu[0].device->run(-1);
+				cpu_clocks_done_tmp -= cpu_clocks_in_opecode;
+				#ifdef _DEBUG
+				assert(cpu_clocks_done_tmp >= 0);
+				#endif
+				if(cpu_clocks_done_tmp < 0) cpu_clocks_done_tmp = 0;
 			} else {
 				// sync to sub cpus
-				if(cpu_done == 0) {
+				if(cpu_clocks_done == 0) {
 					// run one opecode on primary cpu
-					cpu_done = d_cpu[0].device->run(-1);
-				}
-				
-				// sub cpu runs continuously and no events will be fired while the given clocks,
-				// so I need to give small enough clocks...
-#if 1
-//				cpu_done_tmp = (event_extra > 0 || cpu_done < 256) ? cpu_done : 256;
-//				cpu_done -= cpu_done_tmp;
-				cpu_done_tmp = cpu_done;
-				cpu_done = 0;           ;
-				for(int i = 1; i < dcount_cpu; i++) {
-					// run sub cpus
-					int clock_result = d_cpu[i].update_clocks * cpu_done_tmp;
-					int sub_clock = 0;
-					int sub_clock2 = 0;
-					if(clock_result > 0) {
-						__UNLIKELY_IF(clock_result >= 0x400) { // OVER 1 clocks with HOST, to reduce risk of overflow@accum_clocks.
-							// Upper clocks are not to need to add accum_clocks,
-							// accum_clocks may be effected by lower value of clock_result,
-							// *excepts multiply value (of adding value to accum_clocks) isn't 2^x*.
-							// 20191013 K.O
-							sub_clock = (int)(clock_result >> 10);
-							// Update only execution clocks (executing later)
-							//d_cpu[i].device->run(sub_clock); // Execute over 1 host clocks.
-							clock_result -= (sub_clock << 10);
+					cpu_clocks_in_opecode = 0;
+					cpu_clocks_done  = d_cpu[0].device->run(-1);
+					cpu_clocks_done -= cpu_clocks_in_opecode;
+					#ifdef _DEBUG
+					assert(cpu_clocks_done >= 0);
+					#endif
+					if(cpu_clocks_done < 0) cpu_clocks_done = 0;
+
+					// run sub cpus because the event has been aleady proceeded
+					if(cpu_clocks_in_opecode > 0) {
+						for(int i = 1; i < dcount_cpu; i++) {
+							// ToDo: Against Integer overflow. 20230305 K.O
+							int clock_result = d_cpu[i].update_clocks * cpu_clocks_in_opecode;
+							d_cpu[i].accum_clocks += clock_result;
+							int sub_clock = d_cpu[i].accum_clocks >> 10;
+							__UNLIKELY_IF(sub_clock > 0) {
+								d_cpu[i].accum_clocks -= sub_clock << 10;
+								d_cpu[i].device->run(sub_clock);
+							}
 						}
-						d_cpu[i].accum_clocks += clock_result; // At most, 1 host clocks.Guranteed maximum at 1 host clocks.
-						sub_clock2 = (int)(d_cpu[i].accum_clocks >> 10);
-						sub_clock += sub_clock2;
-						__LIKELY_IF(sub_clock > 0) {
-							d_cpu[i].accum_clocks -= sub_clock2 << 10;
+					}
+				}
+				__LIKELY_IF(cpu_clocks_done > 0) {
+					// sub cpu runs continuously and no events will be fired while the given clocks,
+					// so I need to give small enough clocks...
+					cpu_clocks_done_tmp = (cpu_clocks_done < 4) ? cpu_clocks_done : 4;
+					cpu_clocks_done -= cpu_clocks_done_tmp;
+
+					for(int i = 1; i < dcount_cpu; i++) {
+						// ToDo: Against integer overflow. 20230305 K.O
+						// run sub cpus
+						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_clocks_done_tmp;
+						int sub_clock = d_cpu[i].accum_clocks >> 10;
+						__UNLIKELY_IF(sub_clock) {
+							d_cpu[i].accum_clocks -= sub_clock << 10;
 							d_cpu[i].device->run(sub_clock);
 						}
 					}
-				}
-#else
-				cpu_done_tmp = (event_extra > 0 || cpu_done < 4) ? cpu_done : 4;
-				cpu_done -= cpu_done_tmp;
-				for(int i = 1; i < dcount_cpu; i++) {
-					// run sub cpus
-					int clock_result = d_cpu[i].update_clocks * cpu_done_tmp;
-					int sub_clock;
-					d_cpu[i].accum_clocks += clock_result; // At most, 16 host clocks.Guranteed maximum at 16 host clocks.
-					sub_clock = (int)(d_cpu[i].accum_clocks >> 10);
-					__LIKELY_IF(sub_clock > 0) {
-						d_cpu[i].accum_clocks -= sub_clock << 10;
-						d_cpu[i].device->run(sub_clock);
-					}
-				}
-#endif
-			}
-			cpu_remain -= cpu_done_tmp;
-			cpu_accum += cpu_done_tmp;
-			event_done = cpu_accum >> power;
-			cpu_accum -= event_done << power;
-			event_done -= event_extra;
-		}
-		__LIKELY_IF(event_done > 0) {
-			if(event_remain > 0) {
-				__UNLIKELY_IF(event_done > event_remain) {
-					update_event(event_remain);
 				} else {
-					update_event(event_done);
+					cpu_clocks_done_tmp = 0;
 				}
 			}
-			event_remain -= event_done;
+			if(cpu_clocks_done_tmp > 0) {
+				// ToDo: Against integer overflow. 20230305 K.O
+				cpu_clocks_remain -= cpu_clocks_done_tmp;
+				cpu_clocks_accum += cpu_clocks_done_tmp;
+				event_clocks_done = cpu_clocks_accum >> power;
+				cpu_clocks_accum -= event_clocks_done << power;
+			} else {
+				event_clocks_done = 0;
+			}
+		}
+		// ToDo: Against integer overflow. 20230305 K.O
+		if(event_clocks_done > 0) {
+			if(event_clocks_remain > 0) {
+				if(event_clocks_done > event_clocks_remain) {
+					update_event(event_clocks_remain);
+				} else {
+					update_event(event_clocks_done);
+				}
+			}
+			event_clocks_remain -= event_clocks_done;
 		}
 	}
 }
 
-void EVENT::update_extra_event(int clock)
+void EVENT::update_event_in_opecode(int clock)
 {
 	// this is called from primary cpu while running one opecode
-	int event_done = clock >> power;
-	
-	if(event_done > 0) {
-		if(event_remain > 0) {
-			if(event_done > event_remain) {
-				update_event(event_remain);
-			} else {
-				update_event(event_done);
+	// Note: Cache 	config.drive_vm_in_opecode expecting to be faster.
+	if(cache_drive_vm_in_opecode) {
+		// ToDo: Against integer overflow. 20230305 K.O
+		cpu_clocks_in_opecode += clock;
+		cpu_clocks_remain -= clock;
+		cpu_clocks_accum += clock;
+		int event_clocks_done = cpu_clocks_accum >> power;
+		cpu_clocks_accum -= event_clocks_done << power;
+
+		if(event_clocks_done > 0) {
+			if(event_clocks_remain > 0) {
+				if(event_clocks_done > event_clocks_remain) {
+					update_event(event_clocks_remain);
+				} else {
+					update_event(event_clocks_done);
+				}
 			}
+			event_clocks_remain -= event_clocks_done;
 		}
-		event_remain -= event_done;
-		event_extra += event_done;
 	}
 }
 
 void EVENT::update_event(int clock)
 {
 	uint64_t event_clocks_tmp = event_clocks + clock;
-	
+
 	while(first_fire_event != NULL && first_fire_event->expired_clock <= event_clocks_tmp) {
 		event_t *event_handle = first_fire_event;
 		uint64_t expired_clock = event_handle->expired_clock;
-		
+
 		first_fire_event = event_handle->next;
 		__UNLIKELY_IF(first_fire_event != NULL) {
 			first_fire_event->prev = NULL;
@@ -427,7 +440,7 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 		this->out_debug_log(_T("EVENT: non-loop event is registered before initialize is done\n"));
 	}
 #endif
-	
+
 	// register event
 	__UNLIKELY_IF(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
@@ -440,7 +453,7 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 	}
 	event_t *event_handle = first_free_event;
 	first_free_event = first_free_event->next;
-	
+
 	__LIKELY_IF(register_id != NULL) {
 		*register_id = event_handle->index;
 	}
@@ -459,7 +472,7 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 		event_handle->accum_clocks = 0;
 	}
 	event_handle->expired_clock = event_clocks + clock;
-	
+
 	insert_event(event_handle);
 }
 
@@ -470,7 +483,7 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 		this->out_debug_log(_T("EVENT: device (name=%s, id=%d) registeres non-loop event before initialize is done\n"), device->this_device_name, device->this_device_id);
 	}
 #endif
-	
+
 	// register event
 	__UNLIKELY_IF(first_free_event == NULL) {
 #ifdef _DEBUG_LOG
@@ -483,7 +496,7 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 	}
 	event_t *event_handle = first_free_event;
 	first_free_event = first_free_event->next;
-	
+
 	__LIKELY_IF(register_id != NULL) {
 		*register_id = event_handle->index;
 	}
@@ -493,7 +506,7 @@ void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock
 	event_handle->expired_clock = event_clocks + clock;
 	event_handle->loop_clock = loop ? (clock << 10) : 0;
 	event_handle->accum_clocks = 0;
-	
+
 	insert_event(event_handle);
 }
 
@@ -540,7 +553,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 			this->out_debug_log(_T("EVENT: device (name=%s, id=%d) tries to cancel event %d that is not its own (owned by (name=%s id=%d))!!!\n"), device->this_device_name, device->this_device_id,
 								register_id,
 								event_handle->device->this_device_name,
-								event_handle->device->this_device_id);			
+								event_handle->device->this_device_id);
 			return;
 		}
 		__LIKELY_IF(event_handle->active) {
@@ -650,10 +663,10 @@ void EVENT::event_callback(int event_id, int err)
 			buffer_ptr = 0;
 		}
 		int remain = sound_tmp_samples - buffer_ptr;
-		
+
 		if(remain > 0) {
 			int samples = mix_counter;
-			
+
 			if(config.sound_strict_rendering || (need_mix > 0)) {
 				if(samples < 1) {
 					samples = 1;
@@ -679,14 +692,14 @@ void EVENT::event_callback(int event_id, int err)
 		if(cur_vline + 1 < lines_per_frame) {
 			cur_vline++;
 			vline_start_clock = get_current_clock();
-			
+
 			for(int i = 0; i < vline_event_count; i++) {
-				vline_event[i]->event_vline(cur_vline, vline_clocks[cur_vline]);
+				vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
 			}
-			
+
 			// do not register if next vline is the first vline of next frame
 			if(cur_vline + 1 < lines_per_frame) {
-				this->register_event_by_clock(this, EVENT_VLINE, vline_clocks[cur_vline], false, NULL);
+				this->register_event_by_clock(this, EVENT_VLINE, vclocks[cur_vline], false, NULL);
 			}
 		}
 	}
@@ -729,7 +742,7 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 		return sound_buffer;
 	}
 	int frames = 0;
-	
+
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		drive();
@@ -738,7 +751,7 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
 	__DECL_ALIGNED(32) int32_t tmpbuf[16];
-	
+
 #ifdef LOW_PASS_FILTER
 	// low-pass filter
 	for(int i = 0; i < sound_samples - 1; i++) {
@@ -770,7 +783,7 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 		}
 		ii += 8;
 	}
-	
+
 	int16_t* np = (int16_t*)(&sound_buffer[ii]);
 	for(int i = 0; i < _total_mod; i++) {
 		int32_t dat = sound_tmp[ii + i];
@@ -802,7 +815,7 @@ bool EVENT::is_sound_in_source_exists(int bank)
 	bool f = true;
 	if(bank < 0) return false;
 	if(bank >= MAX_SOUND_IN_BUFFERS) return false;
-	
+
 	// ToDo: Lock Mutex
 	if(sound_in_tmp_buffer[bank] == NULL) f = false;
 	// ToDo: UnLock Mutex
@@ -954,12 +967,12 @@ int EVENT::increment_sound_in_passed_data(int bank, double passed_usec)
 	if(sound_in_rate[bank] <= 0) return 0;
 	if(sound_in_samples[bank] <= 0) return 0;
 	if(passed_usec <= 0.0) return 0;
-	
+
 	double freq = 1.0e6 / sound_in_rate[bank];
 	int inc_ptr = (int)(nearbyint(passed_usec / freq));
 	int readptr = sound_in_readptr[bank];
 	int _ni = inc_ptr;
-	
+
 	if(_ni >= sound_in_samples[bank]) {
 		_ni = _ni % sound_in_samples[bank];
 	}
@@ -976,7 +989,7 @@ int EVENT::increment_sound_in_passed_data(int bank, double passed_usec)
 	}
 	return inc_ptr;
 }
-	
+
 int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 {
 	int gave_samples = 0;
@@ -1002,7 +1015,7 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	int16_t* p = sound_in_tmp_buffer[bank];
 	if(p == NULL) return 0;
 	p =&(p[readptr * sound_in_channels[bank]]);
-	
+
 	for(int i = 0; i < sound_in_channels[bank]; i++) {
 		tmpbuf[i] = p[i];
 	}
@@ -1013,7 +1026,7 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	}
 	sound_in_readptr[bank] = readptr;
 	sound_in_write_size[bank] = 0;
-	return rechannel_sound_in_data(dst, tmpbuf, expect_channels, sound_in_channels[bank], 1); 
+	return rechannel_sound_in_data(dst, tmpbuf, expect_channels, sound_in_channels[bank], 1);
 }
 
 int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
@@ -1027,7 +1040,7 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 	int readptr = sound_in_readptr[bank];
 	if(readptr < 0) readptr = 0;
 	if(readptr >= sound_in_samples[bank]) readptr = 0;
-	
+
 	int gave_samples = 0;
 	// ToDo: Lock Mutex
 	int in_count;
@@ -1039,7 +1052,7 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 	int16_t tmpbuf_in[(in_count + 1) * sound_in_channels[bank]];
 	int32_t tmpbuf[(in_count + 1) * expect_channels];
 	memset(tmpbuf, 0x00, sizeof(int32_t) * (in_count + 1) * expect_channels);
-	
+
 	int mp = 0;
 	for(int i = 0; i < in_count; i++) {
 		int tmpr = readptr * sound_in_channels[bank];
@@ -1053,15 +1066,15 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 	sound_in_readptr[bank] = readptr;
 	sound_in_write_size[bank] -= in_count;
 	if(sound_in_write_size[bank] <= 0) sound_in_write_size[bank] = 0;
-	
+
 	gave_samples = rechannel_sound_in_data(tmpbuf, tmpbuf_in, expect_channels, sound_in_channels[bank], in_count);
-	
+
 	// ToDo: UnLock Mutex
 	// Got to TMP Buffer
 	if(expect_rate == sound_in_rate[bank]) {
 		int32_t* p = tmpbuf;
 		int32_t* q = dst;
-		
+
 		for(int i = 0; i < (gave_samples * expect_channels); i++) {
 			q[i] = p[i];
 		}
@@ -1144,7 +1157,7 @@ void EVENT::request_skip_frames()
 bool EVENT::is_frame_skippable()
 {
 	bool value = next_skip;
-	
+
 	if(sound_changed || (prev_skip && !next_skip)) {
 		dont_skip_frames = (int)frames_per_sec;
 	}
@@ -1155,15 +1168,16 @@ bool EVENT::is_frame_skippable()
 	prev_skip = next_skip;
 	next_skip = false;
 	sound_changed = false;
-	
+
 	return value;
 }
 
 void EVENT::update_config()
 {
+	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
 	if(power != config.cpu_power) {
 		power = config.cpu_power;
-		cpu_accum = 0;
+		cpu_clocks_accum = 0;
 	}
 }
 
@@ -1187,12 +1201,12 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(d_cpu[i].accum_clocks);
 	}
 	state_fio->StateValue(frame_clocks);
-	state_fio->StateArray(vline_clocks, sizeof(vline_clocks), 1);
-	state_fio->StateValue(event_remain);
-	state_fio->StateValue(event_extra);
-	state_fio->StateValue(cpu_remain);
-	state_fio->StateValue(cpu_accum);
-	state_fio->StateValue(cpu_done);
+	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
+	state_fio->StateValue(event_clocks_remain);
+	state_fio->StateValue(cpu_clocks_remain);
+	state_fio->StateValue(cpu_clocks_accum);
+	state_fio->StateValue(cpu_clocks_done);
+	state_fio->StateValue(cpu_clocks_in_opecode);
 	state_fio->StateValue(event_clocks);
  	for(int i = 0; i < MAX_EVENT; i++) {
 		if(loading) {
@@ -1227,9 +1241,10 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(dev_need_mix, sizeof(dev_need_mix), 1);
 	state_fio->StateValue(need_mix);
 	state_fio->StateValue(event_half);
- 	
+
  	// post process
 	if(loading) {
+		cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
 		if(sound_buffer) {
 			memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
 		}

@@ -49,7 +49,7 @@ enum {
 	CONFIG_HOST_KEYBOARD_TYPE_AT_MISC = 0x00ff0000,
 	CONFIG_HOST_KEYBOARD_TYPE_PC98    = 0x00980000,
 	CONFIG_HOST_KEYBOARD_TYPE_MAC     = 0x00fe0000,
-};	
+};
 
 enum {
 	CONFIG_HOST_KEYBOARD_AT_106JP    = CONFIG_HOST_KEYBOARD_TYPE_AT_JP + 106,
@@ -63,7 +63,7 @@ enum {
 	CONFIG_HOST_KEYBOARD_MAC_US      = CONFIG_HOST_KEYBOARD_TYPE_MAC + 0,
 	CONFIG_HOST_KEYBOARD_MAC_JP      = CONFIG_HOST_KEYBOARD_TYPE_MAC + 1,
 	CONFIG_HOST_KEYBOARD_MAC_ANOTHER = CONFIG_HOST_KEYBOARD_TYPE_MAC + 0xff,
-};	
+};
 
 enum {
 	CONFIG_CURSOR_AS_CURSOR = 0,
@@ -109,7 +109,7 @@ bool process_config_state(void *f, bool loading);
  * Qt:
  *  To reduce time to build, compiling common blocks of GUI at once.
  *  So, you should not separate items with #ifdef.
- */ 
+ */
 typedef struct {
 	// control
 	#if defined(USE_FIXED_CONFIG) || defined(USE_BOOT_MODE)
@@ -131,10 +131,10 @@ typedef struct {
 		int keyboard_type;
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_MOUSE_TYPE)
-		int mouse_type; /*!< Emulated type of mouse by VM */ 
+		int mouse_type; /*!< Emulated type of mouse by VM */
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK_TYPE)
-		int joystick_type; /*!< Emulated type of joystick by VM */ 
+		int joystick_type; /*!< Emulated type of joystick by VM */
 	#endif
 	#if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_TYPE)
 		int sound_type;
@@ -164,10 +164,10 @@ typedef struct {
 	#if defined(USE_SHARED_DLL) || defined(USE_VARIABLE_MEMORY)
 	uint32_t current_ram_size;
 	#endif
-	bool compress_state;
+	bool full_speed, drive_vm_in_opecode;
 	int cpu_power;
 	bool full_speed;
-	
+
 	// recent files
 	#if defined(USE_SHARED_DLL) || defined(USE_CART)
 		_TCHAR initial_cart_dir[_MAX_PATH];
@@ -215,7 +215,7 @@ typedef struct {
 	//	#if defined(USE_FIXED_CONFIG) || defined(USE_SCREEN_ROTATE)
 		int rotate_type;
 	//	#endif
-	
+
 	// filter
 	#if defined(USE_FIXED_CONFIG) || defined(USE_SCREEN_FILTER)
 		int filter_type;
@@ -232,15 +232,15 @@ typedef struct {
 	bool use_opengl_filters;
 	bool focus_with_click;
 	int opengl_filter_num;
-	
+
 	// STAGED CONFIG VALUES
 	bool swap_kanji_pause;
 	int  cursor_as_ten_key;
 	bool numpad_enter_as_fullkey;
 	int host_keyboard_type;
-	
+
 	/*
-	 * TYPE : 
+	 * TYPE :
 	 *    0 : OpenGL/Main Profile
 	 *    1 : OpenGL/Core Profile
 	 *    2 : OpenGL ES
@@ -249,7 +249,7 @@ typedef struct {
 	 *   24 : DirectDraw (Will not implement)
 	 *   25 : SDLFB(Will not implement)
      *   32 : DirectX(Will not implement)
-	 */ 
+	 */
 	int render_platform;
 	int render_major_version;
 	int render_minor_version;
@@ -260,16 +260,16 @@ typedef struct {
 	int debugwindow_height;
 	int logwindow_width;
 	int logwindow_height;
-	
-#endif	
-	
+
+#endif
+
 	// sound
 	int sound_frequency;
 	int sound_latency;
 	bool sound_strict_rendering;
 	_TCHAR sound_device_name[1024];
-	
-#if defined(_USE_QT)	
+
+#if defined(_USE_QT)
 	int general_sound_level;
 #endif
 #if defined(USE_FIXED_CONFIG) || defined(USE_FLOPPY_DISK)
@@ -307,8 +307,8 @@ typedef struct {
 #if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER)
 	_TCHAR printer_dll_path[_MAX_PATH];
 #endif
-	// debug 
-	bool special_debug_fdc;	
+	// debug
+	bool special_debug_fdc;
 	bool print_statistics;
 
 	bool use_telnet;
@@ -329,7 +329,7 @@ typedef struct {
 	int video_height;
 	int video_codec_type;
 	int audio_codec_type;
-	
+
 	int video_h264_bitrate;
 	int video_h264_bframes;
 	int video_h264_b_adapt;
@@ -341,7 +341,7 @@ typedef struct {
 	int video_mpeg4_bframes;
 	int video_mpeg4_minq;
 	int video_mpeg4_maxq;
-	
+
 	int video_threads;
 	int audio_bitrate;
 	int video_frame_rate; // FPS * 1000.0
@@ -354,7 +354,7 @@ typedef struct {
 	bool state_log_to_console;
 	bool state_log_to_syslog;
 	bool state_log_to_recording;
-	
+
 	int rendering_type;
 
 	int virtual_media_position; // -1 = none, 1, 2, 3, 4 = LRUD
@@ -373,4 +373,3 @@ extern config_t DLL_PREFIX_I config;
 #endif
 
 #endif
-

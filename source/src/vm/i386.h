@@ -10,11 +10,6 @@
 
 #ifndef _I386_H_
 #define _I386_H_
-//#if defined(USE_SHARED_DLL)
-//#if 0
-//#include "libcpu_newdev/i386.h"
-//#else
-//#include "vm.h"
 #include "../emu.h"
 #include "device.h"
 
@@ -76,7 +71,7 @@ public:
 		set_device_name(_T("Intel i80x86 CPU"));
 	}
 	~I386() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -130,7 +125,7 @@ public:
 	int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique function
 	void set_context_extreset(DEVICE* device, int id, uint32_t mask)
 	{

@@ -11,12 +11,6 @@
 #ifndef _MC6809_H_
 #define _MC6809_H_
 
-//#if defined(USE_SHARED_DLL)
-//#if 0
-//#include "libcpu_newdev/libcpu_mc6809/mc6809.h"
-//#else
-//#include "vm.h"
-//#include "../emu.h"
 #include "device.h"
 #include "mc6809_consts.h"
 
@@ -56,10 +50,10 @@ protected:
 	pair32_t x, y;	/* Index registers */
 	uint8_t cc;
 	pair32_t ea;	/* effective address */
-	
+
 	uint32_t int_state;
 	/* In Motorola's datasheet, status has some valiants. 20171207 K.O */
-	
+
 	bool req_halt_on;
 	bool req_halt_off;
 	bool busreq;
@@ -72,7 +66,7 @@ protected:
 	int icount;
 	int extra_icount;
 	bool __USE_DEBUGGER;
-	
+
 	uint64_t cycles_tmp_count;
 	uint32_t insns_count;
 	uint32_t extra_tmp_count;
@@ -104,7 +98,7 @@ protected:
 		CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
 		CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
 	};
-	
+
 /* decrement */
 	const uint8_t flags8d[256] = {
 		CC_Z,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -124,11 +118,11 @@ protected:
 		CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
 		CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
 	};
-	
+
 	/* FIXME: Cycles differ slighly from hd6309 emulation */
 	const int index_cycle_em[256] = {	/* Index Loopup cycle counts */
 /*           0xX0, 0xX1, 0xX2, 0xX3, 0xX4, 0xX5, 0xX6, 0xX7, 0xX8, 0xX9, 0xXA, 0xXB, 0xXC, 0xXD, 0xXE, 0xXF */
-		
+
 		/* 0x0X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		/* 0x1X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		/* 0x2X */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -146,7 +140,7 @@ protected:
 /* 0xEX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 2,
 		/* 0xFX */ 4, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 5
 	};
-	
+
 	/* timings for 1-byte opcodes */
 	/* 20100731 Fix to XM7 */
 	const int cycles1[256] = {
@@ -178,15 +172,15 @@ protected:
 	void __FASTCALL cpu_firq_fetch_vector_address(void);
 	void __FASTCALL cpu_nmi_fetch_vector_address(void);
 	void __FASTCALL cpu_wait(int clocks = 1);
-	
+
 	// Useful routines.
 	inline void __FASTCALL BRANCH(bool cond);
 	inline void __FASTCALL LBRANCH(bool cond);
-	
+
 	inline pair32_t __FASTCALL RM16_PAIR(uint32_t addr);
 	inline uint8_t __FASTCALL GET_INDEXED_DATA(void);
 	inline pair32_t __FASTCALL GET_INDEXED_DATA16(void);
-	
+
 	inline void __FASTCALL  NEG_MEM(uint8_t a_neg);
 	inline uint8_t __FASTCALL NEG_REG(uint8_t r_neg);
 	inline void __FASTCALL  COM_MEM(uint8_t a_neg);
@@ -212,7 +206,7 @@ protected:
 	inline uint8_t __FASTCALL CLC_REG(uint8_t r_neg);
 	inline void __FASTCALL  CLR_MEM(uint8_t a_neg);
 	inline uint8_t __FASTCALL CLR_REG(uint8_t r_neg);
-	
+
 	inline uint8_t __FASTCALL SUB8_REG(uint8_t reg, uint8_t data);
 	inline uint8_t __FASTCALL CMP8_REG(uint8_t reg, uint8_t data);
 	inline uint8_t __FASTCALL SBC8_REG(uint8_t reg, uint8_t data);
@@ -230,7 +224,7 @@ protected:
 	inline uint16_t CMP16_REG(uint16_t reg, uint16_t data);
 	inline uint16_t LOAD16_REG(uint16_t reg);
 	inline void __FASTCALL STORE16_REG(pair32_t *p);
-	
+
 	// Instructions.
 	void __FASTCALL abx();
 	void __FASTCALL adca_di();
@@ -465,8 +459,8 @@ protected:
 	void __FASTCALL ror_ex();
 	void __FASTCALL ror_ix();
 	void __FASTCALL rst();
-	void __FASTCALL rti();	
-	void __FASTCALL rts();	
+	void __FASTCALL rti();
+	void __FASTCALL rts();
 	void __FASTCALL sbca_di();
 	void __FASTCALL sbca_ex();
 	void __FASTCALL sbca_im();
@@ -536,9 +530,9 @@ protected:
 
 	virtual uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 	virtual void __FASTCALL debugger_hook(void);
-	
+
 public:
-	MC6809(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	MC6809(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 
 		total_icount = prev_total_icount = 0;
@@ -549,23 +543,23 @@ public:
 		for(int i = 0; i < 0x100; i++) {
 			m6809_main[i] = &MC6809::nop;
 		}
-		
+
 		initialize_output_signals(&outputs_bus_ba);
 		initialize_output_signals(&outputs_bus_bs);
 		set_device_name(_T("MC6809 MPU"));
 	}
 	~MC6809() {}
-	
+
 	// common functions
 	virtual void initialize();
 	virtual void reset();
 	void event_frame();
-	
+
 	int __FASTCALL run(int clock);
-	
+
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	void __FASTCALL set_extra_clock(int clock)
 	{
 		extra_icount += clock;
@@ -575,7 +569,7 @@ public:
 		return extra_icount;
 	}
 
-	
+
 	bool is_cpu()
 	{
 		return true;
@@ -598,20 +592,20 @@ public:
 	}
 	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	
+
 	void __FASTCALL write_debug_data16(uint32_t addr, uint32_t data)
 	{
 		write_debug_data8(addr, (data >> 8) & 0xff);
 		write_debug_data8(addr + 1, data & 0xff);
 	}
-	
+
 	uint32_t __FASTCALL read_debug_data16(uint32_t addr)
 	{
 		uint32_t val = read_debug_data8(addr) << 8;
 		val |= read_debug_data8(addr + 1);
 		return val;
 	}
-	
+
 	void __FASTCALL write_debug_data32(uint32_t addr, uint32_t data)
 	{
 		write_debug_data16(addr, (data >> 16) & 0xffff);
@@ -623,29 +617,29 @@ public:
 		val |= read_debug_data16(addr + 2);
 		return val;
 	}
-	
+
 	void __FASTCALL write_debug_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_debug_io8(uint32_t addr);
-	
+
 	void __FASTCALL write_debug_io16(uint32_t addr, uint32_t data)
 	{
 		write_debug_io8(addr, (data >> 8) & 0xff);
 		write_debug_io8(addr + 1, data & 0xff);
 	}
-	
+
 	uint32_t __FASTCALL read_debug_io16(uint32_t addr)
 	{
 		uint32_t val = read_debug_io8(addr) << 8;
 		val |= read_debug_io8(addr + 1);
 		return val;
 	}
-	
+
 	void __FASTCALL write_debug_io32(uint32_t addr, uint32_t data)
 	{
 		write_debug_io16(addr, (data >> 16) & 0xffff);
 		write_debug_io16(addr + 2, data & 0xffff);
 	}
-	
+
 	uint32_t __FASTCALL read_debug_io32(uint32_t addr)
 	{
 		uint32_t val = read_debug_io16(addr) << 16;
@@ -720,4 +714,3 @@ public:
 
 };
 #endif
-

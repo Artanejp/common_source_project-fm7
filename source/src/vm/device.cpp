@@ -606,13 +606,13 @@ void DEVICE::write_signals(outputs_t *items, uint32_t data)
 
 void DEVICE::update_signal_mask(outputs_t *items, DEVICE *device, uint32_t mask)
 {
-	if(items == NULL) return;
+	__UNLIKELY_IF(items == NULL) return;
 	int c = items->count;
-	if(c <= 0) return;
-	if(c >= MAX_OUTPUT) c = MAX_OUTPUT - 1;
+	__UNLIKELY_IF(c <= 0) return;
+	__LIKELY_IF(c >= MAX_OUTPUT) c = MAX_OUTPUT - 1;
 	// if (ARG:device == NULL) apply to all devices.
 	for(int i = 0; i < c; i++) {
-		if((device == NULL) || (device == items->item[i].device)) {
+		__UNLIKELY_IF((device == NULL) || (device == items->item[i].device)) {
 			items->item[i].mask = mask;
 		}
 	}
@@ -726,7 +726,7 @@ bool DEVICE::bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de,
 
 void DEVICE::clear_sound_in_source(int bank)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->clear_sound_in_source(bank);
@@ -737,20 +737,20 @@ void DEVICE::clear_sound_in_source(int bank)
 // this function may be before (or after) initialize().
 int DEVICE::add_sound_in_source(int rate, int samples, int channels)
 {
-	if(event_manager == NULL) return -1;
+	__UNLIKELY_IF(event_manager == NULL) return -1;
 	return event_manager->add_sound_in_source(rate, samples, channels);
 }
 
 // this function may be before (or after) initialize().
 int DEVICE::release_sound_in_source(int bank)
 {
-	if(event_manager == NULL) return -1;
+	__UNLIKELY_IF(event_manager == NULL) return -1;
 	return event_manager->release_sound_in_source(bank);
 }
 
 bool DEVICE::is_sound_in_source_exists(int bank)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->is_sound_in_source_exists(bank);
@@ -758,7 +758,7 @@ bool DEVICE::is_sound_in_source_exists(int bank)
 
 int DEVICE::increment_sound_in_passed_data(int bank, double passed_usec)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		return 0;
 	}
 	return event_manager->increment_sound_in_passed_data(bank, passed_usec);
@@ -766,7 +766,7 @@ int DEVICE::increment_sound_in_passed_data(int bank, double passed_usec)
 
 int DEVICE::get_sound_in_buffers_count()
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_sound_in_buffers_count();
@@ -774,7 +774,7 @@ int DEVICE::get_sound_in_buffers_count()
 
 int DEVICE::get_sound_in_samples(int bank)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_sound_in_samples(bank);
@@ -782,7 +782,7 @@ int DEVICE::get_sound_in_samples(int bank)
 
 int DEVICE::get_sound_in_rate(int bank)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_sound_in_rate(bank);
@@ -790,7 +790,7 @@ int DEVICE::get_sound_in_rate(int bank)
 
 int DEVICE::get_sound_in_channels(int bank)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_sound_in_channels(bank);
@@ -799,13 +799,13 @@ int DEVICE::get_sound_in_channels(int bank)
 // this function may be before (or after) initialize().
 int16_t* DEVICE::get_sound_in_buf_ptr(int bank)
 {
-	if(event_manager == NULL) return NULL;
+	__UNLIKELY_IF(event_manager == NULL) return NULL;
 	return event_manager->get_sound_in_buf_ptr(bank);
 }
 
 int DEVICE::write_sound_in_buffer(int bank, int32_t* src, int samples)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->write_sound_in_buffer(bank, src, samples);
@@ -815,13 +815,13 @@ int DEVICE::write_sound_in_buffer(int bank, int32_t* src, int samples)
 // this function may be before (or after) initialize().
 int DEVICE::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 {
-	if(event_manager == NULL) return 0;
+	__UNLIKELY_IF(event_manager == NULL) return 0;
 	return event_manager->get_sound_in_latest_data(bank, dst, expect_channels);
 }
 
 int DEVICE::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
 {
-	if(event_manager == NULL) return -1;
+	__UNLIKELY_IF(event_manager == NULL) return -1;
 	return event_manager->get_sound_in_data(bank, dst, expect_samples, expect_rate, expect_channels);
 }
 
@@ -835,7 +835,7 @@ void DEVICE::set_low_pass_filter_freq(int freq, double quality)
 
 int DEVICE::get_event_manager_id()
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->this_device_id;
@@ -843,7 +843,7 @@ int DEVICE::get_event_manager_id()
 
 uint32_t DEVICE::get_event_clocks()
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_event_clocks();
@@ -851,7 +851,7 @@ uint32_t DEVICE::get_event_clocks()
 
 bool DEVICE::is_primary_cpu(DEVICE* device)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->is_primary_cpu(device);
@@ -859,22 +859,23 @@ bool DEVICE::is_primary_cpu(DEVICE* device)
 
 uint32_t DEVICE::get_cpu_clocks(DEVICE* device)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_cpu_clocks(device);
 }
-void DEVICE::update_extra_event(int clock)
+
+void DEVICE::update_event_in_opecode(int clock)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
-	event_manager->update_extra_event(clock);
+	event_manager->update_event_in_opecode(clock);
 }
 
 void DEVICE::register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->register_event(device, event_id, usec, loop, register_id);
@@ -882,7 +883,7 @@ void DEVICE::register_event(DEVICE* device, int event_id, double usec, bool loop
 
 void DEVICE::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->register_event_by_clock(device, event_id, clock, loop, register_id);
@@ -890,7 +891,7 @@ void DEVICE::register_event_by_clock(DEVICE* device, int event_id, uint64_t cloc
 
 void DEVICE::cancel_event(DEVICE* device, int register_id)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->cancel_event(device, register_id);
@@ -899,7 +900,7 @@ void DEVICE::cancel_event(DEVICE* device, int register_id)
 // Clear and DE-Register EVENT at slot evid.
 void DEVICE::clear_event(DEVICE* dev, int& evid)
 {
-	if(evid > -1) {
+	__LIKELY_IF(evid > -1) {
 		cancel_event(dev, evid);
 	}
 	evid = -1;
@@ -921,27 +922,27 @@ void DEVICE::force_register_event_by_clock(DEVICE* dev, int event_num, uint64_t 
 // Register a EVENT to evid , if evid slot isn't used.
 void DEVICE::check_and_update_event(DEVICE* dev, int event_num, double usec, bool loop, int& evid)
 {
-	if(evid > -1) return;
+	__UNLIKELY_IF(evid > -1) return;
 	register_event(dev, event_num, usec, loop, &evid);
 }
 
 void DEVICE::check_and_update_event_by_clock(DEVICE* dev, int event_num, uint64_t clock, bool loop, int& evid)
 {
-	if(evid > -1) return;
+	__UNLIKELY_IF(evid > -1) return;
 	register_event_by_clock(dev, event_num, clock, loop, &evid);
 }
 
 
 void DEVICE::register_frame_event(DEVICE* device)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->register_frame_event(device);
 }
 void DEVICE::register_vline_event(DEVICE* device)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	event_manager->register_vline_event(device);
@@ -949,7 +950,7 @@ void DEVICE::register_vline_event(DEVICE* device)
 
 uint32_t DEVICE::get_event_remaining_clock(int register_id)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_event_remaining_clock(register_id);
@@ -957,7 +958,7 @@ uint32_t DEVICE::get_event_remaining_clock(int register_id)
 
 double DEVICE::get_event_remaining_usec(int register_id)
 {
-	if(event_manager == NULL) {
+	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
 	return event_manager->get_event_remaining_usec(register_id);
@@ -1095,7 +1096,7 @@ void DEVICE::set_realtime_render(DEVICE *device, bool flag)
 	__UNLIKELY_IF(event_manager == NULL) {
 		event_manager = vm->first_device->next_device;
 	}
-	__UNLIKELY_IF(device != event_manager) event_manager->set_realtime_render(device, flag);
+	__LIKELY_IF(device != event_manager) event_manager->set_realtime_render(device, flag);
 }
 
 void DEVICE::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
@@ -1142,7 +1143,7 @@ void DEVICE::get_volume(int ch, int &decibel_l, int &decibel_r)
 
 void DEVICE::set_device_name(const _TCHAR *format, ...)
 {
-	if(format != NULL) {
+	__LIKELY_IF(format != NULL) {
 		va_list ap;
 		_TCHAR buffer[1024];
 
@@ -1181,7 +1182,7 @@ void DEVICE::out_debug_log(const char *fmt, ...)
 
 void DEVICE::out_debug_log_with_switch(bool logging, const char *fmt, ...)
 {
-	if(!(logging)) return;
+	__UNLIKELY_IF(!(logging)) return;
 #if defined(_USE_QT)
 	__UNLIKELY_IF(osd == nullptr) return;
    	char strbuf[4096] = {0};

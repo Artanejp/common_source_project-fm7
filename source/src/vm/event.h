@@ -25,7 +25,7 @@
 	#endif
 #endif
 
-/*! 
+/*!
   @class EVENT
   @brief EVENT manager, includes CPUs execution.
   @note Executing event has run per half of a frame by default at CSP/Qt.
@@ -40,8 +40,8 @@ private:
 	*/
 	typedef struct {
 		DEVICE* device;			//!< Target Device ID
-		uint32_t cpu_clocks;	//!< Target CLOCK by 1Hz. 
-		uint32_t update_clocks;	//!< Target clock for updating scheduler. 
+		uint32_t cpu_clocks;	//!< Target CLOCK by 1Hz.
+		uint32_t update_clocks;	//!< Target clock for updating scheduler.
 		uint32_t accum_clocks;	//!< Target clock for accumulation.
 	} cpu_t;
 	cpu_t d_cpu[MAX_CPU];		//!< TARGET CPU entries to run.
@@ -49,12 +49,12 @@ private:
 	uint32_t cpu_update_clocks[MAX_CPU][6];
 	int dcount_cpu;	//! Numbers of Target CPUs.
 
-	bool event_half;	//! Display second half of frame. 
+	bool event_half;	//! Display second half of frame.
 	int frame_clocks;
-	int vline_clocks[MAX_LINES];
+	int vclocks[MAX_LINES];
 	int power;
-	int event_remain, event_extra;
-	int cpu_remain, cpu_accum, cpu_done;
+	int event_clocks_remain;
+	int cpu_clocks_remain, cpu_clocks_accum, cpu_clocks_done, cpu_clocks_in_opecode;
 	uint64_t event_clocks;
 
 	/*!
@@ -78,19 +78,19 @@ private:
 	DEVICE* frame_event[MAX_EVENT];
 	DEVICE* vline_event[MAX_EVENT];
 	int frame_event_count, vline_event_count;
-	
+
 	double frames_per_sec, next_frames_per_sec;
 	int lines_per_frame, next_lines_per_frame;
 	uint32_t vline_start_clock;
 	int cur_vline;
-	
-	void update_event(int clock);
-	void insert_event(event_t *event_handle);
-	
+
+	void __FASTCALL update_event(int clock);
+	void __FASTCALL insert_event(event_t *event_handle);
+
 	// sound manager
 	DEVICE* d_sound[MAX_SOUND];
 	int dcount_sound;
-	
+
 	uint16_t* sound_buffer;
 	int32_t* sound_tmp;
 	int buffer_ptr;
@@ -106,19 +106,20 @@ private:
 	int sound_in_write_size[MAX_SOUND_IN_BUFFERS];
 	int sound_in_read_size[MAX_SOUND_IN_BUFFERS];
 	int sound_in_read_mod[MAX_SOUND_IN_BUFFERS];
-	
+
 	int dont_skip_frames;
 	bool prev_skip, next_skip;
 	bool sound_changed;
-	
+
 	int mix_counter;
 	int mix_limit;
 	bool dev_need_mix[MAX_DEVICE];
 	int need_mix;
-	
+
 	void __FASTCALL mix_sound(int samples);
 	void* __FASTCALL get_event(int index);
-
+	// Note: Cache 	config.drive_vm_in_opecode expecting to be faster.20230305 K.O
+	bool cache_drive_vm_in_opecode;
 #ifdef _DEBUG_LOG
 	bool initialize_done;
 #endif
@@ -127,7 +128,7 @@ public:
 	{
 		dcount_cpu = dcount_sound = 0;
 		frame_event_count = vline_event_count = 0;
-		
+
 		// initialize event
 		memset(event, 0, sizeof(event));
 		for(int i = 0; i < MAX_EVENT; i++) {
@@ -137,9 +138,9 @@ public:
 		}
 		first_free_event = &event[0];
 		first_fire_event = NULL;
-		
+
 		event_clocks = 0;
-		
+
 		// force update timing in the first frame
 		frames_per_sec = 0.0;
 		lines_per_frame = 0;
@@ -148,7 +149,7 @@ public:
 		// reset before other device may call set_realtime_render()
 		memset(dev_need_mix, 0, sizeof(dev_need_mix));
 		need_mix = 0;
-		
+
 		for(int i = 0; i < MAX_SOUND_IN_BUFFERS; i++) {
 			sound_in_tmp_buffer[i] = NULL;
 			sound_in_rate[i] = 0;
@@ -166,27 +167,27 @@ public:
 		set_device_name(_T("Event Manager"));
 	}
 	~EVENT() {}
-	
+
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void __FASTCALL event_callback(int event_id, int err);
-	void update_config();
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	void update_config() override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	//! common event functions
-	/*! 
+	/*!
 	  @brief Get DEVICE ID of event manager.
 	*/
-	int get_event_manager_id()
+	int get_event_manager_id() override
 	{
 		return this_device_id;
 	}
-	/*! 
+	/*!
 	  @brief Get clock Hz of first CPU.
 	*/
-	uint32_t get_event_clocks()
+	uint32_t get_event_clocks() override
 	{
 		return d_cpu[0].cpu_clocks;
 	}
@@ -195,7 +196,7 @@ public:
 	  @param device Device pointer to check.
 	  @return true if primary CPU (CPU #0).
 	*/
-	bool is_primary_cpu(DEVICE* device)
+	bool is_primary_cpu(DEVICE* device) override
 	{
 		return (d_cpu[0].device == device);
 	}
@@ -205,7 +206,7 @@ public:
 	  @return clock Hz of target.
 	  @note return default clock value (= CPU #0) if device is not as CPU.
 	*/
-	uint32_t __FASTCALL get_cpu_clocks(DEVICE* device)
+	uint32_t __FASTCALL get_cpu_clocks(DEVICE* device) override
 	{
 		for(int index = 0; index < dcount_cpu; index++) {
 			if(d_cpu[index].device == device) {
@@ -219,7 +220,7 @@ public:
 	 @param new_frames_per_sec Framerate after next frame rate by 1Sec.
 	 @note This change will effect after frame rate, not at this frame rate.
 	*/
-	void set_frames_per_sec(double new_frames_per_sec)
+	void set_frames_per_sec(double new_frames_per_sec) override
 	{
 		next_frames_per_sec = new_frames_per_sec;
 	}
@@ -229,7 +230,7 @@ public:
 	 @note This change will effect after frame period, not at this frame period.
 	 @note Lines limits from 1 to MAX_LINES .
 	*/
-	void set_lines_per_frame(int new_lines_per_frame)
+	void set_lines_per_frame(int new_lines_per_frame) override
 	{
 		if(new_lines_per_frame < MAX_LINES) {
 			next_lines_per_frame = new_lines_per_frame;
@@ -239,32 +240,32 @@ public:
 	  @brief Get lines per frame of next frame period.
 	  @return Lines per frame of next frame period, not current period.
 	*/
-	int get_lines_per_frame()
+	int get_lines_per_frame() override
 	{
 		return next_lines_per_frame;
 	}
 	/*!
 	  @brief Update extra events if remains host time.
 	  @param clock clocks. Still dummy.
-	*/ 
-	void __FASTCALL update_extra_event(int clock);
-	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
-	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
-	void cancel_event(DEVICE* device, int register_id);
-	void register_frame_event(DEVICE* device);
-	void register_vline_event(DEVICE* device);
-	uint32_t __FASTCALL get_event_remaining_clock(int register_id);
-	double __FASTCALL get_event_remaining_usec(int register_id);
-	uint32_t get_current_clock();
-	uint32_t __FASTCALL get_passed_clock(uint32_t prev);
-	double __FASTCALL get_passed_usec(uint32_t prev);
-	uint32_t get_passed_clock_since_vline();
-	double get_passed_usec_since_vline();
+	*/
+	void __FASTCALL update_event_in_opecode(int clock) override;
+	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) override;
+	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id) override;
+	void cancel_event(DEVICE* device, int register_id) override;
+	void register_frame_event(DEVICE* device) override;
+	void register_vline_event(DEVICE* device) override;
+	uint32_t __FASTCALL get_event_remaining_clock(int register_id) override;
+	double __FASTCALL get_event_remaining_usec(int register_id) override;
+	uint32_t get_current_clock() override;
+	uint32_t __FASTCALL get_passed_clock(uint32_t prev) override;
+	double __FASTCALL get_passed_usec(uint32_t prev) override;
+	uint32_t get_passed_clock_since_vline() override;
+	double get_passed_usec_since_vline() override;
 	/*!
 	 @brief Get current proccessing position of vertical line.
 	 @return Cureent position.
 	*/
-	int get_cur_vline()
+	int get_cur_vline() override
 	{
 		return cur_vline;
 	}
@@ -272,16 +273,16 @@ public:
 	 @brief Get relative clock position value at current line.
 	 @return Cureent clock position.
 	*/
-	int get_cur_vline_clocks()
+	int get_cur_vline_clocks() override
 	{
 		return vline_clocks[cur_vline];
 	}
-	uint32_t __FASTCALL get_cpu_pc(int index);
-	void request_skip_frames();
-	void touch_sound();
-	void set_realtime_render(DEVICE* device, bool flag);
-	uint64_t get_current_clock_uint64();
-	double get_current_usec();
+	uint32_t __FASTCALL get_cpu_pc(int index) override;
+	void request_skip_frames() override;
+	void touch_sound() override;
+	void set_realtime_render(DEVICE* device, bool flag) override;
+	uint64_t get_current_clock_uint64() override;
+	double get_current_usec() override;
 	uint32_t __FASTCALL get_cpu_clock(int index);
 	// unique functions
 	/*!
@@ -294,7 +295,7 @@ public:
 		return next_frames_per_sec;
 	}
 	void drive();
-	
+
 	void initialize_sound(int rate, int samples);
 	uint16_t* __FASTCALL create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
@@ -302,7 +303,7 @@ public:
 	void clear_sound_in_source(int bank);
 	int add_sound_in_source(int rate, int samples, int channels);
 	int release_sound_in_source(int bank);
-	
+
 	bool is_sound_in_source_exists(int bank);
 	int __FASTCALL increment_sound_in_passed_data(int bank, double passed_usec);
 	int get_sound_in_buffers_count();
@@ -420,4 +421,3 @@ public:
 
 
 #endif
-

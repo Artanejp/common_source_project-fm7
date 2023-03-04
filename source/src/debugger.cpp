@@ -41,11 +41,11 @@ void my_printf(OSD_BASE *osd, const _TCHAR *format, ...)
 {
 	_TCHAR buffer[8192];
 	va_list ap;
-	
+
 	va_start(ap, format);
 	my_vstprintf_s(buffer, array_length(buffer), format, ap);
 	va_end(ap);
-	
+
 	if(logfile != NULL && logfile->IsOpened()) {
 		logfile->Fwrite(buffer, _tcslen(buffer) * sizeof(_TCHAR), 1);
 	}
@@ -64,12 +64,12 @@ uint32_t my_hexatoi(DEVICE *device, const _TCHAR *str)
 {
 	_TCHAR tmp[1024], *s;
 	symbol_t *first_symbol = NULL;
-	
+
 	if(str == NULL || _tcslen(str) == 0) {
 		return 0;
 	}
 	my_tcscpy_s(tmp, array_length(tmp), str);
-	
+
 	if(device != NULL) {
 		DEBUGGER *debugger = (DEBUGGER *)device->get_debugger();
 		if(debugger != NULL) {
@@ -122,7 +122,7 @@ uint16_t my_hexatow(char *value)
 const _TCHAR *my_get_symbol(DEVICE *device, uint32_t addr)
 {
 	symbol_t *first_symbol = NULL;
-	
+
 	if(device != NULL) {
 		DEBUGGER *debugger = (DEBUGGER *)device->get_debugger();
 		if(debugger != NULL) {
@@ -135,7 +135,7 @@ const _TCHAR *my_get_symbol(DEVICE *device, uint32_t addr)
 const _TCHAR *my_get_value_or_symbol(DEVICE *device, const _TCHAR *format, uint32_t addr)
 {
 	symbol_t *first_symbol = NULL;
-	
+
 	if(device != NULL) {
 		DEBUGGER *debugger = (DEBUGGER *)device->get_debugger();
 		if(debugger != NULL) {
@@ -148,7 +148,7 @@ const _TCHAR *my_get_value_or_symbol(DEVICE *device, const _TCHAR *format, uint3
 const _TCHAR *my_get_value_and_symbol(DEVICE *device, const _TCHAR *format, uint32_t addr)
 {
 	symbol_t *first_symbol = NULL;
-	
+
 	if(device != NULL) {
 		DEBUGGER *debugger = (DEBUGGER *)device->get_debugger();
 		if(debugger != NULL) {
@@ -178,9 +178,9 @@ void show_break_reason(OSD_BASE *osd, DEVICE *cpu, DEVICE *target, bool hide_bp)
 {
 	DEBUGGER *cpu_debugger = (DEBUGGER *)cpu->get_debugger();
 	DEBUGGER *target_debugger = (DEBUGGER *)target->get_debugger();
-	
+
 	osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
-	
+
 	if(cpu_debugger != NULL) {
 		if(cpu_debugger->bp.hit && !hide_bp) {
 			my_printf(osd, _T("breaked at %s: breakpoint %s was hit\n"),
@@ -268,7 +268,7 @@ void* debugger_thread(void *lpx)
 {
 	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
 	p->running = true;
-	
+
 	// initialize console
 	std::list<std::string> helplist;
 	std::list<std::string> complist;
@@ -301,16 +301,16 @@ void* debugger_thread(void *lpx)
 	helplist.push_back("[{R,W,I,O}]B{C,D,E} {*,<list>} - clear/disable/enable breakpoint(s)");
 	helplist.push_back("[{R,W,I,O}]BL - list breakpoints");
 	helplist.push_back("[{R,W,I,O}]CP <address/port> [<mask>] - set checkpoint (don't break)");
-				
+
 	helplist.push_back("G - go (press esc key to break)");
 	helplist.push_back("G <address> - go and break at address (ignore breakpoints)");
 	helplist.push_back("P - trace one opcode (step over, ignore breakpoints)");
 	helplist.push_back("T [<count>] - trace (step in)");
 	helplist.push_back("Q - quit");
-				
+
 	helplist.push_back("> <filename> - output logfile");
 	helplist.push_back("< <filename> - input commands from file");
-				
+
 	helplist.push_back("! reset [all/cpu/target] - reset");
 	helplist.push_back("! key <code> [<msec>] - press key");
 	helplist.push_back("! device - enumerate debugger available device");
@@ -337,7 +337,7 @@ void* debugger_thread(void *lpx)
 		helplist.push_back("! mount_cmt <drive> - mount cassette tape\n");
 		helplist.push_back("! unmount_cmt <drive> - unmount cassette tape\n");
 	}
-	
+
 	helplist.push_back("!! <remark> - do nothing");
 
 	helplist.push_back("<value> - hexa, decimal(%%d), ascii('a')");
@@ -414,9 +414,9 @@ void* debugger_thread(void *lpx)
 
 	_TCHAR buffer[8192];
 	bool cp932 = (p->osd->get_console_code_page() == 932);
-	
+
 	p->osd->open_console(120, 30, (_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
-	
+
 	// break cpu
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
 	DEBUGGER *cpu_debugger = (DEBUGGER *)cpu->get_debugger();
@@ -438,43 +438,45 @@ void* debugger_thread(void *lpx)
 		}
 		p->osd->sleep(10);
 	}
-	
+
+	p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | /*OSD_CONSOLE_BLUE |*/ OSD_CONSOLE_INTENSITY);
+	my_printf(p->osd, _T("enter '?' to show the list of commands\n"));
 	uint32_t dump_addr = 0;
 	uint32_t dasm_addr = cpu->get_next_pc();
-	
+
 	p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 	if(cpu->get_debug_regs_info(buffer, array_length(buffer))) {
 		my_printf(p->osd, _T("%s\n"), buffer);
 	}
-	
+
 	p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
 	my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
-	
+
 	p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 	cpu->debug_dasm(cpu->get_next_pc(), buffer, array_length(buffer));
 	my_printf(p->osd, _T("next\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()), buffer);
 	p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
-	
+
 	// initialize files
 	logfile = NULL;
 	cmdfile = NULL;
-	
+
 	_TCHAR command[MAX_COMMAND_LENGTH + 1];
 	_TCHAR prev_command[MAX_COMMAND_LENGTH + 1];
-	
+
 	memset(prev_command, 0, sizeof(prev_command));
 
 	while(!p->request_terminate) {
 		p->emu->draw_screen();
-		
+
 		my_printf(p->osd, _T("- "));
-		
+
 		// get command
 		_TCHAR ir[16 + 2];
 		int enter_ptr = 0;
 		int history_ptr = 0;
 		bool enter_done = false;
-		
+
 		while(!p->request_terminate && !enter_done) {
 			if(cmdfile != NULL && cmdfile->IsOpened()) {
 				if(cmdfile->Fgetts(command, array_length(command)) != NULL) {
@@ -493,7 +495,7 @@ void* debugger_thread(void *lpx)
 			} else {
 				memset(ir, 0, sizeof(ir));
 				int count = p->osd->read_console_input(ir, 16);
-				
+
 				for(int i = 0; i < count; i++) {
 					if(ir[i] == 0x08) {
 						if(enter_ptr > 0) {
@@ -566,12 +568,12 @@ void* debugger_thread(void *lpx)
 				p->osd->sleep(10);
 			}
 		}
-		
+
 		// process command
 		if(!p->request_terminate && enter_done) {
 			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
-		
+
 			for(int i = 0; i < ((sizeof(params) / sizeof(_TCHAR *))); i++) {
 				params[i] = (_TCHAR *)(_T(""));
 			}
@@ -588,13 +590,13 @@ void* debugger_thread(void *lpx)
 						start_addr = my_hexatoi(target, params[1]);
 					}
 					start_addr %= target->get_debug_data_addr_space();
-					
+
 					uint32_t end_addr = start_addr + 8 * 16 - 1;
 					if(num == 3) {
 						end_addr = my_hexatoi(target, params[2]);
 					}
 					end_addr %= target->get_debug_data_addr_space();
-					
+
 					if(start_addr > end_addr) {
 						end_addr = (uint32_t)(target->get_debug_data_addr_space() - 1);
 					}
@@ -829,7 +831,7 @@ void* debugger_thread(void *lpx)
 						struct tm *timedat;
 						time_t nowtime;
 						struct timeval tv;
-								
+
 						nowtime = time(NULL);
 						gettimeofday(&tv, NULL);
 						timedat = localtime(&nowtime);
@@ -880,7 +882,7 @@ void* debugger_thread(void *lpx)
 					int steps = 128;
 					int xnum = 1;
 					bool logging = false;
-					
+
 					if(num >= 2) {
 						if((strcasecmp(params[xnum], "0") == 0)) {
 							steps = MAX_CPU_TRACE - 1; // TBD
@@ -892,7 +894,7 @@ void* debugger_thread(void *lpx)
 						}
 					}
 					FILEIO* log_fio = NULL;
-					if(steps > 0) {  // Workaround for gcc-9. 
+					if(steps > 0) {  // Workaround for gcc-9.
 						_TCHAR log_path[_MAX_PATH];
 						if(xnum < num) {
 							my_tcscpy_s(log_path, _MAX_PATH, create_absolute_path(params[xnum]));
@@ -900,7 +902,7 @@ void* debugger_thread(void *lpx)
 						}
 						if(logging) {
 							log_fio = new FILEIO();
-							if(!(log_fio->Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII))) { // Failed to open 
+							if(!(log_fio->Fopen((const _TCHAR*)log_path, FILEIO_WRITE_APPEND_ASCII))) { // Failed to open
 								delete log_fio;
 								log_fio = NULL;
 								logging = false;
@@ -912,7 +914,7 @@ void* debugger_thread(void *lpx)
 									struct tm *timedat;
 									time_t nowtime;
 									struct timeval tv;
-								
+
 									nowtime = time(NULL);
 									gettimeofday(&tv, NULL);
 									timedat = localtime(&nowtime);
@@ -978,7 +980,7 @@ void* debugger_thread(void *lpx)
 								}
 								my_sprintf_s(tmps2, sizeof(tmps2), _T("  %s"), buffer);
 								strncat(tmps, tmps2, sizeof(tmps) - 1);
-							
+
 								if(target_debugger->cpu_trace_exp_map[index]) {
 									my_sprintf_s(tmps2, sizeof(tmps2), _T("  <== EXCEPTION 0x%08X\n"), target_debugger->cpu_trace_exp[index]);
 								} else {
@@ -1379,7 +1381,7 @@ RESTART_GO:
 					cpu_debugger->exception_pc = cpu->get_pc();
 					cpu_debugger->now_going = true;
 					cpu_debugger->now_suspended = false;
-#if defined(_MSC_VER)					   
+#if defined(_MSC_VER)
 					while(!p->request_terminate && !cpu_debugger->now_suspended && !(cpu_debugger->exception_happened && cpu_debugger->stop_on_exception)) {
 						if(p->osd->is_console_key_pressed(VK_ESCAPE)) {
 							break;
@@ -1394,7 +1396,7 @@ RESTART_GO:
 						}
 						p->osd->sleep(10);
 					}
-#endif					   
+#endif
 					// break cpu
 					cpu_debugger->now_going = false;
 					wait_count = 0;
@@ -1408,7 +1410,7 @@ RESTART_GO:
 					if(target == cpu) {
 						dasm_addr = cpu->get_next_pc();
 					}
-					
+
 					p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 					cpu->debug_dasm(cpu->get_pc(), buffer, array_length(buffer));
 					if(cpu_debugger->exception_happened) {
@@ -1416,14 +1418,14 @@ RESTART_GO:
 					}
 					cpu_debugger->exception_happened = false;
 					cpu_debugger->exception_code = 0;
-						
+
 					my_printf(p->osd, _T("done\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()), buffer);
-					
+
 					p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 					if(cpu->get_debug_regs_info(buffer, array_length(buffer))) {
 						my_printf(p->osd, _T("%s\n"), buffer);
 					}
-					
+
 					if(target != cpu) {
 						p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
 						if(target->debug_dasm(target->get_next_pc(), buffer, array_length(buffer)) != 0) {
@@ -1433,7 +1435,7 @@ RESTART_GO:
 							my_printf(p->osd, _T("%s\n"), buffer);
 						}
 					}
-					
+
 					if(cpu_debugger->hit()) {
 						show_break_reason(p->osd, cpu, target, (_tcsicmp(params[0], _T("P")) == 0));
 						bool restart = cpu_debugger->restartable();
@@ -1477,19 +1479,19 @@ RESTART_GO:
 						if(target == cpu) {
 							dasm_addr = cpu->get_next_pc();
 						}
-						
+
 						if(cpu_debugger->exception_happened) {
 							my_printf(p->osd, _T("**EXCEPTION #%08X happened at %08X\n"), cpu_debugger->exception_code, cpu_debugger->exception_pc);
 						}
 						p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 						cpu->debug_dasm(cpu->get_pc(), buffer, array_length(buffer));
 						my_printf(p->osd, _T("done\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()), buffer);
-						
+
 						p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 						if(cpu->get_debug_regs_info(buffer, array_length(buffer))) {
 							my_printf(p->osd, _T("%s\n"), buffer);
 						}
-						
+
 						if(target != cpu) {
 							p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
 							if(target->debug_dasm(target->get_next_pc(), buffer, array_length(buffer)) != 0) {
@@ -1499,7 +1501,7 @@ RESTART_GO:
 								my_printf(p->osd, _T("%s\n"), buffer);
 							}
 						}
-						
+
 						if(cpu_debugger->hit()) {
 							show_break_reason(p->osd, cpu, target, false);
 							bool restart = cpu_debugger->restartable();
@@ -1682,15 +1684,15 @@ RESTART_GO:
 								}
 								dump_addr = 0;
 								dasm_addr = cpu->get_next_pc();
-								
+
 								p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 								if(cpu->get_debug_regs_info(buffer, array_length(buffer))) {
 									my_printf(p->osd, _T("%s\n"), buffer);
 								}
-								
+
 								p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
 								my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
-								
+
 								p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 								cpu->debug_dasm(cpu->get_next_pc(), buffer, array_length(buffer));
 								my_printf(p->osd, _T("next\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()), buffer);
@@ -1712,7 +1714,7 @@ RESTART_GO:
 							cpu_debugger->store_break_points();
 							cpu_debugger->now_going = true;
 							cpu_debugger->now_suspended = false;
-							
+
 							// wait until save/load state is done at top of next frame
 							wait_count = 0;
 							while(!p->request_terminate && (p->emu->request_save_state != -1 || p->emu->request_load_state != -1)) {
@@ -1751,16 +1753,16 @@ RESTART_GO:
 								dasm_addr = cpu->get_next_pc();
 							}
 							cpu_debugger->restore_break_points();
-							
+
 							p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 							cpu->debug_dasm(cpu->get_pc(), buffer, array_length(buffer));
 							my_printf(p->osd, _T("done\t%s  %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_pc()), buffer);
-							
+
 							p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
 							if(cpu->get_debug_regs_info(buffer, array_length(buffer))) {
 								my_printf(p->osd, _T("%s\n"), buffer);
 							}
-							
+
 							if(target != cpu) {
 								p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_INTENSITY);
 								if(target->debug_dasm(target->get_next_pc(), buffer, array_length(buffer)) != 0) {
@@ -1770,7 +1772,7 @@ RESTART_GO:
 									my_printf(p->osd, _T("%s\n"), buffer);
 								}
 							}
-							
+
 							p->osd->set_console_text_attribute(OSD_CONSOLE_RED | OSD_CONSOLE_INTENSITY);
 							my_printf(p->osd, _T("breaked at %s\n"), my_get_value_and_symbol(cpu, _T("%08X"), cpu->get_next_pc()));
 							p->osd->set_console_text_attribute(OSD_CONSOLE_GREEN | OSD_CONSOLE_BLUE | OSD_CONSOLE_INTENSITY);
@@ -1887,7 +1889,7 @@ RESTART_GO:
 			}
 		}
 	}
-	
+
 	// stop debugger
 	try {
 		if(target_debugger != NULL) {
@@ -1896,7 +1898,7 @@ RESTART_GO:
 		cpu_debugger->now_debugging = cpu_debugger->now_going = cpu_debugger->now_suspended = cpu_debugger->now_waiting = false;
 	} catch(...) {
 	}
-	
+
 	// release files
 	if(logfile != NULL) {
 		if(logfile->IsOpened()) {
@@ -1912,10 +1914,10 @@ RESTART_GO:
 		delete cmdfile;
 		cmdfile = NULL;
 	}
-	
+
 	// release console
 	p->osd->close_console();
-	
+
 	p->running = false;
 #ifdef _MSC_VER
 	_endthreadex(0);
@@ -1971,7 +1973,7 @@ void EMU::open_debugger(int cpu_index)
 
 void EMU::close_debugger(int cpu_index)
 {
-	
+
 	if(now_debugging) {
 		if(debugger_thread_param.running) {
 			debugger_thread_param.request_terminate = true;
@@ -2003,4 +2005,3 @@ bool EMU::is_debugger_enabled(int cpu_index)
 	return (vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL);
 }
 #endif
-

@@ -365,23 +365,37 @@ int I386::run(int cycles)
 				if(device_dma != NULL) device_dma->do_dma();
 			}
 //#endif
-			passed_cycles = max(5, extra_cycles); // 80386 CPI: 4.9
-			extra_cycles = 0;
+			// 80386 CPI: 4.9
+			int __cycles = 5;
+			if(extra_cycles > 0) {
+				__cycles += extra_cycles;
+				extra_cycles = 0;
+			}
+			__UNLIKELY_IF(_USE_DEBUGGER) {
+				total_cycles += __cycles;
+			}
+			cpu_wait(5, i386_memory_wait);
+			return __cycles;
 		} else {
 			// run only one opcode
-			passed_cycles = extra_cycles;
-			extra_cycles = 0;
-			passed_cycles += run_one_opecode();
+			int __cycles = run_one_opecode();
+			int tmp_extra_cycles = 0;
+			if(extra_cycles > 0) {
+				tmp_extra_cycles = extra_cycles;
+				extra_cycles = 0;
+			}
+			__UNLIKELY_IF(_USE_DEBUGGER) {
+				total_cycles += __cycles;
+			}
+			cpu_wait(__cycles, i386_memory_wait);
+			return __cycles + tmp_extra_cycles;
 		}
 //#ifdef USE_DEBUGGER
-		__UNLIKELY_IF(_USE_DEBUGGER) {
-			total_cycles += passed_cycles;
-		}
 //#endif
-		cpu_wait(passed_cycles, i386_memory_wait);
-		return passed_cycles;
 	} else {
-		remained_cycles += cycles + extra_cycles;
+		// Secondary
+//		remained_cycles += cycles + extra_cycles;
+		remained_cycles += cycles;
 		extra_cycles = 0;
 		int first_cycles = remained_cycles;
 
@@ -403,7 +417,7 @@ int I386::run(int cycles)
 			remained_cycles = 0;
 		}
 		int passed_cycles = first_cycles - remained_cycles;
-		cpu_wait(passed_cycles, i386_memory_wait);
+		//cpu_wait(passed_cycles, i386_memory_wait);
 		return passed_cycles;
 	}
 }
