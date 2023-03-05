@@ -64,20 +64,20 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 	driveData->setVisible(false);
 	p_config->virtual_media_position = 0;
 	set_screen_size(graphicsView->width(), graphicsView->height());
-	
+
 	pCentralLayout->setDirection(QBoxLayout::TopToBottom);
 	rect.setRect(0, 0, graphicsView->width(), graphicsView->height() + 2);
-	
+
 	pCentralLayout->removeWidget(driveData);
 	pCentralWidget->setGeometry(rect);
 	//pCentralLayout->setGeometry(rect);
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
 	pCentralWidget->adjustSize();
-	
+
 	MainWindow->setCentralWidget(pCentralWidget);
 	MainWindow->adjustSize();
-	
+
 	//emit sig_set_display_osd(true);
 }
 
@@ -99,7 +99,7 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
 	pCentralWidget->adjustSize();
-	
+
 	MainWindow->setCentralWidget(pCentralWidget);
 	MainWindow->adjustSize();
 	//emit sig_set_display_osd(false);
@@ -117,13 +117,13 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 	pCentralLayout->removeWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
 	pCentralLayout->addWidget(graphicsView);
-	
+
 	rect.setRect(0, 0, graphicsView->width(), graphicsView->height() + driveData->height() + 2);
 	pCentralWidget->setGeometry(rect);
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
 	pCentralWidget->adjustSize();
-	
+
 	MainWindow->setCentralWidget(pCentralWidget);
 	MainWindow->adjustSize();
 }
@@ -230,7 +230,7 @@ void Ui_MainWindowBase::rise_keyboard_dialog(void)
 						emit sig_add_keyname_table(VK_OEM_CSP_KPRET, i.value());
 						emit sig_add_keyname_table(VK_RETURN, i.value());
 						is_set = true;
-					}						
+					}
 				}
 				if(p_config->swap_kanji_pause) {
 					if(i.key() == VK_KANJI) {
@@ -241,13 +241,13 @@ void Ui_MainWindowBase::rise_keyboard_dialog(void)
 						is_set = true;
 					}
 				}
-				
+
 				if(!is_set) {
 					emit sig_add_keyname_table(i.key(), i.value());
 				}
 			}
 		}
-										   
+
 		dlg->show();
 	}
 }
@@ -279,14 +279,17 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	connect(action_DispVirtualMedias[1], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_upper()));
 	connect(action_DispVirtualMedias[2], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_lower()));
 
+	SET_ACTION_SINGLE_CONNECT(action_DriveInOpCode, true, true, (p_config->drive_vm_in_opecode), SIGNAL(toggled(bool)), SLOT(do_set_drive_vm_in_opecode(bool)));
+	action_DriveInOpCode->setVisible(false);
+
 	if(using_flags->is_use_joystick()) {
 		SET_ACTION_SINGLE(action_UseJoykey, true, true, (p_config->use_joy_to_key));
 		connect(action_UseJoykey, SIGNAL(toggled(bool)), this, SLOT(do_set_joy_to_key(bool)));
 	}
-	
+
 	if(using_flags->is_use_auto_key()) {
 		// ToDo: Setup if checked.
-		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (p_config->romaji_to_kana)); 
+		SET_ACTION_SINGLE(action_UseRomaKana, true, true, (p_config->romaji_to_kana));
 		connect(action_UseRomaKana, SIGNAL(toggled(bool)), this, SLOT(do_set_roma_kana(bool)));
 	}
 	SET_ACTION_SINGLE(action_NumPadEnterAsFullkey, true, true, (p_config->numpad_enter_as_fullkey));
@@ -294,7 +297,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 	SET_ACTION_SINGLE(action_PrintCpuStatistics, true, true, (p_config->print_statistics));
 	connect(action_PrintCpuStatistics, SIGNAL(toggled(bool)), this, SLOT(do_set_print_cpu_statistics(bool)));
-	
+
 	// Cursor to ten key.
 	menu_EmulateCursorAs = new QMenu(this);
 	menu_EmulateCursorAs->setToolTipsVisible(true);
@@ -310,14 +313,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 			actionGroup_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
 			menu_EmulateCursorAs->addAction(action_EmulateCursorAs[i]);
 			if(i == p_config->cursor_as_ten_key) action_EmulateCursorAs[i]->setChecked(true);
-				
+
 			connect(action_EmulateCursorAs[i], SIGNAL(triggered()),
 					this, SLOT(do_set_emulate_cursor_as()));
 		}
 	}
-	
+
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(actionSpeed_FULL, "actionSpeed_FULL", p_config->full_speed, SIGNAL(toggled(bool)), SLOT(do_emu_full_speed(bool)));
-	
+
 	if(using_flags->is_use_mouse()) {
 		action_SetupMouse = new Action_Control(this, using_flags);
 	}
@@ -325,7 +328,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		action_SetupJoystick = new Action_Control(this, using_flags);
 		action_SetupJoykey = new Action_Control(this, using_flags);
 	}
-	
+
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(action_FocusWithClick, "actionFocus_With_Click", p_config->focus_with_click, SIGNAL(toggled(bool)), SLOT(do_set_window_focus_type(bool)));
 
 	action_Logging_FDC = NULL;
@@ -335,7 +338,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	}
 #if !defined(Q_OS_WIN)
 	SET_ACTION_SINGLE(action_LogToSyslog, true, true, (p_config->log_to_syslog != 0));
-	
+
 	menuDevLogToSyslog = new QMenu(this);
 	menuDevLogToSyslog->setToolTipsVisible(true);
 	SET_ACTION_CONTROL_ARRAY(0, (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1),
@@ -345,7 +348,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 							 SIGNAL(toggled(bool)),
 							 SLOT(do_set_dev_log_to_syslog(bool)));
 #endif
-	
+
 	SET_ACTION_SINGLE(action_LogToConsole, true, true, (p_config->log_to_console != 0));
 
 	//menuDevLogToConsole = new QMenu(menuEmulator);
@@ -358,11 +361,11 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 							 dev_log_to_console,
 							 SIGNAL(toggled(bool)),
 							 SLOT(do_set_dev_log_to_console(bool)));
-	
+
 	action_LogView = new Action_Control(this, using_flags);
 	connect(action_LogView, SIGNAL(triggered()),
 			this, SLOT(rise_log_viewer()));
-	
+
 	long cpus = -1;
 #if defined(Q_OS_LINUX)
 	{
@@ -380,14 +383,14 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		actionGroup_SetFixedCpu = new QActionGroup(this);
 		actionGroup_SetFixedCpu->setExclusive(true);
 		if(cpus >= 128) cpus = 128;
-		
+
 		action_ResetFixedCpu = new Action_Control(this, using_flags);
 		action_ResetFixedCpu->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
 		action_ResetFixedCpu->setCheckable(true);
 		action_ResetFixedCpu->setData(QVariant((int)-1));
 		actionGroup_SetFixedCpu->addAction(action_ResetFixedCpu);
 		menu_SetFixedCpu->addAction(action_ResetFixedCpu);
-		
+
 		for(i = 0; i < cpus; i++) {
 			tmps = QString::number(i);
 			action_SetFixedCpu[i] = new Action_Control(this, using_flags);
@@ -443,8 +446,8 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 					} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
 						if(i == RENDER_PLATFORMS_OPENGL_CORE) {
 							action_SetRenderPlatform[i]->setChecked(true);
-						}						
-					}						
+						}
+					}
 				}
 				connect(action_SetRenderPlatform[i], SIGNAL(triggered()),
 						this, SLOT(do_select_render_platform(void)));
@@ -453,7 +456,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	action_SetupKeyboard = new Action_Control(this, using_flags);
 
 	action_SetupMovie = new Action_Control(this, using_flags);
-  
+
 }
 
 #if defined(Q_OS_LINUX)
@@ -467,14 +470,16 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(menu_DispVirtualMedias->menuAction());
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(actionSpeed_FULL);
-	if(menu_SetFixedCpu != NULL) {
+	menuEmulator->addAction(action_DriveInOpCode);
+	menuEmulator->addSeparator();
+	if(menu_SetFixedCpu != nullptr) {
 		menuEmulator->addAction(menu_SetFixedCpu->menuAction());
 	}
 	menuEmulator->addAction(menu_SetRenderPlatform->menuAction());
 	menuEmulator->addSeparator();
 	if(using_flags->is_use_mouse()) {
 		menuEmulator->addAction(action_SetupMouse);
-	}		
+	}
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
 		menuEmulator->addAction(action_SetupJoykey);
@@ -487,7 +492,7 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	}
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_UseJoykey);
-	}		
+	}
 	menuEmulator->addAction(action_NumPadEnterAsFullkey);
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(menu_EmulateCursorAs->menuAction());
@@ -507,6 +512,15 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(menuDevLogToSyslog->menuAction());
 #endif
 	menuEmulator->addSeparator();
+}
+
+void Ui_MainWindowBase::retranslateOpMenuZ80(bool _visible)
+{
+	if(action_DriveInOpCode != nullptr) {
+		action_DriveInOpCode->setText(QApplication::translate("MenuEmulator", "Drive VM in M1/R/W Cycle", 0));
+		action_DriveInOpCode->setToolTip(QApplication::translate("MenuEmulator", "Process some events and wait per instruction.\nMake emulation more correctness.", 0));
+		action_DriveInOpCode->setVisible(_visible);
+	}
 }
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
@@ -530,7 +544,9 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	}
 	actionSpeed_FULL->setText(QApplication::translate("MenuEmulator", "Emulate as FULL SPEED", 0));
 	actionSpeed_FULL->setToolTip(QApplication::translate("MenuEmulator", "Run emulation thread without frame sync.", 0));
-	
+
+	retranslateOpMenuZ80(false);
+
 	action_NumPadEnterAsFullkey->setText(QApplication::translate("MenuEmulator", "Numpad's Enter is Fullkey's", 0));
 	action_NumPadEnterAsFullkey->setToolTip(QApplication::translate("MenuEmulator", "Numpad's enter key makes full key's enter.\nUseful for some VMs.", 0));
 
@@ -547,13 +563,13 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_EmulateCursorAs[0]->setText(QApplication::translate("MenuEmulator", "None", 0));
 	action_EmulateCursorAs[1]->setText(QApplication::translate("MenuEmulator", "2 4 6 8", 0));
 	action_EmulateCursorAs[2]->setText(QApplication::translate("MenuEmulator", "1 2 3 5", 0));
-	
+
 	menuEmulator->setTitle(QApplication::translate("MenuEmulator", "Emulator", 0));
 
-	
+
 	action_FocusWithClick->setText(QApplication::translate("MenuEmulator", "Focus on click", 0));
 	action_FocusWithClick->setToolTip(QApplication::translate("MenuEmulator", "If set, focus with click, not mouse-over.", 0));
-	
+
 	action_SetupKeyboard->setText(QApplication::translate("MenuEmulator", "Configure Keyboard", 0));
 	action_SetupKeyboard->setToolTip(QApplication::translate("MenuEmulator", "Set addignation of keyboard.", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
@@ -574,7 +590,7 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	menu_SetRenderPlatform->setTitle(QApplication::translate("MenuEmulator", "Video Platform(need restart)", 0));
 	if(menu_SetFixedCpu != NULL) {
 		menu_SetFixedCpu->setTitle(QApplication::translate("MenuEmulator", "Occupy Fixed CPU", 0));
-		
+
 		if(action_ResetFixedCpu != NULL) {
 			action_ResetFixedCpu->setText(QApplication::translate("MenuEmulator", "Using all CPU", 0));
 			action_ResetFixedCpu->setToolTip(QApplication::translate("MenuEmulator", "Using all CPU to emulation.\nReset cpu usings.", 0));
@@ -593,7 +609,7 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv3.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL2_MAIN]->setText(QApplication::translate("MenuEmulator", "OpenGLv2.0", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_CORE]->setText(QApplication::translate("MenuEmulator", "OpenGL(Core profile)", 0));
-	
+
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_2]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL ES v2.0.\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL_ES_31]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL ES v3.1.\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));
 	action_SetRenderPlatform[RENDER_PLATFORMS_OPENGL3_MAIN]->setToolTip(QApplication::translate("MenuEmulator", "Using OpenGL v3.0(MAIN).\nThis is recommanded.\nIf changed, need to restart this emulator.", 0));

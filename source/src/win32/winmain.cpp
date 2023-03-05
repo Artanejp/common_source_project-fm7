@@ -693,6 +693,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_FULL_SPEED:
 			config.full_speed = !config.full_speed;
 			break;
+		case ID_DRIVE_VM_IN_OPECODE:
+			config.drive_vm_in_opecode = !config.drive_vm_in_opecode;
+			break;
 #ifdef USE_AUTO_KEY
 		case ID_AUTOKEY_START:
 			if(emu) {
@@ -1537,6 +1540,7 @@ void update_control_menu(HMENU hMenu)
 		CheckMenuRadioItem(hMenu, ID_CPU_POWER0, ID_CPU_POWER4, ID_CPU_POWER0 + config.cpu_power, MF_BYCOMMAND);
 	}
 	CheckMenuItem(hMenu, ID_FULL_SPEED, config.full_speed ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(hMenu, ID_DRIVE_VM_IN_OPECODE, config.drive_vm_in_opecode ? MF_CHECKED : MF_UNCHECKED);
 #ifdef USE_AUTO_KEY
 	bool now_paste = true, now_stop = true;
 	if(emu) {

@@ -100,13 +100,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #endif
 	boot_mode = config.boot_mode;
-	
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
-	
+
 	pc88event = new EVENT(this, emu);
-	
+
 	pc88 = new PC88(this, emu);
 	pc88sio = new I8251(this, emu);
 	pc88pio = new I8255(this, emu);
@@ -133,7 +133,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
-	
+
 	if(config.dipswitch & DIPSWITCH_FDD_5INCH) {
 		pc88sub = new PC80S31K(this, emu);
 		pc88sub->set_device_name(_T("PC-80S31K (Sub)"));
@@ -327,7 +327,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88diskio = NULL;
 	}
 #endif
-	
+
 	// set cpu device contexts
 #ifdef SUPPORT_PC88_HIGH_CLOCK
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type == 1) ? 3993624 : 7987248);
@@ -337,7 +337,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(pc88cpu_sub != NULL) {
 		pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	}
-	
+
 	// set sound device contexts
 	pc88event->set_context_sound(pc88pcm);
 #ifdef SUPPORT_PC88_CDROM
@@ -390,7 +390,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88event->set_context_sound(pc88noise_8inch_head_up);
 	}
 #endif
-	
+
 	// set other device contexts
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_pcm(pc88pcm);
@@ -452,7 +452,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pc88sio->set_context_rxrdy(pc88, SIG_PC88_USART_IRQ, 1);
 	pc88sio->set_context_out(pc88, SIG_PC88_USART_OUT);
-	
+
 	if(config.dipswitch & DIPSWITCH_FDD_5INCH) {
 		pc88sub->set_context_cpu(pc88cpu_sub);
 		pc88sub->set_context_fdc(pc88fdc_sub);
@@ -478,7 +478,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88cpu_sub->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	}
-	
+
 #ifdef SUPPORT_PC88_FDD_8INCH
 	if(config.dipswitch & DIPSWITCH_FDD_8INCH) {
 		pc88fdc_8inch->set_context_irq(pc88, SIG_PC88_8INCH_IRQ, 1);
@@ -522,7 +522,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88pcg_pit->set_constant_clock(2, 3993624);
 	}
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -568,7 +568,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// initial device settings
 #ifdef SUPPORT_PC88_OPN1
 	if(pc88opn1 != NULL) {
@@ -624,7 +624,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	pc88event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_OPN1
@@ -668,7 +668,7 @@ void VM::initialize_sound(int rate, int samples)
 #ifdef SUPPORT_PC88_JAST
 	if(config.printer_type == 2) {
 		PCM8BIT *pcm8 = (PCM8BIT *)pc88prn;
-		pcm8->initialize_sound(rate, 8000);
+		pcm8->initialize_sound(rate, 32000);
 	}
 #endif
 }
@@ -856,7 +856,7 @@ bool VM::get_kana_locked()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	UPD765A *controller = get_floppy_disk_controller(drv);
-	
+
 	if(controller != NULL) {
 		controller->open_disk(drv & 1, file_path, bank);
 	}
@@ -865,7 +865,7 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 void VM::close_floppy_disk(int drv)
 {
 	UPD765A *controller = get_floppy_disk_controller(drv);
-	
+
 	if(controller != NULL) {
 		controller->close_disk(drv & 1);
 	}
@@ -874,14 +874,14 @@ void VM::close_floppy_disk(int drv)
 bool VM::is_floppy_disk_connected(int drv)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	return (handler != NULL);
 }
 
 bool VM::is_floppy_disk_inserted(int drv)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	if(handler != NULL) {
 		return handler->inserted;
 	}
@@ -891,7 +891,7 @@ bool VM::is_floppy_disk_inserted(int drv)
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	if(handler != NULL) {
 		handler->write_protected = value;
 	}
@@ -900,7 +900,7 @@ void VM::is_floppy_disk_protected(int drv, bool value)
 bool VM::is_floppy_disk_protected(int drv)
 {
 	DISK *handler = get_floppy_disk_handler(drv);
-	
+
 	if(handler != NULL) {
 		return handler->write_protected;
 	}
@@ -910,10 +910,10 @@ bool VM::is_floppy_disk_protected(int drv)
 uint32_t VM::is_floppy_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv += 2) {
 		UPD765A *controller = get_floppy_disk_controller(drv);
-		
+
 		if(controller != NULL) {
 			status |= (controller->read_signal(0) & 3) << drv;
 		}
@@ -943,7 +943,7 @@ UPD765A *VM::get_floppy_disk_controller(int drv)
 DISK *VM::get_floppy_disk_handler(int drv)
 {
 	UPD765A *controller = get_floppy_disk_controller(drv);
-	
+
 	if(controller != NULL) {
 		return controller->get_disk_handler(drv & 1);
 	}
@@ -1034,4 +1034,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(boot_mode);
  	return true;
 }
-

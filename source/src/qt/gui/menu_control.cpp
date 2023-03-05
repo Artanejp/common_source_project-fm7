@@ -15,7 +15,6 @@
 #include "menu_flags.h"
 
 
-
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
 {
 	actionSpeed_x1 = new Action_Control(this, using_flags);
@@ -23,32 +22,32 @@ void Ui_MainWindowBase::ConfigCpuSpeed(void)
 	actionSpeed_x1->setCheckable(true);
 	actionSpeed_x1->setChecked(true);
 	actionSpeed_x1->setData(QVariant((int)0));
-  
+
 	actionSpeed_x2 = new Action_Control(this, using_flags);
 	actionSpeed_x2->setObjectName(QString::fromUtf8("actionSpeed_x2"));
 	actionSpeed_x2->setCheckable(true);
 	actionSpeed_x2->setData(QVariant((int)1));
-  
+
 	actionSpeed_x4 = new Action_Control(this, using_flags);
 	actionSpeed_x4->setObjectName(QString::fromUtf8("actionSpeed_x4"));
 	actionSpeed_x4->setCheckable(true);
 	actionSpeed_x4->setData(QVariant((int)2));
-  
+
 	actionSpeed_x8 = new Action_Control(this, using_flags);
 	actionSpeed_x8->setObjectName(QString::fromUtf8("actionSpeed_x8"));
 	actionSpeed_x8->setCheckable(true);
 	actionSpeed_x8->setData(QVariant((int)3));
-  
+
 	actionSpeed_x16 = new Action_Control(this, using_flags);
 	actionSpeed_x16->setObjectName(QString::fromUtf8("actionSpeed_x16"));
 	actionSpeed_x16->setCheckable(true);
 	actionSpeed_x16->setData(QVariant((int)4));
-	
-	connect(actionSpeed_x1 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
-	connect(actionSpeed_x2 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
-	connect(actionSpeed_x4 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
-	connect(actionSpeed_x8 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
-	connect(actionSpeed_x16, SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?  
+
+	connect(actionSpeed_x1 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?
+	connect(actionSpeed_x2 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?
+	connect(actionSpeed_x4 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?
+	connect(actionSpeed_x8 , SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?
+	connect(actionSpeed_x16, SIGNAL(triggered()), this, SLOT(do_set_cpu_power())); // OK?
 
 	actionGroup_CpuSpeed = new QActionGroup(this);
 	actionGroup_CpuSpeed->setExclusive(true);
@@ -86,7 +85,7 @@ void Ui_MainWindowBase::do_change_boot_mode(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int mode = cp->data().value<int>();
-	
+
 	if((mode < 0) || (mode >= 8)) return;
 	p_config->boot_mode = mode;
 	emit sig_emu_update_config();
@@ -98,10 +97,10 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 {
 	int i;
 	QString tmps;
-	
+
 	if(num <= 0) return;
 	if(num >= 8) num = 8;
-  
+
 	menuBootMode = new QMenu(menuMachine);
 	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
 	actionGroup_BootMode = new QActionGroup(this);
@@ -116,7 +115,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 		actionBootMode[i]->setData(QVariant(i));
 		menuBootMode->addAction(actionBootMode[i]);
 		actionGroup_BootMode->addAction(actionBootMode[i]);
-		connect(actionBootMode[i], SIGNAL(triggered()), this, SLOT(do_change_boot_mode())); // OK?  
+		connect(actionBootMode[i], SIGNAL(triggered()), this, SLOT(do_change_boot_mode())); // OK?
 	}
 	menuMachine->addAction(menuBootMode->menuAction());
 }
@@ -126,7 +125,7 @@ void Ui_MainWindowBase::do_change_cpu_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int mode = cp->data().value<int>();
-	
+
 	if((mode < 0) || (mode >= 8)) return;
 	p_config->cpu_type = mode;
 	emit sig_emu_update_config();
@@ -140,7 +139,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 	if(num >= 8) num = 7;
 	menuCpuType = new QMenu(menuMachine);
 	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-	
+
 	actionGroup_CpuType = new QActionGroup(this);
 	actionGroup_CpuType->setExclusive(true);
 	for(i = 0; i < num; i++) {
@@ -153,7 +152,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 		actionCpuType[i]->setData(QVariant(i));
 		menuCpuType->addAction(actionCpuType[i]);
 		actionGroup_CpuType->addAction(actionCpuType[i]);
-		connect(actionCpuType[i], SIGNAL(triggered()), this, SLOT(do_change_cpu_type())); // OK?  
+		connect(actionCpuType[i], SIGNAL(triggered()), this, SLOT(do_change_cpu_type())); // OK?
 	}
 	menuMachine->addAction(menuCpuType->menuAction());
 }
@@ -165,7 +164,7 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
 		this, SLOT(OnReset())); // OK?
-	
+
 	if(using_flags->is_use_special_reset()) {
 		for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
 			QString tmps;
@@ -181,13 +180,13 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 	actionExit_Emulator = new Action_Control(this, using_flags);
 	actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
 	//connect(actionExit_Emulator, SIGNAL(triggered()),
-	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
+	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?
 
 	if(using_flags->is_use_auto_key()) {
 		actionPaste_from_Clipboard = new Action_Control(this, using_flags);
 		actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
 		connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
-				this, SLOT(OnStartAutoKey())); // OK?  
+				this, SLOT(OnStartAutoKey())); // OK?
 		actionStop_Pasting = new Action_Control(this, using_flags);
 		actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
 		connect(actionStop_Pasting, SIGNAL(triggered()),
@@ -201,7 +200,7 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			actionSave_State[i] = new Action_Control(this, using_flags);
 
 			strncpy(tmpbuf, create_local_path(_T("%s.sta%d"), using_flags->get_config_name().toLocal8Bit().constData(), i), _MAX_PATH - 1);
-				
+
 			tmps = QString::fromUtf8("");
 			tmpss = QString::fromUtf8("");
 			tmpss.setNum(i);
@@ -274,7 +273,7 @@ void Ui_MainWindowBase::connectActions_ControlMenu(void)
 	menuCpu_Speed->addAction(actionSpeed_x4);
 	menuCpu_Speed->addAction(actionSpeed_x8);
 	menuCpu_Speed->addAction(actionSpeed_x16);
-	
+
 	if(using_flags->is_use_debugger()) {
 		int i;
 		for(i = 0; i < _MAX_DEBUGGER; i++) {
@@ -328,7 +327,7 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	actionSpeed_x4->setText(QApplication::translate("MenuControl", "Speed x4", 0));
 	actionSpeed_x8->setText(QApplication::translate("MenuControl", "Speed x8", 0));
 	actionSpeed_x16->setText(QApplication::translate("MenuControl", "Speed x16", 0));
-	
+
 	if(using_flags->is_use_auto_key()) {
 		actionPaste_from_Clipboard->setText(QApplication::translate("MenuControl", "Paste from Clipboard", 0));
 		actionPaste_from_Clipboard->setToolTip(QApplication::translate("MenuControl", "Paste ANK text to virtual machine from desktop's clop board.", 0));
@@ -362,7 +361,7 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	}
 	menuControl->setTitle(QApplication::translate("MenuControl", "Control", 0));
 	menuState->setTitle(QApplication::translate("MenuControl", "State", 0));
-	
+
 	if(using_flags->is_use_auto_key()) {
 		menuCopy_Paste->setTitle(QApplication::translate("MenuControl", "Copy/Paste", 0));
 	}
@@ -372,4 +371,3 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 		actionMouseEnable->setToolTip(QApplication::translate("MenuControl", "Grabbing host's mouse.\nPress RIGHT Application key (or another) to toggle enable/disable.", 0));
 	}
 }
-

@@ -61,12 +61,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		config.drive_type = 0;
 	}
 #endif
-	
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 //	apu = new AM9511(this, emu);
 	crtc = new HD46505(this, emu);
 	io = new IO(this, emu);
@@ -86,7 +86,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pio = new Z80PIO(this, emu);
 	sio = new Z80SIO(this, emu);
-	
+
 	apu = new APU(this, emu);
 	apu->set_context_apu(new AM9511(this, emu));
 	beep = new BEEP(this, emu);
@@ -94,14 +94,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMBUS(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	/* Z80PIO:
 		Port.A	bit0-7: Output
 		Port.B	bit0: Input
@@ -131,10 +131,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_constant_clock(2, 12500);		// 実測 12.49KHz
 	ctc->set_constant_clock(3, 2500);		// 実測 2.499KHz
 #ifdef _M68
-	ctc2->set_constant_clock(0, CPU_CLOCKS / 13);	// 実測 307.6KHz
-	ctc2->set_constant_clock(1, CPU_CLOCKS / 13);	// (4MHz/13分周) / CTC:2分周 / SIO:16分周 = 9600 baud
-	ctc2->set_constant_clock(2, 12500);		// 実測 12.49KHz
-	ctc2->set_constant_clock(3, 2500);		// 実測 2.499KHz
+	ctc2->set_constant_clock(0, 50);		// 実測 50Hz
+	ctc2->set_constant_clock(1, 50);
+	ctc2->set_constant_clock(2, 50);
+	ctc2->set_constant_clock(3, 50);
 #endif
 	dma->set_context_memory(memory);
 	dma->set_context_io(io);
@@ -142,7 +142,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_vram_ptr(memory->get_vram());
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -150,11 +150,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	DEVICE* parent_dev = NULL;
 	int level = 0;
-	
+
 	#define Z80_DAISY_CHAIN(dev) { \
 		if(parent_dev == NULL) { \
 			cpu->set_context_intr(dev); \
@@ -164,15 +164,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		dev->set_context_intr(cpu, level++); \
 		parent_dev = dev; \
 	}
+	// NOTE: IEI and IEO seems not to be connected to other Z80 family chips on M68 :-(
 	Z80_DAISY_CHAIN(dma);
 	Z80_DAISY_CHAIN(ctc);
 #ifdef _M68
-	// need to investigate M68 board :-(
+	Z80_DAISY_CHAIN(pio);
+	Z80_DAISY_CHAIN(sio);
 	Z80_DAISY_CHAIN(ctc2);
-#endif
+#else
 	Z80_DAISY_CHAIN(sio);
 	Z80_DAISY_CHAIN(pio);
-	
+#endif
+
 	// i/o bus
 	if(config.drive_type == 0) {
 		// M2-FDI-I
@@ -208,7 +211,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf4, 0xf7, pio);
 	io->set_iomap_range_rw(0xf8, 0xfb, sio);
 	io->set_iomap_range_rw(0xfc, 0xff, ctc);
-	
+
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
@@ -311,7 +314,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 8000);
 }
@@ -376,7 +379,7 @@ uint32_t VM::get_led_status()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 	if(fdc->is_disk_inserted(drv) && fdc->is_disk_changed(drv)) {
 		pio->write_signal(SIG_Z80PIO_PORT_B, 0x80, 0x80);
 	}
@@ -431,4 +434,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-

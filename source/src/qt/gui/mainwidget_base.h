@@ -356,6 +356,7 @@ private:
 	Action_Control *action_DispVirtualMedias[5];
 	Action_Control *action_FocusWithClick;
 	Action_Control *action_UseRomaKana;
+	Action_Control *action_DriveInOpCode;
 	Action_Control *action_NumPadEnterAsFullkey;
 	Action_Control *action_UseJoykey;
 	Action_Control *action_Logging_FDC;
@@ -697,6 +698,7 @@ public:
 	virtual void retranslateVolumeLabels(Ui_SoundDialog *);
 	virtual void retranslateEmulatorMenu(void);
 	virtual void retranselateUi_Depended_OSD(void);
+	virtual void retranslateOpMenuZ80(bool _visible); // for config.drive_vm_in_opecode
 	// About Status bar
 	virtual void initStatusBar(void);
 	// EmuThread
@@ -766,7 +768,7 @@ public slots:
 	virtual void rise_movie_dialog(void);
 	void do_set_state_saving_movie(bool state);
 	void set_osd_virtual_media(bool f);
-
+	void do_set_drive_vm_in_opecode(bool flag); // for config.drive_vm_in_opecode
 	virtual void OnOpenDebugger(void);
 	virtual void OnCloseDebugger(void);
 	void doBeforeCloseMainWindow(void);

@@ -63,7 +63,7 @@ void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 			break;
 #endif
 		}
-		
+
 	}
 }
 
@@ -72,10 +72,12 @@ void META_MainWindow::retranslateUi(void)
 	const char *title="";
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
+	retranslateOpMenuZ80(true);
+
 	config_sound_device_type = p_config->sound_type;
-	
+
 	this->setWindowTitle(QApplication::translate("MenuPC88", "MainWindow", 0));
-	
+
 	// PC88 Specified
 	menuCpuType->setTitle(QApplication::translate("MenuPC88", "CPU Frequency", 0));
 #ifdef SUPPORT_PC88_HIGH_CLOCK
@@ -109,14 +111,14 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[3]->setToolTip(QApplication::translate("MenuPC88", "N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 	actionBootMode[1]->setVisible(false);
 	actionBootMode[2]->setVisible(false);
-	
+
 #elif defined(_PC8801MA)
 	actionBootMode[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
-	actionBootMode[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
+	actionBootMode[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));
 	actionBootMode[2]->setText(QString::fromUtf8("N88-V2 Mode"));
 	actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
 	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "V1(Standard) Mode.\nYou can run softwares of PC-8801/mk2.", 0));
-	actionBootMode[1]->setToolTip(QApplication::translate("MenuPC88", "V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));	
+	actionBootMode[1]->setToolTip(QApplication::translate("MenuPC88", "V1(High Speed) Mode.\nYou can run softwares of PC-8801/mk2 faster.", 0));
 	actionBootMode[2]->setToolTip(QApplication::translate("MenuPC88", "V2 Mode.\nYou can run only softwares for PC-8801SR or later.", 0));
 	actionBootMode[3]->setToolTip(QApplication::translate("MenuPC88", "N Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 #elif defined(_PC8001)
@@ -133,7 +135,7 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[1]->setVisible(false);
 #elif defined(_PC8001SR)
 	actionBootMode[0]->setText(QString::fromUtf8("N80     Mode"));
-	actionBootMode[1]->setText(QString::fromUtf8("N80-V2(SR) Mode"));	
+	actionBootMode[1]->setText(QString::fromUtf8("N80-V2(SR) Mode"));
 	actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
 	actionBootMode[0]->setToolTip(QApplication::translate("MenuPC88", "N80 Mode.\nYou can run softwares of PC-8001/mk2.", 0));
 	actionBootMode[1]->setToolTip(QApplication::translate("MenuPC88", "N80 V2 Mode.\nYou can run only softwares for PC-8001mk2SR or later.", 0));
@@ -144,22 +146,22 @@ void META_MainWindow::retranslateUi(void)
 	#if defined(_PC8001SR)
 		menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
 		actionSoundDevice[0]->setText(QString::fromUtf8("OPN"));
-		actionSoundDevice[1]->setText(QString::fromUtf8("OPN + OPN"));   
+		actionSoundDevice[1]->setText(QString::fromUtf8("OPN + OPN"));
 		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "Using YM2203(OPN) as FM sounder.", 0));
 		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "Using Twin YM2203(OPN) as FM sounder.", 0));
 	#else
 		menuSoundDevice->setTitle(QApplication::translate("MenuPC88", "Sound Board", 0));
 		actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
-		actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));   
-		actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));   
-		actionSoundDevice[3]->setText(QString::fromUtf8("Sound Board 2(OPN + OPN)"));   
-		actionSoundDevice[4]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPNA)"));   
+		actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+		actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));
+		actionSoundDevice[3]->setText(QString::fromUtf8("Sound Board 2(OPN + OPN)"));
+		actionSoundDevice[4]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPNA)"));
 		actionSoundDevice[5]->setText(QString::fromUtf8("Sound Board 2 (OPNA + OPN)"));
 		actionSoundDevice[0]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-23 (OPNA).", 0));
-		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));   
-		actionSoundDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPNA).", 0));   
-		actionSoundDevice[3]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPN).", 0));   
-		actionSoundDevice[4]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPNA).", 0));   
+		actionSoundDevice[1]->setToolTip(QApplication::translate("MenuPC88", "PC-8801-11 (OPN).", 0));
+		actionSoundDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPNA).", 0));
+		actionSoundDevice[3]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPN + OPN).", 0));
+		actionSoundDevice[4]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPNA).", 0));
 		actionSoundDevice[5]->setToolTip(QApplication::translate("MenuPC88", "Sound Board 2 (OPNA + OPN).", 0));
 	#endif
 #elif defined(SUPPORT_PC88_OPN1) || defined(SUPPORT_PC88_OPN2)
@@ -177,17 +179,17 @@ void META_MainWindow::retranslateUi(void)
 #endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("MenuPC88", "Main CPU", 0));
-#if defined(_PC8001SR)	
+#if defined(_PC8001SR)
 	actionDebugger[1]->setText(QApplication::translate("MenuPC88", "PC-80S31K CPU", 0));
 #else
 	actionDebugger[1]->setText(QApplication::translate("MenuPC88", "Sub CPU", 0));
-#endif	
+#endif
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
-	
+
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
-#endif	
+#endif
 #if defined(USE_JOYSTICK_TYPE)
 	actionJoystickType[0]->setText(QApplication::translate("MenuPC88", "Joystick", 0));
 	actionJoystickType[1]->setText(QApplication::translate("MenuPC88", "Bus Mouse", 0));
@@ -199,7 +201,7 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC88", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[1]->setEnabled(false);
-	
+
 	#if defined(SUPPORT_PC88_JAST)
 	actionPrintDevice[2]->setText(QString::fromUtf8("JAST SOUND"));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MenuPC88", "Use JAST SOUND : PCM sound unit.", 0));
@@ -207,7 +209,7 @@ void META_MainWindow::retranslateUi(void)
 	#endif
 #endif
 
-	
+
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	actionMemoryWait->setText(QApplication::translate("MenuPC88", "Wait Memory", 0));
 	actionMemoryWait->setToolTip(QApplication::translate("MenuPC88", "Simulate waiting memory.", 0));
@@ -223,7 +225,7 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	actionPalette->setText(QApplication::translate("MenuPC88", "Change palette only within VBLANK.", 0));
 	actionPalette->setToolTip(QApplication::translate("MenuPC88", "Ignore Palette Changed Outside VBLANK.", 0));
-	
+
 	actionFDD_5Inch->setText(QApplication::translate("MenuPC88", "5.25Inch FDD(Need to restart)", 0));
 	actionFDD_5Inch->setToolTip(QApplication::translate("MenuPC88", "Enable 5.25 inch FDDs.\nThis effects only after restarting this emulator.", 0));
 #if defined(SUPPORT_PC88_FDD_8INCH)
@@ -234,7 +236,7 @@ void META_MainWindow::retranslateUi(void)
 	actionM88DRV->setText(QApplication::translate("MenuPC88", "M88 DiskDrv(Need to restart)", 0));
 	actionM88DRV->setToolTip(QApplication::translate("MenuPC88", "Enable M88 stile Disk Drives.\nThis effects only after restarting this emulator.", 0));
 #endif
-	
+
 #if defined(SUPPORT_PC88_HMB20)
 	actionHMB20->setText(QApplication::translate("MenuPC88", "Use HMB20(Need RESTART)", 0));
 	actionHMB20->setToolTip(QApplication::translate("MenuPC88", "Using HMB20 OPM sound board.\nRe-start emulator when changed.", 0));
@@ -256,7 +258,7 @@ void META_MainWindow::retranslateUi(void)
 #endif
 // End.
    // Set Labels
-  
+
 } // retranslateUi
 
 
@@ -277,7 +279,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(actionMemoryWait);
 #endif
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionPalette, DIPSWITCH_PALETTE, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
-	
+
 	menuMachine->addAction(actionPalette);
 	menuMachine->addSeparator();
 
@@ -292,7 +294,7 @@ void META_MainWindow::setupUI_Emu(void)
 #if defined(SUPPORT_QUASIS88_CMT) || defined(SUPPORT_M88_DISKDRV)
 	menuMachine->addSeparator();
 #endif
-	
+
 #if defined(PC8801_VARIANT)
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionCMD_Sing, DIPSWITCH_CMDSING, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionCMD_Sing);
@@ -300,7 +302,7 @@ void META_MainWindow::setupUI_Emu(void)
 #endif
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_5Inch, DIPSWITCH_FDD_5INCH, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionFDD_5Inch);
-	
+
 #if defined(SUPPORT_PC88_FDD_8INCH)
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionFDD_8Inch, DIPSWITCH_FDD_8INCH, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionFDD_8Inch);
@@ -309,8 +311,8 @@ void META_MainWindow::setupUI_Emu(void)
 #ifdef SUPPORT_PC88_HMB20
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionHMB20, DIPSWITCH_HMB20, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionHMB20);
-	
-#endif	
+
+#endif
 #ifdef SUPPORT_PC88_GSX8800
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionGSX8800, DIPSWITCH_GSX8800, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionGSX8800);
@@ -335,6 +337,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

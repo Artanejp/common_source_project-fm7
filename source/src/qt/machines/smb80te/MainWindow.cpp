@@ -23,17 +23,19 @@ void META_MainWindow::retranslateUi(void)
 
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
+	retranslateOpMenuZ80(true);
+
 	actionAddress8000->setText(QApplication::translate("MenuSMB80", "SW: ADRS SW 8000", 0));
 	actionAddress8000->setToolTip(QApplication::translate("MenuSMB80", "SW: ADRS SW 8000", 0));
 
 	menuAddrBase->setTitle(QApplication::translate("MenuSMB80", "Display Base Address", 0));
 	menuAddrBase->setToolTip(QApplication::translate("MenuSMB80", "Set display base address on RAM.", 0));
-	
+
 	actionAddressBase[0]->setText(QApplication::translate("MenuSMB80", "$000", 0));
 	actionAddressBase[1]->setText(QApplication::translate("MenuSMB80", "$200", 0));
 	actionAddressBase[2]->setText(QApplication::translate("MenuSMB80", "$400", 0));
 	actionAddressBase[3]->setText(QApplication::translate("MenuSMB80", "$600", 0));
-	
+
 	menu_BINs[0]->setTitle(QApplication::translate("MenuSMB80", "RAM", 0));
 	// Set Labels
 #ifdef USE_DEBUGGER
@@ -42,7 +44,7 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif
-	
+
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -74,6 +76,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

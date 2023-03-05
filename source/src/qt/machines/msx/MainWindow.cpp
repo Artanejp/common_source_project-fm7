@@ -28,6 +28,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
+	retranslateOpMenuZ80(true);
+
 #if defined(MSX_PSG_STEREO)
 	actionSoundDevice[0]->setText(QApplication::translate("MachineMSX", "PSG Mono", 0));
 	actionSoundDevice[0]->setToolTip(QApplication::translate("MachineMSX", "Use PSG as monoral.\nCompatibility for generic MSX.", 0));
@@ -62,6 +64,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

@@ -25,9 +25,11 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
+	retranslateOpMenuZ80(true);
+
 	menu_BINs[0]->setTitle(QApplication::translate("MenuYS6464", "RAM", 0));
    // Set Labels
-  
+
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -47,6 +49,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

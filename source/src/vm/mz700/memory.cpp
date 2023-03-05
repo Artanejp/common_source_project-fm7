@@ -291,7 +291,7 @@ void MEMORY::event_callback(int event_id, int err)
 	} else if(event_id == EVENT_BLANK_S) {
 		if(blank_vram) {
 			// wait because vram is accessed
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+			d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 		}
 		blank_vram = true;
 		set_blank(true);
@@ -300,7 +300,7 @@ void MEMORY::event_callback(int event_id, int err)
 #if defined(_MZ800) || defined(_MZ1500)
 		if(blank_pcg) {
 			// wait because pcg is accessed
-			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+			d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 		}
 		blank_pcg = true;
 #endif
@@ -334,7 +334,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			if(mem_bank & MEM_BANK_CGROM_R) {
 				// vram wait
 				if(!blank_vram) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_vram = true;
 				}
 			}
@@ -343,7 +343,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			if(mem_bank & MEM_BANK_PCG) {
 				// pcg wait
 				if(!blank_pcg) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_pcg = true;
 				}
 			} else
@@ -351,7 +351,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			if(mem_bank & MEM_BANK_MON_H) {
 				// vram wait
 				if(!blank_vram) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_vram = true;
 				}
 			}
@@ -378,7 +378,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			if(mem_bank & MEM_BANK_VRAM) {
 				// vram wait
 				if(!blank_vram) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_vram = true;
 				}
 				addr = vram_addr(addr & 0x3fff);
@@ -454,7 +454,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		if(0xd000 <= addr && addr <= 0xefff) {
 			// pcg wait
 			if(!blank_pcg) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				blank_pcg = true;
 			}
 		}
@@ -464,7 +464,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		if(0xd000 <= addr && addr <= 0xdfff) {
 			// vram wait
 			if(!blank_vram) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				blank_vram = true;
 			}
 		} else if(0xe000 <= addr && addr <= 0xe00f) {
@@ -514,7 +514,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			if(mem_bank & MEM_BANK_CGROM_R) {
 				// vram wait
 				if(!blank_vram) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_vram = true;
 				}
 			}
@@ -523,7 +523,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			if(mem_bank & MEM_BANK_PCG) {
 				// pcg wait
 				if(!blank_pcg) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_pcg = true;
 				}
 			} else
@@ -531,7 +531,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			if(mem_bank & MEM_BANK_MON_H) {
 				// vram wait
 				if(!blank_vram) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_vram = true;
 				}
 			}
@@ -554,7 +554,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			if(mem_bank & MEM_BANK_VRAM) {
 				// vram wait
 				if(!blank_vram) {
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 					blank_vram = true;
 				}
 				addr = vram_addr(addr & 0x3fff);
@@ -590,7 +590,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		if(0xd000 <= addr && addr <= 0xefff) {
 			// pcg wait
 			if(!blank_pcg) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				blank_pcg = true;
 			}
 		}
@@ -600,7 +600,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		if(0xd000 <= addr && addr <= 0xdfff) {
 			// vram wait
 			if(!blank_vram) {
-				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				blank_vram = true;
 			}
 		} else if(0xe000 <= addr && addr <= 0xe00f) {

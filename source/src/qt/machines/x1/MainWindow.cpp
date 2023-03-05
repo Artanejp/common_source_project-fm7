@@ -26,6 +26,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("NMI Reset",  true);
+	retranslateOpMenuZ80(true);
+
 	retranslateFloppyMenu(0, 0, QApplication::translate("MachineX1", "FDD", 0));
 	retranslateFloppyMenu(1, 1, QApplication::translate("MachineX1", "FDD", 0));
 
@@ -37,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[0]->setText(QApplication::translate("MachineX1", "PSG", 0));
 	actionSoundDevice[1]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Single", 0));
 	actionSoundDevice[2]->setText(QApplication::translate("MachineX1", "CZ-8BS1 Double", 0));
-	
+
 #if defined(_X1)
 	menuMonitorType->deleteLater();
 	//menuMonitorType->setVisible(false);
@@ -74,28 +76,28 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
-#ifdef _X1TWIN	
+#ifdef _X1TWIN
 	actionDebugger[3]->setText(QApplication::translate("MachineX1", "PC-ENGINE CPU", 0));
 	actionDebugger[3]->setVisible(true);
 #endif
-#endif	
+#endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MachineX1", "Sharp MZ-1P17 kanji thermal printer.", 0));
 	actionPrintDevice[1]->setEnabled(true);
-	
+
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineX1", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[2]->setEnabled(false);
-	
+
 	actionPrintDevice[3]->setText(QString::fromUtf8("JAST SOUND"));
 	actionPrintDevice[3]->setToolTip(QApplication::translate("MachineX1", "Use JAST SOUND : PCM sound unit.", 0));
 	actionPrintDevice[3]->setEnabled(true);
 #endif
 #if defined(_X1TWIN)
 	menu_Cart[0]->setTitle(QApplication::translate("MachineX1", "HuCARD", 0));
-#endif	
-	
+#endif
+
 } // retranslateUi
 
 
@@ -112,6 +114,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

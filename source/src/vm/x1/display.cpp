@@ -33,7 +33,7 @@ void DISPLAY::initialize()
 {
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	
+
 	// ank8 (8x8)
 	if(fio->Fopen(create_local_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
@@ -43,7 +43,7 @@ void DISPLAY::initialize()
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
-	
+
 	// ank16 (8x16)
 	if(fio->Fopen(create_local_path(_T("ANK16.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, 0x1000, 1);
@@ -55,7 +55,7 @@ void DISPLAY::initialize()
 	}
 	memcpy(kanji + 0x7f * 16, ANKFONT7f_9f, sizeof(ANKFONT7f_9f));
 	memcpy(kanji + 0xe0 * 16, ANKFONTe0_ff, sizeof(ANKFONTe0_ff));
-	
+
 	// kanji (16x16)
 	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji + 0x1000, 0x4ac00, 1);
@@ -75,7 +75,7 @@ void DISPLAY::initialize()
 		memcpy(kanji + ofs, buf, 32);
 	}
 	delete fio;
-	
+
 	// create pc palette
 	for(int i = 0; i < 8; i++) {
 		palette_pc[i    ] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);	// text
@@ -100,7 +100,7 @@ void DISPLAY::initialize()
 	}
 	zpalette_changed = true;
 #endif
-	
+
 	// initialize regs
 	pal[0] = 0xaa;
 	pal[1] = 0xcc;
@@ -108,7 +108,7 @@ void DISPLAY::initialize()
 	priority = 0;
 	update_pal();
 	column40 = true;
-	
+
 	memset(vram_t, 0, sizeof(vram_t));
 	memset(vram_a, 0, sizeof(vram_a));
 #ifdef _X1TURBO_FEATURE
@@ -122,7 +122,7 @@ void DISPLAY::initialize()
 	memset(gaiji_r, 0, sizeof(gaiji_r));
 	memset(gaiji_g, 0, sizeof(gaiji_g));
 #endif
-	
+
 	// register event
 	register_frame_event(this);
 	register_vline_event(this);
@@ -146,7 +146,7 @@ void DISPLAY::initialize()
 	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
 	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
 	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
-#endif	
+#endif
 
 	PrepareBitTransTableUint16(&bit_trans_table_b0, 0x01, 0x00);
 	PrepareBitTransTableUint16(&bit_trans_table_r0, 0x02, 0x00);
@@ -177,7 +177,7 @@ void DISPLAY::reset()
 	vblank_clock = 0;
 	cur_vline = 0;
 	cur_blank = true;
-	
+
 	kaddr = kofs = kflag = 0;
 	kanji_ptr = &kanji[0];
 
@@ -200,7 +200,7 @@ void DISPLAY::reset()
 	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
 	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
 	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
-#endif	
+#endif
 }
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
@@ -215,7 +215,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			if(APEN && !APRD) {
 				if(!cur_blank) {
 					// wait next blank
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
 				if(zpal[num].b != (data & 0x0f)) {
@@ -239,7 +239,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			if(APEN && !APRD) {
 				if(!cur_blank) {
 					// wait next blank
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
 				if(zpal[num].r != (data & 0x0f)) {
@@ -263,7 +263,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 			if(APEN && !APRD) {
 				if(!cur_blank) {
 					// wait next blank
-					d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+					d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
 				}
 				int num = get_zpal_num(addr, data);
 				if(zpal[num].g != (data & 0x0f)) {
@@ -583,7 +583,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 #ifdef _X1TURBO_FEATURE
 			}
 			// restart cpu after pcg/cgrom/zpal is accessed
-//			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+//			d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 			register_event_by_clock(this, EVENT_AFTER_BLANK, 24, false, NULL);
 #endif
 		}
@@ -593,7 +593,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 void DISPLAY::event_frame()
 {
 	cblink = (cblink + 1) & 0x3f;
-	
+
 	// update crtc parameters
 	ch_height = (regs[9] & 0x1f) + 1;
 	hz_total = regs[0] + 1;
@@ -647,7 +647,7 @@ void DISPLAY::event_frame()
 	zpalette_pc[8 + 5] = zpalette_pc[16 + 0xf0f];
 	zpalette_pc[8 + 6] = zpalette_pc[16 + 0xff0];
 	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
-	
+
 	memset(zcg, 0, sizeof(zcg));
 	memset(aen_line, 0, sizeof(aen_line));
 #endif
@@ -675,7 +675,7 @@ void DISPLAY::event_vline(int v, int clock)
 	vlimit = 200;
 #endif
 	if((v > vlimit) || (v < 0)) return;
-	
+
 	if(v == vlimit) {
 		my_memcpy(dr_palette_pc, palette_pc, sizeof(palette_pc));
 #ifdef _X1TURBOZ
@@ -712,7 +712,7 @@ void DISPLAY::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_AFTER_BLANK) {
 		// restart cpu after pcg/cgrom/zpal is accessed
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
+		d_cpu->write_signal(SIG_CPU_WAIT, 0, 0);
 	}
 }
 #endif
@@ -767,8 +767,8 @@ uint8_t DISPLAY::get_cur_font(uint32_t addr)
 #ifdef _X1TURBO_FEATURE
 	if(mode1 & 0x20) {
 		// wait next blank
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		
+		d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
+
 		// from X1EMU
 		uint16_t vaddr;
 		if(!(vram_a[0x7ff] & 0x20)) {
@@ -784,7 +784,7 @@ uint8_t DISPLAY::get_cur_font(uint32_t addr)
 		}
 		uint16_t ank = vram_t[vaddr];
 		uint16_t knj = vram_k[vaddr];
-		
+
 		if(knj & 0x80) {
 			uint32_t ofs = adr2knj_x1t((knj << 8) | ank);
 			if(knj & 0x40) {
@@ -807,8 +807,8 @@ void DISPLAY::get_cur_pcg(uint32_t addr)
 #ifdef _X1TURBO_FEATURE
 	if(mode1 & 0x20) {
 		// wait next blank
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		
+		d_cpu->write_signal(SIG_CPU_WAIT, 1, 1);
+
 		// from X1EMU
 		uint16_t vaddr;
 		if(vram_a[0x7ff] & 0x20) {
@@ -824,7 +824,7 @@ void DISPLAY::get_cur_pcg(uint32_t addr)
 		}
 		cur_code = vram_t[vaddr];
 		cur_line = (addr >> 1) & 7;
-		
+
 		if(vram_k[vaddr] & 0x90) {
 			cur_code &= 0xfe;
 			cur_code += addr & 1;
@@ -843,12 +843,12 @@ void DISPLAY::get_cur_code_line()
 //#endif
 	int clock = get_passed_clock(vblank_clock);
 	int vt_line = vt_disp * ch_height + (int)(clock / ht_clock);
-	
+
 	int addr = (hz_total * (clock % ht_clock)) / ht_clock;
 	addr += hz_disp * (int)(vt_line / ch_height);
 	addr &= 0x7ff; // thanks Mr.YAT
 	addr += st_addr;
-	
+
 	cur_code = vram_t[addr & 0x7ff];
 	cur_line = (vt_line % ch_height) & 7;
 }
@@ -902,7 +902,7 @@ void DISPLAY::draw_screen()
 		scrntype_t* dest = emu->get_screen_buffer(y);
 		memset(dest, 0, 640 * sizeof(scrntype_t));
 	}
-	
+
 	// copy to real screen
 	__DECL_ALIGNED(16) scrntype_t dbuf[640];
 #ifdef _X1TURBO_FEATURE
@@ -917,16 +917,16 @@ void DISPLAY::draw_screen()
 #ifdef _X1TURBOZ
 				if(dr_aen_line[y]) {
 					uint16_t* src_cg0 = dr_zcg[0][y];
-					
+
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
-						
+
 						dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				} else {
 #endif
 					uint8_t* src_cg = dr_cg[y];
-					
+
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #ifdef _X1TURBOZ
 						dbuf[x2] = dbuf[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
@@ -950,16 +950,16 @@ __DECL_VECTORIZED_LOOP
 #ifdef _X1TURBOZ
 				if(dr_aen_line[y]) {
 					uint16_t* src_cg0 = dr_zcg[0][y];
-					
+
 					for(int x = 0; x < 640; x++) {
 						uint16_t cg00 = src_cg0[x] | (src_cg0[x] >> 2);
-						
+
 						dbuf[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				} else {
 #endif
 					uint8_t* src_cg = dr_cg[y];
-					
+
 					for(int x = 0; x < 640; x++) {
 #ifdef _X1TURBOZ
 						dbuf[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
@@ -982,7 +982,7 @@ __DECL_VECTORIZED_LOOP
 //		emu->set_vm_screen_lines(200);
 		// 200 lines
 //		emu->set_vm_screen_lines(200);
-		
+
 		if(column40) {
 			// 40 columns
 			for(int y = 0; (y + vt_ofs) < 200; y++) {
@@ -993,18 +993,18 @@ __DECL_VECTORIZED_LOOP
 				if(dr_aen_line[y]) {
 					uint16_t* src_cg0 = dr_zcg[0][y];
 					uint16_t* src_cg1 = dr_zcg[1][y];
-					
+
 					if(C64) {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 							uint16_t cg00 = src_cg0[x];// | (src_cg0[x] >> 2);
 							uint16_t cg11 = src_cg1[x];// | (src_cg1[x] >> 2);
-							
+
 							dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg00, cg11);
 						}
 					} else {
 						for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 							uint16_t cg01 = src_cg0[x] | (src_cg1[x] >> 2);
-							
+
 							dbuf[x2] = dbuf[x2 + 1] = get_zpriority(src_text[x], cg01, cg01);
 						}
 
@@ -1013,7 +1013,7 @@ __DECL_VECTORIZED_LOOP
 #endif
 //					scrntype_t* dest = emu->get_screen_buffer(y);
 					uint8_t* src_cg = dr_cg[y];
-				
+
 					for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #ifdef _X1TURBOZ
 						dbuf[x2] = dbuf[x2 + 1] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
@@ -1046,16 +1046,16 @@ __DECL_VECTORIZED_LOOP
 #ifdef _X1TURBOZ
 				if(aen_line[y]) {
 					uint16_t* src_cg0 = dr_zcg[0][y];
-					
+
 					for(int x = 0; x < 640; x++) {
 						uint16_t cg00 = src_cg0[x];// | (src_cg0[x] >> 2);
-						
+
 						dbuf[x] = get_zpriority(src_text[x], cg00, cg00);
 					}
 				} else {
 #endif
 					uint8_t* src_cg = dr_cg[y];
-__DECL_VECTORIZED_LOOP
+//__DECL_VECTORIZED_LOOP
 					for(int x = 0; x < 640; x++) {
 #ifdef _X1TURBOZ
 						dbuf[x] = dr_zpalette_pc[dr_pri_line[y][src_cg[x]][src_text[x]]];
@@ -1090,10 +1090,10 @@ void DISPLAY::draw_text(int y)
 {
 	int width = column40 ? 40 : 80;
 	uint16_t src = st_addr + hz_disp * y;
-	
+
 	bool cur_vert_double = true;
 	uint8_t prev_attr = 0, prev_pattern_b[32], prev_pattern_r[32], prev_pattern_g[32];
-	
+
 	for(int x = 0; x < hz_disp && x < width; x++) {
 		src &= 0x7ff;
 		uint8_t code = vram_t[src];
@@ -1102,12 +1102,12 @@ void DISPLAY::draw_text(int y)
 #endif
 		uint8_t attr = vram_a[src];
 		src++;
-		
+
 		uint8_t col = attr & 7;
 		bool reverse = ((attr & 8) != 0);
 		bool blink = ((attr & 0x10) && (cblink & 0x20));
 		reverse = (reverse != blink);
-		
+
 		// select pcg or ank
 		const uint8_t *pattern_b, *pattern_r, *pattern_g;
 #ifdef _X1TURBO_FEATURE
@@ -1155,12 +1155,12 @@ void DISPLAY::draw_text(int y)
 			shift = ((mode1 & 5) == 5) ? 1 : ((mode1 & 5) != 0) ? 0 : -1;
 		}
 #endif
-		
+
 		// check vertical doubled char
 		if(!(attr & 0x40)) {
 			cur_vert_double = false;
 		}
-		
+
 		// render character
 		for(int l = 0; l < ch_height; l++) {
 			uint8_t b, r, g;
@@ -1193,7 +1193,7 @@ void DISPLAY::draw_text(int y)
 				r = (!(col & 2)) ? 0 : r;
 				g = (!(col & 4)) ? 0 : g;
 			}
-			
+
 			int yy = y * ch_height + l;
 #ifdef _X1TURBO_FEATURE
 			if(yy >= 400) {
@@ -1203,10 +1203,10 @@ void DISPLAY::draw_text(int y)
 				break;
 			}
 			uint8_t* d = &text[yy][x << 3];
-		
+
 			if(attr & 0x80) {
 				// horizontal doubled char
-#if 0				
+#if 0
 				d[ 0] = d[ 1] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
 				d[ 2] = d[ 3] = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4);
 				d[ 4] = d[ 5] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
@@ -1215,7 +1215,7 @@ void DISPLAY::draw_text(int y)
 				ConvertRGBTo8ColorsUint8_Zoom2Left(r, g, b, d, &bit_trans_table_r0, &bit_trans_table_g0, &bit_trans_table_b0, 0);
 #endif
 			} else {
-#if 0				
+#if 0
 				d[0] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
 				d[1] = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4);
 				d[2] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
@@ -1243,7 +1243,7 @@ void DISPLAY::draw_text(int y)
 void DISPLAY::draw_cg(int line, int plane)
 {
 	int width = column40 ? 40 : 80;
-	
+
 	int y = line / ch_height;
 	int l = line % ch_height;
 	if(y >= vt_disp) {
@@ -1253,7 +1253,7 @@ void DISPLAY::draw_cg(int line, int plane)
 #ifdef _X1TURBO_FEATURE
 	int page = (hireso && !(mode1 & 2)) ? (l & 1) : (mode1 & 8);
 	int ll = hireso ? (l >> 1) : l;
-	
+
 	if(mode1 & 4) {
 		ofs = (0x400 * (ll & 15));// + (page ? 0xc000 : 0);
 	} else {
@@ -1272,7 +1272,7 @@ void DISPLAY::draw_cg(int line, int plane)
   HIRESO=1, WIDTH=80, C64=*: 640x200, 8		PAGE0:(ADDR 000h-7FFh) + PAGE0:(ADDR 000h-7FFh)
 
   HIRESO=0, WIDTH=40, C64=1: 320x200, 64x2
-  mode1	zpriority	
+  mode1	zpriority
   SCREEN 0	00	00		PAGE0
   SCREEM 2	18	08		PAGE1
   SCREEN 4	00	10		PAGE0 > PAGE1
@@ -1301,7 +1301,7 @@ void DISPLAY::draw_cg(int line, int plane)
 		int ofs_b1 = column40 ? (ofs_b0 ^ 0x400) : hireso ? ofs_b0 : (ofs_b0 + 0xc000);
 		int ofs_r1 = column40 ? (ofs_r0 ^ 0x400) : hireso ? ofs_r0 : (ofs_r0 + 0xc000);
 		int ofs_g1 = column40 ? (ofs_g0 ^ 0x400) : hireso ? ofs_g0 : (ofs_g0 + 0xc000);
-		
+
 		for(int x = 0; x < hz_disp && x < width; x++) {
 			src &= column40 ? 0x3ff : 0x7ff;
 			uint16_t b0 = vram_ptr[ofs_b0 | src];
@@ -1311,7 +1311,7 @@ void DISPLAY::draw_cg(int line, int plane)
 			uint16_t r1 = vram_ptr[ofs_r1 | src];
 			uint16_t g1 = vram_ptr[ofs_g1 | src++];
 			uint16_t* d = &zcg[plane][line][x << 3];
-			
+
 			// MSB <- G0,G1,0,0, R0,R1,0,0, B0,B1,0,0 -> LSB
 			d[0] = ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((g0 & 0x80) <<  4) | ((g1 & 0x80) <<  3);
 			d[1] = ((b0 & 0x40) >> 3) | ((b1 & 0x40) >> 4) | ((r0 & 0x40) << 1) | ((r1 & 0x40) >> 0) | ((g0 & 0x40) <<  5) | ((g1 & 0x40) <<  4);
@@ -1328,7 +1328,7 @@ void DISPLAY::draw_cg(int line, int plane)
 		if(!hireso && column40 && C64 && page) {
 			for(int x = 0; x < hz_disp && x < width; x++) {
 				uint16_t* d = &zcg[plane][line][x << 3];
-				
+
 				// MSB <- G0,G1,0,0, R0,R1,0,0, B0,B1,0,0 -> LSB
 				d[0] >>= 2;
 				d[1] >>= 2;
@@ -1353,14 +1353,14 @@ void DISPLAY::draw_cg(int line, int plane)
 		int ofs_r = ofs + 0x4000;
 		int ofs_g = ofs + 0x8000;
 
-#if 0		
+#if 0
 		for(int x = 0; x < hz_disp && x < width; x++) {
 			src &= 0x7ff;
 			uint8_t b = vram_ptr[ofs_b | src];
 			uint8_t r = vram_ptr[ofs_r | src];
 			uint8_t g = vram_ptr[ofs_g | src++];
 			uint8_t* d = &cg[line][x << 3];
-			
+
 			d[0] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
 			d[1] = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4);
 			d[2] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
@@ -1389,7 +1389,7 @@ void DISPLAY::draw_cg(int line, int plane)
 		int iwidth = (hz_disp > width) ? width : hz_disp;
 		uint8_t* d = &(cg[line][0]);
 		cmd.render_width = (iwidth <= 0) ? 0 : (uint32_t)iwidth;
-		
+
 		Convert8ColorsToByte_Line(&cmd, d);
 #endif
 	}
@@ -1399,7 +1399,7 @@ void DISPLAY::draw_cg(int line, int plane)
 int DISPLAY::get_zpal_num(uint32_t addr, uint32_t data)
 {
 	int num = ((data >> 4) & 0x0f) | ((addr << 4) & 0xff0);
-	
+
 #if 1
 	if(hireso) {
 		if(!column40) {
@@ -1470,7 +1470,7 @@ scrntype_t DISPLAY::get_zpriority(uint8_t text, uint16_t cg0, uint16_t cg1)
 	uint16_t fore = ((dr_zpriority & 0x18) != 0x18) ? cg0 : cg1;
 	uint16_t back = ((dr_zpriority & 0x18) != 0x18) ? cg1 : cg0;
 	uint16_t disp;
-	
+
 	switch(dr_zpriority & 0x13) {
 	case 0x00:
 	case 0x02:
@@ -1553,7 +1553,7 @@ uint32_t DISPLAY::read_kanji(uint32_t addr)
 uint16_t DISPLAY::jis2adr_x1(uint16_t jis)
 {
 	uint16_t jh, jl, adr;
-	
+
 	jh = jis >> 8;
 	jl = jis & 0xff;
 	if(jh > 0x28) {
@@ -1570,7 +1570,7 @@ uint16_t DISPLAY::jis2adr_x1(uint16_t jis)
 uint32_t DISPLAY::adr2knj_x1(uint16_t adr)
 {
 	uint16_t jh, jl, jis;
-	
+
 	if(adr < 0x4000) {
 		jh = adr - 0x0100;
 		jh = 0x21 + jh / 0x600;
@@ -1587,7 +1587,7 @@ uint32_t DISPLAY::adr2knj_x1(uint16_t adr)
 	if(adr) {
 		jl += adr / 0x10;
 	}
-	
+
 	jis = (jh << 8) | jl;
 	return jis2knj(jis);
 }
@@ -1598,17 +1598,17 @@ uint32_t DISPLAY::adr2knj_x1t(uint16_t adr)
 	uint16_t j1, j2;
 	uint16_t rl, rh;
 	uint16_t jis;
-	
+
 	rh = adr >> 8;
 	rl = adr & 0xff;
-	
+
 	rh &= 0x1f;
 	if(!rl && !rh) {
 		return jis2knj(0);
 	}
 	j2 = rl & 0x1f;		// rl4,3,2,1,0
 	j1 = (rl / 0x20) & 7;	// rl7,6,5
-	
+
 	if(rh < 0x04) {
 		// 2121-277e
 		j1 |= 0x20;
@@ -1632,7 +1632,7 @@ uint32_t DISPLAY::adr2knj_x1t(uint16_t adr)
 		j1 |= (rh & 1) * 8;
 		j2 |= ((((rh >> 1) + 1) % 3) + 1) * 0x20;
 	}
-	
+
 	jis = (j1 << 8) | j2;
 	return jis2knj(jis);
 }
@@ -1641,7 +1641,7 @@ uint32_t DISPLAY::adr2knj_x1t(uint16_t adr)
 uint32_t DISPLAY::jis2knj(uint16_t jis)
 {
 	uint32_t sjis = jis2sjis(jis);
-	
+
 	if(sjis < 0x100) {
 		return sjis * 16;
 	} else if(sjis >= 0x8140 && sjis < 0x84c0) {
@@ -1658,13 +1658,13 @@ uint32_t DISPLAY::jis2knj(uint16_t jis)
 uint16_t DISPLAY::jis2sjis(uint16_t jis)
 {
 	uint16_t c1, c2;
-	
+
 	if(!jis) {
 		return 0;
 	}
 	c1 = jis >> 8;
 	c2 = jis & 0xff;
-	
+
 	if(c1 & 1) {
 		c2 += 0x1f;
 		if(c2 >= 0x7f) {
@@ -1753,7 +1753,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(st_addr);
 	state_fio->StateValue(vblank_clock);
 	state_fio->StateValue(cur_blank);
- 	
+
  	// post process
 	if(loading) {
 #ifdef _X1TURBOZ
@@ -1784,7 +1784,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 		my_memcpy(dr_zcg, zcg, sizeof(dr_zcg));
 		my_memcpy(dr_aen_line, aen_line, sizeof(dr_aen_line));
 		my_memcpy(dr_zpalette_pc, zpalette_tmp, sizeof(zpalette_tmp));
-#endif	
+#endif
 		update_crtc(); // force update timing
 	}
  	return true;

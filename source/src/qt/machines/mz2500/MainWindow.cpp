@@ -18,8 +18,6 @@
 #include "qt_main.h"
 #include "vm.h"
 
-
-
 void META_MainWindow::setupUI_Emu(void)
 {
 	//menuMachine->setVisible(false);
@@ -35,6 +33,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("Reset",  true);
+	retranslateOpMenuZ80(true);
+
 	actionReset->setText(QApplication::translate("MachineMZ2500", "IPL Reset", 0));
 	actionReset->setToolTip(QApplication::translate("MachineMZ2500", "Do IPL reset.", 0));
 	actionSpecial_Reset[0]->setText(QApplication::translate("MachineMZ2500", "Reset", 0));

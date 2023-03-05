@@ -130,9 +130,6 @@ void Action_Control::do_set_window_focus_type(bool f)
 	emit sig_set_window_focus_type(f);
 }
 
-
-
-
 void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 {
 	p_config->focus_with_click = flag;
@@ -146,7 +143,6 @@ void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 		//graphicsView->clearFocus();
 	}
 }
-
 
 void Ui_MainWindowBase::do_show_ram_size_dialog(void)
 {
@@ -1049,6 +1045,13 @@ void Ui_MainWindowBase::do_set_window_title(QString s)
 
 void Ui_MainWindowBase::do_set_mouse_enable(bool flag)
 {
+}
+
+void Ui_MainWindowBase::do_set_drive_vm_in_opecode(bool flag)
+{
+	if(p_config == nullptr) return;
+	p_config->drive_vm_in_opecode = flag;
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindowBase::do_select_fixed_cpu(int num)

@@ -21,6 +21,8 @@ void META_MainWindow::retranslateUi(void)
 	const char *title="";
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(title, false);
+	retranslateOpMenuZ80(true);
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("MenuPC6001", "Main CPU", 0));
 	actionDebugger[1]->setText(QApplication::translate("MenuPC6001", "Sub  CPU", 0));
@@ -29,7 +31,7 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
 	actionDebugger[3]->setVisible(false);
-#endif	
+#endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("MenuPC6001", "NEC PC-PR201 kanji serial printer.", 0));
@@ -37,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 #endif
 
    // Set Labels
-  
+
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -58,6 +60,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

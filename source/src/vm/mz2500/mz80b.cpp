@@ -76,7 +76,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -99,7 +99,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio = new Z80PIO(this, emu);
 	pio_i->set_device_name(_T("i8255 PIO(CMT/CRTC)"));
 	pio->set_device_name(_T("Z80 PIO(KEYBOARD/CRTC)"));
-	
+
 	cmt = new CMT(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -108,13 +108,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	mz1r13 = new MZ1R13(this, emu);
 	printer = new PRINTER(this, emu);
 	timer = new TIMER(this, emu);
-	
+
 #ifdef SUPPORT_QUICK_DISK
 	sio = new Z80SIO(this, emu);
 	qd = new QUICKDISK(this, emu);
 	sio->set_device_name(_T("Z80 SIO(QD)"));
 #endif
-	
+
 #ifdef SUPPORT_16BIT_BOARD
 	pio_to16 = new Z80PIO(this, emu);
 	cpu_16 = new I86(this, emu);	// 8088
@@ -125,7 +125,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu_16->set_device_name(_T("CPU i8088(16BIT BOARD)"));
 	pic_16->set_device_name(_T("i8259 PIC(16BIT BOARD)"));
 #endif
-	
+
 	// set contexts
 	event->set_context_cpu(cpu, config.cpu_type ? CPU_CLOCKS_HIGH : CPU_CLOCKS);
 #ifdef SUPPORT_16BIT_BOARD
@@ -139,12 +139,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);
 	drec->set_context_end(cmt, SIG_CMT_END, 1);
 	drec->set_context_top(cmt, SIG_CMT_TOP, 1);
-	
+
 	pit->set_context_ch0(pit, SIG_I8253_CLOCK_1, 1);
 	pit->set_context_ch1(pit, SIG_I8253_CLOCK_2, 1);
 	pit->set_constant_clock(0, 31250);
@@ -155,11 +155,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_i->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x04, 0);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
 	//pcm->set_realtime_render(true);
-	
+
 	pio->set_context_port_a(memory, SIG_MEMORY_VRAM_SEL, 0xc0, 0);
 	pio->set_context_port_a(memory, SIG_CRTC_WIDTH80, 0x20, 0);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x1f, 0);
-	
+
 	cmt->set_context_pio(pio_i);
 	cmt->set_context_drec(drec);
 	floppy->set_context_fdc(fdc);
@@ -167,7 +167,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard->set_context_pio(pio);
 	memory->set_context_cpu(cpu);
 	memory->set_context_pio(pio_i);
-	if(config.printer_type == 0) {  
+	if(config.printer_type == 0) {
 		printer->set_context_prn(new PRNFILE(this, emu));
 	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
@@ -181,7 +181,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		printer->set_context_prn(dummy);
 	}
 	timer->set_context_pit(pit);
-	
+
 #ifdef SUPPORT_QUICK_DISK
 	// Z80SIO:RTSA -> QD:WRGA
 	sio->set_context_rts(0, qd, QUICKDISK_SIO_RTSA, 1);
@@ -196,13 +196,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// Z80SIO:DCDA <- QD:INSERT
 	// Z80SIO:DCDB <- QD:HOE
 	qd->set_context_sio(sio);
-	
+
 	sio->set_tx_clock(0, 101562.5);
 	sio->set_rx_clock(0, 101562.5);
 	sio->set_tx_clock(1, 101562.5);
 	sio->set_rx_clock(1, 101562.5);
 #endif
-	
+
 #ifdef SUPPORT_16BIT_BOARD
 	pio_to16->set_context_port_a(mz1m01, SIG_MZ1M01_PORT_A, 0xff, 0);
 	pio_to16->set_context_port_b(mz1m01, SIG_MZ1M01_PORT_B, 0x80, 0);
@@ -218,16 +218,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu_16->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	mz1m01->set_context_cpu(cpu_16);
 	mz1m01->set_context_pic(pic_16);
 	mz1m01->set_context_pio(pio_to16);
 #endif
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
-	
+
 	// z80 family daisy chain
 #ifdef SUPPORT_16BIT_BOARD
 	// FIXME: Z80PIO on MZ-1M01 is not daisy-chained to other Z80 family !!!
@@ -245,7 +245,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0xb8, 0xbb, mz1r13);
 #ifdef SUPPORT_QUICK_DISK
@@ -269,7 +269,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_w(0xf4, 0xf7, memory);
 	io->set_iomap_range_rw(0xf8, 0xfa, mz1r12);
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
-	
+
 	io->set_iowait_range_rw(0xd8, 0xdf, 1);
 	io->set_iowait_range_rw(0xe8, 0xeb, 1);
 
@@ -278,7 +278,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int drv = 0; drv < MAX_DRIVE; drv++) {
 //		if(config.drive_type) {
 //			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
@@ -328,7 +328,7 @@ void VM::special_reset(int num)
 //		device->special_reset(num);
 //	}
 	memory->special_reset(num);
-	cpu->reset();
+	cpu->special_reset(num);
 #ifdef SUPPORT_16BIT_BOARD
 	pio_to16->reset();
 	cpu_16->reset();
@@ -377,7 +377,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -418,7 +418,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
 		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
 			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
@@ -499,7 +499,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 	}
 	bool remote = drec->get_remote();
 	bool opened = drec->play_tape(file_path);
-	
+
 	if(opened && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -512,7 +512,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
 	bool opened = drec->rec_tape(file_path);
-	
+
 	if(opened && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

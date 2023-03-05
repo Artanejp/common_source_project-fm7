@@ -32,6 +32,8 @@ void META_MainWindow::retranslateUi(void)
 	actionDeviceType[0]->setText(QApplication::translate("Machine", "None", 0));
 	actionDeviceType[1]->setText(QApplication::translate("Machine", "Intelligent RAM Disk", 0));
 	actionDeviceType[2]->setText(QApplication::translate("Machine", "Non-intelligent RAM Disk", 0));
+	retranslateOpMenuZ80(true);
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
@@ -54,6 +56,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

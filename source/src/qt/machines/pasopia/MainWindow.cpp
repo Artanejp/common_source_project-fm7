@@ -20,14 +20,15 @@ void META_MainWindow::setupUI_Emu(void)
 {
 #if defined(_PASOPIA)
 	ConfigCPUBootMode(5);
-#endif   
+#endif
 }
 
 void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-	
+	retranslateOpMenuZ80(true);
+
 #if defined(_PASOPIA)
 	retranslateBinaryMenu(0, 1);
 	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
@@ -38,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[2]->setText(QString::fromUtf8("OA-BASIC (Disk)"));
 	actionBootMode[3]->setText(QString::fromUtf8("OA-BASIC"));
 	actionBootMode[4]->setText(QString::fromUtf8("Mini Pascal"));
-	
+
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Extra connector", 0));
 	menuDeviceType->setToolTipsVisible(true);
 	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "RAMPAC", 0));
@@ -55,7 +56,7 @@ void META_MainWindow::retranslateUi(void)
 	menuDeviceType->setToolTipsVisible(true);
 #endif
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	
+
 #if defined(USE_DEBUGGER)
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
@@ -79,6 +80,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

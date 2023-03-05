@@ -27,7 +27,7 @@ void META_MainWindow::retranslateUi(void)
 {
 
 	Ui_MainWindowBase::retranslateUi();
-	
+
 	retranslateControlMenu("", false);
 
 	retranslateFloppyMenu(0, 1, QString::fromUtf8("FD"));
@@ -39,20 +39,21 @@ void META_MainWindow::retranslateUi(void)
 
 	for(int _drv = 0; _drv < USE_BUBBLE; _drv++) {
 		retranslateBubbleMenu(_drv, _drv + 1);
-	}		
+	}
 
 	actionPrintDevice[1]->setText(QApplication::translate("Machine", "BC-861/862/863", 0));
 	actionPrintDevice[1]->setToolTip(QApplication::translate("Machine", "Use printer BC-861/862/863.", 0));
 	actionPrintDevice[1]->setEnabled(false);
-	
+	retranslateOpMenuZ80(true);
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setText(QApplication::translate("Machine", "Main CPU", 0));
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
-#endif	
+#endif
 	//	actionStart_Record_Movie->setText(QApplication::translate("Machine", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("Machine", "Stop Record Movie", 0));
-	// 
+	//
 	// FM-7 Specified
 
 #if defined(USE_MONITOR_TYPE) && defined(USE_GREEN_DISPLAY)
@@ -60,7 +61,7 @@ void META_MainWindow::retranslateUi(void)
 	actionMonitorType[0]->setToolTip(QApplication::translate("Machine", "Using color display.\nChanges will be applied at reset, not immediately.", 0));
 	actionMonitorType[1]->setText(QApplication::translate("Machine", "Green Display (need reset)", 0));
 	actionMonitorType[1]->setToolTip(QApplication::translate("Machine", "Using ancient \"Green Display\" to display.\nChanges will be applied at reset, not immediately.", 0));
-#endif	
+#endif
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -84,6 +85,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

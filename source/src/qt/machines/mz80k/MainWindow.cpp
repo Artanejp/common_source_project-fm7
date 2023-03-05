@@ -26,10 +26,10 @@ void META_MainWindow::setupUI_Emu(void)
 										p_config->dipswitch,
 										SIGNAL(toggled(bool)),
 										SLOT(do_set_single_dipswitch(bool)));
-	
+
 	tmps = QString::fromUtf8("actionEmu_DipSw0");
 	action_Emu_DipSw->setObjectName(tmps);
-	
+
 	menuMachine->addAction(action_Emu_DipSw);
 }
 
@@ -37,7 +37,9 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  false);
-#if defined(_MZ80A) || defined(_MZ80K)	
+	retranslateOpMenuZ80(true);
+
+#if defined(_MZ80A) || defined(_MZ80K)
 	action_Emu_DipSw->setText(QApplication::translate("MachineMZ80K", "PCG-8000", 0));
 	action_Emu_DipSw->setToolTip(QApplication::translate("MachineMZ80K", "HAL laboratory PCG-8000 PCG.", 0));
 #elif defined(_MZ1200)
@@ -58,7 +60,7 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MachineMZ80K", "NEC PC-PR201 printer.", 0));
 	actionPrintDevice[2]->setEnabled(false);
-	
+
 	this->setWindowTitle(QApplication::translate("MachineMZ80K", "MachineMZ80K", 0));
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachineMZ80K", "Floppy Type", 0));
@@ -70,7 +72,7 @@ void META_MainWindow::retranslateUi(void)
 	actionMonitorType[0]->setToolTip(QApplication::translate("MachineMZ80K", "Using MZ-80K's B&W DISPLAY.", 0));
 	actionMonitorType[1]->setText(QApplication::translate("MachineMZ80K", "GREEN (MZ-80C)", 0));
 	actionMonitorType[1]->setToolTip(QApplication::translate("MachineMZ80K", "Using MZ-80C's GREEN DISPLAY.", 0));
-#endif	
+#endif
 
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
@@ -95,6 +97,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

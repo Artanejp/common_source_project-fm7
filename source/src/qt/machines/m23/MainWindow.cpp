@@ -27,6 +27,7 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
+	retranslateOpMenuZ80(true);
 
 #if defined(USE_DIPSWITCH)
 	action_DipSWs[0]->setText(QApplication::translate("MachineM23", "SW1: OS Boot/Debug", 0));
@@ -40,12 +41,12 @@ void META_MainWindow::retranslateUi(void)
 	for(int i = 0; i < 8; i++) {
 		action_DipSWs[i]->setVisible(true);
 	}
-#endif	
+#endif
 #if defined(USE_MONITOR_TYPE)
 	actionMonitorType[0]->setText(QApplication::translate("MenuM23", "Color Monitor"));
 	actionMonitorType[1]->setText(QApplication::translate("MenuM23", "Green Monitor"));
-#endif	
-	
+#endif
+
 #if defined(USE_DRIVE_TYPE)
 	menuDriveType->setTitle(QApplication::translate("MachineM23", "Floppy Type", 0));
 	actionDriveType[0]->setText(QApplication::translate("MachineM23", "FD20-I (3.5inch-1DD)", 0));
@@ -65,7 +66,7 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif
-	
+
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -99,6 +100,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

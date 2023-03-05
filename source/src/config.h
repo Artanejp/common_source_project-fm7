@@ -164,9 +164,9 @@ typedef struct {
 	#if defined(USE_SHARED_DLL) || defined(USE_VARIABLE_MEMORY)
 	uint32_t current_ram_size;
 	#endif
-	bool full_speed, drive_vm_in_opecode;
+	bool compress_state;
 	int cpu_power;
-	bool full_speed;
+	bool full_speed, drive_vm_in_opecode;
 
 	// recent files
 	#if defined(USE_SHARED_DLL) || defined(USE_CART)

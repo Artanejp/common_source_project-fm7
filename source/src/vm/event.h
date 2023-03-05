@@ -275,15 +275,15 @@ public:
 	*/
 	int get_cur_vline_clocks() override
 	{
-		return vline_clocks[cur_vline];
+		return vclocks[cur_vline];
 	}
 	uint32_t __FASTCALL get_cpu_pc(int index) override;
 	void request_skip_frames() override;
 	void touch_sound() override;
 	void set_realtime_render(DEVICE* device, bool flag) override;
 	uint64_t get_current_clock_uint64() override;
-	double get_current_usec() override;
-	uint32_t __FASTCALL get_cpu_clock(int index);
+	double get_current_usec();
+	uint32_t __FASTCALL get_cpu_clock(int index) override;
 	// unique functions
 	/*!
 	  @brief Get frame rate of next frame period.
@@ -300,21 +300,21 @@ public:
 	uint16_t* __FASTCALL create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 	// Sound input functions
-	void clear_sound_in_source(int bank);
-	int add_sound_in_source(int rate, int samples, int channels);
-	int release_sound_in_source(int bank);
+	void clear_sound_in_source(int bank) override;
+	int add_sound_in_source(int rate, int samples, int channels) override;
+	int release_sound_in_source(int bank) override;
 
-	bool is_sound_in_source_exists(int bank);
-	int __FASTCALL increment_sound_in_passed_data(int bank, double passed_usec);
-	int get_sound_in_buffers_count();
-	int __FASTCALL get_sound_in_samples(int bank);
-	int __FASTCALL get_sound_in_rate(int bank);
-	int __FASTCALL get_sound_in_channels(int bank);
-	int16_t* get_sound_in_buf_ptr(int bank);
-	int write_sound_in_buffer(int bank, int32_t* src, int samples);
+	bool is_sound_in_source_exists(int bank) override;
+	int __FASTCALL increment_sound_in_passed_data(int bank, double passed_usec) override;
+	int get_sound_in_buffers_count() override;
+	int __FASTCALL get_sound_in_samples(int bank) override;
+	int __FASTCALL get_sound_in_rate(int bank) override;
+	int __FASTCALL get_sound_in_channels(int bank) override;
+	int16_t* get_sound_in_buf_ptr(int bank) override;
+	int write_sound_in_buffer(int bank, int32_t* src, int samples) override;
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
-	int __FASTCALL get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels);
-	int __FASTCALL get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
+	int __FASTCALL get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels) override;
+	int __FASTCALL get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels) override;
 	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples);
 
 	/*!

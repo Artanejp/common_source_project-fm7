@@ -24,7 +24,7 @@ void META_MainWindow::setupUI_Emu(void)
 {
 #if !defined(_MZ800)
 	//menuMachine->setVisible(false);
-#endif   
+#endif
 #if defined(_MZ700)
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_PCG700, 0x01,
 										p_config->dipswitch,
@@ -43,6 +43,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ",  true);
+	retranslateOpMenuZ80(true);
+
 #if defined(USE_JOYSTICK_TYPE)
 	actionJoystickType[0]->setText(QApplication::translate("MachineMZ700", "MZ-1X03", 0));
 	actionJoystickType[0]->setToolTip(QApplication::translate("MachineMZ700", "Use Sharp MZ-1X03 Joystick unit.", 0));
@@ -55,7 +57,7 @@ void META_MainWindow::retranslateUi(void)
 	menuBootMode->setTitle(QApplication::translate("Machine", "BOOT Mode", 0));
 	actionBootMode[0]->setText(QString::fromUtf8("MZ-800"));
 	actionBootMode[1]->setText(QString::fromUtf8("MZ-700"));
-   
+
 	menuMonitorType->setTitle("Monitor Type");
 	menuMonitorType->setToolTipsVisible(true);
 	actionMonitorType[0]->setText(QApplication::translate("MachineMZ700", "Color", 0));
@@ -74,7 +76,7 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
 	actionPrintDevice[2]->setToolTip(QApplication::translate("MenuMZ700", "NEC PC-PR201 kanji serial printer.", 0));
 	actionPrintDevice[2]->setEnabled(false);
-	
+
 	actionPrintDevice[3]->setText(QString::fromUtf8("None"));
 #endif
 #if defined(USE_DRIVE_TYPE)
@@ -104,6 +106,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

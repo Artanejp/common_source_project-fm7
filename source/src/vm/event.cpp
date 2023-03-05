@@ -247,7 +247,6 @@ skip1:
 	while(event_clocks_remain > 0) {
 		int event_clocks_done = event_clocks_remain;
 		__LIKELY_IF(cpu_clocks_remain > 0) {
-			event_extra = 0;
 			int cpu_clocks_done_tmp;
 			__LIKELY_IF(dcount_cpu == 1) {
 				// run one opecode on primary cpu

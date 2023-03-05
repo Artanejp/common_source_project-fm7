@@ -61,6 +61,7 @@ protected:
 
 	uint64_t waitfactor;
 	uint64_t waitcount;
+	int extra_cycles;
 	/* ---------------------------------------------------------------------------
 	registers
 	--------------------------------------------------------------------------- */
@@ -372,11 +373,11 @@ public:
 	{
 		d_debugger = device;
 	}
-	DEVICE *get_context_child()
+	DEVICE *get_context_child() override
 	{
 		return d_pic;
 	}
-	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff) override
 	{
 		d_pic = device;
 	}

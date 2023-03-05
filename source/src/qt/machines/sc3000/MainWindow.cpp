@@ -17,14 +17,13 @@
 
 //QT_BEGIN_NAMESPACE
 
-
-
-
 void META_MainWindow::retranslateUi(void)
 {
 
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
+	retranslateOpMenuZ80(true);
+
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
@@ -36,7 +35,7 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   
+
 
 }
 
@@ -53,6 +52,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

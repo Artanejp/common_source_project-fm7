@@ -89,15 +89,15 @@ using PCEDEV::PCE;
 VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
 	pseudo_sub_cpu = !(FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME)));
-	
+
 	sound_type = config.sound_type;
-	
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -165,7 +165,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #endif
-	
+
 	display = new DISPLAY(this, emu);
 	emm = new EMM(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -175,7 +175,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	mouse = new MOUSE(this, emu);
 	sasi = new SASI(this, emu);
 	cz8rb = new CZ8RB(this, emu);
-	
+
 	if(pseudo_sub_cpu) {
 		psub = new PSUB(this, emu);
 		cpu_sub = NULL;
@@ -195,7 +195,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		cpu_kbd->set_device_name(_T("MCS48 MCU (Keyboard)"));
 		kbd = new KEYBOARD(this, emu);
 	}
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	if(!pseudo_sub_cpu) {
@@ -219,7 +219,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(pio, SIG_I8255_PORT_B, 0x02);
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
 	crtc->set_context_disp(display, SIG_DISPLAY_DISP, 1);
@@ -247,7 +247,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio->set_rx_clock(0, 9600 * 16);	// clock is from Z-80CTC ch1 (2MHz/13)
 //	sio->set_tx_clock(1, 4800 * 16);	// 4800 baud for mouse
 //	sio->set_rx_clock(1, 4800 * 16);	// clock is from Z-80CTC ch2 (2MHz/26)
-	
+
 	if(sound_type >= 1) {
 		ctc1->set_context_zc0(ctc1, SIG_Z80CTC_TRIG_3, 1);
 //		ctc1->set_constant_clock(1, CPU_CLOCKS >> 1);
@@ -273,7 +273,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_memory(memory);
 	dma->set_context_io(iobus);
 #endif
-	
+
 #ifdef _X1TURBO_FEATURE
 	display->set_context_cpu(cpu);
 #endif
@@ -296,7 +296,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef _X1TURBO_FEATURE
 	sasi->set_context_dma(dma);
 #endif
-	
+
 	if(pseudo_sub_cpu) {
 		drec->set_context_remote(psub, SIG_PSUB_TAPE_REMOTE, 1);
 		drec->set_context_end(psub, SIG_PSUB_TAPE_END, 1);
@@ -320,11 +320,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		pio_sub->set_context_port_c(pio, SIG_I8255_PORT_B, 0x80, -2);
 		// pc7:obf -> pb7 of 8255(sub)
 		pio_sub->set_context_port_c(pio_sub, SIG_I8255_PORT_B, 0x80, 0);
-		
+
 		sub->set_context_pio(pio_sub);
 		sub->set_context_rtc(rtc_sub);
 		sub->set_context_drec(drec);
-		
+
 		// keyboard
 		cpu_kbd->set_context_mem(new MCS48MEM(this, emu));
 		cpu_kbd->set_context_io(kbd);
@@ -333,7 +333,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 		kbd->set_context_cpu(cpu_sub);
 	}
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(iobus);
@@ -343,11 +343,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	DEVICE* parent_dev = NULL;
 	int level = 0;
-	
+
 	#define Z80_DAISY_CHAIN(dev) { \
 		if(parent_dev == NULL) { \
 			cpu->set_context_intr(dev); \
@@ -377,7 +377,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		Z80_DAISY_CHAIN(sub);
 	}
-	
+
 	// i/o bus
 	if(sound_type >= 1) {
 		io->set_iomap_single_w(0x700, opm1);
@@ -449,7 +449,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x1fa8, 0x1fab, ctc);
 #endif
 	io->set_iomap_range_rw(0x2000, 0x3fff, display);	// tvram
-	
+
 #ifdef _X1TWIN
 	// init PC Engine
 	pceevent = new EVENT(this, emu);
@@ -465,7 +465,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	pceevent->set_context_cpu(pcecpu, PCE_CPU_CLOCKS);
 	pceevent->set_context_sound(pce);
-	
+
 	pcecpu->set_context_mem(pce);
 	pcecpu->set_context_io(pce);
 #ifdef USE_DEBUGGER
@@ -473,18 +473,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pce->set_context_cpu(pcecpu);
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	if(!pseudo_sub_cpu) {
 		// load rom images after cpustate is allocated
 		cpu_sub->load_rom_image(create_local_path(SUB_ROM_FILE_NAME));
 		cpu_kbd->load_rom_image(create_local_path(KBD_ROM_FILE_NAME));
-		
+
 		// patch to set the current year
 		uint8_t *rom = cpu_sub->get_rom_ptr();
 		sub->rom_crc32 = get_crc32(rom, 0x800);	// 2KB
@@ -543,7 +543,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// hack to force reset iei/oei
 #if 1
 	for(DEVICE* device = cpu; device; device = device->get_context_child()) {
@@ -553,7 +553,7 @@ void VM::reset()
 	cpu->get_context_child()->notify_intr_reti();
 	cpu->reset();
 #endif
-	
+
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
 	psg->set_reg(0x2e, 0);	// set prescaler
 }
@@ -631,7 +631,7 @@ void VM::initialize_sound(int rate, int samples)
 #ifdef _X1TWIN
 	pceevent->initialize_sound(rate, samples);
 #endif
-	
+
 	// init sound gen
 	if(sound_type >= 1) {
 		opm1->initialize_sound(rate, 4000000, samples, 0);
@@ -641,7 +641,7 @@ void VM::initialize_sound(int rate, int samples)
 	}
 	if(config.printer_type == 3) {
 		PCM8BIT *pcm8 = (PCM8BIT *)printer;
-		pcm8->initialize_sound(rate, 8000);
+		pcm8->initialize_sound(rate, 32000);
 	}
 	psg->initialize_sound(rate, 2000000, samples, 0, 0);
 #ifdef _X1TWIN
@@ -782,7 +782,7 @@ bool VM::get_kana_locked()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 #ifdef _X1TURBO_FEATURE
 	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
 		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
@@ -863,7 +863,7 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(sasi_hdd[drv >> 1]->accessed(drv & 1)) {
 			status |= 1 << drv;
@@ -876,7 +876,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
 	bool opened = drec->play_tape(file_path);
-	
+
 	if(opened && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -894,7 +894,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
 	bool opened = drec->rec_tape(file_path);
-	
+
 	if(opened && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);
@@ -914,7 +914,7 @@ void VM::close_tape(int drv)
 	drec->close_tape();
 	emu->unlock_vm();
 	drec->set_remote(false);
-	
+
 	if(pseudo_sub_cpu) {
 		psub->close_tape();
 	} else {
@@ -1062,7 +1062,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(pseudo_sub_cpu);
 	state_fio->StateValue(sound_type);
- 	
+
 #ifdef _X1TURBO_FEATURE
  	// post process
 	if(loading) {

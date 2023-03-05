@@ -27,6 +27,7 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
+	retranslateOpMenuZ80(true);
 
 #if defined(USE_DIPSWITCH)
 	action_DipSWs[0]->setText(QApplication::translate("MachineCRC80", "SW1: STEP", 0));
@@ -34,14 +35,14 @@ void META_MainWindow::retranslateUi(void)
 	for(int i = 0; i < 2; i++) {
 		action_DipSWs[i]->setVisible(true);
 	}
-#endif	
+#endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
 	actionDebugger[2]->setVisible(false);
 	actionDebugger[3]->setVisible(false);
 #endif
-	
+
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -75,6 +76,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

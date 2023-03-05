@@ -21,6 +21,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu(" ", false);
+	retranslateOpMenuZ80(true);
+
 	QString tmps;
 	QString n_tmps;
 	int i;
@@ -43,17 +45,17 @@ void META_MainWindow::setupUI_Emu(void)
 {
 	int i;
 	QString tmps;
-	
+
 	menuMachine->setVisible(true);
 	menu_Emu_DipSw = new QMenu(menuMachine);
 	menu_Emu_DipSw->setObjectName(QString::fromUtf8("menu_DipSw"));
 	actionGroup_DipSw = new QActionGroup(this);
 	actionGroup_DipSw->setExclusive(false);
 	menuMachine->addAction(menu_Emu_DipSw->menuAction());
-	
+
 	for(i = 0; i < 8; i++) {
 		SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action_Emu_DipSw[i], (0x01 << i), p_config->dipswitch , SIGNAL(toggled(bool)) , SLOT(do_set_single_dipswitch(bool)));
-		
+
 		tmps.number(i + 1);
 		tmps = QString::fromUtf8("actionEmu_DipSw") + tmps;
 		action_Emu_DipSw[i]->setObjectName(tmps);
@@ -74,5 +76,3 @@ META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr
 META_MainWindow::~META_MainWindow()
 {
 }
-
-

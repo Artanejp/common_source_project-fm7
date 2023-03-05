@@ -24,6 +24,8 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
+	retranslateOpMenuZ80(true);
+
 	menu_BINs[0]->setTitle(QApplication::translate("MenuTRNJR", "RAM", 0));
 	//menuMachine->setVisible(false);
 	// Set Labels
@@ -46,6 +48,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

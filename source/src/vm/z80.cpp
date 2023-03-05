@@ -2201,15 +2201,15 @@ void  Z80::debugger_hook(void)
 #endif
 }
 
-void Z80:cpu_wait(int clocks)
+void Z80::cpu_wait(int clocks)
 {
 	uint64_t ncount = 0;
 	if(clocks < 0) return;
 	if(waitfactor == 0) return;
 
 	waitcount += (waitfactor * (uint64_t)clocks);
-	const uint64_t _limit = (1 << (16 + 32 - 1)) - 1;
-	const int  _i_limit = (1 << (32 - 1)) - 1;
+	const uint64_t _limit = INT64_MAX;
+	const int  _i_limit = INT_MAX;
 	__UNLIKELY_IF(waitcount >= _limit) {
 		waitcount = _limit;
 	}
@@ -2219,7 +2219,7 @@ void Z80:cpu_wait(int clocks)
 		__LIKELY_IF(ncount > 0) {
 			extra_cycles += ncount;
 			__UNLIKELY_IF(extra_cycles > _i_limit) {
-				extra_cycles = _limit;
+				extra_cycles = _i_limit;
 			}
 		}
 	}

@@ -27,7 +27,7 @@ void META_MainWindow::retranslateUi(void)
 	menu_BINs[0]->setTitle(QApplication::translate("MenuBABBAGE", "RAM", 0));
 	//menuMachine->setVisible(false);
 	// Set Labels
-	
+	retranslateOpMenuZ80(true);
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -47,6 +47,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

@@ -30,17 +30,19 @@ void META_MainWindow::retranslateUi(void)
 {
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("RESET",  true);
+	retranslateOpMenuZ80(true);
+
 	actionReset->setVisible(false);
 	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "RESET", 0));
 	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "Do reset.", 0));
-	
+
 #if defined(_SMC70)
 	menuBootMode->setTitle(QApplication::translate("MainWindow", "Auto Start SW:", 0));
 	menuBootMode->setToolTipsVisible(true);
 	actionBootMode[0]->setText(QApplication::translate("MainWindow", "ROM", 0));
 	actionBootMode[1]->setText(QApplication::translate("MainWindow", "Disk", 0));
 	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Off", 0));
-#endif	
+#endif
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(false);
@@ -64,6 +66,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-

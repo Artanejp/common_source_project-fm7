@@ -28,6 +28,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu("System Reset",  true);
 	actionSpecial_Reset[0]->setText(QApplication::translate("MainWindow", "System Reset", 0));
 	actionSpecial_Reset[0]->setToolTip(QApplication::translate("MainWindow", "Do system reset.", 0));
+	retranslateOpMenuZ80(true);
 
 #ifdef USE_DEBUGGER
 	actionDebugger[0]->setVisible(true);
@@ -50,6 +51,3 @@ META_MainWindow::~META_MainWindow()
 }
 
 //QT_END_NAMESPACE
-
-
-
