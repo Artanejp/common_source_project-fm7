@@ -1464,6 +1464,16 @@ If changed, need to restart this emulator.</source>
         <source>OpenGL ES v3.1</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Drive VM in M1/R/W Cycle</source>
+        <translation>M1/R/Wサイクルでイベントを処理する</translation>
+    </message>
+    <message>
+        <source>Process some events and wait per instruction.
+Make emulation more correctness.</source>
+        <translation>エミュレーションのイベントとウエイト動作を、各命令ごとに処理します。
+より正確なエミュレーションになります（たぶん）。</translation>
+    </message>
 </context>
 <context>
     <name>MenuHDD</name>
@@ -2577,7 +2587,7 @@ Larger value is better, but slowly.</source>
     </message>
     <message>
         <source>Custom config directory.</source>
-        <translation>設定ファイルのあるディレクトリを指定する</translation>
+        <translation type="vanished">設定ファイルのあるディレクトリを指定する</translation>
     </message>
     <message>
         <source>Custom resource directory (ROMs, WAVs, etc).</source>
@@ -2602,6 +2612,58 @@ Larger value is better, but slowly.</source>
     <message>
         <source>Dump environment variables.</source>
         <translation>環境変数をダンプする</translation>
+    </message>
+    <message>
+        <source>DIRECTORY PATH</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PATH</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Bit to SET</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Bit to RESET</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Renderer TYPE</source>
+        <translation>レンダラーの種類</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL v2.</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL v2にする。</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL v3(main profile).</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL v3.x(メインプロファイル)にする。</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL v4(core profile).</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL v4(コアプロファイル)にする。</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL v4.3(core profile).</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL v4.3(コアプロファイル)にする。</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL v4.6(core profile).</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL v4.6(コアプロファイル)にする。</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL ESv2.</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL ESv2にする。</translation>
+    </message>
+    <message>
+        <source>Force set using renderer type to OpenGL ESv3.</source>
+        <translation>表示レンダラのタイプを強制的にOpenGL ESv3にする。</translation>
+    </message>
+    <message>
+        <source>NAME=VALUE</source>
+        <translation></translation>
     </message>
 </context>
 </TS>

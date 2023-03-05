@@ -5,6 +5,637 @@
     <name>Machine</name>
     <message>
         <source>Frame skip</source>
+        <translation type="vanished">フレームスキップ</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="vanished">なし</translation>
+    </message>
+    <message>
+        <source>1 Frame</source>
+        <translation type="vanished">1フレーム間引き</translation>
+    </message>
+    <message>
+        <source>2 Frames</source>
+        <translation type="vanished">2フレーム間引き</translation>
+    </message>
+    <message>
+        <source>3 Frames</source>
+        <translation type="vanished">3フレーム間引き</translation>
+    </message>
+    <message>
+        <source>Sync to HSYNC</source>
+        <translation type="vanished">HSYNCと同期する</translation>
+    </message>
+    <message>
+        <source>Emulate display syncing to HSYNC.
+Expect to emulate more accurate.</source>
+        <translation type="vanished">表示タイミングを、水平同期に合わせます。
+より正確なエミュレーションが期待できます。</translation>
+    </message>
+    <message>
+        <source>CPU Frequency</source>
+        <translation type="vanished">CPU周波数</translation>
+    </message>
+    <message>
+        <source>Boot with F-BASIC.</source>
+        <translation type="vanished">F-BASIC(ディスクBASICも)を立ち上げます。</translation>
+    </message>
+    <message>
+        <source>DOS boot mode.
+Use for CP/M, FLEX, OS-9, R-DOS and some OSs.</source>
+        <translation type="vanished">DOSモード。
+CP/MやFLEXやOS-9やRDOSなどを
+起動する時に使います。</translation>
+    </message>
+    <message>
+        <source>MMR boot mode.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation type="vanished">MMRブートモード。
+作者には詳細がわかりません。</translation>
+    </message>
+    <message>
+        <source>Bubble Casette</source>
+        <translation type="vanished">バブルカセット</translation>
+    </message>
+    <message>
+        <source>8Inch FD</source>
+        <translation type="vanished">8インチFD</translation>
+    </message>
+    <message>
+        <source>Boot for bubble casette.
+You must install boot rom for this.</source>
+        <translation type="vanished">バブルカセットから起動します。
+専用のブートROMが必要です。</translation>
+    </message>
+    <message>
+        <source>Boot for 8inch floppy disk.
+You must install boot rom for this.</source>
+        <translation type="vanished">8インチフロッピーディスクから起動します。
+専用のブートROMが必要です。</translation>
+    </message>
+    <message>
+        <source>Kanji ROM(Need restart)</source>
+        <translation type="vanished">漢字ROM(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect KANJI ROM.Need restart emulator if changed.</source>
+        <translation type="vanished">漢字ROMを接続します。
+変更した場合、エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>BANK PROTECT($FD0F/hack)</source>
+        <translation type="vanished">バンク保護($FD0F/hack)</translation>
+    </message>
+    <message>
+        <source>Protect bank setting if checked.
+Unchecked to simulate FM-7.
+Useful for some software tranferring to URA-RAM.</source>
+        <translation type="vanished">チェックすると、裏RAM保護を行います。
+チェック解除すると、FM-7の裏RAM切り替えをシミュレートします。
+裏RAMにデータを転送している幾つかのソフトで有用です。</translation>
+    </message>
+    <message>
+        <source>Cycle Steal(hack)</source>
+        <translation type="vanished">サイクルスチール(hack)</translation>
+    </message>
+    <message>
+        <source>Enabling cycle steal to be faster drawing.
+This is hack for FM-7.</source>
+        <translation type="vanished">サイクルスチールを有効化して、表示を高速にします。
+FM-7向けのhackです。</translation>
+    </message>
+    <message>
+        <source>Cycle Steal</source>
+        <translation type="vanished">サイクルスチール</translation>
+    </message>
+    <message>
+        <source>Enabling cycle steal to be faster drawing.</source>
+        <translation type="vanished">サイクルスチールを有効化して、表示を高速にします。</translation>
+    </message>
+    <message>
+        <source>Sound Boards</source>
+        <translation type="vanished">音源</translation>
+    </message>
+    <message>
+        <source>Beep Only</source>
+        <translation type="vanished">ブザーのみ</translation>
+    </message>
+    <message>
+        <source>Use only buzzer as sound device.</source>
+        <translation type="vanished">ブザーのみにします。</translation>
+    </message>
+    <message>
+        <source>PSG (hack)</source>
+        <translation type="vanished">PSG(hack)</translation>
+    </message>
+    <message>
+        <source>Set FM-7 compatible PSG.
+This emulates extra PSG board made by third party.</source>
+        <translation type="vanished">サードパーティ製のFM-7互換PSGボードを接続します。</translation>
+    </message>
+    <message>
+        <source>OPN</source>
+        <translation type="vanished">OPN</translation>
+    </message>
+    <message>
+        <source>Using only default FM synthesizer board.</source>
+        <translation type="vanished">本体のFM音源のみ使います。</translation>
+    </message>
+    <message>
+        <source>Using default FM synthesizer board
+and WHG second FM synthesizer board.</source>
+        <translation type="vanished">本体のFM音源と
+WHG(2枚目のFM音源)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default FM synthesizer board
+and THG third FM synthesizer board.</source>
+        <translation type="vanished">本体のFM音源と
+THG(3枚目のFM音源)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default FM synthesizer board
+and WHG second FM synthesizer board
+and THG third FM synthesizer board.</source>
+        <translation type="vanished">本体のFM音源と
+WHG(2枚目のFM音源)と
+THG(3枚目のFM音源)を使います。</translation>
+    </message>
+    <message>
+        <source>Using only default PSG.</source>
+        <translation type="vanished">本体のPSGのみ使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and Fujitsu&apos;s FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+富士通のFM音源カードを使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and WHG second FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+WHG(2枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and Fujitsu&apos;s FM synthesizer board
+and WHG second FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+富士通のFM音源カードと
+WHG(2枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and Fujitsu&apos;s FM synthesizer board
+and THG third FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+富士通のFM音源カードと
+THG(3枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and WHG 2nd FM sythesizer board
+and THG third FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+WHG(2枚目のFM音源ボード)と
+THG(3枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and Fujitsu&apos;s FM synthesizer board
+and WHG second FM synthesizer board
+and THG third FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+富士通のFM音源カードと
+WHG(2枚目のFM音源ボード)と
+THG(3枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>Mouse</source>
+        <translation type="vanished">マウス</translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation type="vanished">なし</translation>
+    </message>
+    <message>
+        <source>JS port1</source>
+        <translation type="vanished">ジョイポート#1</translation>
+    </message>
+    <message>
+        <source>Connect mouse to JOYSTICK port #1.</source>
+        <translation type="vanished">インテリジェントマウスを、ジョイスティックポート#1に接続します。</translation>
+    </message>
+    <message>
+        <source>JS port2</source>
+        <translation type="vanished">ジョイポート#2</translation>
+    </message>
+    <message>
+        <source>Connect mouse to JOYSTICK port #2.</source>
+        <translation type="vanished">インテリジェントマウスを、ジョイスティックポート#2に接続します。</translation>
+    </message>
+    <message>
+        <source>Use Extra RAM (Need reboot)</source>
+        <translation type="vanished">拡張RAM（要リブート)</translation>
+    </message>
+    <message>
+        <source>Using extra ram block.
+Need to reboot if changed.</source>
+        <translation type="vanished">拡張RAMカードを使います。変更した場合、リセットが必要です。</translation>
+    </message>
+    <message>
+        <source>Connect 320KB FDD(Need Restart)</source>
+        <translation type="vanished">320KB FDを接続（要再起動）</translation>
+    </message>
+    <message>
+        <source>Connect 2D floppy drive.
+Need to restart emulator if changed.</source>
+        <translation type="vanished">2Dフロッピードライブを接続します。
+変更した場合、エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect 1MB FDD(Need Restart)</source>
+        <translation type="vanished">1MB FDDを接続(要再起動）</translation>
+    </message>
+    <message>
+        <source>**Note: This option still not implemented**
+Connect 2HD (or 8inch) floppy drive.
+Need to restart emulator if changed.
+</source>
+        <translation type="vanished">**注意：このオプションは、まだ実装されていません。使用不可**
+2HDドライブ、もしくは8インチ 2dドライブを接続します。
+変更した場合、エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Auto Stop Ten Key (hack)</source>
+        <translation type="vanished">自動停止テンキー(hack)</translation>
+    </message>
+    <message>
+        <source>None used.</source>
+        <translation type="vanished">使わない。</translation>
+    </message>
+    <message>
+        <source>Use 5</source>
+        <translation type="vanished">&apos;5&apos;キーで止める</translation>
+    </message>
+    <message>
+        <source>Use &apos;5&apos; key to stop with some GAMES.
+Useful for games using &apos;2 4 6 8&apos; to move character.</source>
+        <translation type="vanished">&apos;5&apos;キーで、キャラクターを止めるようにします。
+&apos;2 4 6 8&apos;キーで操作するゲームで便利かもしれません。</translation>
+    </message>
+    <message>
+        <source>Use 8</source>
+        <translation type="vanished">&apos;8&apos;キーで止める</translation>
+    </message>
+    <message>
+        <source>Use &apos;8&apos; key to stop with some GAMES.
+Useful for games using &apos;1 2 3 5&apos; to move character.</source>
+        <translation type="vanished">&apos;8&apos;キーを、キャラクターを止めるのに使います。
+&apos;1 2 3 5&apos;キーで動かすゲームで便利かもしれません。</translation>
+    </message>
+    <message>
+        <source>BOOT Mode</source>
+        <translation type="vanished">起動モード</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and THG third FM synthesizer board.</source>
+        <translation type="vanished">本体のPSGと
+THG(3枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>MainWindow</source>
+        <translation type="vanished">MainWindow</translation>
+    </message>
+    <message>
+        <source>Hot Start(BREAK+RESET)</source>
+        <translation>ホットスタート(BREAK+リセット)</translation>
+    </message>
+    <message>
+        <source>Do HOT START.
+Reset with pressing BREAK key.</source>
+        <translation>BREAKキーを押しながらリセットします。</translation>
+    </message>
+    <message>
+        <source>Dempa Joystick with #1</source>
+        <translation>電波新聞社JS #1</translation>
+    </message>
+    <message>
+        <source>Use joystick #1 as DEMPA&apos;s joystick.</source>
+        <translation>ジョイスティック#1を、電波新聞社のジョイスティックとして使います。</translation>
+    </message>
+    <message>
+        <source>Dempa Joystick with #2</source>
+        <translation>電波新聞社JS #2</translation>
+    </message>
+    <message>
+        <source>Use joystick #2 as DEMPA&apos;s joystick.</source>
+        <translation>ジョイスティック#2を、電波新聞社のジョイスティックとして使います。</translation>
+    </message>
+    <message>
+        <source>Main CPU</source>
+        <translation>メインCPU</translation>
+    </message>
+    <message>
+        <source>Sub  CPU</source>
+        <translation>サブCPU</translation>
+    </message>
+    <message>
+        <source>Z80 CPU Board</source>
+        <translation>Z80 CPUカード</translation>
+    </message>
+    <message>
+        <source>Japanese Communication Board</source>
+        <translation>日本語通信カード</translation>
+    </message>
+    <message>
+        <source>KANJI:JIS78 emulation.</source>
+        <translation type="vanished">JIS78漢字ROMエミュレーション</translation>
+    </message>
+    <message>
+        <source>Emulate JIS78 kanji ROM.</source>
+        <translation type="vanished">JIS78タイプの漢字ROMの動作をエミュレートします。</translation>
+    </message>
+    <message>
+        <source>Connect Z80 CARD</source>
+        <translation type="vanished">Z80カードを接続する(要再起動)</translation>
+    </message>
+    <message>
+        <source>Turn ON Z80 extra card.
+Need to restart this emulator to change connection</source>
+        <translation type="vanished">Z80カードを有効にします。
+エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Z80:IRQ ON</source>
+        <translation type="vanished">Z80:IRQ ON</translation>
+    </message>
+    <message>
+        <source>Turn ON IRQ to Z80 extra card.</source>
+        <translation type="vanished">Z80カードのIRQ割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Z80:FIRQ ON</source>
+        <translation type="vanished">Z80:FIRQ ON</translation>
+    </message>
+    <message>
+        <source>Turn ON FIRQ to IRQ of Z80 extra card.</source>
+        <translation type="vanished">Z80カードのFIRQ割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Z80:NMI ON</source>
+        <translation type="vanished">Z80:NMI ON</translation>
+    </message>
+    <message>
+        <source>Turn ON NMI to Z80 extra card.</source>
+        <translation type="vanished">Z80カードのNMI割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Connect Japanese Communication Card.</source>
+        <translation type="vanished">日本語通信カードを接続する(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect Japanese communication card.
+Need to restart this emulator if you change.</source>
+        <translation type="vanished">日本語通信カードを接続します。エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect Japanese communication board.
+Need to restart this emulator if you change.</source>
+        <translation type="vanished">日本語通信カードを接続します。
+エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect RS-232C (need restart).</source>
+        <translation type="vanished">RS-232Cカードを接続する(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect extra RS-232C board.
+Need to restart this emulator if changed.</source>
+        <translation type="vanished">RS-232Cカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect MODEM (need restart).</source>
+        <translation type="vanished">モデムを接続する（要再起動）</translation>
+    </message>
+    <message>
+        <source>Connect extra MODEM board.
+Need to restart this emulator if changed.</source>
+        <translation type="vanished">モデムカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Connect MIDI (need restart).</source>
+        <translation type="vanished">MIDIを接続する(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect extra MIDI board.
+Need to restart this emulator if changed.</source>
+        <translation type="vanished">MIDIカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>CPU Frequency (hack)</source>
+        <translation type="vanished">CPU周波数(HACK)</translation>
+    </message>
+    <message>
+        <source>Boot from 1MB FD for FM-77.
+</source>
+        <translation type="vanished">FM-77用 1MB FDDから起動します。</translation>
+    </message>
+    <message>
+        <source>Turn ON Z80 extra board.
+Need to restart this emulator to change connection</source>
+        <translation type="vanished">Z80カードを有効にします。
+変更時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Turn ON IRQ to Z80 extra board.</source>
+        <translation type="vanished">Z80カードのIRQ割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Turn ON NMI to Z80 extra board.</source>
+        <translation type="vanished">Z80カードのNMI割り込みを有効にします。</translation>
+    </message>
+    <message>
+        <source>Connect Japanese Communication board.</source>
+        <translation type="vanished">日本語通信カードをつなぐ</translation>
+    </message>
+    <message>
+        <source>Connect external RS-232C board.
+Need to restart this emulator if changed.</source>
+        <translation type="vanished">拡張RS-232Cカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Turn ON RS-232C (need restart).</source>
+        <translation type="vanished">RS-232C機能を有効にする(要再起動)</translation>
+    </message>
+    <message>
+        <source>Turn ON RS-232C feature for Japanese communication board.
+Need to restart this emulator if changed.</source>
+        <translation type="vanished">日本語通信カードのRS-232C機能を有効にします。
+変更時はエミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Boot from 128K Bubble casette.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation type="vanished">128Kバイトタイプのバブルカセットからブートします。
+これはFM-77の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>Boot from 32K Bubble casette.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation type="vanished">32Kバイトタイプのバブルカセットからブートします。
+これはFM-77の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>Boot for DEBUG.
+This is SM11-14&apos;s feature and I don&apos;t know about this.</source>
+        <translation type="vanished">デバッグ用ブートします。
+これはSM11-14ブートロムの機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>MMR boot mode.
+This is FM-77AV feature and I don&apos;t know about this.</source>
+        <translation type="vanished">MMR付きのブートをします。
+FM77AV固有の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>BASIC boot mode with S1 has turned ON.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation type="vanished">S1スイッチ有効でのBASICモードです。
+FM-77固有の機能で、作者にはよくわかりません。</translation>
+    </message>
+    <message>
+        <source>BASIC (BANK4)</source>
+        <translation type="vanished">BASIC (BANK4)</translation>
+    </message>
+    <message>
+        <source>DOS 320K(BOOT2 / BANK5)</source>
+        <translation type="vanished">DOS 320K (BOOT2 / BANK5)</translation>
+    </message>
+    <message>
+        <source>RESERVE AREA 1
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation type="vanished">予備領域1から起動します。
+FM-77固有の機能で、作者には不明です。</translation>
+    </message>
+    <message>
+        <source>RESERVED AREA 2
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation type="vanished">予備領域2から起動します。
+FM-77固有の機能で、作者には不明です。</translation>
+    </message>
+    <message>
+        <source>BASIC  (SM11-14 BANK0)</source>
+        <translation type="vanished">BASIC (SM11-14 BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS    (SM11-14 BANK2)</source>
+        <translation type="vanished">DOS (SM11-14 BANK2)</translation>
+    </message>
+    <message>
+        <source>BUBBLE  (SM11-14 BANK1)</source>
+        <translation type="vanished">バブルカセット (SM11-14 BANK1)</translation>
+    </message>
+    <message>
+        <source>8Inch FD (SM11-15 BANK3)</source>
+        <translation type="vanished">8インチフロッピー (SM11-15 BANK3)</translation>
+    </message>
+    <message>
+        <source>BASIC    (SM11-15 BANK0)</source>
+        <translation type="vanished">BASIC (SM11-15 BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS      (SM11-15 BANK2)</source>
+        <translation type="vanished">DOS (SM11-15 BANK2)</translation>
+    </message>
+    <message>
+        <source>BUBBLE   (SM11-15 BANK1)</source>
+        <translation type="vanished">バブルカセット (SM11-15 BANK1)</translation>
+    </message>
+    <message>
+        <source>DEBUG    (SM11-14 BANK3)</source>
+        <translation type="vanished">DEBUG (SM11-14 BANK3)</translation>
+    </message>
+    <message>
+        <source>BASIC (BANK0)</source>
+        <translation type="vanished">BASIC (BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS (BANK2)</source>
+        <translation type="vanished">DOS (BANK2)</translation>
+    </message>
+    <message>
+        <source>Bubble Casette (BANK1)</source>
+        <translation type="vanished">バブルカセット (BANK1)</translation>
+    </message>
+    <message>
+        <source>Reserve (BANK3)</source>
+        <translation type="vanished">予備領域 (BANK3)</translation>
+    </message>
+    <message>
+        <source>This is reserved area.
+I don&apos;t know about this.</source>
+        <translation type="vanished">予備領域から起動します。
+作者はこの部分についてわかりません。</translation>
+    </message>
+    <message>
+        <source>Reserved boot mode.
+This is FM-77AV feature and I don&apos;t know about this.</source>
+        <translation type="vanished">予備領域からの起動モードです。
+FM-77AVの機能ですが、作者にはこの部分についてはわかりません。</translation>
+    </message>
+    <message>
+        <source>Use DICTIONARY board(need restart).</source>
+        <translation type="vanished">日本語カードを使う(要再起動)</translation>
+    </message>
+    <message>
+        <source>Connect extra dictionary card.
+Need to restart this emulator if changed.</source>
+        <translation type="vanished">拡張日本語カードを接続します。
+日本語通信カードではありません。
+変更した場合、エミュレータの再起動が必要です。</translation>
+    </message>
+    <message>
+        <source>Green Display</source>
+        <translation type="vanished">グリーンディスプレイ</translation>
+    </message>
+    <message>
+        <source>Using ancient &quot;Green Display&quot; to display.</source>
+        <translation type="vanished">いにしえのグリーンディスプレイで表示します。</translation>
+    </message>
+    <message>
+        <source>Color Display (need reset)</source>
+        <translation type="vanished">カラーCRT(リセットが必要)</translation>
+    </message>
+    <message>
+        <source>Using color display.
+Changes will be applied at reset, not immediately.</source>
+        <translation type="vanished">カラーディスプレイで表示します。
+リセット後に変更が反映されます。</translation>
+    </message>
+    <message>
+        <source>Green Display (need reset)</source>
+        <translatorcomment>グリーンディスプレイ(リセットが必要)</translatorcomment>
+        <translation type="vanished">グリーンディスプレイ(リセットが必要)</translation>
+    </message>
+    <message>
+        <source>Using ancient &quot;Green Display&quot; to display.
+Changes will be applied at reset, not immediately.</source>
+        <translation type="vanished">古の「グリーンディスプレイ」で表示します。
+変更はリセット後に反映されます。</translation>
+    </message>
+</context>
+<context>
+    <name>MachineFM7</name>
+    <message>
+        <source>Frame skip</source>
         <translation>フレームスキップ</translation>
     </message>
     <message>
@@ -34,12 +665,38 @@ Expect to emulate more accurate.</source>
 より正確なエミュレーションが期待できます。</translation>
     </message>
     <message>
+        <source>Z80:Drive VM in M1/R/W Cycle</source>
+        <translation>Z80:M1/R/Wサイクルでイベントを処理する</translation>
+    </message>
+    <message>
+        <source>Process some events and wait per instruction.
+Maybe emulation more correctness for Z80 card if available.</source>
+        <translation>エミュレーションのイベントとウエイト動作を、各命令ごとに処理します。
+Z80カードがある場合により正確なエミュレーションになります（たぶん）。</translation>
+    </message>
+    <message>
+        <source>CPU Frequency (hack)</source>
+        <translation>CPU周波数(HACK)</translation>
+    </message>
+    <message>
         <source>CPU Frequency</source>
         <translation>CPU周波数</translation>
     </message>
     <message>
+        <source>BOOT Mode</source>
+        <translation>起動モード</translation>
+    </message>
+    <message>
+        <source>BASIC</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Boot with F-BASIC.</source>
         <translation>F-BASIC(ディスクBASICも)を立ち上げます。</translation>
+    </message>
+    <message>
+        <source>DOS</source>
+        <translation></translation>
     </message>
     <message>
         <source>DOS boot mode.
@@ -49,18 +706,59 @@ CP/MやFLEXやOS-9やRDOSなどを
 起動する時に使います。</translation>
     </message>
     <message>
-        <source>MMR boot mode.
+        <source>BASIC boot mode with S1 has turned ON.
 This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation type="vanished">MMRブートモード。
-作者には詳細がわかりません。</translation>
+        <translation>S1スイッチ有効でのBASICモードです。
+FM-77固有の機能で、作者にはよくわかりません。</translation>
     </message>
     <message>
-        <source>Bubble Casette</source>
-        <translation type="vanished">バブルカセット</translation>
+        <source>BASIC (BANK4)</source>
+        <translation>BASIC (BANK4)</translation>
     </message>
     <message>
-        <source>8Inch FD</source>
-        <translation type="vanished">8インチFD</translation>
+        <source>DOS 320K(BOOT2 / BANK5)</source>
+        <translation>DOS 320K (BOOT2 / BANK5)</translation>
+    </message>
+    <message>
+        <source>Boot from 1MB FD for FM-77.
+</source>
+        <translation>FM-77用 1MB FDDから起動します。</translation>
+    </message>
+    <message>
+        <source>Boot from 128K Bubble casette.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>128Kバイトタイプのバブルカセットからブートします。
+これはFM-77の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>Boot from 32K Bubble casette.
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>32Kバイトタイプのバブルカセットからブートします。
+これはFM-77の機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>RESERVE AREA 1
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>予備領域1から起動します。
+FM-77固有の機能で、作者には不明です。</translation>
+    </message>
+    <message>
+        <source>RESERVED AREA 2
+This is FM-77 feature and I don&apos;t know about this.</source>
+        <translation>予備領域2から起動します。
+FM-77固有の機能で、作者には不明です。</translation>
+    </message>
+    <message>
+        <source>BASIC  (SM11-14 BANK0)</source>
+        <translation>BASIC (SM11-14 BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS    (SM11-14 BANK2)</source>
+        <translation>DOS (SM11-14 BANK2)</translation>
+    </message>
+    <message>
+        <source>BUBBLE  (SM11-14 BANK1)</source>
+        <translation>バブルカセット (SM11-14 BANK1)</translation>
     </message>
     <message>
         <source>Boot for bubble casette.
@@ -69,10 +767,64 @@ You must install boot rom for this.</source>
 専用のブートROMが必要です。</translation>
     </message>
     <message>
+        <source>8Inch FD (SM11-15 BANK3)</source>
+        <translation>8インチフロッピー (SM11-15 BANK3)</translation>
+    </message>
+    <message>
         <source>Boot for 8inch floppy disk.
 You must install boot rom for this.</source>
         <translation>8インチフロッピーディスクから起動します。
 専用のブートROMが必要です。</translation>
+    </message>
+    <message>
+        <source>BASIC    (SM11-15 BANK0)</source>
+        <translation>BASIC (SM11-15 BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS      (SM11-15 BANK2)</source>
+        <translation>DOS (SM11-15 BANK2)</translation>
+    </message>
+    <message>
+        <source>BUBBLE   (SM11-15 BANK1)</source>
+        <translation>バブルカセット (SM11-15 BANK1)</translation>
+    </message>
+    <message>
+        <source>DEBUG    (SM11-14 BANK3)</source>
+        <translation>DEBUG (SM11-14 BANK3)</translation>
+    </message>
+    <message>
+        <source>Boot for DEBUG.
+This is SM11-14&apos;s feature and I don&apos;t know about this.</source>
+        <translation>デバッグ用ブートします。
+これはSM11-14ブートロムの機能ですが、作者は詳細を知りません。</translation>
+    </message>
+    <message>
+        <source>BASIC (BANK0)</source>
+        <translation>BASIC (BANK0)</translation>
+    </message>
+    <message>
+        <source>DOS (BANK2)</source>
+        <translation>DOS (BANK2)</translation>
+    </message>
+    <message>
+        <source>Bubble Casette (BANK1)</source>
+        <translation>バブルカセット (BANK1)</translation>
+    </message>
+    <message>
+        <source>Reserve (BANK3)</source>
+        <translation>予備領域 (BANK3)</translation>
+    </message>
+    <message>
+        <source>This is reserved area.
+I don&apos;t know about this.</source>
+        <translation>予備領域から起動します。
+作者はこの部分についてわかりません。</translation>
+    </message>
+    <message>
+        <source>Reserved boot mode.
+This is FM-77AV feature and I don&apos;t know about this.</source>
+        <translation>予備領域からの起動モードです。
+FM-77AVの機能ですが、作者にはこの部分についてはわかりません。</translation>
     </message>
     <message>
         <source>Kanji ROM(Need restart)</source>
@@ -80,8 +832,7 @@ You must install boot rom for this.</source>
     </message>
     <message>
         <source>Connect KANJI ROM.Need restart emulator if changed.</source>
-        <translation>漢字ROMを接続します。
-変更した場合、エミュレータの再起動が必要です。</translation>
+        <translation></translation>
     </message>
     <message>
         <source>BANK PROTECT($FD0F/hack)</source>
@@ -139,6 +890,18 @@ This emulates extra PSG board made by third party.</source>
         <translation>OPN</translation>
     </message>
     <message>
+        <source>OPN+WHG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPN+WHG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Using only default FM synthesizer board.</source>
         <translation>本体のFM音源のみ使います。</translation>
     </message>
@@ -163,6 +926,38 @@ WHG(2枚目のFM音源)と
 THG(3枚目のFM音源)を使います。</translation>
     </message>
     <message>
+        <source>PSG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+WHG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN+WHG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+WHG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PSG+OPN+WHG+THG</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Using only default PSG.</source>
         <translation>本体のPSGのみ使います。</translation>
     </message>
@@ -185,6 +980,12 @@ and WHG second FM synthesizer board.</source>
         <translation>本体のPSGと
 富士通のFM音源カードと
 WHG(2枚目のFM音源ボード)を使います。</translation>
+    </message>
+    <message>
+        <source>Using default PSG 
+and THG third FM synthesizer board.</source>
+        <translation>本体のPSGと
+THG(3枚目のFM音源ボード)を使います。</translation>
     </message>
     <message>
         <source>Using default PSG 
@@ -266,7 +1067,8 @@ Need to restart emulator if changed.
 </source>
         <translation>**注意：このオプションは、まだ実装されていません。使用不可**
 2HDドライブ、もしくは8インチ 2dドライブを接続します。
-変更した場合、エミュレータの再起動が必要です。</translation>
+変更した場合、エミュレータの再起動が必要です。
+</translation>
     </message>
     <message>
         <source>Auto Stop Ten Key (hack)</source>
@@ -297,137 +1099,42 @@ Useful for games using &apos;1 2 3 5&apos; to move character.</source>
 &apos;1 2 3 5&apos;キーで動かすゲームで便利かもしれません。</translation>
     </message>
     <message>
-        <source>BOOT Mode</source>
-        <translation>起動モード</translation>
+        <source>Color Display (need reset)</source>
+        <translation>カラーCRT(リセットが必要)</translation>
     </message>
     <message>
-        <source>Using default PSG 
-and THG third FM synthesizer board.</source>
-        <translation>本体のPSGと
-THG(3枚目のFM音源ボード)を使います。</translation>
+        <source>Using color display.
+Changes will be applied at reset, not immediately.</source>
+        <translation>カラーディスプレイで表示します。
+リセット後に変更が反映されます。</translation>
     </message>
     <message>
-        <source>MainWindow</source>
-        <translation type="vanished">MainWindow</translation>
+        <source>Green Display (need reset)</source>
+        <translation>グリーンディスプレイ(リセットが必要)</translation>
     </message>
     <message>
-        <source>Hot Start(BREAK+RESET)</source>
-        <translation>ホットスタート(BREAK+リセット)</translation>
-    </message>
-    <message>
-        <source>Do HOT START.
-Reset with pressing BREAK key.</source>
-        <translation>BREAKキーを押しながらリセットします。</translation>
-    </message>
-    <message>
-        <source>Dempa Joystick with #1</source>
-        <translation>電波新聞社JS #1</translation>
-    </message>
-    <message>
-        <source>Use joystick #1 as DEMPA&apos;s joystick.</source>
-        <translation>ジョイスティック#1を、電波新聞社のジョイスティックとして使います。</translation>
-    </message>
-    <message>
-        <source>Dempa Joystick with #2</source>
-        <translation>電波新聞社JS #2</translation>
-    </message>
-    <message>
-        <source>Use joystick #2 as DEMPA&apos;s joystick.</source>
-        <translation>ジョイスティック#2を、電波新聞社のジョイスティックとして使います。</translation>
-    </message>
-    <message>
-        <source>Main CPU</source>
-        <translation>メインCPU</translation>
-    </message>
-    <message>
-        <source>Sub  CPU</source>
-        <translation>サブCPU</translation>
-    </message>
-    <message>
-        <source>Z80 CPU Board</source>
-        <translation>Z80 CPUカード</translation>
-    </message>
-    <message>
-        <source>Japanese Communication Board</source>
-        <translation>日本語通信カード</translation>
-    </message>
-    <message>
-        <source>BASIC</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>DOS</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN+WHG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPN+WHG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+WHG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN+WHG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+WHG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>PSG+OPN+WHG+THG</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>KANJI:JIS78 emulation.</source>
-        <translation type="vanished">JIS78漢字ROMエミュレーション</translation>
-    </message>
-    <message>
-        <source>Emulate JIS78 kanji ROM.</source>
-        <translation type="vanished">JIS78タイプの漢字ROMの動作をエミュレートします。</translation>
+        <source>Using ancient &quot;Green Display&quot; to display.
+Changes will be applied at reset, not immediately.</source>
+        <translation>古の「グリーンディスプレイ」で表示します。
+変更はリセット後に反映されます。</translation>
     </message>
     <message>
         <source>Connect Z80 CARD</source>
         <translation>Z80カードを接続する(要再起動)</translation>
     </message>
     <message>
-        <source>Turn ON Z80 extra card.
+        <source>Turn ON Z80 extra board.
 Need to restart this emulator to change connection</source>
-        <translation type="vanished">Z80カードを有効にします。
-エミュレータの再起動が必要です。</translation>
+        <translation>Z80カードを有効にします。
+変更時はエミュレータの再起動が必要です</translation>
     </message>
     <message>
         <source>Z80:IRQ ON</source>
         <translation>Z80:IRQ ON</translation>
     </message>
     <message>
-        <source>Turn ON IRQ to Z80 extra card.</source>
-        <translation type="vanished">Z80カードのIRQ割り込みを有効にします。</translation>
+        <source>Turn ON IRQ to Z80 extra board.</source>
+        <translation>Z80カードのIRQ割り込みを有効にします。</translation>
     </message>
     <message>
         <source>Z80:FIRQ ON</source>
@@ -442,17 +1149,12 @@ Need to restart this emulator to change connection</source>
         <translation>Z80:NMI ON</translation>
     </message>
     <message>
-        <source>Turn ON NMI to Z80 extra card.</source>
-        <translation type="vanished">Z80カードのNMI割り込みを有効にします。</translation>
+        <source>Turn ON NMI to Z80 extra board.</source>
+        <translation>Z80カードのNMI割り込みを有効にします。</translation>
     </message>
     <message>
-        <source>Connect Japanese Communication Card.</source>
-        <translation type="vanished">日本語通信カードを接続する(要再起動)</translation>
-    </message>
-    <message>
-        <source>Connect Japanese communication card.
-Need to restart this emulator if you change.</source>
-        <translation type="vanished">日本語通信カードを接続します。エミュレータの再起動が必要です。</translation>
+        <source>Connect Japanese Communication board.</source>
+        <translation>日本語通信カードをつなぐ。</translation>
     </message>
     <message>
         <source>Connect Japanese communication board.
@@ -462,60 +1164,7 @@ Need to restart this emulator if you change.</source>
     </message>
     <message>
         <source>Connect RS-232C (need restart).</source>
-        <translation>RS-232Cカードを接続する(要再起動)</translation>
-    </message>
-    <message>
-        <source>Connect extra RS-232C board.
-Need to restart this emulator if changed.</source>
-        <translation type="vanished">RS-232Cカードを接続します。
-変更した時はエミュレータの再起動が必要です。</translation>
-    </message>
-    <message>
-        <source>Connect MODEM (need restart).</source>
-        <translation>モデムを接続する（要再起動）</translation>
-    </message>
-    <message>
-        <source>Connect extra MODEM board.
-Need to restart this emulator if changed.</source>
-        <translation>モデムカードを接続します。
-変更した時はエミュレータの再起動が必要です。</translation>
-    </message>
-    <message>
-        <source>Connect MIDI (need restart).</source>
-        <translation>MIDIを接続する(要再起動)</translation>
-    </message>
-    <message>
-        <source>Connect extra MIDI board.
-Need to restart this emulator if changed.</source>
-        <translation>MIDIカードを接続します。
-変更した時はエミュレータの再起動が必要です。</translation>
-    </message>
-    <message>
-        <source>CPU Frequency (hack)</source>
-        <translation>CPU周波数(HACK)</translation>
-    </message>
-    <message>
-        <source>Boot from 1MB FD for FM-77.
-</source>
-        <translation>FM-77用 1MB FDDから起動します。</translation>
-    </message>
-    <message>
-        <source>Turn ON Z80 extra board.
-Need to restart this emulator to change connection</source>
-        <translation>Z80カードを有効にします。
-変更時はエミュレータの再起動が必要です。</translation>
-    </message>
-    <message>
-        <source>Turn ON IRQ to Z80 extra board.</source>
-        <translation>Z80カードのIRQ割り込みを有効にします。</translation>
-    </message>
-    <message>
-        <source>Turn ON NMI to Z80 extra board.</source>
-        <translation>Z80カードのNMI割り込みを有効にします。</translation>
-    </message>
-    <message>
-        <source>Connect Japanese Communication board.</source>
-        <translation>日本語通信カードをつなぐ</translation>
+        <translation>RS-232Cカードを接続する(要再起動)。</translation>
     </message>
     <message>
         <source>Connect external RS-232C board.
@@ -525,7 +1174,7 @@ Need to restart this emulator if changed.</source>
     </message>
     <message>
         <source>Turn ON RS-232C (need restart).</source>
-        <translation>RS-232C機能を有効にする(要再起動)</translation>
+        <translation>RS-232C機能を有効にする(要再起動)。</translation>
     </message>
     <message>
         <source>Turn ON RS-232C feature for Japanese communication board.
@@ -534,118 +1183,8 @@ Need to restart this emulator if changed.</source>
 変更時はエミュレータの再起動が必要です。</translation>
     </message>
     <message>
-        <source>Boot from 128K Bubble casette.
-This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation>128Kバイトタイプのバブルカセットからブートします。
-これはFM-77の機能ですが、作者は詳細を知りません。</translation>
-    </message>
-    <message>
-        <source>Boot from 32K Bubble casette.
-This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation>32Kバイトタイプのバブルカセットからブートします。
-これはFM-77の機能ですが、作者は詳細を知りません。</translation>
-    </message>
-    <message>
-        <source>Boot for DEBUG.
-This is SM11-14&apos;s feature and I don&apos;t know about this.</source>
-        <translation>デバッグ用ブートします。
-これはSM11-14ブートロムの機能ですが、作者は詳細を知りません。</translation>
-    </message>
-    <message>
-        <source>MMR boot mode.
-This is FM-77AV feature and I don&apos;t know about this.</source>
-        <translation type="vanished">MMR付きのブートをします。
-FM77AV固有の機能ですが、作者は詳細を知りません。</translation>
-    </message>
-    <message>
-        <source>BASIC boot mode with S1 has turned ON.
-This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation>S1スイッチ有効でのBASICモードです。
-FM-77固有の機能で、作者にはよくわかりません。</translation>
-    </message>
-    <message>
-        <source>BASIC (BANK4)</source>
-        <translation>BASIC (BANK4)</translation>
-    </message>
-    <message>
-        <source>DOS 320K(BOOT2 / BANK5)</source>
-        <translation>DOS 320K (BOOT2 / BANK5)</translation>
-    </message>
-    <message>
-        <source>RESERVE AREA 1
-This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation>予備領域1から起動します。
-FM-77固有の機能で、作者には不明です。</translation>
-    </message>
-    <message>
-        <source>RESERVED AREA 2
-This is FM-77 feature and I don&apos;t know about this.</source>
-        <translation>予備領域2から起動します。
-FM-77固有の機能で、作者には不明です。</translation>
-    </message>
-    <message>
-        <source>BASIC  (SM11-14 BANK0)</source>
-        <translation>BASIC (SM11-14 BANK0)</translation>
-    </message>
-    <message>
-        <source>DOS    (SM11-14 BANK2)</source>
-        <translation>DOS (SM11-14 BANK2)</translation>
-    </message>
-    <message>
-        <source>BUBBLE  (SM11-14 BANK1)</source>
-        <translation>バブルカセット (SM11-14 BANK1)</translation>
-    </message>
-    <message>
-        <source>8Inch FD (SM11-15 BANK3)</source>
-        <translation>8インチフロッピー (SM11-15 BANK3)</translation>
-    </message>
-    <message>
-        <source>BASIC    (SM11-15 BANK0)</source>
-        <translation>BASIC (SM11-15 BANK0)</translation>
-    </message>
-    <message>
-        <source>DOS      (SM11-15 BANK2)</source>
-        <translation>DOS (SM11-15 BANK2)</translation>
-    </message>
-    <message>
-        <source>BUBBLE   (SM11-15 BANK1)</source>
-        <translation>バブルカセット (SM11-15 BANK1)</translation>
-    </message>
-    <message>
-        <source>DEBUG    (SM11-14 BANK3)</source>
-        <translation>DEBUG (SM11-14 BANK3)</translation>
-    </message>
-    <message>
-        <source>BASIC (BANK0)</source>
-        <translation>BASIC (BANK0)</translation>
-    </message>
-    <message>
-        <source>DOS (BANK2)</source>
-        <translation>DOS (BANK2)</translation>
-    </message>
-    <message>
-        <source>Bubble Casette (BANK1)</source>
-        <translation>バブルカセット (BANK1)</translation>
-    </message>
-    <message>
-        <source>Reserve (BANK3)</source>
-        <translation>予備領域 (BANK3)</translation>
-    </message>
-    <message>
-        <source>This is reserved area.
-I don&apos;t know about this.</source>
-        <translation>予備領域から起動します。
-作者はこの部分についてわかりません。</translation>
-    </message>
-    <message>
-        <source>Reserved boot mode.
-This is FM-77AV feature and I don&apos;t know about this.</source>
-        <translation>予備領域からの起動モードです。
-FM-77AVの機能ですが、作者にはこの部分についてはわかりません。</translation>
-    </message>
-    <message>
         <source>Use DICTIONARY board(need restart).</source>
-        <translation>日本語カードを使う(要再起動)</translation>
+        <translation>日本語カードを使う(要再起動)。</translation>
     </message>
     <message>
         <source>Connect extra dictionary card.
@@ -655,33 +1194,24 @@ Need to restart this emulator if changed.</source>
 変更した場合、エミュレータの再起動が必要です。</translation>
     </message>
     <message>
-        <source>Green Display</source>
-        <translation type="vanished">グリーンディスプレイ</translation>
+        <source>Connect MODEM (need restart).</source>
+        <translation>モデムを接続する（要再起動）。</translation>
     </message>
     <message>
-        <source>Using ancient &quot;Green Display&quot; to display.</source>
-        <translation type="vanished">いにしえのグリーンディスプレイで表示します。</translation>
+        <source>Connect extra MODEM board.
+Need to restart this emulator if changed.</source>
+        <translation>モデムカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
     </message>
     <message>
-        <source>Color Display (need reset)</source>
-        <translation>カラーCRT(リセットが必要)</translation>
+        <source>Connect MIDI (need restart).</source>
+        <translation>MIDIを接続する(要再起動)。</translation>
     </message>
     <message>
-        <source>Using color display.
-Changes will be applied at reset, not immediately.</source>
-        <translation>カラーディスプレイで表示します。
-リセット後に変更が反映されます。</translation>
-    </message>
-    <message>
-        <source>Green Display (need reset)</source>
-        <translatorcomment>グリーンディスプレイ(リセットが必要)</translatorcomment>
-        <translation>グリーンディスプレイ(リセットが必要)</translation>
-    </message>
-    <message>
-        <source>Using ancient &quot;Green Display&quot; to display.
-Changes will be applied at reset, not immediately.</source>
-        <translation>古の「グリーンディスプレイ」で表示します。
-変更はリセット後に反映されます。</translation>
+        <source>Connect extra MIDI board.
+Need to restart this emulator if changed.</source>
+        <translation>MIDIカードを接続します。
+変更した時はエミュレータの再起動が必要です。</translation>
     </message>
 </context>
 <context>
