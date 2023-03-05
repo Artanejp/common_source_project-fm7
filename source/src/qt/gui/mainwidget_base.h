@@ -699,6 +699,7 @@ public:
 	virtual void retranslateEmulatorMenu(void);
 	virtual void retranselateUi_Depended_OSD(void);
 	virtual void retranslateOpMenuZ80(bool _visible); // for config.drive_vm_in_opecode
+	void retranslateOpMenuAny(QString _Text, QString _ToolTip, bool _visible = true); // for config.drive_vm_in_opecode
 	// About Status bar
 	virtual void initStatusBar(void);
 	// EmuThread

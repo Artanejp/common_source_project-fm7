@@ -514,13 +514,20 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addSeparator();
 }
 
-void Ui_MainWindowBase::retranslateOpMenuZ80(bool _visible)
+void Ui_MainWindowBase::retranslateOpMenuAny(QString _Text, QString _ToolTip, bool _visible)
 {
 	if(action_DriveInOpCode != nullptr) {
-		action_DriveInOpCode->setText(QApplication::translate("MenuEmulator", "Drive VM in M1/R/W Cycle", 0));
-		action_DriveInOpCode->setToolTip(QApplication::translate("MenuEmulator", "Process some events and wait per instruction.\nMake emulation more correctness.", 0));
+		action_DriveInOpCode->setText(_Text);
+		action_DriveInOpCode->setToolTip(_ToolTip);
 		action_DriveInOpCode->setVisible(_visible);
 	}
+}
+
+void Ui_MainWindowBase::retranslateOpMenuZ80(bool _visible)
+{
+	QString _Text = QApplication::translate("MenuEmulator", "Drive VM in M1/R/W Cycle", 0);
+	QString _ToolTip = QApplication::translate("MenuEmulator", "Process some events and wait per instruction.\nMake emulation more correctness.", 0);
+	retranslateOpMenuAny(_Text, _ToolTip, _visible);
 }
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)

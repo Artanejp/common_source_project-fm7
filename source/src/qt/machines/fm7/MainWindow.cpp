@@ -164,11 +164,12 @@ void META_MainWindow::retranslateUi(void)
 	actionSyncToHsync->setText(QApplication::translate("MachineFM7", "Sync to HSYNC", 0));
 	actionSyncToHsync->setToolTip(QApplication::translate("MachineFM7", "Emulate display syncing to HSYNC.\nExpect to emulate more accurate.", 0));
 
-# ifdef WITH_Z80
-	retranslateOpMenuZ80(true);
-	action_DriveInOpCode->setText(QApplication::translate("MachineFM7", "Z80:Drive VM in M1/R/W Cycle", 0));
-	action_DriveInOpCode->setToolTip(QApplication::translate("MachineFM7", "Process some events and wait per instruction.\nMaybe emulation more correctness for Z80 card if available.", 0));
+#ifdef WITH_Z80
+	QString tmps_text = QApplication::translate("MachineFM7", "Z80:Drive VM in M1/R/W Cycle", 0);
+	QString tmps_tooltip = QApplication::translate("MachineFM7", "Process some events and wait per instruction.\nMaybe emulation more correctness for Z80 card if available.", 0);
 
+	retranslateOpMenuAny(tmps_text, tmps_tooltip, true);
+#endif
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS) || defined(_FM8)
 	menuCpuType->setTitle(QApplication::translate("MachineFM7", "CPU Frequency (hack)", 0));
 #else

@@ -43,7 +43,7 @@ void Ui_MainWindowBase::do_append_sound_output_list(QString _name)
 	int nums = action_HostSoundDevice.size();
 	if(nums < 0) nums = 0;
 	QString tmps = QString::fromUtf8("action_HostSoundDevice") + QString::number(nums);
-	
+
 	action_HostSoundDevice.append(new Action_Control(this, using_flags));
 	action_HostSoundDevice[nums]->setChecked(false);
 	action_HostSoundDevice[nums]->setObjectName(tmps);
@@ -62,11 +62,11 @@ void Ui_MainWindowBase::do_update_sound_output_list(void)
 	if((p_config == nullptr) || (using_flags == nullptr)) return;
 	int _match = -1;
 	QString matched_devname = QString::fromUtf8("Default");
-	
+
 	do_clear_sound_output_list();
 
 	do_append_sound_output_list(QString::fromUtf8("Default"));
-	
+
 	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
 	int i = 0;
 	if(using_flags->get_osd() != nullptr) {
@@ -93,7 +93,7 @@ void Ui_MainWindowBase::do_set_host_sound_output_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString _name = cp->data().value<QString>();
-	
+
 	if(p_config != nullptr) {
 		size_t ssize = sizeof(p_config->sound_device_name) / sizeof(_TCHAR);
 		_name.truncate(ssize - 1);
@@ -110,17 +110,17 @@ void Ui_MainWindowBase::do_set_host_sound_name(int num, QString s)
 {
 	if(num < 0) return;
 	if(num >= action_HostSoundDevice.size()) return;
-	
+
 	if(s.isEmpty()) {
 		action_HostSoundDevice[num]->setVisible(false);
 	} else {
 		action_HostSoundDevice[num]->setVisible(true);
 	}
 	action_HostSoundDevice[num]->setText(s);
-	
+
 	QVariant v = QVariant(s);
 	action_HostSoundDevice[num]->setData(v);
-	
+
 }
 
 void Ui_MainWindowBase::do_set_sound_strict_rendering(bool f)
@@ -151,7 +151,7 @@ void Ui_MainWindowBase::rise_volume_dialog(void)
 	QString tmps, s_val;
 	float n;
 	QIcon  img = QIcon(":/icon_speaker.png");
-	
+
 	dlg->setWindowIcon(img);
 	this->retranslateVolumeLabels(dlg);
 
@@ -174,7 +174,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	int i;
 	//  menuRecord = new QMenu(menuSound);
 	//  menuRecord->setObjectName(QString::fromUtf8("menuRecord_Sound"));
-  
+
 	menuSound->addAction(actionStart_Record);
 	menuSound->addSeparator();
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundStrictRendering,
@@ -186,7 +186,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT(menuSound, actionSoundTapeVoice,
 										"actionSoundTapeVoice", p_config->sound_tape_voice,
 										SIGNAL(toggled(bool)), SLOT(do_set_sound_tape_voice(bool)));
-	
+
 	//actionSoundStrictRendering = new Action_Control(this, using_flags);
 	//actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
 	//actionSoundStrictRendering->setCheckable(true);
@@ -195,12 +195,9 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 	//		this, SLOT(do_set_sound_strict_rendering(bool)));
 	//menuSound->addAction(actionSoundStrictRendering);
 
-	menuSound_HostDevices = new QMenu(menuSound);
-	menuSound_HostDevices->setObjectName(QString::fromUtf8("menuSound_HostDevices"));
-	menuSound->addAction(menuSound_HostDevices->menuAction());
-	
+
 	menuSound->addSeparator();
-	
+
 	menuOutput_Frequency = new QMenu(menuSound);
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
 	menuSound->addAction(menuOutput_Frequency->menuAction());
@@ -231,6 +228,10 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 		menuSound->addSeparator();
 	}
 	menuSound->addAction(action_VolumeDialog);
+	menuSound->addSeparator();
+	menuSound_HostDevices = new QMenu(menuSound);
+	menuSound_HostDevices->setObjectName(QString::fromUtf8("menuSound_HostDevices"));
+	menuSound->addAction(menuSound_HostDevices->menuAction());
 }
 
 void Ui_MainWindowBase::ConfigSoundMenu(void)
@@ -242,7 +243,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	//int freq = 48000;
 
 	actionGroup_Sound_HostDevices = new QActionGroup(this);
-	
+
 	actionGroup_Sound_Freq = new QActionGroup(this);
 	actionGroup_Sound_Freq->setExclusive(true);
 	for(i = 0; i < 8; i++) {
@@ -301,14 +302,14 @@ void Ui_MainWindowBase::do_update_volume(int level)
 	}
 	emit sig_update_master_volume(level);
 }
-	
+
 void Ui_MainWindowBase::retranslateSoundMenu(void)
 {
 	int i;
 	QString tmps;
 	double dval;
 	if(using_flags->is_without_sound()) return;
-  
+
 	for(i = 0; i < 8; i++) {
 		tmps.setNum(using_flags->get_s_freq_table(i));
 		tmps = tmps + QApplication::translate("MenuSound", "Hz", 0);
@@ -324,7 +325,7 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	actionStart_Record->setIcon(RecordSoundIcon);
 	actionStart_Record->setText(QApplication::translate("MenuSound", "Start Recording Sound", 0));
 	actionStart_Record->setToolTip(QApplication::translate("MenuSound", "Record sound as WAV file.", 0));
-	
+
 	actionSoundStrictRendering->setText(QApplication::translate("MenuSound", "Strict Rendering", 0));
 	actionSoundStrictRendering->setToolTip(QApplication::translate("MenuSound", "Rendering per a sample.Select to slower, but accurate rendering sound.", 0));
 	actionSoundTapeSignal->setText(QApplication::translate("MenuSound", "Play CMT Signal", 0));
@@ -332,7 +333,7 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 
 	actionSoundTapeVoice->setText(QApplication::translate("MenuSound", "Play CMT Voice", 0));
 	actionSoundTapeVoice->setToolTip(QApplication::translate("MenuSound", "Play Audio/Voice from CMTs.", 0));
-	
+
 	if(using_flags->is_tape_binary_only()) {
 		actionSoundTapeSignal->setEnabled(false);
 		actionSoundTapeVoice->setEnabled(false);
@@ -342,11 +343,11 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 
 	menuSound_HostDevices->setTitle(QApplication::translate("MenuSound", "Output to:", 0));
 	menuSound_HostDevices->setToolTip(QApplication::translate("MenuSound", "Select sound device to output.\nThis effects after re-start this emulator.", 0));
-	
+
 	menuSound->setTitle(QApplication::translate("MenuSound", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MenuSound", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MenuSound", "Sound Latency", 0));
-	
+
 	action_VolumeDialog->setText(QApplication::translate("MenuSound", "Set Volumes", 0));
 	action_VolumeDialog->setToolTip(QApplication::translate("MenuSound", "Open a VOLUME dialog.", 0));
 	if(using_flags->is_use_sound_files_fdd()) {
