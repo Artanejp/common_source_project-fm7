@@ -1,3 +1,10 @@
+9/30/2022
+
+[VM/Z80] fix for DI,EI,EI,DI case
+
+[PC9801/DISPLAY] fix scroll register
+
+
 9/11/2022
 
 [VM/SCSI_DEV] fix delay to raise REQ signal after ACK is raised

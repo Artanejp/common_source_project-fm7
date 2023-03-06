@@ -143,17 +143,17 @@
 Z80_INLINE uint8_t  Z80::RM8(uint32_t addr)
 {
 //#ifdef Z80_MEMORY_WAIT
-	UPDATE_EVENT_IN_OP(2);
+	UPDATE_EVENT_IN_OP(1);
 	if(has_memory_wait) {
 		int wait_clock;
 		uint8_t val = d_mem->read_data8w(addr, &wait_clock);
 		icount -= wait_clock;
-		CLOCK_IN_OP(1 + wait_clock);
+		CLOCK_IN_OP(2 + wait_clock);
 		return val;
 	} else {
 //#else
 		uint8_t val = d_mem->read_data8(addr);
-		CLOCK_IN_OP(1);
+		CLOCK_IN_OP(2);
 		return val;
 	}
 //#endif
@@ -162,16 +162,16 @@ Z80_INLINE uint8_t  Z80::RM8(uint32_t addr)
 Z80_INLINE void  Z80::WM8(uint32_t addr, uint8_t val)
 {
 //#ifdef Z80_MEMORY_WAIT
-	UPDATE_EVENT_IN_OP(2);
+	UPDATE_EVENT_IN_OP(1);
 	if(has_memory_wait) {
 		int wait_clock;
 		d_mem->write_data8w(addr, val, &wait_clock);
 		icount -= wait_clock;
-		CLOCK_IN_OP(1 + wait_clock);
+		CLOCK_IN_OP(2 + wait_clock);
 	} else {
 //#else
 		d_mem->write_data8(addr, val);
-		CLOCK_IN_OP(1);
+		CLOCK_IN_OP(2);
 	}
 //#endif
 }
@@ -195,11 +195,11 @@ Z80_INLINE uint8_t  Z80::FETCHOP()
 	R++;
 
 	// consider m1 cycle wait
-	UPDATE_EVENT_IN_OP(2);
+	UPDATE_EVENT_IN_OP(1);
 	int wait_clock;
 	uint8_t val = d_mem->fetch_op(pctmp, &wait_clock);
 	icount -= wait_clock;
-	CLOCK_IN_OP(2 + wait_clock);
+	CLOCK_IN_OP(3 + wait_clock);
 	return val;
 }
 
@@ -220,17 +220,17 @@ Z80_INLINE uint32_t  Z80::FETCH16()
 Z80_INLINE uint8_t  Z80::IN8(uint32_t addr)
 {
 //#ifdef Z80_IO_WAIT
-	UPDATE_EVENT_IN_OP(3);
+	UPDATE_EVENT_IN_OP(2);
 	if(has_io_wait) {
 		int wait_clock;
 		uint8_t val = d_io->read_io8w(addr, &wait_clock);
 		icount -= wait_clock;
-		CLOCK_IN_OP(1 + wait_clock);
+		CLOCK_IN_OP(2 + wait_clock);
 		return val;
 	} else {
 //#else
 		uint8_t val = d_io->read_io8(addr);
-		CLOCK_IN_OP(1);
+		CLOCK_IN_OP(2);
 		return val;
 	}
 //#endif
@@ -239,11 +239,11 @@ Z80_INLINE uint8_t  Z80::IN8(uint32_t addr)
 Z80_INLINE void  Z80::OUT8(uint32_t addr, uint8_t val)
 {
 //#ifdef HAS_NSC800
-	UPDATE_EVENT_IN_OP(3);
+	UPDATE_EVENT_IN_OP(2);
 	if(has_nsc800) {
 		if((addr & 0xff) == 0xbb) {
 			icr = val;
-			CLOCK_IN_OP(1);
+			CLOCK_IN_OP(2);
 			return;
 		}
 	}
@@ -253,11 +253,11 @@ Z80_INLINE void  Z80::OUT8(uint32_t addr, uint8_t val)
 		int wait_clock;
 		d_io->write_io8w(addr, val, &wait_clock);
 		icount -= wait_clock;
-		CLOCK_IN_OP(1 + wait_clock);
+		CLOCK_IN_OP(2 + wait_clock);
 	} else {
 //#else
 		d_io->write_io8(addr, val);
-		CLOCK_IN_OP(1);
+		CLOCK_IN_OP(2);
 	}
 //#endif
 }
@@ -1909,7 +1909,7 @@ void Z80::OP(uint8_t code)
 	case 0xf0: RET_COND(!(F & SF), 0xf0); break;									/* RET  P           */
 	case 0xf1: POP(af); break;											/* POP  AF          */
 	case 0xf2: JP_COND(!(F & SF)); break;										/* JP   P,a         */
-	case 0xf3: iff1 = iff2 = 0; break;										/* DI               */
+	case 0xf3: iff1 = iff2 = 0; after_di = true; break;										/* DI               */
 	case 0xf4: CALL_COND(!(F & SF), 0xf4); break;									/* CALL P,a         */
 	case 0xf5: PUSH(af); break;											/* PUSH AF          */
 	case 0xf6: OR(FETCH8()); break;											/* OR   n           */
@@ -2107,7 +2107,7 @@ void Z80::special_reset(int num)
 	ea = 0;
 
 	im = iff1 = iff2 = icr = 0;
-	after_halt = after_ei = false;
+	after_halt = after_di = after_ei = false;
 	after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
 }
@@ -2381,7 +2381,7 @@ void Z80::run_one_opecode()
 	// rune one opecode
 	bool prev_after_ei = after_ei;
 
-	after_halt = after_ei = false;
+	after_halt = after_di = after_ei = false;
 	after_ldair = false;
 
 	bool now_debugging = false;
@@ -2413,11 +2413,12 @@ void Z80::run_one_opecode()
 				}
 			}
 //#endif
-			if(prev_after_ei) {
-				d_pic->notify_intr_ei();
-				check_interrupt();
-				after_ei = false;
-			} else if(!after_ei) {
+			if(!after_ei) {
+				// not just after EI is done
+				if(prev_after_ei && !after_di) {
+					// EI and any instruction (ex. RET, not DI/EI) are done
+					d_pic->notify_intr_ei();
+				}
 				check_interrupt();
 			}
 			if(now_debugging) {
@@ -2441,11 +2442,12 @@ void Z80::run_one_opecode()
 		}
 	}
 //#endif
-	if(prev_after_ei) {
-		d_pic->notify_intr_ei();
-		check_interrupt();
-		after_ei = false;
-	} else if(!after_ei) {
+	if(!after_ei) {
+		// not just after EI is done
+		if(prev_after_ei && !after_di) {
+			// EI and any instruction (ex. RET, not DI/EI) are done
+			d_pic->notify_intr_ei();
+		}
 		check_interrupt();
 	}
 //#ifdef USE_DEBUGGER
@@ -2453,10 +2455,92 @@ void Z80::run_one_opecode()
 //#endif
 }
 
+void Z80::check_interrupt_standard()
+{
+	if(iff1) { // Standard Z80.
+		// interrupt
+		LEAVE_HALT();
+
+		uint32_t vector = d_pic->get_intr_ack();
+		if(im == 0) {
+			// mode 0 (support NOP/JMP/CALL/RST only)
+			switch(vector & 0xff) {
+			case 0x00: break;				// NOP
+			case 0xc3: PCD = vector >> 8; break;		// JMP
+			case 0xcd: PUSH(pc); PCD = vector >> 8; break;	// CALL
+			case 0xc7: PUSH(pc); PCD = 0x0000; break;	// RST 00H
+			case 0xcf: PUSH(pc); PCD = 0x0008; break;	// RST 08H
+			case 0xd7: PUSH(pc); PCD = 0x0010; break;	// RST 10H
+			case 0xdf: PUSH(pc); PCD = 0x0018; break;	// RST 18H
+			case 0xe7: PUSH(pc); PCD = 0x0020; break;	// RST 20H
+			case 0xef: PUSH(pc); PCD = 0x0028; break;	// RST 28H
+			case 0xf7: PUSH(pc); PCD = 0x0030; break;	// RST 30H
+			case 0xff: PUSH(pc); PCD = 0x0038; break;	// RST 38H
+			}
+			icount -= cc_op[vector & 0xff] + cc_ex[0xff];
+		} else if(im == 1) {
+			// mode 1
+			PUSH(pc);
+			PCD = 0x0038;
+			icount -= cc_op[0xff] + cc_ex[0xff];
+		} else {
+			// mode 2
+			PUSH(pc);
+			RM16((vector & 0xff) | (I << 8), &pc);
+			icount -= cc_op[0xcd] + cc_ex[0xff];
+		}
+		iff1 = iff2 = 0;
+		intr_req_bit = 0;
+		WZ = PCD;
+	} else {
+		intr_req_bit &= intr_pend_bit;
+	}
+}
+
+void Z80::check_interrupt_nsc800()
+{
+	if(iff1) { // NSC800
+		if((intr_req_bit & 8) && (icr & 8)) {
+			// RSTA
+			LEAVE_HALT();
+			PUSH(pc);
+			PCD = WZ = 0x003c;
+			icount -= cc_op[0xff] + cc_ex[0xff];
+			iff1 = iff2 = 0;
+			intr_req_bit &= ~8;
+		} else if((intr_req_bit & 4) && (icr & 4)) {
+			// RSTB
+			LEAVE_HALT();
+			PUSH(pc);
+			PCD = WZ = 0x0034;
+			icount -= cc_op[0xff] + cc_ex[0xff];
+			iff1 = iff2 = 0;
+			intr_req_bit &= ~4;
+		} else if((intr_req_bit & 2) && (icr & 2)) {
+			// RSTC
+			LEAVE_HALT();
+			PUSH(pc);
+			PCD = WZ = 0x002c;
+			icount -= cc_op[0xff] + cc_ex[0xff];
+			iff1 = iff2 = 0;
+			intr_req_bit &= ~2;
+		} else if((intr_req_bit & 1) && (icr & 1)) {
+			// INTR
+			LEAVE_HALT();
+			PUSH(pc);
+			PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+			icount -= cc_op[0xcd] + cc_ex[0xff];
+			iff1 = iff2 = 0;
+			intr_req_bit &= ~1;
+		}
+	}
+}
+
 void Z80::check_interrupt()
 {
 	// check interrupt
 	if(intr_req_bit) {
+		// Processing NMI is commonly both Z80 and NSC800 .
 		if(intr_req_bit & NMI_REQ_BIT) {
 			// nmi
 			LEAVE_HALT();
@@ -2465,87 +2549,11 @@ void Z80::check_interrupt()
 			icount -= 11;
 			iff1 = 0;
 			intr_req_bit &= ~NMI_REQ_BIT;
-//#ifdef HAS_NSC800
 		} else if(has_nsc800) {
-			if((intr_req_bit & 1) && (icr & 1)) {
-				// INTR
-				LEAVE_HALT();
-				PUSH(pc);
-				if(d_pic != NULL) { // OK?
-					PCD = WZ = d_pic->get_intr_ack() & 0xffff;
-				} else {
-					PCD = WZ = (PCD & 0xff00) | 0xcd;
-				}
-				icount -= cc_op[0xcd] + cc_ex[0xff];
-				iff1 = iff2 = 0;
-				intr_req_bit &= ~1;
-			} else if((intr_req_bit & 8) && (icr & 8)) {
-				// RSTA
-				LEAVE_HALT();
-				PUSH(pc);
-				PCD = WZ = 0x003c;
-				icount -= cc_op[0xff] + cc_ex[0xff];
-				iff1 = iff2 = 0;
-				intr_req_bit &= ~8;
-			} else if((intr_req_bit & 4) && (icr & 4)) {
-			// RSTB
-				LEAVE_HALT();
-				PUSH(pc);
-				PCD = WZ = 0x0034;
-				icount -= cc_op[0xff] + cc_ex[0xff];
-				iff1 = iff2 = 0;
-				intr_req_bit &= ~4;
-			} else if((intr_req_bit & 2) && (icr & 2)) {
-				// RSTC
-				LEAVE_HALT();
-				PUSH(pc);
-				PCD = WZ = 0x002c;
-				icount -= cc_op[0xff] + cc_ex[0xff];
-				iff1 = iff2 = 0;
-				intr_req_bit &= ~2;
-			}
-		} else { // Normal Z80
-			if(iff1) {
-				// interrupt
-				LEAVE_HALT();
-
-				uint32_t vector = 0xcd;
-				if(d_pic != NULL) vector = d_pic->get_intr_ack();
-				if(im == 0) {
-					// mode 0 (support NOP/JMP/CALL/RST only)
-					switch(vector & 0xff) {
-					case 0x00: break;				// NOP
-					case 0xc3: PCD = vector >> 8; break;		// JMP
-					case 0xcd: PUSH(pc); PCD = vector >> 8; break;	// CALL
-					case 0xc7: PUSH(pc); PCD = 0x0000; break;	// RST 00H
-					case 0xcf: PUSH(pc); PCD = 0x0008; break;	// RST 08H
-					case 0xd7: PUSH(pc); PCD = 0x0010; break;	// RST 10H
-					case 0xdf: PUSH(pc); PCD = 0x0018; break;	// RST 18H
-					case 0xe7: PUSH(pc); PCD = 0x0020; break;	// RST 20H
-					case 0xef: PUSH(pc); PCD = 0x0028; break;	// RST 28H
-					case 0xf7: PUSH(pc); PCD = 0x0030; break;	// RST 30H
-					case 0xff: PUSH(pc); PCD = 0x0038; break;	// RST 38H
-					}
-					icount -= cc_op[vector & 0xff] + cc_ex[0xff];
-				} else if(im == 1) {
-					// mode 1
-					PUSH(pc);
-					PCD = 0x0038;
-					icount -= cc_op[0xff] + cc_ex[0xff];
-				} else {
-					// mode 2
-					PUSH(pc);
-					RM16((vector & 0xff) | (I << 8), &pc);
-					icount -= cc_op[0xcd] + cc_ex[0xff];
-				}
-				iff1 = iff2 = 0;
-				intr_req_bit = 0;
-				WZ = PCD;
-			} else {
-				intr_req_bit &= intr_pend_bit;
-//#endif
-			}
-//#else
+			// Another processing is different both Z80 and NSC800 .
+			check_interrupt_nsc800();
+		} else {
+			check_interrupt_standard();
 		}
 	}
 }
@@ -4085,7 +4093,7 @@ int Z80::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len
 	return z80_dasm_main(pc, buffer, buffer_len, d_debugger->first_symbol);
 }
 
-#define STATE_VERSION 5
+#define STATE_VERSION 6
 
 bool Z80::process_state(FILEIO* state_fio, bool loading)
 {
@@ -4126,6 +4134,7 @@ bool Z80::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(iff1);
 	state_fio->StateValue(iff2);
 	state_fio->StateValue(icr);
+	state_fio->StateValue(after_di);
 	state_fio->StateValue(after_ei);
 	state_fio->StateValue(after_ldair);
 	state_fio->StateValue(intr_req_bit);

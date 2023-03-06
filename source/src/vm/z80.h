@@ -79,7 +79,7 @@ protected:
 
 	bool busreq, wait, after_halt;
 	uint8_t im, iff1, iff2, icr;
-	bool after_ei, after_ldair;
+	bool after_di, after_ei, after_ldair;
 	uint32_t intr_req_bit, intr_pend_bit;
 
 	Z80_INLINE uint8_t __FASTCALL RM8(uint32_t addr);
@@ -256,6 +256,8 @@ protected:
 	int	nsc800_rstc_count;
 
 	void check_interrupt();
+	void check_interrupt_standard();
+	void check_interrupt_nsc800();
 
 public:
 	Z80(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
