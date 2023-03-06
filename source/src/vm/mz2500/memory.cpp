@@ -8,6 +8,7 @@
 */
 
 #include "./memory.h"
+namespace MZ2500 {
 
 #define PAGE_TYPE_NORMAL	0
 #define PAGE_TYPE_TVRAM		1
@@ -16,17 +17,15 @@
 #define PAGE_TYPE_PCG		4
 #define PAGE_TYPE_DIC		5
 
-namespace MZ2500 {
-
-#define SET_BANK(s, e, w, r) {			\
+#define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
 	for(int i = sb; i <= eb; i++) { \
-		if(((uintptr_t)w) == ((uintptr_t)wdmy)) {	\
+		if((w) == wdmy) { \
 			wbank[i] = wdmy; \
 		} else { \
 			wbank[i] = (w) + 0x800 * (i - sb); \
 		} \
-		if(((uintptr_t)r) == ((uintptr_t)rdmy)) {	\
+		if((r) == rdmy) { \
 			rbank[i] = rdmy; \
 		} else { \
 			rbank[i] = (r) + 0x800 * (i - sb); \
@@ -86,6 +85,7 @@ void MEMORY::reset()
 	set_map(0x05);
 	set_map(0x06);
 	set_map(0x07);
+
 	// MZ-2000/80B
 	mode = 0;
 
@@ -113,7 +113,6 @@ void MEMORY::special_reset(int num)
 	wait_t = wait_g = false;
 	extra_wait = 0;
 }
-
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
@@ -172,6 +171,7 @@ uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 12;
+
 	// vram wait
 	switch(page_type[b]) {
 	case PAGE_TYPE_TVRAM:
@@ -303,27 +303,45 @@ uint32_t MEMORY::read_io8(uint32_t addr)
 
 void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	if(id == SIG_MEMORY_VRAM_SEL) {
+	if(id == SIG_MEMORY_HBLANK_TEXT) {
+		hblank_t = ((data & mask) != 0);
+		if((hblank_t || vblank_t) && wait_t) {
+			if(!wait_g) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_t = false;
+		}
+	} else if(id == SIG_MEMORY_VBLANK_TEXT) {
+		vblank_t = ((data & mask) != 0);
+		if((hblank_t || vblank_t) && wait_t) {
+			if(!wait_g) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_t = false;
+		}
+	} else if(id == SIG_MEMORY_HBLANK_GRAPH) {
+		hblank_g = ((data & mask) != 0);
+		if((hblank_g || vblank_g) && wait_g) {
+			if(!wait_t) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_g = false;
+		}
+	} else if(id == SIG_MEMORY_VBLANK_GRAPH) {
+		vblank_g = ((data & mask) != 0);
+		if((hblank_g || vblank_g) && wait_g) {
+			if(!wait_t) {
+				d_cpu->write_signal(SIG_CPU_WAIT, 0, 1);
+			}
+			wait_g = false;
+		}
+	} else if(id == SIG_MEMORY_VRAM_SEL) {
 		// MZ-2000/80B
 		if(vram_sel != (data & mask)) {
 			vram_sel = data & mask;
 			update_vram_map();
 		}
-		return;
 	}
-	if(id == SIG_MEMORY_HBLANK) {
-		hblank = ((data & mask) != 0);
-	} else if(id == SIG_MEMORY_VBLANK) {
-		vblank = ((data & mask) != 0);
-	}
-
-	// if blank, disable busreq
-	bool next = hblank || vblank;
-	if(!blank && next && busreq) {
-		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		busreq = false;
-	}
-	blank = next;
 }
 
 void MEMORY::set_map(uint8_t data)
@@ -383,7 +401,7 @@ void MEMORY::set_map(uint8_t bank, uint8_t data)
 	} else {
 		// n.c
 		SET_BANK(base,  base + 0x1fff, wdmy, rdmy);
-		page_type[bank] = PAGE_TYPE_NORMAL;
+		page_type_tmp = PAGE_TYPE_NORMAL;
 	}
 	page[bank] = data;
 	page_type[bank << 1] = page_type[(bank << 1) + 1] = page_type_tmp;
