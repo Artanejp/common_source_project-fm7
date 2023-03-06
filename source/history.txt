@@ -1,3 +1,8 @@
+10/14/2022
+
+[MZ2500/CRTC] fix vblank signal for GDEVS = GDEVE case
+
+
 10/12/2022
 
 [MZ1500] fix irq issue
