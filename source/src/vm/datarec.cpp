@@ -46,14 +46,14 @@ void DATAREC::initialize()
 	if(osd->check_feature(_T("_MZ2200"))) __TYPE_MZ80B = true;
 	play_fio = new FILEIO();
 	rec_fio = new FILEIO();
-	
+
 	memset(rec_file_path, 0x00, sizeof(rec_file_path));
 	play = rec = remote = trigger = false;
 	ff_rew = 0;
 	in_signal = out_signal = false;
 	register_id = -1;
 	realtime = false;
-	
+
 	buffer = buffer_bak = NULL;
 //#ifdef DATAREC_SOUND
 	sound_buffer = NULL;
@@ -62,13 +62,13 @@ void DATAREC::initialize()
 	buffer_ptr = buffer_length = 0;
 	is_wav = is_tap = is_t77 = false;
 	ave_hi_freq = 0;
-	
+
 	pcm_changed = 0;
 	pcm_last_vol_l = pcm_last_vol_r = 0;
 //#ifdef DATAREC_SOUND
 	sound_last_vol_l = sound_last_vol_r = 0;
 //#endif
-	
+
 	// initialize noise
 	if(d_noise_play != NULL) {
 		d_noise_play->set_device_name(_T("Noise Player (CMT Play)"));
@@ -86,7 +86,7 @@ void DATAREC::initialize()
 		d_noise_fast->set_loop(true);
 		d_noise_fast->set_mute(!config.sound_noise_cmt);
 	}
-	
+
 	// skip frames
 	signal_changed = 0;
 	register_frame_event(this);
@@ -101,7 +101,7 @@ void DATAREC::reset()
 	set_remote(false);
 
 	update_event();
-	
+
 	write_signals(&outputs_ear, 0);
 	in_signal = false;
 
@@ -121,7 +121,7 @@ void DATAREC::release()
 void DATAREC::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
-	
+
 	if(id == SIG_DATAREC_MIC) {
 		if(out_signal != signal) {
 			touch_sound();
@@ -273,7 +273,7 @@ void DATAREC::event_callback(int event_id, int err)
 					apss_count++;
 				}
 				apss_buffer[ptr] = in_signal;
-				
+
 				if(apss_ptr >= sample_rate * 2) {
 					double rate = (double)apss_count / (double)(sample_rate * 2);
 					if(rate > 0.9 || rate < 0.1) {
@@ -405,23 +405,23 @@ void DATAREC::set_ff_rew(int value)
 bool DATAREC::do_apss(int value)
 {
 	bool result = false;
-	
+
 	if(play) {
 		set_ff_rew(0);
 		set_remote(true);
 		set_ff_rew(value > 0 ? 1 : -1);
 		apss_remain = value;
-		
+
 		while(apss_remain != 0 && remote) {
 			event_callback(EVENT_SIGNAL, 0);
 		}
 		result = (apss_remain == 0);
 	}
-	
+
 	// stop cmt
 	set_remote(false);
 	set_ff_rew(0);
-	
+
 	if(value > 0) {
 		if(play) {
 			my_stprintf_s(message, 1024, _T("APSS Forward (%d %%)"), get_tape_position());
@@ -473,7 +473,7 @@ void DATAREC::update_event()
 		}
 		prev_clock = 0;
 	}
-	
+
 	// update signals
 //#ifdef DATAREC_SOUND
 	if(__DATAREC_SOUND) {
@@ -486,14 +486,14 @@ void DATAREC::update_event()
 	write_signals(&outputs_rotate, (register_id != -1) ? 0xffffffff : 0);
 	write_signals(&outputs_end, (buffer_ptr == buffer_length) ? 0xffffffff : 0);
 	write_signals(&outputs_top, (buffer_ptr == 0) ? 0xffffffff : 0);
-	
+
 	update_realtime_render();
 }
 
 void DATAREC::update_realtime_render()
 {
 	bool value = (remote && (play || rec) && ff_rew == 0 && (config.sound_tape_signal || config.sound_tape_voice));
-	
+
 	if(realtime != value) {
 		set_realtime_render(this, value);
 		realtime = value;
@@ -503,35 +503,36 @@ void DATAREC::update_realtime_render()
 bool DATAREC::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	
+
 	if(play_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-		if(check_file_extension(play_fio->FilePath(), _T(".wav")) || check_file_extension(play_fio->FilePath(), _T(".mti"))) {
+		const _TCHAR* virtpath = play_fio->FilePath();
+		if(check_file_extension(virtpath, _T(".wav")) || check_file_extension(virtpath, _T(".mti"))) {
 			// standard PCM wave file
 			if((buffer_length = load_wav_image(0)) != 0) {
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".t77"))) {
+		} else if(check_file_extension(virtpath, _T(".t77"))) {
 			// FUJITSU FM-7 series tape image
 			if((buffer_length = load_t77_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_t77_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".tap"))) {
+		} else if(check_file_extension(virtpath, _T(".tap"))) {
 			// SHARP X1 series tape image
 			if((buffer_length = load_tap_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_tap_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".mzt")) || check_file_extension(play_fio->FilePath(), _T(".mzf")) || check_file_extension(play_fio->FilePath(), _T(".m12"))) {
+		} else if(check_file_extension(virtpath, _T(".mzt")) || check_file_extension(virtpath, _T(".mzf")) || check_file_extension(virtpath, _T(".m12"))) {
 			// SHARP MZ series tape image
 			if((buffer_length = load_mzt_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_mzt_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".mtw"))) {
+		} else if(check_file_extension(virtpath, _T(".mtw"))) {
 			// skip mzt image
 			uint8_t header[128];
 			play_fio->Fread(header, sizeof(header), 1);
@@ -540,28 +541,28 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 			if((buffer_length = load_wav_image(sizeof(header) + size)) != 0) {
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".p6"))) {
+		} else if(check_file_extension(virtpath, _T(".p6"))) {
 			// NEC PC-6001/6601 series tape image
 			if((buffer_length = load_p6_image(false)) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_p6_image(false);
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".p6t"))) {
+		} else if(check_file_extension(virtpath, _T(".p6t"))) {
 			// NEC PC-6001/6601 series tape image
 			if((buffer_length = load_p6_image(true)) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_p6_image(true);
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".bin"))) {
+		} else if(check_file_extension(virtpath, _T(".bin"))) {
 			// HITACH BASIC Master Jr tape image (bm2)
 			if((buffer_length = load_bmjr_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
 				load_bmjr_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(play_fio->FilePath(), _T(".cas"))) {
+		} else if(check_file_extension(virtpath, _T(".cas"))) {
 			// standard cas image for my emulator
 			if((buffer_length = load_cas_image()) != 0) {
 				buffer = (uint8_t *)malloc(buffer_length);
@@ -576,7 +577,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 			buffer_bak = (uint8_t *)malloc(buffer_length);
 			my_memcpy(buffer_bak, buffer, buffer_length);
 		}
-		
+
 		// get the first signal
 		bool signal = ((buffer[0] & 0x80) != 0);
 		if(signal != in_signal) {
@@ -584,14 +585,14 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 			write_signals(&outputs_ear, signal ? 0xffffffff : 0);
 			in_signal = signal;
 		}
-		
+
 		// initialize apss
 		apss_buffer_length = sample_rate * 2;
 		apss_buffer = (bool *)calloc(apss_buffer_length, 1);
 		apss_ptr = apss_count = 0;
 		apss_signals = false;
 		write_signals(&outputs_apss, 0);
-		
+
 		update_event();
 	}
 	return play;
@@ -600,14 +601,14 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 bool DATAREC::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	
+
 	if(rec_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		sample_rate = 48000;
 		sample_usec = 1000000. / sample_rate;
 		buffer_length = 1024 * 1024;
 		buffer = (uint8_t *)calloc(buffer_length, 1);
-		
+
 		if(check_file_extension(file_path, _T(".wav"))) {
 			// write wave header
 			write_dummy_wav_header((void *)rec_fio);
@@ -646,13 +647,13 @@ void DATAREC::close_tape()
 		register_id = -1;
 	}
 	close_file();
-	
+
 	play = rec = is_wav = is_tap = is_t77 = false;
 	buffer_ptr = buffer_length = 0;
 	ave_hi_freq = 0;
-	
+
 	update_event();
-	
+
 	// no sounds
 	write_signals(&outputs_ear, 0);
 	in_signal = false;
@@ -714,7 +715,7 @@ void adjust_zero_position(int16_t *wav_buffer, int samples, int sample_rate)
 {
 	int16_t *zero_buffer = (int16_t *)malloc(samples * sizeof(int16_t));
 	int width = (int)((double)sample_rate / 1000.0 + 0.5);
-	
+
 	for(int i = width; i < samples - width; i++) {
 		int max_sample = -65536, min_sample = 65536;
 		for(int j = -width; j < width; j++) {
@@ -739,36 +740,40 @@ int DATAREC::load_wav_image(int offset)
 	wav_chunk_t chunk;
 	pair32_t tmpval32;
 	pair16_t tmpval16;
-	
+
 	pair16_t __fmt_id;
 	pair16_t __sample_bits;
 	pair16_t __channels;
 	pair32_t __sample_rate;
 	pair32_t __chunk_size;
-	
+
 	play_fio->Fseek(offset, FILEIO_SEEK_SET);
 	play_fio->Fread(&header, sizeof(header), 1);
-	
+	out_debug_log(_T(" Open %s OFFSET=%d"), play_fio->FilePath(), offset);
 	__fmt_id.set_2bytes_le_from(header.format_id);
 	__sample_bits.set_2bytes_le_from(header.sample_bits);
-	
+	out_debug_log(_T(" HEADER ID=%d SAMPLE BITS=%d"), __fmt_id.u16, __sample_bits.u16);
 	if((__fmt_id.u16 != 1) || !((__sample_bits.u16 == 8) || (__sample_bits.u16 == 16))) {
 		return 0;
 	}
 	tmpval32.set_4bytes_le_from(header.fmt_chunk.size);
 	play_fio->Fseek(tmpval32.d - 16, FILEIO_SEEK_CUR);
+	out_debug_log(_T(" OK SEEK %d"), tmpval32.d - 16);
 	while(1) {
 		play_fio->Fread(&chunk, sizeof(chunk), 1);
 		__chunk_size.set_4bytes_le_from(chunk.size);
+		_TCHAR _tmp_id[5] = {0};
+		memcpy(_tmp_id, chunk.id, 4);
+		out_debug_log(_T(" Chunk ID=%04s SIZE=%d "), _tmp_id, __chunk_size.d);
 		if(strncmp(chunk.id, "data", 4) == 0) {
+			out_debug_log(_T(" DATA FIELD FOUND"));
 			break;
 		}
-
-		play_fio->Fseek(tmpval32.d, FILEIO_SEEK_CUR);
+		play_fio->Fseek(__chunk_size.d, FILEIO_SEEK_CUR);
+		out_debug_log(_T(" SEEK %d "), __chunk_size.d);
 	}
 
 	__channels.set_2bytes_le_from(header.channels);
-	
 	int samples = (int)(__chunk_size.d / (uint32_t)(__channels.u16)), loaded_samples = 0;
 
 	if(__sample_bits.u16 == 16) {
@@ -777,16 +782,19 @@ int DATAREC::load_wav_image(int offset)
 	__sample_rate.set_4bytes_le_from(header.sample_rate);
 	sample_rate = __sample_rate.d;
 	sample_usec = 1000000. / (float)sample_rate;
-	
+	out_debug_log(_T(" SAMPLE RATE=%d USEC=%f"), sample_rate, sample_usec);
+
 	// load samples
 	if(samples > 0) {
 		#define TMP_LENGTH (0x10000 * (uint32_t)(__channels.u16))
-		
+
 		uint8_t *tmp_buffer = (uint8_t *)malloc(TMP_LENGTH);
+		out_debug_log(_T(" ALLOC SIZE=%d"), TMP_LENGTH);
+
 		play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);
-		
+
 		#define GET_SAMPLE { \
-			for(int ch = 0; ch < __channels.s16; ch++) { \
+			for(int ch = 0; ch < __channels.u16; ch++) { \
 				if(__sample_bits.u16 == 16) { \
 					union { \
 						int16_t s16; \
@@ -803,6 +811,7 @@ int DATAREC::load_wav_image(int offset)
 			} \
 			if(tmp_ptr == TMP_LENGTH) { \
 				play_fio->Fread(tmp_buffer, TMP_LENGTH, 1); \
+				out_debug_log(_T(" READ MORE")); \
 				tmp_ptr = 0; \
 			} \
 		}
@@ -855,17 +864,17 @@ int DATAREC::load_wav_image(int offset)
 				wav_buffer[i] = sample_signal;
 			}
 			adjust_zero_position(wav_buffer, samples, __sample_rate.d);
-			
+
 			// copy to dest buffer
 			buffer = (uint8_t *)malloc(samples);
 			bool prev_signal = false;
 			int top_index = 0;
 			int16_t max_sample = 0, min_sample = 0;
-			
+
 			for(int i = 0 /*, tmp_ptr = 0 */; i < samples; i++) {
 				int16_t sample_signal = wav_buffer[i];
 				bool signal = (sample_signal > 0);
-				
+
 				if(!prev_signal && signal) {
 					if(!(min_sample < -2048)) {
 						for(int j = top_index; j < i; j++) {
@@ -909,7 +918,7 @@ int DATAREC::load_wav_image(int offset)
 				}
 			}
 			free(wav_buffer);
-			
+			out_debug_log(_T("LOAD END SAMPLES=%d"), samples);
 			loaded_samples = samples;
 		} else {
 			// load samples
@@ -920,7 +929,7 @@ int DATAREC::load_wav_image(int offset)
 				wav_buffer[i] = sample[0];
 			}
 			adjust_zero_position(wav_buffer, samples, __sample_rate.d);
-			
+
 			// t=0 : get thresholds
 			// t=1 : get number of samples
 			// t=2 : load samples
@@ -929,18 +938,18 @@ int DATAREC::load_wav_image(int offset)
 			int max_threshold = (int)(__sample_rate.d * FREQ_SCALE / 1200.0 / 2.0 * 3.0 + 0.5);
 			int half_threshold, hi_count, lo_count;
 			int *counts = (int *)calloc(max_threshold, sizeof(int));
-			
+
 			for(int t = 0; t < 3; t++) {
 				int count_positive = 0, count_negative = 0;
 				bool prev_signal = false;
-				
+
 				for(int i = 0; i < samples - 1; i++) {
 					int prev = wav_buffer[i], next = wav_buffer[i + 1];
 					double diff = (double)(next - prev) / FREQ_SCALE;
 					for(int j = 0; j < FREQ_SCALE; j++) {
 						int sample = prev + (int)(diff * j + 0.5);
 						bool signal = (sample > 0);
-						
+
 						if(!prev_signal && signal) {
 							if(t == 0) {
 								if(count_positive < max_threshold && count_positive > min_threshold && count_negative > min_threshold) {
@@ -984,21 +993,21 @@ int DATAREC::load_wav_image(int offset)
 					} else {
 						half_tmp = (int)(__sample_rate.d * FREQ_SCALE / 1920.0 / 2.0 + 0.5);
 					}
-					
+
 					sum_value = sum_count = 0;
 					for(int i = 0; i < half_tmp; i++) {
 						sum_value += i * counts[i];
 						sum_count += counts[i];
 					}
 					double lo_tmp = (double)sum_value / (double)sum_count;
-					
+
 					sum_value = sum_count = 0;
 					for(int i = half_tmp; i < half_tmp * 2; i++) {
 						sum_value += i * counts[i];
 						sum_count += counts[i];
 					}
 					double hi_tmp = (double)sum_value / (double)sum_count;
-					
+
 					half_threshold = (int)((lo_tmp + hi_tmp) / 2 + 0.5);
 					min_threshold = (int)(2 * lo_tmp - half_threshold + 0.5);
 					max_threshold = (int)(2 * hi_tmp - half_threshold + 0.5);
@@ -1050,7 +1059,7 @@ void DATAREC::save_wav_image()
 		rec_fio->Fflush();
 	}
 	uint32_t length = rec_fio->Ftell();
-	
+
 	wav_header_t wav_header;
 	wav_chunk_t wav_chunk;
 #if 0
@@ -1072,7 +1081,7 @@ void DATAREC::save_wav_image()
 	__sample_bits.u16 = 8;
 	memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 	wav_header.riff_chunk.size = __riff_chunk_size.get_4bytes_le_to();
-	
+
 	memcpy(wav_header.wave, "WAVE", 4);
 	memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
 	wav_header.fmt_chunk.size = __riff_chunk_size.get_4bytes_le_to();
@@ -1082,7 +1091,7 @@ void DATAREC::save_wav_image()
 	wav_header.data_speed =  __sample_rate.get_4bytes_le_to();
 	wav_header.block_size = __block_size.get_2bytes_le_to();
 	wav_header.sample_bits = __sample_bits.get_2bytes_le_to();
-	
+
 	memcpy(wav_chunk.id, "data", 4);
 	__wav_chunk_size.d = length - sizeof(wav_header) - sizeof(wav_chunk);
 	wav_chunk.size = __wav_chunk_size.get_4bytes_le_to();
@@ -1117,12 +1126,12 @@ int DATAREC::load_t77_image()
 {
 	sample_usec = 9;
 	sample_rate = (int)(1000000.0 / sample_usec + 0.5);
-	
+
 	// load t77 file
 	uint8_t tmpbuf[17];
 	int ptr = 0;
 	int file_size = (int)play_fio->FileLength();
-	
+
 	if(file_size <= 0) {
 		return 0; // over 2GB
 	}
@@ -1133,12 +1142,12 @@ int DATAREC::load_t77_image()
 		return 0;
 	}
 	file_size -= 16;
-	
+
 	while(file_size > 0) {
 		uint16_t h = play_fio->FgetUint8();
 		uint16_t l = play_fio->FgetUint8();
 		uint16_t v = h * 256 + l;
-		
+
 		if((file_size -= 2) < 0) {
 			break;
 		}
@@ -1172,11 +1181,11 @@ int DATAREC::load_tap_image()
 	play_fio->Fseek(0, FILEIO_SEEK_END);
 	//int file_size = play_fio->Ftell();
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	
+
 	// check header
 	uint8_t header[4];
 	play_fio->Fread(header, 4, 1);
-	
+
 	if(header[0] == 'T' && header[1] == 'A' && header[2] == 'P' && header[3] == 'E') {
 		// skip name, reserved, write protect notch
 		play_fio->Fseek(17 + 5 + 1, FILEIO_SEEK_CUR);
@@ -1198,7 +1207,7 @@ int DATAREC::load_tap_image()
 		sample_rate = header[0] | (header[1] << 8) | (header[2] << 16) | (header[3] << 24);
 		sample_usec = 1000000. / sample_rate;
 	}
-	
+
 	// load samples
 	int ptr = 0, data;
 	while((data = play_fio->Fgetc()) != EOF) {
@@ -1287,13 +1296,13 @@ int DATAREC::load_mzt_image()
 		len3 = (int)(11.0 * sample_rate / 48000.0 + 0.5);
 		len4 = (int)(15.0 * sample_rate / 48000.0 + 0.5);
 	}
-	
-	
+
+
 	// get file size
 	play_fio->Fseek(0, FILEIO_SEEK_END);
 	int file_size = play_fio->Ftell();
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	
+
 	// load mzt file
 	int ptr = 0;
 	while(file_size > 128) {
@@ -1301,7 +1310,7 @@ int DATAREC::load_mzt_image()
 		uint8_t header[128], ram[0x20000];
 		play_fio->Fread(header, sizeof(header), 1);
 		file_size -= sizeof(header);
-		
+
 		uint16_t size = header[0x12] | (header[0x13] << 8);
 		uint16_t offs = header[0x14] | (header[0x15] << 8);
 		memset(ram, 0, sizeof(ram));
@@ -1406,7 +1415,7 @@ int DATAREC::load_p6_image(bool is_p6t)
 {
 	sample_rate = 48000;
 	sample_usec = 1000000. / sample_rate;
-	
+
 	int ptr = 0, remain = 0x10000, data;
 	if(is_p6t) {
 		// get info block offset
@@ -1442,7 +1451,7 @@ int DATAREC::load_p6_image(bool is_p6t)
 		}
 	}
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	
+
 	for(int i = 0; i < 9600; i++) {
 		P6_PUT_2400HZ();
 	}
@@ -1521,9 +1530,9 @@ int DATAREC::load_bmjr_image()
 {
 	sample_rate = 48000;
 	sample_usec = 1000000. / sample_rate;
-	
+
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	
+
 	int ptr = 0, data;
 	while((data = play_fio->Fgetc()) != EOF) {
 		// start bit = 0
@@ -1551,13 +1560,13 @@ int DATAREC::load_cas_image()
 {
 	sample_rate = 48000;
 	sample_usec = 1000000. / sample_rate;
-	
+
 	// SORD m5 or NEC PC-6001 series cas image ?
 	static const uint8_t momomomomomo[6] = {0xd3, 0xd3, 0xd3, 0xd3, 0xd3, 0xd3};
 	uint8_t tmp_header[8];
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	play_fio->Fread(tmp_header, sizeof(tmp_header), 1);
-	
+
 	if(memcmp(tmp_header, "SORDM5", 6) == 0) {
 		return load_m5_cas_image();
 	} else if(memcmp(tmp_header, msx_cas_header, 8) == 0) {
@@ -1565,7 +1574,7 @@ int DATAREC::load_cas_image()
 	} else if(memcmp(tmp_header, momomomomomo, 6) == 0) {
 		return load_p6_image(false);
 	}
-	
+
 	// this is the standard cas image for my emulator
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	int ptr = 0, data;
@@ -1610,13 +1619,13 @@ int DATAREC::load_m5_cas_image()
 {
 	play_fio->Fseek(16, FILEIO_SEEK_SET);
 	int ptr = 0, block_type;
-	
+
 	while((block_type = play_fio->Fgetc()) != EOF) {
 		if(block_type != 'H' && block_type != 'D') {
 			return 0;
 		}
 		int block_size = play_fio->Fgetc();
-		
+
 		if(block_type == 'H') {
 			M5_PUT_BIT(0x00, 1);
 		}
@@ -1626,7 +1635,7 @@ int DATAREC::load_m5_cas_image()
 		}
 		M5_PUT_BYTE(block_type);
 		M5_PUT_BYTE(block_size);
-		
+
 		for(int i = 0; i < ((block_size == 0) ? 0x101 : (block_size + 1)); i++) {
 			uint8_t data = play_fio->Fgetc();
 			M5_PUT_BYTE(data);
@@ -1649,18 +1658,18 @@ int DATAREC::load_msx_cas_image()
 {
 	sample_rate = 22050;
 	sample_usec = 1000000. / sample_rate;
-	
+
 	play_fio->Fseek(0, FILEIO_SEEK_END);
 	int cas_size = play_fio->Ftell();
 	uint8_t *bytes = (uint8_t *)malloc(cas_size);
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	play_fio->Fread(bytes, cas_size, 1);
-	
+
 	int cas_pos, bit, state = 1, samples_pos, size, n, i, p;
-	
+
 	cas_pos = 0;
 	samples_pos = 0;
-	
+
 	while(/*samples_pos < sample_count && */cas_pos < cas_size) {
 		/* Check if we need to output a header */
 		if(cas_pos + 8 < cas_size) {
@@ -1686,7 +1695,7 @@ int DATAREC::load_msx_cas_image()
 				cas_pos += 8;
 			}
 		}
-		
+
 		for(i = 0; i <= 11; i++) {
 			if(i == 0) {
 				bit = 0;
@@ -1695,7 +1704,7 @@ int DATAREC::load_msx_cas_image()
 			} else {
 				bit = 1;
 			}
-			
+
 			/* write this one bit */
 			for(n = 0; n < (bit ? 4 : 2); n++) {
 				size = (bit ? CAS_PERIOD / 4 : CAS_PERIOD / 2);
@@ -1725,10 +1734,10 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 		}
 		int clocks = pcm_positive_clocks + pcm_negative_clocks;
 		int sample = clocks ? (pcm_max_vol * pcm_positive_clocks - pcm_max_vol * pcm_negative_clocks) / clocks : signal ? pcm_max_vol : -pcm_max_vol;
-		
+
 		pcm_last_vol_l = apply_volume(sample, pcm_volume_l);
 		pcm_last_vol_r = apply_volume(sample, pcm_volume_r);
-		
+
 		for(int i = 0; i < (cnt << 1); i += 2) {
 			buffer[i + 0] += pcm_last_vol_l; // L
 			buffer[i + 1] += pcm_last_vol_r; // R
@@ -1738,7 +1747,7 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 		for(int i = 0; i < (cnt << 1) ; i += 2) {
 			buffer[i + 0] += pcm_last_vol_l; // L
 			buffer[i + 1] += pcm_last_vol_r; // R
-			
+
 			if(pcm_last_vol_l > 0) {
 				pcm_last_vol_l--;
 			} else if(pcm_last_vol_l < 0) {
@@ -1753,7 +1762,7 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 	}
 	pcm_prev_clock = get_current_clock();
 	pcm_positive_clocks = pcm_negative_clocks = 0;
-	
+
 //#ifdef DATAREC_SOUND
 	if(__DATAREC_SOUND) {
 		if(config.sound_tape_voice && remote && play && ff_rew == 0) {
@@ -1768,7 +1777,7 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 			for(int i = 0; i < (cnt << 1); i += 2) {
 				buffer[i + 0] += sound_last_vol_l; // L
 				buffer[i + 1] += sound_last_vol_r; // R
-				
+
 				if(sound_last_vol_l > 0) {
 					sound_last_vol_l--;
 				} else if(sound_last_vol_l < 0) {
@@ -1807,7 +1816,7 @@ double DATAREC::get_ave_hi_freq()
 		int positive = 0, negative = 0, pulse_count = 0;
 		double sum = 0;
 		double base_usec = 1000000.0 / (double)sample_rate;
-		
+
 		for(int i=0; i < buffer_length; i++) {
 			bool next_signal = ((buffer[i] & 0x80) != 0);
 			if(!prev_signal && next_signal) {
@@ -1980,7 +1989,7 @@ bool DATAREC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pcm_prev_clock);
 	state_fio->StateValue(pcm_positive_clocks);
 	state_fio->StateValue(pcm_negative_clocks);
- 	
+
  	// post process
 	if(loading) {
 		pcm_last_vol_l = pcm_last_vol_r = 0;
