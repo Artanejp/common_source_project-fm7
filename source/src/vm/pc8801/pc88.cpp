@@ -55,9 +55,9 @@
 #define IRQ_FDINT1	6
 #define IRQ_FDINT2	7
 
-namespace PC88DEV 
+namespace PC88DEV
 {
-   
+
 #define Port30_40	!(port[0x30] & 0x01)
 #define Port30_COLOR	!(port[0x30] & 0x02)
 #define Port30_MTON	(port[0x30] & 0x08)
@@ -74,7 +74,7 @@ namespace PC88DEV
 #else
 #define Port31_HCOLOR	false
 #endif
-#ifdef PC8801SR_VARIANT
+#ifdef PC8801_VARIANT
 #define Port31_400LINE	!(port[0x31] & 0x11)
 #else
 #define Port31_400LINE	false
@@ -265,7 +265,7 @@ static const uint8_t intr_mask2_table[8] = {
 void PC88::initialize()
 {
 	memset(rdmy, 0xff, sizeof(rdmy));
-	
+
 //	memset(ram, 0, sizeof(ram));
 #ifdef PC88_EXRAM_BANKS
 	memset(exram, 0, sizeof(exram));
@@ -279,7 +279,7 @@ void PC88::initialize()
 #if defined(PC8801SR_VARIANT)
 	memset(tvram, 0, sizeof(tvram));
 #endif
-	
+
 //#ifdef SUPPORT_PC88_KANJI1
 	memset(kanji1, 0xff, sizeof(kanji1));
 //#endif
@@ -308,7 +308,7 @@ void PC88::initialize()
 	cdbios_loaded = false;
 #endif
 #endif
-	
+
 	// load rom images
 	FILEIO* fio = new FILEIO();
 //#ifdef SUPPORT_PC88_KANJI1
@@ -464,7 +464,7 @@ void PC88::initialize()
 #endif
 #endif
 	delete fio;
-	
+
 	// memory pattern
 	for(int i = 0, ofs = 0; i < 256; i++) {
 		for(int j = 0; j < 16; j++) {
@@ -496,7 +496,7 @@ void PC88::initialize()
 #ifdef PC8001_VARIANT
 	ram[0xff33] = 0; // DEMPA Galaxian
 #endif
-	
+
 	// create semi graphics pattern
 	for(int i = 0; i < 256; i++) {
 		uint8_t *dest = sg_pattern + 8 * i;
@@ -505,7 +505,7 @@ void PC88::initialize()
 		dest[4] = dest[5] = ((i & 4) ? 0xf0 : 0) | ((i & 0x40) ? 0x0f : 0);
 		dest[6] = dest[7] = ((i & 8) ? 0xf0 : 0) | ((i & 0x80) ? 0x0f : 0);
 	}
-	
+
 #ifdef SUPPORT_PC88_VAB
 	// X88000
 	for(uint32_t g = 0; g < 64; g++) {
@@ -519,30 +519,30 @@ void PC88::initialize()
 		}
 	}
 #endif
-	
+
 #ifdef SUPPORT_PC88_HIGH_CLOCK
 	cpu_clock_low = (config.cpu_type == 1);		// 4MHz
 	cpu_clock_high_fe2 = (config.cpu_type == 2);	// 8MHz (FE2/MC)
 #else
 	cpu_clock_low = true;
 #endif
-	
+
 #ifdef SUPPORT_PC88_JOYSTICK
 //	joystick_status = emu->get_joy_buffer();
 //	mouse_status = emu->get_mouse_buffer();
 	mouse_strobe_clock_lim = (int)((cpu_clock_low ? 720 : 1440) * 1.25);
 #endif
-	
+
 	// initialize cmt
 	cmt_fio = new FILEIO();
 	cmt_play = cmt_rec = false;
-	
+
 	register_frame_event(this);
 	register_vline_event(this);
 	register_event(this, EVENT_TIMER, 1000000.0 / 600.0, true, NULL);
 	register_event(this, EVENT_BEEP, 1000000.0 / 4800.0, true, NULL);
-	
-#if defined(PC8801SR_VARIANT)
+
+#if defined(PC8801_VARIANT)
 	// hack to update config.scan_line at first
 	hireso = !(config.monitor_type == 0);
 #else
@@ -561,7 +561,7 @@ void PC88::release()
 
 void PC88::reset()
 {
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	bool value = (config.monitor_type == 0);
 	if(hireso != value) {
 		// update config.scan_line when config.monitor_type is changed
@@ -571,7 +571,7 @@ void PC88::reset()
 		hireso = value;
 	}
 #endif
-	
+
 	// memory
 	memset(port, 0, sizeof(port));
 	port[0x31] = 0x01;
@@ -592,7 +592,7 @@ void PC88::reset()
 #if defined(SUPPORT_PC88_GVRAM)
 	gvram_plane = gvram_sel = 0;
 #endif
-	
+
 #if defined(PC8001_VARIANT)
 #if defined(_PC8001SR)
 	if(config.boot_mode == MODE_PC80_V2) {
@@ -611,7 +611,7 @@ void PC88::reset()
 			// diskdv80/n80patch.cpp
 			static const uint8_t code[4] = { 0xc3, 0x07, 0x60, 0x55 };
 			size_t length = *((short*)(&n88erom[8][5]));
-			
+
 			if(length < 0x2000) {
 				memcpy(n80rom + 0x6000, n88erom[8], length);
 				memcpy(n80rom + 0x7ffc, code, 4);
@@ -628,18 +628,18 @@ void PC88::reset()
 	update_tvram_memmap();	// XM8 version 1.10
 #endif
 #endif
-	
+
 	// misc
 	usart_dcd = false;
 	opn_busy = true;
-	
+
 	// memory wait
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	mem_wait_on = ((config.dipswitch & DIPSWITCH_MEMWAIT) != 0);
 #else
 	mem_wait_on = true;
 #endif
-	
+
 	m1_wait_clocks = get_m1_wait(false);
 	f000_m1_wait_clocks = get_m1_wait(true);
 	mem_wait_clocks_r = get_main_wait(true);
@@ -649,12 +649,12 @@ void PC88::reset()
 	tvram_wait_clocks_w = get_tvram_wait(false);
 #endif
 	memcpy(prev_port, port, sizeof(port));
-	
+
 	// crtc
 	memset(&crtc, 0, sizeof(crtc));
 	crtc.reset(hireso);
 	update_timing();
-	
+
 	memset(palette, 0, sizeof(palette));
 	for(int i = 1; i < 8; i++) {
 		palette[i].b = (i & 1) ? 7 : 0;
@@ -662,7 +662,7 @@ void PC88::reset()
 		palette[i].g = (i & 4) ? 7 : 0;
 	}
 	update_palette = true;
-	
+
 	// dma
 	memset(&dmac, 0, sizeof(dmac));
 	dmac.ch[0].io = dmac.ch[3].io = vm->dummy;
@@ -682,17 +682,17 @@ void PC88::reset()
 	dmac.ch[0].addr.b.h = 0x56;
 	dmac.ch[1].addr.b.l = 0x7a;
 	dmac.ch[1].addr.b.h = 0x7a;
-	
+
 	// keyboard
 	key_kana = key_caps = 0;
-	
+
 	// mouse
 #ifdef SUPPORT_PC88_JOYSTICK
 	mouse_strobe_clock = get_current_clock();
 	mouse_phase = -1;
 	mouse_dx = mouse_dy = mouse_lx = mouse_ly = 0;
 #endif
-	
+
 	// interrupt
 	intr_req = intr_mask1 = intr_mask2 = 0;
 #ifdef SUPPORT_PC88_OPN1
@@ -701,19 +701,19 @@ void PC88::reset()
 #ifdef SUPPORT_PC88_OPN2
 	intr_req_opn2 = false;
 #endif
-	
+
 	// fdd i/f
 	d_pio->write_io8(1, 0);
 	d_pio->write_io8(2, 0);
-	
+
 	// data recorder
 	close_tape();
 	cmt_play = cmt_rec = false;
 	cmt_register_id = -1;
-	
+
 	// beep/sing
 	beep_on = beep_signal = sing_signal = false;
-	
+
 #ifdef SUPPORT_PC88_PCG8100
 	// pcg
 	memcpy(pcg_pattern, kanji1 + 0x1000, sizeof(pcg_pattern));
@@ -739,7 +739,7 @@ void PC88::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	addr &= 0xffff;
 	*wait = mem_wait_clocks_w;
-	
+
 #if defined(PC8801_VARIANT)
 	if((addr & 0xfc00) == 0x8000) {
 		// text window
@@ -821,7 +821,7 @@ uint32_t PC88::read_data8w(uint32_t addr, int* wait)
 {
 	addr &= 0xffff;
 	*wait = mem_wait_clocks_r;
-	
+
 #if defined(PC8801_VARIANT)
 	if((addr & 0xfc00) == 0x8000) {
 		// text window
@@ -938,7 +938,7 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 #endif
 	uint8_t mod = port[addr] ^ data;
 	port[addr] = data;
-	
+
 	switch(addr) {
 	case 0x00:
 #ifdef SUPPORT_PC88_PCG8100
@@ -957,7 +957,7 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 			ptr |= val;
 			sum += (val = cmt_buffer[cmt_bufptr++]);
 			if((sum & 0xff) != 0) return;
-			
+
 			while(1) {
 				while(cmt_buffer[cmt_bufptr++] != 0x3a) {
 					if(!(cmt_bufptr <= cmt_bufcnt)) return;
@@ -1535,7 +1535,7 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 #endif
 {
 	uint32_t val = 0xff;
-	
+
 	addr &= 0xff;
 #if defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8801) || defined(_PC8801MK2)
 	// i/o address is not full-decoded
@@ -1959,7 +1959,7 @@ void PC88::update_timing()
 	// 56.4229Hz (25line) on PC-8801MA2 (XM8 version 1.00)
 	double frames_per_sec = (hireso ? 24860.0 * 56.423 / 56.5 : 15980.0) / (double)lines_per_frame;
 //	double frames_per_sec = (hireso ? 24860.0 * 56.424 / 56.5 : 15980.0) / (double)lines_per_frame;
-	
+
 	set_frames_per_sec(frames_per_sec);
 	set_lines_per_frame(lines_per_frame);
 }
@@ -1968,7 +1968,7 @@ int PC88::get_m1_wait(bool addr_f000)
 {
 	// XM8 version 1.20
 	int wait = 0;
-	
+
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 #if defined(PC8001_VARIANT)
 	if(config.boot_mode == MODE_PC80_V1 || config.boot_mode == MODE_PC80_N) {
@@ -2008,7 +2008,7 @@ int PC88::get_main_wait(bool read)
 {
 	// XM8 version 1.20
 	int wait = 0;
-	
+
 	if(cpu_clock_low) {
 		// 4MHz
 		if(mem_wait_on) {
@@ -2037,7 +2037,7 @@ int PC88::get_main_wait(bool read)
 int PC88::get_tvram_wait(bool read)
 {
 	int wait = 0;
-	
+
 	if(cpu_clock_low) {
 		// 4MHz
 		if(read) {
@@ -2065,7 +2065,7 @@ int PC88::get_gvram_wait(bool read)
 {
 	// XM8 version 1.20
 	int wait = 0;
-	
+
 	if(Port31_GRAPH) {
 		// graphic on
 		if(cpu_clock_low) {
@@ -2433,7 +2433,7 @@ void PC88::event_frame()
 {
 	// update key status
 	memcpy(key_status, emu->get_key_buffer(), sizeof(key_status));
-	
+
 	for(int i = 0; i < array_length(key_conv_table); i++) {
 		// INS or F6-F10 -> SHIFT + DEL or F1-F5
 		if(key_status[key_conv_table[i][0]]) {
@@ -2449,9 +2449,9 @@ void PC88::event_frame()
 	}
 	key_status[0x14] = key_caps;
 	key_status[0x15] = key_kana;
-	
+
 	crtc.update_blink();
-	
+
 #ifdef SUPPORT_PC88_JOYSTICK
 	mouse_status = emu->get_mouse_buffer();
 	mouse_dx += mouse_status[0];
@@ -2463,7 +2463,7 @@ void PC88::event_frame()
 void PC88::event_vline(int v, int clock)
 {
 	int disp_line = crtc.height * crtc.char_height;
-	
+
 	if(v == 0) {
 		if(crtc.status & 0x10) {
 			// start dma transfer to crtc
@@ -2515,7 +2515,7 @@ void PC88::event_vline(int v, int clock)
 		}
 		// for Romancia (XM8 version 1.00)
 		crtc.expand_buffer(hireso, Port31_400LINE);
-		
+
 		crtc.finish();
 		request_intr(IRQ_VRTC, true);
 #if defined(SUPPORT_PC88_GVRAM)
@@ -2524,7 +2524,7 @@ void PC88::event_vline(int v, int clock)
 		memcpy(prev_port, port, sizeof(port));
 	}
 	// update palette
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	if(v < (disp_line <= 200 ? 200 : 400)) {
 #else
 	if(v < 200) {
@@ -2532,7 +2532,7 @@ void PC88::event_vline(int v, int clock)
 		if(update_palette) {
 			static bool initialized = false;
 			static palette_t initial[9] = {0};
-			
+
 			if(!initialized) {
 				for(int i = 1; i < 8; i++) {
 					initial[i].b = (i & 1) ? 7 : 0;
@@ -2625,7 +2625,7 @@ void PC88::key_down(int code, bool repeat)
 void PC88::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	
+
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		if(check_file_extension(file_path, _T(".n80"))) {
 			cmt_fio->Fread(ram + 0x8000, 0x7f40, 1);
@@ -2634,7 +2634,7 @@ void PC88::play_tape(const _TCHAR* file_path)
 			d_cpu->set_pc(0xff3d);
 			return;
 		}
-		
+
 		cmt_fio->Fseek(0, FILEIO_SEEK_END);
 		cmt_bufcnt = cmt_fio->Ftell();
 		cmt_bufptr = 0;
@@ -2643,7 +2643,7 @@ void PC88::play_tape(const _TCHAR* file_path)
 		memset(cmt_buffer, 0, sizeof(cmt_buffer));
 		cmt_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
 		cmt_fio->Fclose();
-		
+
 		if(strncmp((char *)cmt_buffer, "PC-8801 Tape Image(T88)", 23) == 0) {
 			// this is t88 format
 			int ptr = 24, tag = -1, len = 0, prev_bufptr = 0;
@@ -2651,7 +2651,7 @@ void PC88::play_tape(const _TCHAR* file_path)
 				tag = cmt_buffer[ptr + 0] | (cmt_buffer[ptr + 1] << 8);
 				len = cmt_buffer[ptr + 2] | (cmt_buffer[ptr + 3] << 8);
 				ptr += 4;
-				
+
 				if(tag == 0x0101) {
 					// data tag
 					for(int i = 12; i < len; i++) {
@@ -2669,7 +2669,7 @@ void PC88::play_tape(const _TCHAR* file_path)
 			cmt_bufptr = 0;
 		}
 		cmt_play = (cmt_bufcnt != 0);
-		
+
 		if(cmt_play && Port30_MTON) {
 			// start motor and detect the data carrier at the top of tape
 			if(cmt_register_id != -1) {
@@ -2683,7 +2683,7 @@ void PC88::play_tape(const _TCHAR* file_path)
 void PC88::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	
+
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		cmt_bufptr = 0;
@@ -2695,7 +2695,7 @@ void PC88::close_tape()
 {
 	// close file
 	release_tape();
-	
+
 	// clear sio buffer
 	d_sio->write_signal(SIG_I8251_CLEAR, 0, 0);
 }
@@ -2749,13 +2749,13 @@ void PC88::draw_screen()
 {
 	// copy port data at starting vblank
 //	uint8_t cur_port[256];
-	
+
 //	memcpy(cur_port, port, sizeof(port));
 //	memcpy(port, prev_port, sizeof(port));
-	
+
 	// render text screen
 	draw_text();
-	
+
 	// render graph screen
 	bool disp_color_graph = true;
 	bool draw_scanline_black = config.scan_line;
@@ -2801,7 +2801,6 @@ void PC88::draw_screen()
 	if(Port31_HCOLOR) {
 		disp_color_graph = draw_640x200_color_graph();
 		emu->set_vm_screen_lines(200);
-#if defined(PC8801SR_VARIANT)
 	} else if(Port31_400LINE) {
 		if(hireso) {
 			draw_scanline_black = false;
@@ -2809,7 +2808,6 @@ void PC88::draw_screen()
 		draw_640x400_attrib_graph();
 //		draw_640x400_mono_graph();
 		emu->set_vm_screen_lines(400);
-#endif
 	} else {
 		if(hireso) {
 			draw_scanline_black = false;
@@ -2823,9 +2821,9 @@ void PC88::draw_screen()
 //	memset(graph, 0, sizeof(graph));
 	emu->set_vm_screen_lines(200);
 #endif
-	
+
 	// create palette for each scanline
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	int disp_line = crtc.height * crtc.char_height;
 	int ymax = (disp_line <= 200) ? 200 : 400;
 #else
@@ -2838,14 +2836,14 @@ void PC88::draw_screen()
 	scrntype_t palette_analog_text_pc  [9];
 	scrntype_t palette_digital_graph_pc[9];
 	scrntype_t palette_analog_graph_pc [9];
-	
+
 	scrntype_t palette_line_digital_text_pc [400][9];
 	scrntype_t palette_line_analog_graph_pc [400][9];
 #if defined(PC8801_VARIANT)
 	scrntype_t palette_line_analog_text_pc  [400][9];
 	scrntype_t palette_line_digital_graph_pc[400][9];
 #endif
-	
+
 	for(int y = 0; y < ymax; y++) {
 		if(palette_line_changed[y]) {
 			for(int i = 0; i < 9; i++) {
@@ -2857,9 +2855,9 @@ void PC88::draw_screen()
 			}
 			// set back color to black if cg screen is off in color mode
 			if(!disp_color_graph) {
-				palette_digital_text_pc [0] = 
-				palette_analog_text_pc  [0] = 
-				palette_digital_graph_pc[0] = 
+				palette_digital_text_pc [0] =
+				palette_analog_text_pc  [0] =
+				palette_digital_graph_pc[0] =
 				palette_analog_graph_pc [0] = 0;
 			}
 			palette_analog_text_pc [8] = palette_digital_text_pc [0];
@@ -2867,14 +2865,14 @@ void PC88::draw_screen()
 		}
 		if(ymax == 200) {
 			for(int i = 0; i < 9; i++) {
-				palette_line_digital_text_pc [2 * y    ][i] = 
+				palette_line_digital_text_pc [2 * y    ][i] =
 				palette_line_digital_text_pc [2 * y + 1][i] = palette_digital_text_pc [i];
-				palette_line_analog_graph_pc [2 * y    ][i] = 
+				palette_line_analog_graph_pc [2 * y    ][i] =
 				palette_line_analog_graph_pc [2 * y + 1][i] = palette_analog_graph_pc [i];
 #if defined(PC8801_VARIANT)
-				palette_line_analog_text_pc  [2 * y    ][i] = 
+				palette_line_analog_text_pc  [2 * y    ][i] =
 				palette_line_analog_text_pc  [2 * y + 1][i] = palette_analog_text_pc  [i];
-				palette_line_digital_graph_pc[2 * y    ][i] = 
+				palette_line_digital_graph_pc[2 * y    ][i] =
 				palette_line_digital_graph_pc[2 * y + 1][i] = palette_digital_graph_pc[i];
 #endif
 			}
@@ -2892,18 +2890,18 @@ void PC88::draw_screen()
 			break;
 		}
 	}
-	
+
 	// copy to screen buffer
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 #if defined(SUPPORT_PC88_VAB)
 	// X88000
 	if(PortB4_VAB_DISP) {
 		uint8_t *src = &exram[(0x8000 * 4) * PC88_VAB_PAGE];
-		
+
 		for(int y = 0; y < 400; y += 2) {
 			scrntype_t* dest0 = emu->get_screen_buffer(y);
 			scrntype_t* dest1 = emu->get_screen_buffer(y + 1);
-			
+
 			for(int x = 0; x < 640; x += 2) {
 				pair16_t c;
 				c.b.l = *src++;
@@ -2927,7 +2925,7 @@ void PC88::draw_screen()
 			scrntype_t* pal_t;
 			scrntype_t* pal_g;
 			int yy = ((config.dipswitch & DIPSWITCH_PALETTE) != 0) ? 0 : y;
-			
+
 //			if(Port31_HCOLOR) {
 //				pal_t = palette_line_digital_text_pc [yy];
 //				pal_g = palette_line_analog_graph_pc [yy];
@@ -2955,11 +2953,11 @@ void PC88::draw_screen()
 			scrntype_t* pal_t;
 			scrntype_t* pal_g;
 			int yy = ((config.dipswitch & DIPSWITCH_PALETTE) != 0) ? 0 : y;
-			
+
 #if defined(PC8001_VARIANT)
 			pal_t = palette_line_digital_text_pc[yy];
 			pal_g = palette_line_analog_graph_pc[yy];
-			
+
 #if defined(_PC8001SR)
 			if(Port33_PR2) {
 				for(int x = 0; x < 640; x++) {
@@ -2994,14 +2992,14 @@ void PC88::draw_screen()
 		}
 		emu->screen_skip_line(true);
 	}
-	
+
 	// restore port
 //	memcpy(port, cur_port, 256);
 }
 
 /*
 	attributes:
-	
+
 	bit7: green
 	bit6: red
 	bit5: blue
@@ -3018,11 +3016,11 @@ void PC88::draw_text()
 		// dmac.run
 		uint8_t buffer[120 * 200];
 		memset(buffer, 0, sizeof(buffer));
-		
+
 		for(int i = 0; i < dmac.ch[3].count.sd + 1 && i < 120 * 200; i++) {
 			buffer[i] = this->read_dma_data8(dmac.ch[3].addr.w.l + i);
 		}
-		
+
 		// crtc.expand_buffer
 		for(int cy = 0, ofs = 0; cy < crtc.height; cy++, ofs += 80 + crtc.attrib.num * 2) {
 			for(int cx = 0; cx < crtc.width; cx++) {
@@ -3030,7 +3028,7 @@ void PC88::draw_text()
 			}
 		}
 		crtc.attrib.data = 0xe0 | crtc.reverse; // Misty Blue
-		
+
 		if(crtc.mode & 4) {
 			// non transparent
 			for(int cy = 0, ofs = 0; cy < crtc.height; cy++, ofs += 80 + crtc.attrib.num * 2) {
@@ -3051,7 +3049,7 @@ void PC88::draw_text()
 						flags[buffer[ofs + i + 80] & 0x7f] = 1;
 					}
 					crtc.attrib.data &= 0xf3; // for PC-8801mkIIFR 付属デモ
-					
+
 					for(int cx = 0, pos = 0; cx < crtc.width; cx++) {
 						if(flags[cx]) {
 							crtc.set_attrib(buffer[ofs + pos + 81]);
@@ -3089,17 +3087,17 @@ void PC88::draw_text()
 		}
 //		memset(crtc.attrib.expand, 2, 200 * 80);
 	}
-	
+
 	// for Xak2 opening
 	memset(text, 8, sizeof(text));
 	memset(text_color, 7, sizeof(text_color));
 	memset(text_reverse, 0, sizeof(text_reverse));
-	
+
 	int char_height = crtc.char_height;
 	uint8_t color_mask = Port30_COLOR ? 0 : 7;
 	uint8_t code_expand, attr_expand;
 	bool attrib_graph = false;
-	
+
 	if(!hireso) {
 		char_height <<= 1;
 	}
@@ -3143,10 +3141,10 @@ void PC88::draw_text()
 			bool upper_line = ((attrib & 4) != 0);
 			bool secret = ((attrib & 2) != 0);
 			bool reverse = ((attrib & 1) != 0);
-			
+
 			uint8_t color_tmp = color;
 			bool reverse_tmp = reverse;
-			
+
 			// from ePC-8801MA改
 //			if(Port31_GRAPH && !Port31_HCOLOR) {
 			if(attrib_graph) {
@@ -3163,10 +3161,10 @@ void PC88::draw_text()
 			} else
 #endif
 			pattern = ((attrib & 0x10) ? sg_pattern : kanji1 + 0x1000) + code * 8;
-			
+
 			for(int l = 0, y = ytop; l < char_height / 2 && y < 400; l++, y += 2) {
 				uint8_t pat = (l < 8) ? pattern[l] : 0;
-				
+
 				if(Port30_40) {
 					// from ePC-8801MA改
 					static const uint8_t wct[16] = {
@@ -3189,7 +3187,7 @@ void PC88::draw_text()
 				dest[5] = (pat & 0x04) ? color : 0;
 				dest[6] = (pat & 0x02) ? color : 0;
 				dest[7] = (pat & 0x01) ? color : 0;
-				
+
 				// store text attributes for monocolor graph screen
 				text_color[y >> 1][cx] = color_tmp;
 				text_reverse[y >> 1][cx] = reverse_tmp;
@@ -3213,7 +3211,7 @@ bool PC88::draw_320x200_color_graph()
 	uint8_t *gvram_b1 = Port53_G1DS ? gvram_null : (gvram + 0x2000);
 	uint8_t *gvram_r1 = Port53_G1DS ? gvram_null : (gvram + 0x6000);
 	uint8_t *gvram_g1 = Port53_G1DS ? gvram_null : (gvram + 0xa000);
-	
+
 	if(Port33_PR1) {
 		// G1>G0
 		uint8_t *tmp;
@@ -3221,7 +3219,7 @@ bool PC88::draw_320x200_color_graph()
 		tmp = gvram_r0; gvram_r0 = gvram_r1; gvram_r1 = tmp;
 		tmp = gvram_g0; gvram_g0 = gvram_g1; gvram_g1 = tmp;
 	}
-	
+
 	for(int y = 0, addr = 0; y < 400; y += 2) {
 		for(int x = 0; x < 640; x += 16) {
 			uint8_t b0 = gvram_b0[addr];
@@ -3277,7 +3275,7 @@ bool PC88::draw_320x200_4color_graph()
 	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
 	uint8_t *gvram_g = Port53_G2DS ? gvram_null : (gvram + 0x8000);
-	
+
 	for(int y = 0, addr = 0; y < 400; y += 2) {
 		for(int x = 0; x < 640; x += 8) {
 			uint8_t brg = gvram_b[addr] | gvram_r[addr] | gvram_g[addr];
@@ -3309,7 +3307,7 @@ void PC88::draw_320x200_attrib_graph()
 	uint8_t *gvram_b1 = Port53_G3DS ? gvram_null : (gvram + 0x2000);
 	uint8_t *gvram_r1 = Port53_G4DS ? gvram_null : (gvram + 0x6000);
 	uint8_t *gvram_g1 = Port53_G5DS ? gvram_null : (gvram + 0xa000);
-	
+
 	if(Port30_40) {
 		for(int y = 0, addr = 0; y < 400; y += 2) {
 			for(int x = 0, cx = 0; x < 640; x += 16, cx += 2) {
@@ -3412,7 +3410,7 @@ bool PC88::draw_640x200_color_graph()
 	uint8_t *gvram_b = /*Port53_G0DS ? gvram_null : */(gvram + 0x0000);
 	uint8_t *gvram_r = /*Port53_G1DS ? gvram_null : */(gvram + 0x4000);
 	uint8_t *gvram_g = /*Port53_G2DS ? gvram_null : */(gvram + 0x8000);
-	
+
 	for(int y = 0, addr = 0; y < 400; y += 2) {
 		for(int x = 0; x < 640; x += 8) {
 			uint8_t b = gvram_b[addr];
@@ -3447,7 +3445,7 @@ void PC88::draw_640x200_mono_graph()
 	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
 	uint8_t *gvram_g = Port53_G2DS ? gvram_null : (gvram + 0x8000);
-	
+
 	for(int y = 0, addr = 0; y < 400; y += 2) {
 		for(int x = 0; x < 640; x += 8) {
 			uint8_t brg = gvram_b[addr] | gvram_r[addr] | gvram_g[addr];
@@ -3479,7 +3477,7 @@ void PC88::draw_640x200_attrib_graph()
 	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
 	uint8_t *gvram_g = Port53_G2DS ? gvram_null : (gvram + 0x8000);
-	
+
 	for(int y = 0, addr = 0; y < 400; y += 2) {
 		for(int x = 0, cx = 0; x < 640; x += 8, cx++) {
 			uint8_t color = text_color[y >> 1][cx];
@@ -3520,7 +3518,7 @@ void PC88::draw_640x200_attrib_graph()
 	}
 }
 
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 void PC88::draw_640x400_mono_graph()
 {
 	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS)) {
@@ -3529,7 +3527,7 @@ void PC88::draw_640x400_mono_graph()
 	}
 	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
-	
+
 	for(int y = 0, addr = 0; y < 200; y++) {
 		for(int x = 0; x < 640; x += 8) {
 			uint8_t b = gvram_b[addr];
@@ -3570,7 +3568,7 @@ void PC88::draw_640x400_attrib_graph()
 	}
 	uint8_t *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8_t *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
-	
+
 	for(int y = 0, addr = 0; y < 200; y++) {
 		for(int x = 0, cx = 0; x < 640; x += 8, cx++) {
 			uint8_t color = text_color[y >> 1][cx];
@@ -3616,7 +3614,7 @@ void PC88::draw_640x400_attrib_graph()
 void PC88::request_intr(int level, bool status)
 {
 	uint8_t bit = 1 << level;
-	
+
 	if(status) {
 		// for Nobunaga Fuunroku Opening & MID-GARTS Opening (XM8 version 1.00)
 //		bit &= intr_mask2;
@@ -3640,7 +3638,7 @@ void PC88::update_intr()
 uint32_t PC88::get_intr_ack()
 {
 	uint8_t ai = intr_req & intr_mask1 & intr_mask2;
-	
+
 	for(int i = 0; i < 8; i++, ai >>= 1) {
 		if(ai & 1) {
 			intr_req &= ~(1 << i);
@@ -3770,7 +3768,7 @@ void pc88_crtc_t::write_param(uint8_t data)
 uint32_t pc88_crtc_t::read_param()
 {
 	uint32_t val = 0xff;
-	
+
 	switch(cmd) {
 	case 3:	// read light pen
 		switch(cmd_ptr) {
@@ -3845,7 +3843,7 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 {
 	int char_height_tmp = char_height;
 	int exitline = -1;
-	
+
 	if(!hireso) {
 		char_height_tmp <<= 1;
 	}
@@ -3866,7 +3864,7 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 		}
 	}
 	attrib.data = 0xe0 | reverse; // Misty Blue
-	
+
 	if(mode & 4) {
 		// non transparent
 		for(int cy = 0, ytop = 0, ofs = 0; cy < height && ytop < 200; cy++, ytop += char_height_tmp, ofs += 80 + attrib.num * 2) {
@@ -3891,7 +3889,7 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 					flags[read_buffer(ofs + i + 80) & 0x7f] = 1;
 				}
 				attrib.data &= 0xf3; // for PC-8801mkIIFR 付属デモ
-				
+
 				for(int cx = 0, pos = 0; cx < width; cx++) {
 					if(flags[cx]) {
 						set_attrib(read_buffer(ofs + pos + 81));
@@ -3958,7 +3956,7 @@ void pc88_crtc_t::set_attrib(uint8_t code)
 void pc88_dmac_t::write_io8(uint32_t addr, uint32_t data)
 {
 	int c = (addr >> 1) & 3;
-	
+
 	switch(addr & 0x0f) {
 	case 0x00:
 	case 0x02: case 0x0a:
@@ -4011,7 +4009,7 @@ uint32_t pc88_dmac_t::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
 	int c = (addr >> 1) & 3;
-	
+
 	switch(addr & 0x0f) {
 	case 0x00:
 	case 0x02: case 0x0a:
@@ -4285,7 +4283,7 @@ bool PC88::process_state(FILEIO* state_fio, bool loading)
 #ifdef NIPPY_PATCH
 	state_fio->StateValue(nippy_patch);
 #endif
-	
+
 	// post process
 	if(loading) {
 #if defined(PC8001_VARIANT)
@@ -4304,4 +4302,3 @@ bool PC88::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 }
-	   

@@ -96,12 +96,16 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 	defined(_PC6601) || defined(_PC6601SR)
 	machine_pc6001_variants = true;
 #endif
-#if defined(_PC8001) || defined(PC8001MK2) || \
-	defined(_PC8001SR) || \
-	defined(_PC8801) || defined(_PC8801MK2) || \
-	defined(_PC8801SR) || defined(_PC8801MA)
+#if defined(PC8001_VARIANT)
 	machine_pc8001_variants = true;
 #endif
+#if defined(PC8801_VARIANT)
+	machine_pc8801_variants = true;
+	#if defined(PC8801SR_VARIANT)
+	machine_pc8801sr_variants = true;
+	#endif
+#endif
+
 #if defined(_MZ80A) || defined(_MZ80K)  || \
 	defined(_MZ1200) || defined(_MZ700) || \
 	defined(_MZ800) || defined(_MZ1500)
@@ -323,6 +327,9 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
 #endif
 #if defined(USE_SCANLINE)
 	use_scanline = true;
+	#if defined(PC8801_VARIANT)
+	use_scanline_auto = true;
+	#endif
 #endif
 #if defined(USE_SCREEN_ROTATE)
 	use_screen_rotate = true;

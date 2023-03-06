@@ -319,6 +319,7 @@ private:
 	Action_Control *actionZoom;
 	Action_Control *actionDisplay_Mode;
 	Action_Control *actionScanLine;
+	Action_Control *actionScanLine_Auto;
 	Action_Control *actionGLScanLineHoriz;
 	Action_Control *actionGLScanLineVert;
 
@@ -873,7 +874,8 @@ public slots:
 	void set_keyboard_type(void);
 	void set_joystick_type(void);
 	void set_drive_type();
-	void set_scan_line(bool);
+	void do_set_scan_line(bool flag);
+	void do_set_scan_line_auto(bool flag);
 	void set_gl_scan_line_vert(bool);
 	void set_gl_scan_line_horiz(bool);
 	void set_printer_device();

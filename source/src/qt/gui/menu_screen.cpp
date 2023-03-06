@@ -21,9 +21,10 @@
 void Ui_MainWindowBase::do_set_screen_size(void)
 {
 
-	if(using_flags == nullptr) return;
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() == nullptr) return;
 	if(p_config == nullptr) return;
-	
+
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	struct CSP_Ui_MainWidgets::ScreenMultiplyPair __val = cp->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
@@ -32,17 +33,16 @@ void Ui_MainWindowBase::do_set_screen_size(void)
 	double nd = __val.value;
 	int w, h;
 	double ww, hh;
-	double xzoom = using_flags->get_screen_x_zoom();
-	double yzoom = using_flags->get_screen_y_zoom();
+	double xzoom = up->get_screen_x_zoom();
+	double yzoom = up->get_screen_y_zoom();
 	p_config->window_mode = __n;
 
-	
-	ww = (double)using_flags->get_screen_width();
-	hh = (double)using_flags->get_screen_height();
-	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
-	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		double par_w = (double)using_flags->get_screen_width_aspect() / ww;
-		double par_h = (double)using_flags->get_screen_height_aspect() / hh;
+	ww = (double)up->get_screen_width();
+	hh = (double)up->get_screen_height();
+	if((up->get_screen_height_aspect() != up->get_screen_height()) ||
+	   (up->get_screen_width_aspect() != up->get_screen_width())) {
+		double par_w = (double)up->get_screen_width_aspect() / ww;
+		double par_h = (double)up->get_screen_height_aspect() / hh;
 		//float par = par_h / par_w;
 		switch(p_config->window_stretch_type) {
 		case 0: // refer to X and Y.
@@ -87,7 +87,7 @@ void Ui_MainWindowBase::do_set_state_saving_movie(bool state)
 {
 	actionStop_Record_Movie->setVisible(state);
 	actionStart_Record_Movie->setVisible(!state);
-}	
+}
 
 void Ui_MainWindowBase::set_gl_scan_line_vert(bool f)
 {
@@ -113,19 +113,23 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 {
 	int w, h;
 	QString tmps;
-	
+
 	for(int i = 0; i < (sizeof(actionScreenSize) / sizeof(Action_Control *)); i++) {
 		actionScreenSize[i] = nullptr;
 	}
-	
+
 	actionGroup_ScreenSize = new QActionGroup(this);
 	actionGroup_ScreenSize->setExclusive(true);
-	screen_mode_count = 0;
+	screen_mode_count =	0;
+
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() == nullptr) return;
+
 	int ix = 0;
 	double _iimul = 1.0;
-	double _zmul = using_flags->get_custom_screen_zoom_factor();
+	double _zmul = up->get_custom_screen_zoom_factor();
 	double _mul = getScreenMultiply(ix);
-	for(int i = 0; i < using_flags->get_screen_mode_num();i++) {
+	for(int i = 0; i < up->get_screen_mode_num();i++) {
 		double _ymul = _zmul * _iimul;
 		_ymul = _zmul *  _iimul;
 		if((_mul == 0.5) && (i > 0) && (_zmul > 0.0)) {
@@ -146,9 +150,9 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 		} else {
 			_mul = getScreenMultiply(ix);
 			ix++;
-		}			
-		w = (int)(_mul * (double)using_flags->get_screen_width());
-		h = (int)(_mul * (double)using_flags->get_screen_height());
+		}
+		w = (int)(_mul * (double)up->get_screen_width());
+		h = (int)(_mul * (double)up->get_screen_height());
 		if((w <= 0) || (h <= 0)) {
 			break;
 		}
@@ -165,51 +169,49 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 }
 void Ui_MainWindowBase::ConfigScreenMenu(void)
 {
+
 	actionZoom = new Action_Control(this, using_flags);
 	actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
 	actionDisplay_Mode = new Action_Control(this, using_flags);
 	actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
-	
+
 	SET_ACTION_SINGLE(action_ScreenSeparateThread, true, true, (p_config->use_separate_thread_draw));
 	connect(action_ScreenSeparateThread, SIGNAL(toggled(bool)), this, SLOT(do_set_separate_thread_draw(bool)));
-	if(using_flags->is_use_scanline()) {
-		actionScanLine = new Action_Control(this, using_flags);
-		actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
-		actionScanLine->setCheckable(true);
-		if(p_config->scan_line) {
-			actionScanLine->setChecked(true);
-		} else {
-			actionScanLine->setChecked(false);
-		}
-		connect(actionScanLine, SIGNAL(toggled(bool)),
-			this, SLOT(set_scan_line(bool)));
-	}
-	
+
 	SET_ACTION_SINGLE(action_ScreenUseOSD, true, true, (p_config->use_osd_virtual_media));
 	connect(action_ScreenUseOSD, SIGNAL(toggled(bool)),this, SLOT(set_osd_virtual_media(bool)));
-	
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		actionGLScanLineHoriz = new Action_Control(this, using_flags);
-		actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
-		actionGLScanLineHoriz->setCheckable(true);
-		if(p_config->opengl_scanline_horiz != 0) {
-			actionGLScanLineHoriz->setChecked(true);
-		} else {
-			actionGLScanLineHoriz->setChecked(false);
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() != nullptr) {
+		if(up->is_use_scanline()) {
+			SET_ACTION_SINGLE_CONNECT(actionScanLine, true, true, (p_config->scan_line), SIGNAL(toggled(bool)), SLOT(do_set_scan_line(bool)));
+			actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
+			SET_ACTION_SINGLE_CONNECT(actionScanLine_Auto, true, true, (p_config->scan_line_auto), SIGNAL(toggled(bool)), SLOT(do_set_scan_line_auto(bool)));
+			actionScanLine_Auto->setObjectName(QString::fromUtf8("actionScanLine_Auto"));
+			actionScanLine_Auto->setVisible(up->is_use_scanline_auto());
 		}
-		connect(actionGLScanLineHoriz, SIGNAL(toggled(bool)),
-				this, SLOT(set_gl_scan_line_horiz(bool)));
-		if(using_flags->is_use_vertical_pixel_lines()) {
-			actionGLScanLineVert = new Action_Control(this, using_flags);
-			actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
-			actionGLScanLineVert->setCheckable(true);
-			if(p_config->opengl_scanline_vert != 0) {
-				actionGLScanLineVert->setChecked(true);
+		if(!(up->is_use_one_board_computer()) && (up->get_max_button() <= 0)) {
+			actionGLScanLineHoriz = new Action_Control(this, using_flags);
+			actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
+			actionGLScanLineHoriz->setCheckable(true);
+			if(p_config->opengl_scanline_horiz != 0) {
+				actionGLScanLineHoriz->setChecked(true);
 			} else {
-				actionGLScanLineVert->setChecked(false);
+				actionGLScanLineHoriz->setChecked(false);
 			}
-			connect(actionGLScanLineVert, SIGNAL(toggled(bool)),
-					this, SLOT(set_gl_scan_line_vert(bool)));
+			connect(actionGLScanLineHoriz, SIGNAL(toggled(bool)),
+					this, SLOT(set_gl_scan_line_horiz(bool)));
+			if(up->is_use_vertical_pixel_lines()) {
+				actionGLScanLineVert = new Action_Control(this, using_flags);
+				actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
+				actionGLScanLineVert->setCheckable(true);
+				if(p_config->opengl_scanline_vert != 0) {
+					actionGLScanLineVert->setChecked(true);
+				} else {
+					actionGLScanLineVert->setChecked(false);
+				}
+				connect(actionGLScanLineVert, SIGNAL(toggled(bool)),
+						this, SLOT(set_gl_scan_line_vert(bool)));
+			}
 		}
 	}
 	actionGroup_RotateType = new QActionGroup(this);
@@ -232,32 +234,33 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	if(p_config->use_opengl_filters) actionOpenGL_Filter->setChecked(true);
 	connect(actionOpenGL_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
 
-	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
-	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
+	if(up.get() != nullptr) {
+	if((up->get_screen_height_aspect() != up->get_screen_height()) ||
+	   (up->get_screen_width_aspect() != up->get_screen_width())) {
 		actionDot_by_Dot = new Action_Control(this, using_flags);
 		actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 		actionDot_by_Dot->setCheckable(true);
 		if(p_config->window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
 		actionDot_by_Dot->setData(QVariant((int)0));
-		
+
 		actionReferToX_Display = new Action_Control(this, using_flags);
 		actionReferToX_Display->setObjectName(QString::fromUtf8("actionReferToX_Display"));
 		actionReferToX_Display->setCheckable(true);
 		actionReferToX_Display->setData(QVariant((int)1));
 		if(p_config->window_stretch_type == 1) actionReferToX_Display->setChecked(true);
-		
+
 		actionReferToY_Display = new Action_Control(this, using_flags);
 		actionReferToY_Display->setObjectName(QString::fromUtf8("actionReferToY_Display"));
 		actionReferToY_Display->setCheckable(true);
 		actionReferToY_Display->setData(QVariant((int)2));
 		if(p_config->window_stretch_type == 2) actionReferToY_Display->setChecked(true);
-	
+
 		actionFill_Display = new Action_Control(this, using_flags);
 		actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 		actionFill_Display->setCheckable(true);
 		actionFill_Display->setData(QVariant((int)3));
 		if(p_config->window_stretch_type == 3) actionFill_Display->setChecked(true);
-	
+
 		actionGroup_Stretch = new QActionGroup(this);
 		actionGroup_Stretch->setExclusive(true);
 		actionGroup_Stretch->addAction(actionDot_by_Dot);
@@ -269,33 +272,35 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionReferToY_Display,  SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
 		connect(actionFill_Display, SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
 	}
+	}
 	actionCapture_Screen = new Action_Control(this, using_flags);
 	actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
 
 	actionStart_Record_Movie = new Action_Control(this, using_flags);
 	actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
 	actionStart_Record_Movie->setCheckable(false);
-	
+
 	actionStop_Record_Movie = new Action_Control(this, using_flags);
 	actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
 	actionStop_Record_Movie->setCheckable(false);
 
-	bool b_support_tv_render = using_flags->is_support_tv_render();
+	if(up.get() != nullptr) {
+	bool b_support_tv_render = up->is_support_tv_render();
 	if(b_support_tv_render) {
 		int ii = CONFIG_RENDER_TYPE_END;
 		int i;
-		
+
 		if((ii >= 8) || (ii < 0)) ii = 8;
 		actionGroup_RenderMode = new QActionGroup(this);
 		actionGroup_RenderMode->setExclusive(true);
-		
+
 		for(i = 0; i < ii; i++) {
 			action_SetRenderMode[i] = new Action_Control(this, using_flags);
 			action_SetRenderMode[i]->setCheckable(true);
 			action_SetRenderMode[i]->setEnabled(false);
 			action_SetRenderMode[i]->setVisible(false);
 			action_SetRenderMode[i]->setData(QVariant(i));
-			
+
 			if(i == p_config->rendering_type) action_SetRenderMode[i]->setChecked(true);
 			if(i == CONFIG_RENDER_TYPE_STD) {
 				action_SetRenderMode[i]->setEnabled(true);
@@ -310,8 +315,9 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 				connect(action_SetRenderMode[i], SIGNAL(triggered()), this, SLOT(do_set_render_mode_tv()));
 			}
 		}
-	}				
-	ConfigScreenMenu_List();  
+	}
+	}
+	ConfigScreenMenu_List();
 }
 
 void Ui_MainWindowBase::CreateScreenMenu(void)
@@ -319,15 +325,20 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 	int i;
 	menuScreen = new QMenu(menubar);
 	menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
-	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
-	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	if(up.get() != nullptr) {
+	if((up->get_screen_height_aspect() != up->get_screen_height()) ||
+	   (up->get_screen_width_aspect() != up->get_screen_width())) {
 		menuStretch_Mode = new QMenu(menuScreen);
 		menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
+	}
 	}
 	menuScreen->addAction(action_ScreenSeparateThread);
 	menuScreen->addSeparator();
 	menuScreen->addAction(action_ScreenUseOSD);
-	bool b_support_tv_render = using_flags->is_support_tv_render();
+
+	if(up.get() != nullptr) {
+	bool b_support_tv_render = up->is_support_tv_render();
 	if(b_support_tv_render) {
 		menuScreen_Render = new QMenu(menuScreen);
 		menuScreen_Render->setObjectName(QString::fromUtf8("menuRender_Mode"));
@@ -338,6 +349,7 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 		menuScreen->addAction(menuScreen_Render->menuAction());
 		menuScreen->addSeparator();
 	}
+	}
 	menuScreenSize = new QMenu(menuScreen);
 	menuScreenSize->setObjectName(QString::fromUtf8("menuScreen_Size"));
 	menuRecord_as_movie = new QMenu(menuScreen);
@@ -345,14 +357,15 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 
 	menuScreen->addAction(actionZoom);
 	menuScreen->addAction(menuScreenSize->menuAction());
-	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
+	if(up.get() != nullptr) {
+	for(i = 0; i < up->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == NULL) continue;
 		menuScreenSize->addAction(actionScreenSize[i]);
 		actionScreenSize[i]->setVisible(true);
 	}
 
-	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
-	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
+	if((up->get_screen_height_aspect() != up->get_screen_height()) ||
+	   (up->get_screen_width_aspect() != up->get_screen_width())) {
 		menuScreen->addSeparator();
 		menuScreen->addAction(menuStretch_Mode->menuAction());
 
@@ -363,15 +376,19 @@ void Ui_MainWindowBase::CreateScreenMenu(void)
 	}
 	menuScreen->addSeparator();
 
-	if(using_flags->is_use_scanline()) {
+	if(up->is_use_scanline()) {
 		menuScreen->addAction(actionScanLine);
+		if(up->is_use_scanline_auto()) {
+			menuScreen->addAction(actionScanLine_Auto);
+		}
 	}
 
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
+	if(!up->is_use_one_board_computer() && (up->get_max_button() <= 0)) {
 		menuScreen->addAction(actionGLScanLineHoriz);
-		if(using_flags->is_use_vertical_pixel_lines()) {
+		if(up->is_use_vertical_pixel_lines()) {
 			menuScreen->addAction(actionGLScanLineVert);
 		}
+	}
 	}
 	menuScreen_Rotate = new QMenu(menuScreen);
 	menuScreen_Rotate->setObjectName(QString::fromUtf8("menuScreenRotate"));
@@ -392,15 +409,22 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	QString tmps;
 	actionZoom->setText(QApplication::translate("MenuScreen", "Zoom Screen", 0));
 	actionDisplay_Mode->setText(QApplication::translate("MenuScreen", "Display Mode", 0));
-	
+
 	action_ScreenSeparateThread->setText(QApplication::translate("MenuScreen", "Separate Draw (need restart)", 0));
 	action_ScreenSeparateThread->setToolTip(QApplication::translate("MenuScreen", "Do drawing(rendering) sequence to separate thread.\nIf you feels emulator is slowly at your host-machine, disable this.\nYou should restart this emulator when changed.", 0));
 	action_ScreenUseOSD->setText(QApplication::translate("MenuScreen", "Display access Icons on screen.", 0));
 	action_ScreenUseOSD->setToolTip(QApplication::translate("MenuScreen", "Use icons on screen to display accessing virtual media(s).", 0));
-	
-	if(using_flags->is_use_scanline()) {
+
+	std::shared_ptr<USING_FLAGS>up = using_flags;
+	if(up.get() != nullptr) {
+	if(up->is_use_scanline()) {
 		actionScanLine->setText(QApplication::translate("MenuScreen", "Software Scan Line", 0));
 		actionScanLine->setToolTip(QApplication::translate("MenuScreen", "Display scan line by software.", 0));
+		if(up->is_use_scanline_auto()) {
+			actionScanLine_Auto->setText(QApplication::translate("MenuScreen", "Automatic Update scan line", 0));
+			actionScanLine_Auto->setToolTip(QApplication::translate("MenuScreen", "Update software scan line atomatically.\nMostly update at resetting.", 0));
+		}
+	}
 	}
 
 	menuScreen_Rotate->setTitle(QApplication::translate("MenuScreen", "Rotate Screen", 0));
@@ -417,28 +441,29 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 
 	actionRotate[3]->setText(QApplication::translate("MenuScreen", "270 deg", 0));
 	actionRotate[3]->setToolTip(QApplication::translate("MenuScreen", "Rotate screen to 270 deg.", 0));
-	
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
+
+	if(up.get() != nullptr) {
+	if(!(up->is_use_one_board_computer()) && (up->get_max_button() <= 0)) {
 		actionGLScanLineHoriz->setText(QApplication::translate("MenuScreen", "OpenGL Scan Line", 0));
 		actionGLScanLineHoriz->setToolTip(QApplication::translate("MenuScreen", "Display scan line by OpenGL.", 0));
-		if(using_flags->is_use_vertical_pixel_lines()) {
+		if(up->is_use_vertical_pixel_lines()) {
 			actionGLScanLineVert->setText(QApplication::translate("MenuScreen", "OpenGL Pixel Line", 0));
 			actionGLScanLineVert->setToolTip(QApplication::translate("MenuScreen", "Display pixel line by OpenGL.", 0));
 		}
 	}
-	
+
 	actionOpenGL_Filter->setText(QApplication::translate("MenuScreen", "OpenGL Filter", 0));
 	actionOpenGL_Filter->setToolTip(QApplication::translate("MenuScreen", "Use display filter by OpenGL", 0));
 
-	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
-	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
+	if((up->get_screen_height_aspect() != up->get_screen_height()) ||
+	   (up->get_screen_width_aspect() != up->get_screen_width())) {
 		actionDot_by_Dot->setText(QApplication::translate("MenuScreen", "Dot by Dot", 0));
 		actionReferToX_Display->setText(QApplication::translate("MenuScreen", "Keep Aspect: Refer to X", 0));
 		actionReferToY_Display->setText(QApplication::translate("MenuScreen", "Keep Aspect: Refer to Y", 0));
 		actionFill_Display->setText(QApplication::translate("MenuScreen", "Keep Aspect: Fill", 0));
 		menuStretch_Mode->setTitle(QApplication::translate("MenuScreen", "Stretch Mode", 0));
 	}
-
+	}
 	actionCapture_Screen->setText(QApplication::translate("MenuScreen", "Capture Screen", 0));
 	actionCapture_Screen->setToolTip(QApplication::translate("MenuScreen", "Capture screen to a PNG file.", 0));
 
@@ -448,13 +473,15 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 	actionStop_Record_Movie->setText(QApplication::translate("MenuScreen", "Stop Recording Movie", 0));
 	actionStop_Record_Movie->setToolTip(QApplication::translate("MenuScreen", "Stop Recording Movie", 0));
 	menuScreen->setToolTipsVisible(true);
-	
+
 	menuRecord_as_movie->setTitle(QApplication::translate("MenuScreen", "Record as Movie", 0));
 	menuRecord_as_movie->setToolTipsVisible(true);
 
 	menuScreenSize->setTitle(QApplication::translate("MenuScreen", "Screen Size", 0));
 	struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
-	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
+
+	if(up.get() != nullptr) {
+	for(i = 0; i < up->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == nullptr) continue;
 		s_mul = actionScreenSize[i]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
 		if(s_mul.value <= 0.0f) break;
@@ -462,7 +489,7 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 		tmps = QString::fromUtf8("x", -1) + tmps;
 		actionScreenSize[i]->setText(tmps);
 	}
-	bool b_support_tv_render = using_flags->is_support_tv_render();
+	bool b_support_tv_render = up->is_support_tv_render();
 	if(b_support_tv_render) {
 		menuScreen_Render->setTitle(QApplication::translate("MenuScreen", "Render Mode", 0));
 		menuScreen_Render->setToolTipsVisible(true);
@@ -473,5 +500,5 @@ void Ui_MainWindowBase::retranslateScreenMenu(void)
 			action_SetRenderMode[CONFIG_RENDER_TYPE_TV]->setToolTip(QApplication::translate("MenuScreen", "Rendering like tubed  television with RF modulator.\nNeeds OpenGL 3.0 or later.Not effect with OpenGL 2.0.", 0));
 		}
 	}
+	}
 }
-

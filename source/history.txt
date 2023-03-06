@@ -1,3 +1,12 @@
+11/12/2022
+
+[PC8801] fix crash issue when 5inch drives are disconnected
+[PC8801/PC88] PC-8801 and PC-8801mk2 support 400 line mode
+
+[PC9801/DISPLAY] fix default memory switch value in hireso mode
+[PC9801/DISPLAY] fix memory swtich when sound BIOS is disabled
+
+
 10/14/2022
 
 [MZ2500/CRTC] fix vblank signal for GDEVS = GDEVE case

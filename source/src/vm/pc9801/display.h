@@ -282,13 +282,13 @@ public:
 	{
 		d_pio_prn = device;
 	}
-	void sound_bios_ok()
+	void set_memsw_4(uint8_t value)
 	{
-		tvram[0x3fee] = 8;
+		tvram[0x3fee] = value;
 	}
-	void sound_bios_off()
+	uint8_t get_memsw_4()
 	{
-		tvram[0x3fee] = 0;
+		return tvram[0x3fee];
 	}
 	void draw_screen();
 };

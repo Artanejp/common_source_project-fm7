@@ -131,6 +131,7 @@ protected:
 	int base_qd_num;
 
 	bool use_scanline;
+	bool use_scanline_auto;
 	bool use_screen_rotate;
 
 	int max_scsi;
@@ -183,6 +184,9 @@ protected:
 	bool machine_cmt_mz_series;
 	bool machine_pc6001_variants;
 	bool machine_pc8001_variants;
+	bool machine_pc8801_variants;
+	bool machine_pc8801sr_variants;
+
 	bool machine_mz80a_variants;
 	bool machine_mz80b_variants;
 	bool machine_mz2500;
@@ -314,6 +318,7 @@ public:
 	int get_base_quick_disk_num() { return base_qd_num; }
 
 	bool is_use_scanline() { return use_scanline; }
+	bool is_use_scanline_auto() { return use_scanline_auto; }
 	bool is_use_screen_rotate() { return use_screen_rotate; }
 
 	int get_max_scsi() { return max_scsi; }
@@ -364,6 +369,9 @@ public:
 	bool is_machine_cmt_mz_series() { return machine_cmt_mz_series; }
 	bool is_machine_pc6001_variants() { return machine_pc6001_variants; }
 	bool is_machine_pc8001_variants() { return machine_pc8001_variants; }
+	bool is_machine_pc8801_variants() { return machine_pc8801_variants; }
+	bool is_machine_pc8801sr_variants() { return machine_pc8801sr_variants; }
+
 	bool is_machine_mz80a_variants() { return machine_mz80a_variants; }
 	bool is_machine_mz80b_variants() { return machine_mz80b_variants; }
 	bool is_machine_mz2500() { return machine_mz2500; }

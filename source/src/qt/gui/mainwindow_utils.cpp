@@ -108,7 +108,7 @@ void Ui_MainWindowBase::do_set_latency(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num < 0) || (num >= 8)) return;
 	p_config->sound_latency = num;
 	emit sig_emu_update_config();
@@ -121,7 +121,7 @@ void Ui_MainWindowBase::do_set_freq(void)
 	int num = cp->data().value<int>();
 
 	if((num < 0) || (num >= 16)) return;
-	
+
 	p_config->sound_frequency = num;
 	emit sig_emu_update_config();
 }
@@ -131,7 +131,7 @@ void Ui_MainWindowBase::do_set_sound_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
 	p_config->sound_type = num;
 	emit sig_emu_update_config();
@@ -155,15 +155,23 @@ void Ui_MainWindowBase::set_monitor_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num < 0) || (num >= using_flags->get_use_monitor_type())) return;
 	p_config->monitor_type = num;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::set_scan_line(bool flag)
+void Ui_MainWindowBase::do_set_scan_line(bool flag)
 {
+	if(p_config == nullptr) return;
 	p_config->scan_line = flag;
+	emit sig_emu_update_config();
+}
+
+void Ui_MainWindowBase::do_set_scan_line_auto(bool flag)
+{
+	if(p_config == nullptr) return;
+	p_config->scan_line_auto = flag;
 	emit sig_emu_update_config();
 }
 
@@ -195,7 +203,7 @@ void Ui_MainWindowBase::update_screen_size(int num)
 	if(using_flags == nullptr) return;
 	if((num < 0) || (num >= using_flags->get_screen_mode_num())) return;
 	if(actionScreenSize[num] == nullptr) return;
-	
+
 	int w, h;
 	double nd, ww, hh;
 	double xzoom = using_flags->get_screen_x_zoom();
@@ -204,7 +212,7 @@ void Ui_MainWindowBase::update_screen_size(int num)
 	struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
 	s_mul = actionScreenSize[num]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
 	nd = s_mul.value;
-	
+
 	ww = (double)using_flags->get_screen_width();
 	hh = (double)using_flags->get_screen_height();
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
@@ -256,7 +264,7 @@ void Ui_MainWindowBase::set_mouse_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num >= using_flags->get_use_mouse_type()) && (num < 0)) return;
 	p_config->mouse_type = num;
 	emit sig_emu_update_config();
@@ -267,7 +275,7 @@ void Ui_MainWindowBase::set_device_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num >= using_flags->get_use_device_type()) && (num < 0)) return;
 	p_config->device_type = num;
 	emit sig_emu_update_config();
@@ -279,7 +287,7 @@ void Ui_MainWindowBase::set_keyboard_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num >= using_flags->get_use_keyboard_type()) && (num < 0)) return;
 	p_config->keyboard_type = num;
 	emit sig_emu_update_config();
@@ -290,7 +298,7 @@ void Ui_MainWindowBase::set_joystick_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num >= using_flags->get_use_joystick_type()) && (num < 0)) return;
 	p_config->joystick_type = num;
 	emit sig_emu_update_config();
@@ -301,12 +309,12 @@ void Ui_MainWindowBase::set_drive_type(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-	
+
 	if((num >= using_flags->get_use_drive_type()) && (num < 0)) return;
 	p_config->drive_type = num;
 	emit sig_emu_update_config();
 }
-   
+
 
 void Ui_MainWindowBase::set_screen_size(int w, int h)
 {
@@ -317,7 +325,7 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 	}
 	emit sig_glv_set_fixed_size(w, h);
 	resize_statusbar(w, h);
-   
+
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
 }
@@ -332,7 +340,7 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	// 2 = ASPECT(SCale Y)
 	// 3 = ASPECT(Scale X,Y)
 	p_config->window_stretch_type = num;
-	
+
 	if(using_flags->get_emu()) {
 		int w, h, n;
 		double nd, ww, hh;
@@ -341,16 +349,16 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 		n = p_config->window_mode;
 		if((n < 0) || (n >= using_flags->get_screen_mode_num())) return;
 		if(actionScreenSize[n] == nullptr) return;
-		
+
 		struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
 		s_mul = actionScreenSize[n]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
 		nd = s_mul.value;
-		
+
 		if(nd <= 0.0f) return;
-		
+
 		ww = (double)using_flags->get_screen_width();
 		hh = (double)using_flags->get_screen_height();
-		
+
 		if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 		   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
 			double par_w = (double)using_flags->get_screen_width_aspect() / ww;
@@ -396,14 +404,14 @@ void Ui_MainWindowBase::do_set_screen_aspect(void)
 void Ui_MainWindowBase::ConfigDeviceType(void)
 {
 //	if(using_flags->is_use_variable_memory()) {
-//	}		
+//	}
 	if(using_flags->get_use_device_type() > 0) {
 		int ii;
 		menuDeviceType = new QMenu(menuMachine);
 		menuDeviceType->setObjectName(QString::fromUtf8("menuDeviceType"));
 		menuMachine->addAction(menuDeviceType->menuAction());
 		menuDeviceType->setToolTipsVisible(true);
-      
+
 		actionGroup_DeviceType = new QActionGroup(this);
 		actionGroup_DeviceType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_device_type(); ii++) {
@@ -428,7 +436,7 @@ void Ui_MainWindowBase::ConfigJoystickType(void)
 		menuJoystickType->setObjectName(QString::fromUtf8("menuJoystickType"));
 		menuMachine->addAction(menuJoystickType->menuAction());
 		menuJoystickType->setToolTipsVisible(true);
-      
+
 		actionGroup_JoystickType = new QActionGroup(this);
 		actionGroup_JoystickType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_joystick_type(); ii++) {
@@ -449,7 +457,7 @@ void Ui_MainWindowBase::ConfigJoystickType(void)
 void Ui_MainWindowBase::ConfigMachineFeatures(void)
 {
 	for(int i = 0; i < using_flags->get_use_machine_features(); i++) {
-		
+
 		menuMachineFeatures[i] = new QMenu(menuMachine);
 		menuMachineFeatures[i]->setObjectName(QString::fromUtf8("menuMachineFeatures"));
 		menuMachine->addAction(menuMachineFeatures[i]->menuAction());
@@ -465,7 +473,7 @@ void Ui_MainWindowBase::ConfigKeyboardType(void)
 		menuKeyboardType->setObjectName(QString::fromUtf8("menuKeyboardType"));
 		menuMachine->addAction(menuKeyboardType->menuAction());
 		menuKeyboardType->setToolTipsVisible(true);
-      
+
 		actionGroup_KeyboardType = new QActionGroup(this);
 		actionGroup_KeyboardType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_keyboard_type(); ii++) {
@@ -490,7 +498,7 @@ void Ui_MainWindowBase::ConfigMouseType(void)
 		menuMouseType->setObjectName(QString::fromUtf8("menuMouseType"));
 		menuMachine->addAction(menuMouseType->menuAction());
 		menuMouseType->setToolTipsVisible(true);
-      
+
 		actionGroup_MouseType = new QActionGroup(this);
 		actionGroup_MouseType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_mouse_type(); ii++) {
@@ -514,7 +522,7 @@ void Ui_MainWindowBase::ConfigDriveType(void)
 		menuDriveType = new QMenu(menuMachine);
 		menuDriveType->setObjectName(QString::fromUtf8("menu_DriveType"));
 		menuDriveType->setToolTipsVisible(true);
-		
+
 		actionGroup_DriveType = new QActionGroup(this);
 		actionGroup_DriveType->setObjectName(QString::fromUtf8("actionGroup_DriveType"));
 		actionGroup_DriveType->setExclusive(true);
@@ -544,7 +552,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 		actionGroup_SoundDevice = new QActionGroup(this);
 		actionGroup_SoundDevice->setObjectName(QString::fromUtf8("actionGroup_SoundDevice"));
 		actionGroup_SoundDevice->setExclusive(true);
-		menuMachine->addAction(menuSoundDevice->menuAction());   
+		menuMachine->addAction(menuSoundDevice->menuAction());
 		for(i = 0; i < using_flags->get_use_sound_device_type(); i++) {
 			actionSoundDevice[i] = new Action_Control(this, using_flags);
 			actionSoundDevice[i]->setCheckable(true);
@@ -570,7 +578,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 		menuPrintDevice = new QMenu(menuMachine);
 		menuPrintDevice->setObjectName(QString::fromUtf8("menu_PrintDevice"));
 		menuPrintDevice->setToolTipsVisible(true);
-		
+
 		actionGroup_PrintDevice = new QActionGroup(this);
 		actionGroup_PrintDevice->setObjectName(QString::fromUtf8("actionGroup_PrintDevice"));
 		actionGroup_PrintDevice->setExclusive(true);
@@ -596,7 +604,7 @@ void Ui_MainWindowBase::set_printer_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int p_type = cp->data().value<int>();
-	
+
 	// 0 = PRNFILE
 	if(p_type < 0) p_type = 0; // OK?
 	if(using_flags->get_use_printer_type() > 0) {
@@ -620,7 +628,7 @@ void Ui_MainWindowBase::ConfigSerialType(void)
 		menuSerialDevice = new QMenu(menuMachine);
 		menuSerialDevice->setObjectName(QString::fromUtf8("menu_SerialDevice"));
 		menuSerialDevice->setToolTipsVisible(true);
-		
+
 		actionGroup_SerialDevice = new QActionGroup(this);
 		actionGroup_SerialDevice->setObjectName(QString::fromUtf8("actionGroup_SerialDevice"));
 		actionGroup_SerialDevice->setExclusive(true);
@@ -646,7 +654,7 @@ void Ui_MainWindowBase::set_serial_device(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int p_type = cp->data().value<int>();
-	
+
 	// 0 = PRNFILE
 	if(p_type < 0) p_type = 0; // OK?
 	if(using_flags->get_use_serial_type() > 0) {
@@ -675,4 +683,3 @@ void Ui_MainWindowBase::setTextAndToolTip(QMenu *p, QString text, QString toolti
 	p->setTitle(text);
 	p->setToolTip(tooltip);
 }
-

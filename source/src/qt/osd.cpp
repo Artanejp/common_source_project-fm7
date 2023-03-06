@@ -576,6 +576,19 @@ void OSD::set_features_machine(void)
 #ifdef _PC8801MA
 	add_feature(_T("_PC8801MA"), 1);
 #endif
+#ifdef _PC8801SR
+	add_feature(_T("_PC8801SR"), 1);
+#endif
+
+#ifdef PC8001_VARIANT
+	add_feature(_T("PC8001_VARIANT"), 1);
+#endif
+#ifdef PC8801_VARIANT
+	add_feature(_T("PC8801_VARIANT"), 1);
+#endif
+#ifdef PC8801SR_VARIANT
+	add_feature(_T("PC8801SR_VARIANT"), 1);
+#endif
 
 // NEC PC-9801
 #ifdef _PC9801

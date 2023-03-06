@@ -41,7 +41,7 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 	if(up->is_machine_pc6001_variants()) {
 		ext_play = "*.wav  *.cas *.p6 *.p6t *.gz";
 		ext_rec = "*.wav  *.cas *.p6 *.p6t";
-	} else if(up->is_machine_pc8001_variants()) {
+	} else if((up->is_machine_pc8001_variants()) || (up->is_machine_pc8801_variants())) {
 		ext_play = "*.cas *.cmt *.n80 *.t88 *.gz";
 		ext_rec  = "*.cas *.cmt";
 	} else if(up->is_machine_mz80a_variants()) {

@@ -158,18 +158,25 @@ void MEMBUS::initialize()
 	sound_bios_selected = false;
 	sound_bios_load = false;
 
+//	memset(sound_bios_ram, 0x00, sizeof(sound_bios_ram));
+//	sound_bios_ram_selected = false;
 	if((config.sound_type == 0) || (config.sound_type == 1)) {
-		sound_bios_load = (read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0) ? true : false;
+		out_debug_log(_T("Loading Sound BIOS \"SOUND.ROM\" type %d"), config.sound_type);
+		sound_bios_load = (read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
 	} else if((config.sound_type == 2) || (config.sound_type == 3)) {
-		sound_bios_load = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0) ? true : false;
+		out_debug_log(_T("Loading Sound BIOS \"MUSIC.ROM\" type %d"), config.sound_type);
+		sound_bios_load = (read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
 	}
-	if(sound_bios_load) out_debug_log(_T("SUCCESS"));
-	if((sound_bios_load) && ((config.sound_type & 1) == 0)){
-		d_display->sound_bios_ok();
-		sound_bios_selected = true;
+	if(sound_bios_load) {
+		if((config.sound_type & 1) == 0) {
+			sound_bios_selected = true;
+		}
+		out_debug_log(_T("SUCCESS"));
+	}
+	if(sound_bios_selected) {
+		d_display->set_memsw_4(d_display->get_memsw_4() |  8);
 	} else {
-		//d_display->sound_bios_off();
-		sound_bios_selected = false;
+		d_display->set_memsw_4(d_display->get_memsw_4() & ~8);
 	}
 #if defined(SUPPORT_SASI_IF)
 	sasi_bios_load = false;
@@ -242,7 +249,6 @@ void MEMBUS::reset()
 		sound_bios_selected = true;
 	} else {
 		using_sound_bios = false;
-		//d_display->sound_bios_off();
 		sound_bios_selected = false;
 	}
 #if defined(USE_SOUND_TYPE)
@@ -251,6 +257,13 @@ void MEMBUS::reset()
 		using_sound_bios = false;
 	}
 #endif
+	// Re-Update Sound BIOS
+	if(sound_bios_selected) {
+		d_display->set_memsw_4(d_display->get_memsw_4() |  8);
+	} else {
+		d_display->set_memsw_4(d_display->get_memsw_4() & ~8);
+	}
+
 	//out_debug_log("SOUND BIOS=%s", (sound_bios_selected) ? "YES" : "NO");
 	// EMS
 #if defined(SUPPORT_NEC_EMS)

@@ -90,7 +90,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_serial = false;
 	use_serial_type = 0;
 
-	use_scanline = use_screen_rotate = false;
+	use_scanline = use_scanline_auto = use_screen_rotate = false;
 	screen_mode_num = 1;
 	custom_screen_zoom_factor = 0.0;
 
@@ -226,6 +226,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	machine_cmt_mz_series  = false;
 	machine_pc6001_variants  = false;
 	machine_pc8001_variants = false;
+	machine_pc8801_variants = false;
+	machine_pc8801sr_variants = false;
+
 	machine_mz80a_variants = false;
 	machine_mz80b_variants = false;
 	machine_mz2500 = false;

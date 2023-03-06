@@ -90,7 +90,7 @@ typedef struct {
 	int cmd_ptr;
 	uint8_t mode, reverse, intr_mask, status;
 	bool vblank;
-	
+
 	void reset(bool hireso);
 	void __FASTCALL write_cmd(uint8_t data);
 	void __FASTCALL write_param(uint8_t data);
@@ -116,7 +116,7 @@ typedef struct {
 	uint8_t mode, status;
 	bool high_low;
 	DEVICE *mem;
-	
+
 	void  __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t  __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL start(int c);
@@ -155,12 +155,12 @@ private:
 #ifdef SUPPORT_M88_DISKDRV
 	DEVICE *d_diskio;
 #endif
-	
+
 	uint8_t* rbank[16];
 	uint8_t* wbank[16];
 	uint8_t wdmy[0x1000];
 	uint8_t rdmy[0x1000];
-	
+
 	uint8_t ram[0x10000];
 #if defined(PC88_EXRAM_BANKS)
 	uint8_t exram[0x8000 * PC88_EXRAM_BANKS];
@@ -202,14 +202,14 @@ private:
 	uint8_t cdbios[0x10000];
 	bool cdbios_loaded;
 #endif
-	
+
 	// i/o port
 	uint8_t port[256];
 	uint8_t prev_port[256];
-	
+
 	pc88_crtc_t crtc;
 	pc88_dmac_t dmac;
-	
+
 	// memory mapper
 #if defined(_PC8001SR) || defined(PC8801SR_VARIANT)
 	uint8_t alu_reg[3];
@@ -217,7 +217,7 @@ private:
 #if defined(SUPPORT_PC88_GVRAM)
 	uint8_t gvram_plane, gvram_sel;
 #endif
-	
+
 	void update_timing();
 	int get_m1_wait(bool addr_f000);
 	int get_main_wait(bool read);
@@ -239,7 +239,7 @@ private:
 	void update_tvram_memmap();
 #endif
 #endif
-	
+
 	// cpu
 	bool cpu_clock_low;
 #if defined(SUPPORT_PC88_HIGH_CLOCK)
@@ -256,7 +256,7 @@ private:
 	int gvram_wait_clocks_r, gvram_wait_clocks_w;
 #endif
 	int busreq_clocks;
-	
+
 	// screen
 	typedef struct palette_s {
 		uint8_t b, r, g;
@@ -264,13 +264,13 @@ private:
 	palette_t palette[10]; // 8 = digital back color, 9 = analog back color
 	bool update_palette;
 	bool hireso;
-	
+
 	uint8_t sg_pattern[0x800];
 	uint8_t text[200][640];
 	uint8_t text_color[200][80];
 	bool text_reverse[200][80];
 	uint8_t graph[400][640];
-	
+
 	palette_t palette_digital[9];
 	palette_t palette_analog [9];
 	palette_t palette_line_digital[400][9];
@@ -279,7 +279,7 @@ private:
 #if defined(SUPPORT_PC88_VAB)
 	scrntype_t palette_vab_pc[0x10000];
 #endif
-	
+
 	void draw_text();
 #if defined(SUPPORT_PC88_GVRAM)
 #if defined(PC8001_VARIANT)
@@ -292,20 +292,20 @@ private:
 	bool draw_640x200_color_graph();
 	void draw_640x200_mono_graph();
 	void draw_640x200_attrib_graph();
-#if defined(PC8801SR_VARIANT)
+#if defined(PC8801_VARIANT)
 	void draw_640x400_mono_graph();
 	void draw_640x400_attrib_graph();
 #endif
 #endif
-	
+
 	// misc
 	bool usart_dcd;
 	bool opn_busy;
-	
+
 	// keyboard
 	uint8_t key_status[256];
 	uint8_t key_caps, key_kana;
-	
+
 #ifdef SUPPORT_PC88_JOYSTICK
 	// joystick & mouse
 	const uint32_t *joystick_status;
@@ -316,7 +316,7 @@ private:
 	int mouse_dx, mouse_dy;
 	int mouse_lx, mouse_ly;
 #endif
-	
+
 	// intterrupt
 	uint8_t intr_req;
 #ifdef SUPPORT_PC88_OPN1
@@ -328,7 +328,7 @@ private:
 	uint8_t intr_mask1, intr_mask2;
 	void __FASTCALL request_intr(int level, bool status);
 	void update_intr();
-	
+
 	// data recorder
 	FILEIO *cmt_fio;
 	bool cmt_play, cmt_rec;
@@ -337,25 +337,25 @@ private:
 	uint8_t cmt_buffer[CMT_BUFFER_SIZE];
 	int cmt_data_carrier[1024], cmt_data_carrier_cnt;
 	int cmt_register_id;
-	
+
 	void release_tape();
 	bool check_data_carrier();
-	
+
 	// beep/sing
 	bool beep_on, beep_signal, sing_signal;
-	
+
 #ifdef SUPPORT_PC88_PCG8100
 	// pcg
 	uint16_t pcg_addr;
 	uint8_t pcg_data, pcg_ctrl;
 	uint8_t pcg_pattern[0x800];
 #endif
-	
+
 #ifdef SUPPORT_PC88_CDROM
 	int cdda_register_id;
 	double cdda_volume;
 #endif
-	
+
 #ifdef NIPPY_PATCH
 	// dirty patch for NIPPY
 	bool nippy_patch;
@@ -398,12 +398,12 @@ public:
 #endif
 	}
 	~PC88() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	
+
 	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
 	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
 	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
@@ -412,11 +412,11 @@ public:
 #ifdef _IO_DEBUG_LOG
 	uint32_t __FASTCALL read_io8_debug(uint32_t addr);
 #endif
-	
+
 	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
 	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	
+
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	void __FASTCALL event_callback(int event_id, int err);
 	void event_frame();
@@ -424,7 +424,7 @@ public:
 	uint32_t get_intr_ack();
 	void notify_intr_ei();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 #ifdef PC8801SR_VARIANT
 	bool __FASTCALL is_sr_mr()
@@ -545,7 +545,7 @@ public:
 	{
 		return (key_kana != 0);
 	}
-	
+
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
@@ -554,10 +554,9 @@ public:
 		return (cmt_play || cmt_rec);
 	}
 	bool is_frame_skippable();
-	
+
 	void draw_screen();
 };
 
 }
 #endif
-
