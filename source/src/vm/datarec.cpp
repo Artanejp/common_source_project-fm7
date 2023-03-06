@@ -749,28 +749,28 @@ int DATAREC::load_wav_image(int offset)
 
 	play_fio->Fseek(offset, FILEIO_SEEK_SET);
 	play_fio->Fread(&header, sizeof(header), 1);
-	out_debug_log(_T(" Open %s OFFSET=%d"), play_fio->FilePath(), offset);
+	//out_debug_log(_T(" Open %s OFFSET=%d"), play_fio->FilePath(), offset);
 	__fmt_id.set_2bytes_le_from(header.format_id);
 	__sample_bits.set_2bytes_le_from(header.sample_bits);
-	out_debug_log(_T(" HEADER ID=%d SAMPLE BITS=%d"), __fmt_id.u16, __sample_bits.u16);
+	//out_debug_log(_T(" HEADER ID=%d SAMPLE BITS=%d"), __fmt_id.u16, __sample_bits.u16);
 	if((__fmt_id.u16 != 1) || !((__sample_bits.u16 == 8) || (__sample_bits.u16 == 16))) {
 		return 0;
 	}
 	tmpval32.set_4bytes_le_from(header.fmt_chunk.size);
 	play_fio->Fseek(tmpval32.d - 16, FILEIO_SEEK_CUR);
-	out_debug_log(_T(" OK SEEK %d"), tmpval32.d - 16);
+	//out_debug_log(_T(" OK SEEK %d"), tmpval32.d - 16);
 	while(1) {
 		play_fio->Fread(&chunk, sizeof(chunk), 1);
 		__chunk_size.set_4bytes_le_from(chunk.size);
 		_TCHAR _tmp_id[5] = {0};
 		memcpy(_tmp_id, chunk.id, 4);
-		out_debug_log(_T(" Chunk ID=%04s SIZE=%d "), _tmp_id, __chunk_size.d);
+		//out_debug_log(_T(" Chunk ID=%04s SIZE=%d "), _tmp_id, __chunk_size.d);
 		if(strncmp(chunk.id, "data", 4) == 0) {
-			out_debug_log(_T(" DATA FIELD FOUND"));
+			//out_debug_log(_T(" DATA FIELD FOUND"));
 			break;
 		}
 		play_fio->Fseek(__chunk_size.d, FILEIO_SEEK_CUR);
-		out_debug_log(_T(" SEEK %d "), __chunk_size.d);
+		//out_debug_log(_T(" SEEK %d "), __chunk_size.d);
 	}
 
 	__channels.set_2bytes_le_from(header.channels);
@@ -782,14 +782,14 @@ int DATAREC::load_wav_image(int offset)
 	__sample_rate.set_4bytes_le_from(header.sample_rate);
 	sample_rate = __sample_rate.d;
 	sample_usec = 1000000. / (float)sample_rate;
-	out_debug_log(_T(" SAMPLE RATE=%d USEC=%f"), sample_rate, sample_usec);
+	//out_debug_log(_T(" SAMPLE RATE=%d USEC=%f"), sample_rate, sample_usec);
 
 	// load samples
 	if(samples > 0) {
 		#define TMP_LENGTH (0x10000 * (uint32_t)(__channels.u16))
 
 		uint8_t *tmp_buffer = (uint8_t *)malloc(TMP_LENGTH);
-		out_debug_log(_T(" ALLOC SIZE=%d"), TMP_LENGTH);
+		//out_debug_log(_T(" ALLOC SIZE=%d"), TMP_LENGTH);
 
 		play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);
 
@@ -811,7 +811,7 @@ int DATAREC::load_wav_image(int offset)
 			} \
 			if(tmp_ptr == TMP_LENGTH) { \
 				play_fio->Fread(tmp_buffer, TMP_LENGTH, 1); \
-				out_debug_log(_T(" READ MORE")); \
+				/*out_debug_log(_T(" READ MORE"));	*/		\
 				tmp_ptr = 0; \
 			} \
 		}
@@ -918,7 +918,7 @@ int DATAREC::load_wav_image(int offset)
 				}
 			}
 			free(wav_buffer);
-			out_debug_log(_T("LOAD END SAMPLES=%d"), samples);
+			//out_debug_log(_T("LOAD END SAMPLES=%d"), samples);
 			loaded_samples = samples;
 		} else {
 			// load samples
