@@ -328,7 +328,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	// z80 family daisy chain
 	DEVICE* parent_dev = nullptr;
-	int level = 0;
+	int level = 1;
 
 	#define Z80_DAISY_CHAIN(dev) { \
 		if(parent_dev == nullptr) { \
