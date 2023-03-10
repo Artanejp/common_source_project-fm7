@@ -186,8 +186,12 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	actionDebugger[0]->setVisible(true);
 	actionDebugger[1]->setVisible(true);
-
+#if defined(SUPPORT_PC88_16BIT)
+	actionDebugger[2]->setText(QApplication::translate("MenuPC88", "PC-8801-16", 0));
+	actionDebugger[2]->setVisible(true);
+#else
 	actionDebugger[2]->setVisible(false);
+#endif
 	actionDebugger[3]->setVisible(false);
 #endif
 #if defined(USE_JOYSTICK_TYPE)
@@ -231,6 +235,10 @@ void META_MainWindow::retranslateUi(void)
 #if defined(SUPPORT_PC88_FDD_8INCH)
 	actionFDD_8Inch->setText(QApplication::translate("MenuPC88", "8Inch FDD(Need to restart)", 0));
 	actionFDD_8Inch->setToolTip(QApplication::translate("MenuPC88", "Enable 8 inch FDDs for 3: and 4:.\nThis effects only after restarting this emulator.", 0));
+#endif
+#if defined(SUPPORT_PC88_16BIT)
+	action16bit->setText(QApplication::translate("MenuPC88", "PC-8801-16(Need to restart)", 0));
+	action16bit->setToolTip(QApplication::translate("MenuPC88", "Enable PC-8801-16 16bit extra CPU card.\nThis effects only after restarting this emulator.", 0));
 #endif
 #if defined(SUPPORT_M88_DISKDRV)
 	actionM88DRV->setText(QApplication::translate("MenuPC88", "M88 DiskDrv(Need to restart)", 0));
@@ -282,7 +290,11 @@ void META_MainWindow::setupUI_Emu(void)
 
 	menuMachine->addAction(actionPalette);
 	menuMachine->addSeparator();
-
+#if defined(SUPPORT_PC88_16BIT)
+	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(action16bit, DIPSWITCH_16BIT, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
+	menuMachine->addAction(action16bit);
+	menuMachine->addSeparator();
+#endif
 #if defined(SUPPORT_M88_DISKDRV)
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionM88DRV, DIPSWITCH_M88_DISKDRV, p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionM88DRV);

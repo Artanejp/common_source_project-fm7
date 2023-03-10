@@ -2391,9 +2391,15 @@ void update_popup_menu(HWND hWnd, HMENU hMenu)
 	}
 #endif
 #endif
-#ifdef USE_BOOT_MODE
+#if defined(USE_BOOT_MODE) || defined(USE_DIPSWITCH)
 	else if(id >= ID_VM_BOOT_MENU_START && id <= ID_VM_BOOT_MENU_END) {
-		update_vm_boot_menu(hMenu);
+		#ifdef USE_BOOT_MODE
+			update_vm_boot_menu(hMenu);
+		#endif
+		#ifdef USE_DIPSWITCH
+			// dipswitch may be in sound menu
+			update_vm_dipswitch_menu(hMenu);
+		#endif
 	}
 #endif
 #ifdef USE_CPU_TYPE

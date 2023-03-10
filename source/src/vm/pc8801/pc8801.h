@@ -87,6 +87,7 @@
 	#define SUPPORT_PC88_OPN2
 	#define SUPPORT_PC88_JAST
 	#define SUPPORT_PC88_FDD_8INCH
+	#define SUPPORT_PC88_16BIT
 	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8801)
 	#define SUPPORT_PC88_KANJI1
@@ -94,6 +95,7 @@
 	#define SUPPORT_PC88_OPN2
 	#define SUPPORT_PC88_JAST
 	#define SUPPORT_PC88_FDD_8INCH
+	#define SUPPORT_PC88_16BIT
 	#define SUPPORT_M88_DISKDRV
 #elif defined(_PC8001SR)
 	#define SUPPORT_PC88_KANJI1
@@ -128,6 +130,11 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
+#if defined(SUPPORT_PC88_16BIT)
+#define I8259_MAX_CHIPS		1
+#define IO_ADDR_MAX		0x100
+#define MEMORY_ADDR_MAX		0x100000
+#endif
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
 #if defined(_PC8801MA)
 #define PC80S31K_NO_WAIT
@@ -163,6 +170,7 @@
 #define DIPSWITCH_FDD_8INCH	0x80
 #define DIPSWITCH_M88_DISKDRV	0x100
 #define DIPSWITCH_QUASIS88_CMT	0x200
+#define DIPSWITCH_16BIT		0x400
 #define DIPSWITCH_DEFAULT	(DIPSWITCH_HMB20 + DIPSWITCH_GSX8800 + DIPSWITCH_PCG8100 + DIPSWITCH_CMDSING + DIPSWITCH_FDD_5INCH)
 #define USE_JOYSTICK_TYPE	2
 #if defined(SUPPORT_PC88_FDD_8INCH)
@@ -330,8 +338,15 @@ class YM2151;
 class AY_3_891X;
 #endif
 
-#if defined(SUPPORT_PC88_GSX8800) || defined(SUPPORT_PC88_PCG8100)
+#if defined(SUPPORT_PC88_GSX8800) || defined(SUPPORT_PC88_PCG8100) || defined(SUPPORT_PC88_16BIT)
 class I8253;
+#endif
+
+#if defined(SUPPORT_PC88_16BIT)
+class I8259;
+class I86;
+class IO;
+class MEMORY;
 #endif
 namespace PC88DEV {
 	class PC88;
@@ -344,10 +359,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	EVENT* pc88event;
-	
+
 	DEVICE* pc88prn;
 	I8251* pc88sio;
 	I8255* pc88pio;
@@ -361,7 +376,7 @@ protected:
 #endif
 	DEVICE* dummycpu;
 	Z80* pc88cpu;
-	
+
 	PC80S31K* pc88sub;
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
@@ -384,7 +399,7 @@ protected:
 #ifdef SUPPORT_PC88_HMB20
 	YM2151* pc88opm;
 #endif
-	
+
 #ifdef SUPPORT_PC88_GSX8800
 //	I8253* pc88gsx_pit;
 	AY_3_891X* pc88gsx_psg1;
@@ -392,50 +407,61 @@ protected:
 	AY_3_891X* pc88gsx_psg3;
 	AY_3_891X* pc88gsx_psg4;
 #endif
-	
+
 #ifdef SUPPORT_PC88_PCG8100
 	I8253* pc88pcg_pit;
 	PCM1BIT* pc88pcg_pcm1;
 	PCM1BIT* pc88pcg_pcm2;
 	PCM1BIT* pc88pcg_pcm3;
 #endif
-	
+
+#ifdef SUPPORT_PC88_16BIT
+	I8253* pc88pit_16bit;
+	I8255* pc88pio_16bit;
+	I8259* pc88pic_16bit;
+	I86* pc88cpu_16bit;
+	IO* pc88io_16bit;
+	MEMORY* pc88mem_16bit;
+	uint8_t pc88rom_16bit[0x1000];
+	uint8_t pc88ram_16bit[0x20000];
+#endif
+
 #ifdef SUPPORT_M88_DISKDRV
 	PC88DEV::DiskIO* pc88diskio;
 #endif
-	
+
 	PC88DEV::PC88* pc88;
-	
+
 	int boot_mode;
-	
+
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);
 	DISK *get_floppy_disk_handler(int drv);
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset() override;
 	void run() override;
 	double get_frame_rate() override;
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index) override;
 #endif
 	// draw screen
 	void draw_screen() override;
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples) override;
 	uint16_t* create_sound(int* extra_frames) override;
@@ -443,13 +469,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat) override;
 	void key_up(int code) override;
 	bool get_caps_locked() override;
 	bool get_kana_locked() override;
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
 	void close_floppy_disk(int drv) override;
@@ -470,17 +496,17 @@ public:
 	uint32_t is_compact_disc_accessed() override;
 #endif
 	bool is_frame_skippable() override;
-	
+
 	double get_current_usec() override;
 	uint64_t get_current_clock_uint64() override;
-	
+
 	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id) override;
 	//DEVICE* dummy;

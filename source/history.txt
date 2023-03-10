@@ -1,3 +1,13 @@
+11/14/2022
+
+[VM/I8255] fix mode #1
+
+[PC8801] support PC-8801-16 (16bit board)
+
+[PC9801] fix to always enable 2HD FDD I/F on first PC-9801
+[PC9801] improve default dipswitch value
+
+
 11/12/2022
 
 [PC8801] fix crash issue when 5inch drives are disconnected

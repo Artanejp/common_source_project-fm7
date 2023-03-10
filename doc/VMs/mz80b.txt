@@ -1,6 +1,6 @@
 "EmuZ-80B" - SHARP MZ-80B emulator for Win32
 "EmuZ-2200" - SHARP MZ-2200 emulator for Win32
-								4/14/2013
+								8/30/2022
 
 --- Internal ROM images
 
@@ -26,6 +26,7 @@
 	HELP		F11
 	INST/DEL	DELETE
 	KANA		KATAKANA/HIRAGANA
+	SFTLOCK		CTRL
 
 ----------------------------------------
 TAKEDA, toshiya

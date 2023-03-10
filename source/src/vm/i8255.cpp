@@ -41,7 +41,7 @@ void I8255::reset()
 void I8255::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = addr & 3;
-	
+
 	switch(ch) {
 	case 0:
 	case 1:
@@ -93,7 +93,7 @@ void I8255::write_io8(uint32_t addr, uint32_t data)
 					val &= ~BIT_INTR_A;
 				}
 				if(port[1].mode == 1) {
-					if(port[1].mode == 0xff) {
+					if(port[1].rmask == 0xff) {
 						val &= ~BIT_IBF_B;
 					} else {
 						val |= BIT_OBF_B;
@@ -119,7 +119,7 @@ void I8255::write_io8(uint32_t addr, uint32_t data)
 uint32_t I8255::read_io8(uint32_t addr)
 {
 	int ch = addr & 3;
-	
+
 	switch(ch) {
 	case 0:
 	case 1:
@@ -199,7 +199,7 @@ void I8255::write_signal(int id, uint32_t data, uint32_t mask)
 				}
 			}
 			if(port[1].mode == 1) {
-				if(port[0].rmask == 0xff) {
+				if(port[1].rmask == 0xff) {
 					if(mask & BIT_STB_B) {
 						if((port[2].rreg & BIT_STB_B) && !(data & BIT_STB_B)) {
 							write_io8(2, port[2].wreg | BIT_IBF_B);

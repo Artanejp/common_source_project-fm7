@@ -412,5 +412,19 @@ This effects only after restarting this emulator.</source>
         <source>Use JAST SOUND : PCM sound unit.</source>
         <translation>ジャストサウンド(PCM音源)をプリンタポートにつなぎます。</translation>
     </message>
+    <message>
+        <source>PC-8801-16</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>PC-8801-16(Need to restart)</source>
+        <translation>PC-8801-16(再起動が必要)</translation>
+    </message>
+    <message>
+        <source>Enable PC-8801-16 16bit extra CPU card.
+This effects only after restarting this emulator.</source>
+        <translation>PC-8801-16 16ビット拡張CPUカードを有効にします。
+エミュレータの再起動が必要です。</translation>
+    </message>
 </context>
 </TS>

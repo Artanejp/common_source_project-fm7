@@ -5,7 +5,7 @@
 #include "commonclasses.h"
 #include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
-// You may use this as 
+// You may use this as
 QT_BEGIN_NAMESPACE
 class Ui_SoundDialog;
 class USING_FLAGS;
@@ -21,16 +21,18 @@ protected:
 	Action_Control *actionHMB20; //
 	Action_Control *actionGSX8800; //
 	Action_Control *actionPCG8100; //
-	
+
 	Action_Control *actionCMD_Sing; //
 	Action_Control *actionPalette; //
-	
+
 	Action_Control *actionFDD_5Inch; //
 	Action_Control *actionFDD_8Inch; //
-	
+
+	Action_Control *action16bit; //
+
 	Action_Control *actionM88DRV; //
 	Action_Control *actionQuasiS88CMT; //
-	
+
 	void setupUI_Emu(void);
 	void retranslateUi(void);
 public:

@@ -4,7 +4,7 @@
 "ePC-8001" - NEC PC-8001 emulator for Win32
 "ePC-8001mkII" - NEC PC-8001mkII emulator for Win32
 "ePC-8001mkIISR" - NEC PC-8001mkIISR emulator for Win32
-								12/18/2020
+								11/14/2022
 
 --- Internal ROM images
 
@@ -19,6 +19,8 @@
 	KANJI2.ROM	Kanji ROM
 	JISYO.ROM	Dictionary ROM
 	CDBIOS.ROM	CD-ROM BIOS ROM
+	PC-8801-16_I86.ROM
+	PC-8801-16_Z80.ROM
 	---
 	N80_1.ROM	PC-8001
 	N80_2.ROM	PC-8001mkII

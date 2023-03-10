@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								2/7/2021
+								7/3/2022
 
 --- What's this ?
 
@@ -17,10 +17,13 @@ This archive includes the binaries of the emulators listed below:
 	CASIO
 		eFP-200		FP-200
 		eFP-1100	FP-1100
+		eFX-9000P	FX-9000P
 		ePV-1000	PV-1000
 		EmuGaki		PV-2000
 	COLECO
 		yaCOLECOVISION	ColecoVision
+	Computer Research
+		eCRC-80		CRC-80
 	EPOCH
 		eSCV		Super Cassette Vision
 	EPSON
@@ -28,6 +31,8 @@ This archive includes the binaries of the emulators listed below:
 		eHC-40		HC-40/PX-4
 		eHC-80		HC-80/PX-8/Geneva
 		eQC-10		QC-10 / QX-10
+	ESP
+		eTRNJunior	eTRNJunior
 	FUJITSU
 		eFM8		FM-8 (by Mr.Artane.)
 		eFM7		FM-7 (by Mr.Artane.)
@@ -136,6 +141,7 @@ This archive includes the binaries of the emulators listed below:
 		eSMC-777	SMC-777
 	SORD
 		Emu5		m5
+		Emu23		M23
 	SPECTRAVIDEO
 		yaSVI-3x8	SVI-3x8 (by Mr.tanam)
 	Systems Formulate
@@ -143,7 +149,7 @@ This archive includes the binaries of the emulators listed below:
 	TOMY
 		ePyuTa		PyuTa/PyuTa Jr.
 	TOSHIBA
-		eEX-80		EX-80
+		eEX-80BS	EX-80BS
 		yayaHX-20+	HX-20 + FDD (by Mr.umaiboux)
 		EmuPIA		PASOPIA/PASOPIA5
 		EmuPIA7		PASOPIA7
@@ -496,7 +502,7 @@ Save/Load State info:
 	MESS PC-8801 driver
 - vm/pc9801/display.*
 	Neko Project 2 by Mr.Yui
-	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821æ”¹é€ ç‰ˆ)
+	Improved for EGC by Mr.Ryuji Okamoto (qemu/9821‰ü‘¢”Å)
 - vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)

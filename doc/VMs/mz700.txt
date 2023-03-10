@@ -1,9 +1,12 @@
 "EmuZ-700" - SHARP MZ-700 emulator for Win32
-								6/11/2008
+								8/27/2022
 
 --- Internal ROM image
 
 	IPL.ROM		$0000-$0FFF
+	MZ1E14.ROM	$E800-$EFFF
+	MZ1R12.ROM	$E800-$EFFF
+	MZ1E05.ROM	$F000-$FFFF
 	FONT.ROM	8x8 dots font image
 
 --- Key maps

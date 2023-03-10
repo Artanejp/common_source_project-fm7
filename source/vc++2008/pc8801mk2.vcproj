@@ -530,6 +530,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\i386_dasm.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\i8251.cpp"
 					>
 					<FileConfiguration
@@ -571,6 +591,86 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\i8255.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\i8259.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\i86.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\io.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -711,6 +811,26 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\upd765a.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\v30_dasm.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -984,6 +1104,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\i386_dasm.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\i8251.h"
 					>
 				</File>
@@ -993,6 +1117,22 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\i8255.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\i8259.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\i86.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\io.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\memory.h"
 					>
 				</File>
 				<File
@@ -1021,6 +1161,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\upd765a.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\v30_dasm.h"
 					>
 				</File>
 				<File
