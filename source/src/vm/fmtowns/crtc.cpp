@@ -9,6 +9,7 @@
 */
 #include "../vm.h"
 #include "../../common.h"
+#include "../../types/simd.h"
 
 #include "crtc.h"
 #include "vram.h"
@@ -1164,7 +1165,20 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 	__UNLIKELY_IF(pwidth < 1) pwidth = 1;
 	int xx = 0;
 	int k = 0;
+	csp_vector8<uint8_t> __pbuf[2];
+	csp_vector8<scrntype_t> __sbuf[2];
 	for(int x = 0; x < (pwidth >> 4); x++) {
+		#if 1
+__DECL_VECTORIZED_LOOP
+		for(int ii = 0; ii < 2; ii++) {
+			__pbuf[ii].load(&p[ii << 3]);
+		}
+__DECL_VECTORIZED_LOOP
+		for(int ii = 0; ii < 2; ii++) {
+			__sbuf[ii].lookup(__pbuf[ii], apal256);
+		}
+		p += 16;
+		#else
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			pbuf[i] = p[i];
@@ -1174,47 +1188,44 @@ __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			sbuf[i] = apal256[pbuf[i]];
 		}
+		#endif
 		int kbak = k;
 		if(((magx << 4) + k) <= width) {
 			switch(magx) {
 			case 1:
 __DECL_VECTORIZED_LOOP
-				for(int i = 0; i < 16; i++) {
-					q[i] = sbuf[i];
+				for(int ii = 0; ii < 2; ii++) {
+					__sbuf[ii].store(&(q[ii << 3]));
 				}
 				k += 16;
 				q += 16;
 				break;
 			case 2:
-__DECL_VECTORIZED_LOOP
-				for(int i = 0; i < 32; i++) {
-					q[i] = sbuf[i >> 1];
+				for(int ii = 0; ii < 2; ii++) {
+					__sbuf[ii].store2(&(q[ii << 4]));
 				}
 				k += 32;
 				q += 32;
 				break;
 			case 4:
-__DECL_VECTORIZED_LOOP
-				for(int i = 0, j = 0; i < 16; i++, j += 4) {
-					q[j + 0] = sbuf[i];
-					q[j + 1] = sbuf[i];
-					q[j + 2] = sbuf[i];
-					q[j + 3] = sbuf[i];
+				for(int ii = 0; ii < 2; ii++) {
+					__sbuf[ii].store4(&(q[ii << 5]));
 				}
 				k += 64;
 				q += 64;
 				break;
 			default:
-				for(int i = 0; i < 16; i++) {
-					for(int j = 0; j < magx; j++) {
-						q[j] = sbuf[i];
-					}
-					q += magx;
-					k += magx;
+				for(int ii = 0; ii < 2; ii++) {
+					__sbuf[ii].store_n(q, magx);
+					q += (magx * 8);
+					k += (magx * 8);
 				}
 				break;
 			}
 		} else {
+			for(int ii = 0; ii < 2; ii++) {
+				__sbuf[ii].store_aligned(&(sbuf[ii << 3]));
+			}
 			for(int i = 0; i < 16; i++) {
 				for(int j = 0; j < magx; j++) {
 					q[j] = sbuf[i];
@@ -1227,52 +1238,38 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 	__LIKELY_IF(k >= width) return true;
-	int w = pwidth & 0x0f;
+	size_t w = pwidth & 0x0f;
 	__UNLIKELY_IF(w != 0) {
-		for(int i = 0; i < w; i++) {
-			pbuf[i] = p[i];
-		}
-		for(int i = 0; i < w; i++) {
-			sbuf[i] = apal256[pbuf[i]];
-		}
+		__pbuf[0].clear();
+		__sbuf[0].clear();
+		__pbuf[0].load_limited(p, w);
+		__sbuf[0].lookup(__pbuf[0], apal256, w);
+
 		if(((magx * w) + k) <= width) {
 			switch(magx) {
 			case 1:
-				for(int i = 0; i < w; i++) {
-					q[i] = sbuf[i];
-				}
+				__sbuf[0].store_limited(q, w);
 				k += w;
 				q += w;
 				break;
 			case 2:
-				for(int i = 0, j = 0; i < w; i++, j += 2) {
-					q[j + 0] = sbuf[i];
-					q[j + 1] = sbuf[i];
-				}
+				__sbuf[0].store2_limited(q, w);
 				k += (w << 1);
 				q += (w << 1);
 				break;
 			case 4:
-				for(int i = 0, j = 0; i < w; i++, j += 4) {
-					q[j + 0] = sbuf[i];
-					q[j + 1] = sbuf[i];
-					q[j + 2] = sbuf[i];
-					q[j + 3] = sbuf[i];
-				}
+				__sbuf[0].store4_limited(q, w);
 				k += (w << 2);
 				q += (w << 2);
 				break;
 			default:
-				for(int i = 0; i < w; i++) {
-					for(int j = 0; j < magx; j++) {
-						q[j] = sbuf[i];
-					}
-					q += magx;
-					k += magx;
-				}
+				__sbuf[0].store_n_limited(q, magx, w);
+				q += (magx * w);
+				k += (magx * w);
 				break;
 			}
 		} else {
+			__sbuf[0].store_aligned(sbuf);
 			for(int i = 0; i < w; i++) {
 				for(int j = 0; j < magx; j++) {
 					q[j] = sbuf[i];
