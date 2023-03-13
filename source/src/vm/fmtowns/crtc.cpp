@@ -1167,7 +1167,6 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 	csp_vector8<uint8_t> __pbuf[2];
 	csp_vector8<scrntype_t> __sbuf[2];
 	for(int x = 0; x < (pwidth >> 4); x++) {
-		#if 1
 __DECL_VECTORIZED_LOOP
 		for(int ii = 0; ii < 2; ii++) {
 			__pbuf[ii].load(&p[ii << 3]);
@@ -1177,17 +1176,6 @@ __DECL_VECTORIZED_LOOP
 			__sbuf[ii].lookup(__pbuf[ii], apal256);
 		}
 		p += 16;
-		#else
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			pbuf[i] = p[i];
-		}
-		p += 16;
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			sbuf[i] = apal256[pbuf[i]];
-		}
-		#endif
 		int kbak = k;
 		if(((magx << 4) + k) <= width) {
 			switch(magx) {
