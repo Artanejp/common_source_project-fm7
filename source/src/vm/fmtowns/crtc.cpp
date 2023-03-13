@@ -1156,8 +1156,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
 	my_memcpy(apal256, apalette_256_pixel, sizeof(scrntype_t) * 256);
 
-	__DECL_ALIGNED(16) uint8_t pbuf[16];
-	__DECL_ALIGNED(32) scrntype_t sbuf[16];
+
 //	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d pWIDTH=%d"), y, magx, width, pwidth);
 	__UNLIKELY_IF(magx < 1) {
 		return false;
@@ -1223,6 +1222,7 @@ __DECL_VECTORIZED_LOOP
 				break;
 			}
 		} else {
+			__DECL_ALIGNED(32) scrntype_t sbuf[16];
 			for(int ii = 0; ii < 2; ii++) {
 				__sbuf[ii].store_aligned(&(sbuf[ii << 3]));
 			}
@@ -1269,6 +1269,7 @@ __DECL_VECTORIZED_LOOP
 				break;
 			}
 		} else {
+			__DECL_ALIGNED(32) scrntype_t sbuf[16];
 			__sbuf[0].store_aligned(sbuf);
 			for(int i = 0; i < w; i++) {
 				for(int j = 0; j < magx; j++) {
