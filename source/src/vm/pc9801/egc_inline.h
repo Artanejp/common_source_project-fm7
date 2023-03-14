@@ -1,13 +1,13 @@
 #pragma once
 
 namespace PC9801 {
-	
+
 #if defined(SUPPORT_EGC)
 
 void __FASTCALL DISPLAY::egc_shift()
 {
 	uint8_t src8, dst8;
-	
+
 	egc_remain = (egc_leng & 0xfff) + 1;
 	egc_func = (egc_sft >> 12) & 1;
 	if(!egc_func) {
@@ -19,7 +19,7 @@ void __FASTCALL DISPLAY::egc_shift()
 	}
 	egc_srcbit = egc_sft & 0x0f;
 	egc_dstbit = (egc_sft >> 4) & 0x0f;
-	
+
 	src8 = egc_srcbit & 0x07;
 	dst8 = egc_dstbit & 0x07;
 	if(src8 < dst8) {
@@ -34,7 +34,7 @@ void __FASTCALL DISPLAY::egc_shift()
 //      --- -----8-- -----6-- ---*****
 // 1st -> data[0] << (dst - src)
 // 2nd -> (data[0] >> (8 - (dst - src))) | (data[1] << (dst - src))
-		
+
 		egc_func += 2;
 		egc_sft8bitr = dst8 - src8;
 		egc_sft8bitl = 8 - egc_sft8bitr;
@@ -409,32 +409,27 @@ uint64_t __FASTCALL DISPLAY::egc_ope_nd(uint8_t ope, uint32_t addr)
 	__DECL_ALIGNED(16) egcquad_t tmp;
 
 	switch(egc_fgbg & 0x6000) {
+		// OK? 20230314 K.O
+		// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+		// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
 	case 0x2000:
 		pat.q = egc_bgc.q;
-//		pat.d[0] = egc_bgc.d[0];
-//		pat.d[1] = egc_bgc.d[1];
 		break;
 	case 0x4000:
 		pat.q = egc_fgc.q;
+		break;
+//	case 0x6000:
 //		pat.d[0] = egc_fgc.d[0];
-//		pat.d[1] = egc_fgc.d[1];
-		break;
-	case 0x6000:
-		pat.d[0] = egc_fgc.d[0];
-		pat.d[1] = egc_bgc.d[1];
-		break;
-//	default:
-	case 0x0000:
+//		pat.d[1] = egc_bgc.d[1];
+//		break;
+	default:
+//	case 0x0000:
 		if((egc_ope & 0x0300) == 0x0100) {
 			pat.q = egc_vram_src.q;
-//			pat.d[0] = egc_vram_src.d[0];
-//			pat.d[1] = egc_vram_src.d[1];
-		} else if((egc_ope & 0x0300) == 0x0200) {
+		} /*else if((egc_ope & 0x0300) == 0x0200) {
 			pat.q = egc_lastvram.q;
-		} else {
+		} */else {
 			pat.q = egc_patreg.q;
-//			pat.d[0] = egc_patreg.d[0];
-//			pat.d[1] = egc_patreg.d[1];
 		}
 		break;
 	}
@@ -473,7 +468,7 @@ uint64_t __FASTCALL DISPLAY::egc_ope_np(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t dst;
 	__DECL_ALIGNED(16) egcquad_t tmp;
-	
+
 	#ifdef __BIG_ENDIAN__
 		dst.w[0] = vram_draw_readw(addr | VRAM_PLANE_ADDR_0);
 		dst.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
@@ -508,6 +503,6 @@ uint64_t __FASTCALL DISPLAY::egc_ope_np(uint8_t ope, uint32_t addr)
 	egc_vram_data.q = tmp.q;
 	return egc_vram_data.q;
 }
-#endif	
+#endif
 
 }

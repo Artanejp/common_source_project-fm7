@@ -49,12 +49,12 @@ namespace PC9801 {
 #define SIG_INTROM_WAIT			7
 #define SIG_TVRAM_WAIT			8
 #define SIG_GVRAM_WAIT			9
-	
+
 class MEMBUS : public MEMORY
 {
 private:
 	DISPLAY *d_display;
-	
+
 //	csp_state_utils *state_entry;
 	// RAM
 	uint8_t ram[RAM_SIZE];
@@ -83,7 +83,7 @@ private:
 	int gvram_wait_val;
 	int tvram_wait_val;
 	void update_bios();
-	
+
 #if !defined(SUPPORT_HIRESO)
 	// EXT BIOS
 #if defined(_PC9801) || defined(_PC9801E)
@@ -129,47 +129,61 @@ private:
 #endif
 
 	bool page08_intram_selected;
-	
+
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	uint8_t dma_access_ctrl;
 	bool dma_access_a20;
 	uint32_t window_80000h;
 	uint32_t window_a0000h;
+	inline bool __FASTCALL get_memory_addr(uint32_t *addr);
 #endif
-//	inline bool __FASTCALL get_memory_addr(uint32_t *addr);
+
 	void config_intram();
 	void update_bios_mainmem();
 	void update_bios_ipl_and_itf();
 	void update_bios_extra_boards();
 	void __FASTCALL update_bios_window(uint32_t window_addr, uint32_t begin);
-	
+
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}
-	
+
 	// common functions
-	void initialize();
-	void reset();
-	uint32_t __FASTCALL read_signal(int ch);
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void initialize() override;
+	void reset() override;
+	uint32_t __FASTCALL read_signal(int ch) override;
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	// ToDo: Re-Implement.
-// 	uint32_t __FASTCALL read_data8(uint32_t addr);
-//	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-//	uint32_t __FASTCALL read_data16(uint32_t addr);
-//	void __FASTCALL write_data16(uint32_t addr, uint32_t data);
-//	uint32_t __FASTCALL read_data32(uint32_t addr);
-//	void __FASTCALL write_data32(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
-	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
+	#if 0
+ 	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait) override;
+	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait) override;
+	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait) override;
+	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait) override;
+	#endif
+	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+
+	#if 0
+ 	uint32_t __FASTCALL read_data8(uint32_t addr) override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data16(uint32_t addr) override;
+	void __FASTCALL write_data16(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data32(uint32_t addr) override;
+	void __FASTCALL write_data32(uint32_t addr, uint32_t data) override;
+	#endif
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr) override;
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data) override;
 #endif
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique functions
 	void set_context_display(DISPLAY* device)
 	{
@@ -185,6 +199,49 @@ public:
 	}
 };
 
-	
+#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+// From membus.cpp.
+#if !defined(SUPPORT_HIRESO)
+	#define UPPER_MEMORY_24BIT	0x00fa0000
+	#define UPPER_MEMORY_32BIT	0xfffa0000
+#else
+	#define UPPER_MEMORY_24BIT	0x00fc0000
+	#define UPPER_MEMORY_32BIT	0xfffc0000
+#endif
+
+inline bool MEMBUS::get_memory_addr(uint32_t *addr)
+{
+	for(;;) {
+		if(*addr < 0x80000) {
+			return true;
+		}
+		if(*addr < 0xa0000) {
+			if((*addr = (*addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_24BIT) {
+				*addr &= 0xfffff;
+			}
+			return true;
+		}
+		if(*addr < 0xc0000) {
+			if((*addr = (*addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_24BIT) {
+				*addr &= 0xfffff;
+			}
+			return true;
+		}
+		if(*addr < UPPER_MEMORY_24BIT) {
+			return true;
+		}
+#if defined(SUPPORT_32BIT_ADDRESS)
+		if(*addr < 0x1000000 || *addr >= UPPER_MEMORY_32BIT) {
+			*addr &= 0xfffff;
+		} else {
+			return false;
+		}
+#else
+		*addr &= 0xfffff;
+#endif
+	}
+	return false;
+}
+#endif
 }
 #endif

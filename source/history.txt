@@ -1,3 +1,11 @@
+11/17/2022
+
+[PC9801/CPUREG] fix A20 mask for 32bit cpu
+[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020
+[PC9801/DISPLAY] fix issue when text screen splitted by GDC SCROLL command
+[PC9801/MEMBUS] fix ram window when mapped address is upper than fa0000h
+
+
 11/14/2022
 
 [VM/I8255] fix mode #1

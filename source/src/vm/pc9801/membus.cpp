@@ -80,16 +80,6 @@ static const uint8_t pseudo_sasi_bios[] = {
 			0x00,0x58,0xcf,0x73,0x61,0x73,0x69,0x62,0x69,0x6f,0x73,
 };
 
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-#if !defined(SUPPORT_HIRESO)
-	#define UPPER_MEMORY_24BIT	0x00fa0000
-	#define UPPER_MEMORY_32BIT	0xfffa0000
-#else
-	#define UPPER_MEMORY_24BIT	0x00fc0000
-	#define UPPER_MEMORY_32BIT	0xfffc0000
-#endif
-#endif
-
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
@@ -289,7 +279,7 @@ void MEMBUS::reset()
 #if defined(SUPPORT_IDE_IF)
 	ide_bios_bank = 0; // ToDo: BANK
 #endif
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if defined(SUPPORT_24BIT_ADDERSS) || defined(SUPPORT_32BIT_ADDRESS)
 #if !defined(SUPPORT_HIRESO)
 	dma_access_ctrl = 0xfe; // bit2 = 1, bit0 = 0
 	dma_access_a20 = false;
@@ -609,21 +599,260 @@ uint32_t MEMBUS::read_io8(uint32_t addr)
 	}
 	return 0xff;
 }
+
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(SUPPORT_24BIT_ADDRESS)
-uint32_t MEMBUS::read_dma_data8(uint32_t addr)
+	#if 0
+uint32_t MEMBUS::read_data8w(uint32_t addr, int* wait)
 {
+	__UNLIKELY_IF(!get_memory_addr(&addr)) {
+		*wait = 0; // ToDo: Variable wait by memory bus width. 20230314 K.O
+		return 0xff;
+	}
+	int bank = (addr & addr_mask) >> addr_shift;
+	*wait = rd_table[bank].wait;
+
+	__UNLIKELY_IF(rd_table[bank].device != NULL) {
+		return rd_table[bank].device->read_memory_mapped_io8(addr);
+	} else {
+		return rd_table[bank].memory[addr & bank_mask];
+	}
+}
+
+void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	__UNLIKELY_IF(!get_memory_addr(&addr)) {
+		*wait = 0; // ToDo: Variable wait by memory bus width. 20230314 K.O
+		return;
+	}
+	int bank = (addr & addr_mask) >> addr_shift;
+	*wait = wr_table[bank].wait;
+
+	__UNLIKELY_IF(wr_table[bank].device != NULL) {
+		wr_table[bank].device->write_memory_mapped_io8(addr, data);
+	} else {
+		wr_table[bank].memory[addr & bank_mask] = data;
+	}
+}
+
+uint32_t MEMBUS::read_data16w(uint32_t addr, int* wait)
+{
+	uint32_t addr2 = addr & bank_mask;
+
+	__LIKELY_IF(addr2 + 1 < bank_size) {
+		__UNLIKELY_IF(!get_memory_addr(&addr)) {
+			*wait = 0; // ToDo: Variable wait by memory bus width. 20230314 K.O
+			return 0xffff;
+		}
+		int bank = (addr & addr_mask) >> addr_shift;
+		*wait = rd_table[bank].wait; // ToDo: Variable wait by memory bus width. 20230314 K.O
+
+		__UNLIKELY_IF(rd_table[bank].device != NULL) {
+			return rd_table[bank].device->read_memory_mapped_io16(addr);
+		} else {
+			#ifdef __BIG_ENDIAN__
+				uint32_t val;
+				val  = rd_table[bank].memory[addr2    ];
+				val |= rd_table[bank].memory[addr2 + 1] <<  8;
+				return val;
+			#else
+				return *(uint16_t *)(rd_table[bank].memory + addr2);
+			#endif
+		}
+	} else {
+		 // ToDo: Variable wait by memory bus width. 20230314 K.O
+		uint32_t val;
+		int wait1, wait2;
+		val  = MEMBUS::read_data8w(addr    , &wait1);
+		val |= MEMBUS::read_data8w(addr + 1, &wait2) << 8;
+		*wait = wait1 + wait2;
+		return val;
+	}
+}
+
+void MEMBUS::write_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+	uint32_t addr2 = addr & bank_mask;
+
+	__LIKELY_IF(addr2 + 1 < bank_size) {
+		__UNLIKELY_IF(!get_memory_addr(&addr)) {
+			*wait = 0; // ToDo: Variable wait by memory bus width. 20230314 K.O
+			return;
+		}
+		int bank = (addr & addr_mask) >> addr_shift;
+		*wait = wr_table[bank].wait; // ToDo: Variable wait by memory bus width. 20230314 K.O
+
+		__UNLIKELY_IF(wr_table[bank].device != NULL) {
+			wr_table[bank].device->write_memory_mapped_io16(addr, data);
+		} else {
+			#ifdef __BIG_ENDIAN__
+				wr_table[bank].memory[addr2    ] = (data     ) & 0xff
+				wr_table[bank].memory[addr2 + 1] = (data >> 8) & 0xff
+			#else
+				*(uint16_t *)(wr_table[bank].memory + addr2) = data;
+			#endif
+		}
+	} else {
+		// ToDo: Variable wait by memory bus width. 20230314 K.O
+		int wait1, wait2;
+		MEMBUS::write_data8w(addr    , (data     ) & 0xff, &wait1);
+		MEMBUS::write_data8w(addr + 1, (data >> 8) & 0xff, &wait2);
+		*wait = wait1 + wait2;
+	}
+}
+
+uint32_t MEMBUS::read_data32w(uint32_t addr, int* wait)
+{
+	uint32_t addr2 = addr & bank_mask;
+
+	__LIKELY_IF(addr2 + 3 < bank_size) {
+		__UNLIKELY_IF(!get_memory_addr(&addr)) {
+			*wait = 0; // ToDo: Variable wait by memory bus width. 20230314 K.O
+			return 0xffffffff;
+		}
+		int bank = (addr & addr_mask) >> addr_shift;
+		*wait = rd_table[bank].wait; // ToDo: Variable wait by memory bus width. 20230314 K.O
+
+		__UNLIKELY_IF(rd_table[bank].device != NULL) {
+			return rd_table[bank].device->read_memory_mapped_io32(addr);
+		} else {
+			#ifdef __BIG_ENDIAN__
+				uint32_t val;
+				val  = rd_table[bank].memory[addr2    ];
+				val |= rd_table[bank].memory[addr2 + 1] <<  8;
+				val |= rd_table[bank].memory[addr2 + 2] << 16;
+				val |= rd_table[bank].memory[addr2 + 3] << 24;
+				return val;
+			#else
+				return *(uint32_t *)(rd_table[bank].memory + addr2);
+			#endif
+		}
+	} else if(!(addr & 1)) {
+		// ToDo: Variable wait by memory bus width. 20230314 K.O
+		uint32_t val;
+		int wait1, wait2;
+		val  = MEMBUS::read_data16w(addr    , &wait1);
+		val |= MEMBUS::read_data16w(addr + 2, &wait2) << 16;
+		*wait = wait1 + wait2;
+		return val;
+	} else {
+		 // ToDo: Variable wait by memory bus width. 20230314 K.O
+		uint32_t val;
+		int wait1, wait2, wait3;
+		val  = MEMBUS::read_data8w (addr    , &wait1);
+		val |= MEMBUS::read_data16w(addr + 1, &wait2) <<  8;
+		val |= MEMBUS::read_data8w (addr + 3, &wait3) << 24;
+		*wait = wait1 + wait2 + wait3;
+		return val;
+	}
+}
+
+void MEMBUS::write_data32w(uint32_t addr, uint32_t data, int* wait)
+{
+	uint32_t addr2 = addr & bank_mask;
+
+	__LIKELY_IF(addr2 + 3 < bank_size) {
+		// ToDo: Variable wait by memory bus width. 20230314 K.O
+		__UNLIKELY_IF(!get_memory_addr(&addr)) {
+			*wait = 0; // ToDo
+			return;
+		}
+		int bank = (addr & addr_mask) >> addr_shift;
+		*wait = wr_table[bank].wait;  // ToDo: Variable wait by memory bus width. 20230314 K.O
+		__UNLIKELY_IF(wr_table[bank].device != NULL) {
+			wr_table[bank].device->write_memory_mapped_io32(addr, data);
+		} else {
+			#ifdef __BIG_ENDIAN__
+				wr_table[bank].memory[addr2    ] = (data      ) & 0xff
+				wr_table[bank].memory[addr2 + 1] = (data >>  8) & 0xff
+				wr_table[bank].memory[addr2 + 2] = (data >> 16) & 0xff
+				wr_table[bank].memory[addr2 + 3] = (data >> 24) & 0xff
+			#else
+				*(uint32_t *)(wr_table[bank].memory + addr2) = data;
+			#endif
+		}
+	} else if(!(addr & 1)) {
+		// ToDo: Variable wait by memory bus width. 20230314 K.O
+		int wait1, wait2;
+		MEMBUS::write_data16w(addr    , (data      ) & 0xffff, &wait1);
+		MEMBUS::write_data16w(addr + 2, (data >> 16) & 0xffff, &wait2);
+		*wait = wait1 + wait2;
+	} else {
+		// ToDo: Variable wait by memory bus width. 20230314 K.O
+		int wait1, wait2, wait3;
+		MEMBUS::write_data8w (addr    , (data      ) & 0x00ff, &wait1);
+		MEMBUS::write_data16w(addr + 1, (data >>  8) & 0xffff, &wait2);
+		MEMBUS::write_data8w (addr + 3, (data >> 24) & 0x00ff, &wait3);
+		*wait = wait1 + wait2 + wait3;
+	}
+}
+	#endif
+uint32_t MEMBUS::read_dma_data8w(uint32_t addr, int* wait)
+{
+	// ToDo: Variable wait by memory bus width. 20230314 K.O
 	if(!(dma_access_a20)) {
 		addr &= 0x000fffff;
 	}
-	return MEMBUS::read_data8(addr);
+	return MEMBUS::read_data8w(addr, wait);
+}
+
+void MEMBUS::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	// ToDo: Variable wait by memory bus width. 20230314 K.O
+	if(!(dma_access_a20)) {
+		addr &= 0x000fffff;
+	}
+	MEMBUS::write_data8w(addr, data, wait);
+}
+
+	#if 0
+// Belows are standard function used by Upstream 2022-11-17.
+// 20230314 K.O
+uint32_t MEMBUS::read_data8(uint32_t addr)
+{
+	int dummy_wait;
+	return read_data8w(addr, &dummy_wait);
+}
+
+void MEMBUS::write_data8(uint32_t addr, uint32_t data)
+{
+	int dummy_wait;
+	write_data8w(addr, data, &dummy_wait);
+}
+
+uint32_t MEMBUS::read_data16(uint32_t addr)
+{
+	int dummy_wait;
+	return read_data16w(addr, &dummy_wait);
+}
+
+void MEMBUS::write_data16(uint32_t addr, uint32_t data)
+{
+	int dummy_wait;
+	write_data16w(addr, data, &dummy_wait);
+}
+
+uint32_t MEMBUS::read_data32(uint32_t addr)
+{
+	int dummy_wait;
+	return read_data32w(addr, &dummy_wait);
+}
+
+void MEMBUS::write_data32(uint32_t addr, uint32_t data)
+{
+	int dummy_wait;
+	write_data32w(addr, data, &dummy_wait);
+}
+	#endif
+uint32_t MEMBUS::read_dma_data8(uint32_t addr)
+{
+	int dummy_wait;
+	return read_dma_data8w(addr, &dummy_wait);
 }
 
 void MEMBUS::write_dma_data8(uint32_t addr, uint32_t data)
 {
-	if(!(dma_access_a20)) {
-		addr &= 0x000fffff;
-	}
-	MEMBUS::write_data8(addr, data);
+	int dummy_wait;
+	write_dma_data8w(addr, data, &dummy_wait);
 }
 #endif
 
@@ -925,38 +1154,38 @@ void MEMBUS::update_bios()
 #if 0
 	/*if((page08_intram_selected) )*/{
 		if((window_a0000h == 0xc0000)) {
-#if defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
+	#if defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
 				//copy_table_rw(0xa0000, 0xc0000, 0xdffff);
 				set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
 			} else {
 				copy_table_rw(0xa0000, 0xc0000, 0xdffff);
 			}
-#else
+	#else
 			copy_table_rw(0xa0000, 0xc0000, 0xdffff);
-#endif
+	#endif
 		} else 	if(window_a0000h == 0xe0000) {
-#if defined(_PC9801RA) || defined(_PC9801RA2) || defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
+	#if defined(_PC9801RA) || defined(_PC9801RA2) || defined(_PC9801RA21) //defined(UPPER_I386) && defined(SUPPORT_BIOS_RAM)
 			if(shadow_ram_selected) {
-	#if !defined(SUPPORT_HIRESO)
+		#if !defined(SUPPORT_HIRESO)
 				//copy_table_rw(0xa0000, 0xe0000, 0xe7fff);
 				set_memory_rw(0xa0000, 0xa7fff, &(ram[window_a0000h]));
-		#if defined(SUPPORT_BIOS_RAM)
+			#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0xa8000, 0xbffff, ram + 0x100000 - sizeof(bios));
-		#endif
-	#else
+			#endif
+		#else
 				//copy_table_rw(0xa0000, 0xe0000, 0xeffff);
 				set_memory_rw(0xa0000, 0xaffff, &(ram[window_a0000h]));
-		#if defined(SUPPORT_BIOS_RAM)
+			#if defined(SUPPORT_BIOS_RAM)
 				set_memory_rw(0xb0000, 0xbffff, ram + 0x100000 - sizeof(bios));
+			#endif
 		#endif
-	#endif
 			} else {
 				copy_table_rw(0xa0000, 0xe0000, 0xfffff);
 			}
-#else
+	#else
 			copy_table_rw(0xa0000, 0xe0000, 0xfffff);
-#endif
+	#endif
 		} else if((window_a0000h >= 0x80000) && ((window_a0000h + 0x1ffff) < sizeof(ram)) && !((window_a0000h >= 0xa0000) && (window_a0000h <= 0xfffff))) {
 			set_memory_rw(0xa0000, 0xbffff, &(ram[window_a0000h]));
 		} else {

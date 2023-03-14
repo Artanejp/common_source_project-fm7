@@ -81,13 +81,13 @@ void UPD7220::initialize()
 		rt[i] = (int)((double)(1 << RT_MULBIT) * (1 - sqrt(1 - pow((0.70710678118654 * i) / RT_TABLEMAX, 2))));
 	}
 	fo = new FIFO(0x10000);
-	
+
 	hsync = hblank = false;
 	vsync = vblank = false;
 	master = false;
 	pitch = 40;	// 640dot
 	event_cmdready = -1;
-	
+
 	// initial settings for 1st frame
 	vtotal = 0; //LINES_PER_FRAME;
 	v1 = v2 = v3 = 16;
@@ -122,17 +122,17 @@ void UPD7220::initialize()
 	} else {
 		h4 = width;
 	}
-	
+
 	sync_changed = false;
 	vs = hs = 0;
-	
+
 //#ifdef UPD7220_HORIZ_FREQ
 	if(_UPD7220_HORIZ_FREQ != 0) {
 		horiz_freq = 0;
 		next_horiz_freq = _UPD7220_HORIZ_FREQ;
 	}
 //#endif
-	
+
 	// register events
 	register_frame_event(this);
 	register_vline_event(this);
@@ -176,7 +176,7 @@ void UPD7220::write_dma_io8(uint32_t addr, uint32_t data)
 uint32_t UPD7220::read_dma_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-	
+
 	// for dma access
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
@@ -220,7 +220,7 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 			process_cmd();
 		}
 		// set new command
-		cmdreg = (uint8_t)(data & 0xff);
+		cmdreg = data & 0xff;
 //		this->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 		params_count = 0;
 		check_cmd();
@@ -236,7 +236,7 @@ void UPD7220::write_io8(uint32_t addr, uint32_t data)
 uint32_t UPD7220::read_io8(uint32_t addr)
 {
 	uint32_t val;
-	
+
 	switch(addr & 3) {
 	case 0: // status
 		val = statreg;
@@ -272,12 +272,12 @@ void UPD7220::event_pre_frame()
 		v3  = sync[7] >> 2;		// VBP
 		v4  = sync[6];			// L/F
 		v4 += (sync[7] & 0x03) << 8;
-		
+
 		h1  = (sync[3] >> 2) + 1;	// HFP
 		h2  = (sync[2] & 0x1f) + 1;	// HS
 		h3  = (sync[4] & 0x3f) + 1;	// HBP
 		h4  = sync[1] + 2;		// C/R
-		
+
 		sync_changed = false;
 		vs = hs = 0;
 		vtotal = 0;
@@ -304,7 +304,7 @@ void UPD7220::update_timing(int new_clocks, double new_frames_per_sec, int new_l
 	cpu_clocks = new_clocks;
 	frames_per_sec = new_frames_per_sec;	// note: refer these params given from the event manager
 	lines_per_frame = new_lines_per_frame;	// because this device may be slave gdc
-	
+
 	// update event clocks
 	vs = hs = 0;
 }
@@ -434,7 +434,7 @@ int UPD7220::cursor_bottom()
 void UPD7220::check_cmd()
 {
 	// check fifo buffer and process command if enough params in fifo
-	switch(cmdreg) {
+	switch(cmdreg & 0xff) {
 	case CMD_RESET:
 		cmd_reset();
 		break;
@@ -595,7 +595,7 @@ void UPD7220::check_cmd()
 
 void UPD7220::process_cmd()
 {
-	switch(cmdreg) {
+	switch(cmdreg & 0xff) {
 	case CMD_RESET:
 		cmd_reset();
 		break;
@@ -669,12 +669,12 @@ void UPD7220::cmd_reset()
 	blink_cursor = 0;
 	blink_attr = 0;
 	blink_rate = 16;
-	
+
 	// init fifo
 	cmd_drawing = false;
 	params_count = 0;
 	fo->clear();
-	
+
 	// stop display and drawing
 	start = false;
 	statreg = 0;
@@ -684,7 +684,7 @@ void UPD7220::cmd_reset()
 	if(event_cmdready >= 0) cancel_event(this, event_cmdready);
 	event_cmdready = -1;
 	wrote_bytes = 0;
-	
+
 	write_signals(&outputs_vsync, 0x00000000);
 	write_signals(&outputs_vblank, 0xffffffff);
 }
@@ -800,7 +800,7 @@ void UPD7220::cmd_vecte()
 	dx = ((ead % pitch) << 4) | (dad & 0x0f);
 	dy = (ead << 16) / pitch;
 	wrote_bytes = 1;
-	
+
 	// execute command
 	if(!(vect[0] & 0x78)) { // R, C, T, L
 		pattern = ra[8] | (ra[9] << 8);
@@ -829,7 +829,7 @@ void UPD7220::cmd_texte()
 	dx = ((ead % pitch) << 4) | (dad & 0x0f);
 	dy = (ead << 16) / pitch;
 	wrote_bytes = 1;
-	
+
 	// execute command
 	if(!(vect[0] & 0x78)) {
 		pattern = ra[8] | (ra[9] << 8);
@@ -1081,11 +1081,11 @@ void UPD7220::reset_vect()
 void UPD7220::draw_vectl()
 {
 	pattern = ra[8] | (ra[9] << 8);
-	
+
 	if(dc) {
 		int x = dx;
 		int y = dy >> 16;
-		
+
 		switch(dir) {
 		case 0:
 			for(int i = 0; i <= dc; i++) {
@@ -1147,13 +1147,13 @@ void UPD7220::draw_vectt()
 	uint16_t draw = ra[8] | (ra[9] << 8);
 	if(sl) {
 		// reverse
-		draw = (draw & 0x0001 ? 0x8000 : 0) | (draw & 0x0002 ? 0x4000 : 0) | 
-		       (draw & 0x0004 ? 0x2000 : 0) | (draw & 0x0008 ? 0x1000 : 0) | 
-		       (draw & 0x0010 ? 0x0800 : 0) | (draw & 0x0020 ? 0x0400 : 0) | 
-		       (draw & 0x0040 ? 0x0200 : 0) | (draw & 0x0080 ? 0x0100 : 0) | 
-		       (draw & 0x0100 ? 0x0080 : 0) | (draw & 0x0200 ? 0x0040 : 0) | 
-		       (draw & 0x0400 ? 0x0020 : 0) | (draw & 0x0800 ? 0x0010 : 0) | 
-		       (draw & 0x1000 ? 0x0008 : 0) | (draw & 0x2000 ? 0x0004 : 0) | 
+		draw = (draw & 0x0001 ? 0x8000 : 0) | (draw & 0x0002 ? 0x4000 : 0) |
+		       (draw & 0x0004 ? 0x2000 : 0) | (draw & 0x0008 ? 0x1000 : 0) |
+		       (draw & 0x0010 ? 0x0800 : 0) | (draw & 0x0020 ? 0x0400 : 0) |
+		       (draw & 0x0040 ? 0x0200 : 0) | (draw & 0x0080 ? 0x0100 : 0) |
+		       (draw & 0x0100 ? 0x0080 : 0) | (draw & 0x0200 ? 0x0040 : 0) |
+		       (draw & 0x0400 ? 0x0020 : 0) | (draw & 0x0800 ? 0x0010 : 0) |
+		       (draw & 0x1000 ? 0x0008 : 0) | (draw & 0x2000 ? 0x0004 : 0) |
 		       (draw & 0x8000 ? 0x0002 : 0) | (draw & 0x8000 ? 0x0001 : 0);
 	}
 	int vx1 = vectdir[dir][0];
@@ -1162,7 +1162,7 @@ void UPD7220::draw_vectt()
 	int vy2 = (vectdir[dir][3] << 16);
 	int muly = zw + 1;
 	pattern = 0xffff;
-	
+
 	while(muly--) {
 		int cx = dx;
 		int64_t cy = dy;
@@ -1197,7 +1197,7 @@ void UPD7220::draw_vectc()
 	int m = (d * 10000 + 14141) / 14142;
 	int t = (dc > m) ? m : dc;
 	pattern = ra[8] | (ra[9] << 8);
-	
+
 	if(m) {
 		switch(dir) {
 		case 0:
@@ -1312,7 +1312,7 @@ void UPD7220::draw_text()
 	}
 //	this->out_debug_log(_T("\tTEXT: dx=%d,dy=%d,sx=%d,sy=%d\n"), dx, dy, sx, sy);
 	int index = 15;
-	
+
 	while(sy--) {
 		int muly = zw + 1;
 		while(muly--) {
@@ -1356,7 +1356,7 @@ void UPD7220::draw_pset(int x, int y)
 	addr = addr & vram_plane_addr_mask;
 	wrote_bytes++;
 	uint8_t cur = read_vram(addr);
-	
+
 	switch(mod) {
 	case 0: // replace
 		write_vram(addr, (cur & ~bit) | (dot ? bit : 0));
@@ -1450,12 +1450,12 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(d1);
 	state_fio->StateValue(dm);
 	state_fio->StateValue(pattern);
-	
+
 	state_fio->StateValue(clock_freq);
 	state_fio->StateValue(wrote_bytes);
 	state_fio->StateValue(cmd_drawing);
 	state_fio->StateValue(event_cmdready);
-	
+
 	state_fio->StateValue(width);
 	state_fio->StateValue(height);
 	// post process
@@ -1468,4 +1468,3 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-

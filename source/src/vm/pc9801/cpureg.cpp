@@ -105,7 +105,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x00f6:
 		switch(data) {
 		case 0x02:
-			d_cpu->set_address_mask(0x00ffffff);
+			d_cpu->set_address_mask(0xffffffff);
 			break;
 		case 0x03:
 			d_cpu->set_address_mask(0x000fffff);
@@ -119,7 +119,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 uint32_t CPUREG::read_io8(uint32_t addr)
 {
 	uint32_t value;
-	
+
 	switch(addr) {
 	case 0x005c:
 	case 0x005d:
@@ -176,13 +176,13 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
 #endif
 #if defined(_PC9801RA) || defined(_PC9801RS) || defined(_PC9821_VARIANTS) || \
-	defined(_PC98NOTE_VARIANTS) || defined(_PC98DOPLUS)		
+	defined(_PC98NOTE_VARIANTS) || defined(_PC98DOPLUS)
 	#if !defined(SUPPORT_SASI_IF) || defined(SUPPORT_IDE_IF)
 		value |= 0x20; // Internal 27-type SASI-HDD, 0 = Existing
 	#endif
 #else
 		value |= 0x20;
-#endif		
+#endif
 		// ToDo: AMD98
 //		value |= 0x10; // Unknown
 		value |= 0x08; // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
@@ -290,4 +290,3 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 }
 
 }
-

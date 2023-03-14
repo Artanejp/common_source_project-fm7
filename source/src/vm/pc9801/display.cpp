@@ -1723,7 +1723,9 @@ void DISPLAY::draw_chr_screen()
 
 	// address from gdc
 	uint32_t gdc_addr[30][80] = {0};
+
 	// ToDo: Will Support 30lines project.
+	const int ylimit = (_height  > 30) ? 30 : _height;
 //	printf("PITCH=%d HEIGHT=%d\n", _width, _height);
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
@@ -1732,21 +1734,20 @@ void DISPLAY::draw_chr_screen()
 		ra |= ra_chr[i * 4 + 3] << 24;
 		uint32_t sad = (ra << 1) & 0x1fff;
 		int len = (ra >> 20) & 0x3ff;
-//		if(!len) len = 1024;
+#if defined(SUPPORT_HIRESO)
+		len <<= 1;
+#endif
+		len /= bl;
+		if(len == 0) len = ylimit;
 //		printf("#%d: %04X %d\n", i, sad, len);
-		int lcount = ytop / bl;
-		for(int y = ytop; y < (ytop + len) && (lcount < (_height  > 30) ? 30 : _height); y += bl, lcount++) {
-//		for(int y = ytop; (y < (ytop + len)) && (y < 30); y++) {
-			if(lcount >= (_height )) break;
+		for(int y = ytop; (y < (ytop + len)) && (y < ylimit); y++) {
 			for(int x = 0; x < ((_width > 80) ? 80 : _width); x++) {
-				gdc_addr[lcount][x] = sad;
+				gdc_addr[y][x] = sad;
 				sad = (sad + 2) & 0x1fff;
 			}
 		}
-		ytop += len;
-//		if(ytop >= (_height << 4)) break;
+		if((ytop += len) >= ylimit) break;
 	}
-
 
 	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
 	int cursor_top = d_gdc_chr->cursor_top();

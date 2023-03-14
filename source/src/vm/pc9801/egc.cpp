@@ -325,7 +325,7 @@ void __FASTCALL DISPLAY::egc_sftb_dnr_sub(uint32_t ext)
 			egc_remain = 0;
 		}
 		egc_outptr--;
-#if 1		
+#if 1
 		__DECL_ALIGNED(16) uint8_t tmp[8];
 		__DECL_ALIGNED(4) uint8_t tmp2[4];
 	__DECL_VECTORIZED_LOOP
@@ -479,7 +479,6 @@ __DECL_VECTORIZED_LOOP
 //	egc_outptr--;
 }
 
-#if 1
 #define EGC_OPE_SHIFTB(addr, value)					\
 	{												\
 		uint8_t* __p = &(egc_inptr[0]);	\
@@ -493,6 +492,8 @@ __DECL_VECTORIZED_LOOP
 		}											\
 	}
 
+
+// ToDo: Always make pointer of egc_inptr positive value. - 20230314 K.O
 #define EGC_OPE_SHIFTW(value)							\
 	{													\
 		pair16_t  __tmp;								\
@@ -526,6 +527,12 @@ __DECL_VECTORIZED_LOOP
 		}							   \
 	}
 
+/*
+// OK? 20230314 K.O
+// Remove EGC_OPE_SHIFTW2(val) macro
+// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
+// ToDo: Always make pointer of egc_inptr positive value. - 20230314 K.O
 #define	EGC_OPE_SHIFTW2(value) \
 	do { \
 			pair16_t  __tmp;								\
@@ -550,103 +557,36 @@ __DECL_VECTORIZED_LOOP
 				egc_shiftinput_decw(); \
 			} \
 	} while(0)
-
+*/
 // ----
-#else
-
-#define EGC_OPE_SHIFTB(addr, value) \
-	__DECL_VECTORIZED_LOOP			\
-	do {						  \
-		if(egc_ope & 0x400) { \
-			egc_inptr[ 0] = (uint8_t)value; \
-			egc_inptr[ 4] = (uint8_t)value; \
-			egc_inptr[ 8] = (uint8_t)value; \
-			egc_inptr[12] = (uint8_t)value; \
-			egc_shiftinput_byte(addr & 1); \
-		} \
-	} while(0)
-
-#define EGC_OPE_SHIFTW(value) \
-	__DECL_VECTORIZED_LOOP			\
-	do { \
-		if(egc_ope & 0x400) { \
-			if(!(egc_sft & 0x1000)) { \
-				egc_inptr[ 0] = (uint8_t)value; \
-				egc_inptr[ 1] = (uint8_t)(value >> 8); \
-				egc_inptr[ 4] = (uint8_t)value; \
-				egc_inptr[ 5] = (uint8_t)(value >> 8); \
-				egc_inptr[ 8] = (uint8_t)value; \
-				egc_inptr[ 9] = (uint8_t)(value >> 8); \
-				egc_inptr[12] = (uint8_t)value; \
-				egc_inptr[13] = (uint8_t)(value >> 8); \
-				egc_shiftinput_incw(); \
-			} else { \
-				egc_inptr[-1] = (uint8_t)value; \
-				egc_inptr[ 0] = (uint8_t)(value >> 8); \
-				egc_inptr[ 3] = (uint8_t)value; \
-				egc_inptr[ 4] = (uint8_t)(value >> 8); \
-				egc_inptr[ 7] = (uint8_t)value; \
-				egc_inptr[ 8] = (uint8_t)(value >> 8); \
-				egc_inptr[11] = (uint8_t)value; \
-				egc_inptr[12] = (uint8_t)(value >> 8); \
-				egc_shiftinput_decw(); \
-			}  \
-		} \
-	} while(0)
-
-#define	EGC_OPE_SHIFTW2(value) \
-	do { \
-			if(!(egc_sft & 0x1000)) { \
-				egc_inptr[ 0] = (uint8_t)value; \
-				egc_inptr[ 1] = (uint8_t)(value >> 8); \
-				egc_inptr[ 4] = (uint8_t)value; \
-				egc_inptr[ 5] = (uint8_t)(value >> 8); \
-				egc_inptr[ 8] = (uint8_t)value; \
-				egc_inptr[ 9] = (uint8_t)(value >> 8); \
-				egc_inptr[12] = (uint8_t)value; \
-				egc_inptr[13] = (uint8_t)(value >> 8); \
-				egc_shiftinput_incw(); \
-			} else { \
-				egc_inptr[-1] = (uint8_t)value; \
-				egc_inptr[ 0] = (uint8_t)(value >> 8); \
-				egc_inptr[ 3] = (uint8_t)value; \
-				egc_inptr[ 4] = (uint8_t)(value >> 8); \
-				egc_inptr[ 7] = (uint8_t)value; \
-				egc_inptr[ 8] = (uint8_t)(value >> 8); \
-				egc_inptr[11] = (uint8_t)value; \
-				egc_inptr[12] = (uint8_t)(value >> 8); \
-				egc_shiftinput_decw(); \
-			} \
-	} while(0)
-
-// ----
-
-#endif
 
 uint64_t __FASTCALL DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 {
 	__DECL_ALIGNED(16) egcquad_t pat;
 	__DECL_ALIGNED(16) egcquad_t dst;
 	__DECL_ALIGNED(16) egcquad_t tmp;
-	
+
 	switch(egc_fgbg & 0x6000) {
+		// OK? 20230314 K.O
+		// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+		// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
 	case 0x2000:
 		pat.q = egc_bgc.q;
 		break;
 	case 0x4000:
 		pat.q = egc_fgc.q;
 		break;
-	case 0x6000:
-		pat.d[0] = egc_fgc.d[0];
-		pat.d[1] = egc_bgc.d[1];
-		break;
-//	default:
-	case 0x0000:
+//	case 0x6000:
+//		pat.d[0] = egc_fgc.d[0];
+//		pat.d[1] = egc_bgc.d[1];
+//		break;
+	default:
+//	case 0x0000:
 		if((egc_ope & 0x0300) == 0x0100) {
 			pat.q = egc_vram_src.q;
-		} else if((egc_ope & 0x0300) == 0x0200) {
+		} /*else if((egc_ope & 0x0300) == 0x0200) {
 			pat.q = egc_lastvram.q;
-		} else {
+		} */else {
 			pat.q = egc_patreg.q;
 		}
 		break;
@@ -662,7 +602,7 @@ uint64_t __FASTCALL DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 		dst.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
 		dst.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
 	#endif
-	
+
 	//egc_vram_data.d[0] = 0;
 	//egc_vram_data.d[1] = 0;
 	tmp.q = 0;
@@ -674,7 +614,7 @@ uint64_t __FASTCALL DISPLAY::egc_ope_xx(uint8_t ope, uint32_t addr)
 //	tmp.q |= (ope & 0x04) ? ((~pat.q) & (~egc_vram_src.q) & dst.q) : 0;
 //	tmp.q |= (ope & 0x02) ? (pat.q & (~egc_vram_src.q) & (~dst.q)) : 0;
 //	tmp.q |= (ope & 0x01) ? ((~pat.q) & (~egc_vram_src.q) & (~dst.q)) : 0;
-	
+
 	if(ope & 0x80) {
 		tmp.q |= (pat.q & egc_vram_src.q & dst.q);
 	}
@@ -973,7 +913,7 @@ uint64_t __FASTCALL DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 {
 	uint32_t tmp;
 	if(!(enable_egc)) return 0;
-	
+
 	egc_mask2.w = egc_mask.w;
 	switch(egc_ope & 0x1800) {
 	case 0x0800:
@@ -983,13 +923,17 @@ uint64_t __FASTCALL DISPLAY::egc_opeb(uint32_t addr, uint8_t value)
 		return egc_opefn(tmp, (uint8_t)tmp, addr & (~1));
 	case 0x1000:
 		switch(egc_fgbg & 0x6000) {
+		// OK? 20230314 K.O
+		// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+		// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
 		case 0x2000:
 			return egc_bgc.q;
 		case 0x4000:
 			return egc_fgc.q;
-		default: // 0x0000, 0x6000
+		case 0x0000:
 			EGC_OPE_SHIFTB(addr, value);
 			egc_mask2.w &= egc_srcmask.w;
+		default:
 			return egc_vram_src.q;
 		}
 		break;
@@ -1011,21 +955,27 @@ uint64_t __FASTCALL DISPLAY::egc_opew(uint32_t addr, uint16_t value)
 
 	egc_mask2.w = egc_mask.w;
 	switch(egc_ope & 0x1800) {
+		// OK? 20230314 K.O
+		// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+		// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
 	case 0x0800:
 		EGC_OPE_SHIFTW(value);
 		egc_mask2.w &= egc_srcmask.w;
 		tmp = egc_ope & 0xff;
 		return egc_opefn(tmp, (uint8_t)tmp, addr);
 	case 0x1000:
-		EGC_OPE_SHIFTW2(value);
-		egc_mask2.w &= egc_srcmask.w;
+//		EGC_OPE_SHIFTW2(value);
+//		egc_mask2.w &= egc_srcmask.w;
 		switch(egc_fgbg & 0x6000) {
 		case 0x2000:
 			return egc_bgc.q;
 		case 0x4000:
 			return egc_fgc.q;
+		case 0x0000:
+			EGC_OPE_SHIFTW(value);
+			egc_mask2.w &= egc_srcmask.w;
 		default:
-			return egc_patreg.q;
+			return egc_vram_src.q;
 		}
 		break;
 	default:
@@ -1052,7 +1002,7 @@ uint32_t __FASTCALL DISPLAY::egc_readb(uint32_t addr1)
 										  VRAM_PLANE_ADDR_3};
 	if(!(enable_egc)) return 0;
 	__DECL_ALIGNED(16) uint32_t realaddr[4];
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		realaddr[i] = addr | vram_base[i];
@@ -1065,7 +1015,7 @@ __DECL_VECTORIZED_LOOP
 //	egc_lastvram.b[1][ext] = vram_draw[addr | VRAM_PLANE_ADDR_1];
 //	egc_lastvram.b[2][ext] = vram_draw[addr | VRAM_PLANE_ADDR_2];
 //	egc_lastvram.b[3][ext] = vram_draw[addr | VRAM_PLANE_ADDR_3];
-	
+
 	// shift input
 	if(!(egc_ope & 0x400)) {
 __DECL_VECTORIZED_LOOP
@@ -1082,7 +1032,7 @@ __DECL_VECTORIZED_LOOP
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
 			egc_patreg.b[i][ext] = vram_draw[realaddr[i]];
-		}	
+		}
 //		egc_patreg.b[0][ext] = vram_draw[addr | VRAM_PLANE_ADDR_0];
 //		egc_patreg.b[1][ext] = vram_draw[addr | VRAM_PLANE_ADDR_1];
 //		egc_patreg.b[2][ext] = vram_draw[addr | VRAM_PLANE_ADDR_2];
@@ -1108,7 +1058,7 @@ uint32_t __FASTCALL DISPLAY::egc_readw(uint32_t addr1)
 										  VRAM_PLANE_ADDR_3};
 	if(!(enable_egc)) return 0;
 	__DECL_ALIGNED(16) uint32_t realaddr[4];
-	
+
 	if(!(addr1 & 1)) {
 		uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 __DECL_VECTORIZED_LOOP
@@ -1120,7 +1070,7 @@ __DECL_VECTORIZED_LOOP
 			egc_lastvram.w[1] = vram_draw_readw(addr | VRAM_PLANE_ADDR_1);
 			egc_lastvram.w[2] = vram_draw_readw(addr | VRAM_PLANE_ADDR_2);
 			egc_lastvram.w[3] = vram_draw_readw(addr | VRAM_PLANE_ADDR_3);
-		#else		
+		#else
 __DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
 				egc_lastvram.w[i] = *(uint16_t *)(&vram_draw[realaddr[i]]);
@@ -1130,31 +1080,45 @@ __DECL_VECTORIZED_LOOP
 //		egc_lastvram.w[1] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_1]);
 //		egc_lastvram.w[2] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_2]);
 //		egc_lastvram.w[3] = *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]);
-		
-		// shift input
-		int pl = (egc_fgbg >> 8) & 3;
-		
+
+		// OK? 20230314 K.O
+		// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+		// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
+
+//		// shift input
+//		int pl = (egc_fgbg >> 8) & 3;
+
 		if(!(egc_ope & 0x400)) {
 			if(!(egc_sft & 0x1000)) {
-				if(!(egc_ope & 0x2000)) {
-					egc_inptr[4 * pl + 0] = egc_lastvram.b[pl][0];
-					egc_inptr[4 * pl + 1] = egc_lastvram.b[pl][1];
-				} else {
-					uint8_t *pp = (uint8_t*)(&(egc_lastvram.b[0][0]));
-				__DECL_VECTORIZED_LOOP
-					for(int i = 0; i < 4; i++) {
-						egc_inptr[(i << 2) + 0] = pp[(i << 1) + 0];
-						egc_inptr[(i << 2) + 1] = pp[(i << 1) + 1];
-					}					
-					egc_shiftinput_incw();
-				}
+//				if(!(egc_ope & 0x2000)) {
+//					egc_inptr[4 * pl + 0] = egc_lastvram.b[pl][0];
+//					egc_inptr[4 * pl + 1] = egc_lastvram.b[pl][1];
+//				} else {
+//					uint8_t *pp = (uint8_t*)(&(egc_lastvram.b[0][0]));
+//				__DECL_VECTORIZED_LOOP
+//					for(int i = 0; i < 4; i++) {
+//						egc_inptr[(i << 2) + 0] = pp[(i << 1) + 0];
+//						egc_inptr[(i << 2) + 1] = pp[(i << 1) + 1];
+//					}
+//					egc_shiftinput_incw();
+//				}
+				egc_inptr[ 0] = egc_lastvram.b[0][0];
+				egc_inptr[ 1] = egc_lastvram.b[0][1];
+				egc_inptr[ 4] = egc_lastvram.b[1][0];
+				egc_inptr[ 5] = egc_lastvram.b[1][1];
+				egc_inptr[ 8] = egc_lastvram.b[2][0];
+				egc_inptr[ 9] = egc_lastvram.b[2][1];
+				egc_inptr[12] = egc_lastvram.b[3][0];
+				egc_inptr[13] = egc_lastvram.b[3][1];
+				egc_shiftinput_incw();
 			} else {
+				// ToDo: Always make pointer of egc_inptr positive value. - 20230314 K.O
 				uint8_t *pp = (uint8_t*)(&(egc_lastvram.b[0][0]));
 			__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 4; i++) {
 					egc_inptr[(i << 2) - 1] = pp[(i << 1) + 0];
 					egc_inptr[(i << 2) + 0] = pp[(i << 1) + 1];
-				}					
+				}
 //				egc_inptr[-1] = egc_lastvram.b[0][0];
 //				egc_inptr[ 0] = egc_lastvram.b[0][1];
 //				egc_inptr[ 3] = egc_lastvram.b[1][0];
@@ -1171,6 +1135,10 @@ __DECL_VECTORIZED_LOOP
 			egc_patreg.d[1] = egc_lastvram.d[1];
 		}
 		if(!(egc_ope & 0x2000)) {
+			// OK? 20230314 K.O
+			// by Upstream 2022-11-17, commit 9db08f0003548bf0fea46902b834d9084d454832
+			// "[PC9801/DISPLAY] revirt EGC improvement in 12/18/2020" .
+			/*
 			uint32_t temp_1 = 0, temp_2 = 0, temp_3 = 0, temp;
 			if(addr > 3) temp_3 = vram_draw[(addr - 3) | (VRAM_PLANE_SIZE * pl)];
 			if(addr > 2) temp_2 = vram_draw[(addr - 2) | (VRAM_PLANE_SIZE * pl)];
@@ -1183,13 +1151,25 @@ __DECL_VECTORIZED_LOOP
 				temp = (temp << (egc_sft & 0x0f)) >> ((egc_sft & 0xf0) >> 4);
 				temp = temp >> 8;
 				return ((temp & 0xff00) >> 8) | ((temp & 0xff) << 8);
+			*/
+			int pl = (egc_fgbg >> 8) & 3;
+			if(!(egc_ope & 0x400)) {
+				return egc_vram_src.w[pl];
 			} else {
+				/*
 				// sftcopy
 				temp = (temp_1 <<16) | (temp0 <<8) | temp1;
 				temp = (temp << (egc_sft & 0x0f)) >> ((egc_sft & 0xf0) >> 4);
 				return ((temp & 0xff00) >> 8) | ((temp & 0xff) << 8);
+				*/
+				#ifdef __BIG_ENDIAN__
+					return vram_draw_readw(addr | (VRAM_PLANE_SIZE * pl));
+				#else
+					return *(uint16_t *)(&vram_draw[addr | (VRAM_PLANE_SIZE * pl)]);
+				#endif
 			}
 		}
+		/*
 		uint16_t fg1 = 0, fg2 = 0, fg4 = 0, fg8 = 0;
 		uint16_t temp3;
 		if(!(egc_access & 1)) fg1 = (egc_fg&1)|(egc_fg&1)<<1|(egc_fg&1)<<2|(egc_fg&1)<<3|(egc_fg&1)<<4|(egc_fg&1)<<5|(egc_fg&1)<<6|(egc_fg&1)<<7;
@@ -1209,6 +1189,12 @@ __DECL_VECTORIZED_LOOP
 			temp3 |= *(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_3]) ^ fg8;
 		#endif
 		return (~temp3);
+		*/
+		#ifdef __BIG_ENDIAN__
+		return vram_draw_readw(addr1);
+		#else
+		return *(uint16_t *)(&vram_draw[addr1]);
+		#endif
 	} else if(!(egc_sft & 0x1000)) {
 		uint16_t value = egc_readb(addr1);
 		value |= egc_readb(addr1 + 1) << 8;
@@ -1254,7 +1240,7 @@ __DECL_VECTORIZED_LOOP
 		bit = 1;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
-			if((bit & egc_access) == 0) { 
+			if((bit & egc_access) == 0) {
 				m[i] = data.b[i][ext];
 				n[i] = vram_draw[realaddr[i]];
 			}
@@ -1269,12 +1255,12 @@ __DECL_VECTORIZED_LOOP
 		bit = 1;
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
-			if((bit & egc_access) == 0) { 
+			if((bit & egc_access) == 0) {
 				vram_draw[realaddr[i]] = n[i];
 			}
 			bit <<= 1;
 		}
-		
+
 //			vram_draw[realaddr[i]] &= ~egc_mask2.b[ext];
 //			vram_draw[realaddr[i]] |= data.b[3][ext] & egc_mask2.b[ext];
 
@@ -1305,11 +1291,11 @@ void __FASTCALL DISPLAY::egc_writew(uint32_t addr1, uint16_t value)
 										  VRAM_PLANE_ADDR_3};
 	__DECL_ALIGNED(16) uint32_t realaddr[4];
 	if(!(enable_egc)) return;
-	
+
 	if(!(addr1 & 1)) {
 		uint32_t addr = addr1 & VRAM_PLANE_ADDR_MASK;
 		egcquad_t data;
-		
+
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 4; i++) {
 			realaddr[i] = addr | vram_base[i];
@@ -1336,7 +1322,7 @@ __DECL_VECTORIZED_LOOP
 			bit = 1;
 __DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
-				if((bit & egc_access) == 0) { 
+				if((bit & egc_access) == 0) {
 					m[i] = data.w[i];
 					n[i] = *((uint16_t*)(&(vram_draw[realaddr[i]])));
 				}
@@ -1351,12 +1337,12 @@ __DECL_VECTORIZED_LOOP
 			bit = 1;
 __DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 4; i++) {
-				if((bit & egc_access) == 0) { 
+				if((bit & egc_access) == 0) {
 					*((uint16_t*)(&(vram_draw[realaddr[i]]))) = n[i];
 				}
 				bit <<= 1;
 			}
-			
+
 //			if(!(egc_access & 1)) {
 //				*(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]) &= ~egc_mask2.w;
 //				*(uint16_t *)(&vram_draw[addr | VRAM_PLANE_ADDR_0]) |= data.w[0] & egc_mask2.w;
