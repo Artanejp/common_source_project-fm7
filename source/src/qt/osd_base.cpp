@@ -656,7 +656,7 @@ const _TCHAR *OSD_BASE::get_lib_common_vm_version()
 const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
 {
 	// ToDo: Really need to lock? 20221011 K.O
-	//std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	return vm->get_vm_git_version();
 }
 
@@ -664,20 +664,21 @@ const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
 // Screen
 void OSD_BASE::vm_draw_screen(void)
 {
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	vm->draw_screen();
 }
 
 double OSD_BASE::vm_frame_rate(void)
 {
 	// ToDo: Really need to lock? 20221011 K.O
-	//std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	return vm->get_frame_rate();
 }
 
 Sint16* OSD_BASE::create_sound(int *extra_frames)
 {
 	// ToDo: Really need to lock? 20221011 K.O
-	//std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 
