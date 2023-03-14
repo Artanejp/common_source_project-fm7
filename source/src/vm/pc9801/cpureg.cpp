@@ -21,7 +21,7 @@
 //#include "../i286_np21.h"
 #include "../i286.h"
 #endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 #include "../i86.h"
 #include "../i8255.h"
 #endif
@@ -34,8 +34,10 @@ void CPUREG::initialize()
 {
 	reg_0f0 = 0x00;
 	event_wait = -1;
-#if !defined(SUPPORT_HIRESO)
-	reg_0f0 = reg_0f0 | ((cpu_mode) ? 1 : 0);
+#if defined(HAS_SUB_V30)
+	if(d_v30 != nullptr) {
+		reg_0f0 = reg_0f0 | ((cpu_mode) ? 1 : 0);
+	}
 #endif
 }
 
@@ -44,14 +46,19 @@ void CPUREG::reset()
 	d_cpu->set_address_mask(0x000fffff);
 	nmi_enabled = false;
 	init_clock = get_current_clock_uint64() & 0x000000ffffffffff;
-#if !defined(SUPPORT_HIRESO)
-	reg_0f0 = reg_0f0 & 0xfe;
-	reg_0f0 = reg_0f0 | ((cpu_mode) ? 1 : 0);
-	d_pio->write_signal(SIG_I8255_PORT_B, ((reg_0f0 & 1) != 0) ? 2 : 0, 2);
+#if defined(HAS_SUB_V30)
 	if(d_v30 != NULL) {
+		d_cpu->write_signal(SIG_CPU_BUSREQ,  reg_0f0, 1);
+		//d_v30->reset();
 		d_v30->write_signal(SIG_CPU_BUSREQ, ~reg_0f0, 1);
+		cpu_mode = ((reg_0f0 & 1) != 0);
+		d_pio->write_signal(SIG_I8255_PORT_B, reg_0f0 << 1, 2);
+	} else {
+		reg_0f0 &= 0xfe;
+		cpu_mode = false;
+		d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		d_pio->write_signal(SIG_I8255_PORT_B, 0, 2);
 	}
-	d_cpu->write_signal(SIG_CPU_BUSREQ, reg_0f0, 1);
 #endif
 }
 
@@ -67,7 +74,7 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x005f:
 		// ToDo: Both Pseudo BIOS.
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 		if(d_v30 != NULL) {
 			d_v30->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		}
@@ -81,18 +88,30 @@ void CPUREG::write_io8(uint32_t addr, uint32_t data)
 	case 0x00f0:
 		out_debug_log(_T("00F0h=%02X"), data);
 		reg_0f0 = data;
-		d_cpu->write_signal(SIG_CPU_BUSREQ,  reg_0f0, 1);
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 		if(d_v30 != NULL) {
-			d_v30->reset();
-			d_v30->write_signal(SIG_CPU_BUSREQ, ~reg_0f0, 1);
+			write_signals(&outputs_cputype, ((reg_0f0 & 0x01) != 0) ? 0xffffffff : 0x00000000);
+		} else {
+			write_signals(&outputs_cputype, 0);
 		}
-		d_pio->write_signal(SIG_I8255_PORT_B, ((reg_0f0 & 1) != 0) ? 2 : 0, 2);
-//		d_pio->write_signal(SIG_I8255_PORT_B, reg_0f0, 2);
+#else
+		write_signals(&outputs_cputype, 0);
 #endif
-		write_signals(&outputs_cputype, ((reg_0f0 & 1) != 0) ? 0xffffffff : 0x00000000);
 		d_cpu->reset();
 		d_cpu->set_address_mask(0x000fffff);
+#if defined(HAS_SUB_V30)
+		if(d_v30 != NULL) {
+			d_cpu->write_signal(SIG_CPU_BUSREQ,  reg_0f0, 1);
+			d_v30->reset();
+			d_v30->write_signal(SIG_CPU_BUSREQ, ~reg_0f0, 1);
+			cpu_mode = ((reg_0f0 & 1) != 0);
+			d_pio->write_signal(SIG_I8255_PORT_B, reg_0f0 << 1, 2);
+		} else {
+			reg_0f0 &= 0xfe;
+			cpu_mode = false;
+			d_pio->write_signal(SIG_I8255_PORT_B, 0, 2);
+		}
+#endif
 		break;
 	case 0x00f2:
 #if defined(SUPPORT_32BIT_ADDRESS)
@@ -187,11 +206,9 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 //		value |= 0x10; // Unknown
 		value |= 0x08; // RAM access, 1 = Internal-standard/External-enhanced RAM, 0 = Internal-enhanced RAM
 //		value |= 0x04; // Refresh mode, 1 = Standard, 0 = High speed
-#if defined(HAS_I86) || defined(HAS_V30)
-		value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
-#endif
-#if !defined(SUPPORT_HIRESO)
-		if(cpu_mode) {
+#if defined(HAS_SUB_V30)
+		if((cpu_mode) && (d_v30 != nullptr)) {
+			// Q: When defined HAS_I86 ?
 			value |= 0x02; // CPU mode, 1 = V30, 0 = 80286/80386
 		}
 #endif
@@ -221,36 +238,40 @@ uint32_t CPUREG::read_io8(uint32_t addr)
 void CPUREG::event_callback(int id, int err)
 {
 	if(id == EVENT_WAIT) {
-#if !defined(SUPPORT_HIRESO)
+		// Reset WAIT (Temporally BUSREQ).
+//#if !defined(SUPPORT_HIRESO)
 		// ToDo: Both Pseudo BIOS.
 		uint32_t haltvalue = 0;
 		uint32_t haltvalue_v30 = 1;
-		if(cpu_mode) {
-			haltvalue = 1;
-			haltvalue_v30 = 0;
-		}
+		#if defined(HAS_SUB_V30)
 		if(d_v30 != NULL) {
+			if(cpu_mode) {
+				haltvalue = 1;
+				haltvalue_v30 = 0;
+			}
 			d_v30->write_signal(SIG_CPU_BUSREQ, haltvalue_v30, 1);
 		}
+		#endif
 		d_cpu->write_signal(SIG_CPU_BUSREQ, haltvalue, 1);
 		event_wait = -1;
-#endif
+//#endif
  	}
 }
 
-#if !defined(SUPPORT_HIRESO)
+//#if !defined(SUPPORT_HIRESO)
 void CPUREG::set_intr_line(bool line, bool pending, uint32_t bit)
 {
+#if defined(HAS_SUB_V30)
 	if(d_v30 != NULL) {
 		if(((reg_0f0 & 1) != 0)){
 			d_v30->set_intr_line(line, pending, bit);
 		} else {
 			d_cpu->set_intr_line(line, pending, bit);
 		}
-	} else {
-//		if(cpu_mode == 0) {
-			d_cpu->set_intr_line(line, pending, bit);
-//		}
+	} else
+#endif
+	{
+		d_cpu->set_intr_line(line, pending, bit);
 	}
 }
 
@@ -266,8 +287,7 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 //		out_debug_log("RESET FROM CPU!!!\n");
 	}
 }
-
-#endif
+//#endif
 
 #define STATE_VERSION	3
 
@@ -280,7 +300,7 @@ bool CPUREG::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateValue(reg_0f0);
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	state_fio->StateValue(cpu_mode);
 #endif
 	state_fio->StateValue(nmi_enabled);

@@ -68,11 +68,9 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[3]->setVisible(false);
 #endif
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_SUB_V30)
 	actionSUB_V30->setText(QApplication::translate("MainWindow", "Enable V30 SUB CPU(need RESTART).", 0));
 	actionSUB_V30->setToolTip(QApplication::translate("MainWindow", "Enable emulation of V30 SUB CPU.\nThis may make emulation speed slower.\nYou must restart emulator after reboot.", 0));
-#endif
 #endif
 
 #ifdef USE_CPU_TYPE
@@ -90,33 +88,33 @@ void META_MainWindow::retranslateUi(void)
 	actionCpuType[0]->setText(QString::fromUtf8("V30 10MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("V30 8MHz"));
 # elif  defined(_PC9801VX)
-	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz / V30 10MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz  / V30 8MHz"));
+	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz"));
+	actionCpuType[2]->setText(QString::fromUtf8("V30 10MHz"));
+	actionCpuType[3]->setText(QString::fromUtf8("V30 8MHz"));
 # elif  defined(_PC98XL)
 	actionCpuType[0]->setText(QString::fromUtf8("80286 10MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("80286 8MHz"));
 # elif  defined(_PC9801RA) || defined(_PC98RL)
 	// ToDo: PC98RL's display rotate.
-	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz / V30 10MHz"));
-	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz / V30 8MHz"));
+	#if defined(HAS_SUB_V30)
+	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz"));
+	actionCpuType[2]->setText(QString::fromUtf8("V30 10MHz"));
+	actionCpuType[3]->setText(QString::fromUtf8("V30 8MHz"));
+	// ToDo: More smart solution. 20230315 K.O
+	if((((0x1) << DIPSWITCH_POSITION_USE_V30) & p_config->dipswitch) == 0) {
+		actionCpuType[2]->setEnabled(false);
+		actionCpuType[3]->setEnabled(false);
+	}
+	#else
+	actionCpuType[0]->setText(QString::fromUtf8("80386 20MHz"));
+	actionCpuType[1]->setText(QString::fromUtf8("80386 16MHz"));
+	#endif
 # elif  defined(_PC98XA)
 	actionCpuType[0]->setText(QString::fromUtf8("80286 8MHz"));
 	actionCpuType[1]->setVisible(false);
 # endif
-#endif
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) == 0) {
-		actionRunSubCPU->setEnabled(false);
-	}
-# if defined(UPPER_I386)
-	actionRunMainCPU->setText(QString::fromUtf8("i386"));
-# else
-	actionRunMainCPU->setText(QString::fromUtf8("i80286"));
-# endif
-	actionRunSubCPU->setText(QString::fromUtf8("V30"));
-	menuRunCpu->setTitle(QApplication::translate("MainWindow", "Running CPU (DIPSW 3-8)", 0));
-#endif
 #endif
 
 //	actionRAM_512K->setText(QApplication::translate("MainWindow", "512KB RAM", 0));
@@ -214,11 +212,10 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_PC9801) || defined(_PC9801E)
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0));
 	actionDebugger[1]->setVisible(true);
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "PC-98 Main CPU", 0));
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "PC-88 Main CPU", 0));
 	actionDebugger[2]->setText(QApplication::translate("MainWindow", "PC-88 Sub CPU", 0));
-
 	actionDebugger[1]->setVisible(true);
 	actionDebugger[2]->setVisible(true);
 #elif defined(HAS_I286)
@@ -230,11 +227,9 @@ void META_MainWindow::retranslateUi(void)
 #elif defined(UPPER_I386)
 	actionDebugger[0]->setText(QApplication::translate("MainWindow", "i80x86 Main CPU", 0));
 #endif
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_SUB_V30)
 	actionDebugger[1]->setText(QApplication::translate("MainWindow", "V30 Sub CPU", 0));
 	actionDebugger[1]->setVisible(true);
-#endif
 #endif
 #endif
 #ifdef USE_MONITOR_TYPE
@@ -246,30 +241,12 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 #ifdef USE_CPU_TYPE
-	ConfigCPUTypes(2);
+	ConfigCPUTypes(USE_CPU_TYPE);
 #endif
 
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_SUB_V30)
 	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionSUB_V30, ((0x1) << DIPSWITCH_POSITION_USE_V30), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 	menuMachine->addAction(actionSUB_V30);
-
-	actionGroup_RunningCpu = new QActionGroup(this);
-	actionGroup_RunningCpu->setExclusive(true);
-
-	SET_ACTION_DIPSWITCH_CONNECT(actionRunMainCPU, ((0x0) << DIPSWITCH_POSITION_CPU_MODE), ((0x1) << DIPSWITCH_POSITION_CPU_MODE), p_config->dipswitch, SIGNAL(triggered()), SLOT(do_set_multi_dipswitch()));
-	SET_ACTION_DIPSWITCH_CONNECT(actionRunSubCPU, ((0x1) << DIPSWITCH_POSITION_CPU_MODE), ((0x1) << DIPSWITCH_POSITION_CPU_MODE), p_config->dipswitch, SIGNAL(triggered()), SLOT(do_set_multi_dipswitch()));
-
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0) {
-		actionRunSubCPU->setChecked(true);
-	} else {
-		actionRunMainCPU->setChecked(true);
-	}
-	menuRunCpu = new QMenu(menuMachine);
-	menuRunCpu->addAction(actionRunMainCPU);
-	menuRunCpu->addAction(actionRunSubCPU);
-	menuMachine->addAction(menuRunCpu->menuAction());
-#endif
 #endif
 //	SET_ACTION_SINGLE_DIPSWITCH_CONNECT(actionRAM_512K, ((0x1) << DIPSWITCH_POSITION_RAM512K), p_config->dipswitch, SIGNAL(toggled(bool)), SLOT(do_set_single_dipswitch(bool)));
 //	menuMachine->addAction(actionRAM_512K);

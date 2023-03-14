@@ -31,7 +31,7 @@
 //#include "../i286_np21.h"
 #include "../i86.h"
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 #include "../i86.h"
 #endif
 #include "../event.h"
@@ -162,6 +162,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	boot_mode = config.boot_mode;
 #endif
 	int cpu_clocks = CPU_CLOCKS;
+	int v30_clocks = 9984060;
+	// ToDo: Consider set default clock by config.cpu_type.
+	// This is feature of upstream.
+	// 20230315 K.O.
 #if defined(PIT_CLOCK_8MHZ)
 	pit_clock_8mhz = true;
 #else
@@ -228,7 +232,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I386(this, emu);
 	cpu->device_model = INTEL_I486DX;
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if((config.dipswitch & (1 << DIPSWITCH_POSITION_USE_V30)) != 0) { // You should add manual
 		v30 = new I86(this, emu);
 		v30->device_model = NEC_V30;
@@ -407,11 +411,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_extreset(cpureg, SIG_CPUREG_RESET, 0xffffffff);
 #endif
 	event->set_context_cpu(cpu, cpu_clocks);
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
-	if((config.dipswitch & (1 << DIPSWITCH_POSITION_USE_V30)) != 0) { // You should add manually.
-		if(v30 != NULL) {
-			event->set_context_cpu(v30, 9984060);
-		}
+#if defined(HAS_SUB_V30)
+	if(v30 != NULL) {
+		event->set_context_cpu(v30, v30_clocks);
 	}
 #endif
 #if defined(SUPPORT_320KB_FDD_IF)
@@ -546,18 +548,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
 	cpureg->set_context_cpu(cpu);
-#if !defined(SUPPORT_HIRESO)
-	cpureg->set_context_v30(v30);
+	#if defined(HAS_SUB_V30)
+	if(v30 != nullptr) {
+		cpureg->set_context_v30(v30);
+		cpureg->cpu_mode = (config.cpu_type == 2 || config.cpu_type == 3);
+	} else {
+		cpureg->cpu_mode = 0;
+	}
 	cpureg->set_context_pio(pio_prn);
-	cpureg->cpu_mode = ((config.dipswitch & (1 << DIPSWITCH_POSITION_CPU_MODE)) != 0);
-#endif
-//	cpureg->set_context_membus(memory);
-//	cpureg->set_context_piosys(pio_sys);
-	#if defined(HAS_V30_SUB_CPU)
-//	if((config.dipswitch & ((0x1) << DIPSWITCH_POSITION_USE_V30)) != 0) {
-//		cpureg->set_context_v30(v30);
-//		cpureg->set_context_cputype(pio_prn, SIG_I8255_PORT_B, 0x02, 0);
-//	}
 	#endif
 #endif
 	display->set_context_pic(pic);
@@ -610,9 +608,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy->set_context_pic(pic);
 
 #if defined(SUPPORT_SASI_IF)
-#if !defined(SUPPORT_HIRESO)
-	sasi_host->set_context_irq(pio_sys, SIG_I8255_PORT_B, 0x10);
-#endif
+	#if !defined(SUPPORT_HIRESO)
+	// OK? Temporally comment out.
+	// Differnt from upstream. 20230315 K.O
+	//sasi_host->set_context_irq(pio_sys, SIG_I8255_PORT_B, 0x10);
+	#endif
 //	sasi_host->set_context_irq(sasi, SIG_SASI_IRQ, 1);
 //	sasi_host->set_context_drq(sasi, SIG_SASI_DRQ, 1);
 	sasi_host->set_context_bsy(sasi, SIG_SASI_BSY, 1);
@@ -636,7 +636,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi->set_context_dma(dma);
 	sasi->set_context_pic(pic);
 	#if !defined(SUPPORT_HIRESO)
-		sasi->set_context_pio(pio_sys);
+	sasi->set_context_pio(pio_sys);
 	#endif
 	sasi_bios->set_context_sasi(sasi);
 	sasi_bios->set_context_memory(memory);
@@ -645,7 +645,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_bios->set_context_cpureg(cpureg);
 
 	cpu->set_context_bios(sasi_bios);
-	#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+	#if defined(HAS_SUB_V30)
 	if(v30 != NULL) {
 		v30->set_context_bios(sasi_bios);
 	}
@@ -662,17 +662,17 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	ide->set_context_dma(dma);
 	ide->set_context_pic(pic);
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if(v30 != NULL) {
 		v30->set_context_mem(memory);
 		v30->set_context_io(io);
 		v30->set_context_intr(pic);
-#ifdef SINGLE_MODE_DMA
+	#ifdef SINGLE_MODE_DMA
 		v30->set_context_dma(dma);
-#endif
-#ifdef USE_DEBUGGER
+	#endif
+	#ifdef USE_DEBUGGER
 		v30->set_context_debugger(new DEBUGGER(this, emu));
-#endif
+	#endif
 	}
 #endif
 
@@ -1246,10 +1246,8 @@ DEVICE* VM::get_device(int id)
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------
-void VM::set_cpu_clock_with_switch(int speed_type)
+void VM::calc_cpu_clocks_from_switch(int speed_type, uint32_t &cpu_clocks, uint32_t &v30_clocks)
 {
-	uint32_t cpu_clocks = CPU_CLOCKS;
-	uint32_t v30sub_clocks = 9984060;
 #if defined(_PC9801E)
 	if(speed_type != 0) {
 		// 8MHz -> 5MHz
@@ -1261,7 +1259,7 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 #elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS) || defined(_PC9801VX) || defined(_PC98XL)
 	if(speed_type != 0) { // This also include V30CPU/8MHz.
 		// 10MHz/16MHz -> 8MHz
-		v30sub_clocks = 7987248;
+		v30_clocks = 7987248;
 		cpu_clocks = 7987248;
 		pit_clock_8mhz = true;
 	} else {
@@ -1270,13 +1268,21 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 #elif defined(_PC9801RA) || defined(_PC98RL)
 	if(speed_type == 1) {
 		// 20MHz -> 16MHz
-		v30sub_clocks = 7987248;
+		v30_clocks = 7987248;
 		cpu_clocks = 15974496;
 		pit_clock_8mhz = true;
 	}  else {
 		pit_clock_8mhz = false;
 	}
 #endif
+}
+
+void VM::set_cpu_clock_with_switch(int speed_type)
+{
+	uint32_t cpu_clocks = CPU_CLOCKS;
+	uint32_t v30sub_clocks = 9984060;
+	calc_cpu_clocks_from_switch(speed_type, cpu_clocks, v30sub_clocks);
+
 	uint32_t waitfactor;
 	if(CPU_CLOCKS > cpu_clocks) {
 //		waitfactor = (uint32_t)(65536.0 * ((1.0 - (double)cpu_clocks / (double)CPU_CLOCKS)));
@@ -1286,7 +1292,7 @@ void VM::set_cpu_clock_with_switch(int speed_type)
 //		out_debug_log(_T("CLOCK=%d WAIT FACTOR=%d"), cpu_clocks, waitfactor);
 	}
 	cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if(9984060 > v30sub_clocks) {
 //		waitfactor = (uint32_t)(65536.0 * ((1.0 - (double)cpu_clocks / (double)CPU_CLOCKS)));
 		waitfactor = (uint32_t)(65536.0 * ((double)9984060 / (double)v30sub_clocks));
@@ -1524,10 +1530,7 @@ void VM::initialize_ports()
 #if defined(SUPPORT_HIRESO)
 //	port_c |= 0x08; // MODSW, 1 = Normal Mode, 0 = Hireso Mode
 #endif
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
-#endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	if(config.cpu_type == 2 || config.cpu_type == 3) {
 		port_c |= 0x04; // DIP SW 3-8, 1 = V30, 0 = 80x86
 	}
@@ -1600,13 +1603,14 @@ void VM::initialize_ports()
 	port_b |= 0x08; // DIP SW 1-8, 1 = Standard graphic mode, 0 = Enhanced graphic mode
 #endif
 	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
-#if defined(HAS_V30) || defined(HAS_V33)
-	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
-#endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if !defined(SUPPORT_HIRESO)
+	#if defined(HAS_SUB_V30)
 	if(cpureg->cpu_mode) {
 		port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
 	}
+	#elif defined(HAS_V30) || defined(HAS_V33)
+	port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
+	#endif
 #endif
 #if defined(_PC9801VF) || defined(_PC9801U)
 	port_b |= 0x01; // VF, 1 = PC-9801VF/U
@@ -1734,10 +1738,18 @@ DEVICE *VM::get_cpu(int index)
 	}
 #else
 	if(index == 0) {
+	#if defined(HAS_SUB_V30)
+		if((cpureg->cpu_mode) && (v30 != nullptr)) {
+			return NULL;
+		}
+	#endif
 		return cpu;
 	} else if(index == 1) {
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
-		return v30;
+#if defined(HAS_SUB_V30)
+		if((cpureg->cpu_mode) && (v30 != nullptr)) {
+			return v30;
+		}
+		return NULL;
 #elif defined(SUPPORT_320KB_FDD_IF)
 		return cpu_sub;
 #endif

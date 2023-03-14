@@ -40,7 +40,7 @@ protected:
 
 	// DipSW 3
 	Action_Control *actionRAM_512K;
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
+#if defined(HAS_SUB_V30)
 	Action_Control *actionSUB_V30;
 #endif
 
@@ -53,14 +53,6 @@ protected:
 
 	Action_Control *actionM88DRV; //
 	Action_Control *actionQuasiS88CMT; //
-#endif
-#if !defined(SUPPORT_HIRESO)
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	QActionGroup   *actionGroup_RunningCpu;
-	QMenu *menuRunCpu;
-	Action_Control *actionRunMainCPU;
-	Action_Control *actionRunSubCPU;
-#endif
 #endif
 	void setupUI_Emu(void);
 	void retranslateUi(void);

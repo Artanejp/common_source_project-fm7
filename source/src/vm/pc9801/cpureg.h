@@ -26,7 +26,7 @@ class I386;
 #else
 class I286;
 #endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 class I86;
 #endif
 
@@ -38,13 +38,13 @@ private:
 	outputs_t outputs_nmi;
 	outputs_t outputs_cputype;
 	uint8_t reg_0f0;
-	
+
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(UPPER_I386)
 	I386 *d_cpu;
 #else
 	I286 *d_cpu;
 #endif
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	I86 *d_v30;
 	DEVICE *d_pio;
 #endif
@@ -59,19 +59,17 @@ public:
 		set_device_name(_T("CPU I/O"));
 	}
 	~CPUREG() {}
-	
+
 	// common functions
 	void reset();
 	void initialize();
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
-#if !defined(SUPPORT_HIRESO)
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit);
-#endif
 	void __FASTCALL event_callback(int id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique function
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(UPPER_I386)
 	void set_context_cpu(I386* device)
@@ -81,7 +79,7 @@ public:
 	{
 		d_cpu = device;
 	}
-#if !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	void set_context_v30(I86* device)
 	{
 		d_v30 = device;
@@ -97,4 +95,3 @@ public:
 
 }
 #endif
-

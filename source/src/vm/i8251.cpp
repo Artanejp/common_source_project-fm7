@@ -57,13 +57,13 @@ void I8251::reset()
 	mode = MODE_CLEAR;
 	recv = 0x00;	// XM8 version 1.10
 //	recv = 0xff;
-	
+
 	// dont reset dsr
 	status &= DSR;
 	status |= TXRDY | TXE;
-	txen = rxen = loopback = false;
-	txen = rxen = true;
-	
+	txen = true;
+	rxen = loopback = false;
+
 	recv_buffer->clear();
 	send_buffer->clear();
 	recv_id = send_id = -1;

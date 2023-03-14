@@ -1,3 +1,8 @@
+11/20/2022
+
+[VM/I8251] fix to make tx ready in reset
+
+
 11/17/2022
 
 [PC9801/CPUREG] fix A20 mask for 32bit cpu

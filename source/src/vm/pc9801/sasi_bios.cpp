@@ -29,7 +29,7 @@
 #else
 #include "../i286.h"
 #endif
-#if defined(HAS_V30_SUB_CPU)
+#if defined(HAS_SUB_V30)
 #include "../i86.h"
 #endif
 
@@ -87,7 +87,7 @@ namespace PC9801 {
 #define SIH	regpair[6].b.h
 #define DIL	regpair[7].b.l
 #define DIH	regpair[7].b.l
-	
+
 // sregs
 #define ES	sregs[0]
 #define CS	sregs[1]
@@ -109,7 +109,7 @@ void BIOS::initialize()
 	event_halt = -1;
 	event_irq = -1;
 }
-	
+
 void BIOS::reset()
 {
 	if(event_halt >= 0) cancel_event(this, event_halt);
@@ -175,15 +175,15 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs
 //#if defined(HAS_I386)
 //	if(((PC != 0xfffc4) && (PC != 0x00ffffc4)) &&
 //	   ((PC < 0xd7000) && (PC > 0xd7fff))) return false; // INT 1Bh
-//#else	
+//#else
 	if((PC != 0xfffc4) && (PC != 0x00ffffc4)) return false; // INT 1Bh
 //#endif
 	static const int elapsed_cycle = 200; // From NP2 0.86+trunk/ OK?
-#if 1		
+#if 1
 
 	/*if((((AL & 0xf0) != 0x00) && ((AL & 0xf0) != 0x80))) */	{
 		uint8_t seg = d_mem->read_data8(0x004b0 + (AL >> 4));
-		uint32_t sp, ss;	
+		uint32_t sp, ss;
 		if ((seg != 0)) {
 #if !defined(_PC9801) && !defined(_PC9801E) && !defined(_PC9801F) && !defined(_PC9801M)
 			if(!(d_mem->is_sasi_bios_load())) {
@@ -217,7 +217,7 @@ bool BIOS::bios_call_far_ia32(uint32_t PC, uint32_t regs[], const uint16_t sregs
 			d_mem->write_data16(ss + sp - 14, CX);
 			d_mem->write_data16(ss + sp - 16, BX);
 			d_mem->write_data16(ss + sp - 18, AX);
-			
+
 			sp = sp - 18;
 			LOAD_SP(sp);
 			LOAD_BP(sp);
@@ -248,7 +248,7 @@ __next:
 	uint16_t backup_bx = BX;
 	uint16_t backup_cx = CX;
 	uint16_t backup_dx = DX;
-	
+
 	switch(AL & 0xf0) {
 		case 0xc0:
 			// ToDo: SCSI BIOS
@@ -377,7 +377,7 @@ int BIOS::sxsi_get_drive(uint8_t al)
 	return -1;
 }
 
-// Command $x1	
+// Command $x1
 void BIOS::sasi_command_verify(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
 	pair32_t *regpair = (pair32_t *)regs;
@@ -388,7 +388,7 @@ void BIOS::sasi_command_verify(uint32_t PC, uint32_t regs[], uint16_t sregs[], i
 	return;
 }
 
-// Command $x7, $xf	
+// Command $x7, $xf
 void BIOS::sasi_command_retract(uint32_t PC, uint32_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
 	pair32_t *regpair = (pair32_t *)regs;
@@ -453,7 +453,7 @@ long BIOS::sasi_get_position(uint32_t PC, uint32_t regs[], uint16_t sregs[], int
 				} else {
 					long npos;
 					long apos;
-					
+
 					npos = (DL << 16) | CX;
 					//apos = hdd->get_cur_position();
 					//if(npos >= 0x100000) {
@@ -477,7 +477,7 @@ void BIOS::sasi_command_initialize(uint32_t PC, uint32_t regs[], uint16_t sregs[
 {
 	pair32_t *regpair = (pair32_t *)regs;
 	regpair[0].w.h = 0; // HIGH WORD OF EAX
-	
+
 	uint16_t disk_equip;
 	uint32_t _bit = 0x0100;
 	pair16_t _d;
@@ -486,7 +486,7 @@ void BIOS::sasi_command_initialize(uint32_t PC, uint32_t regs[], uint16_t sregs[
 	_d.b.l = d_mem->read_data8(0x055c + 0);
 	_d.b.h = d_mem->read_data8(0x055c + 1);
 	d_mem->write_io8(0x043f, 0xc0); // Disable to read ram
-	
+
 	disk_equip = _d.u16;
 	disk_equip = disk_equip & 0xf0ff;
 	for(uint32_t i = 0; i < 4; i++) {
@@ -586,7 +586,7 @@ void BIOS::sasi_command_sense(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 							}
 							d_mem->write_io8(0x043f, 0xc2); // Enable to write ram
 							d_mem->write_io8(0x043f, 0xc2); // Disable to write ram
-							
+
 
 							// ToDo: Support Larger drive.
 							if(total_size < (10 * 1024 * 1024)) {
@@ -676,7 +676,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint32_t regs[], uint16_t sregs[], int
 				*CarryFlag = 1;
 				return;
 			}
-			
+
 			int64_t position = ((int64_t)npos) * ((int64_t)block_size);
 			//size = size * block_size;
 
@@ -745,7 +745,7 @@ void BIOS::sasi_command_write(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 			const int block_size = (int)harddisk->get_sector_size();
 #ifdef _PSEUDO_BIOS_DEBUG
 			out_debug_log(_T("SASI CMD: WRITE DL=%02x DH=%02x CX=%04x BX=%04x\n"), DL, DH, CX, BX);
-#endif			
+#endif
 			if((npos < 0) || (npos >= (int)sectors)) {
 				AH = 0x40;
 				*CarryFlag = 1;
@@ -800,7 +800,7 @@ void BIOS::sasi_command_format(uint32_t PC, uint32_t regs[], uint16_t sregs[], i
 	pair32_t *regpair = (pair32_t *)regs;
 	regpair[0].w.h = 0; // HIGH WORD OF EAX
 
-	
+
 	int drive = sxsi_get_drive(AL);
 	SASI_HDD*  d_hdd = d_sasi->get_hdd(drive); // OK?
 
@@ -852,7 +852,7 @@ void BIOS::sasi_command_format(uint32_t PC, uint32_t regs[], uint16_t sregs[], i
 				return;
 			}
 			int64_t position = ((int64_t)npos) * ((int64_t)block_size);
-			
+
 			uint8_t work[block_size];
 			for(int i = 0; i < sectors; i++) {
 				memset(work, 0xe5, block_size);

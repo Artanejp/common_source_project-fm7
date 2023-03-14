@@ -100,42 +100,41 @@
 		#define CONFIG_NAME	"pc98xl"
 	#endif
 	#define HAS_I286
-	#define HAS_V30_SUB_CPU
 	#define CPU_CLOCKS		9984060
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		7987248
 //	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		3
+	#if defined(_PC9801VX)
+		#define USE_CPU_TYPE		4
+		#define HAS_SUB_V30
+	#else
+		#define USE_CPU_TYPE		2
+	#endif
 #elif defined(_PC98XA)
 	#define DEVICE_NAME		"NEC PC-98XA"
 	#define CONFIG_NAME		"pc98xa"
 	#define HAS_I286
 	#define CPU_CLOCKS		7987248
 	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		3
-#elif defined(_PC98RL)
-	#define DEVICE_NAME	"NEC PC-98RL"
-	#define CONFIG_NAME	"pc98rl"
+#elif defined(_PC9801RA) || defined(_PC98RL)
+	#if defined(_PC9801RA)
+		#define DEVICE_NAME	"NEC PC-9801RA"
+		#define CONFIG_NAME	"pc9801ra"
+	#elif defined(_PC98RL)
+		#define DEVICE_NAME	"NEC PC-98RL"
+		#define CONFIG_NAME	"pc98rl"
+	#endif
 	#define HAS_I386
-	#define HAS_V30_SUB_CPU
 	#define CPU_CLOCKS		19968120
 	#define PIT_CLOCK_5MHZ
 //	#define CPU_CLOCKS		15974496
 //	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		3
-	#define SUPPORT_24BIT_ADDRESS
-#elif defined(_PC9801RA)
-	#define DEVICE_NAME	"NEC PC-9801RA"
-	#define CONFIG_NAME	"pc9801ra"
-	#define HAS_I386
-	#define HAS_V30_SUB_CPU
-//	#define HAS_I486
-	#define CPU_CLOCKS		19968120
-	#define PIT_CLOCK_5MHZ
-//	#define CPU_CLOCKS		15974496
-//	#define PIT_CLOCK_8MHZ
-	#define USE_CPU_TYPE		3
-	#define SUPPORT_32BIT_ADDRESS
+	#if defined(_PC9801RA)
+		#define USE_CPU_TYPE		4
+		#define HAS_SUB_V30
+	#else
+		#define USE_CPU_TYPE		2
+	#endif
 #else
 	// unknown machines
 #endif
@@ -218,7 +217,7 @@
 #if defined(HAS_I286)
 	#define SUPPORT_24BIT_ADDRESS
 #elif defined(UPPER_I386)
-//	#define SUPPORT_32BIT_ADDRESS
+	#define SUPPORT_32BIT_ADDRESS
 	#if !defined(SUPPORT_HIRESO)
 	#define SUPPORT_BIOS_RAM
 	#endif
@@ -418,7 +417,7 @@
 #if defined(SUPPORT_320KB_FDD_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 #define USE_CPU_Z80
 #endif
-#if defined(HAS_V30_SUB_CPU)
+#if defined(HAS_SUB_V30)
 #define USE_CPU_V30
 #endif
 
@@ -476,7 +475,7 @@ class I386;
 #else
 class I286;
 #endif
-#if defined(HAS_V30_SUB_CPU)
+#if defined(HAS_SUB_V30)
 class I86;
 #endif
 
@@ -587,7 +586,7 @@ protected:
 #else
 	I286* cpu;
 #endif
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if defined(HAS_SUB_V30)
 	I86* v30;
 #endif
 	IO* io;
@@ -699,6 +698,11 @@ protected:
 	// drives
 	UPD765A *get_floppy_disk_controller(int drv);
 	DISK *get_floppy_disk_handler(int drv);
+
+	void calc_cpu_clocks_from_switch(int speed_type, uint32_t &cpu_clocks, uint32_t &v30_clocks);
+	void set_cpu_clock_with_switch(int speed_type); // 0 = High / 1 = Low / Others = (WIP)
+	void set_wait(int dispmode, int clock); // Set waitfor memories and IOs.
+
 	void initialize_ports();
 public:
 	// ----------------------------------------
@@ -713,70 +717,68 @@ public:
 	// ----------------------------------------
 
 	// drive virtual machine
-	void reset();
-	void run();
-	double get_frame_rate();
+	void reset() override;
+	void run() override;
+	double get_frame_rate() override;
 
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
 
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
-	bool get_caps_locked();
-	bool get_kana_locked();
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
+	bool get_caps_locked() override;
+	bool get_kana_locked() override;
 
 	// user interface
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
 #if defined(_PC9801) || defined(_PC9801E)
-	bool is_floppy_disk_connected(int drv);
+	bool is_floppy_disk_connected(int drv) override;
 #endif
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
 #if defined(USE_HARD_DISK)
-	void open_hard_disk(int drv, const _TCHAR* file_path);
-	void close_hard_disk(int drv);
-	bool is_hard_disk_inserted(int drv);
-	uint32_t is_hard_disk_accessed();
+	void open_hard_disk(int drv, const _TCHAR* file_path) override;
+	void close_hard_disk(int drv) override;
+	bool is_hard_disk_inserted(int drv) override;
+	uint32_t is_hard_disk_accessed() override;
 #endif
 #if defined(USE_TAPE)
-	void play_tape(int drv, const _TCHAR* file_path);
-	void rec_tape(int drv, const _TCHAR* file_path);
-	void close_tape(int drv);
-	bool is_tape_inserted(int drv);
+	void play_tape(int drv, const _TCHAR* file_path) override;
+	void rec_tape(int drv, const _TCHAR* file_path) override;
+	void close_tape(int drv) override;
+	bool is_tape_inserted(int drv) override;
 #endif
-	bool is_frame_skippable();
+	bool is_frame_skippable() override;
 
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 
-	void update_config();
+	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
 
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	void set_cpu_clock_with_switch(int speed_type); // 0 = High / 1 = Low / Others = (WIP)
-	void set_wait(int dispmode, int clock); // Set waitfor memories and IOs.
 
 	// devices
-	DEVICE* get_device(int id);
+	DEVICE* get_device(int id) override;
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
