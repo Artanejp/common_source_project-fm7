@@ -118,7 +118,8 @@ ia32shut(void)
 void
 ia32a20enable(BOOL enable)
 {
-	CPU_ADRSMASK = (enable)?0xffffffff:0x00ffffff;
+	// Q: Address bits width should be 20bits on disabling A20? 20230315 K.O
+	CPU_ADRSMASK = (enable)?0xffffffff:0x000fffff;
 }
 
 //#pragma optimize("", off)
