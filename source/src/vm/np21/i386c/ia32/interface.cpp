@@ -68,7 +68,7 @@ ia32_initreg(void)
 	CPU_CR0 &= ~(CPU_CR0_MP | CPU_CR0_ET);
 #endif
 	CPU_MXCSR = 0x1f80;
-	
+
 #if defined(USE_TSC)
 	CPU_MSR_TSC = 0;
 #endif
@@ -118,7 +118,7 @@ ia32shut(void)
 void
 ia32a20enable(BOOL enable)
 {
-	CPU_ADRSMASK = (enable) ? ~0 : ~(1 << 20);
+	CPU_ADRSMASK = (enable)?0xffffffff:0x00ffffff;
 }
 
 //#pragma optimize("", off)
@@ -149,7 +149,7 @@ ia32(void)
 /*
 	if (!CPU_TRAP && !dmac.working) {
 		exec_allstep();
-	}else 
+	}else
 */
 	if (!CPU_TRAP) {
 		do {
@@ -295,7 +295,7 @@ ia32_panic(const char *str, ...)
 	VERBOSE(("%s", buf));
 	device_cpu->out_debug_log("PANIC: %s", buf);
 	msgbox("ia32_panic", buf);
-	
+
 #if defined(IA32_REBOOT_ON_PANIC)
 	VERBOSE(("ia32_panic: reboot"));
 	//pccore_reset();
