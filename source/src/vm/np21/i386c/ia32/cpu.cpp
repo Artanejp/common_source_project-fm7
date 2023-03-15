@@ -111,7 +111,7 @@ exec_1step(void)
 {
 	int prefix;
 	UINT32 op;
-	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false; 
+	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false;
 	CPU_PREV_EIP = CPU_EIP;
 	CPU_STATSAVE.cpu_inst = CPU_STATSAVE.cpu_inst_default;
 	__exception_set = 0;
@@ -161,14 +161,14 @@ exec_1step(void)
 #endif
 	UINT32 old_eip = CPU_PREV_EIP;
 	UINT32 old_addr = 0;
-	
+
 	for (prefix = 0; prefix < MAX_PREFIX; prefix++) {
 		GET_PCBYTE(op);
 //#ifdef USE_DEBUGGER
-		UINT32 op_size = I386_TRACE_DATA_BIT_USERDATA_SET; 
+		UINT32 op_size = I386_TRACE_DATA_BIT_USERDATA_SET;
 		if (prefix == 0) {
 			__LIKELY_IF(device_debugger != NULL) {
-				device_debugger->add_cpu_trace(codefetch_address);
+				device_debugger->add_cpu_trace(CPU_FETCHADR);
 				op_size |= ((CPU_INST_AS32) ? I386_TRACE_DATA_BIT_OP32 : 0);
 //				device_debugger->add_cpu_trace_userdata(op_size, (I386_TRACE_DATA_BIT_USERDATA_SET | I386_TRACE_DATA_BIT_OP32));
 			}
@@ -234,7 +234,7 @@ exec_1step(void)
 			}
 		}
 		device_debugger->add_cpu_trace_userdata(op_size, 0xf000ffff);
-	
+
 		/* prefix */
 		if (insttable_info[op] & INST_PREFIX) {
 			(*insttable_1byte[0][op])();
@@ -275,7 +275,7 @@ exec_1step(void)
 	}
 	ctx_index = (ctx_index + 1) % NELEMENTS(ctx);
 #endif
-	
+
 	/* normal / rep, but not use */
 	if (!(insttable_info[op] & INST_STRING) || !CPU_INST_REPUSE) {
 #if defined(DEBUG)
@@ -463,9 +463,9 @@ exec_allstep(void)
 	static int latecount = 0;
 	static int latecount2 = 0;
 	static int hltflag = 0;
-	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false; 
+	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false;
 	__exception_set = 0;
-	
+
 	if(latecount2==0){
 		if(latecount > 0){
 			//latecount--;
@@ -475,7 +475,7 @@ exec_allstep(void)
 	}
 	latecount2 = (latecount2+1) & 0x1fff;
 #endif
-	
+
 	do {
 
 		CPU_PREV_EIP = CPU_EIP;
@@ -536,7 +536,7 @@ exec_allstep(void)
 			/* prefix */
 			if (insttable_info[op] & INST_PREFIX) {
 				(*insttable_1byte[0][op])();
-				check_exception(is_debugging);	
+				check_exception(is_debugging);
 				switch(op) {
 				case 0x9a: //CAll
 				case 0xe8: //CAll
@@ -586,7 +586,7 @@ exec_allstep(void)
 		}
 		ctx_index = (ctx_index + 1) % NELEMENTS(ctx);
 	#endif
-	
+
 		/* normal / rep, but not use */
 		if (!(insttable_info[op] & INST_STRING) || !CPU_INST_REPUSE) {
 	#if defined(DEBUG)
@@ -838,7 +838,7 @@ cpucontinue:
 									}
 									pccore.realclock = pccore.baseclock * pccore.multiple;
 									nevent_changeclock(oldmultiple, pccore.multiple);
-		
+
 									sound_changeclock();
 									pcm86_changeclock();
 									beep_changeclock();
@@ -855,12 +855,12 @@ cpucontinue:
 							}
 						}
 						asynccpu_lateflag = 1;
-
 						CPU_REMCLOCK = 0;
 						break;
 					}
 				}else{
 					if(!hltflag && !asynccpu_lateflag && g_nevent.item[NEVENT_FLAMES].proc==screendisp && g_nevent.item[NEVENT_FLAMES].clock <= CPU_BASECLOCK){
+						//CPU_CLOCKCNT += CPU_REMCLOCK;
 						//CPU_REMCLOCK = 10000;
 						//oldremclock = CPU_REMCLOCK;
 						if(!asynccpu_fastflag){
@@ -871,7 +871,7 @@ cpucontinue:
 									pccore.multiple+=1;
 									pccore.realclock = pccore.baseclock * pccore.multiple;
 									nevent_changeclock(oldmultiple, pccore.multiple);
-		
+
 									sound_changeclock();
 									pcm86_changeclock();
 									beep_changeclock();
@@ -903,4 +903,3 @@ cpucontinue:
 #endif
 }
 #endif
-

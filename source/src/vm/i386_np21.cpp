@@ -277,7 +277,6 @@ void I386::reset()
 	CPU_CLEARPREFETCH();
 
 	remained_cycles = extra_cycles = 0;
-	i386_memory_wait = 0;
 	waitcount = 0;
 	write_signals(&outputs_extreset, 0xffffffff);
 }
@@ -382,7 +381,9 @@ int I386::run(int cycles)
 		__UNLIKELY_IF(_USE_DEBUGGER) {
 			total_cycles += __cycles;
 		}
-		cpu_wait(__cycles, i386_memory_wait); // OK?
+//		int64_t _dummy = __cycles;
+		cpu_wait(__cycles); // OK?
+		//cpu_wait(__cycles, CPU_CLOCKCNT); // OK?
 		return __cycles + tmp_extra_cycles;
 //#ifdef USE_DEBUGGER
 //#endif
@@ -415,7 +416,7 @@ int I386::run(int cycles)
 			remained_cycles = 0;
 		}
 		int passed_cycles = first_cycles - remained_cycles;
-		//cpu_wait(passed_cycles, i386_memory_wait);
+		//cpu_wait(passed_cycles, CPU_CLOCKCNT);
 		return passed_cycles + tmp_extra_cycles;
 	}
 }
@@ -448,6 +449,7 @@ void I386::set_intr_line(bool line, bool pending, uint32_t bit)
 void I386::set_extra_clock(int cycles)
 {
 	extra_cycles += cycles;
+	cpu_wait(cycles);
 }
 
 int I386::get_extra_clock()
@@ -960,7 +962,7 @@ void *I386::get_debugger()
 	return device_debugger;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool I386::process_state(FILEIO* state_fio, bool loading)
 {
@@ -970,7 +972,7 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	// FIXME
+	// FIXME : This should dedicate ENDIAN.
 	state_fio->StateBuffer(&CPU_STATSAVE, sizeof(CPU_STATSAVE), 1);
 	state_fio->StateBuffer(&i386cpuid, sizeof(i386cpuid), 1);
 	state_fio->StateBuffer(&i386msr, sizeof(i386msr), 1);
@@ -989,7 +991,6 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(waitfactor);
 	state_fio->StateValue(waitcount);
-	state_fio->StateValue(i386_memory_wait);
 	state_fio->StateValue(address_mask);
 
 	return true;

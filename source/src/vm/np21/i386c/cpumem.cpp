@@ -48,9 +48,7 @@ DEVICE *device_bios = NULL;
 //#ifdef SINGLE_MODE_DMA
 DEVICE *device_dma = NULL;
 //#endif
-//SINT64 i386_memory_wait;
 DEBUGGER *device_debugger = NULL;
-UINT32 codefetch_address;
 SINT32 __exception_set;
 UINT32 __exception_pc;
 UINT64 __exception_code;

@@ -78,7 +78,7 @@ private:
 
 	int run_one_opecode();
 	uint32_t __FASTCALL convert_address(uint32_t cs, uint32_t eip);
-	inline void __FASTCALL cpu_wait(int clocks, int64_t& memory_wait);
+	inline void __FASTCALL cpu_wait(int clocks);
 
 public:
 	I386(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -185,29 +185,24 @@ public:
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
 	// These is using from NP21 core.
-	int64_t i386_memory_wait;
 	uint32_t realclock;
 	int device_model;
 };
 
-inline void __FASTCALL I386::cpu_wait(int clocks, int64_t& memory_wait)
+inline void __FASTCALL I386::cpu_wait(int clocks)
 {
 	__UNLIKELY_IF(clocks < 0) {
 		return;
 	}
-	__LIKELY_IF(waitfactor <= 65536) {
+	__UNLIKELY_IF(waitfactor <= 65536) {
 		return;
 	}
 	int64_t wfactor = waitfactor;
 	int64_t wcount = waitcount;
-	int64_t mwait = memory_wait;
 	int64_t ncount;
-	__UNLIKELY_IF(wfactor > 65536) {
-		wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
-		wcount += (wfactor * mwait);  // memory wait
-	} else {
-		wcount += (mwait << 16);
-	}
+
+	wcount += ((wfactor - 65536) * clocks); // Append wait due to be slower clock.
+
 	__LIKELY_IF(wcount >= 65536) {
 		ncount = wcount >> 16;
 		wcount = wcount - (ncount << 16);
@@ -216,7 +211,6 @@ inline void __FASTCALL I386::cpu_wait(int clocks, int64_t& memory_wait)
 		wcount = 0;
 	}
 	waitcount = wcount;
-	memory_wait = 0;
 }
 
 #endif

@@ -388,9 +388,9 @@ typedef enum {
 } FP_TAG;
 
 typedef enum {
-	ROUND_Nearest = 0,		
+	ROUND_Nearest = 0,
 	ROUND_Down    = 1,
-	ROUND_Up      = 2,	
+	ROUND_Up      = 2,
 	ROUND_Chop    = 3
 } FP_RND;
 
@@ -414,7 +414,7 @@ typedef struct {
     UINT32 m1;
     UINT32 m2;
     UINT16 m3;
-	
+
     UINT16 d1;
     UINT32 d2;
 } FP_P_REG;
@@ -460,9 +460,9 @@ typedef struct {
 	UINT8		dmy[1];
 //
 //#if defined(USE_FPU_ASM)
-//	FP_P_REG	p_reg[FPU_REG_NUM+1]; // R0 to R7	
+//	FP_P_REG	p_reg[FPU_REG_NUM+1]; // R0 to R7
 //#else
-	FP_REG		reg[FPU_REG_NUM+1]; // R0 to R7	
+	FP_REG		reg[FPU_REG_NUM+1]; // R0 to R7
 //#endif
 	FP_TAG		tag[FPU_REG_NUM+1]; // R0 to R7
 	FP_RND		round;
@@ -471,7 +471,7 @@ typedef struct {
 	UINT8		int_regvalid[FPU_REG_NUM+1];
 #endif
 #ifdef USE_SSE
-	XMM_REG		xmm_reg[XMM_REG_NUM+1]; // xmm0 to xmm7	
+	XMM_REG		xmm_reg[XMM_REG_NUM+1]; // xmm0 to xmm7
 #endif
 #ifdef USE_MMX
 	UINT8		mmxenable;
@@ -499,7 +499,8 @@ typedef struct {
 	SINT32		remainclock;
 	SINT32		baseclock;
 	UINT32		clock;
-	
+	UINT32		codefetch_address;
+
 #if defined(USE_TSC)
 	UINT64		cpu_tsc;
 #endif
@@ -534,7 +535,7 @@ typedef struct {
 	UINT32 cpu_feature_ecx; // ECX機能フラグ
 	UINT32 cpu_eflags_mask; // EFLAGSマスク(1のところがマスク状態)
 	UINT32 reserved[31]; // 将来の拡張のためにとりあえず32bit*31個用意しておく
-	
+
 	UINT8 fpu_type; // FPU種類
 } I386CPUID;
 
@@ -560,6 +561,8 @@ extern I386MSR		i386msr;
 
 #define	CPU_ADRSMASK	i386core.s.cpu_stat.adrsmask
 #define	CPU_RESETREQ	i386core.s.cpu_stat.resetreq
+
+#define	CPU_FETCHADR	i386core.s.codefetch_address
 
 #define	CPU_REMCLOCK	i386core.s.remainclock
 #define	CPU_BASECLOCK	i386core.s.baseclock
@@ -592,9 +595,6 @@ extern DEVICE		*device_bios;
 extern DEVICE		*device_dma;
 extern DEBUGGER		*device_debugger;
 //#endif
-//extern int64_t      i386_memory_wait;
-extern UINT32		codefetch_address;
-
 /*
  * CPUID
  */
