@@ -5,7 +5,7 @@
 	Date   : 2016.12.28 -
 
 	[ virtual machine ]
-	History: 
+	History:
 		2016-12-28 Copy from eFMR-50.
 */
 
@@ -123,7 +123,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	80386SX		0x03
 	80486		0x02
 */
-	
+
 	// create devices
 	//first_device = last_device = nullptr;
 	dummy = new DEVICE(this, emu);	// must be 1st device
@@ -131,7 +131,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
 	event->set_device_name(_T("EVENT"));
-#endif	
+#endif
 
 	cpu = new I386(this, emu);
 #if defined(_USE_QT)
@@ -142,14 +142,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
   #elif defined(HAS_PENTIUM)
 	cpu->set_device_name(_T("CPU(Pentium)"));
   #endif
-#endif	
+#endif
 
 	io = new IO(this, emu);
-	
+	io->space = _IO_SPACE;
+	memory->bus_width = _IO_BUS_WIDTH;
+
 	crtc = new TOWNS_CRTC(this, emu);
 	cdrom = new TOWNS_CDROM(this, emu);
 
 	memory = new TOWNS_MEMORY(this, emu);
+	memory->space = _MEMORY_SPACE;
+	memory->bank_size = _MEMORY_BANK_SIZE;
+	memory->bus_width = _MEMORY_BUS_WIDTH;
+
 	vram = new TOWNS_VRAM(this, emu);
 	sprite = new TOWNS_SPRITE(this, emu);
 	sysrom = new SYSROM(this, emu);
@@ -165,12 +171,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	mixer = new MIXER(this, emu); // Pseudo mixer.
 
 	planevram = new PLANEVRAM(this, emu);
-	
+
 	adc = new AD7820KR(this, emu);
 	rf5c68 = new RF5C68(this, emu);
 	e_volumes[0] = new MB87078(this, emu);
 	e_volumes[1] = new MB87078(this, emu);
-	
+
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
 	pit1 = new I8253(this, emu);
@@ -183,13 +189,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	seek_sound = new NOISE(this, emu);
 	head_up_sound = new NOISE(this, emu);
 	head_down_sound = new NOISE(this, emu);
-	
+
 //	scsi_host = new TOWNS_SCSI_HOST(this, emu);
 	scsi_host = new SCSI_HOST(this, emu);
-	
+
 	for(int i = 0; i < 7; i++) {
 		scsi_hdd[i] = nullptr;
-	}	
+	}
 #if defined(USE_HARD_DISK)
 	for(int i = 0; i < USE_HARD_DISK; i++) {
 		scsi_hdd[i] = new SCSI_HDD(this, emu);
@@ -286,7 +292,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
-	
+
 	set_machine_type(machine_id, cpu_id);
 	// set contexts
 	event->set_context_cpu(cpu, cpu_clock);
@@ -309,11 +315,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(seek_sound);
 	event->set_context_sound(head_down_sound);
 	event->set_context_sound(head_up_sound);
-	
+
 #ifdef USE_DEBUGGER
 	pit0->set_context_debugger(new DEBUGGER(this, emu));
 	pit1->set_context_debugger(new DEBUGGER(this, emu));
-#endif	
+#endif
 	pit0->set_context_ch0(timer, SIG_TIMER_CH0, 1);
 	pit0->set_context_ch1(timer, SIG_TIMER_CH1, 1);
 	pit0->set_context_ch2(beep,  SIG_PCM1BIT_SIGNAL, 1);
@@ -331,7 +337,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
 	scsi_host->set_context_drq(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
-	
+
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
@@ -340,24 +346,24 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 	dma->set_context_ack3(cdrom, SIG_TOWNS_CDROM_DMAACK, 0xffffffff);
-	
+
 	dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
-	
+
 	dma->set_context_child_dma(extra_dma);
-	
+
 	floppy->set_context_fdc(fdc);
-	
-	sprite->set_context_vram(vram);	
+
+	sprite->set_context_vram(vram);
 	sprite->set_context_font(fontrom);
 	sprite->set_context_crtc(crtc);
 #ifdef USE_DEBUGGER
 	sprite->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	planevram->set_context_vram(vram);
 	planevram->set_context_sprite(sprite);
 	planevram->set_context_crtc(crtc);
-	
+
 	crtc->set_context_sprite(sprite);
 	crtc->set_context_vram(vram);
 	crtc->set_context_font(fontrom);
@@ -378,7 +384,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 									 0xffffffff,
 									 false
 		);
-	
+
 	memory->set_context_cpu(cpu);
 	memory->set_context_dmac(dma);
 	memory->set_context_vram(vram);
@@ -404,11 +410,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	rf5c68->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	opn2->set_context_irq(adpcm, SIG_ADPCM_OPX_INTR, 0xffffffff);
-	
+
 	adc->set_sample_rate(19200);
 	adc->set_sound_bank(-1);
-	adc->set_context_interrupt(adpcm, SIG_ADPCM_ADC_INTR, 0xffffffff); 
-	
+	adc->set_context_interrupt(adpcm, SIG_ADPCM_ADC_INTR, 0xffffffff);
+
 	scsi->set_context_dma(dma);
 	scsi->set_context_host(scsi_host);
 	scsi->set_context_pic(pic);
@@ -475,7 +481,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR0, 0xffffffff);
 	keyboard->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 0xffffffff);
 	floppy->set_context_intr_line(pic, SIG_I8259_CHIP0 | SIG_I8259_IR6, 0xffffffff);
-	
+
 	// IRQ8  : SCSI (-> scsi.cpp)
 	// IRQ9  : CDC/CDROM
 	// IRQ10 : EXTRA I/O (Maybe not implement)
@@ -511,16 +517,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	// i/o bus
 	io->set_iowait_range_rw(0x0000, 0xffff, 6); // ToDo: May variable wait.
-		
+
 	io->set_iomap_alias_rw (0x0000, pic, I8259_ADDR_CHIP0 | 0);
 	io->set_iomap_alias_rw (0x0002, pic, I8259_ADDR_CHIP0 | 1);
 	io->set_iomap_alias_rw (0x0010, pic, I8259_ADDR_CHIP1 | 0);
 	io->set_iomap_alias_rw (0x0012, pic, I8259_ADDR_CHIP1 | 1);
-	
+
 	io->set_iomap_range_rw (0x0020, 0x0025, memory);
 	io->set_iomap_range_rw (0x0026, 0x0027, timer);  // Freerun counter
 	io->set_iomap_single_rw(0x0028, memory);
-	
+
 	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
 	io->set_iomap_single_rw(0x0032, memory);	// serial rom (routed from memory)
 	io->set_iomap_single_r (0x0034, scsi);	// ENABLE/ UNABLE to WORD DMA for SCSI
@@ -533,22 +539,22 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0052, pit1, 1);
 	io->set_iomap_alias_rw(0x0054, pit1, 2);
 	io->set_iomap_alias_rw(0x0056, pit1, 3);
-	
+
 	io->set_iomap_single_rw(0x0060, timer); // Beep and interrupts register
 	io->set_iomap_single_rw(0x0068, timer); // Interval timer register2 (after Towns 10F).
 	io->set_iomap_single_rw(0x006a, timer); // Interval timer register2 (after Towns 10F).
 	io->set_iomap_single_rw(0x006b, timer); // Interval timer register2 (after Towns 10F).
 	io->set_iomap_single_rw(0x006c, timer); // 1uS wait register (after Towns 10F).
-	
+
 	io->set_iomap_single_rw(0x0070, timer); // RTC DATA
 	io->set_iomap_single_w (0x0080, timer); // RTC COMMAND
-	
+
 	io->set_iomap_range_rw (0x00a0, 0x00af, dma);
 	io->set_iomap_range_rw (0x00b0, 0x00bf, extra_dma);
-	
+
 	io->set_iomap_single_rw(0x00c0, memory);   // CACHE CONTROLLER
 	io->set_iomap_single_rw(0x00c2, memory);   // CACHE CONTROLLER
-	
+
 	io->set_iomap_alias_rw (0x0200, fdc, 0);  // STATUS/COMMAND
 	io->set_iomap_alias_rw (0x0202, fdc, 1);  // TRACK
 	io->set_iomap_alias_rw (0x0204, fdc, 2);  // SECTOR
@@ -557,25 +563,25 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x020c, floppy);  // DRIVE SELECT
 	io->set_iomap_single_r (0x020d, floppy);  // FDDVEXT (after HG/HR).
 	io->set_iomap_single_rw(0x020e, floppy);  // Towns drive SW
-	
+
 	io->set_iomap_range_rw (0x0400, 0x0404, memory); // System Status
 //	io->set_iomap_range_rw (0x0406, 0x043f, memory); // Reserved
-	
+
 	io->set_iomap_range_rw(0x0440, 0x0443, crtc); // CRTC
 	io->set_iomap_range_rw(0x0448, 0x044f, crtc); // VIDEO OUT (CRTC)
-	
+
 	io->set_iomap_range_rw(0x0450, 0x0452, sprite); // SPRITE
-	
+
 	io->set_iomap_single_rw(0x0458, vram);         // VRAM ACCESS CONTROLLER (ADDRESS)
 	io->set_iomap_range_rw (0x045a, 0x045b, vram); // VRAM ACCESS CONTROLLER (DATA)
-	
+
 	io->set_iomap_single_rw(0x0480, memory); //  MEMORY REGISTER
 	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary
-	
+
 	io->set_iomap_alias_r(0x48a, iccard1, 0); //
 	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
 	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
-	
+
 	io->set_iomap_range_rw(0x04c0, 0x04c6, cdrom); // CDROM
 	io->set_iomap_range_r (0x04cc, 0x04cd, cdrom); // CDROM
 	// PAD, Sound
@@ -584,7 +590,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0x04d2, joystick); // Pad 2
 	io->set_iomap_single_w(0x04d6, joystick); // Pad out
 
-	io->set_iomap_single_rw(0x04d5, adpcm); // mute 
+	io->set_iomap_single_rw(0x04d5, adpcm); // mute
 	// OPN2(YM2612)
 	io->set_iomap_alias_rw(0x04d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
 	io->set_iomap_alias_w (0x04da, opn2, 1);  // Datareg 0(W)
@@ -597,21 +603,22 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x04e3, e_volumes[1], 1);
 
 	// ADPCM
-	io->set_iomap_range_rw(0x04e7, 0x04ec, adpcm); // A/D SAMPLING DATA REG 
-	io->set_iomap_range_rw(0x04f0, 0x04f8, rf5c68); // A/D SAMPLING DATA REG 
+	io->set_iomap_range_rw(0x04e7, 0x04ec, adpcm); // A/D SAMPLING DATA REG
+	io->set_iomap_range_rw(0x04f0, 0x04f8, rf5c68); // A/D SAMPLING DATA REG
 
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
 	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
 	io->set_iomap_single_w (0x05ca, crtc); // VSYNC INTERRUPT
-	
+
 	io->set_iomap_single_rw(0x05e0, memory); // Hidden MEMORY WAIT REGISTER from AB.COM (Towns 1/2)
 	io->set_iomap_single_rw(0x05e2, memory); // Hidden MEMORY WAIT REGISTER from AB.COM (After Towns 1H/1F/2H/2F )
-	io->set_iomap_single_rw(0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
+	io->set_iomap_single_rw(0x05e6, memory); // Hidden VRAM WAIT REGISTER from TSUGARU (Maybe after Towns 10H/10F/20H/20F )
+	io->set_iomap_single_r (0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
 	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
 	io->set_iomap_single_r (0x05ed, memory); // Maximum clock register (After HR/HG).
 	io->set_iomap_single_rw(0x05ee, vram);   // VRAM CACHE CONTROLLER
-	
+
 	io->set_iomap_single_rw(0x0600, keyboard);
 	io->set_iomap_single_rw(0x0602, keyboard);
 	io->set_iomap_single_rw(0x0604, keyboard);
@@ -619,24 +626,24 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//io->set_iomap_single_rw(0x0800, printer);
 	//io->set_iomap_single_rw(0x0802, printer);
 	//io->set_iomap_single_rw(0x0804, printer);
-	
+
 	io->set_iomap_alias_rw (0x0a00, sio, 0);
 	io->set_iomap_alias_rw (0x0a02, sio, 1);
 //	io->set_iomap_single_r (0x0a04, serial);
 //	io->set_iomap_single_r (0x0a06, serial);
 //	io->set_iomap_single_w (0x0a08, serial);
 //	io->set_iomap_single_rw(0x0a0a, modem);
-	
+
 	io->set_iomap_single_rw(0x0c30, scsi);
 	io->set_iomap_single_rw(0x0c32, scsi);
 	io->set_iomap_single_r (0x0c34, scsi);
 
 	io->set_iomap_range_rw (0x3000, 0x3fff, dictionary); // CMOS
-	
+
 	io->set_iomap_range_rw (0xfd90, 0xfda0, crtc);	// Palette and CRTC
 	io->set_iomap_single_r (0xfda2, crtc);	// CRTC
 	io->set_iomap_single_rw(0xfda4, memory);	// memory
-	
+
 	io->set_iomap_range_rw (0xff80, 0xff83, planevram);	// MMIO
 	io->set_iomap_single_r (0xff84, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff86, planevram);	// MMIO
@@ -645,7 +652,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_r  (0xff9c, 0xff9d, memory);	// MMIO
 	io->set_iomap_single_rw(0xff9e, memory);	// MMIO
 	io->set_iomap_single_rw(0xffa0, planevram);	// MMIO
-	
+
 //	io->set_iomap_range_w (0xff94, 0xff95, fontrom);
 //	io->set_iomap_range_r (0xff96, 0xff97, fontrom);
 
@@ -665,14 +672,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 			exram_size = 8;
 		} else if(machine_id == 0x0800) { // HG
 			exram_size = 15;
-		} else { 
+		} else {
 			exram_size = 31;
 		}
 	}
 	if(exram_size < MIN_RAM_SIZE) {
 		exram_size = MIN_RAM_SIZE;
 	}
-	
+
 	memory->set_extra_ram_size(exram_size);
 
 #if defined(WITH_I386SX)
@@ -686,7 +693,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	// I386
 	cpu->device_model = INTEL_80386;
-#endif	
+#endif
 
 	initialize_devices();
 //	cpu->set_address_mask(0xffffffff);
@@ -738,8 +745,8 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		vram->set_cpu_id(cpu_id);
 		vram->set_machine_id(machine_id);
 	}
-	
-}		
+
+}
 
 
 // ----------------------------------------------------------------------------
@@ -819,25 +826,25 @@ void VM::initialize_sound(int rate, int samples)
 //	emu->lock_vm();
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 8000);
 
 	// init OPN2
 	// MASTER CLOCK MAYBE 600KHz * 12 = 7200KHz .
 	// From FM-Towns Technical Databook (Rev.2), Page 201
-	opn2->initialize_sound(rate, (int)(600.0e3 * 12.0) , samples, 0.0, 0.0); 
-	//opn2->initialize_sound(rate, (int)(8000.0e3) , samples, 0.0, 0.0); 
-	//opn2->initialize_sound(rate, (int)(600.0e3 * 6.0) , samples, 0.0, 0.0); 
+	opn2->initialize_sound(rate, (int)(600.0e3 * 12.0) , samples, 0.0, 0.0);
+	//opn2->initialize_sound(rate, (int)(8000.0e3) , samples, 0.0, 0.0);
+	//opn2->initialize_sound(rate, (int)(600.0e3 * 6.0) , samples, 0.0, 0.0);
 
 	// init PCM
 	rf5c68->initialize_sound(rate, samples);
-	
+
 	// add_sound_in_source() must add after per initialize_sound().
 	adc_in_ch = event->add_sound_in_source(rate, samples, 2);
 	adc->set_sample_rate(19200);
 	adc->set_sound_bank(adc_in_ch);
-#if 0	
+#if 0
 	mixer->set_context_out_line(adc_in_ch);
 	mixer->set_context_sample_out(adc_in_ch, rate, samples); // Must be 2ch.
 	// ToDo: Check recording sample rate & channels.
@@ -959,7 +966,7 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(scsi_hdd[drv] != nullptr) {
 			if(scsi_hdd[drv]->accessed(0)) {
@@ -1025,7 +1032,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		} else if(cdrom != nullptr) {
 			cdrom->set_volume(0, decibel_l, decibel_r);
 		}
-	}	
+	}
 	else if(ch == 2) { // OPN2
 		if(opn2 != nullptr) {
 			opn2->set_volume(0, decibel_l, decibel_r);
@@ -1100,7 +1107,7 @@ void VM::close_cart(int drv)
 			iccard2->close_cart();
 		}
 		break;
-	}		
+	}
 }
 
 bool VM::is_cart_inserted(int drv)
@@ -1122,7 +1129,7 @@ bool VM::is_cart_inserted(int drv)
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	
+
 	if(fdc != nullptr) {
 		fdc->open_disk(drv, file_path, bank);
 		floppy->change_disk(drv);
@@ -1198,13 +1205,12 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {
 		return false;
 	}
-	
+
 	// Machine specified.
 	state_fio->StateValue(boot_seq);
-	
+
 	if(loading) {
 		update_config();
 	}
 	return true;
 }
-

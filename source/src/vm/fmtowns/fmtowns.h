@@ -133,7 +133,7 @@
 #define DEVICE_NAME		"FUJITSU FM-Towns II UG10"
 #define CONFIG_NAME		"fmtowns2UG1"
 #define MAX_DRIVE       2
-#undef  _HAS_HDD        
+#undef  _HAS_HDD
 #define WITH_386SX      1
 #define USE_VARIABLE_MEMORY 9
 #define MIN_RAM_SIZE 2
@@ -144,7 +144,7 @@
 #define DEVICE_NAME		"FUJITSU FM-Towns II UG20"
 #define CONFIG_NAME		"fmtowns2UG20"
 #define MAX_DRIVE       2
-#undef  _HAS_HDD        
+#undef  _HAS_HDD
 #define WITH_386SX      1
 #define USE_VARIABLE_MEMORY 9
 #define MIN_RAM_SIZE 2
@@ -177,7 +177,7 @@
 #define DEVICE_NAME		"FUJITSU FM-Towns II HG20"
 #define CONFIG_NAME		"fmtowns2HG20"
 #define MAX_DRIVE       2
-#undef _HAS_HDD        
+#undef _HAS_HDD
 #define USE_VARIABLE_MEMORY 15
 #define MIN_RAM_SIZE 2
 
@@ -229,13 +229,19 @@
 
 #endif
 
+// ToDo: 486SX etc.
+
+#define _MEMORY_BANK_SIZE 0x1000
 #if defined(WITH_386SX)
-#define MEMORY_ADDR_MAX 0x001000000 /* 16MB */
+#define _MEMORY_SPACE 0x001000000 /* 16MB */
+#define _MEMORY_BUS_WIDTH 16
 #else
-#define MEMORY_ADDR_MAX 0x100000000 /* 4GiB */
+#define _MEMORY_SPACE 0x100000000 /* 4GiB */
+#define _MEMORY_BUS_WIDTH 32
 #endif
 
-#define MEMORY_BANK_SIZE 0x1000
+#define _IO_SPACE     0x10000
+#define _IO_BUS_WIDTH 16
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		55.4 // OK?
@@ -308,7 +314,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("Beep"), _T("CD-DA"), _T("FM OPN2"), _T("ADPCM"), 
+	_T("Beep"), _T("CD-DA"), _T("FM OPN2"), _T("ADPCM"),
 #if defined(USE_SOUND_FILES)
 	_T("FDD SEEK"),
 #endif
@@ -362,7 +368,7 @@ namespace FMTOWNS {
 	class SERIAL_ROM;
 	class SCSI;
 	class TIMER;
-	
+
 	class SYSROM;
 	class MSDOSROM;
 	class FONT_ROMS;
@@ -388,13 +394,13 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	// devices
-	
+
 	I8251* sio;
 	I8253* pit0;
 	I8253* pit1;
-	
+
 	I8259* pic;
-	
+
 	I386* cpu; // i386DX/SX/486DX/486SX?/Pentium with FPU?
 
 	IO*       io;
@@ -405,13 +411,13 @@ protected:
 	NOISE*    seek_sound;
 	NOISE*    head_up_sound;
 	NOISE*    head_down_sound;
-	
+
 	RF5C68*   rf5c68;
 	MB87078*  e_volumes[2];
 	AD7820KR* adc;
 	PCM1BIT*  beep;
 	YM2612*   opn2;
-	
+
 	FMTOWNS::ADPCM*          adpcm;
 	FMTOWNS::TOWNS_CRTC*     crtc;
 	FMTOWNS::FLOPPY*         floppy;
@@ -438,14 +444,14 @@ protected:
 //	FMTOWNS::CDC*            cdc;
 //	FMTOWNS::TOWNS_SCSI_HOST* cdc_scsi;
 	FMTOWNS::TOWNS_CDROM*    cdrom;
-	
+
 	FMTOWNS::SCSI* scsi;
 	//FMTOWNS::TOWNS_SCSI_HOST* scsi_host;
 	SCSI_HOST* scsi_host;
 	SCSI_HDD*      scsi_hdd[8]; //
 
 	bool boot_seq;
-	
+
 	int adc_in_ch;
 	int line_in_ch;
 	int modem_in_ch;
@@ -460,27 +466,27 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset() override;
 	void special_reset(int num) override;
 	void run() override;
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index) override;
 #endif
-	
+
 	// draw screen
 	void draw_screen() override;
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples) override;
 	uint16_t* create_sound(int* extra_frames) override;
@@ -488,17 +494,17 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat) override;
 	void key_up(int code) override;
-	
+
 	// user interface
 	// CARTs are IC CARD.Will implement something :-)
 	void open_cart(int drv, const _TCHAR* file_path) override;
 	void close_cart(int drv) override;
 	bool is_cart_inserted(int drv) override;
-	
+
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
 	void close_floppy_disk(int drv) override;
 	uint32_t is_floppy_disk_accessed() override;
@@ -516,7 +522,7 @@ public:
 	void close_hard_disk(int drv) override;
 	bool is_hard_disk_inserted(int drv) override;
 	uint32_t is_hard_disk_accessed() override;
-#endif	
+#endif
 	void set_machine_type(uint16_t machine_id, uint16_t cpu_id);
 	void clear_sound_in();
 	int get_sound_in_data(int ch, int32_t* dst, int expect_samples, int expect_rate, int expect_channels);
@@ -524,13 +530,13 @@ public:
 
 	double get_current_usec() override;
 	uint64_t get_current_clock_uint64() override;
-	
+
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id);
 	//DEVICE* dummy;
