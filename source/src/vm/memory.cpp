@@ -12,39 +12,34 @@
 
 #include "memory.h"
 
-#define ADDR_MASK (addr_max - 1)
+#define ADDR_MASK (space - 1)
 #define BANK_MASK (bank_size - 1)
 
 void MEMORY::initialize()
 {
-	DEVICE::initialize();
-	_MEMORY_DISABLE_DMA_MMIO = osd->check_feature(_T("MEMORY_DISABLE_DMA_MMIO"));
-	if(!(addr_max_was_set) && osd->check_feature(_T("MEMORY_ADDR_MAX"))) {
-		addr_max = osd->get_feature_uint64_value(_T("MEMORY_ADDR_MAX"));
-	}
-	if(!(bank_size_was_set) && osd->check_feature(_T("MEMORY_BANK_SIZE"))) {
-		bank_size = osd->get_feature_uint64_value(_T("MEMORY_BANK_SIZE"));
+	__UNLIKELY_IF((rd_table == NULL) || (wr_table == NULL)) {
+		DEVICE::initialize();
 	}
 	// allocate tables here to support multiple instances with different address range
 	if(rd_table == NULL) {
-		int64_t bank_num = addr_max / bank_size;
+		int64_t bank_num = space / bank_size;
 		bank_mask = BANK_MASK;
 		addr_mask = ADDR_MASK;
-		
+
 		rd_dummy = (uint8_t *)malloc(bank_size);
 		wr_dummy = (uint8_t *)malloc(bank_size);
-		
+
 		rd_table = (bank_t *)calloc(bank_num, sizeof(bank_t));
 		wr_table = (bank_t *)calloc(bank_num, sizeof(bank_t));
-		
+
+		// May initialize for security reason. 20230317 K.O
+		memset(rd_table, 0x00, sizeof(bank_t) * bank_num);
+		memset(wr_table, 0x00, sizeof(bank_t) * bank_num);
+
 		for(int i = 0; i < bank_num; i++) {
-			rd_table[i].device = NULL;
 			rd_table[i].memory = rd_dummy;
-			rd_table[i].wait   = 0;
-			
-			wr_table[i].device = NULL;
+
 			wr_table[i].memory = wr_dummy;
-			wr_table[i].wait   = 0;
 		}
 		for(int i = 0;; i++) {
 			if(bank_size == (uint64_t)(1 << i)) {
@@ -62,13 +57,19 @@ void MEMORY::release()
 	free(wr_table);
 	free(rd_dummy);
 	free(wr_dummy);
+	rd_table = NULL;
+	wr_table = NULL;
+	rd_dummy = NULL;
+	wr_dummy = NULL;
+
+	DEVICE::release();
 }
 
 uint32_t MEMORY::read_data8(uint32_t addr)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(rd_table[bank].device != NULL) {
+	const int bank = get_bank(addr);
+
+	__LIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io8(addr);
 	} else {
 		return rd_table[bank].memory[addr & bank_mask];
@@ -77,9 +78,9 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
-	if(wr_table[bank].device != NULL) {
+	const int bank = get_bank(addr);
+
+	__LIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io8(addr, data);
 	} else {
 		wr_table[bank].memory[addr & bank_mask] = data;
@@ -88,13 +89,20 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 
 uint32_t MEMORY::read_data16(uint32_t addr)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io16(addr);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		const int bank = get_bank(addr);
+
+		__LIKELY_IF(rd_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 1)) {
+				return rd_table[bank].device->read_memory_mapped_io16(addr);
+			} else {
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8(addr    );
+				val |= rd_table[bank].device->read_memory_mapped_io8(addr + 1) << 8;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -115,12 +123,18 @@ uint32_t MEMORY::read_data16(uint32_t addr)
 
 void MEMORY::write_data16(uint32_t addr, uint32_t data)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io16(addr, data);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		const int bank = get_bank(addr);
+
+		__LIKELY_IF(wr_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 1)) {
+				wr_table[bank].device->write_memory_mapped_io16(addr, data);
+			} else {
+				wr_table[bank].device->write_memory_mapped_io8(addr    , (data     ) & 0xff);
+				wr_table[bank].device->write_memory_mapped_io8(addr + 1, (data >> 8) & 0xff);
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data     ) & 0xff
@@ -133,18 +147,31 @@ void MEMORY::write_data16(uint32_t addr, uint32_t data)
 		write_data8(addr    , (data     ) & 0xff);
  		write_data8(addr + 1, (data >> 8) & 0xff);
  	}
-	
+
 }
 
 uint32_t MEMORY::read_data32(uint32_t addr)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io32(addr);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		const int bank = get_bank(addr);
+
+		__LIKELY_IF(rd_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 3)) {
+				return rd_table[bank].device->read_memory_mapped_io32(addr);
+			} else if(!(addr & 1)) {
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io16(addr    );
+				val |= rd_table[bank].device->read_memory_mapped_io16(addr + 2) << 16;
+				return val;
+			} else {
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8 (addr    );
+				val |= rd_table[bank].device->read_memory_mapped_io16(addr + 1) <<  8;
+				val |= rd_table[bank].device->read_memory_mapped_io8 (addr + 3) << 24;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -173,11 +200,11 @@ uint32_t MEMORY::read_data32(uint32_t addr)
 
 void MEMORY::write_data32(uint32_t addr, uint32_t data)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		const int bank = get_bank(addr);
+
 		if(wr_table[bank].device != NULL) {
 			wr_table[bank].device->write_memory_mapped_io32(addr, data);
 		} else {
@@ -202,39 +229,58 @@ void MEMORY::write_data32(uint32_t addr, uint32_t data)
 
 uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+	const int bank = get_bank(addr);
+
 	*wait = rd_table[bank].wait;
+
 	if(rd_table[bank].device != NULL) {
-		return rd_table[bank].device->read_memory_mapped_io8(addr);
+		int wait_tmp = 0;
+		uint32_t val = rd_table[bank].device->read_memory_mapped_io8w(addr, &wait_tmp);
+		__UNLIKELY_IF(!rd_table[bank].wait_registered) *wait = wait_tmp;
+		return val;
 	} else {
-		return rd_table[bank].memory[addr & bank_mask];
+		return rd_table[bank].memory[addr & BANK_MASK];
 	}
 }
 
 void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+	const int bank = get_bank(addr);
+
 	*wait = wr_table[bank].wait;
+
 	if(wr_table[bank].device != NULL) {
-		wr_table[bank].device->write_memory_mapped_io8(addr, data);
+		int wait_tmp = 0;
+		wr_table[bank].device->write_memory_mapped_io8w(addr, data, &wait_tmp);
+		__UNLIKELY_IF(!wr_table[bank].wait_registered) *wait = wait_tmp;
 	} else {
-		wr_table[bank].memory[addr & bank_mask] = data;
+		wr_table[bank].memory[addr & BANK_MASK] = data;
 	}
 }
 
 uint32_t MEMORY::read_data16w(uint32_t addr, int* wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		*wait = rd_table[bank].wait * 2; // 8bit bus ???
-		
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io16(addr);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		const int bank = get_bank(addr);
+
+		*wait = rd_table[bank].wait * bus_access_times_16(addr2);
+
+		__LIKELY_IF(rd_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 1)) {
+				int wait_tmp = 0;
+				uint32_t val = rd_table[bank].device->read_memory_mapped_io16w(addr, &wait_tmp);
+				__UNLIKELY_IF(!rd_table[bank].wait_registered) *wait = wait_tmp;
+				return val;
+			} else {
+				int wait_l = 0, wait_h = 0;
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8w(addr    , &wait_l);
+				val |= rd_table[bank].device->read_memory_mapped_io8w(addr + 1, &wait_h) << 8;
+				__UNLIKELY_IF(!rd_table[bank].wait_registered) *wait = wait_l + wait_h;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -246,26 +292,35 @@ uint32_t MEMORY::read_data16w(uint32_t addr, int* wait)
 			#endif
 		}
 	} else {
-		int wait_0, wait_1;
+		int wait_l = 0, wait_h = 0;
 		uint32_t val;
-		val  = read_data8w(addr    , &wait_0);
-		val |= read_data8w(addr + 1, &wait_1) << 8;
-		*wait = wait_0 + wait_1;
+		val  = read_data8w(addr    , &wait_l);
+		val |= read_data8w(addr + 1, &wait_h) << 8;
+		*wait = wait_l + wait_h;
 		return val;
 	}
 }
 
 void MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 1 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		*wait = wr_table[bank].wait * 2; // 8bit bus ???
-		
-		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io16(addr, data);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 16 && (addr2 + 1) < bank_size) {
+		const int bank = get_bank(addr);
+
+		*wait = wr_table[bank].wait * bus_access_times_16(addr2);
+
+		__LIKELY_IF(wr_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 1)) {
+				int wait_tmp = 0;
+				wr_table[bank].device->write_memory_mapped_io16w(addr, data, &wait_tmp);
+				__UNLIKELY_IF(!wr_table[bank].wait_registered) *wait = wait_tmp;
+			} else {
+				int wait_l = 0, wait_h = 0;
+				wr_table[bank].device->write_memory_mapped_io8w(addr    , (data     ) & 0xff, &wait_l);
+				wr_table[bank].device->write_memory_mapped_io8w(addr + 1, (data >> 8) & 0xff, &wait_h);
+				__UNLIKELY_IF(!wr_table[bank].wait_registered) *wait = wait_l + wait_h;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data     ) & 0xff
@@ -275,24 +330,44 @@ void MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 			#endif
 		}
 	} else {
-		int wait_0, wait_1;
-		write_data8w(addr    , (data     ) & 0xff, &wait_0);
-		write_data8w(addr + 1, (data >> 8) & 0xff, &wait_1);
-		*wait = wait_0 + wait_1;
+		int wait_l = 0, wait_h = 0;
+		write_data8w(addr    , (data     ) & 0xff, &wait_l);
+		write_data8w(addr + 1, (data >> 8) & 0xff, &wait_h);
+		*wait = wait_l + wait_h;
 	}
 }
 
 uint32_t MEMORY::read_data32w(uint32_t addr, int* wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		*wait = rd_table[bank].wait * 4; // 8bit bus ???
-		
-		if(rd_table[bank].device != NULL) {
-			return rd_table[bank].device->read_memory_mapped_io32(addr);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		const int bank = get_bank(addr);
+
+		*wait = rd_table[bank].wait * bus_access_times_32(addr2);
+
+		__LIKELY_IF(rd_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 3)) {
+				int wait_tmp = 0;
+				uint32_t val = rd_table[bank].device->read_memory_mapped_io32w(addr, &wait_tmp);
+				__UNLIKELY_IF(!rd_table[bank].wait_registered) *wait = wait_tmp;
+				return val;
+			} else if(!(addr & 1)) {
+				int wait_l = 0, wait_h = 0;
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io16w(addr    , &wait_l);
+				val |= rd_table[bank].device->read_memory_mapped_io16w(addr + 2, &wait_h) << 16;
+				__UNLIKELY_IF(!rd_table[bank].wait_registered) *wait = wait_l + wait_h;
+				return val;
+			} else {
+				int wait_l = 0, wait_m = 0, wait_h = 0;
+				uint32_t val;
+				val  = rd_table[bank].device->read_memory_mapped_io8w (addr    , &wait_l);
+				val |= rd_table[bank].device->read_memory_mapped_io16w(addr + 1, &wait_m) <<  8;
+				val |= rd_table[bank].device->read_memory_mapped_io8w (addr + 3, &wait_h) << 24;
+				if(!rd_table[bank].wait_registered) *wait = wait_l + wait_m + wait_h;
+				return val;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				uint32_t val;
@@ -306,34 +381,49 @@ uint32_t MEMORY::read_data32w(uint32_t addr, int* wait)
 			#endif
 		}
 	} else if(!(addr & 1)) {
-		int wait_0, wait_1;
+		int wait_l = 0, wait_h = 0;
 		uint32_t val;
-		val  = read_data16w(addr    , &wait_0);
-		val |= read_data16w(addr + 2, &wait_1) << 16;
-		*wait = wait_0 + wait_1;
+		val  = read_data16w(addr    , &wait_l);
+		val |= read_data16w(addr + 2, &wait_h) << 16;
+		*wait = wait_l + wait_h;
 		return val;
 	} else {
-		int wait_0, wait_1, wait_2;
+		int wait_l = 0, wait_m = 0, wait_h = 0;
 		uint32_t val;
-		val  = read_data8w (addr    , &wait_0);
-		val |= read_data16w(addr + 1, &wait_1) <<  8;
-		val |= read_data8w (addr + 3, &wait_2) << 24;
-		*wait = wait_0 + wait_1 + wait_2;
+		val  = read_data8w (addr    , &wait_l);
+		val |= read_data16w(addr + 1, &wait_m) <<  8;
+		val |= read_data8w (addr + 3, &wait_h) << 24;
+		*wait = wait_l + wait_m + wait_h;
 		return val;
 	}
 }
 
 void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 {
-	uint32_t addr2 = addr & BANK_MASK;
-	
-	if(addr2 + 3 < bank_size) {
-		int bank = (addr & ADDR_MASK) >> addr_shift;
-		
-		*wait = wr_table[bank].wait * 4; // 8bit bus ???
-		
-		if(wr_table[bank].device != NULL) {
-			wr_table[bank].device->write_memory_mapped_io32(addr, data);
+	const uint32_t addr2 = addr & BANK_MASK;
+
+	__LIKELY_IF(bus_width >= 32 && (addr2 + 3) < bank_size) {
+		const int bank = get_bank(addr);
+
+		*wait = wr_table[bank].wait * bus_access_times_32(addr2);
+
+		__LIKELY_IF(wr_table[bank].device != NULL) {
+			__LIKELY_IF(!(addr & 3)) {
+				int wait_tmp = 0;
+				wr_table[bank].device->write_memory_mapped_io32w(addr, data, &wait_tmp);
+				__UNLIKELY_IF(!wr_table[bank].wait_registered) *wait = wait_tmp;
+			} else if(!(addr & 1)) {
+				int wait_l = 0, wait_h = 0;
+				wr_table[bank].device->write_memory_mapped_io16w(addr    , (data      ) & 0xffff, &wait_l);
+				wr_table[bank].device->write_memory_mapped_io16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
+				__UNLIKELY_IF(!wr_table[bank].wait_registered) *wait = wait_l + wait_h;
+			} else {
+				int wait_l = 0, wait_m = 0, wait_h = 0;
+				wr_table[bank].device->write_memory_mapped_io8w (addr    , (data      ) & 0x00ff, &wait_l);
+				wr_table[bank].device->write_memory_mapped_io16w(addr + 1, (data >>  8) & 0xffff, &wait_m);
+				wr_table[bank].device->write_memory_mapped_io8w (addr + 3, (data >> 24) & 0x00ff, &wait_h);
+				if(!wr_table[bank].wait_registered) *wait = wait_l + wait_m + wait_h;
+			}
 		} else {
 			#ifdef __BIG_ENDIAN__
 				wr_table[bank].memory[addr2    ] = (data      ) & 0xff
@@ -345,16 +435,16 @@ void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 			#endif
 		}
 	} else if(!(addr & 1)) {
-		int wait_0, wait_1;
-		write_data16w(addr    , (data      ) & 0xffff, &wait_0);
-		write_data16w(addr + 2, (data >> 16) & 0xffff, &wait_1);
-		*wait = wait_0 + wait_1;
+		int wait_l = 0, wait_h = 0;
+		write_data16w(addr    , (data      ) & 0xffff, &wait_l);
+		write_data16w(addr + 2, (data >> 16) & 0xffff, &wait_h);
+		*wait = wait_l + wait_h;
 	} else {
-		int wait_0, wait_1, wait_2;
-		write_data8w (addr    , (data      ) & 0x00ff, &wait_0);
-		write_data16w(addr + 1, (data >>  8) & 0xffff, &wait_1);
-		write_data8w (addr + 3, (data >> 24) & 0x00ff, &wait_2);
-		*wait = wait_0 + wait_1 + wait_2;
+		int wait_l = 0, wait_m = 0, wait_h = 0;
+		write_data8w (addr    , (data      ) & 0x00ff, &wait_l);
+		write_data16w(addr + 1, (data >>  8) & 0xffff, &wait_m);
+		write_data8w (addr + 3, (data >> 24) & 0x00ff, &wait_h);
+		*wait = wait_l + wait_m + wait_h;
 	}
 }
 
@@ -364,7 +454,7 @@ uint32_t MEMORY::read_dma_data8(uint32_t addr)
 		return read_data8(addr);
 	}
 	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+
 	if(rd_table[bank].device != NULL) {
 //		return rd_table[bank].device->read_memory_mapped_io8(addr);
 		return 0xff;
@@ -380,7 +470,7 @@ void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 		return;
 	}
 	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+
 	if(wr_table[bank].device != NULL) {
 //		wr_table[bank].device->write_memory_mapped_io8(addr, data);
 	} else {
@@ -394,7 +484,7 @@ uint32_t MEMORY::read_dma_data16(uint32_t addr)
 		return read_data16(addr);
 	}
 	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+
 	if(rd_table[bank].device != NULL) {
 //		return rd_table[bank].device->read_memory_mapped_io16(addr);
 		return 0xffff;
@@ -412,7 +502,7 @@ void MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 		return;
 	}
 	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+
 	if(wr_table[bank].device != NULL) {
 //		wr_table[bank].device->write_memory_mapped_io16(addr, data);
 	} else {
@@ -424,7 +514,7 @@ void MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
 uint32_t MEMORY::read_dma_data32(uint32_t addr)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+
 	if(rd_table[bank].device != NULL) {
 //		return rd_table[bank].device->read_memory_mapped_io32(addr);
 		return 0xffffffff;
@@ -438,7 +528,7 @@ uint32_t MEMORY::read_dma_data32(uint32_t addr)
 void MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
-	
+
 	if(wr_table[bank].device != NULL) {
 //		wr_table[bank].device->write_memory_mapped_io32(addr, data);
 	} else {
@@ -452,10 +542,10 @@ void MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
 void MEMORY::set_memory_r(uint32_t start, uint32_t end, uint8_t *memory)
 {
 	MEMORY::initialize(); // subclass may overload initialize()
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		rd_table[i].device = NULL;
 		rd_table[i].memory = memory + bank_size * (i - start_bank);
@@ -465,10 +555,10 @@ void MEMORY::set_memory_r(uint32_t start, uint32_t end, uint8_t *memory)
 void MEMORY::set_memory_w(uint32_t start, uint32_t end, uint8_t *memory)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		wr_table[i].device = NULL;
 		wr_table[i].memory = memory + bank_size * (i - start_bank);
@@ -478,10 +568,10 @@ void MEMORY::set_memory_w(uint32_t start, uint32_t end, uint8_t *memory)
 void MEMORY::set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		rd_table[i].device = device;
 	}
@@ -490,10 +580,10 @@ void MEMORY::set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device
 void MEMORY::set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		wr_table[i].device = device;
 	}
@@ -502,34 +592,37 @@ void MEMORY::set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device
 void MEMORY::set_wait_r(uint32_t start, uint32_t end, int wait)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		rd_table[i].wait = wait;
+		rd_table[i].wait_registered = true;
 	}
 }
 
 void MEMORY::set_wait_w(uint32_t start, uint32_t end, int wait)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		wr_table[i].wait = wait;
+		wr_table[i].wait_registered = true;
 	}
 }
 
 void MEMORY::unset_memory_r(uint32_t start, uint32_t end)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
+	// Q: May need to reser wait_registed ? 20230317 K.O
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		rd_table[i].device = NULL;
 		rd_table[i].memory = rd_dummy;
@@ -539,10 +632,11 @@ void MEMORY::unset_memory_r(uint32_t start, uint32_t end)
 void MEMORY::unset_memory_w(uint32_t start, uint32_t end)
 {
 	MEMORY::initialize();
-	
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
-	
+
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
+
+	// Q: May need to reser wait_registed ? 20230317 K.O
 	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		wr_table[i].device = NULL;
 		wr_table[i].memory = wr_dummy;
@@ -553,16 +647,17 @@ void MEMORY::copy_table_w(uint32_t to, uint32_t start, uint32_t end)
 {
 	MEMORY::initialize();
 
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
 	uint32_t to_bank = to >> addr_shift;
-	uint64_t blocks = addr_max / bank_size;
-	
+	const uint64_t blocks = space / bank_size;
+
 	for(uint64_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;
 		wr_table[to_bank].device = wr_table[i].device;
 		wr_table[to_bank].memory = wr_table[i].memory;
 		wr_table[to_bank].wait = wr_table[i].wait;
+		wr_table[to_bank].wait_registered = wr_table[i].wait_registered;
 		to_bank++;
 	}
 }
@@ -571,19 +666,48 @@ void MEMORY::copy_table_r(uint32_t to, uint32_t start, uint32_t end)
 {
 	MEMORY::initialize();
 
-	uint32_t start_bank = start >> addr_shift;
-	uint32_t end_bank = end >> addr_shift;
+	const uint32_t start_bank = start >> addr_shift;
+	const uint32_t end_bank = end >> addr_shift;
 	uint32_t to_bank = to >> addr_shift;
-	uint64_t blocks = addr_max / bank_size;
+	const uint64_t blocks = addr_max / bank_size;
 
 	for(uint64_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;
 		rd_table[to_bank].device = rd_table[i].device;
 		rd_table[to_bank].memory = rd_table[i].memory;
 		rd_table[to_bank].wait = rd_table[i].wait;
+		rd_table[to_bank].wait_registered = rd_table[i].wait_registered;
 		to_bank++;
 	}
 }
+
+
+void MEMORY::unset_wait_r(uint32_t start, uint32_t end)
+{
+	MEMORY::initialize();
+
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
+
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
+		rd_table[i].wait = 0;
+		rd_table[i].wait_registered = false;
+	}
+}
+
+void MEMORY::unset_wait_w(uint32_t start, uint32_t end)
+{
+	MEMORY::initialize();
+
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
+
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
+		wr_table[i].wait = 0;
+		wr_table[i].wait_registered = false;
+	}
+}
+
 
 // load/save image
 
@@ -605,7 +729,7 @@ bool MEMORY::write_bios(const _TCHAR *file_name, uint8_t *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
-	
+
 	if(fio->Fopen(create_local_path(file_name), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(buffer, size, 1);
 		fio->Fclose();
@@ -619,7 +743,7 @@ bool MEMORY::read_image(const _TCHAR *file_path, uint8_t *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
-	
+
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		fio->Fread(buffer, size, 1);
 		fio->Fclose();
@@ -633,7 +757,7 @@ bool MEMORY::write_image(const _TCHAR* file_path, uint8_t* buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
-	
+
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(buffer, size, 1);
 		fio->Fclose();
