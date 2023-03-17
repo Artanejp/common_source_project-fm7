@@ -106,7 +106,6 @@ void I86::initialize()
 {
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature("SINGLE_MODE_DMA");
-	_USE_DEBUGGER  = osd->check_feature("USE_DEBUGGER");
 	switch(device_model) {
 	case INTEL_8086:
 		opaque = CPU_INIT_CALL(i8086);
@@ -146,7 +145,7 @@ void I86::initialize()
 	cpustate->debugger = d_debugger;
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
-	
+
 	d_debugger->set_context_mem(d_mem);
 	d_debugger->set_context_io(d_io);
 //#endif
@@ -161,7 +160,7 @@ void I86::reset()
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	int busreq = cpustate->busreq;
-	
+
 	switch(device_model) {
 	case INTEL_8086:
 		CPU_RESET_CALL(i8086);
@@ -199,7 +198,7 @@ void I86::reset()
 int I86::run(int icount)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	
+
 	switch(device_model) {
 	case INTEL_8086:
 		return CPU_EXECUTE_CALL(i8086);
@@ -216,7 +215,7 @@ int I86::run(int icount)
 void I86::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	
+
 	if(id == SIG_CPU_NMI) {
 		set_irq_line(cpustate, INPUT_LINE_NMI, (data & mask) ? HOLD_LINE : CLEAR_LINE);
 	} else if(id == SIG_CPU_IRQ) {
@@ -414,7 +413,7 @@ int I86::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	cpu_state *cpustate = (cpu_state *)opaque;
 	uint32_t eip = pc - cpustate->base[CS];
 	uint8_t oprom[16];
-	
+
 	for(int i = 0; i < 16; i++) {
 		int wait;
 		oprom[i] = d_mem->read_data8w((pc + i) & AMASK, &wait);
@@ -432,7 +431,7 @@ int I86::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 bool I86::process_state(FILEIO* state_fio, bool loading)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
-	
+
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -468,7 +467,7 @@ bool I86::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ip);
 	state_fio->StateValue(cpustate->sp);
 //#ifdef USE_DEBUGGER
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 		state_fio->StateValue(cpustate->total_icount);
 	}
 //#endif
@@ -478,10 +477,10 @@ bool I86::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(cpustate->ea);
 	state_fio->StateValue(cpustate->eo);
 	state_fio->StateValue(cpustate->ea_seg);
-	
+
 //#ifdef USE_DEBUGGER
 	// post process
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 		if(loading) {
 			cpustate->prev_total_icount = cpustate->total_icount;
 		}
@@ -489,4 +488,3 @@ bool I86::process_state(FILEIO* state_fio, bool loading)
 //#endif
 	return true;
 }
-

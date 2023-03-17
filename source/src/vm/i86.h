@@ -31,7 +31,6 @@ class  DLL_PREFIX I86 : public DEVICE
 {
 private:
 	bool _SINGLE_MODE_DMA;
-	bool _USE_DEBUGGER;
 	DEVICE *d_mem, *d_io, *d_pic;
 //#ifdef I86_PSEUDO_BIOS
 	DEVICE *d_bios;
@@ -43,7 +42,7 @@ private:
 	DEBUGGER *d_debugger;
 //#endif
 	void *opaque;
-	
+
 public:
 	I86(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -56,7 +55,7 @@ public:
 		device_model = INTEL_8086;
 	}
 	~I86() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -103,7 +102,7 @@ public:
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique function
 	void set_context_mem(DEVICE* device)
 	{
