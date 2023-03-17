@@ -21,6 +21,7 @@
 DEVICE::DEVICE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : vm(parent_vm), emu(parent_emu)
 {
 	__IOBUS_RETURN_ADDR = false;
+	__USE_DEBUGGER = false;
 #if defined(_USE_QT)
 	osd = emu->get_osd();
 	p_logger = osd->get_logger();
@@ -57,8 +58,12 @@ void DEVICE::initialize()
 	#if defined(IOBUS_RETURN_ADDR)
 		__IOBUS_RETURN_ADDR = true;
 	#endif
+	#if defined(USE_DEBUGGER)
+		__USE_DEBUGGER = true;
+	#endif
 	} else {
 		__IOBUS_RETURN_ADDR = osd->check_feature(_T("IOBUS_RETURN_ADDR"));
+		__USE_DEBUGGER = osd->check_feature("USE_DEBUGGER");
 	}
 #elif defined(IOBUS_RETURN_ADDR)
 		__IOBUS_RETURN_ADDR = true;

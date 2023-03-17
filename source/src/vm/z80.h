@@ -48,7 +48,6 @@ protected:
 	outputs_t outputs_busack;
 
 	uint32_t __CPU_START_ADDR;
-	bool __USE_DEBUGGER;
 	bool has_nsc800;
 	bool has_memory_wait;
 	bool has_io_wait;

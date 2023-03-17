@@ -2022,7 +2022,6 @@ void Z80::initialize()
 	register_frame_event(this);
 
 //#ifdef USE_DEBUGGER
-	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
 	if((__USE_DEBUGGER) && (d_debugger != NULL)) {
 		d_mem_stored = d_mem;
 		d_io_stored = d_io;
@@ -2168,7 +2167,7 @@ void  Z80::debugger_hook(void)
 {
 #if 0
 //#ifdef USE_DEBUGGER
-	if((__USE_DEBUGGER) && (d_debugger != NULL)) {
+	__LIKELY_IF((__USE_DEBUGGER) && (d_debugger != NULL)) {
 		bool now_debugging = d_debugger->now_debugging;
 		if(now_debugging) {
 			d_debugger->check_break_points(PC);
@@ -2232,7 +2231,7 @@ int Z80::run(int clock)
 		// this is primary cpu
 		if(wait) {
 			// don't run cpu!
-			if(__is_use_debugger) {
+			__LIKELY_IF(__is_use_debugger) {
 				total_icount += 1;
 			}
 			int tmp_extra_cycles = 0;
@@ -2252,7 +2251,7 @@ int Z80::run(int clock)
 				tmp_extra_cycles = extra_cycles;
 			}
 			extra_cycles = 0;
-			if(__is_use_debugger) {
+			__LIKELY_IF(__is_use_debugger) {
 				total_icount += icount;
 			}
 			cpu_wait(icount);
@@ -2276,7 +2275,7 @@ int Z80::run(int clock)
 			}
 			extra_cycles = 0;
 			// don't run cpu!
-			if(__is_use_debugger) {
+			__LIKELY_IF(__is_use_debugger) {
 				total_icount += icount;
 			}
 			cpu_wait(icount);
@@ -2292,7 +2291,7 @@ int Z80::run(int clock)
 				#endif
 				if(event_icount > 0) wait_icount += event_icount;
 			}
-			if(__is_use_debugger) {
+			__LIKELY_IF(__is_use_debugger) {
 				total_icount += (-icount);
 			}
 			// run dma once
@@ -2317,7 +2316,7 @@ int Z80::run(int clock)
 		if(busreq && !wait) {
 			if(dma_icount > 0) {
 				tmp_icount = min(icount, dma_icount);
-				if(__is_use_debugger) {
+				__LIKELY_IF(__is_use_debugger) {
 					total_icount += tmp_icount;
 				}
 				icount -= tmp_icount;
@@ -2334,18 +2333,18 @@ int Z80::run(int clock)
 			while(icount > 0 && !(busreq || wait)) {
 				if(dma_icount > 0) {
 					tmp_icount = min(icount, dma_icount);
-					if(__is_use_debugger) {
+					__LIKELY_IF(__is_use_debugger) {
 						total_icount += tmp_icount;
 					}
 					icount -= tmp_icount;
 					dma_icount -= tmp_icount;
 				} else {
 					// run only one opcode
-					if(__is_use_debugger) {
+					__LIKELY_IF(__is_use_debugger) {
 						tmp_icount = icount;
 					}
 					run_one_opecode();
-					if(__is_use_debugger) {
+					__LIKELY_IF(__is_use_debugger) {
 						total_icount += tmp_icount - icount;
 					}
 					// run dma once
@@ -2362,7 +2361,7 @@ int Z80::run(int clock)
 			if(dma_icount > 0 && !wait) {
 				dma_icount -= min(icount, dma_icount);
 			}
-			if(__is_use_debugger) {
+			__LIKELY_IF(__is_use_debugger) {
 				total_icount += icount;
 			}
 			icount = 0;
@@ -2386,7 +2385,7 @@ void Z80::run_one_opecode()
 
 	bool now_debugging = false;
 //#ifdef USE_DEBUGGER
-	if((__USE_DEBUGGER) && (d_debugger != nullptr)) {
+	__LIKELY_IF((__USE_DEBUGGER) && (d_debugger != nullptr)) {
 		now_debugging = d_debugger->now_debugging;
 		if(now_debugging) {
 			d_debugger->check_break_points(PC);

@@ -21,12 +21,11 @@ void I386::initialize()
 	DEVICE::initialize();
 	_I86_PSEUDO_BIOS = osd->check_feature("I86_PSEUDO_BIOS");
 	_SINGLE_MODE_DMA  = osd->check_feature("SINGLE_MODE_DMA");
-	_USE_DEBUGGER     = osd->check_feature("USE_DEBUGGER");
 //	realclock = get_cpu_clocks(this);
 	device_cpu = this;
 
 //#ifdef USE_DEBUGGER
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 		device_mem_stored = device_mem;
 		device_io_stored = device_io;
 		device_debugger->set_context_mem(device_mem);
@@ -296,7 +295,7 @@ int I386::run_one_opecode()
 //#ifdef USE_DEBUGGER
 
 	bool now_debugging = false;
-	__LIKELY_IF((_USE_DEBUGGER) && (device_debugger != NULL)) {
+	__LIKELY_IF((__USE_DEBUGGER) && (device_debugger != NULL)) {
 		now_debugging = device_debugger->now_debugging;
 	}
 
@@ -378,7 +377,7 @@ int I386::run(int cycles)
 			tmp_extra_cycles = extra_cycles;
 			extra_cycles = 0;
 		}
-		__UNLIKELY_IF(_USE_DEBUGGER) {
+		__UNLIKELY_IF(__USE_DEBUGGER) {
 			total_cycles += __cycles;
 		}
 //		int64_t _dummy = __cycles;
@@ -409,7 +408,7 @@ int I386::run(int cycles)
 		// if busreq is raised, spin cpu while remained clock
 		__UNLIKELY_IF(remained_cycles > 0 && busreq) {
 //#ifdef USE_DEBUGGER
-			__LIKELY_IF(_USE_DEBUGGER) {
+			__LIKELY_IF(__USE_DEBUGGER) {
 				total_cycles += remained_cycles;
 			}
 //#endif
@@ -977,7 +976,7 @@ bool I386::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateBuffer(&i386cpuid, sizeof(i386cpuid), 1);
 	state_fio->StateBuffer(&i386msr, sizeof(i386msr), 1);
 //#ifdef USE_DEBUGGER
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 		state_fio->StateValue(total_cycles);
 		state_fio->StateValue(prev_total_cycles);
 	}

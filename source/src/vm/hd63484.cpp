@@ -101,6 +101,16 @@ uint32_t HD63484::read_io16(uint32_t addr)
 	}
 }
 
+void HD63484::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io16(addr, data);
+}
+
+uint32_t HD63484::read_io16w(uint32_t addr, int *wait)
+{
+	return read_io16(addr);
+}
+
 void HD63484::event_vline(int v, int clock)
 {
 	vpos = v;
@@ -109,7 +119,7 @@ void HD63484::event_vline(int v, int clock)
 void HD63484::process_cmd()
 {
 	int len = instruction_length[fifo[0] >> 10];
-	
+
 	if(len == -1) {
 		if(fifo_ptr < 2) {
 			return;
@@ -426,7 +436,7 @@ void HD63484::process_cmd()
 void HD63484::doclr16(int opcode, uint16_t fill, int *dst, int _ax, int _ay)
 {
 	int ax = _ax, ay = _ay;
-	
+
 	for(;;) {
 		for(;;) {
 			switch(opcode & 3) {
@@ -475,7 +485,7 @@ void HD63484::docpy16(int opcode, int src, int *dst, int _ax, int _ay)
 {
 	int dstep1, dstep2 = 0;
 	int ax = _ax, ay = _ay;
-	
+
 	switch(opcode & 0x700) {
 	case 0x000: dstep1 =  1; dstep2 = -1 * (MWR1 & 0xfff) - ax * dstep1; break;
 	case 0x100: dstep1 =  1; dstep2 =      (MWR1 & 0xfff) - ax * dstep1; break;
@@ -591,7 +601,7 @@ void HD63484::docpy16(int opcode, int src, int *dst, int _ax, int _ay)
 int HD63484::org_first_pixel(int _org_dpd)
 {
 	int gbm = (CCR & 0x700) >> 8;
-	
+
 	switch(gbm) {
 	case 0:
 		return (_org_dpd & 0xf);
@@ -612,9 +622,9 @@ void HD63484::dot(int x, int y, int opm, uint16_t color)
 {
 	int dst, x_int, x_mod, bpp;
 	uint16_t color_shifted, bitmask, bitmask_shifted;
-	
+
 	x += org_first_pixel(org_dpd);
-	
+
 	switch((CCR & 0x700) >> 8) {
 	case 0:
 		bpp = 1;
@@ -652,12 +662,12 @@ void HD63484::dot(int x, int y, int opm, uint16_t color)
 			x_mod = (16 / bpp) - x_mod;
 		}
 	}
-	
+
 	color &= bitmask;
 	bitmask_shifted = bitmask << (x_mod * bpp);
 	color_shifted = color << (x_mod * bpp);
 	dst = (org + x_int - y * (MWR1 & 0xfff)) & ADDR_MASK;
-	
+
 	switch(opm) {
 	case 0:
 		vram[dst] = (vram[dst] & ~bitmask_shifted) | color_shifted;
@@ -698,7 +708,7 @@ int HD63484::get_pixel(int x, int y)
 {
 	int dst, x_int, x_mod, bpp;
 	uint16_t bitmask, bitmask_shifted;
-	
+
 	switch((CCR & 0x700) >> 8) {
 	case 0:
 		bpp = 1;
@@ -738,7 +748,7 @@ int HD63484::get_pixel(int x, int y)
 	}
 	bitmask_shifted = bitmask << (x_mod * bpp);
 	dst = (org + x_int - y * (MWR1 & 0xfff)) & ADDR_MASK;
-	
+
 	return ((vram[dst] & bitmask_shifted) >> (x_mod * bpp));
 }
 
@@ -746,10 +756,10 @@ int HD63484::get_pixel_ptn(int x, int y)
 {
 	int dst, x_int, x_mod, bpp;
 	uint16_t bitmask, bitmask_shifted;
-	
+
 	bpp = 1;
 	bitmask = 1;
-	
+
 	if(x >= 0) {
 		x_int = x / (16 / bpp);
 		x_mod = x % (16 / bpp);
@@ -763,7 +773,7 @@ int HD63484::get_pixel_ptn(int x, int y)
 	}
 	bitmask_shifted = bitmask << (x_mod * bpp);
 	dst = (x_int + y * 1);
-	
+
 	if((pattern[dst] & bitmask_shifted) >> (x_mod * bpp)) {
 		return 1;
 	} else {
@@ -783,7 +793,7 @@ void HD63484::agcpy(int opcode, int src_x, int src_y, int dst_x, int dst_y, int1
 	int yys = src_y;
 	int xxd = dst_x;
 	int yyd = dst_y;
-	
+
 	if(opcode & 0x800) {
 		switch(opcode & 0x700) {
 		case 0x000: dst_step1_x =  1; dst_step1_y =  0; dst_step2_x = -ay_neg * ay; dst_step2_y =  1; break;
@@ -913,7 +923,7 @@ void HD63484::ptn(int opcode, int src_x, int src_y, int16_t _ax, int16_t _ay)
 	int xxd = cpx;
 	int yyd = cpy;
 	int getpixel;
-	
+
 	if(opcode & 0x800) {
 		this->out_debug_log(_T("HD63484 ptn not supported\n"));
 	} else {
@@ -1033,7 +1043,7 @@ void HD63484::line(int16_t sx, int16_t sy, int16_t ex, int16_t ey, int16_t col)
 	int cpy_t = sy;
 	int16_t ax = ex - sx;
 	int16_t ay = ey - sy;
-	
+
 	if(abs(ax) >= abs(ay)) {
 		while(ax) {
 			dot(cpx_t, cpy_t, col & 7, cl0);
@@ -1065,7 +1075,7 @@ void HD63484::paint(int sx, int sy, int col)
 {
 	int getpixel;
 	dot(sx, sy, 0, col);
-	
+
 	getpixel = get_pixel(sx + 1, sy);
 	switch((CCR & 0x700) >> 8) {
 	case 0:
@@ -1088,7 +1098,7 @@ void HD63484::paint(int sx, int sy, int col)
 		paint(sx, sy, col);
 		sx--;
 	}
-	
+
 	getpixel = get_pixel(sx - 1, sy);
 	switch((CCR & 0x700) >> 8) {
 	case 0:
@@ -1111,7 +1121,7 @@ void HD63484::paint(int sx, int sy, int col)
 		paint(sx, sy, col);
 		sx++;
 	}
-	
+
 	getpixel = get_pixel(sx, sy + 1);
 	switch((CCR & 0x700) >> 8) {
 	case 0:
@@ -1134,7 +1144,7 @@ void HD63484::paint(int sx, int sy, int col)
 		paint(sx, sy, col);
 		sy--;
 	}
-	
+
 	getpixel = get_pixel(sx, sy - 1);
 	switch((CCR & 0x700) >> 8) {
 	case 0:
@@ -1158,4 +1168,3 @@ void HD63484::paint(int sx, int sy, int col)
 		sy++;
 	}
 }
-

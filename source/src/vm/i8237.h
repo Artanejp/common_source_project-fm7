@@ -29,12 +29,15 @@
 #define SIG_I8237_MASK3	11
 
 class DEBUGGER;
-class  DLL_PREFIX I8237_BASE : public DEVICE
+class  DLL_PREFIX I8237 : public DEVICE
 {
 protected:
 	DEVICE* d_mem;
 	DEBUGGER *d_debugger;
-	
+	DEVICE* d_dma;
+	DEBUGGER* d_debugger;
+	bool _SINGLE_MODE_DMA;
+
 	struct {
 		DEVICE* dev;
 		uint16_t areg;
@@ -49,7 +52,7 @@ protected:
 		outputs_t outputs_tc;
 	} dma[4];
 	outputs_t outputs_wrote_mem;
-	
+
 	bool low_high;
 	uint8_t cmd;
 	uint8_t req;
@@ -58,51 +61,62 @@ protected:
 	uint32_t tmp;
 	bool mode_word;
 	uint32_t addr_mask;
+	bool running;
 
-	void __FASTCALL write_mem(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_mem(uint32_t addr);
-	void __FASTCALL write_io(int ch, uint32_t data);
-	uint32_t __FASTCALL read_io(int ch);
-	
+	void __FASTCALL write_mem(uint32_t addr, uint32_t data, int *wait);
+	uint32_t __FASTCALL read_mem(uint32_t addr, int *wait);
+	void __FASTCALL write_io(int ch, uint32_t data, int *wait);
+	uint32_t __FASTCALL read_io(int ch, int *wait);
+
 public:
-	I8237_BASE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
+	I8237(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 4; i++) {
-			//dma[i].dev = vm->dummy;
-			dma[i].dev = NULL;
+			dma[i].dev = vm->dummy;
 			dma[i].bankreg = dma[i].incmask = 0;
 			initialize_output_signals(&dma[i].outputs_tc);
 		}
-		initialize_output_signals(&outputs_wrote_mem);
+		d_cpu = NULL;
+//#ifdef SINGLE_MODE_DMA
+		d_dma = NULL;
+//#endif
+//#ifdef USE_DEBUGGER
+		d_debugger = NULL;
+//#endif
 		mode_word = false;
 		addr_mask = 0xffffffff;
-		d_debugger = NULL;
-		set_device_name(_T("i8237 DMAC"));
+		initialize_output_signals(&outputs_wrote_mem);
+		_SINGLE_MODE_DMA = false;
+
+		set_device_name(_T("8237 DMAC"));
 	}
-	~I8237_BASE() {}
-	
+	~I8237() {}
+
 	// common functions
-	void initialize();
-	void reset();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual void __FASTCALL do_dma();
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int id) override;
+	void __FASTCALL do_dma() override;
 	// for debug
-	virtual bool is_debugger_available()
+	void __FASTCALL write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_via_debugger_data8w(uint32_t addr, int *wait) override;
+	void __FASTCALL write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_via_debugger_data16w(uint32_t addr, int *wait) override;
+//#ifdef USE_DEBUGGER
+	bool is_debugger_available() override
 	{
-		return false;
+		return true;
 	}
-	void *get_debugger()
+	void *get_debugger() override
 	{
 		return d_debugger;
 	}
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
-	
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+//#endif
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	// unique functions
 	void set_context_memory(DEVICE* device)
 	{
@@ -144,6 +158,18 @@ public:
 	{
 		register_output_signal(&outputs_wrote_mem, device, id, 1);
 	}
+//#ifdef SINGLE_MODE_DMA
+	void set_context_child_dma(DEVICE* device)
+	{
+		d_dma = device;
+	}
+//#endif
+//#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+//#endif
 	void set_mode_word(bool val)
 	{
 		mode_word = val;
@@ -154,41 +180,4 @@ public:
 	}
 };
 
-class I8237 : public I8237_BASE {
-private:
-#ifdef SINGLE_MODE_DMA
-	DEVICE* d_dma;
 #endif
-public:
-	I8237(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
-	~I8237();
-	
-	void initialize();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int id);
-	void __FASTCALL do_dma();
-	bool process_state(FILEIO* state_fio, bool loading);
-	
-#ifdef USE_DEBUGGER
-	bool is_debugger_available()
-	{
-		return true;
-	}
-#endif
-#ifdef SINGLE_MODE_DMA
-	void set_context_child_dma(DEVICE* device)
-	{
-		d_dma = device;
-	}
-#endif
-#ifdef USE_DEBUGGER
-	void set_context_debugger(DEBUGGER* device)
-	{
-		d_debugger = device;
-	}
-#endif
-};
-
-#endif
-

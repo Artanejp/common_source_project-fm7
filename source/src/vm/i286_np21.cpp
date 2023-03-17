@@ -24,13 +24,14 @@ void I286::initialize()
 {
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature("SINGLE_MODE_DMA");
-	_USE_DEBUGGER = osd->check_feature("USE_DEBUGGER");
 	I286_NP21::device_cpu = this;
 //#ifdef USE_DEBUGGER
-	device_mem_stored = I286_NP21::device_mem;
-	device_io_stored = I286_NP21::device_io;
-	I286_NP21::device_debugger->set_context_mem(I286_NP21::device_mem);
-	I286_NP21::device_debugger->set_context_io(I286_NP21::device_io);
+	if(__USE_DEBUGGER) {
+		device_mem_stored = I286_NP21::device_mem;
+		device_io_stored = I286_NP21::device_io;
+		I286_NP21::device_debugger->set_context_mem(I286_NP21::device_mem);
+		I286_NP21::device_debugger->set_context_io(I286_NP21::device_io);
+	}
 //#endif
 	CPU_INITIALIZE();
 	CPU_ADRSMASK = 0x000fffff;
@@ -100,8 +101,11 @@ void I286::cpu_wait(int clocks)
 int I286::run_one_opecode()
 {
 //#ifdef USE_DEBUGGER
-	bool now_debugging = I286_NP21::device_debugger->now_debugging;
-	if(now_debugging) {
+	bool now_debugging = false;
+	if(I286_NP21::device_debugger != nullptr) {
+		now_debugging = ((I286_NP21::device_debugger->now_debugging) && (__USE_DEBUGGER));
+	}
+	__UNLIKELY_IF(now_debugging) {
 		I286_NP21::device_debugger->check_break_points(get_next_pc());
 		if(I286_NP21::device_debugger->now_suspended) {
 			I286_NP21::device_debugger->now_waiting = true;
@@ -117,7 +121,7 @@ int I286::run_one_opecode()
 		} else {
 			now_debugging = false;
 		}
-		
+
 		PREV_CS_BASE = CS_BASE;
 		CPU_PREV_IP = CPU_IP;
 		CPU_REMCLOCK = CPU_BASECLOCK = 1;
@@ -193,7 +197,7 @@ int I286::run(int cycles)
 		remained_cycles += cycles + extra_cycles;
 		extra_cycles = 0;
 		int first_cycles = remained_cycles;
-		
+
 		// run cpu while given clocks
 		while(remained_cycles > 0 && !busreq) {
 			remained_cycles -= run(-1);
@@ -401,7 +405,7 @@ int I286::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	uint32_t eip = pc - (CPU_CS << 4);
 	uint8_t oprom[16];
-	
+
 	for(int i = 0; i < 16; i++) {
 		int wait;
 		oprom[i] = I286_NP21::device_mem->read_data8w((pc + i) & CPU_ADRSMASK, &wait);
@@ -485,7 +489,7 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	// FIXME
 	state_fio->StateBuffer(&CPU_STATSAVE, sizeof(CPU_STATSAVE), 1);
 //#ifdef USE_DEBUGGER
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 		state_fio->StateValue(total_cycles);
 		state_fio->StateValue(prev_total_cycles);
 	}
@@ -497,10 +501,9 @@ bool I286::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(irq_pending);
 	state_fio->StateValue(PREV_CS_BASE);
 	state_fio->StateValue(CPU_PREV_IP);
-	
+
 	state_fio->StateValue(waitfactor);
 	state_fio->StateValue(waitcount);
 	state_fio->StateValue(i286_memory_wait);
 	return true;
 }
-

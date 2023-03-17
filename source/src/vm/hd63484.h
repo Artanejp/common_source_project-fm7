@@ -21,11 +21,11 @@ private:
 	// vram
 	uint16_t* vram;
 	uint32_t vram_size;
-	
+
 	// fifo
 	int fifo_ptr;
 	uint16_t fifo[256], readfifo;
-	
+
 	// params
 	int ch, vpos;
 	uint16_t regs[128], pattern[16];
@@ -34,7 +34,7 @@ private:
 	uint16_t ppy, pzcy, ppx, pzcx, psy, psx, pey, pzy, pex, pzx;
 	uint16_t xmin, ymin, xmax, ymax, rwp_dn;
 	int16_t cpx, cpy;
-	
+
 	void process_cmd();
 	void __FASTCALL doclr16(int opcode, uint16_t fill, int *dst, int _ax, int _ay);
 	void __FASTCALL docpy16(int opcode, int src, int *dst, int _ax, int _ay);
@@ -46,22 +46,24 @@ private:
 	void ptn(int opcode, int src_x, int src_y, int16_t _ax, int16_t _ay);
 	void line(int16_t sx, int16_t sy, int16_t ex, int16_t ey, int16_t col);
 	void paint(int sx, int sy, int col);
-	
+
 public:
 	HD63484(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("HD63484 ACRTC"));
 	}
 	~HD63484() {}
-	
+
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io16(uint32_t addr);
-	void event_vline(int v, int clock);
-	
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io16(uint32_t addr) override;
+	void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait) override;
+	void event_vline(int v, int clock) override;
+
 	// unique functions
 	void set_vram_ptr(uint16_t* ptr, uint32_t size)
 	{

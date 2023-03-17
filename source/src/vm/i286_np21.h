@@ -32,7 +32,6 @@ class  DLL_PREFIX I286 : public DEVICE
 {
 private:
 	bool _SINGLE_MODE_DMA;
-	bool _USE_DEBUGGER;
 	DEVICE *device_pic;
 //#ifdef USE_DEBUGGER
 //	DEBUGGER *device_debugger;
@@ -48,10 +47,10 @@ private:
 	uint16_t CPU_PREV_IP;
 	uint32_t waitfactor;
 	int64_t waitcount;
-	
+
 	int run_one_opecode();
 	void cpu_wait(int clocks);
-	
+
 public:
 	I286(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -62,7 +61,7 @@ public:
 		device_model = INTEL_80286;
 	}
 	~I286() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -114,7 +113,7 @@ public:
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique function
 	void set_context_mem(DEVICE* device);
 //	{

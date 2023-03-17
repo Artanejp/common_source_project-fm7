@@ -861,6 +861,9 @@ void OSD::set_features_cpu(void)
 #ifdef HAS_V30
 	add_feature(_T("HAS_V30"), 1);
 #endif
+#ifdef HAS_I8080
+	add_feature(_T("HAS_I8080"), 1);
+#endif
 #ifdef HAS_I8085
 	add_feature(_T("HAS_I8085"), 1);
 #endif
@@ -1063,13 +1066,6 @@ void OSD::set_features_vm(void)
 #endif
 #ifdef I8259_PC98_HACK
 	add_feature(_T("I8259_PC98_HACK"), 1);
-#endif
-
-#ifdef I8080_MEMORY_WAIT
-	add_feature(_T("I8080_MEMORY_WAIT"), 1);
-#endif
-#ifdef I8080_IO_WAIT
-	add_feature(_T("I8080_IO_WAIT"), 1);
 #endif
 
 #ifdef MC6847_VRAM_OFS

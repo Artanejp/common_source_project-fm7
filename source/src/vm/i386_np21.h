@@ -71,7 +71,6 @@ private:
 	uint32_t waitfactor;
 	int64_t waitcount;
 
-	bool _USE_DEBUGGER;
 	bool _I86_PSEUDO_BIOS;
 	bool _SINGLE_MODE_DMA;
 	uint32_t address_mask;
@@ -88,7 +87,6 @@ public:
 //#endif
 		busreq = false;
 		initialize_output_signals(&outputs_extreset);
-		_USE_DEBUGGER = false;
 		_I86_PSEUDO_BIOS = false;
 		_SINGLE_MODE_DMA = false;
 		address_mask = 0x000fffff; // OK?
