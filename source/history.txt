@@ -1,3 +1,29 @@
+12/5/2022
+
+[VM/DEVICE] fix dma accessor with wait redirect to dma accessor without wait
+[VM/I86] support memory/io wait
+[VM/I286] support memory/io wait
+[VM/I386_NP21] support memory/io wait
+[VM/I8080] fix not to access 16bit memory bus
+[VM/I8237] improve timing of bus request and accessing memory/io
+[VM/I8253] avoid HAS_I8254 definition
+[VM/I8259] avoid I8259_MAX_CHIPS definition
+[VM/IO] improve for accessing 16/32bit bus
+[VM/MEMORY] improve for accessing 16/32bit bus
+[VM/UPD7220] improve to consider plane size
+[VM/UPD7801] fix not to access 16bit memory bus
+[VM/UPD71071] improve timing of bus request and accessing memory/io
+[VM/Z80] improve not to change IX/IY values in software reset
+
+[FMR30/MEMBUS] improve for accessing 16bit bus
+[MZ5500] support memory/io wait
+[MZ5500/MEMBUS] improve for accessing 16bit bus
+[PC9801] support memory/io wait
+[PC9801/CPUREG] improve for cycles while DMA has bus master
+[PC9801/MEMBUS] simplify code
+[PC98HA/MEMBUS] improve for accessing 16bit bus
+
+
 11/20/2022
 
 [VM/I8251] fix to make tx ready in reset
