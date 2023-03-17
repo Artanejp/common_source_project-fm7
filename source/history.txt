@@ -1,3 +1,13 @@
+1/22/2022
+
+[VM/I386_NP21] update to Neko Project 21/W ver0.86 rev88 beta5
+[VM/UPD7220] fix replace operation in pset
+
+[PC98LT] support serial MIDI port
+[PC98LT/FLOPPY] improve 2DD/2HD mode switching
+[PC98LT/FLOPPY] support timer irq
+
+
 12/31/2022
 
 [MZ1500/QUICKDISK] support to play seek noise

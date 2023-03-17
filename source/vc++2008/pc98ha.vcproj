@@ -405,6 +405,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\win32\osd_midi.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\win32\osd_screen.cpp"
 					>
 					<FileConfiguration
@@ -690,6 +710,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\midi.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\noise.cpp"
 					>
 					<FileConfiguration
@@ -835,7 +875,27 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="..\src\vm\pc98ha\bios.cpp"
+					RelativePath="..\src\vm\pc9801\keyboard.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\serial.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -876,26 +936,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc98ha\floppy.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\src\vm\pc98ha\keyboard.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1071,6 +1111,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\midi.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\noise.h"
 					>
 				</File>
@@ -1112,7 +1156,11 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="..\src\vm\pc98ha\bios.h"
+					RelativePath="..\src\vm\pc9801\keyboard.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\pc9801\serial.h"
 					>
 				</File>
 				<File
@@ -1121,10 +1169,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pc98ha\floppy.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\pc98ha\keyboard.h"
 					>
 				</File>
 				<File

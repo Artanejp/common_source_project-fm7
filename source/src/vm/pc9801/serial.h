@@ -10,6 +10,8 @@
 	NEC PC-98XL Emulator 'ePC-98XL'
 	NEC PC-98RL Emulator 'ePC-98RL'
 	NEC PC-98DO Emulator 'ePC-98DO'
+	NEC PC-98LT Emulator 'ePC-98LT'
+	NEC PC-98HA Emulator 'eHANDY98'
 
 	Author : Takeda.Toshiya
 	Date   : 2022.07.06-

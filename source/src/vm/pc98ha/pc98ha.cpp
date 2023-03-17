@@ -21,6 +21,7 @@
 #include "../i86.h"
 #include "../io.h"
 #include "../memory.h"
+#include "../midi.h"
 #include "../noise.h"
 #include "../not.h"
 //#include "../pcpr201.h"
@@ -37,12 +38,13 @@
 #include "../debugger.h"
 #endif
 
-#include "bios.h"
+//#include "bios.h"
 #include "calendar.h"
 #include "floppy.h"
-#include "keyboard.h"
+#include "../pc9801/keyboard.h"
 #include "membus.h"
 #include "note.h"
+#include "../pc9801/serial.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -94,7 +96,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		printer = dummy;
 	}
 	
-	bios = new BIOS(this, emu);
+//	bios = new BIOS(this, emu);
 	calendar = new CALENDAR(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -103,6 +105,17 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->bus_width = 16;
 	memory->bank_size = 0x4000;
 	note = new NOTE(this, emu);
+	serial = new SERIAL(this, emu);
+	
+	/* IRQ	0  PIT CH.0
+		1  KEYBOARD
+		2  PIT CH.1
+		3  
+		4  RS-232C
+		5  
+		6  FDC
+		7  PIC•sŠ®‘SŠ„‚èž‚Ý
+	*/
 	
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -111,9 +124,15 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
-//???	sio_rs->set_context_rxrdy(pic, SIG_I8259_IR4, 1);
+	sio_rs->set_context_rxrdy(serial, SIG_SERIAL_RXR, 1);
+	sio_rs->set_context_txempty(serial, SIG_SERIAL_TXE, 1);
+	sio_rs->set_context_txrdy(serial, SIG_SERIAL_TXR, 1);
+	if(config.serial_type == 2) {
+		MIDI *midi = new MIDI(this, emu);
+		sio_rs->set_context_out(midi, SIG_MIDI_OUT);
+		midi->set_context_in(sio_rs, SIG_I8251_RECV, 0xff);
+	}
 	sio_kbd->set_context_rxrdy(pic, SIG_I8259_IR1, 1);
-//	sio_kbd->set_context_out(keyboard, SIG_KEYBOARD_RECV);
 	pit->set_context_ch0(pic, SIG_I8259_IR0, 1);
 	pit->set_context_ch1(pic, SIG_I8259_IR2, 1);
 #ifdef _PC98HA
@@ -125,7 +144,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit->set_constant_clock(1, 300);	// ???
 	pit->set_constant_clock(2, 1996800);
 #endif
-	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
+	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 0x08, 0);
+	pio_sys->set_context_port_c(serial, SIG_SERIAL_PORT_C, 0x07, 0);
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
 	if(config.printer_type == 0) {
@@ -144,18 +164,23 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);	// 1MB
 	dma->set_context_ch3(fdc);	// 640KB
-	fdc->set_context_irq(pic, SIG_I8259_IR6, 1);
-	fdc->set_context_drq(dma, SIG_UPD71071_CH3, 1);
+//	fdc->set_context_irq(pic, SIG_I8259_IR6, 1);
+//	fdc->set_context_drq(dma, SIG_UPD71071_CH3, 1);
+	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
+	fdc->set_context_drq(floppy, SIG_FLOPPY_DRQ, 1);
 	fdc->raise_irq_when_media_changed = true;
 	
-	bios->set_context_fdc(fdc);
+//	bios->set_context_fdc(fdc);
 	calendar->set_context_rtc(rtc);
 	floppy->set_context_fdc(fdc);
+	floppy->set_context_dma(dma);
+	floppy->set_context_pic(pic);
 	keyboard->set_context_sio(sio_kbd);
 	note->set_context_pic(pic);
+	serial->set_context_pic(pic);
 	
 	// cpu bus
-	cpu->set_context_bios(bios);
+//	cpu->set_context_bios(bios);
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
@@ -191,9 +216,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x75, pit, 2);
 	io->set_iomap_alias_rw(0x77, pit, 3);
 #if defined(_PC98LT) || defined(DOCKING_STATION)
-	io->set_iomap_single_r(0xc8, floppy);
+	io->set_iomap_single_rw(0xc8, floppy);
 	io->set_iomap_single_rw(0xca, floppy);
 	io->set_iomap_single_rw(0xcc, floppy);
+	io->set_iomap_single_rw(0xce, floppy);
 	io->set_iomap_single_rw(0xbe, floppy);
 #endif
 	io->set_iomap_range_rw(0xe0, 0xef, dma);
@@ -254,7 +280,12 @@ void VM::reset()
 	
 	// initial device settings
 	pio_sys->write_signal(SIG_I8255_PORT_A, 0xe3, 0xff);
-	pio_sys->write_signal(SIG_I8255_PORT_B, 0xe0, 0xff);
+	if(config.serial_type == SERIAL_TYPE_DEFAULT) {
+		// no device connected
+		pio_sys->write_signal(SIG_I8255_PORT_B, 0xe0, 0xff);
+	} else {
+		pio_sys->write_signal(SIG_I8255_PORT_B, 0x80, 0xff);
+	}
 #ifdef _PC98HA
 	pio_prn->write_signal(SIG_I8255_PORT_B, 0xde, 0xff);
 #else
@@ -302,7 +333,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	beep->initialize_sound(rate, 2400, 8000);
+	beep->initialize_sound(rate, 1970, 8000);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -334,7 +365,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	keyboard->key_down(code);
+	keyboard->key_down(code, repeat);
 }
 
 void VM::key_up(int code)
@@ -398,7 +429,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	9
+#define STATE_VERSION	10
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

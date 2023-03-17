@@ -1250,20 +1250,29 @@ void UPD7220::draw_pset(int x, int y)
 #else
 	uint8_t bit = 1 << (x & 7);
 #endif
-	uint8_t cur = read_vram(addr);
 	
 	switch(mod) {
 	case 0: // replace
-		write_vram(addr, (cur & ~bit) | (dot ? bit : 0));
+		if(dot) {
+			write_vram(addr, read_vram(addr) | bit);
+		} else {
+			write_vram(addr, read_vram(addr) & ~bit);
+		}
 		break;
 	case 1: // complement
-		write_vram(addr, (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit));
+		if(dot) {
+			write_vram(addr, read_vram(addr) ^ bit);
+		}
 		break;
 	case 2: // reset
-		write_vram(addr, cur & (dot ? ~bit : 0xff));
+		if(dot) {
+			write_vram(addr, read_vram(addr) & ~bit);
+		}
 		break;
 	case 3: // set
-		write_vram(addr, cur | (dot ? bit : 0));
+		if(dot) {
+			write_vram(addr, read_vram(addr) | bit);
+		}
 		break;
 	}
 }
