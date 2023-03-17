@@ -1119,7 +1119,6 @@ void UPD7801::initialize()
 {
 	DEVICE::initialize();
 	__UPD7801_MEMORY_WAIT = osd->check_feature(_T("UPD7801_MEMORY_WAIT"));
-	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
 
 //#ifdef USE_DEBUGGER
 	if((__USE_DEBUGGER) && (d_debugger != NULL)) {
@@ -1153,7 +1152,7 @@ int UPD7801::run(int clock)
 		// run only one opcode
 		count = 0;
 //#ifdef USE_DEBUGGER
-		if(__USE_DEBUGGER) {
+		__LIKELY_IF(__USE_DEBUGGER) {
 			run_one_opecode_debugger();
 		} else {
 //#else
@@ -1165,12 +1164,12 @@ int UPD7801::run(int clock)
 		// run cpu while given clocks
 		count += clock;
 		int first_count = count;
-		
+
 		while(count > 0) {
 //#ifdef USE_DEBUGGER
-			if(__USE_DEBUGGER) {
+			__LIKELY_IF(__USE_DEBUGGER) {
 				run_one_opecode_debugger();
-			} else { 
+			} else {
 //#else
 				run_one_opecode();
 			}
@@ -1200,10 +1199,10 @@ void UPD7801::run_one_opecode()
 		if(IFF & 2) {
 			IFF--;
 		}
-		
+
 		// run 1 opecode
 //#ifdef USE_DEBUGGER
-		if(__USE_DEBUGGER) {
+		__LIKELY_IF(__USE_DEBUGGER) {
 			d_debugger->add_cpu_trace(PC);
 		}
 //#endif
@@ -1215,7 +1214,7 @@ void UPD7801::run_one_opecode()
 	total_count += period;
 
 	count -= period;
-	
+
 	// update serial count
 	if(scount) {
 		scount -= period;
@@ -1237,7 +1236,7 @@ void UPD7801::run_one_opecode()
 			scount += 4;
 		}
 	}
-	
+
 	// update timer
 	if(tcount && (tcount -= period) <= 0) {
 		tcount += (((TM0 | (TM1 << 8)) & 0xfff) + 1) * PRESCALER;
@@ -1247,7 +1246,7 @@ void UPD7801::run_one_opecode()
 			UPDATE_PORTC(0);
 		}
 	}
-	
+
 	// check interrupt
 	if(IFF == 1 && !SIRQ) {
 		for(int i = 0; i < 5; i++) {
@@ -1259,7 +1258,7 @@ void UPD7801::run_one_opecode()
 				}
 				PUSH8(PSW);
 				PUSH16(PC);
-				
+
 				PC = irq_addr[i];
 				PSW &= ~(F_SK | F_L0 | F_L1);
 				IFF = 0;
@@ -1441,10 +1440,10 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 		upd7801_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
 	}
 	upd7801_dasm_ptr = 0;
-	
+
 	uint8_t b;
 	uint16_t wa;
-	
+
 	switch(b = getb()) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("nop")); break;
 	case 0x01: my_stprintf_s(buffer, buffer_len, _T("hlt")); break;
@@ -1462,7 +1461,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x0d: my_stprintf_s(buffer, buffer_len, _T("mov a,e")); break;
 	case 0x0e: my_stprintf_s(buffer, buffer_len, _T("mov a,h")); break;
 	case 0x0f: my_stprintf_s(buffer, buffer_len, _T("mov a,l")); break;
-	
+
 	case 0x10: my_stprintf_s(buffer, buffer_len, _T("ex")); break;
 	case 0x11: my_stprintf_s(buffer, buffer_len, _T("exx")); break;
 	case 0x12: my_stprintf_s(buffer, buffer_len, _T("inx b")); break;
@@ -1479,7 +1478,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x1d: my_stprintf_s(buffer, buffer_len, _T("mov e,a")); break;
 	case 0x1e: my_stprintf_s(buffer, buffer_len, _T("mov h,a")); break;
 	case 0x1f: my_stprintf_s(buffer, buffer_len, _T("mov l,a")); break;
-	
+
 	case 0x20: my_stprintf_s(buffer, buffer_len, _T("inrw v.%02xh"), getwa()); break;
 	case 0x21: my_stprintf_s(buffer, buffer_len, _T("table")); break;
 	case 0x22: my_stprintf_s(buffer, buffer_len, _T("inx d")); break;
@@ -1496,7 +1495,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x2d: my_stprintf_s(buffer, buffer_len, _T("ldax h+")); break;
 	case 0x2e: my_stprintf_s(buffer, buffer_len, _T("ldax d-")); break;
 	case 0x2f: my_stprintf_s(buffer, buffer_len, _T("ldax h-")); break;
-	
+
 	case 0x30: my_stprintf_s(buffer, buffer_len, _T("dcrw v.%02xh"), getwa()); break;
 	case 0x31: my_stprintf_s(buffer, buffer_len, _T("block")); break;
 	case 0x32: my_stprintf_s(buffer, buffer_len, _T("inx h")); break;
@@ -1513,7 +1512,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x3d: my_stprintf_s(buffer, buffer_len, _T("stax h+")); break;
 	case 0x3e: my_stprintf_s(buffer, buffer_len, _T("stax d-")); break;
 	case 0x3f: my_stprintf_s(buffer, buffer_len, _T("stax h-")); break;
-	
+
 //	case 0x40:
 	case 0x41: my_stprintf_s(buffer, buffer_len, _T("inr a")); break;
 	case 0x42: my_stprintf_s(buffer, buffer_len, _T("inr b")); break;
@@ -1607,7 +1606,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 		break;
 	case 0x4e: b = getb(); my_stprintf_s(buffer, buffer_len, _T("jre %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), pc + upd7801_dasm_ptr + b)); break;
 	case 0x4f: b = getb(); my_stprintf_s(buffer, buffer_len, _T("jre %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), (pc + upd7801_dasm_ptr + b - 256) & 0xffff)); break;
-	
+
 //	case 0x50:
 	case 0x51: my_stprintf_s(buffer, buffer_len, _T("dcr a")); break;
 	case 0x52: my_stprintf_s(buffer, buffer_len, _T("dcr b")); break;
@@ -1624,7 +1623,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x5d: my_stprintf_s(buffer, buffer_len, _T("bit 5,v.%02xh"), getwa()); break;
 	case 0x5e: my_stprintf_s(buffer, buffer_len, _T("bit 6,v.%02xh"), getwa()); break;
 	case 0x5f: my_stprintf_s(buffer, buffer_len, _T("bit 7,v.%02xh"), getwa()); break;
-	
+
 	case 0x60:
 		switch(b = getb()) {
 		case 0x08: my_stprintf_s(buffer, buffer_len, _T("ana v,a")); break;
@@ -2053,7 +2052,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x6d: my_stprintf_s(buffer, buffer_len, _T("mvi e,%02xh"), getb()); break;
 	case 0x6e: my_stprintf_s(buffer, buffer_len, _T("mvi h,%02xh"), getb()); break;
 	case 0x6f: my_stprintf_s(buffer, buffer_len, _T("mvi l,%02xh"), getb()); break;
-	
+
 	case 0x70:
 		switch(b = getb()) {
 		case 0x0e: my_stprintf_s(buffer, buffer_len, _T("sspd %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), getw())); break;
@@ -2216,7 +2215,7 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0x77: my_stprintf_s(buffer, buffer_len, _T("eqi a,%02xh"), getb()); break;
 	case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
 		my_stprintf_s(buffer, buffer_len, _T("calf %3x"), 0x800 | ((b & 7) << 8) | getb()); break;
-	
+
 	case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
 	case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
 	case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
@@ -2226,19 +2225,19 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 	case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
 	case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
 		my_stprintf_s(buffer, buffer_len, _T("calt %02xh"), 0x80 | ((b & 0x3f) << 1)); break;
-		
+
 	case 0xc0: case 0xc1: case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7:
 	case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
 	case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
 	case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf:
 		my_stprintf_s(buffer, buffer_len, _T("jr %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), pc + upd7801_dasm_ptr + (b & 0x1f))); break;
-	
+
 	case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
 	case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
 	case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 	case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
 		my_stprintf_s(buffer, buffer_len, _T("jr %s"), get_value_or_symbol(d_debugger->first_symbol, _T("%04xh"), pc + upd7801_dasm_ptr + ((b & 0x1f) - 0x20))); break;
-	
+
 	default: my_stprintf_s(buffer, buffer_len, _T("db %02xh"), b); break;
 	}
 	return upd7801_dasm_ptr;
@@ -2296,7 +2295,7 @@ void UPD7801::write_signal(int id, uint32_t data, uint32_t mask)
 void UPD7801::OP()
 {
 	uint8_t ope = FETCH8();
-	
+
 	if((PSW & F_SK) && ope != 0x72) {
 		// skip this mnemonic
 		switch(ope) {
@@ -2315,7 +2314,7 @@ void UPD7801::OP()
 		return;
 	}
 	period += op[ope].clock;
-	
+
 	switch(ope) {
 	case 0x00:	// nop
 		break;
@@ -2533,7 +2532,7 @@ void UPD7801::OP()
 	case 0x67:	// nei a,byte
 		NEI(_A); break;
 	case 0x68:	// mvi v,byte
-		_V = FETCH8(); 
+		_V = FETCH8();
 		break;
 	case 0x69:	// mvi a,byte
 		if(PSW & F_L1) {
@@ -2608,7 +2607,7 @@ void UPD7801::OP48()
 {
 	uint8_t ope = FETCH8();
 	period += op48[ope].clock;
-	
+
 	switch(ope) {
 	case 0x00:	// skit intf0
 		SKIT(INTF0); break;
@@ -2697,7 +2696,7 @@ void UPD7801::OP4C()
 {
 	uint8_t ope = FETCH8();
 	period += op4c[ope].clock;
-	
+
 	switch(ope) {
 	case 0xc0:	// mov a,pa
 		_A = IN8(P_A); break;
@@ -2736,7 +2735,7 @@ void UPD7801::OP4D()
 {
 	uint8_t ope = FETCH8();
 	period += op4d[ope].clock;
-	
+
 	switch(ope) {
 	case 0xc0:	// mov pa,a
 		OUT8(P_A, _A); break;
@@ -2778,7 +2777,7 @@ void UPD7801::OP60()
 {
 	uint8_t ope = FETCH8();
 	period += op60[ope].clock;
-	
+
 	switch(ope) {
 	case 0x08:	// ana v,a
 		ANA(_V, _A); break;
@@ -3237,7 +3236,7 @@ void UPD7801::OP64()
 {
 	uint8_t ope = FETCH8();
 	period += op64[ope].clock;
-	
+
 	switch(ope) {
 	case 0x08:	// ani v,byte
 		ANI(_V); break;
@@ -3608,7 +3607,7 @@ void UPD7801::OP70()
 {
 	uint8_t ope = FETCH8();
 	period += op70[ope].clock;
-	
+
 	switch(ope) {
 	case 0x0e:	// sspd word
 		WM16(FETCH16(), SP); break;
@@ -3627,7 +3626,7 @@ void UPD7801::OP70()
 	case 0x3f:	// lhld word
 		HL = RM16(FETCH16()); break;
 	case 0x68:	// mov v,word
-		_V = RM8(FETCH16()); 
+		_V = RM8(FETCH16());
 		break;
 	case 0x69:	// mov a,word
 		_A = RM8(FETCH16()); break;
@@ -3878,7 +3877,7 @@ void UPD7801::OP74()
 {
 	uint8_t ope = FETCH8();
 	period += op74[ope].clock;
-	
+
 	switch(ope) {
 	case 0x88:	// anaw wa
 		ANAW(); break;
@@ -3955,7 +3954,7 @@ bool UPD7801::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(SI);
 	state_fio->StateValue(SCK);
 	state_fio->StateValue(sio_count);
-	
+
 	// post process
 	if(__USE_DEBUGGER) {
 		if(loading) {

@@ -37,25 +37,25 @@ private:
 	/* ---------------------------------------------------------------------------
 	contexts
 	--------------------------------------------------------------------------- */
-	
+
 	outputs_t outputs_so;
 	DEVICE *d_mem, *d_io;
 //#ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored, *d_io_stored;
 //#endif
-	
+
 	/* ---------------------------------------------------------------------------
 	registers
 	--------------------------------------------------------------------------- */
-	
+
 
 	uint64_t total_count;
 	uint64_t prev_total_count;
 
 	int count, period, scount, tcount;
 	bool wait;
-	
+
 	pair32_t regs[8];
 	uint16_t SP, PC, prevPC;
 	uint8_t PSW, IRR, IFF, SIRQ, HALT, MK, MB, MC, TM0, TM1, SR;
@@ -64,11 +64,11 @@ private:
 	// for serial i/o
 	bool SI, SCK;
 	int sio_count;
-	
+
 	/* ---------------------------------------------------------------------------
 	virtual machine interface
 	--------------------------------------------------------------------------- */
-	
+
 	// memory
 	inline uint8_t __FASTCALL RM8(uint16_t addr);
 	inline void __FASTCALL WM8(uint16_t addr, uint8_t val);
@@ -81,19 +81,18 @@ private:
 	inline void __FASTCALL PUSH8(uint8_t val);
 	inline uint16_t __FASTCALL POP16();
 	inline void __FASTCALL PUSH16(uint16_t val);
-	
+
 	// i/o
 	inline uint8_t __FASTCALL IN8(int port);
 	inline void __FASTCALL OUT8(int port, uint8_t val);
 	inline void __FASTCALL UPDATE_PORTC(uint8_t IOM);
 
-	bool __USE_DEBUGGER;
 	bool __UPD7801_MEMORY_WAIT;
-	
+
 	/* ---------------------------------------------------------------------------
 	opecode
 	--------------------------------------------------------------------------- */
-	
+
 	void __FASTCALL run_one_opecode();
 //#ifdef USE_DEBUGGER
 	void __FASTCALL run_one_opecode_debugger();
@@ -106,7 +105,7 @@ private:
 	void __FASTCALL OP64();
 	void __FASTCALL OP70();
 	void __FASTCALL OP74();
-	
+
 public:
 	UPD7801(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -117,11 +116,11 @@ public:
 		SI = SCK = false;
 		d_debugger = NULL;
 		d_mem_stored = d_io_stored = NULL;
-		__USE_DEBUGGER = __UPD7801_MEMORY_WAIT = false;
+		__UPD7801_MEMORY_WAIT = false;
 		set_device_name(_T("uPD7801 CPU"));
 	}
 	~UPD7801() {}
-	
+
 	// common functions
 	void initialize();
 	void reset();
@@ -166,7 +165,7 @@ public:
 
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
