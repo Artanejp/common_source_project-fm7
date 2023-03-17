@@ -14,12 +14,11 @@ void UPD71071::initialize()
 {
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
-	_USE_DEBUGGER    = osd->check_feature(_T("USE_DEBUGGER"));
 	for(int i = 0; i < 4; i++) {
 		dma[i].areg = dma[i].bareg = 0;
 		dma[i].creg = dma[i].bcreg = 0;
 	}
-	if(_USE_DEBUGGER) {
+	if(__USE_DEBUGGER) {
 		if(d_debugger != NULL) {
 			d_debugger->set_device_name(_T("Debugger (uPD71071 DMAC)"));
 			d_debugger->set_context_mem(this);
@@ -354,7 +353,7 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 void UPD71071::set_ube(int ch)
 {
 	bool stat = inputs_ube[ch & 3];
-	stat &= dma[ch & 3].is_16bit; 
+	stat &= dma[ch & 3].is_16bit;
 	if(stats_ube[ch & 3] != stat) {
 		write_signals(&outputs_ube[ch & 3], (stat) ? 0xffffffff : 0x00000000);
 		stats_ube[ch & 3] = stat;
@@ -444,7 +443,7 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c)
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
 
-	if(_USE_DEBUGGER) {
+	__LIKELY_IF(__USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			d_debugger->write_via_debugger_data8(dma[c].areg, val);
 		} else {
@@ -452,7 +451,7 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c)
 		}
 	} else {
 		write_via_debugger_data8(dma[c].areg, val);
-	}							
+	}
 }
 
 void UPD71071::do_dma_mem_to_dev_8bit(int c)
@@ -460,7 +459,7 @@ void UPD71071::do_dma_mem_to_dev_8bit(int c)
 	// memory -> io
 	uint32_t val;
 	reset_ube(c);
-	if(_USE_DEBUGGER) {
+	__LIKELY_IF(__USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			val = d_debugger->read_via_debugger_data8(dma[c].areg);
 		} else {
@@ -504,7 +503,7 @@ void UPD71071::do_dma_dev_to_mem_16bit(int c)
 /*	if((dma[c].areg & 1) != 0) {
 		// If odd address, write a byte.
 		uint32_t tval = (val >> 8) & 0xff;
-		if(_USE_DEBUGGER) {
+		__LIKELY_IF(__USE_DEBUGGER) {
 			if(d_debugger != NULL && d_debugger->now_device_debugging) {
 				d_debugger->write_via_debugger_data8(dma[c].areg, tval);
 			} else {
@@ -516,7 +515,7 @@ void UPD71071::do_dma_dev_to_mem_16bit(int c)
 	} else {
 */
 		// 16bit
-		if(_USE_DEBUGGER) {
+		__LIKELY_IF(__USE_DEBUGGER) {
 			if(d_debugger != NULL && d_debugger->now_device_debugging) {
 				d_debugger->write_via_debugger_data16(dma[c].areg, val);
 			} else {
@@ -533,7 +532,7 @@ void UPD71071::do_dma_mem_to_dev_16bit(int c)
 	// memory -> io
 	uint32_t val;
 	set_ube(c);
-	if(_USE_DEBUGGER) {
+	__LIKELY_IF(__USE_DEBUGGER) {
 		if(d_debugger != NULL && d_debugger->now_device_debugging) {
 			val = d_debugger->read_via_debugger_data16(dma[c].areg);
 		} else {
@@ -679,7 +678,7 @@ void UPD71071::do_dma()
 	if(cmd & 4) {
 		return;
 	}
-	
+
 	// run dma
 	for(int c = 0; c < 4; c++) {
 		if((mask & (1 << c)) == 0) { // MASK
@@ -766,4 +765,3 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 
 	return true;
 }
-

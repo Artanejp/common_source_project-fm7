@@ -46,7 +46,7 @@ protected:
 	outputs_t outputs_tc[4];
 	outputs_t outputs_ube[4]; // If "1" word transfer, "0" byte transfer (OUT)
 	outputs_t outputs_ack[4]; // Acknoledge
-	
+
 	struct {
 		DEVICE* dev;
 		uint32_t areg, bareg;
@@ -56,16 +56,15 @@ protected:
 		bool endreq;
 		bool end;
 	} dma[4];
-	
+
 	uint8_t b16, selch, base;
 	uint16_t cmd, tmp;
 	uint8_t req, sreq, mask, tc;
 	bool inputs_ube[4];
 	bool stats_ube[4];
-	
+
 
 	bool _SINGLE_MODE_DMA;
-	bool _USE_DEBUGGER;
 
 	virtual void __FASTCALL set_ube(int ch);
 	virtual void __FASTCALL reset_ube(int ch);
@@ -106,7 +105,6 @@ public:
 //#endif
 		d_debugger = NULL;
 		_SINGLE_MODE_DMA = false;
-		_USE_DEBUGGER = false;
 		for(int i = 0; i < 4; i++) {
 			initialize_output_signals(&outputs_tc[i]);
 			initialize_output_signals(&outputs_ube[i]);
@@ -115,7 +113,7 @@ public:
 		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
-	
+
 	// common functions
 	virtual void initialize();
 	virtual void reset();
@@ -123,7 +121,7 @@ public:
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
-	
+
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 	virtual void __FASTCALL do_dma();
@@ -176,35 +174,35 @@ public:
 	void set_context_tc0(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_tc[0], device, id, _mask);
-	}	
+	}
 	void set_context_tc1(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_tc[1], device, id, _mask);
-	}	
+	}
 	void set_context_tc2(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_tc[2], device, id, _mask);
-	}	
+	}
 	void set_context_tc3(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_tc[3], device, id, _mask);
-	}	
+	}
 	void set_context_ack0(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_ack[0], device, id, _mask);
-	}	
+	}
 	void set_context_ack1(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_ack[1], device, id, _mask);
-	}	
+	}
 	void set_context_ack2(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_ack[2], device, id, _mask);
-	}	
+	}
 	void set_context_ack3(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_ack[3], device, id, _mask);
-	}	
+	}
 	void set_context_ube0(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_ube[0], device, id, _mask);
@@ -260,4 +258,3 @@ inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t 
 }
 
 #endif
-
