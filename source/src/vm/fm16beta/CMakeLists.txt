@@ -3,14 +3,13 @@ cmake_minimum_required (VERSION 3.0)
 message("* vm/${EXE_NAME}")
 
 set(VM_FM16BETA_LIB_SRCS
-	../i8237.cpp
 	../msm58321.cpp
-	
+
      cmos.cpp
      keyboard.cpp
      main.cpp
      sub.cpp
-	 
+
      fm16beta.cpp
 )
 

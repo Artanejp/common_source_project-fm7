@@ -3,8 +3,6 @@ cmake_minimum_required (VERSION 3.0)
 message("* vm/${EXE_NAME}")
 
 set(BASIC_VM_FILES
-	../i8237.cpp
-	
 	dipsw.cpp
 	display.cpp
 	floppy.cpp
@@ -15,13 +13,13 @@ set(BASIC_VM_FILES
 	dmareg.cpp
 	membus.cpp
 	serial.cpp
-	
+
     pc9801.cpp
 )
 
 string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
 
-if("${U_EXE_NAME}" STREQUAL "EMUPC9801") 
+if("${U_EXE_NAME}" STREQUAL "EMUPC9801")
 	add_library(vm_${EXE_NAME}
 		${BASIC_VM_FILES}
 		cmt.cpp
@@ -53,7 +51,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98DO")
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801VX")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
-		
+
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -63,7 +61,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801VX")
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XL")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
-		
+
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -73,7 +71,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XL")
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801RA")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
-		
+
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -83,7 +81,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC9801RA")
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98RL")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
-		
+
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -93,7 +91,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98RL")
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XA")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
-		
+
 		cpureg.cpp
 		sasi.cpp
 		sasi_bios.cpp
@@ -102,7 +100,7 @@ elseif("${U_EXE_NAME}" STREQUAL "EMUPC98XA")
 elseif("${U_EXE_NAME}" STREQUAL "EMUPC98DOPLUS")
 	add_library(vm_${EXE_NAME}
 		../scsi_host.cpp
-		
+
 		../pc8801/diskio.cpp
 		../pc8801/pc88.cpp
 		cpureg.cpp

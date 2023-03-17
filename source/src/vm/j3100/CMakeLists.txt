@@ -4,14 +4,13 @@ message("* vm/${EXE_NAME}")
 
 set(VM_J3100_LIB_SRCS
 #	../i286.cpp
-	../i8237.cpp
 	../scsi_host.cpp
-	
+
 	display.cpp
 	dmareg.cpp
 	floppy.cpp
 	sasi.cpp
-	
+
 	j3100.cpp
 )
 
@@ -26,7 +25,7 @@ if("${U_EXE_NAME}" STREQUAL "EMUJ3100GT")
 	)
 elseif("${U_EXE_NAME}" STREQUAL "EMUJ3100SL")
 	add_library(vm_${EXE_NAME}
-		
+
 		slmemory.cpp
 		slsystem.cpp
 		slkeyboard.cpp

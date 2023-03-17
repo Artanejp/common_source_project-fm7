@@ -6,9 +6,8 @@ string(TOUPPER "${EXE_NAME}" U_EXE_NAME)
 
 add_library(vm_${EXE_NAME}
 	../fmr50/bios.cpp
-	../i8237.cpp
 	../scsi_host.cpp
-	
+
 	cmos.cpp
 	floppy.cpp
 	keyboard.cpp
@@ -18,7 +17,7 @@ add_library(vm_${EXE_NAME}
 	system.cpp
 	scsi.cpp
 	timer.cpp
-	
+
 	fmr30.cpp
 )
 if("${U_EXE_NAME}" STREQUAL "EMUFMR30_I86")

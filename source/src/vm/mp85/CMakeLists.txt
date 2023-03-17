@@ -3,8 +3,6 @@ cmake_minimum_required (VERSION 3.0)
 message("* vm/${EXE_NAME}")
 
 set(VMFILES_MP
-	../i8080.cpp
-
 	display.cpp
 	keyboard.cpp
 	membus.cpp

@@ -8,7 +8,6 @@ set(VMFILES_TK
 
 	membus.cpp
 #	./memory.cpp
-	../i8080.cpp
 	tk80bs.cpp
 )
 if(${EXE_NAME} STREQUAL emutk80bs)
