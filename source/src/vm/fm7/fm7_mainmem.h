@@ -41,11 +41,11 @@ class FM7_MAINMEM : public DEVICE
 		uint8_t *write_data;
 		void (__FASTCALL FM7_MAINMEM::*write_func)(uint32_t, uint32_t, bool);
 	} data_func_table_t;
-	
+
 	data_func_table_t data_table[ADDRESS_SPACE / 0x80];
 	//data_func_table_t data_table[0x100000 / 0x80];
 #if defined(HAS_MMR)
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	data_func_table_t mmr_update_table_ext[(0x80 * 0x1000) / 0x80];
 	uint32_t mmr_baseaddr_table_ext[(0x80 * 0x1000) / 0x80];
 # endif
@@ -57,7 +57,7 @@ class FM7_MAINMEM : public DEVICE
 	int waitfactor;
 	int waitcount;
 	int cpu_clocks;
-	
+
 	bool sub_halted;
 	// V2
 #ifdef HAS_MMR
@@ -90,7 +90,7 @@ class FM7_MAINMEM : public DEVICE
   	uint8_t fm7_mainmem_bioswork[0x80];
 #if !defined(_FM77AV)
 	uint8_t fm7_bootroms[8][0x200];
-#endif	
+#endif
 	uint8_t fm7_mainmem_bootrom_vector[0x1e]; // Without
 	uint8_t fm7_mainmem_reset_vector[2]; // Without
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
@@ -115,7 +115,7 @@ class FM7_MAINMEM : public DEVICE
 	bool dictrom_connected;
 	bool dictrom_enabled;
 	bool dictram_enabled;
-	
+
 	bool use_page2_extram;
 	uint8_t fm7_mainmem_initrom[0x2000]; // $00000-$0ffff
 	uint8_t fm77av_hidden_bootmmr[0x200];
@@ -125,7 +125,7 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t fm7_mainmem_dictrom[0x40000]; // $00000-$3ffff, banked
 	uint8_t fm7_mainmem_learndata[0x2000];
 #  endif
-#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) 
+#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool diag_load_extrarom;
 	uint8_t fm7_mainmem_extrarom[0x10000]; // $20000-$2bfff, banked
 	int extram_pages;
@@ -143,11 +143,11 @@ class FM7_MAINMEM : public DEVICE
 #if defined(CAPABLE_DICTROM)
 	FM7::KANJIROM *kanjiclass1;
 	//KANJIROM *kanjiclass2;
-#endif	
+#endif
 	MC6809 *maincpu;
 	FM7::FM7_MAINIO *mainio;
 	FM7::DISPLAY *display;
-	
+
 	bool diag_load_basicrom;
 	bool diag_load_bootrom_bas;
 	bool diag_load_bootrom_dos;
@@ -161,12 +161,12 @@ class FM7_MAINMEM : public DEVICE
 	uint32_t mem_waitcount;
 
 	int check_extrom(uint32_t raddr, uint32_t *realaddr);
-	
+
 	int window_convert(uint32_t addr, uint32_t *realaddr);
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	uint32_t write_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
 	void setclock(int mode);
-	
+
 	uint8_t __FASTCALL read_shared_ram(uint32_t realaddr, bool dmamode);
 	void __FASTCALL write_shared_ram(uint32_t realaddr, uint32_t data, bool dmamode);
 	uint8_t __FASTCALL read_direct_access(uint32_t realaddr, bool dmamode);
@@ -182,7 +182,7 @@ class FM7_MAINMEM : public DEVICE
 	uint8_t __FASTCALL read_page2(uint32_t addr, bool dmamode);
 	void __FASTCALL write_page2(uint32_t addr, uint32_t data, bool dmamode);
 	int __FASTCALL check_page2(uint32_t addr, uint32_t *realaddr, bool write_state, bool dmamode);
-	
+
 	void init_data_table(void);
 	uint8_t __FASTCALL read_data(uint32_t addr, bool dmamode);
 	void __FASTCALL write_data(uint32_t addr, uint32_t data, bool dmamode);
@@ -238,13 +238,17 @@ class FM7_MAINMEM : public DEVICE
 	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_data8_main(uint32_t addr, uint32_t data, bool dmamode);
-   
+
 	virtual uint32_t __FASTCALL read_data16(uint32_t addr);
 	virtual void __FASTCALL write_data16(uint32_t addr, uint32_t data);
-   
+	virtual uint32_t read_data16w(uint32_t addr, int *wait);
+	virtual void write_data16w(uint32_t addr, uint32_t data, int *wait);
+
 	virtual uint32_t __FASTCALL read_data32(uint32_t addr);
 	virtual void __FASTCALL write_data32(uint32_t addr, uint32_t data);
-   
+	virtual uint32_t read_data32w(uint32_t addr, int *wait);
+	virtual void write_data32w(uint32_t addr, uint32_t data, int *wait);
+
 	void initialize(void);
 	void __FASTCALL iowait(void);
 	void __FASTCALL dram_refresh(void);
@@ -255,7 +259,7 @@ class FM7_MAINMEM : public DEVICE
 	bool get_loadstat_bootrom_bas(void);
 	bool get_loadstat_bootrom_dos(void);
 	void update_config();
-	
+
 	bool process_state(FILEIO *state_fio, bool loading);
 
 	void set_context_display(DEVICE *p){
@@ -271,7 +275,7 @@ class FM7_MAINMEM : public DEVICE
 	void set_context_kanjirom_class1(DEVICE *p){
 		kanjiclass1 = (FM7::KANJIROM *)p;
 	}
-#endif	
+#endif
 	void __FASTCALL write_signal(int sigid, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int sigid);
 	uint32_t __FASTCALL read_io8(uint32_t addr);

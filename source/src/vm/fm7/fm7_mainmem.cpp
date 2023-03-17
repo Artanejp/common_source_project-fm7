@@ -23,7 +23,7 @@ FM7_MAINMEM::FM7_MAINMEM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEV
 	maincpu = NULL;
 #if defined(CAPABLE_DICTROM)
 	kanjiclass1 = NULL;
-#endif	
+#endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)  || \
     defined(_FM77_VARIANTS)
 	fm7_mainmem_extram = NULL;
@@ -73,7 +73,7 @@ void FM7_MAINMEM::reset()
 	} else {
 		use_page2_extram = ((config.dipswitch & FM7_DIPSW_EXTRAM_AV) != 0) ? true : false;
 	}
-#endif   
+#endif
 #ifdef HAS_MMR
 	mmr_extend = false;
 	mmr_segment = 0;
@@ -103,17 +103,17 @@ void FM7_MAINMEM::setclock(int mode)
 	uint32_t clock = MAINCLOCK_SLOW;
 	if(mode == 1) { // SLOW
 		clock = MAINCLOCK_SLOW; // Temporally
-#if defined(HAS_MMR)		
+#if defined(HAS_MMR)
 		if(!mmr_fast && !window_fast) {
 			if(refresh_fast) {
 				if(mmr_enabled || window_enabled) {
 					clock = (uint32_t)((double)clock * 1.089);
 				} else {
 					clock = (uint32_t)((double)clock * 1.086);
-				}					
+				}
 			}
 		}
-#endif		
+#endif
 	} else {
 #if defined(HAS_MMR)
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -124,10 +124,10 @@ void FM7_MAINMEM::setclock(int mode)
 				clock = MAINCLOCK_FAST_MMR - ((100000000 / 1302) * 1);  // Fast Refresh: 1wait
 			} else {
 				clock = MAINCLOCK_FAST_MMR - ((100000000 / 1302) * 3);  // Slow Refresh: 3Wait(!)
-			}				
+			}
 			if(mmr_enabled || window_enabled) {
 				clock = (uint32_t)((double)clock * 0.87);
-			}					
+			}
 		} else {
 			clock = MAINCLOCK_FAST_MMR;
 			//if(!(mmr_enabled) && !(window_enabled)) clock = MAINCLOCK_NORMAL;
@@ -141,7 +141,7 @@ void FM7_MAINMEM::setclock(int mode)
 #  endif
 #else
 		clock = MAINCLOCK_NORMAL;
-#endif				
+#endif
 	}
 	//mem_waitcount = 0;
 	uint32_t before_waitfactor = mem_waitfactor;
@@ -156,7 +156,7 @@ void FM7_MAINMEM::setclock(int mode)
 	// Below is ugly hack cause of CPU#0 cannot modify clock.
 	if(before_waitfactor != mem_waitfactor) maincpu->write_signal(SIG_CPU_WAIT_FACTOR, mem_waitfactor, 0xffffffff);
 }
-		
+
 
 void FM7_MAINMEM::iowait()
 {
@@ -175,7 +175,7 @@ void FM7_MAINMEM::iowait()
 	}
 #else
 	_waitfactor = 2;
-#endif	  
+#endif
 	if(_waitfactor <= 0) return;
 	waitcount++;
 	if(waitcount >= _waitfactor) {
@@ -225,7 +225,7 @@ int FM7_MAINMEM::check_extrom(uint32_t raddr, uint32_t *realaddr)
 			return FM7_MAINMEM_NULL;
 		}
 	}
-#endif	
+#endif
 	return -1;
 }
 
@@ -250,8 +250,8 @@ uint32_t FM7_MAINMEM::read_signal(int sigid)
 	case FM7_MAINIO_BOOTRAM_RW:
 		value = (boot_ram_write) ? 0xffffffff : 0x00000000;
 		break;
-#endif			
-#ifdef HAS_MMR			
+#endif
+#ifdef HAS_MMR
 	case FM7_MAINIO_WINDOW_ENABLED:
 		value = (window_enabled) ? 0xffffffff : 0x00000000;
 		break;
@@ -270,16 +270,16 @@ uint32_t FM7_MAINMEM::read_signal(int sigid)
 	case FM7_MAINIO_MEM_REFRESH_FAST:
 		value = (refresh_fast) ? 0xffffffff : 0x00000000;
 		break;
-#endif			
+#endif
 #if defined(_FM77AV_VARIANTS)
 	case FM7_MAINIO_INITROM_ENABLED:
 		value = (initiator_enabled) ? 0xffffffff: 0x00000000;
 		break;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)	   
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	case FM7_MAINIO_EXTROM:
 		value = (extrom_bank) ? 0xffffffff: 0x00000000;
 		break;
-# endif	   
+# endif
 	case FM7_MAINIO_EXTBANK:
 		value = extcard_bank & 0x3f;
 		value |= (dictram_enabled) ? 0x80 : 0;
@@ -315,7 +315,7 @@ void FM7_MAINMEM::write_signal(int sigid, uint32_t data, uint32_t mask)
 		case FM7_MAINIO_BOOTRAM_RW:
 			boot_ram_write = flag;
 			break;
-#endif			
+#endif
 #ifdef _FM77AV_VARIANTS
 		case FM7_MAINIO_INITROM_ENABLED:
 			initiator_enabled = flag;
@@ -325,13 +325,13 @@ void FM7_MAINMEM::write_signal(int sigid, uint32_t data, uint32_t mask)
 			dictram_enabled = ((data & 0x80) != 0) ? true : false;
 			dictrom_enabled = ((data & 0x40) != 0) ? true : false;
 			break;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)	   
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		case FM7_MAINIO_EXTROM:
 			extrom_bank = flag;
 	   		break;
-# endif	   
-#endif			
-#ifdef HAS_MMR			
+# endif
+#endif
+#ifdef HAS_MMR
 		case FM7_MAINIO_WINDOW_ENABLED:
 			window_enabled = flag;
 			setclock(config.cpu_type);
@@ -355,7 +355,7 @@ void FM7_MAINMEM::write_signal(int sigid, uint32_t data, uint32_t mask)
 			refresh_fast = flag;
 			setclock(config.cpu_type);
 			break;
-#endif			
+#endif
 	}
 }
 
@@ -371,29 +371,29 @@ void FM7_MAINMEM::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t FM7_MAINMEM::read_dma_data8(uint32_t addr)
 {
-#if defined(HAS_MMR)	
+#if defined(HAS_MMR)
 	uint32_t val;
 	val = this->read_data8_main(addr & 0xffff, true);
 	return val;
 #else
 	return this->read_data8(addr & 0xffff);
-#endif	
+#endif
 }
 
 uint32_t FM7_MAINMEM::read_dma_io8(uint32_t addr)
 {
-#if defined(HAS_MMR)	
+#if defined(HAS_MMR)
 	uint32_t val;
 	val = this->read_data8_main(addr & 0xffff, true);
 	return val;
 #else
 	return this->read_data8(addr & 0xffff);
-#endif	
+#endif
 }
 
 uint32_t FM7_MAINMEM::read_data8(uint32_t addr)
 {
-#if defined(HAS_MMR)   
+#if defined(HAS_MMR)
 	if(addr >= FM7_MAINIO_WINDOW_OFFSET) {
 		switch(addr) {
 		case FM7_MAINIO_WINDOW_OFFSET:
@@ -410,7 +410,7 @@ uint32_t FM7_MAINMEM::read_data8(uint32_t addr)
 		}
 		return 0xff;
 	}
-#endif   
+#endif
 	return read_data8_main(addr, false);
 }
 
@@ -420,7 +420,7 @@ void FM7_MAINMEM::write_dma_data8(uint32_t addr, uint32_t data)
 	write_data8_main(addr & 0xffff, data, true);
 #else
 	write_data8(addr & 0xffff, data);
-#endif	
+#endif
 }
 
 void FM7_MAINMEM::write_dma_io8(uint32_t addr, uint32_t data)
@@ -429,12 +429,12 @@ void FM7_MAINMEM::write_dma_io8(uint32_t addr, uint32_t data)
 	write_data8_main(addr & 0xffff, data, true);
 #else
 	write_data8(addr & 0xffff, data);
-#endif	
+#endif
 }
 
 void FM7_MAINMEM::write_data8(uint32_t addr, uint32_t data)
 {
-#if defined(HAS_MMR)   
+#if defined(HAS_MMR)
 	if(addr >= FM7_MAINIO_WINDOW_OFFSET) {
 		switch(addr) {
 		case FM7_MAINIO_WINDOW_OFFSET:
@@ -465,41 +465,57 @@ uint32_t FM7_MAINMEM::read_data16(uint32_t addr)
 {
 	uint32_t hi, lo;
 	uint32_t val;
-   
+
 	hi = read_data8(addr) & 0xff;
 	lo = read_data8(addr + 1) & 0xff;
-   
+
 	val = hi * 256 + lo;
 	return val;
+}
+
+uint32_t FM7_MAINMEM::read_data16w(uint32_t addr, int *wait)
+{
+	return read_data16(addr);
 }
 
 uint32_t FM7_MAINMEM::read_data32(uint32_t addr)
 {
 	uint32_t ah, a2, a3, al;
 	uint32_t val;
-   
+
 	ah = read_data8(addr) & 0xff;
 	a2 = read_data8(addr + 1) & 0xff;
 	a3 = read_data8(addr + 2) & 0xff;
 	al = read_data8(addr + 3) & 0xff;
-   
+
 	val = ah * (65536 * 256) + a2 * 65536 + a3 * 256 + al;
 	return val;
 }
 
+uint32_t FM7_MAINMEM::read_data32w(uint32_t addr, int *wait)
+{
+	return read_data32(addr);
+}
+
+
 void FM7_MAINMEM::write_data16(uint32_t addr, uint32_t data)
 {
 	uint32_t d = data;
-   
+
 	write_data8(addr + 1, d & 0xff);
 	d = d / 256;
 	write_data8(addr + 0, d & 0xff);
 }
 
+void FM7_MAINMEM::write_data16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_data16(addr, data);
+}
+
 void FM7_MAINMEM::write_data32(uint32_t addr, uint32_t data)
 {
 	uint32_t d = data;
-   
+
 	write_data8(addr + 3, d & 0xff);
 	d = d / 256;
 	write_data8(addr + 2, d & 0xff);
@@ -507,6 +523,11 @@ void FM7_MAINMEM::write_data32(uint32_t addr, uint32_t data)
 	write_data8(addr + 1, d & 0xff);
 	d = d / 256;
 	write_data8(addr + 0, d & 0xff);
+}
+
+void FM7_MAINMEM::write_data32w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_data32(addr, data);
 }
 
 
@@ -525,12 +546,12 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	
+
 	state_fio->StateValue(ioaccess_wait);
 	state_fio->StateValue(waitfactor);
 	state_fio->StateValue(waitcount);
 	state_fio->StateValue(sub_halted);
-	
+
 	state_fio->StateValue(diag_load_basicrom);
 	state_fio->StateValue(diag_load_bootrom_bas);
 	state_fio->StateValue(diag_load_bootrom_dos);
@@ -546,15 +567,15 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateArray(fm7_mainmem_bioswork, sizeof(fm7_mainmem_bioswork), 1);
 	state_fio->StateArray(fm7_mainmem_bootrom_vector, sizeof(fm7_mainmem_bootrom_vector), 1);
 	state_fio->StateArray(fm7_mainmem_reset_vector, sizeof(fm7_mainmem_reset_vector), 1);
- 	
+
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	state_fio->StateArray(fm7_bootram, sizeof(fm7_bootram), 1);
-#endif	
+#endif
 #if defined(_FM77_VARIANTS) || defined(_FM8)
 	for(int i = 0; i < 8; i++) state_fio->StateArray(fm7_bootroms[i], 0x200, 1);
 #elif defined(_FM7) || defined(_FMNEW7)
 	for(int i = 0; i < 4; i++) state_fio->StateArray(fm7_bootroms[i], 0x200, 1);
-#endif	
+#endif
 
 #if defined(_FM8)
 	state_fio->StateValue(diag_load_sm11_14);
@@ -565,20 +586,20 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(diag_load_tl11_11);
 #  if defined(_FMNEW7)
 	state_fio->StateValue(diag_load_tl11_12);
-#  endif	
+#  endif
 #elif defined(_FM77AV_VARIANTS)
 	state_fio->StateValue(dictrom_connected);
 	state_fio->StateValue(use_page2_extram);
- 	
+
 	state_fio->StateValue(diag_load_initrom);
 	state_fio->StateValue(diag_load_dictrom);
 	state_fio->StateValue(diag_load_learndata);
 	state_fio->StateArray(fm7_mainmem_initrom, sizeof(fm7_mainmem_initrom), 1);
 	state_fio->StateArray(fm77av_hidden_bootmmr, sizeof(fm77av_hidden_bootmmr), 1);
- 	
+
 	state_fio->StateArray(fm7_mainmem_mmrbank_0, sizeof(fm7_mainmem_mmrbank_0), 1);
 	state_fio->StateArray(fm7_mainmem_mmrbank_2, sizeof(fm7_mainmem_mmrbank_2), 1);
- 	
+
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	state_fio->StateValue(diag_load_extrarom);
 	state_fio->StateArray(fm7_mainmem_extrarom, sizeof(fm7_mainmem_extrarom), 1);
@@ -600,7 +621,7 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 #  endif
 # endif
 #endif
-							  
+
  	{ // V2;
 		state_fio->StateValue(is_basicrom);
 		state_fio->StateValue(clockmode);
@@ -615,13 +636,13 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 #endif
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 		state_fio->StateValue(boot_ram_write);
-#endif		
+#endif
 #if defined(HAS_MMR)
 		state_fio->StateValue(window_enabled);
 		state_fio->StateValue(mmr_enabled);
 		state_fio->StateValue(mmr_fast);
 		state_fio->StateValue(mmr_extend);
- 		
+
 		state_fio->StateValue(window_offset);
 		state_fio->StateValue(window_fast);
 		state_fio->StateValue(refresh_fast);
@@ -637,7 +658,7 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 #if defined(HAS_MMR)
 #  if defined(_FM77_VARIANTS)
 		if(extram_pages > 3) extram_pages = 3;
-#  elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) 
+#  elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(extram_pages > 12) extram_pages = 12;
 #  endif
 #endif
@@ -645,7 +666,7 @@ bool FM7_MAINMEM::process_state(FILEIO *state_fio, bool loading)
 	//extram_size = extram_pages * 0x10000;
 		init_data_table();
 		update_all_mmr_jumptable();
-	}		
+	}
 	return true;
 }
 
