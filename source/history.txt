@@ -1,3 +1,8 @@
+1/28/2022
+
+[PC98HA] support docking station
+
+
 1/24/2022
 
 [VM/UPD7220] fix EGC access issue

@@ -121,6 +121,12 @@ void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int *wait)
 	if(ram[0x59e] == 0x3e) {
 		ram[0x59e] &= ~0x20;
 	}
+#ifdef DOCKING_STATION
+	// patch for docking station
+	if(ram[0x488] == 0x10) {
+		ram[0x488] = 0;
+	}
+#endif
 }
 #endif
 

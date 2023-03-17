@@ -34,7 +34,7 @@
 #define SINGLE_MODE_DMA
 #define IOBUS_RETURN_ADDR
 #ifdef _PC98HA
-//#define DOCKING_STATION
+#define DOCKING_STATION
 #endif
 
 // device informations for win32
