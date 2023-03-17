@@ -65,7 +65,6 @@ protected:
 
 	int icount;
 	int extra_icount;
-	bool __USE_DEBUGGER;
 
 	uint64_t cycles_tmp_count;
 	uint32_t insns_count;
@@ -538,7 +537,6 @@ public:
 		total_icount = prev_total_icount = 0;
 		cycles_tmp_count = 0;
 		insns_count = 0;
-		__USE_DEBUGGER = false;
 		d_debugger = NULL;
 		for(int i = 0; i < 0x100; i++) {
 			m6809_main[i] = &MC6809::nop;

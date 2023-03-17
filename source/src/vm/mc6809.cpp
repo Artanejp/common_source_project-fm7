@@ -154,13 +154,13 @@ inline void MC6809::WM16(uint32_t Addr, pair32_t *p)
 void MC6809::reset()
 {
 	//extar_tmp_count += extra_icount;
-	
+
 	icount = 0;
 	waitcount = 0;
 	int_state &= MC6809_HALT_BIT;
 	extra_icount = 0;
 	//busreq = false;
-   
+
 	DPD = 0;	/* Reset direct page register */
 	CC = 0;
 	D = 0;
@@ -187,7 +187,7 @@ void MC6809::reset()
 //#endif
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
-	
+
 	pPC = RM16_PAIR(0xfffe);
 }
 
@@ -204,7 +204,6 @@ void MC6809::initialize()
 	cycles_tmp_count = 0;
 	insns_count = 0;
 
-	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
 	insns_count = 0;
 	frames_count = 0;
 	cycles_tmp_count = 0;
@@ -395,7 +394,7 @@ int MC6809::run(int clock)
 	if(extra_icount > 0) {
 		extra_tmp_count += extra_icount;
 	}
-	
+
 	if((req_halt_on) && !(req_halt_off)) {
 		int_state |= MC6809_HALT_BIT;
 	} else	if(req_halt_on && req_halt_off) { // HALT OFF
@@ -419,7 +418,7 @@ int MC6809::run(int clock)
 			extra_icount = 0;
 			passed_icount = first_icount - icount;
 			total_icount += passed_icount;
-			
+
 			write_signals(&outputs_bus_ba, 0xffffffff);
 			write_signals(&outputs_bus_bs, 0xffffffff);
 			debugger_hook();
@@ -441,7 +440,7 @@ int MC6809::run(int clock)
 			write_signals(&outputs_bus_ba, 0xffffffff);
 		} else {
 			write_signals(&outputs_bus_ba, 0x00000000);
-		}				
+		}
 		write_signals(&outputs_bus_bs, 0x00000000);
 		busreq = false;
 	}
@@ -552,7 +551,7 @@ int_cycle:
 	extra_icount = 0;
 	total_icount += (uint64_t)passed_icount;
 	cpu_wait(passed_icount);
-#if 1	
+#if 1
 	if((icount <= 0) || (clock <= passed_icount)) return passed_icount;
 	clock -= passed_icount;
 #else
@@ -633,7 +632,7 @@ void MC6809::run_one_opecode()
 			} else {
 				now_debugging = false;
 			}
-		
+
 			d_debugger->add_cpu_trace(PC & 0xffff);
 			int first_icount = icount;
 			pPPC = pPC;
@@ -644,7 +643,7 @@ void MC6809::run_one_opecode()
 			extra_icount = 0;
 			op(ireg);
 			total_icount += first_icount - icount;
-		
+
 			if(now_debugging) {
 				if(!d_debugger->now_going) {
 					d_debugger->now_suspended = true;
@@ -695,7 +694,7 @@ void MC6809::debugger_hook()
 			} else {
 				now_debugging = false;
 			}
-		
+
 			//d_debugger->add_cpu_trace(PC);
 			int first_icount = icount;
 			//pPPC = pPC;
@@ -750,7 +749,7 @@ inline void MC6809::fetch_effective_address()
 	uint8_t upper, lower;
 
 	IMMBYTE(postbyte);
-	
+
 	upper = (postbyte >> 4) & 0x0f;
 	lower = postbyte & 0x0f;
 	switch (upper) {
@@ -792,10 +791,10 @@ inline void MC6809::fetch_effective_address_IDX(uint8_t upper, uint8_t lower)
 	uint16_t *reg;
 	uint8_t bx_p;
 	pair32_t pp;
-	
+
 	indirect = ((upper & 0x01) != 0) ? true : false;
 
-	switch ((upper >> 1) & 0x03) {	// $8-$f >> 1 = $4 - $7 : delete bit2 
+	switch ((upper >> 1) & 0x03) {	// $8-$f >> 1 = $4 - $7 : delete bit2
 		case 0:	// $8x,$9x
 			reg = &X;
 			break;
@@ -811,7 +810,7 @@ inline void MC6809::fetch_effective_address_IDX(uint8_t upper, uint8_t lower)
 	}
 
 	switch (lower) {
-		case 0:	// ,r+ 
+		case 0:	// ,r+
 			EA = *reg;
 			*reg = *reg + 1;
 			*reg = *reg & 0xffff;
@@ -908,12 +907,12 @@ inline pair32_t MC6809::GET_INDEXED_DATA16(void)
 
 // $x0, $x1
 inline void MC6809::NEG_MEM(uint8_t a_neg)
-{							
-	uint16_t r_neg;					
+{
+	uint16_t r_neg;
 	r_neg = 0 - (uint16_t)a_neg;
 	CLR_NZVC;
 	SET_FLAGS8(0, a_neg, r_neg);
-	WM(EAD, r_neg);					
+	WM(EAD, r_neg);
 }
 
 inline uint8_t MC6809::NEG_REG(uint8_t a_neg)
@@ -928,11 +927,11 @@ inline uint8_t MC6809::NEG_REG(uint8_t a_neg)
 
 // $x2
 inline void MC6809::COM_MEM(uint8_t a_com)
-{			 
-	uint8_t t_com;		 
-	t_com = ~a_com;	 
-	CLR_NZVC;		 
-	SET_NZ8(t_com);	 
+{
+	uint8_t t_com;
+	t_com = ~a_com;
+	CLR_NZVC;
+	SET_NZ8(t_com);
 	SEC;
 	WM(EAD, t_com);
 }
@@ -1047,7 +1046,7 @@ inline void MC6809::ROL_MEM(uint8_t t)
 	//	if((r & 0x80) == 0)SEV;
 	//} else {
 	//	if((r & 0x80) != 0) SEV;
-	//}	  
+	//}
 	SET_FLAGS8(tt, tt, r);
 	WM(EAD, (uint8_t)r);
 }
@@ -1064,7 +1063,7 @@ inline uint8_t MC6809::ROL_REG(uint8_t t)
 	//	if((r & 0x80) == 0) SEV;
 	//} else {
 	//	if((r & 0x80) != 0) SEV;
-	//}	  
+	//}
 	SET_FLAGS8(tt, tt, r);
 	return (uint8_t)r;
 }
@@ -1152,7 +1151,7 @@ inline uint8_t MC6809::CLC_REG(uint8_t t)
 	SEZ;
 	return r;
 }
-  
+
 
 inline void MC6809::CLR_MEM(uint8_t t)
 {
@@ -1256,7 +1255,7 @@ inline uint8_t MC6809::ADC8_REG(uint8_t reg, uint8_t data)
 	CLR_HNZVC;
 	SET_HNZVC8(reg, (t + c_cc), r);
 	return (uint8_t)r;
-}	
+}
 
 inline uint8_t MC6809::LOAD8_REG(uint8_t reg)
 {
@@ -1278,7 +1277,7 @@ inline uint16_t MC6809::LOAD16_REG(uint16_t reg)
 	SET_NZ16(reg);
 	return reg;
 }
-  
+
 
 inline uint16_t MC6809::SUB16_REG(uint16_t reg, uint16_t data)
 {
@@ -2799,7 +2798,7 @@ OP_HANDLER(suba_di) {
 OP_HANDLER(cmpa_di) {
 	uint8_t t;
 	DIRBYTE(t);
-	A = CMP8_REG(A, t); 
+	A = CMP8_REG(A, t);
 }
 
 /* $92 SBCA direct ?**** */
@@ -2940,21 +2939,21 @@ OP_HANDLER(sty_di) {
 OP_HANDLER(suba_ix) {
 	uint8_t t;
 	t = GET_INDEXED_DATA();
-	A = SUB8_REG(A, t); 
+	A = SUB8_REG(A, t);
 }
 
 /* $a1 CMPA indexed ?**** */
 OP_HANDLER(cmpa_ix) {
 	uint8_t t;
 	t = GET_INDEXED_DATA();
-	A = CMP8_REG(A, t); 
+	A = CMP8_REG(A, t);
 }
 
 /* $a2 SBCA indexed ?**** */
 OP_HANDLER(sbca_ix) {
 	uint8_t t;
 	t = GET_INDEXED_DATA();
-	A = SBC8_REG(A, t); 
+	A = SBC8_REG(A, t);
 }
 
 /* $a3 SUBD (CMPD CMPU) indexed -**** */
@@ -4551,7 +4550,7 @@ uint32_t MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_
 				__ea.b.l = 0xff;
 				buffer += _stprintf(buffer, _T("%s"), get_value_or_symbol(d_debugger->first_symbol, _T("$%04X"), __ea.w));
 			}
-				
+
 			break;
 
 		case 0x8b:  // (+/- D),R
@@ -4733,13 +4732,13 @@ bool MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 ((int_state & MC6809_SYNC_IN) == 0)   ? _T("--") : _T("SI"),
 		 ((int_state & MC6809_SYNC_OUT) == 0)  ? _T("--") : _T("SO"),
 		 ((int_state & MC6809_INSN_HALT) == 0) ? _T("----") : _T("TRAP"),
-		 ((CC & CC_E) == 0)  ? _T('-') : _T('E'), 
-		 ((CC & CC_IF) == 0) ? _T('-') : _T('F'), 
-		 ((CC & CC_H) == 0)  ? _T('-') : _T('H'), 
-		 ((CC & CC_II) == 0) ? _T('-') : _T('I'), 
-		 ((CC & CC_N) == 0)  ? _T('-') : _T('N'), 
-		 ((CC & CC_Z) == 0)  ? _T('-') : _T('Z'), 
-		 ((CC & CC_V) == 0)  ? _T('-') : _T('V'), 
+		 ((CC & CC_E) == 0)  ? _T('-') : _T('E'),
+		 ((CC & CC_IF) == 0) ? _T('-') : _T('F'),
+		 ((CC & CC_H) == 0)  ? _T('-') : _T('H'),
+		 ((CC & CC_II) == 0) ? _T('-') : _T('I'),
+		 ((CC & CC_N) == 0)  ? _T('-') : _T('N'),
+		 ((CC & CC_Z) == 0)  ? _T('-') : _T('Z'),
+		 ((CC & CC_V) == 0)  ? _T('-') : _T('V'),
 		 ((CC & CC_C) == 0)  ? _T('-') : _T('C'),
 		 A, B, DP,
 		 X, Y, U, S,
@@ -4750,7 +4749,7 @@ bool MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	prev_total_icount = total_icount;
 //#endif
 	return true;
-}  
+}
 
 #define STATE_VERSION	5
 
@@ -4776,16 +4775,16 @@ bool MC6809::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(y.d);
 	state_fio->StateValue(cc);
 	state_fio->StateValue(ea.d);
- 
+
  	// V2
 	state_fio->StateValue(req_halt_on);
 	state_fio->StateValue(req_halt_off);
 	state_fio->StateValue(busreq);
-	
+
 	state_fio->StateValue(total_icount);
 	state_fio->StateValue(waitfactor);
 	state_fio->StateValue(waitcount);
-	
+
 	// post process
 	if(loading) {
 		prev_total_icount = total_icount;
