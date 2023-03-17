@@ -77,7 +77,8 @@ void UPD7220::initialize()
 	hsync = hblank = false;
 	vsync = vblank = false;
 	master = false;
-	pitch = 40;	// 640dot
+	pitch = pitch2 = 40;	// 640dot
+	dgd = 0;
 	memset(ra, 0, sizeof(ra));
 	memset(cs, 0, sizeof(cs));
 	
@@ -148,19 +149,19 @@ uint32_t UPD7220::read_dma_io8(uint32_t addr)
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		if(low_high) {
-			val = read_vram(ead * 2 + 1);
+			val = read_vram_byte(ead * 2 + 1);
 			ead += dif;
 		} else {
-			val = read_vram(ead * 2 + 0);
+			val = read_vram_byte(ead * 2 + 0);
 		}
 		low_high = !low_high;
 		break;
 	case 0x10: // low byte
-		val =  read_vram(ead * 2 + 0);
+		val =  read_vram_byte(ead * 2 + 0);
 		ead += dif;
 		break;
 	case 0x18: // high byte
-		val =  read_vram(ead * 2 + 1);
+		val =  read_vram_byte(ead * 2 + 1);
 		ead += dif;
 		break;
 	}
@@ -600,7 +601,8 @@ void UPD7220::cmd_sync(bool flag)
 		}
 #ifndef UPD7220_FIXED_PITCH
 		if(i == 1) {
-			pitch = params[1] + 2;
+			pitch2 = params[1] + 2;
+			pitch = pitch2 >> (dgd ? 1 : 0);
 		}
 #endif
 	}
@@ -670,7 +672,8 @@ void UPD7220::cmd_pitch()
 {
 	if(params_count > 0) {
 #ifndef UPD7220_FIXED_PITCH
-		pitch = params[0];
+		pitch2 = params[0];
+		pitch = pitch2 >> (dgd ? 1 : 0);
 #endif
 		cmdreg = -1;
 	}
@@ -846,20 +849,20 @@ void UPD7220::cmd_read()
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		for(int i = 0; i < dc; i++) {
-			fo->write(read_vram(ead * 2 + 0));
-			fo->write(read_vram(ead * 2 + 1));
+			fo->write(read_vram_byte(ead * 2 + 0));
+			fo->write(read_vram_byte(ead * 2 + 1));
 			ead += dif;
 		}
 		break;
 	case 0x10: // low byte
 		for(int i = 0; i < dc; i++) {
-			fo->write(read_vram(ead * 2 + 0));
+			fo->write(read_vram_byte(ead * 2 + 0));
 			ead += dif;
 		}
 		break;
 	case 0x18: // high byte
 		for(int i = 0; i < dc; i++) {
-			fo->write(read_vram(ead * 2 + 1));
+			fo->write(read_vram_byte(ead * 2 + 1));
 			ead += dif;
 		}
 		break;
@@ -903,21 +906,21 @@ void UPD7220::cmd_write_sub(uint32_t addr, uint8_t data)
 {
 	switch(mod) {
 	case 0: // replace
-		write_vram(addr, data);
+		write_vram_byte(addr, data);
 		break;
 	case 1: // complement
-		write_vram(addr, read_vram(addr) ^ data);
+		write_vram_byte(addr, read_vram_byte(addr) ^ data);
 		break;
 	case 2: // reset
-		write_vram(addr, read_vram(addr) & ~data);
+		write_vram_byte(addr, read_vram_byte(addr) & ~data);
 		break;
 	case 3: // set
-		write_vram(addr, read_vram(addr) | data);
+		write_vram_byte(addr, read_vram_byte(addr) | data);
 		break;
 	}
 }
 
-void UPD7220::write_vram(uint32_t addr, uint8_t data)
+void UPD7220::write_vram_byte(uint32_t addr, uint8_t data)
 {
 	if(addr < vram_size) {
 		if(vram != NULL) {
@@ -928,7 +931,7 @@ void UPD7220::write_vram(uint32_t addr, uint8_t data)
 	}
 }
 
-uint8_t UPD7220::read_vram(uint32_t addr)
+uint8_t UPD7220::read_vram_byte(uint32_t addr)
 {
 	if(addr < vram_size) {
 		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
@@ -941,6 +944,34 @@ uint8_t UPD7220::read_vram(uint32_t addr)
 	return 0xff;
 }
 
+void UPD7220::write_vram_word(uint32_t addr, uint16_t data)
+{
+	if(addr < vram_size) {
+		if(vram != NULL) {
+			vram[addr + 0] = data & 0xff;
+			vram[addr + 1] = data >> 8;
+		} else if(d_vram_bus != NULL) {
+			d_vram_bus->write_dma_io16(addr, data);
+		}
+	}
+}
+
+uint16_t UPD7220::read_vram_word(uint32_t addr)
+{
+	if(addr < vram_size) {
+		if(vram != NULL) {
+			pair16_t data;
+			data.b.l = vram[addr + 0];
+			data.b.h = vram[addr + 1];
+			uint16_t h = vram[addr + 1];
+			return (data.w & vram_data_mask) | ~vram_data_mask;
+		} else if(d_vram_bus != NULL) {
+			return (d_vram_bus->read_dma_io16(addr) & vram_data_mask) | ~vram_data_mask;
+		}
+	}
+	return 0xffff;
+}
+
 void UPD7220::update_vect()
 {
 	dir = vect[0] & 7;
@@ -951,6 +982,8 @@ void UPD7220::update_vect()
 	d2 = (vect[5] | (vect[ 6] << 8)) & 0x3fff;
 	d1 = (vect[7] | (vect[ 8] << 8)) & 0x3fff;
 	dm = (vect[9] | (vect[10] << 8)) & 0x3fff;
+	dgd = vect[2] & 0x40;
+	pitch = pitch2 >> (dgd ? 1 : 0);
 }
 
 void UPD7220::reset_vect()
@@ -1246,38 +1279,45 @@ void UPD7220::draw_pset(int x, int y)
 		addr += plane_size * plane;
 	}
 #ifdef UPD7220_MSB_FIRST
-	uint8_t bit = 0x80 >> (x & 7);
+	uint16_t bit = 0x80 >> (x & 7);
 #else
-	uint8_t bit = 1 << (x & 7);
+	uint16_t bit = 1 << (x & 7);
 #endif
-	
-	switch(mod) {
-	case 0: // replace
-		if(dot) {
-			write_vram(addr, read_vram(addr) | bit);
-		} else {
-			write_vram(addr, read_vram(addr) & ~bit);
+	if(addr & 1) {
+		addr &= ~1;
+		bit <<= 8;
+	}
+	if(egc_access) {
+		write_vram_word(addr, bit);
+	} else {
+		switch(mod) {
+		case 0: // replace
+			if(dot) {
+				write_vram_word(addr, read_vram_word(addr) | bit);
+			} else {
+				write_vram_word(addr, read_vram_word(addr) & ~bit);
+			}
+			break;
+		case 1: // complement
+			if(dot) {
+				write_vram_word(addr, read_vram_word(addr) ^ bit);
+			}
+			break;
+		case 2: // reset
+			if(dot) {
+				write_vram_word(addr, read_vram_word(addr) & ~bit);
+			}
+			break;
+		case 3: // set
+			if(dot) {
+				write_vram_word(addr, read_vram_word(addr) | bit);
+			}
+			break;
 		}
-		break;
-	case 1: // complement
-		if(dot) {
-			write_vram(addr, read_vram(addr) ^ bit);
-		}
-		break;
-	case 2: // reset
-		if(dot) {
-			write_vram(addr, read_vram(addr) & ~bit);
-		}
-		break;
-	case 3: // set
-		if(dot) {
-			write_vram(addr, read_vram(addr) | bit);
-		}
-		break;
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1313,6 +1353,7 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ra, sizeof(ra), 1);
 	state_fio->StateArray(cs, sizeof(cs), 1);
 	state_fio->StateValue(pitch);
+	state_fio->StateValue(pitch2);
 	state_fio->StateValue(lad);
 	state_fio->StateArray(vect, sizeof(vect), 1);
 	state_fio->StateValue(ead);
@@ -1354,7 +1395,9 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(d2);
 	state_fio->StateValue(d1);
 	state_fio->StateValue(dm);
+	state_fio->StateValue(dgd);
 	state_fio->StateValue(pattern);
+	state_fio->StateValue(egc_access);
 	
 	// post process
 	if(loading && master) {

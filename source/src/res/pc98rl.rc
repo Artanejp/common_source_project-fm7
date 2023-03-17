@@ -185,9 +185,9 @@ BEGIN
             MENUITEM "SW 2-3 (80 Columns)",     ID_VM_DIPSWITCH18
             MENUITEM "SW 2-4 (25 Lines)",       ID_VM_DIPSWITCH19
             MENUITEM "SW 2-5 (Hold Memory Switch)", ID_VM_DIPSWITCH20
-            MENUITEM "SW 2-6",                  ID_VM_DIPSWITCH21
+            MENUITEM "SW 2-6 (Disable HDD)",    ID_VM_DIPSWITCH21
             MENUITEM "SW 2-7",                  ID_VM_DIPSWITCH22
-            MENUITEM "SW 2-8",                  ID_VM_DIPSWITCH23
+            MENUITEM "SW 2-8 (GDC 5MHz)",       ID_VM_DIPSWITCH23
         END
         POPUP "Sound"
         BEGIN

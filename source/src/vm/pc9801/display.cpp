@@ -419,6 +419,7 @@ void DISPLAY::reset()
 	memset(modereg1, 0, sizeof(modereg1));
 #if defined(SUPPORT_16_COLORS)
 	memset(modereg2, 0, sizeof(modereg2));
+	d_gdc_gfx->set_egc_access(modereg2[MODE2_EGC]);
 #endif
 #if defined(SUPPORT_GRCG)
 	grcg_mode = grcg_tile_ptr = 0;
@@ -502,7 +503,13 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 		break;
 #if defined(SUPPORT_16_COLORS)
 	case 0x006a:
-		modereg2[(data >> 1) & 127] = data & 1;
+		{
+			uint8_t prev = modereg2[MODE2_EGC];
+			modereg2[(data >> 1) & 127] = data & 1;
+			if(prev != modereg2[MODE2_EGC]) {
+				d_gdc_gfx->set_egc_access(modereg2[MODE2_EGC]);
+			}
+		}
 		break;
 #endif
 #if !defined(SUPPORT_HIRESO)

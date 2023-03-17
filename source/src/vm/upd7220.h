@@ -52,7 +52,7 @@ private:
 	uint8_t zoom, zr, zw;
 	uint8_t ra[16];
 	uint8_t cs[3];
-	uint8_t pitch;
+	uint8_t pitch, pitch2;
 	uint32_t lad;
 	uint8_t vect[11];
 	int ead, dad;
@@ -83,7 +83,9 @@ private:
 	int rt[RT_TABLEMAX + 1];
 	int dx, dy, plane;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
+	uint8_t dgd;
 	uint16_t pattern;
+	uint8_t egc_access;
 	
 	// command
 	void check_cmd();
@@ -113,8 +115,10 @@ private:
 	void cmd_unk_5a();
 	
 	void cmd_write_sub(uint32_t addr, uint8_t data);
-	void write_vram(uint32_t addr, uint8_t data);
-	uint8_t read_vram(uint32_t addr);
+	void write_vram_byte(uint32_t addr, uint8_t data);
+	uint8_t read_vram_byte(uint32_t addr);
+	void write_vram_word(uint32_t addr, uint16_t data);
+	uint16_t read_vram_word(uint32_t addr);
 	void update_vect();
 	void reset_vect();
 	
@@ -134,6 +138,7 @@ public:
 		vram = NULL;
 		vram_size = plane_size = 0;
 		vram_data_mask = 0xffff;
+		egc_access = false;
 		set_device_name(_T("uPD7220 GDC"));
 	}
 	~UPD7220() {}
@@ -226,6 +231,10 @@ public:
 	bool attr_blink()
 	{
 		return (blink_attr < (blink_rate * 3 / 4));
+	}
+	void set_egc_access(uint8_t value)
+	{
+		egc_access = value;
 	}
 };
 
