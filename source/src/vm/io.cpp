@@ -39,7 +39,7 @@ void IO::release()
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	int wait = 0;
-	write_por8t(addr, data, false, &wait);
+	write_port8(addr, data, false, &wait);
 }
 
 uint32_t IO::read_io8(uint32_t addr)

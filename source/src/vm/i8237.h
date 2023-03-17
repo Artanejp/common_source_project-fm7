@@ -32,8 +32,8 @@ class DEBUGGER;
 class  DLL_PREFIX I8237 : public DEVICE
 {
 protected:
+	DEVICE* d_cpu;
 	DEVICE* d_mem;
-	DEBUGGER *d_debugger;
 	DEVICE* d_dma;
 	DEBUGGER* d_debugger;
 	bool _SINGLE_MODE_DMA;
@@ -74,7 +74,7 @@ public:
 		for(int i = 0; i < 4; i++) {
 			dma[i].dev = vm->dummy;
 			dma[i].bankreg = dma[i].incmask = 0;
-			initialize_output_signals(&dma[i].outputs_tc);
+			initialize_output_signals(&(dma[i].outputs_tc));
 		}
 		d_cpu = NULL;
 //#ifdef SINGLE_MODE_DMA

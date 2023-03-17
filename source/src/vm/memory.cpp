@@ -23,8 +23,6 @@ void MEMORY::initialize()
 	// allocate tables here to support multiple instances with different address range
 	if(rd_table == NULL) {
 		int64_t bank_num = space / bank_size;
-		bank_mask = BANK_MASK;
-		addr_mask = ADDR_MASK;
 
 		rd_dummy = (uint8_t *)malloc(bank_size);
 		wr_dummy = (uint8_t *)malloc(bank_size);
@@ -72,7 +70,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 	__LIKELY_IF(rd_table[bank].device != NULL) {
 		return rd_table[bank].device->read_memory_mapped_io8(addr);
 	} else {
-		return rd_table[bank].memory[addr & bank_mask];
+		return rd_table[bank].memory[addr & BANK_MASK];
 	}
 }
 
@@ -83,7 +81,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	__LIKELY_IF(wr_table[bank].device != NULL) {
 		wr_table[bank].device->write_memory_mapped_io8(addr, data);
 	} else {
-		wr_table[bank].memory[addr & bank_mask] = data;
+		wr_table[bank].memory[addr & BANK_MASK] = data;
 	}
 }
 
@@ -448,95 +446,6 @@ void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 	}
 }
 
-uint32_t MEMORY::read_dma_data8(uint32_t addr)
-{
-	if(!(_MEMORY_DISABLE_DMA_MMIO)) {
-		return read_data8(addr);
-	}
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-
-	if(rd_table[bank].device != NULL) {
-//		return rd_table[bank].device->read_memory_mapped_io8(addr);
-		return 0xff;
-	} else {
-		return rd_table[bank].memory[addr & bank_mask];
-	}
-}
-
-void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
-{
-	if(!(_MEMORY_DISABLE_DMA_MMIO)) {
-		write_data8(addr, data);
-		return;
-	}
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-
-	if(wr_table[bank].device != NULL) {
-//		wr_table[bank].device->write_memory_mapped_io8(addr, data);
-	} else {
-		wr_table[bank].memory[addr & bank_mask] = data;
-	}
-}
-
-uint32_t MEMORY::read_dma_data16(uint32_t addr)
-{
-	if(!(_MEMORY_DISABLE_DMA_MMIO)) {
-		return read_data16(addr);
-	}
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-
-	if(rd_table[bank].device != NULL) {
-//		return rd_table[bank].device->read_memory_mapped_io16(addr);
-		return 0xffff;
-	} else {
-		uint32_t val = read_dma_data8(addr);
-		val |= read_dma_data8(addr + 1) << 8;
-		return val;
-	}
-}
-
-void MEMORY::write_dma_data16(uint32_t addr, uint32_t data)
-{
-	if(!(_MEMORY_DISABLE_DMA_MMIO)) {
-		write_data16(addr, data);
-		return;
-	}
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-
-	if(wr_table[bank].device != NULL) {
-//		wr_table[bank].device->write_memory_mapped_io16(addr, data);
-	} else {
-		write_dma_data8(addr, data & 0xff);
-		write_dma_data8(addr + 1, (data >> 8) & 0xff);
-	}
-}
-
-uint32_t MEMORY::read_dma_data32(uint32_t addr)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-
-	if(rd_table[bank].device != NULL) {
-//		return rd_table[bank].device->read_memory_mapped_io32(addr);
-		return 0xffffffff;
-	} else {
-		uint32_t val = read_dma_data16(addr);
-		val |= read_dma_data16(addr + 2) << 16;
-		return val;
-	}
-}
-
-void MEMORY::write_dma_data32(uint32_t addr, uint32_t data)
-{
-	int bank = (addr & ADDR_MASK) >> addr_shift;
-
-	if(wr_table[bank].device != NULL) {
-//		wr_table[bank].device->write_memory_mapped_io32(addr, data);
-	} else {
-		write_dma_data16(addr, data & 0xffff);
-		write_dma_data16(addr + 2, (data >> 16) & 0xffff);
-	}
-}
-
 // register
 
 void MEMORY::set_memory_r(uint32_t start, uint32_t end, uint8_t *memory)
@@ -669,7 +578,7 @@ void MEMORY::copy_table_r(uint32_t to, uint32_t start, uint32_t end)
 	const uint32_t start_bank = start >> addr_shift;
 	const uint32_t end_bank = end >> addr_shift;
 	uint32_t to_bank = to >> addr_shift;
-	const uint64_t blocks = addr_max / bank_size;
+	const uint64_t blocks = space / bank_size;
 
 	for(uint64_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;

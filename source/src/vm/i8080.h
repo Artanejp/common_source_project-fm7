@@ -71,12 +71,13 @@ protected:
 	void __FASTCALL RIM_8085(void);
 	void __FASTCALL _DAA(void);
 	void __FASTCALL CMA_8080(void);
+	void __FASTCALL CMA_8085(void);
 	void __FASTCALL JMP(uint8_t c);
 	void __FASTCALL JMP_8085(uint8_t c);
 	void __FASTCALL JMP_8080(uint8_t c);
 	void __FASTCALL CALL(uint8_t c);
 	void __FASTCALL CALL_8085(uint8_t c);
-	void __FASTCALL CALL_808(uint8_t c);
+	void __FASTCALL CALL_8080(uint8_t c);
 	void __FASTCALL ANA(uint8_t n);
 	void __FASTCALL ANA_8085(uint8_t n);
 	void __FASTCALL ANA_8080(uint8_t n);
@@ -255,7 +256,7 @@ public:
 	{
 		d_io = device;
 	}
-	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff)
+	void set_context_intr(DEVICE* device, uint32_t bit = 0xffffffff) override
 	{
 		d_pic = device;
 	}

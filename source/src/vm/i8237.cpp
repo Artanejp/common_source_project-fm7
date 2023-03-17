@@ -15,19 +15,6 @@
 //#endif
 
 
-I8237::I8237(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
-{
-	for(int i = 0; i < 4; i++) {
-		dma[i].dev = vm->dummy;
-	}
-//#ifdef SINGLE_MODE_DMA
-		d_dma = NULL;
-//#endif
-}
-
-I8237::~I8237()
-{
-}
 
 void I8237::initialize()
 {

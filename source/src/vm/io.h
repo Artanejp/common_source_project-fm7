@@ -92,6 +92,12 @@ public:
 	uint32_t __FASTCALL read_dma_io16(uint32_t addr) override;
 	void __FASTCALL write_dma_io32(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_dma_io32(uint32_t addr) override;
+	void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait) override;
+	void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait) override;
+	void __FASTCALL write_dma_io32w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_dma_io32w(uint32_t addr, int *wait) override;
 
 	bool process_state(FILEIO* state_fio, bool loading) override;
 
