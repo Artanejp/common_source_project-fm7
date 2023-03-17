@@ -115,7 +115,6 @@ const uint8_t MC6800::flags8d[256] = {
 void MC6800::initialize()
 {
 	DEVICE::initialize();
-	__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
 	if(__USE_DEBUGGER) {
 //#ifdef USE_DEBUGGER
 		d_mem_stored = d_mem;
@@ -141,12 +140,12 @@ void MC6800::reset()
 	PCD = RM16(0xfffe);
 //	S = X = D = EA = 0;
 	SD = X = D = EAD = 0;
-	
+
 	wai_state = 0;
 	int_state = 0;
-	
+
 	icount = 0;
-	
+
 }
 
 void MC6800::write_signal(int id, uint32_t data, uint32_t mask)
@@ -181,7 +180,7 @@ int MC6800::run(int clock)
 		/* run cpu while given clocks */
 		icount += clock;
 		int first_icount = icount;
-                
+
 		while(icount > 0) {
 			run_one_opecode();
 		}
@@ -216,14 +215,14 @@ void MC6800::run_one_opecode()
 					} else {
 						now_debugging = false;
 					}
-					
+
 					d_debugger->add_cpu_trace(PC);
 					uint8_t ireg = M_RDOP(PCD);
 					prevpc = PC;
 					PC++;
 					insn(ireg);
 					increment_counter(cycles[ireg]);
-					
+
 					if(now_debugging) {
 						if(!d_debugger->now_going) {
 							d_debugger->now_suspended = true;
@@ -247,7 +246,7 @@ void MC6800::run_one_opecode()
 			}
 		} while(one_more_insn);
 	}
-	
+
 	// check interrupt
 	if(int_state & NMI_REQ_BIT) {
 		wai_state &= ~HD6301_SLP;
@@ -1043,7 +1042,7 @@ void MC6800::illegal()
 /* $01 NOP */
 void MC6800::nop()
 {
-	
+
 }
 
 /* $02 ILLEGAL */
@@ -3074,7 +3073,7 @@ bool MC6800::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(total_icount);
 	}
 	state_fio->StateValue(icount);
-	
+
 	// post process
 	if(__USE_DEBUGGER) {
 		if(loading) {

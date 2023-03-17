@@ -8,7 +8,7 @@
 	[ MC6800 ]
 */
 
-#ifndef _MC6800_H_ 
+#ifndef _MC6800_H_
 #define _MC6800_H_
 
 //#include "vm.h"
@@ -64,36 +64,36 @@ protected:
 		4, 4, 4,XX, 4, 4, 4, 5, 4, 4, 4, 4,XX,XX, 5, 6
 	};
 #undef XX // invalid opcode unknown cc
-	
+
 	pair32_t pc;
 	uint16_t prevpc;
 	pair32_t sp;
 	pair32_t ix;
 	pair32_t acc_d;
 	pair32_t ea;
-	
+
 	uint8_t cc;
 	int wai_state;
 	int int_state;
-	
+
 
 	uint64_t total_icount;
 	uint64_t prev_total_icount;
 
 	int icount;
 	bool one_more_insn;
-	
+
 	virtual uint32_t __FASTCALL RM(uint32_t Addr);
 	virtual void __FASTCALL WM(uint32_t Addr, uint32_t Value);
 	uint32_t __FASTCALL RM16(uint32_t Addr);
 	void __FASTCALL WM16(uint32_t Addr, pair32_t *p);
-	
-	
+
+
 	virtual void __FASTCALL increment_counter(int amount);
 	virtual void __FASTCALL run_one_opecode();
 	void enter_interrupt(uint16_t irq_vector);
 	virtual void __FASTCALL insn(uint8_t code);
-	
+
 	void __FASTCALL aba();
 	void __FASTCALL adca_di();
 	void __FASTCALL adca_ex();
@@ -305,14 +305,12 @@ protected:
 	void __FASTCALL wai();
 	unsigned Dasm680x(int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram, symbol_t *first_symbol);
 
-	bool __USE_DEBUGGER;
 public:
 	MC6800(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_mem = NULL;
 		d_debugger = NULL;
 		d_mem_stored = NULL;
-		__USE_DEBUGGER = false;
 		for(int i = 0; i < 4; i++) {
 			initialize_output_signals(&port[i].outputs);
 			port[i].ddr = 0;
@@ -332,7 +330,7 @@ public:
 //#endif
 	}
 	~MC6800() {}
-	
+
 	// common functions
 	struct {
 		uint8_t wreg;
@@ -348,7 +346,7 @@ public:
 	virtual void initialize();
 	virtual void reset();
 	virtual int __FASTCALL run(int clock);
-	
+
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc()
 	{
@@ -383,7 +381,7 @@ public:
 	virtual int debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_len, uint32_t userdata = 0);
 //#endif
 	virtual bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
@@ -398,4 +396,3 @@ public:
 };
 
 #endif
-
