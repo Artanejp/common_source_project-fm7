@@ -1061,9 +1061,6 @@ void OSD::set_features_vm(void)
 	add_feature(_T("MB8877_DELAY_AFTER_SEEK"), (int)MB8877_DELAY_AFTER_SEEK);
 #endif
 
-#ifdef I8259_MAX_CHIPS
-	add_feature(_T("I8259_MAX_CHIPS"), (uint32_t)I8259_MAX_CHIPS);
-#endif
 #ifdef I8259_PC98_HACK
 	add_feature(_T("I8259_PC98_HACK"), 1);
 #endif
