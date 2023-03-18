@@ -13,6 +13,7 @@
 void UPD71071::initialize()
 {
 	DEVICE::initialize();
+
 	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
 	for(int i = 0; i < 4; i++) {
 		dma[i].areg = dma[i].bareg = 0;
@@ -30,6 +31,19 @@ void UPD71071::initialize()
 	}
 }
 
+#if 1 /* TRY: They are from Upstream. */
+void UPD71071::reset()
+{
+	for(int i = 0; i < 4; i++) {
+		dma[i].mode = 0x04;
+		reset_dma_ack(i);
+	}
+	b16 = selch = base = 0;
+	cmd = tmp = 0;
+	req = sreq = tc = 0;
+	mask = 0x0f;
+}
+#else  /* TRY: They are NOTfrom Upstream. */
 void UPD71071::reset()
 {
 	for(int i = 0; i < 4; i++) {
@@ -73,6 +87,9 @@ void UPD71071::set_tc(int ch)
 	/*if(tc != tc_bak) */write_signals(&(outputs_tc[ch]), 0xffffffff);
 }
 
+#endif /* TRY: They are from Upstream. */
+
+#if 0 /* TRY: They are NOT from Upstream. */
 void UPD71071::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
@@ -119,7 +136,6 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 ////		write_io8((addr & 0x0e) + 1, (data >> 8) & 0xff);
 //	}
 }
-
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
 {
@@ -184,6 +200,15 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		set_ube(selch);
 		break;
 	case 0x0e:
+		#if 1 /* TRY: From upstream */
+		if((sreq = data) != 0) {
+//#ifndef SINGLE_MODE_DMA
+			__LIKELY_IF(!(_SINGLE_MODE_DMA)) {
+				do_dma();
+			}
+//#endif
+		}
+		#else /* TRY: NOT From upstream */
 		sreq = data;
 		for(int _ch = 0; _ch < 4; _ch++) {
 			if((sreq & (1 << _ch)) != 0) {
@@ -192,6 +217,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 				//}
 			}
 		}
+		#endif  /* TRY: From upstream */
 		break;
 	case 0x0f:
 		mask = data;
@@ -308,9 +334,203 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 	}
 	return 0xff;
 }
+#else  /* TRY: They are NOT from Upstream. */
+
+void UPD71071::write_io8(uint32_t addr, uint32_t data)
+{
+	switch(addr & 0x0f) {
+	case 0x00:
+		if(data & 1) {
+			// dma reset
+			for(int i = 0; i < 4; i++) {
+				dma[i].mode = 0x04;
+				reset_ube(i);
+			}
+			selch = base = 0;
+			cmd = tmp = 0;
+			sreq = tc = 0;
+			mask = 0x0f;
+		}
+		b16 = data & 2;
+		break;
+	case 0x01:
+		selch = data & 3;
+		base = data & 4;
+		break;
+	case 0x02:
+		dma[selch].bcreg = (dma[selch].bcreg & 0xff00) | data;
+//		if(!base) {
+			dma[selch].creg = (dma[selch].creg & 0xff00) | data;
+//		}
+		break;
+	case 0x03:
+		dma[selch].bcreg = (dma[selch].bcreg & 0x00ff) | (data << 8);
+//		if(!base) {
+			dma[selch].creg = (dma[selch].creg & 0x00ff) | (data << 8);
+//		}
+		break;
+	case 0x04:
+		if(extend_to_32bit[selch]) {
+			dma[selch].bareg = (dma[selch].bareg & 0xffffff00) | (data & 0xff);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xffffff00) | (data & 0xff);
+//		}
+		} else {
+		dma[selch].bareg = (dma[selch].bareg & 0xffff00) | data;
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xffff00) | data;
+//		}
+		}
+		break;
+	case 0x05:
+		if(extend_to_32bit[selch]) {
+			dma[selch].bareg = (dma[selch].bareg & 0xffff00ff) | ((uint32_t)(data & 0xff) << 8);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xffff00ff) | ((uint32_t)(data & 0xff) << 8);
+//		}
+		} else {
+		dma[selch].bareg = (dma[selch].bareg & 0xff00ff) | (data << 8);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xff00ff) | (data << 8);
+//		}
+		}
+		break;
+	case 0x06:
+		if(extend_to_32bit[selch]) {
+			dma[selch].bareg = (dma[selch].bareg & 0xff00ffff) | ((uint32_t)(data & 0xff) << 16);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xff00ffff) | ((uint32_t)(data & 0xff) << 16);
+//		}
+		} else {
+		dma[selch].bareg = (dma[selch].bareg & 0x00ffff) | (data << 16);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0x00ffff) | (data << 16);
+//		}
+		}
+		break;
+	case 0x07:
+		if(extend_to_32bit[selch]) {
+			dma[selch].bareg = (dma[selch].bareg & 0x00ffffff) | ((uint32_t)(data & 0xff) << 24);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0x00ffffff) | ((uint32_t)(data & 0xff) << 24);
+//		}
+		}
+		break;
+	case 0x08:
+		cmd = (cmd & 0xff00) | data;
+		break;
+	case 0x09:
+		cmd = (cmd & 0xff) | (data << 8);
+		break;
+	case 0x0a:
+		dma[selch].mode = data;
+		//set_ube(c);
+		break;
+	case 0x0e:
+		if((sreq = data) != 0) {
+			if(_SINGLE_MODE_DMA) {
+//#ifndef SINGLE_MODE_DMA
+				do_dma();
+			}
+//#endif
+		}
+		break;
+	case 0x0f:
+		mask = data;
+		//set_ube(c);
+		break;
+	}
+}
+
+uint32_t UPD71071::read_io8(uint32_t addr)
+{
+	uint32_t val;
+
+	switch(addr & 0x0f) {
+	case 0x00:
+		return b16;
+	case 0x01:
+		return (base << 2) | (1 << selch);
+	case 0x02:
+		if(base) {
+			return dma[selch].bcreg & 0xff;
+		} else {
+			return dma[selch].creg & 0xff;
+		}
+	case 0x03:
+		if(base) {
+			return (dma[selch].bcreg >> 8) & 0xff;
+		} else {
+			return (dma[selch].creg >> 8) & 0xff;
+		}
+	case 0x04:
+		if(base) {
+			return dma[selch].bareg & 0xff;
+		} else {
+			return dma[selch].areg & 0xff;
+		}
+	case 0x05:
+		if(base) {
+			return (dma[selch].bareg >> 8) & 0xff;
+		} else {
+			return (dma[selch].areg >> 8) & 0xff;
+		}
+	case 0x06:
+		if(base) {
+			return (dma[selch].bareg >> 16) & 0xff;
+		} else {
+			return (dma[selch].areg >> 16) & 0xff;
+		}
+	case 0x07:
+		if(extend_to_32bit[selch]) {
+		if(base) {
+			return (dma[selch].bareg >> 24) & 0xff;
+		} else {
+			return (dma[selch].areg >> 24) & 0xff;
+		}
+		}
+		return 0x00; // OK?
+	case 0x08:
+		return cmd & 0xff;
+	case 0x09:
+		return (cmd >> 8) & 0xff;
+	case 0x0a:
+		return dma[selch].mode;
+	case 0x0b:
+		val = (req << 4) | tc;
+		tc = 0;
+		return val;
+	case 0x0c:
+		return tmp & 0xff;
+	case 0x0d:
+		return (tmp >> 8) & 0xff;
+	case 0x0e:
+		return sreq;
+	case 0x0f:
+		return mask;
+	}
+	return 0xff;
+}
+#endif  /* TRY: They are NOT from Upstream. */
 
 void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 {
+#if 1 /* TRY: They are from Upstream. */
+	uint8_t bit = 1 << (id & 3);
+
+	if(data & mask) {
+		if(!(req & bit)) {
+			req |= bit;
+//#ifndef SINGLE_MODE_DMA
+			__LIKELY_IF(!(_SINGLE_MODE_DMA)) {
+				do_dma();
+			}
+//#endif
+		}
+	} else {
+		req &= ~bit;
+	}
+#else /* TRY: They are NOT from Upstream. */
 	int ch = id & 3;
 	uint8_t bit = 1 << ch;
 	if((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
@@ -348,58 +568,10 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 			}
 		}
 	}
+#endif /* TRY: They are from Upstream. */
 }
 
-void UPD71071::set_ube(int ch)
-{
-	bool stat = inputs_ube[ch & 3];
-	stat &= dma[ch & 3].is_16bit;
-	if(stats_ube[ch & 3] != stat) {
-		write_signals(&outputs_ube[ch & 3], (stat) ? 0xffffffff : 0x00000000);
-		stats_ube[ch & 3] = stat;
-	}
-}
-
-void UPD71071::set_dma_ack(int ch)
-{
-	write_signals(&outputs_ack[ch & 3], 0xffffffff);
-}
-
-void UPD71071::reset_dma_ack(int ch)
-{
-	write_signals(&outputs_ack[ch & 3], 0x00000000);
-}
-
-void UPD71071::reset_ube(int ch)
-{
-	if(stats_ube[ch &3]) {
-		write_signals(&outputs_ube[ch & 3], 0x00000000);
-		stats_ube[ch & 3] = false;
-	}
-}
-
-void UPD71071::write_via_debugger_data8(uint32_t addr, uint32_t data)
-{
-	d_mem->write_dma_data8(addr, data);
-}
-
-uint32_t UPD71071::read_via_debugger_data8(uint32_t addr)
-{
-	return d_mem->read_dma_data8(addr);
-}
-
-void UPD71071::write_via_debugger_data16(uint32_t addr, uint32_t data)
-{
-	d_mem->write_dma_data16(addr, data);
-}
-
-uint32_t UPD71071::read_via_debugger_data16(uint32_t addr)
-{
-	return d_mem->read_dma_data16(addr);
-}
-
-// note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
-
+#if 0 /* TRY: They are NOT from Upstream. */
 uint32_t UPD71071::read_signal(int ch)
 {
 	if((ch >= (SIG_UPD71071_IS_TRANSFERING + 0)) && (ch < (SIG_UPD71071_IS_TRANSFERING + 4))) {
@@ -424,7 +596,230 @@ uint32_t UPD71071::read_signal(int ch)
 	}
 	return 0;
 }
+#endif /* TRY: They are NOT from Upstream. */
 
+void UPD71071::set_ube(int ch)
+{
+	ch = ch & 3;
+	write_signals(&outputs_ube[ch], (device_width_is_16bit[ch]) ? 0xffffffff : 0);
+}
+void UPD71071::reset_ube(int ch)
+{
+	ch = ch & 3;
+	write_signals(&outputs_ube[ch], 0);
+}
+
+void UPD71071::set_dma_ack(int ch)
+{
+	write_signals(&outputs_ack[ch & 3], 0xffffffff);
+}
+
+void UPD71071::reset_dma_ack(int ch)
+{
+	write_signals(&outputs_ack[ch & 3], 0x00000000);
+}
+
+
+void UPD71071::write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait)
+{
+	d_mem->write_dma_data8w(addr, data, wait);
+}
+
+uint32_t UPD71071::read_via_debugger_data8w(uint32_t addr, int *wait)
+{
+	return d_mem->read_dma_data8w(addr, wait);
+}
+
+void UPD71071::write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait)
+{
+	d_mem->write_dma_data16w(addr, data, wait);
+}
+
+uint32_t UPD71071::read_via_debugger_data16w(uint32_t addr, int *wait)
+{
+	return d_mem->read_dma_data16w(addr, wait);
+}
+
+// note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
+#if 1 /* TRY: They are from Upstream. */
+void UPD71071::do_dma()
+{
+	// check DDMA
+	if(cmd & 4) {
+		return;
+	}
+
+	// run dma
+	for(int c = 0; c < 4; c++) {
+		uint8_t bit = 1 << c;
+		if(((req | sreq) & bit) && !(mask & bit)) {
+			// execute dma
+			while((req | sreq) & bit) {
+				int wait = 0, wait_r = 0, wait_w = 0;
+				bool compressed = ((cmd & 0x08) != 0);
+				bool exptended = ((cmd & 0x20) != 0);
+				bool __debugging = false;
+				__LIKELY_IF((d_debugger != NULL) && __USE_DEBUGGER) {
+					__UNLIKELY_IF(d_debugger->now_device_debugging) {
+						__debugging = true;
+					}
+				}
+				if(!running) {
+					wait += 2; // S0
+					running = true;
+				}
+				reset_dma_ack(c);
+				if(dma[c].mode & 0x01) == 1) { // This extend feature maybe used for TOWNS, 16bit transfer mode.
+					// 16bit transfer mode
+					if((dma[c].mode & 0x0c) == 0x00) {
+						// verify
+						uint16_t val;
+						uint16_t val2;
+						set_ube(c);
+						val = read_from_io_16bit(c, &wait_r);
+						val2 = read_from_memory_16bit(c, &wait_w, __debugging);
+						// ToDo : verify both val1 and val2, then manipulate status.
+						wait += compressed ? 5 : 7; // OK?
+						if(cmd & 0x20) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = val2;
+						set_dma_ack(c);
+					} else if((dma[c].mode & 0x0c) == 0x04) {
+						// io -> memory
+						set_ube(c);
+						uint16_t val = read_from_io_16bit(c, &wait_r);
+						write_to_memory_16bit(c, val, &wait_w, __debugging);
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = val;
+						set_dma_ack(c);
+					} else if((dma[c].mode & 0x0c) == 0x08) {
+						// memory -> io
+						uint16_t val;
+						val = read_from_memory_16bit(c, &wait_r, __debugging);
+						set_ube(c);
+						write_to_io_16bit(c, val, &wait_w);
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = val;
+						set_dma_ack(c);
+					}
+					if(dma[c].mode & 0x20) {
+						dec_memory_ptr(c, dma[c].areg, true);
+					} else {
+						inc_memory_ptr(c, dma[c].areg, true);
+					}
+				}
+				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
+
+				if(dma[c].creg-- == 0) {
+					// TC
+					if(dma[c].mode & 0x10) {
+						// auto initialize
+						dma[c].areg = dma[c].bareg;
+						dma[c].creg = dma[c].bcreg;
+					} else {
+						mask |= bit;
+					}
+					req &= ~bit;
+					sreq &= ~bit;
+					tc |= bit;
+					running = false;
+					reset_ube(c);
+					write_signals(&outputs_tc, 0xffffffff);
+				} else if((dma[c].mode & 0xc0) == 0x40) {
+					// single mode
+					running = false;
+//#ifdef SINGLE_MODE_DMA
+					reset_ube(c);
+					__UNLIKELY_IF(_SINGLE_MODE_DMA) {
+						break;
+					}
+//#endif
+				} else {
+					// 8bit transfer mode
+					if((dma[c].mode & 0x0c) == 0x00) {
+						// verify
+						uint16_t val;
+						uint16_t val2;
+						reset_ube(c);
+						val = read_from_io_8bit(c, &wait_r);
+						val2 = read_from_memory_8bit(c, &wait_w, __debugging);
+						// ToDo : verify both val1 and val2, then manipulate status.
+						wait += compressed ? 5 : 7;
+						if(cmd & 0x20) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = (tmp >> 8) | (val2 << 8);
+						set_dma_ack(c);
+					} else if((dma[c].mode & 0x0c) == 0x04) {
+						// io -> memory
+						reset_ube(c);
+						uint16_t val = read_from_io_8bit(c, &wait_r);
+						write_to_memory_8bit(c, val, &wait_w, __debugging);
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = (tmp >> 8) | (val << 8);
+						set_dma_ack(c);
+					} else if((dma[c].mode & 0x0c) == 0x08) {
+						// memory -> io
+						reset_ube(c);
+						uint16_t val = read_from_memory_8bit(c, &wait_r);
+						write_to_io_8bit(c, val, &wait_w, __debugging);
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = (tmp >> 8) | (val << 8);
+						set_dma_ack(c);
+					}
+					if(dma[c].mode & 0x20) {
+						dec_memory_ptr(c, dma[c].areg, true);
+					} else {
+						inc_memory_ptr(c, dma[c].areg, true);
+					}
+				}
+				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
+
+				if(dma[c].creg-- == 0) {
+					// TC
+					if(dma[c].mode & 0x10) {
+						// auto initialize
+						dma[c].areg = dma[c].bareg;
+						dma[c].creg = dma[c].bcreg;
+					} else {
+						mask |= bit;
+					}
+					req &= ~bit;
+					sreq &= ~bit;
+					tc |= bit;
+					running = false;
+					reset_ube(c);
+					write_signals(&outputs_tc, 0xffffffff);
+				} else if((dma[c].mode & 0xc0) == 0x40) {
+					// single mode
+					reset_ube(c);
+					running = false;
+//#ifdef SINGLE_MODE_DMA
+					__UNLIKELY_IF(_SINGLE_MODE_DMA) {
+						break;
+					}
+//#endif
+				}
+			}
+		}
+	}
+//#ifdef SINGLE_MODE_DMA
+	__LIKELY_IF(_SINGLE_MODE_DMA) {
+		if(d_dma) {
+			d_dma->do_dma();
+		}
+	}
+//#endif
+}
+
+#else /* TRY: Not from Upstream. +/
 void UPD71071::do_dma_verify_8bit(int c)
 {
 	// verify
@@ -634,7 +1029,7 @@ bool UPD71071::do_dma_per_channel(int c)
 			//       but transferring per 8bit from/to SCSI HOST...
 			///      I wonder this...
 			// 2020-03-16 K.O
-			if((dma[c].is_16bit) && (inputs_ube[c]) /*&& (b16 != 0)*/) {
+			if((dma[c].is_16bit) && (bus_is_16bit[c]) /*&& (b16 != 0)*/) {
 				// This channel transferr makes 16bit.
 				if((dma[c].mode & 0x0c) == 0x00) {
 					do_dma_verify_16bit(c);
@@ -701,7 +1096,7 @@ void UPD71071::do_dma()
 	}
 //#endif
 }
-
+#endif /* TRY : From Upstream */
 bool UPD71071::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
@@ -736,8 +1131,8 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
+		return false;
+	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
@@ -747,9 +1142,6 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(dma[i].creg);
 		state_fio->StateValue(dma[i].bcreg);
 		state_fio->StateValue(dma[i].mode);
-		state_fio->StateValue(dma[i].is_16bit);
-		state_fio->StateValue(dma[i].endreq);
-		state_fio->StateValue(dma[i].end);
 	}
 	state_fio->StateValue(b16);
 	state_fio->StateValue(selch);
@@ -760,8 +1152,11 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(sreq);
 	state_fio->StateValue(mask);
 	state_fio->StateValue(tc);
-	state_fio->StateArray(inputs_ube, sizeof(inputs_ube), 1);
-	state_fio->StateArray(stats_ube, sizeof(stats_ube), 1);
-
+	state_fio->StateValue(running);
+	for(int i = 0; i < 4; i++) {
+		state_fio->StateValue(memory_width_is_16bit[i]);
+		state_fio->StateValue(device_width_is_16bit[i]);
+		state_fio->StateValue(extend_to_32bit[i]);
+	}
 	return true;
 }

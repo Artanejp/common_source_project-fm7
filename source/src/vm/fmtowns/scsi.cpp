@@ -31,7 +31,7 @@
 #define STATUS_PERR	0x01
 
 namespace FMTOWNS {
-	
+
 void SCSI::reset()
 {
 	ctrl_reg = CTRL_IMSK;
@@ -57,7 +57,7 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 			d_host->write_dma_io8(addr, data);
 		}
 		break;
-		
+
 	case 0x0c32:
 		// control register
 		#ifdef _SCSI_DEBUG_LOG
@@ -81,10 +81,11 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
+
 uint32_t SCSI::read_io8(uint32_t addr)
 {
 	uint32_t value = 0;
-	
+
 	switch(addr & 0xffff) {
 	case 0x0034:
 //		if(machine_id >= 0x0600) { // After UG
@@ -137,6 +138,9 @@ uint32_t SCSI::read_io8(uint32_t addr)
 void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
+	case SIG_SCSI_16BIT_BUS:
+		transfer_16bit = ((data & mask) != 0) ? true : false;
+		break;
 	case SIG_SCSI_IRQ:
 		if((ctrl_reg & CTRL_IMSK)) {
 //			if(irq_status_bak != ((data & mask) != 0)) {
@@ -155,7 +159,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 			irq_status = ((data & mask) != 0);
 		}
 		break;
-		
+
 	case SIG_SCSI_DRQ:
 		if(((ctrl_reg & CTRL_DMAE) != 0) /*&& (dma_enabled)*/) {
 			d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
@@ -190,12 +194,12 @@ bool SCSI::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(machine_id);
 	state_fio->StateValue(cpu_id);
-	
+
 	state_fio->StateValue(ctrl_reg);
 	state_fio->StateValue(irq_status);
 	state_fio->StateValue(irq_status_bak);
 	state_fio->StateValue(dma_enabled);
-	
+
 	if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 		state_fio->StateValue(ex_int_enable);
 		state_fio->StateValue(exirq_status);

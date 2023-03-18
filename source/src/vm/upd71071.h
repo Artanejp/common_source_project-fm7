@@ -52,40 +52,34 @@ protected:
 		uint32_t areg, bareg;
 		uint32_t creg, bcreg; // 20200318 K.O (Temporally workaround for Towns)
 		uint8_t mode;
-		bool is_16bit;
-		bool endreq;
-		bool end;
 	} dma[4];
 
 	uint8_t b16, selch, base;
-	uint16_t cmd, tmp;
+	uint16_t cmd;
+	uint32_t tmp; // For TOWNS
 	uint8_t req, sreq, mask, tc;
-	bool inputs_ube[4];
-	bool stats_ube[4];
-
-
+	bool memory_width_is_16bit[4];
+	bool device_width_is_16bit[4];
+	bool extend_to_32bit[4];
 	bool _SINGLE_MODE_DMA;
 
-	virtual void __FASTCALL set_ube(int ch);
-	virtual void __FASTCALL reset_ube(int ch);
-	virtual void __FASTCALL do_dma_verify_8bit(int c);
-	virtual void __FASTCALL do_dma_dev_to_mem_8bit(int c);
-	virtual void __FASTCALL do_dma_mem_to_dev_8bit(int c);
-	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
-	virtual void __FASTCALL do_dma_verify_16bit(int c);
-	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c);
-	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
-	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
-	virtual bool __FASTCALL do_dma_epilogue(int c);
-	virtual bool __FASTCALL do_dma_per_channel(int c);
-	virtual void __FASTCALL reset_tc(int ch);
-	virtual void __FASTCALL set_tc(int ch);
-	virtual void __FASTCALL reset_dma_ack(int ch);
-	virtual void __FASTCALL set_dma_ack(int ch);
-	virtual void reset_all_tc();
-	inline uint16_t __FASTCALL manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data);
-	inline uint32_t __FASTCALL manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data);
+	void __FASTCALL set_ube(int ch);
+	void __FASTCALL reset_ube(int ch);
+	void __FASTCALL set_dma_ack(int ch);
+	void __FASTCALL reset_dma_ack(int ch);
 
+	inline uint16_t __FASTCALL read_from_memory_8bit(int ch, int *wait, bool __debugging);
+	inline uint16_t __FASTCALL read_from_memory_16bit(int ch, int *wait, bool __debugging);
+	inline void __FASTCALL write_to_memory_8bit(int ch, uint16_t data, int *wait, bool __debugging);
+	inline void __FASTCALL write_to_memory_16bit(int ch, uint16_t data, int *wait, bool __debugging);
+
+	inline uint16_t __FASTCALL read_from_io_8bit(int ch, int *wait);
+	inline uint16_t __FASTCALL read_from_io_16bit(int ch, int *wait);
+	inline void __FASTCALL write_to_io_8bit(int ch, uint16_t data, int *wait);
+	inline void __FASTCALL write_to_io_16bit(int ch, uint16_t data, int *wait);
+
+	uint32_t __FASTCALL dec_memory_ptr(int ch, uint32_t& addr, bool is_16bit_mode);
+	uint32_t __FASTCALL inc_memory_ptr(int ch, uint32_t& addr, bool is_16bit_mode);
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -107,39 +101,39 @@ public:
 		_SINGLE_MODE_DMA = false;
 		for(int i = 0; i < 4; i++) {
 			initialize_output_signals(&outputs_tc[i]);
-			initialize_output_signals(&outputs_ube[i]);
 			initialize_output_signals(&outputs_ack[i]);
+			initialize_output_signals(&outputs_ube[i]);
+			memory_width_is_16bit[c] = false;
+			device_width_is_16bit[c] = false;
+			extend_to_32bit[c] = false;
 		}
 		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
 
 	// common functions
-	virtual void initialize();
-	virtual void reset();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
+	virtual void initialize() override;
+	virtual void reset() override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data)  override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask);
-	virtual uint32_t __FASTCALL read_signal(int id);
-	virtual void __FASTCALL do_dma();
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask) override;
+	virtual void __FASTCALL do_dma() override;
 	// for debug
-	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
-	bool is_debugger_available()
+	virtual void __FASTCALL write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait) override;
+	virtual uint32_t __FASTCALL read_via_debugger_data8w(uint32_t addr, int *wait) override;
+	virtual void __FASTCALL write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait) override;
+	virtual uint32_t __FASTCALL read_via_debugger_data16w(uint32_t addr, int *wait) override;
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	void *get_debugger()
+	void *get_debugger() override
 	{
 		return d_debugger;
 	}
-	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 	// unique functions
 	void set_context_memory(DEVICE* device)
 	{
@@ -203,6 +197,7 @@ public:
 	{
 		register_output_signal(&outputs_ack[3], device, id, _mask);
 	}
+
 	void set_context_ube0(DEVICE* device, int id, uint32_t _mask)
 	{
 		register_output_signal(&outputs_ube[0], device, id, _mask);
@@ -219,42 +214,181 @@ public:
 	{
 		register_output_signal(&outputs_ube[3], device, id, _mask);
 	}
+
+	// 20230318 K.Ohta
+	// These set bus width to 8bit (false) or 16bit (true).
+	// May be useful for SCSI controller of FM Towns.
+	void set_memory_width_is_16bit(int ch, bool flag)
+	{
+	   memory_width_is_16bit[ch & 3] = flag;
+	}
+	void set_device_width_is_16bit(int ch, bool flag)
+	{
+	   device_width_is_16bit[ch & 3] = flag;
+	}
+	// This is for FM Towns.
+	// FM Towns implements extended variant as DMAC.
+	void set_dma_extend_to_32bit(int ch, bool flag)
+	{
+	   extend_to_32bit[ch & 3] = flag;
+	}
 };
 
-inline uint16_t UPD71071::manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data)
+inline uint16_t UPD71071::read_from_memory_8bit(int ch, int *wait, bool __debugging)
 {
-	pair16_t n;
-	n.w = src;
-	switch(pos) {
-	case 0:
-		n.b.l = data;
-		break;
-	case 1:
-		n.b.h = data;
-		break;
+	uint16_t val;
+	const uint32_t _addr_mask = (extend_to_32bit) ? 0xffffffff : 0x00ffffff;
+	const uint32_t addr = dma[ch].areg & _addr_mask;
+	__UNLIKELY_IF(__debugging) {
+		val = d_debugger->read_via_debugger_data8w(addr, wait);
+	} else {
+//#endif
+		val = this->read_via_debugger_data8w(addr, wait);
 	}
-	return n.w;
+	val = val & 0x00ff;
+	return val;
 }
 
-inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data)
+inline uint16_t UPD71071::read_from_memory_16bit(int ch, int *wait, bool __debugging)
 {
-	pair32_t n;
-	n.d = src;
-	switch(pos) {
-	case 0:
-		n.b.l  = data;
-		break;
-	case 1:
-		n.b.h  = data;
-		break;
-	case 2:
-		n.b.h2 = data;
-		break;
-	case 3:
-		n.b.h3 = data;
-		break;
+	uint16_t val;
+	ch = ch & 3;
+	const uint32_t _addr_mask = (extend_to_32bit) ? 0xffffffff : 0x00ffffff;
+	const uint32_t addr = dma[ch].areg & _addr_mask;
+	if(memory_width_is_16bit[ch]) {
+		__UNLIKELY_IF(__debugging) {
+			val = d_debugger->read_via_debugger_data8w(addr, wait);
+		} else {
+//#endif
+			val = this->read_via_debugger_data8w(addr, wait);
+		}
+	} else {
+		// 8bit * 2
+		uint16_t h, l;
+		int wait_l = 0, wait_h = 0;
+		const uint32_t addr2 = (addr + 1) & _addr_mask;
+		__UNLIKELY_IF(__debugging) {
+			l = d_debugger->read_via_debugger_data8w(addr, &wait_l);
+			h = d_debugger->read_via_debugger_data8w(addr2, &wait_h);
+//#endif
+		} else {
+			l = this->read_via_debugger_data8w(addr, &wait_l);
+			h = this->read_via_debugger_data8w(addr2, &wait_h);
+		}
+		val = ((h & 0xff) << 8) | (l & 0xff);
+		*wait = wait_h + wait_l;
 	}
-	return n.d;
+	return val;
 }
 
+inline void UPD71071::write_to_memory_8bit(int ch, uint16_t data, int *wait, bool __debugging)
+{
+	const uint32_t _addr_mask = (extend_to_32bit) ? 0xffffffff : 0x00ffffff;
+	const uint32_t addr = dma[ch].areg & _addr_mask;
+	__UNLIKELY_IF(__debugging) {
+		d_debugger->write_via_debugger_data8w(addr, data & 0xff, wait);
+	} else {
+//#endif
+		this->write_via_debugger_data8w(addr, data & 0xff, wait);
+	}
+}
+
+inline void UPD71071::write_to_memory_16bit(int ch, uint16_t data, int *wait, bool __debugging)
+{
+	ch = ch & 3;
+	const uint32_t _addr_mask = (extend_to_32bit) ? 0xffffffff : 0x00ffffff;
+	const uint32_t addr = dma[ch].areg & _addr_mask;
+	if(memory_width_is_16bit[ch]) {
+		__UNLIKELY_IF(__debugging) {
+			d_debugger->write_via_debugger_data8w(addr, data, wait);
+		} else {
+//#endif
+			this->write_via_debugger_data8w(addr, data, wait);
+		}
+	} else {
+		// 8bit * 2
+		uint16_t h, l;
+		int wait_l = 0, wait_h = 0;
+		const uint32_t addr2 = (addr + 1) & _addr_mask;
+		h = (data >> 8) & 0xff;
+		l = data & 0xff;
+		__UNLIKELY_IF(__debugging) {
+			d_debugger->write_via_debugger_data8w(addr, l, &wait_l);
+			d_debugger->write_via_debugger_data8w(addr2, h, &wait_h);
+//#endif
+		} else {
+			this->write_via_debugger_data8w(addr, l, &wait_l);
+			this->write_via_debugger_data8w(addr2, h, &wait_h);
+		}
+		*wait = wait_h + wait_l;
+	}
+	return val;
+}
+inline uint16_t UPD71071::read_from_io_8bit(int ch, int *wait)
+{
+	// ToDo: 16bit transfer bus, maybe set only tmpreg (at odd count).
+	ch = ch & 3;
+	uint16_t val;
+	val = dma[ch].dev->read_dma_io8w(0, wait) & 0xff;
+	return val;
+}
+
+inline uint16_t UPD71071::read_from_io_16bit(int ch, int *wait)
+{
+	ch = ch & 3;
+	if(io_width_is_16bit[ch]) {
+		uint16_t val;
+		val = dma[ch].dev->read_dma_io16w(0, wait);
+		return val;
+	} else {
+		uint16_t h, l;
+		int wait_h = 0, wait_l = 0;
+		l = dma[ch].dev->read_dma_io8w(0, &wait_l) & 0xff;
+		tmp = (tmp >> 8) | (l << 8);
+		h = dma[ch].dev->read_dma_io8w(0, &wait_h) & 0xff;
+		tmp = (tmp >> 8) | (h << 8);
+		*wait = wait_h + wait_l;
+		return (h << 8) | l;
+	}
+}
+
+inline uint16_t UPD71071::write_to_io_8bit(int ch, uint16_t data, int *wait)
+{
+	// ToDo: 16bit transfer bus, maybe set only tmpreg (at odd count).
+	ch = ch & 3;
+	dma[ch].dev->write_dma_io8w(0, data, wait);
+}
+inline uint16_t UPD71071::write_to_io_16bit(int ch, uint16_t data, int *wait)
+{
+	ch = ch & 3;
+	if(io_width_is_16bit[ch]) {
+		dma[ch].dev->write_dma_io16w(0, data, wait);
+	} else {
+		uint16_t h, l;
+		int wait_h = 0, wait_l = 0;
+		h = (data >> 8) & 0xff;
+		l = data & 0xff;
+		dma[ch].dev->write_dma_io8w(0, l, &wait_l);
+		dma[ch].dev->write_dma_io8w(0, h, &wait_h);
+		*wait = wait_h + wait_l;
+	}
+}
+
+uint32_t UPD71071::inc_memory_ptr(int ch, uint32_t& addr, bool is_16bit_mode)
+{
+	ch = ch & 3;
+	const uint32_t _addr_mask = (extend_to_32bit) ? 0xffffffff : 0x00ffffff;
+	const uint32_t val = (is_16bit_mode) ? 2 : 1;
+	addr = (addr + val) & _addr_mask;
+	return addr;
+}
+
+uint32_t UPD71071::dec_memory_ptr(int ch, uint32_t& addr, bool is_16bit_mode)
+{
+	ch = ch & 3;
+	const uint32_t _addr_mask = (extend_to_32bit) ? 0xffffffff : 0x00ffffff;
+	const uint32_t val = (is_16bit_mode) ? 2 : 1;
+	addr = (addr + val) & _addr_mask;
+	return addr;
+}
 #endif

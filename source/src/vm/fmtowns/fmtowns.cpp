@@ -350,6 +350,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 
 	dma->set_context_child_dma(extra_dma);
+	for(int ch = 0; ch < 4; ch++) {
+		dma->set_memory_width_is_16bit(ch, false);
+		dma->set_device_width_is_16bit(ch, false);
+	}
+	// Excepts SCSI
+	dma->set_memory_width_is_16bit(1, true);
+	dma->set_device_width_is_16bit(1, true);
+	// ToDo: Excepts CD-ROM
+	//dma->set_memory_width_is_16bit(3, true);
+	//dma->set_device_width_is_16bit(3, false);
+
+	for(int ch = 0; ch < 4; ch++) {
+		dma->set_dma_extend_to_32bit(ch, true);
+	}
 
 	floppy->set_context_fdc(fdc);
 
