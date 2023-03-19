@@ -2125,4 +2125,42 @@ int I8080::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer_l
 	}
 	return ptr;
 }
+#define STATE_VERSION	2
+
+bool I8080::process_state(FILEIO* state_fio, bool loading)
+{
+	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+		return false;
+	}
+	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+//#ifdef USE_DEBUGGER
+	if(__USE_DEBUGGER) {
+		state_fio->StateValue(total_count);
+	}
+//#endif
+	state_fio->StateValue(count);
+	state_fio->StateArray(regs, sizeof(regs), 1);
+	state_fio->StateValue(SP);
+	state_fio->StateValue(PC);
+	state_fio->StateValue(prevPC);
+	state_fio->StateValue(IM);
+	state_fio->StateValue(RIM_IEN);
+	state_fio->StateValue(afterHALT);
+	state_fio->StateValue(BUSREQ);
+	state_fio->StateValue(SID);
+	state_fio->StateValue(afterEI);
+
+//#ifdef USE_DEBUGGER
+	if(__USE_DEBUGGER) {
+	// post process
+		if(loading) {
+			prev_total_count = total_count;
+		}
+	}
+//#endif
+	return true;
+}
+
 //#endif
