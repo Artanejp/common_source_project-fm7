@@ -64,7 +64,9 @@ public:
 	// unique functions
 	inline int get_bank(uint32_t addr) const
 	{
-		return (addr & (space - 1)) >> addr_shift;
+		const uint64_t _mask = space - 1;
+
+		return (uint32_t)(((uint64_t)addr & _mask) >> addr_shift);
 	}
 	inline int bus_access_times_16(uint32_t addr) const
 	{
@@ -136,7 +138,7 @@ public:
 	bank_t *rd_table;
 	bank_t *wr_table;
 
-	uint32_t space;
+	uint64_t space;
 	uint32_t bank_size;
 	int bus_width;
 };

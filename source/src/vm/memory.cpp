@@ -15,6 +15,7 @@
 #define ADDR_MASK (space - 1)
 #define BANK_MASK (bank_size - 1)
 
+
 void MEMORY::initialize()
 {
 	__UNLIKELY_IF((rd_table == NULL) || (wr_table == NULL)) {
@@ -559,7 +560,7 @@ void MEMORY::copy_table_w(uint32_t to, uint32_t start, uint32_t end)
 	const uint32_t start_bank = start >> addr_shift;
 	const uint32_t end_bank = end >> addr_shift;
 	uint32_t to_bank = to >> addr_shift;
-	const uint64_t blocks = space / bank_size;
+	const uint64_t blocks = space >> addr_shift;
 
 	for(uint64_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;
@@ -578,7 +579,7 @@ void MEMORY::copy_table_r(uint32_t to, uint32_t start, uint32_t end)
 	const uint32_t start_bank = start >> addr_shift;
 	const uint32_t end_bank = end >> addr_shift;
 	uint32_t to_bank = to >> addr_shift;
-	const uint64_t blocks = space / bank_size;
+	const uint64_t blocks = space >> addr_shift;
 
 	for(uint64_t i = start_bank; i <= end_bank; i++) {
 		if(to_bank >= blocks) break;
