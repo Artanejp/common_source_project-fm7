@@ -38,11 +38,15 @@ class DEBUGGER;
 class  DLL_PREFIX UPD71071 : public DEVICE
 {
 protected:
+	DEVICE* d_cpu;
 	DEVICE* d_mem;
 //#ifdef SINGLE_MODE_DMA
 	DEVICE* d_dma;
 //#endif
 	DEBUGGER *d_debugger;
+
+	bool _SINGLE_MODE_DMA;
+
 	outputs_t outputs_tc[4];
 	outputs_t outputs_ube[4]; // If "1" word transfer, "0" byte transfer (OUT)
 	outputs_t outputs_ack[4]; // Acknoledge
@@ -60,29 +64,37 @@ protected:
 	uint8_t b16, selch, base;
 	uint16_t cmd, tmp;
 	uint8_t req, sreq, mask, tc;
+	bool running;
+
 	bool inputs_ube[4];
 	bool stats_ube[4];
 
+	// Device accessing functions.
+	virtual void __FASTCALL do_dma_verify_8bit(int c, bool extended, bool compressed, int& wait);
+	virtual void __FASTCALL do_dma_dev_to_mem_8bit(int c, bool extended, bool compressed, int& wait);
+	virtual void __FASTCALL do_dma_mem_to_dev_8bit(int c, bool extended, bool compressed, int& wait);
+	virtual void __FASTCALL do_dma_verify_16bit(int c, bool extended, bool compressed, int& wait);
+	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c, bool extended, bool compressed, int& wait);
+	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c, bool extended, bool compressed, int& wait);
 
-	bool _SINGLE_MODE_DMA;
-
-	virtual void __FASTCALL set_ube(int ch);
-	virtual void __FASTCALL reset_ube(int ch);
-	virtual void __FASTCALL do_dma_verify_8bit(int c);
-	virtual void __FASTCALL do_dma_dev_to_mem_8bit(int c);
-	virtual void __FASTCALL do_dma_mem_to_dev_8bit(int c);
-	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
-	virtual void __FASTCALL do_dma_verify_16bit(int c);
-	virtual void __FASTCALL do_dma_dev_to_mem_16bit(int c);
-	virtual void __FASTCALL do_dma_mem_to_dev_16bit(int c);
-	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
+	// For DMA sequence.
 	virtual bool __FASTCALL do_dma_epilogue(int c);
 	virtual bool __FASTCALL do_dma_per_channel(int c);
-	virtual void __FASTCALL reset_tc(int ch);
-	virtual void __FASTCALL set_tc(int ch);
-	virtual void __FASTCALL reset_dma_ack(int ch);
-	virtual void __FASTCALL set_dma_ack(int ch);
-	virtual void reset_all_tc();
+
+	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
+	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
+
+	// For manipulating signal PINs.
+	inline void __FASTCALL reset_tc(int ch);
+	inline void __FASTCALL set_tc(int ch);
+	inline void reset_all_tc();
+
+	inline void __FASTCALL reset_dma_ack(int ch);
+	inline void __FASTCALL set_dma_ack(int ch);
+	inline void __FASTCALL set_ube(int ch);
+	inline void __FASTCALL reset_ube(int ch);
+
+	// Wodr manipulating.
 	inline uint16_t __FASTCALL manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data);
 	inline uint32_t __FASTCALL manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data);
 
@@ -91,20 +103,18 @@ public:
 	{
 		// TIP: if((DEVICE::prev_device == NULL) || (DEVICE::this_device_id == 0)) DEVICE must be DUMMY.
 		// And, at this device, should not be FIRST DEVICE. 20170613 Ohta.
-		DEVICE *__dev = this;
-		while((__dev->prev_device != NULL) && (__dev->this_device_id > 0)) {
-			__dev = __dev->prev_device;
-		}
 		for(int i = 0; i < 4; i++) {
 			//dma[i].dev = vm->dummy;
-			dma[i].dev = __dev;
+			dma[i].dev = vm->dummy;
 		}
-		d_mem = __dev;
+		d_cpu = NULL;
+		d_mem = vm->dummy;
 //#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 //#endif
 		d_debugger = NULL;
 		_SINGLE_MODE_DMA = false;
+
 		for(int i = 0; i < 4; i++) {
 			initialize_output_signals(&outputs_tc[i]);
 			initialize_output_signals(&outputs_ube[i]);
@@ -115,35 +125,47 @@ public:
 	~UPD71071() {}
 
 	// common functions
-	virtual void initialize();
-	virtual void reset();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
+	virtual void initialize() override;
+	virtual void reset() override;
 
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask);
-	virtual uint32_t __FASTCALL read_signal(int id);
-	virtual void __FASTCALL do_dma();
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io16(uint32_t addr) override;
+
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask) override;
+	virtual uint32_t __FASTCALL read_signal(int id) override;
+	virtual void __FASTCALL do_dma() override;
 	// for debug
-	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
-	bool is_debugger_available()
+	virtual void __FASTCALL write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait) override;
+	virtual uint32_t __FASTCALL read_via_debugger_data8w(uint32_t addr, int *wait) override;
+	virtual void __FASTCALL write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait) override;
+	virtual uint32_t __FASTCALL read_via_debugger_data16w(uint32_t addr, int *wait) override;
+
+	bool is_debugger_available() override
 	{
+		__UNLIKELY_IF(!(__USE_DEBUGGER) || (d_debugger == nullptr)) {
+			return false;
+		}
 		return true;
 	}
-	void *get_debugger()
+	void *get_debugger() override
 	{
+		__UNLIKELY_IF(!(__USE_DEBUGGER) || (d_debugger == nullptr)) {
+			return nullptr;
+		}
 		return d_debugger;
 	}
-	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 	// unique functions
 	void set_context_memory(DEVICE* device)
 	{
 		d_mem = device;
+	}
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
 	}
 	void set_context_ch0(DEVICE* device)
 	{
@@ -256,5 +278,60 @@ inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t 
 	}
 	return n.d;
 }
+
+inline void UPD71071::reset_all_tc()
+{
+	for(int i = 0; i < 4; i++) {
+		tc = 0;
+		write_signals(&(outputs_tc[i]), 0);
+	}
+}
+
+inline void UPD71071::reset_tc(int ch)
+{
+	if((ch < 0) || (ch > 3)) return;
+	uint8_t bit = (1 << ch);
+	uint8_t tc_bak = tc;
+	tc &= ~bit;
+	/*if(tc != tc_bak) */ write_signals(&(outputs_tc[ch]), 0);
+}
+
+inline void UPD71071::set_tc(int ch)
+{
+	if((ch < 0) || (ch > 3)) return;
+	uint8_t bit = (1 << ch);
+	uint8_t tc_bak = tc;
+	tc |= bit;
+	/*if(tc != tc_bak) */write_signals(&(outputs_tc[ch]), 0xffffffff);
+}
+
+inline void UPD71071::set_ube(int ch)
+{
+	bool stat = inputs_ube[ch & 3];
+	stat &= dma[ch & 3].is_16bit;
+	if(stats_ube[ch & 3] != stat) {
+		write_signals(&outputs_ube[ch & 3], (stat) ? 0xffffffff : 0x00000000);
+		stats_ube[ch & 3] = stat;
+	}
+}
+
+inline void UPD71071::reset_ube(int ch)
+{
+	if(stats_ube[ch &3]) {
+		write_signals(&outputs_ube[ch & 3], 0x00000000);
+		stats_ube[ch & 3] = false;
+	}
+}
+
+inline void UPD71071::set_dma_ack(int ch)
+{
+	write_signals(&outputs_ack[ch & 3], 0xffffffff);
+}
+
+inline void UPD71071::reset_dma_ack(int ch)
+{
+	write_signals(&outputs_ack[ch & 3], 0x00000000);
+}
+
 
 #endif
