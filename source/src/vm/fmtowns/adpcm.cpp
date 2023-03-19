@@ -17,7 +17,7 @@ namespace FMTOWNS {
 
 #define EVENT_ADC_CLOCK   1
 #define EVENT_ADPCM_CLOCK 2
-	
+
 void ADPCM::initialize()
 {
 	adc_fifo = new FIFO(64); // OK?
@@ -30,7 +30,7 @@ void ADPCM::release()
 	adc_fifo->release();
 	delete adc_fifo;
 }
-	
+
 void ADPCM::reset()
 {
 	// Is clear FIFO?
@@ -42,11 +42,11 @@ void ADPCM::reset()
 	opx_intr = false;
 	adpcm_mute = false;
 	opn2_mute = false;
-	
+
 	write_signals(&outputs_intr, 0x00000000);
 	write_signals(&outputs_led_control, 0x00000000);
 	write_signals(&outputs_allmute, 0xffffffff); // OK?
-	
+
 	initialize_adc_clock(-1);
 	if(event_adpcm_clock >= 0) {
 		cancel_event(this, event_adpcm_clock);
@@ -67,7 +67,7 @@ void ADPCM::initialize_adc_clock(int freq)
 	d_adc->write_signal(SIG_AD7820_CS, 0xffffffff, 0xffffffff);
 	d_adc->write_signal(SIG_AD7820_WR_CONVERSION_MODE, 0, 0xffffffff); // READ MODE..
 	register_event(this, EVENT_ADC_CLOCK, 1.0e6 / (double)freq, true, &event_adc_clock);
-}		
+}
 
 void ADPCM::event_callback(int id, int err)
 {
@@ -84,7 +84,7 @@ void ADPCM::event_callback(int id, int err)
 		break;
 	}
 }
-	
+
 uint32_t ADPCM::read_io8(uint32_t addr)
 {
 	/*
@@ -204,16 +204,16 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			dac_intr = (n_onoff) ? 0xffff : 0x0000;
 			_d = true;
 //			_d = (dac_intr != intr_backup) ? true : false;
-		}	
+		}
 		if((n_onoff) && (_d)) { // ON
 			write_signals(&outputs_intr, 0xffffffff);
 			latest_dac_intr = true;
 		} else if(!(n_onoff) || !(_d)) {
 			if(!(opx_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
-			}				
+			}
 			latest_dac_intr = false;
-		}		
+		}
 	} else if(ch == SIG_ADPCM_OPX_INTR) { // SET/RESET INT13
 //		out_debug_log(_T("SIG_ADPCM_OPX_INTR val=%08X mask=%08X"), data ,mask);
 		opx_intr = ((data & mask) != 0);
@@ -223,7 +223,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			if(!(latest_dac_intr)) {
 				write_signals(&outputs_intr, 0x00000000);
 			}
-		}			
+		}
 	} else if(ch == SIG_ADPCM_ADC_INTR) { // Push data to FIFO from ADC.
 		if((data & mask) != 0) {
 			uint32_t n_data = d_adc->read_signal(SIG_AD7820_DATA_REG);
@@ -254,7 +254,7 @@ bool ADPCM::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(opn2_mute);
 	state_fio->StateValue(adpcm_mute);
-	
+
 	state_fio->StateValue(opx_intr);
 	state_fio->StateValue(dac_intr);
 	state_fio->StateValue(dac_intr_mask);
@@ -264,5 +264,5 @@ bool ADPCM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_adpcm_clock);
 	return true;
 }
-	
-}	
+
+}

@@ -139,7 +139,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_SCSI_16BIT_BUS:
-		transfer_16bit = ((data & mask) != 0) ? true : false;
+		//transfer_16bit = ((data & mask) != 0) ? true : false;
 		break;
 	case SIG_SCSI_IRQ:
 		if((ctrl_reg & CTRL_IMSK)) {

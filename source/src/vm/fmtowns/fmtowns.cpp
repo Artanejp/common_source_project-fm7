@@ -146,7 +146,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	io = new IO(this, emu);
 	io->space = _IO_SPACE;
-	memory->bus_width = _IO_BUS_WIDTH;
+	io->bus_width = _IO_BUS_WIDTH;
 
 	crtc = new TOWNS_CRTC(this, emu);
 	cdrom = new TOWNS_CDROM(this, emu);

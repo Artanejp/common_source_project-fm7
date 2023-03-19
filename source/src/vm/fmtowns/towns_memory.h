@@ -36,9 +36,9 @@ enum {
 	TOWNS_MEMORY_FMR_VRAM_RESERVE,
 	TOWNS_MEMORY_SPRITE_ANKCG1,
 	TOWNS_MEMORY_ANKCG2,
-	
+
 	TOWNS_MEMORY_MMIO_0CC,
-	
+
 	TOWNS_MEMORY_TYPE_EXT_MMIO,
 	TOWNS_MEMORY_TYPE_LEARN_RAM,
 	TOWNS_MEMORY_TYPE_WAVERAM,
@@ -55,7 +55,7 @@ namespace FMTOWNS {
 	class TOWNS_SPRITE;
 	class TOWNS_ROM_CARD;
 }
-	
+
 namespace FMTOWNS {
 class TOWNS_MEMORY : public MEMORY
 {
@@ -63,13 +63,13 @@ protected:
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
-	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff 
+	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff
 	DEVICE* d_timer;
 	DEVICE* d_dmac;
 	DEVICE* d_crtc;
 	DEVICE* d_planevram;
 	I386*   d_cpu;
-	
+
 	DEVICE* d_dictionary;
 	DEVICE* d_sysrom;
 	DEVICE* d_msdos;
@@ -81,12 +81,12 @@ protected:
 
 	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
-	
+
 	bool bankc0_vram;
 	bool ankcg_enabled;
 	bool select_d0_rom;
 	bool select_d0_dict;
-	
+
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	bool is_compatible;
@@ -105,7 +105,7 @@ protected:
 	uint32_t mem_wait_val;
 
 	uint8_t wait_register;
-	
+
 	bool extra_nmi_mask;
 	bool extra_nmi_val;
 	bool nmi_mask;
@@ -113,7 +113,7 @@ protected:
 	bool nmi_vector_protect;
 	bool poff_status;
 	bool reset_happened;
-	
+
 	// misc
 	uint32_t vram_size; // Normally 512KB.
 	bool initialized;
@@ -131,18 +131,11 @@ protected:
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
-		addr_max = 0x100000000; // 4GiB
-		bank_size = 1024; // 1024
-		addr_shift = 10;
-		bank_size_was_set = false;
-		addr_max_was_set = false;
-		
-		_MEMORY_DISABLE_DMA_MMIO = false;
-		
+
 		extram_size = 0x00200000; // Basically 2MB
-		
+
 		d_cpu = NULL;
-		
+
 		d_vram = NULL;
 		d_sprite = NULL;
 		d_romcard[0] = d_romcard[1] = NULL;
@@ -153,7 +146,7 @@ public:
 		d_planevram = NULL;
 		d_iccard[0] = NULL;
 		d_iccard[1] = NULL;
-		
+
 		d_dictionary = NULL;
 		d_sysrom = NULL;
 		d_msdos = NULL;
@@ -179,59 +172,40 @@ public:
 		// machine_id = 0x0d00 // FM-Towns2 ME20/ME170
 		// machine_id = 0x0f00 // FM-Towns2 MF20/MF170/Fresh
 		machine_id = 0x0100;   // FM-Towns 1,2
-		
+
 		// Note: cpu id must set before initialize() from set_context_cpu_id() by VM::VM().
-		// cpu_id = 0x00; // 80286. 
-		// cpu_id = 0x01; // 80386DX. 
-		// cpu_id = 0x02; // 80486SX/DX. 
-		// cpu_id = 0x03; // 80386SX. 
+		// cpu_id = 0x00; // 80286.
+		// cpu_id = 0x01; // 80386DX.
+		// cpu_id = 0x02; // 80486SX/DX.
+		// cpu_id = 0x03; // 80386SX.
 		cpu_id = 0x01; // 80386DX.
 		update_machine_features();
 		extra_ram = NULL;
 	}
 	~TOWNS_MEMORY() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
 	void reset();
-	
-	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
 
-	
-	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait);
-	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait);
-	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait);
-	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait);
+	virtual void     __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
+	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 
-	
-	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
-	uint32_t __FASTCALL read_dma_data16(uint32_t addr);
-	uint32_t __FASTCALL read_dma_data32(uint32_t addr);
-	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_dma_data16(uint32_t addr, uint32_t data);
-	void __FASTCALL write_dma_data32(uint32_t addr, uint32_t data);
-
-	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait);
-	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait);
-	uint32_t __FASTCALL read_dma_data32w(uint32_t addr, int* wait);
-	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait);
-	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait);
-	void __FASTCALL write_dma_data32w(uint32_t addr, uint32_t data, int* wait);
-	
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
+	virtual void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait);
 
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
-	
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual uint32_t __FASTCALL read_signal(int ch);
+
 	//void event_frame();
 	virtual void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit);
-	
+
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_extra_ram_size(uint32_t megabytes)
 	{
@@ -260,7 +234,7 @@ public:
 		case 0x0C00: // TOWNS2 MX
 		case 0x0D00: // TOWNS2 ME
 		case 0x0F00: // TOWNS2 MF/Fresh
-			limit = 31; // 16MB x 2 - 1MB? 
+			limit = 31; // 16MB x 2 - 1MB?
 			break;
 		}
 		if(megabytes > limit) megabytes = limit;
@@ -346,4 +320,3 @@ public:
 
 }
 #endif
-
