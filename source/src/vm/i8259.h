@@ -57,7 +57,7 @@ public:
 
 		__I8259_PC98_HACK = false;
 		for(int c = 0; c < 2; c++) {
-			memset(&(pic[c]), 0x00, sizeof(struct i8259_pic_t));
+			memset(&(pic[c]), 0x00, sizeof(pic[c]));
 			pic[c].irr_tmp_id = -1;
 		}
 		set_device_name(_T("i8259 PIC"));
