@@ -51,9 +51,7 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define IO_ADDR_MAX		0x10000
 #define HAS_AY_3_8910
-#define Z80_IO_WAIT
 #ifdef _X1TURBO_FEATURE
 #define SINGLE_MODE_DMA
 #endif
@@ -299,10 +297,10 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices for x1
 	//EVENT* event;
-	
+
 	DATAREC* drec;
 	DEVICE* printer;
 	HD46505* crtc;
@@ -333,52 +331,52 @@ protected:
 	X1::MOUSE* mouse;
 	X1::PSUB* psub;
 	X1::SASI* sasi;
-	
+
 	MCS48* cpu_sub;
 	UPD1990A* rtc_sub;
 	I8255* pio_sub;
 	X1::SUB* sub;
-	
+
 	MCS48* cpu_kbd;
 	X1::KEYBOARD* kbd;
-	
+
 	bool pseudo_sub_cpu;
 	int sound_type;
-	
+
 #ifdef _X1TWIN
 	// device for pce
 	EVENT* pceevent;
-	
+
 	HUC6280* pcecpu;
 	PCEDEV::PCE* pce;
 #endif
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -386,13 +384,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -425,21 +423,21 @@ public:
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
 #endif
-	
+
 	void update_config();
 #ifdef _X1TURBO_FEATURE
 	void update_dipswitch();
 #endif
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;
