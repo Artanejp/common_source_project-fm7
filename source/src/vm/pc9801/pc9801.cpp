@@ -212,6 +212,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_prn = new I8255(this, emu);		// for printer
 	pio_prn->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 
 #if defined(HAS_I86)
 	cpu = new I86(this, emu);
@@ -241,11 +242,25 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 #endif
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	rtcreg = new LS244(this, emu);
 	rtcreg->set_device_name(_T("74LS244 (RTC)"));
 	//memory = new MEMORY(this, emu);
 	memory = new MEMBUS(this, emu);
-
+#if defined(SUPPORT_24BIT_ADDRESS)
+	memory->space = 0x01000000; // 16MB
+#elif defined(SUPPORT_32BIT_ADDRESS)
+	memory->space = (uint64_t)(0x100000000); // 4GiB
+#else
+	memory->space = 0x00100000; // 1MB
+#endif
+#if defined(SUPPORT_32BIT_DATABUS)
+	memory->bus_width = 32;
+#else
+	memory->bus_width = 16;
+#endif
+	memory->bank_size = 0x800;
 	not_busy = new NOT(this, emu);
 	not_busy->set_device_name(_T("NOT Gate (Printer Busy)"));
 #if defined(HAS_I86) || defined(HAS_V30)
@@ -437,6 +452,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(noise_head_up);
 
 	// set other device contexts
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(HAS_SUB_V30)
+	dma->set_context_cpu(cpureg);
+#else
+	dma->set_context_cpu(cpu);
+#endif
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
@@ -520,7 +540,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_DIN, 0x20, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_STB, 0x08, 0);
 	rtcreg->set_context_output(rtc, SIG_UPD1990A_CLK, 0x10, 0);
-#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && !defined(SUPPORT_HIRESO)
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(HAS_SUB_V30)
 	pic->set_context_cpu(cpureg);
 #else
 	pic->set_context_cpu(cpu);
@@ -1176,8 +1196,139 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	initialize_devices();
 
+#if defined(_PC9801)
+		// 8086-5MHz
+		memory->set_wait_rw(0x000000, 0x0fffff, 0); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 1);
+#elif defined(_PC9801E)
+	if(config.cpu_type == 0) {
+		// 8086-8MHz
+		memory->set_wait_rw(0x000000, 0x0fffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 2);
+	} else {
+		// 8086-5MHz
+		memory->set_wait_rw(0x000000, 0x0fffff, 0); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 1);
+	}
+#elif defined(_PC9801U) || defined(_PC9801VF)
+		// V30-8MHz
+		memory->set_wait_rw(0x000000, 0x0fffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 2);
+#elif defined(_PC9801VM) || defined(_PC98DO)
+	if(config.cpu_type == 0) {
+		// V30-10MHz
+		memory->set_wait_rw(0x000000, 0x0fffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 3);
+	} else {
+		// V30-8MHz
+		memory->set_wait_rw(0x000000, 0x0fffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 2);
+	}
+#elif defined(_PC9801VX)
+	if(config.cpu_type == 0) {
+		// 80286-10MHz
+		memory->set_wait_rw(0x000000, 0x0bffff, 0); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 5); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff, 0); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff, 0); // ROM (STD)
+		memory->set_wait_rw(0x100000, 0xffffff, 1); // RAM (EXP)
+		io->set_iowait_range_rw(0x0000, 0xffff, 4);
+	} else if(config.cpu_type == 1) {
+		// 80286-8MHz
+		memory->set_wait_rw(0x000000, 0x0bffff, 0); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 4); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff, 0); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff, 0); // ROM (STD)
+		memory->set_wait_rw(0x100000, 0xffffff, 1); // RAM (EXP)
+		io->set_iowait_range_rw(0x0000, 0xffff, 3);
+	} else if(config.cpu_type == 2) {
+		// V30-10MHz
+		memory->set_wait_rw(0x000000, 0x0bffff, 1); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 3); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff, 1); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff, 1); // ROM (STD)
+		io->set_iowait_range_rw(0x0000, 0xffff, 3);
+	} else {
+		// V30-8MHz
+		memory->set_wait_rw(0x000000, 0x0bffff, 1); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 2); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff, 1); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff, 1); // ROM (STD)
+		io->set_iowait_range_rw(0x0000, 0xffff, 2);
+	}
+#elif defined(_PC9801RA)
+	if(config.cpu_type == 0) {
+		// 80386-20MHz
+		memory->set_wait_rw(0x000000, 0x0bffff,  0); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 12); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff,  0); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff,  0); // ROM (STD)
+		memory->set_wait_rw(0x100000, 0xffffff,  0); // RAM (EXP)
+		io->set_iowait_range_rw(0x0000, 0xffff, 10);
+	} else if(config.cpu_type == 1) {
+		// 80386-16MHz
+		memory->set_wait_rw(0x000000, 0x0bffff,  0); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 10); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff,  0); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff,  0); // ROM (STD)
+		memory->set_wait_rw(0x100000, 0xffffff,  1); // RAM (EXP)
+		io->set_iowait_range_rw(0x0000, 0xffff,  8);
+	} else if(config.cpu_type == 2) {
+		// V30-10MHz
+		memory->set_wait_rw(0x000000, 0x0bffff, 1); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 3); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff, 1); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff, 1); // ROM (STD)
+		io->set_iowait_range_rw(0x0000, 0xffff, 3);
+	} else {
+		// V30-8MHz
+		memory->set_wait_rw(0x000000, 0x0bffff, 1); // RAM
+		memory->set_wait_rw(0x0c0000, 0x0dffff, 2); // ROM (0C,0D)
+		memory->set_wait_rw(0x0e0000, 0x0e7fff, 1); // RAM
+		memory->set_wait_rw(0x0e8000, 0x0fffff, 1); // ROM (STD)
+		io->set_iowait_range_rw(0x0000, 0xffff, 2);
+	}
+#elif defined(_PC98XA)
+		// 80286-8MHz
+		memory->set_wait_rw(0x000000, 0xffffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 3);
+#elif defined(_PC98XL)
+	if(config.cpu_type == 0) {
+		// 80286-10MHz
+		memory->set_wait_rw(0x000000, 0xffffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 4); // I/O
+	} else if(config.cpu_type == 1) {
+		// 80286-8MHz
+		memory->set_wait_rw(0x000000, 0xffffff, 1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 3); // I/O
+	}
+#elif defined(_PC98XL2)
+		// 80386-16MHz
+		memory->set_wait_rw(0x000000, 0xffffff,  1); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 10); // I/O
+#elif defined(_PC98RL)
+	if(config.cpu_type == 0) {
+		// 80386-20MHz
+		memory->set_wait_rw(0x000000, 0xffffff,  0); // RAM/ROM
+		io->set_iowait_range_rw(0x0000, 0xffff, 10); // I/O
+	} else {
+		// 80386-16MHz
+		memory->set_wait_rw(0x000000, 0x0fffff,  0); // RAM/ROM
+		memory->set_wait_rw(0x100000, 0xffffff,  1); // RAM (EXP)
+		io->set_iowait_range_rw(0x0000, 0xffff,  8); // I/O
+	}
+#endif
 	set_cpu_clock_with_switch(config.cpu_type);
 
+#if defined(HAS_SUB_V30)
+	if(config.cpu_type == 2 || config.cpu_type == 3) {
+		cpu->write_signal(SIG_CPU_BUSREQ,  1, 1);
+	} else {
+		if(v30 != nullptr) {
+			v30->write_signal(SIG_CPU_BUSREQ,  1, 1);
+		}
+	}
+#endif
 #if defined(_PC9801) || defined(_PC9801E)
 	if(fdc_2hd) {
 		fdc_2hd->get_disk_handler(0)->drive_num = 0;
@@ -1604,7 +1755,7 @@ void VM::initialize_ports()
 #endif
 	port_b |= 0x04; // Printer BUSY#, 1 = Inactive, 0 = Active (BUSY)
 #if !defined(SUPPORT_HIRESO)
-	#if defined(HAS_SUB_V30)
+	#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(HAS_SUB_V30)
 	if(cpureg->cpu_mode) {
 		port_b |= 0x02; // CPUT, 1 = V30/V33, 0 = 80x86
 	}
@@ -1738,14 +1889,14 @@ DEVICE *VM::get_cpu(int index)
 	}
 #else
 	if(index == 0) {
-	#if defined(HAS_SUB_V30)
+	#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(HAS_SUB_V30)
 		if((cpureg->cpu_mode) && (v30 != nullptr)) {
 			return NULL;
 		}
 	#endif
 		return cpu;
 	} else if(index == 1) {
-#if defined(HAS_SUB_V30)
+#if (defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)) && defined(HAS_SUB_V30)
 		if((cpureg->cpu_mode) && (v30 != nullptr)) {
 			return v30;
 		}

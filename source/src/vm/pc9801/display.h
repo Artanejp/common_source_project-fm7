@@ -242,22 +242,24 @@ public:
 	~DISPLAY() {}
 
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void event_frame();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-	uint32_t __FASTCALL read_dma_io16(uint32_t addr);
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	void event_frame() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
+	void __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_memory_mapped_io16w(uint32_t addr, int *wait) override;
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr) override;
+	void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_dma_io16(uint32_t addr) override;
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
 	void set_context_gdc_freq(DEVICE *device, int id, int mask)

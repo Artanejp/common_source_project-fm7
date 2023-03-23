@@ -61,14 +61,16 @@ public:
 	~CPUREG() {}
 
 	// common functions
-	void reset();
-	void initialize();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit);
-	void __FASTCALL event_callback(int id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void reset() override;
+	void initialize() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+	void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit) override;
+	void __FASTCALL set_extra_clock(int clock) override;
+
+	void __FASTCALL event_callback(int id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique function
 #if defined(SUPPORT_32BIT_ADDRESS) || defined(UPPER_I386)

@@ -159,29 +159,21 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 #if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-	// ToDo: Re-Implement.
-	#if 0
- 	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
-	uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait) override;
-	void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait) override;
-	uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait) override;
-	void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait) override;
-	#endif
-	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
-	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	// Note: Artane. variant of ePC9801xx changes bank dynamically.
+	// Not need to translate addrsss.
+	// - 20230323 K.O
 
-	#if 0
- 	uint32_t __FASTCALL read_data8(uint32_t addr) override;
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
-	uint32_t __FASTCALL read_data16(uint32_t addr) override;
-	void __FASTCALL write_data16(uint32_t addr, uint32_t data) override;
-	uint32_t __FASTCALL read_data32(uint32_t addr) override;
-	void __FASTCALL write_data32(uint32_t addr, uint32_t data) override;
-	#endif
-	uint32_t __FASTCALL read_dma_data8(uint32_t addr) override;
-	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data) override;
+ 	//uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
+	//void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	//uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait) override;
+	//void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait) override;
+	//uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait) override;
+	//void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait) override;
 #endif
+	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int *wait) override;
+	void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int *wait) override;
+	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int *wait) override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
@@ -199,49 +191,5 @@ public:
 	}
 };
 
-#if defined(SUPPORT_24BIT_ADDRESS) || defined(SUPPORT_32BIT_ADDRESS)
-// From membus.cpp.
-#if !defined(SUPPORT_HIRESO)
-	#define UPPER_MEMORY_24BIT	0x00fa0000
-	#define UPPER_MEMORY_32BIT	0xfffa0000
-#else
-	#define UPPER_MEMORY_24BIT	0x00fc0000
-	#define UPPER_MEMORY_32BIT	0xfffc0000
-#endif
-
-inline bool MEMBUS::get_memory_addr(uint32_t *addr)
-{
-	for(;;) {
-		if(*addr < 0x80000) {
-			return true;
-		}
-		if(*addr < 0xa0000) {
-			if((*addr = (*addr & 0x1ffff) | window_80000h) >= UPPER_MEMORY_24BIT) {
-				*addr &= 0xfffff;
-			}
-			return true;
-		}
-		if(*addr < 0xc0000) {
-			if((*addr = (*addr & 0x1ffff) | window_a0000h) >= UPPER_MEMORY_24BIT) {
-				*addr &= 0xfffff;
-			}
-			return true;
-		}
-		if(*addr < UPPER_MEMORY_24BIT) {
-			return true;
-		}
-#if defined(SUPPORT_32BIT_ADDRESS)
-		if(*addr < 0x1000000 || *addr >= UPPER_MEMORY_32BIT) {
-			*addr &= 0xfffff;
-		} else {
-			return false;
-		}
-#else
-		*addr &= 0xfffff;
-#endif
-	}
-	return false;
-}
-#endif
 }
 #endif

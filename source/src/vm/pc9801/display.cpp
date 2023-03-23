@@ -265,8 +265,10 @@ void DISPLAY::initialize()
 	#else
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x40000);
 	#endif
+	d_gdc_gfx->set_plane_size(0x8000); // OK?
 #else
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x80000);
+	// Q: Plane size at HIRESO? 20230323 K.O
 #endif
 	d_gdc_gfx->set_screen_width(SCREEN_WIDTH >> 3);
 
@@ -1188,6 +1190,16 @@ uint32_t DISPLAY::read_memory_mapped_io16(uint32_t addr)
 #endif
 	}
 	return 0xffff;
+}
+
+void DISPLAY::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_memory_mapped_io16(addr, data);
+}
+
+uint32_t DISPLAY::read_memory_mapped_io16w(uint32_t addr, int *wait)
+{
+	return read_memory_mapped_io16(addr);
 }
 
 // Graphic GDC bus

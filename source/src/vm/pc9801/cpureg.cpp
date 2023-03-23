@@ -287,6 +287,17 @@ void CPUREG::write_signal(int ch, uint32_t data, uint32_t mask)
 //		out_debug_log("RESET FROM CPU!!!\n");
 	}
 }
+
+void CPUREG::set_extra_clock(int clock)
+{
+#if defined(HAS_SUB_V30)
+	if(cpu_mode) {
+		d_v30->set_extra_clock(clock);
+	} else {
+		d_cpu->set_extra_clock(clock);
+	}
+#endif
+}
 //#endif
 
 #define STATE_VERSION	3
