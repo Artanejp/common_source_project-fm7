@@ -118,6 +118,10 @@ public:
 //#endif
 	bool process_state(FILEIO* state_fio, bool loading) override;
 	// unique functions
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
+	}
 	void set_context_memory(DEVICE* device)
 	{
 		d_mem = device;
