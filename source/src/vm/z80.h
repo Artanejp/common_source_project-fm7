@@ -49,8 +49,6 @@ protected:
 
 	uint32_t __CPU_START_ADDR;
 	bool has_nsc800;
-	bool has_memory_wait;
-	bool has_io_wait;
 	bool has_pseudo_bios;
 	bool has_ldair_quirk;
 	bool has_single_mode_dma;
@@ -274,8 +272,6 @@ public:
 		d_io_stored = NULL;
 		d_pic = NULL;
 		has_nsc800 = false;
-		has_io_wait = false;
-		has_memory_wait = false;
 		has_pseudo_bios = false;
 		has_ldair_quirk = false;
 		has_single_mode_dma = false;
