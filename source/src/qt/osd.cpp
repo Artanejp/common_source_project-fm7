@@ -1201,9 +1201,6 @@ void OSD::set_features_vm(void)
 	add_feature(_T("UPD765A_NO_ST1_EN_OR_FOR_RESULT7"), 1);
 #endif
 
-#ifdef UPD7801_MEMORY_WAIT
-	add_feature(_T("UPD7801_MEMORY_WAIT") , 1);
-#endif
 #ifdef HAS_UPD7810
 	add_feature(_T("HAS_UPD7810"), 1);
 #endif
@@ -1239,12 +1236,6 @@ void OSD::set_features_vm(void)
 	add_feature(_T("SUPPORT_YM2203_PORT_B"), 1);
 #endif
 
-#ifdef Z80_MEMORY_WAIT
-	add_feature(_T("Z80_MEMORY_WAIT"), 1);
-#endif
-#ifdef Z80_IO_WAIT
-	add_feature(_T("Z80_IO_WAIT"), 1);
-#endif
 #ifdef HAS_LDAIR_QUIRK
 	add_feature(_T("HAS_LDAIR_QUIRK"), 1);
 #endif

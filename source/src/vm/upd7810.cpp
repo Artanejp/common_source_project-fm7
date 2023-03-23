@@ -90,7 +90,7 @@ void UPD7810::initialize()
 	DEVICE::initialize();
 
 	opaque = CPU_INIT_CALL(upd7810);
-	
+
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	if(osd->check_feature("HAS_UPD7810")) {
 		cpustate->config.type = TYPE_7810;
@@ -108,7 +108,7 @@ void UPD7810::initialize()
 		cpustate->config.type = TYPE_78C06;
 		set_device_name(_T("NEC uPD78C06 MCU"));
 	} // UPD7907 moved to upd7907.cpp.
-	
+
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
 	cpustate->outputs_to = (void*)&outputs_to;
@@ -155,7 +155,7 @@ void UPD7810::reset()
 		return;
 		break;
 	}
-	
+
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
 	cpustate->outputs_to = (void*)&outputs_to;
@@ -173,7 +173,7 @@ void UPD7810::reset()
 int UPD7810::run(int clock)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	
+
 	if(clock == -1) {
 		if(busreq) {
 			// don't run cpu!
@@ -188,7 +188,7 @@ int UPD7810::run(int clock)
 	} else {
 		icount += clock;
 		int first_icount = icount;
-		
+
 		// run cpu while given clocks
 		while(icount > 0 && !busreq) {
 			icount -= run_one_opecode();
@@ -222,7 +222,7 @@ int UPD7810::run_one_opecode()
 void UPD7810::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	
+
 	switch(id) {
 	case SIG_UPD7810_INTF1:
 		set_irq_line(cpustate, UPD7810_INTF1, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
@@ -260,31 +260,31 @@ uint32_t UPD7810::get_next_pc()
 
 void UPD7810::write_debug_data8(uint32_t addr, uint32_t data)
 {
-	int wait;
-	d_mem->write_data8w(addr, data, &wait);
+	int wait_tmp;
+	d_mem->write_data8w(addr, data, &wait_tmp);
 }
 
 uint32_t UPD7810::read_debug_data8(uint32_t addr)
 {
-	int wait;
-	return d_mem->read_data8w(addr, &wait);
+	int wait_tmp;
+	return d_mem->read_data8w(addr, &wait_tmp);
 }
 
 void UPD7810::write_debug_io8(uint32_t addr, uint32_t data)
 {
-	int wait;
-	d_io->write_io8w(addr, data, &wait);
+	int wait_tmp;
+	d_io->write_io8w(addr, data, &wait_tmp);
 }
 
 uint32_t UPD7810::read_debug_io8(uint32_t addr) {
-	int wait;
-	return d_io->read_io8w(addr, &wait);
+	int wait_tmp;
+	return d_io->read_io8w(addr, &wait_tmp);
 }
 
 bool UPD7810::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	
+
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
 	} else if(_tcsicmp(reg, _T("SP")) == 0) {
@@ -352,7 +352,7 @@ VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
 Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 */
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	int wait;
+	int wait_tmp;
 	my_stprintf_s(buffer, buffer_len,
 	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\n")
 	_T("VA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n")
@@ -361,7 +361,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 	VA, BC, DE, HL, PSW,
 	(PSW & Z) ? _T("Z") : _T("-"), (PSW & SK) ? _T("SK") : _T("--"), (PSW & HC) ? _T("HC") : _T("--"), (PSW & L1) ? _T("L1") : _T("--"), (PSW & L0) ? _T("L0") : _T("--"), (PSW & CY) ? _T("CY") : _T("--"),
 	VA2, BC2, DE2, HL2, SP, PC,
-	d_mem->read_data16w(BC, &wait), d_mem->read_data16w(DE, &wait), d_mem->read_data16w(HL, &wait), d_mem->read_data16w(SP, &wait),
+	d_mem->read_data16w(BC, &wait_tmp), d_mem->read_data16w(DE, &wait_tmp), d_mem->read_data16w(HL, &wait_tmp), d_mem->read_data16w(SP, &wait_tmp),
 	IFF ? _T("EI") : _T("DI"),
 	total_icount, total_icount - prev_total_icount,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
@@ -375,10 +375,10 @@ int UPD7810::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 {
 	uint8_t oprom[8];
 	uint8_t *opram = oprom;
-	
+
 	for(int i = 0; i < 8; i++) {
-		int wait;
-		oprom[i] = d_mem->read_data8w(pc + i, &wait);
+		int wait_tmp;
+		oprom[i] = d_mem->read_data8w(pc + i, &wait_tmp);
 	}
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	switch(cpustate->config.type) {
@@ -501,7 +501,7 @@ bool UPD7810::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(busreq);
 	state_fio->StateValue(icount);
 	state_fio->StateValue(busreq);
- 	
+
 //#ifdef USE_DEBUGGER
  	// post process
 	if(loading) {

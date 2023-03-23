@@ -87,8 +87,6 @@ private:
 	inline void __FASTCALL OUT8(int port, uint8_t val);
 	inline void __FASTCALL UPDATE_PORTC(uint8_t IOM);
 
-	bool __UPD7801_MEMORY_WAIT;
-
 	/* ---------------------------------------------------------------------------
 	opecode
 	--------------------------------------------------------------------------- */
@@ -116,7 +114,7 @@ public:
 		SI = SCK = false;
 		d_debugger = NULL;
 		d_mem_stored = d_io_stored = NULL;
-		__UPD7801_MEMORY_WAIT = false;
+
 		set_device_name(_T("uPD7801 CPU"));
 	}
 	~UPD7801() {}

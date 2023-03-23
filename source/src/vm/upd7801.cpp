@@ -290,151 +290,81 @@ static const op_t op74[256] = {
 
 inline uint8_t UPD7801::RM8(uint16_t addr)
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		uint8_t val = d_mem->read_data8w(addr, &wait);
-		period += wait;
-		return val;
-	} else {
-//#else
-		return d_mem->read_data8(addr);
-	}
-//#endif
+	int wait_tmp = 0;
+	uint8_t val = d_mem->read_data8w(addr, &wait_tmp);
+	period += wait_tmp;
+	return val;
 }
 
 inline void UPD7801::WM8(uint16_t addr, uint8_t val)
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		d_mem->write_data8w(addr, val, &wait);
-		period += wait;
-	} else {
-//#else
-		d_mem->write_data8(addr, val);
-	}
-//#endif
+	int wait_tmp = 0;
+	d_mem->write_data8w(addr, val, &wait_tmp);
+	period += wait_tmp;
 }
 
 inline uint16_t UPD7801::RM16(uint16_t addr)
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		uint16_t val = d_mem->read_data16w(addr, &wait);
-		period += wait;
-		return val;
-	} else {
-//#else
-		return d_mem->read_data16(addr);
-	}
-//#endif
+	int wait_tmp = 0;
+	uint16_t val = d_mem->read_data16w(addr, &wait_tmp);
+	period += wait_tmp;
+	return val;
 }
 
 inline void UPD7801::WM16(uint16_t addr, uint16_t val)
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		d_mem->write_data16w(addr, val, &wait);
-		period += wait;
-	} else {
-//#else
-		d_mem->write_data16(addr, val);
-	}
-//#endif
+	int wait_tmp = 0;
+	d_mem->write_data16w(addr, val, &wait_tmp);
+	period += wait_tmp;
 }
 
 inline uint8_t UPD7801::FETCH8()
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		uint8_t val = d_mem->read_data8w(PC++, &wait);
-		period += wait;
-		return val;
-	} else {
-//#else
-		return d_mem->read_data8(PC++);
-	}
-//#endif
+	int wait_tmp = 0;
+	uint8_t val = d_mem->read_data8w(PC++, &wait_tmp);
+	period += wait_tmp;
+	return val;
 }
 
 inline uint16_t UPD7801::FETCH16()
 {
 	uint16_t val;
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		val = d_mem->read_data16w(PC, &wait);
-		period += wait;
-	} else {
-//#else
-		val = d_mem->read_data16(PC);
-	}
-//#endif
+	int wait_tmp = 0;
+	val = d_mem->read_data16w(PC, &wait_tmp);
+	period += wait_tmp;
 	PC += 2;
 	return val;
 }
 
 inline uint16_t UPD7801::FETCHWA()
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		uint16_t val = (_V << 8) | d_mem->read_data8w(PC++, &wait);
-		period += wait;
-		return val;
-	} else {
-//#else
-		return (_V << 8) | d_mem->read_data8(PC++);
-	}
-//#endif
+	int wait_tmp = 0;
+	uint16_t val = (_V << 8) | d_mem->read_data8w(PC++, &wait_tmp);
+	period += wait_tmp;
+	return val;
 }
 
 inline uint8_t UPD7801::POP8()
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		uint8_t val = d_mem->read_data8w(SP++, &wait);
-		period += wait;
-		return val;
-	} else {
-//#else
-		return d_mem->read_data8(SP++);
-	}
-//#endif
+	int wait_tmp = 0;
+	uint8_t val = d_mem->read_data8w(SP++, &wait_tmp);
+	period += wait_tmp;
+	return val;
 }
 
 inline void UPD7801::PUSH8(uint8_t val)
 {
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		d_mem->write_data8w(--SP, val, &wait);
-		period += wait;
-	} else {
-//#else
-		d_mem->write_data8(--SP, val);
-	}
-//#endif
+	int wait_tmp = 0;
+	d_mem->write_data8w(--SP, val, &wait_tmp);
+	period += wait_tmp;
 }
 
 inline uint16_t UPD7801::POP16()
 {
 	uint16_t val;
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		val = d_mem->read_data16w(SP, &wait);
-		period += wait;
-	} else {
-//#else
-		val = d_mem->read_data16(SP);
-	}
-//#endif
+	int wait_tmp = 0;
+	val = d_mem->read_data16w(SP, &wait_tmp);
+	period += wait_tmp;
 	SP += 2;
 	return val;
 }
@@ -442,16 +372,9 @@ inline uint16_t UPD7801::POP16()
 inline void UPD7801::PUSH16(uint16_t val)
 {
 	SP -= 2;
-//#ifdef UPD7801_MEMORY_WAIT
-	if(__UPD7801_MEMORY_WAIT) {
-		int wait;
-		d_mem->write_data16w(SP, val, &wait);
-		period += wait;
-	} else {
-//#else
-		d_mem->write_data16(SP, val);
-	}
-//#endif
+	int wait_tmp = 0;
+	d_mem->write_data16w(SP, val, &wait_tmp);
+	period += wait_tmp;
 }
 
 // io
@@ -1118,7 +1041,6 @@ inline void UPD7801::UPDATE_PORTC(uint8_t IOM)
 void UPD7801::initialize()
 {
 	DEVICE::initialize();
-	__UPD7801_MEMORY_WAIT = osd->check_feature(_T("UPD7801_MEMORY_WAIT"));
 
 //#ifdef USE_DEBUGGER
 	if((__USE_DEBUGGER) && (d_debugger != NULL)) {
@@ -1305,25 +1227,25 @@ void UPD7801::run_one_opecode_debugger()
 
 void UPD7801::write_debug_data8(uint32_t addr, uint32_t data)
 {
-	int wait;
-	d_mem_stored->write_data8w(addr, data, &wait);
+	int wait_tmp;
+	d_mem_stored->write_data8w(addr, data, &wait_tmp);
 }
 
 uint32_t UPD7801::read_debug_data8(uint32_t addr)
 {
-	int wait;
-	return d_mem_stored->read_data8w(addr, &wait);
+	int wait_tmp;
+	return d_mem_stored->read_data8w(addr, &wait_tmp);
 }
 
 void UPD7801::write_debug_io8(uint32_t addr, uint32_t data)
 {
-	int wait;
-	d_io_stored->write_io8w(addr, data, &wait);
+	int wait_tmp;
+	d_io_stored->write_io8w(addr, data, &wait_tmp);
 }
 
 uint32_t UPD7801::read_debug_io8(uint32_t addr) {
-	int wait;
-	return d_io_stored->read_io8w(addr, &wait);
+	int wait_tmp;
+	return d_io_stored->read_io8w(addr, &wait_tmp);
 }
 
 bool UPD7801::write_debug_reg(const _TCHAR *reg, uint32_t data)
@@ -1394,7 +1316,7 @@ VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
           (BC)= 0000 (DE)=0000 (HL)= 0000 (SP)= 0000 <DI>
 Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 */
-	int wait;
+	int wait_tmp;
 	my_stprintf_s(buffer, buffer_len,
 	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\n")
 	_T("VA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n")
@@ -1403,7 +1325,7 @@ Clocks = 0 (0)  Since Scanline = 0/0 (0/0)
 	VA, BC, DE, HL, PSW,
 	(PSW & F_Z) ? _T("Z") : _T("-"), (PSW & F_SK) ? _T("SK") : _T("--"), (PSW & F_HC) ? _T("HC") : _T("--"), (PSW & F_L1) ? _T("L1") : _T("--"), (PSW & F_L0) ? _T("L0") : _T("--"), (PSW & F_CY) ? _T("CY") : _T("--"),
 	altVA, altBC, altDE, altHL, SP, PC,
-	d_mem_stored->read_data16w(BC, &wait), d_mem_stored->read_data16w(DE, &wait), d_mem_stored->read_data16w(HL, &wait), d_mem_stored->read_data16w(SP, &wait),
+	d_mem_stored->read_data16w(BC, &wait_tmp), d_mem_stored->read_data16w(DE, &wait_tmp), d_mem_stored->read_data16w(HL, &wait_tmp), d_mem_stored->read_data16w(SP, &wait_tmp),
 	IFF ? _T("EI") : _T("DI"),
 	total_count, total_count - prev_total_count,
 	get_passed_clock_since_vline(), get_cur_vline_clocks(), get_cur_vline(), get_lines_per_frame());
@@ -1436,8 +1358,8 @@ int UPD7801::debug_dasm_with_userdata(uint32_t pc, _TCHAR *buffer, size_t buffer
 {
 	if(d_debugger == NULL) return 0;
 	for(int i = 0; i < 4; i++) {
-		int wait;
-		upd7801_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
+		int wait_tmp;
+		upd7801_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait_tmp);
 	}
 	upd7801_dasm_ptr = 0;
 
