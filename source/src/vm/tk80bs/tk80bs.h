@@ -44,10 +44,6 @@
 #endif
 #define I8255_AUTO_HAND_SHAKE
 
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x200
-#define IO_ADDR_MAX		0x10000
-
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
 #if defined(_TK80BS) || defined(_TK80)
@@ -206,10 +202,10 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	DATAREC* drec;
 	I8080* cpu;
 #if defined(_TK80BS)
@@ -221,14 +217,14 @@ protected:
 //	TK80::MEMORY* memory;
 	PCM1BIT* pcm0;
 	PCM1BIT* pcm1;
-	
+
 #if defined(_TK80BS) || defined(_TK80)
 	TK80::CMT* cmt;
 #endif
 	TK80::DISPLAY* display;
 	TK80::KEYBOARD* keyboard;
 	TK80::MEMBUS* memory;
-	
+
 	// memory
 	uint8_t mon[0x800];
 	uint8_t ext[0x7000];
@@ -237,22 +233,22 @@ protected:
 	uint8_t basic[0x2000];
 	uint8_t bsmon[0x1000];
 	uint8_t vram[0x200];
-	
+
 	int boot_mode;
 #endif
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -260,18 +256,18 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
 #if defined(_TK80BS)
 	int max_draw_ranges();
 #endif
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -279,13 +275,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
@@ -304,23 +300,23 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
-	
+
 #if defined(_TK80BS)
 	int draw_ranges;
 #endif

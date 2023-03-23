@@ -63,7 +63,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	dummy->set_device_name(_T("1st Dummy"));
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	cpu = new I8080(this, emu);
 #if defined(_TK80BS)
 	sio_b = new I8251(this, emu);	// on TK-80BS
@@ -71,6 +71,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_b = new I8255(this, emu);
 	pio_b->set_device_name(_T("i8255 PIO (TK-80BS/DISPLAY)"));
 	memio = new IO(this, emu);
+	memio->space = 0x10000;
  	memio->set_device_name(_T("Memory Mapped I/O (TK-80BS)"));
 #endif
 	drec = new DATAREC(this, emu);
@@ -79,7 +80,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio_t = new I8255(this, emu);	// on TK-80
 //	memory = new MEMORY(this, emu);
-	
+
 	pcm0 = new PCM1BIT(this, emu);
 	pcm0->set_device_name(_T("1-Bit PCM Sound #1"));
 	pcm1 = new PCM1BIT(this, emu);
@@ -88,14 +89,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	pcm0->set_context_debugger(new DEBUGGER(this, emu));
 //	pcm1->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 #if defined(_TK80BS) || defined(_TK80)
 	cmt = new CMT(this, emu);
 #endif
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMBUS(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x200;
+
 #if defined(_TK80BS)
 	pio_t->set_device_name(_T("i8255 PIO (TK-80/SOUND/KEYBOARD/DISPLAY)"));
 #else
@@ -110,9 +113,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 /*	8255 on TK-80
-	
+
 	PA	key matrix
 	PB0	serial in
 	PC0	serial out
@@ -143,7 +146,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
 	//pcm0->set_realtime_render(true);
 	//pcm1->set_realtime_render(true);
-	
+
 #if defined(_TK80BS) || defined(_TK80)
 	cmt->set_context_drec(drec);
 	cmt->set_context_pio(pio_t);
@@ -157,7 +160,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_led_ptr(ram + 0x3f8);
 	keyboard->set_context_pio_t(pio_t);
 	memory->set_context_cpu(cpu);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(pio_t);
@@ -165,18 +168,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(mon, 0xff, sizeof(mon));
 #if defined(_TK80BS)
 	memset(bsmon, 0xff, sizeof(bsmon));
 #endif
 	memset(ext, 0xff, sizeof(ext));
-	
+
 #if defined(_TK80BS)
 	static const uint8_t top[3] = {0xc3, 0x00, 0xf0};
 	static const uint8_t rst[3] = {0xc3, 0xdd, 0x83};
-	
+
 	if(!memory->read_bios(_T("TK80.ROM"), mon, sizeof(mon))) {
 		// default
 		memcpy(mon, top, sizeof(top));
@@ -192,7 +195,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->read_bios(_T("TK85.ROM"), mon, sizeof(mon));
 #endif
 	memory->read_bios(_T("EXT.ROM"), ext, sizeof(ext));
-	
+
 	memory->set_memory_r(0x0000, 0x07ff, mon);
 	memory->set_memory_r(0x0c00, 0x7bff, ext);
 #if defined(_TK80BS)
@@ -203,7 +206,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(_TK80BS)
 	memory->set_memory_r(0xd000, 0xefff, basic);
 	memory->set_memory_r(0xf000, 0xffff, bsmon);
-	
+
 	// memory mapped i/o
 	memio->set_iomap_alias_rw(0x7df8, sio_b, 0);
 	memio->set_iomap_alias_rw(0x7df9, sio_b, 1);
@@ -212,13 +215,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memio->set_iomap_alias_rw(0x7dfe, pio_b, 2);
 	memio->set_iomap_alias_w(0x7dff, pio_b, 3);
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 }
 
 VM::~VM()
@@ -258,21 +261,21 @@ void VM::reset()
 			memory->read_bios(_T("LV2BASIC.ROM"), basic, sizeof(basic));
 		}
 		boot_mode = config.boot_mode;
-		
+
 		memset(ram, 0, sizeof(ram));
 	}
-	
+
 	// initialize screen
 	emu->reload_bitmap();
 	draw_ranges = 8;
 	memset(vram, 0x20, sizeof(vram));
 #endif
-	
+
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// init 8255 on TK-80
 	pio_t->write_io8(0xfb, 0x92);
 	pio_t->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
@@ -321,7 +324,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm0->initialize_sound(rate, 8000);
 	pcm1->initialize_sound(rate, 8000);
@@ -411,7 +414,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		bool remote = drec->get_remote();
-		
+
 		if(drec->play_tape(file_path) && remote) {
 			// if machine already sets remote on, start playing now
 			push_play(drv);
@@ -427,7 +430,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		bool remote = drec->get_remote();
-		
+
 		if(drec->rec_tape(file_path) && remote) {
 			// if machine already sets remote on, start recording now
 			push_play(drv);
@@ -591,7 +594,7 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(vram, sizeof(vram), 1);
 	state_fio->StateValue(boot_mode);
 //	state_fio->StateValue(draw_ranges);
-	
+
 	// post process
 	if(loading) {
 		emu->reload_bitmap();
