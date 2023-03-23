@@ -38,10 +38,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	io = new IO(this, emu);
+	io->space = 0x100;
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x800;
+
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio1 = new Z80PIO(this, emu);
@@ -60,7 +63,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	// set contexts
 	event->set_context_cpu(cpu);
-	
+
 	pio2->set_context_port_b(display, SIG_DISPLAY_7SEG_LED, 0xff, 0);
 	keyboard->set_context_pio(pio2);
 	// p.145, fig.3-4
@@ -69,7 +72,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// p.114, fig.2-52
 	pio1->set_context_port_b(display, SIG_DISPLAY_8BIT_LED, 0xff, 0);
 	//pio1->set_context_port_b(pio1, SIG_Z80PIO_PORT_A, 0xff, 0);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -77,28 +80,28 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	ctc->set_context_intr(cpu, 0);
 	ctc->set_context_child(pio1);
 	pio1->set_context_intr(cpu, 1);
 	pio1->set_context_child(pio2);
 	pio2->set_context_intr(cpu, 2);
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	memory->read_bios(_T("MON.ROM"), rom, sizeof(rom));
-	
+
 	memory->set_memory_r(0x0000, 0x07ff, rom);
 	memory->set_memory_rw(0x1000, 0x17ff, ram);
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x00, 0x03, ctc);
 	io->set_iomap_range_rw(0x10, 0x13, pio1);
 	io->set_iomap_range_rw(0x20, 0x23, pio2);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);

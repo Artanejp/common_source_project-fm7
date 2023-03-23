@@ -19,8 +19,6 @@
 #define CPU_CLOCKS		2500000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		483
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
@@ -102,56 +100,56 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	IO* io;
 	MEMORY* memory;
 	Z80* cpu;
 	Z80CTC* ctc;
 	Z80PIO* pio1;
 	Z80PIO* pio2;
-	
+
 	BABBAGE2ND::DISPLAY* display;
 	BABBAGE2ND::KEYBOARD* keyboard;
-	
+
 	// memory
 	uint8_t rom[0x800];
 	uint8_t ram[0x800];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void run() override;
 	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index) override;
 #endif
-	
+
 	// draw screen
 	void draw_screen() override;
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples) override;
 	uint16_t* create_sound(int* extra_frames) override;
 	int get_sound_buffer_ptr() override;
-	
+
 	// notify key
 	void key_down(int code, bool repeat) override;
 	void key_up(int code) override;
@@ -160,16 +158,16 @@ public:
 	void load_binary(int drv, const _TCHAR* file_path) override;
 	void save_binary(int drv, const _TCHAR* file_path) override;
 	bool is_frame_skippable() override;
-	
+
 	double get_current_usec() override;
 	uint64_t get_current_clock_uint64() override;
-	
+
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id);
 	//DEVICE* dummy;
