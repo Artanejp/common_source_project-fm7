@@ -20,8 +20,7 @@
 #define HD46505_CHAR_CLOCK	998400
 #define CPU_CLOCKS		3993600
 #define SUB_CPU_CLOCKS		1996800
-//#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
+
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
@@ -80,17 +79,17 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils *state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	BEEP* beep;
 	DATAREC* drec;
 	HD46505* crtc;
 	UPD765A* fdc;
 	UPD7801* subcpu;
 	Z80* maincpu;
-	
+
 	FP1100::MAIN* mainbus;
 	FP1100::SUB* subbus;
 	FP1100::FDCPACK* fdcpack;
@@ -101,32 +100,32 @@ protected:
 	FP1100::RAMPACK* rampack5;
 	FP1100::RAMPACK* rampack6;
 	FP1100::ROMPACK* rompack;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	//void reset();
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -134,11 +133,11 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -161,17 +160,17 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	//void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id);
 	//DEVICE* dummy;

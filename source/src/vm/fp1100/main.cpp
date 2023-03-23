@@ -11,7 +11,7 @@
 #include "./sub.h"
 
 namespace FP1100 {
-	
+
 #define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
@@ -39,14 +39,14 @@ void MAIN::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
 	memset(rdmy, 0xff, sizeof(rdmy));
-	
+
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	SET_BANK_W(0x0000, 0xffff, ram);
 	SET_BANK_R(0x0000, 0xffff, ram, 0);
 }
@@ -71,7 +71,7 @@ uint32_t MAIN::read_data8(uint32_t addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-#ifdef Z80_MEMORY_WAIT
+/*
 void MAIN::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	*wait = 0;
@@ -84,8 +84,7 @@ uint32_t MAIN::read_data8w(uint32_t addr, int *wait)
 	*wait = wait[addr >> 12];
 	return read_data8(addr);
 }
-#endif
-
+*/
 void MAIN::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
@@ -151,7 +150,6 @@ uint32_t MAIN::read_io8(uint32_t addr)
 	return val;
 }
 
-#ifdef Z80_IO_WAIT
 void MAIN::write_io8w(uint32_t addr, uint32_t data, int *wait)
 {
 	*wait = 1;
@@ -163,7 +161,6 @@ uint32_t MAIN::read_io8w(uint32_t addr, int *wait)
 	*wait = 1;
 	return read_io8(addr);
 }
-#endif
 
 static const uint8_t bits[5] = {
 	0x10, 0x01, 0x02, 0x04, 0x08
@@ -266,7 +263,7 @@ bool MAIN::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(intr_mask);
 	state_fio->StateValue(intr_request);
 	state_fio->StateValue(intr_in_service);
-	
+
 	// post process
 	if(loading) {
 		update_memory_map();
