@@ -63,7 +63,7 @@ void DEVICE::initialize()
 	#endif
 	} else {
 		__IOBUS_RETURN_ADDR = osd->check_feature(_T("IOBUS_RETURN_ADDR"));
-		__USE_DEBUGGER = osd->check_feature("USE_DEBUGGER");
+		__USE_DEBUGGER = osd->check_feature(_T("USE_DEBUGGER"));
 	}
 #elif defined(IOBUS_RETURN_ADDR)
 		__IOBUS_RETURN_ADDR = true;
