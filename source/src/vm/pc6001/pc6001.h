@@ -65,10 +65,6 @@
 #define TIMER_PERIOD	(2000 / .999)
 #endif
 
-//memory wait
-#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
-
 // device informations for virtual machine
 #define FRAMES_PER_SEC		60
 #define LINES_PER_FRAME		262
@@ -176,10 +172,10 @@ protected:
 	//EMU* emu;
 
 	int vdata;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	DEVICE* printer;
 	I8255* pio_sub;
 	IO* io;
@@ -205,33 +201,33 @@ protected:
 	PC6001::MEMORY* memory;
 //	PC6001::PSUB* psub;
 	PC6001::TIMER* timer;
-	
+
 	MCS48* cpu_sub;
 	PC6001::SUB* sub;
 	DATAREC* drec;
-	
+
 	PC6031* pc6031;
 	I8255* pio_fdd;
 	I8255* pio_pc80s31k;
 	PC80S31K *pc80s31k;
 	UPD765A* fdc_pc80s31k;
 	Z80* cpu_pc80s31k;
-	
+
 	bool support_sub_cpu;
 	bool support_pc80s31k;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -239,15 +235,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -255,11 +251,11 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
-	
+
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
@@ -285,23 +281,23 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
-	
+
 	int sr_mode;
 };
 #endif

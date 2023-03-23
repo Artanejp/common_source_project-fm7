@@ -22,7 +22,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
-#define I8259_MAX_CHIPS		1
 #define MAX_DRIVE		4
 #define UPD765A_DONT_WAIT_SEEK
 #define HAS_AY_3_8912
@@ -85,10 +84,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils *state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	BEEP* beep;
 	HD46505* crtc;
 	I8251* sio;
@@ -100,39 +99,39 @@ protected:
 //	YM2203* psg;
 	AY_3_891X* psg;
 	Z80* cpu;
-	
+
 	MULTI8::CMT* cmt;
 	MULTI8::DISPLAY* display;
 	MULTI8::FLOPPY* floppy;
 	MULTI8::KANJI* kanji;
 	MULTI8::KEYBOARD* key;
 	MULTI8::MEMORY* memory;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -140,11 +139,11 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -157,17 +156,17 @@ public:
 	void close_tape(int drv);
 	bool is_tape_inserted(int drv);
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

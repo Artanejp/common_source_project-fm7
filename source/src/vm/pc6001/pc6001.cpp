@@ -81,7 +81,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec = NULL;
 	sub = NULL;
 	cpu_sub = NULL;
-	
+
 	pio_fdd = NULL;
 	pio_pc80s31k = NULL;
 	fdc_pc80s31k = NULL;
@@ -95,9 +95,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	pio_sub = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	noise_seek = new NOISE(this, emu);
 	noise_head_down = new NOISE(this, emu);
 	noise_head_up = new NOISE(this, emu);
@@ -110,13 +111,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);
-	
+
 	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
 	} else {
 		printer = dummy;
 	}
-	
+
 #if defined(_PC6601) || defined(_PC6601SR)
 	floppy = new FLOPPY(this, emu);
 	floppy->set_context_noise_seek(noise_seek);
@@ -126,18 +127,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	joystick = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	timer = new TIMER(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	event->set_context_sound(noise_seek);
 	event->set_context_sound(noise_head_down);
 	event->set_context_sound(noise_head_up);
-	
+
 	pio_sub->set_context_port_b(printer, SIG_PRINTER_DATA, 0xff, 0);
 	pio_sub->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x01, 0);
 	pio_sub->set_context_port_c(memory, SIG_MEMORY_PIO_PORT_C, 0x06, 0);	// CRTKILL,CGSWN
-	
+
 #ifdef _PC6001
 	display = new DISPLAY(this, emu);
 	vdp = new MC6847(this, emu);
@@ -154,7 +155,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	memory->set_context_cpu(cpu);
 	joystick->set_context_psg(psg);
-	
+
 	timer->set_context_cpu(cpu);
 #ifndef _PC6001
 	timer->set_context_memory(memory);
@@ -202,9 +203,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		fdc_pc80s31k->set_device_name(_T("uPD765A FDC (320KB FDD)"));
 		cpu_pc80s31k = new Z80(this, emu);
 		cpu_pc80s31k->set_device_name(_T("Z80 CPU (320KB FDD)"));
-		
+
 		event->set_context_cpu(cpu_pc80s31k, 4000000);
-		
+
 		pc80s31k->set_context_cpu(cpu_pc80s31k);
 		pc80s31k->set_context_fdc(fdc_pc80s31k);
 		pc80s31k->set_context_pio(pio_pc80s31k);
@@ -241,7 +242,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 		cpu_pc80s31k = NULL;
 	}
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -249,7 +250,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	if(support_sub_cpu) {
 		io->set_iomap_range_rw(0x90, 0x93, sub);
@@ -276,7 +277,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	io->set_iomap_range_rw(0xf3, 0xf7, timer);		// IRQ/Timer
 #endif
-	
+
 #if defined(_PC6601) || defined(_PC6601SR)
 	io->set_iomap_range_rw(0xb1, 0xb3, floppy);		// DISK DRIVE
 	io->set_iomap_range_rw(0xb5, 0xb7, floppy);		// DISK DRIVE (Mirror)
@@ -288,7 +289,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #elif defined(_PC6001MK2SR)
 	io->set_iovalue_single_r(0xb2, 0x00);
 #endif
-	
+
 	if(support_pc80s31k) {
 		io->set_iomap_range_rw(0xd0, 0xd2, pio_fdd);
 		io->set_iomap_single_w(0xd3, pio_fdd);
@@ -297,13 +298,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 #endif
 	io->set_iomap_range_rw(0xf0, 0xf2, memory);		// MEMORY MAP
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	if(support_sub_cpu) {
 		// load rom images after cpustate is allocated
 #ifdef _PC6601SR
@@ -404,7 +405,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 4000000, samples, 0, 0);
 #ifndef _PC6001
@@ -617,7 +618,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 #if 1
 		if(drec != nullptr) {
 			bool remote = drec->get_remote();
-		
+
 			if(drec->play_tape(file_path) && remote) {
 				// if machine already sets remote on, start playing now
 				push_play(drv);

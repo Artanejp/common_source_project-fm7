@@ -29,33 +29,34 @@ private:
 	DEVICE *d_drec;
 	DEVICE *d_rtc;
 	DEVICE *d_cpu;
-	
+
 	uint8_t port_a, port_b, port_s;
 	bool drec_in, rtc_in;
-	
+
 	const uint8_t *key_stat;
 	uint16_t key_strobe;
-	
+
 	uint8_t get_key();
 	bool __FASTCALL key_hit(int code);
-	
+
 public:
 	IO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
 	~IO() {}
-	
+
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique functions
 	void set_context_lcd(int index, UPD16434* device)
 	{

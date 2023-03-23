@@ -117,13 +117,13 @@ class PORT_F4 : public DEVICE
 {
 private:
 	uint8_t port;
-	
+
 public:
 	PORT_F4(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		port = 0;
 	}
 	~PORT_F4() {}
-	
+
 	// common functions
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) {
 		port = data & 0xFF;
@@ -147,13 +147,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 #if defined(LDC_SLOT)
 	ldp = new LD700(this, emu);
 #endif
@@ -176,7 +177,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 #endif
 	cpu = new Z80(this, emu);
-	
+
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY_EX(this, emu);
@@ -227,7 +228,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(MSX_PSG_STEREO)
 	psg_stereo = new PSG_STEREO(this, emu);
 #endif
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 #if defined(MSX_PSG_STEREO)
@@ -248,7 +249,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_fast());
 	slot_cart[0]->set_context_sound(sound_cart[0]);
 	slot_cart[1]->set_context_sound(sound_cart[1]);
-	
+
 	drec->set_context_ear(psg, SIG_AY_3_891X_PORT_A, 0x80);
 	pio->set_context_port_a(memory, SIG_MEMORY_SEL, 0xff, 0);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);
@@ -264,7 +265,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	ldp->set_context_ack(slot_ldc, SIG_LDC_ACK, 1);
 	ldp->set_context_sound(psg, SIG_AY_3_891X_PORT_A, 0x80);
 #endif
-	
+
 	joystick->set_context_psg(psg);
 //	keyboard->set_context_cpu(cpu);
 	keyboard->set_context_pio(pio);
@@ -321,9 +322,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	slot_ldc->set_context_ldp(ldp);
 	slot_ldc->set_context_vdp(vdp);
 #endif
-	
+
 #ifdef USE_PRINTER
-	if(config.printer_type == 0) {  
+	if(config.printer_type == 0) {
 		printer->set_context_prn(new PRNFILE(this, emu));
 #if defined(_MZP)
 	} else if(config.printer_type == 1) {
@@ -357,7 +358,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 #if !defined(_MSX1_VARIANTS)
 	io->set_iomap_range_rw(0xb4, 0xb5, rtcif);
@@ -382,7 +383,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x90, 0x91, printer);
 #endif
 	io->set_iomap_range_rw(0x7c, 0x7d, ym2413);
-	
+
 #ifdef USE_PORT_F4
 	static PORT_F4 *port_f4;
 	port_f4 = new PORT_F4(this, emu);
@@ -394,7 +395,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 }
 
 VM::~VM()
@@ -466,7 +467,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 #if defined(MSX_PSG_STEREO)
 	psg_stereo->initialize_sound(rate, 3579545, samples, 0, 0);
@@ -562,7 +563,7 @@ bool VM::is_cart_inserted(int drv)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -572,7 +573,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

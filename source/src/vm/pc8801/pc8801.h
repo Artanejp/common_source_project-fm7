@@ -130,11 +130,6 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
-#if defined(SUPPORT_PC88_16BIT)
-#define I8259_MAX_CHIPS		1
-#define IO_ADDR_MAX		0x100
-#define MEMORY_ADDR_MAX		0x100000
-#endif
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
 #if defined(_PC8801MA)
 #define PC80S31K_NO_WAIT
@@ -143,7 +138,6 @@
 #define SCSI_HOST_AUTO_ACK
 #define SCSI_DEV_IMMEDIATE_SELECT
 #endif
-#define Z80_MEMORY_WAIT
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 
 // device informations for win32

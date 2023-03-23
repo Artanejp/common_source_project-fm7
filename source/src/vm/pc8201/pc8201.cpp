@@ -44,7 +44,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -52,17 +52,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I8080(this, emu);
 	pio = new I8155(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
 #ifdef USE_DEBUGGER
 //	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	cmt = new CMT(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	lcd = new LCD(this, emu);
 	memory = new MEMORY(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
@@ -70,7 +71,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(cpu, SIG_I8085_SID, 1);
 	cpu->set_context_sod(cmt, SIG_CMT_SOD, 1);
 	pio->set_context_port_a(rtc, SIG_UPD1990A_C0, 1, 0);
@@ -87,11 +88,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio->set_constant_clock(CPU_CLOCKS);
 	rtc->set_context_dout(pio, SIG_I8155_PORT_C, 1);
 	rtc->set_context_tp(cpu, SIG_I8085_RST7, 1);
-	
+
 	memory->set_context_cmt(cmt);
 	memory->set_context_drec(drec);
 	memory->set_context_rtc(rtc);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -99,20 +100,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_w(0x90, 0x9f, memory);
 	io->set_iomap_range_rw(0xa0, 0xaf, memory);
 	io->set_iomap_range_rw(0xb0, 0xbf, pio);
 	io->set_iomap_range_r(0xe0, 0xef, keyboard);
 	io->set_iomap_range_rw(0xf0, 0xff, lcd);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	rtc->write_signal(SIG_UPD1990A_STB, 0, 0);
 }
 
@@ -185,7 +186,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -245,9 +246,9 @@ bool VM::get_kana_locked()
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	cmt->close_tape();
-	
+
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -260,7 +261,7 @@ void VM::rec_tape(int drv, const _TCHAR* file_path)
 	drec->close_tape();
 	emu->unlock_vm();
 	drec->set_remote(false);
-	
+
 	cmt->rec_tape(file_path);
 }
 
@@ -270,7 +271,7 @@ void VM::close_tape(int drv)
 	drec->close_tape();
 	emu->unlock_vm();
 	drec->set_remote(false);
-	
+
 	cmt->close_tape();
 }
 

@@ -70,7 +70,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int = new AND(this, emu);
 	and_int->set_device_name(_T("AND Gate (Interrupts)"));
@@ -85,12 +85,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 	counter->set_device_name(_T("74LS393 Counter (CTC/Sound)"));
-	
+
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	printer = new PRINTER(this, emu);
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
+	io->space = 0x100;
 	fdc = new MB8877(this, emu);	// mb8866
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -98,13 +99,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	mz80aif = new MZ80AIF(this, emu);
 #elif defined(SUPPORT_MZ80FIO)
 	io = new IO(this, emu);
+	io->space = 0x100;
 	fdc = new T3444A(this, emu);	// t3444m
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	mz80fio = new MZ80FIO(this, emu);
 #endif
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
@@ -117,7 +119,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 #if defined(_MZ1200) || defined(_MZ80A)
 	and_int->set_context_out(cpu, SIG_CPU_IRQ, 1);
 	and_int->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
@@ -143,11 +145,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	counter->set_context_1qa(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
 	//pcm->set_realtime_render(true);
-	
+
 	keyboard->set_context_pio(pio);
 	memory->set_context_ctc(ctc);
 	memory->set_context_pio(pio);
-	
+
 #if defined(SUPPORT_MZ80AIF)
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
 	fdc->set_context_drq(memory, SIG_MEMORY_FDC_DRQ, 1);
@@ -155,8 +157,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #elif defined(SUPPORT_MZ80FIO)
 	mz80fio->set_context_fdc(fdc);
 #endif
-	
-	if(config.printer_type == 0) {  
+
+	if(config.printer_type == 0) {
 		printer->set_context_prn(new PRNFILE(this, emu));
 	} else if(config.printer_type == 1) {
 		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
@@ -165,7 +167,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		printer->set_context_prn(dummy);
 	}
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
@@ -177,7 +179,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 #if defined(SUPPORT_MZ80AIF)
 	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
@@ -186,13 +188,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf8, 0xfb, mz80fio);
 #endif
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 #if defined(SUPPORT_MZ80AIF)
 	for(int drv = 0; drv < MAX_DRIVE; drv++) {
 //		if(config.drive_type) {
@@ -282,7 +284,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -352,7 +354,7 @@ bool VM::get_kana_locked()
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 #if defined(SUPPORT_MZ80AIF)
 	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
 		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
@@ -396,7 +398,7 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -406,7 +408,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

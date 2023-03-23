@@ -54,6 +54,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	// for main cpu
 	mainio = new IO(this, emu);
+	mainio->space = 0x100;
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -78,6 +79,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	subio = new IO(this, emu);
+	subio->space = 0x100;
 	subio->set_device_name(_T("I/O Bus (Sub)"));
 	ls244 = new LS244(this, emu);
 	not_data0 = new NOT(this, emu);
@@ -111,7 +113,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	subcpu->set_device_name(_T("Z80 CPU (Sub)"));
 	subbus = new SUB(this, emu);
 	kbd = new KEYBOARD(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(maincpu, CPU_CLOCKS);
 	event->set_context_cpu(subcpu, CPU_CLOCKS);
@@ -119,12 +121,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	// mz3500sm p.59
 	fdc->set_context_irq(mainbus, SIG_MAIN_INTFD, 1);
 	fdc->set_context_drq(mainbus, SIG_MAIN_DRQ, 1);
 	fdc->set_context_index(mainbus, SIG_MAIN_INDEX, 1);
-	
+
 	// mz3500sm p.78
 	if(config.printer_type == 0) {
 		PRNFILE *prnfile = (PRNFILE *)printer;
@@ -135,15 +137,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		mz1p17->mode = MZ1P17_MODE_MZ1;
 		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
 		mz1p17->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
-		
+
 		// sw1=on, sw2=off, select MZ-1P02 (mz3500sm p.85)
 		config.dipswitch &= ~0x03;
 		config.dipswitch |=  0x01;
 	}
-	
+
 	// mz3500sm p.72,77
 	sio->set_context_rxrdy(subcpu, SIG_CPU_NMI, 1);
-	
+
 	// mz3500sm p.77,83
 	// i8253 ch.0 -> i8251 txc,rxc
 	pit->set_context_ch1(pcm, SIG_PCM1BIT_SIGNAL, 1);
@@ -151,7 +153,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit->set_constant_clock(0, 2450760);
 	pit->set_constant_clock(1, 2450760);
 	pit->set_constant_clock(2, 2450760);
-	
+
 	// mz3500sm p.78,80,81
 	pio->set_context_port_a(not_data0, SIG_NOT_INPUT, 0x01, 0);
 	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x02, 0);
@@ -177,7 +179,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x20, 0);
 	// i8255 pc6 <- printer ack
 	pio->set_context_port_c(ls244, SIG_LS244_INPUT, 0x80, -6);
-	
+
 	// mz3500sm p.78
 	not_data0->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
 	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
@@ -188,42 +190,42 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
 	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
 	not_busy->set_context_out(ls244, SIG_LS244_INPUT, 0x04);
-	
+
 	// mz3500sm p.80,81
 	rtc->set_context_dout(ls244, SIG_LS244_INPUT, 0x01);
-	
+
 	gdc_chr->set_vram_ptr(subbus->get_vram_chr(), 0x2000, 0xfff);
 	subbus->set_sync_ptr_chr(gdc_chr->get_sync());
 	subbus->set_ra_ptr_chr(gdc_chr->get_ra());
 	subbus->set_cs_ptr_chr(gdc_chr->get_cs());
 	subbus->set_ead_ptr_chr(gdc_chr->get_ead());
-	
+
 	gdc_gfx->set_vram_ptr(subbus->get_vram_gfx(), 0x18000);
 	subbus->set_sync_ptr_gfx(gdc_gfx->get_sync());
 	subbus->set_ra_ptr_gfx(gdc_gfx->get_ra());
 	subbus->set_cs_ptr_gfx(gdc_gfx->get_cs());
 	subbus->set_ead_ptr_gfx(gdc_gfx->get_ead());
-	
+
 	kbd->set_context_subcpu(subcpu);
 	kbd->set_context_ls244(ls244);
-	
+
 	// mz3500sm p.23
 	subcpu->set_context_busack(mainbus, SIG_MAIN_SACK, 1);
-	
+
 	mainbus->set_context_maincpu(maincpu);
 	mainbus->set_context_subcpu(subcpu);
 	mainbus->set_context_fdc(fdc);
-	
+
 	subbus->set_context_main(mainbus);
 	subbus->set_ipl(mainbus->get_ipl());
 	subbus->set_common(mainbus->get_common());
-	
+
 	// mz3500sm p.17
 	mainio->set_iomap_range_rw(0xec, 0xef, mainbus);	// reset int0
 	mainio->set_iomap_range_rw(0xf4, 0xf7, fdc);		// fdc: f4h,f6h = status, f5h,f7h = data
 	mainio->set_iomap_range_rw(0xf8, 0xfb, mainbus);	// mfd interface
 	mainio->set_iomap_range_rw(0xfc, 0xff, mainbus);	// memory mpaper
-	
+
 	// mz3500sm p.18
 	subio->set_iomap_range_w(0x00, 0x0f, subbus);		// int0 to main (set flipflop)
 	subio->set_iomap_range_rw(0x10, 0x1f, sio);
@@ -236,7 +238,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef _IO_DEBUG_LOG
 	subio->cpu_index = 1;
 #endif
-	
+
 	// cpu bus
 	maincpu->set_context_mem(mainbus);
 	maincpu->set_context_io(mainio);
@@ -244,20 +246,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	subcpu->set_context_mem(subbus);
 	subcpu->set_context_io(subio);
 	subcpu->set_context_intr(subbus);
 #ifdef USE_DEBUGGER
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
@@ -302,14 +304,14 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// set busreq of sub cpu
 	subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-	
+
 	// halt key is not pressed (mz3500sm p.80)
 	halt = 0;
 	ls244->write_signal(SIG_LS244_INPUT, 0x80, 0xff);
-	
+
 	// set printer signal (mz3500sm p.78)
 	not_busy->write_signal(SIG_NOT_INPUT, 0, 0);		// busy = low
 	ls244->write_signal(SIG_LS244_INPUT, 0x1c, 0x1c);	// busy = ~(low), pe = ~(low), pdtr = high
@@ -370,7 +372,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }

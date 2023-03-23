@@ -48,7 +48,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	and_drq = new AND(this, emu);
 	beep = new BEEP(this, emu);
 #ifdef USE_DEBUGGER
@@ -62,10 +62,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic = new I8259(this, emu);
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
-	
+
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x100000;
+	memory->bank_size = 0x8000;
+	memory->bus_width = 16;
+
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
@@ -75,11 +80,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
-	
+
 	crtc = new CRTC(this, emu);
 	ioctrl = new IOCTRL(this, emu);
 	kanji = new KANJI(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
@@ -87,7 +92,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	and_drq->set_context_out(cpu, SIG_CPU_NMI, 1);
 	and_drq->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
 	sio->set_context_rxrdy(pic, SIG_I8259_IR1, 1);
@@ -105,13 +110,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc->set_context_busy(pio0, SIG_I8255_PORT_C, 0x10);
 	fdc->set_context_irq(cpu, SIG_CPU_NMI, 1);
 	fdc->set_context_drq(and_drq, SIG_AND_BIT_1, 1);
-	
+
 	crtc->set_context_pic(pic);
 	ioctrl->set_context_pic(pic);
 	ioctrl->set_context_fdc(fdc);
 	ioctrl->set_context_beep(beep);
 	ioctrl->set_context_pcm(pcm);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -119,17 +124,17 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(ipl, 0xff, sizeof(ipl));
-	
+
 	memory->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
-	
+
 	memory->set_memory_rw(0x00000, 0xbffff, ram);
 	memory->set_memory_mapped_io_rw(0xc0000, 0xdffff, crtc);
 	memory->set_memory_r(0xf8000, 0xfffff, ipl);
-	
+
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, 0);
 	io->set_iomap_alias_rw(0x02, pic, 1);
@@ -162,13 +167,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x81, kanji);
 	io->set_iomap_single_w(0x84, kanji);
 	io->set_iomap_single_w(0x86, kanji);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < 4; i++) {
 		if(config.drive_type) {
 			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
@@ -254,7 +259,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 2400, 8000);
 	pcm->initialize_sound(rate, 8000);

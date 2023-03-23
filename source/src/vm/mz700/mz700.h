@@ -45,9 +45,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
-#define IO_ADDR_MAX		0x100
-#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
 #define MAX_DRIVE		4
 #define HAS_MB8876
 #if defined(_MZ1500)

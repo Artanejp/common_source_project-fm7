@@ -46,7 +46,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -59,13 +59,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio3 = new I8255(this, emu);
 	pio3->set_device_name(_T("8255 PIO (FDC/RTC)"));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	fdc = new MB8877(this, emu);	// FD1771
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	rtc = new MSM5832(this, emu);	// MSM5832
 	psg = new SN76489AN(this, emu);
 	cpu = new Z80(this, emu);
-	
+
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
@@ -80,7 +81,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	//	00	out	system control
 	//	01	in/out	vram data
 	//	02	out	crtc addr
@@ -143,7 +144,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_drq(pio3, SIG_I8255_PORT_A, 0x02);
 	fdc->set_context_rdy(pio3, SIG_I8255_PORT_A, 0x40);
 	rtc->set_context_data(pio3, SIG_I8255_PORT_B, 0x0f, 0);
-	
+
 	display->set_context_crtc(crtc);
 	display->set_regs_ptr(crtc->get_regs());
 	keyboard->set_context_cpu(cpu);
@@ -152,7 +153,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_fdc(fdc);
 	memory->set_context_pio(pio3);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -161,7 +162,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 //	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_single_w(0x00, memory);
 	io->set_iomap_single_rw(0x01, display);
@@ -170,13 +171,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x08, 0x0b, pio2);
 	io->set_iomap_range_rw(0x0c, 0x0f, pio3);
 	io->set_iomap_range_rw(0x10, 0x13, fdc);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int drv = 0; drv < MAX_DRIVE; drv++) {
 		fdc->set_drive_type(drv, DRIVE_TYPE_2D);
 		fdc->set_drive_mfm(drv, false);
@@ -257,7 +258,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 2500800, 10000);
 }
@@ -352,7 +353,7 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -362,7 +363,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

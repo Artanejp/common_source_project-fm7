@@ -39,14 +39,7 @@
 #define HAS_MB8876
 #ifdef SUPPORT_QUICK_DISK
 #endif
-#ifdef SUPPORT_16BIT_BOARD
-#define I8259_MAX_CHIPS		1
-#endif
 #define PRINTER_STROBE_RISING_EDGE
-
-// memory wait
-#define Z80_MEMORY_WAIT
-#define Z80_IO_WAIT
 
 // device informations for win32
 #define USE_SPECIAL_RESET	1
@@ -127,10 +120,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	DATAREC* drec;
 	I8253* pit;
 	I8255* pio_i;
@@ -139,7 +132,7 @@ protected:
 	PCM1BIT* pcm;
 	Z80* cpu;
 	Z80PIO* pio;
-	
+
 	MZ2500::CMT* cmt;
 	MZ2500::FLOPPY* floppy;
 	MZ2500::KEYBOARD* keyboard;
@@ -148,31 +141,31 @@ protected:
 	MZ2500::MZ1R13* mz1r13;
 	MZ2500::PRINTER* printer;
 	MZ2500::TIMER* timer;
-	
+
 #ifdef SUPPORT_QUICK_DISK
 	Z80SIO* sio;
 	MZ700::QUICKDISK* qd;
 #endif
-	
+
 #ifdef SUPPORT_16BIT_BOARD
 	Z80PIO* pio_to16;
 	I86* cpu_16;
 	I8259* pic_16;
 	MZ80B::MZ1M01* mz1m01;
 #endif
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
@@ -181,15 +174,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -197,7 +190,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -226,17 +219,17 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

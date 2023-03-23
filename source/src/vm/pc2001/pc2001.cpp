@@ -39,13 +39,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
+
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
 //	pcm->set_context_debugger(new DEBUGGER(this, emu));
@@ -60,9 +62,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	lcd[3]->set_device_name(_T("uPD16434 LCD Controller #3"));
 	rtc = new UPD1990A(this, emu);
 	cpu = new UPD7907(this, emu);
-	
+
 	io = new PC2001::IO(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
@@ -70,11 +72,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(io, SIG_IO_DREC_IN, 1);
 	rtc->set_context_dout(io, SIG_IO_RTC_IN, 1);
 	cpu->set_context_to(pcm, SIG_PCM1BIT_SIGNAL, 1);
-	
+
 	io->set_context_lcd(0, lcd[0]);
 	io->set_context_lcd(1, lcd[1]);
 	io->set_context_lcd(2, lcd[2]);
@@ -82,27 +84,27 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_context_drec(drec);
 	io->set_context_rtc(rtc);
 	io->set_context_cpu(cpu);
-	
+
 	// memory bus
 	memset(ram, 0xff, sizeof(ram));
 //	memset(ram, 0, sizeof(ram));
 	memset(rom1, 0xff, sizeof(rom1));
 	memset(rom2, 0xff, sizeof(rom2));
-	
+
 	memory->read_bios(_T("0000-0FFF.ROM"), rom1, sizeof(rom1));
 	memory->read_bios(_T("2000-5FFF.ROM"), rom2, sizeof(rom2));
-	
+
 	memory->set_memory_r(0x0000, 0x0fff, rom1);
 	memory->set_memory_r(0x2000, 0x5fff, rom2);
 	memory->set_memory_rw(0xb000, 0xffff, ram);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -181,7 +183,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -218,7 +220,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -228,7 +230,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

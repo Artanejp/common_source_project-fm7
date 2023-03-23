@@ -24,7 +24,6 @@
 #define UPD765A_WAIT_RESULT7
 #define UPD765A_EXT_DRVSEL
 #define UPD7220_HORIZ_FREQ	20920
-#define IO_ADDR_MAX		0x100
 #define PRINTER_STROBE_RISING_EDGE
 
 // device informations for win32
@@ -83,16 +82,16 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils *state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	// for main cpu
 	IO* mainio;
 	UPD765A* fdc;
 	Z80* maincpu;
 	MZ3500::MAIN* mainbus;
-	
+
 	// for sub cpu
 	DEVICE* printer;
 	I8251* sio;
@@ -116,35 +115,35 @@ protected:
 	Z80* subcpu;
 	MZ3500::SUB* subbus;
 	MZ3500::KEYBOARD* kbd;
-	
+
 	uint8_t halt;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -152,13 +151,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -167,17 +166,17 @@ public:
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

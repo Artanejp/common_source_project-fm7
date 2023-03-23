@@ -53,7 +53,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	beep = new BEEP(this, emu);
 #ifdef USE_DEBUGGER
 //	beep->set_context_debugger(new DEBUGGER(this, emu));
@@ -74,7 +74,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_p = new I8255(this, emu);	// for printer
 	pio_p->set_device_name(_T("8255 PIO (Printer)"));
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	rtc = new UPD1990A(this, emu);
 	gdc_c = new UPD7220(this, emu);
 	gdc_c->set_device_name(_T("uPD7220 GDC (Character)"));
@@ -87,20 +90,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 //	fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	system = new SYSTEM(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 //???	sio_r->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR4, 1);
 	sio_k->set_context_rxrdy(pic, SIG_I8259_CHIP0 | SIG_I8259_IR1, 1);
 	sio_k->set_context_brk(keyboard, SIG_KEYBOARD_RST, 1);
@@ -112,13 +115,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_s->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
 	pic->set_context_cpu(cpu);
 	rtc->set_context_dout(pio_s, SIG_I8255_PORT_B, 1);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);	// 1MB
 	dma->set_context_ch3(fdc);	// 640KB
 	gdc_g->set_vram_ptr(memory->get_vram(), 0x20000);
 	fdc->set_context_irq(pic, SIG_I8259_IR6, 1);
 	fdc->set_context_drq(floppy, SIG_FLOPPY_DRQ, 1);
-	
+
 	display->set_context_pic(pic);
 	display->set_vram_ptr(memory->get_vram());
 	display->set_tvram_ptr(memory->get_tvram());
@@ -126,7 +130,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy->set_context_dma(dma);
 	keyboard->set_context_sio(sio_k);
 	system->set_context_dma(dma);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -134,7 +138,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_alias_w(0x00, pic, 0);
 	io->set_iomap_alias_w(0x02, pic, 1);
@@ -206,7 +210,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0xca, floppy);
 	io->set_iomap_single_w(0xcc, floppy);
 	io->set_iomap_single_w(0xbe, floppy);
-	
+
 	io->set_iomap_alias_r(0x00, pic, 0);
 	io->set_iomap_alias_r(0x02, pic, 1);
 	io->set_iomap_alias_r(0x08, pic, 2);
@@ -254,7 +258,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0xca, floppy);
 	io->set_iomap_single_r(0xcc, floppy);
 	io->set_iomap_single_r(0xbe, floppy);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -293,7 +297,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// initial device settings
 	sio_k->write_signal(SIG_I8251_DSR, 1, 1);		// DSR = 1
 	pio_s->write_io8(3, 0x92);
@@ -341,7 +345,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 2400, 8000);
 }
@@ -461,4 +465,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	// Machine specified.
 	return true;
 }
-

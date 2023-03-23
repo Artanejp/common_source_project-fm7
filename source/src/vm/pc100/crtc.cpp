@@ -16,15 +16,15 @@ void CRTC::initialize()
 {
 	// init vram
 	memset(vram, 0, sizeof(vram));
-	
+
 	// init bit control
 	shift = 0;
 	maskl = maskh = busl = bush = 0;
-	
+
 	// init vram plane
 	write_plane = 1;
 	read_plane = 0;
-	
+
 	// init pallete
 	for(int i = 1; i < 16; i++) {
 		palette[i] = 0x1ff;
@@ -32,7 +32,7 @@ void CRTC::initialize()
 	}
 	palette[0] = 0;
 	update_palette(0);
-	
+
 	// register event
 	register_vline_event(this);
 }
@@ -112,7 +112,7 @@ void CRTC::write_io8(uint32_t addr, uint32_t data)
 uint32_t CRTC::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-	
+
 	switch(addr & 0x3ff) {
 	case 0x30:
 		return shift;
@@ -175,7 +175,7 @@ void CRTC::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	}
 	uint32_t bus = busl | (bush << 8) | (busl << 16) | (bush << 24);
 	bus >>= shift;
-	
+
 	if(addr & 1) {
 		uint32_t h = (bus >> 8) & 0xff;
 		for(int pl = 0; pl < 4; pl++) {
@@ -208,7 +208,7 @@ void CRTC::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	bus >>= shift;
 	uint32_t l = bus & 0xff;
 	uint32_t h = (bus >> 8) & 0xff;
-	
+
 	for(int pl = 0; pl < 4; pl++) {
 		if(write_plane & (1 << pl)) {
 			int ofsl = ((addr & 1 ? (addr + 1) : addr) & 0x1ffff) | (0x20000 * pl);
@@ -219,11 +219,9 @@ void CRTC::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t CRTC::read_memory_mapped_io16(uint32_t addr)
+void CRTC::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait)
 {
-	uint32_t val = read_memory_mapped_io8(addr);
-	val |= read_memory_mapped_io8(addr + 1) << 8;
-	return val;
+	write_memory_mapped_io16(addr, data);
 }
 
 void CRTC::write_signal(int id, uint32_t data, uint32_t mask)
@@ -251,7 +249,7 @@ void CRTC::draw_screen()
 	int vs_tmp = (int)(int16_t)((vs & 0x400) ? (vs | 0xf800) : (vs & 0x3ff));
 	int sa = (hs + hd + 1) * 2 + (vs_tmp + vd) * 0x80;
 //	int sa = (hs + hd + 1) * 2 + ((vs & 0x3ff) + vd) * 0x80;
-	
+
 	if(cmd != 0xffff) {
 		// mono
 		scrntype_t col = RGB_COLOR(255, 255, 255);
@@ -259,11 +257,11 @@ void CRTC::draw_screen()
 			int ptr = sa & 0x1ffff;
 			sa += 0x80;
 			scrntype_t *dest = emu->get_screen_buffer(y);
-			
+
 			for(int x = 0; x < 720; x += 8) {
 				uint8_t pat = vram[ptr];
 				ptr = (ptr + 1) & 0x1ffff;
-				
+
 				dest[x + 0] = pat & 0x01 ? col : 0;
 				dest[x + 1] = pat & 0x02 ? col : 0;
 				dest[x + 2] = pat & 0x04 ? col : 0;
@@ -280,14 +278,14 @@ void CRTC::draw_screen()
 			int ptr = sa & 0x1ffff;
 			sa += 0x80;
 			scrntype_t *dest = emu->get_screen_buffer(y);
-			
+
 			for(int x = 0; x < 720; x += 8) {
 				uint8_t p0 = vram[0x00000 | ptr];
 				uint8_t p1 = vram[0x20000 | ptr];
 				uint8_t p2 = vram[0x40000 | ptr];
 				uint8_t p3 = vram[0x60000 | ptr];
 				ptr = (ptr + 1) & 0x1ffff;
-				
+
 				dest[x + 0] = palette_pc[((p0 & 0x01) << 0) | ((p1 & 0x01) << 1) | ((p2 & 0x01) << 2) | ((p3 & 0x01) << 3)];
 				dest[x + 1] = palette_pc[((p0 & 0x02) >> 1) | ((p1 & 0x02) << 0) | ((p2 & 0x02) << 1) | ((p3 & 0x02) << 2)];
 				dest[x + 2] = palette_pc[((p0 & 0x04) >> 2) | ((p1 & 0x04) >> 1) | ((p2 & 0x04) << 0) | ((p3 & 0x04) << 1)];

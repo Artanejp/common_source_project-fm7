@@ -24,37 +24,37 @@ class CRTC : public DEVICE
 {
 private:
 	DEVICE *d_pic;
-	
+
 	scrntype_t palette_pc[16];
 	uint16_t palette[16];
 	uint8_t sel, regs[8];
 	uint16_t vs, cmd;
-	
+
 	uint8_t vram[0x80000];	// VRAM 128KB * 4planes
 	uint32_t shift, maskl, maskh, busl, bush;
 	uint32_t write_plane, read_plane;
-	
+
 	void update_palette(int num);
-	
+
 public:
 	CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("CRTC"));
 	}
 	~CRTC() {}
-	
+
 	// common functions
-	void initialize();
-	void event_vline(int v, int clock);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void initialize() override;
+	void event_vline(int v, int clock) override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique functions
 	void set_context_pic(DEVICE* device)
 	{
@@ -65,4 +65,3 @@ public:
 
 }
 #endif
-

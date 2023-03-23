@@ -78,7 +78,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit = new I8253(this, emu);
 	pio0 = new I8255(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x8000;
+	io->bus_width = 16;
+
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -117,7 +121,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	pio1 = new Z80PIO(this, emu);
 	sio = new Z80SIO(this, emu);
-	
+
 	crtc = new CRTC(this, emu);
 	floppy = new FLOPPY(this, emu);
 	joystick = new JOYSTICK(this, emu);
@@ -129,7 +133,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi = new SASI(this, emu);
 	serial = new SERIAL(this, emu);
 	sysport = new SYSPORT(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(opn);
@@ -137,7 +141,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	pit->set_constant_clock(0, 31250);
 	pit->set_constant_clock(2, 31250);
 	pit->set_context_ch0(pit, SIG_I8253_CLOCK_1, 1);
@@ -150,7 +154,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
 	//pcm->set_realtime_render(true);
 
-	
+
 	pic->set_context_cpu(cpu);
 	fdc->set_context_drq(dma, SIG_UPD71071_CH1, 1);
 	fdc->set_context_irq(pic, SIG_I8259_CHIP0 | SIG_I8259_IR5, 1);
@@ -163,6 +167,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi_host->set_context_msg(sasi, SIG_SASI_MSG, 1);
 	sasi_host->set_context_req(sasi, SIG_SASI_REQ, 1);
 	sasi_host->set_context_ack(sasi, SIG_SASI_ACK, 1);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(sasi);
 	dma->set_context_ch1(fdc);
@@ -176,7 +181,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio1->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0xff, 0);
 	sio->set_context_intr(pic, SIG_I8259_CHIP0 | SIG_I8259_IR2);
 	sio->set_context_dtr(1, mouse, SIG_MOUSE_DTR, 1);
-	
+
 	crtc->set_context_pic(pic);
 	crtc->set_context_pio(pio0);
 	crtc->set_vram_ptr(memory->get_vram());
@@ -210,7 +215,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	serial->set_context_sio(sio);
 	sysport->set_context_pit(pit);
 	sysport->set_context_sio(sio);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -221,7 +226,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x70, 0x7f, dma);
 	io->set_iomap_alias_rw(0x80, pic, I8259_ADDR_CHIP0 | 0);
@@ -261,13 +266,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0x270, crtc);
 	io->set_iomap_single_w(0x272, crtc);
 	io->set_iomap_single_rw(0x274, memory);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(!(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))) {
 			create_local_path(config.last_hard_disk_path[drv], _MAX_PATH, _T("SASI%d.DAT"), drv);
@@ -310,7 +315,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// set initial port status
 	pio0->write_signal(SIG_I8255_PORT_B, 0x7c, 0xff);
 	opn->write_signal(SIG_YM2203_PORT_B, 0x37, 0xff);
@@ -357,7 +362,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	opn->initialize_sound(rate, 2000000, samples, 0, -8);
 	pcm->initialize_sound(rate, 4096);
@@ -397,7 +402,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 	if(fdc->get_media_type(drv) == MEDIA_TYPE_2DD) {
 		if(fdc->get_drive_type(drv) == DRIVE_TYPE_2D) {
 			fdc->set_drive_type(drv, DRIVE_TYPE_2DD);
@@ -459,7 +464,7 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(sasi_hdd[drv >> 1]->accessed(drv & 1)) {
 			status |= 1 << drv;

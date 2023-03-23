@@ -44,7 +44,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		d_drec->write_signal(SIG_DATAREC_MIC, data, 0x10);
 		port_a = data;
 		break;
-		
+
 	case UPD7807_PORTB:
 		#ifdef _IO_DEBUG_LOG
 			this->out_debug_log("%06x\tOUT8\tPB, %02x\n", get_cpu_pc(0), data);
@@ -58,13 +58,13 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 //		d_drec->write_signal(SIG_DATAREC_REMOTE, data, 0x80);
 		port_b = data;
 		break;
-		
+
 	case UPD7807_PORTC:
 		#ifdef _IO_DEBUG_LOG
 			this->out_debug_log("%06x\tOUT8\tPC, %02x\n", get_cpu_pc(0), data);
 		#endif
 		break;
-		
+
 	case UPD7807_PORTS:
 		#ifdef _IO_DEBUG_LOG
 			this->out_debug_log("%06x\tOUT8\tPS, %02x\n", get_cpu_pc(0), data);
@@ -86,7 +86,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 uint32_t IO::read_io8(uint32_t addr)
 {
 	uint32_t value = 0xff;
-	
+
 	switch(addr) {
 	case UPD7807_PORTB:
 		value = (drec_in ? 0x80 : 0) | ((port_a & 0x40) ? 0 : 0x02);
@@ -94,14 +94,14 @@ uint32_t IO::read_io8(uint32_t addr)
 			this->out_debug_log("%06x\tIN8\tPB = %02x\n", get_cpu_pc(0), value);
 		#endif
 		break;
-		
+
 	case UPD7807_PORTC:
 		value = get_key();
 		#ifdef _IO_DEBUG_LOG
 			this->out_debug_log("%06x\tIN8\tPC = %02x\n", get_cpu_pc(0), value);
 		#endif
 		break;
-		
+
 	case UPD7807_PORTS:
 		value = port_s;
 		#ifdef _IO_DEBUG_LOG
@@ -124,13 +124,18 @@ void IO::write_io16(uint32_t addr, uint32_t data)
 	}
 }
 
+void IO::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io16(addr, data);
+}
+
 void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_IO_DREC_IN:
 		drec_in = ((data & mask) != 0);
 		break;
-		
+
 	case SIG_IO_RTC_IN:
 		rtc_in = ((data & mask) != 0);
 		break;
@@ -147,7 +152,7 @@ void IO::event_callback(int event_id, int err)
 uint8_t IO::get_key()
 {
 	uint8_t data = 0x3f;
-	
+
 	if(!(key_strobe & 0x0001)) {
 		if(key_hit(0x11)) data &= ~0x02;	// CTRL
 		if(key_hit(0x10)) data &= ~0x04;	// SHIFT

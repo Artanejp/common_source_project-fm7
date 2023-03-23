@@ -40,7 +40,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	cpu = new I8080(this, emu);	// 8085
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
@@ -49,18 +49,21 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio = new I8255(this, emu);
 	kdc = new I8279(this, emu);
 	io = new IO(this, emu);
-	
+	io->space = 0x100;
+
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMBUS(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x400;
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(pio, SIG_I8255_PORT_B, 0x40);		// PB6
 	pio->set_context_port_c(drec, SIG_DATAREC_REMOTE, 0x10, 0);	// PC4
 	pio->set_context_port_c(drec, SIG_DATAREC_MIC, 0x20, 0);	// PC5
@@ -68,11 +71,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	kdc->set_context_sl(keyboard, SIG_KEYBOARD_SEL, 0xff);
 	kdc->set_context_sl(display, SIG_DISPLAY_SEL, 0xff);
 	kdc->set_context_disp(display, SIG_DISPLAY_DISP, 0xff);
-	
+
 	keyboard->set_context_kdc(kdc);
 	memory->set_context_cpu(cpu);
 	memory->set_context_pio(pio);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -80,23 +83,23 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(mon, 0xff, sizeof(mon));
 	memset(ext, 0xff, sizeof(ext));
 	memset(ram, 0x00, sizeof(ram));
-	
+
 	memory->read_bios(_T("MON.ROM"), mon, sizeof(mon));
 	memory->read_bios(_T("EXT.ROM"), ext, sizeof(ext));
-	
+
 	memory->set_memory_r (0x0000, 0x07ff, mon);
 	memory->set_memory_r (0x0800, 0x0fff, ext);
 	memory->set_memory_rw(0x7c00, 0x83ff, ram);
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x7c, 0x7f, pio);
 	io->set_iomap_range_rw(0x80, 0x81, kdc);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -139,7 +142,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// init 8255 on TK-80
 	pio->write_io8(0xfb, 0x92);
 	pio->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
@@ -251,7 +254,7 @@ void VM::save_binary(int drv, const _TCHAR* file_path)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -261,7 +264,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);
@@ -349,4 +352,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
-

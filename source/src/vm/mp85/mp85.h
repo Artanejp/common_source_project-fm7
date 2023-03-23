@@ -21,9 +21,6 @@
 #define SCREEN_HEIGHT		523
 #define HAS_I8085
 #define I8255_AUTO_HAND_SHAKE
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x400
-#define IO_ADDR_MAX		0x100
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
@@ -129,37 +126,37 @@ class VM : public VM_TEMPLATE
 {
 protected:
 //	EMU* emu;
-	
+
 	// devices
 	EVENT* event;
-	
+
 	DATAREC* drec;
 	I8080* cpu;
 	I8255* pio;
 	I8279* kdc;
 	IO* io;
-	
+
 	MP85::DISPLAY* display;
 	MP85::KEYBOARD* keyboard;
 	MP85::MEMBUS* memory;
-	
+
 	// memory
 	uint8_t mon[0x800];
 	uint8_t ext[0x800];
 	uint8_t ram[0x800];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -167,15 +164,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -183,13 +180,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
@@ -208,14 +205,14 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 //	DEVICE* dummy;

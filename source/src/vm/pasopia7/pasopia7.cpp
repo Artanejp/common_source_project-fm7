@@ -57,7 +57,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -70,6 +70,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio2 = new I8255(this, emu);
 	pio2->set_device_name(_T("8255 PIO (Sound/Data Recorder)"));
 	io = new IO(this, emu);
+	io->space = 0x100;
+
 	flipflop = new LS393(this, emu); // LS74
 	not_remote = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
@@ -92,7 +94,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
 	pio = new Z80PIO(this, emu);
-	
+
 	floppy = new FLOPPY(this, emu);
 	display = new DISPLAY(this, emu);
 	iobus = new IOBUS(this, emu);
@@ -100,7 +102,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	pac2 = new PAC2(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
@@ -113,7 +115,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(pio2, SIG_I8255_PORT_B, 0x20);
 	crtc->set_context_disp(pio0, SIG_I8255_PORT_B, 8);
 	crtc->set_context_vsync(pio0, SIG_I8255_PORT_B, 0x20);
@@ -140,7 +142,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_constant_clock(2, CPU_CLOCKS);
 	pio->set_context_port_a(pcm, SIG_PCM1BIT_ON, 0x80, 0);
 	pio->set_context_port_a(key, SIG_KEYBOARD_Z80PIO_A, 0xff, 0);
-	
+
 	display->set_vram_ptr(memory->get_vram());
 	display->set_pal_ptr(memory->get_pal());
 	display->set_regs_ptr(crtc->get_regs());
@@ -153,7 +155,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_iobus(iobus);
 	memory->set_context_pio0(pio0);
 	memory->set_context_pio2(pio2);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(iobus);
@@ -161,12 +163,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	ctc->set_context_intr(cpu, 0);
 	ctc->set_context_child(pio);
 	pio->set_context_intr(cpu, 1);
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x08, 0x0b, pio0);
 	io->set_iomap_range_rw(0x0c, 0x0f, pio1);
@@ -185,13 +187,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0xe2, floppy);
 	io->set_iomap_range_rw(0xe4, 0xe5, fdc);
 	io->set_iomap_single_rw(0xe6, floppy);
-	
+
 	// initialize and reset all devices except the event manager
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 //		if(device->this_device_id != event->this_device_id) {
 			device->reset();
@@ -236,7 +238,7 @@ void VM::reset()
 	event->reset();
 	memory->reset();
 	iotrap->do_reset();
-	
+
 	// set initial port status
 #ifdef _LCD
 	pio0->write_signal(SIG_I8255_PORT_B, 0, (0x10 | 0x40));
@@ -287,7 +289,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 3600);
 	psg0->initialize_sound(rate, 1996800, 3600);
@@ -364,7 +366,7 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -374,7 +376,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

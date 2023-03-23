@@ -55,7 +55,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	beep = new BEEP(this, emu);
 	crtc = new HD46505(this, emu);
 	sio = new I8251(this, emu);
@@ -63,6 +63,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -74,14 +75,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);
-	
+
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	kanji = new KANJI(this, emu);
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
@@ -105,14 +106,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	psg->set_context_port_a(cmt, SIG_CMT_REMOTE, 2, 0);
 	psg->set_context_port_a(pio, SIG_I8255_PORT_A, 2, 1);
 	psg->set_context_port_a(beep, SIG_BEEP_ON, 8, 1);
-	
+
 	cmt->set_context_sio(sio);
 	display->set_vram_ptr(memory->get_vram());
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);
 	kanji->set_context_pio(pio);
 	memory->set_context_pio(pio);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -120,7 +121,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x00, 0x01, key);
 	io->set_iomap_range_rw(0x18, 0x19, psg);
@@ -135,13 +136,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x70, 0x71, fdc);
 	io->set_iomap_range_rw(0x72, 0x74, floppy);
 	io->set_iomap_single_w(0x78, memory);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
@@ -221,7 +222,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 2400, 8000);
 	psg->initialize_sound(rate, 3579545, samples, 0, 0);

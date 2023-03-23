@@ -22,10 +22,8 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define HAS_RP5C15
-#define IO_ADDR_MAX		0x8000
 #define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
@@ -93,10 +91,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils *state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	I8253* pit;
 	I8255* pio0;
 	I8259* pic;
@@ -112,7 +110,7 @@ protected:
 	YM2203* opn;
 	Z80PIO* pio1;
 	Z80SIO* sio;
-	
+
 	MZ2800::CRTC* crtc;
 	MZ2800::FLOPPY* floppy;
 	MZ2800::JOYSTICK* joystick;
@@ -124,19 +122,19 @@ protected:
 	MZ2800::SASI* sasi;
 	MZ2800::SERIAL* serial;
 	MZ2800::SYSPORT* sysport;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void cpu_reset();
@@ -145,15 +143,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -161,7 +159,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -174,17 +172,17 @@ public:
 	bool is_hard_disk_inserted(int drv);
 	uint32_t is_hard_disk_accessed();
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;
