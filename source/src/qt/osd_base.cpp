@@ -619,6 +619,10 @@ void OSD_BASE::finish_waiting_in_debugger()
 
 void OSD_BASE::process_waiting_in_debugger()
 {
+	// This is workaround for locking up when calling debugger.
+	if(is_vm_locked()) {
+		unlock_vm();
+	}
 	// ToDo: Check sequence
 	QThread::msleep(10);
 }
