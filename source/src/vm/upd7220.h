@@ -40,19 +40,19 @@ protected:
 	outputs_t outputs_drq;
 	outputs_t outputs_vsync;
 	outputs_t outputs_vblank;
-	
+
 	// vram
 	DEVICE* d_vram_bus;
 	uint8_t* vram;
 	uint32_t vram_size;
+	uint32_t plane_size;
 	uint32_t vram_plane_addr_mask; // Normally 32KB
 	uint16_t vram_data_mask;
-	
+
 	// feature flags
 	bool __QC10;
 	bool _UPD7220_MSB_FIRST;
 	bool _UPD7220_UGLY_PC98_HACK;
-	int  _UPD7220_FIXED_PITCH;
 	int  _UPD7220_HORIZ_FREQ;
 	int  _UPD7220_A_VERSION;
 	int  _LINES_PER_FRAME;
@@ -61,7 +61,7 @@ protected:
 	// regs
 	int cmdreg;
 	uint8_t statreg;
-	
+
 	// params
 	uint8_t sync[16];
 	int vtotal, vfp, vs, vbp, v1, v2, v3, v4;
@@ -87,7 +87,7 @@ protected:
 	bool cmd_write_done;
 	int width;
 	int height;
-	
+
 	int cpu_clocks;
 
 //#ifdef UPD7220_HORIZ_FREQ
@@ -95,29 +95,30 @@ protected:
 //#endif
 	double frames_per_sec;
 	int lines_per_frame;
-	
+
 	// waiting
 	int event_cmdready;
 	uint32_t wrote_bytes;
 	bool cmd_drawing;
 	uint32_t clock_freq;
-	
+
 	// fifo buffers
 	uint8_t params[16];
 	int params_count;
 	FIFO *fo;
-	
+
 	// draw
 	int rt[RT_TABLEMAX + 1];
 	int dx;
 	int64_t dy;	// from ead, dad
+	int plane;
 	int dir, dif, sl, dc, d, d2, d1, dm;
 	uint16_t pattern;
-	
+
 	// command
 	void check_cmd();
 	void process_cmd();
-	
+
 	void cmd_reset();
 	void __FASTCALL cmd_sync(bool flag);
 	void cmd_master();
@@ -140,13 +141,13 @@ protected:
 	void cmd_dmaw();
 	void cmd_dmar();
 	void cmd_unk_5a();
-	
+
 	void __FASTCALL cmd_write_sub(uint32_t addr, uint8_t data);
 	void __FASTCALL write_vram(uint32_t addr, uint8_t data);
 	uint8_t __FASTCALL read_vram(uint32_t addr);
 	void update_vect();
 	void reset_vect();
-	
+
 	void draw_vectl();
 	void draw_vectt();
 	void draw_vectc();
@@ -154,7 +155,7 @@ protected:
 	void draw_text();
 	void __FASTCALL draw_pset(int x, int y);
 	void __FASTCALL register_event_wait_cmd(uint32_t bytes);
-	
+
 public:
 	UPD7220(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -163,6 +164,7 @@ public:
 		initialize_output_signals(&outputs_vblank);
 		d_vram_bus = NULL;
 		vram = NULL;
+		vram_size = plane_size = 0;
 		vram_data_mask = 0xffff;
 		width = 80;
 		height = 25; // ToDo
@@ -171,7 +173,7 @@ public:
 		set_device_name(_T("uPD7220 GDC"));
 	}
 	~UPD7220() {}
-	
+
 	// common functions
 	void initialize();
 	void release();
@@ -183,14 +185,14 @@ public:
 
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
-	
+
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
 	void __FASTCALL event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_clock_freq(uint32_t val)
 	{
@@ -227,6 +229,10 @@ public:
 	{
 		set_vram_bus_ptr(device, size);
 		vram_data_mask = mask;
+	}
+	void set_plane_size(uint32_t size)
+	{
+		plane_size = size;
 	}
 	void set_screen_width(int value)
 	{
@@ -276,4 +282,3 @@ public:
 };
 
 #endif
-

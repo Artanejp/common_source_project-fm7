@@ -104,11 +104,6 @@ void UPD7220::initialize()
 	} else {
 		_UPD7220_HORIZ_FREQ = 0;
 	}
-	if(osd->check_feature(_T("UPD7220_FIXED_PITCH"))) {
-		_UPD7220_FIXED_PITCH = (int)(osd->get_feature_int_value(_T("UPD7220_FIXED_PITCH")));
-	} else {
-		_UPD7220_FIXED_PITCH = 0;
-	}
 	if(osd->check_feature(_T("UPD7220_A_VERSION"))) {
 		_UPD7220_A_VERSION = (int)(osd->get_feature_int_value(_T("UPD7220_A_VERSION")));
 	} else {
@@ -767,9 +762,7 @@ void UPD7220::cmd_pitch()
 {
 	if(params_count > 0) {
 		wrote_bytes = 1;
-		if(!(_UPD7220_FIXED_PITCH)) {
-			pitch = params[0];
-		}
+		pitch = params[0];
 		cmdreg = -1;
 	}
 }
@@ -797,43 +790,57 @@ void UPD7220::cmd_vectw()
 void UPD7220::cmd_vecte()
 {
 	cmd_drawing = true;
-	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = (ead << 16) / pitch;
-	wrote_bytes = 1;
+	uint32_t ead2 = ead;
 
-	// execute command
-	if(!(vect[0] & 0x78)) { // R, C, T, L
-		pattern = ra[8] | (ra[9] << 8);
-		draw_pset(dx, dy >> 16);
+	if(plane_size) {
+		plane = ead2 / (plane_size >> 1);
+		ead2 %= (plane_size >> 1);
 	}
-	if(vect[0] & 0x08) { // L (Line)
-		draw_vectl();
-	}
-	if(vect[0] & 0x10) { // T (Text)
-		draw_vectt();
-	}
-	if(vect[0] & 0x20) { // C (Circle)
-		draw_vectc();
-	}
-	if(vect[0] & 0x40) { // R (Rect)
-		draw_vectr();
-	}
-	reset_vect();
-	statreg |= STAT_DRAW;
-	cmdreg = -1;
-}
-
-void UPD7220::cmd_texte()
-{
-	cmd_drawing = true;
-	dx = ((ead % pitch) << 4) | (dad & 0x0f);
-	dy = (ead << 16) / pitch;
+	dx = ((ead2 % (width >> 1)) << 4) | (dad & 0x0f);
+	dy = ead2 / (width >> 1);
 	wrote_bytes = 1;
 
 	// execute command
 	if(!(vect[0] & 0x78)) {
 		pattern = ra[8] | (ra[9] << 8);
-		draw_pset(dx, dy >> 16);
+		draw_pset(dx, dy);
+	}
+	if(vect[0] & 0x08) {
+		draw_vectl();
+	}
+	if(vect[0] & 0x10) {
+		draw_vectt();
+	}
+	if(vect[0] & 0x20) {
+		draw_vectc();
+	}
+	if(vect[0] & 0x40) {
+		draw_vectr();
+	}
+	reset_vect();
+	statreg |= STAT_DRAW;
+	cmdreg = -1;
+
+}
+
+void UPD7220::cmd_texte()
+{
+	cmd_drawing = true;
+	wrote_bytes = 1;
+
+	uint32_t ead2 = ead;
+
+	if(plane_size) {
+		plane = ead2 / (plane_size >> 1);
+		ead2 %= (plane_size >> 1);
+	}
+	dx = ((ead2 % (width >> 1)) << 4) | (dad & 0x0f);
+	dy = ead2 / (width >> 1);
+
+	// execute command
+	if(!(vect[0] & 0x78)) {
+		pattern = ra[8] | (ra[9] << 8);
+		draw_pset(dx, dy);
 	}
 	if(vect[0] & 0x08) {
 		draw_vectl();
@@ -1052,7 +1059,7 @@ uint8_t UPD7220::read_vram(uint32_t addr)
 void UPD7220::update_vect()
 {
 	dir = vect[0] & 7;
-	dif = vectdir[dir][0] + vectdir[dir][1] * pitch;
+	dif = vectdir[dir][0] + vectdir[dir][1] * width;
 	sl = vect[0] & 0x80;
 	dc = (vect[1] | (vect[ 2] << 8)) & 0x3fff;
 	d  = (vect[3] | (vect[ 4] << 8)) & 0x3fff;
@@ -1188,7 +1195,10 @@ void UPD7220::draw_vectt()
 		dx += vx2;
 		dy += vy2;
 	}
-	ead = (dx >> 4) + (dy >> 16) * pitch;
+	ead = (dx >> 4) + dy * (width >> 1);
+	if(plane_size) {
+		ead += (plane_size >> 1) * plane;
+	}
 	dad = dx & 0x0f;
 }
 
@@ -1292,7 +1302,10 @@ void UPD7220::draw_vectr()
 		dx -= vx2;
 		dy -= vy2;
 	}
-	ead = (dx >> 4) + (dy >> 16) * pitch;
+	ead = (dx >> 4) + dy * (width >> 1);
+	if(plane_size) {
+		ead += (plane_size >> 1) * plane;
+	}
 	dad = dx & 0x0f;
 }
 
@@ -1335,7 +1348,10 @@ void UPD7220::draw_text()
 		}
 		index = ((index - 1) & 7) | 8;
 	}
-	ead = (dx >> 4) + (dy >> 16) * pitch;
+	ead = (dx >> 4) + dy * (width >> 1);
+	if(plane_size) {
+		ead += (plane_size >> 1) * plane;
+	}
 	dad = dx & 0x0f;
 }
 
@@ -1343,7 +1359,10 @@ void UPD7220::draw_pset(int x, int y)
 {
 	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	int32_t addr = y * width + (x >> 3);
+	uint32_t addr = y * width + (x >> 3); // OK?
+	if(plane_size) {
+		addr += plane_size * plane;
+	}
 
 	uint8_t bit;
 	if(_UPD7220_MSB_FIRST) {
@@ -1373,7 +1392,7 @@ void UPD7220::draw_pset(int x, int y)
 	}
 }
 
-#define STATE_VERSION	3 /* Change mean of DY 20200808 K.O */
+#define STATE_VERSION	4 /* Change mean of DY 20200808 K.O */
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1441,6 +1460,7 @@ bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(rt, sizeof(rt), 1);
 	state_fio->StateValue(dx);
 	state_fio->StateValue(dy);
+	state_fio->StateValue(plane);
 	state_fio->StateValue(dir);
 	state_fio->StateValue(dif);
 	state_fio->StateValue(sl);
