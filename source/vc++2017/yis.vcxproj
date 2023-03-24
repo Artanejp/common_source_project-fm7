@@ -345,6 +345,7 @@
     <ClCompile Include="..\src\vm\yis\floppy.cpp" />
     <ClCompile Include="..\src\vm\yis\keyboard.cpp" />
     <ClCompile Include="..\src\vm\yis\mapper.cpp" />
+    <ClCompile Include="..\src\vm\yis\membus.cpp" />
     <ClCompile Include="..\src\vm\yis\sound.cpp" />
     <ClCompile Include="..\src\vm\yis\yis.cpp" />
     <ClCompile Include="..\src\win32\osd.cpp" />
@@ -383,6 +384,7 @@
     <ClInclude Include="..\src\vm\yis\floppy.h" />
     <ClInclude Include="..\src\vm\yis\keyboard.h" />
     <ClInclude Include="..\src\vm\yis\mapper.h" />
+    <ClInclude Include="..\src\vm\yis\membus.h" />
     <ClInclude Include="..\src\vm\yis\sound.h" />
     <ClInclude Include="..\src\vm\yis\yis.h" />
     <ClInclude Include="..\src\win32\osd.h" />

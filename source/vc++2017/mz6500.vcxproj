@@ -341,10 +341,11 @@
     <ClCompile Include="..\src\vm\i86.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls393.cpp" />
+    <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\mz1p17.cpp" />
     <ClCompile Include="..\src\vm\mz5500\display.cpp" />
     <ClCompile Include="..\src\vm\mz5500\keyboard.cpp" />
-    <ClCompile Include="..\src\vm\mz5500\memory.cpp" />
+    <ClCompile Include="..\src\vm\mz5500\membus.cpp" />
     <ClCompile Include="..\src\vm\mz5500\mz5500.cpp" />
     <ClCompile Include="..\src\vm\mz5500\sysport.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
@@ -390,10 +391,11 @@
     <ClInclude Include="..\src\vm\i86.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls393.h" />
+    <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\mz1p17.h" />
     <ClInclude Include="..\src\vm\mz5500\display.h" />
     <ClInclude Include="..\src\vm\mz5500\keyboard.h" />
-    <ClInclude Include="..\src\vm\mz5500\memory.h" />
+    <ClInclude Include="..\src\vm\mz5500\membus.h" />
     <ClInclude Include="..\src\vm\mz5500\mz5500.h" />
     <ClInclude Include="..\src\vm\mz5500\sysport.h" />
     <ClInclude Include="..\src\vm\noise.h" />

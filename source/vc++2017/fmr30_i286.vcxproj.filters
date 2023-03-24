@@ -116,6 +116,9 @@
     <ClCompile Include="..\src\vm\mb8877.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\memory.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\noise.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -146,7 +149,7 @@
     <ClCompile Include="..\src\vm\fmr30\keyboard.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\fmr30\memory.cpp">
+    <ClCompile Include="..\src\vm\fmr30\membus.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\fmr30\rtc.cpp">
@@ -223,6 +226,9 @@
     <ClInclude Include="..\src\vm\mb8877.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\memory.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\noise.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -259,7 +265,7 @@
     <ClInclude Include="..\src\vm\fmr30\keyboard.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\fmr30\memory.h">
+    <ClInclude Include="..\src\vm\fmr30\membus.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\fmr30\rtc.h">

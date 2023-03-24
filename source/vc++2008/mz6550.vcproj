@@ -670,6 +670,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\memory.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\mz1p17.cpp"
 					>
 					<FileConfiguration
@@ -980,7 +1000,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\mz5500\memory.cpp"
+					RelativePath="..\src\vm\mz5500\membus.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1128,6 +1148,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\memory.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\ls393.h"
 					>
 				</File>
@@ -1225,7 +1249,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\mz5500\memory.h"
+					RelativePath="..\src\vm\mz5500\membus.h"
 					>
 				</File>
 				<File
