@@ -20,6 +20,7 @@
 #include "../i8259.h"
 # include "../i86.h"
 #include "../io.h"
+#include "../memory.h"
 #include "../noise.h"
 #include "../not.h"
 //#include "../pcpr201.h"
@@ -40,14 +41,14 @@
 #include "calendar.h"
 #include "floppy.h"
 #include "keyboard.h"
-#include "./memory.h"
+#include "membus.h"
 #include "note.h"
 
 using PC98HA::BIOS;
 using PC98HA::CALENDAR;
 using PC98HA::FLOPPY;
 using PC98HA::KEYBOARD;
-using PC98HA::MEMORY;
+using PC98HA::MEMBUS;
 using PC98HA::NOTE;
 
 // ----------------------------------------------------------------------------
@@ -61,7 +62,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	beep = new BEEP(this, emu);
 #ifdef USE_DEBUGGER
 //	beep->set_context_debugger(new DEBUGGER(this, emu));
@@ -79,6 +80,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);	// V50
 	cpu->device_model = NEC_V30;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	not_busy = new NOT(this, emu);
 #ifdef _PC98HA
 	rtc = new UPD4991A(this, emu);
@@ -99,7 +102,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic->set_device_name(_T("V50 PIC(i8259 COMPATIBLE)"));
 	cpu->set_device_name(_T("CPU (V50)"));
 	not_busy->set_device_name(_T("NOT GATE(PRINTER BUSY)"));
-	
+
 	if(config.printer_type == 0) {
 		printer = new PRNFILE(this, emu);
 //	} else if(config.printer_type == 1) {
@@ -107,12 +110,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		printer = dummy;
 	}
-	
+
 	bios = new BIOS(this, emu);
 	calendar = new CALENDAR(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	memory = new MEMORY(this, emu);
+	memory = new MEMBUS(this, emu);
+	memory->space = 0x100000;
+	memory->bus_width = 16;
+	memory->bank_size = 0x4000;
 	note = new NOTE(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -149,19 +155,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef _PC98LT
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
 #endif
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);	// 1MB
 	dma->set_context_ch3(fdc);	// 640KB
 	fdc->set_context_irq(pic, SIG_I8259_IR6, 1);
 	fdc->set_context_drq(dma, SIG_UPD71071_CH3, 1);
 	fdc->raise_irq_when_media_changed = true;
-	
+
 	bios->set_context_fdc(fdc);
 	calendar->set_context_rtc(rtc);
 	floppy->set_context_fdc(fdc);
 	keyboard->set_context_sio(sio_kbd);
 	note->set_context_pic(pic);
-	
+
 	// cpu bus
 	cpu->set_context_bios(bios);
 	cpu->set_context_mem(memory);
@@ -173,7 +180,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, 0);
 	io->set_iomap_alias_rw(0x02, pic, 1);
@@ -221,7 +228,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0x5e8e, note);
 	io->set_iomap_single_rw(0x8810, note);
 	io->set_iomap_single_w(0xc810, note);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -260,7 +267,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// initial device settings
 	pio_sys->write_signal(SIG_I8255_PORT_A, 0xe3, 0xff);
 	pio_sys->write_signal(SIG_I8255_PORT_B, 0xe0, 0xff);
@@ -309,7 +316,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 2400, 8000);
 }
@@ -419,7 +426,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

@@ -7,7 +7,7 @@ set(VM_MZ5500_LIB_SRCS
 
 	display.cpp
 	keyboard.cpp
-	memory.cpp
+	membus.cpp
 	sysport.cpp
 
 	mz5500.cpp
