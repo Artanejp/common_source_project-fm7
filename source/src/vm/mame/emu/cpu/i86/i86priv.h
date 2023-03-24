@@ -90,98 +90,16 @@ enum BREGS {
 #define DF                  (int)(cpustate->DirVal < 0)
 
 /************************************************************************/
-#ifdef I80286
-inline __FASTCALL uint32_t read_mem_byte(i80286_state *cpustate, uint32_t a)
-#else
-inline __FASTCALL uint32_t read_mem_byte(i8086_state *cpustate, uint32_t a)
-#endif
-{
-	int w;
-	uint32_t r = cpustate->program->read_data8w(a, &w);
-	cpustate->memory_wait += w;
-	return r;
-}
 
-#ifdef I80286
-inline __FASTCALL uint32_t read_mem_word(i80286_state *cpustate, uint32_t a)
-#else
-inline __FASTCALL uint32_t read_mem_word(i8086_state *cpustate, uint32_t a)
-#endif
-{
-	int w;
-	uint32_t r = cpustate->program->read_data16w(a, &w);
-	cpustate->memory_wait += w;
-	return r;
-}
+#define read_mem_byte(a)            read_mem_byte_(cpustate,(a))
+#define read_mem_word(a)            read_mem_word_(cpustate,(a))
+#define write_mem_byte(a,d)         write_mem_byte_(cpustate,(a),(d))
+#define write_mem_word(a,d)         write_mem_word_(cpustate,(a),(d))
 
-#ifdef I80286
-inline __FASTCALL void write_mem_byte(i80286_state *cpustate, uint32_t a, uint32_t b)
-#else
-inline __FASTCALL void write_mem_byte(i8086_state *cpustate, uint32_t a, uint32_t b)
-#endif	
-{
-	int w;
-	cpustate->program->write_data8w(a, b, &w);
-	cpustate->memory_wait += w;
-}
-
-#ifdef I80286
-inline __FASTCALL void write_mem_word(i80286_state *cpustate, uint32_t a, uint32_t b)
-#else
-inline __FASTCALL void write_mem_word(i8086_state *cpustate, uint32_t a, uint32_t b)
-#endif	
-{
-	int w;
-	cpustate->program->write_data16w(a, b, &w);
-	cpustate->memory_wait += w;
-}
-
-#ifdef I80286
-inline __FASTCALL uint32_t read_port_byte(i80286_state *cpustate, uint32_t a)
-#else
-inline __FASTCALL uint32_t read_port_byte(i8086_state *cpustate, uint32_t a)
-#endif
-{
-	int w;
-	uint32_t r = cpustate->io->read_io8w(a, &w);
-	cpustate->memory_wait += w;
-	return r;
-}
-
-#ifdef I80286
-inline __FASTCALL uint32_t read_port_word(i80286_state *cpustate, uint32_t a)
-#else
-inline __FASTCALL uint32_t read_port_word(i8086_state *cpustate, uint32_t a)
-#endif
-{
-	int w;
-	uint32_t r = cpustate->io->read_io16w(a, &w);
-	cpustate->memory_wait += w;
-	return r;
-}
-
-#ifdef I80286
-inline __FASTCALL void write_port_byte(i80286_state *cpustate, uint32_t a, uint32_t b)
-#else
-inline __FASTCALL void write_port_byte(i8086_state *cpustate, uint32_t a, uint32_t b)
-#endif
-{
-	int w;
-	cpustate->io->write_io8w(a, b, &w);
-	cpustate->memory_wait += w;
-}
-
-#ifdef I80286
-inline __FASTCALL void write_port_word(i80286_state *cpustate, uint32_t a, uint32_t b)
-#else
-inline __FASTCALL void write_port_word(i8086_state *cpustate, uint32_t a, uint32_t b)
-#endif
-{
-	int w;
-	cpustate->io->write_io16w(a, b, &w);
-	cpustate->memory_wait += w;
-}
-
+#define read_port_byte(a)       read_port_byte_(cpustate,(a))
+#define read_port_word(a)       read_port_word_(cpustate,(a))
+#define write_port_byte(a,d)    write_port_byte_(cpustate,(a),(d))
+#define write_port_word(a,d)    write_port_word_(cpustate,(a),(d))
 
 
 /************************************************************************/
@@ -209,10 +127,10 @@ inline __FASTCALL void write_port_word(i8086_state *cpustate, uint32_t a, uint32
 #define WriteByte(ea,val)       write_mem_byte(cpustate, (ea) & AMASK, val);
 #define WriteWord(ea,val)       write_mem_word(cpustate, (ea) & AMASK, val);
 
-#define FETCH                   (cpustate->program->read_data8(cpustate->pc++))
-#define FETCHOP                 (cpustate->program->read_data8(cpustate->pc++))
-#define PEEKOP(addr)            (cpustate->program->read_data8(addr))
-#define FETCHWORD(var)          { var = cpustate->program->read_data8(cpustate->pc); var += (cpustate->program->read_data8(cpustate->pc + 1) << 8); cpustate->pc += 2; }
+#define FETCH                   (read_mem_byte(cpustate->pc++))
+#define FETCHOP                 (read_mem_byte(cpustate->pc++))
+#define PEEKOP(addr)            (read_mem_byte(addr))
+#define FETCHWORD(var)          { var = read_mem_byte(cpustate->pc); var += (read_mem_byte(cpustate->pc + 1) << 8); cpustate->pc += 2; }
 #define CHANGE_PC(addr)
 #ifdef I80286
 #define PUSH(val)               { if(PM) i80286_check_permission(cpustate, SS, cpustate->regs.w[SP]-2, I80286_WORD, I80286_WRITE); cpustate->regs.w[SP] -= 2; WriteWord(((cpustate->base[SS] + cpustate->regs.w[SP]) & AMASK), val); }

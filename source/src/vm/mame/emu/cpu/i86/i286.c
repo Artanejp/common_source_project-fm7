@@ -35,7 +35,7 @@ static int i386_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom, int mod
 union i80286basicregs
 {                   /* eight general registers */
 	UINT16 w[10];    /* viewed as 16 bits registers */
-	UINT8  b[20];   /* or as 8 bit registers */ 
+	UINT8  b[20];   /* or as 8 bit registers */
 };
 
 struct i80286_state
@@ -126,12 +126,73 @@ bool i286_call_pseudo_bios(i80286_state *cpustate, uint32_t PC)
 		cpustate->regs.w[9] = 0x0000;
 		if(cpustate->bios->bios_call_far_i86(PC & AMASK, cpustate->regs.w, cpustate->sregs, &cpustate->ZeroVal, &cpustate->CarryVal, &(cpustate->icount), &(cpustate->total_icount))) {
 			return true;
-			
+
 		}
 	}
 //#endif
 	return false;
 }
+
+inline UINT8 __FASTCALL read_mem_byte_(i80286_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT8 d = cpustate->program->read_data8w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline UINT16 __FASTCALL read_mem_word_(i80286_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT16 d = cpustate->program->read_data16w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline void __FASTCALL write_mem_byte_(i80286_state *cpustate, unsigned a, UINT8 d)
+{
+	int wait = 0;
+	cpustate->program->write_data8w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
+inline void __FASTCALL write_mem_word_(i80286_state *cpustate, unsigned a, UINT16 d)
+{
+	int wait = 0;
+	cpustate->program->write_data16w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
+inline UINT8 __FASTCALL read_port_byte_(i80286_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT8 d = cpustate->io->read_io8w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline UINT16 __FASTCALL read_port_word_(i80286_state *cpustate, unsigned a)
+{
+	int wait = 0;
+	UINT16 d = cpustate->io->read_io16w(a, &wait);
+	cpustate->icount -= wait;
+	return d;
+}
+
+inline void __FASTCALL write_port_byte_(i80286_state *cpustate, unsigned a, UINT8 d)
+{
+	int wait = 0;
+	cpustate->io->write_io8w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
+inline void __FASTCALL write_port_word_(i80286_state *cpustate, unsigned a, UINT16 d)
+{
+	int wait = 0;
+	cpustate->io->write_io16w(a, d, &wait);
+	cpustate->icount -= wait;
+}
+
 /***************************************************************************/
 
 #define I80286
@@ -185,11 +246,11 @@ static void i80286_set_a20_line(i80286_state *cpustate, int state)
 
 static CPU_RESET( i80286 )
 {
-	
+
 	int halted = cpustate->halted;
 	int busreq = cpustate->busreq;
 	int haltreq = cpustate->haltreq;
-	
+
 	memset(&cpustate->regs, 0, sizeof(i80286basicregs));
 	cpustate->sregs[CS] = 0xf000;
 	cpustate->base[CS] = 0xff0000;
