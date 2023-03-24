@@ -66,8 +66,8 @@ public:
 	void reset();
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_data8(uint32_t addr);
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t __FASTCALL read_data8w(uint32_t addr, int *wait);
+//	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int *wait);
+//	uint32_t __FASTCALL read_data8w(uint32_t addr, int *wait);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
