@@ -27,20 +27,20 @@ DLL_PREFIX_I struct cur_time_s cur_time;
 #endif
 
 namespace FMR30 {
-	
+
 void RTC::initialize()
 {
 	// load rtc regs image
 	memset(regs, 0, sizeof(regs));
 	regs[POWON] = 0x10;	// cleared
-	
+
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("RTC.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(regs + 8, 32, 1);
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	// init registers
 //	regs[POWON] &= 0x1f;	// local power on
 //	regs[POWOF] = 0x80;	// program power off
@@ -48,13 +48,13 @@ void RTC::initialize()
 	regs[POWOF] = 0x20;	// illegal power off
 	regs[TCNT] = 0;
 	update_checksum();
-	
+
 	rtcmr = rtdsr = 0;
-	
+
 	// update calendar
 	get_host_time(&cur_time);
 	read_from_cur_time();
-	
+
 	// register event
 	register_event_by_clock(this, EVENT_1HZ, CPU_CLOCKS, true, &register_id);
 	register_event_by_clock(this, EVENT_32HZ, CPU_CLOCKS >> 5, true, NULL);
@@ -66,7 +66,7 @@ void RTC::release()
 	regs[POFMI] = TO_BCD(cur_time.minute);
 	regs[POFH] = TO_BCD(cur_time.hour);
 	regs[POFD] = TO_BCD(cur_time.day);
-	
+
 	// save rtc regs image
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("RTC.BIN")), FILEIO_WRITE_BINARY)) {
@@ -74,6 +74,16 @@ void RTC::release()
 		fio->Fclose();
 	}
 	delete fio;
+}
+
+void RTC::write_io8(uint32_t addr, uint32_t data)
+{
+	write_io16(addr, data);
+}
+
+uint32_t RTC::read_io8(uint32_t addr)
+{
+	return (uint8_t)read_io16(addr);
 }
 
 void RTC::write_io16(uint32_t addr, uint32_t data)
@@ -112,6 +122,16 @@ uint32_t RTC::read_io16(uint32_t addr)
 	return 0xffff;
 }
 
+void RTC::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io16(addr, data);
+}
+
+uint32_t RTC::read_io16w(uint32_t addr, int *wait)
+{
+	return read_io16(addr);
+}
+
 void RTC::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_1HZ) {
@@ -123,7 +143,7 @@ void RTC::event_callback(int event_id, int err)
 			cur_time.initialized = true;
 		}
 		read_from_cur_time();
-		
+
 		// 1sec interrupt
 		rtdsr |= 4;
 		update_intr();
@@ -189,7 +209,7 @@ void RTC::write_to_cur_time()
 	cur_time.year = FROM_BCD(regs[6]);
 	cur_time.update_year();
 	cur_time.update_day_of_week();
-	
+
 	// restart event
 	cancel_event(this, register_id);
 	register_event_by_clock(this, EVENT_1HZ, CPU_CLOCKS, true, &register_id);
@@ -205,7 +225,7 @@ void RTC::update_checksum()
 	uint8_t ckh = (sum >> 6) & 0xf;
 	uint8_t ckm = (sum >> 2) & 0xf;
 	uint8_t ckl = (sum >> 0) & 3;
-	
+
 	regs[CKHM] = ckh | (ckm << 4);
 	regs[CKL] = (regs[CKL] & 0xf0) | ckl | 0xc;
 }

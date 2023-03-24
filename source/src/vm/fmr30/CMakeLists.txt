@@ -11,7 +11,7 @@ add_library(vm_${EXE_NAME}
 	cmos.cpp
 	floppy.cpp
 	keyboard.cpp
-	./memory.cpp
+	membus.cpp
 	rtc.cpp
 	serial.cpp
 	system.cpp
