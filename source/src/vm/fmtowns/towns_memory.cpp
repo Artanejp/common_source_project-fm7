@@ -47,7 +47,8 @@ void TOWNS_MEMORY::config_page_c0()
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
 	} else {
-		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
+		set_memory_rw          (0x000c0000, 0x000cbfff, ram_pagec);
+		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this); // MMIO and higher RAM.
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
 	}
@@ -95,6 +96,8 @@ void TOWNS_MEMORY::config_page00()
 
 void TOWNS_MEMORY::initialize()
 {
+	if(initialized) return;
+
 //	if(initialized) return;
 	MEMORY::initialize();
 //	DEVICE::initialize();
@@ -112,8 +115,8 @@ void TOWNS_MEMORY::initialize()
 		wait_register = 0x83;
 	}
 	cpu_clock_val = 16000 * 1000;
-
 	initialized = true;
+
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
 

@@ -40,21 +40,26 @@ public:
 
 	void initialize();
 	void reset();
-	
+
 	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait);
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
+	uint32_t __FASTCALL read_memory_mapped_io16w(uint32_t addr, int *wait);
 
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
-	
+
 	bool process_state(FILEIO *state_fio, bool loading);
 
 	/* Unique function(s) */
-	uint8_t __FASTCALL read_direct_data8(uint32_t addr);
+	constexpr uint8_t __FASTCALL read_direct_data8(uint32_t addr);
 };
 
+constexpr uint8_t __FASTCALL FONT_ROMS::read_direct_data8(uint32_t addr)
+{
+	return font_kanji16[addr & 0x3ffff];
 }
-
+}

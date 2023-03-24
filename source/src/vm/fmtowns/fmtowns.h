@@ -237,7 +237,7 @@
 #define _MEMORY_BUS_WIDTH 16
 #else
 #define _MEMORY_SPACE 0x100000000 /* 4GiB */
-#define _MEMORY_BUS_WIDTH 32
+#define _MEMORY_BUS_WIDTH 16
 #endif
 
 #define _IO_SPACE     0x10000
