@@ -1249,9 +1249,6 @@ void OSD::set_features_vm(void)
 #ifdef _X1TURBO_FEATURE
 	add_feature(_T("_X1TURBO_FEATURE"), 1);
 #endif
-#ifdef MEMORY_DISABLE_DMA_MMIO
-	add_feature(_T("MEMORY_DISABLE_DMA_MMIO"), 1);
-#endif
 }
 
 void OSD::set_features_debug(void)
