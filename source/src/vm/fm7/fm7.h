@@ -45,7 +45,7 @@
 #define DEVICE_NAME		"FUJITSU FM-8"
 #define CONFIG_NAME		"fm8"
 #define CAPABLE_Z80
-#define DIPSWITCH_DEFAULT 0x00000000 
+#define DIPSWITCH_DEFAULT 0x00000000
 #define USE_BUBBLE 2
 #define BASE_BUBBLE_NUM 0
 #define MAX_DRIVE  4
@@ -59,7 +59,7 @@
 #define DEVICE_NAME		"FUJITSU FM-7"
 #define CONFIG_NAME		"fm7"
 #define CAPABLE_Z80
-#define DIPSWITCH_DEFAULT 0x000000000 
+#define DIPSWITCH_DEFAULT 0x000000000
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define USE_GREEN_DISPLAY
@@ -69,7 +69,7 @@
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
 #define CAPABLE_Z80
-#define DIPSWITCH_DEFAULT 0x000000000 
+#define DIPSWITCH_DEFAULT 0x000000000
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define USE_GREEN_DISPLAY
@@ -83,7 +83,7 @@
 # else
 #define DEVICE_NAME		"FUJITSU FM-77L2"
 #define CONFIG_NAME		"fm77l2"
-#define DIPSWITCH_DEFAULT 0x00000003 
+#define DIPSWITCH_DEFAULT 0x00000003
 # endif
 //#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
@@ -110,7 +110,7 @@
 # ifndef FM77_EXRAM_BANKS
 #  define FM77_EXRAM_BANKS	3
 # endif
-#define DIPSWITCH_DEFAULT 0x00000003 
+#define DIPSWITCH_DEFAULT 0x00000003
 #define MAX_DRIVE  4
 #define CAPABLE_JCOMMCARD 1
 #define USE_GREEN_DISPLAY
@@ -120,7 +120,7 @@
 #define DEVICE_NAME		"FUJITSU FM77AV"
 #define CONFIG_NAME		"fm77av"
 #define _FM77AV_VARIANTS
-#define DIPSWITCH_DEFAULT 0x80000001 
+#define DIPSWITCH_DEFAULT 0x80000001
 #define MAX_DRIVE  2
 #define CAPABLE_JCOMMCARD 1
 #define CAPABLE_DICTROM
@@ -133,7 +133,7 @@
 #define CAPABLE_DICTROM
 //#define USE_DRIVE_TYPE 2
 #define CAPABLE_KANJI_CLASS2
-#define DIPSWITCH_DEFAULT 0x80000001 
+#define DIPSWITCH_DEFAULT 0x80000001
 #define MAX_DRIVE  2
 
 #elif defined(_FM77AV20EX)
@@ -145,7 +145,7 @@
 //#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define CAPABLE_KANJI_CLASS2
-#define DIPSWITCH_DEFAULT 0x80000001 
+#define DIPSWITCH_DEFAULT 0x80000001
 #define MAX_DRIVE  4
 
 #elif defined(_FM77AV40)
@@ -161,7 +161,7 @@
 #ifndef FM77_EXRAM_BANKS
 #define FM77_EXRAM_BANKS	12
 #endif
-#define DIPSWITCH_DEFAULT 0x8000000d 
+#define DIPSWITCH_DEFAULT 0x8000000d
 #define MAX_DRIVE  4
 
 #elif defined(_FM77AV40EX)
@@ -177,7 +177,7 @@
 #ifndef FM77_EXRAM_BANKS
 #define FM77_EXRAM_BANKS	12
 #endif
-#define DIPSWITCH_DEFAULT 0x8000000d 
+#define DIPSWITCH_DEFAULT 0x8000000d
 #define MAX_DRIVE  4
 
 #elif defined(_FM77AV40SX)
@@ -193,7 +193,7 @@
 # ifndef FM77_EXRAM_BANKS
 #  define FM77_EXRAM_BANKS	12
 # endif
-#define DIPSWITCH_DEFAULT 0x8000000d 
+#define DIPSWITCH_DEFAULT 0x8000000d
 #define MAX_DRIVE  4
 
 #endif
@@ -247,8 +247,8 @@
 // device informations for virtual machine
 
 // TODO: check refresh rate
-//#define FRAMES_PER_SEC		60.0962 /* Related to display.cpp */ 
-#define FRAMES_PER_SEC		59.94 /* Related to display.cpp */ 
+//#define FRAMES_PER_SEC		60.0962 /* Related to display.cpp */
+#define FRAMES_PER_SEC		59.94 /* Related to display.cpp */
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77L4)
 #define LINES_PER_FRAME 	400
 #else
@@ -292,10 +292,9 @@
 
 #endif
 #define WINDOW_HEIGHT_ASPECT 480
-#define HAS_MC6809              
+#define HAS_MC6809
 #define MB8877_MAX_CHIPS	1
 #define MB8877_DELAY_AFTER_SEEK	60000
-//#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #if defined(HAS_2HD)
@@ -374,7 +373,7 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("Noise (1MB FDD/2HD)"),
 # endif
 	_T("Noise (CMT)"),
-#endif	
+#endif
 };
 #endif
 #ifdef USE_JOY_BUTTON_CAPTIONS
@@ -468,7 +467,7 @@ protected:
 //	EMU* emu;
 	// devices
 //	EVENT* event;
-	
+
 	DEVICE* dummycpu;
 	MC6809* maincpu;
 	FM7::FM7_MAINMEM* mainmem;
@@ -506,12 +505,12 @@ protected:
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	AND *g_rs232c_dtr;
 #endif
-	
+
 	//BEEP* beep;
 	PCM1BIT* pcm1bit;
 	DATAREC *drec;
 	FM7::JOYSTICK *joystick;
-	
+
 #ifdef  WITH_Z80
 	Z80* z80cpu;
 	AND *g_nmi;
@@ -522,10 +521,10 @@ protected:
 #endif
 	AND *g_substat_display;
 	AND *g_substat_mainhalt;
-	
+
 	DEVICE* printer;
-	DEVICE* inteli_mouse; 
-   
+	DEVICE* inteli_mouse;
+
 	MC6809* subcpu;
 #if defined(_FM77AV_VARIANTS)
 	MB61VH010 *alu;
@@ -533,10 +532,10 @@ protected:
 #endif
 #if defined(HAS_DMA)
 	HD6844 *dmac;
-#endif   
+#endif
 	FM7::DISPLAY* display;
 	FM7::KEYBOARD* keyboard;
-   
+
 	FM7::KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2
 	FM7::KANJIROM *kanjiclass2;
@@ -556,20 +555,20 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset() override;
 	void special_reset(int num) override;
 	void run() override;
 	double get_frame_rate() override;
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index) override;
@@ -579,7 +578,7 @@ public:
 	void update_dipswitch(void) override;
 	// draw screen
 	void draw_screen() override;
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples) override;
 	uint16_t* create_sound(int* extra_frames) override;
@@ -593,8 +592,8 @@ public:
 	void key_up(int code) override;
 	bool get_caps_locked() override;
 	bool get_kana_locked() override;
-	uint32_t get_led_status() override; 
-	
+	uint32_t get_led_status() override;
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
 	void close_floppy_disk(int drv) override;
@@ -602,7 +601,7 @@ public:
 	void is_floppy_disk_protected(int drv, bool value) override;
 	bool is_floppy_disk_protected(int drv) override;
 	uint32_t is_floppy_disk_accessed() override;
-	
+
 	void play_tape(int drv, const _TCHAR* file_path) override;
 	void rec_tape(int drv, const _TCHAR* file_path) override;
 	void close_tape(int drv) override;
@@ -611,7 +610,7 @@ public:
 	bool is_tape_recording(int drv) override;
 	int get_tape_position(int drv) override;
 	const _TCHAR* get_tape_message(int drv) override;
-	
+
 	bool is_frame_skippable() override;
 	void push_play(int drv) override;
 	void push_stop(int drv) override;
@@ -629,7 +628,7 @@ public:
 	uint32_t get_scancode_by_vk(uint32_t vk) override;
 	uint32_t get_vk_by_scancode(uint32_t scancode) override;
 #endif
-	
+
 #if defined(USE_BUBBLE)
 	void open_bubble_casette(int drv, const _TCHAR *path, int bank) override;
 	void close_bubble_casette(int drv) override;
@@ -640,9 +639,9 @@ public:
 #if defined(USE_DIG_RESOLUTION)
 	void get_screen_resolution(int *w, int *h) override;
 #endif
-#if defined(USE_MINIMUM_RENDERING)	
+#if defined(USE_MINIMUM_RENDERING)
 	bool is_screen_changed(void) override;
-#endif	
+#endif
 	double get_current_usec() override;
 	uint64_t get_current_clock_uint64() override;
 	// ----------------------------------------
