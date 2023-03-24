@@ -37,7 +37,7 @@ public:
 
 	// common functions
 	void initialize() override;
-	void event_frame();
+	void event_frame() override;
 //	void write_signal(int id, uint32_t data, uint32_t mask) override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
 

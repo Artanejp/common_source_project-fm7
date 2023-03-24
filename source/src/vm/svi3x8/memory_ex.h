@@ -74,33 +74,33 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr)  override;
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data)  override;
 	// unique functions
-	void open_cart(const _TCHAR *file_path)  override;
-	void close_cart()  override;
-	bool load_cart(const _TCHAR *file_path/*, uint8_t *rom*/)  override;
-	bool is_cart_inserted() override
+	void open_cart(const _TCHAR *file_path);
+	void close_cart();
+	bool load_cart(const _TCHAR *file_path/*, uint8_t *rom*/);
+	bool is_cart_inserted()
 	{
 		return inserted;
 	}
-	bool play_tape(const _TCHAR* file_path)  override;
-//	bool rec_tape(const _TCHAR* file_path)  override;
-	void close_tape() override;
+	bool play_tape(const _TCHAR* file_path);
+//	bool rec_tape(const _TCHAR* file_path);
+	void close_tape();
 #if defined(FDD_PATCH_SLOT)
 	void release() override;
 	void set_context_fdd_patch(DEVICE *device)
 	{
 		d_fdpat = device;
 	}
-	void open_disk(int drv, const _TCHAR* file_path, int bank)  override;
-	void close_disk(int drv)  override;
-	bool is_disk_inserted(int drv)  override;
-	void is_disk_protected(int drv, bool value)  override;
-	bool is_disk_protected(int drv)  override;
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_disk(int drv);
+	bool is_disk_inserted(int drv);
+	void is_disk_protected(int drv, bool value);
+	bool is_disk_protected(int drv);
 #endif
-	bool is_tape_inserted() override
+	bool is_tape_inserted()
 	{
 		return play;
 	}
-	const _TCHAR* get_message() override
+	const _TCHAR* get_message()
 	{
 		if (play) return _T("Play");
 		else return _T("Stop");
