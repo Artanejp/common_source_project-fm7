@@ -44,44 +44,47 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	cpu = new MC6800(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x10000;
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x400;
 	fdc = new MC6843(this, emu);	// HD46503
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	dma = new MC6844(this, emu);	// HD46504
-	
+
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	printer = new PRINTER(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	fdc->set_context_drq(dma, SIG_MC6844_TX_RQ_0, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(display);
-	
+
 	display->set_context_dma(dma);
 	floppy->set_context_fdc(fdc);
 	printer->set_context_ram(ram);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 #ifdef USE_DEBUGGER
 	DEBUGGER *debugger = new DEBUGGER(this, emu);
 	cpu->set_context_debugger(debugger);
-	
+
 	debugger->add_symbol(0x015c, _T("VRAM_TOP"));
-	
+
 	debugger->add_symbol(0xe121, _T("KEY_DOWN"));
 	debugger->add_symbol(0xe122, _T("KEY_UP"));
 	debugger->add_symbol(0xe140, _T("DMA[0].ADDR_HI"));
@@ -117,7 +120,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	debugger->add_symbol(0xe187, _T("FDC.LOGIC_TRACK"));
 	debugger->add_symbol(0xe18a, _T("FDD.MOTOR_ON")); // ???
 #endif
-	
+
 	// memory bus
 	memset(ram, 0x00, sizeof(ram));
 	memset(cart_5000, 0xff, sizeof(cart_5000));
@@ -126,14 +129,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memset(cart_8000, 0xff, sizeof(cart_8000));
 	memset(bios_9000, 0xff, sizeof(bios_9000));
 	memset(bios_f000, 0xff, sizeof(bios_f000));
-	
+
 	memory->read_bios(_T("CART_5000.ROM"), cart_5000, sizeof(cart_5000));
 	memory->read_bios(_T("CART_6000.ROM"), cart_6000, sizeof(cart_6000));
 	memory->read_bios(_T("CART_7000.ROM"), cart_7000, sizeof(cart_7000));
 	memory->read_bios(_T("CART_8000.ROM"), cart_8000, sizeof(cart_8000));
 	memory->read_bios(_T("BIOS_9000.ROM"), bios_9000, sizeof(bios_9000));
 	memory->read_bios(_T("BIOS_F000.ROM"), bios_f000, sizeof(bios_f000));
-	
+
 #if defined(_AX1)
 	memory->set_memory_rw(0x0000, 0x07ff, ram + 0x0000);
 #elif defined(_BX1)
@@ -147,7 +150,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_memory_r(0x9000, 0xdfff, bios_9000);
 	memory->set_memory_mapped_io_rw(0xe000, 0xefff, io);
 	memory->set_memory_r(0xf000, 0xffff, bios_f000);
-	
+
 	// io bus
 	io->set_iomap_range_r (0xe121, 0xe122, keyboard);
 	io->set_iomap_range_rw(0xe140, 0xe156, dma);
@@ -155,7 +158,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xe188, 0xe18f, floppy);
 	io->set_iomap_range_rw(0xe210, 0xe212, printer); // ?????
 
-//! @note Not remove below comment. 20210511 K.O	
+//! @note Not remove below comment. 20210511 K.O
 /*
 	ram
 	0062		画面の桁数？
@@ -174,8 +177,8 @@ dma[1]	15chから10hバイト	メモリ→DISPLAY？
 */
 
 
-	
-	
+
+
 /*
 
 $E121		ram[$016e]
@@ -355,12 +358,12 @@ void VM::key_up(int code)
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
-	
+
 	// unformatted disk image is inserted
 	if(fdc->is_disk_inserted(drv)) {
 		DISK *disk = fdc->get_disk_handler(drv);
 		bool formatted = false;
-		
+
 		for(int trk = 0; trk < 35; trk++) {
 			if(disk->get_track(trk, 0)) {
 				formatted = true;
@@ -372,7 +375,7 @@ void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 			for(int trk = 0; trk < 35; trk++) {
 				disk->format_track(trk, 0);
 				disk->track_mfm = false;
-				
+
 				for(int sec = 1; sec <= 16; sec++) {
 					disk->insert_sector(trk, 0, sec, 0, false, false, 0x00, 128);
 				}
@@ -428,4 +431,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
-

@@ -41,10 +41,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	io = new IO(this, emu);
+	io->space = 0x100;
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
+
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
 #ifdef USE_DEBUGGER
@@ -58,10 +61,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
-	
+
 	vdp->set_context_irq(cpu, SIG_CPU_NMI, 1);
 	key->set_context_cpu(cpu);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -69,21 +72,21 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(ext, 0, sizeof(ext));
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(cart, 0xff, sizeof(cart));
-	
+
 	memory->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
-	
+
 	memory->set_memory_r(0x0000, 0x3fff, ipl);
 	memory->set_memory_mapped_io_rw(0x4000, 0x4fff, vdp);
 	memory->set_memory_rw(0x7000, 0x7fff, ram);
 	memory->set_memory_rw(0x8000, 0xbfff, ext);
 	memory->set_memory_r(0xc000, 0xffff, cart);
-	
+
 	// i/o bus
 	io->set_iomap_single_w(0x00, cmt);
 	io->set_iomap_single_r(0x10, key);
@@ -95,13 +98,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r(0x90, prt);
 	io->set_iomap_single_w(0xa0, prt);
 	io->set_iomap_single_w(0xb0, prt);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	inserted = false;
 }
 
@@ -174,7 +177,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 3579545, 8000);
 }

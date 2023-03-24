@@ -74,7 +74,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	crtc = new HD46505(this, emu);
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER
@@ -91,8 +91,15 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma2->set_device_name(_T("i8237 DMAC #2"));
 #endif
 //	sio = new I8250(this, emu);
-	pit = new I8253(this, emu);	// i8254
+	pit = new I8253(this, emu);
+#if !(defined(_J3100SS) || defined(_J3100SE))
+	pit->device_model = INTEL_8254;
+	pit->set_device_name(_T("8254 PIT"));
+#endif
 	pic = new I8259(this, emu);
+#ifndef TYPE_SL
+	pic->num_chips = 2;
+#endif
 #ifdef TYPE_SL
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
@@ -100,6 +107,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
  	cpu = new I286(this, emu);
 #endif
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	pcm = new PCM1BIT(this, emu);
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
@@ -110,7 +119,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	rtc = new HD146818P(this, emu);
 #endif
-	
+
 	display = new DISPLAY(this, emu);
 	dmareg = new DMAREG(this, emu);
 	floppy = new FLOPPY(this, emu);
@@ -134,10 +143,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//pcm->set_context_debugger(new DEBUGGER(this, emu));
 	//fdc->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// dmac
 	io->set_iomap_range_rw(0x00, 0x0f, dma);
 	io->set_iomap_range_w(0x80, 0x8f, dmareg);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch2(fdc);
 	dmareg->set_context_dma(dma);
@@ -149,7 +159,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma2->set_mode_word(true);
 	dmareg->set_context_dma2(dma2);
 #endif
-	
+
 	// pic
 	io->set_iomap_alias_rw(0x20, pic, I8259_ADDR_CHIP0 | 0);
 	io->set_iomap_alias_rw(0x21, pic, I8259_ADDR_CHIP0 | 1);
@@ -158,7 +168,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0xa1, pic, I8259_ADDR_CHIP1 | 1);
 #endif
 	pic->set_context_cpu(cpu);
-	
+
 	// pit
 	io->set_iomap_range_rw(0x40, 0x43, pit);
 	pit->set_constant_clock(0, 1190000);
@@ -169,14 +179,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifndef TYPE_SL
 	pit->set_context_ch2(system, SIG_SYSTEM_TC2O, 1);
 #endif
-	
+
 	// system status/command
 #ifndef TYPE_SL
 	io->set_iomap_single_rw(0x61, system);
 	system->set_context_pcm(pcm);
 	system->set_context_pit(pit);
 #endif
-	
+
 	// rtc
 #ifdef TYPE_SL
 	io->set_iomap_range_rw(0x2c0, 0x2cf, rtc);
@@ -185,14 +195,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x71, rtc, 0);
 	rtc->set_context_intr_line(pic, SIG_I8259_IR0 | SIG_I8259_CHIP1, 1);	// to PIC#1 IR0 (IR8)
 #endif
-	
+
 	// nmi mask register
 #ifdef TYPE_SL
 	io->set_iomap_single_w(0xa0, system);
 #else
 	// 0x70 bit7 (not implemented)
 #endif
-	
+
 	// crtc
 	io->set_iomap_range_rw(0x3d0, 0x3d1, crtc);
 	io->set_iomap_range_rw(0x3d4, 0x3d5, crtc);
@@ -202,7 +212,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
 	display->set_regs_ptr(crtc->get_regs());
 	display->set_vram_ptr(memory->get_vram());
-	
+
 	// fdc
 	io->set_iomap_single_w(0x3f2, floppy);
 	io->set_iomap_range_rw(0x3f4, 0x3f5, fdc);
@@ -210,27 +220,27 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_irq(pic, SIG_I8259_IR6 | SIG_I8259_CHIP0, 1);	// to PIC#0 IR6
 	fdc->set_context_drq(dma, SIG_I8237_CH2, 1);			// to DMA Ch.2
 	floppy->set_context_fdc(fdc);
-	
+
 	// printer
 	io->set_flipflop_single_rw(0x378, 0x00);
 	io->set_iovalue_single_r(0x379, 0x78);
 	io->set_flipflop_single_rw(0x37a, 0x00);
-	
+
 	// keyboard
 #ifdef TYPE_SL
 	io->set_iomap_range_rw(0x60, 0x61, keyboard);
 #else
 #endif
 	keyboard->set_context_pic(pic);
-	
+
 	// serial port
-	
+
 	// sasi
 #if defined(_J3100GT) || defined(TYPE_SL)
 	io->set_iomap_range_rw(0x1f0, 0x1f3, sasi);
 	sasi->set_context_pic(pic);
 #endif
-	
+
 	// ems
 	static const int ems_addr[] = {
 		0x208, 0x4208, 0x8208, 0xc208,
@@ -252,7 +262,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef TYPE_SL
 	io->set_iomap_range_rw(0xee, 0xef, memory);
 #endif
-	
+
 	// special registers for J-3100SL/SS/SE
 #ifdef TYPE_SL
 //	62	bit0
@@ -275,7 +285,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 #ifdef TYPE_SL
 	//pcm->set_realtime_render(true);
 #endif
@@ -350,7 +360,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -459,4 +469,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-

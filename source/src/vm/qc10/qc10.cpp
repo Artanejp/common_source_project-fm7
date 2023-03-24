@@ -53,7 +53,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	rtc = new HD146818P(this, emu);
 	dma0 = new I8237(this, emu);
 #ifdef USE_DEBUGGER
@@ -71,7 +71,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit1->set_device_name(_T("8253 PIT (Sound/SIO)"));
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x100;
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
 //	pcm->set_context_debugger(new DEBUGGER(this, emu));
@@ -86,7 +88,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	cpu = new Z80(this, emu);
 	sio = new Z80SIO(this, emu);	// uPD7201
-	
+
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -98,14 +100,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	rtc->set_context_intr_line(pic, SIG_I8259_IR2 | SIG_I8259_CHIP1, 1);
+	dma0->set_context_cpu(cpu);
 	dma0->set_context_memory(memory);
 	dma0->set_context_ch0(fdc);
 	dma0->set_context_ch1(gdc);
 #ifdef SINGLE_MODE_DMA
 	dma0->set_context_child_dma(dma1);
 #endif
+	dma1->set_context_cpu(cpu);
 	dma1->set_context_memory(memory);
 	pit0->set_context_ch0(memory, SIG_MEMORY_PCM, 1);
 	pit0->set_context_ch1(pic, SIG_I8259_IR5 | SIG_I8259_CHIP1, 1);
@@ -125,6 +129,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pic->set_context_cpu(cpu);
 	gdc->set_context_drq(dma0, SIG_I8237_CH1, 1);
 	gdc->set_vram_ptr(display->get_vram(), VRAM_SIZE);
+	gdc->set_screen_width(80);
 	// IR5 of I8259 #0 is from light pen
 	fdc->set_context_irq(pic, SIG_I8259_IR6 | SIG_I8259_CHIP0, 1);
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
@@ -135,7 +140,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio->set_rx_clock(0, 1200 * 16);	// clock is from 8253 ch1 (1.9968MHz/104)
 //	sio->set_tx_clock(1, 9600 * 16);	// 9600 baud for RS-232C
 //	sio->set_rx_clock(1, 9600 * 16);	// clock is from 8253 ch2 (1.9968MHz/13)
-	
+
 	display->set_context_gdc(gdc);
 	display->set_sync_ptr(gdc->get_sync());
 	display->set_zoom_ptr(gdc->get_zoom());
@@ -149,7 +154,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_pcm(pcm);
 	memory->set_context_fdc(fdc);
 	mfont->set_context_pic(pic);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -160,7 +165,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x00, 0x03, pit0);
 	io->set_iomap_range_rw(0x04, 0x07, pit1);
@@ -184,13 +189,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x40, 0x4f, dma0);
 	io->set_iomap_range_rw(0x50, 0x5f, dma1);
 	io->set_iomap_range_rw(0xfc, 0xfd, mfont);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	//pcm->set_realtime_render(true);
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
@@ -271,7 +276,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 4000);
 }

@@ -40,35 +40,38 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	m_not = new NOT(this, emu);
 	cpu = new Z80(this, emu);
 	pio = new Z80PIO(this, emu);
-	
+
 	display = new DISPLAY(this, emu);
 	memory = new MEMBUS(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x400;
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(m_not, SIG_NOT_INPUT, 1);
 	m_not->set_context_out(pio, SIG_Z80PIO_PORT_B, 0x80);
 	pio->set_context_port_b(drec, SIG_DATAREC_MIC, 0x40, 0);
 	pio->set_context_port_a(display, SIG_DISPLAY_PA, 0xff, 0);
 	pio->set_context_port_b(display, SIG_DISPLAY_PB, 0x0f, 0);
-	
+
 	display->set_context_pio(pio);
 	memory->set_context_cpu(cpu);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -76,24 +79,24 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(mon, 0xff, sizeof(mon));
 	memset(tty, 0xff, sizeof(tty));
 	memset(ext, 0xff, sizeof(ext));
 	memset(ram, 0x00, sizeof(ram));
-	
+
 	memory->read_bios(_T("MON.ROM"), mon, sizeof(mon));
 	memory->read_bios(_T("TTY.ROM"), tty, sizeof(tty));
 	memory->read_bios(_T("EXT.ROM"), ext, sizeof(ext));
-	
+
 	for(int i = 0; i < 0x8000; i += 0x1000) {
 		memory->set_memory_r (i + 0x0000, i + 0x03ff, mon);
 		memory->set_memory_r (i + 0x0400, i + 0x07ff, tty);
 		memory->set_memory_r (i + 0x0800, i + 0x0bff, ext);
 		memory->set_memory_rw(i + 0x8000, i + 0x8fff, ram);
 	}
-	
+
 	// i/o bus
 	for(int i = 0; i < 0x100; i += 4) {
 		io->set_iomap_alias_rw(i + 0, pio, 0);
@@ -101,7 +104,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		io->set_iomap_alias_rw(i + 2, pio, 1);
 		io->set_iomap_alias_rw(i + 3, pio, 3);
 	}
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -342,4 +345,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
-

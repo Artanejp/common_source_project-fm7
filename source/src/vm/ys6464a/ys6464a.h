@@ -19,8 +19,6 @@
 #define CPU_CLOCKS		4000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		357
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x2000
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
@@ -93,67 +91,67 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	IO* io;
 	I8255* pio;
 	MEMORY* memory;
 //	PCM1BIT* pcm;
 	Z80* cpu;
-	
+
 	YS6464A::DISPLAY* display;
 	YS6464A::KEYBOARD* keyboard;
-	
+
 	// memory
 	uint8_t rom[0x2000];
 	uint8_t ram[0x2000];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
-	
+
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

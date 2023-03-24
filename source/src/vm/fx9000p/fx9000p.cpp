@@ -35,31 +35,33 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	crtc = new HD46505(this, emu);
 	memory = new MEMORY(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
 	cpu = new Z80(this, emu);
-	
+
 	io = new IO(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(io, SIG_IO_EAR, 1);
 	crtc->set_context_disp(io, SIG_IO_DISP, 1);
-	
+
 	io->set_context_cpu(cpu);
 	io->set_context_crtc(crtc);
 	io->set_context_drec(drec);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -67,7 +69,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(basic, 0xff, sizeof(basic));
 	memset(op1, 0xff, sizeof(op1));
@@ -84,18 +86,18 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		cmos[i] = (0x2e + i) & 0xff;
 	}
 #endif
-	
+
 	memory->read_bios(_T("BASIC.ROM"), basic, sizeof(basic));
 	memory->read_bios(_T("OP1.ROM"), op1, sizeof(op1));
 	memory->read_bios(_T("RAM.BIN"), cmos, sizeof(cmos));
-	
+
 	memory->set_memory_r(0x0000, 0x2fff, basic);
 	memory->set_memory_r(0x5000, 0x5fff, op1);
 	memory->set_memory_mapped_io_rw(0x6000, 0x6fff, io);
 	memory->set_memory_rw(0x7000, 0x7fff, vram);
 	memory->set_memory_rw(0x8000, 0xbfff, dram);
 	memory->set_memory_rw(0xc000, 0xefff, cmos);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -106,7 +108,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 VM::~VM()
 {
 	memory->write_bios(_T("RAM.BIN"), cmos, sizeof(cmos));
-	
+
 	// delete all devices
 	for(DEVICE* device = first_device; device;) {
 		DEVICE *next_device = device->next_device;
@@ -212,7 +214,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -222,7 +224,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);
@@ -306,4 +308,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(cmos, sizeof(cmos), 1);
 	return true;
 }
-

@@ -55,26 +55,27 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 //	drec = new DATAREC(this, emu);
 //	drec->set_context_noise_play(new NOISE(this, emu));
 //	drec->set_context_noise_stop(new NOISE(this, emu));
 //	drec->set_context_noise_fast(new NOISE(this, emu));
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
 	not_remote = new NOT(this, emu);
 	psg = new AY_3_891X(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	vdp = new TMS9918A(this, emu);
 	cpu = new Z80(this, emu);
-	
+
 	joystick = new JOYSTICK(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY_EX(this, emu);
 #ifdef USE_PRINTER
 	printer = new PRINTER(this, emu);
 #endif
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
@@ -82,7 +83,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	event->set_context_sound(drec);
 //	event->set_context_sound(drec->get_context_noise_play());
 //	event->set_context_sound(drec->get_context_noise_stop());
-//	event->set_context_sound(drec->get_context_noise_fast());	
+//	event->set_context_sound(drec->get_context_noise_fast());
 //	drec->set_context_ear(psg, SIG_AY_3_891X_PORT_A, 0x80);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);
 	pio->set_context_port_c(not_remote, SIG_NOT_INPUT, 0x10, 0);
@@ -91,13 +92,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x80, 0);
 	psg->set_context_port_b(memory, SIG_MEMORY_SEL, 0x0f, 0);
 	vdp->set_context_irq(cpu, SIG_CPU_IRQ, 1);
-	
+
 	joystick->set_context_psg(psg);
 	joystick->set_context_memory(memory);
 	keyboard->set_context_pio(pio);
-	
+
 #ifdef USE_PRINTER
-	if(config.printer_type == 0) {  
+	if(config.printer_type == 0) {
 		printer->set_context_prn(new PRNFILE(this, emu));
 	} else {
 		printer->set_context_prn(printer);
@@ -111,7 +112,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x30, 0x38, memory);
 	io->set_iomap_range_w(0x80, 0x81, vdp);
@@ -125,7 +126,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_PRINTER
 	io->set_iomap_range_rw(0x10, 0x11, printer);
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -202,7 +203,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 3579545, samples, 0, 0);
 	pcm->initialize_sound(rate, 8000);
@@ -274,7 +275,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	memory->play_tape(file_path);
 //	bool remote = drec->get_remote();
-	
+
 //	if(drec->play_tape(file_path) && remote) {
 //		// if machine already sets remote on, start playing now
 //		push_play(drv);
@@ -284,7 +285,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 //	bool remote = drec->get_remote();
-	
+
 //	if(drec->rec_tape(file_path) && remote) {
 //		// if machine already sets remote on, start recording now
 //		push_play(drv);

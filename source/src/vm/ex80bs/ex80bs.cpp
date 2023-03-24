@@ -40,47 +40,49 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	sio = new I8251(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+	io->space = 0x100;
+
 	pcm = new PCM1BIT(this, emu);
 #ifdef USE_DEBUGGER
 //	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new I8080(this, emu);
-	
+
 	cmt = new CMT(this, emu);
 	display = new DISPLAY(this, emu);
 	memory = new MEMORY(this, emu);
 	// Set names
 #if defined(_USE_QT)
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	pio->set_device_name(_T("i8255(SOUND/KEY/DISPLAY)"));
 	sio->set_device_name(_T("i8251(CMT)"));
 	pcm->set_device_name(_T("SOUND OUT"));
 #endif
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-	
+
 	sio->set_context_out(cmt, SIG_CMT_OUT);
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x08, 0);
 	pio->set_context_port_c(memory, SIG_KEYBOARD_COLUMN, 0x70, 0);
 	pio->set_context_port_c(display, SIG_DISPLAY_PC, 0x87, 0);
-	
+
 	// Sound:: Force realtime rendering. This is temporally fix. 20161024 K.O
 	//pcm->set_realtime_render(true);
-	
+
 	cmt->set_context_sio(sio);
 	display->set_context_cpu(cpu);
 	display->set_ram_ptr(memory->get_ram());
 	display->set_vram_ptr(memory->get_vram());
 	memory->set_context_cpu(cpu);
 	memory->set_context_pio(pio);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -88,13 +90,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// io bus
 	io->set_iomap_range_rw(0xdc, 0xdd, sio);
 	io->set_iomap_single_w(0xaf, memory);
 	io->set_iomap_single_r(0xef, memory);
 	io->set_iomap_range_rw(0xf8, 0xfb, pio);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -163,7 +165,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -270,4 +272,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	// Machine specified.
  	return true;
 }
-

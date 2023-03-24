@@ -89,20 +89,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		20000000, 25000000
 #endif
 	};
-	
+
 #if defined(_FMR60) && (defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))
 	uint8_t machine_id = 0xf0;	// FMR-70/80
 #else
 	uint8_t machine_id = 0xf8;	// FMR-50/60
 #endif
-	
+
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("MACHINE.ID")), FILEIO_READ_BINARY)) {
 		machine_id = fio->Fgetc();
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	machine_id &= ~7;
 #if defined(HAS_I286)
 	machine_id |= 0;	// 286
@@ -112,7 +112,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #elif defined(HAS_I486)
 	machine_id |= 2;	// 486SX/DX
 #endif
-	
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
@@ -136,26 +136,29 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
  	cpu = new I386(this, emu);
 	cpu->device_model = INTEL_PENTIUM;
 #endif
-	
+
 	crtc = new HD46505(this, emu);
 #ifdef _FMR60
 	acrtc = new HD63484(this, emu);
 #endif
-	
+
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
 	pit0->set_device_name(_T("8253 PIT #0"));
 	pit1 = new I8253(this, emu);
 	pit1->set_device_name(_T("8253 PIT #1"));
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
-	
+
 	scsi_host = new SCSI_HOST(this, emu);
 	for(int i = 0; i < USE_HARD_DISK; i++) {
 		scsi_hdd[i] = new SCSI_HDD(this, emu);
@@ -187,7 +190,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 /*	pic	0	timer
 		1	keyboard
 		2	rs-232c
@@ -229,10 +232,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	rtc->set_context_busy(timer, SIG_TIMER_RTC, 0x80);
 	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
-	
+
 	floppy->set_context_fdc(fdc);
 	floppy->set_context_pic(pic);
 	keyboard->set_context_pic(pic);
@@ -246,7 +250,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	timer->set_context_pcm(pcm);
 	timer->set_context_pic(pic);
 	timer->set_context_rtc(rtc);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -270,7 +274,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, I8259_ADDR_CHIP0 | 0);
 	io->set_iomap_alias_rw(0x02, pic, I8259_ADDR_CHIP0 | 1);
@@ -329,7 +333,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x3000, 0x3fff, cmos);
 	io->set_iomap_range_rw(0xfd98, 0xfd9f, memory);	// crtc
 	io->set_iomap_single_rw(0xfda0, memory);	// crtc
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -416,7 +420,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -522,7 +526,7 @@ bool VM::is_hard_disk_inserted(int drv)
 uint32_t VM::is_hard_disk_accessed()
 {
 	uint32_t status = 0;
-	
+
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
 		if(scsi_hdd[drv]->accessed(0)) {
 			status |= 1 << drv;

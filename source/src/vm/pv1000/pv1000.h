@@ -21,8 +21,6 @@
 #define SCREEN_HEIGHT		192
 #define LINES_PER_HBLANK 	51
 #define CLOCKS_PER_HBLANK	800
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
 
 // device informations for win32
 #define SUPPORT_TV_RENDER
@@ -76,46 +74,46 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	IO* io;
 	MEMORY* memory;
 	Z80* cpu;
-	
+
 	PV1000::JOYSTICK* joystick;
 	PV1000::PSG* psg;
 	PV1000::VDP* vdp;
-	
+
 	// memory
 	uint8_t mem[0x10000];
 	bool inserted;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -123,23 +121,23 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

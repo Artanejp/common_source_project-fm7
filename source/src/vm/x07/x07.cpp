@@ -34,37 +34,39 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	beep = new BEEP(this, emu);
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x800;
+
 	cpu = new Z80(this, emu);
-	
+
 	io = new IO(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
-	
+
 	io->set_context_beep(beep);
 	io->set_context_cpu(cpu);
 	io->set_context_mem(memory, ram);
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(app, 0xff, sizeof(app));
 	memset(tv, 0xff, sizeof(tv));
 	memset(bas, 0xff, sizeof(bas));
-	
+
 	memory->read_bios(_T("APP.ROM"), app, sizeof(app));
 	memory->read_bios(_T("TV.ROM"), tv, sizeof(tv));
 	memory->read_bios(_T("BASIC.ROM"), bas, sizeof(bas));
-	
+
 	memory->set_memory_rw(0x0000, 0x5fff, ram);
 	memory->set_memory_r(0x6000, 0x7fff, app);
 	memory->set_memory_rw(0x8000, 0x97ff, vram);
 	memory->set_memory_r(0xa000, 0xafff, tv);
 	memory->set_memory_r(0xb000, 0xffff, bas);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -73,7 +75,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	beep->set_context_debugger(new DEBUGGER(this, emu));
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -150,7 +152,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 1000, 8000);
 }

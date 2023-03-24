@@ -53,8 +53,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	io = new IO(this, emu);
+	io->space = 0x10000;
 	flipflop = new LS393(this, emu);
 	fdc = new MB8877(this, emu);
 #ifdef USE_DEBUGGER
@@ -72,7 +73,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
-	
+
 	bubblecasette[0] = new BUBBLECASETTE(this, emu);
 	bubblecasette[1] = new BUBBLECASETTE(this, emu);
 	cmt = new CMT(this, emu);
@@ -87,16 +88,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	membus = new MEMBUS(this, emu);
-	
+	membus->space = 0x10000;
+	membus->bank_size = 0x800;
+
 	rtc = new RTC(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	flipflop->set_context_1qa(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	fdc->set_context_drq(display, SIG_DISPLAY_DMAC_CH0, 1);
 	sio_cmt->set_context_out(cmt, SIG_CMT_OUT);
@@ -104,7 +107,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	ctc->set_constant_clock(0, CPU_CLOCKS);
 	ctc->set_constant_clock(1, CPU_CLOCKS);
 	ctc->set_constant_clock(2, CPU_CLOCKS);
-	
+
 	cmt->set_context_sio(sio_cmt);
 	display->set_context_cpu(cpu);
 	display->set_context_cmt(cmt);
@@ -114,7 +117,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_context_dmac_ch0(fdc);
 	display->set_context_dmac_ch2(display); // crtc
 	floppy->set_context_fdc(floppy);
-	
+
 	// cpu bus
 	cpu->set_context_mem(membus);
 	cpu->set_context_io(io);
@@ -122,10 +125,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	ctc->set_context_intr(cpu, 0);
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x0000, 0x0008, bubblecasette[0]);
 	io->set_iomap_range_rw(0x000c, 0x000d, membus);
@@ -145,13 +148,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x3fe0, 0x3fed, rtc);
 	io->set_iomap_single_rw(0x3ff0, display);
 	io->set_iomap_range_rw(0x4000, 0xffff, display);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2HD); // 8inch 2D
 	}
@@ -173,7 +176,7 @@ void VM::reset()
 {
 	// reset all devices
 	VM_TEMPLATE::reset();
-	
+
 	ctc->write_io8(0, 0x07); // default frequency for beep
 	ctc->write_io8(0, 0xef);
 	pcm->write_signal(SIG_PCM1BIT_ON, 0, 0); // beep off
@@ -229,7 +232,7 @@ void VM::initialize_sound(int rate, int samples)
 	if(event != nullptr) {
 		event->initialize_sound(rate, samples);
 	}
-	
+
 	// init sound gen
 	if(pcm != nullptr) {
 		pcm->initialize_sound(rate, 8000);

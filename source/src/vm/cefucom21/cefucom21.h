@@ -25,8 +25,6 @@
 #define MC6847_ATTR_AS		0x02
 #define MC6847_ATTR_CSS		0x04
 #define HAS_AY_3_8910
-#define MEMORY_BANK_SIZE	0x400
-#define IO_ADDR_MAX		0x100
 
 // device informations for win32
 #define USE_TAPE		1
@@ -84,10 +82,10 @@ class VM : public VM_TEMPLATE
 {
 protected:
 //	EMU* emu;
-	
+
 	// devices
 	EVENT* event;
-	
+
 	AY_3_891X *mcu_psg;
 	DATAREC *mcu_drec;
 	IO *mcu_io;
@@ -96,9 +94,9 @@ protected:
 	NOT *mcu_not;
 	Z80 *mcu_cpu;
 	Z80PIO *mcu_pio;
-	
+
 	MCU *mcu;
-	
+
 	I8255 *pcu_pio1;
 	I8255 *pcu_pio2;
 	I8255 *pcu_pio3;
@@ -109,28 +107,28 @@ protected:
 	Z80CTC *pcu_ctc1;
 	Z80CTC *pcu_ctc2;
 	Z80PIO *pcu_pio;
-	
+
 	PCU *pcu;
-	
+
 	uint8_t mcu_rom[0x8000];
 	uint8_t mcu_ram[0x8000];
 	uint8_t pcu_rom[0x8000];
 	uint8_t pcu_ram[0x8000];
 	uint8_t vram[0x1800];
 	uint8_t cram[0x1000];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -138,15 +136,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -154,7 +152,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// user interface
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
@@ -171,17 +169,17 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
 
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 //	DEVICE* dummy;

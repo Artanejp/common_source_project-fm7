@@ -36,8 +36,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	io = new IO(this, emu);
+	io->space = 0x100;
 	psg = new SN76489AN(this, emu);
 #ifdef USE_DEBUGGER
 //	psg->set_context_debugger(new DEBUGGER(this, emu));
@@ -47,17 +48,17 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	vdp->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	cpu = new Z80(this, emu);
-	
+
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
-	
+
 	vdp->set_context_irq(cpu, SIG_CPU_NMI, 1);
 	key->set_context_cpu(cpu);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -65,14 +66,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_w(0x80, 0x9f, key);
 	io->set_iomap_range_rw(0xbe, 0xbf, vdp);
 	io->set_iomap_range_w(0xc0, 0xdf, key);
 	io->set_iomap_range_r(0xfc, 0xff, key);
 	io->set_iomap_range_w(0xff, 0xff, psg);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -150,7 +151,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 3579545, 8000);
 }

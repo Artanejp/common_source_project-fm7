@@ -51,7 +51,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	crtc = new HD46505(this, emu);
 	sio = new I8251(this, emu);
 	pit = new I8253(this, emu);
@@ -60,15 +60,20 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);
 //	cpu->device_model = INTEL_8088;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 8; // 8088
 	mem = new MEMORY(this, emu);
-	
+	mem->space = 0x100000;
+	mem->bank_size = 0x4000;
+	mem->bus_width = 8; // 8088
+
 	pcm = new PCM1BIT(this, emu);
 	psg = new SN76489AN(this, emu);	// SN76496N
 	fdc = new UPD765A(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
-	
+
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -82,7 +87,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		6 Diskette Interrupt (WDT)
 		7 I/O Channel (Parallel Printer)
 	*/
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
@@ -99,11 +104,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	pcm->set_context_debugger(new DEBUGGER(this, emu));
 //	psg->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	crtc->set_context_disp(display, SIG_DISPLAY_ENABLE, 1);
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
 	crtc->set_context_vblank(pic, SIG_I8259_IR5, 1);
-	
+
 	/* PIT	0 Interrupt
 		2 Speaker
 	*/
@@ -122,7 +127,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio->set_context_port_b(speaker, SIG_SPEAKER_PIO, 0x62, 0);	// PB1+5+6
 	pio->set_context_port_b(display, SIG_DISPLAY_PIO, 0x04, 0);	// PB2
 	pic->set_context_cpu(cpu);
-	
+
 	display->set_context_mem(mem);
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);
@@ -132,33 +137,33 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard->set_context_pit(pit);
 	speaker->set_context_pcm(pcm);
 	speaker->set_context_psg(psg);
-	
+
 	// memory bus
 	//	00000-7FFFF	RAM
 	//	80000-B7FFF	KANJI ROM ???
 	//	A0000-A7FFF	EXT-VRAM
 	//	B8000-BFFFF	VRAM
 	//	D0000-FFFFF	CART+IPL
-	
+
 	memset(font, 0xff, sizeof(font));
 	memset(kanji, 0xff, sizeof(kanji));
 	memset(ram, 0, sizeof(ram));
 	memset(ipl, 0xff, sizeof(ipl));
-	
+
 	mem->read_bios(_T("FONT.ROM"), font, sizeof(font));
 	mem->read_bios(_T("KANJI.ROM"), kanji, sizeof(kanji));
 	int length = mem->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
 	int offset = 0x30000 - length;
 	memmove(ipl + offset, ipl, length);
 	memset(ipl, 0xff, offset);
-	
+
 	mem->set_memory_rw(0x00000, 0x7ffff, ram);
 //	mem->set_memory_r(0x80000, 0xb7fff, kanji);
 	mem->set_memory_r(0xd0000, 0xfffff, ipl);
-	
+
 	display->set_font_ptr(font);
 	display->set_kanji_ptr(kanji);
-	
+
 	// i/o bus
 	for(int i = 0x20; i <= 0x27; i++) {
 		io->set_iomap_alias_rw(i, pic, i & 1);
@@ -167,24 +172,24 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0x60, 0x67, pio);
 	io->set_iomap_range_rw(0xa0, 0xa7, keyboard);
 	io->set_iomap_range_w(0xc0, 0xc7, psg);
-	
+
 	io->set_iomap_single_w(0xf2, floppy);
 	io->set_iomap_range_rw(0xf4, 0xf5, fdc);
-	
+
 	io->set_iomap_single_rw(0x1ff, display);
-	
+
 ///	io->set_iovalue_range_r(0x200, 0x207, 0);
-	
+
 	io->set_iomap_range_rw(0x3d0, 0x3d1, crtc);
 	io->set_iomap_range_rw(0x3d4, 0x3d5, crtc);
 	io->set_iomap_range_rw(0x3d8, 0x3df, display);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 	}
@@ -221,7 +226,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// initial device settings
 	pio->write_signal(SIG_I8255_PORT_C, 0x02, 0x02);	// PC1=1: Modem card is not installed
 	pio->write_signal(SIG_I8255_PORT_C, 0x00, 0x04);	// PC2=0: Diskette card is installed
@@ -266,7 +271,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 	psg->initialize_sound(rate, 3579545, 8000);
@@ -377,4 +382,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
-

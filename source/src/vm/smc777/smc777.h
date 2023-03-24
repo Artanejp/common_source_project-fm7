@@ -31,7 +31,6 @@
 #define MAX_DRIVE		2
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define SUPPORT_MEDIA_TYPE_1DD
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #if defined(_SMC70)
@@ -164,10 +163,10 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	DATAREC* drec;
 	HD46505* crtc;
 	MB8877* fdc;
@@ -179,35 +178,35 @@ protected:
 	SN76489AN* psg;
 #endif
 	Z80* cpu;
-	
+
 	SMC777::MEMORY* memory;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -215,13 +214,13 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -244,17 +243,17 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

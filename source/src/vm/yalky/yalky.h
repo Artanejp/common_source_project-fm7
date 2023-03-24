@@ -25,8 +25,6 @@
 #define DATAREC_SOUND_LEFT
 #define DATAREC_FAST_FWD_SPEED	10
 #define DATAREC_FAST_REW_SPEED	10
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x100
 
 // device informations for win32
 #define USE_SPECIAL_RESET	1
@@ -66,33 +64,33 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	DATAREC* drec;
 	I8080* cpu;
 	I8155* pio;
 	MEMORY* memory;
-	
+
 	YALKY::IO* io;
-	
+
 	uint8_t rom[0x2000];
 	uint8_t ram[0x100];
 	uint8_t vram[0x400];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
@@ -101,15 +99,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -117,7 +115,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// user interface
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
@@ -134,17 +132,17 @@ public:
 	void push_apss_forward(int drv) {}
 	void push_apss_rewind(int drv) {}
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

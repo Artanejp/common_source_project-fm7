@@ -44,7 +44,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	mcu_psg = new AY_3_891X(this, emu);
 #ifdef USE_DEBUGGER
 	mcu_psg->set_context_debugger(new DEBUGGER(this, emu));
@@ -54,27 +54,33 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	mcu_drec->set_context_noise_stop(new NOISE(this, emu));
 	mcu_drec->set_context_noise_fast(new NOISE(this, emu));
 	mcu_io = new IO(this, emu);
+	mcu_io->space = 0x100;
 	mcu_vdp = new MC6847(this, emu);
 	mcu_mem = new MEMORY(this, emu);
-	
+	mcu_mem->space = 0x10000;
+	mcu_mem->bank_size = 0x800;
+
 	mcu_not = new NOT(this, emu);
 	mcu_cpu = new Z80(this, emu);
 	mcu_pio = new Z80PIO(this, emu);
 	mcu = new MCU(this, emu);
-	
+
 	pcu_pio1 = new I8255(this, emu);
 	pcu_pio2 = new I8255(this, emu);
 	pcu_pio3 = new I8255(this, emu);
 	pcu_io = new IO(this, emu);
+	pcu_io->space = 0x100;
 	pcu_mem = new MEMORY(this, emu);
-	
+	pcu_mem->space = 0x10000;
+	pcu_mem->bank_size = 0x1000;
+
 	pcu_rtc = new RP5C01(this, emu);
 	pcu_cpu = new Z80(this, emu);
 	pcu_ctc1 = new Z80CTC(this, emu);
 	pcu_ctc2 = new Z80CTC(this, emu);
 	pcu_pio = new Z80PIO(this, emu);
 	pcu = new PCU(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(mcu_cpu);
 	event->set_context_cpu(pcu_cpu);
@@ -83,41 +89,41 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(mcu_drec->get_context_noise_play());
 	event->set_context_sound(mcu_drec->get_context_noise_stop());
 	event->set_context_sound(mcu_drec->get_context_noise_fast());
-	
+
 	mcu_vdp->load_font_image(create_local_path(_T("FONT.ROM")));
 	mcu_vdp->set_vram_ptr(vram, 0x1800);
 #ifdef BOOT_BASIC
 	mcu_vdp->set_context_vsync(mcu_not, SIG_NOT_INPUT, 1);
 	mcu_not->set_context_out(mcu_cpu, SIG_CPU_IRQ, 1);
 #endif
-	
+
 	mcu_vdp->set_context_vsync(mcu, SIG_MCU_SYSPORT, 0x10);
 	mcu_drec->set_context_ear(mcu, SIG_MCU_SYSPORT, 0x20);
 	// bit6: printer busy
 	mcu_vdp->set_context_hsync(mcu, SIG_MCU_SYSPORT, 0x80);
-	
+
 //	mcu_vdp->set_context_vsync(pcu_ctc1, SIG_Z80CTC_TRIG_1, 1);
 //	mcu_vdp->set_context_vsync(pcu_ctc2, SIG_Z80CTC_TRIG_1, 1);
 	mcu_vdp->set_context_vsync(mcu_pio, SIG_Z80PIO_PORT_A, 0x40);
-	
+
 	mcu_pio->set_context_port_a(pcu_pio, SIG_Z80PIO_PORT_A, 0x38, -3);
 	mcu_pio->set_context_port_b(pcu_pio, SIG_Z80PIO_PORT_B, 0xff,  0);
 	mcu_pio->set_context_ready_a(pcu_pio, SIG_Z80PIO_STROBE_A, 1);
 	mcu_pio->set_context_ready_b(pcu_pio, SIG_Z80PIO_STROBE_B, 1);
 	mcu_pio->set_hand_shake(0, true);
 	mcu_pio->set_hand_shake(1, true);
-	
+
 	mcu->set_context_drec(mcu_drec);
 	mcu->set_context_psg(mcu_psg);
 	mcu->set_context_vdp(mcu_vdp);
-	
+
 	pcu_pio->set_context_port_a(mcu_pio, SIG_Z80PIO_PORT_A, 0x38, -3);
 	pcu_pio->set_context_port_b(mcu_pio, SIG_Z80PIO_PORT_B, 0xff,  0);
 	pcu_pio->set_context_ready_a(mcu_pio, SIG_Z80PIO_STROBE_A, 1);
 	pcu_pio->set_context_ready_b(mcu_pio, SIG_Z80PIO_STROBE_B, 1);
 	pcu_pio->set_hand_shake(0, true);
 	pcu_pio->set_hand_shake(1, true);
-	
+
 	// cpu bus
 	mcu_cpu->set_context_mem(mcu_mem);
 	mcu_cpu->set_context_io(mcu_io);
@@ -125,18 +131,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	mcu_cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	pcu_cpu->set_context_mem(pcu_mem);
 	pcu_cpu->set_context_io(pcu_io);
 	pcu_cpu->set_context_intr(dummy);
 #ifdef USE_DEBUGGER
 	pcu_cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	DEVICE* parent_dev = NULL;
 	int level = 0;
-	
+
 	#define Z80_DAISY_CHAIN(cpu, dev) { \
 		if(parent_dev == NULL) { \
 			cpu->set_context_intr(dev); \
@@ -153,16 +159,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	parent_dev = NULL;
 	Z80_DAISY_CHAIN(mcu_cpu, mcu_pio );
 #endif
-	
+
 	// memory bus
 	memset(mcu_rom, 0xff, sizeof(mcu_rom));
 	memset(mcu_ram, 0x00, sizeof(mcu_ram));
 	memset(pcu_rom, 0xff, sizeof(pcu_rom));
 	memset(pcu_ram, 0x00, sizeof(pcu_ram));
-	
+
 	memset(vram, 0x00, sizeof(vram));
 	memset(cram, 0x00, sizeof(cram));
-	
+
 	mcu_mem->read_bios(_T("BASIC.ROM"), mcu_rom, sizeof(mcu_rom));
 #ifdef BOOT_BASIC
 	memset(mcu_rom + 0x7800, 0, 0x800);
@@ -175,7 +181,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	mcu_mem->set_memory_rw(0x8000, 0xffff, mcu_ram);
 	mcu_mem->set_memory_rw(0x8000, 0xefff, mcu_ram);
 	mcu_mem->set_memory_rw(0xf000, 0xffff, cram);
-	
+
 	pcu_mem->read_bios(_T("MENU.ROM"), pcu_rom, sizeof(pcu_rom));
 #ifdef BOOT_BASIC
 	memset(pcu_rom, 0, 0x8000);
@@ -183,7 +189,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcu_mem->set_memory_r (0x0000, 0x7fff, pcu_rom);
 	pcu_mem->set_memory_rw(0x8000, 0xffff, pcu_ram);
 	pcu_mem->set_memory_rw(0xc000, 0xcfff, cram);
-	
+
 	// i/o bus
 	mcu_io->set_iomap_single_rw(0x40, mcu);
 	mcu_io->set_iomap_range_r  (0x80, 0x89, mcu);
@@ -206,7 +212,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pcu_io->set_iomap_range_rw (0x60, 0x63, pcu_pio1);
 	pcu_io->set_iomap_range_rw (0x64, 0x67, pcu_pio2);
 	pcu_io->set_iomap_range_rw (0x68, 0x6b, pcu_pio3);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -294,7 +300,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	mcu_psg->initialize_sound(rate, 1996750, samples, 0, 0);
 }
@@ -331,7 +337,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = mcu_drec->get_remote();
-	
+
 	if(mcu_drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -341,7 +347,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = mcu_drec->get_remote();
-	
+
 	if(mcu_drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);
@@ -440,4 +446,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	}
 	return true;
 }
-

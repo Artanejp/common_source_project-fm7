@@ -74,10 +74,8 @@
 #define MAX_DRIVE		4
 #define MAX_MEMCARD		2
 #define I86_PSEUDO_BIOS
-#define I8259_MAX_CHIPS		2
 #define SINGLE_MODE_DMA
 #define MB8877_NO_BUSY_AFTER_SEEK
-#define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
@@ -148,10 +146,10 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils *state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	HD46505* crtc;
 #if defined(_FMR60)
 	HD63484* acrtc;
@@ -172,7 +170,7 @@ protected:
 	SCSI_HDD* scsi_hdd[7];
 	SCSI_HOST* scsi_host;
 	UPD71071* dma;
-	
+
 	FMR50::BIOS* bios;
 	FMR50::CMOS* cmos;
 	FMR50::FLOPPY* floppy;
@@ -181,19 +179,19 @@ protected:
 	FMR50::SCSI* scsi;
 //	FMR50::SERIAL* serial;
 	FMR50::TIMER* timer;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -201,15 +199,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -217,11 +215,11 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -234,17 +232,17 @@ public:
 	bool is_hard_disk_inserted(int drv);
 	uint32_t is_hard_disk_accessed();
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	//void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id);
 	//DEVICE* dummy;

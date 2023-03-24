@@ -23,9 +23,6 @@
 #define SCREEN_WIDTH		1280
 #define SCREEN_HEIGHT		576
 #define MAX_DRIVE		1
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x400
-#define IO_ADDR_MAX		0x10000
 #define HAS_MC6800
 
 // device informations for win32
@@ -207,21 +204,21 @@ class VM : public VM_TEMPLATE
 {
 protected:
 //	EMU* emu;
-	
+
 	// devices
 	EVENT* event;
-	
+
 	MC6800* cpu;
 	IO* io;
 	MEMORY* memory;
 	MC6843* fdc;
 	MC6844* dma;
-	
+
 	BX1::DISPLAY* display;
 	BX1::FLOPPY* floppy;
 	BX1::KEYBOARD* keyboard;
 	BX1::PRINTER* printer;
-	
+
 	uint8_t cart_5000[0x1000]; // 5000h-5FFFh
 	uint8_t cart_6000[0x1000]; // 6000h-6FFFh
 	uint8_t cart_7000[0x1000]; // 7000h-7FFFh
@@ -229,19 +226,19 @@ protected:
 	uint8_t bios_9000[0x5000]; // 9000h-DFFFh (Integrated)
 	uint8_t bios_f000[0x1000]; // F000h-FFFFh (Integrated)
 	uint8_t ram[0x5000];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -249,15 +246,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -265,11 +262,11 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -278,14 +275,14 @@ public:
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
 	bool is_frame_skippable();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 //	DEVICE* dummy;

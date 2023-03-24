@@ -33,9 +33,7 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define I8259_MAX_CHIPS		2
 #define HAS_UPD7201
-#define UPD7220_FIXED_PITCH
 #define UPD765A_DMA_MODE
 //#define SINGLE_MODE_DMA
 
@@ -84,16 +82,16 @@ namespace QC10 {
 	class MEMORY;
 	class MFONT;
 }
-	
+
 class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	HD146818P* rtc;
 	I8237* dma0;
 	I8237* dma1;
@@ -107,38 +105,38 @@ protected:
 	UPD765A* fdc;
 	Z80* cpu;
 	Z80SIO* sio;
-	
+
 	QC10::DISPLAY* display;
 	QC10::FLOPPY* floppy;
 	QC10::KEYBOARD* keyboard;
 	QC10::MEMORY* memory;
 	QC10::MFONT* mfont;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
 	double get_frame_rate();
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -146,11 +144,11 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
@@ -159,17 +157,17 @@ public:
 	bool is_floppy_disk_protected(int drv);
 	uint32_t is_floppy_disk_accessed();
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

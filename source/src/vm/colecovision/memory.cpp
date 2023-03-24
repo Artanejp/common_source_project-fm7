@@ -7,7 +7,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 
 namespace COLECOVISION {
 #define SET_BANK(s, e, w, r) { \
@@ -32,7 +32,7 @@ void MEMORY::initialize()
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(ram, 0, sizeof(ram));
 	memset(rdmy, 0xff, sizeof(rdmy));
-	
+
 	// load ipl
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("COLECO.ROM")), FILEIO_READ_BINARY)) {
@@ -40,13 +40,13 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	// set memory map
 	SET_BANK(0x0000, 0x1fff, wdmy, ipl);
 	SET_BANK(0x2000, 0x5fff, wdmy, rdmy);
 	SET_BANK(0x6000, 0x7fff, ram,  ram);
 	SET_BANK(0x8000, 0xffff, wdmy, cart);
-	
+
 	inserted = false;
 }
 
@@ -65,13 +65,13 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
-	
+
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		memset(cart, 0xff, sizeof(cart));
 		fio->Fread(cart, sizeof(cart), 1);
 		fio->Fclose();
 		inserted = true;
-		
+
 		// set memory map
 		SET_BANK(0x8000, 0xffff, wdmy, cart);
 	}
@@ -82,7 +82,7 @@ void MEMORY::close_cart()
 {
 	memset(cart, 0xff, sizeof(cart));
 	inserted = false;
-	
+
 	// set memory map
 	SET_BANK(0x0000, 0x1fff, wdmy, ipl);
 	SET_BANK(0x2000, 0x5fff, wdmy, rdmy);
@@ -102,7 +102,7 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	state_fio->StateValue(inserted);
-	
+
 	// post process
 	if(loading) {
 		if(inserted) {

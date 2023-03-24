@@ -62,45 +62,45 @@ public:
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMORY_EX() {}
-	
+
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	uint32_t __FASTCALL fetch_op(uint32_t addr, int* wait);
-	bool process_state(FILEIO* state_fio, bool loading);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void initialize()  override;
+	void reset()  override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data)  override;
+	uint32_t __FASTCALL read_data8(uint32_t addr)  override;
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int* wait)  override;
+	bool process_state(FILEIO* state_fio, bool loading)  override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask)  override;
+	uint32_t __FASTCALL read_io8(uint32_t addr)  override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data)  override;
 	// unique functions
-	void open_cart(const _TCHAR *file_path);
-	void close_cart();
-	bool load_cart(const _TCHAR *file_path/*, uint8_t *rom*/);
-	bool is_cart_inserted()
+	void open_cart(const _TCHAR *file_path)  override;
+	void close_cart()  override;
+	bool load_cart(const _TCHAR *file_path/*, uint8_t *rom*/)  override;
+	bool is_cart_inserted() override
 	{
 		return inserted;
 	}
-	bool play_tape(const _TCHAR* file_path);
-//	bool rec_tape(const _TCHAR* file_path);
-	void close_tape();
+	bool play_tape(const _TCHAR* file_path)  override;
+//	bool rec_tape(const _TCHAR* file_path)  override;
+	void close_tape() override;
 #if defined(FDD_PATCH_SLOT)
-	void release();
+	void release() override;
 	void set_context_fdd_patch(DEVICE *device)
 	{
 		d_fdpat = device;
 	}
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool is_disk_inserted(int drv);
-	void is_disk_protected(int drv, bool value);
-	bool is_disk_protected(int drv);
+	void open_disk(int drv, const _TCHAR* file_path, int bank)  override;
+	void close_disk(int drv)  override;
+	bool is_disk_inserted(int drv)  override;
+	void is_disk_protected(int drv, bool value)  override;
+	bool is_disk_protected(int drv)  override;
 #endif
-	bool is_tape_inserted()
+	bool is_tape_inserted() override
 	{
 		return play;
 	}
-	const _TCHAR* get_message()
+	const _TCHAR* get_message() override
 	{
 		if (play) return _T("Play");
 		else return _T("Stop");

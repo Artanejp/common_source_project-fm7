@@ -22,17 +22,17 @@ class FLOPPY : public DEVICE
 {
 private:
 	MB8877 *d_fdc;
-	
+
 public:
 	FLOPPY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Floppy"));
 	}
 	~FLOPPY() {}
-	
+
 	// common function
-	void write_io8(uint32_t addr, uint32_t data);
-	
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+
 	// unique function
 	void set_context_fdc(MB8877* device)
 	{

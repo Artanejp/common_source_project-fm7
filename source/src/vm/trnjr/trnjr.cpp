@@ -41,12 +41,13 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	pio1 = new I8255(this, emu);
 	pio1->set_device_name(_T("8255 PIO (7-Seg/Keyboard)"));
 	pio2 = new I8255(this, emu);
 	pio2->set_device_name(_T("8255 PIO (ROM Writer)"));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	midi = new MIDI(this, emu);
 	speaker = new PCM8BIT(this, emu);
 	// TMPZ84C013
@@ -54,14 +55,16 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpudev->set_context_ctc(new Z80CTC(this, emu));
 	cpudev->set_context_sio(new Z80SIO(this, emu));
 	cpu = new Z80(this, emu);
-	
+
 	display = new DISPLAY(this, emu);
 	memory = new MEMBUS(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(speaker);
-	
+
 	cpudev->set_context_ctc_zc1(cpudev, SIG_TMPZ84C015_SIO_TX_CLK_CH0, 1);
 	cpudev->set_context_ctc_zc1(cpudev, SIG_TMPZ84C015_SIO_RX_CLK_CH0, 1);
 	cpudev->set_context_ctc_zc2(cpudev, SIG_TMPZ84C015_SIO_TX_CLK_CH1, 1);
@@ -72,10 +75,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio1->set_context_port_b(speaker, SIG_PCM8BIT_SAMPLE, 0xff, 0);
 	pio1->set_context_port_c(display, SIG_DISPLAY_PORT_C, 0xf0, 0);
 	midi->set_context_in(cpudev, SIG_TMPZ84C015_SIO_RECV_CH1, 0xff);
-	
+
 	display->set_context_pio(pio1);
 	memory->set_context_cpudev(cpudev);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -83,25 +86,25 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	cpudev->set_context_intr(cpu, 0);
-	
+
 	// memory bus
 	memset(ram, 0x00, sizeof(ram));
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	memory->read_bios(_T("MON.ROM"), rom, sizeof(rom));
-	
+
 	memory->set_memory_r (0x0000, 0x7fff, rom);
 	memory->set_memory_rw(0x8000, 0xffff, ram);
-	
+
 	// i/o bus
 	cpudev->set_iomap(io);
 	io->set_iomap_range_rw(0x60, 0x63, pio1);
 	io->set_iomap_range_rw(0x64, 0x67, pio2);
 //	io->set_iomap_range_rw(0x6c, 0x6f, fdc ); // uPD72605
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -182,7 +185,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	speaker->initialize_sound(rate, 8000);
 }
@@ -256,4 +259,3 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
-

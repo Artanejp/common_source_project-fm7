@@ -34,6 +34,7 @@
 #include "floppy.h"
 #include "keyboard.h"
 #include "mapper.h"
+#include "membus.h"
 #include "sound.h"
 
 using YIS::CALENDAR;
@@ -41,6 +42,7 @@ using YIS::DISPLAY;
 using YIS::FLOPPY;
 using YIS::KEYBOARD;
 using YIS::MAPPER;
+using YIS::MEMBUS;
 using YIS::SOUND;
 // ----------------------------------------------------------------------------
 // initialize
@@ -52,11 +54,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	cpu = new M6502(this, emu);	// YM-2002
 	io = new IO(this, emu);
-	memory = new MEMORY(this, emu);
-	
+	io->space = 0x10000;
 	apu = new AM9511(this, emu);
 	beep = new BEEP(this, emu);
 #ifdef USE_DEBUGGER
@@ -74,44 +75,47 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	acia1 = new MC6850(this, emu);	// MB8863
 	acia2 = new MC6850(this, emu);
 	rtc = new MSM58321(this, emu);	// MSM5832RS
-	
+
 	calendar = new CALENDAR(this, emu);
 	display = new DISPLAY(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mapper = new MAPPER(this, emu);
+	memory = new MEMBUS(this, emu);
+	memory->space = 0x10000;
+	memory->bank_size = 0x100;
 	sound = new SOUND(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(beep);
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
-	
+
 	fdc->set_context_drq(dma, SIG_MC6844_TX_RQ_0, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
-	
+
 	calendar->set_context_rtc(rtc);
 	floppy->set_context_fdc(fdc);
 	keyboard->set_context_cpu(cpu);
 	mapper->set_context_memory(memory);
 	sound->set_context_beep(beep);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_intr(dummy);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memory->read_bios(_T("BIOS.ROM"), rom, sizeof(rom));
 	// $0000-$efff will be mapped in mapper class
 	memory->set_memory_mapped_io_rw(0xf000, 0xf0ff, io);
 	memory->set_memory_r(0xf100, 0xffff, rom + 0x100);
-	
+
 	// io bus
 	io->set_iomap_range_rw(0xf000, 0xf016, dma);
 	io->set_iomap_range_rw(0xf020, 0xf023, fdc);
@@ -127,13 +131,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf040, 0xf04b, display);
 	io->set_iomap_range_rw(0xf04f, 0xf05f, mapper);
 //	io->set_iomap_range_rw(0xf060, 0xf06f, keyboard);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD); // 1DD
 		fdc->set_track_size(i, 6238);
@@ -209,7 +213,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	beep->initialize_sound(rate, 49152 / 0x80, 8000);
 }
@@ -320,7 +324,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

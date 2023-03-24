@@ -37,9 +37,6 @@
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
 #define MB8877_NO_BUSY_AFTER_SEEK
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
-#define IO_ADDR_MAX		0x100
 #define SINGLE_MODE_DMA
 
 // device informations for win32
@@ -110,10 +107,10 @@ class VM : public VM_TEMPLATE
 {
 protected:
 //	EMU* emu;
-	
+
 	// devices for x1
 	EVENT* event;
-	
+
 //	AM9511* apu;
 	HD46505* crtc;
 	IO* io;
@@ -127,71 +124,71 @@ protected:
 	Z80DMA* dma;
 	Z80PIO* pio;
 	Z80SIO* sio;
-	
+
 	M23::APU* apu;
 	M23::BEEP* beep;
 	M23::DISPLAY* display;
 	M23::FLOPPY* floppy;
 	M23::KEYBOARD* keyboard;
 	M23::MEMBUS* memory;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
-	void reset();
-	void run();
-	double get_frame_rate();
-	
+	void reset() override;
+	void run() override;
+	double get_frame_rate() override;
+
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
-	
+
 	// draw screen
-	void draw_screen();
-	
+	void draw_screen() override;
+
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
-	
+
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
-	bool get_caps_locked();
-	bool get_kana_locked();
-	uint32_t get_led_status();
-	
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
+	bool get_caps_locked() override;
+	bool get_kana_locked() override;
+	uint32_t get_led_status() override;
+
 	// user interface
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
-	bool is_frame_skippable();
-	void update_config();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
+	bool is_frame_skippable() override;
+	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
-	DEVICE* get_device(int id);
+	DEVICE* get_device(int id) override;
 //	DEVICE* dummy;
 //	DEVICE* first_device;
 //	DEVICE* last_device;

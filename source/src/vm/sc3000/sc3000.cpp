@@ -55,6 +55,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio_f = new I8255(this, emu);
 	pio_f->set_device_name(_T("8255 PIO (Floppy I/F)"));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
 #ifdef USE_DEBUGGER
@@ -72,7 +73,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
-   
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
@@ -83,7 +84,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(pio_k, SIG_I8255_PORT_B, 0x80);
 	pio_k->set_context_port_c(key, SIG_KEYBOARD_COLUMN, 0x07, 0);
 	pio_k->set_context_port_c(drec, SIG_DATAREC_REMOTE, 0x08, 0);
@@ -95,10 +96,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	vdp->set_context_irq(cpu, SIG_CPU_IRQ, 1);
 	fdc->set_context_irq(pio_f, SIG_I8255_PORT_A, 1);
 	fdc->set_context_index(pio_f, SIG_I8255_PORT_A, 4);
-	
+
 	key->set_context_cpu(cpu);
 	key->set_context_pio(pio_k);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -106,7 +107,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x40, 0x7f, psg);
 	io->set_iomap_range_rw(0x80, 0xbf, vdp);
@@ -114,13 +115,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xe0, 0xe3, fdc);
 	io->set_iomap_range_rw(0xe4, 0xe7, pio_f);
 	io->set_iomap_range_rw(0xe8, 0xeb, sio);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
@@ -195,7 +196,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 3579545, 8000);
 }
@@ -291,7 +292,7 @@ uint32_t VM::is_floppy_disk_accessed()
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -301,7 +302,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

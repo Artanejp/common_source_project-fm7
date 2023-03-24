@@ -18,24 +18,24 @@
 class HD44102;
 
 namespace JR800 {
-	
+
 class IO : public DEVICE
 {
 private:
 	HD44102 *d_lcd[8];
-	
+
 public:
 	IO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Mapped I/O"));
 	}
 	~IO() {}
-	
+
 	// common functions
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique function
 	void set_context_lcd(int i, HD44102 *device)
 	{
@@ -45,4 +45,3 @@ public:
 
 }
 #endif
-

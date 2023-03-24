@@ -34,13 +34,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	config.sound_tape_signal = false;
 	config.sound_tape_voice = true;
 	config.wave_shaper[0] = false;
-	
+
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -48,28 +48,30 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I8080(this, emu);	// 8085
 	pio = new I8155(this, emu);	// 8156
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x100;
+
 	io = new IO(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(io, SIG_IO_DREC_EAR, 1);
 	cpu->set_context_sod(drec, SIG_DATAREC_MIC, 1);
 	pio->set_context_port_b(io, SIG_IO_PORT_B, 0xff, 0);
 	pio->set_context_port_c(io, SIG_IO_PORT_C, 0xff, 0);
 	pio->set_context_timer(cpu, SIG_I8085_RST7, 1);
 	pio->set_constant_clock(CPU_CLOCKS);	// from 8085 CLOCK OUT
-	
+
 	io->set_context_drec(drec);
 	io->set_context_cpu(cpu);
 	io->set_context_pio(pio);
 	io->set_vram_ptr(vram);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -77,16 +79,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	memory->read_bios(_T("BIOS.ROM"), rom, sizeof(rom));
-	
+
 	memory->set_memory_r(0x0000, 0x1fff, rom);
 	memory->set_memory_rw(0x4000, 0x43ff, vram);
 	memory->set_memory_rw(0x6000, 0x60ff, ram);	// 8156
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -203,7 +205,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path)) {
 		if(remote) {
 			// if machine already sets remote on, start playing now
@@ -216,7 +218,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path)) {
 		if(remote) {
 			// if machine already sets remote on, start recording now

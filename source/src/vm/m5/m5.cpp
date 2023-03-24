@@ -42,14 +42,17 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x1000;
+
 	psg = new SN76489AN(this, emu);
 	vdp = new TMS9918A(this, emu);
 #ifdef USE_DEBUGGER
@@ -58,7 +61,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	cpu = new Z80(this, emu);
 	ctc = new Z80CTC(this, emu);
-	
+
 	cmt = new CMT(this, emu);
 	key = new KEYBOARD(this, emu);
 	// set contexts
@@ -68,12 +71,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(cmt, SIG_CMT_IN, 1);
 	drec->set_context_end(cmt, SIG_CMT_EOT, 1);
 	vdp->set_context_irq(ctc, SIG_Z80CTC_TRIG_3, 1);
 	cmt->set_context_drec(drec);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -81,23 +84,23 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// z80 family daisy chain
 	ctc->set_context_intr(cpu, 0);
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(ext, 0, sizeof(ext));
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(cart, 0xff, sizeof(cart));
-	
+
 	memory->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
-	
+
 	memory->set_memory_r(0x0000, 0x1fff, ipl);
 	memory->set_memory_r(0x2000, 0x6fff, cart);
 	memory->set_memory_rw(0x7000, 0x7fff, ram);
 	memory->set_memory_rw(0x8000, 0xffff, ext);
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0x00, 0x03, ctc);
 	io->set_iomap_range_rw(0x10, 0x11, vdp);
@@ -106,19 +109,19 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	io->set_iomap_range_r(0x38, 0x3f, key);
 	io->set_iomap_single_w(0x40, cmt);
 	io->set_iomap_single_rw(0x50, cmt);
-	
+
 	// FD5 floppy drive uint
 	subcpu = NULL;
 #ifdef USE_DEBUGGER
 //	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	inserted = false;
 }
 
@@ -193,7 +196,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	psg->initialize_sound(rate, 3579545, 8000);
 }
@@ -257,7 +260,7 @@ bool VM::is_cart_inserted(int drv)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -267,7 +270,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

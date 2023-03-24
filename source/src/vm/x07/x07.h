@@ -23,8 +23,6 @@
 #define TV_SCREEN_WIDTH		256
 #define TV_SCREEN_HEIGHT	192
 #define HAS_NSC800
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
 
 // device informations for win32
 #define TV_WINDOW_WIDTH		TV_SCREEN_WIDTH
@@ -68,16 +66,16 @@ class VM : public VM_TEMPLATE
 protected:
 	//EMU* emu;
 	//csp_state_utils* state_entry;
-	
+
 	// devices
 	//EVENT* event;
-	
+
 	BEEP* beep;
 	MEMORY* memory;
 	Z80* cpu;
-	
+
 	X07::IO* io;
-	
+
 	// memory
 //	uint8_t c3[0x2000];
 	uint8_t ram[0x6000];
@@ -85,19 +83,19 @@ protected:
 	uint8_t vram[0x1800];
 	uint8_t tv[0x1000];
 	uint8_t bas[0x5000];
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset();
 	void run();
@@ -105,15 +103,15 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+
 	// draw screen
 	void draw_screen();
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16_t* create_sound(int* extra_frames);
@@ -121,30 +119,30 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
+
 	// notify key
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	bool get_caps_locked();
 	bool get_kana_locked();
-	
+
 	// user interface
 	void play_tape(int drv, const _TCHAR* file_path);
 	void rec_tape(int drv, const _TCHAR* file_path);
 	void close_tape(int drv);
 	bool is_tape_inserted(int drv);
 	bool is_frame_skippable();
-	
+
 	double get_current_usec();
 	uint64_t get_current_clock_uint64();
-	
+
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	DEVICE* get_device(int id);
 	//DEVICE* dummy;

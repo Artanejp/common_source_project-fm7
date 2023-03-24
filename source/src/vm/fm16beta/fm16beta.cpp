@@ -54,21 +54,24 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	crtc = new HD46505(this, emu);
 #if defined(HAS_I186)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_80186;
 #elif defined(HAS_I286)
 	cpu = new I286(this, emu);
-#endif	
+#endif
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	dma = new I8237(this, emu);
 #ifdef USE_DEBUGGER
 	dma->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	sio = new I8251(this, emu);
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	fdc_2hd = new MB8877(this, emu);
 	fdc_2hd->set_context_noise_seek(new NOISE(this, emu));
 	fdc_2hd->set_context_noise_head_down(new NOISE(this, emu));
@@ -94,11 +97,19 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cmos = new CMOS(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mainbus = new MAINBUS(this, emu);
-	
+#if defined(HAS_I186)
+	mainbus->space = 0x0100000; // 1MB
+#elif defined(HAS_I286)
+	mainbus->space = 0x1000000; // 16MB
+#endif
+	mainbus->bank_size = 0x4000;
+	mainbus->bus_width = 16;
+
 	subbus = new SUB(this, emu);
 	// MUST set MEMORY SIZE before use.
-	subbus->set_addr_max(0x10000);
-	subbus->set_bank_size(0x80);
+	subbus->space = 0x10000;
+	subbus->bank_size = 0x80;
+	subbus->bus_width = 8;
 
 	// set contexts
 	event->set_context_cpu(cpu, 8000000);
@@ -110,7 +121,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc_2d->get_context_noise_seek());
 	event->set_context_sound(fdc_2d->get_context_noise_head_down());
 	event->set_context_sound(fdc_2d->get_context_noise_head_up());
-	
+
 	keyboard->set_context_main(mainbus);
 #if defined(HAS_I286)
 	mainbus->set_context_cpu(cpu);
@@ -124,6 +135,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	mainbus->set_context_sub(subbus);
 	mainbus->set_context_keyboard(keyboard);
 
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(mainbus);
 	dma->set_context_ch0(fdc_2d);
 	dma->set_context_ch1(fdc_2hd);
@@ -152,9 +164,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	crtc->set_context_disp(subbus, SIG_SUB_DISP, 1);
 	crtc->set_context_vsync(subbus, SIG_SUB_VSYNC, 1);
-	
-//	subbus->addr_max = 0x10000;
-//	subbus->bank_size = 0x80;
+
 	subbus->set_context_crtc(crtc);
 	subbus->set_chregs_ptr(crtc->get_regs());
 	subbus->set_context_pcm(pcm);
@@ -174,8 +184,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
-	
+
+
 	// i/o bus
 	io->set_iomap_range_rw(0x0000, 0x0001, pic);
 	io->set_iomap_range_rw(0x0010, 0x001f, dma);
@@ -211,13 +221,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_w(0xfda0, subbus);
 	io->set_iomap_single_r(0xfda0, mainbus);
 
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	for(int i = 0; i < 4; i++) {
 		fdc_2hd->set_drive_type(i, DRIVE_TYPE_2HD);
 		fdc_2d->set_drive_type(i, DRIVE_TYPE_2D);
@@ -292,7 +302,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }

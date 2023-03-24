@@ -37,28 +37,29 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	not_ear = new NOT(this, emu);
 	cpu = new Z80(this, emu);
 	pio1 = new Z80PIO(this, emu);
 	pio1->set_device_name(_T("8255 PIO (LEDs/Keyboard/CMT)"));
 	pio2 = new Z80PIO(this, emu);
 	pio2->set_device_name(_T("8255 PIO (User)"));
-	
+
 	memory = new MEMORY(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	// PIO1 PA0-7	-> 7seg-LED data
 	pio1->set_context_port_a(memory, SIG_MEMORY_PIO1_PA, 0xff, 0);
 	// PIO1 PB0-2	<- Keyboard data
@@ -69,16 +70,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// PIO1 PB7	<- NOT <- EAR
 	drec->set_context_ear(not_ear, SIG_NOT_INPUT, 1);
 	not_ear->set_context_out(pio1, SIG_Z80PIO_PORT_B, 0x80);
-	
+
 	memory->set_context_cpu(cpu);
 	memory->set_context_drec(drec);
 	memory->set_context_pio1(pio1);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pio1);
-	
+
 	// z80 family daisy chain
 	pio1->set_context_intr(cpu, 0);
 	pio1->set_context_child(pio2);
@@ -86,18 +87,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// i/o bus
 	io->set_iomap_range_rw(0xd0, 0xd3, pio1);
 	io->set_iomap_range_rw(0xd4, 0xd7, pio2);
 	io->set_iomap_range_rw(0xd8, 0xdb, memory);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 }
 
 VM::~VM()
@@ -221,7 +222,7 @@ void VM::key_up(int code)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -231,7 +232,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

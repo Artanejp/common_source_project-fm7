@@ -14,19 +14,19 @@ namespace M23 {
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
-	
+
 	memset(ram, 0x00, sizeof(ram));
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	read_bios(_T("BOOT.ROM"), rom, sizeof(rom));
-	
+
 	dma_bank = false;
 }
 
 void MEMBUS::reset()
 {
 	MEMORY::reset();
-	
+
 	rom_selected = true;
 	page = false;
 	page_after_jump = after_jump = false;
@@ -36,8 +36,9 @@ void MEMBUS::reset()
 
 uint32_t MEMBUS::fetch_op(uint32_t addr, int *wait)
 {
-	uint32_t val = MEMORY::read_data8(addr);
-	
+	uint32_t val = MEMORY::read_data8(addr); // OK? 20230324 K.O
+	//uint32_t val = MEMORY::read_data8w(addr, wait);
+
 	if(after_jump) {
 		if(page != page_after_jump) {
 			page = page_after_jump;
@@ -47,27 +48,27 @@ uint32_t MEMBUS::fetch_op(uint32_t addr, int *wait)
 	} else if(val == 0xc3) {
 		after_jump = true;
 	}
-	*wait = 0;
+
 	return val;
 }
 
-uint32_t MEMBUS::read_data8(uint32_t addr)
+uint32_t MEMBUS::read_data8w(uint32_t addr, int *wait)
 {
 	if(page_exchange) {
 		page_exchange = false;
 		return ram[(page ? 0 : 0x10000) | (addr & 0xffff)];
 	}
-	return MEMORY::read_data8(addr);
+	return MEMORY::read_data8w(addr, wait);
 }
 
-void MEMBUS::write_data8(uint32_t addr, uint32_t data)
+void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	if(page_exchange) {
 		page_exchange = false;
 		ram[(page ? 0 : 0x10000) | (addr & 0xffff)] = data;
 		return;
 	}
-	MEMORY::write_data8(addr, data);
+	MEMORY::write_data8w(addr, data, wait);
 }
 
 uint32_t MEMBUS::read_dma_data8w(uint32_t addr, int* wait)
@@ -152,7 +153,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(after_jump);
 	state_fio->StateValue(page_exchange);
 	state_fio->StateValue(dma_bank);
-	
+
 	// post process
 	if(loading) {
 		update_bank();

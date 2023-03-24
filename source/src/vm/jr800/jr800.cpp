@@ -37,7 +37,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
@@ -48,11 +48,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	cpu = new MC6800(this, emu);
 	cpu = new HD6301(this, emu);
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x100;
+
 	pcm = new PCM1BIT(this, emu);
-	
+
 	io = new IO(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
@@ -60,33 +62,33 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 //	cpu->set_context_port1(drec, SIG_DATAREC_MIC, 0x01, 0);
 	cpu->set_context_port1(pcm, SIG_PCM1BIT_ON, 0x08, 0);
 	cpu->set_context_port1(pcm, SIG_PCM1BIT_SIGNAL, 0x10, 0);
-	
+
 	for(int i = 0; i < 8; i++) {
 		io->set_context_lcd(i, lcd[i]);
 	}
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 //	pcm->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(ram, 0x00, sizeof(ram));
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	memory->read_bios(_T("BASIC.ROM"), rom, sizeof(rom));
-	
+
 	memory->set_memory_rw(0x2000, 0x7fff, ram);
 	memory->set_memory_r(0x8000, 0xffff, rom);
 	memory->set_memory_mapped_io_rw(0x0a00, 0x0bff, io);
 	memory->set_memory_mapped_io_rw(0x0d00, 0x0fff, io);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -171,7 +173,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }
@@ -208,7 +210,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -218,7 +220,7 @@ void VM::play_tape(int drv, const _TCHAR* file_path)
 void VM::rec_tape(int drv, const _TCHAR* file_path)
 {
 	bool remote = drec->get_remote();
-	
+
 	if(drec->rec_tape(file_path) && remote) {
 		// if machine already sets remote on, start recording now
 		push_play(drv);

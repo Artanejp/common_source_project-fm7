@@ -21,24 +21,24 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_memory;
-	
+
 	const uint8_t* key_stat;
 	uint8_t column;
 	void update_key();
-	
+
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Keyboard"));
 	}
 	~KEYBOARD() {}
-	
+
 	// common functions
-	void initialize();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_frame();
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void initialize() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_frame() override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique function
 	void set_context_memory(DEVICE* device)
 	{

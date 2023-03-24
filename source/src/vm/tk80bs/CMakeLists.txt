@@ -7,7 +7,6 @@ set(VMFILES_TK
 	keyboard.cpp
 
 	membus.cpp
-#	./memory.cpp
 	tk80bs.cpp
 )
 if(${EXE_NAME} STREQUAL emutk80bs)

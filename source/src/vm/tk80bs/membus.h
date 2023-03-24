@@ -29,22 +29,22 @@ private:
 #if defined(_TK85)
 	uint32_t pc7, count;
 #endif
-	
+
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}
-	
+
 	// common functions
-	void reset();
-	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
+	void reset()  override;
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait)  override;
 #if defined(_TK85)
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask)  override;
 #endif
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	bool process_state(FILEIO* state_fio, bool loading)  override;
+
 	// unique function
 	void set_context_cpu(DEVICE* device)
 	{

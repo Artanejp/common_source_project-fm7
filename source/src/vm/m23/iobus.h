@@ -21,24 +21,24 @@ class IOBUS : public IO
 private:
 	DEVICE *d_apu;
 	MB8877 *d_fdc;
-	
-	void write_port(uint32_t addr, uint32_t data);
-	uint32_t read_port(uint32_t addr);
-	
+
+	void __FASTCALL write_port(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_port(uint32_t addr);
+
 public:
 	IOBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : IO(parent_vm, parent_emu)
 	{
 		set_device_name(_T("I/O Bus"));
 	}
 	~IOBUS() {}
-	
+
 	// common functions
-	void initialize();
-	void reset();
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique functions
 	void set_context_apu(DEVICE* device)
 	{

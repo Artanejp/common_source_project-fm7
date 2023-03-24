@@ -43,9 +43,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_fast(new NOISE(this, emu));
 	cpu = new I8080(this, emu);	// i8085
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x2000;
+
 	rtc = new RP5C01(this, emu);
-	
+
 	io = new IO(this, emu);
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -53,14 +55,14 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-	
+
 	drec->set_context_ear(io, SIG_IO_CMT, 1);
 	cpu->set_context_sod(io, SIG_IO_SOD, 1);
-	
+
 	io->set_context_cpu(cpu);
 	io->set_context_drec(drec);
 	io->set_context_rtc(rtc);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -68,30 +70,30 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(rom, 0xff, sizeof(rom));
 	memset(ram, 0, sizeof(ram));
-	
+
 	memory->read_bios(_T("BIOS.ROM"), rom, sizeof(rom));
-	
+
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("RAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	memory->set_memory_r(0x0000, 0x7fff, rom);
 	memory->set_memory_rw(0x8000, 0xffff, ram);
 	memory->set_wait_rw(0x0000, 0xffff, 1);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 }
 
 VM::~VM()
@@ -102,7 +104,7 @@ VM::~VM()
 		fio->Fclose();
 	}
 	delete fio;
-	
+
 	// delete all devices
 	for(DEVICE* device = first_device; device;) {
 		DEVICE *next_device = device->next_device;
@@ -199,9 +201,9 @@ void VM::key_up(int code)
 void VM::play_tape(int drv, const _TCHAR* file_path)
 {
 	io->close_tape();
-	
+
 	bool remote = drec->get_remote();
-	
+
 	if(drec->play_tape(file_path) && remote) {
 		// if machine already sets remote on, start playing now
 		push_play(drv);
@@ -223,7 +225,7 @@ void VM::close_tape(int drv)
 	drec->close_tape();
 	emu->unlock_vm();
 	drec->set_remote(false);
-	
+
 	io->close_tape();
 }
 

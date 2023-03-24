@@ -44,7 +44,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	sio = new I8251(this, emu);	// for rs232c
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);	// for system port
@@ -52,16 +52,21 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu = new I86(this, emu);
 	cpu->device_model = INTEL_8086;
 	io = new IO(this, emu);
+	io->space = 0x10000;
+	io->bus_width = 16;
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
 	fdc->set_context_noise_head_up(new NOISE(this, emu));
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x100000;
+	memory->bank_size = 0x4000;
+	memory->bus_width = 16;
+
 	rtc = new MSM58321(this, emu);
 	not_pit = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
-	
+
 	sub = new SUB(this, emu);
 
 #if defined(_USE_QT)
@@ -72,7 +77,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sio->set_device_name(_T("i8251(RS-232C)"));
 	pio->set_device_name(_T("i8259(SYSTEM PORT)"));
 #endif
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
@@ -93,7 +98,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sio->set_context_rxrdy(pic, SIG_I8259_IR1, 1);
 	sio->set_context_syndet(pic, SIG_I8259_IR2, 1);
 	sio->set_context_txrdy(pic, SIG_I8259_IR3, 1);
-	
+
 /*
 	TIMER 	Ch.0	IRQ0
 		Ch.1	RS-232C sclock
@@ -106,16 +111,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit->set_constant_clock(0, 2457600);
 	pit->set_constant_clock(1, 2457600);
 	pit->set_constant_clock(2, 2457600);
-	
+
 	pic->set_context_cpu(cpu);
-	
+
 	rtc->set_context_data(sub, SIG_SUB_RTC, 0x0f, 0);
 	rtc->set_context_busy(sub, SIG_SUB_RTC, 0x10);
-	
+
 	fdc->set_context_irq(pic, SIG_I8259_IR7, 1);
 	fdc->set_context_irq(pio, SIG_I8255_PORT_B, 0x40);
 	fdc->set_context_drq(pio, SIG_I8255_PORT_B, 0x80);
-	
+
 	sub->set_context_cpu(cpu);
 	sub->set_context_fdc(fdc);
 	sub->set_context_pcm(pcm);
@@ -123,7 +128,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	sub->set_context_pio(pio);
 	sub->set_context_rtc(rtc);
 	sub->set_vram_ptr(ram + 0x78000);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -131,16 +136,16 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(kanji, 0xff, sizeof(kanji));
 	memset(cart, 0xff, sizeof(cart));
-	
+
 	memory->read_bios(_T("BACKUP.BIN"), ram, sizeof(ram));
 	memory->read_bios(_T("KANJI.ROM"), kanji, sizeof(kanji));
 	memory->read_bios(_T("CART.ROM"), cart, sizeof(cart));
-	
+
 	memory->set_memory_rw(0x00000, 0x6ffff, ram);
 	memory->set_memory_rw(0x70000, 0x73fff, ram + 0x78000);
 	memory->set_memory_rw(0x74000, 0x77fff, ram + 0x78000);
@@ -148,7 +153,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_memory_rw(0x7c000, 0x7ffff, ram + 0x78000);
 	memory->set_memory_r(0x80000, 0xbffff, kanji);
 	memory->set_memory_r(0xc0000, 0xfffff, cart);
-	
+
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, 0);
 	io->set_iomap_alias_rw(0x02, pic, 1);
@@ -179,7 +184,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x22, pio, 1);
 	io->set_iomap_alias_rw(0x24, pio, 2);
 	io->set_iomap_alias_w(0x26, pio, 3);
-	
+
 /*
 	40H	bit0-3	r	rtc data
 		bit4	r	rtc busy
@@ -195,10 +200,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 */
 	io->set_iomap_single_rw(0x40, sub);
 	io->set_iomap_single_r(0x60, sub);
-	
+
 	io->set_iomap_alias_rw(0x80, sio, 0);
 	io->set_iomap_alias_rw(0x82, sio, 1);
-	
+
 /*
 	A0H	bit0-1	w	rs-232c clock select
 		bit2	w	printer strobe (1=on)
@@ -209,7 +214,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		bit7	w	nmi mask (0=masked)
 */
 	io->set_iomap_single_w(0xa0, sub);
-	
+
 /*
 	C0H	bit0-7	r	fdc status register
 		bit0-7	w	fdc command register
@@ -227,23 +232,23 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0xc6, fdc, 3);
 	io->set_iomap_single_rw(0xc8, sub);
 	io->set_iomap_single_rw(0xca, sub);
-	
+
 	io->set_iomap_alias_rw(0xe0, pit, 0);
 	io->set_iomap_alias_rw(0xe2, pit, 1);
 	io->set_iomap_alias_rw(0xe4, pit, 2);
 	io->set_iomap_alias_w(0xe6, pit, 3);
-	
+
 /*
 	400H	bit0	w	memory write protect 20000H-47FFFH
 		bit1	w	memory write protect 48000H-6FFFFH
 */
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
 #endif
 	initialize_devices();
-	
+
 	//pcm->set_realtime_render(true);
 }
 
@@ -251,7 +256,7 @@ VM::~VM()
 {
 	// save memory
 	memory->write_bios(_T("BACKUP.BIN"), ram, sizeof(ram));
-	
+
 	// delete all devices
 	for(DEVICE* device = first_device; device;) {
 		DEVICE *next_device = device->next_device;
@@ -284,7 +289,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	
+
 	// initial device settings
 	pio->write_signal(SIG_I8255_PORT_B, 0x3f, 0xff);	// printer disconnected
 	pio->write_signal(SIG_I8255_PORT_C, 0x0c, 0x0f);
@@ -332,7 +337,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 	pcm->initialize_sound(rate, 8000);
 }

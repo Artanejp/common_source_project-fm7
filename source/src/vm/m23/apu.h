@@ -20,18 +20,18 @@ class APU : public DEVICE
 {
 private:
 	DEVICE *d_apu;
-	
+
 public:
 	APU(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		set_device_name(_T("APU"));
 	}
 	~APU() {}
-	
+
 	// common functions
-	void write_io8(uint32_t addr, uint32_t data);
-	uint32_t read_io8(uint32_t addr);
-	
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+
 	// unique function
 	void set_context_apu(DEVICE* device)
 	{

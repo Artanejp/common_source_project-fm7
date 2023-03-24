@@ -22,9 +22,6 @@
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x800
-#define IO_ADDR_MAX		0x10000
 
 // device informations for win32
 #define USE_FLOPPY_DISK		4
@@ -79,11 +76,11 @@ class VM : public VM_TEMPLATE
 {
 protected:
 	//EMU* emu;
-	
+
 	// devices
 	//EVENT* event;
 	//csp_state_utils *state_entry;
-	
+
 	IO* io;
 	LS393* flipflop;
 	MB8877* fdc;
@@ -93,7 +90,7 @@ protected:
 	PCM1BIT* pcm;
 	Z80* cpu;
 	Z80CTC* ctc;
-	
+
 	BUBCOM80::BUBBLECASETTE* bubblecasette[2];
 	BUBCOM80::CMT* cmt;
 	DEVICE* printer;
@@ -102,32 +99,32 @@ protected:
 	BUBCOM80::KEYBOARD* keyboard;
 	BUBCOM80::MEMBUS* membus;
 	BUBCOM80::RTC* rtc;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	void reset() override;
 	void run() override;
 	double get_frame_rate() override;
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index) override;
 #endif
-	
+
 	// draw screen
 	void draw_screen() override;
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples) override;
 	uint16_t* create_sound(int* extra_frames) override;
@@ -135,7 +132,7 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
-	
+
 	// user interface
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
 	void close_floppy_disk(int drv) override;
@@ -153,16 +150,16 @@ public:
 	bool is_bubble_casette_protected(int drv) override;
 	void is_bubble_casette_protected(int drv, bool flag) override;
 	bool is_frame_skippable() override;
-	
+
 	double get_current_usec() override;
 	uint64_t get_current_clock_uint64() override;
-	
+
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id) override;
 	//DEVICE* dummy;

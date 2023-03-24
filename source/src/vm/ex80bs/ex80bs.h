@@ -20,9 +20,6 @@
 #define HAS_I8080
 #define SCREEN_WIDTH		960
 #define SCREEN_HEIGHT		670
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x400
-#define IO_ADDR_MAX		0x100
 
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
@@ -137,29 +134,29 @@ protected:
 	//csp_state_utils *state_entry;
 	// devices
 	//EVENT* event;
-	
+
 	I8251* sio;
 	I8255* pio;
 	IO* io;
 	PCM1BIT* pcm;
 	I8080* cpu;
-	
+
 	EX80BS::CMT* cmt;
 	EX80BS::DISPLAY* display;
 	EX80BS::MEMORY* memory;
-	
+
 public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-	
+
 	VM(EMU_TEMPLATE* parent_emu);
 	~VM();
-	
+
 	// ----------------------------------------
 	// for emulation class
 	// ----------------------------------------
-	
+
 	// drive virtual machine
 	//void reset();
 	void run() override;
@@ -167,16 +164,16 @@ public:
 	{
 		return FRAMES_PER_SEC;
 	}
-	
+
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index) override;
 #endif
-	
+
 	// draw screen
 	void draw_screen() override;
 	int max_draw_ranges() override;
-	
+
 	// sound generation
 	void initialize_sound(int rate, int samples) override;
 	uint16_t* create_sound(int* extra_frames) override;
@@ -187,7 +184,7 @@ public:
 	// notify key
 	void key_down(int code, bool repeat) override;
 	void key_up(int code) override;
-	
+
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path) override;
 	void save_binary(int drv, const _TCHAR* file_path) override;
@@ -196,17 +193,17 @@ public:
 	void close_tape(int drv) override;
 	bool is_tape_inserted(int drv) override;
 	bool is_frame_skippable() override;
-	
+
 	double get_current_usec() override;
 	uint64_t get_current_clock_uint64() override;
 
 	//void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+
 	// devices
 	//DEVICE* get_device(int id);
 	//DEVICE* dummy;

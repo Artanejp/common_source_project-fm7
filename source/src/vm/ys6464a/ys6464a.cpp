@@ -40,25 +40,28 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	dummy->set_device_name(_T("1st Dummy"));
 	io = new IO(this, emu);
+	io->space = 0x100;
 	pio = new I8255(this, emu);
 	memory = new MEMORY(this, emu);
-	
+	memory->space = 0x10000;
+	memory->bank_size = 0x2000;
+
 //	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
-	
+
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
-	
+
 	// set contexts
 	event->set_context_cpu(cpu);
 //	event->set_context_sound(pcm);
-	
+
 //	pio->set_context_port_b(pcm, SIG_PCM1BIT_SIGNAL, 0x01, 0);
 	pio->set_context_port_b(display, SIG_DISPLAY_PORT_B, 0xf0, 0);
 	pio->set_context_port_c(display, SIG_DISPLAY_PORT_C, 0xf0, 0);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_PORT_C, 0xf0, 0);
 	keyboard->set_context_pio(pio);
-	
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -66,13 +69,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	
+
 	// memory bus
 	memset(ram, 0, sizeof(ram));
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	memory->read_bios(_T("MON.ROM"), rom, sizeof(rom));
-	
+
 	memory->set_memory_r(0x0000, 0x1fff, rom);
 	memory->set_memory_r(0x2000, 0x3fff, rom);
 	memory->set_memory_r(0x4000, 0x5fff, rom);
@@ -81,11 +84,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_memory_rw(0xa000, 0xbfff, ram);
 	memory->set_memory_rw(0xc000, 0xdfff, ram);
 	memory->set_memory_rw(0xe000, 0xffff, ram);
-	
+
 	// i/o bus
 	io->set_iomap_range_w(0xf8, 0xfb, pio);
 	io->set_iomap_range_r(0xf8, 0xfb, pio);
-	
+
 	// initialize all devices
 #if defined(__GIT_REPO_VERSION)
 	set_git_repo_version(__GIT_REPO_VERSION);
@@ -162,7 +165,7 @@ void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
 	event->initialize_sound(rate, samples);
-	
+
 	// init sound gen
 //	pcm->initialize_sound(rate, 8000);
 }
