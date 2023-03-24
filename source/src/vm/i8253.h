@@ -23,6 +23,10 @@
 
 class DEBUGGER;
 
+enum {
+	INTEL_8253 = 0,
+	INTEL_8254,
+};
 class  DLL_PREFIX I8253 : public DEVICE
 {
 private:
@@ -58,7 +62,7 @@ private:
 	uint64_t cpu_clocks;
 
 	bool __HAS_I8254;
-	
+
 	void __FASTCALL input_clock(int ch, int clock);
 	void __FASTCALL input_gate(int ch, bool signal);
 	void __FASTCALL start_count(int ch);
@@ -66,7 +70,7 @@ private:
 	void __FASTCALL latch_count(int ch);
 	void __FASTCALL set_signal(int ch, bool signal);
 	int __FASTCALL get_next_count(int ch);
-	
+
 public:
 	I8253(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -79,7 +83,7 @@ public:
 		set_device_name(_T("8253 PIT"));
 	}
 	~I8253() {}
-	
+
 	// common functions
 	void initialize();
 	void reset();
@@ -92,7 +96,7 @@ public:
 		cpu_clocks = new_clocks;
 	}
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 //	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 
@@ -129,7 +133,7 @@ public:
 	{
 		d_debugger = p;
 	}
+	int device_model;
 };
 
 #endif
-
