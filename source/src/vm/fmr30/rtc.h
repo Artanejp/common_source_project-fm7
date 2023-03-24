@@ -30,7 +30,7 @@ private:
 	void  read_from_cur_time();
 	void  write_to_cur_time();
 	void  update_checksum();
-	void  update_intr();
+	void  update_intr() override;
 public:
 	RTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

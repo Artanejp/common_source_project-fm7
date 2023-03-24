@@ -12,7 +12,7 @@
 
 #include "../vm_template.h"
 #include "../../emu_template.h"
-#include "../device.h"
+#include "../memory.h"
 
 #define SIG_MEMORY_DISP		0
 #define SIG_MEMORY_VSYNC	1
