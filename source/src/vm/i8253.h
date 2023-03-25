@@ -61,8 +61,6 @@ private:
 	DEBUGGER* d_debugger;
 	uint64_t cpu_clocks;
 
-	bool __HAS_I8254;
-
 	void __FASTCALL input_clock(int ch, int clock);
 	void __FASTCALL input_gate(int ch, bool signal);
 	void __FASTCALL start_count(int ch);
@@ -78,7 +76,6 @@ public:
 			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 		}
-		__HAS_I8254 = false;
 		d_debugger = NULL;
 		set_device_name(_T("8253 PIT"));
 	}

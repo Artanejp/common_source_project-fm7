@@ -12,7 +12,7 @@
 void I8253::initialize()
 {
 	DEVICE::initialize();
-	__HAS_I8254 = osd->check_feature(_T("HAS_I8254"));
+
 	for(int ch = 0; ch < 3; ch++) {
 		counter[ch].prev_out = true;
 		counter[ch].prev_in = false;
@@ -27,11 +27,9 @@ void I8253::initialize()
 		counter[ch].delay = false;
 		counter[ch].start = false;
 //#ifdef HAS_I8254
-		if(__HAS_I8254) {
-			// 8254 read-back command
-			counter[ch].null_count = true;
-			counter[ch].status_latched = false;
-		}
+		// 8254 read-back command
+		counter[ch].null_count = true;
+		counter[ch].status_latched = false;
 //#endif
 	}
 }
@@ -48,7 +46,7 @@ void I8253::reset()
 void I8253::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = addr & 3;
-	
+
 	switch(addr & 3) {
 	case 0:
 	case 1:
@@ -74,7 +72,7 @@ void I8253::write_io8(uint32_t addr, uint32_t data)
 			counter[ch].high_write = false;
 		}
 //#ifdef HAS_I8254
-		if(__HAS_I8254) counter[ch].null_count = true;
+		counter[ch].null_count = true;
 //#endif
 		// set signal
 		if(counter[ch].mode == 0) {
@@ -96,12 +94,12 @@ void I8253::write_io8(uint32_t addr, uint32_t data)
 			}
 		}
 		break;
-		
+
 	case 3: // ctrl reg
 		if((data & 0xc0) == 0xc0) {
 //#ifdef HAS_I8254
-			if(__HAS_I8254) {
-				// i8254 read-back command
+			// i8254 read-back command
+			if(device_model == INTEL_8254) {
 				for(ch = 0; ch < 3; ch++) {
 					uint8_t bit = 2 << ch;
 					if(!(data & 0x10) && !counter[ch].status_latched) {
@@ -123,7 +121,7 @@ void I8253::write_io8(uint32_t addr, uint32_t data)
 			break;
 		}
 		ch = (data >> 6) & 3;
-		
+
 		if(data & 0x30) {
 			static const int modes[8] = {0, 1, 2, 3, 4, 5, 2, 3};
 //			int prev = counter[ch].mode;
@@ -144,7 +142,7 @@ void I8253::write_io8(uint32_t addr, uint32_t data)
 				counter[ch].count_reg = 0;
 //			}
 //#ifdef HAS_I8254
-				if(__HAS_I8254) counter[ch].null_count = true;
+			counter[ch].null_count = true;
 //#endif
 		} else if(!counter[ch].count_latched) {
 			latch_count(ch);
@@ -156,13 +154,13 @@ void I8253::write_io8(uint32_t addr, uint32_t data)
 uint32_t I8253::read_io8(uint32_t addr)
 {
 	int ch = addr & 3;
-	
+
 	switch(ch) {
 	case 0:
 	case 1:
 	case 2:
 //#ifdef HAS_I8254
-		if(__HAS_I8254) {
+		if(device_model == INTEL_8254) {
 			if(counter[ch].status_latched) {
 				counter[ch].status_latched = false;
 				return counter[ch].status;
@@ -196,7 +194,7 @@ void I8253::event_callback(int event_id, int err)
 	int ch = event_id;
 	counter[ch].register_id = -1;
 	input_clock(ch, counter[ch].input_clk);
-	
+
 	// register next event
 	if(counter[ch].freq && counter[ch].start) {
 		counter[ch].input_clk = counter[ch].delay ? 1 : get_next_count(ch);
@@ -209,7 +207,7 @@ void I8253::event_callback(int event_id, int err)
 void I8253::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
-	
+
 	switch(id) {
 	case SIG_I8253_CLOCK_0:
 		if(counter[0].prev_in && !next) {
@@ -251,10 +249,10 @@ void I8253::input_clock(int ch, int clock)
 		counter[ch].delay = false;
 		counter[ch].count = COUNT_VALUE(ch);
 //#ifdef HAS_I8254
-		if(__HAS_I8254) counter[ch].null_count = false;
+		counter[ch].null_count = false;
 //#endif
 	}
-	
+
 	// update counter
 	counter[ch].count -= clock;
 	int32_t tmp = COUNT_VALUE(ch);
@@ -276,7 +274,7 @@ loop:
 		if(counter[ch].mode == 0 || counter[ch].mode == 2 || counter[ch].mode == 3) {
 			counter[ch].count += tmp;
 //#ifdef HAS_I8254
-			if(__HAS_I8254) counter[ch].null_count = false;
+			counter[ch].null_count = false;
 //#endif
 			goto loop;
 		} else {
@@ -290,7 +288,7 @@ void I8253::input_gate(int ch, bool signal)
 {
 	bool prev = counter[ch].gate;
 	counter[ch].gate = signal;
-	
+
 	if(prev && !signal) {
 		// stop count
 		if(!(counter[ch].mode == 1 || counter[ch].mode == 5)) {
@@ -323,7 +321,7 @@ void I8253::start_count(int ch)
 		return;
 	}
 	counter[ch].start = true;
-	
+
 	// register event
 	if(counter[ch].freq) {
 		counter[ch].input_clk = counter[ch].delay ? 1 : get_next_count(ch);
@@ -336,7 +334,7 @@ void I8253::start_count(int ch)
 void I8253::stop_count(int ch)
 {
 	counter[ch].start = false;
-	
+
 	// cancel event
 	if(counter[ch].register_id != -1) {
 		cancel_event(this, counter[ch].register_id);
@@ -392,7 +390,7 @@ void I8253::set_signal(int ch, bool signal)
 {
 	bool prev = counter[ch].prev_out;
 	counter[ch].prev_out = signal;
-	
+
 	if(prev && !signal) {
 		// H->L
 		write_signals(&counter[ch].outputs, 0);
@@ -415,7 +413,7 @@ int I8253::get_next_count(int ch)
 }
 
 bool I8253::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
-{	
+{
 	_TCHAR regs1[3][1024];
 	for(int ch = 0; ch < 3; ch++) {
 		memset(regs1[ch], 0x00, sizeof(_TCHAR) * 1024);
@@ -431,24 +429,32 @@ bool I8253::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 					 counter[ch].ctrl_reg, counter[ch].count_reg, counter[ch].count,
 					 (counter[ch].gate) ? _T("YES") : _T("NO "), (counter[ch].prev_in) ? _T("YES") : _T("NO "), (counter[ch].prev_out) ? _T("YES") : _T("NO "));
 	}
+	const _TCHAR *model = _T("i8253");
+	switch(device_model) {
+	case INTEL_8254:
+		model = _T("i8254");
+		break;
+	default:
+		break;
+	}
 	my_sprintf_s(buffer, buffer_len, _T("TYPE=%s\n%s%s%s"),
-				 (__HAS_I8254) ? _T("i8254") : _T("i8253"),
+				 model,
 				 regs1[0], regs1[1], regs1[2]
 		);
 	return true;
 }
-	
-#define STATE_VERSION	1
+
+#define STATE_VERSION	2
 
 bool I8253::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
- 		return false;
- 	}
+		return false;
+	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
- 		return false;
- 	}
- 	for(int i = 0; i < 3; i++) {
+		return false;
+	}
+	for(int i = 0; i < 3; i++) {
 		state_fio->StateValue(counter[i].prev_out);
 		state_fio->StateValue(counter[i].prev_in);
 		state_fio->StateValue(counter[i].gate);
@@ -464,17 +470,17 @@ bool I8253::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(counter[i].mode);
 		state_fio->StateValue(counter[i].delay);
 		state_fio->StateValue(counter[i].start);
-		if(__HAS_I8254) {
-			state_fio->StateValue(counter[i].null_count);
-			state_fio->StateValue(counter[i].status_latched);
-			state_fio->StateValue(counter[i].status);
-		}
+//#ifdef HAS_I8254
+		state_fio->StateValue(counter[i].null_count);
+		state_fio->StateValue(counter[i].status_latched);
+		state_fio->StateValue(counter[i].status);
+//#endif
 		state_fio->StateValue(counter[i].freq);
 		state_fio->StateValue(counter[i].register_id);
 		state_fio->StateValue(counter[i].input_clk);
 		state_fio->StateValue(counter[i].period);
 		state_fio->StateValue(counter[i].prev_clk);
- 	}
+	}
 	state_fio->StateValue(cpu_clocks);
- 	return true;
+	return true;
 }
