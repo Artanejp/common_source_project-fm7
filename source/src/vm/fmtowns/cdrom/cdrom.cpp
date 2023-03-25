@@ -848,22 +848,43 @@ uint8_t TOWNS_CDROM::read_status()
 	return val;
 }
 
-uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
+uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 {
+	*wait = 0; // Temporally.
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
-		data_reg = (uint8_t)(databuffer->read() & 0xff);
+		fetch_datareg_8();
 		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
+		return data_reg.b.l;
 	}
-	return data_reg;
+	return 0xff;
 }
 
-void TOWNS_CDROM::write_dma_io8(uint32_t addr, uint32_t data)
+void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
 {
+	*wait = 0; // Temporally.
 	// data_reg = data;
 	return; // OK?
 }
 
+uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
+{
+	*wait = 0; // Temporally.
+//	bool is_empty = databuffer->empty();
+	if(dma_transfer_phase) {
+		fetch_datareg_16();
+		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
+		return data_reg.w;
+	}
+	return 0xffff;
+}
+
+void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	*wait = 0; // Temporally.
+	// data_reg = data;
+	return; // OK?
+}
 void TOWNS_CDROM::read_cdrom()
 {
 //	read_pos = 0;
@@ -1186,7 +1207,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 {
 	switch(id) {
 	case SIG_TOWNS_CDROM_READ_DATA:
-		return data_reg;
+		return data_reg.w;
 		break;
 	case SIG_TOWNS_CDROM_PLAYING:
 		return (cdda_status == CDDA_PLAYING && cdda_interrupt) ? 0xffffffff : 0;
@@ -2006,7 +2027,7 @@ void TOWNS_CDROM::reset_device()
 	next_seek_lba = 0;
 
 	extra_status = 0;
-	data_reg = 0x00;
+	data_reg.w = 0x0000;
 
 	cdda_repeat_count = -1;
 	touch_sound();
@@ -2687,7 +2708,7 @@ void TOWNS_CDROM::get_volume(int ch, int& decibel_l, int& decibel_r)
 }
 
 
-uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
+uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 {
 	/*
 	 * 04C0h : Master status
@@ -2696,6 +2717,7 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 	 * 04CCh : SUBQ CODE
 	 * 04CDh : SUBQ STATUS
 	 */
+	*wait = 6; // Temporally.
 	uint32_t val = 0xff;
 	switch(addr & 0x0f) {
 	case 0x00:
@@ -2724,8 +2746,8 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 			if(databuffer->left() == logical_block_size()) {
 				cdrom_debug_log(_T("PIO READ START FROM 04C4h"));
 			}
-			val = (databuffer->read() & 0xff);
-			data_reg = val;
+			fetch_datareg_8();
+			val = data_reg.b.l;
 			if((read_length <= 0) && (databuffer->empty())) {
 				pio_transfer_phase = false;
 				mcu_ready = false;
@@ -2760,8 +2782,15 @@ uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 	//cdrom_debug_log(_T("READ IO8: %04X %02X"), addr, val);
 	return val;
 }
+uint32_t TOWNS_CDROM::read_io16w(uint32_t addr, int *wait)
+{
+	pair32_t v;
+	v.d = 0xffffffff;
+	v.b.l = read_io8w(addr & 0xfffe, wait);
+	return v.d;
+}
 
-void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
+void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 {
 	/*
 	 * 04C0h : Master control register
@@ -2770,6 +2799,7 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	 * 04C6h : Transfer control register.
 	 */
 	//cdrom_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
+	*wait = 6; // temporally
 	w_regs[addr & 0x0f] = data;
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
@@ -2863,6 +2893,13 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 		execute_command(latest_command);
 	}
 #endif
+}
+
+void TOWNS_CDROM::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	pair32_t v;
+	v.d = data;
+	write_io8w(addr & 0xfffe, v.b.l, wait);
 }
 
 void TOWNS_CDROM::write_debug_data8(uint32_t addr, uint32_t data)
@@ -2965,7 +3002,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	22
+#define STATE_VERSION	23
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {

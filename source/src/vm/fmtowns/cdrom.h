@@ -273,7 +273,7 @@ protected:
 	uint16_t cpu_id;
 	uint16_t machine_id;
 
-	uint8_t data_reg;
+	pair16_t data_reg;
 	bool dma_transfer;
 	bool pio_transfer;
 	bool dma_transfer_phase;
@@ -486,6 +486,16 @@ protected:
 	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
 	virtual const _TCHAR* __FASTCALL get_command_name_from_command(uint8_t cmd);
 
+	inline void fetch_datareg_8()
+	{
+		data_reg.b.h = data_reg.b.l;
+		data_reg.b.l = (uint8_t)(databuffer->read() & 0xff);
+	}
+	inline void fetch_datareg_16()
+	{
+		data_reg.b.h = (uint8_t)(databuffer->read() & 0xff);
+		data_reg.b.l = (uint8_t)(databuffer->read() & 0xff);
+	}
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
 	bool force_logging;
@@ -516,10 +526,15 @@ public:
 	virtual void release();
 
 	virtual void reset();
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
+
+	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait);
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
