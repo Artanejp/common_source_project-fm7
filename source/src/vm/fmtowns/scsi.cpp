@@ -42,9 +42,10 @@ void SCSI::reset()
 	dma_enabled = true;
 }
 
-void SCSI::write_io8(uint32_t addr, uint32_t data)
+void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
 {
 //	out_debug_log(_T("Write I/O %04X %02X"), addr, data);
+	*wait = 6; // temporally.
 	switch(addr & 0xffff) {
 	case 0x0c30:
 		// data register
@@ -63,29 +64,27 @@ void SCSI::write_io8(uint32_t addr, uint32_t data)
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
-//		ctrl_reg = data;
-//		if((data & CTRL_DMAE) != 0) dma_enabled = true;
+		ctrl_reg = data;
+		//if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			ex_int_enable = ((data & 0x20) != 0) ? true : false;
 			// Set host to 16bit bus width. BIT3 ,= '1'.
 		}
 		if(ctrl_reg  & CTRL_WEN) {
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
-			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
 			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
-			d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
+			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
+//			d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
 		}
-		ctrl_reg = data;
-		if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		break;
 	}
 }
 
 
-uint32_t SCSI::read_io8(uint32_t addr)
+uint32_t SCSI::read_io8w(uint32_t addr, int* wait)
 {
 	uint32_t value = 0;
-
+	*wait = 6; // Temporally
 	switch(addr & 0xffff) {
 	case 0x0034:
 //		if(machine_id >= 0x0600) { // After UG
@@ -134,6 +133,14 @@ uint32_t SCSI::read_io8(uint32_t addr)
 //	out_debug_log(_T("[SCSI] READ I/O %04X %02X\n"), addr, value);
 	return value;
 }
+void SCSI::write_io16w(uint32_t addr, uint32_t data, int *wait)
+{
+	write_io8w(addr & 0xfffe, data, wait);
+}
+uint32_t SCSI::read_io16w(uint32_t addr, int *wait)
+{
+	return read_io8w(addr & 0xfffe, wait);
+}
 
 void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 {
@@ -177,7 +184,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 		}*/
 		break;
 	case SIG_SCSI_EOT:
-		dma_enabled = ((data & mask) == 0) ? true : false;
+		//dma_enabled = ((data & mask) == 0) ? true : false;
 		break;
 	}
 }
