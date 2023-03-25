@@ -179,8 +179,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	sio = new I8251(this, emu);
 	pit0 = new I8253(this, emu);
+	pit0->device_model = INTEL_8253;
+
 	pit1 = new I8253(this, emu);
+	pit1->device_model = INTEL_8253;
+
 	pic = new I8259(this, emu);
+	pic->num_chips = 2;
 	fdc = new MB8877(this, emu);
 	rtc = new MSM58321(this, emu);
 	beep = new PCM1BIT(this, emu);
@@ -338,6 +343,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
 	scsi_host->set_context_drq(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
 
+	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
@@ -345,9 +351,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_ch3(cdrom);
 	dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
+
+	dma->set_context_ack1(scsi_host, SIG_SCSI_ACK, 0xffffffff);
 	dma->set_context_ack3(cdrom, SIG_TOWNS_CDROM_DMAACK, 0xffffffff);
 
-	dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
+	//dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 
 	dma->set_context_child_dma(extra_dma);
 

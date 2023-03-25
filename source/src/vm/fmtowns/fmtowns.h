@@ -233,11 +233,11 @@
 
 #define _MEMORY_BANK_SIZE 0x1000
 #if defined(WITH_386SX)
-#define _MEMORY_SPACE 0x001000000 /* 16MB */
+#define _MEMORY_SPACE 0x01000000 /* 16MB */
 #define _MEMORY_BUS_WIDTH 16
 #else
-#define _MEMORY_SPACE 0x100000000 /* 4GiB */
-#define _MEMORY_BUS_WIDTH 16
+#define _MEMORY_SPACE 0x100000000LL /* 4GiB */
+#define _MEMORY_BUS_WIDTH 32
 #endif
 
 #define _IO_SPACE     0x10000
@@ -262,12 +262,10 @@
 #define USE_COMPACT_DISC 1
 
 #define MAX_MEMCARD		2
-#define I8259_MAX_CHIPS		2
 //#define I8259_PC98_HACK
 
 //#define SINGLE_MODE_DMA
 #define MB8877_NO_BUSY_AFTER_SEEK
-#define IO_ADDR_MAX		0x10000
 #define SCSI_HOST_AUTO_ACK
 //#define SCSI_HOST_WIDE
 //#define _SCSI_DEBUG_LOG
