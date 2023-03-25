@@ -1039,9 +1039,6 @@ void OSD::set_features_vm(void)
 	add_feature(_T("DATAREC_PCM_VOLUME"), (int)DATAREC_PCM_VOLUME);
 #endif
 
-#ifdef HAS_I8254
-	add_feature(_T("HAS_I8254"), 1);
-#endif
 #ifdef I8255_AUTO_HAND_SHAKE
 	add_feature(_T("I8255_AUTO_HAND_SHAKE"), 1);
 #endif
