@@ -47,7 +47,7 @@ void UPD71071::reset()
 	running = false;
 	reset_all_tc();
 }
-
+#if 0
 void UPD71071::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
@@ -84,8 +84,8 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 			cmd = data & 0xffff;
 			break;
 		default:
-//			write_io8(addr & 0x0e, data);
-			write_io8(addr, data);
+			write_io8(addr & 0x0e, data);
+//			write_io8(addr, data);
 			break;
 		}
 //	} else {
@@ -94,7 +94,7 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 ////		write_io8((addr & 0x0e) + 1, (data >> 8) & 0xff);
 //	}
 }
-
+#endif
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
 {
@@ -181,7 +181,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	}
 }
-
+#if 0
 uint32_t UPD71071::read_io16(uint32_t addr)
 {
 //	if(b16 != 0) {
@@ -216,7 +216,7 @@ uint32_t UPD71071::read_io16(uint32_t addr)
 	}
 	return read_io8(addr);
 }
-
+#endif
 uint32_t UPD71071::read_io8(uint32_t addr)
 {
 	uint32_t val;
@@ -586,12 +586,9 @@ bool UPD71071::do_dma_epilogue(int c)
 	} else if((dma[c].mode & 0xc0) == 0x40) {
 		// Single mode
 		return true;
-	} else if((dma[c].mode & 0xc0) == 0x40) {
-		// Demand mode
-		req &= ~bit;
-		sreq &= ~bit;
-		return false;
 	}
+	return false;
+
 	// Note: At FM-Towns, SCSI's DMAC will be set after
 	//       SCSI bus phase become DATA IN/DATA OUT.
 	//       Before bus phase became DATA IN/DATA OUT,
@@ -640,16 +637,10 @@ bool UPD71071::do_dma_epilogue(int c)
 	//       -- 20200316 K.O
 	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
-		req &= ~bit;
-		sreq &= ~bit;
+//		req &= ~bit;
+//		sreq &= ~bit;
 		running = false;
 		return true;
-	} else if((dma[c].mode & 0xc0) == 0x00){
-		// demand mode
-		req &= ~bit;
-		sreq &= ~bit;
-		running = false;
-		return false;
 	}
 #endif
 	return false;

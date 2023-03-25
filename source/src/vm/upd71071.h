@@ -103,12 +103,17 @@ public:
 	{
 		// TIP: if((DEVICE::prev_device == NULL) || (DEVICE::this_device_id == 0)) DEVICE must be DUMMY.
 		// And, at this device, should not be FIRST DEVICE. 20170613 Ohta.
+		//DEVICE *__dev = this;
+		//while((__dev->prev_device != NULL) && (__dev->this_device_id > 0)) {
+		//	__dev = __dev->prev_device;
+		//}
 		for(int i = 0; i < 4; i++) {
-			//dma[i].dev = vm->dummy;
+			//dma[i].dev = __dev;
 			dma[i].dev = vm->dummy;
 		}
 		d_cpu = NULL;
 		d_mem = vm->dummy;
+		//d_mem = __dev;
 //#ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 //#endif
@@ -130,8 +135,10 @@ public:
 
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	#if 0
 	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr) override;
+	#endif
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask) override;
 	virtual uint32_t __FASTCALL read_signal(int id) override;
