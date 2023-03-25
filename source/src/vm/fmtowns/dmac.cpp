@@ -17,7 +17,7 @@ void TOWNS_DMAC::reset()
 //	dma_addr_mask = 0x000fffff; // OK?
 //	b16 = 2; // Fixed 16bit.
 }
-
+#if 0
 void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
@@ -61,6 +61,7 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 	}
 	UPD71071::write_io16(addr, data);
 }
+#endif
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
@@ -116,7 +117,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	}
 	UPD71071::write_io8(addr, data);
 }
-
+#if 0
 uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
 {
 	switch(addr & 0x0e) {
@@ -133,6 +134,7 @@ uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
 	}
 	return UPD71071::read_io16(addr);
 }
+#endif
 
 uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 {
@@ -235,7 +237,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if(id == SIG_TOWNS_DMAC_ADDR_MASK) {
 		// From eFMR50 / memory.cpp / update_dma_addr_mask()
-		dma_addr_mask = data;
+		//dma_addr_mask = data;
 	} else {
 		// Fallthrough.
 //		if(id == SIG_UPD71071_CH1) {
