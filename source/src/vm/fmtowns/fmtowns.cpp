@@ -362,8 +362,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy->set_context_fdc(fdc);
 
 	sprite->set_context_vram(vram);
-	sprite->set_context_font(fontrom);
-	sprite->set_context_crtc(crtc);
+//	sprite->set_context_font(fontrom);
+//	sprite->set_context_crtc(crtc);
 #ifdef USE_DEBUGGER
 	sprite->set_context_debugger(new DEBUGGER(this, emu));
 #endif
@@ -656,13 +656,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0xff84, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff86, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff88, memory);	// MMIO
-	io->set_iomap_range_rw (0xff94, 0xff99, memory);	// MMIO
-	io->set_iomap_range_r  (0xff9c, 0xff9d, memory);	// MMIO
-	io->set_iomap_single_rw(0xff9e, memory);	// MMIO
+	io->set_iomap_range_rw (0xff94, 0xff97, fontrom);	// MMIO
+	io->set_iomap_range_rw (0xff98, 0xff99, memory);	// MMIO
+	io->set_iomap_range_rw (0xff9c, 0xff9f, memory);	// MMIO
 	io->set_iomap_single_rw(0xffa0, planevram);	// MMIO
 
-//	io->set_iomap_range_w (0xff94, 0xff95, fontrom);
-//	io->set_iomap_range_r (0xff96, 0xff97, fontrom);
+
 
 	// Vram allocation may be before initialize().
 	// initialize all devices

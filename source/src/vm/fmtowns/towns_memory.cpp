@@ -34,8 +34,8 @@ void TOWNS_MEMORY::config_page_c0()
 		set_memory_mapped_io_rw(0x000c8000, 0x000c9fff, d_sprite);
 		if(ankcg_enabled) {
 			set_memory_mapped_io_r(0x000ca000, 0x000cbfff, d_font);
-			set_memory_w          (0x000ca000, 0x000cbfff, wr_dummy); // OK?
-			//set_memory_mapped_io_w(0x000ca000, 0x000cbfff, d_sprite); // OK?
+			//set_memory_w          (0x000ca000, 0x000cbfff, wr_dummy); // OK?
+			set_memory_mapped_io_w(0x000ca000, 0x000cbfff, d_sprite); // OK?
 		} else {
 			set_memory_mapped_io_rw(0x000ca000, 0x000cbfff, d_sprite);
 		}
@@ -281,29 +281,28 @@ void TOWNS_MEMORY::update_machine_features()
 uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 {
 	uint8_t val = 0xff;
-	switch(addr) {
+	__UNLIKELY_IF((addr & 0xffff) < 0xff80) {
+		return 0xff;
+	}
+	__LIKELY_IF((addr & 0xffff) < 0xff88) {
+		__LIKELY_IF(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr & 0xffff);
+		}
+		return val;
+	} else if(((addr & 0xffff) >= 0xff94) && ((addr & 0xffff) < 0xff98)) {
+		__LIKELY_IF(d_font != NULL) {
+			val = d_font->read_io8(addr & 0xffff);
+		}
+		return val;
+	}
+	switch(addr & 0xffff) {
 	case 0xff88:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			__LIKELY_IF(d_crtc != NULL) {
 				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
 			}
 		} else  __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr);
-		}
-		break;
-	case 0xff94:
-		val = 0x80;
-		break;
-	case 0xff95:
-		break;
-	case 0xff96:
-		__LIKELY_IF(d_font != NULL) {
-			val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_LOW);
-		}
-		break;
-	case 0xff97:
-		__LIKELY_IF(d_font != NULL) {
-			val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_HIGH);
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	case 0xff98:
@@ -315,39 +314,39 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			val = (ankcg_enabled) ? 0x01 : 0x00;
 		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_memory_mapped_io8(addr);
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	case 0xff9c:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_HIGH);
+				val = d_font->read_io8(addr & 0xffff);
 			}
 		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr);
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	case 0xff9d:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_LOW);
+				val = d_font->read_io8(addr & 0xffff);
 			}
 		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr);
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	case 0xff9e:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_signal(SIG_TOWNS_FONT_KANJI_ROW);
+				val = d_font->read_io8(addr & 0xffff);
 			}
 		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr);
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	default:
 		__LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr);
+			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	}
@@ -528,8 +527,8 @@ uint32_t TOWNS_MEMORY::read_io16(uint32_t addr)
 	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
 		// OK? This may be bus width has 8bit ?
 		pair16_t val;
-		val.b.l = read_fmr_ports8(addr & 0xffff);
-		val.b.h = read_fmr_ports8((addr & 0xffff) + 1);
+		val.b.l = read_fmr_ports8(addr & 0xfffe);
+		val.b.h = read_fmr_ports8((addr & 0xfffe) + 1);
 		return val.w;
 	}
 	return read_sys_ports16(addr);
@@ -541,8 +540,8 @@ uint32_t TOWNS_MEMORY::read_io16w(uint32_t addr, int *wait)
 		// OK? This may be bus width has 8bit ?
 		*wait = 6 * 2; // ToDo: will io_wait_val.
 		pair16_t val;
-		val.b.l = read_fmr_ports8(addr & 0xffff);
-		val.b.h = read_fmr_ports8((addr & 0xffff) + 1);
+		val.b.l = read_fmr_ports8(addr & 0xfffe);
+		val.b.h = read_fmr_ports8((addr & 0xfffe) + 1);
 		return val.w;
 	}
 	*wait = 6; // ToDo: will io_wait_val.
@@ -551,17 +550,21 @@ uint32_t TOWNS_MEMORY::read_io16w(uint32_t addr, int *wait)
 
 void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 {
+	__UNLIKELY_IF((addr & 0xffff) < 0xff80) {
+		return;
+	}
+	__LIKELY_IF((addr & 0xffff) < 0xff88) {
+		__LIKELY_IF(d_planevram != NULL) {
+			d_planevram->write_io8(addr & 0xffff, data);
+		}
+		return;
+	} else if(((addr & 0xffff) >= 0xff94) && ((addr & 0xffff) < 0xff98)) {
+		__LIKELY_IF(d_font != NULL) {
+			d_font->write_io8(addr & 0xffff, data);
+		}
+		return;
+	}
 	switch(addr & 0xffff) {
-	case 0xff94:
-		__LIKELY_IF(d_font != NULL) {
-			d_font->write_signal(SIG_TOWNS_FONT_KANJI_HIGH, data, 0xff);
-		}
-		break;
-	case 0xff95:
-		__LIKELY_IF(d_font != NULL) {
-			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
-		}
-		break;
 	case 0xff98:
 		__LIKELY_IF(d_timer != NULL) {
 			d_timer->write_signal(SIG_TIMER_BEEP_ON, 0, 1);
@@ -571,23 +574,23 @@ void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 		{
 			bool _b = ankcg_enabled;
 			ankcg_enabled = ((data & 1) != 0) ? true : false;
-			if((_b != ankcg_enabled) && (dma_is_vram)) {
+			//if((_b != ankcg_enabled) && (dma_is_vram)) {
 				config_page_c0();
-			}
+			//}
 		}
 		break;
 	case 0xff9e:
 		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 			__LIKELY_IF(d_font != NULL) {
-				d_font->write_signal(SIG_TOWNS_FONT_KANJI_ROW, data, 0xff);
+				d_font->write_io8(addr & 0xffff, data);
 			}
 		} else __LIKELY_IF(d_planevram != NULL) {
-			d_planevram->write_io8(addr , data);
+			d_planevram->write_io8(addr & 0xffff, data);
 		}
 		break;
 	default:
 		__LIKELY_IF(d_planevram != NULL) {
-			d_planevram->write_io8(addr , data);
+			d_planevram->write_io8(addr & 0xffff, data);
 		}
 		break;
 	}
@@ -659,13 +662,13 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0404: // System Status Reg.
 		{
-			bool _b = dma_is_vram;
+			//bool _b = dma_is_vram;
 			dma_is_vram = ((data & 0x80) == 0);
-			if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
+			//if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
 				config_page_c0();
 				config_page_d0_e0();
 //				config_page00();
-			}
+			//}
 		}
 		break;
 	case 0x0480:
@@ -674,9 +677,15 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			bool _rom = select_d0_rom;
 			select_d0_dict = ((data & 0x01) != 0) ? true : false;
 			select_d0_rom = ((data & 0x02) == 0) ? true : false;
-			if((_rom != select_d0_rom) ||(_dict != select_d0_dict)) {
-				config_page00();
+			if(_dict != select_d0_dict) {
+				config_page_d0_e0();
 			}
+			if(_rom != select_d0_rom) {
+				config_page_f8_rom();
+			}
+//			if((_rom != select_d0_rom) ||(_dict != select_d0_dict)) {
+//				config_page00();
+//			}
 //			config_page00();
 		}
 		break;

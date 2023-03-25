@@ -144,6 +144,9 @@ void FONT_ROMS::write_io8(uint32_t addr, uint32_t data)
 		kanji_code.b.l = data;
 		calc_kanji_offset();
 		break;
+	case 0xff9e: // Kanji ROW (After UG)
+		kanji_address = (kanji_address & 0xfffffff0) | (data & 0x0f);
+		break;
 	}
 }
 
@@ -151,12 +154,23 @@ uint32_t FONT_ROMS::read_io8(uint32_t addr)
 {
 	uint32_t val = 0x00;
 	switch(addr) {
+	case 0xff94: // ADDR LOW
+		val = 0x80;
+		break;
+	case 0xff95: // ADDR HIGH
+		val = 0xFF;
+		break;
 	case 0xff96: // LOW
+	case 0xff9c: // LOW
 		val = font_kanji16[(kanji_address << 1) + 0];
 		break;
 	case 0xff97: // High
+	case 0xff9d: // High
 		val = font_kanji16[(kanji_address << 1) + 1];
 		kanji_address++;
+		break;
+	case 0xff9e: // Kanji ROW (After UG)
+		val = kanji_address & 0x0f;
 		break;
 	}
 	return val;

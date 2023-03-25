@@ -27,15 +27,15 @@ class TOWNS_SPRITE : public DEVICE
 
 protected:
 	TOWNS_VRAM *d_vram;
-	DEVICE *d_font;
-	DEVICE *d_crtc;
+//	DEVICE *d_font;
+//	DEVICE *d_crtc;
 	DEBUGGER *d_debugger;
 	// REGISTERS
 	uint8_t reg_addr;
 	uint8_t reg_data[8];
 	// #0, #1
 	uint16_t reg_ctrl;
-   
+
 	bool reg_spen;
 	uint16_t reg_index;
 	uint8_t pattern_ram[0x20000];
@@ -46,11 +46,11 @@ protected:
 	bool disp_page0;
 	bool disp_page1;
 	bool draw_page1;
-	
+
 	bool sprite_enabled;
 	bool sprite_busy;
 	bool page_changed;
-	
+
 	int render_num;
 	int max_sprite_per_frame;
 
@@ -59,7 +59,7 @@ protected:
 
 	bool ankcg_enabled;
 	int event_busy;
-	
+
 	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
 	void render_part();
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
@@ -69,8 +69,8 @@ public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_vram = NULL;
-		d_font = NULL;
-		d_crtc = NULL;
+//		d_font = NULL;
+//		d_crtc = NULL;
 		set_device_name(_T("SPRITE"));
 	}
 	~TOWNS_SPRITE() {}
@@ -111,7 +111,7 @@ public:
 	{
 		write_via_debugger_data8(addr, data);
 	}
-	
+
 	bool is_debugger_available()
 	{
 		return true;
@@ -134,19 +134,19 @@ public:
 	void __FASTCALL event_callback(int id, int err);
 
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	void set_context_vram(TOWNS_VRAM *p)
 	{
 		d_vram = p;
 	}
-	void set_context_font(DEVICE *p)
-	{
-		d_font = p;
-	}
-	void set_context_crtc(DEVICE *p)
-	{
-		d_crtc = p;
-	}
+//	void set_context_font(DEVICE *p)
+//	{
+//		d_font = p;
+//	}
+//	void set_context_crtc(DEVICE *p)
+//	{
+//		d_crtc = p;
+//	}
 	void set_context_debugger(DEBUGGER *p)
 	{
 		d_debugger = p;
