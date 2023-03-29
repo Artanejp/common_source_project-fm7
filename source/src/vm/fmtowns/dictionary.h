@@ -11,7 +11,7 @@
 	*   0x000da000 - 0x000dffff : RESERVED
 	*   0xc2080000 - 0xc20fffff : DICTIONARY ROM (NOT BANKED)
 	*   0xc2140000 - 0xc2141fff : DICTIONARY RAM
-	* I/O : 
+	* I/O :
 	*   0x0484                         : DICTIONARY BANK (for 0xd0000 - 0xd7ffff)
 	*   0x3000 - 0x3ffe (even address) : DICTIONARY RAM
 */
@@ -46,16 +46,11 @@ public:
 	void release();
 	void reset();
 
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
-	
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait);
+	void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *wait);
 
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
 
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
@@ -72,7 +67,7 @@ public:
 	}
 	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
 	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	
+
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 

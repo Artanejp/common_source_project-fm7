@@ -64,13 +64,15 @@ void TOWNS_MEMORY::config_page_d0_e0()
 		set_memory_rw          (0x000d0000, 0x000effff, ram_paged);
 	} else {
 		if(select_d0_dict) {
-			set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary);
-			unset_memory_rw        (0x000da000, 0x000effff);
+			set_memory_mapped_io_r (0x000d0000, 0x000d9fff, d_dictionary);
+
+			unset_memory_w         (0x000d0000, 0x000d7fff);
+			set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary);
 		} else {
 			//set_memory_rw        (0x000d0000, 0x000dffff, ram_paged);
 			unset_memory_rw        (0x000d0000, 0x000d9fff);
-			unset_memory_rw        (0x000da000, 0x000effff);
 		}
+		unset_memory_rw        (0x000da000, 0x000effff);
 	}
 }
 
@@ -608,23 +610,24 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 
 		if((data & 0x40) != 0) {
 			poff_status = true;
-			__LIKELY_IF(d_cpu != NULL) {
-				d_cpu->set_shutdown_flag(1);
-			}
+//			__LIKELY_IF(d_cpu != NULL) {
+//				d_cpu->set_shutdown_flag(1);
+//			}
 			// Todo: Implement true power off.
-			emu->notify_power_off();
+//			emu->notify_power_off();
 //			emu->power_off();
+//			break;
 		} else {
 			poff_status = false;
-			__LIKELY_IF(d_cpu != NULL) {
-				d_cpu->set_shutdown_flag(0);
-			}
+//			__LIKELY_IF(d_cpu != NULL) {
+//				d_cpu->set_shutdown_flag(0);
+//			}
 		}
 
-		if(software_reset) {
-			__LIKELY_IF(d_cpu != NULL) {
-				d_cpu->reset();
-			}
+		if((software_reset) || (poff_status)){
+//			__LIKELY_IF(d_cpu != NULL) {
+//				d_cpu->reset();
+//			}
 			uint8_t wrap_val = 0xff; // WRAP OFF
 			if(machine_id >= 0x0b00) { // After MA/MX/ME
 				wrap_val = 0x00;
@@ -632,6 +635,15 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			__LIKELY_IF(d_dmac != NULL) {
 				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
 			}
+			if(poff_status) {
+				__LIKELY_IF(d_cpu != NULL) {
+					d_cpu->set_shutdown_flag(1);
+				}
+				// Todo: Implement true power off.
+				 emu->notify_power_off();
+				// emu->power_off();
+			}
+			vm->reset();
 		}
 		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O
 		break;
@@ -641,7 +653,10 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 				d_cpu->set_shutdown_flag(1);
 			}
 			// Todo: Implement true power off.
+			poff_status = true;
+			emu->notify_power_off();
 //			emu->power_off();
+			vm->reset();
 		}
 		// Power register
 		break;
