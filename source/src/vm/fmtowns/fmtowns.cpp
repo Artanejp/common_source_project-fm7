@@ -981,7 +981,7 @@ uint32_t VM::is_hard_disk_accessed()
 			}
 		}
 	}
-	process_boot_sequence(1);
+	process_boot_sequence(status);
 	return status;
 }
 #endif // USE_HARD_DISK
@@ -1009,7 +1009,7 @@ bool VM::is_compact_disc_inserted(int drv)
 uint32_t VM::is_compact_disc_accessed()
 {
 	uint32_t status = cdrom->accessed();
-	process_boot_sequence(1);
+	process_boot_sequence(status);
 	return status;
 }
 
