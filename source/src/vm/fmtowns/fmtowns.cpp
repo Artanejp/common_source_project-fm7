@@ -838,12 +838,25 @@ void VM::initialize_sound(int rate, int samples)
 	beep->initialize_sound(rate, 8000);
 
 	// init OPN2
+	#if 0
 	// MASTER CLOCK MAYBE 600KHz * 12 = 7200KHz .
 	// From FM-Towns Technical Databook (Rev.2), Page 201
-	opn2->initialize_sound(rate, (int)(600.0e3 * 12.0) , samples, 0.0, 0.0);
-	//opn2->initialize_sound(rate, (int)(8000.0e3) , samples, 0.0, 0.0);
-	//opn2->initialize_sound(rate, (int)(600.0e3 * 6.0) , samples, 0.0, 0.0);
-
+	// opn2->initialize_sound(rate, (int)(600.0e3 * 12.0) , samples, 0.0, 0.0);
+	#else
+	// But...20230330 K.O:
+	// From src/ym2612/ym2612.h of Tsugaru below quote.
+	// Thanks to YS-11 San.
+	//
+	// What exactly is the master clock given to YM2612 of TOWNS?
+	// FM Towns Technical Databook tells internal clock is 600KHz on page 201.
+	// However, after calibrating the tone to match real Towns, it must be 690KHz.  Is it correct?
+	// Master clock must be the internal clock times pre scaler.  But, we don't know the default pre scalar value.
+	// Let's say it is 3.  Then, 690KHz times 3=2070KHz.  Sounds reasonable.
+	// But, now FM77AV's YM2203C uses master clock frequency of 1228.8KHz.
+	// And after calibration we know the ratio between the two.
+	// From there, 1228.8*1698/1038=1999.46.  2MHz.  Makes more sense.
+	opn2->initialize_sound(rate, (int)(((1228.8e3 * 1698.0) / 1038.0) * 4.0) , samples, 0.0, 0.0);
+	#endif
 	// init PCM
 	rf5c68->initialize_sound(rate, samples);
 
