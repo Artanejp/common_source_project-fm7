@@ -45,7 +45,7 @@ void YM2612::initialize()
 	clock_prev = clock_accum = clock_busy = 0;
 	ch = 0;
 	addr_A1 = false;
-	
+
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (YM2612 OPN2)"));
 		d_debugger->set_context_mem(this);
@@ -83,8 +83,8 @@ void YM2612::reset()
 	fnum21 = 0;
 	// stop timer
 	timer_event_id = -1;
-	this->set_reg(0x27, 0);
-	
+	set_reg(0x27, 0);
+
 	port[0].first = port[1].first = true;
 	port[0].wreg = port[1].wreg = 0;//0xff;
 	mode = 0;
@@ -99,15 +99,15 @@ void YM2612::write_io8(uint32_t addr, uint32_t data)
 		// write dummy data for prescaler
 		ch = data;
 		addr_A1 = false;
-		/*
+		#if 1
 		if(0x2d <= ch && ch <= 0x2f) {
 			update_count();
-			this->set_reg(ch, 0);
+			set_reg(ch, 0);
 			update_interrupt();
 			clock_busy = get_current_clock();
 			busy = true;
 		}
-		*/
+		#endif
 		break;
 	case 1:
 		if(!(addr_A1)) {
@@ -178,7 +178,7 @@ void YM2612::write_via_debugger_data8(uint32_t addr, uint32_t data)
 			update_count();
 			// XM8 version 1.20
 			if(0xa0 <= addr && addr <= 0xa2) {
-				this->set_reg(addr + 4, fnum2);
+				set_reg(addr + 4, fnum2);
 			}
 			this->set_reg(addr, data);
 			if(addr == 0x27) {
@@ -230,7 +230,7 @@ void YM2612::write_signal(int id, uint32_t data, uint32_t mask)
 uint32_t YM2612::read_signal(int id)
 {
 	return 0x00;
-}	
+}
 
 void YM2612::event_vline(int v, int clock)
 {
@@ -263,7 +263,7 @@ void YM2612::update_event()
 		cancel_event(this, timer_event_id);
 		timer_event_id = -1;
 	}
-	
+
 	int count;
 	count = opn2->GetNextEvent();
 	if(count > 0) {
@@ -394,16 +394,16 @@ void YM2612::initialize_sound(int rate, int clock, int samples, int decibel_fm, 
 	opn2->SetVolumePSG(decibel_psg, decibel_psg);
 	base_decibel_fm = decibel_fm;
 	base_decibel_psg = decibel_psg;
-	
+
 #ifdef SUPPORT_MAME_FM_DLL
 	if(!dont_create_multiple_chips) {
 		fmdll->Create((LPVOID*)&dllchip, clock, rate);
 		if(dllchip) {
 			chip_reference_counter++;
-			
+
 			fmdll->SetVolumeFM(dllchip, decibel_fm);
 			fmdll->SetVolumePSG(dllchip, decibel_psg);
-			
+
 			DWORD mask = 0;
 			DWORD dwCaps = fmdll->GetCaps(dllchip);
 			if((dwCaps & SUPPORT_MULTIPLE) != SUPPORT_MULTIPLE) {
@@ -485,7 +485,7 @@ bool YM2612::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	} else if(_tcsicmp(reg, _T("FNUM21")) == 0) {
 		fnum21 = data;
 		return true;
-	} 
+	}
 	return false;
 }
 
@@ -516,9 +516,9 @@ bool YM2612::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	}
 	bool irqflag;
 	irqflag = opn2->ReadIRQ();
-	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  FNUM2=%02X CH1=%02X DATA1=%02X FNUM21=%02X\nIRQ=%s BUSY=%s CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\n%s"),
+	my_stprintf_s(buffer, buffer_len - 1, _T("%sCH=%02X  FNUM2=%02X CH1=%02X DATA1=%02X FNUM21=%02X\nPRESCALER=%d IRQ=%s BUSY=%s CHIP_CLOCK=%d\nREG : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\n%s"),
 				  tmps, ch, fnum2, ch1, data1, fnum21,
-				  (irqflag) ? _T("Y") : _T("N"), (busy) ? _T("Y") : _T("N"), chip_clock, tmps2);
+				  opn2->GetPrescaler(), (irqflag) ? _T("Y") : _T("N"), (busy) ? _T("Y") : _T("N"), chip_clock, tmps2);
 	return true;
 }
 
@@ -561,7 +561,7 @@ bool YM2612::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(timer_event_id);
 	state_fio->StateValue(busy);
 	state_fio->StateValue(addr_A1);
- 	
+
 #ifdef SUPPORT_MAME_FM_DLL
  	// post process
 	if(loading && dllchip) {
@@ -577,5 +577,3 @@ bool YM2612::process_state(FILEIO* state_fio, bool loading)
 #endif
 	return true;
 }
-
-
