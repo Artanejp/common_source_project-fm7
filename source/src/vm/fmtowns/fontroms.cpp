@@ -41,57 +41,21 @@ uint32_t FONT_ROMS::read_memory_mapped_io8(uint32_t addr)
 uint32_t FONT_ROMS::read_memory_mapped_io8w(uint32_t addr, int *wait)
 {
 	*wait = 6; // Tempo
-	uint8_t* p = nullptr;
-	__LIKELY_IF((addr & 0xff000000) == 0xc2100000) {
-		__LIKELY_IF((addr & 0x00f00000) < 0x00400000) {
-			p = &(font_kanji16[addr & 0x3ffff]);
-		}
-	} else if((addr >= 0x000ca000) && (addr < 0x000ca800)) {
-		p = &(font_kanji16[0x3d000 + (addr & 0x7ff)]);
-	} else if((addr >= 0x000cb000) && (addr < 0x000cc000)) {
-		p = &(font_kanji16[0x3d800 + (addr & 0xfff)]);
-	}
-	__LIKELY_IF(p != nullptr) {
+	__LIKELY_IF((addr & 0xfffc0000) == 0xc2100000) { // 0xc2100000 - c213ffff
 		*wait = 6; // Temporally
-		return *p;
+		return font_kanji16[addr & 0x3ffff];
+	}
+	__LIKELY_IF((addr & 0xffffc000) == 0x000c8000) {
+		if((addr & 0xfffff800) == 0x000ca000) { // 000ca000 - 000ca7ff
+			*wait = 6; // Temporally
+			return font_kanji16[0x3d000 + (addr & 0x7ff)];
+		} else if((addr & 0xfffff000) == 0x000cb000) { // 000cb000 - 000cbfff
+			*wait = 6; // Temporally
+			return font_kanji16[0x3d800 + (addr & 0xfff)];
+		}
 	}
 	*wait = 6; // Temporally
 	return 0xff;
-}
-uint32_t FONT_ROMS::read_memory_mapped_io16w(uint32_t addr, int *wait)
-{
-	*wait = 6; // Tempo
-	uint8_t* p = nullptr;
-	__LIKELY_IF((addr & 0xff000000) == 0xc2100000) {
-		__LIKELY_IF((addr & 0x00f00000) < 0x00400000) {
-			p = &(font_kanji16[addr & 0x3fffe]);
-		}
-	} else if((addr >= 0x000ca000) && (addr < 0x000ca800)) {
-		p = &(font_kanji16[0x3d000 + (addr & 0x7fe)]);
-	} else if((addr >= 0x000cb000) && (addr < 0x000cc000)) {
-		p = &(font_kanji16[0x3d800 + (addr & 0xffe)]);
-	}
-	__LIKELY_IF(p != nullptr) {
-		*wait = 6; // Temporally
-
-	#ifdef __BIG_ENDIAN__
-		pair16_t v;
-		v.l = p[0];
-		v.h = p[1];
-		return (uint32_t)(v.w);
-	#else
-		uint16_t *pp = (uint16_t*)p;
-		return *pp;
-	#endif
-	}
-	*wait = 6; // Temporally
-	return 0xffff;
-}
-
-uint32_t FONT_ROMS::read_memory_mapped_io16(uint32_t addr)
-{
-	int wait = 0;
-	return read_memory_mapped_io16w(addr, &wait);
 }
 // From MAME 0.216
 void FONT_ROMS::calc_kanji_offset()

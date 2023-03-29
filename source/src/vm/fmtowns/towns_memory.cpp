@@ -25,7 +25,7 @@
 
 namespace FMTOWNS {
 
-
+// Note: Bank width will be 0x2000 bytes.
 void TOWNS_MEMORY::config_page_c0()
 {
 	if(dma_is_vram) {
@@ -34,19 +34,21 @@ void TOWNS_MEMORY::config_page_c0()
 		set_memory_mapped_io_rw(0x000c8000, 0x000c9fff, d_sprite);
 		if(ankcg_enabled) {
 			set_memory_mapped_io_r(0x000ca000, 0x000cbfff, d_font);
-			//set_memory_w          (0x000ca000, 0x000cbfff, wr_dummy); // OK?
-			set_memory_mapped_io_w(0x000ca000, 0x000cbfff, d_sprite); // OK?
+			unset_memory_w        (0x000ca000, 0x000cbfff); // OK?
 		} else {
 			set_memory_mapped_io_rw(0x000ca000, 0x000cbfff, d_sprite);
 		}
-		//set_memory_rw          (0x000cc000, 0x000cefff, &(ram_pagec[0xc000]));
-		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this); // MMIO and higher RAM.
+		set_memory_rw          (0x000cc000, 0x000cdfff, &(ram_pagec[0xc000]));
+		set_memory_mapped_io_rw(0x000ce000, 0x000cffff, this); // MMIO and higher RAM.
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
 	} else {
+		#if 1
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
-//		set_memory_rw          (0x000c0000, 0x000cbfff, ram_pagec);
-//		set_memory_mapped_io_rw(0x000cc000, 0x000cffff, this); // MMIO and higher RAM.
+		#else
+		//set_memory_rw          (0x000c0000, 0x000cdfff, ram_pagec);
+		//set_memory_mapped_io_rw(0x000ce000, 0x000cffff, this); // MMIO and higher RAM.
+		#endif
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
 	}
@@ -63,24 +65,20 @@ void TOWNS_MEMORY::config_page_d0_e0()
 	} else {
 		if(select_d0_dict) {
 			set_memory_mapped_io_rw(0x000d0000, 0x000d9fff, d_dictionary);
-			set_memory_r           (0x000da000, 0x000effff, rd_dummy);
-			set_memory_w           (0x000da000, 0x000effff, wr_dummy);
+			unset_memory_rw        (0x000da000, 0x000effff);
 		} else {
-			//set_memory_rw          (0x000d0000, 0x000dffff, ram_paged);
-			set_memory_r           (0x000d0000, 0x000effff, rd_dummy);
-			set_memory_w           (0x000d0000, 0x000effff, wr_dummy);
+			//set_memory_rw        (0x000d0000, 0x000dffff, ram_paged);
+			unset_memory_rw        (0x000d0000, 0x000d9fff);
+			unset_memory_rw        (0x000da000, 0x000effff);
 		}
 	}
 }
 
 void TOWNS_MEMORY::config_page_f8_rom()
 {
-//	set_memory_mapped_io_rw (0x000f8000, 0x000fffff, this);
-
 	if(select_d0_rom) {
 		set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
-		//set_memory_w           (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
-		set_memory_w           (0x000f8000, 0x000fffff, wr_dummy);
+		unset_memory_w         (0x000f8000, 0x000fffff);
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_pagef[0x8000]));
 	}
@@ -143,12 +141,9 @@ void TOWNS_MEMORY::initialize()
 	set_memory_mapped_io_rw(0x80100000, 0x8017ffff, d_vram);
 	set_memory_mapped_io_rw(0x81000000, 0x8101ffff, d_sprite);
 
-//	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
-//	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
-//	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
-
 	set_memory_mapped_io_rw(0xc0000000, 0xc0ffffff, d_iccard[0]);
 	set_memory_mapped_io_rw(0xc1000000, 0xc1ffffff, d_iccard[1]);
+//	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
 
 	set_memory_mapped_io_r (0xc2000000, 0xc207ffff, d_msdos);
 	set_memory_mapped_io_r (0xc2080000, 0xc20fffff, d_dictionary);

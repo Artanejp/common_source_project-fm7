@@ -43,8 +43,6 @@ public:
 
 	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
 	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait);
-	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io16w(uint32_t addr, int *wait);
 
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
