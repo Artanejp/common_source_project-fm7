@@ -528,14 +528,16 @@ public:
 	virtual void reset();
 	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
+	/*
 	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
-
+	*/
 	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait);
+	/*
 	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait);
-
+	*/
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 

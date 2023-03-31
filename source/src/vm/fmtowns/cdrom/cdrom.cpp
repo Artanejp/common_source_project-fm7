@@ -866,7 +866,7 @@ void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
 	// data_reg = data;
 	return; // OK?
 }
-
+/*
 uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 {
 	*wait = 0; // Temporally.
@@ -885,6 +885,7 @@ void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
 	// data_reg = data;
 	return; // OK?
 }
+*/
 void TOWNS_CDROM::read_cdrom()
 {
 //	read_pos = 0;
@@ -2782,6 +2783,7 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 	//cdrom_debug_log(_T("READ IO8: %04X %02X"), addr, val);
 	return val;
 }
+/*
 uint32_t TOWNS_CDROM::read_io16w(uint32_t addr, int *wait)
 {
 	pair32_t v;
@@ -2789,7 +2791,7 @@ uint32_t TOWNS_CDROM::read_io16w(uint32_t addr, int *wait)
 	v.b.l = read_io8w(addr & 0xfffe, wait);
 	return v.d;
 }
-
+*/
 void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 {
 	/*
@@ -2894,14 +2896,14 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 	}
 #endif
 }
-
+/*
 void TOWNS_CDROM::write_io16w(uint32_t addr, uint32_t data, int *wait)
 {
 	pair32_t v;
 	v.d = data;
 	write_io8w(addr & 0xfffe, v.b.l, wait);
 }
-
+*/
 void TOWNS_CDROM::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	databuffer->write_not_push(addr % max_fifo_length, data & 0xff);
