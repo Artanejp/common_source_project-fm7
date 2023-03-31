@@ -343,6 +343,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
 	scsi_host->set_context_drq(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
 
+#ifdef USE_DEBUGGER
+	dma->set_context_debugger(new DEBUGGER(this, emu));
+	extra_dma->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
