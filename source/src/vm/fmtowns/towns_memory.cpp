@@ -46,8 +46,8 @@ void TOWNS_MEMORY::config_page_c0()
 		#if 1
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
 		#else
-		//set_memory_rw          (0x000c0000, 0x000cdfff, ram_pagec);
-		//set_memory_mapped_io_rw(0x000ce000, 0x000cffff, this); // MMIO and higher RAM.
+		set_memory_rw          (0x000c0000, 0x000cdfff, ram_pagec);
+		set_memory_mapped_io_rw(0x000ce000, 0x000cffff, this); // MMIO and higher RAM.
 		#endif
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
@@ -97,7 +97,7 @@ void TOWNS_MEMORY::initialize()
 {
 	if(initialized) return;
 	MEMORY::initialize();
-//	DEVICE::initialize();
+
 	update_machine_features();
 
 	extra_nmi_mask = true;
@@ -134,6 +134,8 @@ void TOWNS_MEMORY::initialize()
 	select_d0_rom = true;
 
 	dma_is_vram = true;
+	initialized = true;
+
 	// Lower 100000h
 	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 	set_memory_rw          (0x000f0000, 0x000f7fff, ram_pagef);
@@ -163,7 +165,6 @@ void TOWNS_MEMORY::initialize()
 	// load rom image
 	// ToDo: More smart.
 	vram_size = 0x80000; // OK?
-	initialized = true;
 }
 
 
@@ -283,7 +284,7 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 	}
 	__LIKELY_IF((addr & 0xffff) < 0xff88) {
 		__LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr & 0xffff);
+			val = d_planevram->read_memory_mapped_io8(addr & 0xffff);
 		}
 		return val;
 	} else if(((addr & 0xffff) >= 0xff94) && ((addr & 0xffff) < 0xff98)) {
@@ -292,53 +293,34 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 		}
 		return val;
 	}
-	switch(addr & 0xffff) {
-	case 0xff88:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+	if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+		switch(addr & 0xffff) {
+		case 0xff88:
 			__LIKELY_IF(d_crtc != NULL) {
 				val = d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
 			}
-		} else  __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr & 0xffff);
+			return val;
+			break;
+		case 0xff99:
+			return (ankcg_enabled) ? 0x01 : 0x00;
+			break;
+		case 0xff9c:
+		case 0xff9d:
+		case 0xff9e:
+			__LIKELY_IF(d_font != NULL) {
+				val = d_font->read_io8(addr & 0xffff);
+			}
+			return val;
+			break;
+		default:
+
+			break;
 		}
-		break;
+	}
+	switch(addr & 0xffff) {
 	case 0xff98:
 		__LIKELY_IF(d_timer != NULL) {
 			d_timer->write_signal(SIG_TIMER_BEEP_ON, 1, 1);
-		}
-		break;
-	case 0xff99:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			val = (ankcg_enabled) ? 0x01 : 0x00;
-		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr & 0xffff);
-		}
-		break;
-	case 0xff9c:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_io8(addr & 0xffff);
-			}
-		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr & 0xffff);
-		}
-		break;
-	case 0xff9d:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_io8(addr & 0xffff);
-			}
-		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr & 0xffff);
-		}
-		break;
-	case 0xff9e:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_io8(addr & 0xffff);
-			}
-		} else __LIKELY_IF(d_planevram != NULL) {
-			val = d_planevram->read_io8(addr & 0xffff);
 		}
 		break;
 	default:
@@ -349,21 +331,21 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 	}
 	return val;
 }
-uint16_t TOWNS_MEMORY::read_sys_ports16(uint32_t addr)
+uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 {
-	pair16_t val;
-	val.w = 0xffff;
-	switch(addr & 0x0ffe) {
+    uint8_t val;
+	val = 0xff;
+	switch(addr & 0xffff) {
 	case 0x0020: // Software reset ETC.
 		// reset cause register
-		val.b.l = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
+		val = ((software_reset) ? 1 : 0) | ((reset_happened) ? 2 : 0);
 		reset_happened = false;
 		software_reset = false;
 		__UNLIKELY_IF(d_cpu != NULL) {
 			d_cpu->set_shutdown_flag(0);
 		}
 		if((machine_id >= 0x0300) && ((machine_id & 0xff00) != 0x0400)) { // After UX
-			val.b.l = val.b.l | ((poff_status) ? 0x04 : 0x00);
+			val = val | ((poff_status) ? 0x04 : 0x00);
 		}
 		break;
 	case 0x0022:
@@ -372,19 +354,31 @@ uint16_t TOWNS_MEMORY::read_sys_ports16(uint32_t addr)
 //			val = d_dmac->read_signal(SIG_TOWNS_DMAC_ADDR_REG);
 //		}
 		break;
-	case 0x0024:
 		// 0024, 0025 : MISC3 + MISC4
-		val.w = (((uint32_t)reg_misc4) << 8) | ((uint32_t)reg_misc3);
+	case 0x0024:
+		val = reg_misc3;
+		break;
+	case 0x0025:
+		val = reg_misc3;
 		break;
 	case 0x0028:
 		// NMI MASK
 		if(machine_id >= 0x0500) { // After CX
-			val.b.l = (nmi_mask) ? 0x01 : 0x00;
+			val = (nmi_mask) ? 0x01 : 0x00;
 		}
 		break;
 	case 0x0030:
-		// 0030, 0031 : CPUID + MACHINE ID
-		val.w = (cpu_id & 7) | (machine_id & 0xfff8);
+		// 20210227 K.O
+		// From FMTowns::MachineID()  of TSUGARU,
+		// git 83d4ec2309ac9fcbb8c01f26061ff0d49c5321e4.
+//		if((config.dipswitch & TOWNS_DIPSW_PRETEND_I386) != 0) {
+//			val = ((machine_id & 0xf8) | 1);
+//		} else {
+			val = ((machine_id & 0xf8) | (cpu_id & 7));
+//		}
+		break;
+	case 0x0031:
+		val = ((machine_id >> 8) & 0xff);
 		break;
 	case 0x0032:
 		{
@@ -392,56 +386,55 @@ uint16_t TOWNS_MEMORY::read_sys_ports16(uint32_t addr)
 			bool __clk = (d_serialrom->read_signal(SIG_SERIALROM_CLK) != 0);
 			bool __reset = (d_serialrom->read_signal(SIG_SERIALROM_RESET) != 0);
 			bool __dat = (d_serialrom->read_signal(SIG_SERIALROM_DATA) != 0);
-			val.b.l = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | /*0x3e |*/ ((__dat) ? 0x01 : 0x00);
+			val = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | /*0x3e |*/ ((__dat) ? 0x01 : 0x00);
 		}
 		break;
 	case 0x00c0: // Cache
-		val.b.l = 0x00;
+		val = 0x00;
 		if((cpu_id == 0x02) || (cpu_id >= 0x04)) { // i486 SX/DX or After Pentium.
 			// ToDo: Implement around cache.
 			// Modified by this register and (05ECh:bit0 / Wait register).
 			// Now, cache is always disabled.
 			// RPNH = 0 (Disabled) : Bit1
 			// CMEN = 0 (Disabled) : Bit0
-			val.b.l = 0x00;
+			val = 0x00;
 		}
 		break;
 	case 0x00c2: // Cache Diagnostic
-		val.b.l = 0x00;
+		val = 0x00;
 		if((cpu_id == 0x02) || (cpu_id >= 0x04)) { // i486 SX/DX or After Pentium.
 			// ToDo: Implement cache disgnostic.
 			// SDMOD (Not diagnostic) : Bit3
-			val.b.l = 0x00;
+			val = 0x00;
 		}
 		break;
 	case 0x0400: // Resolution:
-		val.b.l = 0xfe;
-//		val = 0x00;
+		val = 0xfe;
 		break;
 	case 0x0404: // System Status Reg.
 //		val = (dma_is_vram) ? 0x7f : 0xff;
-		val.b.l = (dma_is_vram) ? 0x00 : 0x80;
+		val = (dma_is_vram) ? 0x00 : 0x80;
 		break;
 	case 0x0480:
-		val.b.l  =  (select_d0_dict) ? 0x01 : 0x00;
-		val.b.l |= ((select_d0_rom) ? 0x00 : 0x02);
+		val  =  (select_d0_dict) ? 0x01 : 0x00;
+		val |=  ((select_d0_rom) ? 0x00 : 0x02);
 		break;
 	case 0x05c0:
 //		val = (extra_nmi_mask) ? 0xf7 : 0xff;
-		val.b.l = (extra_nmi_mask) ? 0x00 : 0x08;
+		val = (extra_nmi_mask) ? 0x00 : 0x08;
 		break;
 	case 0x05c2:
 //		val = (extra_nmi_val) ? 0xff : 0xf7;
-		val.b.l = (extra_nmi_val) ? 0x08 : 0x00;
+		val = (extra_nmi_val) ? 0x08 : 0x00;
 		break;
 	case 0x05e0:
 		if(machine_id < 0x0200) { // Towns 1/2
-			val.b.l =  wait_register;
+			val =  wait_register;
 		}
 		break;
 	case 0x05e2:
 		if(machine_id >= 0x0200) { // i386
-			val.b.l = wait_register;
+			val = wait_register;
 		}
 		break;
 	case 0x05e8:
@@ -449,44 +442,46 @@ uint16_t TOWNS_MEMORY::read_sys_ports16(uint32_t addr)
 		{
 			uint16_t nid = machine_id & 0xff00;
 			if(nid >= 0x1000) {
-				val.b.l = (extram_size >> 20) & 0x7f; // MAX 128MB
+				val = (extram_size >> 20) & 0x7f; // MAX 128MB
 			} else if(nid >= 0x0900) { // UR,MA,MX,ME,MF
-				val.b.l = (extram_size >> 20) & 0x1f; // MAX 32MB
+				val = (extram_size >> 20) & 0x1f; // MAX 32MB
 			} else if(nid == 0x0800) { // HG
-				val.b.l = (extram_size >> 20) & 0x0f; // MAX 15MB
+				val = (extram_size >> 20) & 0x0f; // MAX 15MB
 			} else if(nid == 0x0700) { // HR
-				val.b.l = (extram_size >> 20) & 0x1f; // MAX 32MB
+				val = (extram_size >> 20) & 0x1f; // MAX 32MB
 			} else if(nid >= 0x0200) { // 2nd GEN,3rd Gen, UX/UG, CX
-				val.b.l = (extram_size >> 20) & 0x0f; // MAX 15MB
+				val = (extram_size >> 20) & 0x0f; // MAX 15MB
 			} else {
-				val.b.l = 0xff; // NOT SUPPORTED
+				val = 0xff; // NOT SUPPORTED
 			}
 		}
 		break;
 	case 0x05ec:
 		// 05ec, 05ed
 		if(machine_id >= 0x0200) { // 05ec
-			val.b.l = ((mem_wait_val < 1) ? 0x01 : 0x00);
+			val = ((mem_wait_val < 1) ? 0x01 : 0x00);
 		}
+		break;
+	case 0x05ed:
 		if(machine_id >= 0x0700) { // 05ed
 			uint32_t clk = get_cpu_clocks(d_cpu);
 			clk = clk / (1000 * 1000);
 			__UNLIKELY_IF(clk < 16) clk = 16;
 			__UNLIKELY_IF(clk > 127) clk = 127; // ToDo
-			val.b.h = 0x00 | clk;
+			val = 0x00 | clk;
 		}
 		break;
 	case 0xfda4:
 		if(machine_id >= 0x0700) { // After HR/HG
-			val.b.l = (is_compatible) ? 0x00 : 0x01;
+			val = (is_compatible) ? 0x00 : 0x01;
 		} else {
-			val.b.l = 0x00;
+			val = 0x00;
 		}
 		break;
 	default:
 		break;
 	}
-	return val.w;
+	return val;
 }
 // Address (TOWNS BASIC):
 // 0x0020 - 0x0022, 0x0030-0x0031,
@@ -501,9 +496,7 @@ uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
 		return read_fmr_ports8(addr & 0xffff);
 	}
-	pair16_t val;
-	val.w = read_sys_ports16(addr);
-	return ((addr & 1) != 0) ? val.b.h : val.b.l;
+	return read_sys_ports8(addr);
 }
 
 uint32_t TOWNS_MEMORY::read_io8w(uint32_t addr, int *wait)
@@ -514,36 +507,9 @@ uint32_t TOWNS_MEMORY::read_io8w(uint32_t addr, int *wait)
 		return read_fmr_ports8(addr & 0xffff);
 	}
 	*wait = 6; // ToDo: will io_wait_val.
-	pair16_t val;
-	val.w = read_sys_ports16(addr);
-	return ((addr & 1) != 0) ? val.b.h : val.b.l;
+	return read_sys_ports8(addr);
 }
 
-uint32_t TOWNS_MEMORY::read_io16(uint32_t addr)
-{
-	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		// OK? This may be bus width has 8bit ?
-		pair16_t val;
-		val.b.l = read_fmr_ports8(addr & 0xfffe);
-		val.b.h = read_fmr_ports8((addr & 0xfffe) + 1);
-		return val.w;
-	}
-	return read_sys_ports16(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_io16w(uint32_t addr, int *wait)
-{
-	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		// OK? This may be bus width has 8bit ?
-		*wait = 6 * 2; // ToDo: will io_wait_val.
-		pair16_t val;
-		val.b.l = read_fmr_ports8(addr & 0xfffe);
-		val.b.h = read_fmr_ports8((addr & 0xfffe) + 1);
-		return val.w;
-	}
-	*wait = 6; // ToDo: will io_wait_val.
-	return read_sys_ports16(addr);
-}
 
 void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 {
@@ -561,6 +527,17 @@ void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 		}
 		return;
 	}
+	if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
+		switch(addr & 0xffff) {
+		case 0xff9e:
+			__LIKELY_IF(d_font != NULL) {
+				d_font->write_io8(addr & 0xffff, data);
+			}
+			return;
+		default:
+			break;
+		}
+	}
 	switch(addr & 0xffff) {
 	case 0xff98:
 		__LIKELY_IF(d_timer != NULL) {
@@ -576,15 +553,10 @@ void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 			//}
 		}
 		break;
-	case 0xff9e:
-		if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
-			__LIKELY_IF(d_font != NULL) {
-				d_font->write_io8(addr & 0xffff, data);
-			}
-		} else __LIKELY_IF(d_planevram != NULL) {
+	case 0xffa0:
+		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr & 0xffff, data);
 		}
-		break;
 	default:
 		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr & 0xffff, data);
@@ -672,13 +644,12 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0404: // System Status Reg.
 		{
-			//bool _b = dma_is_vram;
+			bool _b = dma_is_vram;
 			dma_is_vram = ((data & 0x80) == 0);
-			//if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
+			if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
 				config_page_c0();
 				config_page_d0_e0();
-//				config_page00();
-			//}
+			}
 		}
 		break;
 	case 0x0480:
@@ -687,16 +658,10 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			bool _rom = select_d0_rom;
 			select_d0_dict = ((data & 0x01) != 0) ? true : false;
 			select_d0_rom = ((data & 0x02) == 0) ? true : false;
-			if(_dict != select_d0_dict) {
+			if((_dict != select_d0_dict) ||(_rom != select_d0_rom)){
 				config_page_d0_e0();
-			}
-			if(_rom != select_d0_rom) {
 				config_page_f8_rom();
 			}
-//			if((_rom != select_d0_rom) ||(_dict != select_d0_dict)) {
-//				config_page00();
-//			}
-//			config_page00();
 		}
 		break;
 	case 0x05c0:
@@ -771,7 +736,7 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 		write_fmr_ports8(addr & 0xffff, data);
 		return;
 	}
-	write_io16(addr, data & 0xff);
+	write_sys_ports8(addr, data);
 }
 
 void TOWNS_MEMORY::write_io8w(uint32_t addr, uint32_t data, int *wait)
@@ -781,43 +746,9 @@ void TOWNS_MEMORY::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		write_fmr_ports8(addr & 0xffff, data);
 		return;
 	}
-	write_io16w(addr, data & 0xff, wait);
+	*wait = 6; // ToDo: will io_wait_val.
+	write_sys_ports8(addr, data);
 	return;
-}
-
-void TOWNS_MEMORY::write_sys_ports16(uint32_t addr, uint32_t data)
-{
-	// ToDo: WORD ACCESS.
-	write_sys_ports8(addr & 0xfffe, data & 0xff);
-}
-
-void TOWNS_MEMORY::write_io16(uint32_t addr, uint32_t data)
-{
-	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		// OK? This may be bus width has 8bit ?
-		pair16_t val;
-		val.w = data;
-		write_fmr_ports8(addr & 0xffff, val.b.l);
-		write_fmr_ports8((addr & 0xffff) + 1, val.b.h);
-		return;
-	}
-	write_sys_ports16(addr, data);
-}
-
-void TOWNS_MEMORY::write_io16w(uint32_t addr, uint32_t data, int *wait)
-{
-	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		// OK? This may be bus width has 8bit ?
-		pair16_t val;
-		*wait = 6 * 2; // Temporally value.
-		val.w = data;
-		write_fmr_ports8(addr & 0xffff, val.b.l);
-		write_fmr_ports8((addr & 0xffff) + 1, val.b.h);
-		return;
-	} else {
-		*wait = 6; // Temporally value.
-		write_sys_ports16(addr, data);
-	}
 }
 
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
@@ -887,6 +818,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *w
 	__LIKELY_IF(addr < 0xd0000) {
 		*wait = 6; // Maybe 6.
 		write_fmr_ports8(addr, data);
+		return;
 	}
 	*wait = mem_wait_val;
 	return;
@@ -914,8 +846,12 @@ void TOWNS_MEMORY::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *
 		return;
 	}
 	__LIKELY_IF(addr < 0xd0000) {
-		*wait = 6; // Maybe 6.
-		write_fmr_ports8(addr, data);
+		pair16_t v;
+		v.w = data;
+		*wait = 6 * 2; // Maybe 6.
+		write_fmr_ports8(addr, v.b.l);
+		write_fmr_ports8(addr + 1, v.b.h);
+		return;
 	}
 	*wait = mem_wait_val;
 	return;

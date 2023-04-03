@@ -131,8 +131,7 @@ protected:
 	virtual void     __FASTCALL write_fmr_ports8(uint32_t addr, uint32_t data);
 	virtual uint8_t  __FASTCALL read_fmr_ports8(uint32_t addr);
 	virtual void     __FASTCALL write_sys_ports8(uint32_t addr, uint32_t data);
-	virtual void     __FASTCALL write_sys_ports16(uint32_t addr, uint32_t data);
-	virtual uint16_t __FASTCALL read_sys_ports16(uint32_t addr);
+	virtual uint8_t __FASTCALL read_sys_ports8(uint32_t addr);
 
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
@@ -196,13 +195,9 @@ public:
 
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual void     __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
-	virtual void     __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	virtual void     __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
 
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
-	virtual uint32_t __FASTCALL read_io16(uint32_t addr);
-	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
