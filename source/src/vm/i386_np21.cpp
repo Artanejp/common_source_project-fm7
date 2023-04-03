@@ -290,15 +290,13 @@ bool I386::check_interrupts()
 	return false;
 }
 
-int I386::run_one_opecode()
+bool I386::debugger_prologue()
 {
 //#ifdef USE_DEBUGGER
-
 	bool now_debugging = false;
 	__LIKELY_IF((__USE_DEBUGGER) && (device_debugger != NULL)) {
 		now_debugging = device_debugger->now_debugging;
 	}
-
 	__UNLIKELY_IF(now_debugging) {
 		device_debugger->check_break_points(get_next_pc());
 		__UNLIKELY_IF(device_debugger->now_suspended) {
@@ -316,8 +314,22 @@ int I386::run_one_opecode()
 			now_debugging = false;
 		}
 	}
+	return now_debugging;
+}
+
+void I386::debugger_epilogue()
+{
+	__UNLIKELY_IF(!device_debugger->now_going) {
+		device_debugger->now_suspended = true;
+	}
+	device_mem = device_mem_stored;
+	device_io = device_io_stored;
+}
+
+int I386::run_one_opecode()
+{
+	bool now_debugging = debugger_prologue();
 	{
-//#endif
 		PREV_CS_BASE = CS_BASE;
 		CPU_REMCLOCK = CPU_BASECLOCK = 1;
 		CPU_EXEC();
@@ -339,16 +351,10 @@ int I386::run_one_opecode()
 		}
 		//check_interrupts();  // OK?This may be enable only debugging;
 		__UNLIKELY_IF(now_debugging) {
-			__UNLIKELY_IF(!device_debugger->now_going) {
-				device_debugger->now_suspended = true;
-			}
-			device_mem = device_mem_stored;
-			device_io = device_io_stored;
+			debugger_epilogue();
 		}
 		return CPU_BASECLOCK - CPU_REMCLOCK;
-//#ifdef USE_DEBUGGER
 	}
-//#endif
 }
 
 int I386::run(int cycles)
@@ -365,6 +371,10 @@ int I386::run(int cycles)
 			// don't run cpu!
 			// 80386 CPI: 4.9, minimum clocks may be 5.
 			__cycles = 5;
+			bool now_debugging = debugger_prologue();
+			__UNLIKELY_IF(now_debugging) {
+				debugger_epilogue();
+			}
 		} else {
 			// run only one opcode
 			__cycles = run_one_opecode();
@@ -487,7 +497,7 @@ uint32_t I386::get_next_pc()
 	return convert_address(CS_BASE, CPU_EIP);
 }
 
-//#ifdef USE_DEBUGGER
+//#ifdef USE_DEBUGEGR
 void I386::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;

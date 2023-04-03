@@ -76,6 +76,9 @@ private:
 	uint32_t address_mask;
 
 	int run_one_opecode();
+	bool debugger_prologue();
+	void debugger_epilogue();
+
 	uint32_t __FASTCALL convert_address(uint32_t cs, uint32_t eip);
 	inline void __FASTCALL cpu_wait(int clocks);
 
