@@ -480,7 +480,7 @@ protected:
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
 		mcuint_val = (val != 0) ? true : false;
-		write_signals(&outputs_mcuint, val);
+		write_signals(&outputs_mcuint, (mcuint_val) ? 0xffffffff : 0);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
 	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
@@ -493,8 +493,8 @@ protected:
 	}
 	inline void fetch_datareg_16()
 	{
-		data_reg.b.h = (uint8_t)(databuffer->read() & 0xff);
 		data_reg.b.l = (uint8_t)(databuffer->read() & 0xff);
+		data_reg.b.h = (uint8_t)(databuffer->read() & 0xff);
 	}
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
@@ -534,10 +534,10 @@ public:
 	*/
 	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait);
-	/*
+
 	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait);
-	*/
+
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
 

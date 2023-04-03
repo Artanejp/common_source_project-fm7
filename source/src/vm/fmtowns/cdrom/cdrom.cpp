@@ -100,8 +100,8 @@ void TOWNS_CDROM::cdrom_debug_log(const char *fmt, ...)
 void TOWNS_CDROM::initialize()
 {
    	DEVICE::initialize();
-	__CDROM_DEBUG_LOG = osd->check_feature(_T("_CDROM_DEBUG_LOG"));
-//	__CDROM_DEBUG_LOG = true;
+//	__CDROM_DEBUG_LOG = osd->check_feature(_T("_CDROM_DEBUG_LOG"));
+	__CDROM_DEBUG_LOG = true;
 	_USE_CDROM_PREFETCH = osd->check_feature(_T("USE_CDROM_PREFETCH"));
 	force_logging = false;
 
@@ -264,12 +264,12 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		clear_event(this, event_seek_completed);
 		clear_event(this, event_drq);
 		cdrom_debug_log(_T("EOT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		status_read_done(false);
 		if(dma_transfer_phase) {
 			dma_transfer_phase = false;
 			dma_transfer = false;
 			status_seek = false;
 			set_dma_intr(true);
-			status_read_done(false);
 		}
 	} else {
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
@@ -337,19 +337,18 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDROM_DMAACK:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
 			//force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
+			#if 0
 			if(/* (read_length <= 0) && */(databuffer->empty())) {
 				clear_event(this, event_drq);
 				if((read_length <= 0)) { // ToDo: With prefetch.
 					cdrom_debug_log(_T("MAYBE COMPLETE TO TRANSFER ALL DATA"));
 					//force_register_event(this, EVENT_CDROM_EOT, 1.0, false, event_eot);
-					//clear_event(this, event_next_sector);
-					//clear_event(this, event_seek_completed);
-					//status_read_done(false);
-					do_dma_eot(false);
+					//do_dma_eot(false);
 				}
 			} else {
 
 			}
+			#endif
 		}
 		break;
 	default:
@@ -408,8 +407,6 @@ void TOWNS_CDROM::status_read_done(bool forceint)
 {
 	if(forceint) stat_reply_intr = true;
 	set_status_read_done(req_status, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
-//	set_status_read_done(true, 0, TOWNS_CD_STATUS_READ_DONE, 0, 0, 0);
-//	cdrom_debug_log(_T("READ DONE"));
 }
 
 void TOWNS_CDROM::status_data_ready(bool forceint)
@@ -743,8 +740,8 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				}
 				break;
 			} else if(cdda_status == CDDA_PLAYING) {
-				status_accept(1, 0x00, 0x00);
-				//set_status(req_status, 1, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
+				//status_accept(1, 0x00, 0x00);
+				set_status(req_status, 1, 0x00, TOWNS_CD_ACCEPT_CDDA_PLAYING, 0x00, 0x00);
 				break;
 			}
 			if((cdda_status == CDDA_PAUSED) &&
@@ -808,6 +805,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 
 void TOWNS_CDROM::set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
+	has_status = true;
 	status_queue->write(s0);
 	status_queue->write(s1);
 	status_queue->write(s2);
@@ -866,7 +864,7 @@ void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
 	// data_reg = data;
 	return; // OK?
 }
-/*
+
 uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 {
 	*wait = 0; // Temporally.
@@ -885,7 +883,7 @@ void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
 	// data_reg = data;
 	return; // OK?
 }
-*/
+
 void TOWNS_CDROM::read_cdrom()
 {
 //	read_pos = 0;
@@ -2719,7 +2717,7 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 	 * 04CDh : SUBQ STATUS
 	 */
 	*wait = 6; // Temporally.
-	uint32_t val = 0xff;
+	uint32_t val = 0x00;
 	switch(addr & 0x0f) {
 	case 0x00:
 		val = 0x00;
@@ -2755,8 +2753,8 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 				clear_event(this, event_next_sector);
 				clear_event(this, event_seek_completed);
 				clear_event(this, event_time_out);
-				status_read_done(false);
 				cdrom_debug_log(_T("EOT(PIO)"));
+				status_read_done(false);
 				if((stat_reply_intr) || !(dma_intr_mask)) {
 					//if((stat_reply_intr) && !(dma_intr_mask)) {
 					write_mcuint_signals(0xffffffff);
