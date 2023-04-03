@@ -26,19 +26,19 @@ class TIMER : public DEVICE
 private:
 	DEVICE *d_pcm, *d_rtc;
 
-	
+
 	DEVICE *intr_target;
 	DEVICE *halt_target;
 
 	int halt_target_id;
 	uint32_t halt_target_mask;
-	
+
 	int intr_target_id;
 	uint32_t intr_target_mask;
-	
-	uint16_t free_run_counter;
-	uint16_t next_interval;
-	
+
+	uint32_t free_run_counter;
+	uint32_t next_interval;
+
 	uint8_t intr_reg, rtc_data;
 	bool rtc_busy;
 	bool tmout0, tmout1;
@@ -50,18 +50,18 @@ private:
 
 	int event_wait_1us;
 	int event_interval_us;
-	
+
 	uint16_t machine_id;
 	uint8_t cpu_id;
 
 	bool beepon_60h;
 	bool beepon_cff98h;
-	
+
 	virtual void update_intr(void);
 	virtual void update_beep(void);
 	virtual void do_interval(void);
 	virtual void update_interval_timer(void);
-	
+
 public:
 	TIMER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -70,7 +70,7 @@ public:
 		intr_target = NULL;
 		intr_target_id = 0;
 		intr_target_mask = 0xffffffff;
-		
+
 		halt_target = NULL;
 		halt_target_id = 0;
 		halt_target_mask = 0xffffffff;
@@ -78,7 +78,7 @@ public:
 		d_rtc = NULL;
 	}
 	~TIMER() {}
-	
+
 	// common functions
 	virtual void initialize();
 	virtual void reset();
@@ -86,13 +86,13 @@ public:
 
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	
+
 	uint32_t __FASTCALL read_io8(uint32_t addr);
 	uint32_t __FASTCALL read_io16(uint32_t addr);
-	
+
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	bool process_state(FILEIO* state_fio, bool loading);
-	
+
 	// unique functions
 	void set_machine_id(uint16_t val)
 	{
@@ -126,4 +126,3 @@ public:
 }
 
 #endif
-

@@ -17,7 +17,7 @@
 #define EVENT_INTERVAL_US 2
 
 namespace FMTOWNS {
-	
+
 void TIMER::initialize()
 {
 	free_run_counter = 0;
@@ -59,17 +59,25 @@ void TIMER::reset()
 
 void TIMER::write_io16(uint32_t addr, uint32_t data)
 {
-	switch(addr & 0xfffe) {
-	case 0x006a: // Interval control
+	if(((addr & 0xfffe) == 0x006a) && (machine_id >= 0x0300)) { // After UX*/10F/20F/40H/80H
 		interval_us.w = data;
 		do_interval();
-		break;
-	default:
-		write_io8(addr, data);
-		break;
+		return;
 	}
+	write_io8(addr + 0, data & 0xff);
+	write_io8(addr + 1, (data >> 8) & 0xff);
 }
 
+uint32_t TIMER::read_io16(uint32_t addr)
+{
+	if(((addr & 0xfffe) == 0x006a) && (machine_id >= 0x0300)) { // After UX*/10F/20F/40H/80H
+		return interval_us.w;;
+	}
+	pair16_t val;
+	val.b.l = read_io8(addr + 0);
+	val.b.h = read_io8(addr + 1);
+	return val.w;
+}
 void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
@@ -84,17 +92,14 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0068: // Interval control
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			/*
-			if(!(interval_enabled)) {// OK?
-				intv_ov = false;
-				intv_i = false;
-			}*/
+			bool _b = interval_enabled;
 			interval_enabled = ((data & 0x80) == 0);
-			if(interval_enabled) {// OK?
-				intv_ov = false;
-				intv_i = false;
+			intv_ov = false;
+			intv_i = false;
+			if(_b != interval_enabled) {
+				do_interval();
 			}
-			do_interval();
+			update_interval_timer();
 		}
 		break;
 	case 0x006a: // Interval control
@@ -104,10 +109,10 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			bool highaddress = (addr == 0x6b);
 			if(highaddress) {
 				interval_us.b.h = data;
+				do_interval();
 			} else {
 				interval_us.b.l = data;
 			}
-			do_interval();
 		}
 		break;
 	case 0x006c: // Wait register.
@@ -145,27 +150,15 @@ void TIMER::update_beep()
 void TIMER::do_interval(void)
 {
 	if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-		next_interval = free_run_counter + interval_us.w;
+		if(interval_us.w == 0) {
+			next_interval = free_run_counter + 65536;
+		} else {
+			next_interval = free_run_counter + interval_us.w;
+		}
 	}
 }
 
-uint32_t TIMER::read_io16(uint32_t addr)
-{
-	switch(addr & 0xfffe) {
-	case 0x0026:
-		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
-			return free_run_counter;
-		} else {
-			return 0xffff;
-		}
-		break;
-	case 0x006a: // Interval control
-		return interval_us.w;
-		break;
-	}
-	return read_io8(addr);
-}
-	
+
 uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
@@ -277,10 +270,9 @@ void TIMER::event_callback(int id, int err)
 	case EVENT_INTERVAL_US:
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
 			free_run_counter++;
-			if(interval_enabled) {
-				if(next_interval == free_run_counter) {
-					update_interval_timer();
-				}
+			if(next_interval == free_run_counter) {
+				do_interval();
+				update_interval_timer();
 			}
 		}
 		break;
@@ -291,10 +283,12 @@ void TIMER::update_interval_timer()
 {
 	if(intv_i) intv_ov = true;
 	intv_i = true;
-	update_intr();
+	if(interval_enabled) {
+		update_intr();
+	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool TIMER::process_state(FILEIO* state_fio, bool loading)
 {
@@ -311,7 +305,7 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(intr_reg);
 	state_fio->StateValue(rtc_data);
 	state_fio->StateValue(rtc_busy);
-	
+
 	state_fio->StateValue(tmout0);
 	state_fio->StateValue(tmout1);
 
@@ -324,9 +318,8 @@ bool TIMER::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(event_wait_1us);
 	state_fio->StateValue(event_interval_us);
-	
+
 	return true;
 }
 
 }
-
