@@ -125,11 +125,11 @@ uint32_t FONT_ROMS::read_io8(uint32_t addr)
 		val = 0xFF;
 		break;
 	case 0xff96: // LOW
-	case 0xff9c: // LOW
+	case 0xff9d: // LOW
 		val = font_kanji16[(kanji_address << 1) + 0];
 		break;
 	case 0xff97: // High
-	case 0xff9d: // High
+	case 0xff9c: // High
 		val = font_kanji16[(kanji_address << 1) + 1];
 		kanji_address++;
 		break;
