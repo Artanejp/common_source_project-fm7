@@ -84,8 +84,8 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 			cmd = data & 0xffff;
 			break;
 		default:
-			write_io8(addr & 0x0e, data);
-//			write_io8(addr, data);
+//			write_io8(addr & 0x0e, data);
+			write_io8(addr, data);
 			break;
 		}
 //	} else {
@@ -382,18 +382,16 @@ void UPD71071::do_dma_verify_8bit(int c, bool extended, bool compressed, int& wa
 	}
 	// verify
 	uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_1);
-	reset_ube(c);
-
 	uint32_t val2;
 	__UNLIKELY_IF(__debugging) {
 		val2 = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_2);
 	} else {
 		val2 = read_via_debugger_data8w(dma[c].areg,  &wait_2);
 	}
-
+	reset_ube(c);
 	// ToDo: Compare val1 and val2.
 	// update temporary register
-	tmp = (tmp >> 8) | (val2 << 8);
+	tmp = (tmp >> 8) | (val << 8);
 
 	wait += compressed ? 5 : 7;
 	if(extended) {
@@ -411,7 +409,7 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c, bool extended, bool compressed, int
 		__debugging = d_debugger->now_device_debugging;
 	}
 	uint32_t val;
-	//reset_ube(c);
+	reset_ube(c);
 	val = dma[c].dev->read_dma_io8w(0, &wait_r);
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
@@ -469,13 +467,13 @@ void UPD71071::do_dma_verify_16bit(int c, bool extended, bool compressed, int& w
 	// verify
 	bool __debugging = false;
 	int wait_1 = 0, wait_2 = 0;
-	set_ube(c);
+
 	__LIKELY_IF((__USE_DEBUGGER) && (d_debugger != NULL)) {
 		__debugging = d_debugger->now_device_debugging;
 	}
 	// verify
 	uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_1);
-
+	set_ube(c);
 	uint32_t val2;
 	__UNLIKELY_IF(__debugging) {
 		val2 = d_debugger->read_via_debugger_data16w(dma[c].areg, &wait_2);
@@ -485,7 +483,7 @@ void UPD71071::do_dma_verify_16bit(int c, bool extended, bool compressed, int& w
 
 	// ToDo: Compare val1 and val2.
 	// update temporary register
-	tmp = val2;
+	tmp = val;
 
 	wait += compressed ? 5 : 7;
 	if(extended) {
@@ -637,11 +635,17 @@ bool UPD71071::do_dma_epilogue(int c)
 	//       -- 20200316 K.O
 	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
-//		req &= ~bit;
-//		sreq &= ~bit;
+		req &= ~bit;
+		sreq &= ~bit;
 		running = false;
 		return true;
+	} else if((dma[c].mode & 0xc0) == 0x00){
+		// single mode
+		req &= ~bit;
+		sreq &= ~bit;
+		return true;
 	}
+
 #endif
 	return false;
 }
@@ -658,7 +662,7 @@ bool UPD71071::do_dma_per_channel(int c)
 		}
 	}
 	uint8_t bit = 1 << c;
-	bool dmastat = false;
+
 	if(((req | sreq) & bit) /*&& !(mask & bit)*/) {
 		// execute dma
 		//while((req | sreq) & bit) { // Q: Will use burst transfer? 20230319 K.O
