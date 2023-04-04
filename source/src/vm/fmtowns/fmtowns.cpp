@@ -347,7 +347,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_debugger(new DEBUGGER(this, emu));
 	extra_dma->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	dma->set_context_cpu(cpu);
+	//dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);

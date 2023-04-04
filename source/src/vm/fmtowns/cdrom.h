@@ -326,7 +326,6 @@ protected:
 	uint8_t prev_command;
 	uint8_t latest_command;
 	uint8_t reserved_command;
-	bool has_status;
 	bool req_status;
 
 	bool stat_reply_intr;
@@ -336,8 +335,6 @@ protected:
 	bool dma_intr;
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
-
-	bool mcuint_val;
 
 	int event_drq;
 	int event_seek;
@@ -479,8 +476,8 @@ protected:
 
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
-		mcuint_val = (val != 0) ? true : false;
-		write_signals(&outputs_mcuint, (mcuint_val) ? 0xffffffff : 0);
+		mcu_intr = (val == 0) ? false : true;
+		write_signals(&outputs_mcuint, val);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
 	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
