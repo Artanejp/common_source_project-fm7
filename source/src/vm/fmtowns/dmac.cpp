@@ -74,10 +74,13 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	case 0x00:
 //		out_debug_log(_T("RESET REG(00h) to %02X"), data);
 		break;
+	case 0x04:
+	case 0x05:
+	case 0x06:
 	case 0x07:
-		dma[selch].bareg = manipulate_a_byte_from_dword_le(dma[selch].bareg, 3, data);
+		dma[selch].bareg = manipulate_a_byte_from_dword_le(dma[selch].bareg, (addr & 0x0f) - 4, data);
 		if(base == 0) {
-			dma[selch].areg = manipulate_a_byte_from_dword_le(dma[selch].areg, 3, data);
+			dma[selch].areg = manipulate_a_byte_from_dword_le(dma[selch].areg,  (addr & 0x0f) - 4, data);
 		}
 		return;
 		break;
@@ -156,9 +159,9 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-	int32_t incdec = ((dma[c].mode & 0x20) == 0) ? 1 : -1;
-	uint32_t addr = dma[c].areg;
-	uint32_t high_a = addr & 0xff000000;
+	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 1 : UINT32_MAX;
+	uint32_t addr = dma[c].areg &   0x00ffffff;
+	uint32_t high_a = dma[c].areg & 0xff000000;
 	__LIKELY_IF(dma_wrap_reg != 0) {
 		addr = (addr + incdec) & 0x00ffffff;
 		addr = addr | high_a;
@@ -171,9 +174,9 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-	int32_t incdec = ((dma[c].mode & 0x20) == 0) ? 2 : -2;
-	uint32_t addr = dma[c].areg;
-	uint32_t high_a = addr & 0xff000000;
+	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 2 : (UINT32_MAX - 1);
+	uint32_t addr = dma[c].areg &   0x00ffffff;
+	uint32_t high_a = dma[c].areg & 0xff000000;
 	__LIKELY_IF(dma_wrap_reg != 0) {
 		addr = (addr + incdec) & 0x00ffffff;
 		addr = addr | high_a;

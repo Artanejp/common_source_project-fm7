@@ -264,9 +264,9 @@
 #define MAX_MEMCARD		2
 //#define I8259_PC98_HACK
 
-//#define SINGLE_MODE_DMA
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define SCSI_HOST_AUTO_ACK
+
 //#define SCSI_HOST_WIDE
 //#define _SCSI_DEBUG_LOG
 //#define SCSI_DEV_IMMEDIATE_SELECT

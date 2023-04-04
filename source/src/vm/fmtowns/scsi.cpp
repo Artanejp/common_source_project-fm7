@@ -133,7 +133,7 @@ uint32_t SCSI::read_io8w(uint32_t addr, int* wait)
 //	out_debug_log(_T("[SCSI] READ I/O %04X %02X\n"), addr, value);
 	return value;
 }
-#if 0
+#if 1
 void SCSI::write_io16w(uint32_t addr, uint32_t data, int *wait)
 {
 	write_io8w(addr & 0xfffe, data, wait);

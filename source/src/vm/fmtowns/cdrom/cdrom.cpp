@@ -840,9 +840,8 @@ uint8_t TOWNS_CDROM::read_status()
 	return val;
 }
 
-uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
+uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
-	*wait = 0; // Temporally.
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
 		fetch_datareg_8();
@@ -851,16 +850,14 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 	return data_reg.b.l;
 }
 
-void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
+void TOWNS_CDROM::write_dma_io8(uint32_t addr, uint32_t data)
 {
-	*wait = 0; // Temporally.
 	// data_reg = data;
 	return; // OK?
 }
 
-uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
+uint32_t TOWNS_CDROM::read_dma_io16(uint32_t addr)
 {
-	*wait = 0; // Temporally.
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
 		fetch_datareg_16();
@@ -869,9 +866,8 @@ uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 	return data_reg.w;
 }
 
-void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
+void TOWNS_CDROM::write_dma_io16(uint32_t addr, uint32_t data)
 {
-	*wait = 0; // Temporally.
 	// data_reg = data;
 	return; // OK?
 }

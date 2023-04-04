@@ -381,6 +381,8 @@ void UPD71071::do_dma_verify_8bit(int c, bool extended, bool compressed, int& wa
 		__debugging = d_debugger->now_device_debugging;
 	}
 	// verify
+	reset_ube(c);
+
 	uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_1);
 	uint32_t val2;
 	__UNLIKELY_IF(__debugging) {
@@ -388,7 +390,6 @@ void UPD71071::do_dma_verify_8bit(int c, bool extended, bool compressed, int& wa
 	} else {
 		val2 = read_via_debugger_data8w(dma[c].areg,  &wait_2);
 	}
-	reset_ube(c);
 	// ToDo: Compare val1 and val2.
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
@@ -409,11 +410,11 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c, bool extended, bool compressed, int
 		__debugging = d_debugger->now_device_debugging;
 	}
 	uint32_t val;
-	reset_ube(c);
+//	reset_ube(c);
+
 	val = dma[c].dev->read_dma_io8w(0, &wait_r);
 	// update temporary register
 	tmp = (tmp >> 8) | (val << 8);
-
 	__UNLIKELY_IF(__debugging) {
 		d_debugger->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
 	} else {
@@ -472,8 +473,8 @@ void UPD71071::do_dma_verify_16bit(int c, bool extended, bool compressed, int& w
 		__debugging = d_debugger->now_device_debugging;
 	}
 	// verify
-	uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_1);
 	set_ube(c);
+	uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_1);
 	uint32_t val2;
 	__UNLIKELY_IF(__debugging) {
 		val2 = d_debugger->read_via_debugger_data16w(dma[c].areg, &wait_2);
@@ -635,17 +636,11 @@ bool UPD71071::do_dma_epilogue(int c)
 	//       -- 20200316 K.O
 	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
-		req &= ~bit;
-		sreq &= ~bit;
+		//req &= ~bit;
+		//sreq &= ~bit;
 		running = false;
 		return true;
-	} else if((dma[c].mode & 0xc0) == 0x00){
-		// single mode
-		req &= ~bit;
-		sreq &= ~bit;
-		return true;
 	}
-
 #endif
 	return false;
 }
