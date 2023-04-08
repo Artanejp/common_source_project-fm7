@@ -159,6 +159,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
+#if 0
 	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 1 : UINT32_MAX;
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
@@ -169,11 +170,29 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 		addr = (addr + incdec) & 0xffffffff;
 	}
 	dma[c].areg = addr;
+#else
+	__LIKELY_IF(dma_wrap_reg != 0) {
+		uint32_t high_a = dma[c].areg & 0xff000000;
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = dma[c].areg - 1;
+		} else {
+			dma[c].areg = dma[c].areg + 1;
+		}
+		dma[c].areg = ((dma[c].areg & 0x00ffffff) | high_a) & dma_addr_mask;
+ 	} else {
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = (dma[c].areg - 1) & dma_addr_mask;
+		} else {
+			dma[c].areg = (dma[c].areg + 1) & dma_addr_mask;
+		}
+	}
+#endif
 }
 
 void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
+#if 0
 	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 2 : (UINT32_MAX - 1);
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
@@ -184,6 +203,23 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 		addr = (addr + incdec) & 0xffffffff;
 	}
 	dma[c].areg = addr;
+#else
+	__LIKELY_IF(dma_wrap_reg != 0) {
+		uint32_t high_a = dma[c].areg & 0xff000000;
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = dma[c].areg - 2;
+		} else {
+			dma[c].areg = dma[c].areg + 2;
+		}
+		dma[c].areg = ((dma[c].areg & 0x00ffffff) | high_a) & dma_addr_mask;
+ 	} else {
+		if(dma[c].mode & 0x20) {
+			dma[c].areg = (dma[c].areg - 2) & dma_addr_mask;
+		} else {
+			dma[c].areg = (dma[c].areg + 2) & dma_addr_mask;
+		}
+	}
+#endif
 }
 
 #if 0 /* For Debug */
@@ -230,7 +266,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if(id == SIG_TOWNS_DMAC_ADDR_MASK) {
 		// From eFMR50 / memory.cpp / update_dma_addr_mask()
-		//dma_addr_mask = data;
+		dma_addr_mask = data;
 	} else {
 		// Fallthrough.
 //		if(id == SIG_UPD71071_CH1) {

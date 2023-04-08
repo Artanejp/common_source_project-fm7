@@ -334,8 +334,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit1->set_constant_clock(0, 1229900);
 	pit1->set_constant_clock(1, 1229900);
 	pit1->set_constant_clock(2, 1229900);
-	//pic->set_context_cpu(cpu);
-	pic->set_context_cpu(memory);
+	pic->set_context_cpu(cpu);
+	//pic->set_context_cpu(memory);
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
 	rtc->set_context_data(timer, SIG_TIMER_RTC, 0x0f, 0);
 	rtc->set_context_busy(timer, SIG_TIMER_RTC_BUSY, 0x80);
@@ -347,7 +347,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_debugger(new DEBUGGER(this, emu));
 	extra_dma->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	dma->set_context_cpu(cpu);
+	//dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
@@ -660,9 +660,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0xff84, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff86, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff88, memory);	// MMIO
-	io->set_iomap_range_rw (0xff94, 0xff97, fontrom);	// MMIO
-	io->set_iomap_range_rw (0xff98, 0xff99, memory);	// MMIO
-	io->set_iomap_range_rw (0xff9c, 0xff9f, memory);	// MMIO
+	//io->set_iomap_range_rw (0xff94, 0xff97, fontrom);	// MMIO
+	//io->set_iomap_range_rw (0xff98, 0xff99, memory);	// MMIO
+	//io->set_iomap_range_rw (0xff9c, 0xff9f, memory);	// MMIO
+
+	io->set_iomap_range_rw (0xff94, 0xff99, memory);	// MMIO
+	io->set_iomap_range_r  (0xff9c, 0xff9d, memory);	// MMIO
+	io->set_iomap_single_rw(0xff9e, memory);	// MMIO
 	io->set_iomap_single_rw(0xffa0, planevram);	// MMIO
 
 

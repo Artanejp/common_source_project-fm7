@@ -64,10 +64,10 @@ void TOWNS_MEMORY::config_page_d0_e0()
 		set_memory_rw          (0x000d0000, 0x000effff, ram_paged);
 	} else {
 		if(select_d0_dict) {
-			set_memory_mapped_io_r (0x000d0000, 0x000d9fff, d_dictionary);
+			set_memory_mapped_io_r (0x000d0000, 0x000d7fff, d_dictionary);
 
 			unset_memory_w         (0x000d0000, 0x000d7fff);
-			set_memory_mapped_io_rw(0x000d8000, 0x000d9fff, d_dictionary);
+			set_memory_mapped_io_w (0x000d8000, 0x000d9fff, d_dictionary);
 		} else {
 			//set_memory_rw        (0x000d0000, 0x000dffff, ram_paged);
 			unset_memory_rw        (0x000d0000, 0x000d9fff);
@@ -280,8 +280,9 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 {
 	uint8_t val = 0xff;
 	__UNLIKELY_IF((addr & 0xffff) < 0xff80) {
-		return 0xff;
+		return ram_pagec[addr & 0xffff];
 	}
+#if 1
 	__LIKELY_IF((addr & 0xffff) < 0xff88) {
 		__LIKELY_IF(d_planevram != NULL) {
 			val = d_planevram->read_memory_mapped_io8(addr & 0xffff);
@@ -293,6 +294,7 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 		}
 		return val;
 	}
+#endif
 	if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 		switch(addr & 0xffff) {
 		case 0xff88:
@@ -318,9 +320,32 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 		}
 	}
 	switch(addr & 0xffff) {
+	case 0xff88:
+		__LIKELY_IF(d_planevram != NULL) {
+			val = d_planevram->read_io8(addr);
+		}
+		break;
+	case 0xff95:
+		val = 0x80;
+		break;
+	case 0xff96:
+		__LIKELY_IF(d_font != NULL) {
+			return d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_LOW);
+		}
+		break;
+	case 0xff97:
+		__LIKELY_IF(d_font != NULL) {
+			return d_font->read_signal(SIG_TOWNS_FONT_KANJI_DATA_HIGH);
+		}
+		break;
 	case 0xff98:
 		__LIKELY_IF(d_timer != NULL) {
 			d_timer->write_signal(SIG_TIMER_BEEP_ON, 1, 1);
+		}
+		break;
+	case 0xff99:
+		__LIKELY_IF(d_planevram != NULL) {
+			val = d_planevram->read_memory_mapped_io8(addr);
 		}
 		break;
 	default:
@@ -359,7 +384,7 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		val = reg_misc3;
 		break;
 	case 0x0025:
-		val = reg_misc3;
+		val = reg_misc4;
 		break;
 	case 0x0028:
 		// NMI MASK
@@ -514,8 +539,10 @@ uint32_t TOWNS_MEMORY::read_io8w(uint32_t addr, int *wait)
 void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 {
 	__UNLIKELY_IF((addr & 0xffff) < 0xff80) {
+		ram_pagec[addr & 0xffff] = data;
 		return;
 	}
+#if 1
 	__LIKELY_IF((addr & 0xffff) < 0xff88) {
 		__LIKELY_IF(d_planevram != NULL) {
 			d_planevram->write_io8(addr & 0xffff, data);
@@ -527,6 +554,7 @@ void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 		}
 		return;
 	}
+#endif
 	if((machine_id >= 0x0600) && !(is_compatible)) { // After UG
 		switch(addr & 0xffff) {
 		case 0xff9e:
@@ -539,6 +567,19 @@ void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 		}
 	}
 	switch(addr & 0xffff) {
+	case 0xff94:
+		__LIKELY_IF(d_font != NULL) {
+			d_font->write_signal(SIG_TOWNS_FONT_KANJI_HIGH, data, 0xff);
+		}
+		break;
+	case 0xff95:
+		__LIKELY_IF(d_font != NULL) {
+			d_font->write_signal(SIG_TOWNS_FONT_KANJI_LOW, data, 0xff);
+		}
+		break;
+	case 0xff96:
+	case 0xff97:
+		break;
 	case 0xff98:
 		__LIKELY_IF(d_timer != NULL) {
 			d_timer->write_signal(SIG_TIMER_BEEP_ON, 0, 1);
@@ -792,7 +833,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io16w(uint32_t addr, int *wait)
 	}
 	__UNLIKELY_IF(addr >= 0xd0000) {
 		*wait = mem_wait_val;
-		return 0xff;
+		return 0xffff;
 	}
 	// OK? This may be bus width has 8bit ?
 	*wait = 6; // Maybe 6.

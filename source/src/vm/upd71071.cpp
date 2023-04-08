@@ -561,7 +561,7 @@ bool UPD71071::do_dma_epilogue(int c)
 	c = c & 3;
 	uint8_t bit = 1 << c;
 
-#if 0 /* SYNC TO UPSTREAM */
+#if 1 /* SYNC TO UPSTREAM */
 	if(dma[c].creg-- == 0) {
 		//if(dma[c].endreq) dma[c].end = true;
 		if(dma[c].mode & 0x10) {
@@ -598,10 +598,10 @@ bool UPD71071::do_dma_epilogue(int c)
 #else
 //	if(dma[c].end) return true; // OK?
 	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
-		if(dma[c].endreq) dma[c].end = true;
+		//if(dma[c].endreq) dma[c].end = true;
 		bool is_tc = false;
 		dma[c].creg--;
-		if(dma[c].end) is_tc = true;
+		//if(dma[c].end) is_tc = true;
 		// TC
 		if(dma[c].bcreg < dma[c].creg) {
 			is_tc = true;
@@ -651,11 +651,11 @@ bool UPD71071::do_dma_per_channel(int c)
 	if(cmd & 4) {
 		return true;
 	}
-	if(dma[c].end) {
-		if((dma[c].mode & 0xc0) != 0x40) { // Without Single
-			return true;
-		}
-	}
+//	if(dma[c].end) {
+//		if((dma[c].mode & 0xc0) != 0x40) { // Without Single
+//			return true;
+//		}
+//	}
 	uint8_t bit = 1 << c;
 
 	if(((req | sreq) & bit) /*&& !(mask & bit)*/) {
@@ -722,9 +722,9 @@ void UPD71071::do_dma()
 	for(int c = 0; c < 4; c++) {
 		if((mask & (1 << c)) == 0) { // MASK
 			if((dma[c].mode & 0xc0) == 0x00) { // Demand
-				if(!(dma[c].end)) {
+				//if(!(dma[c].end)) {
 					do_dma_per_channel(c);
-				}
+				//}
 			} else if((dma[c].mode & 0xc0) == 0x40) { // Single
 				if(do_dma_per_channel(c)) break;
 			} else if((dma[c].mode & 0xc0) == 0xc0) { // Block (ToDo)

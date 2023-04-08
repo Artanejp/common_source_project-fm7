@@ -194,16 +194,10 @@ void TOWNS_CDROM::set_dma_intr(bool val)
 //				  (val) ? _T("true ") : _T("false"),
 //				  (dma_intr_mask) ? _T("ON ") : _T("OFF"),
 //				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));
-	if(val) {
-		// At least, DMA interrupt mask is needed (by TownsOS v.1.1) 20200511 K.O
-		dma_intr = true;
-		if(!(dma_intr_mask)) {
-//			if(mcu_intr) write_signals(&outputs_mcuint, 0x0);
-				write_mcuint_signals(0xffffffff);
-		}
-	} else {
-		dma_intr = false;
-		write_mcuint_signals(0x0);
+	// At least, DMA interrupt mask is needed (by TownsOS v.1.1) 20200511 K.O
+	dma_intr = val;
+	if(!(dma_intr_mask)) {
+		write_mcuint_signals();
 	}
 }
 
@@ -219,8 +213,8 @@ void TOWNS_CDROM::set_intrs_force(bool mcu, bool dma, bool use_mask)
 		mcu = (mcu) && !(mcu_intr_mask);
 		dma = (dma) && !(dma_intr_mask);
 	}
-	bool val = mcu | dma;
-	write_mcuint_signals((val) ? 0xffffffff : 0);
+	uint32_t val = ((dma) || (mcu)) ? 0xffffffff : 0;
+	write_signals(&outputs_mcuint, val);
 }
 
 void TOWNS_CDROM::set_mcu_intr(bool val)
@@ -229,14 +223,9 @@ void TOWNS_CDROM::set_mcu_intr(bool val)
 //				  (val) ? _T("true ") : _T("false"),
 //				  (mcu_intr_mask) ? _T("ON ") : _T("OFF"),
 //				  (stat_reply_intr) ? _T("ON ") : _T("OFF"));
-	if(stat_reply_intr) {
-		mcu_intr = val;
-		write_mcuint_signals((val) ? 0xffffffff : 0);
-	} else {
-		mcu_intr = val;
-		if(!(val)) {
-			write_mcuint_signals(0);
-		}
+	mcu_intr = val;
+	if((stat_reply_intr) || !(mcu_intr_mask)) {
+		write_mcuint_signals();
 	}
 	// Execute next command if reserved.
 //	if((mcu_ready) && (command_received) && (param_ptr >= 8)) {
@@ -330,7 +319,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		// By DMA/TC, EOT.
 	case SIG_TOWNS_CDROM_DMAINT:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
-			//cdrom_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
+			cdrom_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
 			//clear_event(this, event_drq);
 			do_dma_eot(true);
 		}
@@ -338,8 +327,8 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDROM_DMAACK:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
 			//force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
-			#if 1
-			if(/* (read_length <= 0) && */(databuffer->empty())) {
+			#if 0
+			if((read_length <= 0) && (databuffer->empty())) {
 				clear_event(this, event_drq);
 				if((read_length <= 0)) { // ToDo: With prefetch.
 					cdrom_debug_log(_T("MAYBE COMPLETE TO TRANSFER ALL DATA"));
@@ -998,15 +987,15 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 		);
 	status_queue->clear();
 	extra_status = 0;
-//	if(_req_status) {
+	if(_req_status) {
 		if(extra > 0) extra_status = extra;
 		status_queue->write(s0);
 		status_queue->write(s1);
 		status_queue->write(s2);
 		status_queue->write(s3);
-//	} else {
+	} else {
 //		set_delay_ready_eot();
-//	}
+	}
 	set_delay_ready_eot();
 
 }
@@ -1049,10 +1038,10 @@ void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, 
 	}
 	mcu_ready = true;
 	mcu_intr = true;
-	dma_intr = false;
+	//dma_intr = false;
 
 	if((_req_status) && (stat_reply_intr) && !(mcu_intr_mask)) {
-		write_mcuint_signals(0xffffffff);
+		write_mcuint_signals();
 	}
 //	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
@@ -1415,11 +1404,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 {
 	switch (event_id) {
 	case EVENT_CDROM_DELAY_INTERRUPT_ON: // DELAY INTERRUPT ON
-		write_mcuint_signals(0xffffffff);
+		mcu_intr = true;
+		write_mcuint_signals();
 		event_delay_interrupt = -1;
 		break;
 	case EVENT_CDROM_DELAY_INTERRUPT_OFF: // DELAY INTERRUPT OFF
-		write_mcuint_signals(0x0);
+		mcu_intr = false;
+		write_mcuint_signals();
 		event_delay_interrupt = -1;
 		break;
 	case EVENT_CDROM_DELAY_READY: // CALL READY TO ACCEPT COMMAND WITH STATUS
@@ -1443,15 +1434,14 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //		if(stat_reply_intr) {
 //			set_mcu_intr(true);
 //		}
-		if(req_status) {
+//		if(req_status) {
 			mcu_intr = true;
 			if(!(mcu_intr_mask) && (stat_reply_intr)) {
-				write_mcuint_signals(0xffffffff);
+				write_mcuint_signals();
 			}
-		} else {
-			mcu_intr = false;
-		}
+//		}
 //		set_mcu_intr(true);
+
 		break;
 	case EVENT_CDROM_READY_CDDAREPLY: // READY TO ACCEPT A COMMAND FROM CDC.
 		event_delay_ready = -1;
@@ -1507,7 +1497,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //			mcu_intr = true;
 //			status_queue->clear();
 //			if(!(mcu_intr_mask)) {
-//				write_mcuint_signals(0xffffffff);
+//				write_mcuint_signals();
 //			}
 //		}
 		break;
@@ -1534,7 +1524,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			mcu_intr = true;
 //			status_queue->clear();
 			if(!(mcu_intr_mask)) {
-				write_mcuint_signals(0xffffffff);
+				write_mcuint_signals();
 			}
 		}
 
@@ -1691,7 +1681,7 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	}
 	int seccount = 0;
 	while(sectors > 0) {
-		//cdrom_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
+		cdrom_debug_log(_T("TRY TO READ SECTOR:LBA=%d"), read_sector);
 		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
 		int _trk = check_cdda_track_boundary(read_sector);
 		if(_trk <= 0) { // END
@@ -1934,7 +1924,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		}
 		if(cdda_status != CDDA_PLAYING) {
 			//// Notify to release bus.
-			write_mcuint_signals(0x0);
+			mcu_intr = true;
+			write_mcuint_signals();
 			if((cdda_status == CDDA_OFF) || (cdda_status == CDDA_ENDED)) {
 				//get_track_by_track_num(current_track); // Re-Play
 				cdda_playing_frame = cdda_start_frame;
@@ -1956,7 +1947,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		clear_event(this, event_cdda);
 		if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_ENDED)) {
 			// Notify to release bus.
-			write_mcuint_signals(0x0);
+			mcu_intr = true;
+			write_mcuint_signals();
 			if(status == CDDA_OFF) {
 				databuffer->clear();
 				cdda_buffer_ptr = 0;
@@ -2725,18 +2717,20 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 				clear_event(this, event_time_out);
 				cdrom_debug_log(_T("EOT(PIO)"));
 				status_read_done(false);
+				dma_intr = true;
 				if((stat_reply_intr) || !(dma_intr_mask)) {
 					//if((stat_reply_intr) && !(dma_intr_mask)) {
-					write_mcuint_signals(0xffffffff);
+					write_mcuint_signals();
 				}
 			} else if(databuffer->empty()) {
 				pio_transfer_phase = false;
 				mcu_ready = false;
 				clear_event(this, event_time_out);
 				cdrom_debug_log(_T("NEXT(PIO)"));
+				dma_intr = true;
 				if((stat_reply_intr) || !(dma_intr_mask)) {
 					//if((stat_reply_intr) && !(dma_intr_mask)) {
-					write_mcuint_signals(0xffffffff);
+					write_mcuint_signals();
 				}
 			}
 		}
@@ -2768,32 +2762,30 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 	 * 04C4h : Parameter register
 	 * 04C6h : Transfer control register.
 	 */
-	//cdrom_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
+	cdrom_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
 	*wait = 6; // temporally
 	w_regs[addr & 0x0f] = data;
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
 		// Note: Sync with TSUGARU.
 		// 20220127 K.O
-		//cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
-		if((data & 0x80) != 0) {
-			mcu_intr = false;
-			if(!(dma_intr)) {
-				write_mcuint_signals(0); // Reset interrupt request to PIC.
-			}
-		}
-		if((data & 0x40) != 0) {
-			dma_intr = false;
-			if(!(mcu_intr)) {
-				write_mcuint_signals(0); // Reset interrupt request to PIC.
-			}
-		}
+		cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
 		if((data & 0x04) != 0) {
 			cdrom_debug_log(_T("RESET FROM CMDREG: 04C0h"));
 			reset_device();
+		} else {
+			if((data & 0x80) != 0) {
+				mcu_intr = false;
+			}
+			if((data & 0x40) != 0) {
+				dma_intr = false;
+			}
+			mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
+			dma_intr_mask = ((data & 0x01) == 0) ? true : false;
+			if((data & 0xc0) != 0) {
+				write_mcuint_signals(); // Reset interrupt request to PIC.
+			}
 		}
-		mcu_intr_mask = ((data & 0x02) == 0) ? true : false;
-		dma_intr_mask = ((data & 0x01) == 0) ? true : false;
 		break;
 	case 0x02: // Command
 		//cdrom_debug_log(_T("PORT 04C2h <- %02X"), data);

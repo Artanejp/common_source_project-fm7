@@ -474,9 +474,9 @@ protected:
 	virtual void close_from_cmd();
 	virtual void do_dma_eot(bool by_signal);
 
-	void __FASTCALL write_mcuint_signals(uint32_t val)
+	void __FASTCALL write_mcuint_signals()
 	{
-		mcu_intr = (val == 0) ? false : true;
+		uint32_t val = ((dma_intr) || (mcu_intr)) ? 0xffffffff : 0;
 		write_signals(&outputs_mcuint, val);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
