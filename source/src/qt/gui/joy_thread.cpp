@@ -40,13 +40,13 @@ JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pfl
 	using_flags = pflags;
 	csp_logger.reset();
 	joydb.clear();
-	
+
 	if(p_osd != NULL) {
 		csp_logger = p_osd->get_logger();
 		connect(this, SIGNAL(sig_debug_log(int, int, QString)),
 				csp_logger.get(), SLOT(do_debug_log(int, int, QString)));
 	}
-	
+
 	char tmp_string[2048] = {0};
 	my_tcscat_s(tmp_string, 2047, "a:b0,b:b1,x:b2,y:b3,start:b9,guide:b8,");
 	my_tcscat_s(tmp_string, 2047, "rightshoulder:b7,leftshoulder:b6,leftstick:b5,rightstick:b4,");
@@ -63,7 +63,7 @@ JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pfl
 		for(i = 0; i < 16; i++) {
 			controller_table[i] = NULL;
 		}
-# endif	
+# endif
 		n = SDL_NumJoysticks();
 		for(i = 0; i < 16; i++) {
 			joyhandle[i] = NULL;
@@ -81,7 +81,7 @@ JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pfl
 			for(i = 0; i < n; i++) {
 				joystick_plugged(i);
 			}
-# endif		
+# endif
 			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Start.");
 		} else {
 			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Any joysticks were not connected.");
@@ -97,7 +97,7 @@ JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pfl
 	}
 }
 
-   
+
 JoyThreadClass::~JoyThreadClass()
 {
 	int i;
@@ -115,9 +115,9 @@ JoyThreadClass::~JoyThreadClass()
 			joyhandle[i] = NULL;
 		}
 # endif
-		if(!(joydb.isEmpty())) {
-			write_joydb();
-		}
+		//if(!(joydb.isEmpty())) {
+		//	write_joydb();
+		//}
 		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : EXIT");
 	}
 }
@@ -129,10 +129,15 @@ void JoyThreadClass::debug_log(int level, int domain_num, QString msg)
 
 int JoyThreadClass::read_joydb()
 {
-	FILEIO *fp = new FILEIO();
 	std::string app_path2;
 	app_path2 = cpp_confdir + JOY_DB_NAME;
+
+	if(FILEIO::IsFileExisting((const _TCHAR *)(app_path2.c_str()))) {
+		return 0;
+	}
+	FILEIO *fp = new FILEIO();
 	int count = 0;
+
 	if(fp != NULL) {
 		if(fp->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
 			char tmpline[2048] = {0};
@@ -219,12 +224,12 @@ bool JoyThreadClass::replace_joydb_by_guid(QString guid, QString after)
 void JoyThreadClass::debug_log(int level, int domain_num, const char *fmt, ...)
 {
 	char strbuf[4096] = {0};
-		
+
 	va_list ap;
-	va_start(ap, fmt);	
+	va_start(ap, fmt);
 	vsnprintf(strbuf, 4095, fmt, ap);
 	va_end(ap);
-			
+
 	emit sig_debug_log(level, domain_num, QString::fromUtf8(strbuf));
 }
 
@@ -279,6 +284,7 @@ void JoyThreadClass::joystick_plugged(int num)
 # if defined(USE_SDL2)
 	SDL_JoystickGUID guid;
 	guid = SDL_JoystickGetDeviceGUID(num);
+
 	QString guid_str = make_guid(guid);
 	QString answer;
 	if(!(search_joydb_by_guid(guid_str, answer))) {
@@ -362,7 +368,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 		joy_num[num] = -1;
 		is_controller[num] = false;
 		joyhandle[num] = NULL;
-	} else 
+	} else
 # endif
 	{
 		if(joyhandle[num] != NULL) {
@@ -376,7 +382,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 	}
 	names[num] = QString::fromUtf8("");
 	memset(p_config->assigned_joystick_name[num], 0x00, 255);
-}	
+}
 
 enum {
 	JS_AXIS_TYPE_LEFT,
@@ -396,7 +402,7 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 	if(joy_status != NULL) {
 		switch(type) {
 		case JS_AXIS_TYPE_LEFT:
-			joy_status[(true_index * 2) + 4] = value + 32768; 
+			joy_status[(true_index * 2) + 4] = value + 32768;
 			if((emulate_dpad[true_index]) || !(is_controller[idx])) {
 				if(value < -8192) { // left
 					joy_status[true_index] |= 0x04; joy_status[true_index] &= ~0x08;
@@ -415,13 +421,13 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 	p_osd->release_joy_buffer(joy_status);
 
 }
-	   
+
 void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 {
 	if(p_osd == NULL) return;
 	if((idx < 0) || (idx >= 16)) return;
 	int true_index = get_joy_num(idx);
-	
+
 	if((true_index < 0) || (true_index >= 4)) return;
 
 	uint32_t *joy_status = p_osd->get_joy_buffer();
@@ -433,7 +439,7 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 			if((emulate_dpad[true_index]) || !(is_controller[idx])) {
 				if(value < -8192) {// up
 					joy_status[true_index] |= 0x01; joy_status[true_index] &= ~0x02;
-				} else if(value > 8192)  {// down 
+				} else if(value > 8192)  {// down
 					joy_status[true_index] |= 0x02; joy_status[true_index] &= ~0x01;
 				} else {
 					joy_status[true_index] &= ~0x03;
@@ -453,7 +459,7 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 	if(p_osd == NULL) return;
 	if((idx < 0) || (idx >= 16)) return;
 	int true_index = get_joy_num(idx);
-	
+
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
 
@@ -478,7 +484,7 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 	if(p_osd == NULL) return;
 	if((idx < 0) || (idx >= 16)) return;
 	int true_index = get_joy_num(idx);
-	
+
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
 	uint32_t *joy_status = p_osd->get_joy_buffer();
@@ -552,7 +558,7 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 	if(p_osd == NULL) return;
 	if((idx < 0) || (idx >= 16)) return;
 	int true_index = get_joy_num(idx);
-	
+
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 16) return;
 
@@ -574,9 +580,9 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 {
 	if(p_osd == NULL) return;
 	if((idx < 0) || (idx >= 16)) return;
-	
+
 	int true_index = get_joy_num(idx);
-	
+
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 12) return;
 
@@ -639,7 +645,7 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 	p_osd->release_joy_buffer(joy_status);
 }
 
-#if defined(USE_SDL2)			   
+#if defined(USE_SDL2)
 int JoyThreadClass::get_joyid_from_instanceID(SDL_JoystickID id)
 {
 	int i;
@@ -673,7 +679,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 # if defined(USE_SDL2)
 	SDL_JoystickID id;
 	uint8_t cont_button;
-# endif   
+# endif
 	//int i, j;
 	int i;
 	if(eventQueue == NULL) return false;
@@ -700,7 +706,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 				id = (int)eventQueue->caxis.which;
 				i = get_joyid_from_instanceID(id);
 				y_axis_changed(i, JS_AXIS_TYPE_RIGHT, value);
-			} 
+			}
 			break;
 		case SDL_CONTROLLERBUTTONDOWN:
 			cont_button = eventQueue->cbutton.button;
@@ -747,7 +753,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 //			i = get_joy_num(i);
 			button_down(i, button);
 			break;
-		case SDL_JOYBUTTONUP:	   
+		case SDL_JOYBUTTONUP:
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
 //			i = get_joy_num(i);
@@ -783,7 +789,7 @@ void JoyThreadClass::doWork(const QString &params)
 	}
 	this->quit();
 }
-	   
+
 
 void JoyThreadClass::doExit(void)
 {
@@ -793,7 +799,7 @@ void JoyThreadClass::doExit(void)
 
 void JoyThreadClass::do_map_joy_num(int num, int assign)
 {
-	if((num < 0) || (num >= 16)) return; 
+	if((num < 0) || (num >= 16)) return;
 	if(assign >= 16) return;
 	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "ASSIGN %d to %d", assign - 1, num);
 	joy_assign[num] = assign - 1;
