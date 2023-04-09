@@ -476,7 +476,6 @@ protected:
 
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
-		mcu_intr = (val == 0) ? false : true;
 		write_signals(&outputs_mcuint, val);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
