@@ -474,9 +474,9 @@ protected:
 	virtual void close_from_cmd();
 	virtual void do_dma_eot(bool by_signal);
 
-	void __FASTCALL write_mcuint_signals()
+	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
-		uint32_t val = ((dma_intr) || (mcu_intr)) ? 0xffffffff : 0;
+		mcu_intr = (val == 0) ? false : true;
 		write_signals(&outputs_mcuint, val);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
@@ -529,11 +529,11 @@ public:
 	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
 	*/
-	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait);
 
-	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);
-	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait);
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	virtual uint32_t __FASTCALL read_signal(int id);
