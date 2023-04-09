@@ -1502,6 +1502,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			double usec = get_seek_time(next_seek_lba);
 			if(usec < 10.0) usec = 10.0;
 			usec *= 2.0;
+			cdrom_debug_log(_T("RESTORE to SECTOR 0: NEXT is %d after %f"), next_seek_lba, usec);
 			register_event(this,
 						   EVENT_CDROM_SEEK,
 						   usec, false, &event_seek);
@@ -1522,6 +1523,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //			current_track = get_track(next_seek_lba);
 //		}
 		status_seek = false;
+		cdrom_debug_log(_T("SEEK COMPLETED to SECTOR %d"), next_seek_lba);
 		if(req_status) {
 			status_accept(1, 0x00, 0x00);
 		}
@@ -1996,13 +1998,13 @@ void TOWNS_CDROM::reset_device()
 	command_received = false;
 
 	subq_overrun = false;
-	stat_track = current_track;
 	next_seek_lba = 0;
 
 	extra_status = 0;
 	data_reg.w = 0x0000;
 
 	cdda_repeat_count = -1;
+
 	touch_sound();
 	clear_event(this, event_cdda);
 	clear_event(this, event_cdda_delay_play);
@@ -2017,26 +2019,15 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_eot);
 
 	read_length = 0;
-
 	databuffer->clear();
 	status_queue->clear();
 
-	if(is_cue) {
-		if(fio_img->IsOpened()) {
-			fio_img->Fclose();
-		}
-	} else {
-		if(fio_img->IsOpened()) {
-			fio_img->Fseek(0, FILEIO_SEEK_SET);
-		}
-	}
 	current_track = 0;
-	cdda_start_frame = 0;
-	cdda_end_frame = 150;
-	cdda_playing_frame = 0;
-
 	read_sector = 0;
-
+	if(mounted()) {
+		get_track_by_track_num(0); // HEAD OF track 1
+	}
+	stat_track = current_track;
 	// Note: Reorder sequence.
 	// 20220127 K.O
 	mcu_intr = false;
@@ -2053,7 +2044,12 @@ void TOWNS_CDROM::reset_device()
 	pio_transfer = false;
 
 	stat_reply_intr = false;
-	cdda_stopped = false;
+
+	cdda_stopped = true;
+	cdda_start_frame = 0;
+	cdda_end_frame = 150;
+	cdda_playing_frame = 0;
+
 	write_signals(&outputs_drq, 0);
 	write_signals(&outputs_mcuint, 0x0);
 	// Will Implement
@@ -2806,7 +2802,7 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		//if(mcu_intr) {
 		//	data = data | (latest_command & 0x60); // For FRACTAL ENGINE DEMO (from TSUGARU).
 		//}
-		if(mcu_ready) {
+		if((mcu_ready) /*&& !(status_seek) */) {
 			//dma_transfer_phase = false;
 			//pio_transfer_phase = false;
 			mcu_ready = false;
