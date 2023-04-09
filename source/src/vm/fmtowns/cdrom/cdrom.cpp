@@ -321,7 +321,13 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
 			cdrom_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
 			//clear_event(this, event_drq);
-			do_dma_eot(true);
+			//do_dma_eot(true);
+			dma_transfer_phase = false;
+			//dma_transfer = false;
+			//status_seek = false;
+			clear_event(this, event_drq);
+			write_signals(&outputs_drq, 0x00000000);
+			set_dma_intr(true);
 		}
 		break;
 	case SIG_TOWNS_CDROM_DMAACK:
@@ -832,10 +838,13 @@ uint8_t TOWNS_CDROM::read_status()
 uint32_t TOWNS_CDROM::read_dma_io8(uint32_t addr)
 {
 //	bool is_empty = databuffer->empty();
-	if(dma_transfer_phase) {
+	//if(dma_transfer_phase) {
 		fetch_datareg_8();
 		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
-	}
+		if((read_length <= 0) && (databuffer->empty())) {
+			status_read_done(false);
+		}
+	//}
 	return data_reg.b.l;
 }
 
@@ -848,10 +857,13 @@ void TOWNS_CDROM::write_dma_io8(uint32_t addr, uint32_t data)
 uint32_t TOWNS_CDROM::read_dma_io16(uint32_t addr)
 {
 //	bool is_empty = databuffer->empty();
-	if(dma_transfer_phase) {
+	//if(dma_transfer_phase) {
 		fetch_datareg_16();
 		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
-	}
+		if((read_length <= 0) && (databuffer->empty())) {
+			status_read_done(false);
+		}
+	//}
 	return data_reg.w;
 }
 
@@ -1431,17 +1443,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_READY_EOT:  // CALL END-OF-TRANSFER FROM CDC.
 		event_delay_ready = -1;
 		mcu_ready = true;
-//		if(stat_reply_intr) {
-//			set_mcu_intr(true);
-//		}
-//		if(req_status) {
-			mcu_intr = true;
-			if(!(mcu_intr_mask) && (stat_reply_intr)) {
-				write_mcuint_signals();
-			}
-//		}
-//		set_mcu_intr(true);
-
+		if(stat_reply_intr) {
+			set_mcu_intr(true);
+		}
 		break;
 	case EVENT_CDROM_READY_CDDAREPLY: // READY TO ACCEPT A COMMAND FROM CDC.
 		event_delay_ready = -1;
@@ -1620,7 +1624,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_eot = -1;
 		clear_event(this, event_time_out);
 		if(dma_transfer_phase) {
-			do_dma_eot(false);
+			//dma_transfer_phase = false;
+			//do_dma_eot(false);
 		}
 		break;
 	default:

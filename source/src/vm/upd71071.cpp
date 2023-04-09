@@ -42,8 +42,8 @@ void UPD71071::reset()
 	b16 = selch = base = 0;
 	cmd = tmp = 0;
 	req = sreq = 0;
-	mask = 0x0f;
-//	mask = 0x00;
+//	mask = 0x0f;
+	mask = 0x00;
 	running = false;
 	reset_all_tc();
 }
@@ -160,24 +160,30 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0e:
 		sreq = data;
-		for(int _ch = 0; _ch < 4; _ch++) {
-			if((sreq & (1 << _ch)) != 0) {
-				//if((dma[_ch].mode & 0xc0) == 0x40) { // Single
-				do_dma_per_channel(_ch);
-				//}
-			}
+		if(!(_SINGLE_MODE_DMA)) {
+			do_dma();
 		}
 		break;
 	case 0x0f:
 		mask = data;
+		#if 0
 		for(int _ch = 0; _ch < 4; _ch++) {
-			if(((sreq | req) & (1 << _ch)) != 0) {
-				if((mask & (1 << _ch)) == 0) {
-					do_dma_per_channel(_ch);
+			uint8_t bit = (1 << _ch);
+			if(((req | sreq) & bit) && !(mask & bit)) {
+				do_dma_per_channel(_ch);
+			}
+		}
+		#else
+		{
+			uint8_t bit = 0x0f; // Ch. 0 - 3
+			if((mask & bit) != bit) {
+				if(((req | sreq) & bit) != 0x00) {
+					do_dma();
 				}
 			}
 		}
-		set_ube(selch);
+		#endif
+		//set_ube(selch);
 		break;
 	}
 }
@@ -294,12 +300,7 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 			if(!(req & bit)) {
 				req |= bit;
 				if(!(_SINGLE_MODE_DMA)) {
-					if((mask & (1 << ch)) == 0) { // MASK register MASKS DRQ.20200918 K.O
-						// Without #define SINGLE_MODE_DMA ,
-						// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
-						do_dma_per_channel(ch);
-						req &= ~bit;
-					}
+					do_dma();
 				}
 			}
 		} else {
@@ -561,7 +562,7 @@ bool UPD71071::do_dma_epilogue(int c)
 	c = c & 3;
 	uint8_t bit = 1 << c;
 
-#if 1 /* SYNC TO UPSTREAM */
+#if 0 /* SYNC TO UPSTREAM */
 	if(dma[c].creg-- == 0) {
 		//if(dma[c].endreq) dma[c].end = true;
 		if(dma[c].mode & 0x10) {
@@ -598,10 +599,10 @@ bool UPD71071::do_dma_epilogue(int c)
 #else
 //	if(dma[c].end) return true; // OK?
 	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
-		//if(dma[c].endreq) dma[c].end = true;
+		if(dma[c].endreq) dma[c].end = true;
 		bool is_tc = false;
 		dma[c].creg--;
-		//if(dma[c].end) is_tc = true;
+		if(dma[c].end) is_tc = true;
 		// TC
 		if(dma[c].bcreg < dma[c].creg) {
 			is_tc = true;
@@ -636,10 +637,16 @@ bool UPD71071::do_dma_epilogue(int c)
 	//       -- 20200316 K.O
 	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
-		//req &= ~bit;
-		//sreq &= ~bit;
+		req &= ~bit;
+		sreq &= ~bit;
 		running = false;
 		return true;
+	} else if((dma[c].mode & 0xc0) == 0x00){
+		// demand mode
+		req &= ~bit;
+		sreq &= ~bit;
+		running = false;
+		return false;
 	}
 #endif
 	return false;
@@ -651,11 +658,11 @@ bool UPD71071::do_dma_per_channel(int c)
 	if(cmd & 4) {
 		return true;
 	}
-//	if(dma[c].end) {
-//		if((dma[c].mode & 0xc0) != 0x40) { // Without Single
-//			return true;
-//		}
-//	}
+	if(dma[c].end) {
+		if((dma[c].mode & 0xc0) != 0x40) { // Without Single
+			return true;
+		}
+	}
 	uint8_t bit = 1 << c;
 
 	if(((req | sreq) & bit) /*&& !(mask & bit)*/) {
@@ -696,9 +703,8 @@ bool UPD71071::do_dma_per_channel(int c)
 				}
 				do_dma_inc_dec_ptr_8bit(c);
 			}
-			if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
-
 			set_dma_ack(c);
+			if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
 			if(do_dma_epilogue(c)) {
 //				//break;
 //				if(_SINGLE_MODE_DMA) {
@@ -720,11 +726,13 @@ void UPD71071::do_dma()
 
 	// run dma
 	for(int c = 0; c < 4; c++) {
-		if((mask & (1 << c)) == 0) { // MASK
+		uint8_t bit = 1 << c;
+		if(((req | sreq) & bit) && !(mask & bit)) {
+		//if((mask & (1 << c)) == 0) { // MASK
 			if((dma[c].mode & 0xc0) == 0x00) { // Demand
-				//if(!(dma[c].end)) {
+				if(!(dma[c].end)) {
 					do_dma_per_channel(c);
-				//}
+				}
 			} else if((dma[c].mode & 0xc0) == 0x40) { // Single
 				if(do_dma_per_channel(c)) break;
 			} else if((dma[c].mode & 0xc0) == 0xc0) { // Block (ToDo)
