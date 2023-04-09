@@ -159,7 +159,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-#if 0
+#if 1
 	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 1 : UINT32_MAX;
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
@@ -192,7 +192,7 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
-#if 0
+#if 1
 	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 2 : (UINT32_MAX - 1);
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;

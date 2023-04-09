@@ -46,7 +46,7 @@ public:
 	void reset();
 	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
 	uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
-	#if 1
+	#if 0
 	void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
 	uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 	#endif

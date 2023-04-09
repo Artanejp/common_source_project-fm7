@@ -638,7 +638,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			);
 			double usec = get_seek_time(0); // At first, seek to track 0.
 			if(usec < 10.0) usec = 10.0;
-			usec *= 2.0;
+			//usec *= 2.0;
 			//mcu_ready = true; // From TSUGARU; MCU ready immediately. 20220128 K.O
 			// 20200626 K.O
 			// At first, SEEK to LBA0.
@@ -1501,7 +1501,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //			}
 			double usec = get_seek_time(next_seek_lba);
 			if(usec < 10.0) usec = 10.0;
-			usec *= 2.0;
+			//usec *= 2.0;
 			cdrom_debug_log(_T("RESTORE to SECTOR 0: NEXT is %d after %f"), next_seek_lba, usec);
 			register_event(this,
 						   EVENT_CDROM_SEEK,

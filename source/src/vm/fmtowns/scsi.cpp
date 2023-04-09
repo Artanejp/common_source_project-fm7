@@ -64,18 +64,18 @@ void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] out %04X %02X\n"), addr, data);
 		#endif
-		ctrl_reg = data;
-		if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			ex_int_enable = ((data & 0x20) != 0) ? true : false;
 			// Set host to 16bit bus width. BIT3 ,= '1'.
 		}
 		if(ctrl_reg  & CTRL_WEN) {
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
-			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
 			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
+			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
 			d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
 		}
+		ctrl_reg = data;
+		if((data & CTRL_DMAE) != 0) dma_enabled = true;
 		break;
 	}
 }
@@ -133,7 +133,7 @@ uint32_t SCSI::read_io8w(uint32_t addr, int* wait)
 //	out_debug_log(_T("[SCSI] READ I/O %04X %02X\n"), addr, value);
 	return value;
 }
-#if 1
+#if 0
 void SCSI::write_io16w(uint32_t addr, uint32_t data, int *wait)
 {
 	write_io8w(addr & 0xfffe, data, wait);

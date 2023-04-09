@@ -599,10 +599,12 @@ bool UPD71071::do_dma_epilogue(int c)
 #else
 //	if(dma[c].end) return true; // OK?
 	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
-		if(dma[c].endreq) dma[c].end = true;
 		bool is_tc = false;
 		dma[c].creg--;
-		if(dma[c].end) is_tc = true;
+		if((dma[c].endreq) || (dma[c].end)) {
+			dma[c].end = true;
+			is_tc = true;
+		}
 		// TC
 		if(dma[c].bcreg < dma[c].creg) {
 			is_tc = true;
@@ -637,10 +639,16 @@ bool UPD71071::do_dma_epilogue(int c)
 	//       -- 20200316 K.O
 	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
-//		req &= ~bit;
-//		sreq &= ~bit;
+		//req &= ~bit;
+		//sreq &= ~bit;
 		running = false;
 		return true;
+	} else if((dma[c].mode & 0xc0) == 0x00){
+		// single mode
+//		req &= ~bit;
+//		sreq &= ~bit;
+//		running = false;
+		return false;
 	}
 #endif
 	return false;
