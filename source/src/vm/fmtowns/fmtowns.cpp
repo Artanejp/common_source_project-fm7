@@ -349,17 +349,19 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	// Note: DMAC may set wait value to CPU. 20230409 K.O
 	dma->set_context_cpu(NULL);
+	//dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(scsi_host);
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdrom);
+
 	dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 
-	dma->set_context_ack1(scsi_host, SIG_SCSI_ACK, 0xffffffff);
+	//dma->set_context_ack1(scsi_host, SIG_SCSI_ACK, 0xffffffff);
 	dma->set_context_ack3(cdrom, SIG_TOWNS_CDROM_DMAACK, 0xffffffff);
-	dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
+	//dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 	dma->set_context_child_dma(extra_dma);
 
 	floppy->set_context_fdc(fdc);
