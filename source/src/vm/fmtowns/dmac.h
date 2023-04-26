@@ -12,8 +12,6 @@ class TOWNS_DMAC : public UPD71071
 {
 protected:
 	uint8_t dma_wrap_reg;
-	uint32_t dma_addr_mask;
-
 	// Temporally workaround for SCSI.20200318 K.O
 //	bool creg_set[4];
 //	bool bcreg_set[4];
