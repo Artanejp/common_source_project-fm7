@@ -142,6 +142,8 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		if(base == 0) {
 			dma[selch].areg = manipulate_a_byte_from_dword_le(dma[selch].areg, (addr & 0x0f) - 4, data);
 		}
+		dma[selch].end = false; // OK?
+		dma[selch].endreq = false; // OK?
 		break;
 	case 0x08:
 		cmd = (cmd & 0xff00) | (data & 0x00ff);
@@ -156,28 +158,23 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].end = false;
 			dma[selch].endreq = false;
 		}
-		set_ube(selch);
+//		set_ube(selch);
 		break;
 	case 0x0e:
 		sreq = data;
-		for(int _ch = 0; _ch < 4; _ch++) {
-			if((sreq & (1 << _ch)) != 0) {
-				//if((dma[_ch].mode & 0xc0) == 0x40) { // Single
-				do_dma_per_channel(_ch);
-				//}
-			}
+		if((sreq != 0) && !(_SINGLE_MODE_DMA)) {
+			do_dma();
 		}
 		break;
 	case 0x0f:
 		mask = data;
-		for(int _ch = 0; _ch < 4; _ch++) {
-			if(((sreq | req) & (1 << _ch)) != 0) {
-				if((mask & (1 << _ch)) == 0) {
-					do_dma_per_channel(_ch);
-				}
-			}
-		}
-		set_ube(selch);
+//		for(int c = 0; c < 4; c++) {
+//			if((mask & (1 << c)) == 0) {
+//				reset_dma_ack(c);
+//				do_dma_core(c);
+//			}
+//		}
+//		set_ube(selch);
 		break;
 	}
 }
@@ -290,16 +287,16 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 	uint8_t bit = 1 << ch;
 	if((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
 //		out_debug_log(_T("DRQ#%d %s"), ch, ((data & _mask) != 0) ? _T("ON ") : _T("OFF"));
-		if(data & _mask) {
+		if((data & _mask) != 0) {
 			if(!(req & bit)) {
 				req |= bit;
 				if(!(_SINGLE_MODE_DMA)) {
-					if((mask & (1 << ch)) == 0) { // MASK register MASKS DRQ.20200918 K.O
-						// Without #define SINGLE_MODE_DMA ,
-						// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
-						do_dma_per_channel(ch);
-						req &= ~bit;
-					}
+					// MASK register MASKS DRQ.20200918 K.O
+					// Without #define SINGLE_MODE_DMA ,
+					// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
+					//do_dma();
+					do_dma_core(ch);
+					//req &= ~bit;
 				}
 			}
 		} else {
@@ -564,7 +561,7 @@ bool UPD71071::do_dma_epilogue(int c)
 
 #if 0 /* SYNC TO UPSTREAM */
 	if(dma[c].creg-- == 0) {
-		//if(dma[c].endreq) dma[c].end = true;
+//		if(dma[c].endreq) dma[c].end = true;
 		if(dma[c].mode & 0x10) {
 			// auto initialize
 			dma[c].areg = dma[c].bareg;
@@ -577,18 +574,14 @@ bool UPD71071::do_dma_epilogue(int c)
 		running = false;
 		set_tc(c);
 		//write_signals(&outputs_tc, 0xffffffff);
-		if((dma[c].mode & 0xc0) == 0x40) {
-			// Single mode
-			return true;
-		} else {
-			return false;
-		}
+		return false;
 	} else if((dma[c].mode & 0xc0) == 0x40) {
 		// Single mode
-		return true;
+		running = false;
+		if(_SINGLE_MODE_DMA) {
+			return true;
+		}
 	}
-	return false;
-
 	// Note: At FM-Towns, SCSI's DMAC will be set after
 	//       SCSI bus phase become DATA IN/DATA OUT.
 	//       Before bus phase became DATA IN/DATA OUT,
@@ -600,14 +593,15 @@ bool UPD71071::do_dma_epilogue(int c)
 //	if(dma[c].end) return true; // OK?
 	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
 		bool is_tc = false;
-		dma[c].creg--;
 		if((dma[c].endreq) || (dma[c].end)) {
 			dma[c].end = true;
 			is_tc = true;
 		}
 		// TC
-		if(dma[c].bcreg < dma[c].creg) {
+		dma[c].creg--;
+		if(dma[c].creg > dma[c].bcreg) {
 			is_tc = true;
+			dma[c].end = true;
 		}
 		if(dma[c].mode & 0x10) {
 			// auto initialize
@@ -622,12 +616,10 @@ bool UPD71071::do_dma_epilogue(int c)
 		if(is_tc) {
 			set_tc(c);
 		}
-		if((dma[c].mode & 0xc0) == 0x40) {
-			// Single mode
+		if((dma[c].mode & 0xc0) == 0x40){
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 	dma[c].creg--;
 	// Note: At FM-Towns, SCSI's DMAC will be set after
@@ -639,16 +631,10 @@ bool UPD71071::do_dma_epilogue(int c)
 	//       -- 20200316 K.O
 	if((dma[c].mode & 0xc0) == 0x40){
 		// single mode
-		//req &= ~bit;
-		//sreq &= ~bit;
-		running = false;
-		return true;
-	} else if((dma[c].mode & 0xc0) == 0x00){
-		// single mode
 //		req &= ~bit;
 //		sreq &= ~bit;
-//		running = false;
-		return false;
+		running = false;
+		return true;
 	}
 #endif
 	return false;
@@ -657,19 +643,11 @@ bool UPD71071::do_dma_epilogue(int c)
 bool UPD71071::do_dma_per_channel(int c)
 {
 	reset_dma_ack(c);
-	if(cmd & 4) {
-		return true;
-	}
-	if(dma[c].end) {
-		if((dma[c].mode & 0xc0) != 0x40) { // Without Single
-			return true;
-		}
-	}
 	uint8_t bit = 1 << c;
 	bool dmastat = false;
-	if(((req | sreq) & bit) /*&& !(mask & bit)*/) {
+	if(((req | sreq) & bit) /*&& ((mask & bit) == 0)*/) {
 		// execute dma
-		//while((req | sreq) & bit) { // Q: Will use burst transfer? 20230319 K.O
+		while((req | sreq) & bit) { // Q: Will use burst transfer? 20230319 K.O
 			int wait = 0;
 			bool compressed = ((cmd & 0x08) != 0);
 			bool extended = ((cmd & 0x20) != 0);
@@ -707,15 +685,41 @@ bool UPD71071::do_dma_per_channel(int c)
 			}
 			if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
 
-			set_dma_ack(c);
+			//set_dma_ack(c);
 			if(do_dma_epilogue(c)) {
-//				//break;
-//				if(_SINGLE_MODE_DMA) {
-					return true;
-//				}
-//			set_dma_ack(c);
+				set_dma_ack(c);
+				return true;
 			}
-		//}
+		}
+		set_dma_ack(c);
+	}
+	return false;
+}
+
+bool UPD71071::do_dma_core(int c)
+{
+	if((cmd & 4) != 0) {
+		return true;
+	}
+	if((mask & (1 << c)) == 0) { // MASK
+		switch(dma[c].mode & 0xc0) {
+		case 0x00: // Burst?
+		case 0x80: // ??
+			if(dma[c].end) {
+				return true;
+			}
+			do_dma_per_channel(c);
+			break;
+		case 0x40: // Demand
+			return do_dma_per_channel(c);
+			break;
+		case 0xc0: // MEM <-> MEM (ToDo)
+			if(dma[c].end) {
+				return true;
+			}
+			return do_dma_per_channel(c);
+			break;
+		}
 	}
 	return false;
 }
@@ -727,20 +731,10 @@ void UPD71071::do_dma()
 		return;
 	}
 
-	// run dma
 	for(int c = 0; c < 4; c++) {
-		if((mask & (1 << c)) == 0) { // MASK
-			if((dma[c].mode & 0xc0) == 0x00) { // Demand
-				if(!(dma[c].end)) {
-					do_dma_per_channel(c);
-				}
-			} else if((dma[c].mode & 0xc0) == 0x40) { // Single
-				if(do_dma_per_channel(c)) break;
-			} else if((dma[c].mode & 0xc0) == 0xc0) { // Block (ToDo)
-				if(do_dma_per_channel(c)) break;
-			}
-		}
+		do_dma_core(c);
 	}
+	// run dma
 //#ifdef SINGLE_MODE_DMA
 	if(_SINGLE_MODE_DMA) {
 		if(d_dma) {

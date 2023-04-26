@@ -80,6 +80,7 @@ protected:
 	// For DMA sequence.
 	virtual bool __FASTCALL do_dma_epilogue(int c);
 	virtual bool __FASTCALL do_dma_per_channel(int c);
+	virtual bool __FASTCALL do_dma_core(int c);
 
 	virtual void __FASTCALL do_dma_inc_dec_ptr_8bit(int c);
 	virtual void __FASTCALL do_dma_inc_dec_ptr_16bit(int c);
@@ -288,8 +289,8 @@ inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t 
 
 inline void UPD71071::reset_all_tc()
 {
+	tc = 0;
 	for(int i = 0; i < 4; i++) {
-		tc = 0;
 		write_signals(&(outputs_tc[i]), 0);
 	}
 }
