@@ -67,6 +67,9 @@ void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			ex_int_enable = ((data & 0x20) != 0) ? true : false;
 			// Set host to 16bit bus width. BIT3 ,= '1'.
+			if(d_dma != NULL) {
+				d_dma->write_signal(SIG_UPD71071_UBE_CH0, 0xffffffff, 0xffffffff);
+			}
 		}
 		if(ctrl_reg  & CTRL_WEN) {
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
@@ -121,7 +124,7 @@ uint32_t SCSI::read_io8w(uint32_t addr, int* wait)
 		#ifdef _SCSI_DEBUG_LOG
 			this->out_debug_log(_T("[SCSI] in  %04X %02X\n"), addr, value);
 		#endif
-//			irq_status = false;
+//		irq_status = false;
 //		return value;
 			break;
 	case 0xc34:
@@ -147,7 +150,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_SCSI_16BIT_BUS:
-		//transfer_16bit = ((data & mask) != 0) ? true : false;
+		transfer_16bit = ((data & mask) != 0) ? true : false;
 		break;
 	case SIG_SCSI_IRQ:
 		if((ctrl_reg & CTRL_IMSK)) {
@@ -170,7 +173,9 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 
 	case SIG_SCSI_DRQ:
 		if(((ctrl_reg & CTRL_DMAE) != 0) /*&& (dma_enabled)*/) {
-			d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
+			if(d_dma != NULL) {
+				d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
+			}
 		}
 /*		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			if(ex_int_enable) {
