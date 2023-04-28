@@ -1,16 +1,16 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Takeda.Toshiya
-	Date   : 2007.08.14 -
-
-	[ uPD71071 ]
+	Author : Kyuma.Ohta <whatisthis.sowhat@gmail.com>
+	Date   : 2023.04.29 -
+	History: 2023.04.29 Move from Takeda-San's UPD71071:: .
+	[ uPD71071 Artane. Variant]
 */
 
-#include "upd71071.h"
+#include "upd71071_art.h"
 #include "debugger.h"
 
-void UPD71071::initialize()
+void UPD71071_ART::initialize()
 {
 	DEVICE::initialize();
 	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
@@ -30,7 +30,7 @@ void UPD71071::initialize()
 	}
 }
 
-void UPD71071::reset()
+void UPD71071_ART::reset()
 {
 	for(int i = 0; i < 4; i++) {
 		dma[i].mode = 0x04;
@@ -48,7 +48,7 @@ void UPD71071::reset()
 	reset_all_tc();
 }
 #if 0
-void UPD71071::write_io16(uint32_t addr, uint32_t data)
+void UPD71071_ART::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t _d, _bd;
 //	if(b16 != 0) {
@@ -96,7 +96,7 @@ void UPD71071::write_io16(uint32_t addr, uint32_t data)
 }
 #endif
 
-void UPD71071::write_io8(uint32_t addr, uint32_t data)
+void UPD71071_ART::write_io8(uint32_t addr, uint32_t data)
 {
 	pair32_t _d;
 	uint8_t ad[4];
@@ -179,7 +179,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 #if 0
-uint32_t UPD71071::read_io16(uint32_t addr)
+uint32_t UPD71071_ART::read_io16(uint32_t addr)
 {
 //	if(b16 != 0) {
 	switch(addr & 0x0e) {
@@ -214,7 +214,7 @@ uint32_t UPD71071::read_io16(uint32_t addr)
 	return read_io8(addr);
 }
 #endif
-uint32_t UPD71071::read_io8(uint32_t addr)
+uint32_t UPD71071_ART::read_io8(uint32_t addr)
 {
 	uint32_t val;
 	pair32_t _d;
@@ -281,7 +281,7 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
+void UPD71071_ART::write_signal(int id, uint32_t data, uint32_t _mask)
 {
 	int ch = id & 3;
 	uint8_t bit = 1 << ch;
@@ -322,7 +322,7 @@ void UPD71071::write_signal(int id, uint32_t data, uint32_t _mask)
 	}
 }
 
-uint32_t UPD71071::read_signal(int ch)
+uint32_t UPD71071_ART::read_signal(int ch)
 {
 	if((ch >= (SIG_UPD71071_IS_TRANSFERING + 0)) && (ch < (SIG_UPD71071_IS_TRANSFERING + 4))) {
 		int _nch = ch - SIG_UPD71071_IS_TRANSFERING;
@@ -347,22 +347,22 @@ uint32_t UPD71071::read_signal(int ch)
 	return 0;
 }
 
-void UPD71071::write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait)
+void UPD71071_ART::write_via_debugger_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	d_mem->write_dma_data8w(addr, data, wait);
 }
 
-uint32_t UPD71071::read_via_debugger_data8w(uint32_t addr, int *wait)
+uint32_t UPD71071_ART::read_via_debugger_data8w(uint32_t addr, int *wait)
 {
 	return d_mem->read_dma_data8w(addr, wait);
 }
 
-void UPD71071::write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait)
+void UPD71071_ART::write_via_debugger_data16w(uint32_t addr, uint32_t data, int *wait)
 {
 	d_mem->write_dma_data16w(addr, data, wait);
 }
 
-uint32_t UPD71071::read_via_debugger_data16w(uint32_t addr, int *wait)
+uint32_t UPD71071_ART::read_via_debugger_data16w(uint32_t addr, int *wait)
 {
 	return d_mem->read_dma_data16w(addr, wait);
 }
@@ -370,7 +370,7 @@ uint32_t UPD71071::read_via_debugger_data16w(uint32_t addr, int *wait)
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
 
 
-void UPD71071::do_dma_verify_8bit(int c, bool extended, bool compressed, int& wait)
+void UPD71071_ART::do_dma_verify_8bit(int c, bool extended, bool compressed, int& wait)
 {
 	bool __debugging = false;
 	int wait_1 = 0, wait_2 = 0;
@@ -398,7 +398,7 @@ void UPD71071::do_dma_verify_8bit(int c, bool extended, bool compressed, int& wa
 	}
 }
 
-void UPD71071::do_dma_dev_to_mem_8bit(int c, bool extended, bool compressed, int& wait)
+void UPD71071_ART::do_dma_dev_to_mem_8bit(int c, bool extended, bool compressed, int& wait)
 {
 	reset_ube(c);
 	// io -> memory
@@ -425,7 +425,7 @@ void UPD71071::do_dma_dev_to_mem_8bit(int c, bool extended, bool compressed, int
 	}
 }
 
-void UPD71071::do_dma_mem_to_dev_8bit(int c, bool extended, bool compressed, int& wait)
+void UPD71071_ART::do_dma_mem_to_dev_8bit(int c, bool extended, bool compressed, int& wait)
 {
 	// memory -> io
 	bool __debugging = false;
@@ -451,7 +451,7 @@ void UPD71071::do_dma_mem_to_dev_8bit(int c, bool extended, bool compressed, int
 	}
 }
 
-void UPD71071::do_dma_inc_dec_ptr_8bit(int c)
+void UPD71071_ART::do_dma_inc_dec_ptr_8bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
 	if(dma[c].mode & 0x20) {
@@ -461,7 +461,7 @@ void UPD71071::do_dma_inc_dec_ptr_8bit(int c)
 	}
 }
 
-void UPD71071::do_dma_verify_16bit(int c, bool extended, bool compressed, int& wait)
+void UPD71071_ART::do_dma_verify_16bit(int c, bool extended, bool compressed, int& wait)
 {
 	// verify
 	bool __debugging = false;
@@ -490,7 +490,7 @@ void UPD71071::do_dma_verify_16bit(int c, bool extended, bool compressed, int& w
 	}
 }
 
-void UPD71071::do_dma_dev_to_mem_16bit(int c, bool extended, bool compressed, int& wait)
+void UPD71071_ART::do_dma_dev_to_mem_16bit(int c, bool extended, bool compressed, int& wait)
 {
 	// io -> memory
 	bool __debugging = false;
@@ -517,7 +517,7 @@ void UPD71071::do_dma_dev_to_mem_16bit(int c, bool extended, bool compressed, in
 	}
 }
 
-void UPD71071::do_dma_mem_to_dev_16bit(int c, bool extended, bool compressed, int& wait)
+void UPD71071_ART::do_dma_mem_to_dev_16bit(int c, bool extended, bool compressed, int& wait)
 {
 	// memory -> io
 	bool __debugging = false;
@@ -544,7 +544,7 @@ void UPD71071::do_dma_mem_to_dev_16bit(int c, bool extended, bool compressed, in
 	}
 }
 
-void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
+void UPD71071_ART::do_dma_inc_dec_ptr_16bit(int c)
 {
 	// Note: FM-Towns may extend to 32bit.
 	if(dma[c].mode & 0x20) {
@@ -554,7 +554,7 @@ void UPD71071::do_dma_inc_dec_ptr_16bit(int c)
 	}
 }
 
-bool UPD71071::do_dma_epilogue(int c)
+bool UPD71071_ART::do_dma_epilogue(int c)
 {
 	c = c & 3;
 	uint8_t bit = 1 << c;
@@ -640,7 +640,7 @@ bool UPD71071::do_dma_epilogue(int c)
 	return false;
 }
 
-bool UPD71071::do_dma_per_channel(int c)
+bool UPD71071_ART::do_dma_per_channel(int c)
 {
 	reset_dma_ack(c);
 	uint8_t bit = 1 << c;
@@ -696,7 +696,7 @@ bool UPD71071::do_dma_per_channel(int c)
 	return false;
 }
 
-bool UPD71071::do_dma_core(int c)
+bool UPD71071_ART::do_dma_core(int c)
 {
 	if((cmd & 4) != 0) {
 		return true;
@@ -724,7 +724,7 @@ bool UPD71071::do_dma_core(int c)
 	return false;
 }
 
-void UPD71071::do_dma()
+void UPD71071_ART::do_dma()
 {
 	// check DDMA
 	if(cmd & 4) {
@@ -744,7 +744,7 @@ void UPD71071::do_dma()
 //#endif
 }
 
-bool UPD71071::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool UPD71071_ART::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 CH0 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF MEM->I/O
@@ -773,9 +773,9 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 	return true;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
-bool UPD71071::process_state(FILEIO* state_fio, bool loading)
+bool UPD71071_ART::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;

@@ -1,23 +1,26 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Takeda.Toshiya
-	Date   : 2007.08.14 -
-
-	[ uPD71071 ]
+	Author : Kyuma.Ohta <whatisthis.sowhat@gmail.com>
+	Date   : 2023.04.29 -
+	History: 2023.04.29 Move from Takeda-San's UPD71071:: .
+	[ uPD71071 Artane. Variant]
 */
 
-#ifndef _UPD71071_H_
-#define _UPD71071_H_
+#ifndef _UPD71071_ART_H_
+#define _UPD71071_ART_H_
 
 //#include "vm.h"
 //#include "../emu.h"
 #include "device.h"
 
+#ifndef SIG_UPD71071_CH0
 #define SIG_UPD71071_CH0				0
 #define SIG_UPD71071_CH1				1
 #define SIG_UPD71071_CH2				2
 #define SIG_UPD71071_CH3				3
+#endif
+
  /* UBE: INDICATE TARGET DEVICE HAS 16bit capability YES=1 NO=0*/
 #define SIG_UPD71071_UBE_CH0			4
 #define SIG_UPD71071_UBE_CH1			5
@@ -35,7 +38,7 @@
 #define SIG_UPD71071_BAREG				36 /* 36 - 39 */
 
 class DEBUGGER;
-class  DLL_PREFIX UPD71071 : public DEVICE
+class  DLL_PREFIX UPD71071_ART : public DEVICE
 {
 protected:
 	DEVICE* d_cpu;
@@ -100,7 +103,7 @@ protected:
 	inline uint32_t __FASTCALL manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data);
 
 public:
-	UPD71071(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
+	UPD71071_ART(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		// TIP: if((DEVICE::prev_device == NULL) || (DEVICE::this_device_id == 0)) DEVICE must be DUMMY.
 		// And, at this device, should not be FIRST DEVICE. 20170613 Ohta.
@@ -126,9 +129,9 @@ public:
 			initialize_output_signals(&outputs_ube[i]);
 			initialize_output_signals(&outputs_ack[i]);
 		}
-		set_device_name(_T("uPD71071 DMAC"));
+		set_device_name(_T("uPD71071 DMAC (Artane's variant)"));
 	}
-	~UPD71071() {}
+	~UPD71071_ART() {}
 
 	// common functions
 	virtual void initialize() override;
@@ -251,7 +254,7 @@ public:
 	}
 };
 
-inline uint16_t UPD71071::manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data)
+inline uint16_t UPD71071_ART::manipulate_a_byte_from_word_le(uint16_t src, uint8_t pos, uint8_t data)
 {
 	pair16_t n;
 	n.w = src;
@@ -266,7 +269,7 @@ inline uint16_t UPD71071::manipulate_a_byte_from_word_le(uint16_t src, uint8_t p
 	return n.w;
 }
 
-inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data)
+inline uint32_t UPD71071_ART::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t pos, uint8_t data)
 {
 	pair32_t n;
 	n.d = src;
@@ -287,7 +290,7 @@ inline uint32_t UPD71071::manipulate_a_byte_from_dword_le(uint32_t src, uint8_t 
 	return n.d;
 }
 
-inline void UPD71071::reset_all_tc()
+inline void UPD71071_ART::reset_all_tc()
 {
 	tc = 0;
 	for(int i = 0; i < 4; i++) {
@@ -295,7 +298,7 @@ inline void UPD71071::reset_all_tc()
 	}
 }
 
-inline void UPD71071::reset_tc(int ch)
+inline void UPD71071_ART::reset_tc(int ch)
 {
 	if((ch < 0) || (ch > 3)) return;
 	uint8_t bit = (1 << ch);
@@ -304,7 +307,7 @@ inline void UPD71071::reset_tc(int ch)
 	/*if(tc != tc_bak) */ write_signals(&(outputs_tc[ch]), 0);
 }
 
-inline void UPD71071::set_tc(int ch)
+inline void UPD71071_ART::set_tc(int ch)
 {
 	if((ch < 0) || (ch > 3)) return;
 	uint8_t bit = (1 << ch);
@@ -313,7 +316,7 @@ inline void UPD71071::set_tc(int ch)
 	/*if(tc != tc_bak) */write_signals(&(outputs_tc[ch]), 0xffffffff);
 }
 
-inline void UPD71071::set_ube(int ch)
+inline void UPD71071_ART::set_ube(int ch)
 {
 	bool stat = inputs_ube[ch & 3];
 	stat &= dma[ch & 3].is_16bit;
@@ -323,7 +326,7 @@ inline void UPD71071::set_ube(int ch)
 	}
 }
 
-inline void UPD71071::reset_ube(int ch)
+inline void UPD71071_ART::reset_ube(int ch)
 {
 	if(stats_ube[ch &3]) {
 		write_signals(&outputs_ube[ch & 3], 0x00000000);
@@ -331,12 +334,12 @@ inline void UPD71071::reset_ube(int ch)
 	}
 }
 
-inline void UPD71071::set_dma_ack(int ch)
+inline void UPD71071_ART::set_dma_ack(int ch)
 {
 	write_signals(&outputs_ack[ch & 3], 0xffffffff);
 }
 
-inline void UPD71071::reset_dma_ack(int ch)
+inline void UPD71071_ART::reset_dma_ack(int ch)
 {
 	write_signals(&outputs_ack[ch & 3], 0x00000000);
 }
