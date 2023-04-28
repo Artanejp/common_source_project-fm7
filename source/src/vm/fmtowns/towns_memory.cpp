@@ -236,8 +236,8 @@ void TOWNS_MEMORY::reset()
 		d_cpu->set_address_mask(0xffffffff);
 	}
 	if(d_dmac != NULL) {
-		uint8_t wrap_val = 0xff; // WRAP OFF
-		d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
+		uint8_t wrap_val = 0xff; // WRAP ON
+		d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, wrap_val, 0xff);
 	}
 #endif
 }
@@ -637,9 +637,9 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 //			__LIKELY_IF(d_cpu != NULL) {
 //				d_cpu->reset();
 //			}
-			uint8_t wrap_val = 0xff; // WRAP OFF
+			uint8_t wrap_val = 0xff; // WRAP ON
 			__LIKELY_IF(d_dmac != NULL) {
-				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
+				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, wrap_val, 0xff);
 			}
 			if(poff_status) {
 				__LIKELY_IF(d_cpu != NULL) {
@@ -667,9 +667,9 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 		// Power register
 		break;
 	case 0x0024:
-		if((d_dmac != NULL) && (machine_id >= 0x0b00)) { // After MA/MX/ME
-			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, data, 0xff);
-		}
+		//if((d_dmac != NULL) && (machine_id >= 0x0b00)) { // After MA/MX/ME
+		//	d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, data, 0xff);
+		//}
 		break;
 	case 0x0032:
 		d_serialrom->write_signal(SIG_SERIALROM_CS, ~data, 0x20);
@@ -937,8 +937,8 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 			d_cpu->set_address_mask(0xffffffff);
 		}
 		__LIKELY_IF(d_dmac != NULL) {
-			uint8_t wrap_val = 0xff; // WRAP OFF
-			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP_REG, wrap_val, 0xff);
+			uint8_t wrap_val = 0xff; // WRAP ON
+			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, wrap_val, 0xff);
 		}
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
 		uint8_t _bak = mem_wait_val;

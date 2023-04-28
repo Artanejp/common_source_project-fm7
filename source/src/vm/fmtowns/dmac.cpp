@@ -11,7 +11,7 @@ void TOWNS_DMAC::initialize()
 void TOWNS_DMAC::reset()
 {
 	UPD71071::reset();
-  	dma_wrap_reg = 0xff;
+  	dma_wrap = true;
 //	dma_wrap_reg = 0x00;
 //	b16 = 2; // Fixed 16bit.
 }
@@ -20,20 +20,34 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
 //	out_debug_log("WRITE REG: %04X %02X", addr, data);
-	uint naddr;
-	pair32_t _d;
-	pair32_t _bd;
+	data &= 0xff;
 	switch(addr & 0x0f) {
 	case 0x04:
+		dma[selch].bareg = (dma[selch].bareg & 0xffffff00) | data;
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xffffff00) | data;
+//		}
+		return;
+		break;
 	case 0x05:
+		dma[selch].bareg = (dma[selch].bareg & 0xffff00ff) | (data << 8);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xffff00ff) | (data << 8);
+//		}
+		return;
+		break;
 	case 0x06:
+		dma[selch].bareg = (dma[selch].bareg & 0xff00ffff) | (data << 16);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0xff00ffff) | (data << 16);
+//		}
+		return;
+		break;
 	case 0x07:
-		dma[selch].bareg = manipulate_a_byte_from_dword_le(dma[selch].bareg, (addr & 0x0f) - 4, data);
-		if(base == 0) {
-			dma[selch].areg = manipulate_a_byte_from_dword_le(dma[selch].areg,  (addr & 0x0f) - 4, data);
-		}
-		dma[selch].end = false; // OK?
-		dma[selch].endreq = false; // OK?
+		dma[selch].bareg = (dma[selch].bareg & 0x00ffffff) | (data << 24);
+//		if(!base) {
+			dma[selch].areg = (dma[selch].areg & 0x00ffffff) | (data << 24);
+//		}
 		return;
 		break;
 	default:
@@ -44,29 +58,26 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 {
-	uint32_t val;
-	pair32_t _d;
 	switch(addr & 0x0f) {
 	case 0x07:
-		if(base == 0) {
-			_d.d = dma[selch].areg;
+		if(base) {
+			return (dma[selch].bareg >> 24) & 0xff;
 		} else {
-			_d.d = dma[selch].bareg;
+			return (dma[selch].areg >> 24) & 0xff;
 		}
-		return (uint32_t)(_d.b.h3);
 		break;
 	}
 	return UPD71071::read_io8(addr);
 }
 
-void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
+void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
 #if 0
-	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 1 : UINT32_MAX;
+	uint32_t incdec = (inc) ? 1 : UINT32_MAX;
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
-	__LIKELY_IF(dma_wrap_reg != 0) {
+	__LIKELY_IF(dma_wrap) {
 		addr = (addr + incdec) & 0x00ffffff;
 		addr = addr | high_a;
 	} else {
@@ -75,28 +86,29 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_8bit(int c)
 	dma[c].areg = addr;
 #else
 	uint32_t addr = dma[c].areg;
-	if(dma[c].mode & 0x20) {
+	if(inc) {
 		addr = addr + 1;
 	} else {
 		addr = addr - 1;
 	}
-	__LIKELY_IF(dma_wrap_reg != 0) {
+	__LIKELY_IF(dma_wrap) {
 		uint32_t high_a = dma[c].areg & 0xff000000;
 		addr = addr & 0x00ffffff;
 		addr = addr | high_a;
  	}
 	dma[c].areg = addr;
 #endif
+
 }
 
-void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
+void TOWNS_DMAC::inc_dec_ptr_two_bytes(const int c, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
 #if 0
-	uint32_t incdec = ((dma[c].mode & 0x20) == 0) ? 2 : (UINT32_MAX - 1);
+	uint32_t incdec = (inc) ? 2 : (UINT32_MAX - 1);
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
-	__LIKELY_IF(dma_wrap_reg != 0) {
+	__LIKELY_IF(dma_wrap) {
 		addr = (addr + incdec) & 0x00ffffff;
 		addr = addr | high_a;
 	} else {
@@ -105,12 +117,12 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 	dma[c].areg = addr;
 #else
 	uint32_t addr = dma[c].areg;
-	if(dma[c].mode & 0x20) {
+	if(inc) {
 		addr = addr + 2;
 	} else {
 		addr = addr - 2;
 	}
-	__LIKELY_IF(dma_wrap_reg != 0) {
+	__LIKELY_IF(dma_wrap) {
 		uint32_t high_a = dma[c].areg & 0xff000000;
 		addr = addr & 0x00ffffff;
 		addr = addr | high_a;
@@ -119,45 +131,19 @@ void TOWNS_DMAC::do_dma_inc_dec_ptr_16bit(int c)
 #endif
 }
 
-#if 0 /* For Debug */
-bool TOWNS_DMAC::do_dma_epilogue(int c)
-{
-	if((dma[c].creg == 0) || ((dma[c].endreq) && !(dma[c].end) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
-		// TC
-		bool is_tc = false;
-		if((dma[c].end) || (dma[c].endreq)) is_tc = true;
-		// TC
-		if(dma[c].bcreg < (dma[c].creg - 1)) {
-			is_tc = true;
-		}
-		if(is_tc) {
-	#if 0
-			out_debug_log(_T("TRANSFER COMPLETED:CH=%d  AREG=%08X BAREG=%08X CREG=%08X BCREG=%08X"),
-						  c,
-						  (dma[c].areg & 0xffffffff) ,
-						  (dma[c].bareg & 0xffffffff) ,
-						  dma[c].creg & 0x00ffffff,
-						  dma[c].bcreg & 0x00ffffff
-				);
-	#endif
-		}
-	}
-	return UPD71071::do_dma_epilogue(c);
-}
-#endif
 
 uint32_t TOWNS_DMAC::read_signal(int id)
 {
-	if(id == SIG_TOWNS_DMAC_WRAP_REG) {
-		return dma_wrap_reg;
+	if(id == SIG_TOWNS_DMAC_WRAP) {
+		return (dma_wrap) ? 0xffffffff : 0;
 	}
 	return UPD71071::read_signal(id);
 }
 
 void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 {
-	if(id == SIG_TOWNS_DMAC_WRAP_REG) {
-		dma_wrap_reg = data;
+	if(id == SIG_TOWNS_DMAC_WRAP) {
+		dma_wrap = (data  != 0) ? true : false;
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else {
 		// Fallthrough.
@@ -193,14 +179,14 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	}
 	{
 		my_stprintf_s(buffer, buffer_len,
-					  _T("16Bit=%s ADDR_WRAP=%02X \n")
+					  _T("16Bit=%s ADDR_WRAP=%s \n")
 					  _T("SELECT CH=%d BASE=%02X REQ=%02X SREQ=%02X MASK=%02X TC=%02X ")
 					  _T("CMD=%04X TMP=%04X\n")
 					  _T("%s")
 					  _T("%s")
 					  _T("%s")
 					  _T("%s"),
-					  (b16 != 0) ? _T("YES") : _T("NO"), dma_wrap_reg,
+					  (b16 != 0) ? _T("YES") : _T("NO"), (dma_wrap) ? _T("YES") : _T("NO"),
 					  selch, base, req, sreq, mask, tc,
 					  cmd, tmp,
 					  sbuf[0],
@@ -212,7 +198,7 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return false;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 {
@@ -225,7 +211,7 @@ bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 	if(!(UPD71071::process_state(state_fio, loading))) {
 		return false;
 	}
-	state_fio->StateValue(dma_wrap_reg);
+	state_fio->StateValue(dma_wrap);
 	return true;
 }
 }
