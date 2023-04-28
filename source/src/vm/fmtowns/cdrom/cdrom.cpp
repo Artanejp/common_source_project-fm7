@@ -48,10 +48,6 @@
 #define EVENT_CDROM_READY_CDDAREPLY			117
 
 //#define _CDROM_DEBUG_LOG
-
-// Event must be larger than 116.
-
-
 namespace FMTOWNS {
 
 // crc table from vm/disk.cpp
@@ -268,8 +264,8 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 			dma_transfer_phase = false;
 			dma_transfer = false;
 			status_seek = false;
+			status_read_done(true);
 			set_dma_intr(true);
-			status_read_done(false);
 		}
 	} else {
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
@@ -952,7 +948,7 @@ void TOWNS_CDROM::read_cdrom()
 
 	// Kick a first
 	double usec = get_seek_time(lba1);
-	status_seek = false;
+	status_seek = true;
 	if(usec < 10.0) usec = 10.0;
 	databuffer->clear();
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
@@ -1468,7 +1464,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		break;
 	case EVENT_CDDA_DELAY_PLAY: // DELAY STARTING TO PLAY CDDA
-		status_seek = false;
+		status_seek = true;
 		if(cdda_status != CDDA_PLAYING) {
 			set_cdda_status(CDDA_PLAYING);
 		}
@@ -1556,7 +1552,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 
 	case EVENT_CDROM_SEEK_COMPLETED: // SEEK TO TARGET LBA FOR READING (A) SECTOR(S)
 		event_seek_completed = -1;
-		status_seek = false;
 		//read_pos = 0;
 		clear_event(this, event_next_sector);
 		clear_event(this, event_time_out);
@@ -1574,8 +1569,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 #endif
 		if(read_length > 0) {
-			mcu_ready = false;
 			bool stat = false;
+			status_seek = true;
 //			cdrom_debug_log(_T("READ DATA SIZE=%d BUFFER COUNT=%d"), logical_block_size(), databuffer->count());
 			/// Below has already resolved! Issue of DMAC.20201114 K.O
 			// Note: Still error with reading D000h at TownsOS v1.1L30.
@@ -1594,26 +1589,26 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 							   false, &event_next_sector);
 			}
 			//register_event(this, EVENT_CDROM_TIMEOUT, 1000.0e3, false, &event_time_out);
-		}// else {
-		//	status_read_done(false);
-		//}
+		}
 		break;
 	case EVENT_CDROM_NEXT_SECTOR:  // READY TO READ (A) NEXT SECTOR(S).
 		event_next_sector = -1;
 		clear_event(this, event_seek_completed);
 		// BIOS FDDFCh(0FC0h:01FCh)-
+		status_seek = true;
 		if(pio_transfer) {
 			set_status(true, 0, TOWNS_CD_STATUS_CMD_ABEND, 0x00, 0x00, 0x00); // OK?
 			set_dma_intr(true);
 		} else {
 			status_data_ready(true);
+			if(read_length <= 0) {
+				status_seek = false;
+			}
 			if((event_drq < 0) && (dma_transfer_phase)) {
 				register_event_by_clock(this, EVENT_CDROM_DRQ, 2, true, &event_drq);
 			}
 		}
 		// ToDo: Prefetch
-		status_seek = true;
-		//status_seek = false;
 		register_event(this, EVENT_CDROM_SEEK_COMPLETED,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 					   ((double)(physical_block_size())) *
@@ -2343,7 +2338,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		track = current_track;
 		cdda_playing_frame = cdda_start_frame;
 		read_sector = cdda_start_frame;
-		status_seek = false;
+		status_seek = true;
 		seek_relative_frame_in_image(cdda_playing_frame);
 		cdrom_debug_log(_T("PLAY_CDROM TRACK=%d START=%02X:%02X:%02X(%d) END=%02X:%02X:%02X(%d) IS_REPEAT=%d REPEAT_COUNT=%d"),
 					  track,
