@@ -66,8 +66,8 @@ public:
 	~UPD71071() {}
 
 	// common functions
-	virtual void initialize();
-	virtual void reset();
+	virtual void initialize() override;
+	virtual void reset() override;
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
