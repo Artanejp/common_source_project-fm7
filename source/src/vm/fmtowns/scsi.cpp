@@ -67,9 +67,9 @@ void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
 			ex_int_enable = ((data & 0x20) != 0) ? true : false;
 			// Set host to 16bit bus width. BIT3 ,= '1'.
-			if(d_dma != NULL) {
-				d_dma->write_signal(SIG_UPD71071_UBE_CH0, 0xffffffff, 0xffffffff);
-			}
+			//if(d_dma != NULL) {
+			//	d_dma->write_signal(SIG_UPD71071_UBE_CH1, 0xffffffff, 0xffffffff);
+			//}
 		}
 		if(ctrl_reg  & CTRL_WEN) {
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
@@ -189,8 +189,10 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 			}
 		}*/
 		break;
-	case SIG_SCSI_EOT:
-		dma_enabled = ((data & mask) == 0) ? true : false;
+//	case SIG_SCSI_EOT:
+//		dma_enabled = ((data & mask) == 0) ? true : false;
+//		break;
+	default:
 		break;
 	}
 }

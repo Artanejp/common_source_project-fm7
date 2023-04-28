@@ -256,7 +256,6 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 
 	clear_event(this, event_time_out);
 	clear_event(this, event_eot);
-//	clear_event(this, event_drq);
 
 	if((read_length <= 0) && (databuffer->empty())) {
 		write_signals(&outputs_drq, 0x00000000);
@@ -276,6 +275,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
+		clear_event(this, event_drq);
 		write_signals(&outputs_drq, 0x00000000);
 		if(dma_transfer_phase) {
 			dma_transfer_phase = false;
@@ -335,6 +335,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			do_dma_eot(true);
 		}
 		break;
+#if 0
 	case SIG_TOWNS_CDROM_DMAACK:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
 			//force_register_event(this, EVENT_CDROM_DRQ, 1.0 / 8.0, false, event_drq);
@@ -352,6 +353,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 			#endif
 		}
 		break;
+#endif
 	default:
 		// ToDo: Implement master devices.
 		break;
