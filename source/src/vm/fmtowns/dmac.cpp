@@ -131,6 +131,150 @@ void TOWNS_DMAC::inc_dec_ptr_two_bytes(const int c, const bool inc)
 #endif
 }
 
+void TOWNS_DMAC::do_dma()
+{
+	// check DDMA
+	if(cmd & 4) {
+		return;
+	}
+
+	// run dma
+	bool is_use_debugger = false;
+	if(__USE_DEBUGGER) {
+		if(d_debugger != NULL) {
+			is_use_debugger = d_debugger->now_device_debugging;
+		}
+	}
+
+	for(int c = 0; c < 4; c++) {
+		uint8_t bit = 1 << c;
+		if(((req | sreq) & bit) && !(mask & bit)) {
+			// execute dma
+			while((req | sreq) & bit) {
+				int wait = 0, wait_r = 0, wait_w = 0;
+				bool compressed = ((cmd & 0x08) != 0);
+				bool exptended = ((cmd & 0x20) != 0);
+
+				if(!running) {
+					wait += 2; // S0
+					running = true;
+				}
+				if((dma[c].mode & 0x01) == 1) {
+					// ToDo: Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
+					// 16bit transfer mode
+					if((dma[c].mode & 0x0c) == 0x00) {
+						// verify
+						uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_r);
+						if(is_use_debugger) {
+							val = d_debugger->read_via_debugger_data16w(dma[c].areg, &wait_w);
+						} else {
+							val = this->read_via_debugger_data16w(dma[c].areg, &wait_w);
+						}
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = val;
+					} else if((dma[c].mode & 0x0c) == 0x04) {
+						// io -> memory
+						uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_r);
+						if(is_use_debugger) {
+							d_debugger->write_via_debugger_data16w(dma[c].areg, val, &wait_w);
+						} else {
+							this->write_via_debugger_data16w(dma[c].areg, val, &wait_w);
+						}
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = val;
+					} else if((dma[c].mode & 0x0c) == 0x08) {
+						// memory -> io
+						uint32_t val;
+						if(is_use_debugger) {
+							val = d_debugger->read_via_debugger_data16w(dma[c].areg, &wait_r);
+						} else {
+							val = this->read_via_debugger_data16w(dma[c].areg, &wait_r);
+						}
+						dma[c].dev->write_dma_io16w(0, val, &wait_w);
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = val;
+					}
+					inc_dec_ptr_two_bytes(c, !(dma[c].mode & 0x20));
+				} else {
+					// 8bit transfer mode
+					if((dma[c].mode & 0x0c) == 0x00) {
+						// verify
+						uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_r);
+						if(is_use_debugger) {
+							val = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_w);
+						} else {
+							val = this->read_via_debugger_data8w(dma[c].areg, &wait_w);
+						}
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = (tmp >> 8) | (val << 8);
+					} else if((dma[c].mode & 0x0c) == 0x04) {
+						// io -> memory
+						uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_r);
+						if(is_use_debugger) {
+							d_debugger->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
+						} else {
+							this->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
+						}
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = (tmp >> 8) | (val << 8);
+					} else if((dma[c].mode & 0x0c) == 0x08) {
+						// memory -> io
+						uint32_t val;
+						if(is_use_debugger) {
+							val = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_r);
+						} else {
+							val = this->read_via_debugger_data8w(dma[c].areg, &wait_r);
+						}
+						dma[c].dev->write_dma_io8w(0, val, &wait_w);
+						wait += compressed ? 5 : 7;
+						if(exptended) wait += wait_r + wait_w;
+						// update temporary register
+						tmp = (tmp >> 8) | (val << 8);
+					}
+					inc_dec_ptr_a_byte(c, !(dma[c].mode & 0x20));
+				}
+				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
+
+				if(dma[c].creg-- == 0) {
+					// TC
+					if(dma[c].mode & 0x10) {
+						// auto initialize
+						dma[c].areg = dma[c].bareg;
+						dma[c].creg = dma[c].bcreg;
+					} else {
+						mask |= bit;
+					}
+					req &= ~bit;
+					sreq &= ~bit;
+					tc |= bit;
+					running = false;
+					write_signals(&outputs_tc[c], 0xffffffff);
+				} else if((dma[c].mode & 0xc0) == 0x40) {
+					// single mode
+					running = false;
+					if(_SINGLE_MODE_DMA) {
+						break;
+					}
+				}
+			}
+		}
+	}
+	if(_SINGLE_MODE_DMA) {
+		if(d_dma) {
+			d_dma->do_dma();
+		}
+	}
+}
 
 uint32_t TOWNS_DMAC::read_signal(int id)
 {

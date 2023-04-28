@@ -27,6 +27,7 @@ public:
 	// common functions
 	virtual void initialize() override;
 	virtual void reset() override;
+	virtual void do_dma() override;
 
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;

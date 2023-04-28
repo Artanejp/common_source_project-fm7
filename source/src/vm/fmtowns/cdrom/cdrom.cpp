@@ -275,7 +275,7 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
-		clear_event(this, event_drq);
+		//clear_event(this, event_drq);
 		write_signals(&outputs_drq, 0x00000000);
 		if(dma_transfer_phase) {
 			dma_transfer_phase = false;
@@ -640,7 +640,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			);
 			double usec = get_seek_time(0); // At first, seek to track 0.
 			if(usec < 10.0) usec = 10.0;
-			//usec *= 2.0;
+			usec *= 2.0;
 			//mcu_ready = true; // From TSUGARU; MCU ready immediately. 20220128 K.O
 			// 20200626 K.O
 			// At first, SEEK to LBA0.
@@ -1503,7 +1503,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 //			}
 			double usec = get_seek_time(next_seek_lba);
 			if(usec < 10.0) usec = 10.0;
-			//usec *= 2.0;
+			usec *= 2.0;
 			cdrom_debug_log(_T("RESTORE to SECTOR 0: NEXT is %d after %f"), next_seek_lba, usec);
 			register_event(this,
 						   EVENT_CDROM_SEEK,
@@ -1583,9 +1583,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			/// 20200926 K.O
 			stat = read_buffer(1);
 			if((stat)) {
-//				if((event_drq < 0) && (dma_transfer_phase)) {
-//					register_event_by_clock(this, EVENT_CDROM_DRQ, 2, true, &event_drq);
-//				}
+				if((event_drq < 0) && (dma_transfer_phase)) {
+					register_event_by_clock(this, EVENT_CDROM_DRQ, 2, true, &event_drq);
+				}
 				register_event(this, EVENT_CDROM_NEXT_SECTOR,
 							   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 							   ((double)(physical_block_size())) *
