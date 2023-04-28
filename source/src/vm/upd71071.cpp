@@ -8,23 +8,24 @@
 */
 
 #include "upd71071.h"
-#ifdef USE_DEBUGGER
 #include "debugger.h"
-#endif
 
 void UPD71071::initialize()
 {
+	DEVICE::initialize();
+	_SINGLE_MODE_DMA = osd->check_feature(_T("SINGLE_MODE_DMA"));
 	for(int i = 0; i < 4; i++) {
 		dma[i].areg = dma[i].bareg = 0;
 		dma[i].creg = dma[i].bcreg = 0;
 	}
-#ifdef USE_DEBUGGER
+
+	if(__USE_DEBUGGER) {
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (uPD71071 DMAC)"));
 		d_debugger->set_context_mem(this);
 		d_debugger->set_context_io(vm->dummy);
 	}
-#endif
+	}
 }
 
 void UPD71071::reset()
@@ -36,6 +37,10 @@ void UPD71071::reset()
 	cmd = tmp = 0;
 	req = sreq = tc = 0;
 	mask = 0x0f;
+	// Q: Is reset TC* ? 20230429 K.O
+	//	for(int c = 0; c < 4; c++) {
+	//		write_signals(&output_tc[c], 0xffffffff);
+	//	}
 }
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
@@ -51,6 +56,10 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 			cmd = tmp = 0;
 			sreq = tc = 0;
 			mask = 0x0f;
+			// Q: Is reset TC* ? 20230429 K.O
+			//	for(int c = 0; c < 4; c++) {
+			//		write_signals(&output_tc[c], 0xffffffff);
+			//	}
 		}
 		b16 = data & 2;
 		break;
@@ -99,9 +108,9 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0e:
 		if((sreq = data) != 0) {
-#ifndef SINGLE_MODE_DMA
-			do_dma();
-#endif
+			if(!(_SINGLE_MODE_DMA)) {
+				do_dma();
+			}
 		}
 		break;
 	case 0x0f:
@@ -113,7 +122,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 uint32_t UPD71071::read_io8(uint32_t addr)
 {
 	uint32_t val;
-	
+
 	switch(addr & 0x0f) {
 	case 0x00:
 		return b16;
@@ -158,6 +167,10 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 	case 0x0b:
 		val = (req << 4) | tc;
 		tc = 0;
+		// Q: Is reset TC* ? 20230429 K.O
+		//	for(int c = 0; c < 4; c++) {
+		//		write_signals(&output_tc[c], 0xffffffff);
+		//	}
 		return val;
 	case 0x0c:
 		return tmp & 0xff;
@@ -174,13 +187,13 @@ uint32_t UPD71071::read_io8(uint32_t addr)
 void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	uint8_t bit = 1 << (id & 3);
-	
+
 	if(data & mask) {
 		if(!(req & bit)) {
 			req |= bit;
-#ifndef SINGLE_MODE_DMA
-			do_dma();
-#endif
+			if(!(_SINGLE_MODE_DMA)) {
+				do_dma();
+			}
 		}
 	} else {
 		req &= ~bit;
@@ -208,6 +221,23 @@ uint32_t UPD71071::read_via_debugger_data16w(uint32_t addr, int *wait)
 }
 
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
+void UPD71071::inc_dec_ptr_a_byte(const int c, const bool inc)
+{
+	if(!(inc)) {
+		dma[c].areg = (dma[c].areg - 1) & 0xffffff;
+	} else {
+		dma[c].areg = (dma[c].areg + 1) & 0xffffff;
+	}
+}
+
+void UPD71071::inc_dec_ptr_two_bytes(const int c, const bool inc)
+{
+	if(!(inc)) {
+		dma[c].areg = (dma[c].areg - 2) & 0xffffff;
+	} else {
+		dma[c].areg = (dma[c].areg + 2) & 0xffffff;
+	}
+}
 
 void UPD71071::do_dma()
 {
@@ -215,8 +245,15 @@ void UPD71071::do_dma()
 	if(cmd & 4) {
 		return;
 	}
-	
+
 	// run dma
+	bool is_use_debugger = false;
+	if(__USE_DEBUGGER) {
+		if(d_debugger != NULL) {
+			is_use_debugger = d_debugger->now_device_debugging;
+		}
+	}
+
 	for(int c = 0; c < 4; c++) {
 		uint8_t bit = 1 << c;
 		if(((req | sreq) & bit) && !(mask & bit)) {
@@ -225,7 +262,7 @@ void UPD71071::do_dma()
 				int wait = 0, wait_r = 0, wait_w = 0;
 				bool compressed = ((cmd & 0x08) != 0);
 				bool exptended = ((cmd & 0x20) != 0);
-				
+
 				if(!running) {
 					wait += 2; // S0
 					running = true;
@@ -237,12 +274,11 @@ void UPD71071::do_dma()
 					if((dma[c].mode & 0x0c) == 0x00) {
 						// verify
 						uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_r);
-#ifdef USE_DEBUGGER
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+						if(is_use_debugger) {
 							val = d_debugger->read_via_debugger_data16w(dma[c].areg, &wait_w);
-						} else
-#endif
-						val = this->read_via_debugger_data16w(dma[c].areg, &wait_w);
+						} else {
+							val = this->read_via_debugger_data16w(dma[c].areg, &wait_w);
+						}
 						wait += compressed ? 5 : 7;
 						if(cmd & 0x20) wait += wair_r + wait_w;
 						// update temporary register
@@ -250,12 +286,11 @@ void UPD71071::do_dma()
 					} else if((dma[c].mode & 0x0c) == 0x04) {
 						// io -> memory
 						uint32_t val = dma[c].dev->read_dma_io16w(0, &wait_r);
-#ifdef USE_DEBUGGER
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+						if(is_use_debugger) {
 							d_debugger->write_via_debugger_data16w(dma[c].areg, val, &wait_w);
-						} else
-#endif
-						this->write_via_debugger_data16w(dma[c].areg, val, &wait_w);
+						} else {
+							this->write_via_debugger_data16w(dma[c].areg, val, &wait_w);
+						}
 						wait += compressed ? 5 : 7;
 						if(exptended) wait += wait_r + wait_w;
 						// update temporary register
@@ -263,35 +298,29 @@ void UPD71071::do_dma()
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val;
-#ifdef USE_DEBUGGER
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+						if(is_use_debugger) {
 							val = d_debugger->read_via_debugger_data16w(dma[c].areg, &wait_r);
-						} else
-#endif
-						val = this->read_via_debugger_data16w(dma[c].areg, &wait_r);
+						} else {
+							val = this->read_via_debugger_data16w(dma[c].areg, &wait_r);
+						}
 						dma[c].dev->write_dma_io16w(0, val, &wait_w);
 						wait += compressed ? 5 : 7;
 						if(exptended) wait += wait_r + wait_w;
 						// update temporary register
 						tmp = val;
 					}
-					if(dma[c].mode & 0x20) {
-						dma[c].areg = (dma[c].areg - 2) & 0xffffff;
-					} else {
-						dma[c].areg = (dma[c].areg + 2) & 0xffffff;
-					}
+					inc_dec_ptr_two_bytes(c, !(dma[c].mode & 0x20));
 */
 				} else {
 					// 8bit transfer mode
 					if((dma[c].mode & 0x0c) == 0x00) {
 						// verify
 						uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_r);
-#ifdef USE_DEBUGGER
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+						if(is_use_debugger) {
 							val = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_w);
-						} else
-#endif
-						val = this->read_via_debugger_data8w(dma[c].areg, &wait_w);
+						} else {
+							val = this->read_via_debugger_data8w(dma[c].areg, &wait_w);
+						}
 						wait += compressed ? 5 : 7;
 						if(cmd & 0x20) wait += wait_r + wait_w;
 						// update temporary register
@@ -299,12 +328,11 @@ void UPD71071::do_dma()
 					} else if((dma[c].mode & 0x0c) == 0x04) {
 						// io -> memory
 						uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_r);
-#ifdef USE_DEBUGGER
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+						if(is_use_debugger) {
 							d_debugger->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
-						} else
-#endif
-						this->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
+						} else {
+							this->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
+						}
 						wait += compressed ? 5 : 7;
 						if(exptended) wait += wait_r + wait_w;
 						// update temporary register
@@ -312,26 +340,21 @@ void UPD71071::do_dma()
 					} else if((dma[c].mode & 0x0c) == 0x08) {
 						// memory -> io
 						uint32_t val;
-#ifdef USE_DEBUGGER
-						if(d_debugger != NULL && d_debugger->now_device_debugging) {
+						if(is_use_debugger) {
 							val = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_r);
-						} else
-#endif
-						val = this->read_via_debugger_data8w(dma[c].areg, &wait_r);
+						} else {
+							val = this->read_via_debugger_data8w(dma[c].areg, &wait_r);
+						}
 						dma[c].dev->write_dma_io8w(0, val, &wait_w);
 						wait += compressed ? 5 : 7;
 						if(exptended) wait += wait_r + wait_w;
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
 					}
-					if(dma[c].mode & 0x20) {
-						dma[c].areg = (dma[c].areg - 1) & 0xffffff;
-					} else {
-						dma[c].areg = (dma[c].areg + 1) & 0xffffff;
-					}
+					inc_dec_ptr_a_byte(c, !(dma[c].mode & 0x20));
 				}
 				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
-				
+
 				if(dma[c].creg-- == 0) {
 					// TC
 					if(dma[c].mode & 0x10) {
@@ -345,25 +368,24 @@ void UPD71071::do_dma()
 					sreq &= ~bit;
 					tc |= bit;
 					running = false;
-					write_signals(&outputs_tc, 0xffffffff);
+					write_signals(&outputs_tc[c], 0xffffffff);
 				} else if((dma[c].mode & 0xc0) == 0x40) {
 					// single mode
 					running = false;
-#ifdef SINGLE_MODE_DMA
-					break;
-#endif
+					if(_SINGLE_MODE_DMA) {
+						break;
+					}
 				}
 			}
 		}
 	}
-#ifdef SINGLE_MODE_DMA
-	if(d_dma) {
-		d_dma->do_dma();
+	if(_SINGLE_MODE_DMA) {
+		if(d_dma) {
+			d_dma->do_dma();
+		}
 	}
-#endif
 }
 
-#ifdef USE_DEBUGGER
 bool UPD71071::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
@@ -386,7 +408,6 @@ CH3 AREG=FFFF CREG=FFFF BAREG=FFFF BCREG=FFFF REQ=1 MASK=1 MODE=FF INVALID
 	dma[3].areg, dma[3].creg, dma[3].bareg, dma[3].bcreg, ((req | sreq) >> 3) & 1, (mask >> 3) & 1, dma[3].mode, dir[(dma[3].mode >> 2) & 3]);
 	return true;
 }
-#endif
 
 #define STATE_VERSION	2
 
@@ -417,4 +438,3 @@ bool UPD71071::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(running);
 	return true;
 }
-
