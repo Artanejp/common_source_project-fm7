@@ -6,12 +6,18 @@
 #define SIG_TOWNS_DMAC_ADDR_REG		4096
 #define SIG_TOWNS_DMAC_WRAP			4100
 #define SIG_TOWNS_DMAC_ADDR_MASK	4104
+#define SIG_TOWNS_DMAC_EOT_CH0		8192
+#define SIG_TOWNS_DMAC_EOT_CH1		8193
+#define SIG_TOWNS_DMAC_EOT_CH2		8194
+#define SIG_TOWNS_DMAC_EOT_CH3		8195
 
 namespace FMTOWNS {
 class TOWNS_DMAC : public UPD71071
 {
 protected:
 	bool dma_wrap;
+	bool end_req[4];
+	bool end_stat[4];
 	bool force_16bit_transfer[4];
 	bool is_16bit_transfer[4];
 	outputs_t outputs_ube[4];
