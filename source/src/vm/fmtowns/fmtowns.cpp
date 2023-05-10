@@ -334,8 +334,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit1->set_constant_clock(0, 1229900);
 	pit1->set_constant_clock(1, 1229900);
 	pit1->set_constant_clock(2, 1229900);
-	pic->set_context_cpu(cpu);
-	//pic->set_context_cpu(memory);
+	//pic->set_context_cpu(cpu);
+	pic->set_context_cpu(memory);
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
 	rtc->set_context_data(timer, SIG_TIMER_RTC, 0x0f, 0);
 	rtc->set_context_busy(timer, SIG_TIMER_RTC_BUSY, 0x80);
@@ -352,6 +352,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
+	// This is workaround for FM-Towns's SCSI.
+	dma->set_force_16bit_transfer(1, false);
 	dma->set_context_ch1(scsi_host);
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdrom);
@@ -359,12 +361,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	extra_dma->set_context_cpu(cpu);
 	extra_dma->set_context_memory(memory);
 
-	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
+	dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 
 	//dma->set_context_ack1(scsi_host, SIG_SCSI_ACK, 0xffffffff);
 	//dma->set_context_ack3(cdrom, SIG_TOWNS_CDROM_DMAACK, 0xffffffff);
-	//dma->set_context_ube1(scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
+	dma->set_context_ube(1, scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 	dma->set_context_child_dma(extra_dma);
 
 	floppy->set_context_fdc(fdc);
