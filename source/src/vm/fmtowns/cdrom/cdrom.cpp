@@ -96,8 +96,8 @@ void TOWNS_CDROM::cdrom_debug_log(const char *fmt, ...)
 void TOWNS_CDROM::initialize()
 {
    	DEVICE::initialize();
-//	__CDROM_DEBUG_LOG = osd->check_feature(_T("_CDROM_DEBUG_LOG"));
-	__CDROM_DEBUG_LOG = true;
+	__CDROM_DEBUG_LOG = osd->check_feature(_T("_CDROM_DEBUG_LOG"));
+//	__CDROM_DEBUG_LOG = true;
 	_USE_CDROM_PREFETCH = osd->check_feature(_T("USE_CDROM_PREFETCH"));
 	force_logging = false;
 
