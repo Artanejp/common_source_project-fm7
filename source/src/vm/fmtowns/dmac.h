@@ -21,6 +21,9 @@ protected:
 	bool force_16bit_transfer[4];
 	bool is_16bit_transfer[4];
 	outputs_t outputs_ube[4];
+
+	int event_dmac_cycle;
+	uint8_t div_count;
 	// Temporally workaround for SCSI.20200318 K.O
 //	bool creg_set[4];
 //	bool bcreg_set[4];
@@ -52,7 +55,7 @@ public:
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t _mask) override;
 	virtual uint32_t __FASTCALL read_signal(int id) override;
-
+	virtual void __FASTCALL event_callback(int id, int err) override;
 	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;

@@ -3,15 +3,20 @@
 #include "debugger.h"
 
 namespace FMTOWNS {
+#define EVENT_DMAC_CYCLE	1
+
 void TOWNS_DMAC::initialize()
 {
 	UPD71071::initialize();
+	event_dmac_cycle = -1;
+	div_count = 0;
 }
 
 void TOWNS_DMAC::reset()
 {
 	UPD71071::reset();
   	dma_wrap = true;
+	div_count = 0;
 	for(int ch = 0; ch < 4; ch++) {
 		end_req[ch] = false;
 		end_stat[ch] = false;
@@ -23,6 +28,14 @@ void TOWNS_DMAC::reset()
 	}
 //	dma_wrap_reg = 0x00;
 //	b16 = 2; // Fixed 16bit.
+	if(!(_SINGLE_MODE_DMA)) {
+		if(event_dmac_cycle >= 0) {
+			cancel_event(this, event_dmac_cycle);
+		}
+		event_dmac_cycle = -1;
+		//register_event_by_clock(this, EVENT_DMAC_CYCLE, 4, true, &event_dmac_cycle);
+		register_event(this, EVENT_DMAC_CYCLE, 0.125, true, &event_dmac_cycle);
+	}
 }
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
@@ -120,13 +133,13 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	case 0x0f:
 		UPD71071::write_io8(addr, data);
 		// Add trigger of transfer by SREQ.
-		need_transfer = (!(_SINGLE_MODE_DMA) && ((cmd & 0x04) == 0));
+		//need_transfer = (!(_SINGLE_MODE_DMA) && ((cmd & 0x04) == 0));
 		break;
 	default:
 		UPD71071::write_io8(addr, data);
 		break;
 	}
-	if(need_transfer) {
+	if((need_transfer) && ((cmd & 4) == 0)) {
 		do_dma();
 	}
 }
@@ -421,7 +434,7 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 				}
 			}
 			__UNLIKELY_IF(force_exit) {
-				break;
+				return false;;
 			}
 		}
 	}
@@ -429,6 +442,11 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 }
 void TOWNS_DMAC::do_dma()
 {
+	__LIKELY_IF(div_count < 4) {
+		div_count++;
+		return;
+	}
+	div_count = 0;
 	// check DDMA
 	if(cmd & 4) {
 		return;
@@ -441,7 +459,6 @@ void TOWNS_DMAC::do_dma()
 			is_use_debugger = d_debugger->now_device_debugging;
 		}
 	}
-
 	for(int c = 0; c < 4; c++) {
 		if(do_dma_per_channel(c, is_use_debugger, false)) {
 			break;
@@ -453,7 +470,14 @@ void TOWNS_DMAC::do_dma()
 		}
 	}
 }
-
+void TOWNS_DMAC::event_callback(int event_id, int err)
+{
+	__LIKELY_IF(event_id == EVENT_DMAC_CYCLE) {
+		if(((cmd & 4) == 0) && (((req | sreq) & 0x0f) != 0)) {
+			do_dma();
+		}
+	}
+}
 uint32_t TOWNS_DMAC::read_signal(int id)
 {
 	if(id == SIG_TOWNS_DMAC_WRAP) {
@@ -491,7 +515,7 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 				if(!(req & bit)) {
 					req |= bit;
 					if(!(_SINGLE_MODE_DMA)) {
-						if((_mask & bit) == 0) { // MASK register MASKS DRQ.20200918 K.O
+						if(((_mask & bit) == 0) && ((cmd & 4) == 0)) { // MASK register MASKS DRQ.20200918 K.O
 							// Without #define SINGLE_MODE_DMA ,
 							// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
 							bool is_use_debugger = false;
@@ -558,7 +582,7 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return false;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	8
 
 bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 {
@@ -575,6 +599,10 @@ bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateArray(is_16bit_transfer, sizeof(is_16bit_transfer), 1);
 	state_fio->StateArray(end_stat, sizeof(end_stat), 1);
 	state_fio->StateArray(end_stat, sizeof(end_stat), 1);
+	state_fio->StateValue(div_count);
+	state_fio->StateValue(event_dmac_cycle);
 	return true;
 }
+
+
 }
