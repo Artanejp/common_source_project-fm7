@@ -265,12 +265,12 @@
 //#define I8259_PC98_HACK
 
 #define SINGLE_MODE_DMA
-#define MB8877_NO_BUSY_AFTER_SEEK
+//#define MB8877_NO_BUSY_AFTER_SEEK
 #define SCSI_HOST_AUTO_ACK
 
 //#define SCSI_HOST_WIDE
 //#define _SCSI_DEBUG_LOG
-//#define SCSI_DEV_IMMEDIATE_SELECT
+#define SCSI_DEV_IMMEDIATE_SELECT
 //#define _CDROM_DEBUG_LOG
 //#define _IO_DEBUG_LOG
 
@@ -380,7 +380,7 @@ namespace FMTOWNS {
 	class TOWNS_DMAC;    // DMAC
 	class TOWNS_ICCARD;
 	class TOWNS_MEMORY;
-	class TOWNS_SCSI_HOST;
+	//class TOWNS_SCSI_HOST;
 	class TOWNS_SPRITE;
 	class TOWNS_VRAM;
 	class PLANEVRAM;
