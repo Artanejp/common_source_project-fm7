@@ -29,7 +29,8 @@
 #include "../pcm1bit.h"
 #include "../harddisk.h"
 #include "../scsi_hdd.h"
-#include "./towns_scsi_host.h"
+#include "../scsi_host.h"
+//#include "./towns_scsi_host.h"
 #include "../upd71071.h"
 
 #include "./cdrom.h"
@@ -98,7 +99,7 @@ using FMTOWNS::TOWNS_CDROM;
 using FMTOWNS::TOWNS_CRTC;
 using FMTOWNS::TOWNS_DMAC;
 using FMTOWNS::TOWNS_MEMORY;
-using FMTOWNS::TOWNS_SCSI_HOST;
+//using FMTOWNS::TOWNS_SCSI_HOST;
 using FMTOWNS::TOWNS_SPRITE;
 using FMTOWNS::TOWNS_VRAM;
 using FMTOWNS::PLANEVRAM;
@@ -358,10 +359,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdrom);
 
-	extra_dma->set_context_cpu(cpu);
+	//extra_dma->set_context_cpu(cpu);
+	extra_dma->set_context_cpu(NULL);
 	extra_dma->set_context_memory(memory);
 
-	dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
+	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 
 	//dma->set_context_ack1(scsi_host, SIG_SCSI_ACK, 0xffffffff);
@@ -481,7 +483,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
+#ifdef SINGLE_MODE_DMA
 	cpu->set_context_dma(dma);
+#endif
 	cpu->set_context_bios(nullptr);
 	cpu->set_context_extreset(memory, SIG_FMTOWNS_NOTIFY_RESET, 0xffffffff);
 #ifdef USE_DEBUGGER
