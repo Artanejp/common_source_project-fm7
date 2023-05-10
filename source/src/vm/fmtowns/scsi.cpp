@@ -17,7 +17,9 @@
 // control register
 #define CTRL_WEN	0x80
 #define CTRL_IMSK	0x40
+#define CTRL_RMSK	0x20
 #define CTRL_ATN	0x10
+#define CTRL_WB		0x08
 #define CTRL_SEL	0x04
 #define CTRL_DMAE	0x02
 #define CTRL_RST	0x01
@@ -40,6 +42,7 @@ void SCSI::reset()
 	exirq_status = false;
 	ex_int_enable = false;
 	dma_enabled = true;
+//	dma_enabled = false;
 }
 
 void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
@@ -76,9 +79,18 @@ void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
 			d_host->write_signal(SIG_SCSI_RST, data, CTRL_RST);
 			d_host->write_signal(SIG_SCSI_ATN, data, CTRL_ATN);
 			d_host->write_signal(SIG_SCSI_SEL, data, CTRL_SEL);
-			d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
+			if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+#if defined(USE_QUEUED_SCSI_TRANSFER)
+				d_host->write_signal(SIG_SCSI_HOST_DMAE, data, CTRL_DMAE);
+#endif
+				//d_host->write_signal(SIG_SCSI_DATA_PHASE_INTR, data, CTRL_RMSK); // DISABLE/ENABLE INTERRUPT when DATA PHASE.
+				//d_host->write_signal(SIG_SCSI_16BIT_BUS, data, CTRL_WB);  // WORD/BYTE
+
+			}
 		}
-		if((data & CTRL_DMAE) != 0) dma_enabled = true;
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			dma_enabled = ((data & CTRL_DMAE) != 0) ? true : false;
+		}
 		break;
 	}
 }
@@ -172,8 +184,8 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 
 	case SIG_SCSI_DRQ:
-		if(((ctrl_reg & CTRL_DMAE) != 0) /*&& (dma_enabled)*/) {
-			if(d_dma != NULL) {
+		__LIKELY_IF(/*((ctrl_reg & CTRL_DMAE) != 0) && */(dma_enabled)) {
+			__LIKELY_IF(d_dma != NULL) {
 				d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
 			}
 		}
@@ -190,7 +202,9 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 		}*/
 		break;
 	case SIG_SCSI_EOT:
-		dma_enabled = ((data & mask) == 0) ? true : false;
+		if((machine_id >= 0x0300) & ((machine_id & 0xff00) != 0x0400)) { // After UX
+			dma_enabled = ((data & mask) == 0) ? true : false;
+		}
 		break;
 	default:
 		break;
