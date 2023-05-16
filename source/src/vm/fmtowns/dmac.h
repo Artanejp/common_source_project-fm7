@@ -16,17 +16,29 @@ class TOWNS_DMAC : public UPD71071
 {
 protected:
 	bool dma_wrap;
-	bool end_req[4];
-	bool end_stat[4];
 	bool force_16bit_transfer[4];
-	bool is_16bit_transfer[4];
 	outputs_t outputs_ube[4];
 
-	int event_dmac_cycle;
-	uint8_t div_count;
+	int div_count;
 	// Temporally workaround for SCSI.20200318 K.O
-//	bool creg_set[4];
-//	bool bcreg_set[4];
+	bool address_aligns_16bit[4];
+	bool is_16bit_transfer[4];
+	bool is_16bit[4];
+
+	bool is_started[4];
+	bool end_req[4];
+	bool end_stat[4];
+
+	int event_dmac_cycle;
+
+	virtual inline __FASTCALL void calc_transfer_status(int ch)
+	{
+		address_aligns_16bit[ch] = ((dma[ch].areg & 0x00000001) == 0);
+		is_16bit_transfer[ch] = (((dma[ch].mode & 0x01) == 1)
+									&& (b16)
+									&& (address_aligns_16bit[selch]));
+		is_16bit[ch] = (is_16bit_transfer[ch] || force_16bit_transfer[ch]);
+	}
 	virtual void __FASTCALL inc_dec_ptr_a_byte(const int c, const bool inc) override;
 	virtual void __FASTCALL inc_dec_ptr_two_bytes(const int c, const bool inc) override;
 
@@ -42,6 +54,7 @@ public:
 		for(int ch = 0; ch < 4; ch++) {
 			force_16bit_transfer[ch] = false;
 			is_16bit_transfer[ch] = false;
+			is_16bit[ch] = false;
 			initialize_output_signals(&outputs_ube[ch]);
 		}
 	}

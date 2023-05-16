@@ -8,8 +8,13 @@ namespace FMTOWNS {
 void TOWNS_DMAC::initialize()
 {
 	UPD71071::initialize();
+	for(int ch = 0; ch < 4; ch++) {
+		is_started[ch] = false;
+		address_aligns_16bit[ch] = true;
+		is_16bit_transfer[ch] = false;
+		is_16bit[ch] = false;
+	}
 	event_dmac_cycle = -1;
-	div_count = 0;
 }
 
 void TOWNS_DMAC::reset()
@@ -20,23 +25,14 @@ void TOWNS_DMAC::reset()
 	for(int ch = 0; ch < 4; ch++) {
 		end_req[ch] = false;
 		end_stat[ch] = false;
-
-		is_16bit_transfer[ch] = (((dma[ch].mode & 0x01) == 1) && b16);
+		is_started[ch] = false;
+		calc_transfer_status(ch);
 		write_signals(&outputs_tc[ch], ((tc & (1 << ch)) != 0) ? 0xffffffff : 0);
-		write_signals(&outputs_ube[ch], (is_16bit_transfer[ch] || force_16bit_transfer[ch]) ? 0xffffffff : 0);
-
+		write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0);
 	}
-//	dma_wrap_reg = 0x00;
-//	b16 = 2; // Fixed 16bit.
-	if(!(_SINGLE_MODE_DMA)) {
-		if(event_dmac_cycle >= 0) {
-			cancel_event(this, event_dmac_cycle);
-		}
-		event_dmac_cycle = -1;
-		//register_event_by_clock(this, EVENT_DMAC_CYCLE, 4, true, &event_dmac_cycle);
-		register_event(this, EVENT_DMAC_CYCLE, 0.125, true, &event_dmac_cycle);
-	}
+	clear_event(this, event_dmac_cycle);
 }
+
 
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
@@ -48,22 +44,34 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 0x0f) {
 	case 0x00:
 		UPD71071::write_io8(0, data);
+		if(data & 1) {
+			clear_event(this, event_dmac_cycle);
+		}
 		for(int ch = 0; ch < 4; ch++) {
-			is_16bit_transfer[ch] = (((dma[ch].mode & 0x01) == 1) && b16);
 			if(data & 1) {
 				end_req[ch] = false;
 				end_stat[ch] = false;
-				write_signals(&outputs_ube[ch], (is_16bit_transfer[ch] || force_16bit_transfer[ch]) ? 0xffffffff : 0);
+				is_started[ch] = false;
 			}
+			calc_transfer_status(ch);
 			write_signals(&outputs_tc[ch], ((tc & (1 << ch)) != 0) ? 0xffffffff : 0);
+			write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0);
 		}
 		out_debug_log(_T("RESET from I/O; B16=%s"), ((b16 & 2) != 0) ? _T("16bit") : _T("8bit"));
 		break;
+	case 0x02:
 	case 0x03:
 		// OK?
 		end_req[selch] = false;
 		end_stat[selch] = false;
 		UPD71071::write_io8(addr, data);
+		if(is_started[selch]) {
+			bool __is_16bit_bak = is_16bit[selch];
+			calc_transfer_status(selch);
+			if(is_16bit[selch] != __is_16bit_bak) {
+				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
+			}
+		}
 		//tc = tc & ~(1 << selch);
 		//write_signals(&outputs_tc[selch], 0);
 		break;
@@ -72,6 +80,13 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 //		if(!base) {
 			dma[selch].areg = (dma[selch].areg & 0xffffff00) | data;
 //		}
+		if(is_started[selch]) {
+			bool __is_16bit_bak = is_16bit[selch];
+			calc_transfer_status(selch);
+			if(is_16bit[selch] != __is_16bit_bak) {
+				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
+			}
+		}
 		break;
 	case 0x05:
 		dma[selch].bareg = (dma[selch].bareg & 0xffff00ff) | (data << 8);
@@ -91,16 +106,35 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].areg = (dma[selch].areg & 0x00ffffff) | (data << 24);
 //		}
 		break;
+		// CMD
 	case 0x08:
 	case 0x09:
 		UPD71071::write_io8(addr, data);
-		if(((cmd & 0x04) == 0) && ((cmd_bak & 0x04) != 0)) {
+		if((cmd != cmd_bak) && ((cmd & 0x04) == 0)) {
+			for(int ch = 0; ch < 4; ch++) {
+				if(!(is_started[ch])) {
+					uint8_t bit = 1 << ch;
+					if((mask & bit) == 0) {
+						is_started[ch] = true;
+						end_req[selch] = false;
+						end_stat[selch] = false;
+						calc_transfer_status(ch);
+						write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0x00000000); // Reset UBE
+						if(((dma[selch].mode & 0xc0) != 0x40) && !(_SINGLE_MODE_DMA)) { // Excepts SINGLE
+							if(event_dmac_cycle < 0) {
+								register_event_by_clock(this, EVENT_DMAC_CYCLE, 2, true, &event_dmac_cycle);
+							}
+						}
+					}
+				}
+			}
 			out_debug_log(_T("CMD CHANGED from %04X to 0x%04X : MAYBE START to TRANSFER"),
 						  cmd_bak, cmd);
 			static const _TCHAR *dir[4] = {
 				_T("VERIFY"), _T("I/O->MEM"), _T("MEM->I/O"), _T("INVALID")
 			};
 			for(int ch = 0; ch < 4; ch++) {
+
 				out_debug_log(_T("CH%d AREG=%08X CREG=%04X BAREG=%08X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s"),
 							  ch, dma[ch].areg, dma[ch].creg, dma[ch].bareg, dma[ch].bcreg,
 							  ((req | sreq) >> ch) & 1,
@@ -112,14 +146,44 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 			out_debug_log(_T("CMD CHANGED from %04X to 0x%04X"), cmd_bak, cmd);
 		}
 		break;
+		// MODE
 	case 0x0a:
+		// BIT 7,6 : TRANSFER MODE
+		//   DEMAND    = 00
+		//   SINGLE    = 01
+		//   BLOCK     = 10
+		//   CASCADE   = 11
+		// BIT 5    : ADIR
+		//   INC       = 0
+		//   DEC       = 1
+		// BIT 4    : AUTI
+		//   AUTO INIT = 1
+		// BIT 3, 2 : TDIR
+		//   VERIFY    = 00
+		//   IO to MEM = 01
+		//   MEM to IO = 10
+		//   DONT      = 11
+		// BIT 0    : W/B
+		//   BYTE = 0
+		//   WORD = 1
 		UPD71071::write_io8(addr, data);
-		is_16bit_transfer[selch] = (((dma[selch].mode & 0x01) == 1) && b16);
-		if((data & 0x04) == 0) {
-			end_req[selch] = false;
-			end_stat[selch] = false;
+		if(!(is_started[selch])) {
+			uint8_t bit = 1 << selch;
+			if((mask & bit) == 0) {
+				is_started[selch] = true;
+				end_req[selch] = false;
+				end_stat[selch] = false;
+				calc_transfer_status(selch);
+				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
+				if(((dma[selch].mode & 0xc0) != 0x40)  && !(_SINGLE_MODE_DMA)){ // Excepts SINGLE
+					if(event_dmac_cycle < 0) {
+						register_event_by_clock(this, EVENT_DMAC_CYCLE, 2, true, &event_dmac_cycle);
+					}
+				}
+				//write_signals(&outputs_tc[selch], 0);
+
+			}
 		}
-		write_signals(&outputs_ube[selch], (is_16bit_transfer[selch] || force_16bit_transfer[selch]) ? 0xffffffff : 0);
 		out_debug_log(_T("MODE CHANGED at CH.%d to 0x%02X Request 16bit=%s"), selch, dma[selch].mode,
 					  (is_16bit_transfer[selch]) ? _T("Yes") : _T("NO"));
 		break;
@@ -130,8 +194,26 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 //			write_signals(&outputs_tc[ch], 0);
 //		}
 //		break;
+		// MASK
 	case 0x0f:
 		UPD71071::write_io8(addr, data);
+		if(!(is_started[selch])) {
+			uint8_t bit = 1 << selch;
+			if((mask & bit) == 0) {
+				is_started[selch] = true;
+				calc_transfer_status(selch);
+				end_req[selch] = false;
+				end_stat[selch] = false;
+				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
+				write_signals(&outputs_tc[selch], 0);
+				if(((dma[selch].mode & 0xc0) != 0x40)  && !(_SINGLE_MODE_DMA)) { // Excepts SINGLE
+					if(event_dmac_cycle < 0) {
+						register_event_by_clock(this, EVENT_DMAC_CYCLE, 2, true, &event_dmac_cycle);
+					}
+				}
+
+			}
+		}
 		// Add trigger of transfer by SREQ.
 		//need_transfer = (!(_SINGLE_MODE_DMA) && ((cmd & 0x04) == 0));
 		break;
@@ -294,11 +376,14 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 {
 	int c = ch & 3;
 	uint8_t bit = 1 << c;
-	// This is workaround for FM-Towns's SCSI.
-	bool is_16bit = (is_16bit_transfer[c] || force_16bit_transfer[c]);
-	write_signals(&outputs_ube[c], (is_16bit) ? 0xffffffff : 0x00000000); // Reset UBE
-	if(((req | sreq) & bit) && !(mask & bit)) {
+	if(/*((req | sreq) & bit) && !(mask & bit)*/ is_started[c]) {
 		// execute dma
+		// This is workaround for FM-Towns's SCSI.
+		bool __is_16bit = (is_16bit_transfer[c] || force_16bit_transfer[c]);
+		if(__is_16bit != is_16bit[c]) {
+			is_16bit[c] = __is_16bit;
+			write_signals(&outputs_ube[c], (__is_16bit) ? 0xffffffff : 0x00000000); // Reset UBE
+		}
 		while((req | sreq) & bit) {
 			int wait = 0, wait_r = 0, wait_w = 0;
 			bool compressed = ((cmd & 0x08) != 0);
@@ -308,7 +393,8 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 				wait += 2; // S0
 				running = true;
 			}
-			if(is_16bit) {
+
+			if(__is_16bit) {
 				// ToDo: Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 				// 16bit transfer mode
 				if((dma[c].mode & 0x0c) == 0x00) {
@@ -390,13 +476,15 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 			// ToDo: Stop correctly before setting.
 			__UNLIKELY_IF((dma[c].creg == 0) || ((end_req[c]) && !(end_stat[c]) && ((dma[c].mode & 0xc0) != 0x40))) {  // OK?
 				// TC
+				bool is_end = false;
 				bool is_tc = false;
 				if((end_req[c]) && !(end_stat[c]) && ((dma[c].mode & 0xc0) != 0x40)) {
 					end_stat[c] = true;
-					is_tc = true;
+					is_started[c] = false;
+					is_end = true;
 				}
 				if(dma[c].creg == 0) {
-					is_tc |= true;
+					is_tc = true;
 				}
 				dma[c].creg--;
 				if(dma[c].mode & 0x10) {
@@ -405,33 +493,128 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 					dma[c].creg = dma[c].bcreg;
 				} else {
 					mask |= bit;
+					is_started[c] = false;
 				}
 				req &= ~bit;
 				sreq &= ~bit;
-				if(is_tc) {
-					tc |= bit;
-				}
+				tc |= bit;
 				running = false;
-				if(is_tc) {
-					write_signals(&outputs_tc[c], 0xffffffff);
-				}
+				//if(is_tc) {
+				write_signals(&outputs_tc[c], 0xffffffff);
+				//}
 				if(((dma[c].mode & 0xc0) == 0x40) || (_SINGLE_MODE_DMA)) {
 					return true; // Single mode
 				}
+				bool _r = true;
+				for(int cch = 0; cch < 4; cch++) {
+					if(is_started[c]) {
+						_r = false;
+						break;
+					}
+				}
+				if(_r) {
+					clear_event(this, event_dmac_cycle); // STOP DMAC CYCLE
+				}
+				return false;
 			} else {
 				dma[c].creg--;
 				uint8_t _mode = dma[c].mode & 0xc0;
-				if((_mode == 0x40) || (_mode == 0x00)) {
+				if(_mode == 0x40) {
+					// SINGLE
+					// WHY TC:
+					// - STOP PER BYTE/WORD TRANSFER
 					req &= ~bit;
 					sreq &= ~bit;
-					if(_mode == 0x40) {
-						// Single
-						running = false;
+					//tc |= bit;
+					//running = false;
+					//write_signals(&outputs_tc[c], 0xffffffff);
+					return true;
+				} else if(_mode == 0x00) {
+					// DEMAND (0x00)
+					// WHY TC:
+					// - END_REQ[c] asserted.
+					// - COUNT DOWN REACHED.
+					// - DMA REQ MADE INACTIVE.
+					bool is_end = false;
+					if((req & bit) == 0) {
+						is_end = true;
 					}
-					if(_SINGLE_MODE_DMA) {
-						return true;
+					if((end_req[c]) && !(end_stat[c])) {
+						is_end = true;
+						end_stat[c] = true;
+					}
+					if(is_end) {
+						if(dma[c].mode & 0x10) {
+							// auto initialize
+							dma[c].areg = dma[c].bareg;
+							dma[c].creg = dma[c].bcreg;
+						} else {
+							mask |= bit;
+							is_started[c] = false;
+						}
+						end_req[c] = false;
+						req &= ~bit;
+						sreq &= ~bit;
+						tc |= bit;
+						running = false;
+						//if(is_tc) {
+						write_signals(&outputs_tc[c], 0xffffffff);
+						bool _r = true;
+						for(int cch = 0; cch < 4; cch++) {
+							if(is_started[c]) {
+								_r = false;
+								break;
+							}
+						}
+						if(_r) {
+							clear_event(this, event_dmac_cycle); // STOP DMAC CYCLE
+						}
+						return false;
+					}
+				} else {
+					// BLOCK  (0x80)
+					// WHY TC:
+					// - END_REQ[c] asserted.
+					// - COUNT DOWN REACHED.
+					bool is_end = false;
+					if((end_req[c]) && !(end_stat[c])) {
+						is_end = true;
+						end_stat[c] = true;
+					}
+					if(is_end) {
+						if(dma[c].mode & 0x10) {
+							// auto initialize
+							dma[c].areg = dma[c].bareg;
+							dma[c].creg = dma[c].bcreg;
+						} else {
+							mask |= bit;
+							is_started[c] = false;
+						}
+						end_req[c] = false;
+						req &= ~bit;
+						sreq &= ~bit;
+						tc |= bit;
+						running = false;
+						//if(is_tc) {
+						write_signals(&outputs_tc[c], 0xffffffff);
+						bool _r = true;
+						for(int cch = 0; cch < 4; cch++) {
+							if(is_started[c]) {
+								_r = false;
+								break;
+							}
+						}
+						if(_r) {
+							clear_event(this, event_dmac_cycle); // STOP DMAC CYCLE
+						}
+						return false;
 					}
 				}
+				if(_SINGLE_MODE_DMA) {
+					running = false;
+					return true;
+				}
+
 			}
 			__UNLIKELY_IF(force_exit) {
 				return false;;
@@ -442,20 +625,27 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 }
 void TOWNS_DMAC::do_dma()
 {
-	__LIKELY_IF(div_count < 4) {
+	// check DDMA
+	bool is_chain = (((cmd & 4) != 0) || ((mask & 0x0f) == 0x0f) || (((req | sreq) & 0x0f) == 0x00));
+
+	__LIKELY_IF(is_chain) {
+		if(_SINGLE_MODE_DMA) {
+			__LIKELY_IF(d_dma) {
+				d_dma->do_dma();
+			}
+		}
+		return;
+	}
+	if(div_count < 2) {
 		div_count++;
 		return;
 	}
 	div_count = 0;
-	// check DDMA
-	if(cmd & 4) {
-		return;
-	}
 
 	// run dma
 	bool is_use_debugger = false;
 	if(__USE_DEBUGGER) {
-		if(d_debugger != NULL) {
+		__LIKELY_IF(d_debugger != NULL) {
 			is_use_debugger = d_debugger->now_device_debugging;
 		}
 	}
@@ -464,17 +654,20 @@ void TOWNS_DMAC::do_dma()
 			break;
 		}
 	}
-	if(_SINGLE_MODE_DMA) {
-		if(d_dma) {
-			d_dma->do_dma();
-		}
-	}
 }
 void TOWNS_DMAC::event_callback(int event_id, int err)
 {
 	__LIKELY_IF(event_id == EVENT_DMAC_CYCLE) {
-		if(((cmd & 4) == 0) && (((req | sreq) & 0x0f) != 0)) {
-			do_dma();
+		bool is_use_debugger = false;
+		if(__USE_DEBUGGER) {
+			__LIKELY_IF(d_debugger != NULL) {
+				is_use_debugger = d_debugger->now_device_debugging;
+			}
+		}
+		for(int ch = 0; ch < 4; ch++) {
+			if(is_started[ch]) {
+				do_dma_per_channel(ch, is_use_debugger, false);
+			}
 		}
 	}
 }
@@ -492,19 +685,8 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 		dma_wrap = (data  != 0) ? true : false;
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if((id >= SIG_TOWNS_DMAC_EOT_CH0) && (id <= SIG_TOWNS_DMAC_EOT_CH3)) {
-		if((cmd & 0x04) == 0) {
-			int ch = id - SIG_TOWNS_DMAC_EOT_CH0;
-			switch(dma[ch].mode & 0xc0) {
-			case 0x00: // Demand
-			case 0x80: // Block
-				end_req[ch] = true;
-				break;
-			//case 0xc0: // Cascade
-			//case 0x40: // Single
-			default:
-				break;
-			}
-		}
+		int ch = id - SIG_TOWNS_DMAC_EOT_CH0;
+		end_req[ch] = true;
 	} else {
 		// Fallthrough.
 		__LIKELY_IF((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
@@ -518,14 +700,21 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 						if(((_mask & bit) == 0) && ((cmd & 4) == 0)) { // MASK register MASKS DRQ.20200918 K.O
 							// Without #define SINGLE_MODE_DMA ,
 							// DMA trasfer is triggerd by SIGNAL or writing I/O 0Eh.
-							bool is_use_debugger = false;
-							if(__USE_DEBUGGER) {
-								if(d_debugger != NULL) {
-									is_use_debugger = d_debugger->now_device_debugging;
+							if((event_dmac_cycle < 0) || ((dma[ch].mode & 0xc0) == 0x40)) {
+								if((dma[ch].mode & 0xc0) != 0x40) {
+									clear_event(this, event_dmac_cycle);
+									register_event_by_clock(this, EVENT_DMAC_CYCLE, 2, true, &event_dmac_cycle);
+//								register_event(this, EVENT_DMAC_CYCLE, 0.125, true, &event_dmac_cycle);
+								} else {
+									bool is_use_debugger = false;
+									if(__USE_DEBUGGER) {
+										if(d_debugger != NULL) {
+											is_use_debugger = d_debugger->now_device_debugging;
+										}
+									}
+									do_dma_per_channel(ch, is_use_debugger, false);
 								}
 							}
-							do_dma_per_channel(ch, is_use_debugger, true);
-							req &= ~bit;
 						}
 					}
 				}
@@ -582,7 +771,7 @@ bool TOWNS_DMAC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return false;
 }
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 {
@@ -596,11 +785,18 @@ bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateValue(dma_wrap);
-	state_fio->StateArray(is_16bit_transfer, sizeof(is_16bit_transfer), 1);
+	state_fio->StateArray(is_started, sizeof(is_started), 1);
 	state_fio->StateArray(end_stat, sizeof(end_stat), 1);
 	state_fio->StateArray(end_stat, sizeof(end_stat), 1);
 	state_fio->StateValue(div_count);
+
 	state_fio->StateValue(event_dmac_cycle);
+
+	if(loading) {
+		for(int ch = 0; ch < 4; ch++) {
+			calc_transfer_status(ch);
+		}
+	}
 	return true;
 }
 
