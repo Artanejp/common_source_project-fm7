@@ -337,7 +337,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit1->set_constant_clock(2, 1229900);
 	//pic->set_context_cpu(cpu);
 	pic->set_context_cpu(memory);
+
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
+	fdc->set_context_irq(dma, SIG_TOWNS_DMAC_EOT_CH0, 1);
+
 	rtc->set_context_data(timer, SIG_TIMER_RTC, 0x0f, 0);
 	rtc->set_context_busy(timer, SIG_TIMER_RTC_BUSY, 0x80);
 	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);

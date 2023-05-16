@@ -682,11 +682,13 @@ uint32_t TOWNS_DMAC::read_signal(int id)
 void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 {
 	if(id == SIG_TOWNS_DMAC_WRAP) {
-		dma_wrap = (data  != 0) ? true : false;
+		dma_wrap = ((data & _mask) != 0) ? true : false;
 //		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if((id >= SIG_TOWNS_DMAC_EOT_CH0) && (id <= SIG_TOWNS_DMAC_EOT_CH3)) {
 		int ch = id - SIG_TOWNS_DMAC_EOT_CH0;
-		end_req[ch] = true;
+		if((data & _mask) != 0) {
+			end_req[ch] = true;
+		}
 	} else {
 		// Fallthrough.
 		__LIKELY_IF((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
