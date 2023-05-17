@@ -18,8 +18,9 @@ protected:
 	bool dma_wrap;
 	bool force_16bit_transfer[4];
 	outputs_t outputs_ube[4];
+	outputs_t outputs_ack[4];
 
-	int div_count;
+	uint8_t div_count;
 	// Temporally workaround for SCSI.20200318 K.O
 	bool address_aligns_16bit[4];
 	bool is_16bit_transfer[4];
@@ -31,6 +32,40 @@ protected:
 
 	int event_dmac_cycle;
 
+	virtual void __FASTCALL kick_dma_cycle(int ch);
+	virtual void __FASTCALL call_dma(int ch);
+	inline void __FASTCALL set_ack(int ch, bool val)
+	{
+		write_signals(&(outputs_ack[ch]), (val) ? 0xffffffff : 0);
+	}
+	virtual inline void check_running()
+	{
+		__UNLIKELY_IF((event_dmac_cycle < 0) || (_SINGLE_MODE_DMA)) {
+			return;
+		}
+		for(int ch = 0; ch < 4; ch++) {
+			__UNLIKELY_IF(is_started[ch]) {
+				return;
+			}
+		}
+		// OK. All channels are stopped.
+		cancel_event(this, event_dmac_cycle);
+		event_dmac_cycle = -1;
+		return;
+	}
+	virtual inline void __FASTCALL reset_dma_counter(int ch)
+	{
+		uint8_t c = ch & 3;
+		uint8_t bit = 1 << c;
+		if(dma[c].mode & 0x10) {
+			// auto initialize
+			dma[c].areg = dma[c].bareg;
+			dma[c].creg = dma[c].bcreg;
+		} else {
+			mask |= bit;
+			is_started[c] = false;
+		}
+	}
 	virtual inline __FASTCALL void calc_transfer_status(int ch)
 	{
 		address_aligns_16bit[ch] = ((dma[ch].areg & 0x00000001) == 0);
@@ -47,6 +82,8 @@ protected:
 	virtual uint32_t __FASTCALL read_16bit_from_memory(uint32_t addr, int* wait, bool is_use_debugger);
 	virtual void __FASTCALL write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, bool is_use_debugger);
 	virtual bool __FASTCALL do_dma_per_channel(int ch, bool is_use_debugger, bool force_exit);
+	virtual void do_dma_internal();
+
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
 	{
@@ -56,6 +93,7 @@ public:
 			is_16bit_transfer[ch] = false;
 			is_16bit[ch] = false;
 			initialize_output_signals(&outputs_ube[ch]);
+			initialize_output_signals(&outputs_ack[ch]);
 		}
 	}
 	~TOWNS_DMAC() {}
@@ -82,6 +120,10 @@ public:
 	void set_context_ube(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ube[ch & 3], device, id, mask);
+	}
+	void set_context_ack(int ch, DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_ack[ch & 3], device, id, mask);
 	}
 };
 
