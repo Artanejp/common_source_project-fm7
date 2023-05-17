@@ -368,7 +368,7 @@ void UPD71071::do_dma()
 					sreq &= ~bit;
 					tc |= bit;
 					running = false;
-					write_signals(&outputs_tc[c], 0xffffffff);
+					write_signals(&outputs_tc, 0xffffffff);
 				} else if((dma[c].mode & 0xc0) == 0x40) {
 					// single mode
 					running = false;

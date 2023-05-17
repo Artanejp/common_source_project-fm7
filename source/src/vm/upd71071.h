@@ -31,7 +31,7 @@ protected:
 	DEBUGGER *d_debugger;
 	bool _SINGLE_MODE_DMA;
 
-	outputs_t outputs_tc[4];
+	outputs_t outputs_tc;
 
 	struct {
 		DEVICE* dev;
@@ -58,9 +58,7 @@ public:
 		d_dma = NULL;
 		d_debugger = NULL;
 		_SINGLE_MODE_DMA = false;
-		for(int c = 0; c < 4; c++) {
-			initialize_output_signals(&outputs_tc[c]);
-		}
+		initialize_output_signals(&outputs_tc);
 		set_device_name(_T("uPD71071 DMAC"));
 	}
 	~UPD71071() {}
@@ -121,27 +119,10 @@ public:
 	{
 		d_debugger = device;
 	}
-	constexpr void set_context_tc(int ch, DEVICE* device, int id, uint32_t mask)
+	void set_context_tc(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_tc[ch & 3], device, id, mask);
+		register_output_signal(&outputs_tc, device, id, mask);
 	}
-	void set_context_tc0(DEVICE* device, int id, uint32_t mask)
-	{
-		set_context_tc(0, device, id, mask);
-	}
-	void set_context_tc1(DEVICE* device, int id, uint32_t mask)
-	{
-		set_context_tc(1, device, id, mask);
-	}
-	void set_context_tc2(DEVICE* device, int id, uint32_t mask)
-	{
-		set_context_tc(2, device, id, mask);
-	}
-	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
-	{
-		set_context_tc(3, device, id, mask);
-	}
-
 };
 
 #endif
