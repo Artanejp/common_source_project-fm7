@@ -258,6 +258,7 @@ class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
 	outputs_t outputs_mcuint;
+	outputs_t outputs_eot;
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
 	FIFO* databuffer;
@@ -512,6 +513,7 @@ public:
 
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_mcuint);
+		initialize_output_signals(&outputs_eot);
 		set_device_name(_T("FM-Towns CD-ROM drive"));
 		d_dmac = NULL;
 		// For Debugging, will remove 20200822 K.O
@@ -649,6 +651,10 @@ public:
 	void set_context_drq_line(DEVICE* dev, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, dev, id, mask);
+	}
+	void set_context_eot_line(DEVICE* dev, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_eot, dev, id, mask);
 	}
 	void set_context_dmac(DEVICE* d)
 	{
