@@ -366,13 +366,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	extra_dma->set_context_cpu(NULL);
 	extra_dma->set_context_memory(memory);
 
-	dma->set_context_tc(scsi, SIG_SCSI_EOT, 0xffffffff);
-	dma->set_context_tc(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
+	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
+	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 
 	dma->set_context_ube(1, scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
-	dma->set_context_ack(1, scsi_host, SIG_SCSI_ACK, 0xffffffff);
-	dma->set_context_ack(3, cdrom, SIG_TOWNS_CDROM_DMAACK, 0xffffffff);
-	//dma->set_context_child_dma(extra_dma);
+	//dma->set_context_ack(1, scsi_host, SIG_SCSI_ACK, 0xffffffff);
+	//dma->set_context_ack(3, cdrom, SIG_TOWNS_CDROM_DMAACK, 0xffffffff);
+	dma->set_context_child_dma(extra_dma);
 
 	floppy->set_context_fdc(fdc);
 
