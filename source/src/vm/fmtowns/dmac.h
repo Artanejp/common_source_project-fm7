@@ -19,6 +19,7 @@ protected:
 	bool force_16bit_transfer[4];
 	outputs_t outputs_ube[4];
 	outputs_t outputs_ack[4];
+	outputs_t outputs_towns_tc[4];
 
 	uint8_t div_count;
 	// Temporally workaround for SCSI.20200318 K.O
@@ -53,7 +54,8 @@ protected:
 		event_dmac_cycle = -1;
 		return;
 	}
-	virtual inline void __FASTCALL reset_dma_counter(int ch)
+
+	inline void __FASTCALL reset_dma_counter(int ch)
 	{
 		uint8_t c = ch & 3;
 		uint8_t bit = 1 << c;
@@ -66,7 +68,7 @@ protected:
 			is_started[c] = false;
 		}
 	}
-	virtual inline __FASTCALL void calc_transfer_status(int ch)
+	inline void __FASTCALL calc_transfer_status(int ch)
 	{
 		address_aligns_16bit[ch] = ((dma[ch].areg & 0x00000001) == 0);
 		is_16bit_transfer[ch] = (((dma[ch].mode & 0x01) == 1)
@@ -74,6 +76,8 @@ protected:
 									&& (address_aligns_16bit[selch]));
 		is_16bit[ch] = (is_16bit_transfer[ch] || force_16bit_transfer[ch]);
 	}
+	bool __FASTCALL check_end_req(int c);
+
 	virtual void __FASTCALL inc_dec_ptr_a_byte(const int c, const bool inc) override;
 	virtual void __FASTCALL inc_dec_ptr_two_bytes(const int c, const bool inc) override;
 
@@ -94,6 +98,7 @@ public:
 			is_16bit[ch] = false;
 			initialize_output_signals(&outputs_ube[ch]);
 			initialize_output_signals(&outputs_ack[ch]);
+			initialize_output_signals(&outputs_towns_tc[ch]);
 		}
 	}
 	~TOWNS_DMAC() {}
@@ -124,6 +129,22 @@ public:
 	void set_context_ack(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ack[ch & 3], device, id, mask);
+	}
+	void set_context_tc0(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_towns_tc[0], device, id, mask);
+	}
+	void set_context_tc1(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_towns_tc[1], device, id, mask);
+	}
+	void set_context_tc2(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_towns_tc[2], device, id, mask);
+	}
+	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_towns_tc[3], device, id, mask);
 	}
 };
 
