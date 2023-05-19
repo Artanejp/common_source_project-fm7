@@ -184,7 +184,7 @@ void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 
 	case SIG_SCSI_DRQ:
-		__LIKELY_IF(/*((ctrl_reg & CTRL_DMAE) != 0) && */(dma_enabled)) {
+		__LIKELY_IF(((ctrl_reg & CTRL_DMAE) != 0) /*&& (dma_enabled)*/) {
 			__LIKELY_IF(d_dma != NULL) {
 				d_dma->write_signal(SIG_UPD71071_CH1, data, mask);
 			}
