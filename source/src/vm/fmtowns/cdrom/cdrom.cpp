@@ -254,8 +254,9 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	clear_event(this, event_eot);
 
 	bool _b = dma_transfer_phase;
+
 //	write_signals(&outputs_drq, 0x00000000);
-	if((read_length <= 0) && (databuffer->empty())) {
+//	if((read_length <= 0) && (databuffer->empty())) {
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
 		clear_event(this, event_drq);
@@ -269,20 +270,20 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 		}
 		if(_b) {
 			status_read_done(true);
-			set_dma_intr(true);
+			//set_dma_intr(true);
 			// set_eot();
 		}
-	} else {
+//	} else {
 		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
-		dma_transfer_phase = false;
-		if(!(by_signal)) {
-			write_signals(&outputs_eot, 0xffffffff);
-		}
-		if(_b) {
-			set_dma_intr(true);
-		}
-	}
+//		dma_transfer_phase = false;
+//		if(!(by_signal)) {
+//			write_signals(&outputs_eot, 0xffffffff);
+//		}
+//		if(_b) {
+//			//set_dma_intr(true);
+//		}
+//	}
 }
 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
@@ -325,11 +326,10 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		mute_left = ((data & mask) != 0) ? true : false;
 		mute_right = mute_left;
 		break;
-		// By DMA/TC, EOT.
+		// By DMA/TC, EOT.This means ABORTing request from EXTERNAL BUS.
 	case SIG_TOWNS_CDROM_DMAINT:
 		if(((data & mask) != 0) && (dma_transfer_phase)) {
 			//cdrom_debug_log(_T("CAUSED DMA INTERRUPT FROM DMAC"));
-			//clear_event(this, event_drq);
 			do_dma_eot(true);
 		}
 		break;
@@ -344,7 +344,6 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 					//clear_event(this, event_drq);
 					cdrom_debug_log(_T("MAYBE COMPLETE TO TRANSFER ALL DATA"));
 					//force_register_event(this, EVENT_CDROM_EOT, 1.0, false, event_eot);
-					//dma_transfer_phase = false;
 					do_dma_eot(false);
 				}
 			} else {
@@ -849,7 +848,7 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
 		fetch_datareg_8();
-		write_signals(&outputs_drq, 0x00000000);
+		//write_signals(&outputs_drq, 0x00000000);
 		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
 	}
 	return data_reg.b.l;
@@ -868,7 +867,7 @@ uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 //	bool is_empty = databuffer->empty();
 	if(dma_transfer_phase) {
 		fetch_datareg_16();
-		write_signals(&outputs_drq, 0x00000000);
+		//write_signals(&outputs_drq, 0x00000000);
 		// ToDo: Force register EOT JOB IF (read_length <= 0) && (databuffer->empty()).
 	}
 	return data_reg.w;
@@ -1563,18 +1562,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		clear_event(this, event_next_sector);
 		clear_event(this, event_time_out);
 		// ToDo: Prefetch 20201116
-#if 0
-//		if((databuffer->left() < logical_block_size()) && (read_length > 0)) {
-
-		if(!(databuffer->empty()) && (read_length > 0)) {
-			register_event(this, EVENT_CDROM_SEEK_COMPLETED,
-						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-						   2.0,
-						   false,
-						   &event_seek_completed);
-			break; // EXIT
-		}
-#endif
 		if(read_length > 0) {
 			bool stat = false;
 			status_seek = true;
@@ -1618,6 +1605,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				register_event(this, EVENT_CDROM_DRQ,
 							   1.0 / 4.0,
 							   true, &event_drq);
+			}
+			if(dma_transfer) {
+				set_dma_intr(true);
 			}
 		}
 		// ToDo: Prefetch
