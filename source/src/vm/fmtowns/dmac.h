@@ -30,14 +30,28 @@ protected:
 	bool is_started[4];
 	bool end_req[4];
 	bool end_stat[4];
-
+	double dmac_cycle_us;
 	int event_dmac_cycle;
 
-	virtual void __FASTCALL kick_dma_cycle(int ch);
 	virtual void __FASTCALL call_dma(int ch);
 	inline void __FASTCALL set_ack(int ch, bool val)
 	{
 		write_signals(&(outputs_ack[ch]), (val) ? 0xffffffff : 0);
+	}
+	void check_start_condition();
+	constexpr bool check_address_16bit_bus_changed(int ch)
+	{
+		bool __is_align_bak = address_aligns_16bit[ch];
+		address_aligns_16bit[ch] = ((dma[ch].areg & 0x00000001) == 0);
+		__UNLIKELY_IF(__is_align_bak != address_aligns_16bit[ch]) {
+			calc_transfer_status(ch);
+			return true;
+		}
+		return false;
+	}
+	constexpr void __FASTCALL set_ube_line(int ch)
+	{
+		write_signals(&(outputs_ack[ch]), (is_16bit[ch]) ? 0xffffffff : 0);
 	}
 	virtual inline void check_running()
 	{
@@ -76,7 +90,31 @@ protected:
 									&& (address_aligns_16bit[selch]));
 		is_16bit[ch] = (is_16bit_transfer[ch] || force_16bit_transfer[ch]);
 	}
-	bool __FASTCALL check_end_req(int c);
+	constexpr void do_end_sequence(int c, bool is_send_tc)
+	{
+		c = c & 3;
+		const uint8_t bit = 1 << c;
+		reset_dma_counter(c);
+		req &= ~bit;
+		sreq &= ~bit;
+		running = false;
+		end_req[c] = false;
+		check_running();
+		set_ack(c, true);
+		if(is_send_tc) {
+			write_signals(&outputs_towns_tc[c], 0xffffffff);
+		}
+		tc |= bit;	// From MAME 0.246 ;
+					// TC REGISTER's BIT maybe set after TC line asserted. 20230521 K.O
+	}
+	constexpr bool check_end_req(int c)
+	{
+		c &= 3;
+		__UNLIKELY_IF((end_req[c]) && ((dma[c].mode & 0xc0) != 0x40)) {
+			return true;
+		}
+		return false;
+	}
 
 	virtual void __FASTCALL inc_dec_ptr_a_byte(const int c, const bool inc) override;
 	virtual void __FASTCALL inc_dec_ptr_two_bytes(const int c, const bool inc) override;
@@ -91,6 +129,7 @@ protected:
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
 	{
+		dmac_cycle_us = 1.0 / 4.0; // Default is 4MHz.
 		set_device_name(_T("FM-Towns uPD71071 DMAC"));
 		for(int ch = 0; ch < 4; ch++) {
 			force_16bit_transfer[ch] = false;

@@ -35,16 +35,6 @@ void TOWNS_DMAC::reset()
 	}
 }
 
-void TOWNS_DMAC::kick_dma_cycle(int ch)
-{
-	__LIKELY_IF(event_dmac_cycle >= 0) {
-		return;
-	}
-	ch &= 3;
-	__UNLIKELY_IF(((dma[ch].mode & 0xc0) != 0x40)  && !(_SINGLE_MODE_DMA)) { // Excepts SINGLE
-		register_event_by_clock(this, EVENT_DMAC_CYCLE, 2, true, &event_dmac_cycle);
-	}
-}
 
 void TOWNS_DMAC::call_dma(int ch)
 {
@@ -79,7 +69,6 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		check_running();
 		for(int ch = 0; ch < 4; ch++) {
-			//write_signals(&outputs_towns_tc[ch], ((tc & (1 << ch)) != 0) ? 0xffffffff : 0);
 			write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0);
 		}
 		out_debug_log(_T("RESET from I/O; B16=%s"), ((b16 & 2) != 0) ? _T("16bit") : _T("8bit"));
@@ -87,28 +76,20 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	case 0x02:
 	case 0x03:
 		// OK?
-		end_req[selch] = false;
 		UPD71071::write_io8(addr, data);
-		if(is_started[selch]) {
-			bool __is_16bit_bak = is_16bit[selch];
-			calc_transfer_status(selch);
-			if(is_16bit[selch] != __is_16bit_bak) {
-				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
-			}
-		}
 		break;
 	case 0x04:
 		dma[selch].bareg = (dma[selch].bareg & 0xffffff00) | data;
 //		if(!base) {
 			dma[selch].areg = (dma[selch].areg & 0xffffff00) | data;
 //		}
+		#if 0
 		if(is_started[selch]) {
-			bool __is_16bit_bak = is_16bit[selch];
-			calc_transfer_status(selch);
-			if(is_16bit[selch] != __is_16bit_bak) {
-				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
+			if(check_address_16bit_bus_changed(selch)) {
+				set_ube_line(selch);
 			}
 		}
+		#endif
 		break;
 	case 0x05:
 		dma[selch].bareg = (dma[selch].bareg & 0xffff00ff) | (data << 8);
@@ -132,19 +113,14 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	case 0x08:
 	case 0x09:
 		UPD71071::write_io8(addr, data);
-		if((cmd != cmd_bak) && ((cmd & 0x04) == 0)) {
-			for(int ch = 0; ch < 4; ch++) {
-				if(!(is_started[ch])) {
-					uint8_t bit = 1 << ch;
-					if((mask & bit) == 0) {
-						is_started[ch] = true;
-						//end_req[ch] = false;
-						calc_transfer_status(ch);
-						write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0x00000000); // Reset UBE
-						kick_dma_cycle(ch);
-					}
-				}
-			}
+	#if 1
+		if(/*(cmd != cmd_bak) && */((cmd & 0x04) == 0)) {
+			check_start_condition();
+		} else {
+			check_running();
+		}
+		#if 0
+		if(cmd != cmd_bak) {
 			out_debug_log(_T("CMD CHANGED from %04X to 0x%04X : MAYBE START to TRANSFER"),
 						  cmd_bak, cmd);
 			static const _TCHAR *dir[4] = {
@@ -159,9 +135,9 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 							  dma[ch].mode,
 							  dir[(dma[ch].mode >> 2) & 3]);
 			}
-		} else {
-			out_debug_log(_T("CMD CHANGED from %04X to 0x%04X"), cmd_bak, cmd);
 		}
+		#endif
+	#endif
 		break;
 		// MODE
 	case 0x0a:
@@ -184,48 +160,50 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		//   BYTE = 0
 		//   WORD = 1
 		UPD71071::write_io8(addr, data);
-		if(!(is_started[selch])) {
-			uint8_t bit = 1 << selch;
-			if((mask & bit) == 0) {
-				is_started[selch] = true;
-				//end_req[selch] = false;
-				calc_transfer_status(selch);
-				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
-				kick_dma_cycle(selch);
-				//write_signals(&outputs_towns_tc[selch], 0);
 
-			}
-		}
-		out_debug_log(_T("MODE CHANGED at CH.%d to 0x%02X Request 16bit=%s"), selch, dma[selch].mode,
-					  (is_16bit_transfer[selch]) ? _T("Yes") : _T("NO"));
+		#if 1
+		/* DO NOTHING */
+		#endif
+		out_debug_log(_T("MODE CHANGED at CH.%d to 0x%02X Request 16bit=%s CMD=%02X"), selch, dma[selch].mode,
+					  (is_16bit_transfer[selch]) ? _T("Yes") : _T("NO"),
+					  cmd);
+		static const _TCHAR *dir[4] = {
+			_T("VERIFY"), _T("I/O->MEM"), _T("MEM->I/O"), _T("INVALID")
+		};
+		out_debug_log(_T("CH%d AREG=%08X CREG=%04X BAREG=%08X BCREG=%04X REQ=%d MASK=%d MODE=%02X %s"),
+					  selch, dma[selch].areg, dma[selch].creg, dma[selch].bareg, dma[selch].bcreg,
+					  ((req | sreq) >> selch) & 1,
+					  (mask >> selch) & 1,
+					  dma[selch].mode,
+					  dir[(dma[selch].mode >> 2) & 3]);
 		break;
 		// MASK
 	case 0x0e:
-		if((sreq = data) != 0) {
-			if(!(_SINGLE_MODE_DMA)) {
-				do_dma_internal();
-				for(int ch = 0; ch < 4; ch++) {
-					__UNLIKELY_IF(((dma[ch].mode & 0xc0) != 0x40) && (is_started[ch])){ // NOT SINGLE
-						kick_dma_cycle(ch);
-						break;
-					}
+		{
+			const uint8_t sreq_b = sreq;
+			if(((sreq = data) & 0x0f) != 0) {
+				if(((sreq_b ^ sreq) & 0x0f) != 0) {
+					// SREQ CHANGED.
+					check_start_condition();
 				}
 			}
 		}
 		break;
+		// MASK
 	case 0x0f:
-		UPD71071::write_io8(addr, data);
-		if(!(is_started[selch])) {
-			uint8_t bit = 1 << selch;
-			if((mask & bit) == 0) {
-				is_started[selch] = true;
-				calc_transfer_status(selch);
-				//end_req[selch] = false;
-				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000); // Reset UBE
-				//write_signals(&outputs_towns_tc[ch], ((tc & (1 << ch)) != 0) ? 0xffffffff : 0);
-				kick_dma_cycle(selch);
+		#if 1
+		{
+			const uint8_t _mask_b = mask;
+			const uint8_t bit = 1 << selch;
+			UPD71071::write_io8(addr, data);
+
+			// Check when mask[selch] has changed,
+			if(((mask ^ _mask_b) & bit) != 0) {
+				check_start_condition();
+				check_running();
 			}
 		}
+		#endif
 		// Add trigger of transfer by SREQ.
 		//need_transfer = (!(_SINGLE_MODE_DMA) && ((cmd & 0x04) == 0));
 		break;
@@ -233,9 +211,9 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		UPD71071::write_io8(addr, data);
 		break;
 	}
-	if((need_transfer) && ((cmd & 4) == 0)) {
-		do_dma();
-	}
+//	if((need_transfer) && ((cmd & 4) == 0)) {
+//		do_dma();
+//	}
 }
 
 uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
@@ -384,37 +362,46 @@ void TOWNS_DMAC::write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, 
 	}
 }
 
-bool TOWNS_DMAC::check_end_req(int c)
+
+void TOWNS_DMAC::check_start_condition()
 {
-	c &= 3;
-	__UNLIKELY_IF(end_req[c]) {
-		//reset_dma_counter(c); // OK?
-		uint8_t bit = 1 << c;
-		req &= ~bit;
-		sreq &= ~bit;
-		tc |= bit;
-		running = false;
-		is_started[c] = false;
-		end_req[c] = false;
-		check_running();
-		return true;
+	for(int ch = 0; ch < 4; ch++) {
+		uint8_t bit = 1 << ch;
+		if(((mask & bit) == 0) && (((req | sreq) & bit) != 0)) {
+			if(!(is_started[ch])) {
+				is_started[ch] = true;
+				calc_transfer_status(selch);
+				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000);
+				end_req[selch] = false;
+				__UNLIKELY_IF((event_dmac_cycle < 0) && !(_SINGLE_MODE_DMA)) {
+					register_event(this, EVENT_DMAC_CYCLE, dmac_cycle_us, true, &event_dmac_cycle);
+				}
+			}
+		} else {
+			if(is_started[ch]) {
+				is_started[ch] = false;
+				check_running();
+			}
+		}
 	}
-	return false;
 }
 
 bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exit)
 {
 	int c = ch & 3;
 	uint8_t bit = 1 << c;
-	if(((req | sreq) & bit) && !(mask & bit) /*&& (is_started[c])*/) {
+	if(/*((req | sreq) & bit) && !(mask & bit) && */(is_started[c])) {
 		// execute dma
 		// This is workaround for FM-Towns's SCSI.
+
 		bool __is_16bit = (is_16bit_transfer[c] || force_16bit_transfer[c]);
 		if(__is_16bit != is_16bit[c]) {
 			is_16bit[c] = __is_16bit;
 			write_signals(&outputs_ube[c], (__is_16bit) ? 0xffffffff : 0x00000000); // Reset UBE
 		}
-		while((req | sreq) & bit) {
+
+		//while((req | sreq) & bit) {
+		if((req | sreq) & bit) {
 			set_ack(c, false);
 			int wait = 0, wait_r = 0, wait_w = 0;
 			bool compressed = ((cmd & 0x08) != 0);
@@ -506,74 +493,42 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 			//       DRQ came from SCSI before this state change).
 			// ToDo: Stop correctly before setting.
 			// CHECK COUNT DOWN REACHED.
-			__UNLIKELY_IF(dma[c].creg == 0) {
-				// TC
-				dma[c].creg--;
-				reset_dma_counter(c);
-				req &= ~bit;
-				sreq &= ~bit;
-				tc |= bit;
-				running = false;
-				end_req[c] = false;
-				check_running();
+			bool is_end = check_end_req(c);
+			__UNLIKELY_IF((dma[c].creg == 0) || (is_end)) {
 				set_ack(c, true);
-				write_signals(&outputs_towns_tc[c], 0xffffffff);
-				return false;
+				// TC
+				dma[c].creg--; // OK?
+				do_end_sequence(c, !(is_end));
+				__LIKELY_IF((_SINGLE_MODE_DMA) || ((dma[c].mode & 0xc0) == 0x40)) {
+					//	running = false;
+					return true;
+				}
+				//return false;
 			} else {
 				// IF NOT COUNTDOWN REACHED.
 				dma[c].creg--;
 				uint8_t _mode = dma[c].mode & 0xc0;
+				set_ack(c, true);
 				if(_mode == 0x40) {
 					// SINGLE
 					// WHY TC:
 					// - STOP PER BYTE/WORD TRANSFER.
 					//   SOMETHING DON'T ASSERT TC, EXCEPTS COUNT DOWN REACHED TO 0.
-					//req &= ~bit;
-					//sreq &= ~bit;
-					set_ack(c, true);
-					__LIKELY_IF(_SINGLE_MODE_DMA) {
-						//	running = false;
-						return true;
-					}
-					//return false;
+					req &= ~bit;
+					sreq &= ~bit;
+					running = false;
 				} else if(_mode == 0x00) {
 					// DEMAND (0x00)
 					// WHY TC:
 					// - END_REQ[c] asserted.
 					// - DMA REQ MADE INACTIVE.
-					__UNLIKELY_IF(check_end_req(c)) {
-						reset_dma_counter(c);
-						set_ack(c, true);
-						//write_signals(&outputs_towns_tc[c], 0xffffffff);
-						return false;
-					} else {
-						__UNLIKELY_IF((req & bit) == 0) {
-							reset_dma_counter(c);
-							req &= ~bit;
-							sreq &= ~bit;
-							tc |= bit;
-							running = false;
-
-							end_req[c] = false;
-							check_running();
-							set_ack(c, true);
-							write_signals(&outputs_towns_tc[c], 0xffffffff);
-							return false;
-						}
-					}
-				} else {
-					// BLOCK  (0x80)
-					// WHY TC:
-					// - END_REQ[c] asserted.
-					if(check_end_req(c)) {
-						reset_dma_counter(c);
-						set_ack(c, true);
-						//write_signals(&outputs_towns_tc[c], 0xffffffff);
-						return false;
+					__UNLIKELY_IF((req & bit) == 0) {
+						do_end_sequence(c, true);
 					}
 				}
-				set_ack(c, true);
-				//return false;
+				__LIKELY_IF(_SINGLE_MODE_DMA) {
+					return true;
+				}
 			}
 			__UNLIKELY_IF(force_exit) {
 				return false;;
@@ -643,11 +598,8 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 			end_req[ch] = true;
 			out_debug_log(_T("END#%d ASSERTED"), ch);
 			if(!(_SINGLE_MODE_DMA)) {
-				__LIKELY_IF((is_started[ch]) && ((dma[ch].mode & 0xc0) != 0x40)) {
-					if(check_end_req(ch)) {
-						reset_dma_counter(ch);
-						//write_signals(&outputs_towns_tc[ch], 0xffffffff); // OK?
-					}
+				if((dma[ch].mode & 0xc0) != 0x40) { // WITHOUT SINGLE
+					do_end_sequence(ch, false); // Check immediately.
 				}
 			}
 		}
@@ -661,14 +613,17 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 				if(!(req & bit)) {
 					req |= bit;
 					if(!(_SINGLE_MODE_DMA)) {
-						call_dma(ch);
-						__UNLIKELY_IF((_mode != 0x40) && (is_started[ch])){ // NOT SINGLE
-							kick_dma_cycle(ch);
-						}
+						check_start_condition();
+						call_dma(ch); // OK?
 					}
 				}
 			} else {
+				uint8_t _b = req & bit;
 				req &= ~bit;
+				if(!(_SINGLE_MODE_DMA) && (_b)) { // ON -> OFF
+					check_start_condition();
+					check_running();
+				}
 			}
 		} else {
 			// Fallthrough.
