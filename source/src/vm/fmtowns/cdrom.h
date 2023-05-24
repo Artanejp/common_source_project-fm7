@@ -204,7 +204,8 @@ enum {
 	TOWNS_CD_STATUS_SUBQ_READ2		= 0x18,
 	TOWNS_CD_STATUS_SUBQ_READ3		= 0x18,
 	TOWNS_CD_STATUS_CMD_ABEND		= 0x21,
-	TOWNS_CD_STATUS_DATA_READY		= 0x22,
+	TOWNS_CD_STATUS_DATA_PIO		= 0x21,
+	TOWNS_CD_STATUS_DATA_DMA		= 0x22,
 	TOWNS_CD_STATUS_UNKNOWN			= 0xff,
 };
 
@@ -474,6 +475,8 @@ protected:
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
 	virtual void do_dma_eot(bool by_signal);
+	void start_drq();
+	void stop_drq();
 
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
