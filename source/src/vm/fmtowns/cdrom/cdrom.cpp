@@ -254,9 +254,10 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 	clear_event(this, event_eot);
 
 	bool _b = dma_transfer_phase;
+	dma_transfer_phase = false;
 
-//	write_signals(&outputs_drq, 0x00000000);
-//	if((read_length <= 0) && (databuffer->empty())) {
+	write_signals(&outputs_drq, 0x00000000);
+	if((read_length <= 0) && (databuffer->empty())) {
 		clear_event(this, event_next_sector);
 		clear_event(this, event_seek_completed);
 		clear_event(this, event_drq);
@@ -264,26 +265,21 @@ void TOWNS_CDROM::do_dma_eot(bool by_signal)
 
 		dma_transfer = false;
 		status_seek = false;
-		dma_transfer_phase = false;
 		if(!(by_signal)) {
 			write_signals(&outputs_eot, 0xffffffff);
 		}
-		if(_b) {
-			status_read_done(true);
-			//set_dma_intr(true);
-			// set_eot();
-		}
-//	} else {
-		//cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
+		status_read_done(true);
+	} else {
+		cdrom_debug_log(_T("NEXT(%s/DMA)"), (by_signal) ? by_dma : by_event);
 		// TRY: Register after EOT. 20201123 K.O
-//		dma_transfer_phase = false;
 //		if(!(by_signal)) {
 //			write_signals(&outputs_eot, 0xffffffff);
 //		}
-//		if(_b) {
-//			//set_dma_intr(true);
-//		}
-//	}
+	}
+	if(_b) {
+		set_dma_intr(true);
+	}
+
 }
 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
