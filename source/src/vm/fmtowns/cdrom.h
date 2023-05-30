@@ -288,7 +288,6 @@ protected:
 	int subq_bitptr;
 	int subq_bitwidth;
 	bool subq_overrun;
-	bool is_playing;
 
 	int stat_track;
 
@@ -331,6 +330,7 @@ protected:
 	bool req_status;
 
 	bool stat_reply_intr;
+	bool has_status;
 	bool mcu_ready;
 
 	bool mcu_intr;
@@ -393,6 +393,7 @@ protected:
 
 	bool is_device_ready();
 	void reset_device();
+
 	virtual void read_a_cdda_sample();
 
 	void send_mcu_ready();
