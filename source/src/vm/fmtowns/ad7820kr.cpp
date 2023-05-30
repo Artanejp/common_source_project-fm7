@@ -162,7 +162,7 @@ void AD7820KR::write_signal(int ch, uint32_t data, uint32_t mask)
 			if(event_sample < 0) {
 				start_sample(1.36);
 			}
-		}			
+		}
 		break;
 	case SIG_AD7820_SAMPLE_RATE:
 		this_sample_rate = data;
