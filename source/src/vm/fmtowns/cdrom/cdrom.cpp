@@ -2767,7 +2767,7 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 		val = val | ((dma_transfer_phase)		? 0x10 : 0x00); // USING DMAC ch.3
 		// ToDo: FIX to lack queueing status with some commands
 		// 20230207 K.O
-		val = val | (!(status_queue->empty())	? 0x02 : 0x00);
+		val = val | ((status_queue->full())		? 0x02 : 0x00);
 //		val = val | ((has_status)				? 0x02 : 0x00);
 		val = val | ((mcu_ready)				? 0x01 : 0x00);
 //		if((mcu_intr) || (dma_intr)) {
@@ -3033,7 +3033,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (mcu_intr) ? _T("ON ") : _T("OFF"), (dma_intr) ? _T("ON ") : _T("OFF")
 				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
 				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
-				  , (!(status_queue->empty())) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
+				  , (status_queue->full()) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
 				  , current_track, index0, index1, pregap, lba_size, lba_offset
 				  , read_sector, read_length, databuffer->count()
 				  , latest_command, cmdname,  param, param_ptr, prev_command, prev_cmdname
