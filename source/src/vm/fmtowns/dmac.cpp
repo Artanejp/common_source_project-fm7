@@ -244,7 +244,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
-#if 0
+#if 1
 	uint32_t incdec = (inc) ? 1 : UINT32_MAX;
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
@@ -275,7 +275,7 @@ void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
 void TOWNS_DMAC::inc_dec_ptr_two_bytes(const int c, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
-#if 0
+#if 1
 	uint32_t incdec = (inc) ? 2 : (UINT32_MAX - 1);
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
