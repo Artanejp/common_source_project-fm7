@@ -75,7 +75,9 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x02:
 	case 0x03:
-		// OK?
+		// Reset TC bit for towns, by Tsugaru commit ab067790479064efce693f7317af13696cb68d96 .
+		tc &= ~(1 << selch);
+		write_signals(&outputs_towns_tc[selch], 0);
 		UPD71071::write_io8(addr, data);
 		break;
 	case 0x04:
@@ -241,7 +243,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 	return val;
 }
 
-void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
+void TOWNS_DMAC::inc_dec_ptr_a_byte(uint32_t& addr, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
 	// Note: By Tsugaru, commit e5920fdc1ba89ba10172f0954ecf1107bb592919,
@@ -260,123 +262,114 @@ void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
 	//					Still trying to find the correct sequence of CD-ROM drive
 	//					data transfer.
 	//					Unit test still temporarily broken.
-#if 1
+
 //	uint32_t incdec = (inc) ? 1 : UINT32_MAX;
 	const uint32_t incdec = 1;
-	uint32_t addr = dma[c].areg &   0x00ffffff;
-	uint32_t high_a = dma[c].areg & 0xff000000;
 	__LIKELY_IF(dma_wrap) {
+		uint32_t high_a = addr & 0xff000000;
 		addr = (addr + incdec) & 0x00ffffff;
 		addr = addr | high_a;
 	} else {
 		addr = (addr + incdec) & 0xffffffff;
 	}
-	dma[c].areg = addr;
-#else
-	uint32_t addr = dma[c].areg;
-//	if(inc) {
-		addr = addr + 1;
-//	} else {
-//		addr = addr - 1;
-//	}
-	__LIKELY_IF(dma_wrap) {
-		uint32_t high_a = dma[c].areg & 0xff000000;
-		addr = addr & 0x00ffffff;
-		addr = addr | high_a;
- 	}
-	dma[c].areg = addr;
-#endif
-
 }
 
-void TOWNS_DMAC::inc_dec_ptr_two_bytes(const int c, const bool inc)
+void TOWNS_DMAC::inc_dec_ptr_two_bytes(uint32_t& addr, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
-#if 1
+
 	//uint32_t incdec = (inc) ? 2 : (UINT32_MAX - 1);
 	const uint32_t incdec = 2;
-	uint32_t addr = dma[c].areg &   0x00ffffff;
-	uint32_t high_a = dma[c].areg & 0xff000000;
 	__LIKELY_IF(dma_wrap) {
+		uint32_t high_a = addr & 0xff000000;
 		addr = (addr + incdec) & 0x00ffffff;
 		addr = addr | high_a;
 	} else {
 		addr = (addr + incdec) & 0xffffffff;
 	}
-	dma[c].areg = addr;
-#else
-	uint32_t addr = dma[c].areg;
-//	if(inc) {
-		addr = addr + 2;
-//	} else {
-//		addr = addr - 2;
-//	}
-	__LIKELY_IF(dma_wrap) {
-		uint32_t high_a = dma[c].areg & 0xff000000;
-		addr = addr & 0x00ffffff;
-		addr = addr | high_a;
- 	}
-	dma[c].areg = addr;
-#endif
 }
 
-uint32_t TOWNS_DMAC::read_16bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
+inline uint32_t TOWNS_DMAC::read_16bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
 {
-
 	__UNLIKELY_IF(dev == nullptr) {
 		if(wait != nullptr) {
 			*wait = 0; // ToDo
 		}
 		return 0xffff;
 	}
-	pair32_t tmp;
-	int wait_h, wait_l;
-	tmp.d = 0;
-//	tmp.b.l = dev->read_dma_io8w(addr, &wait_l);
-//	tmp.b.h = dev->read_dma_io8w(addr, &wait_h);
-//	__LIKELY_IF(wait != nullptr) {
-//		*wait = wait_l + wait_h;
-//	}
-	tmp.w.l = dev->read_dma_io16w(addr, wait);
-	return tmp.d;
+	uint32_t val;
+	val = dev->read_dma_io16w(addr, wait);
+	return val;
 }
 
-void TOWNS_DMAC::write_16bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
+inline void TOWNS_DMAC::write_16bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
 {
-
 	__UNLIKELY_IF(dev == nullptr) {
 		if(wait != nullptr) {
 			*wait = 0; // ToDo
 		}
 		return;
 	}
-	pair32_t tmp;
-	int wait_h, wait_l;
-
-	tmp.d = data;
-//	dev->write_dma_io8w(addr, tmp.b.l, &wait_l);
-//	dev->write_dma_io8w(addr, tmp.b.h, &wait_h);
-//	__LIKELY_IF(wait != nullptr) {
-//		*wait = wait_l + wait_h;
-//	}
-	dev->write_dma_io16w(addr, tmp.w.l, wait);
+	dev->write_dma_io16w(addr, data, wait);
 }
 
-uint32_t TOWNS_DMAC::read_16bit_from_memory(uint32_t addr, int* wait, bool is_use_debugger)
+inline uint32_t TOWNS_DMAC::read_16bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
 {
-	__UNLIKELY_IF(is_use_debugger) {
+	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
 		return d_debugger->read_via_debugger_data16w(addr, wait);
 	} else {
-		return this->read_via_debugger_data16w(addr, wait);
+		return read_via_debugger_data16w(addr, wait);
 	}
 }
 
-void TOWNS_DMAC::write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, bool is_use_debugger)
+inline void TOWNS_DMAC::write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, const bool is_use_debugger)
 {
-	__UNLIKELY_IF(is_use_debugger) {
+	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
 		d_debugger->write_via_debugger_data16w(addr, data, wait);
 	} else {
-		this->write_via_debugger_data16w(addr, data, wait);
+		write_via_debugger_data16w(addr, data, wait);
+	}
+}
+
+inline uint32_t TOWNS_DMAC::read_8bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
+{
+	__UNLIKELY_IF(dev == nullptr) {
+		if(wait != nullptr) {
+			*wait = 0; // ToDo
+		}
+		return 0xff;
+	}
+	uint32_t val;
+	val = dev->read_dma_io8w(addr, wait);
+	return val;
+}
+
+inline void TOWNS_DMAC::write_8bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
+{
+	__UNLIKELY_IF(dev == nullptr) {
+		if(wait != nullptr) {
+			*wait = 0; // ToDo
+		}
+		return;
+	}
+	dev->write_dma_io8w(addr, data, wait);
+}
+
+inline uint32_t TOWNS_DMAC::read_8bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
+{
+	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
+		return d_debugger->read_via_debugger_data8w(addr, wait);
+	} else {
+		return read_via_debugger_data8w(addr, wait);
+	}
+}
+
+inline void TOWNS_DMAC::write_8bit_to_memory(uint32_t addr, uint32_t data, int* wait, const bool is_use_debugger)
+{
+	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
+		d_debugger->write_via_debugger_data8w(addr, data, wait);
+	} else {
+		write_via_debugger_data8w(addr, data, wait);
 	}
 }
 
@@ -404,10 +397,81 @@ void TOWNS_DMAC::check_start_condition()
 	}
 }
 
+inline void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, constexpr bool compressed, constexpr bool extended, bool is_use_debugger, int& wait)
+{
+	uint16_t val;
+	int wait_w = 0;
+	int wait_r = 0;
+	const int wait_extended = (compressed) ? 5 : 7;
+	switch(tr_mode & 0x0c) {
+	case 0x00: // VERIFY
+		val = read_16bit_from_device(dev, 0, &wait_r);
+		tmp = val;
+		read_16bit_from_memory(memory_address, &wait_w, is_use_debugger);
+		break;
+	case 0x04: // DEVICE TO MEMORY
+		val = read_16bit_from_device(dev, 0, &wait_r);
+		tmp = val;
+		write_16bit_to_memory(memory_address, val, &wait_w, is_use_debugger);
+		break;
+	case 0x08: // MEMORY TO DEVICE
+		val = read_16bit_from_memory(memory_address, &wait_r, is_use_debugger);
+		tmp = val;
+		write_16bit_to_device(dev, 0, val, &wait_w);
+		break;
+	case 0x0c: // MEMORY TO MEMORY : still unimplemented
+		break;
+	default:
+		break;
+	}
+	wait += wait_compressed;
+	if(extended) {
+		wait = wait + wait_r + wait_w;
+	}
+//				inc_dec_ptr_two_bytes(memory_adderss, !(tr_mode & 0x20));
+	inc_dec_ptr_two_bytes(memory_address, true);
+}
+
+inline void TOWNS_DMAC::do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, constexpr bool compressed, constexpr bool extended, bool is_use_debugger, int& wait)
+{
+	uint32_t val;
+	int wait_w = 0;
+	int wait_r = 0;
+	const int wait_compressed = (compressed) ? 5 : 7;
+	switch(tr_mode & 0x0c) {
+	case 0x00: // VERIFY
+		val = read_8bit_from_device(dev, 0, &wait_r);
+		tmp = ((tmp & 0xff00) >> 8) | ((val & 0xff) << 8);
+		read_8bit_from_memory(memory_address, &wait_w, is_use_debugger);
+		break;
+	case 0x04: // DEVICE TO MEMORY
+		val = read_8bit_from_device(dev, 0, &wait_r);
+		tmp = ((tmp & 0xff00) >> 8) | ((val & 0xff) << 8);
+		write_8bit_to_memory(memory_address, val, &wait_w, is_use_debugger);
+		break;
+	case 0x08: // MEMORY TO DEVICE
+		val = read_8bit_from_memory(memory_address, &wait_r, is_use_debugger);
+		tmp = ((tmp & 0xff00) >> 8) | ((val & 0xff) << 8);
+		write_8bit_to_device(dev, 0, val, &wait_w);
+		break;
+	case 0x0c: // MEMORY TO MEMORY : still unimplemented
+		break;
+	default:
+		break;
+	}
+	wait += wait_compressed;
+	if(extended) {
+		wait = wait + wait_r + wait_w;
+	}
+//				inc_dec_ptr_a_byte(memory_address, !(tr_mode & 0x20));
+	inc_dec_ptr_a_byte(memory_address, true);
+}
+
 bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exit)
 {
 	int c = ch & 3;
 	uint8_t bit = 1 << c;
+
 	if(/*((req | sreq) & bit) && !(mask & bit) && */(is_started[c])) {
 		// execute dma
 		// This is workaround for FM-Towns's SCSI.
@@ -418,14 +482,14 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 			write_signals(&outputs_ube[c], (__is_16bit) ? 0xffffffff : 0x00000000); // Reset UBE
 		}
 
-		//while((req | sreq) & bit) {
-		if((req | sreq) & bit) {
+		int wait = 0;
+		bool compressed = ((cmd & 0x08) != 0);
+		bool exptended = ((cmd & 0x20) != 0);
+		//while(((req | sreq) & bit) && (dma[c].creg <= dma[c].bcreg)) {
+		if(((req | sreq) & bit) && (dma[c].creg <= dma[c].bcreg)) {
 			set_ack(c, false);
-			int wait = 0, wait_r = 0, wait_w = 0;
-			bool compressed = ((cmd & 0x08) != 0);
-			bool exptended = ((cmd & 0x20) != 0);
 
-			if(!running) {
+			__UNLIKELY_IF(!running) {
 				wait += 2; // S0
 				running = true;
 			}
@@ -433,79 +497,15 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 			if(__is_16bit) {
 				// ToDo: Will check WORD transfer mode for FM-Towns.(mode.bit0 = '1).
 				// 16bit transfer mode
-				if((dma[c].mode & 0x0c) == 0x00) {
-					// verify
-					uint32_t val = read_16bit_from_device(dma[c].dev, 0, &wait_r);
-					read_16bit_from_memory(dma[c].areg, &wait_w, is_use_debugger);
-					wait += compressed ? 5 : 7;
-					if(exptended) wait += wait_r + wait_w;
-					// update temporary register
-					tmp = val;
-				} else if((dma[c].mode & 0x0c) == 0x04) {
-					// io -> memory
-					uint32_t val = read_16bit_from_device(dma[c].dev, 0, &wait_r);
-					write_16bit_to_memory(dma[c].areg, val, &wait_w, is_use_debugger);
-					wait += compressed ? 5 : 7;
-					if(exptended) wait += wait_r + wait_w;
-					// update temporary register
-					tmp = val;
-				} else if((dma[c].mode & 0x0c) == 0x08) {
-					// memory -> io
-					uint32_t val;
-					val = read_16bit_from_memory(dma[c].areg, &wait_r, is_use_debugger);
-					write_16bit_to_device(dma[c].dev, 0, val, &wait_w);
-					wait += compressed ? 5 : 7;
-					if(exptended) wait += wait_r + wait_w;
-					// update temporary register
-					tmp = val;
-				}
-//				inc_dec_ptr_two_bytes(c, !(dma[c].mode & 0x20));
-				inc_dec_ptr_two_bytes(c, true);
+				do_dma_16bit(dma[c].dev, dma[c].mode, dma[c].areg, compressed, extended, is_use_debugger, wait);
 			} else {
 				// 8bit transfer mode
-				if((dma[c].mode & 0x0c) == 0x00) {
-					// verify
-					uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_r);
-					if(is_use_debugger) {
-						val = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_w);
-					} else {
-						val = this->read_via_debugger_data8w(dma[c].areg, &wait_w);
-					}
-					wait += compressed ? 5 : 7;
-					if(exptended) wait += wait_r + wait_w;
-					// update temporary register
-					tmp = (tmp >> 8) | (val << 8);
-				} else if((dma[c].mode & 0x0c) == 0x04) {
-					// io -> memory
-					uint32_t val = dma[c].dev->read_dma_io8w(0, &wait_r);
-					if(is_use_debugger) {
-						d_debugger->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
-					} else {
-						this->write_via_debugger_data8w(dma[c].areg, val, &wait_w);
-					}
-					wait += compressed ? 5 : 7;
-					if(exptended) wait += wait_r + wait_w;
-					// update temporary register
-					tmp = (tmp >> 8) | (val << 8);
-				} else if((dma[c].mode & 0x0c) == 0x08) {
-					// memory -> io
-					uint32_t val;
-					if(is_use_debugger) {
-						val = d_debugger->read_via_debugger_data8w(dma[c].areg, &wait_r);
-					} else {
-						val = this->read_via_debugger_data8w(dma[c].areg, &wait_r);
-					}
-					dma[c].dev->write_dma_io8w(0, val, &wait_w);
-					wait += compressed ? 5 : 7;
-					if(exptended) wait += wait_r + wait_w;
-					// update temporary register
-					tmp = (tmp >> 8) | (val << 8);
-				}
-				//inc_dec_ptr_a_byte(c, !(dma[c].mode & 0x20));
-				inc_dec_ptr_a_byte(c, true);
+				do_dma_8bit(dma[c].dev, dma[c].mode, dma[c].areg, compressed, extended, is_use_debugger, wait);
 			}
-			if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
-
+			__UNLIKELY_IF(d_cpu != NULL) {
+				d_cpu->set_extra_clock(wait);
+				wait = 0;
+			}
 			// Note: At FM-Towns, SCSI's DMAC will be set after
 			//       SCSI bus phase become DATA IN/DATA OUT.
 			//       Before bus phase became DATA IN/DATA OUT,
@@ -513,38 +513,63 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 			//       DRQ came from SCSI before this state change).
 			// ToDo: Stop correctly before setting.
 			// CHECK COUNT DOWN REACHED.
-			bool is_end = check_end_req(c);
-			__UNLIKELY_IF((dma[c].creg == 0) || (is_end)) {
-				set_ack(c, true);
-				// TC
-				dma[c].creg--; // OK?
-				do_end_sequence(c, !(is_end));
-				__LIKELY_IF((_SINGLE_MODE_DMA) || ((dma[c].mode & 0xc0) == 0x40)) {
+			bool is_tc = false;
+			set_ack(c, true);
+			dma[c].creg--; // OK?
+			__UNLIKELY_IF(dma[c].creg > dma[c].bcreg) {
+				is_tc = true;
+			}
+			uint8_t _mode = dma[c].mode & 0xc0;
+
+			__UNLIKELY_IF((end_req[c]) && (_mode != 0x40)){ // END_REQ ASSERTED EXCEPTS SINGLE TRANSFER.
+				do_end_sequence(c, false);
+				__LIKELY_IF(_SINGLE_MODE_DMA) {
 					//	running = false;
 					return true;
 				}
-				//return false;
+			} else __UNLIKELY_IF(is_tc) {
+				// TC
+				do_end_sequence(c, true);
+				__LIKELY_IF((_SINGLE_MODE_DMA) || (_mode == 0x40)) {
+					//	running = false;
+					return true;
+				}
+				return false;
 			} else {
 				// IF NOT COUNTDOWN REACHED.
-				dma[c].creg--;
-				uint8_t _mode = dma[c].mode & 0xc0;
-				set_ack(c, true);
-				if(_mode == 0x40) {
-					// SINGLE
-					// WHY TC:
+				switch(_mode) {
+				case 0x00: // DEMAND
+					// WHY STOP:
+					// - COUNTDOWN REACHED.
+					// - END_REQ[c] asserted.
+					// - DMA REQ MADE INACTIVE.
+					// -> CLEAR REQ and SREQ bit, ASSERT TC REGISTER.
+					__UNLIKELY_IF((req & bit) == 0) {
+						do_end_sequence(c, false);
+						__UNLIKELY_IF(_SINGLE_MODE_DMA) {
+							return false;
+						}
+					}
+					break;
+				case 0x40: // SINGLE
+					// WHY STOP:
+					// - COUNTDOWN REACHED.
 					// - STOP PER BYTE/WORD TRANSFER.
 					//   SOMETHING DON'T ASSERT TC, EXCEPTS COUNT DOWN REACHED TO 0.
+					// -> CLEAR REQ and SREQ bit.
 					req &= ~bit;
 					sreq &= ~bit;
 					running = false;
-				} else if(_mode == 0x00) {
-					// DEMAND (0x00)
-					// WHY TC:
+					break;
+				case 0x80: // BURST
+					// WHY STOP:
 					// - END_REQ[c] asserted.
-					// - DMA REQ MADE INACTIVE.
-					__UNLIKELY_IF((req & bit) == 0) {
-						do_end_sequence(c, true);
-					}
+					// - COUNTDOWN REACHED.
+					// -> DO NOTHING.
+					break;
+				case 0xC0: // CASCADE
+				default:
+					break;
 				}
 				__LIKELY_IF(_SINGLE_MODE_DMA) {
 					return true;

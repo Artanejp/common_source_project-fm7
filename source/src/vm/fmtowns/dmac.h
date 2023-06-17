@@ -100,24 +100,16 @@ protected:
 		running = false;
 		end_req[c] = false;
 		check_running();
-		set_ack(c, true);
+
+		tc |= bit;	// NOT From MAME 0.246 ;
 		if(is_send_tc) {
 			write_signals(&outputs_towns_tc[c], 0xffffffff);
 		}
-		tc |= bit;	// From MAME 0.246 ;
+		//tc |= bit;	// From MAME 0.246 ;
 					// TC REGISTER's BIT maybe set after TC line asserted. 20230521 K.O
 	}
-	constexpr bool check_end_req(int c)
-	{
-		c &= 3;
-		__UNLIKELY_IF((end_req[c]) && ((dma[c].mode & 0xc0) != 0x40)) {
-			return true;
-		}
-		return false;
-	}
-
-	virtual void __FASTCALL inc_dec_ptr_a_byte(const int c, const bool inc) override;
-	virtual void __FASTCALL inc_dec_ptr_two_bytes(const int c, const bool inc) override;
+	virtual void __FASTCALL inc_dec_ptr_a_byte(uint32_t& addr, const bool inc) override;
+	virtual void __FASTCALL inc_dec_ptr_two_bytes(uint32_t& addr, const bool inc) override;
 
 	virtual uint32_t __FASTCALL read_16bit_from_device(DEVICE* dev, uint32_t addr, int* wait);
 	virtual void __FASTCALL write_16bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait);
