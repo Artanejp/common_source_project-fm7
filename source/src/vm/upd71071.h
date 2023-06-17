@@ -45,8 +45,8 @@ protected:
 	uint8_t req, sreq, mask, tc;
 	bool running;
 
-	virtual void __FASTCALL inc_dec_ptr_a_byte(const int c, const bool inc);
-	virtual void __FASTCALL inc_dec_ptr_two_bytes(const int c, const bool inc);
+	virtual void __FASTCALL inc_dec_ptr_a_byte(uint32_t& addr, const bool inc);
+	virtual void __FASTCALL inc_dec_ptr_two_bytes(uint32_t& addr, const bool inc);
 
 public:
 	UPD71071(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)

@@ -221,21 +221,21 @@ uint32_t UPD71071::read_via_debugger_data16w(uint32_t addr, int *wait)
 }
 
 // note: if SINGLE_MODE_DMA is defined, do_dma() is called in every machine cycle
-void UPD71071::inc_dec_ptr_a_byte(const int c, const bool inc)
+void UPD71071::inc_dec_ptr_a_byte(uint32_t& addr, const bool inc)
 {
 	if(!(inc)) {
-		dma[c].areg = (dma[c].areg - 1) & 0xffffff;
+		addr = (addr - 1) & 0xffffff;
 	} else {
-		dma[c].areg = (dma[c].areg + 1) & 0xffffff;
+		addr = (addr + 1) & 0xffffff;
 	}
 }
 
-void UPD71071::inc_dec_ptr_two_bytes(const int c, const bool inc)
+void UPD71071::inc_dec_ptr_two_bytes(uint32_t& addr, const bool inc)
 {
 	if(!(inc)) {
-		dma[c].areg = (dma[c].areg - 2) & 0xffffff;
+		addr = (addr - 2) & 0xffffff;
 	} else {
-		dma[c].areg = (dma[c].areg + 2) & 0xffffff;
+		addr = (addr + 2) & 0xffffff;
 	}
 }
 
@@ -309,7 +309,7 @@ void UPD71071::do_dma()
 						// update temporary register
 						tmp = val;
 					}
-					inc_dec_ptr_two_bytes(c, !(dma[c].mode & 0x20));
+					inc_dec_ptr_two_bytes(dma[c].areg, !(dma[c].mode & 0x20));
 */
 				} else {
 					// 8bit transfer mode
@@ -351,7 +351,7 @@ void UPD71071::do_dma()
 						// update temporary register
 						tmp = (tmp >> 8) | (val << 8);
 					}
-					inc_dec_ptr_a_byte(c, !(dma[c].mode & 0x20));
+					inc_dec_ptr_a_byte(dma[c].areg, !(dma[c].mode & 0x20));
 				}
 				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
 
