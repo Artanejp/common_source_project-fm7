@@ -244,8 +244,25 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
+	// Note: By Tsugaru, commit e5920fdc1ba89ba10172f0954ecf1107bb592919,
+	// ADIR bit (bit 5 of mode register)
+	// has not supported by TOWNS DMAC.
+	// Very tanks to YAMAKAWA-San. - 20230617 K.O
+	//
+	// Commiting message is below:
+	//	Author:     CaptainYS <PEB01130@nifty.com>
+	//	AuthorDate: Sat Feb 29 23:43:52 2020 -0500
+	//	Commit:     CaptainYS <PEB01130@nifty.com>
+	//	CommitDate: Sat Feb 29 23:43:52 2020 -0500
+	//
+	//	Parent:     9390f5be
+	//					Found Device-DMACh correspondence in [2] pp. 56.
+	//					Still trying to find the correct sequence of CD-ROM drive
+	//					data transfer.
+	//					Unit test still temporarily broken.
 #if 1
-	uint32_t incdec = (inc) ? 1 : UINT32_MAX;
+//	uint32_t incdec = (inc) ? 1 : UINT32_MAX;
+	const uint32_t incdec = 1;
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
 	__LIKELY_IF(dma_wrap) {
@@ -257,11 +274,11 @@ void TOWNS_DMAC::inc_dec_ptr_a_byte(const int c, const bool inc)
 	dma[c].areg = addr;
 #else
 	uint32_t addr = dma[c].areg;
-	if(inc) {
+//	if(inc) {
 		addr = addr + 1;
-	} else {
-		addr = addr - 1;
-	}
+//	} else {
+//		addr = addr - 1;
+//	}
 	__LIKELY_IF(dma_wrap) {
 		uint32_t high_a = dma[c].areg & 0xff000000;
 		addr = addr & 0x00ffffff;
@@ -276,7 +293,8 @@ void TOWNS_DMAC::inc_dec_ptr_two_bytes(const int c, const bool inc)
 {
 	// Note: FM-Towns may extend to 32bit.
 #if 1
-	uint32_t incdec = (inc) ? 2 : (UINT32_MAX - 1);
+	//uint32_t incdec = (inc) ? 2 : (UINT32_MAX - 1);
+	const uint32_t incdec = 2;
 	uint32_t addr = dma[c].areg &   0x00ffffff;
 	uint32_t high_a = dma[c].areg & 0xff000000;
 	__LIKELY_IF(dma_wrap) {
@@ -288,11 +306,11 @@ void TOWNS_DMAC::inc_dec_ptr_two_bytes(const int c, const bool inc)
 	dma[c].areg = addr;
 #else
 	uint32_t addr = dma[c].areg;
-	if(inc) {
+//	if(inc) {
 		addr = addr + 2;
-	} else {
-		addr = addr - 2;
-	}
+//	} else {
+//		addr = addr - 2;
+//	}
 	__LIKELY_IF(dma_wrap) {
 		uint32_t high_a = dma[c].areg & 0xff000000;
 		addr = addr & 0x00ffffff;
@@ -441,7 +459,8 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 					// update temporary register
 					tmp = val;
 				}
-				inc_dec_ptr_two_bytes(c, !(dma[c].mode & 0x20));
+//				inc_dec_ptr_two_bytes(c, !(dma[c].mode & 0x20));
+				inc_dec_ptr_two_bytes(c, true);
 			} else {
 				// 8bit transfer mode
 				if((dma[c].mode & 0x0c) == 0x00) {
@@ -482,7 +501,8 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 					// update temporary register
 					tmp = (tmp >> 8) | (val << 8);
 				}
-				inc_dec_ptr_a_byte(c, !(dma[c].mode & 0x20));
+				//inc_dec_ptr_a_byte(c, !(dma[c].mode & 0x20));
+				inc_dec_ptr_a_byte(c, true);
 			}
 			if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
 
