@@ -475,7 +475,11 @@ protected:
 
 	virtual void open_from_cmd(const _TCHAR* file_path);
 	virtual void close_from_cmd();
-	virtual void do_dma_eot(bool by_signal);
+	virtual void dma_transfer_epilogue();
+	virtual void pio_transfer_epilogue();
+
+	void start_time_out();
+	void stop_time_out();
 	void start_drq();
 	void stop_drq();
 
@@ -530,6 +534,7 @@ public:
 	virtual void reset();
 	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 	/*
 	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
 	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
