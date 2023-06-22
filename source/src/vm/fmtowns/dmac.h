@@ -115,8 +115,16 @@ protected:
 	virtual void __FASTCALL write_16bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait);
 	virtual uint32_t __FASTCALL read_16bit_from_memory(uint32_t addr, int* wait, bool is_use_debugger);
 	virtual void __FASTCALL write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, bool is_use_debugger);
+
+	virtual uint32_t __FASTCALL read_8bit_from_device(DEVICE* dev, uint32_t addr, int* wait);
+	virtual void __FASTCALL write_8bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait);
+	virtual uint32_t __FASTCALL read_8bit_from_memory(uint32_t addr, int* wait, bool is_use_debugger);
+	virtual void __FASTCALL write_8bit_to_memory(uint32_t addr, uint32_t data, int* wait, bool is_use_debugger);
+
 	virtual bool __FASTCALL do_dma_per_channel(int ch, bool is_use_debugger, bool force_exit);
 	virtual void do_dma_internal();
+	void __FASTCALL do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
+	void __FASTCALL do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
 
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
@@ -178,5 +186,6 @@ public:
 		register_output_signal(&outputs_towns_tc[3], device, id, mask);
 	}
 };
+
 
 }

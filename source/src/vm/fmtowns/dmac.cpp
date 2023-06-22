@@ -289,49 +289,7 @@ void TOWNS_DMAC::inc_dec_ptr_two_bytes(uint32_t& addr, const bool inc)
 	}
 }
 
-inline uint32_t TOWNS_DMAC::read_16bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
-{
-	__UNLIKELY_IF(dev == nullptr) {
-		if(wait != nullptr) {
-			*wait = 0; // ToDo
-		}
-		return 0xffff;
-	}
-	uint32_t val;
-	val = dev->read_dma_io16w(addr, wait);
-	return val;
-}
-
-inline void TOWNS_DMAC::write_16bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
-{
-	__UNLIKELY_IF(dev == nullptr) {
-		if(wait != nullptr) {
-			*wait = 0; // ToDo
-		}
-		return;
-	}
-	dev->write_dma_io16w(addr, data, wait);
-}
-
-inline uint32_t TOWNS_DMAC::read_16bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
-{
-	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
-		return d_debugger->read_via_debugger_data16w(addr, wait);
-	} else {
-		return read_via_debugger_data16w(addr, wait);
-	}
-}
-
-inline void TOWNS_DMAC::write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, const bool is_use_debugger)
-{
-	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
-		d_debugger->write_via_debugger_data16w(addr, data, wait);
-	} else {
-		write_via_debugger_data16w(addr, data, wait);
-	}
-}
-
-inline uint32_t TOWNS_DMAC::read_8bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
+uint32_t TOWNS_DMAC::read_8bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
 {
 	__UNLIKELY_IF(dev == nullptr) {
 		if(wait != nullptr) {
@@ -344,7 +302,7 @@ inline uint32_t TOWNS_DMAC::read_8bit_from_device(DEVICE* dev, uint32_t addr, in
 	return val;
 }
 
-inline void TOWNS_DMAC::write_8bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
+void TOWNS_DMAC::write_8bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
 {
 	__UNLIKELY_IF(dev == nullptr) {
 		if(wait != nullptr) {
@@ -355,7 +313,7 @@ inline void TOWNS_DMAC::write_8bit_to_device(DEVICE* dev, uint32_t addr, uint32_
 	dev->write_dma_io8w(addr, data, wait);
 }
 
-inline uint32_t TOWNS_DMAC::read_8bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
+uint32_t TOWNS_DMAC::read_8bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
 {
 	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
 		return d_debugger->read_via_debugger_data8w(addr, wait);
@@ -364,7 +322,7 @@ inline uint32_t TOWNS_DMAC::read_8bit_from_memory(uint32_t addr, int* wait, cons
 	}
 }
 
-inline void TOWNS_DMAC::write_8bit_to_memory(uint32_t addr, uint32_t data, int* wait, const bool is_use_debugger)
+void TOWNS_DMAC::write_8bit_to_memory(uint32_t addr, uint32_t data, int* wait, const bool is_use_debugger)
 {
 	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
 		d_debugger->write_via_debugger_data8w(addr, data, wait);
@@ -373,6 +331,47 @@ inline void TOWNS_DMAC::write_8bit_to_memory(uint32_t addr, uint32_t data, int* 
 	}
 }
 
+uint32_t TOWNS_DMAC::read_16bit_from_device(DEVICE* dev, uint32_t addr, int* wait)
+{
+	__UNLIKELY_IF(dev == nullptr) {
+		if(wait != nullptr) {
+			*wait = 0; // ToDo
+		}
+		return 0xffff;
+	}
+	uint32_t val;
+	val = dev->read_dma_io16w(addr, wait);
+	return val;
+}
+
+void TOWNS_DMAC::write_16bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data, int* wait)
+{
+	__UNLIKELY_IF(dev == nullptr) {
+		if(wait != nullptr) {
+			*wait = 0; // ToDo
+		}
+		return;
+	}
+	dev->write_dma_io16w(addr, data, wait);
+}
+
+uint32_t TOWNS_DMAC::read_16bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
+{
+	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
+		return d_debugger->read_via_debugger_data16w(addr, wait);
+	} else {
+		return read_via_debugger_data16w(addr, wait);
+	}
+}
+
+void TOWNS_DMAC::write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, const bool is_use_debugger)
+{
+	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
+		d_debugger->write_via_debugger_data16w(addr, data, wait);
+	} else {
+		write_via_debugger_data16w(addr, data, wait);
+	}
+}
 
 void TOWNS_DMAC::check_start_condition()
 {
@@ -397,12 +396,12 @@ void TOWNS_DMAC::check_start_condition()
 	}
 }
 
-inline void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, constexpr bool compressed, constexpr bool extended, bool is_use_debugger, int& wait)
+void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait)
 {
 	uint16_t val;
 	int wait_w = 0;
 	int wait_r = 0;
-	const int wait_extended = (compressed) ? 5 : 7;
+	const int wait_compressed = (compressed) ? 5 : 7;
 	switch(tr_mode & 0x0c) {
 	case 0x00: // VERIFY
 		val = read_16bit_from_device(dev, 0, &wait_r);
@@ -432,7 +431,7 @@ inline void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_
 	inc_dec_ptr_two_bytes(memory_address, true);
 }
 
-inline void TOWNS_DMAC::do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, constexpr bool compressed, constexpr bool extended, bool is_use_debugger, int& wait)
+void TOWNS_DMAC::do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait)
 {
 	uint32_t val;
 	int wait_w = 0;
@@ -484,7 +483,7 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 
 		int wait = 0;
 		bool compressed = ((cmd & 0x08) != 0);
-		bool exptended = ((cmd & 0x20) != 0);
+		bool extended = ((cmd & 0x20) != 0);
 		//while(((req | sreq) & bit) && (dma[c].creg <= dma[c].bcreg)) {
 		if(((req | sreq) & bit) && (dma[c].creg <= dma[c].bcreg)) {
 			set_ack(c, false);
