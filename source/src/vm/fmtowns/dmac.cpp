@@ -166,6 +166,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		#if 1
 		/* DO NOTHING */
 		#endif
+		#if 0
 		out_debug_log(_T("MODE CHANGED at CH.%d to 0x%02X Request 16bit=%s CMD=%02X"), selch, dma[selch].mode,
 					  (is_16bit_transfer[selch]) ? _T("Yes") : _T("NO"),
 					  cmd);
@@ -178,6 +179,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 					  (mask >> selch) & 1,
 					  dma[selch].mode,
 					  dir[(dma[selch].mode >> 2) & 3]);
+		#endif
 		break;
 		// MASK
 	case 0x0e:
