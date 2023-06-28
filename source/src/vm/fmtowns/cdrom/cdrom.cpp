@@ -902,6 +902,7 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 	__LIKELY_IF(dma_transfer_phase) {
 		__UNLIKELY_IF(is_empty) {
 			//dma_transfer_epilogue();
+			stop_time_out();
 			data_reg.w = 0x0000;
 		} else {
 			fetch_datareg_8();
@@ -924,6 +925,7 @@ uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 	__LIKELY_IF(dma_transfer_phase) {
 		__UNLIKELY_IF(is_empty) {
 			//dma_transfer_epilogue();
+			stop_time_out();
 			data_reg.w = 0x0000;
 		} else {
 			fetch_datareg_16();
@@ -1017,6 +1019,7 @@ void TOWNS_CDROM::read_cdrom()
 	status_seek = true;
 	if(usec < 10.0) usec = 10.0;
 	databuffer->clear();
+	stop_time_out();
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
 	/*
 	if(req_status) {
@@ -1623,7 +1626,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_seek_completed = -1;
 		//read_pos = 0;
 		clear_event(this, event_next_sector);
-		clear_event(this, event_time_out);
 		// ToDo: Prefetch 20201116
 		if(read_length > 0) {
 			bool stat = false;
@@ -1633,9 +1635,18 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			// Note: Still error with reading D000h at TownsOS v1.1L30.
 			// Maybe data has changed to 1Fh from 8Eh.
 			/// 20200926 K.O
+			int logical_size = logical_block_size();
+			if(databuffer->left() < logical_size) {
+				// BE RETRY WHEN BUFFER FULL.
+				register_event(this, EVENT_CDROM_SEEK_COMPLETED,
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+						   8.0,
+						   false,
+						   &event_seek_completed);
+				break;
+			}
 			stat = read_buffer(1);
 			if(stat) {
-				int logical_size = logical_block_size();
 				int physical_size = physical_block_size();
 				// Note: EMULATE NONE BUFFER, move belows from EVENT_CDROM_NEXT_SECTOR. 20230531 K.O
 				//status_data_ready(true);
