@@ -330,7 +330,6 @@ protected:
 	bool req_status;
 
 	bool stat_reply_intr;
-	bool has_status;
 	bool mcu_ready;
 
 	bool mcu_intr;
@@ -432,7 +431,6 @@ protected:
 
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
-	void set_delay_ready_nostatus();
 	void set_delay_ready_eot();
 	void set_delay_ready_cddareply();
 
