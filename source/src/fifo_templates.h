@@ -4,7 +4,7 @@
  * LICENSE: GPLv2
  *
  * Description:
- *  This presents reference FIFO and RING-BUFFER, 
+ *  This presents reference FIFO and RING-BUFFER,
  *  both
  *    unmutexed (faster; using from same thread)
  *  and
@@ -87,7 +87,7 @@ namespace FIFO_BASE {
 				m_buf[i] = (T)0;
 			}
 		}
-		
+
 		virtual T read(bool& success)
 		{
 			__UNLIKELY_IF((m_buf == nullptr) || (m_dataCount < 1)
@@ -134,7 +134,7 @@ namespace FIFO_BASE {
 			bool dummy;
 			return read_not_remove(offset, dummy);
 		}
-		
+
 		virtual int read_to_buffer(T* dst, int _count, bool& success)
 		{
 			__UNLIKELY_IF((dst == nullptr) || (m_buf == nullptr) || (m_bufSize == 0)) {
@@ -267,7 +267,7 @@ namespace FIFO_BASE {
 			success = true;
 			return _count;
 		}
-		
+
 		virtual bool available()
 		{
 			return ((m_buf != nullptr) && (m_bufSize > 0));
@@ -292,17 +292,17 @@ namespace FIFO_BASE {
 			bool f = available();
 			return (!(f) || (m_dataCount >= (int)m_bufSize));
 		}
-		
+
 		virtual int count()
 		{
 			return (m_dataCount > 0) ? m_dataCount : 0;
 		}
-		
+
 		virtual int fifo_size()
 		{
 			return (m_bufSize > 0) ? m_bufSize : 0;
 		}
-		
+
 		virtual int left()
 		{
 			__UNLIKELY_IF((m_bufSize == 0) || (m_buf == nullptr)) {
@@ -312,7 +312,7 @@ namespace FIFO_BASE {
 				return (int)m_bufSize;
 			}
 			__UNLIKELY_IF(((unsigned int)m_dataCount) > m_bufSize) {
-				return (int)m_bufSize;
+				return 0;
 			}
 			return (int)(m_bufSize - (unsigned int)m_dataCount);
 		}
@@ -490,7 +490,7 @@ namespace FIFO_BASE {
 			return UNLOCKED_FIFO<T>::resize(_size, _low_warn, _high_warn);
 		}
 	};
-	
+
 	template <class T >
 	class UNLOCKED_RINGBUFFER : public UNLOCKED_FIFO<T> {
 	public:
@@ -515,7 +515,7 @@ namespace FIFO_BASE {
 			__UNLIKELY_IF((UNLOCKED_FIFO<T>::m_buf == nullptr) || (UNLOCKED_FIFO<T>::m_bufSize == 0)) {
 				return false;
 			}
-			
+
 			__UNLIKELY_IF(UNLOCKED_FIFO<T>::m_dataCount < 0) {
 				UNLOCKED_FIFO<T>::m_dataCount = 0; // OK?
 			}
@@ -606,7 +606,7 @@ namespace FIFO_BASE {
 			return (int)UNLOCKED_FIFO<T>::m_bufSize;
 		}
 	};
-	
+
 	template <class T >
 	class LOCKED_RINGBUFFER : public UNLOCKED_RINGBUFFER<T> {
 	protected:
@@ -634,7 +634,7 @@ namespace FIFO_BASE {
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			UNLOCKED_RINGBUFFER<T>::clear();
 		}
-		
+
 		virtual T read(bool& success)
 		{
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
@@ -657,13 +657,13 @@ namespace FIFO_BASE {
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			return UNLOCKED_RINGBUFFER<T>::read_not_remove(offset, success);
 		}
-		
+
 		virtual int read_to_buffer(T* dst, int _count, bool& success)
 		{
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			return UNLOCKED_RINGBUFFER<T>::read_to_buffer(dst, _count, success);
 		}
-		
+
 		virtual bool write(T data)
 		{
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
@@ -719,7 +719,7 @@ namespace FIFO_BASE {
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			return UNLOCKED_RINGBUFFER<T>::left();
 		}
-		
+
 		virtual void set_high_warn_value(int val = INT_MAX - 1)
 		{
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
