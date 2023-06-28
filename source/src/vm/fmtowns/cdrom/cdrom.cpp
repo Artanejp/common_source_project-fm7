@@ -154,6 +154,7 @@ void TOWNS_CDROM::initialize()
 	mute_left = false;
 	mute_right = false;
 
+	memset(w_regs, 0x00, sizeof(w_regs));
 }
 
 void TOWNS_CDROM::release()
@@ -181,6 +182,7 @@ void TOWNS_CDROM::release()
 void TOWNS_CDROM::reset()
 {
 	cdrom_debug_log("RESET");
+	w_regs[0] = 0x00;
 	reset_device();
 	// Q: Does not seek to track 0? 20181118 K.O
 }
@@ -302,7 +304,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_TOWNS_CDROM_RESET:
 		if((data & mask) != 0) {
-			reset_device();
+			reset();
 		}
 		break;
 	case SIG_TOWNS_CDROM_MUTE_L:
@@ -2045,27 +2047,9 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 
 void TOWNS_CDROM::reset_device()
 {
-	set_cdda_status(CDDA_OFF);
-	memset(subq_buffer, 0x00, sizeof(subq_buffer));
-	memset(param_queue, 0x00, sizeof(param_queue));
+	uint8_t reg4c0 = w_regs[0];
 	memset(w_regs, 0x00, sizeof(w_regs));
-
-	status_seek = false;
-	media_changed = false;
-	cdrom_prefetch = false;
-
-	param_ptr = 0;
-	latest_command = 0x00;
-	prev_command = 0x00;
-	command_received = false;
-
-	subq_overrun = false;
-	next_seek_lba = 0;
-
-	extra_status = 0;
-	data_reg.w = 0x0000;
-
-	cdda_repeat_count = -1;
+	w_regs[0] = reg4c0;
 
 	touch_sound();
 	clear_event(this, event_cdda);
@@ -2073,48 +2057,94 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_cdda_delay_stop);
 	clear_event(this, event_delay_interrupt);
 	clear_event(this, event_seek_completed);
-	clear_event(this, event_drq);
+
 	clear_event(this, event_next_sector);
 	clear_event(this, event_seek);
 	clear_event(this, event_delay_ready);
 	clear_event(this, event_time_out);
 	clear_event(this, event_eot);
 
-	read_length = 0;
-	databuffer->clear();
-	status_queue->clear();
-	has_status = false;
+	// Around internal variables.
+	//if(44100 % emu->get_sound_rate() == 0) {
+	//	mix_loop_num = 44100 / emu->get_sound_rate();
+	//} else {
+	//	mix_loop_num = 0;
+	//}
 
+	access = false;
+	cdda_stopped = true;
+	cdda_status = CDDA_OFF;
+	cdda_repeat_count = -1;
+
+	cdda_start_frame = 0;
+	cdda_end_frame = 150;
+	cdda_playing_frame = 0;
+	cdda_buffer_ptr = 0;
+
+	status_seek = false;
+	media_changed = false;
+	cdrom_prefetch = false;
+
+	next_seek_lba = 0;
+	read_length = 0;
 	current_track = 0;
 	read_sector = 0;
+
 	if(mounted()) {
 		get_track_by_track_num(0); // HEAD OF track 1
 	}
 	stat_track = current_track;
 	// Note: Reorder sequence.
 	// 20220127 K.O
+	// Around Register 4C0h:R
 	mcu_intr = false;
 	dma_intr = false;
-	dma_transfer_phase = false;
-	pio_transfer_phase = false;
 	mcu_ready = true;
 
-	req_status = false;
+	// Around Register 4C0h:W
 	mcu_intr_mask = false;
 	dma_intr_mask = false;
+
+	// Around Register 4C2h:R
+	status_queue->clear();
+	has_status = false;
+	extra_status = 0;
+
+	// Around Register 4C2h:W
+	latest_command = 0x00;
+	prev_command = 0x00;
+	command_received = false;
+
+	stat_reply_intr = false;
+	req_status = false;
+
+	// Around Register 4C4h:R
+	databuffer->clear();
+	data_reg.w = 0x0000;
+
+	// Around Register 4C4h:W
+	memset(param_queue, 0x00, sizeof(param_queue));
+	param_ptr = 0;
+
+	// Around Register 4C6h:W
+	dma_transfer = false;
+	pio_transfer = false;
+	dma_transfer_phase = false;
+	pio_transfer_phase = false;
+
+	// Around Register 4CCh:R and 4CDh:R
+	memset(subq_buffer, 0x00, sizeof(subq_buffer));
+	subq_bitptr = 0;
+	subq_bitwidth = 96;
+	subq_overrun = false;
+
+
 
 	dma_transfer = false;
 	pio_transfer = false;
 
-	stat_reply_intr = false;
-
-	cdda_stopped = true;
-	cdda_start_frame = 0;
-	cdda_end_frame = 150;
-	cdda_playing_frame = 0;
-
-	write_signals(&outputs_drq, 0);
-	write_signals(&outputs_mcuint, 0x0);
+	stop_drq();
+	write_mcuint_signals(0x0);
 	// Will Implement
 }
 
@@ -2824,15 +2854,15 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		// Note: Sync with TSUGARU.
 		// 20220127 K.O
 		//cdrom_debug_log(_T("PORT 04C0h <- %02X"), data);
-		if((data & 0x80) != 0) {
-			mcu_intr = false;
-			if(!(dma_intr)) {
-				write_mcuint_signals(0); // Reset interrupt request to PIC.
+		if((data & 0xc0) != 0) {
+			bool _b = ((dma_intr) || (mcu_intr));
+			if((data & 0x80) != 0) {
+				mcu_intr = false;
 			}
-		}
-		if((data & 0x40) != 0) {
-			dma_intr = false;
-			if(!(mcu_intr)) {
+			if((data & 0x40) != 0) {
+				dma_intr = false;
+			}
+			if(!(_b)) {
 				write_mcuint_signals(0); // Reset interrupt request to PIC.
 			}
 		}
