@@ -8,7 +8,7 @@
 */
 
 #include <stdlib.h>
-#include <malloc.h> 
+#include <malloc.h>
 #include "fifo.h"
 #include "fileio.h"
 
@@ -17,7 +17,7 @@ FIFO::FIFO(int s, int empty_warn, int fill_warn)
 	size = s;
 	//buf = (int*)malloc(size * sizeof(int));
 	buf = new int[size];
-	
+
 	cnt = rpt = wpt = 0;
 	empty_warn_val = empty_warn;
 	if(fill_warn <= 0) {
@@ -143,7 +143,7 @@ bool FIFO::full()
 
 int FIFO::left()
 {
-	int val = cnt - size;
+	int val = size - cnt;
 	if(val < 0) val = 0;
 	if(val > size) val = size;
 	return val;
@@ -159,7 +159,7 @@ bool FIFO::empty()
 bool FIFO::process_state(void *f, bool loading)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	
+
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -170,4 +170,3 @@ bool FIFO::process_state(void *f, bool loading)
 	state_fio->StateValue(wpt);
 	return true;
 }
-
