@@ -11,7 +11,6 @@
 #include "../../common.h"
 #include "../device.h"
 
-
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
 #define SIG_TOWNS_CDROM_PLAYING				0
@@ -258,8 +257,13 @@ enum {
 class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
-	outputs_t outputs_mcuint;
 	outputs_t outputs_eot;
+
+	// Note: READ interrupt status at PIC as of Tsugaru.
+	DEVICE* d_pic;
+	int		 pic_signal;
+	uint32_t pic_mask;
+
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
 	FIFO* databuffer;
@@ -483,7 +487,9 @@ protected:
 
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
-		write_signals(&outputs_mcuint, val);
+		__LIKELY_IF(d_pic != NULL) {
+			d_pic->write_signal(pic_signal, val, pic_mask);
+		}
 	}
 	void cdrom_debug_log(const char *fmt, ...);
 	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
@@ -518,9 +524,11 @@ public:
 		memset(subq_buffer, 0x00, sizeof(subq_buffer));
 
 		initialize_output_signals(&outputs_drq);
-		initialize_output_signals(&outputs_mcuint);
 		initialize_output_signals(&outputs_eot);
 		set_device_name(_T("FM-Towns CD-ROM drive"));
+		d_pic = NULL;
+		pic_signal = 0x00000000;
+		pic_mask = 0xffffffff;
 		d_dmac = NULL;
 		// For Debugging, will remove 20200822 K.O
 		d_cpu = NULL;
@@ -653,7 +661,11 @@ public:
 
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_mcuint, dev, id, mask);
+		if((d_pic == NULL) && (dev != NULL)) {
+			d_pic = dev;
+			pic_signal = id;
+			pic_mask = mask;
+		}
 	}
 	void set_context_drq_line(DEVICE* dev, int id, uint32_t mask)
 	{

@@ -335,8 +335,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pit1->set_constant_clock(0, 1229900);
 	pit1->set_constant_clock(1, 1229900);
 	pit1->set_constant_clock(2, 1229900);
-	//pic->set_context_cpu(cpu);
-	pic->set_context_cpu(memory);
+	pic->set_context_cpu(cpu);
+	//pic->set_context_cpu(memory);
 
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
 	//fdc->set_context_irq(dma, SIG_TOWNS_DMAC_EOT_CH0, 1);
