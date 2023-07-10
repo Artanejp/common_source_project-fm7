@@ -490,7 +490,6 @@ _next_phase:
 	cdrom_debug_log(_T("status_accept() %02X %02X %02X EXTRA=%d"), playcode, s2, s3, extra);
 	set_status(req_status, extra,
 			   TOWNS_CD_STATUS_ACCEPT, playcode, s2, s3);
-
 }
 
 void TOWNS_CDROM::send_mcu_ready()
@@ -601,9 +600,6 @@ const _TCHAR* TOWNS_CDROM::get_command_name_from_command(uint8_t cmd)
  */
 void TOWNS_CDROM::execute_command(uint8_t command)
 {
-	//set_mcu_intr(false);
-	mcu_ready = false;
-
 	if(!(is_device_ready()) && ((command & 0xa0) != 0xa0)) { // From MAME 0.254 20230530 K.O
 		stat_reply_intr	= ((command & 0x40) != 0) ? true : false;
 		req_status		= ((command & 0x20) != 0) ? true : false;
@@ -1043,9 +1039,7 @@ void TOWNS_CDROM::read_cdrom()
 	databuffer->clear();
 	stop_time_out();
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
-	if(req_status) {
-		status_accept(0, 0x00, 0x00);
-	}
+	status_accept(0, 0x00, 0x00);
 }
 
 
