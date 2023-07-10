@@ -393,7 +393,6 @@ void TOWNS_CDROM::status_read_done(bool forceint)
 
 void TOWNS_CDROM::status_data_ready(bool forceint)
 {
-	#if 1
 	status_queue->clear();
 //	if(req_status) {
 	uint8_t s0 = TOWNS_CD_STATUS_DATA_DMA;
@@ -413,12 +412,6 @@ void TOWNS_CDROM::status_data_ready(bool forceint)
 //	}
 //	force_register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON,
 //						 1000.0, false, event_delay_interrupt);
-	#else
-	dma_intr = false;
-	set_status((forceint) ? true : req_status, 0,
-			   (pio_transfer) ? TOWNS_CD_STATUS_DATA_PIO : TOWNS_CD_STATUS_DATA_DMA,
-			   0, 0, 0);
-	#endif
 	cdrom_debug_log(_T("DATA READY"));
 }
 
@@ -621,7 +614,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	stat_reply_intr	= ((command & 0x40) != 0) ? true : false;
 	req_status		= ((command & 0x20) != 0) ? true : false;
 	latest_command = command;
-	param_ptr = 0;
+	//param_ptr = 0;
 
 
 	command_received = false;
@@ -2182,6 +2175,7 @@ void TOWNS_CDROM::reset_device()
 
 	// Around Register 4C4h:W
 	memset(param_queue, 0x00, sizeof(param_queue));
+	memset(param_queue_tmp, 0x00, sizeof(param_queue_tmp));
 	param_ptr = 0;
 
 	// Around Register 4C6h:W
@@ -2916,7 +2910,7 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 			if((data & 0x40) != 0) {
 				dma_intr = false;
 			}
-			if(!(_b)) {
+			if((_b) && !((mcu_intr) || (dma_intr))) {
 				write_mcuint_signals(0); // Reset interrupt request to PIC.
 			}
 		}
@@ -2940,6 +2934,10 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 			mcu_ready = false;
 			command_received = true;
 			prev_command = latest_command;
+			// FIX parameters queue.
+			for(int i = 0; i < 8; i++) {
+				param_queue[i] = param_queue_tmp[i];
+			}
 			execute_command(data);
 		}
 		break;
@@ -2947,11 +2945,11 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 		if(param_ptr >= 8) {
 			// Rotate queue
 			for(int xx = 0; xx < 7; xx++) {
-				param_queue[xx] = param_queue[xx + 1];
+				param_queue_tmp[xx] = param_queue_tmp[xx + 1];
 			}
 			param_ptr = 7;
 		}
-		param_queue[param_ptr] = data;
+		param_queue_tmp[param_ptr] = data;
 		param_ptr++;
 		break;
 	case 0x06:
@@ -3109,7 +3107,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	27
+#define STATE_VERSION	28
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3195,6 +3193,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(mute_left);
 	state_fio->StateValue(mute_right);
+	state_fio->StateArray(param_queue_tmp, sizeof(param_queue_tmp), 1);
 
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();

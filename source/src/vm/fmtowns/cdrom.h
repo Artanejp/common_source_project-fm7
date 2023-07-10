@@ -370,9 +370,7 @@ protected:
 	static const uint16_t crc_table[256];
 
 	uint8_t param_ptr;
-	bool command_entered;
-	bool param_filled;
-	uint8_t param_pre_queue[8];
+	uint8_t param_queue_tmp[8];
 	uint8_t param_queue[8];
 
 	bool command_received;
