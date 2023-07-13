@@ -28,94 +28,97 @@ void TOWNS_VRAM::initialize()
 void TOWNS_VRAM::reset()
 {
 	lock();
-	
-__DECL_VECTORIZED_LOOP						
+
+__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		packed_pixel_mask_reg[i] = 0xff;
 	}
 	vram_access_reg_addr = 0;
 	unlock();
 }
-	
-	
+
+
 void TOWNS_VRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	uint32_t naddr = addr & 0x7ffff;
-	uint8_t mask = packed_pixel_mask_reg[naddr & 3];
+	const uint32_t naddr = calc_std_address_offset(addr);
+	const uint8_t mask = packed_pixel_mask_reg[naddr & 3];
 
 	lock();
 	uint8_t nd = vram[naddr];
 	uint8_t dd = data;
-	dd = dd & mask;
-	nd = nd & ~mask;
+	dd &= mask;
+	nd &= ~mask;
+	dd |= nd;
 
-	vram[naddr] = nd | dd;
-	unlock();	
-	
+	vram[naddr] = dd;
+	unlock();
+
 }
 
 void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
-
 	lock();
-	
-	uint32_t naddr = addr & 0x7ffff;
-	uint32_t maddr = addr & 3;
+	const uint32_t maddr = addr & 1;
+	const uint32_t paddr0 = calc_std_address_offset(addr);
+	const uint32_t paddr1 = calc_std_address_offset(addr + 1);
+
 	pair16_t dmask;
 	pair16_t xdata;
-	pair16_t ydata;
+	uint16_t ydata;
 
-	dmask.b.l = packed_pixel_mask_reg[maddr + 0];
-	dmask.b.h = packed_pixel_mask_reg[maddr + 1];
-	
-	xdata.b.l = vram[naddr + 0];
-	xdata.b.h = vram[naddr + 1];
+	dmask.b.l = packed_pixel_mask_reg[paddr0 & 7];
+	dmask.b.h = packed_pixel_mask_reg[paddr1 & 7];
 
-	ydata.w = data;
+	xdata.b.l = vram[paddr0];
+	xdata.b.h = vram[paddr1];
 
-	xdata.w = xdata.w & ~(dmask.w);
-	ydata.w = ydata.w & dmask.w;
+	ydata = data;
 
-	xdata.w = xdata.w | ydata.w;
+	xdata.w &= ~(dmask.w);
+	ydata   &= dmask.w;
 
-	vram[naddr + 0] = xdata.b.l;
-	vram[naddr + 1] = xdata.b.h;
-	
+	xdata.w |= ydata;
+
+	vram[paddr0] = xdata.b.l;
+	vram[paddr1] = xdata.b.h;
+
 	unlock();
 	return;
 }
-	
+
 void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
-
 	lock();
+	const uint32_t maddr = addr & 3;
+	const uint32_t paddr0 = calc_std_address_offset(addr);
+	const uint32_t paddr1 = calc_std_address_offset(addr + 1);
+	const uint32_t paddr2 = calc_std_address_offset(addr + 2);
+	const uint32_t paddr3 = calc_std_address_offset(addr + 3);
 
-	__DECL_ALIGNED(8) uint8_t mask[8];
-	uint32_t naddr = addr & 0x7ffff;
-	uint32_t maddr = addr & 3;
 	pair32_t dmask;
 	pair32_t xdata;
-	pair32_t ydata;
+	uint32_t ydata;
 
-	dmask.b.l  = packed_pixel_mask_reg[maddr + 0];
-	dmask.b.h  = packed_pixel_mask_reg[maddr + 1];
-	dmask.b.h2 = packed_pixel_mask_reg[maddr + 2];
-	dmask.b.h3 = packed_pixel_mask_reg[maddr + 3];
+	dmask.b.l  = packed_pixel_mask_reg[paddr0 & 7];
+	dmask.b.h  = packed_pixel_mask_reg[paddr1 & 7];
+	dmask.b.h2 = packed_pixel_mask_reg[paddr2 & 7];
+	dmask.b.h3 = packed_pixel_mask_reg[paddr3 & 7];
 
-	ydata.d = data;
-	xdata.b.l = vram[naddr + 0];
-	xdata.b.h = vram[naddr + 1];
-	xdata.b.h2= vram[naddr + 2];
-	xdata.b.h3= vram[naddr + 3];
+	xdata.b.l  = vram[paddr0];
+	xdata.b.h  = vram[paddr1];
+	xdata.b.h2 = vram[paddr2];
+	xdata.b.h3 = vram[paddr3];
 
-	xdata.d = xdata.d & ~(dmask.d);
-	ydata.d = ydata.d & dmask.d;
-	xdata.d = xdata.d | ydata.d;
-	
-	vram[naddr + 0] = xdata.b.l;
-	vram[naddr + 1] = xdata.b.h;
-	vram[naddr + 2] = xdata.b.h2;
-	vram[naddr + 3] = xdata.b.h3;
+	ydata = data;
+
+	xdata.d &= ~(dmask.d);
+	ydata   &= dmask.d;
+	xdata.d |= ydata;
+
+	vram[paddr0] = xdata.b.l;
+	vram[paddr1] = xdata.b.h;
+	vram[paddr2] = xdata.b.h2;
+	vram[paddr3] = xdata.b.h3;
 
 	unlock();
 	return;
@@ -124,44 +127,42 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 uint32_t TOWNS_VRAM::read_memory_mapped_io8(uint32_t addr)
 {
 	lock();
-	uint32_t n = vram[addr & 0x7ffff];
+	const uint32_t naddr = calc_std_address_offset(addr);
+	uint32_t n = vram[naddr];
 	unlock();
 	return n;
 }
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 {
-	uint32_t naddr = addr & 0x7ffff;
+	const uint32_t paddr0 = calc_std_address_offset(addr);
+	const uint32_t paddr1 = calc_std_address_offset(addr + 1);
+	//const uint32_t maddr = addr & 1;
 	pair16_t data;
 
-	lock();	
-	__LIKELY_IF(naddr != 0x7ffff) {
-		data.b.l = vram[naddr + 0];
-		data.b.h = vram[naddr + 1];
-	} else {
-		data.b.l = vram[naddr + 0];
-		data.b.h = 0xff;
-	}	
-	unlock();	
+	lock();
+	data.b.l = vram[paddr0];
+	data.b.h = vram[paddr1];
+	unlock();
 	return (uint32_t)(data.w);
 }
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 {
-	uint32_t naddr = addr & 0x7ffff;
+	const uint32_t paddr0 = calc_std_address_offset(addr);
+	const uint32_t paddr1 = calc_std_address_offset(addr + 1);
+	const uint32_t paddr2 = calc_std_address_offset(addr + 2);
+	const uint32_t paddr3 = calc_std_address_offset(addr + 3);
+
 	pair32_t data;
-	
-	lock();	
-	data.b.l  = vram[naddr + 0];
-	data.b.h  = vram[naddr + 1];
-	data.b.h2 = vram[naddr + 2];
-	data.b.h3 = vram[naddr + 3];
-	unlock();	
-		
-	__UNLIKELY_IF(naddr > 0x7fffc) {
-		static const uint32_t mask[4] = {0x00000000, 0xff000000, 0xffff0000, 0xffffff00};
-		data.d |= mask[naddr & 3];
-	}
+
+	lock();
+	unlock();
+
+	data.b.l  = vram[paddr0];
+	data.b.h  = vram[paddr1];
+	data.b.h2 = vram[paddr2];
+	data.b.h3 = vram[paddr3];
 	return data.d;
 }
 
@@ -231,13 +232,13 @@ uint32_t TOWNS_VRAM::read_io8(uint32_t address)
 		break;
 	case 0x045a:
 		{
-			uint8_t v = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 0]; 
+			uint8_t v = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 0];
 			return (uint32_t)v;
 		}
 		break;
 	case 0x045b:
 		{
-			uint8_t v = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 1]; 
+			uint8_t v = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 1];
 			return (uint32_t)v;
 		}
 		break;
@@ -264,8 +265,8 @@ uint32_t TOWNS_VRAM::read_io16(uint32_t address)
 	case 0x045a:
 		{
 			pair16_t w;
-			w.b.l = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 0]; 
-			w.b.h = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 1]; 
+			w.b.l = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 0];
+			w.b.h = packed_pixel_mask_reg[(vram_access_reg_addr << 1) + 1];
 			return (uint32_t)(w.w);
 		}
 		break;
@@ -281,6 +282,103 @@ uint32_t TOWNS_VRAM::read_io16(uint32_t address)
 	return 0xffff;
 }
 
+void TOWNS_VRAM::get_data_from_vram(bool is_single, uint32_t offset, uint32_t bytes, uint8_t* dst)
+{
+	__UNLIKELY_IF((bytes == 0) || (bytes > (TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t))) || (dst == nullptr)) {
+		return;
+	}
+	uint32_t addr = offset & TOWNS_VRAM_ADDR_MASK;
+	uint8_t* p = ___assume_aligned(dst, 16);
+
+	lock();
+	if(is_single) {
+		addr |= (1 << (TOWNS_VRAM_ADDR_SHIFT + 1));
+		__DECL_ALIGNED(32) uint8_t cache[16];
+		__DECL_ALIGNED(32) uint8_t cache2[16];
+		for(int i = bytes; i >= 16; i -= 16) {
+			for(int j = 0; j < 16; j++) {
+				cache[j] = vram[calc_std_address_offset(addr + j)];
+			}
+			__DECL_VECTORIZED_LOOP
+			for(int j = 0; j < 16; j++) {
+				p[j] = cache[j];
+			}
+			p += 16;
+			addr += 16;
+		}
+		bytes = bytes & 0x0f; // MOD
+		for(int j = 0; j < bytes; j++) {
+			cache2[j] = vram[calc_std_address_offset(addr + j)];
+		}
+		for(int j = 0; j < bytes; j++) {
+			p[j] = cache2[j];
+		}
+	} else {
+		__LIKELY_IF((addr + bytes) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
+			// Not Wrapped.
+			memcpy(p, &(vram[addr]), bytes);
+		} else {
+			uint32_t nb = (addr + bytes) - (TOWNS_VRAM_ADDR_MASK + 1);
+			__LIKELY_IF(nb < bytes) {
+				memcpy(p, &(vram[addr]), bytes - nb);
+				__LIKELY_IF(nb > 0) {
+					memcpy(&(p[bytes - nb]), &(vram[0]), nb);
+				}
+			} else {
+				// Fallthrough.
+				memcpy(p, &(vram[addr]), bytes - nb);
+			}
+		}
+	}
+	unlock();
+}
+
+bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words)
+{
+//		uint32_t offset2 = calc_std_address_offset(offset);
+	const uint32_t offset2 = offset & TOWNS_VRAM_ADDR_MASK;
+//		if(words > 16) return false;
+	__UNLIKELY_IF(words <= 0) return false;
+	uint8_t* p = &(vram[offset2]);
+
+	lock();
+	__LIKELY_IF((offset2 + (words << 1)) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
+		memcpy(p, buf, words << 1);
+	} else {
+		int nb = (TOWNS_VRAM_ADDR_MASK + 1) - offset2;
+		memcpy(p, buf, nb);
+		int nnb = (words << 1) - nb;
+		__LIKELY_IF(nnb > 0) {
+			memcpy(vram, &(buf[nb]), nnb);
+		}
+	}
+	unlock();
+	return true;
+}
+
+bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
+{
+	//uint32_t offset2 = calc_std_address_offset(offset);
+	const uint32_t offset2 = offset & TOWNS_VRAM_ADDR_MASK;
+//		if(words > 16) return false;
+	__UNLIKELY_IF(words <= 0) return false;
+
+	lock();
+	uint8_t* p = &(vram[offset2]);
+	__LIKELY_IF((offset2 + (words << 1)) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
+		memcpy(buf, p, words << 1);
+	} else {
+		uint32_t nb = (TOWNS_VRAM_ADDR_MASK + 1) - offset2;
+		memcpy(buf, p, nb);
+		int nnb = (words << 1) - nb;
+		__LIKELY_IF(nnb > 0) {
+			memcpy(&(buf[nb]), vram, nnb);
+		}
+	}
+	unlock();
+	return true;
+}
+
 #define STATE_VERSION	3
 
 bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
@@ -288,18 +386,18 @@ bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
-	
+
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
 
 	lock();
-	
+
 	state_fio->StateValue(vram_access_reg_addr);
 	state_fio->StateArray(packed_pixel_mask_reg, sizeof(packed_pixel_mask_reg), 1);
-	
+
 	state_fio->StateArray(vram, sizeof(vram), 1);
-	
+
 	unlock();
 	return true;
 }

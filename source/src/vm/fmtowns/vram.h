@@ -21,7 +21,12 @@
 //#define USE_TOWNS_VRAM_PARALLEL_ACCESS
 
 // Older Towns.
-#define TOWNS_VRAM_ADDR_MASK 0x7ffff
+#if !defined(TOWNS_VRAM_ADDR_SHIFT)
+#define TOWNS_VRAM_ADDR_SHIFT (16 + 3)
+#endif
+// Normally, 0x7ffff
+#define TOWNS_VRAM_ADDR_MASK ((1 << TOWNS_VRAM_ADDR_SHIFT) - 1)
+
 // VRAM DIRECT ACCESS: For Sprite. You should access with 16bit
 // You can write raw data, drawing with colorkey is automatically.
 #define SIG_TOWNS_TRANSFER_SPRITE_DATA   0x100000
@@ -40,7 +45,7 @@
 #define SIG_TOWNS_VRAM_SWAP_FRAMEBUFFER  0x11
 
 namespace FMTOWNS {
-	
+
 class TOWNS_VRAM : public DEVICE
 {
 private:
@@ -62,7 +67,7 @@ protected:
 	// I/O 045BH (RW) : VRAM ACCESS CONTROLLER reg data (HIGH).
 	uint8_t vram_access_reg_addr;
 	__DECL_ALIGNED(16) uint8_t packed_pixel_mask_reg[8]; // '1' = Write. I/O 0458H - 045BH.
-	__DECL_ALIGNED(16) uint8_t vram[0x80000 + 8]; // Related by machine.
+	__DECL_ALIGNED(16) uint8_t vram[(1 << TOWNS_VRAM_ADDR_SHIFT) + 8]; // Related by machine.
 	// End.
 
 	// Flags related by host renderer. Not saved.
@@ -72,6 +77,18 @@ protected:
 
 	uint8_t cpu_id;
 	uint16_t machine_id;
+
+	constexpr uint32_t calc_std_address_offset(uint32_t addr)
+	{
+		// 0x80100000 : Single
+		// 0x80000000 : Double
+		return ((addr & (1 << (TOWNS_VRAM_ADDR_SHIFT + 1))) != 0) ?
+				((addr & 0x00000003) |
+				 ((addr & 0x00000004) << (TOWNS_VRAM_ADDR_SHIFT - 3))
+				 | ((addr & (TOWNS_VRAM_ADDR_MASK & ~(7))) >> 1))
+				: (addr & TOWNS_VRAM_ADDR_MASK);
+	}
+
 public:
 	TOWNS_VRAM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -84,74 +101,36 @@ public:
 
 	virtual void initialize();
 	virtual void reset();
-	
+
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
 	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
 	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
 	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
-	
+
 	virtual void __FASTCALL write_io8(uint32_t address, uint32_t data);
 	virtual void __FASTCALL write_io16(uint32_t address, uint32_t data);
-	
+
 	virtual uint32_t __FASTCALL read_io8(uint32_t address);
 	virtual uint32_t __FASTCALL read_io16(uint32_t address);
-	
+
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask); // Do render
 	virtual bool process_state(FILEIO* state_fio, bool loading);
 
 	// Unique Functions
 	virtual inline uint8_t* __FASTCALL get_vram_address(uint32_t offset)
 	{
-		__UNLIKELY_IF(offset >= 0x80000) return NULL; // ToDo
-		return &(vram[offset]);
+		//uint32_t offset2 = calc_std_address_offset(offset);
+		const uint32_t offset2 = offset & TOWNS_VRAM_ADDR_MASK;
+		return &(vram[offset2]);
 	}
-	virtual inline bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words)
-	{
-		offset &= 0x7ffff;
-//		if(words > 16) return false;
-		__UNLIKELY_IF(words <= 0) return false;
-		uint8_t* p = &(vram[offset]);
-		
-		lock();
-		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
-			memcpy(p, buf, words << 1);
-		} else {
-			int nb = 0x80000 - offset;
-			memcpy(p, buf, nb);
-			int nnb = (words << 1) - nb;
-			__LIKELY_IF(nnb > 0) {
-				memcpy(vram, &(buf[nb]), nnb);
-			}
-		}
-		unlock();
-		return true;
-	}
-	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
-	{
-		offset &= 0x7ffff;
-//		if(words > 16) return false;
-		__UNLIKELY_IF(words <= 0) return false;
-		
-		lock();
-		uint8_t* p = &(vram[offset]);
-		__LIKELY_IF((offset + (words << 1)) <= 0x80000) {
-			memcpy(buf, p, words << 1);
-		} else {
-			uint32_t nb = 0x80000 - offset;
-			memcpy(buf, p, nb);
-			int nnb = (words << 1) - nb;
-			__LIKELY_IF(nnb > 0) {
-				memcpy(&(buf[nb]), vram, nnb);
-			}
-		}
-		unlock();
-		return true;
-	}
+	virtual void __FASTCALL get_data_from_vram(bool is_single, uint32_t offset, uint32_t bytes, uint8_t* dst);
+	virtual bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words);
+	virtual bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words);
 	virtual inline uint32_t __FASTCALL get_vram_size()
 	{
-		return 0x80000; // ToDo
+		return TOWNS_VRAM_ADDR_MASK + 1; // ToDo
 	}
 	void set_cpu_id(uint16_t val)
 	{
@@ -166,7 +145,7 @@ public:
 	inline void lock() noexcept;
 	inline void unlock() noexcept;
 	inline bool try_lock() noexcept;
-	
+
 	// New APIs?
 	// End.
 };
@@ -192,7 +171,7 @@ inline bool TOWNS_VRAM::try_lock() noexcept
 	return true;
 #endif
 }
-	
+
 
 #if defined(USE_TOWNS_VRAM_PARALLEL_ACCESS)
 	#undef USE_TOWNS_VRAM_PARALLEL_ACCESS

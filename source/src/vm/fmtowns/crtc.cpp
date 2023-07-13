@@ -1974,42 +1974,44 @@ __DECL_VECTORIZED_LOOP
 	linebuffers[trans][line].mode[0] = DISPMODE_16;
 	linebuffers[trans][line].mode[1] = DISPMODE_16;
 	uint8_t page_16mode = r50_pagesel;
-
-	for(int l = 0; l < 2; l++) {
-		if((ctrl & 0x10) == 0) { // One layer mode
-			linebuffers[trans][line].num[0] = 0;
-			linebuffers[trans][line].num[1] = 0;
-			linebuffers[trans][line].crtout[0] = (crtout_top[0]) ? 0xff : 0x00;
-			linebuffers[trans][line].crtout[1] = 0;
-			bool disp = frame_in[0];
-			__UNLIKELY_IF((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
-				disp = false;
-			}
+	bool is_single_layer = ((ctrl & 0x10) == 0) ? true : false;
+	if(is_single_layer) {
+		// One layer mode
+		to_disp[1] = false;
+		linebuffers[trans][line].num[0] = 0;
+		linebuffers[trans][line].num[1] = 0;
+		linebuffers[trans][line].crtout[0] = (crtout_top[0]) ? 0xff : 0x00;
+		linebuffers[trans][line].crtout[1] = 0;
+		bool disp = frame_in[0];
+		__UNLIKELY_IF((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
+			disp = false;
+		}
 //			if(vert_offset_tmp[0] > line) {
 //				disp = false;
 //			}
-			__LIKELY_IF(disp) {
-				switch(ctrl & 0x0f) {
-				case 0x0a:
-					linebuffers[trans][line].mode[0] = DISPMODE_256;
-					address_shift[0] = 3; // FM-Towns Manual P.145
-					to_disp[0] = true;
-					address_mask[0] = 0x7ffff;
-					break;
-				case 0x0f:
-					linebuffers[trans][line].mode[0] = DISPMODE_32768;
-					to_disp[0] = true;
-					address_shift[0] = 3; // FM-Towns Manual P.145
-					address_mask[0] = 0x7ffff;
-					break;
-				default:
-					linebuffers[trans][line].mode[0] = DISPMODE_NONE;
-					to_disp[0] = false;
-					break;
-				}
+		__LIKELY_IF(disp) {
+			switch(ctrl & 0x0f) {
+			case 0x0a:
+				linebuffers[trans][line].mode[0] = DISPMODE_256;
+				address_shift[0] = 3; // FM-Towns Manual P.145
+				to_disp[0] = true;
+				address_mask[0] = 0x7ffff;
+				break;
+			case 0x0f:
+				linebuffers[trans][line].mode[0] = DISPMODE_32768;
+				to_disp[0] = true;
+				address_shift[0] = 3; // FM-Towns Manual P.145
+				address_mask[0] = 0x7ffff;
+				break;
+			default:
+				linebuffers[trans][line].mode[0] = DISPMODE_NONE;
+				to_disp[0] = false;
+				break;
 			}
-			if(l == 0) break;
-		} else { // Two layer mode
+		}
+	} else {
+		for(int l = 0; l < 2; l++) {
+			// Two layer mode
 			linebuffers[trans][line].num[0] = page0;
 			linebuffers[trans][line].num[1] = page1;
 			linebuffers[trans][line].crtout[page0] = (crtout_top[page0]) ? 0xff : 0x00;
@@ -2096,43 +2098,6 @@ __DECL_VECTORIZED_LOOP
 				bit_shift >>= 1;
 			}
 			offset = (offset + ((-bit_shift) >> ashift)) & (((ctrl & 0x10) == 0) ? 0x7ffff : 0x3ffff);
-#if 0
-			int _x = (int)max((unsigned int)_begin, (unsigned int)haj);
-			int _y = (int)(regs[13 + l * 2] & 0x3ff); // VDSx
-			switch(clksel) {
-			case 0:
-				_x = (_x - 0x129) >> 1;
-				_y = (_y - 0x2a) >> 1;
-				break;
-			case 1:
-				if((regs[4] & 0x3ff) == 0x31f) { // HST
-					_x = _x - 0x8a;
-				} else {
-					_x = (_x - 0xe7) >> 1;
-				}
-				_y = (_y - 0x2a) >> 1;
-				break;
-			case 2:
-				_x = _x - 0x8a;
-				_y = (_y - 0x46) >> 1;
-				break;
-			case 3:
-				if((regs[4] & 0x3ff) != 0x29d) { // HST
-					_x = _x - 0x9c;
-					_y = (_y - 0x40) >> 1;
-				} else {
-					_x = _x - 0x8a;
-					_y = (_y - 0x46) >> 1;
-				}
-				break;
-			default:
-				_x = 0;
-				_y = 0;
-				break;
-			}
-			if(_x < 0) _x = 0;
-			if(_y < 0) _y = 0;
-#endif
 			offset = offset + (int)head_address[l];
 			offset <<= ashift;
 //			bit_shift = _x >> ashift;
@@ -2194,28 +2159,7 @@ __DECL_VECTORIZED_LOOP
 						linebuffers[trans][line].pixels[0] = pixels;
 						linebuffers[trans][line].mag[0] = magx; // ToDo: Real magnif
 					}
-					uint8_t *p = d_vram->get_vram_address(offset);
-					__LIKELY_IF((tr_bytes > 0) && (p != nullptr)) {
-						d_vram->lock();
-						__UNLIKELY_IF(((offset & address_mask[l]) + tr_bytes) > address_mask[l]) {
-							// Wrap
-							int __left = (address_mask[l] + 1 - (offset & address_mask[l]));
-							my_memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0])
-								   , p
-								   , __left);
-							offset  = ((page_16mode != 0) ? 0x20000 : 0);
-							offset += address_add[l];
-
-							uint8_t *p2 = d_vram->get_vram_address(offset);
-							my_memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][__left])
-								   , p2
-								   , tr_bytes - __left);
-						} else {
-							my_memcpy(&(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0]), p, tr_bytes);
-						}
-						d_vram->unlock();
-
-					}
+					d_vram->get_data_from_vram(((is_single_layer) || (is_256)), offset, tr_bytes, &(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0]));
 					did_transfer[l] = true;
 				}
 			}

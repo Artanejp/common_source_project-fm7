@@ -104,28 +104,23 @@ uint32_t PLANEVRAM::read_memory_mapped_io8(uint32_t addr)
 	// ToDo: Writing plane.
 	addr = (addr & 0x7fff) << 2;
 	__UNLIKELY_IF(d_vram == NULL) return 0xff;
-	
-	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
-	__UNLIKELY_IF(p == NULL) return 0xff;
-//	p = &(p[x_addr + addr]); 
-	
+
+	pair32_t dat;
+	__DECL_ALIGNED(8) uint8_t cache[4];
+	dat.d = d_vram->read_memory_mapped_io32(x_addr + addr);
+	dat.write_4bytes_le_to(cache);
+//	p = &(p[x_addr + addr]);
+
 	// 8bit -> 32bit
 	uint8_t val = 0;
 	const uint8_t lmask = 1 << (r50_readplane & 3);
 	const uint8_t hmask = lmask << 4;
-	
-	d_vram->lock();
+
 	__DECL_ALIGNED(8) uint8_t extra_p[8];
 	__DECL_ALIGNED(8) uint8_t extra_mask[8];
 	const uint8_t extra_value[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	__DECL_ALIGNED(8) uint8_t extra_bool[8];
-	__DECL_ALIGNED(8) uint8_t cache[4];
-	
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 4; i++) {
-		cache[i] = p[i];
-	}
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0, j = 0; i < 8; i += 2, j++) {
 		extra_p[i    ] = cache[j];
@@ -136,7 +131,7 @@ __DECL_VECTORIZED_LOOP
 		extra_mask[i    ] = hmask;
 		extra_mask[i + 1] = lmask;
 	}
-	
+
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		extra_bool[i] = ((extra_mask[i] & extra_p[i]) != 0) ? 0xff : 0x00;
@@ -150,8 +145,7 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		val |= extra_bool[i];
 	}
-	d_vram->unlock();
-	
+
 	return val;
 }
 
@@ -165,10 +159,10 @@ void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 	addr = (addr & 0x7fff) << 2;
 
 	__UNLIKELY_IF(d_vram == NULL) return;
-	
-	uint8_t *p = d_vram->get_vram_address(x_addr + addr);
-	__UNLIKELY_IF(p == NULL) return;
-	
+
+	pair32_t dat;
+	dat.d = d_vram->read_memory_mapped_io32(x_addr + addr);
+
 	// 8bit -> 32bit
 	uint32_t tmp = 0;
 	uint32_t tmp_d = data;
@@ -183,7 +177,7 @@ void PLANEVRAM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 //	uint32_t tmp_m2 = 0x000000f0/* & write_plane_mask*/;
 	const uint32_t tmp_m1 = (((uint32_t)ntmp) << 0);
 	const uint32_t tmp_m2 = (((uint32_t)ntmp) << 4);
-#endif	
+#endif
 	pair32_t tmp_r1;
 	//uint32_t tmp_r2;
 	uint32_t mask = 0;
@@ -202,19 +196,11 @@ __DECL_VECTORIZED_LOOP
 		mask = mask | (tmp_m1 | tmp_m2);
 		tmp_d <<= 2;
 	}
-	d_vram->lock();
+	tmp_r1.d = dat.d;
+	tmp_r1.d &= ~mask;
+	tmp_r1.d |= tmp;
 
-	tmp_r1.read_4bytes_le_from(p);
-//	tmp_r2 = tmp_r1.d;
-	tmp_r1.d = tmp_r1.d & ~mask;
-	tmp_r1.d = tmp | tmp_r1.d;
-
-//	if(tmp_r2 != tmp_r1.d) {
-		tmp_r1.write_4bytes_le_to(p);
-//		d_vram->make_dirty_vram(x_addr + addr, 4);
-//	}
-	d_vram->unlock();
-
+	d_vram->write_memory_mapped_io32(x_addr + addr, tmp_r1.d);
 }
 
 #define STATE_VERSION	2
@@ -224,16 +210,16 @@ bool PLANEVRAM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
  	}
-	
+
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	
+
 	state_fio->StateValue(mix_reg);
 	state_fio->StateValue(r50_readplane);
 	state_fio->StateValue(r50_ramsel);
 	state_fio->StateValue(r50_gvramsel);
-	
+
 	return true;
 }
 
