@@ -47,6 +47,49 @@ void TOWNS_DMAC::call_dma(int ch)
 	do_dma_per_channel(ch, is_use_debugger, false);
 }
 
+
+void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
+{
+	__UNLIKELY_IF(b16 == 0) {
+		write_io8(addr, data);
+		return;
+	}
+	switch(addr & 0x0e) {
+	case 0x02:
+		dma[selch].bcreg = data;
+		if(base == 0x00) {
+			dma[selch].creg = data;
+		}
+		// Reset TC bit for towns, by Tsugaru commit ab067790479064efce693f7317af13696cb68d96 .		tc &= ~(1 << selch);
+		write_signals(&outputs_towns_tc[selch], 0);
+		break;
+	case 0x04: // ADDR LOW
+		dma[selch].bareg = (dma[selch].bareg & 0xffff0000) | (data & 0xffff);
+		if(base == 0x00) {
+			dma[selch].areg = dma[selch].bareg; // OK? This is from Tsugaru. 20230710 K.O
+		}
+		break;
+	case 0x06: // ADDR HIGH
+		dma[selch].bareg = (dma[selch].bareg & 0x0000ffff) | ((data & 0xffff) << 16);
+		if(base == 0x00) {
+			dma[selch].areg = dma[selch].bareg; // OK? This is from Tsugaru. 20230710 K.O
+		}
+		break;
+	case 0x08: // Control
+		cmd = data;
+		if(/*(cmd != cmd_bak) && */((cmd & 0x04) == 0)) {
+			check_start_condition();
+		} else {
+			check_running();
+		}
+		break;
+	default:
+		write_io8((addr & 0x0e) + 0, data & 0x00ff);
+		write_io8((addr & 0x0e) + 1, (data & 0xff00) >> 8); // OK?
+		break;
+	}
+}
+
 void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 {
 //	if((addr & 0x0f) == 0x0c) out_debug_log("WRITE REG: %08X %08X", addr, data);
@@ -74,17 +117,27 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		out_debug_log(_T("RESET from I/O; B16=%s"), ((b16 & 2) != 0) ? _T("16bit") : _T("8bit"));
 		break;
 	case 0x02:
-	case 0x03:
-		// Reset TC bit for towns, by Tsugaru commit ab067790479064efce693f7317af13696cb68d96 .
-		tc &= ~(1 << selch);
+		// Reset TC bit for towns, by Tsugaru commit ab067790479064efce693f7317af13696cb68d96 .		tc &= ~(1 << selch);
 		write_signals(&outputs_towns_tc[selch], 0);
-		UPD71071::write_io8(addr, data);
+		//UPD71071::write_io8(addr, data);
+		dma[selch].bcreg = (dma[selch].bcreg & 0xff00) | data;
+		if(base == 0x00) {
+			dma[selch].creg = dma[selch].bcreg; // OK?
+		}
+		break;
+	case 0x03:
+		write_signals(&outputs_towns_tc[selch], 0);
+		//UPD71071::write_io8(addr, data);
+		dma[selch].bcreg = (dma[selch].bcreg & 0x00ff) | (data << 8);
+		if(base == 0x00) {
+			dma[selch].creg = dma[selch].bcreg; // OK?
+		}
 		break;
 	case 0x04:
 		dma[selch].bareg = (dma[selch].bareg & 0xffffff00) | data;
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0xffffff00) | data;
-//		}
+		if(base == 0x00) {
+			dma[selch].areg = dma[selch].bareg;
+		}
 		#if 0
 		if(is_started[selch]) {
 			if(check_address_16bit_bus_changed(selch)) {
@@ -95,21 +148,21 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x05:
 		dma[selch].bareg = (dma[selch].bareg & 0xffff00ff) | (data << 8);
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0xffff00ff) | (data << 8);
-//		}
+		if(base == 0x00) {
+			dma[selch].areg = dma[selch].bareg;
+		}
 		break;
 	case 0x06:
 		dma[selch].bareg = (dma[selch].bareg & 0xff00ffff) | (data << 16);
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0xff00ffff) | (data << 16);
-//		}
+		if(base == 0x00) {
+			dma[selch].areg = dma[selch].bareg;
+		}
 		break;
 	case 0x07:
 		dma[selch].bareg = (dma[selch].bareg & 0x00ffffff) | (data << 24);
-//		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0x00ffffff) | (data << 24);
-//		}
+		if(base == 0x00) {
+			dma[selch].areg = dma[selch].bareg;
+		}
 		break;
 		// CMD
 	case 0x08:
@@ -242,6 +295,45 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 		val = UPD71071::read_io8(addr);
 		break;
 	}
+	return val;
+}
+
+uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
+{
+	__UNLIKELY_IF(b16 == 0) {
+		return read_io8(addr);
+	}
+	switch(addr & 0x0e) {
+	case 0x02:
+		if(base != 0) {
+			return dma[selch].bcreg;
+		} else {
+			return dma[selch].creg;
+		}
+		break;
+	case 0x04:
+		if(base != 0) {
+			return dma[selch].bareg & 0x0000ffff;
+		} else {
+			return dma[selch].areg  & 0x0000ffff;
+		}
+		break;
+	case 0x06:
+		if(base != 0) {
+			return (dma[selch].bareg & 0xffff0000) >> 16;
+		} else {
+			return (dma[selch].areg  & 0xffff0000) >> 16;
+		}
+		break;
+	case 0x08:
+		return cmd;
+		break;
+	default:
+		break;
+	}
+	uint32_t val = 0;
+	val = read_io8((addr & 0x0e) + 0) & 0x00ff;
+	val = val | ((read_io8((addr & 0x0e) + 1) & 0xff) << 8); // OK?
 	return val;
 }
 
