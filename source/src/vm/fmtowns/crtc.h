@@ -11,8 +11,8 @@
 #ifndef _TOWNS_CRTC_H_
 #define _TOWNS_CRTC_H_
 
+#include <atomic>
 #include "device.h"
-
 #include "towns_common.h"
 /*
  * I/O Address :
@@ -28,7 +28,7 @@
  *         #28 has bit 15,14  and 7 to 0.
  *         #29 has 4bit.
  *         #31 has bit15 and bit 8 to 0.
- *        
+ *
  *  #00 / bit 7 - 1 : HSW1 (Bit 10 to 8 and 0 must be '0')
  *  #01 / bit 7 - 1 : HSW2 (Bit 10 to 8 and 0 must be '0')
  *  #02 / ??
@@ -46,13 +46,13 @@
  *  #14 / bit10 - 0 : VDE0 (Layer 0)
  *  #15 / bit10 - 0 : VDS1 (Layer 1)
  *  #16 / bit10 - 0 : VDE1 (Layer 1)
- *  #17 / bit15 - 0 : FA0  (Layer 0) 
- *  #18 / bit10 - 0 : HAJ0 (Layer 0) 
- *  #19 / bit15 - 0 : FO0  (Layer 0) 
- *  #20 / bit15 - 0 : LO0  (Layer 0) 
- *  #21 / bit15 - 0 : FA1  (Layer 1) 
- *  #22 / bit10 - 0 : HAJ1 (Layer 1) 
- *  #23 / bit15 - 0 : FO1  (Layer 1) 
+ *  #17 / bit15 - 0 : FA0  (Layer 0)
+ *  #18 / bit10 - 0 : HAJ0 (Layer 0)
+ *  #19 / bit15 - 0 : FO0  (Layer 0)
+ *  #20 / bit15 - 0 : LO0  (Layer 0)
+ *  #21 / bit15 - 0 : FA1  (Layer 1)
+ *  #22 / bit10 - 0 : HAJ1 (Layer 1)
+ *  #23 / bit15 - 0 : FO1  (Layer 1)
  *  #24 / bit15 - 0 : LO1  (Layer 1)
  *  #25 / bit10 - 0 : EHAJ (External horizonal sync adjusting)
  *  #26 / bit10 - 0 : EVAJ (External horizonal sync adjusting)
@@ -64,7 +64,7 @@
  *        bit1-0 : CL0
  *  #29 / bit3-2 : SCSEL (Clock divide = 2 * (SCSEL + 1)).
  *        bit1-0 : CLKSEL (00 = 28.6363MHz / 01 = 24.5454MHz / 10 = 25.175MHz / 11 = 21.0525MHz)
- *  #30 / Status register (RO): 
+ *  #30 / Status register (RO):
  *        bit15 : DSPTV1 / bit14 : DSPTV0 (VDISP = '1')
  *        bit13 : DSPTH1 / bit12 : DSPTH0 (HDISP = '1')
  *        bit11 : FIELD (Field number)
@@ -116,7 +116,7 @@ namespace FMTOWNS {
 		TOWNS_CRTC_REG_VST1,
 		TOWNS_CRTC_REG_VST2,
 		TOWNS_CRTC_REG_EET,
-	
+
 		TOWNS_CRTC_REG_VST, // 8
 		TOWNS_CRTC_REG_HDS0,
 		TOWNS_CRTC_REG_HDE0,
@@ -125,7 +125,7 @@ namespace FMTOWNS {
 		TOWNS_CRTC_REG_VDS0,
 		TOWNS_CRTC_REG_VDE0,
 		TOWNS_CRTC_REG_VDS1,
-	
+
 		TOWNS_CRTC_REG_VDE1,
 		TOWNS_CRTC_REG_FA0,
 		TOWNS_CRTC_REG_HAJ0,
@@ -134,7 +134,7 @@ namespace FMTOWNS {
 		TOWNS_CRTC_REG_FA1,
 		TOWNS_CRTC_REG_HAJ1,
 		TOWNS_CRTC_REG_FO1,
-	
+
 		TOWNS_CRTC_REG_LO1,
 		TOWNS_CRTC_REG_EHAJ,
 		TOWNS_CRTC_REG_EVAJ,
@@ -166,7 +166,7 @@ typedef struct {
 #pragma pack(push, 1)
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t crtout[2];
-	uint8_t r50_pad;   
+	uint8_t r50_pad;
 #pragma pack(pop)
 	int32_t  bitshift[2];
 	uint32_t pad;
@@ -185,7 +185,7 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 	FONT_ROMS*       d_font;
-	
+
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	bool is_compatible;
@@ -198,14 +198,14 @@ protected:
 	bool address_changed[2];
 	bool mode_changed[2];
 	uint32_t fo1_offset_value;
-	
+
 	uint8_t display_mode[2];
 	bool line_changed[2][TOWNS_CRTC_MAX_LINES];
 	bool display_enabled;
-	
+
 	double crtc_clock; //
 	int cpu_clocks;
-	
+
 	// They are not saved.Must be calculate when loading.
 	double horiz_us; // (HST + 1) * clock
 	double horiz_width_posi_us, horiz_width_nega_us; // HSW1, HSW2
@@ -217,12 +217,12 @@ protected:
 	double vst2_us;
 	int hst[4], vst[4];
 	int vst_tmp, hst_tmp;
-	
+
 	double vert_start_us[2];
 	double vert_end_us[2];
 	double horiz_start_us[2];
 	double horiz_end_us[2];
-	
+
 	bool req_recalc;
 	// End
 
@@ -233,10 +233,10 @@ protected:
     uint32_t hend_words[2];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
 	uint32_t frame_offset[2]; // FOx.
 	uint32_t line_offset[2]; // LOx.
-	
+
 	uint32_t frame_offset_bak[2]; // FOx(Backup).
 	uint32_t line_offset_bak[2]; // LOx(Backup).
-	
+
 	uint32_t head_address[2];
 	int horiz_offset_tmp[2];
 	int vert_offset_tmp[2];
@@ -245,7 +245,7 @@ protected:
 
 	bool is_sprite;
 	uint32_t sprite_offset;
-	
+
 	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_count_vert[2];
@@ -253,24 +253,24 @@ protected:
 
 	uint8_t scsel;
 	uint8_t clksel;
-	
+
 	int pixels_per_line;
 	int lines_per_frame;
 	int max_lines;
-	
+
 	int vert_line_count; // Not separate per layer.Total count.
 	// Note: To display to real screen, use blending of OpenGL/DirectX
 	//       from below framebuffers per layer if you can.
 	//       And, recommand to use (hardware) shader to rendering (= not to use framebuffer of below) if enabled.
 	//       Not recommanded to use draw_screen() type rendering.
 	//       Rendering precesses may be heavily to use only CPU (I think). 20170107 K.Ohta.
-	
+
 	// Not Saved?.
 	// End.
 	bool vsync, hsync, hdisp[2], frame_in[2];
 	bool interlace_field;
-	
-	
+
+
 	// Around Analog palette.
 	uint8_t apalette_code; // I/O FD90H (RW). 16 or 256 colors.
 	uint8_t apalette_b;    // I/O FD92H (RW).
@@ -282,18 +282,18 @@ protected:
 	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
 
 	uint8_t tvram_snapshot[0x4000];
-	
+
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t r50_pagesel;   // MMIO 000CF882h : BIT 4
 	uint8_t dpalette_regs[8]; // I/O FD98H - FD9FH
 	bool dpalette_changed;
-	
+
 	// Video output controller (I/O 0448H, 044AH)
 	// Register 00 : Display mode.
 	// Register 11: Priority mode.
 	bool video_brightness; // false = high.
-	
+
 	// Others.
 	// VRAM CONTROL REGISTER.
 	uint8_t voutreg_num;  // I/O 0448h
@@ -305,8 +305,8 @@ protected:
 	uint8_t crtout_reg;
 	// End.
 
-	
-	// 
+
+	//
 	// Event IDs. Saved.
 	int event_id_hsync;
 	int event_id_hsw;
@@ -322,9 +322,10 @@ protected:
 	int event_id_hds[2];
 	int event_id_hde[2];
 
-	int display_linebuf;
+	std::atomic<int> display_linebuf;
+	std::atomic<int> render_linebuf;
 	int display_linebuf_mask;
-	
+
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
 
 	// Render buffer
@@ -339,17 +340,17 @@ protected:
 	void restart_display();
 	void stop_display();
 	void notify_mode_changed(int layer, uint8_t mode);
-	
+
 	void cancel_event_by_id(int& event_num);
-	
+
 	void set_crtc_clock(uint16_t val);
 	uint16_t read_reg30();
 	uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
-	
+
 	virtual void __FASTCALL calc_apalette16(int layer, int index);
 	virtual void __FASTCALL calc_apalette256(int index);
 	virtual void __FASTCALL calc_apalette(int index);
-	
+
 	virtual void __FASTCALL set_apalette_r(uint8_t val);
 	virtual void __FASTCALL set_apalette_g(uint8_t val);
 	virtual void __FASTCALL set_apalette_b(uint8_t val);
@@ -357,7 +358,7 @@ protected:
 	virtual uint8_t __FASTCALL get_apalette_b();
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
-	
+
 	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha);
 	bool __FASTCALL render_256(scrntype_t* dst, int y);
 	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
@@ -387,7 +388,7 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void event_pre_frame();
 	void event_frame();
-	
+
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t __FASTCALL read_signal(int ch);
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
@@ -395,7 +396,7 @@ public:
 
 	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
 	uint32_t __FASTCALL read_io16(uint32_t addr);
-	
+
 	void __FASTCALL event_callback(int event_id, int err);
 	bool process_state(FILEIO* state_fio, bool loading);
 
@@ -418,7 +419,7 @@ public:
 		__UNLIKELY_IF(line >= TOWNS_CRTC_MAX_LINES) return NULL;
 		return &(linebuffers[page][line]);
 	}
-	
+
 	void set_context_sprite(DEVICE* dev)
 	{
 		d_sprite = (TOWNS_SPRITE*)dev;
@@ -439,7 +440,7 @@ public:
 	{
 		cpu_id = val & 0x07;
 	}
-	
+
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_int_vsync, device, id, mask);
@@ -453,4 +454,3 @@ public:
 }
 
 #endif
-

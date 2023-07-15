@@ -96,6 +96,7 @@ void TOWNS_CRTC::reset()
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	display_linebuf = 0;
+	render_linebuf  = 0;
 
 	r50_planemask = 0x0f;
 	r50_pagesel = 0;
@@ -853,7 +854,7 @@ bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int laye
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
-	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
+	int trans = display_linebuf & display_linebuf_mask;
 //	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
@@ -1128,7 +1129,7 @@ bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
 {
 	// 256 colors
 	__UNLIKELY_IF(dst == nullptr) return false;
-	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
+	int trans = display_linebuf & display_linebuf_mask;
 //	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[0];
 	int pwidth = linebuffers[trans][y].pixels[0];
@@ -1277,7 +1278,7 @@ bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, i
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
-	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
+	int trans = display_linebuf & display_linebuf_mask;
 //	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
@@ -1597,7 +1598,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
 	__UNLIKELY_IF(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(width <= 0) return;
 
-	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
+	int trans = display_linebuf & display_linebuf_mask;
 
 	int bitshift0 = linebuffers[trans][y].bitshift[0];
 	int bitshift1 = linebuffers[trans][y].bitshift[1];
@@ -1722,7 +1723,7 @@ __DECL_VECTORIZED_LOOP
 
 void TOWNS_CRTC::draw_screen()
 {
-	int trans = (display_linebuf == 0) ? display_linebuf_mask : ((display_linebuf - 1) & display_linebuf_mask);
+	int trans = display_linebuf & display_linebuf_mask;
 	//int trans2 = ((display_linebuf - 2) & display_linebuf_mask);
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF(d_vram == nullptr) {
@@ -1805,8 +1806,6 @@ void TOWNS_CRTC::draw_screen()
 //		}
 		mix_screen(y, width, do_mix0, do_mix1);
 	}
-
-	//display_linebuf = (display_linebuf + 1) & 3;
 	return;
 }
 
@@ -1941,7 +1940,7 @@ void TOWNS_CRTC::transfer_line(int line)
 	prio = voutreg_prio;
 
 	//int trans = (display_linebuf - 1) & 3;
-	int trans = display_linebuf & display_linebuf_mask;
+	int trans = render_linebuf & display_linebuf_mask;
 	__UNLIKELY_IF(linebuffers[trans] == nullptr) return;
 
 __DECL_VECTORIZED_LOOP
@@ -2100,18 +2099,20 @@ __DECL_VECTORIZED_LOOP
 			offset = (offset + ((-bit_shift) >> ashift)) & (((ctrl & 0x10) == 0) ? 0x7ffff : 0x3ffff);
 			offset = offset + (int)head_address[l];
 			offset <<= ashift;
-//			bit_shift = _x >> ashift;
-			if((trans & 1) != 0) offset = offset + (frame_offset_bak[l] <<= ashift);
+			if((trans & 1) != 0) offset = offset + (frame_offset_bak[l] << ashift);
+//			if((trans & 1) != 0) offset = offset + (frame_offset[l] << ashift);
 			if(l == 1) {
-				offset = offset + (fo1_offset_value <<= ashift);
+				offset = offset + (fo1_offset_value << ashift);
 			}
-			if(linebuffers[trans][line].mode[l] == DISPMODE_16) {
+			//! Note:
+			//! - Below is from Tsugaru, commit 1a442831 .
+			//! - I wonder sprite offset effects every display mode at page1,
+			//!   and FMR's address offset register effects every display mode at page0
+			//! - -- 20230715 K.O
+			if(l == 0) {
 				offset += ((page_16mode != 0) ? 0x20000 : 0);
-			}
-			if(l == 1) {
-				if((is_sprite) && (linebuffers[trans][line].mode[l] == DISPMODE_32768)) {
-					offset += sprite_offset;
-				}
+			} else {
+				offset += sprite_offset;
 			}
 			offset = offset & address_mask[l]; // OK?
 			offset += address_add[l];
@@ -2170,7 +2171,8 @@ __DECL_VECTORIZED_LOOP
 				zoom_count_vert[l] = zoom_factor_vert[l];
 				// ToDo: Interlace
 				if(to_disp[l]) {
-					head_address[l] += line_offset_bak[l];
+					//head_address[l] += line_offset_bak[l];
+					head_address[l] += line_offset[l];
 				}
 			}
 		}
@@ -2190,6 +2192,7 @@ void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int ne
 
 void TOWNS_CRTC::event_pre_frame()
 {
+	display_linebuf = render_linebuf & display_linebuf_mask; // Incremant per vstart
 	interlace_field = !interlace_field;
 	for(int i = 0; i < 2; i++) {
 		crtout_top[i] = crtout[i];
@@ -2249,22 +2252,22 @@ void TOWNS_CRTC::event_pre_frame()
 
 void TOWNS_CRTC::event_frame()
 {
-	display_linebuf = (display_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
-	hst[display_linebuf] = hst_tmp;
-	vst[display_linebuf] = vst_tmp;
+	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+	hst[render_linebuf] = hst_tmp;
+	vst[render_linebuf] = vst_tmp;
 	lines_per_frame = max_lines;
 
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	hsync = false;
 
-	//! @note at event_pre_frame() at SPRITE, clear VRAM if enabled.
+	//! @note Every event_pre_frame() at SPRITE, clear VRAM if enabled.
 	is_sprite = (d_sprite->read_signal(SIG_TOWNS_SPRITE_ENABLED) != 0) ? true : false;
-	if(is_sprite) {
-		sprite_offset = (d_sprite->read_signal(SIG_TOWNS_SPRITE_DISP_PAGE1) != 0) ? 0x20000 : 0x00000;
-	} else {
-		sprite_offset = 0x00000;
-	}
+	//! Note:
+	//! - Below is from Tsugaru, commit 1a442831 .
+	//! - I wonder sprite offset effects every display mode at page1.
+	//! - -- 20230715 K.O
+	sprite_offset = (d_sprite->read_signal(SIG_TOWNS_SPRITE_DISP_PAGE1) != 0) ? 0x20000 : 0x00000;
 	// ToDo: EET
 	//register_event(this, EVENT_CRTC_VSTART, frame_us, false, &event_id_frame); // EVENT_VSTART MOVED TO event_frame().
 	cancel_event_by_id(event_id_vst1);
@@ -2666,6 +2669,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 			hst[i] = hst_tmp;
 		}
 		display_linebuf = 0;
+		render_linebuf = 0;
 		req_recalc = false;
 		force_recalc_crtc_param();
 	}
