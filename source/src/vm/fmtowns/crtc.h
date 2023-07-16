@@ -113,36 +113,36 @@ namespace FMTOWNS {
 		TOWNS_CRTC_REG_HSW1 = 0,
 		TOWNS_CRTC_REG_HSW2 = 1,
 		TOWNS_CRTC_REG_HST  = 4,
-		TOWNS_CRTC_REG_VST1,
-		TOWNS_CRTC_REG_VST2,
-		TOWNS_CRTC_REG_EET,
+		TOWNS_CRTC_REG_VST1 = 5,
+		TOWNS_CRTC_REG_VST2 = 6,
+		TOWNS_CRTC_REG_EET  = 7,
 
-		TOWNS_CRTC_REG_VST, // 8
-		TOWNS_CRTC_REG_HDS0,
-		TOWNS_CRTC_REG_HDE0,
-		TOWNS_CRTC_REG_HDS1,
-		TOWNS_CRTC_REG_HDE1,
-		TOWNS_CRTC_REG_VDS0,
-		TOWNS_CRTC_REG_VDE0,
-		TOWNS_CRTC_REG_VDS1,
+		TOWNS_CRTC_REG_VST  = 8,
+		TOWNS_CRTC_REG_HDS0 = 9,
+		TOWNS_CRTC_REG_HDE0 = 10,
+		TOWNS_CRTC_REG_HDS1 = 11,
+		TOWNS_CRTC_REG_HDE1 = 12,
+		TOWNS_CRTC_REG_VDS0 = 13,
+		TOWNS_CRTC_REG_VDE0 = 14,
+		TOWNS_CRTC_REG_VDS1 = 15,
 
-		TOWNS_CRTC_REG_VDE1,
-		TOWNS_CRTC_REG_FA0,
-		TOWNS_CRTC_REG_HAJ0,
-		TOWNS_CRTC_REG_FO0,
-		TOWNS_CRTC_REG_LO0,
-		TOWNS_CRTC_REG_FA1,
-		TOWNS_CRTC_REG_HAJ1,
-		TOWNS_CRTC_REG_FO1,
+		TOWNS_CRTC_REG_VDE1 = 16,
+		TOWNS_CRTC_REG_FA0  = 17,
+		TOWNS_CRTC_REG_HAJ0 = 18,
+		TOWNS_CRTC_REG_FO0  = 19,
+		TOWNS_CRTC_REG_LO0  = 20,
+		TOWNS_CRTC_REG_FA1  = 21,
+		TOWNS_CRTC_REG_HAJ1 = 22,
+		TOWNS_CRTC_REG_FO1  = 23,
 
-		TOWNS_CRTC_REG_LO1,
-		TOWNS_CRTC_REG_EHAJ,
-		TOWNS_CRTC_REG_EVAJ,
-		TOWNS_CRTC_REG_ZOOM,
-		TOWNS_CRTC_REG_DISPMODE, // 28
-		TOWNS_CRTC_REG_CLK, // 29
-		TOWNS_CRTC_REG_DUMMY, // 30
-		TOWNS_CRTC_REG_CTRL, // 31
+		TOWNS_CRTC_REG_LO1  = 24,
+		TOWNS_CRTC_REG_EHAJ = 25,
+		TOWNS_CRTC_REG_EVAJ = 26,
+		TOWNS_CRTC_REG_ZOOM = 27,
+		TOWNS_CRTC_REG_DISPMODE = 28,
+		TOWNS_CRTC_REG_CLK      = 29,
+		TOWNS_CRTC_REG_DUMMY    = 30,
+		TOWNS_CRTC_REG_CTRL     = 31,
 	};
 
 	enum {
@@ -193,6 +193,26 @@ protected:
 	outputs_t outputs_int_vsync;  // Connect to int 11.
 	uint16_t regs[32];      // I/O 0442H, 0443H
 	bool regs_written[32];
+
+	// Shadow REGS
+	uint16_t hsw1;
+	uint16_t hsw2;
+	uint16_t hst_reg;
+	uint16_t vst1;
+	uint16_t vst2;
+	uint16_t eet;
+	uint16_t vst_reg;
+
+	uint16_t vds[2];
+	uint16_t vde[2];
+	uint16_t hds[2];
+	uint16_t hde[2];
+	uint16_t haj[2];
+	uint16_t vwidth_reg[2];
+	uint16_t hstart_reg[2];
+	uint16_t hwidth_reg[2];
+	uint32_t vstart_addr_bak[2];  // VSTART ADDRESS
+
 	uint8_t crtc_ch;         // I/O 0440H
 	bool timing_changed[2];
 	bool address_changed[2];
@@ -334,6 +354,9 @@ protected:
 	__DECL_ALIGNED(16) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+
+	virtual void copy_regs();
+	virtual void calc_pixels_lines();
 
 	void __FASTCALL set_vsync(bool val, bool pre_vsync);
 	void force_recalc_crtc_param(void);
