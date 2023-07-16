@@ -324,7 +324,7 @@ protected:
 
 	std::atomic<int> display_linebuf;
 	std::atomic<int> render_linebuf;
-	int display_linebuf_mask;
+	const int display_linebuf_mask = 3;
 
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
 
@@ -359,13 +359,13 @@ protected:
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
 
-	bool __FASTCALL render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha);
-	bool __FASTCALL render_256(scrntype_t* dst, int y);
-	bool __FASTCALL render_32768(scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
+	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha);
+	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y);
+	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
 	void __FASTCALL transfer_line(int line);
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
-	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1);
+	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1);
 	virtual void render_text();
 
 public:
@@ -376,7 +376,6 @@ public:
 		d_vram = NULL;
 		d_font = NULL;
 		is_sprite = false;
-		display_linebuf_mask = 1;
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}

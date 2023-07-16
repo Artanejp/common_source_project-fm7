@@ -450,10 +450,16 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	for(int layer = 0; layer < 2; layer++) {
 		vert_offset_tmp[layer] = (int)(regs[(layer << 1) + 13] & 0x07ff) - (int)(regs[6] & 0x1f);
 		horiz_offset_tmp[layer] = (int)(regs[(layer << 1) + 9] & 0x07ff) - (int)(regs[0] & 0x00fe);
-		vert_start_us[layer] =  ((double)(regs[(layer << 1) + 13] & 0x07ff)) * horiz_ref;   // VDSx
-		vert_end_us[layer] =    ((double)(regs[(layer << 1) + 13 + 1] & 0x07ff)) * horiz_ref; // VDEx
-		horiz_start_us[layer] = ((double)(regs[(layer << 1) + 9] & 0x07ff)) * crtc_clock ;   // HDSx
-		horiz_end_us[layer] =   ((double)(regs[(layer << 1) + 9 + 1] & 0x07ff)) * crtc_clock ;   // HDEx
+		uint16_t vds = regs[(layer << 1) + 13    ] & 0x07ff;
+		uint16_t vde = regs[(layer << 1) + 13 + 1] & 0x07ff;
+		vert_start_us[layer] =  ((double)vds) * horiz_ref;   // VDSx
+		vert_end_us[layer] =    ((double)vde) * horiz_ref; // VDEx
+		uint16_t hds = regs[(layer << 1) + 9    ] & 0x07ff; // HDSx
+		uint16_t hde = regs[(layer << 1) + 9 + 1] & 0x07ff; // HDSx
+		uint16_t haj = hstart_words[layer] & 0x07ff;    // HAJx
+		horiz_start_us[layer] = (double)((hds > haj) ? hds : haj) * crtc_clock;
+		//horiz_start_us[layer] = ((double)hds) * crtc_clock;
+		horiz_end_us[layer] =   ((double)hde) * crtc_clock ;   // HDEx
 	}
 
 	hst_tmp = (regs[4] & 0x7fe) + 1;
@@ -850,12 +856,10 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-bool TOWNS_CRTC::render_32768(scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha)
+bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha)
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
-	int trans = display_linebuf & display_linebuf_mask;
-//	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
 	int num = linebuffers[trans][y].num[layer];
@@ -1125,12 +1129,10 @@ __DECL_VECTORIZED_LOOP
 	return true;
 }
 
-bool TOWNS_CRTC::render_256(scrntype_t* dst, int y)
+bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y)
 {
 	// 256 colors
 	__UNLIKELY_IF(dst == nullptr) return false;
-	int trans = display_linebuf & display_linebuf_mask;
-//	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[0];
 	int pwidth = linebuffers[trans][y].pixels[0];
 	int num = linebuffers[trans][y].num[0];
@@ -1274,12 +1276,10 @@ __DECL_VECTORIZED_LOOP
 	return true;
 }
 
-bool TOWNS_CRTC::render_16(scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha)
+bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha)
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
-	int trans = display_linebuf & display_linebuf_mask;
-//	int trans = display_linebuf & 3;
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
 	//int num = linebuffers[trans][y].num[layer];
@@ -1593,15 +1593,11 @@ inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 // This function does alpha-blending.
 // If CSP support hardware-accelalations, will support.
 // (i.e: Hardware Alpha blending, Hardware rendaring...)
-void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1)
+void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1)
 {
 	__UNLIKELY_IF(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(width <= 0) return;
 
-	int trans = display_linebuf & display_linebuf_mask;
-
-	int bitshift0 = linebuffers[trans][y].bitshift[0];
-	int bitshift1 = linebuffers[trans][y].bitshift[1];
 	scrntype_t *pp = osd->get_vm_screen_buffer(y);
 	if(y == 128) {
 		//out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d DST=%08X"), y, width, pp);
@@ -1723,8 +1719,12 @@ __DECL_VECTORIZED_LOOP
 
 void TOWNS_CRTC::draw_screen()
 {
-	int trans = display_linebuf & display_linebuf_mask;
-	//int trans2 = ((display_linebuf - 2) & display_linebuf_mask);
+//	int _l = (display_linebuf + 1) & display_linebuf_mask;
+//	if(_l != render_linebuf) {
+//		display_linebuf = _l;
+//	}
+	int trans = (render_linebuf - 1) & display_linebuf_mask;
+
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF(d_vram == nullptr) {
 		return;
@@ -1760,10 +1760,10 @@ void TOWNS_CRTC::draw_screen()
 			if(linebuffers[trans][y].crtout[0] != 0) {
 				switch(linebuffers[trans][y].mode[0]) {
 				case DISPMODE_256:
-					do_mix0 = render_256(lbuffer0, y);
+					do_mix0 = render_256(trans, lbuffer0, y);
 					break;
 				case DISPMODE_32768:
-					do_mix0 = render_32768(lbuffer0, abuffer0, y, 0, do_alpha);
+					do_mix0 = render_32768(trans, lbuffer0, abuffer0, y, 0, do_alpha);
 					break;
 				default: // 16 Colors mode don't allow with single layer mode.
 					break;
@@ -1776,10 +1776,10 @@ void TOWNS_CRTC::draw_screen()
 			if(linebuffers[trans][y].crtout[prio1] != 0) {
 				switch(linebuffers[trans][y].mode[prio1]) {
 				case DISPMODE_16:
-					do_mix1 = render_16(lbuffer1, abuffer1, &(apal16[prio1][0]), y, linebuffers[trans][y].num[1], do_alpha);
+					do_mix1 = render_16(trans, lbuffer1, abuffer1, &(apal16[prio1][0]), y, linebuffers[trans][y].num[1], do_alpha);
 					break;
 				case DISPMODE_32768:
-					do_mix1 = render_32768(lbuffer1, abuffer1, y, prio1, do_alpha);
+					do_mix1 = render_32768(trans, lbuffer1, abuffer1, y, prio1, do_alpha);
 					break;
 				default: // 256 Colors mode don't allow in 2 layers mode.
 					do_mix1 = false;
@@ -1790,10 +1790,10 @@ void TOWNS_CRTC::draw_screen()
 			if(linebuffers[trans][y].crtout[prio0] != 0){
 				switch(linebuffers[trans][y].mode[prio0]) {
 				case DISPMODE_16:
-					do_mix0 = render_16(lbuffer0, abuffer0, &(apal16[prio0][0]), y, prio0, do_alpha);
+					do_mix0 = render_16(trans, lbuffer0, abuffer0, &(apal16[prio0][0]), y, prio0, do_alpha);
 					break;
 				case DISPMODE_32768:
-					do_mix0 = render_32768(lbuffer0, abuffer0, y, prio0, do_alpha);
+					do_mix0 = render_32768(trans, lbuffer0, abuffer0, y, prio0, do_alpha);
 					break;
 				default: // 256 Colors mode don't allow in 2 layers mode.
 					do_mix0 = false;
@@ -1804,8 +1804,11 @@ void TOWNS_CRTC::draw_screen()
 //		if(y == 128) {
 //			out_debug_log(_T("MIX: %d %d width=%d"), do_mix0, do_mix1, width);
 //		}
-		mix_screen(y, width, do_mix0, do_mix1);
+		int bitshift0 = linebuffers[trans][y].bitshift[0];
+		int bitshift1 = linebuffers[trans][y].bitshift[1];
+		mix_screen(y, width, do_mix0, do_mix1, bitshift0, bitshift1);
 	}
+
 	return;
 }
 
@@ -1939,11 +1942,9 @@ void TOWNS_CRTC::transfer_line(int line)
 	ctrl = voutreg_ctrl;
 	prio = voutreg_prio;
 
-	//int trans = (display_linebuf - 1) & 3;
 	int trans = render_linebuf & display_linebuf_mask;
 	__UNLIKELY_IF(linebuffers[trans] == nullptr) return;
-
-__DECL_VECTORIZED_LOOP
+	__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 4; i++) {
 		linebuffers[trans][line].mode[i] = 0;
 		linebuffers[trans][line].pixels[i] = 0;
@@ -2192,7 +2193,6 @@ void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int ne
 
 void TOWNS_CRTC::event_pre_frame()
 {
-	display_linebuf = render_linebuf & display_linebuf_mask; // Incremant per vstart
 	interlace_field = !interlace_field;
 	for(int i = 0; i < 2; i++) {
 		crtout_top[i] = crtout[i];
@@ -2252,7 +2252,29 @@ void TOWNS_CRTC::event_pre_frame()
 
 void TOWNS_CRTC::event_frame()
 {
+//	display_linebuf = render_linebuf & display_linebuf_mask; // Incremant per vstart
 	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+
+	int trans = render_linebuf;
+	// Clear all frame buffer (of this) every turn.20230716 K.O
+	csp_vector8<uint16_t> dat((const uint16_t)0x0000);
+	for(int yy = 0; yy < TOWNS_CRTC_MAX_LINES; yy++) {
+		for(int i = 0; i < 2; i++) {
+			// Maybe initialize.
+			linebuffers[trans][yy].pixels[i] = TOWNS_CRTC_MAX_PIXELS;
+			linebuffers[trans][yy].mag[i] = 1;
+			linebuffers[trans][yy].num[i] = -1;
+			linebuffers[trans][yy].mode[i] = DISPMODE_16;
+			linebuffers[trans][yy].crtout[i] = 0;
+			linebuffers[trans][yy].bitshift[i] = 0;
+			uint16_t* p = (uint16_t*)(&(linebuffers[trans][yy].pixels_layer[i][0]));
+			for(int xx = 0; xx < (TOWNS_CRTC_MAX_PIXELS / 8); xx++) {
+				dat.store_aligned(p);
+				p += 8;
+			}
+		}
+	}
+
 	hst[render_linebuf] = hst_tmp;
 	vst[render_linebuf] = vst_tmp;
 	lines_per_frame = max_lines;
@@ -2453,12 +2475,12 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 			cancel_event_by_id(event_id_hde[i]);
 
 			if(horiz_start_us[i] > 0.0) {
-				register_event(this, EVENT_CRTC_HDS + i, horiz_start_us[i], false, &event_id_hds[i]); // HDS0
+				register_event(this, EVENT_CRTC_HDS + i, horiz_start_us[i], false, &event_id_hds[i]); // HDSx
 			} else {
 				hdisp[i] = true;
 			}
 			if((horiz_end_us[i] > 0.0) && (horiz_end_us[i] > horiz_start_us[i])) {
-				register_event(this, EVENT_CRTC_HDE + i, horiz_end_us[i], false, &event_id_hde[i]); // HDS0
+				register_event(this, EVENT_CRTC_HDE + i, horiz_end_us[i], false, &event_id_hde[i]); // HDEx
 			} else {
 				hdisp[i] = false;
 			}
@@ -2648,8 +2670,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(event_id_vde, sizeof(event_id_vde), 1);
 	state_fio->StateArray(event_id_hds, sizeof(event_id_hds), 1);
 	state_fio->StateArray(event_id_hde, sizeof(event_id_hde), 1);
-
-	//state_fio->StateValue(display_linebuf);
 
 	if(loading) {
 		for(int i = 0; i < 16; i++) {
