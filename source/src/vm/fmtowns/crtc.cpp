@@ -520,8 +520,10 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 		//if(vwidth_an[0] <= 1) vwidth_an[0] = 2;
 		uint16_t __vw = vwidth_reg[0];
 		if(__vw > 768) __vw >>= 1; // OK?
-		hst_tmp = min((int)hwidth_reg[0], hst_tmp);
-		vst_tmp = min((int)__vw, vst_tmp);
+		//hst_tmp = min((int)hwidth_reg[0], hst_tmp);
+		//vst_tmp = min((int)__vw, vst_tmp);
+		hst_tmp = hwidth_reg[0];
+		vst_tmp = __vw;
 	} else {
 		uint16_t __hw = max(hwidth_reg[0], hwidth_reg[1]);
 		uint16_t __vw = max(vwidth_reg[0], vwidth_reg[1]);
@@ -2030,19 +2032,19 @@ void TOWNS_CRTC::transfer_line(int line)
 //			if(vert_offset_tmp[0] > line) {
 //				disp = false;
 //			}
+		address_mask[0] = 0x7ffff;
+		address_mask[1] = 0x7ffff;
+		address_shift[0] = 3; // FM-Towns Manual P.145
+		address_shift[1] = 3; // FM-Towns Manual P.145
 		__LIKELY_IF(disp) {
 			switch(ctrl & 0x0f) {
 			case 0x0a:
 				linebuffers[trans][line].mode[0] = DISPMODE_256;
-				address_shift[0] = 3; // FM-Towns Manual P.145
 				to_disp[0] = true;
-				address_mask[0] = 0x7ffff;
 				break;
 			case 0x0f:
 				linebuffers[trans][line].mode[0] = DISPMODE_32768;
 				to_disp[0] = true;
-				address_shift[0] = 3; // FM-Towns Manual P.145
-				address_mask[0] = 0x7ffff;
 				break;
 			default:
 				linebuffers[trans][line].mode[0] = DISPMODE_NONE;
@@ -2065,17 +2067,16 @@ void TOWNS_CRTC::transfer_line(int line)
 //				disp = false;
 //			}
 //			out_debug_log("LAYER=%d CTRL_B=%02X DISP=%d START=%f END=%f", l, ctrl_b, disp, horiz_start_us[l], horiz_end_us[l]);
+			address_shift[l] = 2; // FM-Towns Manual P.145
 			__LIKELY_IF(disp) {
 				switch(ctrl_b & 0x03) {
 				case 0x01:
 					linebuffers[trans][line].mode[l] = DISPMODE_16;
 					to_disp[l] = true;
-					address_shift[l] = 2; // FM-Towns Manual P.145
 					break;
 				case 0x03:
 					linebuffers[trans][line].mode[l] = DISPMODE_32768;
 					to_disp[l] = true;
-					address_shift[l] = 2; // FM-Towns Manual P.145
 					break;
 				default:
 					linebuffers[trans][line].mode[l] = DISPMODE_NONE;
@@ -2131,21 +2132,25 @@ __DECL_VECTORIZED_LOOP
 
 			int bit_shift = 0;
 			// FAx
-			int  offset = (int)vstart_addr_bak[l]; // ToDo: Larger VRAM
+			//int  offset = (int)vstart_addr_bak[l]; // ToDo: Larger VRAM
+			int  offset = (int)vstart_addr[l]; // ToDo: Larger VRAM
 			bit_shift = (int)haj[l] - (int)_begin;
 			if(horiz_us >= (1.0e6 / 16.6e3)) {
 				// Maybe LOW RESOLUTION, Will fix.20201115 K.O
-				bit_shift /= 2;
+				bit_shift >>= 1;
 			}
-			offset = (offset + ((-bit_shift) / (1 << ashift)))  & 0xffff;
-			offset = (offset + (int)head_address[l]) & 0xffff;
+			//offset = (offset + ((-bit_shift) / (1 << ashift)))  & 0xffff;
+			//offset = (offset + (int)head_address[l]) & 0xffff;
+			offset = (offset + ((-bit_shift) >> ashift)) & address_mask[l];
+			offset += (int)head_address[l];
+			offset <<= ashift;
 			// ToDo: Interlace
-			if((trans & 1) != 0) offset = (offset + frame_offset_bak[l]) & 0xffff;
+			if((trans & 1) != 0) offset += (frame_offset[l] << ashift);
+			//if((trans & 1) != 0) offset += (frame_offset_bak[l] << ashift);
 
 			if(l == 1) {
-				offset = (offset + fo1_offset_value) & 0xffff;
+				offset += (fo1_offset_value << ashift);
 			}
-			offset *= (1 << ashift);
 			//! Note:
 			//! - Below is from Tsugaru, commit 1a442831 .
 			//! - I wonder sprite offset effects every display mode at page1,
