@@ -12,6 +12,7 @@
 #define _TOWNS_CRTC_H_
 
 #include <atomic>
+#include <cmath>
 #include "device.h"
 #include "towns_common.h"
 /*
@@ -208,9 +209,12 @@ protected:
 	uint16_t hds[2];
 	uint16_t hde[2];
 	uint16_t haj[2];
-	uint16_t vwidth_reg[2];
-	uint16_t hstart_reg[2];
+	int hstart_reg[2];
+	int hend_reg[2];
+	int vstart_reg[2];
+	int vend_reg[2];
 	uint16_t hwidth_reg[2];
+	uint16_t vheight_reg[2];
 	uint32_t vstart_addr_bak[2];  // VSTART ADDRESS
 
 	uint8_t crtc_ch;         // I/O 0440H
@@ -227,6 +231,7 @@ protected:
 	int cpu_clocks;
 
 	// They are not saved.Must be calculate when loading.
+	int horiz_khz;
 	double horiz_us; // (HST + 1) * clock
 	double horiz_width_posi_us, horiz_width_nega_us; // HSW1, HSW2
 	double vert_us; // (VST +1) * horiz_us / 2.0
@@ -236,7 +241,6 @@ protected:
 	double vst1_us; // VST1 * horiz_us / 2.0
 	double vst2_us;
 	int hst[4], vst[4];
-	int vst_tmp, hst_tmp;
 
 	double vert_start_us[2];
 	double vert_end_us[2];
@@ -323,6 +327,8 @@ protected:
 	bool crtout[2];              // I/O FDA0H WRITE
 	bool crtout_top[2];              // I/O FDA0H WRITE(AT once frame)
 	uint8_t crtout_reg;
+	uint8_t voutreg_ctrl_bak[4];
+	uint8_t voutreg_prio_bak[4];
 	// End.
 
 
@@ -389,6 +395,18 @@ protected:
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1);
+
+	virtual void update_horiz_khz()
+	{
+		double horiz_us_tmp;
+		__LIKELY_IF(hst_reg != 0) {
+		horiz_us_tmp = crtc_clock * (double)hst_reg;
+		} else {
+			horiz_us_tmp = crtc_clock;
+		}
+		horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
+	}
+
 	virtual void render_text();
 
 public:
