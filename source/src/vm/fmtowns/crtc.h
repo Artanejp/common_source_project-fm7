@@ -400,7 +400,7 @@ protected:
 	{
 		double horiz_us_tmp;
 		__LIKELY_IF(hst_reg != 0) {
-		horiz_us_tmp = crtc_clock * (double)hst_reg;
+			horiz_us_tmp = crtc_clock * (double)hst_reg;
 		} else {
 			horiz_us_tmp = crtc_clock;
 		}

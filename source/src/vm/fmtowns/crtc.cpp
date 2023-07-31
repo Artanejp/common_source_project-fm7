@@ -66,7 +66,8 @@ void TOWNS_CRTC::initialize()
 	set_lines_per_frame(512);
 	//set_pixels_per_line(640);
 
-	crtc_clock = 1.0e6 / 28.6363e6;
+	set_crtc_clock(0x0000); // REG #29, (28.6363MHz / 2)
+
 	set_frames_per_sec(FRAMES_PER_SEC); // Its dummy.
 	register_frame_event(this);
 	voutreg_ctrl = 0x15;
@@ -435,11 +436,9 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val)
 	static const double clocks[] = {
 		28.6363e6, 24.5454e6, 25.175e6, 21.0525e6
 	};
-	__UNLIKELY_IF((1.0e6 / clocks[clksel]) != crtc_clock) {
-		crtc_clock = 1.0e6 / clocks[clksel];
-		update_horiz_khz();
-		req_recalc = true;
-	}
+	crtc_clock = 1.0e6 / (clocks[clksel] / (double)(scsel + 1));
+	update_horiz_khz();
+	req_recalc = true;
 }
 
 void TOWNS_CRTC::copy_regs()
@@ -465,13 +464,14 @@ void TOWNS_CRTC::copy_regs()
 	for(int layer = 0; layer < 2; layer++) {
 		vds[layer] = regs[(layer * 2) + TOWNS_CRTC_REG_VDS0] & 0x07ff;
 		vde[layer] = regs[(layer * 2) + TOWNS_CRTC_REG_VDE0] & 0x07ff;
+
 		hds[layer] = regs[(layer * 2) + TOWNS_CRTC_REG_HDS0] & 0x07ff;
 		hde[layer] = regs[(layer * 2) + TOWNS_CRTC_REG_HDE0] & 0x07ff;
 		haj[layer] = regs[(layer * 4) + TOWNS_CRTC_REG_HAJ0] & 0x07ff;
 		vstart_addr[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
-		frame_offset[layer] = regs[(layer * 4) + TOWNS_CRTC_REG_FO0]  & 0xffff;
 		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
 
+		frame_offset[layer] = regs[(layer * 4) + TOWNS_CRTC_REG_FO0]  & 0xffff;
 		zoom_factor_vert[layer]  = zfv[layer];
 		zoom_factor_horiz[layer] = zfh[layer];
 #if 0
@@ -759,8 +759,8 @@ void TOWNS_CRTC::write_io16(uint32_t addr, uint32_t data)
 								dmode[0] = data & 0x03;
 								dmode[1] = (data & 0x0c) >> 2;
 								for(int i = 0; i < 2; i++) {
-									if(dmode[0] != display_mode[0]) {
-										mode_changed[0] = true;
+									if(dmode[i] != display_mode[i]) {
+										mode_changed[i] = true;
 										notify_mode_changed(i, dmode[i]);
 									}
 									display_mode[i] = dmode[i];
@@ -2164,10 +2164,17 @@ __DECL_VECTORIZED_LOOP
 			int ashift = address_shift[l];
 			uint32_t shift_mask = (1 << ashift) - 1;
 
+			// Update some parameters per line. 20230731 K.O
+			hds[l] = regs[(l * 2) + TOWNS_CRTC_REG_HDS0] & 0x07ff;
+			hde[l] = regs[(l * 2) + TOWNS_CRTC_REG_HDE0] & 0x07ff;
+			haj[l] = regs[(l * 4) + TOWNS_CRTC_REG_HAJ0] & 0x07ff;
+			vstart_addr[l]  = regs[(l * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
+			line_offset[l]  = regs[(l * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
+
 			int bit_shift = (int)haj[l] - (int)hds[l];
 			// FAx
-			int  offset = (int)vstart_addr_bak[l]; // ToDo: Larger VRAM
-			//int  offset = (int)vstart_addr[l]; // ToDo: Larger VRAM
+			int  offset = (int)vstart_addr[l]; // ToDo: Larger VRAM
+
 			if(horiz_khz > 15) {
 				// Maybe LOW RESOLUTION, Will fix.20201115 K.O
 				bit_shift >>= 1;
