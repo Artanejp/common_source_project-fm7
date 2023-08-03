@@ -215,7 +215,6 @@ protected:
 	int vend_reg[2];
 	uint16_t hwidth_reg[2];
 	uint16_t vheight_reg[2];
-	uint32_t vstart_addr_bak[2];  // VSTART ADDRESS
 
 	uint8_t crtc_ch;         // I/O 0440H
 	bool timing_changed[2];
@@ -242,11 +241,16 @@ protected:
 	double vst2_us;
 	int hst[4], vst[4];
 
+	double horiz_us_next; // (HST + 1) * clock
+	double horiz_width_posi_us_next, horiz_width_nega_us_next; // HSW1, HSW2
+
 	double vert_start_us[2];
 	double vert_end_us[2];
 	double horiz_start_us[2];
 	double horiz_end_us[2];
 
+	double horiz_start_us_next[2];
+	double horiz_end_us_next[2];
 	bool req_recalc;
 	// End
 
@@ -327,8 +331,8 @@ protected:
 	bool crtout[2];              // I/O FDA0H WRITE
 	bool crtout_top[2];              // I/O FDA0H WRITE(AT once frame)
 	uint8_t crtout_reg;
-	uint8_t voutreg_ctrl_bak[4];
-	uint8_t voutreg_prio_bak[4];
+	uint8_t voutreg_ctrl_bak;
+	uint8_t voutreg_prio_bak;
 	// End.
 
 
@@ -361,21 +365,27 @@ protected:
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 
+	virtual void vline_hook();
 	virtual void copy_regs();
 	virtual void calc_pixels_lines();
 
-	void __FASTCALL set_vsync(bool val, bool pre_vsync);
-	void force_recalc_crtc_param(void);
-	void restart_display();
-	void stop_display();
-	void notify_mode_changed(int layer, uint8_t mode);
+	void reset_vsync();
+	void __FASTCALL set_vsync(bool val);
+	virtual void force_recalc_crtc_param(void);
+	virtual bool calc_screen_parameters(void);
+	void __FASTCALL calc_zoom_regs(uint16_t val);
+
+	virtual void restart_display();
+	virtual void stop_display();
+	virtual void notify_mode_changed(int layer, uint8_t mode);
 
 	void cancel_event_by_id(int& event_num);
 
-	void set_crtc_clock(uint16_t val);
+	void __FASTCALL set_crtc_clock(uint16_t val, bool force);
 	uint16_t read_reg30();
 	uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
 
+	virtual void __FASTCALL update_crtc_reg(uint8_t ch, uint32_t data);
 	virtual void __FASTCALL calc_apalette16(int layer, int index);
 	virtual void __FASTCALL calc_apalette256(int index);
 	virtual void __FASTCALL calc_apalette(int index);
@@ -391,7 +401,9 @@ protected:
 	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha);
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y);
 	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
-	void __FASTCALL transfer_line(int line);
+
+	virtual void __FASTCALL pre_transfer_line(int line);
+	virtual void __FASTCALL transfer_line(int line, int layer);
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1);
@@ -421,37 +433,39 @@ public:
 	}
 	~TOWNS_CRTC() {}
 
-	void initialize();
-	void release();
-	void reset();
-	void draw_screen();
-	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
-	void event_pre_frame();
-	void event_frame();
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) override;
+	void event_pre_frame() override;
+	void event_frame() override;
 
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int ch) override;
 
-	void __FASTCALL write_io16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io16(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io16(uint32_t addr) override;
 
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	void __FASTCALL event_callback(int event_id, int err) override;
 
-	bool is_debugger_available()
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
+
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	uint64_t get_debug_data_addr_space()
+	uint64_t get_debug_data_addr_space() override
 	{
 		return 0x1;
 	}
 	// unique function
+	void draw_screen();
 	inline linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{
 		page = page & 1;
