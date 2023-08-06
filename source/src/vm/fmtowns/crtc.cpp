@@ -580,7 +580,7 @@ void TOWNS_CRTC::calc_pixels_lines()
 	// ToDo: High resolution MODE.
 
 	lines_per_frame = min(512, lines_per_frame);
-	pixels_per_line = min(640, pixels_per_line);
+//	pixels_per_line = min(640, pixels_per_line);
 	__UNLIKELY_IF(pixels_per_line >= TOWNS_CRTC_MAX_PIXELS) pixels_per_line = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(lines_per_frame >= TOWNS_CRTC_MAX_LINES) lines_per_frame = TOWNS_CRTC_MAX_LINES;
 }
@@ -2192,7 +2192,14 @@ __DECL_VECTORIZED_LOOP
 
 void TOWNS_CRTC::transfer_line(int line, int layer)
 {
+	int l = layer;	bool to_disp = true; // Dummy
+	static const uint32_t address_add[2] =  {0x00000000, 0x00040000};
+	uint8_t page_16mode = r50_pagesel;
+	uint8_t ctrl, prio;
 	int trans = render_linebuf & display_linebuf_mask;
+	uint32_t address_shift = 0;
+	uint32_t address_mask = 0x0003ffff;
+
 	__UNLIKELY_IF(line < 0) return;
 	__UNLIKELY_IF(line >= TOWNS_CRTC_MAX_LINES) return;
 	__UNLIKELY_IF(d_vram == nullptr) return;
@@ -2204,20 +2211,10 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 		return;
 	}
 */
-	uint8_t ctrl, prio;
 	ctrl = voutreg_ctrl_bak;
 	prio = voutreg_prio_bak;
-	bool is_single_layer = ((ctrl & 0x10) == 0) ? true : false;
-	uint32_t address_shift = 0;
-	uint32_t address_mask = 0x0003ffff;
 
-	if(is_single_layer) {
-		if(layer > 0) return;
-		address_mask = 0x0007ffff;
-		address_shift = 3; // FM-Towns Manual P.145
-	} else {
-		address_shift = 2; // FM-Towns Manual P.145
-	}
+	bool is_single_layer = ((ctrl & 0x10) == 0) ? true : false;
 
 	/*
 	if(linebuffers[trans][line].crtout[0] == 0) {
@@ -2228,13 +2225,6 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 		linebuffers[trans][line].mode[page1] = DISPMODE_NONE;
 		to_disp[1] = false;
 		}*/
-	bool to_disp = true; // Dummy
-	uint8_t page_16mode = r50_pagesel;
-	static const uint32_t address_add[2] =  {0x00000000, 0x00040000};
-
-	int l = layer;
-	int ashift = address_shift;
-	uint32_t shift_mask = (1 << ashift) - 1;
 
 	// Update some parameters per line. 20230731 K.O
 	hds[l] = regs[(l * 2) + TOWNS_CRTC_REG_HDS0] & 0x07ff;
@@ -2243,52 +2233,67 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 	vstart_addr[l]  = regs[(l * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
 	line_offset[l]  = regs[(l * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
 
-	int bit_shift = (int)haj[l] - (int)hds[l];
+	uint32_t bit_shift = (hds[l] > haj[l]) ? (hds[l] - haj[l]) : 0; // From Tsugaru.
+	uint8_t magx = zoom_factor_horiz[l];
 	// FAx
-	int  offset = (int)vstart_addr[l]; // ToDo: Larger VRAM
-
-	if(horiz_khz > 15) {
-		// Maybe LOW RESOLUTION, Will fix.20201115 K.O
-		bit_shift >>= 1;
+	// Note: Re-Wrote related by Tsugaru. 20230806 K.O
+	uint32_t offset = vstart_addr[l]; // ToDo: Larger VRAM
+	uint32_t lo = line_offset[l] * ((is_single_layer) ? 8 : 4);
+	uint32_t hscroll_mask = ((lo == 512) || (lo == 1024)) ? (lo - 1) : 0xffffffff;
+	uint32_t hskip_pixels;
+	if((is_single_layer) && (layer == 0)) {
+		address_mask = 0x0007ffff;
+	} else {
+		address_mask = 0x0003ffff;
 	}
-	//offset = (offset + ((-bit_shift) / (1 << ashift)))  & 0xffff;
-	//offset = (offset + (int)head_address[l]) & 0xffff;
-	offset = (offset + ((-bit_shift) >> ashift)) & address_mask;
-	offset += (int)head_address[l];
-	offset <<= ashift;
-	// ToDo: Interlace
-	if((trans & 1) != 0) offset += (frame_offset_bak[l] << ashift);
-
-	if(l == 1) {
-		offset += (fo1_offset_value << ashift);
+	hskip_pixels = bit_shift / magx;
+	switch(linebuffers[trans][line].mode[l]) {
+	case DISPMODE_32768:
+		if(is_single_layer) {
+			address_shift = 3; // FM-Towns Manual P.145
+		} else {
+			address_shift = 2; // FM-Towns Manual P.145
+		}
+		break;
+	case DISPMODE_16:
+		address_shift = 2; // FM-Towns Manual P.145
+		break;
+	case DISPMODE_256:
+		address_shift = 3; // FM-Towns Manual P.145
+		break;
+	default:
+		break;
 	}
+	uint32_t shift_mask = (1 << address_shift) - 1;
+	offset <<= address_shift;
+//	if(horiz_khz > 15) {
+//		// Maybe LOW RESOLUTION, Will fix.20201115 K.O
+//		offset >>= 1;
+//	}
+
 	//! Note:
 	//! - Below is from Tsugaru, commit 1a442831 .
 	//! - I wonder sprite offset effects every display mode at page1,
 	//!   and FMR's address offset register effects every display mode at page0
 	//! - -- 20230715 K.O
+	uint32_t page_offset;
 	if(l == 0) {
-		offset += ((page_16mode != 0) ? 0x20000 : 0);
+		page_offset = ((page_16mode != 0) ? 0x20000 : 0);
 	} else {
-		offset += sprite_offset;
+		page_offset = sprite_offset;
 	}
-	offset = offset & address_mask; // OK?
-	offset += address_add[l];
 //			out_debug_log(_T("LINE=%d BEGIN=%d END=%d"), line, _begin, _end);
-	int pixels = hwidth_reg[l];
+	uint32_t pixels = hwidth_reg[l] * ((is_single_layer) ? 2 : 1);
+	int bit_shift_offset = (hds[l] < haj[l]) ? (haj[l] - hds[l]) : 0; // From Tsugaru.
+	if((hskip_pixels + pixels) >= lo) {
+		pixels = (lo > hskip_pixels) ? (lo - hskip_pixels) : 0;
+	} else {
+
+	}
 	__LIKELY_IF(pixels > 0) {
-		uint8_t magx = zoom_factor_horiz[l];
-		int npixels = pixels;
 		__LIKELY_IF(/*(pixels >= magx) && */(magx != 0)){
-			if(bit_shift < 0) {
-				//pixels += (-bit_shift * magx);
-				bit_shift = 0;
-			} else if(bit_shift > 0) {
-				//pixels += (bit_shift * magx);
-				bit_shift = 0;
-			}
 			__UNLIKELY_IF(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
-			linebuffers[trans][line].bitshift[l] = bit_shift * magx;
+			linebuffers[trans][line].bitshift[l] = bit_shift_offset;
 			linebuffers[trans][line].pixels[l] = pixels;
 			linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
 			//if((pixels % magx) != 0) {
@@ -2297,19 +2302,21 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 			//	npixels = pixels / magx;
 			//}
 //					out_debug_log(_T("LAYER=%d Y=%d NPIXELS=%d"), l, line, npixels);
-			__UNLIKELY_IF(npixels >= TOWNS_CRTC_MAX_PIXELS) npixels = TOWNS_CRTC_MAX_PIXELS;
+			__UNLIKELY_IF(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
 			bool is_256 = false;
 			uint32_t tr_bytes = 0;
 			switch(linebuffers[trans][line].mode[l]) {
 			case DISPMODE_32768:
-				tr_bytes = npixels << 1;
+				tr_bytes = pixels << 1;
+				//lo = lo << 1;
 				break;
 			case DISPMODE_16:
-				tr_bytes = npixels >> 1;
+				tr_bytes = pixels >> 1;
+				//lo = lo >> 1;
 				break;
 			case DISPMODE_256:
 				is_256 = true;
-				tr_bytes = npixels;
+				tr_bytes = pixels;
 				break;
 			default:
 				to_disp = false;
@@ -2320,7 +2327,58 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 				linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
 			}
 			if(to_disp) {
-				d_vram->get_data_from_vram(((is_single_layer) || (is_256)), offset, tr_bytes, &(linebuffers[trans][line].pixels_layer[(is_256) ? 0 : l][0]));
+				if((trans & 1) != 0) offset += (frame_offset_bak[l] << address_shift);
+
+				if(l == 1) {
+					offset += (fo1_offset_value << address_shift);
+				}
+				offset += page_offset;
+				offset += head_address[l];
+				offset &= address_mask;
+				offset += address_add[l];
+
+				// ToDo: Will Fix
+				offset = offset & 0x0007ffff;
+#if 0 // ToDo : Will fix
+				uint32_t haddress_mask = hscroll_mask;
+				switch(linebuffers[trans][line].mode[l]) {
+				case DISPMODE_32768:
+					haddress_mask = (haddress_mask << 1) | 1;
+					break;
+				case DISPMODE_16:
+					haddress_mask = haddress_mask >> 1;
+					break;
+				default:
+					break;
+				}
+				uint32_t voffset = offset & ~haddress_mask;
+				uint32_t hoffset = offset & haddress_mask;
+				// ToDo: Interlace
+				bool is_hwrap = false;
+				bool is_memwrap = false;
+				if(hoffset >= ((hoffset + tr_bytes) & haddress_mask)) {
+					is_hwrap = true;
+				}
+				if(offset <= ((offset + tr_bytes) & address_mask)) { // OK?
+					is_memwrap = true;
+				}
+				if(is_hwrap) {
+					int tr_bytes1, tr_bytes2;
+					tr_bytes1 = (int)(hoffset + tr_bytes) - (int)haddress_mask;
+					tr_bytes2 = (int)tr_bytes - tr_bytes1;
+					// ToDo: Will Fix.
+					if(tr_bytes1 > 0) {
+						d_vram->get_data_from_vram(((is_single_layer) || (is_256)), offset, tr_bytes1, &(linebuffers[trans][line].pixels_layer[l][0]));
+					}
+					if(tr_bytes2 > 0) {
+						d_vram->get_data_from_vram(((is_single_layer) || (is_256)), voffset, tr_bytes2, &(linebuffers[trans][line].pixels_layer[l][(tr_bytes1 > 0) ? tr_bytes1 : 0]));
+					}
+				} else {
+					d_vram->get_data_from_vram(((is_single_layer) || (is_256)), offset, tr_bytes, &(linebuffers[trans][line].pixels_layer[l][0]));
+				}
+#else
+				d_vram->get_data_from_vram(((is_single_layer) || (is_256)), offset, tr_bytes, &(linebuffers[trans][line].pixels_layer[l][0]));
+#endif// ToDo : Will fix
 			}
 		}
 	} else {
@@ -2333,7 +2391,7 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 		zoom_count_vert[l] = zoom_factor_vert[l];
 		// ToDo: Interlace
 		if(to_disp) {
-			head_address[l] += line_offset_bak[l];
+			head_address[l] += lo;
 			//head_address[l] += line_offset[l];
 		}
 	}
