@@ -1899,15 +1899,12 @@ void TOWNS_CRTC::draw_screen()
 //		if(y == 128) {
 //			out_debug_log(_T("MIX: %d %d width=%d"), do_mix0, do_mix1, width);
 //		}
-		if((do_mix[0]) || (do_mix[1])) {
-			int bitshift[2];
-			for(int l = 0; l < 2; l++) {
-				bitshift[l] = linebuffers[trans][y].bitshift[prio[l]];
-			}
-			mix_screen(y, width, do_mix[0], do_mix[1], bitshift[0], bitshift[1]);
+		int bitshift[2];
+		for(int l = 0; l < 2; l++) {
+			bitshift[l] = linebuffers[trans][y].bitshift[prio[l]];
 		}
+		mix_screen(y, width, do_mix[0], do_mix[1], bitshift[0], bitshift[1]);
 	}
-
 	return;
 }
 
