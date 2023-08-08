@@ -105,10 +105,11 @@ class DEBUGGER;
 namespace FMTOWNS {
 
 	enum {
+		TOWNS_CRTC_PALETTE_INDEX = 0xff,
 		TOWNS_CRTC_PALETTE_R = 0,
 		TOWNS_CRTC_PALETTE_G,
 		TOWNS_CRTC_PALETTE_B,
-		TOWNS_CRTC_PALETTE_I
+		TOWNS_CRTC_PALETTE_I,
 	};
 	enum {
 		TOWNS_CRTC_REG_HSW1 = 0,
@@ -163,7 +164,7 @@ typedef struct {
 	int32_t pixels[4];
 	int32_t mag[4];
 	int32_t num[4];
-	uint32_t prio;
+	uint32_t prio_dummy;
 #pragma pack(push, 1)
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t crtout[2];
@@ -329,12 +330,11 @@ protected:
 	uint8_t voutreg_prio; // I/O 044Ah : voutreg_num = 1.
 	uint8_t video_out_regs[2];
 	bool crtout[2];              // I/O FDA0H WRITE
-	bool crtout_top[2];              // I/O FDA0H WRITE(AT once frame)
 	uint8_t crtout_reg;
 	uint8_t voutreg_ctrl_bak;
 	uint8_t voutreg_prio_bak;
 	// End.
-
+	bool is_single_layer;
 
 	//
 	// Event IDs. Saved.
@@ -390,10 +390,6 @@ protected:
 	virtual void __FASTCALL calc_apalette256(int index);
 	virtual void __FASTCALL calc_apalette(int index);
 
-	virtual void __FASTCALL set_apalette_r(uint8_t val);
-	virtual void __FASTCALL set_apalette_g(uint8_t val);
-	virtual void __FASTCALL set_apalette_b(uint8_t val);
-	virtual void __FASTCALL set_apalette_num(uint8_t val);
 	virtual uint8_t __FASTCALL get_apalette_b();
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
@@ -418,7 +414,61 @@ protected:
 		}
 		horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
 	}
+	inline void make_crtout_from_fda0h(uint8_t data)
+	{
+		crtout[0] = ((data & 0x0c) != 0) ? true : false;
+		crtout[1] = ((data & 0x03) != 0) ? true : false;
+	}
+	inline void __FASTCALL make_dispmode(bool& is_single, int& layer0, int& layer1)
+	{
+		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
+		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
+		is_single = ((voutreg_ctrl & 0x10) == 0) ? true : false;
+		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
+		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };
+		static const int modes_by_CR0_multi[4] = { DISPMODE_NONE, DISPMODE_32768, DISPMODE_NONE, DISPMODE_16 };
+		// ToDo: High resolution.
+		if(is_single) {
+			layer0 =  ((voutreg_ctrl & 0x08) != 0) ? modes_by_CR0_single[display_mode[0]] : DISPMODE_NONE;
+			layer1 = DISPMODE_NONE;
+		} else {
+			layer0 = modes_by_CR0_multi[display_mode[0] & 3];
+			layer1 = modes_by_CR0_multi[display_mode[1] & 3];
+		}
+	}
+	inline void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only)
+	{
+		if(!(calc_only)) {
+			if((cr0 & 0x8000) == 0) {
+			// START BIT
+				restart_display();
+			} else {
+				stop_display();
+			}
+		}
+		if((cr0 & 0x4000) == 0) {
+			// ESYN BIT
+			// EXTERNAL SYNC OFF
+		} else {
+			// EXTERNAL SYNC ON
+		}
+		impose_mode[1]  = ((cr0 & 0x0080) == 0);
+		impose_mode[0]  = ((cr0 & 0x0040) == 0);
+		carry_enable[1] = ((cr0 & 0x0020) != 0);
+		carry_enable[0] = ((cr0 & 0x0010) != 0);
 
+		uint8_t dmode[2];
+		dmode[0] = cr0 & 0x03;
+		dmode[1] = (cr0 & 0x0c) >> 2;
+		for(int i = 0; i < 2; i++) {
+			__UNLIKELY_IF((dmode[i] != display_mode[i]) && !(calc_only)) {
+				mode_changed[i] = true;
+				notify_mode_changed(i, dmode[i]);
+			}
+			display_mode[i] = dmode[i];
+		}
+	}
+	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
 	virtual void render_text();
 
 public:
