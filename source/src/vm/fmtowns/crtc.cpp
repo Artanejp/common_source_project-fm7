@@ -1854,93 +1854,57 @@ void TOWNS_CRTC::draw_screen()
 //		return; // Wait (a frame) if surface attributes are changed
 //	}
 
-	memset(lbuffer1, 0x00, sizeof(lbuffer1));
-	memset(abuffer1, 0xff, sizeof(abuffer1));
-	memset(lbuffer0, 0x00, sizeof(lbuffer0));
-	memset(abuffer0, 0xff, sizeof(abuffer0));
 
 	__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
 	my_memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
 	my_memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
 
 	for(int y = 0; y < lines; y++) {
-		bool do_mix0 = false;
-		bool do_mix1 = false;
-		int prio0 = linebuffers[trans][y].num[0];
-		int prio1 = linebuffers[trans][y].num[1];
+		bool do_render[2] = { false };
+		int prio[2];
+		// Clear buffers per every lines.
+		memset(lbuffer1, 0x00, sizeof(lbuffer1));
+		memset(abuffer1, 0xff, sizeof(abuffer1));
+		memset(lbuffer0, 0x00, sizeof(lbuffer0));
+		memset(abuffer0, 0xff, sizeof(abuffer0));
+		for(int i = 0; i < 2; i++) {
+			prio[i] = linebuffers[trans][y].num[i];
+			do_render[i] = (prio[i] < 0) ? false : true;
+		}
+		bool do_mix[2] = { false };
+		for(int l = 0; l < 2; l++) {
+			prio[l] &= 1;
+			do_render[l] = (((linebuffers[trans][y].crtout[prio[l]] != 0) ? true : false) && do_render[l]);
+			if(do_render[l]) {
+				scrntype_t* pix = (l == 0) ? lbuffer0 : lbuffer1;
+				scrntype_t* alpha = (l == 0) ? abuffer0 : abuffer1;
 
-		if((prio1 < 0) && (prio0 >= 0) && (prio0 <= 1)) {
-			if(linebuffers[trans][y].crtout[0] != 0) {
-				switch(linebuffers[trans][y].mode[prio0]) {
+				switch(linebuffers[trans][y].mode[prio[l]]) {
 				case DISPMODE_256:
-					do_mix0 = render_256(trans, lbuffer0, y);
+					if(l == 0) {
+						do_mix[l] = render_256(trans, pix, y);
+					}
 					break;
 				case DISPMODE_32768:
-					do_mix0 = render_32768(trans, lbuffer0, abuffer0, y, prio0, do_alpha);
+					do_mix[l] = render_32768(trans, pix, alpha, y, prio[l], do_alpha);
 					break;
 				case DISPMODE_16:
-					do_mix0 = render_16(trans, lbuffer0, abuffer0, &(apal16[prio0][0]), y, prio0, do_alpha);
+					do_mix[l] = render_16(trans, pix, alpha, &(apal16[prio[l]][0]), y, prio[l], do_alpha);
 					break;
 				default:
 					break;
-				}
-			}
-		} else if((prio0 < 0) && (prio1 >= 0) && (prio1 <= 1)) {
-			if(linebuffers[trans][y].crtout[1] != 0) {
-				switch(linebuffers[trans][y].mode[prio1]) {
-				case DISPMODE_256:
-					//do_mix1 = render_256(trans, lbuffer0, y);
-					break;
-				case DISPMODE_32768:
-					do_mix1 = render_32768(trans, lbuffer1, abuffer1, y, prio1, do_alpha);
-					break;
-				case DISPMODE_16:
-					do_mix1 = render_16(trans, lbuffer1, abuffer1, &(apal16[prio1][0]), y, prio1, do_alpha);
-					break;
-				default:
-					break;
-				}
-			}
-		} else {
-			if((prio1 >= 0) && (prio1 <= 1)) {
-				if(linebuffers[trans][y].crtout[prio1] != 0) {
-					switch(linebuffers[trans][y].mode[prio1]) {
-					case DISPMODE_16:
-						do_mix1 = render_16(trans, lbuffer1, abuffer1, &(apal16[prio1][0]), y, prio1, do_alpha);
-						break;
-					case DISPMODE_32768:
-						do_mix1 = render_32768(trans, lbuffer1, abuffer1, y, prio1, do_alpha);
-						break;
-					default: // 256 Colors mode don't allow in 2 layers mode.
-						do_mix1 = false;
-						break;
-					}
-				}
-			}
-			// Upper layer
-			if((prio0 >= 0) && (prio0 <= 1)) {
-				if(linebuffers[trans][y].crtout[prio0] != 0){
-					switch(linebuffers[trans][y].mode[prio0]) {
-					case DISPMODE_16:
-						do_mix0 = render_16(trans, lbuffer0, abuffer0, &(apal16[prio0][0]), y, prio0, do_alpha);
-						break;
-					case DISPMODE_32768:
-						do_mix0 = render_32768(trans, lbuffer0, abuffer0, y, prio0, do_alpha);
-						break;
-					default: // 256 Colors mode don't allow in 2 layers mode.
-						do_mix0 = false;
-						break;
-					}
 				}
 			}
 		}
 //		if(y == 128) {
 //			out_debug_log(_T("MIX: %d %d width=%d"), do_mix0, do_mix1, width);
 //		}
-		if((do_mix0) || (do_mix1)) {
-			int bitshift0 = linebuffers[trans][y].bitshift[0];
-			int bitshift1 = linebuffers[trans][y].bitshift[1];
-			mix_screen(y, width, do_mix0, do_mix1, bitshift0, bitshift1);
+		if((do_mix[0]) || (do_mix[1])) {
+			int bitshift[2];
+			for(int l = 0; l < 2; l++) {
+				bitshift[l] = linebuffers[trans][y].bitshift[prio[l]];
+			}
+			mix_screen(y, width, do_mix[0], do_mix[1], bitshift[0], bitshift[1]);
 		}
 	}
 
