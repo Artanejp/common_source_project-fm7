@@ -130,50 +130,40 @@ void TOWNS_CRTC::reset()
 		dpalette_regs[i] = i;
 	}
 	apalette_code = 0;
-	apalette_b = 0;
-	apalette_r = 0;
-	apalette_g = 0;
 	for(int i = 0; i < 16; i++) {
-		uint16_t r = ((i & 2) != 0) ? 0x7f : 0;
-		uint16_t g = ((i & 4) != 0) ? 0x7f : 0;
-		uint16_t b = ((i & 1) != 0) ? 0x7f : 0;
+		uint16_t r;
+		uint16_t g;
+		uint16_t b;
 
 		if((i & 8) != 0) {
-			r <<= 1;
-			b <<= 1;
-			g <<= 1;
-			if(r != 0) {
-				r |= 0x1;
-			}
-			if(g != 0) {
-				g |= 0x1;
-			}
-			if(b != 0) {
-				b |= 0x1;
-			}
-		}
-		apalette_16_rgb[0][i][TOWNS_CRTC_PALETTE_R] = r;
-		apalette_16_rgb[0][i][TOWNS_CRTC_PALETTE_G] = g;
-		apalette_16_rgb[0][i][TOWNS_CRTC_PALETTE_B] = b;
-
-		apalette_16_rgb[1][i][TOWNS_CRTC_PALETTE_R] = r;
-		apalette_16_rgb[1][i][TOWNS_CRTC_PALETTE_G] = g;
-		apalette_16_rgb[1][i][TOWNS_CRTC_PALETTE_B] = b;
-		if(i == 0) {
-			apalette_16_pixel[0][0] = RGBA_COLOR(0, 0, 0, 0);
-			apalette_16_pixel[1][0] = RGBA_COLOR(0, 0, 0, 0);
+			r = ((i & 2) != 0) ? 0xf0 : 0;
+			g = ((i & 4) != 0) ? 0xf0 : 0;
+			b = ((i & 1) != 0) ? 0xf0 : 0;
 		} else {
-			apalette_16_pixel[0][i] = RGBA_COLOR(r, g, b, 0xff);
-			apalette_16_pixel[1][i] = RGBA_COLOR(r, g, b, 0xff);
+			r = ((i & 2) != 0) ? 0x70 : 0;
+			g = ((i & 4) != 0) ? 0x70 : 0;
+			b = ((i & 1) != 0) ? 0x70 : 0;
+		}
+		for(int l = 0; l < 2; l++) {
+			apalette_16_rgb[l][i][TOWNS_CRTC_PALETTE_R] = r;
+			apalette_16_rgb[l][i][TOWNS_CRTC_PALETTE_G] = g;
+			apalette_16_rgb[l][i][TOWNS_CRTC_PALETTE_B] = b;
+			apalette_16_pixel[l][i] = RGBA_COLOR(r, g, b, 0xff);
 		}
 	}
 	for(int i = 0; i < 256; i++) {
+		#if 0
 		uint8_t r = (i & 0x38) << 2;
 		uint8_t g = i & 0xc0;
 		uint8_t b = (i & 0x07) << 5;
-		__LIKELY_IF(r != 0) r |= 0x1f;
-		__LIKELY_IF(b != 0) b |= 0x1f;
-		__LIKELY_IF(g != 0) g |= 0x3f;
+		r |= 0x1f;
+		b |= 0x1f;
+		g |= 0x3f;
+		#else
+		uint8_t b = 0xff;
+		uint8_t r = 0xff;
+		uint8_t g = 0xff;
+		#endif
 		apalette_256_rgb[i][TOWNS_CRTC_PALETTE_B] = b;
 		apalette_256_rgb[i][TOWNS_CRTC_PALETTE_R] = r;
 		apalette_256_rgb[i][TOWNS_CRTC_PALETTE_G] = g;
@@ -294,47 +284,31 @@ void TOWNS_CRTC::notify_mode_changed(int layer, uint8_t mode)
 
 // I/Os
 // Palette.
-void TOWNS_CRTC::calc_apalette(int index)
-{
-	int layer = 0;
-	switch(voutreg_prio & 0x30) {
-	case 0x00:
-		calc_apalette16(0, index & 0x0f);
-		break;
-	case 0x20:
-		calc_apalette16(1, index & 0x0f);
-		break;
-	default:
-		calc_apalette256(index & 0xff);
-		break;
-	}
-}
-
 void TOWNS_CRTC::calc_apalette16(int layer, int index)
 {
 	index = index & 0x0f;
-	apalette_r = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_R] & 0xf0;
-	apalette_g = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_G] & 0xf0;
-	apalette_b = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_B] & 0xf0;
+	uint32_t r = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_R];
+	uint32_t g = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_G];
+	uint32_t b = apalette_16_rgb[layer][index][TOWNS_CRTC_PALETTE_B];
 
-	__UNLIKELY_IF(index == 0) {
-		apalette_16_pixel[layer][index] = RGBA_COLOR(0, 0, 0, 0); // ??
-	} else {
-		apalette_16_pixel[layer][index] = RGBA_COLOR(apalette_r, apalette_g , apalette_b, 0xff);
-	}
+	r = (r == 0) ? 0x00 : (r | 0x0f);
+	g = (g == 0) ? 0x00 : (g | 0x0f);
+	b = (b == 0) ? 0x00 : (b | 0x0f);
+
+	apalette_16_pixel[layer][index] = RGBA_COLOR(r, g, b, 0xff);
 }
 
 void TOWNS_CRTC::calc_apalette256(int index)
 {
 	index = index & 255;
-	apalette_r = apalette_256_rgb[index][TOWNS_CRTC_PALETTE_R];
-	apalette_g = apalette_256_rgb[index][TOWNS_CRTC_PALETTE_G];
-	apalette_b = apalette_256_rgb[index][TOWNS_CRTC_PALETTE_B];
-	__UNLIKELY_IF(index == 0) {
-		apalette_256_pixel[index] = RGBA_COLOR(0, 0, 0, 0); // ??
-	} else {
-		apalette_256_pixel[index] = RGBA_COLOR(apalette_r, apalette_g, apalette_b, 0xff);
-	}
+	uint32_t r = apalette_256_rgb[index][TOWNS_CRTC_PALETTE_R];
+	uint32_t g = apalette_256_rgb[index][TOWNS_CRTC_PALETTE_G];
+	uint32_t b = apalette_256_rgb[index][TOWNS_CRTC_PALETTE_B];
+//	__UNLIKELY_IF(index == 0) {
+//		apalette_256_pixel[index] = RGBA_COLOR(0, 0, 0, 0); // ??
+//	} else {
+		apalette_256_pixel[index] = RGBA_COLOR(r, g, b, 0xff);
+//	}
 }
 
 void TOWNS_CRTC::set_apalette(uint8_t ch, uint8_t val, bool recalc)
@@ -346,13 +320,13 @@ void TOWNS_CRTC::set_apalette(uint8_t ch, uint8_t val, bool recalc)
 		ch &= 3;
 		switch(voutreg_prio & 0x30) {
 		case 0x00:
-			apalette_16_rgb[0][apalette_code & 0x0f][ch] = val;
+			apalette_16_rgb[0][apalette_code & 0x0f][ch] = val & 0xf0;
 			if(recalc) {
 				calc_apalette16(0, apalette_code);
 			}
 			break;
 		case 0x20:
-			apalette_16_rgb[1][apalette_code & 0x0f][ch] = val;
+			apalette_16_rgb[1][apalette_code & 0x0f][ch] = val & 0xf0;
 			if(recalc) {
 				calc_apalette16(1, apalette_code);
 			}
@@ -1204,7 +1178,7 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y)
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
-	my_memcpy(apal256, apalette_256_pixel, sizeof(scrntype_t) * 256);
+	my_memcpy(apal256, &(linebuffers[trans][y].palettes[0].pixels[0]), sizeof(scrntype_t) * 256);
 
 
 //	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d pWIDTH=%d"), y, magx, width, pwidth);
@@ -1320,7 +1294,7 @@ __DECL_VECTORIZED_LOOP
 	return true;
 }
 
-bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha)
+bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha)
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
@@ -1370,56 +1344,11 @@ __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 16; i++) {
 		mbuf[i] = pmask;
 	}
-	__UNLIKELY_IF(pal == nullptr) {
-		__DECL_ALIGNED(16) uint8_t tmp_r[16];
-		__DECL_ALIGNED(16) uint8_t tmp_g[16];
-		__DECL_ALIGNED(16) uint8_t tmp_b[16];
+	scrntype_t *pal = &(linebuffers[trans][y].palettes[layer].pixels[0]);
 __DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			tmp_r[i] = ((i & 2) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
-		}
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			tmp_g[i] = ((i & 4) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
-		}
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			tmp_b[i] = ((i & 1) != 0) ? (((i & 8) != 0) ? 255 : 128) : 0;
-		}
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			palbuf[i] = RGBA_COLOR(tmp_r[i], tmp_g[i], tmp_b[i], 255);
-		}
-	} else {
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			palbuf[i] = pal[i];
-		}
+	for(int i = 0; i < 16; i++) {
+		palbuf[i] = pal[i];
 	}
-	palbuf[0] = RGBA_COLOR(0, 0, 0, 0);
-	__DECL_ALIGNED(32) static const scrntype_t maskdata[16] =
-	{
-		RGBA_COLOR(0, 0, 0, 0),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255),
-		RGBA_COLOR(255, 255, 255, 255)
-	};
-
 	int k = 0;
 	for(int x = 0; x < (pwidth >> 3); x++) {
 __DECL_VECTORIZED_LOOP
@@ -1445,13 +1374,26 @@ __DECL_VECTORIZED_LOOP
 		if(do_alpha) {
 __DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 16; i++) {
-				sbuf[i] = palbuf[hlbuf[i]];
+				if((is_transparent) && (hlbuf[i] == 0)) {
+					sbuf[i] = RGBA_COLOR(0, 0, 0, 0);
+				} else {
+					sbuf[i] = palbuf[hlbuf[i]];
+				}
 			}
 		} else {
+			if(is_transparent) {
+				for(int i = 0; i < 16; i++) {
+					if(hlbuf[i] == 0) {
+						abuf[i] = RGBA_COLOR(0, 0, 0, 0x00);
+					} else {
+						abuf[i] = RGBA_COLOR(0xff, 0xff, 0xff, 0xff);
+					}
+				}
+			} else {
 __DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i++) {
-//				abuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0): RGBA_COLOR(255, 255, 255, 255);
-				abuf[i] = maskdata[hlbuf[i]];
+				for(int i = 0; i < 16; i++) {
+					abuf[i] = RGBA_COLOR(0xff, 0xff, 0xff, 0xff);
+				}
 			}
 			__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 16; i++) {
@@ -1697,13 +1639,14 @@ __DECL_VECTORIZED_LOOP
 				scrntype_t *px1 = &(lbuffer1[xx + of1]);
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
-						pixbuf1[ii] = px1[ii];
+					pixbuf1[ii] = px1[ii];
 				}
 				scrntype_t *px0 = &(lbuffer0[xx + of0]);
-				scrntype_t *ax = &(abuffer0[xx + of0]);
+				scrntype_t *ax0 = &(abuffer0[xx + of0]);
+__DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
 					pixbuf0[ii] = px0[ii];
-					maskbuf_front[ii] = ax[ii];
+					maskbuf_front[ii] = ax0[ii];
 				}
 __DECL_VECTORIZED_LOOP
 				for(int ii = 0; ii < 8; ii++) {
@@ -1800,10 +1743,6 @@ void TOWNS_CRTC::draw_screen()
 //	}
 
 
-	__DECL_ALIGNED(32)  scrntype_t apal16[2][16];
-	my_memcpy(apal16[0], apalette_16_pixel[0], sizeof(scrntype_t) * 16);
-	my_memcpy(apal16[1], apalette_16_pixel[1], sizeof(scrntype_t) * 16);
-
 	for(int y = 0; y < lines; y++) {
 		bool do_render[2] = { false };
 		int prio[2];
@@ -1814,12 +1753,14 @@ void TOWNS_CRTC::draw_screen()
 		memset(abuffer0, 0xff, sizeof(abuffer0));
 		for(int i = 0; i < 2; i++) {
 			prio[i] = linebuffers[trans][y].num[i];
-			do_render[i] = (prio[i] < 0) ? false : true;
+			if(prio[i] >= 0) {
+				prio[i] &= 1;
+				do_render[i] = (linebuffers[trans][y].crtout[prio[i]] != 0) ? true : false;
+			}
 		}
 		bool do_mix[2] = { false };
+
 		for(int l = 0; l < 2; l++) {
-			prio[l] &= 1;
-			do_render[l] = (((linebuffers[trans][y].crtout[prio[l]] != 0) ? true : false) && do_render[l]);
 			if(do_render[l]) {
 				scrntype_t* pix = (l == 0) ? lbuffer0 : lbuffer1;
 				scrntype_t* alpha = (l == 0) ? abuffer0 : abuffer1;
@@ -1834,7 +1775,7 @@ void TOWNS_CRTC::draw_screen()
 					do_mix[l] = render_32768(trans, pix, alpha, y, prio[l], do_alpha);
 					break;
 				case DISPMODE_16:
-					do_mix[l] = render_16(trans, pix, alpha, &(apal16[prio[l]][0]), y, prio[l], do_alpha);
+					do_mix[l] = render_16(trans, pix, alpha, y, prio[l], ((do_render[0]) && (do_render[1]) && (l == 0)) ? true : false, do_alpha);
 					break;
 				default:
 					break;
@@ -2012,9 +1953,9 @@ void TOWNS_CRTC::pre_transfer_line(int line)
 		// One layer mode
 		bool disp = frame_in[0];
 		to_disp[1] = false;
-		__UNLIKELY_IF((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
-			disp = false;
-		}
+//		__UNLIKELY_IF((horiz_end_us[0] <= 0.0) || (horiz_end_us[0] <= horiz_start_us[0])) {
+//			disp = false;
+//		}
 //			if(vert_offset_tmp[0] > line) {
 //				disp = false;
 //			}
@@ -2038,16 +1979,33 @@ void TOWNS_CRTC::pre_transfer_line(int line)
 		for(int l = 0; l < 2; l++) {
 			//int realpage = disp_prio[l];
 			int realpage = l;
-			bool disp = ((crtout[realpage]) && (frame_in[realpage]) && (to_disp[realpage]));
-			__UNLIKELY_IF((horiz_end_us[realpage] <= 0.0) || (horiz_end_us[realpage] <= horiz_start_us[realpage])) {
+			bool disp = ((frame_in[realpage]) && (to_disp[realpage]));
+			if(disp_prio[l] >= 0) {
+				disp = ((disp) && (crtout[realpage]));
+			} else {
 				disp = false;
 			}
+//			__UNLIKELY_IF((horiz_end_us[realpage] <= 0.0) || (horiz_end_us[realpage] <= horiz_start_us[realpage])) {
+//				disp = false;
+//			}
 			linebuffers[trans][line].crtout[realpage] =
 				(disp) ? 0xff : 0x00;
-			__UNLIKELY_IF(!(disp)) {
-				linebuffers[trans][line].mode[realpage] = DISPMODE_NONE;
-				linebuffers[trans][line].num[realpage] = -1;
-			}
+		}
+	}
+	for(int l = 0; l < 2; l++) {
+		switch(linebuffers[trans][line].mode[l]) {
+		case DISPMODE_256:
+			memcpy(&(linebuffers[trans][line].palettes[l].raw[0][0]), &(apalette_256_rgb[0][0]), sizeof(uint8_t) * 256 * 4); // Copy RAW
+			memcpy(&(linebuffers[trans][line].palettes[l].pixels[0]), &(apalette_256_pixel[0]), sizeof(scrntype_t) * 256); // Copy Pixels
+			break;
+		case DISPMODE_16:
+			memcpy(&(linebuffers[trans][line].palettes[l].raw[0][0]), &(apalette_16_rgb[l][0][0]), sizeof(uint8_t) * 16 * 4); // Copy RAW
+			memcpy(&(linebuffers[trans][line].palettes[l].pixels[0]), &(apalette_16_pixel[l][0]), sizeof(scrntype_t) * 16); // Copy Pixels
+			break;
+		default:
+			memset(&(linebuffers[trans][line].palettes[l].raw[0][0]), 0x00, sizeof(uint8_t) * 256 * 4);
+			memset(&(linebuffers[trans][line].palettes[l].pixels[0]), 0x00, sizeof(scrntype_t) * 256);
+			break;
 		}
 	}
 	// Fill by skelton colors;
@@ -2176,7 +2134,7 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 	if(bit_shift < 0) {
 		pixels = pixels + (-bit_shift);
 	}
-	__LIKELY_IF(pixels > 0) {
+	__LIKELY_IF((pixels > 0) && (linebuffers[trans][line].crtout[l] != 0)){
 		__LIKELY_IF(/*(pixels >= magx) && */(magx != 0)){
 			//__UNLIKELY_IF(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
 			uint32_t pixels_bak = pixels;
@@ -2796,9 +2754,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(lines_per_frame);
 
 	state_fio->StateValue(apalette_code);
-	state_fio->StateValue(apalette_b);
-	state_fio->StateValue(apalette_r);
-	state_fio->StateValue(apalette_g);
 	for(int l = 0; l < 2; l++) {
 		for(int i = 0; i < 16; i++) {
 			state_fio->StateValue(apalette_16_rgb[l][i][TOWNS_CRTC_PALETTE_R]);

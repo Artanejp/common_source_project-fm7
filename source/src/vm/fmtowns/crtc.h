@@ -157,6 +157,10 @@ namespace FMTOWNS {
 
 namespace FMTOWNS {
 
+typedef struct {
+	uint8_t raw[256][4];
+	scrntype_t pixels[256];
+} palette_backup_t;
 // May align to be faster.
 #pragma pack(push, 4)
 typedef struct {
@@ -174,9 +178,11 @@ typedef struct {
 	uint32_t pad;
 	// Align of 4 * (4 + 1 + 3) = 4 * 8 [bytes] = 256 [bits]
 	__DECL_ALIGNED(16) uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
+	__DECL_ALIGNED(16) palette_backup_t palettes[2];
 	// pixels_lauyer[][] : 1024 * 2 * 8 = 1024 * 16 [bytes]
 } linebuffer_t;
 #pragma pack(pop)
+
 
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
@@ -388,13 +394,12 @@ protected:
 	virtual void __FASTCALL update_crtc_reg(uint8_t ch, uint32_t data);
 	virtual void __FASTCALL calc_apalette16(int layer, int index);
 	virtual void __FASTCALL calc_apalette256(int index);
-	virtual void __FASTCALL calc_apalette(int index);
 
 	virtual uint8_t __FASTCALL get_apalette_b();
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
 
-	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, scrntype_t* pal, int y, int layer, bool do_alpha);
+	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha);
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y);
 	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
 
