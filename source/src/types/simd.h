@@ -274,6 +274,26 @@ public:
 			q[i] = (T2)(m_data[i]);
 		}
 	}
+	constexpr void store2_aligned(T* p)
+	{
+		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0, j = 0; i < 8; i++, j += 2) {
+			q[j] = m_data[i];
+			q[j + 1] = m_data[i];
+		}
+	}
+	constexpr void store4_aligned(T* p)
+	{
+		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0, j = 0; i < 8; i++, j += 4) {
+			q[j] = m_data[i];
+			q[j + 1] = m_data[i];
+			q[j + 2] = m_data[i];
+			q[j + 3] = m_data[i];
+		}
+	}
 	inline void copy(const csp_vector8<T> __b)
 	{
 		__DECL_VECTORIZED_LOOP
@@ -295,6 +315,14 @@ public:
 	__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] = (T)0;
+		}
+	}
+
+	inline void fill(T __val)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t __n = 0; __n < 8; __n++) {
+			m_data[__n] = __val;
 		}
 	}
 	inline void  set(size_t __n, T __val)
