@@ -860,7 +860,7 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha)
+bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha)
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
@@ -941,16 +941,34 @@ __DECL_VECTORIZED_LOOP
 			bbuf[i] <<= 3;
 		}
 		__UNLIKELY_IF(do_alpha) {
-			for(int i = 0; i < 8; i++) {
-				a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+			if(is_transparent) {
+		__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+				}
+			} else {
+		__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					a2buf[i] = 255;
+				}
 			}
+		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], a2buf[i]);
 			}
 		} else {
-			for(int i = 0; i < 8; i++) {
-				abuf[i] = (pbuf[i] & 0x8000) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+			if(is_transparent) {
+		__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					abuf[i] = (pbuf[i] & 0x8000) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+				}
+			} else {
+		__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					abuf[i] = RGBA_COLOR(255, 255, 255, 255);
+				}
 			}
+		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], 255);
 			}
@@ -958,13 +976,13 @@ __DECL_VECTORIZED_LOOP
 		__LIKELY_IF((((magx << 3) + k) <= width) && !(odd_mag)) {
 			switch(magx) {
 			case 1:
-__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 8; i++) {
 					q[i] = sbuf[i];
 				}
 				q += 8;
 				__LIKELY_IF(r2 != nullptr) {
-__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 					for(int i = 0; i < 8; i++) {
 						r2[i] = abuf[i];
 					}
@@ -973,13 +991,13 @@ __DECL_VECTORIZED_LOOP
 				k += 8;
 				break;
 			case 2:
-__DECL_VECTORIZED_LOOP
+			__DECL_VECTORIZED_LOOP
 				for(int i = 0; i < 16; i++) {
 					q[i] = sbuf[i >> 1];
 				}
 				q += 16;
 				__LIKELY_IF(r2 != nullptr) {
-__DECL_VECTORIZED_LOOP
+			__DECL_VECTORIZED_LOOP
 					for(int i = 0; i < 16; i++) {
 						r2[i] = abuf[i >> 1];
 					}
@@ -989,14 +1007,20 @@ __DECL_VECTORIZED_LOOP
 				break;
 			case 4:
 __DECL_VECTORIZED_LOOP
-				for(int i = 0; i < 32; i++) {
-					q[i] = sbuf[i >> 2];
+				for(int i = 0, j = 0; i < 8; i++, j += 4) {
+					q[j] = sbuf[i];
+					q[j + 1] = sbuf[i];
+					q[j + 2] = sbuf[i];
+					q[j + 3] = sbuf[i];
 				}
 				q += 32;
 				__LIKELY_IF(r2 != nullptr) {
-__DECL_VECTORIZED_LOOP
-					for(int i = 0; i < 32; i++) {
-						r2[i] = abuf[i >> 2];
+			__DECL_VECTORIZED_LOOP
+					for(int i = 0, j = 0; i < 8; i++, j += 4) {
+						r2[j] = abuf[i];
+						r2[j + 1] = abuf[i];
+						r2[j + 2] = abuf[i];
+						r2[j + 3] = abuf[i];
 					}
 					r2 += 32;
 				}
@@ -1080,20 +1104,34 @@ __DECL_VECTORIZED_LOOP
 			bbuf[i] <<= 3;
 		}
 		__UNLIKELY_IF(do_alpha) {
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i++) {
-				a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+			if(is_transparent) {
+		__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					a2buf[i] = (pbuf[i] & 0x8000) ? 0 : 255;
+				}
+			} else {
+		__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					a2buf[i] = 255;
+				}
 			}
-__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], a2buf[i]);
 			}
 		} else {
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i++) {
-				abuf[i] = (pbuf[i] & 0x8000) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+			if(is_transparent) {
+			__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					abuf[i] = (pbuf[i] & 0x8000) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
+				}
+			} else {
+			__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 8; i++) {
+					abuf[i] = RGBA_COLOR(255, 255, 255, 255);
+				}
 			}
-__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 			for(int i = 0; i < 8; i++) {
 				sbuf[i] = RGBA_COLOR(rbuf[i], gbuf[i], bbuf[i], 255);
 			}
@@ -1367,16 +1405,19 @@ __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i += 2) {
 			hlbuf[i + 1] >>= 4;
 		}
-__DECL_VECTORIZED_LOOP
+	__DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
 			hlbuf[i] &= mbuf[i];
 		}
 		if(do_alpha) {
-__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 16; i++) {
-				if((is_transparent) && (hlbuf[i] == 0)) {
-					sbuf[i] = RGBA_COLOR(0, 0, 0, 0);
-				} else {
+			if(is_transparent) {
+			__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 16; i++) {
+					sbuf[i] = (hlbuf[i] == 0) ? RGBA_COLOR(0, 0, 0, 0) : palbuf[hlbuf[i]];
+				}
+			} else {
+			__DECL_VECTORIZED_LOOP
+				for(int i = 0; i < 16; i++) {
 					sbuf[i] = palbuf[hlbuf[i]];
 				}
 			}
@@ -1413,22 +1454,33 @@ __DECL_VECTORIZED_LOOP
 				break;
 			case 2:
 				__DECL_VECTORIZED_LOOP
-				for(int i = 0; i < 32; i++) {
-					q[i] = sbuf[i >> 1];
+				for(int i = 0, j = 0; i < 16; i++, j += 2) {
+					q[j] = sbuf[i];
+					q[j + 1] = sbuf[i];
 				}
 				k += 32;
 				q += 32;
 				break;
 			case 4:
 				__DECL_VECTORIZED_LOOP
-				for(int i = 0, j = 0; i < 16; i++, j+= 4) {
+				for(int i = 0, j = 0; i < 8; i++, j+= 4) {
 					q[j + 0] = sbuf[i];
 					q[j + 1] = sbuf[i];
 					q[j + 2] = sbuf[i];
 					q[j + 3] = sbuf[i];
 				}
-				k += 64;
-				q += 64;
+				k += 32;
+				q += 32;
+				if(k >= width) break;
+				__DECL_VECTORIZED_LOOP
+				for(int i = 8, j = 0; i < 16; i++, j+= 4) {
+					q[j + 0] = sbuf[i];
+					q[j + 1] = sbuf[i];
+					q[j + 2] = sbuf[i];
+					q[j + 3] = sbuf[i];
+				}
+				k += 32;
+				q += 32;
 				break;
 			default:
 				for(int i = 0; i < 16; i++) {
@@ -1462,20 +1514,34 @@ __DECL_VECTORIZED_LOOP
 					break;
 				case 2:
 					__DECL_VECTORIZED_LOOP
-					for(int i = 0; i < 32; i++) {
-						r2[i] = abuf[i >> 1];
+					for(int i = 0, j = 0; i < 16; i++, j += 2) {
+						r2[j + 0] = abuf[i];
+						r2[j + 1] = abuf[i];
 					}
 					r2 += 32;
 					break;
 				case 4:
 					__DECL_VECTORIZED_LOOP
-					for(int i = 0, j = 0; i < 16; i++, j += 4) {
+					for(int i = 0, j = 0; i < 8; i++, j += 4) {
 						r2[j + 0] = abuf[i];
 						r2[j + 1] = abuf[i];
 						r2[j + 2] = abuf[i];
 						r2[j + 3] = abuf[i];
 					}
-					r2 += 64;
+					r2 += 32;
+					kbak += 32;
+
+					__UNLIKELY_IF(kbak >= width) break;
+					__DECL_VECTORIZED_LOOP
+					for(int i = 8, j = 0; i < 16; i++, j += 4) {
+						r2[j + 0] = abuf[i];
+						r2[j + 1] = abuf[i];
+						r2[j + 2] = abuf[i];
+						r2[j + 3] = abuf[i];
+					}
+					r2 += 32;
+					kbak += 32;
+					__UNLIKELY_IF(kbak >= width) break;
 					break;
 				default:
 					for(int i = 0; i < 16; i++) {
@@ -1759,9 +1825,9 @@ void TOWNS_CRTC::draw_screen()
 			}
 		}
 		bool do_mix[2] = { false };
-
 		for(int l = 0; l < 2; l++) {
 			if(do_render[l]) {
+				bool is_transparent = ((do_render[0]) && (do_render[1]) && (l == 0)) ? true : false;
 				scrntype_t* pix = (l == 0) ? lbuffer0 : lbuffer1;
 				scrntype_t* alpha = (l == 0) ? abuffer0 : abuffer1;
 
@@ -1772,10 +1838,10 @@ void TOWNS_CRTC::draw_screen()
 					}
 					break;
 				case DISPMODE_32768:
-					do_mix[l] = render_32768(trans, pix, alpha, y, prio[l], do_alpha);
+					do_mix[l] = render_32768(trans, pix, alpha, y, prio[l], is_transparent, do_alpha);
 					break;
 				case DISPMODE_16:
-					do_mix[l] = render_16(trans, pix, alpha, y, prio[l], ((do_render[0]) && (do_render[1]) && (l == 0)) ? true : false, do_alpha);
+					do_mix[l] = render_16(trans, pix, alpha, y, prio[l], is_transparent, do_alpha);
 					break;
 				default:
 					break;

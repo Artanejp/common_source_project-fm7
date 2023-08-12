@@ -401,7 +401,7 @@ protected:
 
 	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha);
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y);
-	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool do_alpha);
+	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha);
 
 	virtual void __FASTCALL pre_transfer_line(int line);
 	virtual void __FASTCALL transfer_line(int line, int layer);
