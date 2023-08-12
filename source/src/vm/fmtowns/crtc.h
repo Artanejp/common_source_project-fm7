@@ -400,15 +400,15 @@ protected:
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
 
-	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha);
-	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y);
-	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha);
+	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
+	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
+	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
 
 	virtual void __FASTCALL pre_transfer_line(int line);
 	virtual void __FASTCALL transfer_line(int line, int layer);
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
-	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1);
+	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1);
 
 	virtual void update_horiz_khz()
 	{
