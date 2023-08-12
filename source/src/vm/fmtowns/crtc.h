@@ -15,6 +15,7 @@
 #include <cmath>
 #include "device.h"
 #include "towns_common.h"
+#include "types/simd.h"
 /*
  * I/O Address :
  *  0440H : Register address (8bit W/O : bit7 to 5 must be '0').
@@ -473,6 +474,8 @@ protected:
 			display_mode[i] = dmode[i];
 		}
 	}
+	inline scrntype_t *scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width);
+
 	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
 	virtual void render_text();
 
@@ -560,6 +563,122 @@ public:
 	}
 
 };
+
+inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width)
+{
+	__UNLIKELY_IF((dst == NULL) || (src == NULL)) return NULL;
+
+	uintptr_t dstval = (uintptr_t)dst;
+	const uintptr_t as = alignof(csp_vector8<scrntype_t>) - 1;
+	__LIKELY_IF((dstval & as) == 0) { // ALIGNED
+		for(int x = 0; (x < words) && (width > 0) ; x++) {
+			switch(mag) {
+			case 1:
+				__LIKELY_IF(width >= 8) {
+					src[x].store_aligned(dst);
+					dst += 8;
+					width -= 8;
+				} else {
+					src[x].store_limited(dst, width);
+					dst += width;
+					width = 0;
+					break;
+				}
+				break;
+			case 2:
+				__LIKELY_IF(width >= 16) {
+					src[x].store2_aligned(dst);
+					dst += 16;
+					width -= 16;
+				} else {
+					src[x].store2_limited(dst, width);
+					dst += (2 * width);
+					width = 0;
+					break;
+				}
+				break;
+			case 4:
+				__LIKELY_IF(width >= 32) {
+					src[x].store4_aligned(dst);
+					dst += 32;
+					width -= 32;
+				} else {
+					src[x].store4_limited(dst, width);
+					dst += (width * 4);
+					width = 0;
+					break;
+				}
+				break;
+			default:
+				__LIKELY_IF(width >= (8 * mag)) {
+					src[x].store_n(dst, mag);
+					dst += (8 * mag);
+					width -= (8 * mag);
+				} else {
+					src[x].store_n_limited(dst, mag, width);
+					dst += (width * mag);
+					width = 0;
+				}
+				break;
+			}
+		}
+	} else { // Not aligned
+		for(int x = 0; (x < words) && (width > 0) ; x++) {
+			switch(mag) {
+			case 1:
+				__LIKELY_IF(width >= 8) {
+					src[x].store(dst);
+					dst += 8;
+					width -= 8;
+				} else {
+					src[x].store_limited(dst, width);
+					dst += width;
+					width = 0;
+					break;
+				}
+				break;
+			case 2:
+				__LIKELY_IF(width >= 16) {
+					src[x].store2(dst);
+					dst += 16;
+					width -= 16;
+				} else {
+					src[x].store2_limited(dst, width);
+					dst += (2 * width);
+					width = 0;
+					break;
+				}
+				break;
+			case 4:
+				__LIKELY_IF(width >= 32) {
+					src[x].store4(dst);
+					dst += 32;
+					width -= 32;
+				} else {
+					src[x].store4_limited(dst, width);
+					dst += (width * 4);
+					width = 0;
+					break;
+				}
+				break;
+			default:
+				__LIKELY_IF(width >= (8 * mag)) {
+					src[x].store_n(dst, mag);
+					dst += (8 * mag);
+					width -= (8 * mag);
+				} else {
+					src[x].store_n_limited(dst, mag, width);
+					dst += (width * mag);
+					width = 0;
+				}
+				break;
+			}
+		}
+	}
+	return dst;
 }
+}
+
+
 
 #endif
