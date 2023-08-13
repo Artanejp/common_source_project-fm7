@@ -1285,8 +1285,8 @@ __DECL_VECTORIZED_LOOP
 	}
 	int k = 0;
 
-	size_t width_tmp1 = width;
-	size_t width_tmp2 = width;
+	size_t width_tmp1 = pwidth << 1;
+	size_t width_tmp2 = pwidth << 1;
 
 	for(int x = 0; x < (pwidth >> 3); x++) {
 __DECL_VECTORIZED_LOOP
@@ -1498,40 +1498,37 @@ inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 	__LIKELY_IF(pp != nullptr) {
 		if((do_mix0) && (do_mix1)) {
 			// alpha blending
-			__DECL_ALIGNED(32) scrntype_t pixbuf0[8];
-			__DECL_ALIGNED(32) scrntype_t pixbuf1[8];
-			__DECL_ALIGNED(32) scrntype_t maskbuf_front[8];
-			__DECL_ALIGNED(32) scrntype_t maskbuf_back[8];
+			//csp_vector8<scrntype_t>pixbuf0;
+			//csp_vector8<scrntype_t>pixbuf1;
+			//csp_vector8<scrntype_t>maskbuf_front;
+			//csp_vector8<scrntype_t>maskbuf_back;
+
 			int of0 = max(0, bitshift0);
 			int of1 = max(0, bitshift1);
 			for(int xx = 0; xx < width; xx += 8) {
-__DECL_VECTORIZED_LOOP
-				for(int ii = 0; ii < 8; ii++) {
-					pixbuf1[ii] = 0;
-					pixbuf0[ii] = 0;
-					maskbuf_front[ii] = 0;
-				}
+				csp_vector8<scrntype_t>pixbuf0((scrntype_t)0);
+				csp_vector8<scrntype_t>pixbuf1((scrntype_t)0);
+				csp_vector8<scrntype_t>maskbuf_front((scrntype_t)0);
+				csp_vector8<scrntype_t>maskbuf_back((scrntype_t)0);
+
+//				maskbuf_front.fill(0);
+//				pixbuf0.fill(0);
+//				pixbuf1.fill(0);
 				scrntype_t *px1 = &(lbuffer1[xx]);
 				__LIKELY_IF(words1 >= 8) {
 					__LIKELY_IF(xx >= of1){
-						__DECL_VECTORIZED_LOOP
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf1[ii] = px1[ii];
-						}
+						pixbuf1.load(px1);
 						words1 -= 8;
 					} else if((xx + 8) > of1) {
 						size_t ofset1 = of1 - xx;
-						size_t bytes1 = xx + 8 - of1;
-						for(int ii = ofset1; ii < 8; ii++) {
-							pixbuf1[ii] = px1[ii];
-						}
-						words1 -= 8;
+						//size_t bytes1 = xx + 8 - of1;
+						pixbuf1.load_offset(px1, ofset1, 8); // ToDo
+						words1 -= (8 - ofset1);
+						//words1 -= 8;
 					}
 				} else if(words1 > 0) {
 					__LIKELY_IF(xx >= of1) {
-						for(int ii = 0; ii < words1; ii++) {
-							pixbuf1[ii] = px1[ii];
-						}
+						pixbuf1.load_limited(px1, words1);
 						words1 = 0;
 					}
 				}
@@ -1539,47 +1536,30 @@ __DECL_VECTORIZED_LOOP
 				scrntype_t *ax0 = &(abuffer0[xx]);
 				__LIKELY_IF(words0 >= 8) {
 					__LIKELY_IF(xx >= of0) {
-						__DECL_VECTORIZED_LOOP
-						for(int ii = 0; ii < 8; ii++) {
-							pixbuf0[ii] = px0[ii];
-							maskbuf_front[ii] = ax0[ii];
-						}
+						pixbuf0.load(px0);
+						maskbuf_front.load(ax0);
 						words0 -= 8;
 					} else if((xx + 8) > of0) {
 						size_t ofset0 = of0 - xx;
 						size_t bytes0 = xx + 8 - of0;
-						for(int ii = ofset0; ii < 8; ii++) {
-							pixbuf0[ii] = px0[ii];
-							maskbuf_front[ii] = ax0[ii];
-						}
-						words0 -= 8;
+						pixbuf0.load_offset(px0, ofset0); // ToDo
+						maskbuf_front.load_offset(ax0, ofset0); // ToDo
+						words0 -= (8 - ofset0);
+						//words0 -= 8;
 					}
 				} else if(words0 > 0) {
 					__LIKELY_IF(xx >= of0) {
-						for(int ii = 0; ii < words0; ii++) {
-							pixbuf0[ii] = px0[ii];
-							maskbuf_front[ii] = ax0[ii];
-						}
+						pixbuf0.load_limited(px0, words0); // ToDo
+						maskbuf_front.load_limited(ax0, words0); // ToDo
 						words0 = 0;
 					}
 				}
-__DECL_VECTORIZED_LOOP
-				for(int ii = 0; ii < 8; ii++) {
-					maskbuf_back[ii] = ~maskbuf_front[ii];
-				}
-__DECL_VECTORIZED_LOOP
-				for(int ii = 0; ii < 8; ii++) {
-					pixbuf1[ii] = pixbuf1[ii] & maskbuf_back[ii];
-					pixbuf0[ii] = pixbuf0[ii] & maskbuf_front[ii];
-				}
-__DECL_VECTORIZED_LOOP
-				for(int ii = 0; ii < 8; ii++) {
-					pixbuf0[ii] = pixbuf0[ii] | pixbuf1[ii];
-				}
-__DECL_VECTORIZED_LOOP
-				for(int ii = 0; ii < 8; ii++) {
-					pp[ii] = pixbuf0[ii];
-				}
+				maskbuf_back.negate(maskbuf_front); // Replacement of "~"
+				pixbuf1 &= maskbuf_back;
+				pixbuf0 &= maskbuf_front;
+				pixbuf0 |= pixbuf1;
+
+				pixbuf0.store(pp);
 				pp += 8;
 			}
 		} else if(do_mix0) {
