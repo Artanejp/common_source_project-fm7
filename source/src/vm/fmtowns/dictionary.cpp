@@ -72,7 +72,7 @@ void DICTIONARY::reset()
 
 uint32_t DICTIONARY::read_memory_mapped_io8w(uint32_t addr, int *wait)
 {
-	uint8_t n_data = 0x00;
+	uint8_t n_data = 0xff;
 	// 0xd0000 - 0xdffff : primary  is VRAM, secondary is DICTIONARY.
 	if((addr < 0x000da000) && (addr >= 0x000d0000)) {
 		*wait = 6; // temporally.
