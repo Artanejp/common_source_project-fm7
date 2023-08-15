@@ -1053,8 +1053,8 @@ void TOWNS_CDROM::read_cdrom()
 	databuffer->clear();
 	stop_time_out();
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
-	//status_accept(0, 0x00, 0x00, true); // READY for MCU.
-	set_status_immediate(req_status, 0, TOWNS_CD_STATUS_ACCEPT, 0, 0, 0);
+	status_accept(0, 0x00, 0x00, true); // READY for MCU.
+	//set_status_immediate(req_status, 0, TOWNS_CD_STATUS_ACCEPT, 0, 0, 0);
 
 }
 
