@@ -472,21 +472,6 @@ void TOWNS_DMAC::check_start_condition()
 	for(int ch = 0; ch < 4; ch++) {
 		uint8_t bit = 1 << ch;
 		if(((mask & bit) == 0) && (((req | sreq) & bit) != 0)) {
-			if(((dma[ch].mode & 0xc0) == 0x40) || (_SINGLE_MODE_DMA)) { // Single Mode
-				is_started[ch] = true;
-				calc_transfer_status(selch);
-				write_signals(&outputs_ube[selch], (is_16bit[selch]) ? 0xffffffff : 0x00000000);
-				end_req[selch] = false;
-				bool is_use_debugger = false;
-				if(__USE_DEBUGGER) {
-					__LIKELY_IF(d_debugger != NULL) {
-						is_use_debugger = d_debugger->now_device_debugging;
-					}
-				}
-				do_dma_per_channel(ch, is_use_debugger, true);
-				continue;
-			}
-
 			if(!(is_started[ch])) {
 				is_started[ch] = true;
 				calc_transfer_status(selch);
@@ -497,9 +482,6 @@ void TOWNS_DMAC::check_start_condition()
 				}
 			}
 		} else {
-			if(((dma[ch].mode & 0xc0) == 0x40) || (_SINGLE_MODE_DMA)) { // Single Mode
-				continue;
-			}
 			if(is_started[ch]) {
 				is_started[ch] = false;
 				check_running();
@@ -627,7 +609,7 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 			bool is_tc = false;
 			set_ack(c, true);
 			dma[c].creg--; // OK?
-			__UNLIKELY_IF(dma[c].creg == UINT16_MAX) {
+			__UNLIKELY_IF(dma[c].creg > dma[c].bcreg) {
 				is_tc = true;
 			}
 			uint8_t _mode = dma[c].mode & 0xc0;
