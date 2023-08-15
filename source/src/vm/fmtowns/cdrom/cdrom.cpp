@@ -38,6 +38,7 @@
 #define EVENT_CDROM_DRQ						107
 #define EVENT_CDROM_NEXT_SECTOR				108
 #define EVENT_CDROM_DELAY_READY				109
+#define EVENT_CDROM_DELAY_NOT_READY			110
 
 //#define EVENT_CDROM_EOT						112
 #define EVENT_CDROM_RESTORE					113
@@ -421,7 +422,7 @@ void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t 
 	set_status(req_status, extra, TOWNS_CD_STATUS_CMD_ABEND, s1, s2, s3);
 }
 
-void TOWNS_CDROM::status_accept(int extra, uint8_t s2, uint8_t s3)
+void TOWNS_CDROM::status_accept(int extra, uint8_t s2, uint8_t s3, bool next_ready)
 {
 	// Note: 2020-05-29 K.O
 	// Second byte (ARG s1) may below value (Thanks to Soji Yamakawa-San).
@@ -434,6 +435,7 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s2, uint8_t s3)
 	uint8_t playcode = TOWNS_CD_ACCEPT_DATA_TRACK; // OK?
 
 	if(media_changed) {
+		next_ready = true;
 		playcode = TOWNS_CD_ACCEPT_MEDIA_CHANGED;
 		goto _next_phase;
 	}
@@ -485,11 +487,23 @@ void TOWNS_CDROM::status_accept(int extra, uint8_t s2, uint8_t s3)
 		}
 	}
 _next_phase:
-	cdda_stopped = false;
-	media_changed = false;
-	cdrom_debug_log(_T("status_accept() %02X %02X %02X EXTRA=%d"), playcode, s2, s3, extra);
-	set_status(req_status, extra,
-			   TOWNS_CD_STATUS_ACCEPT, playcode, s2, s3);
+	if(next_ready) {
+		cdda_stopped = false;
+		media_changed = false;
+		cdrom_debug_log(_T("status_accept() [MCU READY] %02X %02X %02X EXTRA=%d"), playcode, s2, s3, extra);
+		set_status(req_status, extra,
+				   TOWNS_CD_STATUS_ACCEPT, playcode, s2, s3);
+	} else {
+		cdrom_debug_log(_T("status_accept() [MCU CONTINUE] %02X %02X %02X EXTRA=%d"), playcode, s2, s3, extra);
+		status_queue->clear();
+		extra_status = 0;
+		if(extra > 0) extra_status = extra;
+		status_queue->write(TOWNS_CD_STATUS_ACCEPT);
+		status_queue->write(playcode);
+		status_queue->write(s2);
+		status_queue->write(s3);
+		force_register_event(this, EVENT_CDROM_DELAY_NOT_READY, 1000.0, false, event_delay_ready);
+	}
 }
 
 void TOWNS_CDROM::send_mcu_ready()
@@ -1039,7 +1053,9 @@ void TOWNS_CDROM::read_cdrom()
 	databuffer->clear();
 	stop_time_out();
 	register_event(this, EVENT_CDROM_SEEK_COMPLETED, usec, false, &event_seek_completed);
-	status_accept(0, 0x00, 0x00);
+	//status_accept(0, 0x00, 0x00, true); // READY for MCU.
+	set_status_immediate(req_status, 0, TOWNS_CD_STATUS_ACCEPT, 0, 0, 0);
+
 }
 
 
@@ -1514,6 +1530,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_delay_ready = -1;
 		stop_time_out();
 		send_mcu_ready(); // OK? 20230127 K.O
+		break;
+	case EVENT_CDROM_DELAY_NOT_READY: // CALL READY TO ACCEPT COMMAND WITH STATUS
+		event_delay_ready = -1;
+		stop_time_out();
+		if(stat_reply_intr) {
+			set_mcu_intr(true);
+		}
 		break;
 	case EVENT_CDROM_READY_EOT:  // CALL END-OF-TRANSFER FROM CDC.
 		event_delay_ready = -1;
@@ -2851,7 +2874,7 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 		break;
 	case 0x04:
 		// Data Register
-		val = 0x00;
+		val = 0xff;
 		if((pio_transfer_phase) /*|| (dma_transfer_phase) */) {
 			__LIKELY_IF(!(databuffer->empty())) {
 				fetch_datareg_8();
@@ -2862,10 +2885,12 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 		}
 		break;
 	case 0x0c: // Subq code
-		val = read_subq();
+		//val = read_subq();
+		val = 0x00;
 		break;
 	case 0x0d: // Subq status
-		val = get_subq_status();
+		//val = get_subq_status();
+		val = 0x00;
 		break;
 	}
 	//cdrom_debug_log(_T("READ IO8: %04X %02X"), addr, val);

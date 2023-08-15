@@ -428,7 +428,7 @@ protected:
 	void __FASTCALL status_read_done(bool forceint);
 	void __FASTCALL status_data_ready(bool forceint);
 
-	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool next_ready = true);
 	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
