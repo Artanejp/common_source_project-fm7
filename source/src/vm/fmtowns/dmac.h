@@ -94,7 +94,6 @@ protected:
 	{
 		c = c & 3;
 		const uint8_t bit = 1 << c;
-		reset_dma_counter(c);
 		req &= ~bit;
 		sreq &= ~bit;
 		running = false;
@@ -105,6 +104,7 @@ protected:
 		if(is_send_tc) {
 			write_signals(&outputs_towns_tc[c], 0xffffffff);
 		}
+		reset_dma_counter(c);
 		//tc |= bit;	// From MAME 0.246 ;
 					// TC REGISTER's BIT maybe set after TC line asserted. 20230521 K.O
 	}
