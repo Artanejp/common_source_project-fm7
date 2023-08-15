@@ -42,16 +42,20 @@ void TOWNS_MEMORY::config_page_c0()
 		set_memory_mapped_io_rw(0x000ce000, 0x000cffff, this); // MMIO and higher RAM.
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, vram_wait_val);
+		config_page_d0_e0(); // By Tsugaru, Changeing mapping of D0000h-EFFFFh effects only at vram changing,
 	} else {
 		#if 1
 		set_memory_rw          (0x000c0000, 0x000cffff, ram_pagec);
+		set_memory_rw          (0x000d0000, 0x000effff, ram_paged);
 		#else
 		set_memory_rw          (0x000c0000, 0x000cdfff, ram_pagec);
 		set_memory_mapped_io_rw(0x000ce000, 0x000cffff, this); // MMIO and higher RAM.
 		#endif
 		// ToDo: Correctness wait value.
 		set_wait_rw(0x000c0000, 0x000cffff, mem_wait_val);
+		set_wait_rw(0x000d0000, 0x000effff, mem_wait_val);
 	}
+	config_page_f8_rom();
 }
 
 void TOWNS_MEMORY::config_page_d0_e0()
@@ -89,8 +93,7 @@ void TOWNS_MEMORY::config_page_f8_rom()
 void TOWNS_MEMORY::config_page00()
 {
 	config_page_c0();
-	config_page_d0_e0();
-	config_page_f8_rom();
+	//config_page_f8_rom();
 }
 
 void TOWNS_MEMORY::initialize()
@@ -682,7 +685,7 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			dma_is_vram = ((data & 0x80) == 0);
 			if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
 				config_page_c0();
-				config_page_d0_e0();
+				//config_page_d0_e0();
 			}
 		}
 		break;
@@ -693,8 +696,9 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			select_d0_dict = ((data & 0x01) != 0) ? true : false;
 			select_d0_rom = ((data & 0x02) == 0) ? true : false;
 			if((_dict != select_d0_dict) ||(_rom != select_d0_rom)){
-				config_page_d0_e0();
-				config_page_f8_rom();
+				//config_page_d0_e0();
+				config_page_c0();
+				//config_page_f8_rom();
 			}
 		}
 		break;
