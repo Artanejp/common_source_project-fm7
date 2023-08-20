@@ -41,6 +41,7 @@
 
 class SCSI_HOST;
 class FIFO;
+class RINGBUFFER;
 class FILEIO;
 class DEBUGGER;
 
@@ -328,9 +329,6 @@ protected:
 	int next_seek_lba;
 	int read_mode;
 
-	uint8_t prev_command;
-	uint8_t latest_command;
-	uint8_t reserved_command;
 	bool req_status;
 
 	bool stat_reply_intr;
@@ -341,10 +339,10 @@ protected:
 	bool mcu_intr_mask;
 	bool dma_intr_mask;
 
+	int event_execute;
 	int event_drq;
 	int event_seek;
 	int event_next_sector;
-	int event_seek_completed;
 	int event_cdda;
 	int event_cdda_delay_play;
 	int event_cdda_delay_stop;
@@ -369,9 +367,12 @@ protected:
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
-	uint8_t param_ptr;
-	uint8_t param_queue_tmp[8];
-	uint8_t param_queue[8];
+	uint8_t reserved_command;
+	RINGBUFFER* param_queue;
+	uint8_t prev_command;
+
+	uint8_t latest_command;
+	uint8_t exec_params[8];
 
 	bool command_received;
 
@@ -516,6 +517,7 @@ public:
 		access = false;
 		databuffer = NULL;
 		status_queue = NULL;
+		param_queue = NULL;
 		_decibel_l = 0;
 		_decibel_r = 0;
 
