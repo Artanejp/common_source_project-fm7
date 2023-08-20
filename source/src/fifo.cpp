@@ -42,87 +42,76 @@ void FIFO::clear()
 
 void FIFO::write(int val, bool *p_fill_warn)
 {
-	if(cnt < size) {
+	__LIKELY_IF(cnt < size) {
 		buf[wpt++] = val;
-		if(wpt >= size) {
+		__UNLIKELY_IF(wpt >= size) {
 			wpt = 0;
 		}
 		cnt++;
-		if(fill_warn_val < cnt) {
+		__UNLIKELY_IF(fill_warn_val < cnt) {
 			fill_warn_flag = true;
 		} else {
 			fill_warn_flag = false;
 		}
-		if(p_fill_warn != nullptr) {
-			*p_fill_warn = fill_warn_flag;
-		}
+	}
+	__UNLIKELY_IF(p_fill_warn != nullptr) {
+		*p_fill_warn = fill_warn_flag;
 	}
 }
 
 int FIFO::read(bool *p_empty_warn)
 {
 	int val = 0;
-	if(cnt) {
+	__LIKELY_IF(cnt > 0) {
 		val = buf[rpt++];
-		if(rpt >= size) {
+		__UNLIKELY_IF(rpt >= size) {
 			rpt = 0;
 		}
 		cnt--;
-		if(empty_warn_val > cnt) {
+		__UNLIKELY_IF(cnt <= 0) {
+			cnt = 0;
+			rpt = 0;
+			wpt = 0;
+		}
+		__UNLIKELY_IF(empty_warn_val > cnt) {
 			empty_warn_flag = true;
 		} else {
 			empty_warn_flag = false;
 		}
-		if(p_empty_warn != nullptr) {
-			*p_empty_warn = empty_warn_flag;
-		}
+	}
+	__UNLIKELY_IF(p_empty_warn != nullptr) {
+		*p_empty_warn = empty_warn_flag;
 	}
 	return val;
 }
 
 int FIFO::read_not_remove(int pt, bool *p_empty_warn)
 {
-	if(pt >= 0 && pt < cnt) {
+	__UNLIKELY_IF(p_empty_warn != nullptr) {
+		*p_empty_warn = empty_warn_flag;
+	}
+	__LIKELY_IF(pt >= 0 && pt < cnt) {
 		pt += rpt;
 		if(pt >= size) {
 			pt -= size;
 		}
-		if(empty_warn_val > cnt) {
-			empty_warn_flag = true;
-		} else {
-			empty_warn_flag = false;
-		}
-		if(p_empty_warn != nullptr) {
-			*p_empty_warn = empty_warn_flag;
-		}
 		return buf[pt];
-	}
-	if(p_empty_warn != nullptr) {
-		*p_empty_warn = false;
 	}
 	return 0;
 }
 
 void FIFO::write_not_push(int pt, int d, bool *p_fill_warn)
 {
-	if(pt >= 0 && pt < cnt) {
+	__UNLIKELY_IF(p_fill_warn != nullptr) {
+		*p_fill_warn = fill_warn_flag;
+	}
+	__LIKELY_IF(pt >= 0 && pt < cnt) {
 		pt += wpt;
 		if(pt >= size) {
 			pt -= size;
 		}
 		buf[pt] = d;
-		if(fill_warn_val < cnt) {
-			fill_warn_flag = true;
-		} else {
-			fill_warn_flag = false;
-		}
-		if(p_fill_warn != nullptr) {
-			*p_fill_warn = fill_warn_flag;
-		}
 		return;
-	}
-	if(p_fill_warn != nullptr) {
-		*p_fill_warn = false;
 	}
 }
 
@@ -144,14 +133,14 @@ bool FIFO::full()
 int FIFO::left()
 {
 	int val = size - cnt;
-	if(val < 0) val = 0;
-	if(val > size) val = size;
+	__UNLIKELY_IF(val < 0) val = 0;
+	__UNLIKELY_IF(val > size) val = size;
 	return val;
 }
 
 bool FIFO::empty()
 {
-	return (cnt == 0);
+	return (cnt <= 0);
 }
 
 #define STATE_VERSION	1
