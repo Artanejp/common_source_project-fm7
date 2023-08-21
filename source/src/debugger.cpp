@@ -28,6 +28,7 @@
 
 #if defined(OSD_QT)
 #include "qt/osd.h"
+#include "qt/gui/menu_flags.h"
 #else /* WIN32 */
 #include "win32/osd.h"
 #endif
@@ -467,7 +468,9 @@ void* debugger_thread(void *lpx)
 	memset(prev_command, 0, sizeof(prev_command));
 
 	while(!p->request_terminate) {
-		p->emu->draw_screen();
+		if(!(p->osd->get_config_flags()->get_config_ptr()->use_separate_thread_draw)) {
+			p->emu->draw_screen();
+		}
 
 		my_printf(p->osd, _T("- "));
 
