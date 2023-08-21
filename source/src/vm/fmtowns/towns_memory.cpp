@@ -99,7 +99,6 @@ void TOWNS_MEMORY::initialize()
 	MEMORY::initialize();
 
 	update_machine_features();
-
 	extra_nmi_mask = true;
 	extra_nmi_val = false;
 	poff_status = false;
@@ -107,12 +106,18 @@ void TOWNS_MEMORY::initialize()
 
 	vram_wait_val = 6;
 	mem_wait_val = 3;
-	if((cpu_id == 0x01) || (cpu_id == 0x03)) {
-		wait_register = 0x03;
-	} else {
-		wait_register = 0x83;
-	}
-	cpu_clock_val = 16000 * 1000;
+//	if((cpu_id == 0x01) || (cpu_id == 0x03)) {
+//		wait_register_older = vram_wait_val;
+//		wait_register_vram = vram_wait_val;
+//		wait_register_ram = mem_wait_val;
+//	} else {
+		wait_register_older  = 3;
+		wait_register_vram = 0x06;
+		wait_register_ram  = 0x03;
+//	}
+	//cpu_clock_val = 16 * 1000 * 1000;
+	//cpu_clock_val = get_cpu_clocks(d_cpu);
+	set_cpu_clock_by_wait();
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
 
@@ -167,7 +172,13 @@ void TOWNS_MEMORY::initialize()
 	vram_size = 0x80000; // OK?
 }
 
-
+bool TOWNS_MEMORY::set_cpu_clock_by_wait()
+{
+	uint32_t cpu_bak = cpu_clock_val;
+	cpu_clock_val = (is_faster_wait()) ?
+		get_cpu_clocks(d_cpu) : (16 * 1000 * 1000);
+	return ((cpu_clock_val != cpu_bak) ? true : false);
+}
 void TOWNS_MEMORY::set_wait_values()
 {
 	uint32_t waitfactor = 0;
@@ -220,6 +231,7 @@ void TOWNS_MEMORY::reset()
 	// reset memory
 	// ToDo
 	MEMORY::reset();
+	update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
 	is_compatible = true;
 	reset_happened = false;
 	dma_is_vram = false;
@@ -230,6 +242,7 @@ void TOWNS_MEMORY::reset()
 	select_d0_rom = true;
 	config_page00();
 
+	set_cpu_clock_by_wait();
 	set_wait_values();
 #if 1
 	__LIKELY_IF(d_cpu != NULL) {
@@ -450,12 +463,17 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		break;
 	case 0x05e0:
 		if(machine_id < 0x0200) { // Towns 1/2
-			val =  wait_register;
+			val =  wait_register_older;
 		}
 		break;
 	case 0x05e2:
 		if(machine_id >= 0x0200) { // i386
-			val = wait_register;
+			val = wait_register_ram;
+		}
+		break;
+	case 0x05e6:
+		if(machine_id >= 0x0200) { // i386
+			val = wait_register_vram;
 		}
 		break;
 	case 0x05e8:
@@ -480,7 +498,7 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 	case 0x05ec:
 		// 05ec, 05ed
 		if(machine_id >= 0x0200) { // 05ec
-			val = ((mem_wait_val < 1) ? 0x01 : 0x00);
+			val = ((is_faster_wait()) ? 0x01 : 0x00);
 		}
 		break;
 	case 0x05ed:
@@ -706,36 +724,64 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 	case 0x05e0:
 		// From AB.COM
 		if(machine_id < 0x0200) { // Towns 1/2
-			uint8_t nval = data & 7;
-			uint8_t val_bak = mem_wait_val;
+			uint8_t nval_bak = wait_register_older & 0x07;
+			uint8_t nval = data & 0x07;
 			if(nval < 1) nval = 1;
-			if(nval > 5) nval = 5;
-			mem_wait_val = nval + 1;
-			vram_wait_val = nval + 3 + 1;
-			wait_register = nval;
-			if(val_bak != mem_wait_val) {
+			mem_wait_val = nval;
+			vram_wait_val = nval + 3; // OK?
+			if(vram_wait_val > 6) {
+				vram_wait_val = 6;
+			}
+			wait_register_older = (data & 0xf8) | nval;
+			cpu_clock_val = 16 * 1000 * 1000;
+			if(nval_bak != nval) {
+				set_cpu_clock_by_wait();
 				set_wait_values();
 			}
 		}
 		break;
 	case 0x05e2:
 		if(machine_id >= 0x0200) { // After Towns 1H/2F. Hidden wait register.
-			uint8_t val_bak = mem_wait_val;
+			uint8_t vram_bak = vram_wait_val;
+			uint8_t mem_bak = mem_wait_val;
 			if(data != 0x83) {
 				uint8_t nval = data & 7;
 				if(machine_id <= 0x0200) { // Towns 1H/2F.
 					if(nval < 1) nval = 1;
 				}
-				if(nval > 5) nval = 5;
+				if(nval > 6) nval = 6;
 				mem_wait_val = nval;
-				vram_wait_val = nval + 3;
-				wait_register = nval;
+				wait_register_ram = (data & 0xf8) | nval;
 			} else {
 				mem_wait_val = 3;
 				vram_wait_val = 6;
-				wait_register = data;
+				wait_register_ram = data;
 			}
-			if(val_bak != mem_wait_val) {
+			if((vram_bak != vram_wait_val) || (mem_bak != mem_wait_val)) {
+				set_cpu_clock_by_wait();
+				set_wait_values();
+			}
+		}
+		break;
+	case 0x05e6:
+		if(machine_id >= 0x0200) { // After Towns 1H/2F. Hidden wait register.
+			uint8_t mem_bak = mem_wait_val;
+			uint8_t vram_bak = vram_wait_val;
+			if(data != 0x83) {
+				uint8_t nval = data & 7;
+				if(machine_id <= 0x0200) { // Towns 1H/2F.
+					if(nval < 1) nval = 1;
+				}
+				if(nval > 6) nval = 6;
+				vram_wait_val = nval;
+				wait_register_vram = (data & 0xf8) | nval;
+			} else {
+				mem_wait_val = 3;
+				vram_wait_val = 3;
+				wait_register_vram = data;
+			}
+			if((vram_bak != vram_wait_val) || (mem_bak != mem_wait_val)) {
+				set_cpu_clock_by_wait();
 				set_wait_values();
 			}
 		}
@@ -743,12 +789,14 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 	case 0x05ec:
 		// ToDo: 0x05ed
 		if(machine_id >= 0x0500) { // Towns2 CX :
-			uint8_t val_bak = mem_wait_val;
-			uint32_t clk_bak = cpu_clock_val;
-			vram_wait_val = ((data & 0x01) != 0) ? 3 : 6;
-			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
-			cpu_clock_val = ((data & 0x01) != 0) ? (get_cpu_clocks(d_cpu)) : (16 * 1000 * 1000);
-			if((val_bak != mem_wait_val) || (cpu_clock_val != clk_bak)) {
+			uint8_t mem_bak = mem_wait_val;
+			uint8_t vram_bak = vram_wait_val;
+			vram_wait_val = ((data & 0x01) != 0) ? 0 : 6;
+			mem_wait_val = ((data & 0x01) != 0) ? 0 : 6;
+			wait_register_ram = mem_wait_val;
+			wait_register_vram = vram_wait_val;
+			if((mem_bak != mem_wait_val) || (vram_bak != vram_wait_val)) {
+				set_cpu_clock_by_wait();
 				set_wait_values();
 			}
 		}
@@ -984,7 +1032,7 @@ void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
 
 // ToDo: DMA
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1001,7 +1049,9 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(mem_wait_val);
 	state_fio->StateValue(vram_wait_val);
-	state_fio->StateValue(wait_register);
+	state_fio->StateValue(wait_register_older);
+	state_fio->StateValue(wait_register_ram);
+	state_fio->StateValue(wait_register_vram);
 
 	state_fio->StateValue(dma_is_vram);
 	state_fio->StateValue(nmi_vector_protect);

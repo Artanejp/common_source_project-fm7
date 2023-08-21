@@ -104,7 +104,9 @@ protected:
 	uint32_t vram_wait_val;
 	uint32_t mem_wait_val;
 
-	uint8_t wait_register;
+	uint8_t wait_register_older;  // 05E0h
+	uint8_t wait_register_ram;    // 05E2h
+	uint8_t wait_register_vram;   // 05E6h
 
 	bool extra_nmi_mask;
 	bool extra_nmi_val;
@@ -128,11 +130,15 @@ protected:
 	virtual void config_page00();
 	virtual void update_machine_features();
 
+	virtual bool set_cpu_clock_by_wait();
 	virtual void     __FASTCALL write_fmr_ports8(uint32_t addr, uint32_t data);
 	virtual uint8_t  __FASTCALL read_fmr_ports8(uint32_t addr);
 	virtual void     __FASTCALL write_sys_ports8(uint32_t addr, uint32_t data);
 	virtual uint8_t __FASTCALL read_sys_ports8(uint32_t addr);
-
+	inline bool is_faster_wait()
+	{
+		return ((mem_wait_val == 0) && (vram_wait_val < 3)) ? true : false;
+	}
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
