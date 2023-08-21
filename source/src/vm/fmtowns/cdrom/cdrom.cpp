@@ -624,15 +624,15 @@ const _TCHAR* TOWNS_CDROM::get_command_name_from_command(uint8_t cmd)
  */
 void TOWNS_CDROM::execute_command(uint8_t command)
 {
+	stat_reply_intr	= ((command & 0x40) != 0) ? true : false;
+	req_status		= ((command & 0x20) != 0) ? true : false;
+	latest_command = command;
 	#if 1
 	for(int i = 0; i < 8; i++) {
 		exec_params[i] = param_queue->read();
 	}
 	param_queue->clear();
 	#endif
-	stat_reply_intr	= ((command & 0x40) != 0) ? true : false;
-	req_status		= ((command & 0x20) != 0) ? true : false;
-	latest_command = command;
 	extra_status = 0;
 	//command_received = false;
 	//mcu_ready = false;
@@ -1085,12 +1085,11 @@ void TOWNS_CDROM::set_status_read_done(bool _req_status, int extra, uint8_t s0, 
 		);
 	status_queue->clear();
 	extra_status = 0;
-//	if(_req_status) {
-		if(extra > 0) extra_status = extra;
-		status_queue->write(s0);
-		status_queue->write(s1);
-		status_queue->write(s2);
-		status_queue->write(s3);
+	if(extra > 0) extra_status = extra;
+	status_queue->write(s0);
+	status_queue->write(s1);
+	status_queue->write(s2);
+	status_queue->write(s3);
 //	} else {
 //		set_delay_ready_eot();
 //	}
@@ -1517,7 +1516,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	switch (event_id) {
 	case EVENT_CDROM_DELAY_COMMAND:
 		event_execute = -1;
+		// Backup previous command.
 		prev_command = latest_command;
+		for(int i = 0; i < 8; i++) {
+			prev_params[i] = exec_params[i];
+		}
 		execute_command(reserved_command);
 		break;
 	case EVENT_CDROM_DELAY_INTERRUPT_ON: // DELAY INTERRUPT ON
@@ -1548,7 +1551,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		mcu_ready = true;
 		if(req_status) {
 			mcu_intr = true;
-			if(!(mcu_intr_mask) && (stat_reply_intr)) {
+			if(!(mcu_intr_mask) /*&& (stat_reply_intr)*/) {
 				write_mcuint_signals(0xffffffff);
 			}
 		} else {
@@ -2142,8 +2145,6 @@ void TOWNS_CDROM::reset_device()
 	extra_status = 0;
 
 	// Around Register 4C2h:W
-	latest_command = 0x00;
-	prev_command = 0x00;
 	command_received = false;
 
 	stat_reply_intr = false;
@@ -2154,8 +2155,13 @@ void TOWNS_CDROM::reset_device()
 	data_reg.w = 0x0000;
 
 	// Around Register 4C4h:W
+	reserved_command = 0x00;
 	param_queue->clear();
+
+	latest_command = 0x00;
 	memset(exec_params, 0x00, sizeof(exec_params));
+	prev_command = 0x00;
+	memset(prev_params, 0x00, sizeof(prev_params));
 
 	// Around Register 4C6h:W
 	dma_transfer = false;
@@ -3002,11 +3008,17 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		my_stprintf_s(tmps, 16, _T("%02X "), status_queue->read_not_remove(i) & 0xff);
 		my_tcscat_s(stat, sizeof(regs) / sizeof(_TCHAR), tmps);
 	}
-	_TCHAR param[256] = {0};
+	_TCHAR s_param[256] = {0};
+	_TCHAR s_prev_param[256] = {0};
 	for(int i = 0; i < 8; i++) {
 		_TCHAR tmps[16] = {0};
 		my_stprintf_s(tmps, 16, _T("%02X "), exec_params[i]);
-		my_tcscat_s(param, sizeof(param) / sizeof(_TCHAR), tmps);
+		my_tcscat_s(s_param, sizeof(s_param) / sizeof(_TCHAR), tmps);
+	}
+	for(int i = 0; i < 8; i++) {
+		_TCHAR tmps[16] = {0};
+		my_stprintf_s(tmps, 16, _T("%02X "), prev_params[i]);
+		my_tcscat_s(s_prev_param, sizeof(s_prev_param) / sizeof(_TCHAR), tmps);
 	}
 	bool is_audio = false;
 	bool in_track = ((current_track > 0) && (current_track < track_num));
@@ -3049,7 +3061,8 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  _T("MCU INT=%s DMA INT=%s TRANSFER PHASE:%s %s HAS_STATUS=%s MCU=%s\n")
 				  _T("TRACK=%d INDEX0=%d INDEX1=%d PREGAP=%d LBA_OFFSET=%d LBA_SIZE=%d\n")
 				  _T("LBA=%d READ LENGTH=%d DATA QUEUE=%d\n")
-				  _T("CMD=%02X(%s) PARAM=%s PREV_COMMAND=%02X(%s)\n")
+				  _T("CMD=%02X(%s)          PARAM=%s\n")
+				  _T("PREV_COMMAND=%02X(%s) PARAM=%s\n")
 				  _T("EXTRA STATUS=%d STATUS COUNT=%d QUEUE_VALUE=%s\n")
 				  _T("REGS RAW VALUES=%s\n")
 				  , moreinfo
@@ -3059,7 +3072,8 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (status_queue->full()) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
 				  , current_track, index0, index1, pregap, lba_size, lba_offset
 				  , read_sector, read_length, databuffer->count()
-				  , latest_command, cmdname,  prev_command, prev_cmdname
+				  , latest_command, cmdname, s_param
+				  , prev_command, prev_cmdname, s_prev_param
 				  , extra_status, status_queue->count(), stat
 				  , regs
 		);
@@ -3070,7 +3084,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	29
+#define STATE_VERSION	30
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3119,6 +3133,8 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	}
 
 	state_fio->StateValue(prev_command);
+	state_fio->StateArray(prev_params, sizeof(prev_params), 1);
+
 	state_fio->StateValue(latest_command);
 	state_fio->StateArray(exec_params, sizeof(exec_params), 1);
 

@@ -370,6 +370,7 @@ protected:
 	uint8_t reserved_command;
 	RINGBUFFER* param_queue;
 	uint8_t prev_command;
+	uint8_t prev_params[8];
 
 	uint8_t latest_command;
 	uint8_t exec_params[8];
