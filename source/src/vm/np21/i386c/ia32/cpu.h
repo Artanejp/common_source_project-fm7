@@ -148,6 +148,16 @@ class I386;
 #endif
 #define VERBOSE(a)
 
+//#include "i386_np21.h"
+//extern I386 *device_cpu;
+//static inline void VERBOSE(const char *s, ...)
+//{
+//	__UNLIKELY_IF(device_cpu != nullptr) {
+//		device_cpu->out_debug_log(s, ...);
+//	}
+//}
+//#define VERBOSE(a) { device_cpu->out_debug_log##a ; }
+
 #include "./cpucall_types.h"
 
 #define SUPPORT_FPU_DOSBOX
