@@ -57,12 +57,11 @@ namespace FMTOWNS {
 }
 
 namespace FMTOWNS {
-class TOWNS_MEMORY : public MEMORY
+class TOWNS_MEMORY : public DEVICE
 {
 protected:
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
-	DEVICE* d_romcard[2]; // 0xc0000000 - 0xc0ffffff / 0xc1000000 - 0xc1ffffff
 	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff
 	DEVICE* d_timer;
 	DEVICE* d_dmac;
@@ -79,7 +78,102 @@ protected:
 
 	DEVICE* d_iccard[2];
 
-	outputs_t outputs_ram_wait;
+	// Add memory MAP
+	DEVICE*  devmap_c0000h_read[0x00030000 >> 12]; // Per 1000h bytes
+	uint32_t offsetmap_c0000h_read[0x00030000 >> 12];
+	DEVICE*  devmap_c0000h_write[0x00030000 >> 12]; // Per 1000h bytes
+	uint32_t offsetmap_c0000h_write[0x00030000 >> 12];
+
+	DEVICE*  devmap_80000000h[0x04000000 >> 17];
+	uint32_t offsetmap_80000000h[0x04000000 >> 17];
+
+	DEVICE*  devmap_c0000000h_read[0x04000000 >> 12];
+	uint32_t offsetmap_c0000000h_read[0x04000000 >> 12];
+	DEVICE*  devmap_c0000000h_write[0x04000000 >> 12];
+	uint32_t offsetmap_c0000000h_write[0x04000000 >> 12];
+
+	virtual inline __FASTCALL DEVICE* select_bank_memory_mpu(uint32_t addr, constexpr bool is_dma, constexpr bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval)
+	{
+		memptr = UINTPTR_MAX;
+		offset = UINT32_MAX;
+		waitval = mem_wait_val;
+		is_exists = false;
+		__LIKELY_IF(addr < (extram_size + 0x00100000)) {
+			__LIKELY_IF(addr >= 0x00100000) { // Extra RAM
+				is_exists = (extra_ram != NULL) ? true : false;
+				offset = addr - 0x00100000;
+				memptr = (uintptr_t)extra_ram;
+				return NULL;
+			}
+			__LIKELY_IF(addr < 0x000c0000) { // 1st RAM
+				is_exists = true;
+				offset = addr;
+				memptr = (uintptr_t)ram_page0;
+				return NULL;
+			}
+			__LIKELY_IF((dma_is_vram) && (addr < 0x000f0000)) {
+				uint32_t map_ptr = (addr - 0x000c0000) >> 12; // Per 4KBytes
+				DEVICE* p = (is_read) ? devmap_c0000h_read[map_ptr] : devmap_c0000h_write[map_ptr];
+				__LIKELY_IF(p != NULL) {
+					is_exists = true;
+					offset = (is_read) ? offsetmap_c0000h_read[map_ptr] : offsetmap_c0000h_write[map_ptr];
+					__UNLIKELY_IF(addr < 0x000d0000) {
+						waitval = vram_wait_val;
+					}
+				}
+				return p;
+			}
+			__UNLIKELY_IF((addr >= 0x000cff80) && (addr < 0x000d0000)) { // MMIO
+				is_exists = true;
+				return this;
+			}
+			// 0x000f8000 - 0x000fffff
+			__LIKELY_IF((select_d0_rom) && (addr >= 0x000f8000)) {
+				is_exists = (is_read) ? true : false;
+				offset = (addr - 0x000f8000) + 0x38000;
+				return (is_read) ? d_sysrom : NULL;
+			}
+			is_exists = true;
+			offset = addr - 0x0000c0000;
+			memptr = (uintptr_t)ram_pagec;
+			return NULL;
+		}
+		__LIKELY_IF(addr >= 0x80000000) {
+			__LIKELY_IF(addr >= 0xfffc0000) { // SYSROM
+				is_exists = true;
+				offset = addr - 0xfffc0000;
+				return d_sysrom;
+			}
+			__LIKELY_IF(addr < 0x84000000) { // VRAM
+				uint32_t map_ptr = (addr - 0x80000000) >> 17; // Per 128KBytes
+				DEVICE* p = devmap_80000000h[map_ptr];
+				waitval = vram_wait_val; // ToDo.
+				__LIKELY_IF(p != NULL) {
+					offset = offsetmap_80000000h[map_ptr];
+					is_exists = true;
+				}
+				return p;
+			}
+			__LIKELY_IF(addr >= 0xc0000000) {
+				__LIKELY_IF(addr < 0xc2400000) { // MISC DEVICES
+					uint32_t map_ptr = (addr - 0xc0000000) >> 12; // Per 4KBytes
+					DEVICE* p = (is_read) ? devmap_c0000000h_read[map_ptr] : devmap_c0000000h_write[map_ptr];
+					__LIKELY_IF(p != NULL) {
+						offset = (is_read) ? offsetmap_c0000000h_read[map_ptr] : offsetmap_c0000000h_write[map_ptr];
+						is_exists = true;
+					}
+					return p;
+				}
+				return NULL;
+			}
+			return NULL;
+		}
+		// ToDo: I/O SLOTS (40000000h)
+		return NULL;
+	}
+	virtual void __FASTCALL set_device_range_r(DEVICE* dev, uint32_t begin_addr, uint32_t end_addr);
+	virtual void __FASTCALL set_device_range_w(DEVICE* dev, uint32_t begin_addr, uint32_t end_addr);
+ 	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
 
 	bool bankc0_vram;
@@ -94,9 +188,7 @@ protected:
 
 	// RAM
 	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
-	uint8_t ram_pagec[0x10000];       // 0x000c0000 - 0x000cffff : URA? RAM
-	uint8_t ram_paged[0x20000];       // 0x000d0000 - 0x000effff : RAM
-	uint8_t ram_pagef[0x10000];       // 0x000f0000 - 0x000fffff : RAM
+	uint8_t ram_pagec[0x40000];       // 0x000c0000 - 0x000fffff : URA? RAM
 
 	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
 	uint32_t extram_size;
@@ -149,7 +241,6 @@ public:
 
 		d_vram = NULL;
 		d_sprite = NULL;
-		d_romcard[0] = d_romcard[1] = NULL;
 		d_pcm = NULL;
 		d_timer = NULL;
 		d_dmac = NULL;
@@ -168,6 +259,22 @@ public:
 
 		initialize_output_signals(&outputs_ram_wait);
 		initialize_output_signals(&outputs_rom_wait);
+		for(int i = 0; i < (sizeof(devmap_c0000h_read) / sizeof(DEVICE*)); i++) {
+			devmap_c0000h_read[i] = NULL;
+			devmap_c0000h_write[i] = NULL;
+			offsetmap_c0000h_read[i] = UINT32_MAX;
+			offsetmap_c0000h_write[i] = UINT32_MAX;
+		}
+		for(int i = 0; i < (sizeof(devmap_80000000h) / sizeof(DEVICE*)); i++) {
+			devmap_80000000h[i] = NULL;
+			offsetmap_80000000h[i] = UINT32_MAX;
+		}
+		for(int i = 0; i < (sizeof(devmap_c0000000h_read) / sizeof(DEVICE*)); i++) {
+			devmap_c0000000h_read[i] = NULL;
+			devmap_c00000000h_write[i] = NULL;
+			offsetmap_c00000000h_read[i] = UINT32_MAX;
+			offsetmap_c00000000h_write[i] = UINT32_MAX;
+		}
 		// Note: machine id must set before initialize() from set_context_machine_id() by VM::VM().
 		// machine_id = 0x0100;   // FM-Towns 1,2
 		// machine_id = 0x0200 // FM-Towns  1F/2F/1H/2H
@@ -265,9 +372,10 @@ public:
 	{
 		d_dmac = device;
 	}
-	void set_context_vram(DEVICE* device)
+	virtual void set_context_vram(DEVICE* device)
 	{
 		d_vram = device;
+
 	}
 	void set_context_system_rom(DEVICE* device)
 	{
@@ -276,18 +384,25 @@ public:
 	void set_context_font_rom(DEVICE* device)
 	{
 		d_font = device;
+		set_device_range_r(device, 0xc2100000, 0xc2140000);
 	}
 	void set_context_font_20pix_rom(DEVICE* device)
 	{
 		d_font_20pix = device;
+		set_device_range_r(device, 0xc2180000, 0xc2200000);
 	}
 	void set_context_dictionary(DEVICE* device)
 	{
 		d_dictionary = device;
+		set_device_range_r(device, 0xc2080000, 0xc2100000);
+		set_device_range_r(device, 0xc2140000, 0xc2142000);
+		// CMOS
+		set_device_range_w(device, 0xc2140000, 0xc2142000);
 	}
 	void set_context_msdos(DEVICE* device)
 	{
 		d_msdos = device;
+		set_device_range_r(device, 0xc2000000, 0xc2080000);
 	}
 	void set_context_timer(DEVICE* device)
 	{
@@ -296,18 +411,25 @@ public:
 	void set_context_sprite(DEVICE* device)
 	{
 		d_sprite = device;
+		set_device_range_r(device, 0x81000000, 0x81020000);
+		set_device_range_w(device, 0x81000000, 0x81020000);
 	}
 	void set_context_crtc(DEVICE* device)
 	{
 		d_crtc = device;
 	}
-	void set_context_romcard(DEVICE* device, int num)
+	void set_context_iccard(DEVICE* device, int num)
 	{
-		d_romcard[num & 1] = device;
+		d_iccard[num & 1] = device;
+		uint32_t begin_addr = ((num & 1) == 0) ? 0xc0000000 : 0xc1000000;
+		set_device_range_r(device, begin_addr, begin_addr + 0x01000000);
+		set_device_range_w(device, begin_addr, begin_addr + 0x01000000);
 	}
 	void set_context_pcm(DEVICE* device)
 	{
 		d_pcm = device;
+		set_device_range_r(device, 0xc2200000, 0xc2200fff);
+		set_device_range_w(device, 0xc2200000, 0xc2200fff);
 	}
 	void set_context_serial_rom(DEVICE* device)
 	{
@@ -316,12 +438,6 @@ public:
 	void set_context_planevram(DEVICE *dev)
 	{
 		d_planevram = dev;
-	}
-	void set_context_iccard(DEVICE* device, int num)
-	{
-		if((num >= 0) && (num < 2)) {
-			d_iccard[num] = device;
-		}
 	}
 	void set_machine_id(uint16_t val)
 	{
