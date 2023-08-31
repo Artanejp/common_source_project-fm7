@@ -153,9 +153,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdrom = new TOWNS_CDROM(this, emu);
 
 	memory = new TOWNS_MEMORY(this, emu);
-	memory->space = _MEMORY_SPACE;
-	memory->bank_size = _MEMORY_BANK_SIZE;
-	memory->bus_width = _MEMORY_BUS_WIDTH;
+	//memory->space = _MEMORY_SPACE;
+	//memory->bank_size = _MEMORY_BANK_SIZE;
+	//memory->bus_width = _MEMORY_BUS_WIDTH;
 
 	vram = new TOWNS_VRAM(this, emu);
 	sprite = new TOWNS_SPRITE(this, emu);

@@ -92,12 +92,247 @@ protected:
 	DEVICE*  devmap_c0000000h_write[0x04000000 >> 12];
 	uint32_t offsetmap_c0000000h_write[0x04000000 >> 12];
 
-	virtual inline __FASTCALL DEVICE* select_bank_memory_mpu(uint32_t addr, constexpr bool is_dma, constexpr bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval)
+	virtual inline __FASTCALL DEVICE* select_bank_memory_mpu(uint32_t addr, const bool is_dma, const bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval)
 	{
 		memptr = UINTPTR_MAX;
 		offset = UINT32_MAX;
 		waitval = mem_wait_val;
 		is_exists = false;
+		#if 1
+		__LIKELY_IF(addr < 0x00100000) {
+			switch((addr >> 16) & 0x0f) {
+			case 0x0c:
+				__LIKELY_IF(!(dma_is_vram)) {
+					is_exists = true;
+					offset = addr - 0x000c0000;
+					memptr = (uintptr_t)ram_pagec;
+					return NULL;
+				} else {
+					__LIKELY_IF(addr < 0x000c8000) {
+						__LIKELY_IF(d_planevram != NULL) {
+							is_exists = true;
+							// offset = addr - 0x000c0000;
+							waitval = vram_wait_val;
+						}
+						return d_planevram;
+					}
+					__LIKELY_IF(addr < 0x000ca000) {
+						__LIKELY_IF(d_sprite != NULL) {
+							is_exists = true;
+							// offset = addr - 0x000c0000;
+							waitval = vram_wait_val;
+						}
+						return d_sprite;
+					}
+					__LIKELY_IF(addr < 0x000cc000) {
+						if(ankcg_enabled) {
+							if(is_read) {
+								__LIKELY_IF(d_font != NULL) {
+									is_exists = true;
+									// offset = addr - 0x000c0000;
+								}
+								return d_font;
+							} else {
+								is_exists = false;
+								return NULL;
+							}
+						} else {
+							__LIKELY_IF(d_sprite != NULL) {
+								is_exists = true;
+								// offset = addr - 0x000c0000;
+								waitval = vram_wait_val;
+							}
+							return d_sprite;
+						}
+					}
+					__UNLIKELY_IF(addr >= 0x000cff80) {
+						is_exists = true;
+						// offset = addr - 0xcff80;
+						return this;
+					}
+					// MEMORY (OK?)
+					is_exists = true;
+					offset = addr - 0x000c0000;
+					memptr = (uintptr_t)ram_pagec;
+					return NULL;
+				}
+				break;
+			case 0x0d:
+				__LIKELY_IF(!(dma_is_vram)) {
+					is_exists = true;
+					offset = addr - 0x000c0000;
+					memptr = (uintptr_t)ram_pagec;
+					return NULL;
+				} else {
+					if(select_d0_dict) {
+						if((addr < 0x000d8000) && (is_read)){
+							__LIKELY_IF(d_dictionary != NULL) {
+								is_exists = true;
+							}
+							return d_dictionary;
+						}
+						if((addr >= 0x000d8000) && (addr < 0x000da000)){
+							__LIKELY_IF(d_dictionary != NULL) {
+								is_exists = true;
+							}
+							return d_dictionary;
+						}
+					}
+				}
+				is_exists = false;
+				return NULL;
+				break;
+			case 0x0e:
+				__LIKELY_IF(!(dma_is_vram)) {
+					is_exists = true;
+					offset = addr - 0x000c0000;
+					memptr = (uintptr_t)ram_pagec;
+					return NULL;
+				}
+				is_exists = false;
+				return NULL;
+				break;
+			case 0x0f:
+				if(addr < 0x000f8000) {
+					is_exists = true;
+					offset = addr - 0x000c0000;
+					memptr = (uintptr_t)ram_pagec;
+					return NULL;
+				} else {
+					if(select_d0_rom) {
+						if(is_read) {
+							__LIKELY_IF(d_sysrom != NULL) {
+								is_exists = true;
+								// OFFSET
+
+							}
+							return d_sysrom;
+						} else {
+							is_exists = false;
+							return NULL;
+						}
+					} else {
+						is_exists = true;
+						offset = addr - 0x000c0000;
+						memptr = (uintptr_t)ram_pagec;
+						return NULL;
+					}
+				}
+				break;
+			default: // 00000000 - 000bffff
+				is_exists = true;
+				offset = addr;
+				memptr = (uintptr_t)ram_page0;
+				return NULL;
+				break;
+			}
+		}
+		__LIKELY_IF(addr < (0x00100000 + extram_size)) {
+			__LIKELY_IF(extra_ram != NULL) {
+				is_exists = true;
+				offset = addr - 0x00100000;
+				memptr = (uintptr_t)extra_ram;
+			}
+			return NULL;
+		}
+		// I/O, ROMs
+		switch(addr >> 24) {
+		case 0x80: // 80xxxxxx : VRAM
+			__LIKELY_IF(d_vram != NULL) {
+				//offset = addr - 0x80000000; // OK?
+				is_exists = true;
+				waitval = vram_wait_val;
+				return d_vram;
+			}
+			break;
+		case 0x81: // 81000000 - 8101ffff : SPRITE
+			__LIKELY_IF((d_sprite != NULL) && (addr < 0x81020000)) {
+				//offset = addr - 0x80000000; // OK?
+				is_exists = true;
+				waitval = vram_wait_val; // OK?
+				return d_sprite;
+			}
+			break;
+		case 0xc0: // c0xxxxxx : ICCARD
+		case 0xc1: // c1xxxxxx : ICCARD
+			__LIKELY_IF(d_iccard[(addr >> 24) & 1] != NULL) {
+				is_exists = true;
+				offset = addr & 0x00ffffff;
+				return d_iccard[(addr >> 24) & 1];
+			}
+			break;
+		case 0xc2: // ROMs
+		     {
+				 switch((addr >> 20) & 0x0f) {
+				 case 0: // MSDOS or DICT
+					 if(is_read) {
+						 if(addr >= 0xc2080000) {
+							 __LIKELY_IF(d_dictionary != NULL) {
+								 is_exists = true;
+								 //offset = addr - 0xc2080000; // OK?
+							 }
+							 return d_dictionary;
+						 } else {
+							 __LIKELY_IF(d_msdos != NULL) {
+								 is_exists = true;
+								 //offset = addr - 0xc2000000; // OK?
+							 }
+							 return d_msdos;
+						 }
+					 }
+					 break;
+				 case 1: // FONT or CMOS
+					 __LIKELY_IF((is_read) && (addr < 0xc2140000)) {
+						 // FONT
+						 __LIKELY_IF(d_font != NULL) {
+							 is_exists = true;
+							 // offset = addr - 0xc2100000;
+						 }
+						 return d_font;
+					 }
+					 __LIKELY_IF((addr >= 0xc2140000) && (addr < 0xc2142000)) {
+						 // CMOS
+						 __LIKELY_IF(d_dictionary != NULL) {
+							 is_exists = true;
+							 // offset = addr - 0xc2100000;
+						 }
+						 return d_dictionary ;
+					 }
+					 __LIKELY_IF((addr >= 0xc2180000) && (addr < 0xc2200000)) {
+						 // FONT (20pixels)
+						 __LIKELY_IF(d_font_20pix != NULL) {
+							 is_exists = true;
+							 // offset = addr - 0xc2100000;
+						 }
+						 return d_font_20pix;
+					 }
+					 break;
+				 case 2: // PCM
+					 if(addr < 0xc2200fff) {
+						 __LIKELY_IF(d_pcm != NULL) {
+							 // offset = addr - 0xc2200000;
+							 is_exists = true;
+						 }
+						 return d_pcm;
+					 }
+				 default:
+					 return NULL;
+					 break;
+				 }
+			 }
+		case 0xff:
+			__LIKELY_IF((is_read) && (addr >= 0xfffc0000)) {
+				__LIKELY_IF(d_sysrom != NULL) {
+					is_exists = true;
+					//offset = addr - 0xfffc0000;
+				}
+				return d_sysrom;
+			}
+			break;
+		default:
+			break;
+		}
+		#else
 		__LIKELY_IF(addr < (extram_size + 0x00100000)) {
 			__LIKELY_IF(addr >= 0x00100000) { // Extra RAM
 				is_exists = (extra_ram != NULL) ? true : false;
@@ -169,6 +404,7 @@ protected:
 			return NULL;
 		}
 		// ToDo: I/O SLOTS (40000000h)
+		#endif
 		return NULL;
 	}
 	virtual void __FASTCALL set_device_range_r(DEVICE* dev, uint32_t begin_addr, uint32_t end_addr);
@@ -232,7 +468,7 @@ protected:
 		return ((mem_wait_val == 0) && (vram_wait_val < 3)) ? true : false;
 	}
 public:
-	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu) {
+	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
 
 		extram_size = 0x00200000; // Basically 2MB
@@ -271,9 +507,9 @@ public:
 		}
 		for(int i = 0; i < (sizeof(devmap_c0000000h_read) / sizeof(DEVICE*)); i++) {
 			devmap_c0000000h_read[i] = NULL;
-			devmap_c00000000h_write[i] = NULL;
-			offsetmap_c00000000h_read[i] = UINT32_MAX;
-			offsetmap_c00000000h_write[i] = UINT32_MAX;
+			devmap_c0000000h_write[i] = NULL;
+			offsetmap_c0000000h_read[i] = UINT32_MAX;
+			offsetmap_c0000000h_write[i] = UINT32_MAX;
 		}
 		// Note: machine id must set before initialize() from set_context_machine_id() by VM::VM().
 		// machine_id = 0x0100;   // FM-Towns 1,2
@@ -305,6 +541,13 @@ public:
 	void initialize();
 	void release();
 	void reset();
+
+	virtual uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
+	//virtual uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait) override;
+	//virtual uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait) override;
+	virtual void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	//virtual void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait) override;
+	//virtual void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait) override;
 
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
 	virtual void     __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);

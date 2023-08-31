@@ -35,7 +35,8 @@ void TOWNS_MEMORY::set_device_range_r(DEVICE* dev, uint32_t begin_addr, uint32_t
 				if(end_addr >= 0x84000000) {
 					end_addr = 0x84000000;
 				}
-				for(uint32_t addr = begin_addr, uint32_t i = 0; addr < end_addr; addr += 0x00020000, i++) {
+				uint32_t i = 0;
+				for(uint32_t addr = begin_addr; addr < end_addr; addr += 0x00020000, i++) {
 					devmap_80000000h[i] = dev;
 					//offsetmap_80000000h[i] = addr - begin_addr;
 				}
@@ -47,7 +48,8 @@ void TOWNS_MEMORY::set_device_range_r(DEVICE* dev, uint32_t begin_addr, uint32_t
 				if(end_addr >= 0x000f0000) {
 					end_addr = 0x000f0000;
 				}
-				for(uint32_t addr = begin_addr, uint32_t i = 0; addr < end_addr; addr += 0x00001000, i++) {
+				uint32_t i = 0;
+				for(uint32_t addr = begin_addr; addr < end_addr; addr += 0x00001000, i++) {
 					devmap_c0000h_read[i] = dev;
 					//offsetmap_c0000h_read[i] = addr - begin_addr;
 				}
@@ -60,7 +62,8 @@ void TOWNS_MEMORY::set_device_range_r(DEVICE* dev, uint32_t begin_addr, uint32_t
 	if(end_addr >= 0xc4000000) {
 		end_addr = 0xc4000000;
 	}
-	for(uint32_t addr = begin_addr, uint32_t i = 0; addr < end_addr; addr += 0x00001000, i++) {
+	uint32_t i = 0;
+	for(uint32_t addr = begin_addr; addr < end_addr; addr += 0x00001000, i++) {
 		devmap_c0000000h_read[i] = dev;
 		//offsetmap_c0000000h_read[i] = addr - begin_addr;
 	}
@@ -75,7 +78,7 @@ void TOWNS_MEMORY::set_device_range_w(DEVICE* dev, uint32_t begin_addr, uint32_t
 				if(end_addr >= 0x84000000) {
 					end_addr = 0x84000000;
 				}
-				for(uint32_t addr = begin_addr, uint32_t i = 0; addr < end_addr; addr += 0x00020000, i++) {
+				for(uint32_t addr = begin_addr, i = 0; addr < end_addr; addr += 0x00020000, i++) {
 					devmap_80000000h[i] = dev;
 					//offsetmap_80000000h[i] = addr - begin_addr;
 				}
@@ -87,7 +90,7 @@ void TOWNS_MEMORY::set_device_range_w(DEVICE* dev, uint32_t begin_addr, uint32_t
 				if(end_addr >= 0x000f0000) {
 					end_addr = 0x000f0000;
 				}
-				for(uint32_t addr = begin_addr, uint32_t i = 0; addr < end_addr; addr += 0x00001000, i++) {
+				for(uint32_t addr = begin_addr, i = 0; addr < end_addr; addr += 0x00001000, i++) {
 					devmap_c0000h_write[i] = dev;
 					//offsetmap_c0000h_write[i] = addr - begin_addr;
 				}
@@ -100,7 +103,7 @@ void TOWNS_MEMORY::set_device_range_w(DEVICE* dev, uint32_t begin_addr, uint32_t
 	if(end_addr >= 0xc4000000) {
 		end_addr = 0xc4000000;
 	}
-	for(uint32_t addr = begin_addr, uint32_t i = 0; addr < end_addr; addr += 0x00001000, i++) {
+	for(uint32_t addr = begin_addr, i = 0; addr < end_addr; addr += 0x00001000, i++) {
 		devmap_c0000000h_write[i] = dev;
 		//offsetmap_c0000000h_write[i] = addr - begin_addr;
 	}
@@ -109,6 +112,7 @@ void TOWNS_MEMORY::set_device_range_w(DEVICE* dev, uint32_t begin_addr, uint32_t
 
 void TOWNS_MEMORY::config_page_c0()
 {
+	#if 0
 	if(dma_is_vram) {
 		 // OK? From TSUGARU
 		set_memory_mapped_io_rw(0x000c0000, 0x000c7fff, d_planevram);
@@ -130,10 +134,12 @@ void TOWNS_MEMORY::config_page_c0()
 	}
 //	config_page_d0_e0(); // By Tsugaru, Changeing mapping of D0000h-EFFFFh effects only at vram changing,
 //	config_page_f8_rom();
+	#endif
 }
 
 void TOWNS_MEMORY::config_page_d0_e0()
 {
+	#if 0
 	// Change as of
 	// TownsPhysicalMemory::UpdateSysROMDicROMMappingFlag(bool , bool )
 	// at src/towns/memory/pysmem.cpp, TSUGARU.
@@ -155,16 +161,19 @@ void TOWNS_MEMORY::config_page_d0_e0()
 			set_wait_rw            (0x000d0000, 0x000effff, mem_wait_val);
 		}
 	}
+	#endif
 }
 
 void TOWNS_MEMORY::config_page_f8_rom()
 {
+	#if 0
 	if(select_d0_rom) {
 		set_memory_mapped_io_r (0x000f8000, 0x000fffff, d_sysrom);
 		unset_memory_w         (0x000f8000, 0x000fffff);
 	} else {
 		set_memory_rw          (0x000f8000, 0x000fffff, &(ram_paged[0x28000]));
 	}
+	#endif
 }
 
 void TOWNS_MEMORY::config_page00()
@@ -177,7 +186,7 @@ void TOWNS_MEMORY::config_page00()
 void TOWNS_MEMORY::initialize()
 {
 	if(initialized) return;
-	MEMORY::initialize();
+	//MEMORY::initialize();
 
 	update_machine_features();
 	extra_nmi_mask = true;
@@ -205,15 +214,16 @@ void TOWNS_MEMORY::initialize()
 	if(extram_size >= 0x00100000) {
 		__UNLIKELY_IF(extra_ram == NULL) {
 			extra_ram = (uint8_t*)malloc(extram_size);
+			#if 0
 			__LIKELY_IF(extra_ram != NULL) {
 				set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
 				memset(extra_ram, 0x00, extram_size);
 			}
+			#endif
 		}
 	}
 	memset(ram_page0, 0x00, sizeof(ram_page0));
 	memset(ram_pagec, 0x00, sizeof(ram_pagec));
-	memset(ram_paged, 0x00, sizeof(ram_paged));
 
 	select_d0_dict = false;
 	select_d0_rom = true;
@@ -222,6 +232,7 @@ void TOWNS_MEMORY::initialize()
 	initialized = true;
 
 	// Lower 100000h
+	#if 0
 	set_memory_rw          (0x00000000, 0x000bffff, ram_page0);
 	set_memory_rw          (0x000f0000, 0x000f7fff, &(ram_paged[0x20000]));
 	config_page00();
@@ -243,7 +254,7 @@ void TOWNS_MEMORY::initialize()
 	}
 	set_memory_mapped_io_rw(0xc2200000, 0xc2200fff, d_pcm);
 	set_memory_mapped_io_r (0xfffc0000, 0xffffffff, d_sysrom);
-
+	#endif
 	set_wait_values();
 	// Another devices are blank
 
@@ -266,7 +277,7 @@ void TOWNS_MEMORY::set_wait_values()
 		waitfactor = (uint32_t)(((double)get_cpu_clocks(d_cpu) / (double)cpu_clock_val) * 65536.0);
 	}
 	d_cpu->write_signal(SIG_CPU_WAIT_FACTOR, waitfactor, 0xffffffff);
-
+	#if 0
 	set_wait_rw(0x00000000, 0x000bffff, mem_wait_val);
 	set_wait_rw(0x000d0000, 0x000fffff, mem_wait_val);
 	if(dma_is_vram) {
@@ -290,6 +301,7 @@ void TOWNS_MEMORY::set_wait_values()
 	set_wait_rw(0xc2000000, 0xc2141fff, mem_wait_val);
 	set_wait_rw(0xc2200000, 0xc2200fff, mem_wait_val);
 	set_wait_rw(0xfffc0000, 0xffffffff, mem_wait_val);
+	#endif
 }
 
 void TOWNS_MEMORY::release()
@@ -303,14 +315,12 @@ void TOWNS_MEMORY::release()
 		free(extra_ram);
 		extra_ram = NULL;
 	}
-	MEMORY::release();
 
 }
 void TOWNS_MEMORY::reset()
 {
 	// reset memory
 	// ToDo
-	MEMORY::reset();
 	update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
 	is_compatible = true;
 	reset_happened = false;
@@ -320,7 +330,7 @@ void TOWNS_MEMORY::reset()
 	nmi_mask = false;
 	select_d0_dict = false;
 	select_d0_rom = true;
-	config_page00();
+	//config_page00();
 
 	set_cpu_clock_by_wait();
 	set_wait_values();
@@ -683,10 +693,6 @@ void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 		{
 			bool _b = ankcg_enabled;
 			ankcg_enabled = ((data & 1) != 0) ? true : false;
-			//if((_b != ankcg_enabled) && (dma_is_vram)) {
-				config_page_c0();
-				//config_page_d0_e0();
-			//}
 		}
 		break;
 	case 0xffa0:
@@ -777,25 +783,13 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 		break;
 	case 0x0404: // System Status Reg.
 		{
-			bool _b = dma_is_vram;
 			dma_is_vram = ((data & 0x80) == 0);
-			if((_b != dma_is_vram)/* || (dma_is_vram)*/) {
-				config_page_c0();
-				config_page_d0_e0();
-			}
 		}
 		break;
 	case 0x0480:
 		{
-			bool _dict = select_d0_dict;
-			bool _rom = select_d0_rom;
 			select_d0_dict = ((data & 0x01) != 0) ? true : false;
 			select_d0_rom = ((data & 0x02) == 0) ? true : false;
-			if((_dict != select_d0_dict) ||(_rom != select_d0_rom)){
-				//config_page_c0();
-				config_page_d0_e0();
-				config_page_f8_rom();
-			}
 		}
 		break;
 	case 0x05c0:
@@ -923,241 +917,56 @@ uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int* wait)
 	uint32_t offset;
 
 	DEVICE* dev = select_bank_memory_mpu(addr, false, true, is_exists, memptr, offset, waitval);
-
 	__UNLIKELY_IF(!(is_exists)) {
 		__LIKELY_IF(wait != NULL) {
 			*wait = mem_wait_val;
 		}
 		return 0xff;
 	}
-	__LIKELY_IF(dev == NULL) {
-		__LIKELY_IF(wait != NULL) {
-			*wait = mem_wait_val;
-		}
-		__LIKELY_IF(memptr != UINTPTR_MAX) {
+	__LIKELY_IF(wait != NULL) {
+		*wait = waitval;
+	}
+	if(dev != NULL) {
+		return dev->read_memory_mapped_io8(addr); // ToDo: Implement for offset.
+	} else {
+		__LIKELY_IF((memptr != UINTPTR_MAX) && (memptr != 0) && (offset != UINT32_MAX)) {
 			uint8_t* p = (uint8_t*)memptr;
-			return memptr[offset];
-		}
-		return 0xff; // OK?
-	} else { // DEVICE
-		__LIKELY_IF(wait != NULL) {
-			*wait = waitval;
-		}
-		__LIKELY_IF(offset == UINT32_MAX) {
-			// THROUGH ADDRESS
-			return dev->read_memory_mapped_io8(addr);
-		} else {
-			return dev->read_memory_mapped_io8(offset);
+			return p[offset];
 		}
 	}
 	return 0xff;
 }
 
-uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
+void TOWNS_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	int waitval;
 	bool is_exists;
 	uintptr_t memptr;
 	uint32_t offset;
 
-	int waitval2;
-	bool is_exists2;
-	uintptr_t memptr2;
-	uint32_t offset2;
-
-	DEVICE* dev = select_bank_memory_mpu(addr, false, true, is_exists, memptr, offset, waitval);
-	DEVICE* dev2 = select_bank_memory_mpu(((addr & 0x0ffe) + 1) + (addr & 0xfffff000)), false, true, is_exists2, memptr2, offset2, waitval2);
-
-	__UNLIKELY_IF(!(is_exists) && !(is_exists2)) {
+	DEVICE* dev = select_bank_memory_mpu(addr, false, false, is_exists, memptr, offset, waitval);
+	__UNLIKELY_IF(!(is_exists)) {
 		__LIKELY_IF(wait != NULL) {
 			*wait = mem_wait_val;
 		}
-		return 0xffff;
-	}
-	// ToDO: Implement correctness.
-	__LIKELY_IF(dev == NULL) {
-		__LIKELY_IF(wait != NULL) {
-			*wait = mem_wait_val;
-		}
-		bool is_boundary = ((addr & 0x7fff) == 0x7fff) ? true : false;
-		__UNLIKELY_IF(addr == 0x000cff7f) {
-			is_boundary = true;
-		}
-		__LIKELY_IF(memptr != UINTPTR_MAX) {
-			uint8_t* p = (uint8_t*)memptr;
-			pair16_t nd;
-			__LIKELY_IF(!(is_boundary)) {
-				nd.read_2bytes_le_from(p);
-			} else {
-				nd.b.l = p[0];
-				int waitval2;
-				DEVICE* dev2 = select_bank_memory_mpu(addr + 1, false, true, is_exists, memptr, offset, waitval2);
-				__LIKELY_IF(dev2 == NULL) {
-					// UNCHANGED WAIT
-					nd.b.h = p[1];
-				} else {
-					__LIKELY_IF(offset == UINT32_MAX) {
-						nd.b.h = dev2->read_memory_mapped_io8(addr + 1);
-					} else {
-						nd.b.h = dev2->read_memory_mapped_io8(offset);
-					}
-					__LIKELY_IF(wait != NULL) {
-						*wait += waitval2;
-					}
-				}
-			}
-			return nd.w;
-		}
-		return 0xffff; // OK?
-	} else { // DEVICE
-		__LIKELY_IF(wait != NULL) {
-			*wait = waitval;
-		}
-		__LIKELY_IF(offset == UINT32_MAX) {
-			// THROUGH ADDRESS
-			return dev->read_memory_mapped_io16(addr);
-		} else {
-			return dev->read_memory_mapped_io16(offset);
-		}
-	}
-	return 0xffff;
-}
-
-uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
-{
-	int waitval;
-	bool is_exists;
-	uintptr_t memptr;
-	uint32_t offset;
-
-	int waitval2;
-	bool is_exists2;
-	uintptr_t memptr2;
-	uint32_t offset2;
-
-	pair32_t dat;
-
-	DEVICE* dev = select_bank_memory_mpu(addr, false, true, is_exists, memptr, offset, waitval);
-	DEVICE* dev2 = select_bank_memory_mpu(((addr & 0x0ffc) + 3) + (addr & 0xfffff000)), false, true, is_exists2, memptr2, offset2, waitval2);
-	if(!(is_exists) && !(is_exists2)) {
-		__LIKELY_IF(wait != NULL) {
-			*wait = mem_wait_val;
-		}
-		return 0xffffffff; // OK?
-	}
-
-	dat.d = 0xffffffff; // OK?
-
-	uint32_t bytes1 = 4 - (addr & 3);
-	uint32_t bytes2 = 4 - bytes1;
-	uint32_t addr1 = (offset == UINT32_MAX) ? addr : offset;
-	uint32_t addr2 = (offset2 == UINT32_MAX) ? (addr + bytes1) : offset2;
-	__LIKELY_IF((dev == NULL) && (dev2 == NULL)) {
-		__LIKELY_IF((is_exists) && (memptr != UINTPTR_MAX)) {
-			uint8_t *ptr1 = (uint8_t*)(memptr + (uintptr_t)((offset == UINT32_MAX) ? 0 : offset));
-			dat.read_4bytes_le_from(p);
-		}
-		waitval = ((addr & 3) == 0) ? mem_wait_val : (mem_wait_val * 2); // OK?
-		__LIKELY_IF(wait != NULL) {
-			*wait = waitval;
-		}
-		return dat.d;
-	}
-	__LIKELY_IF(dev != NULL) {
-		__LIKELY_IF(bytes1 > 1) {
-			dat.w.l = dev->read_memory_mapped_io16(addr1);
-		}
-		__UNLIKELY_IF(bytes1 == 3) {
-			dat.b.h = dev->read_memory_mapped_io8(addr1 + 2);
-		} else if(bytes1 > 3) {
-			dat.w.h = dev->read_memory_mapped_io16(addr1 + 2);
-		} else if(bytes1 == 1) {
-			dat.b.l = dev->read_memory_mapped_io8(addr1);
-		}
-		if((bytes1 & 3) != 0) {
-			waitval = waitval * 2;
-		}
-	} else if(memptr != UINTPTR_MAX) {
-		uint8_t *ptr1 = (uint8_t*)(memptr + (uintptr_t)((offset == UINT32_MAX) ? 0 : offset));
-		switch(bytes1) {
-		case 0:
-			break;
-		case 1:
-			dat.b.l = ptr1[0];
-			waitval = mem_wait_val * 2;
-			break;
-		case 2:
-			dat.b.l = ptr1[0];
-			dat.b.h = ptr1[1];
-			waitval = mem_wait_val * 2;
-			break;
-		case 3:
-			dat.b.l  = ptr1[0];
-			dat.b.h  = ptr1[1];
-			dat.b.h2 = ptr1[2];
-			waitval = mem_wait_val * 2;
-			break;
-		default:
-			dat.read_4bytes_le_from(ptr1);
-			waitval = mem_wait_val;
-			break;
-		}
-	}
-	__LIKELY_IF(dev2 != NULL) {
-		switch(bytes2) {
-		case 0:
-			break;
-		case 1:
-			dat.b.h3 = dev2->read_memory_mapped_io8(addr2);
-			waitval += waitval2
-			break;
-		case 2:
-			dat.w.h = dev2->read_memory_mapped_io16(addr2);
-			waitval += waitval2
-			break;
-		case 3:
-			w.w = dev2->read_memory_mapped_io16(addr2);
-			dat.b.h  = w.b.l;
-			dat.b.h2 = w.b.h;
-			dat.b.h3 = dev2->read_memory_mapped_io8(addr2);
-			waitval += waitval2
-			break;
-		default:
-			dat.d = dev2->read_memory_mapped_io32(addr2);
-			waitval = waitval2;
-			break;
-		}
-	} else if(memptr2 != UINTPTR_MAX) {
-		uint8_t *ptr2 = (uint8_t*)(memptr2 + (uintptr_t)((offset2 == UINT32_MAX) ? 0 : offset2));
-		switch(bytes2) {
-		case 0:
-			break;
-		case 1:
-			dat.b.h3 = ptr2[0];
-			waitval = waitval + mem_wait_val;
-			break;
-		case 2:
-			dat.b.h2 = ptr2[0];
-			dat.b.h3 = ptr2[1];
-			waitval = waitval + mem_wait_val;
-			break;
-		case 3:
-			dat.b.h  = ptr2[0];
-			dat.b.h2 = ptr2[1];
-			dat.b.h3 = ptr2[2];
-			waitval = waitval + mem_wait_val;
-			break;
-		default:
-			dat.read_4bytes_le_from(ptr2);
-			waitval = mem_wait_val;
-			break;
-		}
+		return;
 	}
 	__LIKELY_IF(wait != NULL) {
 		*wait = waitval;
 	}
-	return dat.d;
+	if(dev != NULL) {
+		dev->write_memory_mapped_io8(addr, data); // ToDo: Implement for offset.
+		return;
+	} else {
+		__LIKELY_IF((memptr != UINTPTR_MAX) && (memptr != 0) && (offset != UINT32_MAX)) {
+			uint8_t* p = (uint8_t*)memptr;
+			p[offset] = data;
+			return;
+		}
+	}
+	return;
 }
+
 
 
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
@@ -1305,7 +1114,7 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		nmi_mask = false;
 		select_d0_dict = false;
 		select_d0_rom = true;
-		config_page00();
+		//config_page00();
 		set_wait_values();
 
 		__LIKELY_IF(d_cpu != NULL) {
@@ -1390,7 +1199,6 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateArray(ram_page0,  sizeof(ram_page0), 1);
 	state_fio->StateArray(ram_pagec,  sizeof(ram_pagec), 1);
-	state_fio->StateArray(ram_paged,  sizeof(ram_paged), 1);
 
 	state_fio->StateValue(select_d0_rom);
 	state_fio->StateValue(select_d0_dict);
@@ -1414,16 +1222,16 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		if(length_tmp > 0) {
 			extra_ram = (uint8_t*)malloc(length_tmp);
 		}
-		unset_memory_rw(0x00100000, 0x3fffffff);
+		//unset_memory_rw(0x00100000, 0x3fffffff);
 		if(extra_ram == NULL) {
 			extram_size = 0;
 			return false;
 		} else {
 			state_fio->Fread(extra_ram, extram_size, 1);
-			set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
+			//set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
 		}
 		set_wait_values();
-		config_page00();
+		//config_page00();
 	} else {
 		// At saving
 		if(extra_ram == NULL) {
