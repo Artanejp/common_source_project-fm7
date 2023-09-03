@@ -58,7 +58,7 @@ private:
 	bool beepon_cff98h;
 
 	virtual void update_intr(void);
-	virtual void update_beep(void);
+	virtual void __FASTCALL update_beep(bool on_60h, bool on_cff98h, bool force);
 	virtual void do_interval(void);
 	virtual void update_interval_timer(void);
 

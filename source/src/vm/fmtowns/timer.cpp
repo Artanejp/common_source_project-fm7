@@ -41,7 +41,7 @@ void TIMER::reset()
 	if(d_pcm != NULL) {
 		d_pcm->write_signal(SIG_PCM1BIT_MUTE, 0, 1);
 	}
-	update_beep();
+	update_beep(false, false, true);
 
 	clear_event(this, event_wait_1us);
 	clear_event(this, event_interval_us);
@@ -86,8 +86,7 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			tmout0 = false;
 		}
 		intr_reg = data;
-		beepon_60h = ((data & 0x04) != 0) ? true : false;
-		update_beep();
+		update_beep(((data & 0x04) != 0) ? true : false, beepon_cff98h, false);
 		update_intr();
 		break;
 	case 0x0068: // Interval control
@@ -137,9 +136,14 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-void TIMER::update_beep()
+void TIMER::update_beep(bool on_60h, bool on_cff98h, bool force)
 {
 	__UNLIKELY_IF(d_pcm == NULL) return;
+	if((on_cff98h == beepon_cff98h) && (on_60h == beepon_60h) && !(force)) {
+		return;
+	}
+	beepon_60h = on_60h;
+	beepon_cff98h = on_cff98h;
 	if((beepon_60h) || (beepon_cff98h)) {
 		d_pcm->write_signal(SIG_PCM1BIT_ON, 1, 1);
 	} else {
@@ -238,8 +242,7 @@ void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_TIMER_RTC_BUSY) {
 		rtc_busy = ((data & mask) == 0);
 	}  else if(id == SIG_TIMER_BEEP_ON) {
-		beepon_cff98h = ((data & mask) != 0) ? true : false;
-		update_beep();
+		update_beep(beepon_60h, ((data & mask) != 0) ? true : false, false);
 	}
 }
 
