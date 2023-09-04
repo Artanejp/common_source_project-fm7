@@ -88,28 +88,16 @@ protected:
 	DEVICE* d_iccard[2];
 	const uint32_t 	NOT_NEED_TO_OFFSET = UINT32_MAX;
 
-	__DECL_ALIGNED(16) DEVICE*   mmio_devices_map_r[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) DEVICE*   mmio_devices_map_w[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint32_t  mmio_devices_base_r[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint32_t  mmio_devices_base_w[TOWNS_MEMORY_MAP_SIZE];
-
-	__DECL_ALIGNED(16) uint8_t* mmio_memory_map_r[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint8_t* mmio_memory_map_w[TOWNS_MEMORY_MAP_SIZE];
-
-	__DECL_ALIGNED(16) uint32_t mmio_wait_map_r  [TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint32_t mmio_wait_map_w  [TOWNS_MEMORY_MAP_SIZE];
-
-
-	__DECL_ALIGNED(16) DEVICE*  dma_devices_map_r[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) DEVICE*  dma_devices_map_w[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint32_t dma_devices_base_r[TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint32_t dma_devices_base_w[TOWNS_MEMORY_MAP_SIZE];
-
-	__DECL_ALIGNED(16) uint8_t* dma_memory_map_r [TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint8_t* dma_memory_map_w [TOWNS_MEMORY_MAP_SIZE];
-
-	__DECL_ALIGNED(16) uint32_t dma_wait_map_r   [TOWNS_MEMORY_MAP_SIZE];
-	__DECL_ALIGNED(16) uint32_t dma_wait_map_w   [TOWNS_MEMORY_MAP_SIZE];
+	typedef struct memory_device_map_s {
+		uint8_t* mem_ptr;
+		DEVICE* device_ptr;
+		uint32_t base_offset;
+		int32_t  waitval;
+	} memory_device_map_t;
+	memory_device_map_t membus_read_map[TOWNS_MEMORY_MAP_SIZE];
+	memory_device_map_t membus_write_map[TOWNS_MEMORY_MAP_SIZE];
+	memory_device_map_t dma_read_map[TOWNS_MEMORY_MAP_SIZE];
+	memory_device_map_t dma_write_map[TOWNS_MEMORY_MAP_SIZE];
 
  	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
@@ -166,6 +154,11 @@ protected:
 	virtual uint8_t  __FASTCALL read_fmr_ports8(uint32_t addr);
 	virtual void     __FASTCALL write_sys_ports8(uint32_t addr, uint32_t data);
 	virtual uint8_t __FASTCALL read_sys_ports8(uint32_t addr);
+
+	void __FASTCALL set_memory_devices_map_values(uint32_t start, uint32_t end, memory_device_map_t* dataptr, uint8_t* baseptr, DEVICE* device, uint32_t base_offset = UINT32_MAX);
+	void __FASTCALL set_memory_devices_map_wait(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
+	void __FASTCALL unset_memory_devices_map(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
+
 	inline bool is_faster_wait()
 	{
 		return ((mem_wait_val == 0) && (vram_wait_val < 3)) ? true : false;
@@ -316,12 +309,12 @@ public:
 		extram_size = megabytes << 20;
 	}
 
-	virtual void __FASTCALL set_mmio_memory_r(uint32_t start, uint32_t end, uint8_t* ptr);
-	virtual void __FASTCALL set_mmio_memory_w(uint32_t start, uint32_t end, uint8_t* ptr);
-	inline  void __FASTCALL set_mmio_memory_rw(uint32_t start, uint32_t end, uint8_t* ptr)
+	virtual void __FASTCALL set_mmio_memory_r(uint32_t start, uint32_t end, uint8_t* ptr, uint32_t base_offset = 0);
+	virtual void __FASTCALL set_mmio_memory_w(uint32_t start, uint32_t end, uint8_t* ptr, uint32_t base_offset = 0);
+	inline  void __FASTCALL set_mmio_memory_rw(uint32_t start, uint32_t end, uint8_t* ptr, uint32_t base_offset = 0)
 	{
-		set_mmio_memory_r(start, end, ptr);
-		set_mmio_memory_w(start, end, ptr);
+		set_mmio_memory_r(start, end, ptr, base_offset);
+		set_mmio_memory_w(start, end, ptr, base_offset);
 	}
 
 	virtual void  __FASTCALL set_mmio_wait_r(uint32_t start, uint32_t end, int wait);
@@ -340,12 +333,12 @@ public:
 		set_mmio_device_w(start, end, baseptr, baseaddress);
 	}
 
-	virtual void  __FASTCALL set_dma_memory_r(uint32_t start, uint32_t end, uint8_t* ptr);
-	virtual void  __FASTCALL set_dma_memory_w(uint32_t start, uint32_t end, uint8_t* ptr);
-	inline void  __FASTCALL set_dma_memory_rw(uint32_t start, uint32_t end, uint8_t* ptr)
+	virtual void  __FASTCALL set_dma_memory_r(uint32_t start, uint32_t end, uint8_t* ptr, uint32_t base_offset = 0);
+	virtual void  __FASTCALL set_dma_memory_w(uint32_t start, uint32_t end, uint8_t* ptr, uint32_t base_offset = 0);
+	inline void  __FASTCALL set_dma_memory_rw(uint32_t start, uint32_t end, uint8_t* ptr, uint32_t base_offset = 0)
 	{
-		set_dma_memory_r(start, end, ptr);
-		set_dma_memory_w(start, end, ptr);
+		set_dma_memory_r(start, end, ptr, base_offset);
+		set_dma_memory_w(start, end, ptr, base_offset);
 	}
 
 	virtual void  __FASTCALL set_dma_wait_r(uint32_t start, uint32_t end, int wait);
@@ -364,21 +357,21 @@ public:
 		set_dma_device_w(start, end, ptr, baseaddress);
 	}
 
-	inline void __FASTCALL set_region_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr)
+	inline void __FASTCALL set_region_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr, uint32_t base_offset = 0)
 	{
-		set_mmio_memory_r(start, end, baseptr);
-		set_dma_memory_r (start, end, baseptr);
+		set_mmio_memory_r(start, end, baseptr, base_offset);
+		set_dma_memory_r (start, end, baseptr, base_offset);
 	}
 
-	inline void __FASTCALL set_region_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr)
+	inline void __FASTCALL set_region_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr,uint32_t base_offset = 0)
 	{
-		set_mmio_memory_w(start, end, baseptr);
-		set_dma_memory_w (start, end, baseptr);
+		set_mmio_memory_w(start, end, baseptr, base_offset);
+		set_dma_memory_w (start, end, baseptr, base_offset);
 	}
-	inline void __FASTCALL set_region_memory_rw(uint32_t start, uint32_t end, uint8_t* baseptr)
+	inline void __FASTCALL set_region_memory_rw(uint32_t start, uint32_t end, uint8_t* baseptr, uint32_t base_offset = 0)
 	{
-		set_region_memory_r(start, end, baseptr);
-		set_region_memory_w(start, end, baseptr);
+		set_region_memory_r(start, end, baseptr, base_offset);
+		set_region_memory_w(start, end, baseptr, base_offset);
 	}
 
 	inline void __FASTCALL set_region_device_r(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX)
@@ -396,37 +389,37 @@ public:
 		set_region_device_r(start, end, ptr, baseaddress);
 		set_region_device_w(start, end, ptr, baseaddress);
 	}
-	virtual void  __FASTCALL unset_mmio_r(uint32_t start, uint32_t end);
-	virtual void  __FASTCALL unset_mmio_w(uint32_t start, uint32_t end);
-	inline  void  __FASTCALL unset_mmio_rw(uint32_t start, uint32_t end)
+	virtual void  __FASTCALL unset_mmio_r(uint32_t start, uint32_t end, int wait = WAITVAL_RAM);
+	virtual void  __FASTCALL unset_mmio_w(uint32_t start, uint32_t end, int wait = WAITVAL_RAM);
+	inline  void  __FASTCALL unset_mmio_rw(uint32_t start, uint32_t end, int wait = WAITVAL_RAM)
 	{
-		unset_mmio_r(start, end);
-		unset_mmio_w(start, end);
+		unset_mmio_r(start, end, wait);
+		unset_mmio_w(start, end, wait);
 	}
 
-	virtual void  __FASTCALL unset_dma_r(uint32_t start, uint32_t end);
-	virtual void  __FASTCALL unset_dma_w(uint32_t start, uint32_t end);
-	inline void  __FASTCALL  unset_dma_rw(uint32_t start, uint32_t end)
+	virtual void  __FASTCALL unset_dma_r(uint32_t start, uint32_t end, int wait = WAITVAL_RAM);
+	virtual void  __FASTCALL unset_dma_w(uint32_t start, uint32_t end, int wait = WAITVAL_RAM);
+	inline void  __FASTCALL  unset_dma_rw(uint32_t start, uint32_t end, int wait = WAITVAL_RAM)
 	{
-		unset_dma_r(start, end);
-		unset_dma_w(start, end);
+		unset_dma_r(start, end, wait);
+		unset_dma_w(start, end, wait);
 	}
 
-	inline void  __FASTCALL unset_range_r(uint32_t start, uint32_t end)
+	inline void  __FASTCALL unset_range_r(uint32_t start, uint32_t end, int wait = WAITVAL_RAM)
 	{
-		unset_mmio_r(start, end);
-		unset_dma_r(start, end);
+		unset_mmio_r(start, end, wait);
+		unset_dma_r(start, end, wait);
 	}
 
-	inline void  __FASTCALL unset_range_w(uint32_t start, uint32_t end)
+	inline void  __FASTCALL unset_range_w(uint32_t start, uint32_t end, int wait = WAITVAL_RAM)
 	{
-		unset_mmio_w(start, end);
-		unset_dma_w(start, end);
+		unset_mmio_w(start, end, wait);
+		unset_dma_w(start, end, wait);
 	}
-	inline void  __FASTCALL unset_range_rw(uint32_t start, uint32_t end)
+	inline void  __FASTCALL unset_range_rw(uint32_t start, uint32_t end, int wait = WAITVAL_RAM)
 	{
-		unset_range_r(start, end);
-		unset_range_w(start, end);
+		unset_range_r(start, end, wait);
+		unset_range_w(start, end, wait);
 	}
 
 	void set_context_cpu(I386* device)

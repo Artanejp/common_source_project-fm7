@@ -57,8 +57,8 @@ void TOWNS_MEMORY::initialize()
 
 	reset_wait_values();
 
-	set_region_memory_rw(0x00000000, 0x000bffff, ram_page0);
-	set_region_memory_rw(0x000c0000, 0x000fffff, ram_pagec);
+	set_region_memory_rw(0x00000000, 0x000bffff, ram_page0, 0);
+	set_region_memory_rw(0x000c0000, 0x000fffff, ram_pagec, 0);
 	memset(ram_page0, 0x00, sizeof(ram_page0));
 	memset(ram_pagec, 0x00, sizeof(ram_pagec));
 
@@ -66,7 +66,7 @@ void TOWNS_MEMORY::initialize()
 		__UNLIKELY_IF(extra_ram == NULL) {
 			extra_ram = (uint8_t*)malloc(extram_size);
 			__LIKELY_IF(extra_ram != NULL) {
-				set_region_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
+				set_region_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram, 0);
 				memset(extra_ram, 0x00, extram_size);
 			}
 		}
@@ -130,8 +130,8 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 			set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
 			set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
 		} else {
-			set_region_memory_rw(0x000c0000, 0x000cffff, ram_pagec);
-			set_region_memory_rw(0x000e0000, 0x000effff, &(ram_pagec[0x20000]));
+			set_region_memory_rw(0x000c0000, 0x000cffff, ram_pagec, 0x000c0000 - 0x000c0000);
+			set_region_memory_rw(0x000e0000, 0x000effff, ram_pagec, 0x000e0000 - 0x000c0000);
 			set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
 			set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
 		}
@@ -147,7 +147,7 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 				unset_range_rw(0x000d0000, 0x000dffff);
 			}
 		} else {
-			set_region_memory_rw(0x000d0000, 0x000dffff, &(ram_pagec[0x10000]));
+			set_region_memory_rw(0x000d0000, 0x000dffff, ram_pagec, 0x000d0000 - 0x000c0000);
 		}
 	}
 	dma_is_vram = vrambank;
@@ -156,337 +156,169 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 void TOWNS_MEMORY::config_page0f(const bool sysrombank, const bool force)
 {
 	bool sysrom_bak = select_d0_rom;
-	set_region_memory_rw(0x000f0000, 0x000f7fff, &(ram_pagec[0x30000]));
+	set_region_memory_rw(0x000f0000, 0x000f7fff, ram_pagec, 0x000f0000 - 0x000c0000);
 	__UNLIKELY_IF((sysrombank != sysrom_bak) || (force)) {
 		if(sysrombank) {
 			unset_range_w(0x000f8000, 0x000fffff);
 			set_region_device_rw(0x000f8000, 0x000fffff, d_sysrom, NOT_NEED_TO_OFFSET);
 		} else {
-			set_region_memory_rw(0x000f8000, 0x000fffff, &(ram_pagec[0x38000]));
+			set_region_memory_rw(0x000f8000, 0x000fffff, ram_pagec, 0x000f8000 - 0x000c0000);
 		}
 	}
 	select_d0_rom = sysrombank;
 }
 
-
-void TOWNS_MEMORY::set_mmio_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr)
+void TOWNS_MEMORY::set_memory_devices_map_values(uint32_t start, uint32_t end, memory_device_map_t* dataptr, uint8_t* baseptr, DEVICE* device, uint32_t base_offset)
 {
 	uint64_t _start = (uint64_t)start;
 	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
+	__UNLIKELY_IF(dataptr == NULL) return;
 
 	_start &= ~(memory_map_mask());
 	_end &= ~(memory_map_mask());
 
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
+	uint64_t mapptr = (uint32_t)(_start >> memory_map_shift());
 	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
+	uint32_t realoffset = (base_offset == UINT32_MAX) ? 0 : base_offset;
+
 	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_memory_map_r[mapptr] = &(baseptr[realoffset]);
-		mmio_devices_map_r[mapptr] = NULL;
+		__UNLIKELY_IF(mapptr >= memory_map_size()) break; // Safety
+		if(baseptr == NULL) {
+			dataptr[mapptr].mem_ptr = NULL;
+			dataptr[mapptr].device_ptr = device;
+		} else {
+			dataptr[mapptr].mem_ptr = &(baseptr[realoffset]);
+			dataptr[mapptr].device_ptr = NULL;
+		}
+		if(base_offset == UINT32_MAX) {
+			dataptr[mapptr].base_offset = UINT32_MAX;
+		} else {
+			dataptr[mapptr].base_offset = realoffset;
+		}
 		realoffset += _incval;
 		mapptr++;
 	}
 }
 
-void TOWNS_MEMORY::set_mmio_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr)
+void TOWNS_MEMORY::set_memory_devices_map_wait(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait)
 {
 	uint64_t _start = (uint64_t)start;
 	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
+	__UNLIKELY_IF(dataptr == NULL) return;
 
 	_start &= ~(memory_map_mask());
 	_end &= ~(memory_map_mask());
 
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
+	uint64_t mapptr = (uint32_t)(_start >> memory_map_shift());
 	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
+
 	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_memory_map_w[mapptr] = &(baseptr[realoffset]);
-		mmio_devices_map_w[mapptr] = NULL;
-		realoffset += _incval;
+		__UNLIKELY_IF(mapptr >= memory_map_size()) break; // Safety
+		dataptr[mapptr].waitval = wait;
 		mapptr++;
 	}
+}
+
+void TOWNS_MEMORY::unset_memory_devices_map(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait)
+{
+	uint64_t _start = (uint64_t)start;
+	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
+	__UNLIKELY_IF(dataptr == NULL) return;
+
+	_start &= ~(memory_map_mask());
+	_end &= ~(memory_map_mask());
+
+	uint64_t mapptr = (uint32_t)(_start >> memory_map_shift());
+	const uint64_t _incval = memory_map_grain();
+	for(uint64_t addr = _start; addr < _end; addr += _incval) {
+		__UNLIKELY_IF(mapptr >= memory_map_size()) break; // Safety
+		dataptr[mapptr].mem_ptr = NULL;
+		dataptr[mapptr].device_ptr = NULL;
+		dataptr[mapptr].waitval = wait;
+		dataptr[mapptr].base_offset = UINT32_MAX;
+		mapptr++;
+	}
+
+}
+
+void TOWNS_MEMORY::set_mmio_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr, uint32_t base_offset)
+{
+	set_memory_devices_map_values(start, end, &(membus_read_map[0]), baseptr, NULL, base_offset);
+}
+
+void TOWNS_MEMORY::set_mmio_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr, uint32_t base_offset)
+{
+	set_memory_devices_map_values(start, end, &(membus_write_map[0]), baseptr, NULL, base_offset);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_mmio_device_r(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_memory_map_r[mapptr] = NULL;
-		mmio_devices_map_r[mapptr] = ptr;
-		__LIKELY_IF(baseaddress == UINT32_MAX) {
-			mmio_devices_base_r[mapptr] = UINT32_MAX;
-		} else {
-			mmio_devices_base_r[mapptr] = baseaddress + realoffset;
-		}
-		realoffset += _incval;
-		mapptr++;
-	}
+	set_memory_devices_map_values(start, end, &(membus_read_map[0]), NULL, ptr, baseaddress);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_mmio_device_w(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_memory_map_w[mapptr] = NULL;
-		mmio_devices_map_w[mapptr] = ptr;
-		__LIKELY_IF(baseaddress == UINT32_MAX) {
-			mmio_devices_base_w[mapptr] = UINT32_MAX;
-		} else {
-			mmio_devices_base_w[mapptr] = baseaddress + realoffset;
-		}
-		realoffset += _incval;
-		mapptr++;
-	}
+	set_memory_devices_map_values(start, end, &(membus_write_map[0]), NULL, ptr, baseaddress);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_mmio_wait_r(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_wait_map_w[mapptr] = wait;
-		mapptr++;
-	}
+	set_memory_devices_map_wait(start, end, &(membus_read_map[0]), wait);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_mmio_wait_w(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_wait_map_r[mapptr] = wait;
-		mapptr++;
-	}
+	set_memory_devices_map_wait(start, end, &(membus_write_map[0]), wait);
 }
 
-void TOWNS_MEMORY::unset_mmio_r(uint32_t start, uint32_t end)
+void TOWNS_MEMORY::unset_mmio_r(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_memory_map_r[mapptr] = NULL;
-		mmio_devices_map_r[mapptr] = NULL;
-		mmio_wait_map_r[mapptr] = WAITVAL_RAM;
-		realoffset += _incval;
-		mapptr++;
-	}
+	unset_memory_devices_map(start, end, &(membus_read_map[0]), wait);
 }
 
-void TOWNS_MEMORY::unset_mmio_w(uint32_t start, uint32_t end)
+void TOWNS_MEMORY::unset_mmio_w(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		mmio_memory_map_w[mapptr] = NULL;
-		mmio_devices_map_w[mapptr] = NULL;
-		mmio_wait_map_w[mapptr] = WAITVAL_RAM;
-		realoffset += _incval;
-		mapptr++;
-	}
+	unset_memory_devices_map(start, end, &(membus_write_map[0]), wait);
 }
 
-void TOWNS_MEMORY::unset_dma_r(uint32_t start, uint32_t end)
+void TOWNS_MEMORY::unset_dma_r(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_memory_map_w[mapptr] = NULL;
-		dma_devices_map_w[mapptr] = NULL;
-		dma_wait_map_w[mapptr] = WAITVAL_RAM;
-		realoffset += _incval;
-		mapptr++;
-	}
+	unset_memory_devices_map(start, end, &(dma_read_map[0]), wait);
 }
 
-void TOWNS_MEMORY::unset_dma_w(uint32_t start, uint32_t end)
+void TOWNS_MEMORY::unset_dma_w(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_memory_map_w[mapptr] = NULL;
-		dma_devices_map_w[mapptr] = NULL;
-		dma_wait_map_w[mapptr] = WAITVAL_RAM;
-		realoffset += _incval;
-		mapptr++;
-	}
+	unset_memory_devices_map(start, end, &(dma_write_map[0]), wait);
 }
 
-void TOWNS_MEMORY::set_dma_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr)
+void TOWNS_MEMORY::set_dma_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr, uint32_t base_offset)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_memory_map_r[mapptr] = &(baseptr[realoffset]);
-		dma_devices_map_r[mapptr] = NULL;
-		realoffset += _incval;
-		mapptr++;
-	}
+	set_memory_devices_map_values(start, end, &(dma_read_map[0]), baseptr, NULL, base_offset);
 }
 
-void TOWNS_MEMORY::set_dma_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr)
+void TOWNS_MEMORY::set_dma_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr, uint32_t base_offset)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_memory_map_w[mapptr] = &(baseptr[realoffset]);
-		dma_devices_map_w[mapptr] = NULL;
-		realoffset += _incval;
-		mapptr++;
-	}
+	set_memory_devices_map_values(start, end, &(dma_write_map[0]), baseptr, NULL, base_offset);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_dma_device_r(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_memory_map_r[mapptr] = NULL;
-		dma_devices_map_r[mapptr] = ptr;
-		__LIKELY_IF(baseaddress == UINT32_MAX) {
-			dma_devices_base_r[mapptr] = UINT32_MAX;
-		} else {
-			dma_devices_base_r[mapptr] = baseaddress + realoffset;
-		}
-		realoffset += _incval;
-		mapptr++;
-	}
+	set_memory_devices_map_values(start, end, &(dma_read_map[0]), NULL, ptr, baseaddress);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_dma_device_w(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_memory_map_w[mapptr] = NULL;
-		dma_devices_map_w[mapptr] = ptr;
-		__LIKELY_IF(baseaddress == UINT32_MAX) {
-			dma_devices_base_w[mapptr] = UINT32_MAX;
-		} else {
-			dma_devices_base_w[mapptr] = baseaddress + realoffset;
-		}
-		realoffset += _incval;
-		mapptr++;
-	}
+	set_memory_devices_map_values(start, end, &(dma_write_map[0]), NULL, ptr, baseaddress);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_dma_wait_r(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_wait_map_w[mapptr] = wait;
-		mapptr++;
-	}
+	set_memory_devices_map_wait(start, end, &(dma_read_map[0]), wait);
 }
 
 void  __FASTCALL TOWNS_MEMORY::set_dma_wait_w(uint32_t start, uint32_t end, int wait)
 {
-	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
-
-	_start &= ~(memory_map_mask());
-	_end &= ~(memory_map_mask());
-
-	uint32_t mapptr = (uint32_t)(_start >> memory_map_shift());
-	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = 0;
-	for(uint64_t addr = _start; addr < _end; addr += _incval) {
-		dma_wait_map_r[mapptr] = wait;
-		mapptr++;
-	}
+	set_memory_devices_map_wait(start, end, &(dma_write_map[0]), wait);
 }
 
 
@@ -1100,20 +932,20 @@ uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int* wait)
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__LIKELY_IF(mmio_memory_map_r[mapptr] != NULL) {
-		uint8_t* ptr = mmio_memory_map_r[mapptr];
+	__LIKELY_IF(membus_read_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = membus_read_map[mapptr].mem_ptr;
 		val = ptr[offset];
-	} else if(mmio_devices_map_r[mapptr] != NULL) {
-		DEVICE* dev = mmio_devices_map_r[mapptr];
-		__LIKELY_IF(mmio_devices_base_r[mapptr] == UINT32_MAX) {
+	} else if(membus_read_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = membus_read_map[mapptr].device_ptr;
+		__LIKELY_IF(membus_read_map[mapptr].base_offset == UINT32_MAX) {
 			val = dev->read_memory_mapped_io8(addr);
 		} else {
-			offset += mmio_devices_base_r[mapptr];
+			offset += membus_read_map[mapptr].base_offset;
 			val = dev->read_memory_mapped_io8(offset);
 		}
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = mmio_wait_map_r[mapptr];
+		waitval = membus_read_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1139,8 +971,8 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
 		}
 		return w.w;
 	}
-	__LIKELY_IF(mmio_memory_map_r[mapptr] != NULL) {
-		uint8_t* ptr = mmio_memory_map_r[mapptr];
+	__LIKELY_IF(membus_read_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = membus_read_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair16_t w;
@@ -1156,17 +988,17 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
 			val = w.w;
 		}
 		#endif
-	} else if(mmio_devices_map_r[mapptr] != NULL) {
-		DEVICE* dev = mmio_devices_map_r[mapptr];
-		__LIKELY_IF(mmio_devices_base_r[mapptr] == UINT32_MAX) {
+	} else if(membus_read_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = membus_read_map[mapptr].device_ptr;
+		__LIKELY_IF(membus_read_map[mapptr].base_offset == UINT32_MAX) {
 			val = dev->read_memory_mapped_io16(addr);
 		} else {
-			offset += mmio_devices_base_r[mapptr];
+			offset += membus_read_map[mapptr].base_offset;
 			val = dev->read_memory_mapped_io16(offset);
 		}
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = mmio_wait_map_r[mapptr];
+		waitval = membus_read_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1209,7 +1041,7 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 			}
 		default:
 			__LIKELY_IF(wait != NULL) {
-				waitval = mmio_wait_map_r[mapptr];
+				waitval = membus_read_map[mapptr].waitval;
 				__LIKELY_IF(waitval < 0) {
 					waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 				}
@@ -1219,8 +1051,8 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 		}
 		return d.d;
 	}
-	__LIKELY_IF(mmio_memory_map_r[mapptr] != NULL) {
-		uint8_t* ptr = mmio_memory_map_r[mapptr];
+	__LIKELY_IF(membus_read_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = membus_read_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair32_t w;
@@ -1236,17 +1068,17 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 			val = d.d;
 		}
 		#endif
-	} else if(mmio_devices_map_r[mapptr] != NULL) {
-		DEVICE* dev = mmio_devices_map_r[mapptr];
-		__LIKELY_IF(mmio_devices_base_r[mapptr] == UINT32_MAX) {
+	} else if(membus_read_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = membus_read_map[mapptr].device_ptr;
+		__LIKELY_IF(membus_read_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += mmio_devices_base_r[mapptr];
+			offset += membus_read_map[mapptr].base_offset;
 		}
 		val = dev->read_memory_mapped_io32(offset);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = mmio_wait_map_r[mapptr];
+		waitval = membus_read_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1265,24 +1097,24 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__LIKELY_IF((dma_memory_map_r[mapptr] == NULL) && (dma_devices_map_r[mapptr] == NULL)) {
+	__LIKELY_IF((dma_read_map[mapptr].mem_ptr == NULL) && (dma_read_map[mapptr].device_ptr == NULL)) {
 		return read_data8w(addr, wait);
 	}
 
-	__LIKELY_IF(dma_memory_map_r[mapptr] != NULL) {
-		uint8_t* ptr = dma_memory_map_r[mapptr];
+	__LIKELY_IF(dma_read_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = dma_read_map[mapptr].mem_ptr;
 		val = ptr[offset];
-	} else if(dma_devices_map_r[mapptr] != NULL) {
-		DEVICE* dev = dma_devices_map_r[mapptr];
-		__LIKELY_IF(dma_devices_base_r[mapptr] == UINT32_MAX) {
+	} else if(dma_read_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = dma_read_map[mapptr].device_ptr;
+		__LIKELY_IF(dma_read_map[mapptr].base_offset == UINT32_MAX) {
 			val = dev->read_memory_mapped_io8(addr);
 		} else {
-			offset += dma_devices_base_r[mapptr];
+			offset += dma_read_map[mapptr].base_offset;
 			val = dev->read_memory_mapped_io8(offset);
 		}
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = dma_wait_map_r[mapptr];
+		waitval = dma_read_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1308,11 +1140,11 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 		}
 		return w.w;
 	}
-	__LIKELY_IF((dma_memory_map_r[mapptr] == NULL) && (dma_devices_map_r[mapptr] == NULL)) {
+	__LIKELY_IF((dma_read_map[mapptr].mem_ptr == NULL) && (dma_read_map[mapptr].device_ptr == NULL)) {
 		return read_data16w(addr, wait);
 	}
-	__LIKELY_IF(dma_memory_map_r[mapptr] != NULL) {
-		uint8_t* ptr = dma_memory_map_r[mapptr];
+	__LIKELY_IF(dma_read_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = dma_read_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair16_t w;
@@ -1328,17 +1160,17 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 			val = w.w;
 		}
 		#endif
-	} else if(dma_devices_map_r[mapptr] != NULL) {
-		DEVICE* dev = dma_devices_map_r[mapptr];
-		__LIKELY_IF(dma_devices_base_r[mapptr] == UINT32_MAX) {
+	} else if(dma_read_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = dma_read_map[mapptr].device_ptr;
+		__LIKELY_IF(dma_read_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += dma_devices_base_r[mapptr];
+			offset += dma_read_map[mapptr].base_offset;
 		}
 		val = dev->read_memory_mapped_io16(offset);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = dma_wait_map_r[mapptr];
+		waitval = dma_read_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1381,7 +1213,7 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 			}
 		default:
 			__LIKELY_IF(wait != NULL) {
-				waitval = dma_wait_map_r[mapptr];
+				waitval = dma_read_map[mapptr].waitval;
 				__LIKELY_IF(waitval < 0) {
 					waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 				}
@@ -1391,11 +1223,11 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 		}
 		return d.d;
 	}
-	__LIKELY_IF((dma_memory_map_r[mapptr] == NULL) && (dma_devices_map_r[mapptr] == NULL)) {
+	__LIKELY_IF((dma_read_map[mapptr].mem_ptr == NULL) && (dma_read_map[mapptr].device_ptr == NULL)) {
 		return read_data32w(addr, wait);
 	}
-	__LIKELY_IF(dma_memory_map_r[mapptr] != NULL) {
-		uint8_t* ptr = dma_memory_map_r[mapptr];
+	__LIKELY_IF(dma_read_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = dma_read_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair32_t w;
@@ -1411,17 +1243,17 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 			val = d.d;
 		}
 		#endif
-	} else if(dma_devices_map_r[mapptr] != NULL) {
-		DEVICE* dev = dma_devices_map_r[mapptr];
-		__LIKELY_IF(dma_devices_base_r[mapptr] == UINT32_MAX) {
+	} else if(dma_read_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = dma_read_map[mapptr].device_ptr;
+		__LIKELY_IF(dma_read_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += mmio_devices_base_r[mapptr];
+			offset += membus_read_map[mapptr].base_offset;
 		}
 		val = dev->read_memory_mapped_io32(offset);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = dma_wait_map_r[mapptr];
+		waitval = dma_read_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1440,20 +1272,20 @@ void TOWNS_MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__LIKELY_IF(mmio_memory_map_w[mapptr] != NULL) {
-		uint8_t* ptr = mmio_memory_map_w[mapptr];
+	__LIKELY_IF(membus_write_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = membus_write_map[mapptr].mem_ptr;
 		ptr[offset] = data;
-	} else if(mmio_devices_map_w[mapptr] != NULL) {
-		DEVICE* dev = mmio_devices_map_w[mapptr];
-		__LIKELY_IF(mmio_devices_base_w[mapptr] == UINT32_MAX) {
+	} else if(membus_write_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = membus_write_map[mapptr].device_ptr;
+		__LIKELY_IF(membus_write_map[mapptr].base_offset == UINT32_MAX) {
 			dev->write_memory_mapped_io8(addr, data);
 		} else {
-			offset += mmio_devices_base_w[mapptr];
+			offset += membus_write_map[mapptr].base_offset;
 			dev->write_memory_mapped_io8(offset, data);
 		}
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = mmio_wait_map_w[mapptr];
+		waitval = membus_write_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1480,8 +1312,8 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 		}
 		return;
 	}
-	__LIKELY_IF(mmio_memory_map_w[mapptr] != NULL) {
-		uint8_t* ptr = mmio_memory_map_w[mapptr];
+	__LIKELY_IF(membus_write_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = membus_write_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair16_t d;
@@ -1497,17 +1329,17 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 			d.write_2bytes_le_to(ptr);
 		}
 		#endif
-	} else if(mmio_devices_map_w[mapptr] != NULL) {
-		DEVICE* dev = mmio_devices_map_w[mapptr];
-		__LIKELY_IF(mmio_devices_base_w[mapptr] == UINT32_MAX) {
+	} else if(membus_write_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = membus_write_map[mapptr].device_ptr;
+		__LIKELY_IF(membus_write_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += mmio_devices_base_w[mapptr];
+			offset += membus_write_map[mapptr].base_offset;
 		}
 		dev->write_memory_mapped_io16(offset, data);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = mmio_wait_map_w[mapptr];
+		waitval = membus_write_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1569,7 +1401,7 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 			break;
 		default:
 			__LIKELY_IF(wait != NULL) {
-				waitval = mmio_wait_map_w[mapptr];
+				waitval = membus_write_map[mapptr].waitval;
 				__LIKELY_IF(waitval < 0) {
 					waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 				}
@@ -1585,8 +1417,8 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 		return;
 	}
 
-	__LIKELY_IF(mmio_memory_map_w[mapptr] != NULL) {
-		uint8_t* ptr = mmio_memory_map_w[mapptr];
+	__LIKELY_IF(membus_write_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = membus_write_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair32_t d;
@@ -1602,17 +1434,17 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 			d.write_4bytes_le_to(ptr);
 		}
 		#endif
-	} else if(mmio_devices_map_w[mapptr] != NULL) {
-		DEVICE* dev = mmio_devices_map_w[mapptr];
-		__LIKELY_IF(mmio_devices_base_w[mapptr] == UINT32_MAX) {
+	} else if(membus_write_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = membus_write_map[mapptr].device_ptr;
+		__LIKELY_IF(membus_write_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += mmio_devices_base_w[mapptr];
+			offset += membus_write_map[mapptr].base_offset;
 		}
 		dev->write_memory_mapped_io32(offset, data);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = mmio_wait_map_w[mapptr];
+		waitval = membus_write_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1636,24 +1468,24 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__LIKELY_IF((dma_memory_map_w[mapptr] == NULL) && (dma_devices_map_w[mapptr] == NULL)) {
+	__LIKELY_IF((dma_write_map[mapptr].mem_ptr == NULL) && (dma_write_map[mapptr].device_ptr == NULL)) {
 		write_data8w(addr, data, wait);
 		return;
 	}
-	__LIKELY_IF(dma_memory_map_w[mapptr] != NULL) {
-		uint8_t* ptr = dma_memory_map_w[mapptr];
+	__LIKELY_IF(dma_write_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = dma_write_map[mapptr].mem_ptr;
 		ptr[offset] = data;
-	} else if(dma_devices_map_w[mapptr] != NULL) {
-		DEVICE* dev = dma_devices_map_w[mapptr];
-		__LIKELY_IF(dma_devices_base_w[mapptr] == UINT32_MAX) {
+	} else if(dma_write_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = dma_write_map[mapptr].device_ptr;
+		__LIKELY_IF(dma_write_map[mapptr].base_offset == UINT32_MAX) {
 			dev->write_memory_mapped_io8(addr, data);
 		} else {
-			offset += dma_devices_base_w[mapptr];
+			offset += dma_write_map[mapptr].base_offset;
 			dev->write_memory_mapped_io8(offset, data);
 		}
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = dma_wait_map_w[mapptr];
+		waitval = dma_write_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1679,13 +1511,13 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 		}
 		return;
 	}
-	__LIKELY_IF((dma_memory_map_w[mapptr] == NULL) && (dma_devices_map_w[mapptr] == NULL)) {
+	__LIKELY_IF((dma_write_map[mapptr].mem_ptr == NULL) && (dma_write_map[mapptr].device_ptr == NULL)) {
 		// ToDO: BEYOND THE BOUNDARY.
 		write_data16w(addr, data, wait);
 		return;
 	}
-	__LIKELY_IF(dma_memory_map_w[mapptr] != NULL) {
-		uint8_t* ptr = dma_memory_map_w[mapptr];
+	__LIKELY_IF(dma_write_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = dma_write_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair16_t d;
@@ -1701,17 +1533,17 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 			d.write_2bytes_le_to(ptr);
 		}
 		#endif
-	} else if(dma_devices_map_w[mapptr] != NULL) {
-		DEVICE* dev = dma_devices_map_w[mapptr];
-		__LIKELY_IF(dma_devices_base_w[mapptr] == UINT32_MAX) {
+	} else if(dma_write_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = dma_write_map[mapptr].device_ptr;
+		__LIKELY_IF(dma_write_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += dma_devices_base_w[mapptr];
+			offset += dma_write_map[mapptr].base_offset;
 		}
 		dev->write_memory_mapped_io16(offset, data);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = dma_wait_map_w[mapptr];
+		waitval = dma_write_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -1773,7 +1605,7 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 			break;
 		default:
 			__LIKELY_IF(wait != NULL) {
-				waitval = dma_wait_map_w[mapptr];
+				waitval = dma_write_map[mapptr].waitval;
 				__LIKELY_IF(waitval < 0) {
 					waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 				}
@@ -1789,13 +1621,13 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 		return;
 	}
 
-	__LIKELY_IF((dma_memory_map_w[mapptr] == NULL) && (dma_devices_map_w[mapptr] == NULL)) {
+	__LIKELY_IF((dma_write_map[mapptr].mem_ptr == NULL) && (dma_write_map[mapptr].device_ptr == NULL)) {
 		// ToDO: BEYOND THE BOUNDARY.
 		write_data32w(addr, data, wait);
 		return;
 	}
-	__LIKELY_IF(dma_memory_map_w[mapptr] != NULL) {
-		uint8_t* ptr = dma_memory_map_w[mapptr];
+	__LIKELY_IF(dma_write_map[mapptr].mem_ptr != NULL) {
+		uint8_t* ptr = dma_write_map[mapptr].mem_ptr;
 		ptr = &(ptr[offset]);
 		#ifdef __BIG_ENDIAN__
 		pair32_t d;
@@ -1811,17 +1643,17 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 			d.write_4bytes_le_to(ptr);
 		}
 		#endif
-	} else if(dma_devices_map_w[mapptr] != NULL) {
-		DEVICE* dev = dma_devices_map_w[mapptr];
-		__LIKELY_IF(dma_devices_base_w[mapptr] == UINT32_MAX) {
+	} else if(dma_write_map[mapptr].device_ptr != NULL) {
+		DEVICE* dev = dma_write_map[mapptr].device_ptr;
+		__LIKELY_IF(dma_write_map[mapptr].base_offset == UINT32_MAX) {
 			offset = addr;
 		} else {
-			offset += dma_devices_base_w[mapptr];
+			offset += dma_write_map[mapptr].base_offset;
 		}
 		dev->write_memory_mapped_io32(offset, data);
 	}
 	__LIKELY_IF(wait != NULL) {
-		waitval = dma_wait_map_w[mapptr];
+		waitval = dma_write_map[mapptr].waitval;
 		__LIKELY_IF(waitval < 0) {
 			waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
 		}
@@ -2196,7 +2028,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 		if(length_tmp > 0) {
 			extra_ram = (uint8_t*)malloc(length_tmp);
 			__LIKELY_IF(extra_ram != NULL) {
-				set_region_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
+				set_region_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram, 0);
 				memset(extra_ram, 0x00, extram_size);
 			}
 		}
