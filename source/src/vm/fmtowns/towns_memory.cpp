@@ -826,23 +826,12 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 // Is set extra NMI (0x05c0 - 0x05c2)?
 uint32_t TOWNS_MEMORY::read_io8(uint32_t addr)
 {
-	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		return read_fmr_ports8(addr & 0xffff);
-	}
-	return read_sys_ports8(addr);
-}
-
-uint32_t TOWNS_MEMORY::read_io8w(uint32_t addr, int *wait)
-{
 //	uint32_t val = 0x00;  // MAY NOT FILL to "1" for unused bit 20200129 K.O
 	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		*wait = 6; // ToDo: will io_wait_val.
 		return read_fmr_ports8(addr & 0xffff);
 	}
-	*wait = 6; // ToDo: will io_wait_val.
 	return read_sys_ports8(addr);
 }
-
 
 void TOWNS_MEMORY::write_fmr_ports8(uint32_t addr, uint32_t data)
 {
@@ -1104,17 +1093,6 @@ void TOWNS_MEMORY::write_io8(uint32_t addr, uint32_t data)
 	write_sys_ports8(addr, data);
 }
 
-void TOWNS_MEMORY::write_io8w(uint32_t addr, uint32_t data, int *wait)
-{
-	__LIKELY_IF((addr & 0xffff) >= 0xff80) {
-		*wait = 6; // ToDo: will io_wait_val.
-		write_fmr_ports8(addr & 0xffff, data);
-		return;
-	}
-	*wait = 6; // ToDo: will io_wait_val.
-	write_sys_ports8(addr, data);
-	return;
-}
 
 uint32_t TOWNS_MEMORY::read_data8w(uint32_t addr, int* wait)
 {
