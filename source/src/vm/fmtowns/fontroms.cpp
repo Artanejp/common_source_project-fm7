@@ -34,27 +34,16 @@ void FONT_ROMS::reset()
 
 uint32_t FONT_ROMS::read_memory_mapped_io8(uint32_t addr)
 {
-	int wait = 0;
-	return read_memory_mapped_io8w(addr, &wait);
-}
-
-uint32_t FONT_ROMS::read_memory_mapped_io8w(uint32_t addr, int *wait)
-{
-	*wait = 6; // Tempo
 	__LIKELY_IF((addr & 0xfffc0000) == 0xc2100000) { // 0xc2100000 - c213ffff
-		*wait = 6; // Temporally
 		return font_kanji16[addr & 0x3ffff];
 	}
 	__LIKELY_IF((addr & 0xffffc000) == 0x000c8000) {
 		if((addr & 0xfffff800) == 0x000ca000) { // 000ca000 - 000ca7ff
-			*wait = 6; // Temporally
 			return font_kanji16[0x3d000 + (addr & 0x7ff)];
 		} else if((addr & 0xfffff000) == 0x000cb000) { // 000cb000 - 000cbfff
-			*wait = 6; // Temporally
 			return font_kanji16[0x3d800 + (addr & 0xfff)];
 		}
 	}
-	*wait = 6; // Temporally
 	return 0xff;
 }
 // From MAME 0.216

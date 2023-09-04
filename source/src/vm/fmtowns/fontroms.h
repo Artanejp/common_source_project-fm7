@@ -38,19 +38,18 @@ public:
 	}
 	~FONT_ROMS() {}
 
-	void initialize();
-	void reset();
+	void initialize() override;
+	void reset() override;
 
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
 
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int ch) override;
 
-	bool process_state(FILEIO *state_fio, bool loading);
+	bool process_state(FILEIO *state_fio, bool loading) override;
 
 	/* Unique function(s) */
 	constexpr uint8_t __FASTCALL read_direct_data8(uint32_t addr);
