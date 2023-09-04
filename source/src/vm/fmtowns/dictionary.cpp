@@ -70,12 +70,11 @@ void DICTIONARY::reset()
 	}
 }
 
-uint32_t DICTIONARY::read_memory_mapped_io8w(uint32_t addr, int *wait)
+uint32_t DICTIONARY::read_memory_mapped_io8(uint32_t addr)
 {
 	uint8_t n_data = 0xff;
 	// 0xd0000 - 0xdffff : primary  is VRAM, secondary is DICTIONARY.
 	if((addr < 0x000da000) && (addr >= 0x000d0000)) {
-		*wait = 6; // temporally.
 		if(addr < 0xd8000) {
 			return dict_rom[(((uint32_t)dict_bank) << 15) | (addr & 0x7fff)];
 		} else {
@@ -89,15 +88,13 @@ uint32_t DICTIONARY::read_memory_mapped_io8w(uint32_t addr, int *wait)
 	return n_data;
 }
 
-void DICTIONARY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *wait)
+void DICTIONARY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if((addr < 0x000da000) && (addr >= 0x000d8000)) {
-		*wait = 6; // Temporally.
 		cmos_dirty = true;
 		dict_ram[addr & 0x1fff] = data;
 		return;
 	} else if((addr >= 0xc2140000) && (addr < 0xc2142000)) {
-		*wait = 6; // Temporally.
 		cmos_dirty = true;
 		dict_ram[addr & 0x1fff] = data;
 		return;
@@ -106,9 +103,8 @@ void DICTIONARY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *wai
 
 
 
-void DICTIONARY::write_io8w(uint32_t addr, uint32_t data, int *wait)
+void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 {
-	*wait = 6; // Temporally.
 	if(addr == 0x0484) {
 		dict_bank = data & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
@@ -117,9 +113,8 @@ void DICTIONARY::write_io8w(uint32_t addr, uint32_t data, int *wait)
 	}
 }
 
-uint32_t DICTIONARY::read_io8w(uint32_t addr, int *wait)
+uint32_t DICTIONARY::read_io8(uint32_t addr)
 {
-	*wait = 6; // Temporally.
 	uint32_t data = 0xff;
 	if(addr == 0x0484) {
 		data = dict_bank & 0x0f;

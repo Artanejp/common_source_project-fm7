@@ -42,34 +42,34 @@ public:
 		set_device_name("FM-Towns Dictionary ROM/RAM 0x000d0000 - 0x000dffff with CMOS RAM");
 	}
 	~DICTIONARY() {}
-	void initialize();
-	void release();
-	void reset();
+	void initialize() override;
+	void release() override;
+	void reset() override;
 
-	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait);
-	void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
 
-	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask)  override;
+	uint32_t __FASTCALL read_signal(int ch) override;
 
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
-	bool is_debugger_available()
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	uint64_t get_debug_data_addr_space()
+	uint64_t get_debug_data_addr_space() override
 	{
 		return 0x2000;
 	}
-	uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr) override;
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
 
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
 
 };
 
