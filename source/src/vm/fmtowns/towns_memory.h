@@ -57,9 +57,18 @@ namespace FMTOWNS {
 }
 
 namespace FMTOWNS {
+#undef  TOWNS_MEMORY_MAP_SHIFT
+#define TOWNS_MEMORY_MAP_SHIFT 15
+#undef  TOWNS_MEMORY_MAP_SIZE
+#define  TOWNS_MEMORY_MAP_SIZE  (1 << (32 - TOWNS_MEMORY_MAP_SHIFT))
+
 class TOWNS_MEMORY : public DEVICE
 {
 protected:
+	enum {
+		WAITVAL_RAM  = -1,
+		WAITVAL_VRAM = -2,
+	};
 	DEVICE* d_vram;
 	DEVICE* d_sprite;       // 0x81000000 - 0x8101ffff ?
 	DEVICE* d_pcm;             // 0xc2200000 - 0xc2200fff
@@ -77,13 +86,30 @@ protected:
 	DEVICE* d_font_20pix;
 
 	DEVICE* d_iccard[2];
+	const uint32_t 	NOT_NEED_TO_OFFSET = UINT32_MAX;
 
-	// Add memory MAP
-	inline void check_boundaries(const uint32_t addr, const uint32_t boundary, bool& boundary2, bool& boundary4);
-	virtual DEVICE* __FASTCALL select_bank_memory_mpu(uint32_t addr, const bool is_dma, const bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval, bool& boundary2, bool& boundary4);
-	virtual DEVICE* __FASTCALL select_bank_lower_memory(uint32_t addr, const bool is_dma, const bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval, bool& boundary2, bool& boundary4);
-	virtual DEVICE* __FASTCALL select_bank_vram_c0000(const uint32_t addr, const bool is_dma, const bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval, bool& boundary2, bool& boundary4);
-	 DEVICE* __FASTCALL select_bank_sysrom_f0000(const uint32_t addr, const bool is_dma, const bool is_read, bool& is_exists, uintptr_t& memptr, uint32_t& offset, int& waitval, bool& boundary2, bool& boundary4);
+	__DECL_ALIGNED(16) DEVICE*   mmio_devices_map_r[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) DEVICE*   mmio_devices_map_w[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint32_t  mmio_devices_base_r[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint32_t  mmio_devices_base_w[TOWNS_MEMORY_MAP_SIZE];
+
+	__DECL_ALIGNED(16) uint8_t* mmio_memory_map_r[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint8_t* mmio_memory_map_w[TOWNS_MEMORY_MAP_SIZE];
+
+	__DECL_ALIGNED(16) uint32_t mmio_wait_map_r  [TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint32_t mmio_wait_map_w  [TOWNS_MEMORY_MAP_SIZE];
+
+
+	__DECL_ALIGNED(16) DEVICE*  dma_devices_map_r[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) DEVICE*  dma_devices_map_w[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint32_t dma_devices_base_r[TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint32_t dma_devices_base_w[TOWNS_MEMORY_MAP_SIZE];
+
+	__DECL_ALIGNED(16) uint8_t* dma_memory_map_r [TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint8_t* dma_memory_map_w [TOWNS_MEMORY_MAP_SIZE];
+
+	__DECL_ALIGNED(16) uint32_t dma_wait_map_r   [TOWNS_MEMORY_MAP_SIZE];
+	__DECL_ALIGNED(16) uint32_t dma_wait_map_w   [TOWNS_MEMORY_MAP_SIZE];
 
  	outputs_t outputs_ram_wait;
 	outputs_t outputs_rom_wait;
@@ -127,8 +153,13 @@ protected:
 	// MISC1-MISC4
 	uint8_t reg_misc3; // 0024
 	uint8_t reg_misc4; // 0025
+
+	// Functions
+	virtual void reset_wait_values();
 	virtual void set_wait_values();
 	virtual void update_machine_features();
+	virtual void __FASTCALL config_page0f(const bool sysrombank, const bool force);
+	virtual void __FASTCALL config_page0c_0e(const bool vrambank, const bool dictbank, const bool force);
 
 	virtual bool set_cpu_clock_by_wait();
 	virtual void     __FASTCALL write_fmr_ports8(uint32_t addr, uint32_t data);
@@ -139,6 +170,19 @@ protected:
 	{
 		return ((mem_wait_val == 0) && (vram_wait_val < 3)) ? true : false;
 	}
+	/*!
+	  @note Use memory map per 32KB (131072 entries) as 1st tier.
+	        And, at Some pages hadles special devices,
+			000C8000h - 000CFFFFh : this
+			C2140000h - C2142000h : DICTIONARY (CMOS)
+			C2200000h - C2201000h : RF5C68 (PCM SOUND)
+			MAP select usage:
+	*/
+	inline const uint64_t memory_map_size()  { return TOWNS_MEMORY_MAP_SIZE; }
+	inline const uint64_t memory_map_shift() { return TOWNS_MEMORY_MAP_SHIFT; }
+	constexpr uint64_t memory_map_mask() { return ((1 << TOWNS_MEMORY_MAP_SHIFT) - 1); }
+	constexpr uint64_t memory_map_grain() { return (1 << TOWNS_MEMORY_MAP_SHIFT); }
+
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {
 		set_device_name(_T("FMTOWNS_MEMORY"));
@@ -189,6 +233,9 @@ public:
 		// cpu_id = 0x02; // 80486SX/DX.
 		// cpu_id = 0x03; // 80386SX.
 		cpu_id = 0x01; // 80386DX.
+
+		unset_mmio_rw(0x00000000, 0xffffffff);
+		unset_dma_rw(0x00000000, 0xffffffff);
 		extra_ram = NULL;
 	}
 	~TOWNS_MEMORY() {}
@@ -201,24 +248,30 @@ public:
 	virtual uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
 	virtual uint32_t __FASTCALL read_data16w(uint32_t addr, int* wait) override;
 	virtual uint32_t __FASTCALL read_data32w(uint32_t addr, int* wait) override;
+
 	virtual void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
 	virtual void __FASTCALL write_data16w(uint32_t addr, uint32_t data, int* wait) override;
 	virtual void __FASTCALL write_data32w(uint32_t addr, uint32_t data, int* wait) override;
 
+	virtual uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	virtual uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait) override;
+	virtual uint32_t __FASTCALL read_dma_data32w(uint32_t addr, int* wait) override;
+	virtual void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual void __FASTCALL write_dma_data32w(uint32_t addr, uint32_t data, int* wait) override;
+
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual void     __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait) override;
-
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait) override;
 
 	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
-	virtual void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int *wait) override;
-	virtual uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int *wait) override;
 	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
-	virtual void __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int *wait) override;
-	virtual uint32_t __FASTCALL read_memory_mapped_io16w(uint32_t addr, int *wait) override;
+;
+	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr) override;
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	virtual uint32_t __FASTCALL read_signal(int ch) override;
@@ -263,6 +316,120 @@ public:
 		if(megabytes < minimum) megabytes = minimum;
 		extram_size = megabytes << 20;
 	}
+
+	virtual void __FASTCALL set_mmio_memory_r(uint32_t start, uint32_t end, uint8_t* ptr);
+	virtual void __FASTCALL set_mmio_memory_w(uint32_t start, uint32_t end, uint8_t* ptr);
+	inline  void __FASTCALL set_mmio_memory_rw(uint32_t start, uint32_t end, uint8_t* ptr)
+	{
+		set_mmio_memory_r(start, end, ptr);
+		set_mmio_memory_w(start, end, ptr);
+	}
+
+	virtual void  __FASTCALL set_mmio_wait_r(uint32_t start, uint32_t end, int wait);
+	virtual void  __FASTCALL set_mmio_wait_w(uint32_t start, uint32_t end, int wait);
+	inline void  __FASTCALL set_mmio_wait_rw(uint32_t start, uint32_t end, int wait)
+	{
+		set_mmio_wait_r(start, end, wait);
+		set_mmio_wait_w(start, end, wait);
+	}
+
+	virtual void  __FASTCALL set_mmio_device_r(uint32_t start, uint32_t end, DEVICE* baseptr, uint32_t baseaddress = UINT32_MAX);
+	virtual void  __FASTCALL set_mmio_device_w(uint32_t start, uint32_t end, DEVICE* baseptr, uint32_t baseaddress = UINT32_MAX);
+	inline void  __FASTCALL set_mmio_device_rw(uint32_t start, uint32_t end, DEVICE* baseptr, uint32_t baseaddress = UINT32_MAX)
+	{
+		set_mmio_device_r(start, end, baseptr, baseaddress);
+		set_mmio_device_w(start, end, baseptr, baseaddress);
+	}
+
+	virtual void  __FASTCALL set_dma_memory_r(uint32_t start, uint32_t end, uint8_t* ptr);
+	virtual void  __FASTCALL set_dma_memory_w(uint32_t start, uint32_t end, uint8_t* ptr);
+	inline void  __FASTCALL set_dma_memory_rw(uint32_t start, uint32_t end, uint8_t* ptr)
+	{
+		set_dma_memory_r(start, end, ptr);
+		set_dma_memory_w(start, end, ptr);
+	}
+
+	virtual void  __FASTCALL set_dma_wait_r(uint32_t start, uint32_t end, int wait);
+	virtual void  __FASTCALL set_dma_wait_w(uint32_t start, uint32_t end, int wait);
+	inline void  __FASTCALL set_dma_wait_rw(uint32_t start, uint32_t end, int wait)
+	{
+		set_dma_wait_r(start, end, wait);
+		set_dma_wait_w(start, end, wait);
+	}
+
+	virtual void  __FASTCALL set_dma_device_r(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX);
+	virtual void  __FASTCALL set_dma_device_w(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX);
+	inline void  __FASTCALL set_dma_device_rw(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX)
+	{
+		set_dma_device_r(start, end, ptr, baseaddress);
+		set_dma_device_w(start, end, ptr, baseaddress);
+	}
+
+	inline void __FASTCALL set_region_memory_r(uint32_t start, uint32_t end, uint8_t* baseptr)
+	{
+		set_mmio_memory_r(start, end, baseptr);
+		set_dma_memory_r (start, end, baseptr);
+	}
+
+	inline void __FASTCALL set_region_memory_w(uint32_t start, uint32_t end, uint8_t* baseptr)
+	{
+		set_mmio_memory_w(start, end, baseptr);
+		set_dma_memory_w (start, end, baseptr);
+	}
+	inline void __FASTCALL set_region_memory_rw(uint32_t start, uint32_t end, uint8_t* baseptr)
+	{
+		set_region_memory_r(start, end, baseptr);
+		set_region_memory_w(start, end, baseptr);
+	}
+
+	inline void __FASTCALL set_region_device_r(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX)
+	{
+		set_mmio_device_r(start, end, ptr, baseaddress);
+		set_dma_device_r (start, end, ptr, baseaddress);
+	}
+	inline void __FASTCALL set_region_device_w(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX)
+	{
+		set_mmio_device_w(start, end, ptr, baseaddress);
+		set_dma_device_w (start, end, ptr, baseaddress);
+	}
+	inline void __FASTCALL set_region_device_rw(uint32_t start, uint32_t end, DEVICE* ptr, uint32_t baseaddress = UINT32_MAX)
+	{
+		set_region_device_r(start, end, ptr, baseaddress);
+		set_region_device_w(start, end, ptr, baseaddress);
+	}
+	virtual void  __FASTCALL unset_mmio_r(uint32_t start, uint32_t end);
+	virtual void  __FASTCALL unset_mmio_w(uint32_t start, uint32_t end);
+	inline  void  __FASTCALL unset_mmio_rw(uint32_t start, uint32_t end)
+	{
+		unset_mmio_r(start, end);
+		unset_mmio_w(start, end);
+	}
+
+	virtual void  __FASTCALL unset_dma_r(uint32_t start, uint32_t end);
+	virtual void  __FASTCALL unset_dma_w(uint32_t start, uint32_t end);
+	inline void  __FASTCALL  unset_dma_rw(uint32_t start, uint32_t end)
+	{
+		unset_dma_r(start, end);
+		unset_dma_w(start, end);
+	}
+
+	inline void  __FASTCALL unset_range_r(uint32_t start, uint32_t end)
+	{
+		unset_mmio_r(start, end);
+		unset_dma_r(start, end);
+	}
+
+	inline void  __FASTCALL unset_range_w(uint32_t start, uint32_t end)
+	{
+		unset_mmio_w(start, end);
+		unset_dma_w(start, end);
+	}
+	inline void  __FASTCALL unset_range_rw(uint32_t start, uint32_t end)
+	{
+		unset_range_r(start, end);
+		unset_range_w(start, end);
+	}
+
 	void set_context_cpu(I386* device)
 	{
 		d_cpu = device;
@@ -334,11 +501,6 @@ public:
 	}
 };
 
-inline void TOWNS_MEMORY::check_boundaries(const uint32_t addr, const uint32_t boundary, bool& boundary2, bool& boundary4)
-{
-	boundary2 = ((addr + 2) >= boundary);
-	boundary4 = ((addr + 4) >= boundary);
-}
 
 }
 #endif
