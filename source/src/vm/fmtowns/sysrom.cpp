@@ -8,7 +8,7 @@
 	* MEMORY :
 	*   0x000f8000 - 0x000fffff : RAM / DICTIONARY (BANKED)
 	*   0xfffc0000 - 0xffffffff : SYSTEM ROM
-	* I/O : 
+	* I/O :
 	*   0x0480                         : F8 BANK
 */
 
@@ -21,7 +21,7 @@ namespace FMTOWNS {
 void SYSROM::initialize()
 {
 	memset(rom, 0xff, sizeof(rom));
-	
+
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FMT_SYS.ROM")), FILEIO_READ_BINARY)) { // DICTIONARIES
 		fio->Fread(rom, sizeof(rom), 1);
@@ -34,43 +34,30 @@ void SYSROM::initialize()
 void SYSROM::reset()
 {
 }
-	
+
 uint32_t SYSROM::read_memory_mapped_io8(uint32_t addr)
 {
-	uint8_t n_data = 0xff;
-	if(addr < 0xfffc0000) { // Banked (from MSDOS/i86 compatible mode)
-		if((addr >= 0x000f8000) && (addr < 0x00100000)) {
-			n_data = rom[(addr & 0x7fff) + 0x38000];
-		}
-	} else {
-		n_data = rom[addr & 0x3ffff];
-	}
-	return (uint32_t)n_data;
+	return rom[addr & 0x3ffff];
 }
-	
+
 uint32_t SYSROM::read_memory_mapped_io16(uint32_t addr)
 {
+	addr &= 0x3ffff;
+	__UNLIKELY_IF(addr == 0x3ffff) return 0xffff; // BUS fault.
 	pair16_t nd;
-	int dummy;
-	nd.w = 0x00;
-	// OK?
-	nd.b.l = read_memory_mapped_io8(addr + 0);
-	nd.b.h = read_memory_mapped_io8(addr + 1);
+	nd.read_2bytes_le_from(&(rom[addr]));
 	return nd.w;
 }
 
 uint32_t SYSROM::read_memory_mapped_io32(uint32_t addr)
 {
+	addr &= 0x3ffff;
+	__UNLIKELY_IF(addr > 0x3fffc) return 0xffffffff; // BUS fault.
 	pair32_t nd;
-	nd.d = 0x00;
-	// OK?
-	nd.b.l  = read_memory_mapped_io8(addr + 0);
-	nd.b.h  = read_memory_mapped_io8(addr + 1);
-	nd.b.h2 = read_memory_mapped_io8(addr + 2);
-	nd.b.h3 = read_memory_mapped_io8(addr + 3);
+	nd.read_4bytes_le_from(&(rom[addr]));
 	return nd.d;
 }
-	
+
 void SYSROM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	// ADDR >= 0xfffc0000
@@ -80,22 +67,13 @@ void SYSROM::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void SYSROM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
-	pair16_t nd;
-	nd.w = (uint16_t)data;
-	// OK?
-	write_memory_mapped_io8(addr + 0, nd.b.l);
-	write_memory_mapped_io8(addr + 1, nd.b.h);
+	// NOP
 }
 
 void SYSROM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
-	pair32_t nd;
-	nd.d = data;
-	write_memory_mapped_io8(addr + 0, nd.b.l);
-	write_memory_mapped_io8(addr + 1, nd.b.h);
-	write_memory_mapped_io8(addr + 2, nd.b.h2);
-	write_memory_mapped_io8(addr + 3, nd.b.h3);
+	// NOP
 }
-	
+
 
 }

@@ -98,7 +98,7 @@ void TOWNS_MEMORY::initialize()
 	}
 	// REAL IS C2200000h - C2200FFFh, but grain may be 8000h bytes.
 	set_region_device_rw(0xc2200000, 0xc2200000 + memory_map_grain() - 1, d_pcm, NOT_NEED_TO_OFFSET);
-	set_region_device_r (0xfffc0000, 0xffffffff, d_sysrom, NOT_NEED_TO_OFFSET);
+	set_region_device_r (0xfffc0000, 0xffffffff, d_sysrom, 0);
 	// Another devices are blank
 
 	// load rom image
@@ -160,7 +160,7 @@ void TOWNS_MEMORY::config_page0f(const bool sysrombank, const bool force)
 	__UNLIKELY_IF((sysrombank != sysrom_bak) || (force)) {
 		if(sysrombank) {
 			unset_range_w(0x000f8000, 0x000fffff);
-			set_region_device_rw(0x000f8000, 0x000fffff, d_sysrom, NOT_NEED_TO_OFFSET);
+			set_region_device_r (0x000f8000, 0x000fffff, d_sysrom, 0x38000);
 		} else {
 			set_region_memory_rw(0x000f8000, 0x000fffff, ram_pagec, 0x000f8000 - 0x000c0000);
 		}
