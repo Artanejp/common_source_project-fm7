@@ -748,12 +748,12 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		val |=  ((select_d0_rom) ? 0x00 : 0x02);
 		break;
 	case 0x05c0:
-		val = (extra_nmi_mask) ? 0xf7 : 0xff;
-//		val = (extra_nmi_mask) ? 0x00 : 0x08;
+//		val = (extra_nmi_mask) ? 0xf7 : 0xff;
+		val = (extra_nmi_mask) ? 0x00 : 0x08;
 		break;
 	case 0x05c2:
-		val = (extra_nmi_val) ? 0xff : 0xf7;
-//		val = (extra_nmi_val) ? 0x08 : 0x00;
+//		val = (extra_nmi_val) ? 0xff : 0xf7;
+		val = (extra_nmi_val) ? 0x08 : 0x00;
 		break;
 	case 0x05e0:
 		if(machine_id < 0x0200) { // Towns 1/2
