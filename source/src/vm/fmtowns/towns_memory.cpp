@@ -1093,6 +1093,14 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 
 uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 {
+	#if 1
+	int dummywait;
+	uint8_t val = read_data8w(addr, &dummywait);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	return val;
+	#else
 	uint8_t val = 0xff;
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
@@ -1121,10 +1129,19 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 		*wait = waitval;
 	}
 	return val;
+	#endif
 }
 
 uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 {
+	#if 1
+	int dummywait;
+	uint16_t val = read_data16w(addr, &dummywait);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	return val;
+	#else
 	uint16_t val = 0xffff;
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
@@ -1181,10 +1198,19 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 		//}
 	}
 	return val;
+	#endif
 }
 
 uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 {
+	#if 1
+	int dummywait;
+	uint32_t val = read_data32w(addr, &dummywait);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	return val;
+	#else
 	uint32_t val = 0xffffffff;
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
@@ -1264,6 +1290,7 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 		//}
 	}
 	return val;
+	#endif
 }
 
 
@@ -1465,6 +1492,13 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 
 void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 {
+	#if 1
+	int dummywait;
+	write_data8w(addr, data, &dummywait);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	#else
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
@@ -1492,10 +1526,18 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 		*wait = waitval;
 	}
 	return;
+	#endif
 }
 
 void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 {
+	#if 1
+	int dummywait;
+	write_data16w(addr, data, &dummywait);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	#else
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
 	int waitval;
@@ -1560,11 +1602,19 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 		*wait = waitval;
 	}
 	return;
+	#endif
 }
 
 
 void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 {
+	#if 1
+	int dummywait;
+	write_data32w(addr, data, &dummywait);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	#else
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
 	int waitval;
@@ -1670,6 +1720,7 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 		*wait = waitval;
 	}
 	return;
+	#endif
 }
 
 
