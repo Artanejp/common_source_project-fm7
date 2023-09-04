@@ -2797,7 +2797,7 @@ void TOWNS_CDROM::get_volume(int ch, int& decibel_l, int& decibel_r)
 //	decibel_r = volume_r;
 }
 
-uint32_t TOWNS_CDROM::read_io16w(uint32_t addr, int *wait)
+uint32_t TOWNS_CDROM::read_io16(uint32_t addr)
 {
 	if((addr & 0x0e) == 0x04) {
 		if((pio_transfer_phase) /*|| (dma_transfer_phase) */) {
@@ -2810,11 +2810,11 @@ uint32_t TOWNS_CDROM::read_io16w(uint32_t addr, int *wait)
 		}
 		return 0x0000;
 	} else {
-		return read_io8w(addr, wait);
+		return read_io8(addr);
 	}
 }
 
-uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
+uint32_t TOWNS_CDROM::read_io8(uint32_t addr)
 {
 	/*
 	 * 04C0h : Master status
@@ -2823,7 +2823,6 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 	 * 04CCh : SUBQ CODE
 	 * 04CDh : SUBQ STATUS
 	 */
-	*wait = 6; // Temporally.
 	uint32_t val = 0xff;
 	switch(addr & 0x0f) {
 	case 0x00:
@@ -2866,15 +2865,15 @@ uint32_t TOWNS_CDROM::read_io8w(uint32_t addr, int *wait)
 	return val;
 }
 /*
-uint32_t TOWNS_CDROM::read_io16w(uint32_t addr, int *wait)
+uint32_t TOWNS_CDROM::read_io16(uint32_t addr)
 {
 	pair32_t v;
 	v.d = 0xffffffff;
-	v.b.l = read_io8w(addr & 0xfffe, wait);
+	v.b.l = read_io8(addr & 0xfffe);
 	return v.d;
 }
 */
-void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
+void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 {
 	/*
 	 * 04C0h : Master control register
@@ -2883,7 +2882,6 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 	 * 04C6h : Transfer control register.
 	 */
 	//cdrom_debug_log(_T("WRITE IO8: %04X %02X"), addr, data);
-	*wait = 6; // temporally
 	w_regs[addr & 0x0f] = data;
 	switch(addr & 0x0f) {
 	case 0x00: // Master control register
@@ -2969,11 +2967,11 @@ void TOWNS_CDROM::write_io8w(uint32_t addr, uint32_t data, int *wait)
 	}
 }
 /*
-void TOWNS_CDROM::write_io16w(uint32_t addr, uint32_t data, int *wait)
+void TOWNS_CDROM::write_io16(uint32_t addr, uint32_t data)
 {
 	pair32_t v;
 	v.d = data;
-	write_io8w(addr & 0xfffe, v.b.l, wait);
+	write_io8w(addr & 0xfffe, v.b.l)
 }
 */
 void TOWNS_CDROM::write_debug_data8(uint32_t addr, uint32_t data)

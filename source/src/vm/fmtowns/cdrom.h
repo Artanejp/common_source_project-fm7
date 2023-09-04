@@ -535,30 +535,29 @@ public:
 		d_cpu = NULL;
 	}
 	~TOWNS_CDROM() { }
-	virtual void initialize();
-	virtual void release();
+	virtual void initialize() override;
+	virtual void release() override;
 
-	virtual void reset();
-	virtual uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
-	virtual void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
-	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
+	virtual void reset() override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io16(uint32_t addr) override;
 	/*
-	virtual uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
-	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
+	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t dataoverride;
 	*/
-	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait);
-	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait) override;
+	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait) override;
 
-	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait);
-	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait);
+	virtual uint32_t __FASTCALL read_dma_io16w(uint32_t addr, int *wait) override;
+	virtual void __FASTCALL write_dma_io16w(uint32_t addr, uint32_t data, int *wait) override;
 
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual uint32_t __FASTCALL read_signal(int id);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	virtual uint32_t __FASTCALL read_signal(int id) override;
 
-	virtual void __FASTCALL event_callback(int event_id, int err);
-	virtual void __FASTCALL mix(int32_t* buffer, int cnt);
+	virtual void __FASTCALL event_callback(int event_id, int err) override;
+	virtual void __FASTCALL mix(int32_t* buffer, int cnt) override;
 
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 
 	virtual bool mounted();
 	virtual bool accessed();
@@ -566,22 +565,20 @@ public:
 	virtual void close();
 
 	// for debug
-	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr);
-	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	bool is_debugger_available()
+	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr) override;
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	uint64_t get_debug_data_addr_space()
+	uint64_t get_debug_data_addr_space() override
 	{
 		return 0x1fff; // Will change
 	}
-
-
-	virtual void set_volume(int ch, int decibel_l, int decibel_r);
-	virtual void get_volume(int ch, int& decibel_l, int& decibel_r);
+	virtual void set_volume(int ch, int decibel_l, int decibel_r) override;
+	virtual void get_volume(int ch, int& decibel_l, int& decibel_r) override;
 	virtual bool read_buffer(int sectors);
 
 	// unique functions
