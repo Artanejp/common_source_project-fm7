@@ -88,7 +88,7 @@ void TOWNS_MEMORY::initialize()
 	set_region_device_rw(0xc1000000, 0xc1ffffff, d_iccard[1], 0);
 //	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
 
-	set_region_device_r (0xc2000000, 0xc207ffff, d_msdos, NOT_NEED_TO_OFFSET);
+	set_region_device_r (0xc2000000, 0xc207ffff, d_msdos, 0);
 	set_region_device_r (0xc2080000, 0xc20fffff, d_dictionary, NOT_NEED_TO_OFFSET);
 	set_region_device_r (0xc2100000, 0xc213ffff, d_font, NOT_NEED_TO_OFFSET);
 	// REAL IS C2140000h - C2141FFFh, but grain may be 8000h bytes.

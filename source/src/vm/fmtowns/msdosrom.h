@@ -22,9 +22,10 @@ public:
 	}
 	~MSDOSROM() {}
 
-	void initialize();
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);	
+	void initialize() override;
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
+	uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr) override;
 };
 
 }
-	
