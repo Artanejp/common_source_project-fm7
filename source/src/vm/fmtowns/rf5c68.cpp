@@ -66,7 +66,7 @@ void RF5C68::reset()
 	read_pointer = 0;
 	sample_pointer = 0;
 	sample_words = 0;
-	
+
 	if(mix_rate > 0) {
 		sample_tick_us = 1.0e6 / ((double)mix_rate);
 	} else {
@@ -152,7 +152,7 @@ __DECL_VECTORIZED_LOOP
 						write_signals(&interrupt_boundary, ((addr_old & 0xe000) >> 13) | 0x00000008);
 //						out_debug_log(_T("PCM INTERRUPT CH=%d ADDR=%04X"), ch, addr_old & 0xffff);
 					}
-				
+
 					int chd = ch << 1;
 					tmpval[ch] = wave_memory[addr_old & 0xffff];
 					if(tmpval[ch] == 0xff) {
@@ -164,15 +164,15 @@ __DECL_VECTORIZED_LOOP
 							tmpval[ch] = 0x00;
 							dac_onoff[ch] = false; // STOP
 							continue; // This channel will stop
-						} 
-					} 
+						}
+					}
 					dac_addr[ch] += dac_fd[ch].d;
 //					dac_addr[ch] = dac_addr[ch] & ((1 << 28) - 1);
 				}
 			}
 			__DECL_ALIGNED(16) bool sign[16] = {false};
 			__DECL_ALIGNED(16) int32_t val[16] = {0};
-__DECL_VECTORIZED_LOOP			
+__DECL_VECTORIZED_LOOP
 			for(int ch = 0; ch < 8; ch++) {
 				int chd = ch << 1;
 				sign[chd + 0] = (dac_onoff[ch]) ? ((tmpval[ch] & 0x80) == 0) : false; // 0 = minus
@@ -181,13 +181,13 @@ __DECL_VECTORIZED_LOOP
 				val[chd + 1] = val[chd + 0];
 			}
 			// VAL = VAL * ENV * PAN
-__DECL_VECTORIZED_LOOP			
+__DECL_VECTORIZED_LOOP
 			for(int chd = 0; chd < 16; chd++) {
 				val[chd] = val[chd] * dac_env[chd >> 1];
 				val[chd] = val[chd] * dac_pan[chd];
 			}
 			// Sign
-__DECL_VECTORIZED_LOOP			
+__DECL_VECTORIZED_LOOP
 			for(int chd = 0; chd < 16; chd++) {
 				dac_tmpval[chd] = (sign[chd]) ? -val[chd] : val[chd];
 			}
@@ -305,14 +305,14 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 			} else { // WB3-0
 				dac_bank = ((data & 0x0f) << 12);
 			}
-			if((dac_on != old_dac_on) && !(dac_on)) {
+			/*if((dac_on != old_dac_on) && !(dac_on)) {
 				sample_pointer = 0;
 				sample_words = 0;
 				read_pointer = 0;
 				if((sample_buffer != NULL) && (sample_length > 0)) {
 					memset(sample_buffer, 0x00, sizeof(int32_t) * 2 * sample_length);
 				}
-			}
+			}*/
 		}
 //		out_debug_log(_T("DAC REG 07 RAW=%02X ON=%s CH=%d BANK=%04X"),
 //					   data,
@@ -351,34 +351,37 @@ uint32_t RF5C68::read_io8(uint32_t addr)
 // Read PCM memory
 uint32_t RF5C68::read_memory_mapped_io8(uint32_t addr)
 {
+	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return 0xff; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		return d_debugger->read_via_debugger_data8(addr);
 	} else {
-		if(dac_on) {
-			return 0xff;
-		}
-		return read_via_debugger_data8(addr);	
+//		if(dac_on) {
+//			return 0xff;
+//		}
+		return read_via_debugger_data8(addr);
 	}
 	return 0xff;
 }
 
 uint32_t RF5C68::read_memory_mapped_io16(uint32_t addr)
 {
+	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return 0xffff; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		return d_debugger->read_via_debugger_data16(addr);
 	} else {
-		if(dac_on) {
-			return 0xffff;
-		}
-		return read_via_debugger_data16(addr);	
+//		if(dac_on) {
+//			return 0xffff;
+//		}
+		return read_via_debugger_data16(addr);
 	}
 	return 0xffff;
 }
 
 void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
+	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	// if(dac_on) don't write <- Is correct?
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
@@ -393,6 +396,7 @@ void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
+	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		d_debugger->write_via_debugger_data16(addr, data);
@@ -402,7 +406,7 @@ void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 //			return;
 //		}
 	}
-}	
+}
 
 void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 {
@@ -433,7 +437,7 @@ void RF5C68::get_sample(int32_t *v, int words)
 			}
 		}
 		break;
-	}		
+	}
 }
 
 void RF5C68::lpf_threetap(int32_t *v, int &lval, int &rval)
@@ -448,13 +452,13 @@ void RF5C68::lpf_threetap(int32_t *v, int &lval, int &rval)
 
 void RF5C68::mix(int32_t* buffer, int cnt)
 {
-	
+
 	int32_t lval, rval = 0;
 	int32_t lval2, rval2 = 0;
 	// ToDo: supress pop noise.
 	if(cnt <= 0) return;
 	if(is_mute) return;
-	
+
 	if((sample_buffer != NULL) && (sample_length > 0)) {
 		__DECL_ALIGNED(16) int32_t val[16] = {0}; // 0,1 : before / 2,3 : after
 		// ToDo: mix_freq <= dac_freq ; mix_factor >= 4096.
@@ -472,7 +476,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 				rval2 = apply_volume(rval2, volume_r) >> 1;
 				// ToDo: interpoolate.
 				buffer[i]     += lval2;
-				buffer[i + 1] += rval2; 
+				buffer[i + 1] += rval2;
 				mix_count += mix_factor;
 				if(mix_count >= 4096) {
 //				out_debug_log(_T("MIX COUNT=%d FACTOR=%d"), mix_count, mix_factor);
@@ -489,7 +493,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 							read_pointer = (sample_pointer + sample_length - sample_words);
 						}
 					}
-					read_pointer = read_pointer % sample_length;		
+					read_pointer = read_pointer % sample_length;
 					if(sample_words > 0) {
 						// Reload data
 						memset(val, 0x00, sizeof(val));
@@ -513,7 +517,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 				lval2 = apply_volume(lval, volume_l) >> 1;
 				rval2 = apply_volume(rval, volume_r) >> 1;
 				buffer[i]     += lval2;
-				buffer[i + 1] += rval2; 
+				buffer[i + 1] += rval2;
 				read_pointer = (read_pointer + 1) % sample_length;
 				get_sample(val, 4);
 				lpf_threetap(val, lval, rval);
@@ -527,7 +531,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 				rval2 = apply_volume(rval, volume_r) >> 1;
 				buffer[i]     += lval2;
 				buffer[i + 1] += rval2;
-				
+
 				int n = mix_count >> 12;
 				read_pointer += n;
 				read_pointer = read_pointer % sample_length;
@@ -558,7 +562,7 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 		read_pointer = 0;
 		sample_pointer = 0;
 		sample_words = 0;
-		
+
 		if(sample_buffer != NULL) free(sample_buffer);
 		sample_buffer = (int32_t*)malloc(sample_length * sizeof(int32_t) * 2);
 		if(sample_buffer != NULL) {
@@ -652,7 +656,7 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dac_ch);
 	state_fio->StateValue(is_mute);
 	state_fio->StateArray(dac_onoff, sizeof(dac_onoff), 1);
-	state_fio->StateArray(dac_addr_st, sizeof(dac_addr_st), 1);	
+	state_fio->StateArray(dac_addr_st, sizeof(dac_addr_st), 1);
 	state_fio->StateArray(dac_addr, sizeof(dac_addr), 1);
 	state_fio->StateArray(dac_env, sizeof(dac_env), 1);
 	state_fio->StateArray(dac_pan, sizeof(dac_pan), 1);
@@ -666,11 +670,11 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 //	state_fio->StateValue(read_pointer);
 //	int sample_length_old = sample_length;
 //	state_fio->StateValue(sample_length);
-	
+
 //	state_fio->StateValue(mix_factor);
 //	state_fio->StateValue(mix_count);
 	state_fio->StateValue(dac_rate);
-	
+
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
 
 	// ToDo: Save/Load sample_buffer.
@@ -689,7 +693,7 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 		read_pointer = 0;
 		sample_pointer = 0;
 		sample_words = 0;
-		
+
 		if(sample_buffer != NULL) free(sample_buffer);
 		sample_buffer = NULL;
 		if(sample_length > 0) {
