@@ -43,14 +43,15 @@ public:
 	~SCSI() {}
 
 	// common functions
-	void reset();
-	void __FASTCALL write_io8w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t __FASTCALL read_io8w(uint32_t addr, int *wait);
+	virtual void reset() override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	#if 0
-	void __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait);
-	uint32_t __FASTCALL read_io16w(uint32_t addr, int *wait);
+	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io16w(uint32_t addr) override;
 	#endif
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 	// unique functions
 	void set_context_dma(DEVICE* device)
 	{
@@ -72,7 +73,6 @@ public:
 	{
 		cpu_id = val & 0x07;
 	}
-	bool process_state(FILEIO* state_fio, bool loading);
 };
 }
 

@@ -45,10 +45,9 @@ void SCSI::reset()
 //	dma_enabled = false;
 }
 
-void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
+void SCSI::write_io8(uint32_t addr, uint32_t data)
 {
 //	out_debug_log(_T("Write I/O %04X %02X"), addr, data);
-	*wait = 6; // temporally.
 	switch(addr & 0xffff) {
 	case 0x0c30:
 		// data register
@@ -96,10 +95,9 @@ void SCSI::write_io8w(uint32_t addr, uint32_t data, int *wait)
 }
 
 
-uint32_t SCSI::read_io8w(uint32_t addr, int* wait)
+uint32_t SCSI::read_io8(uint32_t addr)
 {
 	uint32_t value = 0;
-	*wait = 6; // Temporally
 	switch(addr & 0xffff) {
 	case 0x0034:
 //		if(machine_id >= 0x0600) { // After UG
@@ -149,13 +147,13 @@ uint32_t SCSI::read_io8w(uint32_t addr, int* wait)
 	return value;
 }
 #if 0
-void SCSI::write_io16w(uint32_t addr, uint32_t data, int *wait)
+void SCSI::write_io16(uint32_t addr, uint32_t data)
 {
-	write_io8w(addr & 0xfffe, data, wait);
+	write_io8(addr & 0xfffe, data);
 }
-uint32_t SCSI::read_io16w(uint32_t addr, int *wait)
+uint32_t SCSI::read_io16(uint32_t addr)
 {
-	return read_io8w(addr & 0xfffe, wait);
+	return read_io8(addr & 0xfffe);
 }
 #endif
 void SCSI::write_signal(int id, uint32_t data, uint32_t mask)
