@@ -1740,19 +1740,23 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		return 0xff;
 	}
 	// ROMs?
-	if(addr < 0x000ca000) { //SPRITE
+	if(addr < 0x000c9000) { // TEXT VRAM (ANK)
 		__LIKELY_IF(d_sprite != NULL) {
 			return d_sprite->read_memory_mapped_io8(addr);
 		}
 		return 0xff;
 	}
 	if(ankcg_enabled) {
-		__LIKELY_IF(d_font != NULL) {
-			return d_font->read_memory_mapped_io8(addr);
+		__LIKELY_IF(addr >= 0x000ca000) { // ANKCG8 and ANKCG16
+			__LIKELY_IF(d_font != NULL) {
+				return d_font->read_memory_mapped_io8(addr);
+			}
 		}
 	} else {
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io8(addr);
+		__LIKELY_IF(addr < 0x000cb000) { // TEXT VRAM (KANJI)
+			__LIKELY_IF(d_sprite != NULL) {
+				return d_sprite->read_memory_mapped_io8(addr);
+			}
 		}
 	}
 	return 0xff;
@@ -1777,19 +1781,23 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io16(uint32_t addr)
 		return w.w;
 	}
 	// ROMs?
-	if(addr < 0x000ca000) { //SPRITE
+	if(addr < 0x000c9000) { // TEXT VRAM (ANK)
 		__LIKELY_IF(d_sprite != NULL) {
 			return d_sprite->read_memory_mapped_io16(addr);
 		}
 		return 0xffff;
 	}
 	if(ankcg_enabled) {
-		__LIKELY_IF(d_font != NULL) {
-			return d_font->read_memory_mapped_io16(addr);
+		__LIKELY_IF(addr >= 0x000ca000) { // ANKCG8 and ANKCG16
+			__LIKELY_IF(d_font != NULL) {
+				return d_font->read_memory_mapped_io16(addr);
+			}
 		}
 	} else {
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io16(addr);
+		__LIKELY_IF(addr < 0x000cb000) { // TEXT VRAM (KANJI)
+			__LIKELY_IF(d_sprite != NULL) {
+				return d_sprite->read_memory_mapped_io16(addr);
+			}
 		}
 	}
 	return 0xffff;
@@ -1851,16 +1859,11 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		return;
 	}
 	// ROMs?
-	if(addr < 0x000ca000) { //SPRITE
+	if(addr < 0x000cb000) { // TEXT VRAM (ANK + KANJI)
 		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_memory_mapped_io8(addr, data);
 		}
 		return;
-	}
-	if(!(ankcg_enabled)) {
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io8(addr, data);
-		}
 	}
 	return;
 }
@@ -1884,16 +1887,11 @@ void TOWNS_MEMORY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 		return;
 	}
 	// ROMs?
-	if(addr < 0x000ca000) { //SPRITE
+	if(addr < 0x000cb000) { // TEXT VRAM (ANK + KANJI)
 		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_memory_mapped_io16(addr, data);
 		}
 		return;
-	}
-	if(!(ankcg_enabled)) {
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io16(addr, data);
-		}
 	}
 	return;
 }
@@ -1919,16 +1917,11 @@ void TOWNS_MEMORY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 		return;
 	}
 	// ROMs?
-	if(addr < 0x000ca000) { //SPRITE
+	if(addr < 0x000cb000) { // TEXT VRAM (ANK + KANJI)
 		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_memory_mapped_io32(addr, data);
 		}
 		return;
-	}
-	if(!(ankcg_enabled)) {
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io32(addr, data);
-		}
 	}
 	return;
 }
