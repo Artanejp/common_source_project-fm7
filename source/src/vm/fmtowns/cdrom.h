@@ -543,7 +543,7 @@ public:
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io16(uint32_t addr) override;
 	/*
-	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t dataoverride;
+	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
 	*/
 	virtual uint32_t __FASTCALL read_dma_io8w(uint32_t addr, int *wait) override;
 	virtual void __FASTCALL write_dma_io8w(uint32_t addr, uint32_t data, int *wait) override;
