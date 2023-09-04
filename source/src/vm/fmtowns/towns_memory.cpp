@@ -1736,7 +1736,8 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		__UNLIKELY_IF(addr >= 0x000cff80) { // I/O
 			return read_fmr_ports8(addr);
 		}
-		return ram_pagec[addr & 0x0000ffff];
+		//return ram_pagec[addr & 0x0000ffff];
+		return 0xff;
 	}
 	// ROMs?
 	if(addr < 0x000ca000) { //SPRITE
@@ -1770,7 +1771,8 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io16(uint32_t addr)
 			w.b.l = read_fmr_ports8(addr);
 			w.b.h = read_fmr_ports8(addr + 1);
 		} else {
-			w.read_2bytes_le_from(&(ram_pagec[addr & 0x0000ffff]));
+			//w.read_2bytes_le_from(&(ram_pagec[addr & 0x0000ffff]));
+			w.w = 0xffff;
 		}
 		return w.w;
 	}
@@ -1808,7 +1810,8 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io32(uint32_t addr)
 			d.b.h2 = read_fmr_ports8(addr + 2);
 			d.b.h3 = read_fmr_ports8(addr + 3);
 		} else {
-			d.read_4bytes_le_from(&(ram_pagec[addr & 0x0000ffff]));
+			//d.read_4bytes_le_from(&(ram_pagec[addr & 0x0000ffff]));
+			d.d = 0xffffffff;
 		}
 		return d.d;
 	}
@@ -1844,7 +1847,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 			write_fmr_ports8(addr, data);
 			return;
 		}
-		ram_pagec[addr & 0x0000ffff] = data;
+		//ram_pagec[addr & 0x0000ffff] = data;
 		return;
 	}
 	// ROMs?
@@ -1877,7 +1880,7 @@ void TOWNS_MEMORY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 			write_fmr_ports8(addr + 1, w.b.h);
 			return;
 		}
-		w.write_2bytes_le_to(&(ram_pagec[addr & 0x0000ffff]));
+		//w.write_2bytes_le_to(&(ram_pagec[addr & 0x0000ffff]));
 		return;
 	}
 	// ROMs?
@@ -1912,7 +1915,7 @@ void TOWNS_MEMORY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 			write_fmr_ports8(addr + 3, d.b.h3);
 			return;
 		}
-		d.write_4bytes_le_to(&(ram_pagec[addr & 0x0000ffff]));
+		//d.write_4bytes_le_to(&(ram_pagec[addr & 0x0000ffff]));
 		return;
 	}
 	// ROMs?
