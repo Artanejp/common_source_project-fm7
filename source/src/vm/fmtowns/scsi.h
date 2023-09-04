@@ -47,8 +47,8 @@ public:
 	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	#if 0
-	virtual void __FASTCALL write_io16w(uint32_t addr, uint32_t data) override;
-	virtual uint32_t __FASTCALL read_io16w(uint32_t addr) override;
+	virtual void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io16(uint32_t addr) override;
 	#endif
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	virtual bool process_state(FILEIO* state_fio, bool loading) override;
