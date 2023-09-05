@@ -108,8 +108,10 @@ void DICTIONARY::write_io8(uint32_t addr, uint32_t data)
 	if(addr == 0x0484) {
 		dict_bank = data & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
-		cmos_dirty = true;
-		dict_ram[((addr - 0x3000) >> 1) & 0x7ff] = (uint8_t)data;
+		__LIKELY_IF((addr & 1) == 0) {
+			cmos_dirty = true;
+			dict_ram[((addr - 0x3000) >> 1) & 0x7ff] = (uint8_t)data;
+		}
 	}
 }
 
@@ -119,7 +121,9 @@ uint32_t DICTIONARY::read_io8(uint32_t addr)
 	if(addr == 0x0484) {
 		data = dict_bank & 0x0f;
 	} else if((addr >= 0x3000) && (addr < 0x4000)) {
-		data = dict_ram[((addr - 0x3000) >> 1) & 0x07ff];
+		__LIKELY_IF((addr & 1) == 0) {
+			data = dict_ram[((addr - 0x3000) >> 1) & 0x07ff];
+		}
 	}
 	return data;
 }
