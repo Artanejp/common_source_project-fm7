@@ -113,10 +113,7 @@ protected:
 	bool dma_is_vram;
 
 	// RAM
-	uint8_t ram_page0[0xc0000];       // 0x00000000 - 0x000bffff : RAM
-	uint8_t ram_pagec[0x40000];       // 0x000c0000 - 0x000fffff : URA? RAM
-
-	uint8_t *extra_ram;                  // 0x00100000 - (0x3fffffff) : Size is defined by extram_size;
+	uint8_t *extra_ram;                  // 0x00000000 - (0x3fffffff) : Size is defined by extram_size + 0x00100000;
 	uint32_t extram_size;
 	uint32_t cpu_clock_val;
 	uint32_t vram_wait_val;
@@ -278,30 +275,31 @@ public:
 	{
 		uint32_t limit = 5;
 		uint32_t minimum = 2;
-		switch(machine_id & 0xff00) {
-		case 0x0000: // ???
-		case 0x0100: // Towns Model 1/2
+		switch((machine_id & 0xff00) >> 8) {
+		case 0x00:
+		case 0x01: // Towns 1/2 : Not Supported.
 			minimum = 1;
 			break;
-		case 0x0200: // TOWNS 2F/2H
-		case 0x0400: // TOWNS 10F/10H/20F/20H
-			limit = 8; // 2MB + 2MB x 3
-			break;
-		case 0x0300: // TOWNS2 UX
-		case 0x0600: // TOWNS2 UG
+		case 0x03: // TOWNS2 UX
+		case 0x06: // TOWNS2 UG
+			minimum = 1;
 			limit = 9; // 2MB + 4MB x 2? - 1MB
 			break;
-		case 0x0500: // TOWNS2 CX
-		case 0x0800: // TOWNS2 HG
+		case 0x02: // TOWNS 2F/2H
+		case 0x04: // TOWNS 10F/10H/20F/20H
+			minimum = 1;
+			limit = 7; // 2MB + 2MB x 3
+			break;
+		case 0x05: // TOWNS II CX
+		case 0x08: // TOWNS II HG
 			limit = 15; // 8MB x 2 - 1MB?
 			break;
-		case 0x0700: // TOWNS2 HR
-		case 0x0900: // TOWNS2 UR
-		case 0x0B00: // TOWNS2 MA
-		case 0x0C00: // TOWNS2 MX
-		case 0x0D00: // TOWNS2 ME
-		case 0x0F00: // TOWNS2 MF/Fresh
+		case 0x07: // Towns II HR
+		case 0x09: // Towns II UR
 			limit = 31; // 16MB x 2 - 1MB?
+			break;
+		default:   // After MA/MX/ME/MF, Fresh
+			limit = 127; // 128MB - 1MB?
 			break;
 		}
 		if(megabytes > limit) megabytes = limit;
