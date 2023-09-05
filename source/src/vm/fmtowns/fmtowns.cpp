@@ -549,9 +549,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw (0x0010, pic, I8259_ADDR_CHIP1 | 0);
 	io->set_iomap_alias_rw (0x0012, pic, I8259_ADDR_CHIP1 | 1);
 
-	io->set_iomap_range_rw (0x0020, 0x0025, memory);
-	io->set_iomap_range_rw (0x0026, 0x0027, timer);  // Freerun counter
-	io->set_iomap_single_rw(0x0028, memory);
+	io->set_iomap_single_rw(0x0020, memory); // RESET REASON / POWER CONTROL (by software)
+	io->set_iomap_single_rw(0x0022, memory); // POWER CONTROL
+	io->set_iomap_single_rw(0x0024, memory); // MISC3 / DMA WRAP (AFTER MA/MX/ME)
+	io->set_iomap_single_r (0x0025, memory); // MISC4
+	io->set_iomap_range_r  (0x0026, 0x0027, timer);  // Freerun counter
+	io->set_iomap_single_rw(0x0028, memory);         // NMI MASK
 
 	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
 	io->set_iomap_single_rw(0x0032, memory);	// serial rom (routed from memory)
@@ -567,9 +570,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x0056, pit1, 3);
 
 	io->set_iomap_single_rw(0x0060, timer); // Beep and interrupts register
-	io->set_iomap_single_rw(0x0068, timer); // Interval timer register2 (after Towns 10F).
-	io->set_iomap_single_rw(0x006a, timer); // Interval timer register2 (after Towns 10F).
-	io->set_iomap_single_rw(0x006b, timer); // Interval timer register2 (after Towns 10F).
+	io->set_iomap_single_rw(0x0068, timer); // Interval timer register2 : CONTROL (after Towns 10F).
+	io->set_iomap_range_rw (0x006a, 0x006b, timer); // Interval timer register2 : DATA (after Towns 10F).
 	io->set_iomap_single_rw(0x006c, timer); // 1uS wait register (after Towns 10F).
 
 	io->set_iomap_single_rw(0x0070, timer); // RTC DATA
@@ -578,8 +580,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw (0x00a0, 0x00af, dma);
 	io->set_iomap_range_rw (0x00b0, 0x00bf, extra_dma);
 
-	io->set_iomap_single_rw(0x00c0, memory);   // CACHE CONTROLLER
-	io->set_iomap_single_rw(0x00c2, memory);   // CACHE CONTROLLER
+	io->set_iomap_single_rw(0x00c0, memory);   // CACHE CONTROLLER   (after HR, i486)
+	io->set_iomap_single_rw(0x00c2, memory);   // CACHE DIAGNNOSTICS (after HR, i486)
 
 	io->set_iomap_alias_rw (0x0200, fdc, 0);  // STATUS/COMMAND
 	io->set_iomap_alias_rw (0x0202, fdc, 1);  // TRACK
@@ -590,33 +592,50 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0x020d, floppy);  // FDDVEXT (after HG/HR).
 	io->set_iomap_single_rw(0x020e, floppy);  // Towns drive SW
 
-	io->set_iomap_range_rw (0x0400, 0x0404, memory); // System Status
+	io->set_iomap_single_r (0x0400, memory); // RESOLUTION
+	io->set_iomap_single_rw(0x0402, memory); // RESERVED (??)
+	io->set_iomap_single_rw(0x0404, memory); // SYSTEM STATUS
 //	io->set_iomap_range_rw (0x0406, 0x043f, memory); // Reserved
 
-	io->set_iomap_range_rw(0x0440, 0x0443, crtc); // CRTC
-	io->set_iomap_range_rw(0x0448, 0x044f, crtc); // VIDEO OUT (CRTC)
+	io->set_iomap_single_rw(0x0440, crtc); // CRTC ADDRESS INDEX
+	io->set_iomap_range_rw (0x0442, 0x0443, crtc); // CRTC DATA
+	io->set_iomap_single_rw(0x0448, crtc); // VIDEO OUT ADDRESS INDEX
+	io->set_iomap_single_rw(0x044a, crtc); // VIDEO OUT DATA
+	io->set_iomap_single_r (0x044c, crtc); // DIGITAL PALLETTE STATUS, SPRITE STATUS
 
-	io->set_iomap_range_rw(0x0450, 0x0452, sprite); // SPRITE
+
+	io->set_iomap_single_rw(0x0450, sprite); // SPRITE
+	io->set_iomap_single_rw(0x0452, sprite); // SPRITE
 
 	io->set_iomap_single_rw(0x0458, vram);         // VRAM ACCESS CONTROLLER (ADDRESS)
 	io->set_iomap_range_rw (0x045a, 0x045b, vram); // VRAM ACCESS CONTROLLER (DATA)
 
+	//io->set_iomap_single_r (0x0470, crtc); // HIGH RESOLUTION (after MX)
+	//io->set_iomap_single_r (0x0471, vram); // VRAM CAPACITY  (after MX, by MBytes)
+	//io->set_iomap_range_rw (0x0472, 0x0473, crtc); // VIDEO OUT REGS ADDRESS (after MX, by MBytes)
+	//io->set_iomap_range_rw (0x0474, 0x0477, crtc); // VIDEO OUT REGS DATA (after MX, by MBytes)
+
 	io->set_iomap_single_rw(0x0480, memory); //  MEMORY REGISTER
-	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary
+	io->set_iomap_single_rw(0x0484, dictionary); // Dictionary BANK
 
 	io->set_iomap_alias_r(0x48a, iccard1, 0); //
 	//io->set_iomap_alias_rw(0x490, memory_card); // After Towns2
 	//io->set_iomap_alias_rw(0x491, memory_card); // After Towns2
 
-	io->set_iomap_range_rw(0x04c0, 0x04c6, cdrom); // CDROM
-	io->set_iomap_range_r (0x04cc, 0x04cd, cdrom); // CDROM
+	//io->set_iomap_single_r(0x4b0, cdrom); // CDROM functions (after MX)
+	io->set_iomap_single_rw(0x04c0, cdrom); // CDROM: MASTER STATUS/MASTER CONTROL
+	io->set_iomap_single_rw(0x04c2, cdrom); // CDROM: STATUS(FIFO) / COMMAND
+	io->set_iomap_single_rw(0x04c4, cdrom); // CDROM: DATA (BUFFER~ / PARAMETER (FIFO)
+	io->set_iomap_single_w (0x04c6, cdrom); // CDROM TRANSFER CONTROL
+	io->set_iomap_single_rw(0x04c8, cdrom); // CDROM CACHE CONTROL (after HR)
+	io->set_iomap_range_r  (0x04cc, 0x04cd, cdrom); // CDROM SUBCODE DATA
 	// PAD, Sound
 
-	io->set_iomap_single_r(0x04d0, joystick); // Pad1
-	io->set_iomap_single_r(0x04d2, joystick); // Pad 2
-	io->set_iomap_single_w(0x04d6, joystick); // Pad out
-
+	io->set_iomap_single_r (0x04d0, joystick); // Pad1
+	io->set_iomap_single_r (0x04d2, joystick); // Pad 2
 	io->set_iomap_single_rw(0x04d5, adpcm); // mute
+	io->set_iomap_single_w (0x04d6, joystick); // Pad out
+
 	// OPN2(YM2612)
 	io->set_iomap_alias_rw(0x04d8, opn2, 0); // STATUS(R)/Addrreg 0(W)
 	io->set_iomap_alias_w (0x04da, opn2, 1);  // Datareg 0(W)
@@ -629,8 +648,26 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_alias_rw(0x04e3, e_volumes[1], 1);
 
 	// ADPCM
-	io->set_iomap_range_rw(0x04e7, 0x04ec, adpcm); // A/D SAMPLING DATA REG
-	io->set_iomap_range_rw(0x04f0, 0x04f8, rf5c68); // A/D SAMPLING DATA REG
+	io->set_iomap_single_r (0x04e7, adpcm); // A/D SAMPLING DATA REG
+	io->set_iomap_single_rw(0x04e8, adpcm); // A/D SAMPLING FLAG
+	io->set_iomap_single_rw(0x04e9, adpcm); // OPN2/PCM INTERRUPT (INT13) REGISTER
+	io->set_iomap_single_rw(0x04ea, adpcm); // PCM INTERRUPT MASK
+	io->set_iomap_single_r (0x04eb, adpcm); // PCM INTERRUPT STATUS
+	io->set_iomap_single_w (0x04ec, adpcm); // PCM LED/MUTE
+
+	io->set_iomap_range_w (0x04f0, 0x04f8, rf5c68); // PCM CONTROL REGS (WO?)
+
+	//io->set_iomap_single_rw(0x510, newpcm); // PCM BANK (after MX)
+	//io->set_iomap_single_rw(0x511, newpcm); // PCM DMA STATUS(after MX)
+	//io->set_iomap_range_rw (0x512, 0x0513, newpcm); // PCM DMA COUNTER(after MX)
+	//io->set_iomap_range_rw (0x514, 0x0517, newpcm); // PCM DMA ADDRESS(after MX)
+	//io->set_iomap_single_rw(0x518, newpcm); // PCM CLOCK (after MX)
+	//io->set_iomap_single_rw(0x519, newpcm); // PCM MODE (after MX)
+	//io->set_iomap_single_rw(0x51a, newpcm); // PCM SYSTEM CONTROL (after MX)
+	//io->set_iomap_single_rw(0x51b, newpcm); // PCM BUFFER STATUS/CONTROL (after MX)
+	//io->set_iomap_single_rw(0x51c, newpcm); // PCM REC/PLAY (after MX)
+	//io->set_iomap_single_rw(0x51d, newpcm); // PCM PEAK MONITOR / TRIGGER (after MX)
+	//io->set_iomap_range_rw (0x51e, 0x051f, newpcm); // PCM LEVEL / SOFTWARE DATA (after MX)
 
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
@@ -643,11 +680,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0x05e8, memory); // RAM capacity register.(later Towns1H/2H/1F/2F).
 	io->set_iomap_single_rw(0x05ec, memory); // RAM Wait register , ofcially after Towns2, but exists after Towns1H.
 	io->set_iomap_single_r (0x05ed, memory); // Maximum clock register (After HR/HG).
-	io->set_iomap_single_rw(0x05ee, vram);   // VRAM CACHE CONTROLLER
+	io->set_iomap_single_rw(0x05ee, vram);   // VRAM CACHE CONTROLLER (After HR, i486)
 
 	io->set_iomap_single_rw(0x0600, keyboard);
 	io->set_iomap_single_rw(0x0602, keyboard);
 	io->set_iomap_single_rw(0x0604, keyboard);
+	//io->set_iomap_single_r (0x606, keyboard); // BUFFER FULL (for TUNER)
 
 	//io->set_iomap_single_rw(0x0800, printer);
 	//io->set_iomap_single_rw(0x0802, printer);
@@ -659,31 +697,38 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	io->set_iomap_single_r (0x0a06, serial);
 //	io->set_iomap_single_w (0x0a08, serial);
 //	io->set_iomap_single_rw(0x0a0a, modem);
+//	io->set_iomap_single_rw(0x0a0c, uart_fifo); // USART HAVE FIFO (after MA)
+//	io->set_iomap_single_rw(0x0a0d, uart_fifo); // USART FIFO STATUS (after MA)
+//	io->set_iomap_single_rw(0x0a0e, uart_fifo); // USART FIFO STATUS (after MA)
 
 	io->set_iomap_single_rw(0x0c30, scsi);
 	io->set_iomap_single_rw(0x0c32, scsi);
 	io->set_iomap_single_r (0x0c34, scsi);
 
-	io->set_iomap_range_rw (0x3000, 0x3fff, dictionary); // CMOS
+	// ToDo: Implement debugging I/Os to 2000h - 2FFFh.
 
-	io->set_iomap_range_rw (0xfd90, 0xfda0, crtc);	// Palette and CRTC
-	io->set_iomap_single_r (0xfda2, crtc);	// CRTC
-	io->set_iomap_single_rw(0xfda4, memory);	// memory
+	for(uint32_t addr = 0x3000; addr < 0x4000; addr += 2) {
+		io->set_iomap_single_rw (addr, dictionary); // CMOS
+	}
+	io->set_iomap_range_rw (0xfd90, 0xfd91, crtc);	// PALETTE INDEX
+	io->set_iomap_range_rw (0xfd92, 0xfd93, crtc);	// PALETTE DATA BLUE
+	io->set_iomap_range_rw (0xfd94, 0xfd95, crtc);	// PALETTE DATA RED
+	io->set_iomap_single_rw(0xfd96, crtc);	// PALETTE DATA GREEN
+	io->set_iomap_range_rw (0xfd98, 0xfd9f, crtc);	// DIGITAL PALETTE REGISTERS(EMULATED)
+
+	io->set_iomap_single_rw(0xfda0, crtc);	// CRTC: VSYNC, HSYNC / OUTPUT CONTROL
+	io->set_iomap_single_r (0xfda2, crtc);	// CRTC OUT (after UG)
+	io->set_iomap_single_rw(0xfda4, memory);	// CRTC: READ COMPATIBLE (after UG)
 
 	io->set_iomap_range_rw (0xff80, 0xff83, planevram);	// MMIO
 	io->set_iomap_single_r (0xff84, planevram);	// MMIO
-	io->set_iomap_single_rw(0xff86, planevram);	// MMIO
+	io->set_iomap_single_r (0xff86, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff88, memory);	// MMIO
-	//io->set_iomap_range_rw (0xff94, 0xff97, fontrom);	// MMIO
-	//io->set_iomap_range_rw (0xff98, 0xff99, memory);	// MMIO
-	//io->set_iomap_range_rw (0xff9c, 0xff9f, memory);	// MMIO
 
 	io->set_iomap_range_rw (0xff94, 0xff99, memory);	// MMIO
 	io->set_iomap_range_r  (0xff9c, 0xff9d, memory);	// MMIO
 	io->set_iomap_single_rw(0xff9e, memory);	// MMIO
 	io->set_iomap_single_rw(0xffa0, planevram);	// MMIO
-
-
 
 	// Vram allocation may be before initialize().
 	// initialize all devices
@@ -693,16 +738,30 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// ToDo : Use config framework
 	int exram_size = config.current_ram_size;
 	if(exram_size < 1) {
-		if(machine_id < 0x0200) { // Model1 - 2H
-			exram_size = 6;
-		} else if(machine_id == 0x0500) { // CX
-			exram_size = 15;
-		} else if(machine_id < 0x0700) {  // 10F,20H
-			exram_size = 8;
-		} else if(machine_id == 0x0800) { // HG
-			exram_size = 15;
-		} else {
-			exram_size = 31;
+		switch((machine_id & 0xff00) >> 8) {
+		case 0x00:
+		case 0x01: // Towns 1/2 : Not Supported.
+			exram_size = 2; // UP TO 5MB.
+			break;
+		case 0x03: // TOWNS2 UX
+		case 0x06: // TOWNS2 UG
+			exram_size = 4; // UP TO 9MB.
+			break;
+		case 0x02: // TOWNS 2F/2H
+		case 0x04: // TOWNS 10F/10H/20F/20H
+			exram_size = 6; // MAYBE UP TO 7MB.
+			break;
+		case 0x05: // TOWNS II CX
+		case 0x08: // TOWNS II HG
+			exram_size = 8; // UP TO 15MB.
+			break;
+		case 0x07: // Towns II HR
+		case 0x09: // Towns II UR
+			exram_size = 24; // UP TO 31MB.
+			break;
+		default:
+			exram_size = 31; // UP TO 127MB.
+			break;
 		}
 	}
 	if(exram_size < MIN_RAM_SIZE) {
