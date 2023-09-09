@@ -156,6 +156,245 @@ protected:
 	void __FASTCALL set_memory_devices_map_wait(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
 	void __FASTCALL unset_memory_devices_map(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
 
+	constexpr bool check_device_boundary(memory_device_map_t *_map, uint32_t offset, uint32_t mapptr, const uint8_t bytewidth)
+	{
+		__UNLIKELY_IF((offset + bytewidth) > memory_map_grain()) {
+			__LIKELY_IF(mapptr < memory_map_size()) {
+				__LIKELY_IF((_map[mapptr].device_ptr == _map[mapptr + 1].device_ptr) && (_map[mapptr].mem_ptr == _map[mapptr + 1].mem_ptr)) {
+					return false;
+				}
+				return true;
+			} else {
+				return true;
+			}
+		}
+		return false;
+	}
+	constexpr uint32_t read_8bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
+	{
+		uint8_t val = 0xff;
+		int waitval;
+		uint32_t base = _map[mapptr].base_offset;
+		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
+			uint8_t* ptr = _map[mapptr].mem_ptr;
+			__UNLIKELY_IF(base == UINT32_MAX) {
+				base = 0;
+			}
+			val = ptr[offset + base];
+		} else if(_map[mapptr].device_ptr != NULL) {
+			DEVICE* dev = _map[mapptr].device_ptr;
+			__LIKELY_IF(base == UINT32_MAX) {
+				offset = addr;
+			} else {
+				offset += base;
+			}
+			const bool is_this = (dev == this);
+			if((is_dma) && !(is_this)) {
+				val = dev->read_dma_data8(offset);
+			} else {
+				val = dev->read_memory_mapped_io8(offset);
+			}
+		}
+		__LIKELY_IF(wait != NULL) {
+			waitval = _map[mapptr].waitval;
+			__LIKELY_IF(waitval < 0) {
+				waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+			}
+			*wait = waitval;
+		}
+		return val;
+	}
+	constexpr uint32_t read_16bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
+	{
+		uint16_t val = 0xffff;
+		int waitval;
+		uint32_t base = _map[mapptr].base_offset;
+		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
+			uint8_t* ptr = _map[mapptr].mem_ptr;
+			__UNLIKELY_IF(base == UINT32_MAX) {
+				base = 0;
+			}
+			ptr = &(ptr[offset + base]);
+			pair16_t w;
+			w.read_2bytes_le_from(ptr);
+			val = w.w;
+		} else if(_map[mapptr].device_ptr != NULL) {
+			DEVICE* dev = _map[mapptr].device_ptr;
+			__LIKELY_IF(base == UINT32_MAX) {
+				offset = addr;
+			} else {
+				offset += base;
+			}
+			const bool is_this = (dev == this);
+			if((is_dma) && !(is_this)) {
+				val = dev->read_dma_data16(offset);
+			} else {
+				val = dev->read_memory_mapped_io16(offset);
+			}
+		}
+		__LIKELY_IF(wait != NULL) {
+			waitval = _map[mapptr].waitval;
+			__LIKELY_IF(waitval < 0) {
+				waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+			}
+			//__LIKELY_IF((offset & 1) == 0) {
+			*wait = waitval;
+			//} else {
+			//	*wait = waitval * 2;
+			//}
+		}
+		return val;
+	}
+	constexpr uint32_t read_32bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
+	{
+		uint32_t val = 0xffffffff;
+		uint32_t base = _map[mapptr].base_offset;
+		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
+			uint8_t* ptr = _map[mapptr].mem_ptr;
+			__UNLIKELY_IF(base == UINT32_MAX) {
+				base = 0;
+			}
+			ptr = &(ptr[offset + base]);
+			pair32_t d;
+			d.read_4bytes_le_from(ptr);
+			val = d.d;
+		} else if(_map[mapptr].device_ptr != NULL) {
+			DEVICE* dev = _map[mapptr].device_ptr;
+			__LIKELY_IF(base == UINT32_MAX) {
+				offset = addr;
+			} else {
+				offset += base;
+			}
+			const bool is_this = (dev == this);
+			if((is_dma) && !(is_this)) {
+				val = dev->read_dma_data32(offset);
+			} else {
+				val = dev->read_memory_mapped_io32(offset);
+			}
+		}
+		__LIKELY_IF(wait != NULL) {
+			int waitval = _map[mapptr].waitval;
+			__LIKELY_IF(waitval < 0) {
+				waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+			}
+			//__LIKELY_IF((offset & 1) == 0) {
+			*wait = waitval;
+			//} else {
+			//	*wait = waitval * 2;
+			//}
+		}
+		return val;
+	}
+	constexpr void write_8bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
+	{
+		int waitval;
+		uint32_t base = _map[mapptr].base_offset;
+		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
+			uint8_t* ptr = _map[mapptr].mem_ptr;
+			__UNLIKELY_IF(base == UINT32_MAX) {
+				base = 0;
+			}
+			ptr[offset + base] = data;
+		} else if(_map[mapptr].device_ptr != NULL) {
+			DEVICE* dev = _map[mapptr].device_ptr;
+			__LIKELY_IF(base == UINT32_MAX) {
+				offset = addr;
+			} else {
+				offset += base;
+			}
+			const bool is_this = (dev == this);
+			if((is_dma) && !(is_this)) {
+				dev->write_dma_data8(offset, data);
+			} else {
+				dev->write_memory_mapped_io8(offset, data);
+			}
+		}
+		__LIKELY_IF(wait != NULL) {
+			waitval = _map[mapptr].waitval;
+			__LIKELY_IF(waitval < 0) {
+				waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+			}
+			*wait = waitval;
+		}
+	}
+
+	constexpr void write_16bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
+	{
+		int waitval;
+		uint32_t base = _map[mapptr].base_offset;
+		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
+			uint8_t* ptr = _map[mapptr].mem_ptr;
+			__UNLIKELY_IF(base == UINT32_MAX) {
+				base = 0;
+			}
+			ptr = &(ptr[offset + base]);
+			pair16_t w;
+			w.w = data;
+			w.write_2bytes_le_to(ptr);
+		} else if(_map[mapptr].device_ptr != NULL) {
+			DEVICE* dev = _map[mapptr].device_ptr;
+			__LIKELY_IF(base == UINT32_MAX) {
+				offset = addr;
+			} else {
+				offset += base;
+			}
+			const bool is_this = (dev == this);
+			if((is_dma) && !(is_this)) {
+				dev->write_dma_data16(offset, data);
+			} else {
+				dev->write_memory_mapped_io16(offset, data);
+			}
+		}
+		__LIKELY_IF(wait != NULL) {
+			waitval = _map[mapptr].waitval;
+			__LIKELY_IF(waitval < 0) {
+				waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+			}
+			//__LIKELY_IF((offset & 1) == 0) {
+			*wait = waitval;
+			//} else {
+			//	*wait = waitval * 2;
+			//}
+		}
+	}
+	constexpr void write_32bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
+	{
+		uint32_t base = _map[mapptr].base_offset;
+		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
+			uint8_t* ptr = _map[mapptr].mem_ptr;
+			__UNLIKELY_IF(base == UINT32_MAX) {
+				base = 0;
+			}
+			ptr = &(ptr[offset + base]);
+			pair32_t d;
+			d.d = data;
+			d.write_4bytes_le_to(ptr);
+		} else if(_map[mapptr].device_ptr != NULL) {
+			DEVICE* dev = _map[mapptr].device_ptr;
+			__LIKELY_IF(base == UINT32_MAX) {
+				offset = addr;
+			} else {
+				offset += base;
+			}
+			const bool is_this = (dev == this);
+			if((is_dma) && !(is_this)) {
+				dev->write_dma_data32(offset, data);
+			} else {
+				dev->write_memory_mapped_io32(offset, data);
+			}
+		}
+		__LIKELY_IF(wait != NULL) {
+			int waitval = _map[mapptr].waitval;
+			__LIKELY_IF(waitval < 0) {
+				waitval = (waitval == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+			}
+			//__LIKELY_IF((offset & 1) == 0) {
+			*wait = waitval;
+			//} else {
+			//	*wait = waitval * 2;
+			//}
+		}
+	}
 	inline bool is_faster_wait()
 	{
 		return ((mem_wait_val == 0) && (vram_wait_val < 3)) ? true : false;
