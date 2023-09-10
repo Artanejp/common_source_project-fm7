@@ -70,9 +70,16 @@ void DICTIONARY::reset()
 	}
 }
 
+uint32_t DICTIONARY::read_dma_data8w(uint32_t addr, int* wait)
+{
+	uint32_t val = read_memory_mapped_io8(addr); // OK?
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // Discard WAIT VALUE(s) for DMA transfer.
+	}
+	return val;
+}
 uint32_t DICTIONARY::read_memory_mapped_io8(uint32_t addr)
 {
-	uint8_t n_data = 0xff;
 	// 0xd0000 - 0xdffff : primary  is VRAM, secondary is DICTIONARY.
 	if((addr < 0x000da000) && (addr >= 0x000d0000)) {
 		if(addr < 0xd8000) {
@@ -80,24 +87,35 @@ uint32_t DICTIONARY::read_memory_mapped_io8(uint32_t addr)
 		} else {
 			return dict_ram[addr & 0x1fff];
 		}
-	} else if((addr >= 0xc2080000) && (addr < 0xc2100000)) {
-		n_data = dict_rom[addr & 0x7ffff];
-	} else if((addr >= 0xc2140000) && (addr < 0xc2142000)) {
-		n_data = dict_ram[addr & 0x1fff];
 	}
-	return n_data;
+	if(addr >= 0xc2080000) {
+		__LIKELY_IF(addr < 0xc2100000) {
+			return dict_rom[addr & 0x7ffff];
+		}
+		__LIKELY_IF((addr >= 0xc2140000) && (addr < 0xc2142000)) {
+			dict_ram[addr & 0x1fff];
+		}
+	}
+	return 0xff;
+}
+
+void DICTIONARY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_memory_mapped_io8(addr, data); // OK?
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // Discard WAIT VALUE(s) for DMA transfer.
+	}
 }
 
 void DICTIONARY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	if((addr < 0x000da000) && (addr >= 0x000d8000)) {
-		cmos_dirty = true;
-		dict_ram[addr & 0x1fff] = data;
-		return;
-	} else if((addr >= 0xc2140000) && (addr < 0xc2142000)) {
-		cmos_dirty = true;
-		dict_ram[addr & 0x1fff] = data;
-		return;
+	uint32_t addr2 = addr & 0xffff8000;
+	__LIKELY_IF((addr2 == 0x000d8000) || (addr2 == 0xc2140000)) {
+		__LIKELY_IF((addr & 0x7fff) < 0x2000) {
+			cmos_dirty = true;
+			// ToDo: FAST/SLOW hacking.
+			dict_ram[addr & 0x1fff] = data;
+		}
 	}
 }
 

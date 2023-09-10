@@ -49,6 +49,8 @@ public:
 	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
 	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
 
+	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
