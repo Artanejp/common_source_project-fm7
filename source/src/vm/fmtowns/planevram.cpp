@@ -203,6 +203,23 @@ __DECL_VECTORIZED_LOOP
 	d_vram->write_memory_mapped_io32(x_addr + addr, tmp_r1.d);
 }
 
+uint32_t PLANEVRAM::read_dma_data8w(uint32_t addr, int* wait)
+{
+	uint32_t val = read_memory_mapped_io8(addr); // OK?
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // Discard WAIT VALUE(s) for DMA transfer.
+	}
+	return val;
+}
+
+void PLANEVRAM::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_memory_mapped_io8(addr, data); // OK?
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // Discard WAIT VALUE(s) for DMA transfer.
+	}
+}
+
 #define STATE_VERSION	2
 
 bool PLANEVRAM::process_state(FILEIO* state_fio, bool loading)

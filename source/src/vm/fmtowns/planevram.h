@@ -13,7 +13,7 @@ protected:
 	DEVICE* d_crtc;
 	DEVICE* d_sprite;
 	TOWNS_VRAM* d_vram;
-	
+
 	uint8_t mix_reg;             // MMIO 000CH:FF80H
 	uint8_t r50_readplane;       // MMIO 000CH:FF81H : BIT 7 and 6.
 	uint8_t r50_ramsel;          // MMIO 000CH:FF81H : BIT 3 to 0.
@@ -27,16 +27,18 @@ public:
 		d_vram = NULL;
 	}
 
-	void initialize();
-	void reset();
-	
-	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	void initialize() override;
+	void reset() override;
 
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	virtual void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
 	void set_context_crtc(DEVICE* dev)
