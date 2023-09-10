@@ -182,11 +182,8 @@ bool FONT_ROMS::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-//	state_fio->StateValue(dma_is_vram);
 	state_fio->StateValue(kanji_code);
 	state_fio->StateValue(kanji_address);
-
-//	state_fio->StateArray(ram, sizeof(ram), 1);
 	return true;
 }
 }
