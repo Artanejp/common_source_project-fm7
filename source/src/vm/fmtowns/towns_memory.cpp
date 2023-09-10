@@ -87,10 +87,10 @@ void TOWNS_MEMORY::initialize()
 	// REAL IS C2140000h - C2141FFFh, but grain may be 8000h bytes.
 	set_region_device_rw(0xc2140000, 0xc2140000 + memory_map_grain() - 1, d_dictionary, NOT_NEED_TO_OFFSET);
 	if(d_font_20pix != NULL) {
-		set_region_device_r (0xc2180000, 0xc21fffff, d_font_20pix, NOT_NEED_TO_OFFSET);
+		set_region_device_r (0xc2180000, 0xc21fffff, d_font_20pix, 0);
 	}
 	// REAL IS C2200000h - C2200FFFh, but grain may be 8000h bytes.
-	set_region_device_rw(0xc2200000, 0xc2200000 + memory_map_grain() - 1, d_pcm, NOT_NEED_TO_OFFSET);
+	set_region_device_rw(0xc2200000, 0xc2200000 + memory_map_grain() - 1, d_pcm, 0);
 	set_region_device_r (0xfffc0000, 0xffffffff, d_sysrom, 0);
 	// Another devices are blank
 

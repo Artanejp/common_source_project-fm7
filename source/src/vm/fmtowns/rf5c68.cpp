@@ -13,23 +13,7 @@
 void RF5C68::initialize()
 {
 	// DAC
-	memset(wave_memory, 0x00, sizeof(wave_memory));
-	dac_bank = 0;
-	dac_ch = 0;
-	for(int i = 0; i < 8; i++) {
-		dac_addr_st[i].d = 0x00;
-		dac_env[i] = 0x0000080;
-		dac_pan[(i << 1) + 0] = 0x000000f;
-		dac_pan[(i << 1) + 1] = 0x000000f;
-		dac_ls[i].d = 0x0000;
-		dac_fd[i].d = 0x0000;
-		dac_onoff[i] = false;
-		dac_addr[i] = 0x00000000;
-		dac_force_load[i] = false;
-	}
-	dac_bank = 0;
-	dac_ch = 0;
-	sample_buffer = NULL;
+//	memset(wave_memory, 0xff, sizeof(wave_memory));
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (RICOH RF5C68)"));
 		d_debugger->set_context_mem(this);
@@ -46,16 +30,17 @@ void RF5C68::release()
 void RF5C68::reset()
 {
 	is_mute = true; // OK?
+	memset(wave_memory, 0xff, sizeof(wave_memory));
 	for(int i = 0; i < 8; i++) {
 		dac_addr_st[i].d = 0x00;
-		dac_env[i] = 0x0000080;
-		dac_pan[(i << 1) + 0] = 0x0000008;
-		dac_pan[(i << 1) + 1] = 0x0000008;
+		dac_env[i] = 0x00000ff;
+		dac_pan[(i << 1) + 0] = 0x0000000;
+		dac_pan[(i << 1) + 1] = 0x0000000;
 		dac_ls[i].d = 0x0000;
 		dac_fd[i].d = 0x0000;
 		dac_onoff[i] = false;
 		dac_addr[i] = 0x00000000;
-		dac_force_load[i] = false;
+		dac_force_load[i] = true;
 	}
 	for(int i = 0; i < 16; i++) {
 		dac_tmpval[i] = 0x00000000;
@@ -293,6 +278,7 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 		dac_addr_st[dac_ch].d = 0;
 		dac_addr_st[dac_ch].b.h = data & 0xff;
 		dac_addr[dac_ch] = (uint32_t)(dac_addr_st[dac_ch].w.l) << 11;
+		dac_force_load[dac_ch] = false;
 //		out_debug_log(_T("DAC REG 06 (ADDR STEP HIGH) CH=%d RAW=%02X"),
 //					  dac_ch, data);
 		break;
@@ -329,8 +315,9 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 				} else {
 					dac_onoff[i] = false;
 				}
-				if(!(onoff) && (dac_onoff[i])) { // Force reload
+				if((!(onoff) && (dac_onoff[i])) || (dac_force_load[i])) { // Force reload
 					dac_addr[i] = (uint32_t)(dac_addr_st[i].w.l) << 11;
+					dac_force_load[i] = false;
 				}
 				mask <<= 1;
 			}
@@ -351,7 +338,7 @@ uint32_t RF5C68::read_io8(uint32_t addr)
 // Read PCM memory
 uint32_t RF5C68::read_memory_mapped_io8(uint32_t addr)
 {
-	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return 0xff; // This is workaround.
+	__UNLIKELY_IF(addr >= 0x1000) return 0xff; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		return d_debugger->read_via_debugger_data8(addr);
@@ -366,7 +353,7 @@ uint32_t RF5C68::read_memory_mapped_io8(uint32_t addr)
 
 uint32_t RF5C68::read_memory_mapped_io16(uint32_t addr)
 {
-	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return 0xffff; // This is workaround.
+	__UNLIKELY_IF(addr >= 0x1000) return 0xffff; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		return d_debugger->read_via_debugger_data16(addr);
@@ -381,7 +368,7 @@ uint32_t RF5C68::read_memory_mapped_io16(uint32_t addr)
 
 void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return; // This is workaround.
+	__UNLIKELY_IF(addr >= 0x1000) return; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	// if(dac_on) don't write <- Is correct?
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
@@ -396,7 +383,7 @@ void RF5C68::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 
 void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
-	__UNLIKELY_IF((addr & 0xffff) >= 0x1000) return; // This is workaround.
+	__UNLIKELY_IF(addr >= 0x1000) return; // This is workaround.
 	addr = (addr & 0xfff) | dac_bank;
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
 		d_debugger->write_via_debugger_data16(addr, data);
@@ -405,6 +392,48 @@ void RF5C68::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 			write_via_debugger_data16(addr, data);
 //			return;
 //		}
+	}
+}
+
+uint32_t RF5C68::read_dma_data8w(uint32_t addr, int* wait)
+{
+	__UNLIKELY_IF(addr >= 0x1000) return 0xff; // This is workaround.
+	addr = (addr & 0xfff) | dac_bank;
+	uint32_t val = read_via_debugger_data8(addr);
+	__LIKELY_IF(wait != NULL) { // Normally Ignore DMA wait.
+		*wait = 0;
+	}
+	return val;
+}
+
+uint32_t RF5C68::read_dma_data16w(uint32_t addr, int* wait)
+{
+	__UNLIKELY_IF(addr >= 0x1000) return 0xffff; // This is workaround.
+	addr = (addr & 0xfff) | dac_bank;
+	uint32_t val = read_via_debugger_data16(addr);
+	__LIKELY_IF(wait != NULL) { // Normally Ignore DMA wait.
+		*wait = 0;
+	}
+	return val;
+}
+
+void RF5C68::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	__UNLIKELY_IF(addr >= 0x1000) return; // This is workaround.
+	addr = (addr & 0xfff) | dac_bank;
+	write_via_debugger_data8(addr, data);
+	__LIKELY_IF(wait != NULL) { // Normally Ignore DMA wait.
+		*wait = 0;
+	}
+}
+
+void RF5C68::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+	__UNLIKELY_IF(addr >= 0x1000) return; // This is workaround.
+	addr = (addr & 0xfff) | dac_bank;
+	write_via_debugger_data16(addr, data);
+	__LIKELY_IF(wait != NULL) { // Normally Ignore DMA wait.
+		*wait = 0;
 	}
 }
 
@@ -590,6 +619,7 @@ uint32_t RF5C68::read_debug_data8(uint32_t addr)
 	return wave_memory[addr & 0xffff];
 }
 
+
 void RF5C68::write_via_debugger_data8(uint32_t addr, uint32_t data)
 {
 	wave_memory[addr] = data;
@@ -597,10 +627,13 @@ void RF5C68::write_via_debugger_data8(uint32_t addr, uint32_t data)
 
 void RF5C68::write_via_debugger_data16(uint32_t addr, uint32_t data)
 {
-	pair32_t _b;
-	_b.d = data;
-	wave_memory[addr + 0] = _b.b.l;
-	wave_memory[(addr + 1) & 0xffff] = _b.b.h;
+	pair16_t _b;
+	_b.w = data;
+	__LIKELY_IF(addr < 0xffff) {
+		_b.write_2bytes_le_to(&(wave_memory[addr]));
+	} else {
+		_b.b.l = wave_memory[addr] = _b.b.l;
+	}
 }
 
 
@@ -612,8 +645,12 @@ uint32_t RF5C68::read_via_debugger_data8(uint32_t addr)
 uint32_t RF5C68::read_via_debugger_data16(uint32_t addr)
 {
 	pair16_t _b;
-	_b.b.l = wave_memory[addr + 0];
-	_b.b.h = wave_memory[(addr + 1) & 0xffff];
+	__LIKELY_IF(addr < 0xffff) {
+		_b.read_2bytes_le_from(&(wave_memory[addr]));
+	} else {
+		_b.b.l = wave_memory[addr + 0];
+		_b.b.h = 0xff;
+	}
 	return _b.w;
 }
 

@@ -50,7 +50,7 @@ protected:
 	int sample_words;
 	int sample_pointer;
 	int read_pointer;
-	
+
 	__DECL_ALIGNED(16) bool dac_onoff[8];
 	__DECL_ALIGNED(16) pair32_t dac_addr_st[8];
 	__DECL_ALIGNED(16) uint32_t dac_addr[8];
@@ -58,7 +58,7 @@ protected:
 	__DECL_ALIGNED(16) uint32_t dac_pan[16];
 	__DECL_ALIGNED(16) pair32_t dac_ls[8];
 	__DECL_ALIGNED(16) pair32_t dac_fd[8];
-	
+
 
 	// TMP Values
 	bool dac_force_load[8];
@@ -68,15 +68,15 @@ protected:
 	int32_t* sample_buffer;
 
 	int sample_length;
-	
+
 	int mix_rate;
 	double sample_tick_us;
 
 	// ToDo: Work correct LPF.
 
-	void __FASTCALL get_sample(int32_t *v, int words);
+	virtual void __FASTCALL get_sample(int32_t *v, int words);
 	void __FASTCALL lpf_threetap(int32_t *v, int &lval, int &rval);
-	
+
 public:
 	RF5C68(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -94,37 +94,59 @@ public:
 	}
 	~RF5C68() {}
 
-	void initialize();
-	void release();
-	void reset();
+	virtual void initialize() override;
+	virtual void release() override;
 
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	
-	uint32_t  __FASTCALL read_debug_data8(uint32_t addr);
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data);
-	
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	
-	uint32_t __FASTCALL read_signal(int ch);
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
+	virtual void reset() override;
 
-	void __FASTCALL mix(int32_t* buffer, int cnt);
-	void initialize_sound(int sample_rate, int samples);
+	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
 
-	void set_volume(int ch, int decibel_l, int decibel_r);
-	bool process_state(FILEIO* state_fio, bool loading);
+	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
 
-	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr);
+	virtual uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	virtual uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait) override;
+	virtual void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait) override;
 
-	void set_dac_rate(double freq)
+	virtual uint32_t  __FASTCALL read_debug_data8(uint32_t addr) override;
+	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
+
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+
+	virtual uint32_t __FASTCALL read_signal(int ch) override;
+	virtual void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+
+	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr) override;
+	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr) override;
+	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data) override;
+	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data) override;
+
+	void *get_debugger() override
+	{
+		return d_debugger;
+	}
+	bool is_debugger_available() override
+	{
+		return ((d_debugger != NULL) ? true : false);
+	}
+	virtual uint32_t get_debug_data_addr_mask() override
+	{
+		return 0xffff;
+	}
+	virtual void __FASTCALL mix(int32_t* buffer, int cnt) override;
+	virtual void set_volume(int ch, int decibel_l, int decibel_r) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
+
+	/*
+	  unique functions
+	*/
+	virtual void initialize_sound(int sample_rate, int samples);
+	virtual void set_dac_rate(double freq)
 	{
 		dac_rate = freq;
 		sample_words = 0;
@@ -135,23 +157,11 @@ public:
 			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
 		}
 	}
-	void *get_debugger()
-	{
-		return d_debugger;
-	}
-	bool is_debugger_available()
-	{
-		return ((d_debugger != NULL) ? true : false);
-	}
 	void set_context_debugger(DEBUGGER* device)
 	{
 		d_debugger = device;
 	}
-	virtual uint32_t get_debug_data_addr_mask()
-	{
-		return 0xffff;
-	}
-	
+
 	void set_context_interrupt_boundary(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&interrupt_boundary, device, id, mask);
