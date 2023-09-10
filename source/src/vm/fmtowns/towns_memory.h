@@ -156,6 +156,133 @@ protected:
 	void __FASTCALL set_memory_devices_map_wait(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
 	void __FASTCALL unset_memory_devices_map(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
 
+	constexpr uint32_t read_beyond_boundary_data16(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, int* wait)
+	{
+		pair16_t w;
+		int waitvals[2] = {0};
+		if(is_dma) {
+			w.b.l = read_dma_data8w(addr    , &(waitvals[0]));
+			w.b.h = read_dma_data8w(addr + 1, &(waitvals[1]));
+		} else {
+			w.b.l = read_data8w(addr    , &(waitvals[0]));
+			w.b.h = read_data8w(addr + 1, &(waitvals[1]));
+		}
+		__LIKELY_IF(wait != NULL) {
+			*wait = waitvals[0];
+			//*wait = waitvals[0] + waitvals[1];
+		}
+		return (uint32_t)(w.w);
+	}
+	constexpr uint32_t read_beyond_boundary_data32(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, int* wait)
+	{
+		pair32_t d;
+		pair16_t w;
+		int waitvals[3] = {0};
+		switch(offset & 3) {
+		case 1:
+		case 3:
+			if(is_dma) {
+				d.b.l  = read_dma_data8w (addr    , &(waitvals[0]));
+				w.w    = read_dma_data16w(addr + 1, &(waitvals[1]));
+				d.b.h3 = read_dma_data8w (addr + 3, &(waitvals[2]));
+			} else {
+				d.b.l  = read_data8w (addr    ,  &(waitvals[0]));
+				w.w    = read_data16w(addr + 1,  &(waitvals[1]));
+				d.b.h3 = read_data8w (addr + 3,  &(waitvals[2]));
+			}
+			d.b.h  = w.b.l;
+			d.b.h2 = w.b.h;
+			break;
+		case 2:
+			if(is_dma) {
+				d.w.l  = read_dma_data16w(addr    ,  &(waitvals[0]));
+				d.w.h  = read_dma_data16w(addr + 2,  &(waitvals[1]));
+			} else {
+				d.w.l  = read_data16w(addr    ,  &(waitvals[0]));
+				d.w.h  = read_data16w(addr + 2,  &(waitvals[1]));
+			}
+			break;
+		default:
+			d.d = 0xffffffff;
+			waitvals[0] = _map[mapptr].waitval;
+			break;
+		}
+
+		__LIKELY_IF(wait != NULL) {
+			for(int i = 0; i < 2; i++) {
+				__UNLIKELY_IF(waitvals[i] < 0) {
+					waitvals[i] = (waitvals[i] == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+				}
+			}
+			*wait = waitvals[0];
+			//*wait = waitvals[0] + waitvals[1] + waitvals[2];
+		}
+		return d.d;
+	}
+
+	constexpr void write_beyond_boundary_data16(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, uint32_t data, int* wait)
+	{
+		pair16_t w;
+		w.w = data;
+		int waitvals[2] = {0};
+		if(is_dma) {
+			write_dma_data8w(addr    , w.b.l, &(waitvals[0]));
+			write_dma_data8w(addr + 1, w.b.h, &(waitvals[1]));
+		} else {
+			write_data8w(addr    , w.b.l, &(waitvals[0]));
+			write_data8w(addr + 1, w.b.h, &(waitvals[1]));
+		}
+		__LIKELY_IF(wait != NULL) {
+			*wait = waitvals[0];
+			//*wait = waitvals[0] + waitvals[1];
+		}
+	}
+	constexpr void write_beyond_boundary_data32(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, uint32_t data, int* wait)
+	{
+		pair32_t d;
+		pair16_t w;
+		d.d = data;
+		int waitvals[3] = {0};
+		switch(offset & 3) {
+		case 1:
+		case 3:
+			w.b.l = d.b.h;
+			w.b.h = d.b.h2;
+			if(is_dma) {
+				write_dma_data8w (addr    , d.b.l, &(waitvals[0]));
+				write_dma_data16w(addr + 1, w.w, &(waitvals[1]));
+				write_dma_data8w (addr + 3, d.b.h3, &(waitvals[2]));
+			} else {
+				write_data8w (addr    , d.b.l, &(waitvals[0]));
+				write_data16w(addr + 1, w.w, &(waitvals[1]));
+				write_data8w (addr + 3, d.b.h3, &(waitvals[2]));
+			}
+			break;
+		case 2:
+			if(is_dma) {
+				write_dma_data16w(addr    , d.w.l, &(waitvals[0]));
+				write_dma_data16w(addr + 2, d.w.h, &(waitvals[1]));
+			} else {
+				write_data16w(addr    , d.w.l, &(waitvals[0]));
+				write_data16w(addr + 2, d.w.h, &(waitvals[1]));
+			}
+			break;
+		default:
+			waitvals[0] = _map[mapptr].waitval;
+			break;
+		}
+
+		__LIKELY_IF(wait != NULL) {
+			for(int i = 0; i < 2; i++) {
+				__UNLIKELY_IF(waitvals[i] < 0) {
+					waitvals[i] = (waitvals[i] == WAITVAL_VRAM) ? vram_wait_val : mem_wait_val;
+				}
+			}
+			*wait = waitvals[0];
+			//*wait = waitvals[0] + waitvals[1] + waitvals[2];
+		}
+	}
+
 	constexpr bool check_device_boundary(memory_device_map_t *_map, uint32_t offset, uint32_t mapptr, const uint8_t bytewidth)
 	{
 		__UNLIKELY_IF((offset + bytewidth) > memory_map_grain()) {
@@ -403,8 +530,8 @@ protected:
 	  @note Use memory map per 32KB (131072 entries) as 1st tier.
 	        And, at Some pages hadles special devices,
 			000C8000h - 000CFFFFh : this
-			C2140000h - C2142000h : DICTIONARY (CMOS)
-			C2200000h - C2201000h : RF5C68 (PCM SOUND)
+			C2140000h - C2141FFFh : DICTIONARY (CMOS)
+			C2200000h - C2200FFFh : RF5C68 (PCM SOUND)
 			MAP select usage:
 	*/
 	inline const uint64_t memory_map_size()  { return TOWNS_MEMORY_MAP_SIZE; }
