@@ -35,6 +35,31 @@ void SYSROM::reset()
 {
 }
 
+uint32_t SYSROM::read_dma_data8w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	return read_memory_mapped_io8(addr);
+}
+
+uint32_t SYSROM::read_dma_data16w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	return read_memory_mapped_io8(addr);
+}
+
+uint32_t SYSROM::read_dma_data32w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	return read_memory_mapped_io32(addr);
+}
+
+
 uint32_t SYSROM::read_memory_mapped_io8(uint32_t addr)
 {
 	return rom[addr & 0x3ffff];
@@ -73,6 +98,27 @@ void SYSROM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 void SYSROM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	// NOP
+}
+
+void SYSROM::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+}
+
+void SYSROM::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+}
+
+void SYSROM::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
 }
 
 
