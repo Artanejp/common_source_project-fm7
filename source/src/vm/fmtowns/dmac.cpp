@@ -407,6 +407,7 @@ void TOWNS_DMAC::write_8bit_to_device(DEVICE* dev, uint32_t addr, uint32_t data,
 	dev->write_dma_io8w(addr, data, wait);
 }
 
+
 uint32_t TOWNS_DMAC::read_8bit_from_memory(uint32_t addr, int* wait, const bool is_use_debugger)
 {
 	__UNLIKELY_IF((is_use_debugger) && (d_debugger != NULL)) {
@@ -565,7 +566,7 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 	int c = ch & 3;
 	uint8_t bit = 1 << c;
 
-	if(/*((req | sreq) & bit) && !(mask & bit) && */(is_started[c])) {
+	if(((req | sreq) & bit) && !(mask & bit) /*&& (is_started[c])*/) {
 		// execute dma
 		// This is workaround for FM-Towns's SCSI.
 
@@ -579,7 +580,7 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 		bool compressed = ((cmd & 0x08) != 0);
 		bool extended = ((cmd & 0x20) != 0);
 		//while(((req | sreq) & bit) && (dma[c].creg <= dma[c].bcreg)) {
-		if(((req | sreq) & bit) && (dma[c].creg <= dma[c].bcreg)) {
+		if(((req | sreq) & bit) /*&& (dma[c].creg <= dma[c].bcreg)*/) {
 			set_ack(c, false);
 
 			__UNLIKELY_IF(!running) {
@@ -637,7 +638,7 @@ bool TOWNS_DMAC::do_dma_per_channel(int ch, bool is_use_debugger, bool force_exi
 					// - END_REQ[c] asserted.
 					// - DMA REQ MADE INACTIVE.
 					// -> CLEAR REQ and SREQ bit, ASSERT TC REGISTER.
-					__UNLIKELY_IF((req & bit) == 0) {
+					__UNLIKELY_IF((req  & bit) == 0) {
 						do_end_sequence(c, false);
 						__UNLIKELY_IF(_SINGLE_MODE_DMA) {
 							return false;
