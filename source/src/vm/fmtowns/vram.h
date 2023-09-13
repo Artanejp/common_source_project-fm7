@@ -99,24 +99,31 @@ public:
 	}
 	~TOWNS_VRAM() {}
 
-	virtual void initialize();
-	virtual void reset();
+	virtual void initialize() override;
+	virtual void reset() override;
 
-	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr);
-	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr);
-	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	virtual uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait) override;
+	virtual uint32_t __FASTCALL read_dma_data32w(uint32_t addr, int* wait) override;
 
-	virtual void __FASTCALL write_io8(uint32_t address, uint32_t data);
-	virtual void __FASTCALL write_io16(uint32_t address, uint32_t data);
+	virtual void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual void __FASTCALL write_dma_data32w(uint32_t addr, uint32_t data, int* wait) override;
 
-	virtual uint32_t __FASTCALL read_io8(uint32_t address);
-	virtual uint32_t __FASTCALL read_io16(uint32_t address);
+	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr) override;
+	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
+	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data) override;
 
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask); // Do render
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void __FASTCALL write_io8(uint32_t address, uint32_t data) override;
+	virtual void __FASTCALL write_io16(uint32_t address, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t address) override;
+	virtual uint32_t __FASTCALL read_io16(uint32_t address) override;
+
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override; // Do render
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// Unique Functions
 	virtual inline uint8_t* __FASTCALL get_vram_address(uint32_t offset)

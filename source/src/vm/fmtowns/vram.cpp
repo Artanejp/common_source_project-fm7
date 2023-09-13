@@ -13,10 +13,6 @@
 #include "./towns_common.h"
 #include "./crtc.h"
 #include "./vram.h"
-#include "./planevram.h"
-
-#define _CLEAR_COLOR RGBA_COLOR(0,0,0,0)
-
 
 namespace FMTOWNS {
 
@@ -89,25 +85,32 @@ void TOWNS_VRAM::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 {
 	lock();
-	const uint32_t maddr = addr & 3;
-	const uint32_t paddr0 = calc_std_address_offset(addr);
-	const uint32_t paddr1 = calc_std_address_offset(addr + 1);
-	const uint32_t paddr2 = calc_std_address_offset(addr + 2);
-	const uint32_t paddr3 = calc_std_address_offset(addr + 3);
-
+	uint32_t maddr = addr & 3;
+	uint32_t paddr0, paddr1, paddr2, paddr3;
 	pair32_t dmask;
 	pair32_t xdata;
 	uint32_t ydata;
+	__LIKELY_IF(maddr == 0) { // Aligned
+		paddr0 = calc_std_address_offset(addr);
+		dmask.read_4bytes_le_from(&(packed_pixel_mask_reg[0]));
+		xdata.read_4bytes_le_from(&(vram[paddr0]));
+	} else {
+		// Unaligned
+		paddr0 = calc_std_address_offset(addr);
+		paddr1 = calc_std_address_offset(addr + 1);
+		paddr2 = calc_std_address_offset(addr + 2);
+		paddr3 = calc_std_address_offset(addr + 3);
 
-	dmask.b.l  = packed_pixel_mask_reg[paddr0 & 7];
-	dmask.b.h  = packed_pixel_mask_reg[paddr1 & 7];
-	dmask.b.h2 = packed_pixel_mask_reg[paddr2 & 7];
-	dmask.b.h3 = packed_pixel_mask_reg[paddr3 & 7];
+		dmask.b.l  = packed_pixel_mask_reg[paddr0 & 7];
+		dmask.b.h  = packed_pixel_mask_reg[paddr1 & 7];
+		dmask.b.h2 = packed_pixel_mask_reg[paddr2 & 7];
+		dmask.b.h3 = packed_pixel_mask_reg[paddr3 & 7];
 
-	xdata.b.l  = vram[paddr0];
-	xdata.b.h  = vram[paddr1];
-	xdata.b.h2 = vram[paddr2];
-	xdata.b.h3 = vram[paddr3];
+		xdata.b.l  = vram[paddr0];
+		xdata.b.h  = vram[paddr1];
+		xdata.b.h2 = vram[paddr2];
+		xdata.b.h3 = vram[paddr3];
+	}
 
 	ydata = data;
 
@@ -115,11 +118,15 @@ void TOWNS_VRAM::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 	ydata   &= dmask.d;
 	xdata.d |= ydata;
 
-	vram[paddr0] = xdata.b.l;
-	vram[paddr1] = xdata.b.h;
-	vram[paddr2] = xdata.b.h2;
-	vram[paddr3] = xdata.b.h3;
-
+	__LIKELY_IF(maddr == 0) { // Aligned
+		xdata.write_4bytes_le_to(&(vram[paddr0]));
+	} else {
+		// Unaligned
+		vram[paddr0] = xdata.b.l;
+		vram[paddr1] = xdata.b.h;
+		vram[paddr2] = xdata.b.h2;
+		vram[paddr3] = xdata.b.h3;
+	}
 	unlock();
 	return;
 }
@@ -149,21 +156,69 @@ uint32_t TOWNS_VRAM::read_memory_mapped_io16(uint32_t addr)
 
 uint32_t TOWNS_VRAM::read_memory_mapped_io32(uint32_t addr)
 {
-	const uint32_t paddr0 = calc_std_address_offset(addr);
-	const uint32_t paddr1 = calc_std_address_offset(addr + 1);
-	const uint32_t paddr2 = calc_std_address_offset(addr + 2);
-	const uint32_t paddr3 = calc_std_address_offset(addr + 3);
-
 	pair32_t data;
-
-	lock();
-	unlock();
-
-	data.b.l  = vram[paddr0];
-	data.b.h  = vram[paddr1];
-	data.b.h2 = vram[paddr2];
-	data.b.h3 = vram[paddr3];
+	__LIKELY_IF((addr & 3) == 0) { // Aligned
+		const uint32_t paddr = calc_std_address_offset(addr);
+		data.read_4bytes_le_from(&(vram[paddr]));
+	} else {
+		const uint32_t paddr0 = calc_std_address_offset(addr);
+		const uint32_t paddr1 = calc_std_address_offset(addr + 1);
+		const uint32_t paddr2 = calc_std_address_offset(addr + 2);
+		const uint32_t paddr3 = calc_std_address_offset(addr + 3);
+		data.b.l  = vram[paddr0];
+		data.b.h  = vram[paddr1];
+		data.b.h2 = vram[paddr2];
+		data.b.h3 = vram[paddr3];
+	}
 	return data.d;
+}
+
+void TOWNS_VRAM::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	write_memory_mapped_io8(addr, data);
+}
+
+void TOWNS_VRAM::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	write_memory_mapped_io16(addr, data);
+}
+
+void TOWNS_VRAM::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	write_memory_mapped_io32(addr, data);
+}
+
+uint32_t TOWNS_VRAM::read_dma_data8w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	return read_memory_mapped_io8(addr);
+}
+
+uint32_t TOWNS_VRAM::read_dma_data16w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	return read_memory_mapped_io16(addr);
+}
+
+uint32_t TOWNS_VRAM::read_dma_data32w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // WAIT SETS by TOWNS_MEMORY:: .
+	}
+	return read_memory_mapped_io32(addr);
 }
 
 void TOWNS_VRAM::write_signal(int id, uint32_t data, uint32_t mask)
@@ -401,7 +456,4 @@ bool TOWNS_VRAM::process_state(FILEIO* state_fio, bool loading)
 	unlock();
 	return true;
 }
-
-
-#undef _CLEAR_COLOR
 }
