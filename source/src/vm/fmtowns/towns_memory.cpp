@@ -76,7 +76,7 @@ void TOWNS_MEMORY::initialize()
 	set_region_device_rw(0x80000000, 0x8007ffff, d_vram, NOT_NEED_TO_OFFSET);
 	set_region_device_rw(0x80100000, 0x8017ffff, d_vram, NOT_NEED_TO_OFFSET);
 
-	set_region_device_rw(0x81000000, 0x8101ffff, d_sprite, NOT_NEED_TO_OFFSET);
+	set_region_device_rw(0x81000000, 0x8101ffff, d_sprite, 0);
 	set_region_device_rw(0xc0000000, 0xc0ffffff, d_iccard[0], 0);
 	set_region_device_rw(0xc1000000, 0xc1ffffff, d_iccard[1], 0);
 //	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
@@ -958,8 +958,8 @@ uint32_t TOWNS_MEMORY::read_dma_data8w(uint32_t addr, int* wait)
 	uint32_t offset = addr & memory_map_mask();
 	uint8_t val;
 	int waitval;
-	//return read_8bit_data(dma_read_map, mapptr, addr, offset, true, wait);
-	val = read_8bit_data(dma_read_map, mapptr, addr, offset, false, &waitval);
+	val = read_8bit_data(dma_read_map, mapptr, addr, offset, true, &waitval);
+	//val = read_8bit_data(dma_read_map, mapptr, addr, offset, false, &waitval);
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Discard wait value for DMA.
 	}
@@ -975,8 +975,8 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 	__UNLIKELY_IF(check_device_boundary(dma_read_map, mapptr, offset, 2)) {
 		val = read_beyond_boundary_data16(dma_read_map, addr, offset, mapptr, true, &waitval);
 	} else {
-		val = read_16bit_data(dma_read_map, mapptr, addr, offset, false, &waitval);
-	//val =  read_16bit_data(dma_read_map, mapptr, addr, offset, true, &waitval);
+		val = read_16bit_data(dma_read_map, mapptr, addr, offset, true, &waitval);
+		//val = read_16bit_data(dma_read_map, mapptr, addr, offset, false, &waitval);
 	}
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Discard wait value for DMA.
@@ -994,8 +994,8 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 	__UNLIKELY_IF(check_device_boundary(dma_read_map, mapptr, offset, 4)) {
 		val =  read_beyond_boundary_data32(dma_read_map, addr, offset, mapptr, true, &waitval);
 	} else {
-	//return read_32bit_data(dma_read_map, mapptr, addr, offset, true, wait);
-		val = read_32bit_data(dma_read_map, mapptr, addr, offset, false, &waitval);
+		val = read_32bit_data(dma_read_map, mapptr, addr, offset, true, &waitval);
+		//val = read_32bit_data(dma_read_map, mapptr, addr, offset, false, &waitval);
 	}
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Discard wait value for DMA.
@@ -1040,8 +1040,8 @@ void TOWNS_MEMORY::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
 	int waitval;
-	//write_8bit_data(dma_write_map, mapptr, addr, offset, true, data, wait);
-	write_8bit_data(dma_write_map, mapptr, addr, offset, false, data, &waitval);
+	write_8bit_data(dma_write_map, mapptr, addr, offset, true, data, &waitval);
+	//write_8bit_data(dma_write_map, mapptr, addr, offset, false, data, &waitval);
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Discard wait value for DMA.
 	}
@@ -1055,8 +1055,8 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 	__UNLIKELY_IF(check_device_boundary(dma_write_map, mapptr, offset, 2)) {
 		write_beyond_boundary_data16(dma_write_map, addr, offset, mapptr, true, data, &waitval);
 	} else {
-		//write_16bit_data(dma_write_map, mapptr, addr, offset, true, data, wait);
-		write_16bit_data(dma_write_map, mapptr, addr, offset, false, data, &waitval);
+		write_16bit_data(dma_write_map, mapptr, addr, offset, true, data, &waitval);
+		//write_16bit_data(dma_write_map, mapptr, addr, offset, false, data, &waitval);
 	}
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Discard wait value for DMA.
@@ -1072,8 +1072,8 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 	__UNLIKELY_IF(check_device_boundary(dma_write_map, mapptr, offset, 4)) {
 		write_beyond_boundary_data32(dma_write_map, addr, offset, mapptr, true, data, &waitval);
 	} else {
-		//write_32bit_data(dma_write_map, mapptr, addr, offset, true, data, &waitval);
-		write_32bit_data(dma_write_map, mapptr, addr, offset, false, data, &waitval);
+		write_32bit_data(dma_write_map, mapptr, addr, offset, true, data, &waitval);
+		//write_32bit_data(dma_write_map, mapptr, addr, offset, false, data, &waitval);
 	}
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Discard wait value for DMA.

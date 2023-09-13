@@ -760,38 +760,120 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 
 uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
 {
-	__LIKELY_IF((addr >= 0x81000000) && (addr < 0x81020000)) {
-		return pattern_ram[addr & 0x1ffff];
-	}/* else if((addr >= 0xc8000) && (addr < 0xc9000)) {
-		return pattern_ram[addr - 0xc8000];
-	} else if((addr >= 0xca000) && (addr < 0xcb000)) {
-		return pattern_ram[addr - 0xc8000];
-	}*/
-	else if((addr >= 0xc8000) && (addr < 0xcb000)) { // OK? From TSUGARU
-		return pattern_ram[addr - 0xc8000];
+	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
+		addr = addr - 0x000c8000; // Trick :-)
 	}
-	return 0x00;
+	return pattern_ram[addr & 0x1ffff];
 }
 
+uint32_t TOWNS_SPRITE::read_memory_mapped_io16(uint32_t addr)
+{
+	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
+		addr = addr - 0x000c8000; // Trick :-)
+	}
+	pair16_t n;
+	addr = addr & 0x1ffff;
+	__UNLIKELY_IF(addr == 0x1ffff) {
+		n.b.h = 0xff;
+		n.b.l = pattern_ram[0x1ffff];
+	} else {
+		n.read_2bytes_le_from(&(pattern_ram[addr]));
+	}
+	return n.w;
+}
+
+uint32_t TOWNS_SPRITE::read_memory_mapped_io32(uint32_t addr)
+{
+	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
+		addr = addr - 0x000c8000; // Trick :-)
+	}
+	pair32_t d;
+	addr = addr & 0x1ffff;
+	__UNLIKELY_IF(addr > 0x1fffc) {
+		d.d = 0xffffffff;
+		switch(addr) {
+		case 0x1ffff:
+			d.b.l = pattern_ram[0x1ffff];
+			break;
+		case 0x1fffe:
+			d.b.h = pattern_ram[0x1ffff];
+			d.b.l = pattern_ram[0x1fffe];
+			break;
+		case 0x1fffd:
+			d.b.h2 = pattern_ram[0x1ffff];
+			d.b.h  = pattern_ram[0x1fffe];
+			d.b.l  = pattern_ram[0x1fffd];
+			break;
+		default:
+			break;
+		}
+	} else {
+		d.read_4bytes_le_from(&(pattern_ram[addr]));
+	}
+	return d.d;
+}
 
 void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
-	__LIKELY_IF((addr >= 0x81000000) && (addr < 0x81020000)) {
-		pattern_ram[addr & 0x1ffff] = data;
-	} /*else if((addr >= 0xc8000) && (addr < 0xc9000)) {
+	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
 		tvram_enabled = true;
 		tvram_enabled_bak = true;
-		pattern_ram[addr - 0xc8000] = data;
-	} else if((addr >= 0xca000) && (addr < 0xcb000)) {
+		addr = addr - 0x000c8000; // Trick :-)
+	}
+	addr = addr & 0x1ffff;
+	pattern_ram[addr] = data;
+	return;
+}
+
+void TOWNS_SPRITE::write_memory_mapped_io16(uint32_t addr, uint32_t data)
+{
+	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
 		tvram_enabled = true;
 		tvram_enabled_bak = true;
-		pattern_ram[addr - 0xc8000] = data;
-	}*/
-	 else if((addr >= 0xc8000) && (addr < 0xcb000)) { // OK? From TSUGARU
+		addr = addr - 0x000c8000; // Trick :-)
+	}
+	addr = addr & 0x1ffff;
+	pair16_t n;
+	n.w = data;
+	__UNLIKELY_IF(addr == 0x1ffff) {
+		pattern_ram[0x1ffff] = n.b.l;
+	} else {
+		n.write_2bytes_le_to(&(pattern_ram[addr]));
+	}
+	return;
+}
+
+void TOWNS_SPRITE::write_memory_mapped_io32(uint32_t addr, uint32_t data)
+{
+	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
 		tvram_enabled = true;
 		tvram_enabled_bak = true;
-		pattern_ram[addr - 0xc8000] = data;
-	 }
+		addr = addr - 0x000c8000; // Trick :-)
+	}
+	addr = addr & 0x1ffff;
+	pair32_t d;
+	d.d = data;
+	__UNLIKELY_IF(addr > 0x1fffc) {
+		d.d = 0xffffffff;
+		switch(addr) {
+		case 0x1ffff:
+			pattern_ram[0x1ffff] = d.b.l;
+			break;
+		case 0x1fffe:
+			pattern_ram[0x1ffff] = d.b.h;
+			pattern_ram[0x1fffe] = d.b.l;
+			break;
+		case 0x1fffd:
+			pattern_ram[0x1ffff] = d.b.h2;
+			pattern_ram[0x1fffe] = d.b.h;
+			pattern_ram[0x1fffd] = d.b.l;
+			break;
+		default:
+			break;
+		}
+	} else {
+		d.write_4bytes_le_to(&(pattern_ram[addr]));
+	}
 	return;
 }
 

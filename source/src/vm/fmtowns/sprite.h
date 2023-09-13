@@ -75,19 +75,46 @@ public:
 	}
 	~TOWNS_SPRITE() {}
 
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void reset() override;
+	void initialize() override;
 
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr)
+	void event_pre_frame() override;
+	void event_vline(int v, int clk) override;
+	void __FASTCALL event_callback(int id, int err) override;
+
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
+	uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr) override;
+
+	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data) override;
+
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int id) override;
+
+	bool is_debugger_available() override
+	{
+		return true;
+	}
+	void *get_debugger() override
+	{
+		return d_debugger;
+	}
+	uint64_t get_debug_data_addr_space() override
+	{
+		return 0x20000;
+	}
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr) override
 	{
 		if(addr >= 0x20000) {
 			return 0x00;
 		}
 		return pattern_ram[addr];
 	}
-	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override
 	{
 		if(addr >= 0x20000) {
 			return;
@@ -101,40 +128,13 @@ public:
 		}
 		pattern_ram[addr] = (uint8_t)data;
 	}
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	uint32_t __FASTCALL read_debug_data8(uint32_t addr)
-	{
-		return read_via_debugger_data8(addr);
-	}
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
-	{
-		write_via_debugger_data8(addr, data);
-	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
 
-	bool is_debugger_available()
-	{
-		return true;
-	}
-	void *get_debugger()
-	{
-		return d_debugger;
-	}
-	uint64_t get_debug_data_addr_space()
-	{
-		return 0x20000;
-	}
-
-	void reset();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int id);
-	void initialize();
-	void event_pre_frame();
-	void event_vline(int v, int clk);
-	void __FASTCALL event_callback(int id, int err);
-
-	bool process_state(FILEIO* state_fio, bool loading);
-
+	bool process_state(FILEIO* state_fio, bool loading) override;
+	/*
+	  Unique functions
+	*/
 	void set_context_vram(TOWNS_VRAM *p)
 	{
 		d_vram = p;
