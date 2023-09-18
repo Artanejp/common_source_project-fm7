@@ -57,23 +57,17 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 	switch(addr & 0x0e) {
 	case 0x02:
 		dma[selch].bcreg = data;
-		if(base == 0x00) {
-			dma[selch].creg = data;
-		}
+		dma[selch].creg = data;
 		// Reset TC bit for towns, by Tsugaru commit ab067790479064efce693f7317af13696cb68d96 .		tc &= ~(1 << selch);
 		write_signals(&outputs_towns_tc[selch], 0);
 		break;
 	case 0x04: // ADDR LOW
 		dma[selch].bareg = (dma[selch].bareg & 0xffff0000) | (data & 0xffff);
-		if(base == 0x00) {
-			dma[selch].areg = dma[selch].bareg; // OK? This is from Tsugaru. 20230710 K.O
-		}
+		dma[selch].areg  = (dma[selch].areg  & 0xffff0000) | (data & 0xffff);
 		break;
 	case 0x06: // ADDR HIGH
 		dma[selch].bareg = (dma[selch].bareg & 0x0000ffff) | ((data & 0xffff) << 16);
-		if(base == 0x00) {
-			dma[selch].areg = dma[selch].bareg; // OK? This is from Tsugaru. 20230710 K.O
-		}
+		dma[selch].areg  = (dma[selch].areg  & 0x0000ffff) | ((data & 0xffff) << 16);
 		break;
 	case 0x08: // Control
 		cmd = data;
@@ -118,25 +112,24 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x02:
 		// Reset TC bit for towns, by Tsugaru commit ab067790479064efce693f7317af13696cb68d96 .		tc &= ~(1 << selch);
+		tc = tc & ~(1 << (selch & 3));
 		write_signals(&outputs_towns_tc[selch], 0);
-		//UPD71071::write_io8(addr, data);
-		dma[selch].bcreg = (dma[selch].bcreg & 0xff00) | data;
-		if(base == 0x00) {
-			dma[selch].creg = dma[selch].bcreg; // OK?
-		}
+		UPD71071::write_io8(addr, data);
 		break;
 	case 0x03:
-		write_signals(&outputs_towns_tc[selch], 0);
-		//UPD71071::write_io8(addr, data);
-		dma[selch].bcreg = (dma[selch].bcreg & 0x00ff) | (data << 8);
-		if(base == 0x00) {
-			dma[selch].creg = dma[selch].bcreg; // OK?
-		}
+		//tc = tc & ~(1 << (selch & 3));
+		//write_signals(&outputs_towns_tc[selch], 0);
+		UPD71071::write_io8(addr, data);
 		break;
+
 	case 0x04:
-		dma[selch].bareg = (dma[selch].bareg & 0xffffff00) | data;
-		if(base == 0x00) {
-			dma[selch].areg = dma[selch].bareg;
+	case 0x05:
+	case 0x06:
+		{
+			uint32_t __d_mask = ~(0x000000ff << (((addr & 0x0f) - 4) * 8));
+			uint32_t __d = ((data & 0x000000ff) << (((addr & 0x0f) - 4) * 8));
+			dma[selch].bareg = (dma[selch].bareg & __d_mask) | __d;
+			dma[selch].areg  = (dma[selch].areg  & __d_mask) | __d;
 		}
 		#if 0
 		if(is_started[selch]) {
@@ -146,23 +139,20 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		}
 		#endif
 		break;
-	case 0x05:
-		dma[selch].bareg = (dma[selch].bareg & 0xffff00ff) | (data << 8);
-		if(base == 0x00) {
-			dma[selch].areg = dma[selch].bareg;
-		}
-		break;
-	case 0x06:
-		dma[selch].bareg = (dma[selch].bareg & 0xff00ffff) | (data << 16);
-		if(base == 0x00) {
-			dma[selch].areg = dma[selch].bareg;
-		}
-		break;
 	case 0x07:
-		dma[selch].bareg = (dma[selch].bareg & 0x00ffffff) | (data << 24);
-		if(base == 0x00) {
-			dma[selch].areg = dma[selch].bareg;
+		{
+			uint32_t __d_mask = 0x00ffffff;
+			uint32_t __d = (data & 0x000000ff) << 24;
+			dma[selch].bareg = (dma[selch].bareg & __d_mask) | __d;
+			dma[selch].areg  = (dma[selch].areg  & __d_mask) | __d;
 		}
+		#if 0
+		if(is_started[selch]) {
+			if(check_address_16bit_bus_changed(selch)) {
+				set_ube_line(selch);
+			}
+		}
+		#endif
 		break;
 		// CMD
 	case 0x08:
