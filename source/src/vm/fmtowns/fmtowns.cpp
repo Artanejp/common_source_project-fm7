@@ -355,6 +355,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_cpu(NULL);
 	//dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
+	// BASE CLOCK is 2MHz * 8.
+	dma->set_dmac_clock(16 * 1000 * 1000, 8);
 	dma->set_context_ch0(fdc);
 	// This is workaround for FM-Towns's SCSI.
 	dma->set_force_16bit_transfer(1, false);
@@ -365,6 +367,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//extra_dma->set_context_cpu(cpu);
 	extra_dma->set_context_cpu(NULL);
 	extra_dma->set_context_memory(memory);
+	// BASE CLOCK is 2MHz * 8.
+	extra_dma->set_dmac_clock(16 * 1000 * 1000, 8);
 
 	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);

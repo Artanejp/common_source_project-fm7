@@ -31,14 +31,16 @@ protected:
 	bool end_req[4];
 	bool end_stat[4];
 	double dmac_cycle_us;
+	int spent_clocks;
+	int clock_multiply;
+	uint8_t transfer_ch;
+
 	int event_dmac_cycle;
 
-	virtual void __FASTCALL call_dma(int ch);
 	inline void __FASTCALL set_ack(int ch, bool val)
 	{
 		write_signals(&(outputs_ack[ch]), (val) ? 0xffffffff : 0);
 	}
-	void check_start_condition();
 	constexpr bool check_address_16bit_bus_changed(int ch)
 	{
 		bool __is_align_bak = address_aligns_16bit[ch];
@@ -52,21 +54,6 @@ protected:
 	constexpr void __FASTCALL set_ube_line(int ch)
 	{
 		write_signals(&(outputs_ack[ch]), (is_16bit[ch]) ? 0xffffffff : 0);
-	}
-	virtual inline void check_running()
-	{
-		__UNLIKELY_IF((event_dmac_cycle < 0) || (_SINGLE_MODE_DMA)) {
-			return;
-		}
-		for(int ch = 0; ch < 4; ch++) {
-			__UNLIKELY_IF(is_started[ch]) {
-				return;
-			}
-		}
-		// OK. All channels are stopped.
-		cancel_event(this, event_dmac_cycle);
-		event_dmac_cycle = -1;
-		return;
 	}
 
 	inline void __FASTCALL reset_dma_counter(int ch)
@@ -99,8 +86,6 @@ protected:
 		sreq &= ~bit;
 		running = false;
 		end_req[c] = false;
-		check_running();
-
 		tc |= bit;	// NOT From MAME 0.246 ;
 		if(is_send_tc) {
 			write_signals(&outputs_towns_tc[c], 0xffffffff);
@@ -108,6 +93,8 @@ protected:
 		//tc |= bit;	// From MAME 0.246 ;
 					// TC REGISTER's BIT maybe set after TC line asserted. 20230521 K.O
 	}
+	bool __FASTCALL check_is_16bit(int ch);
+
 	virtual void __FASTCALL inc_dec_ptr_a_byte(uint32_t& addr, const bool inc) override;
 	virtual void __FASTCALL inc_dec_ptr_two_bytes(uint32_t& addr, const bool inc) override;
 
@@ -121,10 +108,13 @@ protected:
 	virtual uint32_t __FASTCALL read_8bit_from_memory(uint32_t addr, int* wait, bool is_use_debugger);
 	virtual void __FASTCALL write_8bit_to_memory(uint32_t addr, uint32_t data, int* wait, bool is_use_debugger);
 
-	virtual bool __FASTCALL do_dma_per_channel(int ch, bool is_use_debugger, bool force_exit);
 	virtual void do_dma_internal();
+	virtual int  __FASTCALL do_dma_single(const int ch, const bool is_use_debugger, bool compressed, bool extended, bool& is_terminated, bool& is_single);
+	virtual bool __FASTCALL decrement_counter(const int ch, uint8_t mode, uint16_t& counter, bool& is_single);
+
 	void __FASTCALL do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
 	void __FASTCALL do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
+	virtual void reset_from_io();
 
 public:
 	TOWNS_DMAC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : UPD71071(parent_vm, parent_emu)
@@ -139,6 +129,8 @@ public:
 			initialize_output_signals(&outputs_ack[ch]);
 			initialize_output_signals(&outputs_towns_tc[ch]);
 		}
+		clock_multiply = 1;
+
 	}
 	~TOWNS_DMAC() {}
 	// common functions
@@ -159,6 +151,15 @@ public:
 
 	// Unique functions
 	// This is workaround for FM-Towns's SCSI.
+	void set_dmac_clock(uint32_t clock_hz, int ratio)
+	{
+		if(ratio > 0) {
+			clock_multiply = ratio;
+		} else {
+			clock_multiply = 1;
+		}
+		dmac_cycle_us = (1.0e6 / ((double)clock_hz)) * ((double)clock_multiply);
+	}
 	void set_force_16bit_transfer(int ch, bool is_force)
 	{
 		force_16bit_transfer[ch & 3] = is_force;
