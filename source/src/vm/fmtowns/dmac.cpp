@@ -583,9 +583,9 @@ void TOWNS_DMAC::do_dma_internal()
 	if(!(is_rot)) {
 		transfer_ch = 0;
 	}
-	bool is_terminated = false;
-	bool is_single = false;
 	for(int i = 0; i < 4; i++) {
+		bool is_single = false;
+		bool is_terminated = false;
 		int clocks = do_dma_single((transfer_ch + i) & 3, is_use_debugger, compressed, extended, is_terminated, is_single);
 		if(clocks > 0) {
 			spent_clocks += clocks;
