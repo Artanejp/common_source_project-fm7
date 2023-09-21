@@ -367,6 +367,8 @@ protected:
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
+	bool req_drq;
+
 	uint8_t reserved_command;
 	RINGBUFFER* param_queue;
 	uint8_t prev_command;
