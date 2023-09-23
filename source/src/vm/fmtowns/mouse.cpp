@@ -14,18 +14,18 @@ namespace FMTOWNS {
 
 #define EVENT_MOUSE_TIMEOUT		1
 #define EVENT_MOUSE_SAMPLING	2
-	
+
 void MOUSE::initialize()
 {
 	pad_type = PAD_TYPE_MOUSE;
 	mouse_state = NULL;
 	sig_com = true;
 	val_com = false;
-	
+
 	event_timeout = -1;
 	event_sampling = -1;
 	is_connected = false;
-	
+
 	initialize_status();
 	set_device_name(_T("FM-Towns Mouse #%d"), parent_port_num + 1);
 }
@@ -34,7 +34,7 @@ void MOUSE::initialize_status()
 {
 	JSDEV_TEMPLATE::initialize_status();
 	phase = 0;
-	
+
 	portval_data = 0x00;
 	val_trig_a = false;
 	val_trig_b = false;
@@ -42,8 +42,8 @@ void MOUSE::initialize_status()
 	dx = dy = 0;
 	lx = ly = 0;
 	sample_mouse_xy();
-}	
-	
+}
+
 void MOUSE::release()
 {
 }
@@ -60,7 +60,7 @@ void MOUSE::reset_device(bool port_out)
 {
 	initialize_status();
 	val_com = sig_com;
-	
+
 	if(port_out) {
 		output_port_signals(true);
 		output_port_com(val_com, true);
@@ -75,7 +75,8 @@ uint8_t MOUSE::query(bool& status)
 	status = true;
 	return portval_data;
 }
-void MOUSE::update_strobe()
+
+void MOUSE::update_strobe_mouse()
 {
 	if(phase == 0) {
 		if(sig_com) {
@@ -86,7 +87,7 @@ void MOUSE::update_strobe()
 			dx = 0;
 			dy = 0;
 			// From FM Towns Technical book, Sec.1-7, P.241.
-			// (Ta + Tj * 3 + Ti) <= 920.0uS 
+			// (Ta + Tj * 3 + Ti) <= 920.0uS
 			//force_register_event(this, EVENT_MOUSE_TIMEOUT, 920.0, false, event_timeout);
 			//force_register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0 false, event_timeout);
 			phase = 2; // SYNC from MAME 0.225. 20201126 K.O
@@ -176,7 +177,7 @@ void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 			val_com = bak;
 			sig_com = ((data & mask) != 0) ? true : false;
 			if(bak != sig_com) {
-				update_strobe();
+				update_strobe_mouse();
 				portval_data = ~(update_mouse()) & 0x0f;
 				check_mouse_data();
 			}
@@ -218,7 +219,7 @@ void MOUSE::event_callback(int event_id, int err)
 		break;
 	}
 }
-	
+
 #define STATE_VERSION 16
 
 bool MOUSE::process_state(FILEIO *state_fio, bool loading)
@@ -232,9 +233,9 @@ bool MOUSE::process_state(FILEIO *state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
 		return false;
 	}
-	
+
 	state_fio->StateValue(phase);
-	
+
 	state_fio->StateValue(dx);
 	state_fio->StateValue(dy);
 	state_fio->StateValue(lx);
