@@ -168,19 +168,57 @@ void ADPCM::write_io8(uint32_t addr, uint32_t data)
 	}
 }
 
-uint32_t ADPCM::read_data8(uint32_t addr)
+uint32_t ADPCM::read_memory_mapped_io8w(uint32_t addr, int *wait)
 {
-	if((addr >= 0xc2200000) && (addr < 0xc2201000)) {
-		return d_rf5c68->read_data8(addr & 0x0fff);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
 	}
-	return 0xff;
+	return d_rf5c68->read_memory_mapped_io8(addr & 0x7fff);
 }
 
-void ADPCM::write_data8(uint32_t addr, uint32_t data)
+uint32_t ADPCM::read_memory_mapped_io16w(uint32_t addr, int *wait)
 {
-	if((addr >= 0xc2200000) && (addr < 0xc2201000)) {
-		d_rf5c68->write_data8(addr & 0x0fff, data);
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
 	}
+	return d_rf5c68->read_memory_mapped_io16(addr & 0x7fff);
+}
+
+void ADPCM::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	d_rf5c68->write_memory_mapped_io8(addr & 0x7fff, data);
+}
+
+void ADPCM::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0;
+	}
+	d_rf5c68->write_memory_mapped_io16(addr & 0x7fff, data);
+}
+
+
+uint32_t ADPCM::read_dma_data8w(uint32_t addr, int* wait)
+{
+	return d_rf5c68->read_dma_data8w(addr & 0x7fff, wait);
+}
+
+uint32_t ADPCM::read_dma_data16w(uint32_t addr, int* wait)
+{
+	return d_rf5c68->read_dma_data16w(addr & 0x7fff, wait);
+}
+
+void ADPCM::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	d_rf5c68->write_dma_data8w(addr & 0x7fff, data, wait);
+}
+
+void ADPCM::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+	d_rf5c68->write_dma_data16w(addr & 0x7fff, data, wait);
 }
 
 void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
