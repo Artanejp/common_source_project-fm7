@@ -9,38 +9,43 @@ set(VM_FMTOWNS_DEV_SRCS
 
 	adpcm.cpp
 
-	floppy.cpp
-	keyboard.cpp
-	scsi.cpp
-	timer.cpp
+	cmos.cpp
+	crtc.cpp
+	dictionary.cpp
 	dmac.cpp
 
+	floppy.cpp
 	fontroms.cpp
+
 	iccard.cpp
+
 	joystick.cpp
 	joypad_2btn.cpp
 	joypad_6btn.cpp
-	mouse.cpp
+	keyboard.cpp
 
+	mouse.cpp
 	msdosrom.cpp
+
+	scsi.cpp
 	serialrom.cpp
-	dictionary.cpp
+	sprite.cpp
+	sysrom.cpp
+	timer.cpp
+	towns_memory.cpp
+	#towns_scsi_host.cpp
+
+	vram.cpp
+	planevram.cpp
 
 	cdrom/cdrom.cpp
 	cdrom/cdrom_cue_parser.cpp
 	cdrom/cdrom_ccd_parser.cpp
 	cdrom/cdrom_iso_parser.cpp
 
-	crtc.cpp
-	towns_memory.cpp
-	#towns_scsi_host.cpp
-	sprite.cpp
-	sysrom.cpp
-	vram.cpp
-	planevram.cpp
+
 	../scsi_host.cpp
 	../msm58321.cpp
-
 	./mb87078.cpp
 
 	fmtowns.cpp

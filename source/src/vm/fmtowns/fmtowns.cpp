@@ -34,6 +34,7 @@
 #include "../upd71071.h"
 
 #include "./cdrom.h"
+#include "./cmos.h"
 #include "./crtc.h"
 #include "./dictionary.h"
 #include "./dmac.h"
@@ -79,6 +80,7 @@
 // ----------------------------------------------------------------------------
 using FMTOWNS::ADPCM;
 //using FMTOWNS::CDC;
+using FMTOWNS::CMOS;
 using FMTOWNS::DICTIONARY;
 using FMTOWNS::FLOPPY;
 using FMTOWNS::FONT_ROMS;
@@ -163,6 +165,11 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	msdosrom = new MSDOSROM(this, emu);
 	fontrom = new FONT_ROMS(this, emu);
 	dictionary = new DICTIONARY(this, emu);
+	cmos     = new CMOS(this, emu);
+#ifdef USE_DEBUGGER
+	cmos->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+
 #if defined(HAS_20PIX_FONTS)
 	fontrom_20pix = new FONT_ROM_20PIX(this, emu);
 #endif
@@ -420,11 +427,12 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_system_rom(sysrom);
 	memory->set_context_msdos(msdosrom);
 	memory->set_context_dictionary(dictionary);
+	memory->set_context_cmos(cmos);
 	memory->set_context_font_rom(fontrom);
 	memory->set_context_timer(timer);
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
-	memory->set_context_pcm(rf5c68);
+	memory->set_context_pcm(adpcm);
 	memory->set_context_iccard(iccard1, 0);
 	memory->set_context_iccard(iccard2, 1);
 
@@ -658,8 +666,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x04ea, adpcm); // PCM INTERRUPT MASK
 	io->set_iomap_single_r (0x04eb, adpcm); // PCM INTERRUPT STATUS
 	io->set_iomap_single_w (0x04ec, adpcm); // PCM LED/MUTE
-
-	io->set_iomap_range_w (0x04f0, 0x04f8, rf5c68); // PCM CONTROL REGS (WO?)
+	io->set_iomap_range_w (0x04f0, 0x04f8, adpcm); // PCM CONTROL REGS (WO?)
 
 	//io->set_iomap_single_rw(0x510, newpcm); // PCM BANK (after MX)
 	//io->set_iomap_single_rw(0x511, newpcm); // PCM DMA STATUS(after MX)
@@ -712,7 +719,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// ToDo: Implement debugging I/Os to 2000h - 2FFFh.
 
 	for(uint32_t addr = 0x3000; addr < 0x4000; addr += 2) {
-		io->set_iomap_single_rw (addr, dictionary); // CMOS
+		io->set_iomap_single_rw (addr, cmos); // CMOS
 	}
 	io->set_iomap_range_rw (0xfd90, 0xfd91, crtc);	// PALETTE INDEX
 	io->set_iomap_range_rw (0xfd92, 0xfd93, crtc);	// PALETTE DATA BLUE

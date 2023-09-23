@@ -360,6 +360,7 @@ class SCSI_CDROM;
 
 namespace FMTOWNS {
 	class ADPCM;
+	class CMOS;
 //	class CDC;
 	class FLOPPY;
 	class JOYSTICK;
@@ -431,6 +432,7 @@ protected:
 	FMTOWNS::TOWNS_SPRITE*   sprite;
 	FMTOWNS::TOWNS_MEMORY*   memory;
 	FMTOWNS::DICTIONARY*     dictionary;
+	FMTOWNS::CMOS*		     cmos;
 	FMTOWNS::SYSROM*         sysrom;
 	FMTOWNS::MSDOSROM*       msdosrom;
 	FMTOWNS::FONT_ROMS*      fontrom;

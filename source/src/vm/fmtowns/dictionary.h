@@ -29,35 +29,26 @@ class DICTIONARY : public DEVICE
 {
 protected:
 	uint8_t dict_rom[0x80000]; // 512KB
-	uint8_t dict_ram[0x2000];  // 2 + 6KB
-
 	uint8_t dict_bank;
-	bool cmos_dirty;
 
 public:
 	DICTIONARY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		dict_bank = 0x00;
-		cmos_dirty = false;
 		set_device_name("FM-Towns Dictionary ROM/RAM 0x000d0000 - 0x000dffff with CMOS RAM");
 	}
 	~DICTIONARY() {}
 	void initialize() override;
-	void release() override;
 	void reset() override;
 
-	uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
-	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
-
+	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int* wait) override;
 	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
-	void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
 	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask)  override;
 	uint32_t __FASTCALL read_signal(int ch) override;
-
-	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	bool is_debugger_available() override
 	{
@@ -65,14 +56,14 @@ public:
 	}
 	uint64_t get_debug_data_addr_space() override
 	{
-		return 0x2000;
+		return 0x80000;
 	}
 	uint32_t __FASTCALL read_debug_data8(uint32_t addr) override;
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
 
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
 
+	bool process_state(FILEIO* state_fio, bool loading) override;
 };
 
 }
