@@ -28,7 +28,7 @@ protected:
 	bool clk;
 	bool reset_reg;
 	int reset_state;
-	
+
 	uint8_t rom_addr;
 	uint8_t rom[32];
 
@@ -43,18 +43,18 @@ public:
 	}
 	~SERIAL_ROM() {}
 
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int ch) override;
 
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
 
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique function
 	void set_machine_id(uint16_t val)
@@ -68,4 +68,3 @@ public:
 };
 
 }
-	
