@@ -105,7 +105,7 @@ uint32_t RF5C68::read_signal(int ch)
 			return ((dac_on) ? 0xffffffff : 0x00000000);
 			break;
 		case SIG_RF5C68_REG_BANK:
-			return dac_bank;
+			return (dac_bank >> 12) & 0x0f;
 			break;
 		case SIG_RF5C68_REG_CH:
 			return dac_ch;
@@ -233,6 +233,9 @@ __DECL_VECTORIZED_LOOP
 				}
 			}
 		}
+		break;
+	case SIG_RF5C68_REG_BANK:
+		dac_bank = (data & 0x0f) << 12;
 		break;
 	default:
 		break;
@@ -673,7 +676,7 @@ bool RF5C68::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_stprintf_s(buffer, buffer_len,
 				  _T("DAC %s BANK=%01X CH=%d MUTE=%s\n")
 				  _T("%s")
-				  , (dac_on) ? _T("ON ") : _T("OFF"), dac_bank, dac_ch, (is_mute) ? _T("ON ") : _T("OFF")
+				  , (dac_on) ? _T("ON ") : _T("OFF"), (dac_bank >> 12) & 0x0f, dac_ch, (is_mute) ? _T("ON ") : _T("OFF")
 				  , sbuf2);
 	return true;
 }
