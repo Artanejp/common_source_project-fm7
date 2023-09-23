@@ -16,7 +16,7 @@
 #include <mutex>
 
 namespace FMTOWNS {
-	
+
 // DEVICE CONTROL SIGNALS (MOSTLY PORT -> THIS)
 #define SIG_JS_COM				1
 #define SIG_JS_TRIG_A			2
@@ -24,14 +24,14 @@ namespace FMTOWNS {
 
 // SPECIAL DEVICE CONTROL SIGNAL(S) (PORT -> THIS)
 #define SIG_JS_DEVICE_RESET		0x80
-	
-// INPUT SIGNALS FROM PARENT PORT. (THIS -> PORT)	
+
+// INPUT SIGNALS FROM PARENT PORT. (THIS -> PORT)
 #define SIG_JS_COM_OUTPUT		0x11
 #define SIG_JS_TRIG_A_OUTPUT	0x12
 #define SIG_JS_TRIG_B_OUTPUT	0x13
 #define SIG_JS_DATA				0x14
 
-// PEEK STATUS OF THIS FROM ANY DEVICES.	
+// PEEK STATUS OF THIS FROM ANY DEVICES.
 #define SIG_JS_PORT_NUM			0x15
 #define SIG_JS_CONNECTED		0x16
 #define SIG_JS_DATASHIFT		0x17
@@ -52,24 +52,24 @@ enum {
 	PAD_TYPE_MOUSE,
 	PAD_TYPE_END
 };
-	
+
 class JSDEV_TEMPLATE : public DEVICE
 {
 protected:
 	DEVICE* d_parent_device; // Normally FMTOWNS::JOYSTICK
 
 	std::mutex _locker;
-	
+
 	bool is_connected;
 	bool is_negative_logic; // DATA VALUES IS NAGATIVE LOGIC.
 	bool force_output_on_change;
 	int parent_port_num;
 	int pad_num;
 	int pad_type;
-	
+
 	uint32_t signal_mask;
 	int signal_shift;
-	
+
 	// INPUT (Received) Values
 	bool sig_trig_a; // INPUT: trig_a
 	bool sig_trig_b; // INPUT: trig_a
@@ -107,7 +107,7 @@ protected:
 		portval_data = 0x00;
 
 	}
-	
+
 	virtual uint8_t  __FASTCALL output_port_com(bool val, bool force = false)
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
@@ -130,7 +130,7 @@ protected:
 		}
 		return 0;
 	}
-	
+
 	virtual uint8_t  __FASTCALL output_port_signals(bool force = false)
 	{
 //		std::unique_lock<std::mutex> _l = lock_device();
@@ -145,7 +145,7 @@ protected:
 					r_data = (~(r_data) & 0x3f);
 				}
 				if(!(force)) {
-					uint8_t __mask = ((sig_trig_a == false) ? 0x10 : 0x00) | ((sig_trig_b == false) ? 0x20 : 0x00) | 0xcf; 
+					uint8_t __mask = ((sig_trig_a == false) ? 0x10 : 0x00) | ((sig_trig_b == false) ? 0x20 : 0x00) | 0xcf;
 					r_data &= __mask;
 				}
 				int signum = (parent_port_num << 16) & 0x70000;
@@ -164,7 +164,7 @@ protected:
 		}
 		return 0;
 	}
-	
+
 	uint8_t __FASTCALL output_trig_a(bool val,  bool later = true, bool force = false)
 	{
 		val_trig_a = val;
@@ -206,7 +206,7 @@ protected:
 		}
 		return 0;
 	}
-	
+
 	virtual uint8_t __FASTCALL hook_changed_com(bool changed)
 	{
 		if(changed) {
@@ -221,36 +221,36 @@ public:
 	{
 		pad_num = -1;
 		parent_port_num = -1;
-		
+
 		signal_shift = 0;
 		signal_mask = 0xffffffff;
-		
+
 		is_connected = false;
 		is_negative_logic = false;
 		force_output_on_change = false;
-		
+
 		set_device_name(_T("JOYSTICK TEMPLATE CLASS"));
 
 		initialize_status();
 	}
 	// common functions
-	virtual void initialize(void)
+	virtual void initialize(void) override
 	{
 		pad_type = PAD_TYPE_NULL;
 		reset_device(false);
 	}
-	
-	virtual void release()
+
+	virtual void release() override
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
 	}
-	
+
 	// @note: DEVICE MUST NOT RESET WITHIN reset(), must reset within reset_device().
-	virtual void reset()
+	virtual void reset() override
 	{
 	}
 
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask)
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
 		// id_structure
@@ -259,7 +259,7 @@ public:
 		int sig_num = id & 0xffff;
 		int port_num = (id & 0x70000) >> 16;
 
-		if(port_num != parent_port_num) return; 
+		if(port_num != parent_port_num) return;
 		switch(sig_num) {
 		case SIG_JS_TRIG_A:
 			if(is_connected) {
@@ -289,8 +289,8 @@ public:
 			break;
 		}
 	}
-	
-	virtual uint32_t __FASTCALL read_signal(int id)
+
+	virtual uint32_t __FASTCALL read_signal(int id) override
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
 
@@ -339,12 +339,12 @@ public:
 		return 0;
 	}
 
-	virtual void update_config()
+	virtual void update_config() override
 	{
 	}
 
-#define TOWNS_JS_TEMPLATE_STATE_VERSION 2	
-	virtual bool process_state(FILEIO* state_fio, bool loading)
+#define TOWNS_JS_TEMPLATE_STATE_VERSION 2
+	virtual bool process_state(FILEIO* state_fio, bool loading) override
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
 
@@ -356,13 +356,13 @@ public:
 		}
 		state_fio->StateValue(is_connected);
 		state_fio->StateValue(is_negative_logic);
-		
+
 		state_fio->StateValue(pad_num);
 		state_fio->StateValue(pad_type);
 		state_fio->StateValue(parent_port_num);
 		state_fio->StateValue(portval_data);
 
-		
+
 		state_fio->StateValue(sig_trig_a);
 		state_fio->StateValue(sig_trig_b);
 		state_fio->StateValue(sig_com);
@@ -370,16 +370,16 @@ public:
 		state_fio->StateValue(val_trig_a);
 		state_fio->StateValue(val_trig_b);
 		state_fio->StateValue(val_com);
-		
+
 		state_fio->StateValue(portval_data);
 
 		state_fio->StateValue(signal_shift);
 		state_fio->StateValue(signal_mask);
-		
+
 		return true;
 	}
 #undef TOWNS_JS_TEMPLATE_STATE_VERSION
-	
+
 	// unique functions
 	// Set parent port
 	virtual uint8_t __FASTCALL query(bool& status)
@@ -392,14 +392,14 @@ public:
 		//std::unique_lock<std::mutex> _l = lock_device();
 		pad_num = num;
 	}
-	
+
 	void set_context_parent_port(int num, DEVICE* dev, int shift, uint32_t mask)
 	{
 		//std::unique_lock<std::mutex> _l = lock_device();
 
 		parent_port_num = num;
 		d_parent_device = dev;
-		
+
 		signal_shift = shift;
 		signal_mask = mask;
 
@@ -418,14 +418,14 @@ public:
 		pad_type = 0;
 		signal_shift = 0;
 		signal_mask = 0xffffffff;
-		
+
 		is_connected = false;
 		force_output_on_change  = false;
 
 		//unlock_device(_l);
-		
+
 		initialize_status();
-		
+
 	}
 	virtual void set_force_output_on_change(bool val)
 	{
@@ -479,4 +479,3 @@ public:
 	}
 };
 }
-

@@ -7,7 +7,7 @@
 #pragma once
 
 /*
-  ADC: 
+  ADC:
     Reading data via read_signal().
     Setting data (from external device) via write_signal().
 */
@@ -29,19 +29,19 @@ class DLL_PREFIX AD7820KR : public DEVICE {
 	outputs_t outputs_intr;
 	outputs_t outputs_overflow;
 	outputs_t outputs_ready;
-	
+
 	uint8_t adc_data;
 	uint8_t adc_msb;
 	uint32_t prev_clock;
-	
+
 	bool cs_enabled;
 	bool req_convert;
 	bool wr_rd_mode;
-	
+
 	int this_bank;
 	int this_sample_rate;
 	int event_sample;
-	
+
 	void start_sample(double usec);
 public:
 	AD7820KR(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -58,22 +58,22 @@ public:
 		cs_enabled = false;
 		prev_clock = 0;
 		set_device_name(_T("A/D Converter AD7820KR"));
-	
+
 	}
 	~AD7820KR()
 	{
 	}
 
-	void initialize();
-	void release();
-	void reset();
+	void initialize() override;
+	void release() override;
+	void reset() override;
 
-	void __FASTCALL event_callback(int event_id, int err);
-	
-	uint32_t __FASTCALL read_signal(int ch);
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
+	void __FASTCALL event_callback(int event_id, int err) override;
 
-	bool process_state(FILEIO* state_fio, bool loading);
+	uint32_t __FASTCALL read_signal(int ch) override;
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
 	void set_sample_rate(int val)
@@ -97,4 +97,3 @@ public:
 		register_output_signal(&outputs_overflow, device, id, mask);
 	}
 };
-

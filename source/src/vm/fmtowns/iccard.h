@@ -12,11 +12,11 @@
 class FILEIO;
 
 namespace FMTOWNS {
-	
+
 class TOWNS_ICCARD: public DEVICE {
 protected:
 	uint32_t limit_size;
-	bool is_rom; // 
+	bool is_rom; //
 	bool is_dirty;
 
 	// 048Ah
@@ -42,20 +42,20 @@ public:
 		set_device_name(_T("TOWNS IC CARD"));
 	}
 	~TOWNS_ICCARD() {}
-	
-	virtual void initialize();
-	virtual void release();
 
-	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr);
-	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual void initialize() override;
+	virtual void release() override;
 
+	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
+
+	// unique functions
 	virtual bool open_cart(const _TCHAR *file_path);
 	virtual void close_cart();
-
-	virtual bool process_state(FILEIO* state_fio, bool loading);
-
 	bool is_cart_inserted()
 	{
 		return (card_state == 0x00) ? true : false;
@@ -63,4 +63,3 @@ public:
 };
 
 }
-

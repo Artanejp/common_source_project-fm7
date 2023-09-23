@@ -51,7 +51,7 @@ public:
 
 	bool process_state(FILEIO *state_fio, bool loading) override;
 
-	/* Unique function(s) */
+	// unique functions
 	constexpr uint8_t __FASTCALL read_direct_data8(uint32_t addr);
 };
 

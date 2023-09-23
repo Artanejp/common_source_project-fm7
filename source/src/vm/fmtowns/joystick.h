@@ -43,14 +43,14 @@
 class DEBUGGER;
 namespace FMTOWNS {
 class JSDEV_TEMPLATE;
-	
+
 class JOYSTICK : public DEVICE
 {
 private:
 	DEBUGGER* d_debugger;
 	JSDEV_TEMPLATE* d_port[2][8];
 	std::mutex _locker;
-	
+
 	bool force_update;
 	int port_count[2];
 	int port_using[2];
@@ -58,7 +58,7 @@ private:
 	uint8_t reg_val;
 	uint8_t data_reg[2];
 	uint8_t data_mask[2];
-	
+
 	bool stat_com[2];
 
 	virtual void __FASTCALL reset_input_data(int num);
@@ -83,43 +83,44 @@ public:
 		set_device_name(_T("FM-Towns JOYSTICK Port"));
 	}
 	~JOYSTICK() {}
-	
+
 	// common functions
-	void initialize(void);
-	void release();
-	void reset();
-	
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int id);
+	void initialize() override;
+	void release() override;
+	void reset() override;
 
-	void update_config();
-	bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	void *get_debugger()
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int id) override;
+
+	void update_config() override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	void *get_debugger() override
 	{
 		return d_debugger;
 	}
-	bool is_debugger_available()
+	bool is_debugger_available() override
 	{
 		return ((d_debugger != NULL) ? true : false);
 	}
-	void set_context_debugger(DEBUGGER* device)
-	{
-		d_debugger = device;
-	}
-	virtual uint32_t get_debug_data_addr_mask()
+	virtual uint32_t get_debug_data_addr_mask() override
 	{
 		return 0x1;
 	}
 
 	// unique functions
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
 	void set_context_joystick(int portnum, JSDEV_TEMPLATE* dev)
 	{
 		std::unique_lock<std::mutex> _l = lock_device();
-		
+
 		if((portnum < 0) || (portnum > 1)) return;
 		if(port_count[portnum] < 8) {
 			d_port[portnum][port_count[portnum]] = dev;
@@ -130,9 +131,5 @@ public:
 	{
 		port_using[portnum] = num;
 	}
-
-			
 };
 }
-
-

@@ -13,7 +13,7 @@ public:
 	}
 	~JOYPAD_6BTN() {}
 
-	virtual void initialize();
-	virtual uint8_t __FASTCALL query(bool& status);
+	virtual void initialize() override;
+	virtual uint8_t __FASTCALL query(bool& status) override;
 };
 }

@@ -522,7 +522,7 @@ public:
 	{
 		return 0x1;
 	}
-	// unique function
+	// unique functions
 	void draw_screen();
 	inline linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{

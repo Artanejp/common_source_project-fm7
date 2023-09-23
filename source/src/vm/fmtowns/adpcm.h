@@ -11,7 +11,7 @@
   I/O:
   0x04d5          : OPN2/ADPCM MUTE
   0x04e7 - 0x04e8 : ADC
-  0x04e9 - 0x04ec : ADPCM CONTROL 
+  0x04e9 - 0x04ec : ADPCM CONTROL
   0x04e8 - 0x04f8 : DAC
 
   MEMORY:
@@ -34,7 +34,7 @@ protected:
 	DEVICE* d_opn2;
 	DEVICE* d_pic;
 	DEVICE* d_adc;
-	
+
 	outputs_t outputs_intr;
 	outputs_t outputs_led_control;
 	outputs_t outputs_allmute;
@@ -44,7 +44,7 @@ protected:
 	uint16_t dac_intr;
 	uint16_t dac_intr_mask;
 	bool latest_dac_intr;
-	
+
 	bool opn2_mute;
 	bool adpcm_mute;
 
@@ -66,21 +66,31 @@ public:
 	}
 	~ADPCM() {}
 
-	void initialize();
-	void release();
-	void reset();
-	void __FASTCALL event_callback(int id, int err);
-	
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void     __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	void     __FASTCALL write_data8(uint32_t addr, uint32_t data);
+	void initialize() override;
+	void release() override;
+	void reset() override;
 
-	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int ch);
+	void __FASTCALL event_callback(int id, int err) override;
 
-	bool process_state(FILEIO* state_fio, bool loading);
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void     __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 
+	uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
+	uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait) override;
+	void     __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	void     __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait) override;
+
+	uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int* wait) override;
+	uint32_t __FASTCALL read_memory_mapped_io16w(uint32_t addr, int* wait) override;
+	void     __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait) override;
+	void     __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait) override;
+
+	void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int ch) override;
+
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
+	// unique functions
 	void set_context_pic(DEVICE* dev)
 	{
 		d_pic = dev;

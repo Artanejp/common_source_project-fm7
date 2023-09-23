@@ -6,7 +6,7 @@ namespace FMTOWNS {
 
 class JOYPAD_2BTN : public JSDEV_TEMPLATE {
 protected:
-	virtual uint8_t __FASTCALL hook_changed_com(bool changed);
+	virtual uint8_t __FASTCALL hook_changed_com(bool changed) override;
 
 public:
 	JOYPAD_2BTN(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : JSDEV_TEMPLATE(parent_vm, parent_emu)
@@ -15,8 +15,8 @@ public:
 	}
 	~JOYPAD_2BTN() {}
 
-	virtual void initialize();
-	virtual uint8_t __FASTCALL query(bool& status);
+	virtual void initialize() override;
+	virtual uint8_t __FASTCALL query(bool& status) override;
 
 };
 }

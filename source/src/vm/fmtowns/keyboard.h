@@ -43,8 +43,8 @@
 	ALT					LALT
 */
 namespace FMTOWNS {
-/* 
- * From 
+/*
+ * From
  * http://www.nurs.or.jp/~kurati/towns/scancode.html
  * and http://m0115.web.fc2.com/fmr60kb212.jpg :
  * TOWNS の ScanCode
@@ -64,7 +64,7 @@ namespace FMTOWNS {
 0x60	F4		F5		F6		F7		F8		F9		F10		---
 0x68	---		F11		英字	辞書	抹消	登録	前行	---
 0x70	次行	半/全	END		実行	F13		F14		F15		F16
-0x78	F17		F18		F19		F20						
+0x78	F17		F18		F19		F20
 */
 static const int key_table[256] = {
 /*	VK -> RAW code table                    +8                                           */
@@ -96,7 +96,7 @@ class KEYBOARD : public DEVICE
 protected:
 	outputs_t output_intr_line;
 	outputs_t output_nmi_line;
-	
+
 	FIFO *key_buf;
 	FIFO *cmd_buf;
 
@@ -105,24 +105,24 @@ protected:
 	int repeat_tick_ms;
 	bool enable_double_pressed_cursor;
 	bool device_order;
-	
+
 	bool nmi_status;
 	uint8_t table[256];
 
 	uint8_t last_cmd;
-	
+
 	char boot_code[8];
 	bool boot_seq;
 
 	int boot_code_ptr;
 	int boot_ptr;
 	int special_boot_num;
-	
+
 	int event_keycode;
 	int event_key_reset;
 	int event_repeat;
 
-	
+
 	virtual void do_common_command(uint8_t cmd);
 	void register_key_interrupt(bool first);
 	void enqueue_key(uint8_t code);
@@ -138,25 +138,26 @@ public:
 	{
 		key_buf = NULL;
 		cmd_buf = NULL;
-		
+
 		initialize_output_signals(&output_intr_line);
 		initialize_output_signals(&output_nmi_line);
 		set_device_name(_T("FM-Towns Keyboard (JIS)"));
 	}
 	~KEYBOARD() {}
-	
+
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void special_reset(int num);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
-	
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	void special_reset(int num) override;
+
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+
+	void __FASTCALL event_callback(int event_id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// unique functions
 	void set_context_intr_line(DEVICE* dev, int id, uint32_t mask)
 	{

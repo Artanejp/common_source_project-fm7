@@ -13,7 +13,7 @@
 #define MB87078_TYPE_SET_LEFT		0x01
 #define MB87078_TYPE_SET_RIGHT		0x02
 #define MB87078_TYPE_SET_CENTER	(MB87078_TYPE_SET_LEFT | MB87078_TYPE_SET_RIGHT)
-	
+
 class MB87078 : public DEVICE {
 protected:
 	struct channels_s {
@@ -23,7 +23,7 @@ protected:
 		uint32_t	mutemask;		// signal mask to mute target.
 		uint32_t	muteval;		// signal value to mute target.
 		bool		is_negative;	// Negative logic for muting.
-		
+
 		uint8_t		channelmask;
 		int			extvalue;		// Set by set_volume_per_channel();
 		bool		enabled;
@@ -31,12 +31,12 @@ protected:
 	} channels[4];
 
 	uint8_t regs[2];
-	
+
 	uint8_t current_channel;
 	bool current_c32;
 	bool current_c0;
 	bool current_en;
-	
+
 	virtual void set_volume_internal(int ch, int vol, bool _force = false);
 	virtual void set_enable_internal(int ch, bool en, bool _force = false);
 	virtual void device_reset();
@@ -52,7 +52,7 @@ public:
 			channels[i].muteval = 0xffffffff;
 			channels[i].mutemask = 0xffffffff;
 			channels[i].is_negative = false;
-			
+
 			channels[i].channelmask = 0x00; // None used
 			channels[i].enabled = false;
 			channels[i].intvalue = -64; // -32.0db * 2
@@ -64,17 +64,18 @@ public:
 	{
 	}
 
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 
-	virtual void reset();
-	virtual void initialize();
-	virtual bool process_state(FILEIO* state_fio, bool loading);
-	
+	virtual void reset() override;
+	virtual void initialize() override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
+
 	// Unique functions.
 	virtual void set_volume_per_channel(int ch, int db);
 	virtual void set_volumes(int left_ch, int left_db, int right_ch, int right_db);
 
+	// unique functions
 	void set_context_device(int ch, DEVICE* dev, int devch,
 							uint8_t chmask, int mutesig = -1,
 							uint32_t muteval = 0xffffffff,
@@ -96,6 +97,3 @@ public:
 		}
 	}
 };
-	
-
-	
