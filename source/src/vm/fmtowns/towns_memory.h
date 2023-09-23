@@ -79,6 +79,7 @@ protected:
 	I386*   d_cpu;
 
 	DEVICE* d_dictionary;
+	DEVICE* d_cmos;
 	DEVICE* d_sysrom;
 	DEVICE* d_msdos;
 	DEVICE* d_serialrom;
@@ -317,9 +318,9 @@ protected:
 			}
 			const bool is_this = (dev == this);
 			if((is_dma) && !(is_this)) {
-				val = dev->read_dma_data8(offset);
+				val = dev->read_dma_data8w(offset, wait);
 			} else {
-				val = dev->read_memory_mapped_io8(offset);
+				val = dev->read_memory_mapped_io8w(offset, wait);
 			}
 		}
 		__LIKELY_IF(wait != NULL) {
@@ -354,9 +355,9 @@ protected:
 			}
 			const bool is_this = (dev == this);
 			if((is_dma) && !(is_this)) {
-				val = dev->read_dma_data16(offset);
+				val = dev->read_dma_data16w(offset, wait);
 			} else {
-				val = dev->read_memory_mapped_io16(offset);
+				val = dev->read_memory_mapped_io16w(offset, wait);
 			}
 		}
 		__LIKELY_IF(wait != NULL) {
@@ -394,9 +395,9 @@ protected:
 			}
 			const bool is_this = (dev == this);
 			if((is_dma) && !(is_this)) {
-				val = dev->read_dma_data32(offset);
+				val = dev->read_dma_data32w(offset, wait);
 			} else {
-				val = dev->read_memory_mapped_io32(offset);
+				val = dev->read_memory_mapped_io32w(offset, wait);
 			}
 		}
 		__LIKELY_IF(wait != NULL) {
@@ -431,9 +432,9 @@ protected:
 			}
 			const bool is_this = (dev == this);
 			if((is_dma) && !(is_this)) {
-				dev->write_dma_data8(offset, data);
+				dev->write_dma_data8w(offset, data, wait);
 			} else {
-				dev->write_memory_mapped_io8(offset, data);
+				dev->write_memory_mapped_io8w(offset, data, wait);
 			}
 		}
 		__LIKELY_IF(wait != NULL) {
@@ -467,9 +468,9 @@ protected:
 			}
 			const bool is_this = (dev == this);
 			if((is_dma) && !(is_this)) {
-				dev->write_dma_data16(offset, data);
+				dev->write_dma_data16w(offset, data, wait);
 			} else {
-				dev->write_memory_mapped_io16(offset, data);
+				dev->write_memory_mapped_io16w(offset, data, wait);
 			}
 		}
 		__LIKELY_IF(wait != NULL) {
@@ -505,9 +506,9 @@ protected:
 			}
 			const bool is_this = (dev == this);
 			if((is_dma) && !(is_this)) {
-				dev->write_dma_data32(offset, data);
+				dev->write_dma_data32w(offset, data, wait);
 			} else {
-				dev->write_memory_mapped_io32(offset, data);
+				dev->write_memory_mapped_io32w(offset, data, wait);
 			}
 		}
 		__LIKELY_IF(wait != NULL) {
@@ -558,6 +559,7 @@ public:
 		d_iccard[1] = NULL;
 
 		d_dictionary = NULL;
+		d_cmos = NULL;
 		d_sysrom = NULL;
 		d_msdos = NULL;
 		d_serialrom = NULL;
@@ -619,14 +621,14 @@ public:
 	virtual void     __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
-	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
-	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
+	virtual void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int* wait) override;
 
-	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
-	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
+	virtual void __FASTCALL write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io16w(uint32_t addr, int* wait) override;
 ;
-	virtual void __FASTCALL write_memory_mapped_io32(uint32_t addr, uint32_t data) override;
-	virtual uint32_t __FASTCALL read_memory_mapped_io32(uint32_t addr) override;
+	virtual void __FASTCALL write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* wait) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io32w(uint32_t addr, int* wait) override;
 
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	virtual uint32_t __FASTCALL read_signal(int ch) override;
@@ -814,6 +816,10 @@ public:
 	void set_context_dictionary(DEVICE* device)
 	{
 		d_dictionary = device;
+	}
+	void set_context_cmos(DEVICE* device)
+	{
+		d_cmos = device;
 	}
 	void set_context_msdos(DEVICE* device)
 	{

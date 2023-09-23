@@ -85,7 +85,7 @@ void TOWNS_MEMORY::initialize()
 	set_region_device_r (0xc2080000, 0xc20fffff, d_dictionary, NOT_NEED_TO_OFFSET);
 	set_region_device_r (0xc2100000, 0xc213ffff, d_font, NOT_NEED_TO_OFFSET);
 	// REAL IS C2140000h - C2141FFFh, but grain may be 8000h bytes.
-	set_region_device_rw(0xc2140000, 0xc2140000 + memory_map_grain() - 1, d_dictionary, NOT_NEED_TO_OFFSET);
+	set_region_device_rw(0xc2140000, 0xc2147fff, d_cmos, 0);
 	if(d_font_20pix != NULL) {
 		set_region_device_r (0xc2180000, 0xc21fffff, d_font_20pix, 0);
 	}
@@ -113,7 +113,7 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 {
 	const bool is_vram_bak = dma_is_vram;
 	const bool is_dict_bak = select_d0_dict;
-	__UNLIKELY_IF((vrambank != is_vram_bak) || (force)){
+	//__UNLIKELY_IF((vrambank != is_vram_bak) || (force)){
 		if(vrambank) { // VRAM AND around TEXT
 			set_region_device_rw(0x000c0000, 0x000c7fff, d_planevram, NOT_NEED_TO_OFFSET);
 			set_region_device_rw(0x000c8000, 0x000cffff, this, NOT_NEED_TO_OFFSET);
@@ -133,14 +133,14 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 			set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
 			set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
 		}
-	}
-	__UNLIKELY_IF((vrambank != is_vram_bak) || (dictbank != is_dict_bak) || (force)){
+	//}
+	//__UNLIKELY_IF((vrambank != is_vram_bak) || (dictbank != is_dict_bak) || (force)){
 		if(vrambank) { // VRAM AND around TEXT
 			if(dictbank) {
 				set_region_device_r(0x000d0000, 0x000d7fff, d_dictionary, NOT_NEED_TO_OFFSET);
 				unset_range_w(0x000d0000, 0x000d7fff);
 				// REAL IS 0000D8000h - 000D9FFFh, but grain may be 8000h bytes.
-				set_region_device_rw(0x000d8000, 0x000d8000 + memory_map_grain() - 1, d_dictionary, NOT_NEED_TO_OFFSET);
+				set_region_device_rw(0x000d8000, 0x000dffff, d_cmos, 0);
 			} else {
 				unset_range_rw(0x000d0000, 0x000dffff);
 			}
@@ -151,7 +151,7 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 				unset_range_rw(0x000d0000, 0x000dffff);
 			}
 		}
-	}
+	//}
 	dma_is_vram = vrambank;
 	select_d0_dict = dictbank;
 }
@@ -161,7 +161,7 @@ void TOWNS_MEMORY::config_page0f(const bool sysrombank, const bool force)
 	//__LIKELY_IF(extra_ram != NULL) {
 	//	set_region_memory_rw(0x000f0000, 0x000f7fff, extra_ram, 0x000f0000);
 	//}
-	__UNLIKELY_IF((sysrombank != sysrom_bak) || (force)) {
+	//__UNLIKELY_IF((sysrombank != sysrom_bak) || (force)) {
 		if(sysrombank) {
 			unset_range_w(0x000f8000, 0x000fffff);
 			set_region_device_r (0x000f8000, 0x000fffff, d_sysrom, 0x38000);
@@ -172,7 +172,7 @@ void TOWNS_MEMORY::config_page0f(const bool sysrombank, const bool force)
 				unset_range_rw(0x000f8000, 0x000fffff);
 			}
 		}
-	}
+	//}
 	select_d0_rom = sysrombank;
 }
 
@@ -1080,11 +1080,20 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 	}
 }
 
-uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
+uint32_t TOWNS_MEMORY::read_memory_mapped_io8w(uint32_t addr, int* wait)
 {
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
+	}
 	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
 		// Out of bounds;
+		return 0xff;
+	}
+	__LIKELY_IF(addr < 0x000c9000) { // TEXT VRAM (ANK)
+		__LIKELY_IF(d_sprite != NULL) {
+			return d_sprite->read_memory_mapped_io8w(addr - 0xc8000, wait);
+		}
 		return 0xff;
 	}
 	__LIKELY_IF(addr >= 0x000cc000) {
@@ -1099,33 +1108,36 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8(uint32_t addr)
 		}
 	}
 	// ROMs?
-	if(addr < 0x000c9000) { // TEXT VRAM (ANK)
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io8(addr);
-		}
-		return 0xff;
-	}
 	if(ankcg_enabled) {
-		__LIKELY_IF(addr >= 0x000ca000) { // ANKCG8 and ANKCG16
+		if(addr >= 0xca000) {
 			__LIKELY_IF(d_font != NULL) {
 				return d_font->read_memory_mapped_io8(addr);
 			}
 		}
 	} else {
-		__LIKELY_IF(addr < 0x000cb000) { // TEXT VRAM (KANJI)
+		if(addr < 0xcb000) {
 			__LIKELY_IF(d_sprite != NULL) {
-				return d_sprite->read_memory_mapped_io8(addr);
+				return d_sprite->read_memory_mapped_io8w(addr - 0xc8000, wait);
 			}
 		}
 	}
 	return 0xff;
 }
 
-uint32_t TOWNS_MEMORY::read_memory_mapped_io16(uint32_t addr)
+uint32_t TOWNS_MEMORY::read_memory_mapped_io16w(uint32_t addr, int* wait)
 {
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
+	}
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
 	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
 		// out of bounds
+		return 0xffff;
+	}
+	if(addr < 0x000c9000) { // TEXT VRAM (ANK)
+		__LIKELY_IF(d_sprite != NULL) {
+			return d_sprite->read_memory_mapped_io16w(addr - 0xc8000, wait);
+		}
 		return 0xffff;
 	}
 	__LIKELY_IF(addr >= 0x000cc000) {
@@ -1144,33 +1156,36 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io16(uint32_t addr)
 		return w.w;
 	}
 	// ROMs?
-	if(addr < 0x000c9000) { // TEXT VRAM (ANK)
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io16(addr);
-		}
-		return 0xffff;
-	}
 	if(ankcg_enabled) {
-		__LIKELY_IF(addr >= 0x000ca000) { // ANKCG8 and ANKCG16
+		if(addr >= 0xca000) {
 			__LIKELY_IF(d_font != NULL) {
 				return d_font->read_memory_mapped_io16(addr);
 			}
 		}
 	} else {
-		__LIKELY_IF(addr < 0x000cb000) { // TEXT VRAM (KANJI)
+		if(addr < 0xcb000) {
 			__LIKELY_IF(d_sprite != NULL) {
-				return d_sprite->read_memory_mapped_io16(addr);
+				return d_sprite->read_memory_mapped_io16w(addr - 0xc8000, wait);
 			}
 		}
 	}
 	return 0xffff;
 }
 
-uint32_t TOWNS_MEMORY::read_memory_mapped_io32(uint32_t addr)
+uint32_t TOWNS_MEMORY::read_memory_mapped_io32w(uint32_t addr, int* wait)
 {
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
+	}
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
 	__UNLIKELY_IF((addr > 0x000cffff) || (addr < 0x000c8000)) {
 		// out of bounds
+		return 0xffffffff;
+	}
+	if(addr < 0x000c9000) { //SPRITE
+		__LIKELY_IF(d_sprite != NULL) {
+			return d_sprite->read_memory_mapped_io32w(addr - 0xc8000, wait);
+		}
 		return 0xffffffff;
 	}
 	__LIKELY_IF(addr >= 0x000cc000) {
@@ -1191,30 +1206,38 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io32(uint32_t addr)
 		return d.d;
 	}
 	// ROMs?
-	if(addr < 0x000ca000) { //SPRITE
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io32(addr);
-		}
-		return 0xffffffff;
-	}
 	if(ankcg_enabled) {
-		__LIKELY_IF(d_font != NULL) {
-			return d_font->read_memory_mapped_io32(addr);
+		if(addr >= 0xca000) {
+			__LIKELY_IF(d_font != NULL) {
+				return d_font->read_memory_mapped_io32(addr);
+			}
 		}
 	} else {
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io32(addr);
+		if(addr < 0xcb000) {
+			__LIKELY_IF(d_sprite != NULL) {
+				return d_sprite->read_memory_mapped_io32w(addr - 0xc8000, wait);
+			}
 		}
 	}
 	return 0xffffffff;
 }
 
 
-void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
+void TOWNS_MEMORY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
 {
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
+	}
 	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
 		// Out of bounds
+		return;
+	}
+	__LIKELY_IF(addr < 0xcb000) { // From Tsugaru.
+		__LIKELY_IF(d_sprite != NULL) {
+			d_sprite->write_memory_mapped_io8w(addr - 0xc8000, data, wait);
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
+		}
 		return;
 	}
 	__LIKELY_IF(addr >= 0x000cc000) {
@@ -1229,20 +1252,24 @@ void TOWNS_MEMORY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 		return;
 	}
 	// ROMs?
-	if(addr < 0x000cb000) { // TEXT VRAM (ANK + KANJI)
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io8(addr, data);
-		}
-		return;
-	}
 	return;
 }
 
-void TOWNS_MEMORY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
+void TOWNS_MEMORY::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
 {
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
+	}
 	__UNLIKELY_IF((addr > 0x000cffff) || (addr < 0x000c8000)) {
 		// Out of bounds
+		return;
+	}
+	__LIKELY_IF(addr < 0xcb000) { // From Tsugaru.
+		__LIKELY_IF(d_sprite != NULL) {
+			d_sprite->write_memory_mapped_io16w(addr - 0xc8000, data, wait);
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
+		}
 		return;
 	}
 	__LIKELY_IF(addr >= 0x000cc000) {
@@ -1260,19 +1287,23 @@ void TOWNS_MEMORY::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 		return;
 	}
 	// ROMs?
-	if(addr < 0x000cb000) { // TEXT VRAM (ANK + KANJI)
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io16(addr, data);
-		}
-		return;
-	}
 	return;
 }
 
-void TOWNS_MEMORY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
+void TOWNS_MEMORY::write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* wait)
 {
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
+	}
 	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
+		return;
+	}
+	__LIKELY_IF(addr < 0xcb000) { // From Tsugaru.
+		__LIKELY_IF(d_sprite != NULL) {
+			d_sprite->write_memory_mapped_io32w(addr - 0xc8000, data, wait);
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
+		}
 		return;
 	}
 	__LIKELY_IF(addr >= 0x000cc000) {
@@ -1292,12 +1323,6 @@ void TOWNS_MEMORY::write_memory_mapped_io32(uint32_t addr, uint32_t data)
 		return;
 	}
 	// ROMs?
-	if(addr < 0x000cb000) { // TEXT VRAM (ANK + KANJI)
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io32(addr, data);
-		}
-		return;
-	}
 	return;
 }
 
