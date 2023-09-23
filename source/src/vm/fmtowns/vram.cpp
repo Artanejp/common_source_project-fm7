@@ -231,7 +231,7 @@ void TOWNS_VRAM::write_io8(uint32_t address,  uint32_t data)
 {
 	switch(address & 0xffff) {
 	case 0x0458:
-		vram_access_reg_addr = data & 3;
+		vram_access_reg_addr = data & 1;
 //		out_debug_log(_T("VRAM ACCESS(0458h)=%02X"), data);
 		break;
 	case 0x045a:
@@ -257,7 +257,7 @@ void TOWNS_VRAM::write_io16(uint32_t address,  uint32_t data)
 	d.d = data;
 	switch(address & 0xffff) {
 	case 0x0458:
-		vram_access_reg_addr = data & 3;
+		vram_access_reg_addr = data & 1;
 		break;
 	case 0x045a:
 		{
