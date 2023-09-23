@@ -757,19 +757,38 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 	return val;
 }
 
-
-uint32_t TOWNS_SPRITE::read_memory_mapped_io8(uint32_t addr)
+uint32_t TOWNS_SPRITE::read_dma_data8w(uint32_t addr, int* wait)
 {
-	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
-		addr = addr - 0x000c8000; // Trick :-)
+	return read_memory_mapped_io8w(addr, wait);
+}
+
+uint32_t TOWNS_SPRITE::read_dma_data16w(uint32_t addr, int* wait)
+{
+	return read_memory_mapped_io16w(addr, wait);
+}
+
+void TOWNS_SPRITE::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_memory_mapped_io8w(addr, data, wait);
+}
+
+void TOWNS_SPRITE::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
+{
+	write_memory_mapped_io16w(addr, data, wait);
+}
+
+uint32_t TOWNS_SPRITE::read_memory_mapped_io8w(uint32_t addr, int* wait)
+{
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
 	}
 	return pattern_ram[addr & 0x1ffff];
 }
 
-uint32_t TOWNS_SPRITE::read_memory_mapped_io16(uint32_t addr)
+uint32_t TOWNS_SPRITE::read_memory_mapped_io16w(uint32_t addr, int* wait)
 {
-	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
-		addr = addr - 0x000c8000; // Trick :-)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
 	}
 	pair16_t n;
 	addr = addr & 0x1ffff;
@@ -782,10 +801,10 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io16(uint32_t addr)
 	return n.w;
 }
 
-uint32_t TOWNS_SPRITE::read_memory_mapped_io32(uint32_t addr)
+uint32_t TOWNS_SPRITE::read_memory_mapped_io32w(uint32_t addr, int* wait)
 {
-	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
-		addr = addr - 0x000c8000; // Trick :-)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
 	}
 	pair32_t d;
 	addr = addr & 0x1ffff;
@@ -813,24 +832,20 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io32(uint32_t addr)
 	return d.d;
 }
 
-void TOWNS_SPRITE::write_memory_mapped_io8(uint32_t addr, uint32_t data)
+void TOWNS_SPRITE::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
 {
-	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
-		tvram_enabled = true;
-		tvram_enabled_bak = true;
-		addr = addr - 0x000c8000; // Trick :-)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
 	}
 	addr = addr & 0x1ffff;
 	pattern_ram[addr] = data;
 	return;
 }
 
-void TOWNS_SPRITE::write_memory_mapped_io16(uint32_t addr, uint32_t data)
+void TOWNS_SPRITE::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
 {
-	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
-		tvram_enabled = true;
-		tvram_enabled_bak = true;
-		addr = addr - 0x000c8000; // Trick :-)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
 	}
 	addr = addr & 0x1ffff;
 	pair16_t n;
@@ -843,12 +858,10 @@ void TOWNS_SPRITE::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 	return;
 }
 
-void TOWNS_SPRITE::write_memory_mapped_io32(uint32_t addr, uint32_t data)
+void TOWNS_SPRITE::write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* wait)
 {
-	__UNLIKELY_IF((addr >= 0x000c8000) && (addr < 0x000cb000))  { // OK?
-		tvram_enabled = true;
-		tvram_enabled_bak = true;
-		addr = addr - 0x000c8000; // Trick :-)
+	__LIKELY_IF(wait != NULL) {
+		*wait = 0; // ToDo
 	}
 	addr = addr & 0x1ffff;
 	pair32_t d;
