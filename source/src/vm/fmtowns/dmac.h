@@ -114,6 +114,7 @@ protected:
 
 	void __FASTCALL do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
 	void __FASTCALL do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
+	void check_mask_and_cmd();
 	virtual void reset_from_io();
 
 public:

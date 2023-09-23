@@ -32,7 +32,7 @@ void TOWNS_DMAC::reset_from_io()
 		write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0);
 	}
 	clear_event(this, event_dmac_cycle);
-	register_event(this, EVENT_DMAC_CYCLE, dmac_cycle_us, true, &event_dmac_cycle);
+	//register_event(this, EVENT_DMAC_CYCLE, dmac_cycle_us, true, &event_dmac_cycle);
 	spent_clocks = 0;
 	transfer_ch = 0;
 }
@@ -45,10 +45,25 @@ void TOWNS_DMAC::reset()
 }
 
 
+void TOWNS_DMAC::check_mask_and_cmd()
+{
+	if(((cmd & 0x04) == 0) && ((mask & 0x0f) != 0x0f)) {
+		__UNLIKELY_IF(event_dmac_cycle < 0) {
+			register_event(this, EVENT_DMAC_CYCLE, dmac_cycle_us, true, &event_dmac_cycle);
+		}
+	} else {
+		spent_clocks = 0;
+		transfer_ch = 0;
+		__UNLIKELY_IF(event_dmac_cycle >= 0) {
+			cancel_event(this, event_dmac_cycle);
+		}
+		event_dmac_cycle = -1;
+	}
+}
 
 void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 {
-	switch(addr & 0x0e) {
+	switch(addr & 0x0f) {
 	case 0x02:
 		dma[selch].bcreg = data;
 		dma[selch].creg = data;
@@ -65,15 +80,8 @@ void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
 		dma[selch].areg  = (dma[selch].areg  & 0x0000ffff) | ((data & 0xffff) << 16);
 		break;
 	case 0x08: // Control
-		if((cmd & 0x04) != (data & 0x04)) {
-			if((cmd & 0x04) != 0) { //  RISE UP
-				spent_clocks = 0;
-				transfer_ch = 0;
-			} else {
-				// Fall down
-			}
-		}
 		cmd = data;
+		check_mask_and_cmd();
 		break;
 	default:
 		write_io8((addr & 0x0e) + 0, data & 0x00ff);
@@ -92,6 +100,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 0x0f) {
 	case 0x00:
 		UPD71071::write_io8(0, data);
+		check_mask_and_cmd();
 		if(data & 1) {
 			reset_from_io();
 			out_debug_log(_T("RESET from I/O; B16=%s"), ((b16 & 2) != 0) ? _T("16bit") : _T("8bit"));
@@ -142,16 +151,11 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 		// MODE
 	case 0x08:
+		cmd = (cmd & 0xff00) | (data & 0xff);
+		check_mask_and_cmd();
+		break;
 	case 0x09:
-		if((cmd & 0x04) != (data & 0x04)) {
-			if((cmd & 0x04) != 0) { //  RISE UP
-				spent_clocks = 0;
-				transfer_ch = 0;
-			} else {
-				// Fall down
-			}
-		}
-		UPD71071::write_io8(addr, data);
+		cmd = (cmd & 0xff) | ((data & 0xff) << 8);
 		break;
 	case 0x0a:
 		// BIT 7,6 : TRANSFER MODE
@@ -193,6 +197,10 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		#endif
 		break;
 		// MASK
+	case 0x0f:
+		mask = data;
+		check_mask_and_cmd();
+		break;
 	default:
 		UPD71071::write_io8(addr, data);
 		break;
@@ -229,7 +237,7 @@ uint32_t TOWNS_DMAC::read_io8(uint32_t addr)
 
 uint32_t TOWNS_DMAC::read_io16(uint32_t addr)
 {
-	switch(addr & 0x0e) {
+	switch(addr & 0x0f) {
 	case 0x02:
 		if(base != 0) {
 			return dma[selch].bcreg;
