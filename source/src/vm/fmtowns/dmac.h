@@ -27,7 +27,6 @@ protected:
 	bool is_16bit_transfer[4];
 	bool is_16bit[4];
 
-	bool is_started[4];
 	bool end_req[4];
 	bool end_stat[4];
 	double dmac_cycle_us;
@@ -64,9 +63,9 @@ protected:
 			// auto initialize
 			dma[c].areg = dma[c].bareg;
 			dma[c].creg = dma[c].bcreg;
+			//mask |= bit;
 		} else {
 			mask |= bit;
-			is_started[c] = false;
 		}
 	}
 	inline void __FASTCALL calc_transfer_status(int ch)
@@ -86,11 +85,11 @@ protected:
 		sreq &= ~bit;
 		running = false;
 		end_req[c] = false;
-		tc |= bit;	// NOT From MAME 0.246 ;
+		//tc |= bit;	// NOT From MAME 0.246 ;
 		if(is_send_tc) {
 			write_signals(&outputs_towns_tc[c], 0xffffffff);
 		}
-		//tc |= bit;	// From MAME 0.246 ;
+		tc |= bit;	// From MAME 0.246 ;
 					// TC REGISTER's BIT maybe set after TC line asserted. 20230521 K.O
 	}
 	bool __FASTCALL check_is_16bit(int ch);

@@ -9,7 +9,6 @@ void TOWNS_DMAC::initialize()
 {
 	UPD71071::initialize();
 	for(int ch = 0; ch < 4; ch++) {
-		is_started[ch] = false;
 		address_aligns_16bit[ch] = true;
 		is_16bit_transfer[ch] = false;
 		is_16bit[ch] = false;
@@ -23,7 +22,6 @@ void TOWNS_DMAC::reset_from_io()
 {
 	for(int ch = 0; ch < 4; ch++) {
 		end_req[ch] = false;
-		is_started[ch] = false;
 		calc_transfer_status(ch);
 	}
 
@@ -126,13 +124,6 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].bareg = (dma[selch].bareg & __d_mask) | __d;
 			dma[selch].areg  = (dma[selch].areg  & __d_mask) | __d;
 		}
-		#if 0
-		if(is_started[selch]) {
-			if(check_address_16bit_bus_changed(selch)) {
-				set_ube_line(selch);
-			}
-		}
-		#endif
 		break;
 	case 0x07:
 		{
@@ -141,13 +132,6 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].bareg = (dma[selch].bareg & __d_mask) | __d;
 			dma[selch].areg  = (dma[selch].areg  & __d_mask) | __d;
 		}
-		#if 0
-		if(is_started[selch]) {
-			if(check_address_16bit_bus_changed(selch)) {
-				set_ube_line(selch);
-			}
-		}
-		#endif
 		break;
 		// MODE
 	case 0x08:
@@ -737,7 +721,6 @@ bool TOWNS_DMAC::process_state(FILEIO *state_fio, bool loading)
 		return false;
 	}
 	state_fio->StateValue(dma_wrap);
-	state_fio->StateArray(is_started, sizeof(is_started), 1);
 	state_fio->StateArray(end_req, sizeof(end_req), 1);
 	state_fio->StateValue(spent_clocks);
 	state_fio->StateValue(transfer_ch);
