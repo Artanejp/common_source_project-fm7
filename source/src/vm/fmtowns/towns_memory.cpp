@@ -113,45 +113,35 @@ void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, co
 {
 	const bool is_vram_bak = dma_is_vram;
 	const bool is_dict_bak = select_d0_dict;
-	//__UNLIKELY_IF((vrambank != is_vram_bak) || (force)){
-		if(vrambank) { // VRAM AND around TEXT
-			set_region_device_rw(0x000c0000, 0x000c7fff, d_planevram, NOT_NEED_TO_OFFSET);
-			set_region_device_rw(0x000c8000, 0x000cffff, this, NOT_NEED_TO_OFFSET);
+	if(vrambank) { // VRAM AND around TEXT
+		set_region_device_rw(0x000c0000, 0x000c7fff, d_planevram, NOT_NEED_TO_OFFSET);
+		set_region_device_rw(0x000c8000, 0x000cffff, this, NOT_NEED_TO_OFFSET);
 
-			unset_range_rw(0x000e0000, 0x000effff); // OK?
+		set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
+		set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
 
-			set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
-			set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
+		if(dictbank) {
+			set_region_device_r(0x000d0000, 0x000d7fff, d_dictionary, NOT_NEED_TO_OFFSET);
+			unset_range_w(0x000d0000, 0x000d7fff);
+			// REAL IS 0000D8000h - 000D9FFFh, but grain may be 8000h bytes.
+			set_region_device_rw(0x000d8000, 0x000dffff, d_cmos, 0);
 		} else {
-			__LIKELY_IF(extra_ram != NULL) {
-				set_region_memory_rw(0x000c0000, 0x000cffff, extra_ram, 0x000c0000);
-				set_region_memory_rw(0x000e0000, 0x000effff, extra_ram, 0x000e0000);
-			} else {
-				unset_range_rw(0x000c0000, 0x000cffff);
-				unset_range_rw(0x000e0000, 0x000effff);
-			}
-			set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
-			set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
+			unset_range_rw(0x000d0000, 0x000dffff);
 		}
-	//}
-	//__UNLIKELY_IF((vrambank != is_vram_bak) || (dictbank != is_dict_bak) || (force)){
-		if(vrambank) { // VRAM AND around TEXT
-			if(dictbank) {
-				set_region_device_r(0x000d0000, 0x000d7fff, d_dictionary, NOT_NEED_TO_OFFSET);
-				unset_range_w(0x000d0000, 0x000d7fff);
-				// REAL IS 0000D8000h - 000D9FFFh, but grain may be 8000h bytes.
-				set_region_device_rw(0x000d8000, 0x000dffff, d_cmos, 0);
-			} else {
-				unset_range_rw(0x000d0000, 0x000dffff);
-			}
+		unset_range_rw(0x000e0000, 0x000effff); // Reserved
+		//set_mmio_wait_rw(0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
+		//set_dma_wait_rw (0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
+	} else {
+		__LIKELY_IF(extra_ram != NULL) {
+			set_region_memory_rw(0x000c0000, 0x000effff, extra_ram, 0x000c0000);
 		} else {
-			__LIKELY_IF(extra_ram != NULL) {
-				set_region_memory_rw(0x000d0000, 0x000dffff, extra_ram, 0x000d0000);
-			} else {
-				unset_range_rw(0x000d0000, 0x000dffff);
-			}
+			unset_range_rw(0x000c0000, 0x000effff);
 		}
-	//}
+		set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
+		set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
+		//set_mmio_wait_rw(0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
+		//set_dma_wait_rw (0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
+	}
 	dma_is_vram = vrambank;
 	select_d0_dict = dictbank;
 }
@@ -370,9 +360,8 @@ void TOWNS_MEMORY::reset()
 	nmi_vector_protect = false;
 	ankcg_enabled = false;
 	nmi_mask = false;
-	//config_page0c_0e(false, false, true); // VRAM, DICT, FORCE
 	reset_wait_values();
-	config_page0c_0e(false, false, true); // VRAM, DICT, FORCE
+	config_page0c_0e(true, false, true); // VRAM, DICT, FORCE
 	config_page0f(true,  true); // SYSROM, FORCE
 
 
@@ -1083,247 +1072,119 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 uint32_t TOWNS_MEMORY::read_memory_mapped_io8w(uint32_t addr, int* wait)
 {
 	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	int dummywait;
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // ToDo
+		*wait = vram_wait_val; // ToDo
 	}
-	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
-		// Out of bounds;
-		return 0xff;
-	}
-	__LIKELY_IF(addr < 0x000c9000) { // TEXT VRAM (ANK)
+	switch(addr & 0xfffff000) {
+	case 0x000c8000: // TEXT VRAM(ANK)
 		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io8w(addr - 0xc8000, wait);
+			return d_sprite->read_memory_mapped_io8w(addr - 0xc8000, &dummywait);
 		}
-		return 0xff;
-	}
-	__LIKELY_IF(addr >= 0x000cc000) {
-		// RAM: OK?
-		__UNLIKELY_IF(addr >= 0x000cff80) { // I/O
-			return read_fmr_ports8(addr);
-		} else {
-			__LIKELY_IF(extra_ram != NULL) {
-				return extra_ram[addr];
-			}
-			return 0xff;
+		break;
+	case 0x000c9000: // TEXT VRAM(RESERVED)
+		__LIKELY_IF(!(ankcg_enabled) && (d_sprite != NULL)) {
+			return d_sprite->read_memory_mapped_io8w(addr - 0xc8000,  &dummywait);
 		}
-	}
-	// ROMs?
-	if(ankcg_enabled) {
-		if(addr >= 0xca000) {
+		break;
+	case 0x000ca000: // FONT / TEXT VRAM(KANJI)
+	case 0x000cb000: // FONT / TEXT VRAM(KANJI)
+		if(ankcg_enabled) {
 			__LIKELY_IF(d_font != NULL) {
 				return d_font->read_memory_mapped_io8(addr);
 			}
-		}
-	} else {
-		if(addr < 0xcb000) {
+		} else {
 			__LIKELY_IF(d_sprite != NULL) {
-				return d_sprite->read_memory_mapped_io8w(addr - 0xc8000, wait);
+				return d_sprite->read_memory_mapped_io8w(addr - 0xc8000,  &dummywait);
 			}
 		}
+		break;
+	case 0x000cf000: // FONT / TEXT VRAM(KANJI)
+		__LIKELY_IF((addr >= 0x000cff80) && (addr <= 0x000cffbb)) {
+			return read_fmr_ports8(addr);
+		}
+		break;
+	default:
+		break;
 	}
 	return 0xff;
 }
 
 uint32_t TOWNS_MEMORY::read_memory_mapped_io16w(uint32_t addr, int* wait)
 {
+	pair16_t w;
+	int wait1, wait2;
+	w.b.l = read_memory_mapped_io8w(addr    , &wait1);
+	w.b.h = read_memory_mapped_io8w(addr + 1, &wait2);
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // ToDo
+		*wait = wait1 + wait2;
 	}
-	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
-	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
-		// out of bounds
-		return 0xffff;
-	}
-	if(addr < 0x000c9000) { // TEXT VRAM (ANK)
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io16w(addr - 0xc8000, wait);
-		}
-		return 0xffff;
-	}
-	__LIKELY_IF(addr >= 0x000cc000) {
-		// RAM: OK?
-		pair16_t w;
-		__UNLIKELY_IF((addr >= 0x000cff80) && (addr < 0x000cffff)) { // I/O
-			w.b.l = read_fmr_ports8(addr);
-			w.b.h = read_fmr_ports8(addr + 1);
-		} else {
-			__LIKELY_IF(extra_ram != NULL) {
-				w.read_2bytes_le_from(&(extra_ram[addr]));
-			} else {
-				w.w = 0xffff;
-			}
-		}
-		return w.w;
-	}
-	// ROMs?
-	if(ankcg_enabled) {
-		if(addr >= 0xca000) {
-			__LIKELY_IF(d_font != NULL) {
-				return d_font->read_memory_mapped_io16(addr);
-			}
-		}
-	} else {
-		if(addr < 0xcb000) {
-			__LIKELY_IF(d_sprite != NULL) {
-				return d_sprite->read_memory_mapped_io16w(addr - 0xc8000, wait);
-			}
-		}
-	}
-	return 0xffff;
+	return w.w;
 }
 
 uint32_t TOWNS_MEMORY::read_memory_mapped_io32w(uint32_t addr, int* wait)
 {
+	pair32_t d;
+	int wait1, wait2, wait3, wait4;
+	d.b.l  = read_memory_mapped_io8w(addr    , &wait1);
+	d.b.h  = read_memory_mapped_io8w(addr + 1, &wait2);
+	d.b.h2 = read_memory_mapped_io8w(addr + 2, &wait3);
+	d.b.h3 = read_memory_mapped_io8w(addr + 3, &wait4);
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // ToDo
+		*wait = wait1 + wait2 + wait3 + wait4;
 	}
-	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
-	__UNLIKELY_IF((addr > 0x000cffff) || (addr < 0x000c8000)) {
-		// out of bounds
-		return 0xffffffff;
-	}
-	if(addr < 0x000c9000) { //SPRITE
-		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io32w(addr - 0xc8000, wait);
-		}
-		return 0xffffffff;
-	}
-	__LIKELY_IF(addr >= 0x000cc000) {
-		// RAM: OK?
-		pair32_t d;
-		__UNLIKELY_IF((addr >= 0x000cff80) && (addr < 0x000cfffd)) { // I/O
-			d.b.l  = read_fmr_ports8(addr);
-			d.b.h  = read_fmr_ports8(addr + 1);
-			d.b.h2 = read_fmr_ports8(addr + 2);
-			d.b.h3 = read_fmr_ports8(addr + 3);
-		} else {
-			__LIKELY_IF(extra_ram != NULL) {
-				d.read_4bytes_le_from(&(extra_ram[addr]));
-			} else {
-				d.d = 0xffffffff;
-			}
-		}
-		return d.d;
-	}
-	// ROMs?
-	if(ankcg_enabled) {
-		if(addr >= 0xca000) {
-			__LIKELY_IF(d_font != NULL) {
-				return d_font->read_memory_mapped_io32(addr);
-			}
-		}
-	} else {
-		if(addr < 0xcb000) {
-			__LIKELY_IF(d_sprite != NULL) {
-				return d_sprite->read_memory_mapped_io32w(addr - 0xc8000, wait);
-			}
-		}
-	}
-	return 0xffffffff;
+	return d.d;
 }
 
 
 void TOWNS_MEMORY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
 {
-	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // ToDo
+		*wait = vram_wait_val; // ToDo
 	}
-	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
-		// Out of bounds
+	int dummywait;
+	__UNLIKELY_IF((addr < 0x000c8000) || (addr >= 0x000d0000)) {
 		return;
 	}
-	__LIKELY_IF(addr < 0xcb000) { // From Tsugaru.
+	__LIKELY_IF(addr < 0x000cb000) { // From Tsugaru.
+		// TEXT VRAM
 		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io8w(addr - 0xc8000, data, wait);
+			d_sprite->write_memory_mapped_io8w(addr - 0xc8000, data,  &dummywait);
 			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
 		}
 		return;
 	}
-	__LIKELY_IF(addr >= 0x000cc000) {
-		// RAM: OK?
-		__UNLIKELY_IF(addr >= 0x000cff80) { // I/O
-			write_fmr_ports8(addr, data);
-			return;
-		}
-		__LIKELY_IF(extra_ram != NULL) {
-			extra_ram[addr] = data;
-		}
+	__LIKELY_IF((addr >= 0x000cff80) && (addr <= 0x000cffbb)) { // I/O
+		write_fmr_ports8(addr, data);
 		return;
 	}
-	// ROMs?
 	return;
 }
 
 void TOWNS_MEMORY::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
 {
-	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	pair16_t w;
+	int wait1, wait2;
+	w.w = data;
+	write_memory_mapped_io8w(addr    , w.b.l, &wait1);
+	write_memory_mapped_io8w(addr + 1, w.b.h, &wait2);
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // ToDo
+		*wait = wait1 + wait2;
 	}
-	__UNLIKELY_IF((addr > 0x000cffff) || (addr < 0x000c8000)) {
-		// Out of bounds
-		return;
-	}
-	__LIKELY_IF(addr < 0xcb000) { // From Tsugaru.
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io16w(addr - 0xc8000, data, wait);
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
-		}
-		return;
-	}
-	__LIKELY_IF(addr >= 0x000cc000) {
-		// RAM: OK?
-		pair16_t w;
-		w.w = data;
-		__UNLIKELY_IF((addr >= 0x000cff80) && (addr < 0x000cffff)) { // I/O
-			write_fmr_ports8(addr    , w.b.l);
-			write_fmr_ports8(addr + 1, w.b.h);
-			return;
-		}
-		__LIKELY_IF(extra_ram != NULL) {
-			w.write_2bytes_le_to(&(extra_ram[addr]));
-		}
-		return;
-	}
-	// ROMs?
-	return;
 }
 
 void TOWNS_MEMORY::write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* wait)
 {
-	// This should be for VRAM MODE, with ROMs (000C8000h - 000CFFFFh)
+	pair32_t d;
+	int wait1, wait2, wait3, wait4;
+	d.d = data;
+	write_memory_mapped_io8w(addr    , d.b.l,  &wait1);
+	write_memory_mapped_io8w(addr + 1, d.b.h,  &wait2);
+	write_memory_mapped_io8w(addr + 1, d.b.h2, &wait3);
+	write_memory_mapped_io8w(addr + 1, d.b.h3, &wait4);
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // ToDo
+		*wait = wait1 + wait2 + wait3 + wait4;
 	}
-	__UNLIKELY_IF((addr >= 0x000d0000) || (addr < 0x000c8000)) {
-		return;
-	}
-	__LIKELY_IF(addr < 0xcb000) { // From Tsugaru.
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io32w(addr - 0xc8000, data, wait);
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
-		}
-		return;
-	}
-	__LIKELY_IF(addr >= 0x000cc000) {
-		// RAM: OK?
-		pair32_t d;
-		d.d = data;
-		__UNLIKELY_IF((addr >= 0x000cff80) && (addr < 0x000cfffd)) { // I/O
-			write_fmr_ports8(addr    , d.b.l);
-			write_fmr_ports8(addr + 1, d.b.h);
-			write_fmr_ports8(addr + 2, d.b.h2);
-			write_fmr_ports8(addr + 3, d.b.h3);
-			return;
-		}
-		__LIKELY_IF(extra_ram != NULL) {
-			d.write_4bytes_le_to(&(extra_ram[addr]));
-		}
-		return;
-	}
-	// ROMs?
-	return;
 }
 
 
@@ -1361,9 +1222,9 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 		out_debug_log("RESET FROM CPU!!!\n");
 		reset_happened = true;
 
-		nmi_vector_protect = false;
-		ankcg_enabled = false;
-		nmi_mask = false;
+//		nmi_vector_protect = false;
+//		ankcg_enabled = false;
+//		nmi_mask = false;
 		config_page0c_0e(true, false, true);
 		config_page0f(true, true);
 		reset_wait_values();
