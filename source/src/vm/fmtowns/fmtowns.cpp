@@ -378,7 +378,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	extra_dma->set_dmac_clock(16 * 1000 * 1000, 8);
 
 	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
-	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
+	//dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 
 	dma->set_context_ube(1, scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 	//dma->set_context_ack(1, scsi_host, SIG_SCSI_ACK, 0xffffffff);
@@ -551,7 +551,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdrom->set_context_dmac(dma);
 	// For Debugging, will remove 20200822 K.O
 	cdrom->set_context_cpu(cpu);
-	cdrom->set_context_eot_line(dma, SIG_TOWNS_DMAC_EOT_CH3, 0xffffffff);
+	//cdrom->set_context_eot_line(dma, SIG_TOWNS_DMAC_EOT_CH3, 0xffffffff);
 
 	// i/o bus
 	io->set_iowait_range_rw(0x0000, 0xffff, 6); // ToDo: May variable wait.

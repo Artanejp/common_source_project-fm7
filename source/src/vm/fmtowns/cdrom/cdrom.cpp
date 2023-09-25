@@ -270,7 +270,7 @@ void TOWNS_CDROM::do_drq()
 		if(!(databuffer->empty())) {
 			write_signals(&outputs_drq, 0xffffffff);
 		} else {
-			dma_transfer_epilogue();
+			dma_transfer_epilogue();  // Remove Duplicate calling.
 		}
 	}
 }
@@ -329,7 +329,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		if((data & mask) != 0) {
 			// This seems to be aborting to transfer?
 			if(dma_transfer_phase) {
-				dma_transfer_epilogue();
+				//dma_transfer_epilogue();
 				// ToDo: Abort Sequence.
 			}
 		}
@@ -405,10 +405,9 @@ void TOWNS_CDROM::status_data_ready(bool forceint)
 	status_queue->write(s2);
 	status_queue->write(s3);
 	bool to_intr = ((stat_reply_intr) || (forceint));
-	mcu_intr = true;
-	dma_intr = false;
-	if(!(mcu_intr_mask) && (to_intr)) {
-		write_mcuint_signals(0xffffffff);
+	mcu_ready = true;
+	if(to_intr) {
+		set_mcu_intr(true);
 	}
 //	}
 //	force_register_event(this, EVENT_CDROM_DELAY_INTERRUPT_ON,
@@ -888,6 +887,7 @@ void TOWNS_CDROM::dma_transfer_epilogue()
 					   (double)l,
 					   false,
 					   &event_next_sector);
+		//write_signals(&outputs_eot, 0xffffffff);
 		//cdrom_debug_log(_T("DMA: NEXT SECTOR LEFT=%d"), read_length);
 	}
 	set_dma_intr(true);
@@ -1167,12 +1167,10 @@ void TOWNS_CDROM::set_status_immediate(bool _req_status, int extra, uint8_t s0, 
 		status_queue->write(s3);
 	}
 	mcu_ready = true;
-	mcu_intr = true;
 	dma_intr = false;
-
-	if((_req_status) && (stat_reply_intr) && !(mcu_intr_mask)) {
-		write_mcuint_signals(0xffffffff);
-	}
+	// if(stat_reply_intr) {
+		set_mcu_intr(true);
+	//}
 //	cdrom_debug_log(_T("SET STATUS %02x: %02x %02x %02x %02x EXTRA=%d"), latest_command, s0, s1, s2, s3, extra_status);
 }
 
@@ -1583,12 +1581,10 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		stop_time_out();
 		mcu_ready = true;
 		if(req_status) {
-			mcu_intr = true;
-			if(!(mcu_intr_mask) /*&& (stat_reply_intr)*/) {
-				write_mcuint_signals(0xffffffff);
-			}
+			set_mcu_intr(true);
 		} else {
-			mcu_intr = false;
+			set_mcu_intr(false);
+			//mcu_intr = false;
 		}
 		break;
 	case EVENT_CDROM_DELAY_EOT_PIO:
@@ -1601,6 +1597,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		send_mcu_ready(); // OK? 20230127 K.O
 		break;
 	case EVENT_CDDA_DELAY_PLAY: // DELAY STARTING TO PLAY CDDA
+		event_cdda_delay_play = -1;
 		status_seek = false;
 		//access = true;
 		stop_time_out();
@@ -1609,7 +1606,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		if(cdda_status != CDDA_PLAYING) {
 			set_cdda_status(CDDA_PLAYING);
 		}
-		event_cdda_delay_play = -1;
 		databuffer->clear();
 		if(prefetch_audio_sectors(1) < 1) {
 			set_cdda_status(CDDA_OFF);
@@ -1625,12 +1621,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		set_status_cddareply(true, 1, TOWNS_CD_STATUS_ACCEPT, 0, 0x00, 0x00);
 		break;
 	case EVENT_CDDA_REPEAT: // DELAY STARTING TO PLAY CDDA
+		event_cdda_delay_play = -1;
 		status_seek = false;
 		//access = true;
 		current_track = get_track(cdda_playing_frame);
 		seek_relative_frame_in_image(cdda_playing_frame);
 		set_cdda_status(CDDA_PLAYING);
-		event_cdda_delay_play = -1;
+
 		databuffer->clear();
 		if(prefetch_audio_sectors(1) < 1) {
 			set_cdda_status(CDDA_OFF);
@@ -1679,6 +1676,17 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_CDROM_TIMEOUT:  // CDC TIMEOUT (mostly READ BUFFER OVERRUN)
 		status_seek = false;
 		event_time_out = -1;
+		//clear_event(this, event_execute); // OK?
+		//clear_event(this, event_cdda); // OK?
+		clear_event(this, event_cdda_delay_play);
+		clear_event(this, event_cdda_delay_stop);
+		//clear_event(this, event_delay_interrupt); // OK?
+		clear_event(this, event_next_sector);
+
+		clear_event(this, event_seek);
+		clear_event(this, event_delay_ready); // OK?
+		clear_event(this, event_eot);
+
 		set_status_immediate(req_status, 0, TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_RETRY, 0x00, 0x00);
 		cdrom_debug_log(_T("READ TIME OUT"));
 		break;
@@ -1731,6 +1739,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		start_time_out();
 		break;
 	case EVENT_CDROM_DELAY_START_DRQ:  // DELAY START DRQ
+		event_drq = -1;
 		do_drq();  // First, may (sould) delay from rise up.
 		break;
 	default:
