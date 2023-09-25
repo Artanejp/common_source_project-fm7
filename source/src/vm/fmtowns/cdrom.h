@@ -367,8 +367,6 @@ protected:
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
-	bool req_drq;
-
 	uint8_t reserved_command;
 	RINGBUFFER* param_queue;
 	uint8_t prev_command;
@@ -484,8 +482,8 @@ protected:
 
 	void start_time_out();
 	void stop_time_out();
-	void start_drq();
-	void stop_drq();
+	void delay_drq(const double usec);
+	void do_drq();
 
 	void __FASTCALL write_mcuint_signals(uint32_t val)
 	{
