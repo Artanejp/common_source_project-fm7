@@ -463,7 +463,8 @@ protected:
 
 	virtual uint8_t read_subq();
 	virtual uint8_t get_subq_status();
-	virtual void set_subq(void);
+	virtual void set_subq(uint32_t lba);
+	virtual bool start_to_play_cdda();
 
 	virtual int get_track_noop(uint32_t lba);
 	virtual void get_track_by_track_num(int track);
