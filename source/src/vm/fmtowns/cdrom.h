@@ -181,7 +181,9 @@ enum {
 	CDROM_COMMAND_SET_CDDASET =		0x81,
 	CDROM_COMMAND_STOP_CDDA =		0x84,
 	CDROM_COMMAND_PAUSE_CDDA =		0x85,
+	CDROM_COMMAND_86 =				0x86,
 	CDROM_COMMAND_RESUME_CDDA =		0x87,
+	CDROM_COMMAND_9F =				0x9f,
 };
 
 // STATUS[0].
@@ -200,9 +202,10 @@ enum {
 	TOWNS_CD_STATUS_RESUME_DONE		= 0x13,
 	TOWNS_CD_STATUS_TOC_ADDR		= 0x16,
 	TOWNS_CD_STATUS_TOC_DATA		= 0x17,
-	TOWNS_CD_STATUS_SUBQ_READ		= 0x18,
-	TOWNS_CD_STATUS_SUBQ_READ2		= 0x18,
-	TOWNS_CD_STATUS_SUBQ_READ3		= 0x18,
+	TOWNS_CD_STATUS_SUBQ_READ1		= 0x18,
+	TOWNS_CD_STATUS_SUBQ_READ2		= 0x19,
+	TOWNS_CD_STATUS_SUBQ_READ3		= 0x19,
+	TOWNS_CD_STATUS_SUBQ_READ4		= 0x20,
 	TOWNS_CD_STATUS_CMD_ABEND		= 0x21,
 	TOWNS_CD_STATUS_DATA_PIO		= 0x21,
 	TOWNS_CD_STATUS_DATA_DMA		= 0x22,
@@ -259,9 +262,10 @@ class TOWNS_CDROM: public DEVICE {
 protected:
 	outputs_t outputs_drq;
 	outputs_t outputs_eot;
+	outputs_t outputs_pic;
 
 	// Note: READ interrupt status at PIC as of Tsugaru.
-	DEVICE* d_pic;
+
 	int		 pic_signal;
 	uint32_t pic_mask;
 
@@ -289,7 +293,10 @@ protected:
 	bool cdrom_halted;
 	bool status_seek;
 
+	uint8_t subq_bytes[12];
+	uint8_t subq_snapshot[12];
 	SUBC_t subq_buffer[98]; // OK?
+
 	int subq_bitptr;
 	int subq_bitwidth;
 	bool subq_overrun;
@@ -402,10 +409,11 @@ protected:
 	void send_mcu_ready();
 	virtual void set_extra_status();
 
-	void set_status(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_read_done(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_cddareply(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_immediate(bool _req_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status(const bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_read_done(bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
+	void set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+
 	virtual void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
@@ -427,16 +435,18 @@ protected:
 
 	void __FASTCALL status_hardware_error(bool forceint);
 	void __FASTCALL status_parameter_error(bool forceint);
-	void __FASTCALL status_read_done(bool forceint);
-	void __FASTCALL status_data_ready(bool forceint);
+	void __FASTCALL status_read_done(bool force_interrupt);
+	void __FASTCALL status_data_ready(bool force_interrupt);
 
 	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool next_ready = true);
+	virtual void __FASTCALL status_accept2(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
+	virtual void __FASTCALL status_accept3(int extra, uint8_t s2, uint8_t s3);
+
 	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready();
 	void set_delay_ready_eot();
-	void set_delay_ready_cddareply();
 
 	uint32_t cdrom_get_adr(int trk);
 
@@ -448,8 +458,6 @@ protected:
 	 * @param dma interrupt value to set.
 	 * @param use_mask true when masking mcu and dma.
 	 */
-	void __FASTCALL set_intrs_force(bool mcu, bool dma, bool use_mask = false);
-
 	void __FASTCALL make_bitslice_subc_q(uint8_t *data, int bitwidth);
 	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
 
@@ -486,11 +494,9 @@ protected:
 	void delay_drq(const double usec);
 	void do_drq();
 
-	void __FASTCALL write_mcuint_signals(uint32_t val)
+	inline void __FASTCALL write_mcuint_signals(const bool val)
 	{
-		__LIKELY_IF(d_pic != NULL) {
-			d_pic->write_signal(pic_signal, val, pic_mask);
-		}
+		write_signals(&outputs_pic, (val) ? 0xffffffff : 0x00000000);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
 	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
@@ -527,10 +533,9 @@ public:
 
 		initialize_output_signals(&outputs_drq);
 		initialize_output_signals(&outputs_eot);
+		initialize_output_signals(&outputs_pic);
+
 		set_device_name(_T("FM-Towns CD-ROM drive"));
-		d_pic = NULL;
-		pic_signal = 0x00000000;
-		pic_mask = 0xffffffff;
 		d_dmac = NULL;
 		// For Debugging, will remove 20200822 K.O
 		d_cpu = NULL;
@@ -660,10 +665,8 @@ public:
 
 	void set_context_mpuint_line(DEVICE* dev, int id, uint32_t mask)
 	{
-		if((d_pic == NULL) && (dev != NULL)) {
-			d_pic = dev;
-			pic_signal = id;
-			pic_mask = mask;
+		if(dev != NULL) {
+			register_output_signal(&outputs_pic, dev, id, mask);
 		}
 	}
 	void set_context_drq_line(DEVICE* dev, int id, uint32_t mask)
