@@ -18,7 +18,7 @@ void PLANEVRAM::reset()
 {
 	mix_reg = 0xff;
 	r50_readplane = 0x0; // OK?
-	r50_ramsel = 0x0; // OK?
+	r50_ramsel = 0xf; // OK?
 	r50_gvramsel = 0x00000000; // OK?
 }
 
@@ -26,7 +26,7 @@ void PLANEVRAM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xff80:
-		mix_reg = data & 0x28;
+		mix_reg = data | (~(0x28)); // 20231008 K.O related from manual.
 		break;
 	case 0xff81:
 //		out_debug_log(_T("0xCFF81=%02X"), data & 0xff);
@@ -65,15 +65,16 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 		return ((r50_readplane << 6) | r50_ramsel);
 		break;
 	case 0xff82:
-		__LIKELY_IF(d_crtc != NULL) {
-			return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
-		}
+		//__LIKELY_IF(d_crtc != NULL) {
+		//	return d_crtc->read_signal(SIG_TOWNS_CRTC_MMIO_CFF82H);
+		//}
 		break;
 	case 0xff83:
-		return ((r50_gvramsel != 0x00000) ? 0x10 : 0x00);
+		return ((r50_gvramsel != 0x00000) ? 0x10 : 0x00) | 0xe7;
 		break;
 	case 0xff84:
-		return 0x7f; // Reserve.FIRQ
+		return 0x00; // Reserve.FIRQ
+		//return 0x7f; // Reserve.FIRQ
 		break;
 	case 0xff86:
 		__LIKELY_IF(d_crtc != NULL) {
