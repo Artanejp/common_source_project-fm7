@@ -139,19 +139,19 @@ void CMOS::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 void CMOS::write_io8(uint32_t addr, uint32_t data)
 {
 	 __LIKELY_IF((addr >= 0x3000) && (addr < 0x4000)) {
-		__LIKELY_IF((addr & 1) == 0) {
+//		__LIKELY_IF((addr & 1) == 0) {
 			cmos_dirty = true;
 			ram[((addr - 0x3000) >> 1) & 0x7ff] = (uint8_t)data;
-		}
+//		}
 	}
 }
 
 uint32_t CMOS::read_io8(uint32_t addr)
 {
 	__LIKELY_IF((addr >= 0x3000) && (addr < 0x4000)) {
-		__LIKELY_IF((addr & 1) == 0) {
+//		__LIKELY_IF((addr & 1) == 0) {
 			return ram[((addr - 0x3000) >> 1) & 0x07ff];
-		}
+//		}
 	}
 	return 0xff;
 }
