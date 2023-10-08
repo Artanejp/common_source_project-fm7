@@ -548,13 +548,13 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		val = 0xfe;
 		break;
 	case 0x0404: // System Status Reg.
-		val = (dma_is_vram) ? 0x7f : 0xff;
-//		val = (dma_is_vram) ? 0x00 : 0x80;
+//		val = (dma_is_vram) ? 0x7f : 0xff;
+		val = (dma_is_vram) ? 0x00 : 0x80;
 		break;
 	case 0x0480:
 		val  =  (select_d0_dict) ? 0x01 : 0x00;
 		val |=  ((select_d0_rom) ? 0x00 : 0x02);
-		val |= 0xfc;
+//		val |= 0xfc;
 		break;
 	case 0x05c0:
 //		val = (extra_nmi_mask) ? 0xf7 : 0xff;
