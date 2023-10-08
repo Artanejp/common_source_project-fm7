@@ -2414,12 +2414,18 @@ bool TOWNS_CRTC::write_debug_reg(const _TCHAR *reg, uint32_t data)
 bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	if(buffer == nullptr) return false;
+	if(buffer_len == 0) return false;
 
 	_TCHAR paramstr[2048] = {0};
 	double horiz_khz_tmp = (hst_reg == 0) ? (1.0e3 / crtc_clock) : (1.0e3 / (crtc_clock * (double)hst_reg));
+	static const _TCHAR *single_modes_list[4] = { _T("NONE "), _T("NONE "), _T("32768"), _T("256  ") };
+	static const _TCHAR *twin_modes_list[4]   = { _T("NONE "), _T("32768"), _T("NONE "), _T("16   ") };
+
 	my_stprintf_s(paramstr, sizeof(paramstr) / sizeof(_TCHAR),
 				  _T("\n")
-				  _T("DISPLAY: %s / VCOUNT=%d / FRAMES PER SEC=%6g / FRAME uS=%6g / CLOCK=%6gMHz / FREQ=%4gKHz\n")
+				  _T("DISPLAY: %s / VCOUNT=%d / FRAMES PER SEC=%6g / FRAME uS=%6g \n")
+				  _T("CLOCK=%6gMHz / FREQ=%4gKHz\n")
+				  _T("SINGLE LAYER:%s COLORS: L0=%s L1=%s PRIORITY: %s \n")
 				  _T("LINES PER FRAME=%d / PIXELS PER LINE=%d / MAX LINE=%d\n")
 				  _T("EET   uS=%6g /")
 				  _T("VST1  uS=%6g / VST2  uS=%6g\n")
@@ -2428,6 +2434,10 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  _T("HORIZ START uS [0]=%6g [1]=%6g / END   uS [0]=%6g [1]=%6g\n\n")
 				  , (display_enabled) ? _T("ON ") : _T("OFF"), vert_line_count
 				  , frames_per_sec, frame_us, 1.0 / crtc_clock, horiz_khz_tmp
+				  , (is_single_layer) ? _T("YES") : _T("NO ")
+				  , (is_single_layer) ? (((voutreg_ctrl & 0x08) != 0) ? single_modes_list[display_mode[0] & 3] : _T("NONE ")) : twin_modes_list[display_mode[0] & 3]
+				  , (is_single_layer) ? _T("NONE ") : twin_modes_list[display_mode[1] & 3]
+				  , ((voutreg_prio & 0x01) != 0) ? _T("L1 > L0") : _T("L0 > L1")
 				  , lines_per_frame, pixels_per_line, max_lines
 				  , eet_us
 				  , vst1_us, vst2_us
