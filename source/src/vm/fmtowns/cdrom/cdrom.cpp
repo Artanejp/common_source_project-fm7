@@ -336,6 +336,7 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 bool TOWNS_CDROM::status_media_changed_or_not_ready(bool forceint)
 {
 	if(status_not_ready(forceint)) {
+		media_changed = false;
 		return true;
 	}
 	if(status_media_changed(forceint)) {
@@ -358,11 +359,11 @@ bool TOWNS_CDROM::status_not_ready(bool forceint)
 bool TOWNS_CDROM::status_media_changed(bool forceint)
 {
 	bool _b = media_changed;
-	if(media_changed) {
+	media_changed = false;
+	if(_b) {
 		set_status_immediate(req_status, forceint, 0,
 				   TOWNS_CD_STATUS_CMD_ABEND, TOWNS_CD_ABEND_MEDIA_CHANGED, 0, 0);
 	}
-	media_changed = false;
 	return _b;
 }
 
@@ -454,13 +455,14 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 	// 0Dh : After STOPPING CD-DA.Will clear.
 	// 01h and 09h maybe incorrect.
 	status_queue->clear();
-	uint8_t playcode = TOWNS_CD_ACCEPT_DATA_TRACK; // OK?
+	//uint8_t playcode = TOWNS_CD_ACCEPT_DATA_TRACK; // OK?
+	uint8_t playcode = TOWNS_CD_ACCEPT_NOERROR; // OK?
 	if(cdda_status == CDDA_PAUSED) {
 		playcode = TOWNS_CD_ACCEPT_CDDA_PAUSED;
 	} else if(cdda_status == CDDA_PLAYING) {
 		playcode = TOWNS_CD_ACCEPT_CDDA_PLAYING;
 	} else {
-		#if 1 // TRY 20230530 K.O
+		#if 0 // TRY 20230530 K.O
 		if(((latest_command & 0xb0) == 0xa0) ||
 		   ((prev_command & 0xb0) == 0xa0)) {
 			switch(exec_params[0]) {
@@ -1175,6 +1177,7 @@ void TOWNS_CDROM::set_status_immediate(const bool push_status, const bool force_
 		status_queue->write(s3);
 	}
 	mcu_intr = false;
+	mcu_ready = true;
 	bool i_enable = (!(mcu_intr_mask) || (force_interrupt)) ? true :  false;
 	if((stat_reply_intr) && (req_status) && (i_enable)) { // From Tsugaru, 20231001
 		set_mcu_intr(true);
