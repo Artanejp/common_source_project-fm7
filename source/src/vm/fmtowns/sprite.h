@@ -6,15 +6,16 @@
 #define SIG_TOWNS_SPRITE_HOOK_VLINE     256
 #define SIG_TOWNS_SPRITE_SET_LINES      257
 #define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
-//#define SIG_TOWNS_SPRITE_ANKCG          259
+#define SIG_TOWNS_SPRITE_ANKCG          259
+
 #define SIG_TOWNS_SPRITE_ENABLED        262
 #define SIG_TOWNS_SPRITE_BUSY           263
 #define SIG_TOWNS_SPRITE_DISP_PAGE0		264
 #define SIG_TOWNS_SPRITE_DISP_PAGE1		265
-//  Belows are reserved values.
-#define SIG_TOWNS_SPRITE_CALL_HSYNC     266
-#define SIG_TOWNS_SPRITE_CALL_VSTART    267
+#define SIG_TOWNS_SPRITE_VSYNC          266
+#define SIG_TOWNS_SPRITE_FRAME_IN       SIG_TOWNS_SPRITE_VSYNC
 #define SIG_TOWNS_SPRITE_RENDER_ENABLED 268
+
 #define SIG_TOWNS_SPRITE_PEEK_TVRAM     0x00010000
 namespace FMTOWNS {
 	class TOWNS_VRAM;
@@ -47,6 +48,7 @@ protected:
 	bool disp_page1;
 	bool draw_page1;
 
+	bool frame_out;
 	bool sprite_enabled;
 	bool sprite_busy;
 	bool page_changed;
@@ -60,9 +62,10 @@ protected:
 	bool ankcg_enabled;
 	int event_busy;
 
-	void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
-	void render_part();
+	virtual void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
+	virtual void render_part();
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
+	virtual uint8_t __FASTCALL read_reg(uint32_t addr);
 	void check_and_clear_vram();
 
 public:
@@ -78,8 +81,9 @@ public:
 	void reset() override;
 	void initialize() override;
 
+	void event_frame() override;
 	void event_pre_frame() override;
-	void event_vline(int v, int clk) override;
+
 	void __FASTCALL event_callback(int id, int err) override;
 
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;

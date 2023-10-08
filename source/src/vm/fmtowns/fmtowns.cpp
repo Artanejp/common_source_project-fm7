@@ -529,6 +529,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// IRQ15 : RESERVED.
 	cdrom->set_context_mpuint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
 	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff);
+	crtc->set_context_vsync(sprite, SIG_TOWNS_SPRITE_VSYNC, 0xffffffff);
+
 	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff);
 
 	// DMA0  : FDC/DRQ
@@ -616,8 +618,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0x044c, crtc); // DIGITAL PALLETTE STATUS, SPRITE STATUS
 
 
-	io->set_iomap_single_rw(0x0450, sprite); // SPRITE
-	io->set_iomap_single_rw(0x0452, sprite); // SPRITE
+	io->set_iomap_alias_rw(0x0450, sprite, 0); // SPRITE
+	io->set_iomap_alias_rw(0x0452, sprite, 2); // SPRITE
 
 	io->set_iomap_single_rw(0x0458, vram);         // VRAM ACCESS CONTROLLER (ADDRESS)
 	io->set_iomap_range_rw (0x045a, 0x045b, vram); // VRAM ACCESS CONTROLLER (DATA)
@@ -682,7 +684,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	io->set_iomap_single_rw(0x05c0, memory); // NMI MASK
 	io->set_iomap_single_r (0x05c2, memory);  // NMI STATUS
-	io->set_iomap_single_r (0x05c8, sprite); // TVRAM EMULATION
+	io->set_iomap_alias_r  (0x05c8, sprite, 8); // TVRAM EMULATION
 	io->set_iomap_single_w (0x05ca, crtc); // VSYNC INTERRUPT
 
 	io->set_iomap_single_rw(0x05e0, memory); // Hidden MEMORY WAIT REGISTER from AB.COM (Towns 1/2)
@@ -731,7 +733,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_r (0xfda2, crtc);	// CRTC OUT (after UG)
 	io->set_iomap_single_rw(0xfda4, memory);	// CRTC: READ COMPATIBLE (after UG)
 
-	io->set_iomap_range_rw (0xff80, 0xff83, planevram);	// MMIO
+	io->set_iomap_range_rw (0xff81, 0xff83, planevram);	// MMIO changed from Tsugaru.
 	io->set_iomap_single_r (0xff84, planevram);	// MMIO
 	io->set_iomap_single_r (0xff86, planevram);	// MMIO
 	io->set_iomap_single_rw(0xff88, memory);	// MMIO
