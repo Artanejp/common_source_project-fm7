@@ -551,6 +551,7 @@ void TOWNS_CDROM::status_data_ready(const bool force_interrupt)
 	clear_status_queue(true);
 //	if(req_status) {
 	push_status_queue(TOWNS_CD_STATUS_DATA_DMA, 0x00, 0x00, 0x00);
+
 	if(req_status) {
 		bool i_enabled = (!(mcu_intr_mask) || (force_interrupt)) ? true : false;
 		if((stat_reply_intr) && (i_enabled)) { // Without MASK.
@@ -624,7 +625,7 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 				break;
 			}
 		}
-	#endif
+		#endif
 	}
 	clear_status_queue(true);
 	if(req_status) {
@@ -886,22 +887,23 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 					  exec_params[6],
 					  exec_params[7]
 			);
-		command_execute_phase = false;
 		if(req_status) {
 			// ToDo:
 			if(status_media_changed_or_not_ready(false)) {
 				return;
 			}
 			#if 0
-			uint8_t __s1 = 0x00;
+			uint8_t __s1 = TOWNS_CD_ACCEPT_NOERROR;
 			clear_status_queue(true);
 			if(status_seek) {
 				// @note In SUPER REAL MAHJONG PIV, maybe check below.
 				// @note 20201110 K.O
 				__s1 = (toc_table[current_track].is_audio) ? TOWNS_CD_ACCEPT_WAIT : TOWNS_CD_ACCEPT_DATA_TRACK;
 			}
+			extra_status = 0;
+			push_status_queue(TOWNS_CD_STATUS_ACCEPT, __s1, 0x00, 0x00);
 			#else
-			status_accept(0, 0x00, 0x00, false, false); // Push queue Immediately
+			status_accept(0, 0x00, 0x00, true, false); // Push queue Immediately
 			#endif
 			if(cdda_status == CDDA_ENDED) {
 				// From Tsugaru 95afde8c :
@@ -928,6 +930,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				write_mcuint_signals(true);
 			}
 		}
+		command_execute_phase = false;
 		mcu_ready = true;
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
@@ -988,7 +991,7 @@ void TOWNS_CDROM::set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, ui
 {
 	clear_status_queue(false);
 	push_status_queue(s0, s1, s2, s3);
-	cdrom_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
+//	cdrom_debug_log(_T("SET EXTRA STATUS %02x: %02x %02x %02x %02x EXTRA COUNT=%d"), latest_command, s0, s1, s2, s3, extra_status);
 	if(is_immediate) {
 		mcu_intr = false;
 		mcu_ready = true;
@@ -1227,7 +1230,7 @@ void TOWNS_CDROM::read_cdrom()
 		status_parameter_error(false);
 		return;
 	}
-	set_cdda_status(CDDA_OFF);
+
 	track = get_track(lba1);
 	//track = get_track_noop(lba1);
 	if((track <= 0) || (track >= track_num)) {
@@ -1847,7 +1850,45 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDDA_REPEAT: // DELAY STARTING TO PLAY CDDA
 		event_cdda_delay_play = -1;
-		start_to_play_cdda();
+		clear_event(this, event_cdda);
+		if(cdda_status != CDDA_PLAYING) {
+			return;
+		}
+		{
+			cdda_buffer_ptr = 0;
+			access = false;
+			int track = get_track(cdda_start_frame);
+			if((track > 0) && (track < track_num)) {
+				cdda_playing_frame = cdda_start_frame;
+				read_sector = cdda_playing_frame;
+				current_track = track;
+				seek_relative_frame_in_image(cdda_playing_frame);
+				cdda_stopped = false;
+				if(prefetch_audio_sectors(1) < 1) {
+					//set_cdda_status(CDDA_OFF);
+					return; // READ ERROR
+				}
+			} else {
+				// ERROR
+				current_track = get_track(0);
+				cdda_playing_frame = 0;
+				read_sector = 0;
+				cdda_start_frame = 0;
+				cdda_end_frame = 0;
+				cdda_stopped = true;
+				//set_cdda_status(CDDA_OFF);
+				return;
+			}
+			if(mix_loop_num == 0) {
+				if(event_cdda < 0) {
+					register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
+				}
+			}
+			touch_sound();
+			set_realtime_render(this, true);
+			const _TCHAR *pp = get_cdda_status_name(cdda_status);
+			cdrom_debug_log(_T("REPEAT CDDA from %s.\n"), pp);
+		}
 		break;
 	case EVENT_CDROM_CDDA_PLAY_STATUS: // READY TO ACCEPT A COMMAND FROM CDC.
 		event_delay_ready = -1;
@@ -1918,6 +1959,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos = 0;
 		status_seek = false;
 		// ToDo: Prefetch 20201116
+		#if 0
 		if(!(databuffer->empty())) { // ToDO: CACHING.
 			if((dma_transfer) && !(dma_transfer_phase)) {
 				dma_transfer_phase = true;
@@ -1926,7 +1968,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				pio_transfer_phase = true;
 			}
 		}
-
+		#endif
 		if(read_length > 0) {
 			bool stat = false;
 			//status_seek = true;
@@ -1971,6 +2013,16 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// This is from Tsugaru, commit 95afde8c, "Support CD-ROM CPU Data Transfer." .
 		status_data_ready(false);
 		start_time_out();
+		#if 0
+		if(!(databuffer->empty())) { // ToDO: CACHING.
+			if((dma_transfer) && !(dma_transfer_phase)) {
+				dma_transfer_phase = true;
+				do_drq();
+			} else if((pio_transfer) && !(pio_transfer_phase)) {
+				pio_transfer_phase = true;
+			}
+		}
+		#endif
 		if(read_length > 0) {
 			status_seek = true;
 			int physical_size = physical_block_size();
@@ -2136,7 +2188,11 @@ bool TOWNS_CDROM::read_buffer(int sectors)
 int TOWNS_CDROM::dequeue_audio_data(pair16_t& left, pair16_t& right)
 {
 	uint8_t data[4];
-	if(databuffer->count() < 4) return 0;
+	if(databuffer->count() < 4) {
+		left.w = 0;
+		right.w = 0;
+		return 0;
+	}
 
 	for(int i = 0; i < 4; i++) {
 		data[i] = (uint8_t)(databuffer->read() & 0xff);
@@ -2164,23 +2220,26 @@ void TOWNS_CDROM::read_a_cdda_sample()
 	// read 16bit 2ch samples in the cd-da buffer, called 44100 times/sec
 	pair16_t sample_l, sample_r;
 	int rlen = dequeue_audio_data(sample_l, sample_r);
+	#if 0
 	__UNLIKELY_IF(rlen != 4) {
 		// May recover buffer.
 		if(rlen <= 0) return; // None dequeued.
 		// ToDo: Recover queue.
 		return; //
 	}
+	#endif
 	cdda_sample_l = sample_l.sw;
 	cdda_sample_r = sample_r.sw;
 	cdda_buffer_ptr = cdda_buffer_ptr + 4;
 	bool force_seek = false;
 	__UNLIKELY_IF((cdda_buffer_ptr % 2352) == 0) {
 		// one frame finished
+		set_subq(cdda_playing_frame); // First
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
-		set_subq(cdda_playing_frame); // First
 
-		__UNLIKELY_IF(cdda_playing_frame >= cdda_end_frame) {
+		__UNLIKELY_IF(cdda_playing_frame > cdda_end_frame) {
+			clear_event(this, event_cdda);
 			if(cdda_repeat_count < 0) {
 				// Infinity Loop (from Towns Linux v2.2.26)
 				force_seek = true;
@@ -2211,7 +2270,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			status_seek = true;
 			return;
 		}
-
+		#if 0
 		if(databuffer->count() <= sizeof(cd_audio_sector_t)) {
 			// Kick prefetch
 			//(event_next_sector < 0) {
@@ -2219,6 +2278,9 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				prefetch_audio_sectors(2);
 			//
 		}
+		#else
+		prefetch_audio_sectors(1);
+		#endif
 	}
 }
 
@@ -2233,7 +2295,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		return -1;
 	}
 	uint8_t tmpbuf[sectors * 2448 + 8];
-	if((read_sector >= cdda_end_frame) || (read_sector >= max_logical_block)) {
+	if((read_sector > cdda_end_frame) || (read_sector >= max_logical_block)) {
 		return 0; // OK?
 	}
 	if((current_track >= track_num) || (current_track <= 0)) {
@@ -2254,11 +2316,12 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		seek_relative_frame_in_image(read_sector);
 	}
 	if((read_sector + sectors) > cdda_end_frame) {
-		sectors = cdda_end_frame - read_sector;
+		sectors = cdda_end_frame - read_sector + 1;
 	}
 	if((read_sector + sectors) > max_logical_block) {
 		sectors = max_logical_block - read_sector;
 	}
+	#if 0
 	__UNLIKELY_IF(databuffer->left() < read_length) {
 		int tl = databuffer->left();
 		if(tl < sizeof(cd_audio_sector_t)) return 0; // Pending
@@ -2271,6 +2334,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 	if(get_track_noop(read_sector + sectors) != current_track) {
 		sectors = toc_table[current_track].index0 - read_sector;
 	}
+	#endif
 	if(sectors <= 0) {
 		return 0; // NOP.
 	}
@@ -2339,7 +2403,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			cdrom_debug_log(_T("Play CDDA from %s.\n"), pp);
 		}
 	} else {
-		clear_event(this, event_cdda);
+		//clear_event(this, event_cdda);
 //		if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_ENDED)) {
 		if(cdda_status != status) {
 			// Notify to release bus.
@@ -3099,10 +3163,15 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			pio_transfer = false;
 			pio_transfer_phase = false;
 			write_signals(&outputs_drq, 0x0);
+			#if 1
+			dma_transfer_phase = true;
+			do_drq();
+			#else
 			if(!(dma_transfer_phase) && (!(databuffer->empty()))) {
 				dma_transfer_phase = true;
 				delay_drq(1.0);
 			}
+			#endif
 		} else if(pio_transfer) {
 			dma_transfer = false;
 			dma_transfer_phase = false;
