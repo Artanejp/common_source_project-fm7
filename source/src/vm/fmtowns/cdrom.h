@@ -287,8 +287,6 @@ protected:
 	pair16_t data_reg;
 	bool dma_transfer;
 	bool pio_transfer;
-	bool dma_transfer_phase;
-	bool pio_transfer_phase;
 
 	bool cdrom_halted;
 	bool status_seek;
@@ -339,7 +337,12 @@ protected:
 	bool req_status;
 
 	bool stat_reply_intr;
+	bool dma_transfer_phase;
+	bool pio_transfer_phase;
 	bool mcu_ready;
+	bool has_status;
+
+	bool command_execute_phase;
 
 	bool mcu_intr;
 	bool dma_intr;
@@ -409,14 +412,9 @@ protected:
 	void send_mcu_ready();
 	virtual void set_extra_status();
 
-	void set_status(const bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_read_done(bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
-	void set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL clear_status_queue(const bool is_clear_extra);
+	void __FASTCALL push_status_queue(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 
-	virtual void set_status_extra(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
 	virtual int __FASTCALL check_cdda_track_boundary(uint32_t frame_no);
 	virtual bool seek_relative_frame_in_image(uint32_t frame_no);
     virtual int prefetch_audio_sectors(int sectors);
@@ -425,28 +423,37 @@ protected:
 	virtual void read_cdrom();
 	virtual int read_sectors_image(int sectors, uint32_t& transferred_bytes);
 
-	bool check_notready_and_changed(bool force_int);
-
 	virtual void execute_command(uint8_t command);
 
-	bool __FASTCALL status_not_ready(bool forceint);
-	bool __FASTCALL status_media_changed(bool forceint);
-	bool __FASTCALL status_media_changed_or_not_ready(bool forceint);
+	bool __FASTCALL status_not_ready(const bool force_interrupt);
+	bool __FASTCALL status_media_changed(const bool force_interrupt);
+	bool __FASTCALL status_media_changed_or_not_ready(const bool force_interrupt);
 
-	void __FASTCALL status_hardware_error(bool forceint);
-	void __FASTCALL status_parameter_error(bool forceint);
-	void __FASTCALL status_read_done(bool force_interrupt);
-	void __FASTCALL status_data_ready(bool force_interrupt);
+	void __FASTCALL status_hardware_error(const bool force_interrupt);
+	void __FASTCALL status_parameter_error(const bool force_interrupt);
+	void __FASTCALL status_time_out(const bool force_interrupt);
 
-	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool next_ready = true);
+	void __FASTCALL status_read_done(const bool force_interrupt);
+	void __FASTCALL status_data_ready(const bool force_interrupt);
+
+	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
+	void set_status(const bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool force_interrupt);
+	void set_status_read_done(bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+	void set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
+
+	virtual void set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool is_immediate, const bool force_interrupt);
+	void  __FASTCALL set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
+	void  __FASTCALL set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
+
 	virtual void __FASTCALL status_accept2(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
 	virtual void __FASTCALL status_accept3(int extra, uint8_t s2, uint8_t s3);
 
-	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_delay_ready();
-	void set_delay_ready_eot();
+	void set_delay_ready(const bool force_interrupt);
+	void set_delay_ready_eot(const bool force_interrupt);
 
 	uint32_t cdrom_get_adr(int trk);
 
