@@ -393,6 +393,7 @@ protected:
 	int bytes_per_sec;
 	bool access;
 	bool media_changed;
+	bool media_ejected;
 	bool cdda_stopped;
 	uint32_t read_lba;
 
