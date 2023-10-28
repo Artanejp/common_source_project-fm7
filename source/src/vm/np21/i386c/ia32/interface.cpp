@@ -301,6 +301,7 @@ ia32_panic(const char *str, ...)
 	VERBOSE(("ia32_panic: reboot"));
 	//pccore_reset();
 	//pcstat.screendispflag = 0;
+	device_cpu->write_signal(SIG_I386_NOTIFY_RESET, 0xffffffff, 0xffffffff); // Notify panic on BOOT.
 	device_cpu->reset();
 #ifdef __cplusplus
 	throw(2);

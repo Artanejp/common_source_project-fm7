@@ -355,7 +355,12 @@ void TOWNS_MEMORY::reset()
 	// ToDo
 	update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
 	is_compatible = true;
+
+	//<! @note From technical book Page 115, Figure I-3-34,
+	//<! 「シャットダウンリセット、ソフトウェアリセットともにCPUとNDPにのみリセットがかかる」
 	reset_happened = false;
+	software_reset = false;
+	poff_status = false;
 
 	nmi_vector_protect = false;
 	ankcg_enabled = false;
@@ -363,7 +368,6 @@ void TOWNS_MEMORY::reset()
 	reset_wait_values();
 	config_page0c_0e(true, false, true); // VRAM, DICT, FORCE
 	config_page0f(true,  true); // SYSROM, FORCE
-
 
 	set_cpu_clock_by_wait();
 	set_wait_values();
@@ -730,24 +734,11 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 
 		if((data & 0x40) != 0) {
 			poff_status = true;
-//			__LIKELY_IF(d_cpu != NULL) {
-//				d_cpu->set_shutdown_flag(1);
-//			}
-			// Todo: Implement true power off.
-//			emu->notify_power_off();
-//			emu->power_off();
-//			break;
 		} else {
 			poff_status = false;
-//			__LIKELY_IF(d_cpu != NULL) {
-//				d_cpu->set_shutdown_flag(0);
-//			}
 		}
 
 		if((software_reset) || (poff_status)){
-//			__LIKELY_IF(d_cpu != NULL) {
-//				d_cpu->reset();
-//			}
 			uint8_t wrap_val = 0xff; // WRAP ON
 			__LIKELY_IF(d_dmac != NULL) {
 				d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, wrap_val, 0xff);
@@ -760,20 +751,36 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 				 emu->notify_power_off();
 				// emu->power_off();
 			}
-			vm->reset();
+			//<! @note From technical book Page 115, Figure I-3-34,
+			//<! 「シャットダウンリセット、ソフトウェアリセットともにCPUとNDPにのみリセットがかかる」
+			#if 1
+			__LIKELY_IF(d_cpu != NULL) {
+				d_cpu->reset();
+			}
+			#else
+			//vm->reset();
+			#endif
 		}
 		// Towns SEEMS to not set addreess mask (a.k.a A20 mask). 20200131 K.O
 		break;
 	case 0x0022:
 		if((data & 0x40) != 0) {
+			poff_status = true;
 			__LIKELY_IF(d_cpu != NULL) {
 				d_cpu->set_shutdown_flag(1);
 			}
 			// Todo: Implement true power off.
-			poff_status = true;
 			emu->notify_power_off();
 //			emu->power_off();
-			vm->reset();
+			//<! @note From technical book Page 115, Figure I-3-34,
+			//<! 「シャットダウンリセット、ソフトウェアリセットともにCPUとNDPにのみリセットがかかる」
+			#if 1
+			__LIKELY_IF(d_cpu != NULL) {
+				d_cpu->reset();
+			}
+			#else
+			//vm->reset();
+			#endif
 		}
 		// Power register
 		break;
@@ -1221,10 +1228,7 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
 		reset_happened = true;
-
-//		nmi_vector_protect = false;
-//		ankcg_enabled = false;
-//		nmi_mask = false;
+		#if 0
 		config_page0c_0e(true, false, true);
 		config_page0f(true, true);
 		reset_wait_values();
@@ -1237,6 +1241,7 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 			uint8_t wrap_val = 0xff; // WRAP ON
 			d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, wrap_val, 0xff);
 		}
+		#endif
 	} else if(ch == SIG_FMTOWNS_RAM_WAIT) {
 		uint8_t _bak = mem_wait_val;
 		mem_wait_val = (int)data;

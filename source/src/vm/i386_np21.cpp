@@ -277,7 +277,6 @@ void I386::reset()
 
 	remained_cycles = extra_cycles = 0;
 	waitcount = 0;
-	write_signals(&outputs_extreset, 0xffffffff);
 }
 
 bool I386::check_interrupts()
