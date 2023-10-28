@@ -232,6 +232,7 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_delay_ready);
 	clear_event(this, event_time_out);
 	clear_event(this, event_eot);
+	clear_event(this, event_drq);
 
 	// Around internal variables.
 //	if(44100 % emu->get_sound_rate() == 0) {
@@ -309,6 +310,11 @@ void TOWNS_CDROM::reset_device()
 	set_subq(0);
 	memcpy(subq_snapshot, subq_bytes, sizeof(subq_snapshot));
 
+	if(d_dmac != NULL) {
+		dmac_running = (d_dmac->read_signal(SIG_TOWNS_DMAC_MASK_CH3) != 0) ? true : false;
+	} else {
+		dmac_running = false;
+	}
 	// Maybe not need to reset interrupt from I/O 04C0h:bit7 .
 //	write_mcuint_signals(false);
 	// Will Implement
@@ -359,9 +365,11 @@ void TOWNS_CDROM::stop_time_out()
 void TOWNS_CDROM::do_drq()
 {
 	// Note: EMULATE NONE BUFFER. 20230531 K.O
-	if(dma_transfer_phase) {
-		if(!(databuffer->empty())) {
-			write_signals(&outputs_drq, 0xffffffff);
+	if((dma_transfer_phase) && (dma_transfer)) {
+		__LIKELY_IF(!(databuffer->empty())) {
+			__LIKELY_IF(dmac_running) {
+				write_signals(&outputs_drq, 0xffffffff);
+			}
 		} else {
 			if(read_length <= 0) {
 				dma_transfer_epilogue();  // Remove Duplicate calling.
@@ -370,12 +378,23 @@ void TOWNS_CDROM::do_drq()
 	}
 }
 
-void TOWNS_CDROM::delay_drq(const double usec)
+void TOWNS_CDROM::stop_drq()
 {
 	clear_event(this, event_drq);
-	register_event(this, EVENT_CDROM_DELAY_START_DRQ,
-				   usec, // ALMOST 10us.This is temporally.
-				   false, &event_drq);
+}
+
+void TOWNS_CDROM::start_drq(const double usec)
+{
+	if(d_dmac != NULL) {
+		dmac_running = (d_dmac->read_signal(SIG_TOWNS_DMAC_MASK_CH3) != 0) ? true : false;
+	} else {
+		dmac_running = false;
+	}
+	if(event_drq < 0) {
+		register_event(this, EVENT_CDROM_DELAY_START_DRQ,
+					   usec,
+					   true, &event_drq);
+	}
 }
 
 void TOWNS_CDROM::clear_status_queue(const bool is_clear_extra)
@@ -454,6 +473,9 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 				//}
 			}
 		}
+		break;
+	case SIG_TOWNS_CDROM_DMAMASK:
+		dmac_running = ((data & mask) != 0) ? true : false;
 		break;
 	default:
 		// ToDo: Implement master devices.
@@ -1040,7 +1062,7 @@ uint8_t TOWNS_CDROM::read_status()
 
 void TOWNS_CDROM::dma_transfer_epilogue()
 {
-	clear_event(this, event_drq);
+	stop_drq();
 	// ToDo:
 	// ToDo: CD-ROM with cache.
 	stop_time_out();
@@ -1070,7 +1092,7 @@ void TOWNS_CDROM::pio_transfer_epilogue()
 {
 	// ToDo:
 	// ToDo: CD-ROM with cache.
-	clear_event(this, event_drq);
+	stop_drq();
 
 	stop_time_out();
 	dma_transfer_phase = false;
@@ -1110,6 +1132,9 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Temporally.
 	}
+	__UNLIKELY_IF(!(dmac_running) && (dma_transfer_phase) && (dma_transfer)) { // Fallthrough
+		return 0x00;
+	}
 	bool is_empty = databuffer->empty();
 
 	__UNLIKELY_IF(!(dma_transfer_phase) && !(pio_transfer_phase)) {
@@ -1123,8 +1148,6 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 	}
 	__LIKELY_IF(dma_transfer_phase) {
 		write_signals(&outputs_drq, 0x0);
-		delay_drq(4.0 / 16.0);
-		//do_drq();
 	} else if(pio_transfer_phase) {
 		if(!(is_empty) && (databuffer->empty())) {
 			cancel_event(this, event_delay_ready);
@@ -1150,10 +1173,13 @@ uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // Temporally.
 	}
+	__UNLIKELY_IF(!(dmac_running) && (dma_transfer_phase) && (dma_transfer)) { // Fallthrough
+		return 0x0000;
+	}
 	bool is_empty = databuffer->empty();
 
 	__UNLIKELY_IF(!(dma_transfer_phase) && !(pio_transfer_phase)) {
-		return 0x00;
+		return 0x0000;
 	}
 	__UNLIKELY_IF(is_empty) {
 		data_reg.w = 0x0000;
@@ -1162,8 +1188,6 @@ uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 	}
 	__LIKELY_IF(dma_transfer_phase) {
 		write_signals(&outputs_drq, 0x0);
-		delay_drq(4.0 / 16.0);
-		//do_drq();
 	} else if(pio_transfer_phase) {
 		if(!(is_empty) && (databuffer->empty())) {
 			cancel_event(this, event_delay_ready);
@@ -1248,7 +1272,7 @@ void TOWNS_CDROM::read_cdrom()
 	dma_intr = false;
 	mcu_intr = false;
 
-	clear_event(this, event_drq);
+	//clear_event(this, event_drq);
 	clear_event(this, event_next_sector);
 
 	// Kick a first
@@ -1262,7 +1286,6 @@ void TOWNS_CDROM::read_cdrom()
 
 	clear_event(this, event_next_sector);
 	clear_event(this, event_seek);
-	clear_event(this, event_drq);
 
 	write_signals(&outputs_drq, 0x00000000); // CLEAR DRQ
 	register_event(this, EVENT_CDROM_READY_TO_READ, usec, false, &event_next_sector);
@@ -1980,16 +2003,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		//read_pos = 0;
 		status_seek = false;
 		// ToDo: Prefetch 20201116
-		#if 0
-		if(!(databuffer->empty())) { // ToDO: CACHING.
-			if((dma_transfer) && !(dma_transfer_phase)) {
-				dma_transfer_phase = true;
-				do_drq();
-			} else if((pio_transfer) && !(pio_transfer_phase)) {
-				pio_transfer_phase = true;
-			}
-		}
-		#endif
 		if(read_length > 0) {
 			bool stat = false;
 			//status_seek = true;
@@ -2034,16 +2047,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// This is from Tsugaru, commit 95afde8c, "Support CD-ROM CPU Data Transfer." .
 		status_data_ready(false);
 		start_time_out();
-		#if 0
-		if(!(databuffer->empty())) { // ToDO: CACHING.
-			if((dma_transfer) && !(dma_transfer_phase)) {
-				dma_transfer_phase = true;
-				do_drq();
-			} else if((pio_transfer) && !(pio_transfer_phase)) {
-				pio_transfer_phase = true;
-			}
-		}
-		#endif
 		if(read_length > 0) {
 			status_seek = true;
 			int physical_size = physical_block_size();
@@ -2057,7 +2060,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		break;
 	case EVENT_CDROM_DELAY_START_DRQ:  // DELAY START DRQ
-		event_drq = -1;
 		do_drq();  // First, may (sould) delay from rise up.
 		break;
 	default:
@@ -3224,19 +3226,13 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 			pio_transfer = false;
 			pio_transfer_phase = false;
 			write_signals(&outputs_drq, 0x0);
-			#if 1
+			double usec = 1.0e6 / ((double)transfer_speed * 150.0e3 * 2.0);
+			start_drq(usec);
 			dma_transfer_phase = true;
-			do_drq();
-			#else
-			if(!(dma_transfer_phase) && (!(databuffer->empty()))) {
-				dma_transfer_phase = true;
-				delay_drq(1.0);
-			}
-			#endif
 		} else if(pio_transfer) {
 			dma_transfer = false;
 			dma_transfer_phase = false;
-			clear_event(this, event_drq);
+			stop_drq();
 			if(!(pio_transfer_phase)) {
 				pio_transfer_phase = true;
 			}
@@ -3377,7 +3373,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	35
+#define STATE_VERSION	36
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3420,6 +3416,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(next_seek_lba);
 	state_fio->StateValue(pio_transfer);
 	state_fio->StateValue(dma_transfer);
+	state_fio->StateValue(dmac_running);
 
 	state_fio->StateValue(reserved_command);
 	if(!(param_queue->process_state((void *)state_fio, loading))) {

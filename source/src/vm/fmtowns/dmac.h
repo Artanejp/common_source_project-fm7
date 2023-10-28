@@ -10,6 +10,10 @@
 #define SIG_TOWNS_DMAC_EOT_CH1		8193
 #define SIG_TOWNS_DMAC_EOT_CH2		8194
 #define SIG_TOWNS_DMAC_EOT_CH3		8195
+#define SIG_TOWNS_DMAC_MASK_CH0		8196
+#define SIG_TOWNS_DMAC_MASK_CH1		8197
+#define SIG_TOWNS_DMAC_MASK_CH2		8198
+#define SIG_TOWNS_DMAC_MASK_CH3		8199
 
 namespace FMTOWNS {
 class TOWNS_DMAC : public UPD71071
@@ -20,6 +24,7 @@ protected:
 	outputs_t outputs_ube[4];
 	outputs_t outputs_ack[4];
 	outputs_t outputs_towns_tc[4];
+	outputs_t outputs_mask_reg;
 
 	uint8_t div_count;
 	// Temporally workaround for SCSI.20200318 K.O
@@ -39,6 +44,12 @@ protected:
 	inline void __FASTCALL set_ack(int ch, bool val)
 	{
 		write_signals(&(outputs_ack[ch]), (val) ? 0xffffffff : 0);
+	}
+	inline void __FASTCALL set_mask_reg(uint8_t val)
+	{
+		mask = val;
+		uint8_t val2 = ~val;
+		write_signals(&outputs_mask_reg, val2);
 	}
 	constexpr bool check_address_16bit_bus_changed(int ch)
 	{
@@ -130,7 +141,7 @@ public:
 			initialize_output_signals(&outputs_towns_tc[ch]);
 		}
 		clock_multiply = 1;
-
+		initialize_output_signals(&outputs_mask_reg);
 	}
 	~TOWNS_DMAC() {}
 	// common functions
@@ -187,6 +198,12 @@ public:
 	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_towns_tc[3], device, id, mask);
+	}
+	void set_context_mask_bit(DEVICE* device, int id, uint8_t ch)
+	{
+		ch = ch & 3;
+		uint32_t mask_bit = 1 << ch;
+		register_output_signal(&outputs_mask_reg, device, id, mask_bit);
 	}
 };
 

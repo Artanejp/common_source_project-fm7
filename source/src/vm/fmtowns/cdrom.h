@@ -35,9 +35,12 @@
 #define SIG_TOWNS_CDROM_RESET				0x23
 #define SIG_TOWNS_CDROM_DMAINT				0x24
 #define SIG_TOWNS_CDROM_DMAACK				0x25
+#define SIG_TOWNS_CDROM_DMAMASK				0x26
+
 #define SIG_TOWNS_CDROM_MUTE_L				0x29
 #define SIG_TOWNS_CDROM_MUTE_R				0x2a
 #define SIG_TOWNS_CDROM_MUTE_ALL			0x2b
+
 
 class SCSI_HOST;
 class FIFO;
@@ -341,6 +344,8 @@ protected:
 	bool pio_transfer_phase;
 	bool mcu_ready;
 	bool has_status;
+	bool dmac_running;
+
 
 	bool command_execute_phase;
 
@@ -499,7 +504,8 @@ protected:
 
 	void start_time_out();
 	void stop_time_out();
-	void delay_drq(const double usec);
+	virtual void start_drq(const double usec);
+	virtual void stop_drq();
 	void do_drq();
 
 	inline void __FASTCALL write_mcuint_signals(const bool val)

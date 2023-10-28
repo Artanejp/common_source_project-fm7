@@ -38,6 +38,7 @@ void TOWNS_DMAC::reset_from_io()
 void TOWNS_DMAC::reset()
 {
 	UPD71071::reset();
+	set_mask_reg(mask);
   	dma_wrap = true;
 	reset_from_io();
 }
@@ -98,6 +99,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 0x0f) {
 	case 0x00:
 		UPD71071::write_io8(0, data);
+		set_mask_reg(mask);
 		check_mask_and_cmd();
 		if(data & 1) {
 			reset_from_io();
@@ -182,7 +184,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		break;
 		// MASK
 	case 0x0f:
-		mask = data;
+		set_mask_reg(data);
 		check_mask_and_cmd();
 		break;
 	default:
@@ -627,6 +629,11 @@ void TOWNS_DMAC::event_callback(int event_id, int err)
 }
 uint32_t TOWNS_DMAC::read_signal(int id)
 {
+	if((id >= SIG_TOWNS_DMAC_MASK_CH0) && (id <= SIG_TOWNS_DMAC_MASK_CH3)) {
+		int ch = id - SIG_TOWNS_DMAC_MASK_CH0;
+		uint8_t _bit = 1 << ch;
+		return ((_bit & mask) == 0) ? 0xffffffff : 0x00000000;
+	}
 	if(id == SIG_TOWNS_DMAC_WRAP) {
 		return (dma_wrap) ? 0xffffffff : 0;
 	}
@@ -637,7 +644,6 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 {
 	if(id == SIG_TOWNS_DMAC_WRAP) {
 		dma_wrap = ((data & _mask) != 0) ? true : false;
-//		this->write_signal(SIG_TOWNS_DMAC_ADDR_MASK, data, mask);
 	} else if((id >= SIG_TOWNS_DMAC_EOT_CH0) && (id <= SIG_TOWNS_DMAC_EOT_CH3)) {
 		int ch = (id - SIG_TOWNS_DMAC_EOT_CH0) & 3;
 		end_req[ch] = ((data & _mask) != 0) ? true : false;
