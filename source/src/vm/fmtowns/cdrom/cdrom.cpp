@@ -429,6 +429,7 @@ void TOWNS_CDROM::push_status_queue(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t 
 	has_status = true;
 }
 
+// ToDo: Will re-implement DRQ -> ACK model to call new DRQ. 20231112 K.O 
 void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool _b = ((data & mask) != 0);
