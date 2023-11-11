@@ -337,6 +337,8 @@ protected:
 	int next_seek_lba;
 	int read_mode;
 
+	bool data_in;
+
 	bool req_status;
 
 	bool stat_reply_intr;
@@ -504,8 +506,9 @@ protected:
 
 	void start_time_out();
 	void stop_time_out();
-	virtual void start_drq(const double usec);
+	virtual void start_drq();
 	virtual void stop_drq();
+	virtual bool check_dmac_running();
 	void do_drq();
 
 	inline void __FASTCALL write_mcuint_signals(const bool val)
