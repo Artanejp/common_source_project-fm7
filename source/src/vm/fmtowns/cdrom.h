@@ -274,7 +274,7 @@ protected:
 
 	FILEIO* fio_img;
 //	FIFO* subq_buffer;
-	FIFO* databuffer;
+	uint8_t *databuffer;  // With FIFO
 	FIFO* status_queue;
 
 	// For Debugging, will remove 20200822 K.O
@@ -282,7 +282,16 @@ protected:
 	DEVICE* d_dmac;
 
 	uint32_t max_fifo_length;
+	uint32_t max_fifo_mask;
+	uint32_t max_fifo_multiply;
+
 	uint32_t fifo_length;
+	uint32_t fifo_mask;
+	uint32_t fifo_multiply;
+
+	size_t datacount;
+	size_t readptr;
+	size_t writeptr;
 
 	uint16_t cpu_id;
 	uint16_t machine_id;
@@ -332,7 +341,7 @@ protected:
 	int current_track;
 	int read_sector;
 	int transfer_speed;
-	int read_length;
+	int sectors_count;
 
 	int next_seek_lba;
 	int read_mode;
@@ -426,8 +435,6 @@ protected:
 	virtual int __FASTCALL check_cdda_track_boundary(uint32_t frame_no);
 	virtual bool seek_relative_frame_in_image(uint32_t frame_no);
     virtual int prefetch_audio_sectors(int sectors);
-	virtual int __FASTCALL dequeue_audio_data(pair16_t& left, pair16_t& right);
-
 	virtual void read_cdrom();
 	virtual int read_sectors_image(int sectors, uint32_t& transferred_bytes);
 
@@ -511,6 +518,172 @@ protected:
 	virtual bool check_dmac_running();
 	void do_drq();
 
+	inline void allocate_data_buffer(uint32_t multiply)
+	{
+		if(databuffer != NULL) {
+			delete [] databuffer;
+			databuffer = NULL;
+		}
+		if(multiply == 0) {
+			return;
+		}
+		if(multiply > 20) { // MAX 1MBytes.
+			multiply = 20;
+		}
+		uint32_t len = 1 << multiply;
+		max_fifo_multiply = multiply;
+		databuffer = new uint8_t[len];
+		__UNLIKELY_IF(databuffer == NULL) {
+			max_fifo_length = 0;
+			max_fifo_mask = 0;
+			max_fifo_multiply = 0;
+		} else {
+			max_fifo_length = len;
+			max_fifo_mask = len - 1;
+		}
+	}
+	inline size_t buffer_left()
+	{
+		__UNLIKELY_IF(datacount >= fifo_length) {
+			return 0;
+		}
+		return fifo_length - datacount;
+	}
+	inline void set_fifo_length(uint8_t multiply)
+	{
+		__UNLIKELY_IF(databuffer == NULL) {
+			fifo_length = 0;
+			fifo_mask = 0;
+			fifo_multiply = 0;
+			return;
+		}
+		if(multiply > max_fifo_multiply) {
+			multiply = max_fifo_multiply;
+		}
+		uint32_t len = 1 << multiply;
+		if(len > 1) {
+			fifo_length = len;
+			fifo_mask = len - 1;
+			fifo_multiply = multiply;
+		} else {
+			fifo_length = 1;
+			fifo_mask = 0;
+			fifo_multiply = 0;
+		}
+	}
+	inline bool read_buffer(uint8_t& val)
+	{
+		__UNLIKELY_IF(databuffer == NULL) {
+			val = 0x00;
+			return false;
+		}
+		__UNLIKELY_IF(datacount == 0) {
+			val = 0x00;
+			return false;
+		}
+		val = databuffer[readptr];
+		readptr = (readptr + 1) & max_fifo_mask;
+		datacount--;
+		return true;
+	}
+	inline bool write_buffer(uint8_t val)
+	{
+		__UNLIKELY_IF(databuffer == NULL) {
+			return false;
+		}
+		__UNLIKELY_IF(datacount >= fifo_length) {
+			return false;
+		}
+		databuffer[writeptr] = val;
+		writeptr = (writeptr + 1) & max_fifo_mask;
+		datacount++;
+		return true;
+	}
+	inline size_t read_buffer(uint8_t* dst, size_t count)
+	{
+		__UNLIKELY_IF(dst == NULL) {
+			return 0;
+		}
+		__UNLIKELY_IF(datacount < count) {
+			count = datacount;
+		}
+		__UNLIKELY_IF(databuffer == NULL) {
+			for(size_t i = 0; i < count; i++) {
+				dst[i] = 0x00;
+			}
+			return count;
+		}
+		for(size_t i = 0; i < count; i++) {
+			dst[i] = databuffer[readptr];
+			readptr = (readptr + 1) & max_fifo_mask;
+		}
+		datacount -= count;
+		return count;
+	}
+
+	inline bool read_buffer(pair16_t& val_l, pair16_t& val_r, bool is_swap)
+	{
+		val_l.w = 0x00;
+		val_r.w = 0x00;
+		__UNLIKELY_IF((databuffer == NULL) || (datacount == 0)) {
+			datacount = 0;
+			return false;
+		}
+		__UNLIKELY_IF(datacount < 4) { // Skip
+			return false;
+		}
+		const uint32_t ptr0 = readptr & max_fifo_mask;
+		const uint32_t ptr1 = (readptr + 1) & max_fifo_mask;
+		const uint32_t ptr2 = (readptr + 2) & max_fifo_mask;
+		const uint32_t ptr3 = (readptr + 3) & max_fifo_mask;
+
+		__UNLIKELY_IF(is_swap) {
+			val_l.b.h = databuffer[ptr0];
+			val_l.b.l = databuffer[ptr1];
+			val_r.b.h = databuffer[ptr2];
+			val_r.b.l = databuffer[ptr3];
+		} else {
+			val_l.b.l = databuffer[ptr0];
+			val_l.b.h = databuffer[ptr1];
+			val_r.b.l = databuffer[ptr2];
+			val_r.b.h = databuffer[ptr3];
+		}
+		readptr = (readptr + 4) & max_fifo_mask;
+		datacount -= 4;
+		return true;
+	}
+	inline size_t write_buffer(uint8_t* src, size_t count)
+	{
+		__UNLIKELY_IF((src == NULL) || (count == 0) || (datacount >= fifo_length)) {
+			return 0;
+		}
+		__UNLIKELY_IF((datacount + count) >= fifo_length) {
+			count = fifo_length - datacount;
+		}
+		__UNLIKELY_IF(databuffer == NULL) {
+			return count;
+		}
+		for(size_t i = 0; i < count; i++) {
+			databuffer[writeptr] = src[i];
+			writeptr = (writeptr + 1) & max_fifo_mask;
+		}
+		datacount += count;
+		return count;
+	}
+	size_t __FASTCALL load_from_rawimage(FILEIO* src, size_t count);
+
+	void reset_buffer(const uint8_t val = 0x00)
+	{
+		datacount = 0;
+		readptr = 0;
+		writeptr = 0;
+		__UNLIKELY_IF(databuffer == NULL) {
+			return;
+		}
+		for(size_t i = 0; i < max_fifo_length; i++) {
+			databuffer[i] = val;
+		}
+	}
 	inline void __FASTCALL write_mcuint_signals(const bool val)
 	{
 		write_signals(&outputs_pic, (val) ? 0xffffffff : 0x00000000);
@@ -522,12 +695,12 @@ protected:
 	inline void fetch_datareg_8()
 	{
 		data_reg.b.h = data_reg.b.l;
-		data_reg.b.l = (uint8_t)(databuffer->read() & 0xff);
+		read_buffer(data_reg.b.l);
 	}
 	inline void fetch_datareg_16()
 	{
-		data_reg.b.l = (uint8_t)(databuffer->read() & 0xff);
-		data_reg.b.h = (uint8_t)(databuffer->read() & 0xff);
+		read_buffer(data_reg.b.l);
+		read_buffer(data_reg.b.h);
 	}
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
@@ -598,11 +771,11 @@ public:
 	}
 	uint64_t get_debug_data_addr_space() override
 	{
-		return 0x1fff; // Will change
+		return 0x2000; // Will change
 	}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) override;
 	virtual void get_volume(int ch, int& decibel_l, int& decibel_r) override;
-	virtual bool read_buffer(int sectors);
+	virtual bool get_sectors(int sectors);
 
 	// unique functions
 	// Towns specified command
@@ -612,60 +785,6 @@ public:
 	virtual uint8_t read_status();
 	virtual const int logical_block_size();
 	virtual const int physical_block_size();
-	virtual bool write_a_byte(uint8_t val)
-	{
-		uint32_t n = val;
-		n = n & 0xff;
-//		if(databuffer->count() >= fifo_length) {
-//			return false;
-//		}
-		databuffer->write((int)n);
-		return true;
-	}
-	virtual bool write_bytes(uint8_t* val, int bytes)
-	{
-		int n_count = databuffer->count();
-		if((val == NULL) ||
-		   (n_count >= max_fifo_length) || ((n_count + bytes) >= fifo_length)) {
-			return false;
-		}
-		for(int i = 0; i < bytes; i++) {
-			int d = ((int)val[i]) & 0xff ;
-			databuffer->write(d);
-		}
-		return true;
-	}
-	virtual bool change_buffer_size(int size)
-	{
-		if((size <= 0) || (size >= max_fifo_length) || (databuffer == NULL)) return false;
-		uint8_t tbuf[size];
-		if(fifo_length > size) { // truncate
-			// Dummy read
-			for(int i = 0; i < (fifo_length - size); i++) {
-				uint8_t dummy = (uint8_t)(databuffer->read() & 0xff);
-			}
-			for(int i = 0; i < size; i++) {
-				tbuf[i] = (uint8_t)(databuffer->read() & 0xff);
-			}
-			databuffer->clear();
-			for(int i = 0; i < size; i++) {
-				databuffer->write(tbuf[i]);
-			}
-		} else if(fifo_length < size) {
-			for(int i = 0; i < fifo_length; i++) {
-				tbuf[i] = (uint8_t)(databuffer->read() & 0xff);
-			}
-			databuffer->clear();
-			for(int i = 0; i < fifo_length; i++) {
-				databuffer->write(tbuf[i]);
-			}
-//			for(int i = 0; i < (size - fifo_size); i++) {
-//				databuffer->write(0);
-//			}
-		}
-		fifo_length = size;
-		return true;
-	}
 	uint8_t get_cdda_status()
 	{
 		return cdda_status;
