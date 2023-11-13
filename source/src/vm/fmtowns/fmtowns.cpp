@@ -353,6 +353,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);
 	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
 	scsi_host->set_context_drq(keyboard, SIG_KEYBOARD_BOOTSEQ_END, 1);
+	//scsi_host->set_context_ack(dma, SIG_TOWNS_DMAC_ACKREQ_CH1, 0xffffffff);
 
 #ifdef USE_DEBUGGER
 	dma->set_context_debugger(new DEBUGGER(this, emu));
@@ -362,8 +363,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_cpu(NULL);
 	//dma->set_context_cpu(cpu);
 	dma->set_context_memory(memory);
-	// BASE CLOCK is 1MHz * 4.
-	dma->set_dmac_clock(4 * 1000 * 1000, 4);
+	dma->set_primary_dmac(true);
+	// BASE CLOCK is 2MHz * 2.
+	dma->set_dmac_clock(4.0e6, 2);
 	dma->set_context_ch0(fdc);
 	// This is workaround for FM-Towns's SCSI.
 	dma->set_force_16bit_transfer(1, false);
@@ -371,11 +373,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	//dma->set_context_ch2(printer);
 	dma->set_context_ch3(cdrom);
 	dma->set_context_mask_bit(cdrom, SIG_TOWNS_CDROM_DMAMASK, 3);
+
 	//extra_dma->set_context_cpu(cpu);
 	extra_dma->set_context_cpu(NULL);
 	extra_dma->set_context_memory(memory);
-	// BASE CLOCK is 1MHz * 4.
-	extra_dma->set_dmac_clock(4 * 1000 * 1000, 4);
+	extra_dma->set_primary_dmac(false);
+	// BASE CLOCK is 2MHz * 2.
+	extra_dma->set_dmac_clock(4.0e6, 2);
 
 	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
 	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);

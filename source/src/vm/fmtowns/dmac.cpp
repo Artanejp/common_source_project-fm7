@@ -30,7 +30,6 @@ void TOWNS_DMAC::reset_from_io()
 		write_signals(&outputs_ube[ch], (is_16bit[ch]) ? 0xffffffff : 0);
 	}
 	clear_event(this, event_dmac_cycle);
-	//register_event(this, EVENT_DMAC_CYCLE, dmac_cycle_us, true, &event_dmac_cycle);
 	spent_clocks = 0;
 	transfer_ch = 0;
 }
@@ -43,21 +42,62 @@ void TOWNS_DMAC::reset()
 	reset_from_io();
 }
 
+void TOWNS_DMAC::set_dmac_clock(double clock_hz, int ratio)
+{
+	if(ratio > 0) {
+		clock_multiply = ratio;
+	} else {
+		clock_multiply = 1;
+	}
+	double tmp_us = 1.0e6 / clock_hz;
+	if((tmp_us != dmac_cycle_us) && (event_dmac_cycle >= 0)) {
+		cancel_event(this, event_dmac_cycle);
+		register_event(this, EVENT_DMAC_CYCLE, tmp_us, true, &event_dmac_cycle);
+	}
+	dmac_cycle_us = tmp_us;
+}
 
 void TOWNS_DMAC::check_mask_and_cmd()
 {
+	#if 1
+	__UNLIKELY_IF(_SINGLE_MODE_DMA) {
+		return;
+	}
+	bool req_burst = false;
 	if(((cmd & 0x04) == 0) && ((mask & 0x0f) != 0x0f)) {
+		// Mode Check
+		#if 0
+		req_burst = true;
+		#else
+		for(int ch = 0; ch < 4; ch++) {
+			uint8_t _bit = 1 << ch;
+			if((_bit & mask) == 0) { // Running
+				__UNLIKELY_IF((primary_dmac) && (ch == 1)) {
+					 // Workaround for SCSI HOST (Primary DMAC CH.1).
+					req_burst = true;
+					break;
+				} else if((dma[ch].mode & 0xc0) != 0x40) {
+					// At other channel, SINGLE MODE may make asyncronous.
+					req_burst = true;
+					break;
+				}
+			}
+		}
+		#endif
+	}
+	__UNLIKELY_IF(req_burst) {
 		__UNLIKELY_IF(event_dmac_cycle < 0) {
 			register_event(this, EVENT_DMAC_CYCLE, dmac_cycle_us, true, &event_dmac_cycle);
 		}
 	} else {
 		spent_clocks = 0;
-		transfer_ch = 0;
 		__UNLIKELY_IF(event_dmac_cycle >= 0) {
+			transfer_ch = 0;
 			cancel_event(this, event_dmac_cycle);
 		}
 		event_dmac_cycle = -1;
 	}
+	#endif
 }
 
 void TOWNS_DMAC::write_io16(uint32_t addr, uint32_t data)
@@ -135,7 +175,6 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 			dma[selch].areg  = (dma[selch].areg  & __d_mask) | __d;
 		}
 		break;
-		// MODE
 	case 0x08:
 		cmd = (cmd & 0xff00) | (data & 0xff);
 		check_mask_and_cmd();
@@ -144,6 +183,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		cmd = (cmd & 0xff) | ((data & 0xff) << 8);
 		break;
 	case 0x0a:
+		// MODE
 		// BIT 7,6 : TRANSFER MODE
 		//   DEMAND    = 00
 		//   SINGLE    = 01
@@ -163,6 +203,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		//   BYTE = 0
 		//   WORD = 1
 		UPD71071::write_io8(addr, data);
+		//check_mask_and_cmd();
 
 		#if 1
 		/* DO NOTHING */
@@ -603,9 +644,7 @@ void TOWNS_DMAC::do_dma_internal()
 void TOWNS_DMAC::do_dma()
 {
 	// check DDMA
-	__LIKELY_IF(spent_clocks > 0) {
-		spent_clocks -= clock_multiply;
-	} else if((cmd & 0x04) == 0) {
+	if((cmd & 0x04) == 0) {
 		spent_clocks = 0;
 		do_dma_internal();
 	}
@@ -622,7 +661,7 @@ void TOWNS_DMAC::event_callback(int event_id, int err)
 		__LIKELY_IF(spent_clocks > 0) {
 			spent_clocks -= clock_multiply;
 		} else if((cmd & 0x04) == 0) {
-			spent_clocks = 0;
+			spent_clocks = (clock_multiply > 0) ? (clock_multiply - 1) : 0;
 			do_dma_internal();
 		}
 	}
@@ -651,17 +690,19 @@ void TOWNS_DMAC::write_signal(int id, uint32_t data, uint32_t _mask)
 		__LIKELY_IF((id >= SIG_UPD71071_CH0) && (id <= SIG_UPD71071_CH3)) {
 			int ch = (id - SIG_UPD71071_CH0) & 3;
 			uint8_t bit = 1 << ch;
+			// ToDo: Per Channel.
 			if(data & _mask) {
-				if(!(req & bit)) {
+				__UNLIKELY_IF(!(req & bit)) {
 					req |= bit;
-					if(!(_SINGLE_MODE_DMA)) {
-						do_dma();
+					__LIKELY_IF(!(_SINGLE_MODE_DMA)) {
+						if(event_dmac_cycle < 0) {
+							do_dma_internal();
+						}
 					}
 				}
 			} else {
 				req &= ~bit;
 			}
-
 		} else {
 			// Fallthrough.
 			UPD71071::write_signal(id, data, _mask);

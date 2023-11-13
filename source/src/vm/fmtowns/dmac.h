@@ -14,19 +14,26 @@
 #define SIG_TOWNS_DMAC_MASK_CH1		8197
 #define SIG_TOWNS_DMAC_MASK_CH2		8198
 #define SIG_TOWNS_DMAC_MASK_CH3		8199
+// Mainly process from SCSI_HOST:: 's ACK.
+//#define SIG_TOWNS_DMAC_ACKREQ_CH0	8200
+//#define SIG_TOWNS_DMAC_ACKREQ_CH1	8201
+//#define SIG_TOWNS_DMAC_ACKREQ_CH2	8202
+//#define SIG_TOWNS_DMAC_ACKREQ_CH3	8203
 
 namespace FMTOWNS {
 class TOWNS_DMAC : public UPD71071
 {
 protected:
 	bool dma_wrap;
+
 	bool force_16bit_transfer[4];
 	outputs_t outputs_ube[4];
 	outputs_t outputs_ack[4];
 	outputs_t outputs_towns_tc[4];
 	outputs_t outputs_mask_reg;
 
-	uint8_t div_count;
+	bool primary_dmac;
+
 	// Temporally workaround for SCSI.20200318 K.O
 	bool address_aligns_16bit[4];
 	bool is_16bit_transfer[4];
@@ -140,7 +147,9 @@ public:
 			initialize_output_signals(&outputs_ack[ch]);
 			initialize_output_signals(&outputs_towns_tc[ch]);
 		}
+		primary_dmac = true;
 		clock_multiply = 1;
+		event_dmac_cycle = -1;
 		initialize_output_signals(&outputs_mask_reg);
 	}
 	~TOWNS_DMAC() {}
@@ -162,14 +171,10 @@ public:
 
 	// Unique functions
 	// This is workaround for FM-Towns's SCSI.
-	void set_dmac_clock(uint32_t clock_hz, int ratio)
+	void set_dmac_clock(double clock_hz, int ratio);
+	void set_primary_dmac(bool is_primary)
 	{
-		if(ratio > 0) {
-			clock_multiply = ratio;
-		} else {
-			clock_multiply = 1;
-		}
-		dmac_cycle_us = (1.0e6 / ((double)clock_hz)) * ((double)clock_multiply);
+		primary_dmac = is_primary;
 	}
 	void set_force_16bit_transfer(int ch, bool is_force)
 	{
