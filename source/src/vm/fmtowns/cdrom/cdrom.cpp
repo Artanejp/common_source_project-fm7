@@ -1187,7 +1187,7 @@ void TOWNS_CDROM::pio_transfer_epilogue()
 uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 {
 	__LIKELY_IF(wait != NULL) {
-		*wait = 0; // Temporally.
+		*wait = 6; // Temporally.
 	}
 	if(!(data_in)) {
 		return 0x00;
@@ -1207,7 +1207,9 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 
 void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
 {
-	*wait = 0; // Temporally.
+	__LIKELY_IF(wait != NULL) {
+		*wait = 6; // Temporally.
+	}
 	// data_reg = data;
 	return; // OK?
 }
@@ -1215,8 +1217,12 @@ void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
 uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 {
 	pair16_t val;
-	val.b.l = read_dma_io8w(addr , wait);
-	val.b.h = read_dma_io8w(addr + 1, wait);
+	int wait1, wait2;
+	val.b.l = read_dma_io8w(addr , &wait1);
+	val.b.h = read_dma_io8w(addr + 1, &wait2);
+	__LIKELY_IF(wait != NULL) {
+		*wait = wait1 + wait2;
+	}
 	__LIKELY_IF(dma_transfer_phase) {
 		write_signals(&outputs_drq, 0x0);
 	}
@@ -1225,7 +1231,9 @@ uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 
 void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
 {
-	*wait = 0; // Temporally.
+	__LIKELY_IF(wait != NULL) {
+		*wait = 6 + 6; // Temporally.
+	}
 	// data_reg = data;
 	return; // OK?
 }

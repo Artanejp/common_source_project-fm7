@@ -126,11 +126,11 @@ protected:
 	virtual void __FASTCALL write_8bit_to_memory(uint32_t addr, uint32_t data, int* wait, bool is_use_debugger);
 
 	virtual void do_dma_internal();
-	virtual int  __FASTCALL do_dma_single(const int ch, const bool is_use_debugger, bool compressed, bool extended, bool& is_terminated, bool& is_single);
+	virtual int  __FASTCALL do_dma_single(const int ch, const bool is_use_debugger, bool compressed, bool extended, bool& is_terminated, bool& is_single, int& wait_r, int& wait_w);
 	virtual bool __FASTCALL decrement_counter(const int ch, uint8_t mode, uint16_t& counter, bool& is_single);
 
-	void __FASTCALL do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
-	void __FASTCALL do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait);
+	void __FASTCALL do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait, int& wait_r, int& wait_w);
+	void __FASTCALL do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait, int& wait_r, int& wait_w);
 	void check_mask_and_cmd();
 	virtual void reset_from_io();
 

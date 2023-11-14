@@ -49,7 +49,7 @@ void TOWNS_DMAC::set_dmac_clock(double clock_hz, int ratio)
 	} else {
 		clock_multiply = 1;
 	}
-	double tmp_us = 1.0e6 / clock_hz;
+	double tmp_us = (1.0e6 / clock_hz) * ((double)ratio);
 	if((tmp_us != dmac_cycle_us) && (event_dmac_cycle >= 0)) {
 		cancel_event(this, event_dmac_cycle);
 		register_event(this, EVENT_DMAC_CYCLE, tmp_us, true, &event_dmac_cycle);
@@ -66,7 +66,7 @@ void TOWNS_DMAC::check_mask_and_cmd()
 	bool req_burst = false;
 	if(((cmd & 0x04) == 0) && ((mask & 0x0f) != 0x0f)) {
 		// Mode Check
-		#if 0
+		#if 1
 		req_burst = true;
 		#else
 		for(int ch = 0; ch < 4; ch++) {
@@ -429,27 +429,27 @@ void TOWNS_DMAC::write_16bit_to_memory(uint32_t addr, uint32_t data, int* wait, 
 	}
 }
 
-void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait)
+void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait, int& wait_r, int& wait_w)
 {
 	uint16_t val;
-	int wait_w = 0;
-	int wait_r = 0;
+	int tmp_wait_w = 0;
+	int tmp_wait_r = 0;
 	const int wait_compressed = (compressed) ? 5 : 7;
 	switch(tr_mode & 0x0c) {
 	case 0x00: // VERIFY
-		val = read_16bit_from_device(dev, 0, &wait_r);
+		val = read_16bit_from_device(dev, 0, &tmp_wait_r);
 		tmp = val;
-		read_16bit_from_memory(memory_address, &wait_w, is_use_debugger);
+		read_16bit_from_memory(memory_address, &tmp_wait_w, is_use_debugger);
 		break;
 	case 0x04: // DEVICE TO MEMORY
-		val = read_16bit_from_device(dev, 0, &wait_r);
+		val = read_16bit_from_device(dev, 0, &tmp_wait_r);
 		tmp = val;
-		write_16bit_to_memory(memory_address, val, &wait_w, is_use_debugger);
+		write_16bit_to_memory(memory_address, val, &tmp_wait_w, is_use_debugger);
 		break;
 	case 0x08: // MEMORY TO DEVICE
-		val = read_16bit_from_memory(memory_address, &wait_r, is_use_debugger);
+		val = read_16bit_from_memory(memory_address, &tmp_wait_r, is_use_debugger);
 		tmp = val;
-		write_16bit_to_device(dev, 0, val, &wait_w);
+		write_16bit_to_device(dev, 0, val, &tmp_wait_w);
 		break;
 	case 0x0c: // MEMORY TO MEMORY : still unimplemented
 		break;
@@ -457,43 +457,47 @@ void TOWNS_DMAC::do_dma_16bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memo
 		break;
 	}
 	wait += wait_compressed;
+	wait_r += tmp_wait_r;
+	wait_w += tmp_wait_w;
 	if(extended) {
-		wait = wait + wait_r + wait_w;
+		wait = wait + tmp_wait_r + tmp_wait_w;
 	}
 //				inc_dec_ptr_two_bytes(memory_adderss, !(tr_mode & 0x20));
 	inc_dec_ptr_two_bytes(memory_address, true);
 }
 
-void TOWNS_DMAC::do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait)
+void TOWNS_DMAC::do_dma_8bit(DEVICE* dev, const uint8_t tr_mode, uint32_t& memory_address, const bool compressed, const bool extended, bool is_use_debugger, int& wait, int& wait_r, int& wait_w)
 {
 	uint32_t val;
-	int wait_w = 0;
-	int wait_r = 0;
+	int tmp_wait_w = 0;
+	int tmp_wait_r = 0;
 	const int wait_compressed = (compressed) ? 5 : 7;
 	switch(tr_mode & 0x0c) {
 	case 0x00: // VERIFY
-		val = read_8bit_from_device(dev, 0, &wait_r);
+		val = read_8bit_from_device(dev, 0, &tmp_wait_r);
 		tmp = ((tmp & 0xff00) >> 8) | ((val & 0xff) << 8);
-		read_8bit_from_memory(memory_address, &wait_w, is_use_debugger);
+		read_8bit_from_memory(memory_address, &tmp_wait_w, is_use_debugger);
 		break;
 	case 0x04: // DEVICE TO MEMORY
-		val = read_8bit_from_device(dev, 0, &wait_r);
+		val = read_8bit_from_device(dev, 0, &tmp_wait_r);
 		tmp = ((tmp & 0xff00) >> 8) | ((val & 0xff) << 8);
-		write_8bit_to_memory(memory_address, val, &wait_w, is_use_debugger);
+		write_8bit_to_memory(memory_address, val, &tmp_wait_w, is_use_debugger);
 		break;
 	case 0x08: // MEMORY TO DEVICE
-		val = read_8bit_from_memory(memory_address, &wait_r, is_use_debugger);
+		val = read_8bit_from_memory(memory_address, &tmp_wait_r, is_use_debugger);
 		tmp = ((tmp & 0xff00) >> 8) | ((val & 0xff) << 8);
-		write_8bit_to_device(dev, 0, val, &wait_w);
+		write_8bit_to_device(dev, 0, val, &tmp_wait_w);
 		break;
 	case 0x0c: // MEMORY TO MEMORY : still unimplemented
 		break;
 	default:
 		break;
 	}
+	wait_r += tmp_wait_r;
+	wait_w += tmp_wait_w;
 	wait += wait_compressed;
 	if(extended) {
-		wait = wait + wait_r + wait_w;
+		wait = wait + tmp_wait_r + tmp_wait_w;
 	}
 //				inc_dec_ptr_a_byte(memory_address, !(tr_mode & 0x20));
 	inc_dec_ptr_a_byte(memory_address, true);
@@ -572,11 +576,12 @@ bool TOWNS_DMAC::decrement_counter(const int ch, uint8_t mode, uint16_t& counter
 	return is_terminated;
 }
 
-int TOWNS_DMAC::do_dma_single(const int ch, const bool is_use_debugger, bool compressed, bool extended, bool& is_terminated, bool& is_single)
+int TOWNS_DMAC::do_dma_single(const int ch, const bool is_use_debugger, bool compressed, bool extended, bool& is_terminated, bool& is_single, int& wait_r, int& wait_w)
 {
 	int _clocks = 0;
 	int c = ch & 3;
 	uint8_t bit = 1 << c;
+
 	if(((req | sreq) & bit) && !(mask & bit)) {
 		set_ack(c, false);
 		__UNLIKELY_IF(!running) {
@@ -584,9 +589,9 @@ int TOWNS_DMAC::do_dma_single(const int ch, const bool is_use_debugger, bool com
 			running = true;
 		}
 		if(check_is_16bit(c)) {
-			do_dma_16bit(dma[c].dev, dma[c].mode, dma[c].areg, compressed, extended, is_use_debugger, _clocks);
+			do_dma_16bit(dma[c].dev, dma[c].mode, dma[c].areg, compressed, extended, is_use_debugger, _clocks, wait_r, wait_w);
 		} else {
-			do_dma_8bit(dma[ch].dev, dma[c].mode, dma[c].areg, compressed, extended, is_use_debugger, _clocks);
+			do_dma_8bit(dma[ch].dev, dma[c].mode, dma[c].areg, compressed, extended, is_use_debugger, _clocks, wait_r, wait_w);
 		}
 		// Note: At FM-Towns, SCSI's DMAC will be set after
 		//       SCSI bus phase become DATA IN/DATA OUT.
@@ -618,12 +623,17 @@ void TOWNS_DMAC::do_dma_internal()
 	if(!(is_rot)) {
 		transfer_ch = 0;
 	}
+	int wait_r = 0;
+	int wait_w = 0;
+	int spent_clocks_bak = spent_clocks;
+	int done_count = 0;
 	for(int i = 0; i < 4; i++) {
 		bool is_single = false;
 		bool is_terminated = false;
-		int clocks = do_dma_single((transfer_ch + i) & 3, is_use_debugger, compressed, extended, is_terminated, is_single);
+		int clocks = do_dma_single((transfer_ch + i) & 3, is_use_debugger, compressed, extended, is_terminated, is_single, wait_r, wait_w);
 		if(clocks > 0) {
 			spent_clocks += clocks;
+			done_count++;
 			if(!(is_hold)) {
 				break;
 			}
@@ -634,9 +644,18 @@ void TOWNS_DMAC::do_dma_internal()
 	if(is_rot) {
 		transfer_ch = (transfer_ch + 1) & 3;
 	}
-	__UNLIKELY_IF((spent_clocks > 0) && (d_cpu != NULL)) {
-		d_cpu->set_extra_clock(spent_clocks);
-		spent_clocks = 0;
+	__UNLIKELY_IF((done_count > 0) && (d_cpu != NULL)) {
+		//d_cpu->set_extra_clock(spent_clocks);
+		//spent_clocks = 0;
+		__UNLIKELY_IF(_SINGLE_MODE_DMA) {
+			d_cpu->set_extra_clock(spent_clocks);
+			spent_clocks = 0;
+		} else {
+			const int dma_wait_compressed = (compressed) ? 5 : 7;
+			d_cpu->set_extra_clock(dma_wait_compressed * done_count);
+			spent_clocks = spent_clocks_bak + wait_r + wait_w; // Temporally.
+			//spent_clocks = spent_clocks_bak + (3 + 3) * done_count; // Temporally.
+		}
 	}
 	return;
 }
@@ -658,11 +677,17 @@ void TOWNS_DMAC::do_dma()
 void TOWNS_DMAC::event_callback(int event_id, int err)
 {
 	__LIKELY_IF(event_id == EVENT_DMAC_CYCLE) {
-		__LIKELY_IF(spent_clocks > 0) {
+		if((cmd & 0x04) == 0) {
+			int spent_clocks_bak = spent_clocks;
+				// Seems to do something.
+			__LIKELY_IF((((req | sreq) & 0x0f) != 0x00) && ((mask & 0x0f) != 0x0f)) {
+				__UNLIKELY_IF(spent_clocks <= clock_multiply) {
+					do_dma_internal();
+				}
+			}
+		}
+		__UNLIKELY_IF(spent_clocks >= clock_multiply) {
 			spent_clocks -= clock_multiply;
-		} else if((cmd & 0x04) == 0) {
-			spent_clocks = (clock_multiply > 0) ? (clock_multiply - 1) : 0;
-			do_dma_internal();
 		}
 	}
 }
