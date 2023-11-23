@@ -263,23 +263,29 @@ enum {
 /*class TOWNS_CDROM : public SCSI_CDROM */
 class TOWNS_CDROM: public DEVICE {
 protected:
+	enum {
+		ERR_IO_NONE			=  0,
+		ERR_IO_NOT_ATTACHED = -1,
+		ERR_IO_CLOSED		= -2,
+		ERR_IO_SEEK_ERROR	= -3,
+		ERR_IO_READ_ERROR	= -4,
+		ERR_BUFFER_FULL		= -16,
+		ERR_ILLEGAL_PARAM	= -17,
+	};
+	DEVICE* d_cpu;
+	DEVICE* d_dmac;
+
 	outputs_t outputs_drq;
 	outputs_t outputs_eot;
 	outputs_t outputs_pic;
 
-	// Note: READ interrupt status at PIC as of Tsugaru.
-
-	int		 pic_signal;
-	uint32_t pic_mask;
-
 	FILEIO* fio_img;
-//	FIFO* subq_buffer;
-	uint8_t *databuffer;  // With FIFO
 	FIFO* status_queue;
 
-	// For Debugging, will remove 20200822 K.O
-	DEVICE* d_cpu;
-	DEVICE* d_dmac;
+	uint8_t *databuffer;  // With FIFO
+	enum {
+		SECTOR_EMPTY = UINT32_MAX,
+	};
 
 	uint32_t max_fifo_length;
 	uint32_t max_fifo_mask;
@@ -436,7 +442,8 @@ protected:
 	virtual bool seek_relative_frame_in_image(uint32_t frame_no);
     virtual int prefetch_audio_sectors(int sectors);
 	virtual void read_cdrom();
-	virtual int read_sectors_image(int sectors, uint32_t& transferred_bytes);
+	int read_sectors_image(int sectors, uint32_t& transferred_bytes);
+	virtual int __FASTCALL read_sector_data(FILEIO* src, const size_t __logical_size, size_t _offset, size_t footer_size);
 
 	virtual void execute_command(uint8_t command);
 
@@ -582,21 +589,8 @@ protected:
 			return false;
 		}
 		val = databuffer[readptr];
-		readptr = (readptr + 1) & max_fifo_mask;
+		readptr = (readptr + 1) & fifo_mask;
 		datacount--;
-		return true;
-	}
-	inline bool write_buffer(uint8_t val)
-	{
-		__UNLIKELY_IF(databuffer == NULL) {
-			return false;
-		}
-		__UNLIKELY_IF(datacount >= fifo_length) {
-			return false;
-		}
-		databuffer[writeptr] = val;
-		writeptr = (writeptr + 1) & max_fifo_mask;
-		datacount++;
 		return true;
 	}
 	inline size_t read_buffer(uint8_t* dst, size_t count)
@@ -615,7 +609,7 @@ protected:
 		}
 		for(size_t i = 0; i < count; i++) {
 			dst[i] = databuffer[readptr];
-			readptr = (readptr + 1) & max_fifo_mask;
+			readptr = (readptr + 1) & fifo_mask;
 		}
 		datacount -= count;
 		return count;
@@ -632,10 +626,10 @@ protected:
 		__UNLIKELY_IF(datacount < 4) { // Skip
 			return false;
 		}
-		const uint32_t ptr0 = readptr & max_fifo_mask;
-		const uint32_t ptr1 = (readptr + 1) & max_fifo_mask;
-		const uint32_t ptr2 = (readptr + 2) & max_fifo_mask;
-		const uint32_t ptr3 = (readptr + 3) & max_fifo_mask;
+		const uint32_t ptr0 = readptr & fifo_mask;
+		const uint32_t ptr1 = (readptr + 1) & fifo_mask;
+		const uint32_t ptr2 = (readptr + 2) & fifo_mask;
+		const uint32_t ptr3 = (readptr + 3) & fifo_mask;
 
 		__UNLIKELY_IF(is_swap) {
 			val_l.b.h = databuffer[ptr0];
@@ -648,30 +642,10 @@ protected:
 			val_r.b.l = databuffer[ptr2];
 			val_r.b.h = databuffer[ptr3];
 		}
-		readptr = (readptr + 4) & max_fifo_mask;
+		readptr = (readptr + 4) & fifo_mask;
 		datacount -= 4;
 		return true;
 	}
-	inline size_t write_buffer(uint8_t* src, size_t count)
-	{
-		__UNLIKELY_IF((src == NULL) || (count == 0) || (datacount >= fifo_length)) {
-			return 0;
-		}
-		__UNLIKELY_IF((datacount + count) >= fifo_length) {
-			count = fifo_length - datacount;
-		}
-		__UNLIKELY_IF(databuffer == NULL) {
-			return count;
-		}
-		for(size_t i = 0; i < count; i++) {
-			databuffer[writeptr] = src[i];
-			writeptr = (writeptr + 1) & max_fifo_mask;
-		}
-		datacount += count;
-		return count;
-	}
-	size_t __FASTCALL load_from_rawimage(FILEIO* src, size_t count);
-
 	void reset_buffer(const uint8_t val = 0x00)
 	{
 		datacount = 0;
@@ -785,6 +759,7 @@ public:
 	virtual uint8_t read_status();
 	virtual const int logical_block_size();
 	virtual const int physical_block_size();
+	virtual const int real_physical_block_size();
 	uint8_t get_cdda_status()
 	{
 		return cdda_status;

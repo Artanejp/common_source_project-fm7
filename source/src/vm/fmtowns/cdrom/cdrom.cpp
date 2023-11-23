@@ -325,45 +325,6 @@ void TOWNS_CDROM::reset_device()
 	// Will Implement
 }
 
-size_t TOWNS_CDROM::load_from_rawimage(FILEIO* src, size_t count)
-{
-	__UNLIKELY_IF((src == NULL) || (databuffer == NULL)) {
-		return 0;
-	}
-	__UNLIKELY_IF(!(src->IsOpened())) {
-		return 0;
-	}
-	__UNLIKELY_IF((datacount + count) >= fifo_length) {
-		count = fifo_length - datacount;
-	}
-	__UNLIKELY_IF(count == 0) {
-		return 0;
-	}
-
-	size_t read_count = 0;
-	if((writeptr & max_fifo_mask) > ((writeptr + count) & max_fifo_mask)) { // Wrapped
-		read_count = src->Fread(&(databuffer[writeptr & max_fifo_mask]), 1, (max_fifo_length - writeptr) & max_fifo_mask);
-		if(read_count < ((max_fifo_length - writeptr) & max_fifo_mask)) { // Less
-			writeptr = (read_count + writeptr) & max_fifo_mask;
-			return read_count;
-		}
-		if(read_count >= count) {
-			read_count = (max_fifo_length - writeptr) & max_fifo_mask;
-			writeptr = 0;
-			return read_count;
-		}
-		// Next
-		count -= read_count;
-		size_t read_count2 = src->Fread(&(databuffer[0]), 1, count);
-		writeptr = read_count2 & max_fifo_mask;
-		read_count = read_count + read_count2;
-	} else {
-		read_count = src->Fread(&(databuffer[writeptr & max_fifo_mask]), 1, count);
-		if(read_count > count) read_count = count;
-		writeptr = (writeptr + read_count) & max_fifo_mask;
-	}
-	return read_count & max_fifo_mask; // Fallback
-}
 
 void TOWNS_CDROM::set_dma_intr(bool val)
 {
@@ -440,7 +401,7 @@ bool TOWNS_CDROM::check_dmac_running()
 void TOWNS_CDROM::start_drq()
 {
 	if(event_drq < 0) {
-		double usec = 1.0e6 / ((double)transfer_speed * 150.0e3 * 1.0);
+		double usec = 1.0e6 / ((double)transfer_speed * 150.0e3 * 2.0);
 		register_event(this, EVENT_CDROM_DRQ_PERIOD,
 					   usec,
 					   true, &event_drq);
@@ -1132,6 +1093,7 @@ void TOWNS_CDROM::dma_transfer_epilogue()
 		cdrom_debug_log(_T("DMA: EOT by READ COMPLETED"));
 		write_signals(&outputs_eot, 0xffffffff);
 		status_read_done(false);
+		set_dma_intr(true);
 	} else {
 		// Call to read next sector.
 		#if 1
@@ -1142,8 +1104,8 @@ void TOWNS_CDROM::dma_transfer_epilogue()
 					   false,
 					   &event_next_sector);
 		#endif
+		set_dma_intr(true);
 	}
-	set_dma_intr(true);
 }
 
 
@@ -1189,7 +1151,7 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 	__LIKELY_IF(wait != NULL) {
 		*wait = 6; // Temporally.
 	}
-	if(!(data_in)) {
+	__UNLIKELY_IF(!(data_in)) {
 		return 0x00;
 	}
 	bool is_empty = (datacount == 0) ? true : false;
@@ -1216,17 +1178,22 @@ void TOWNS_CDROM::write_dma_io8w(uint32_t addr, uint32_t data, int *wait)
 
 uint32_t TOWNS_CDROM::read_dma_io16w(uint32_t addr, int *wait)
 {
-	pair16_t val;
-	int wait1, wait2;
-	val.b.l = read_dma_io8w(addr , &wait1);
-	val.b.h = read_dma_io8w(addr + 1, &wait2);
 	__LIKELY_IF(wait != NULL) {
-		*wait = wait1 + wait2;
+		*wait = 6; // Temporally.
+	}
+	__UNLIKELY_IF(!(data_in)) {
+		return 0x0000;
+	}
+	bool is_empty = (datacount <= 1) ? true : false;
+	__UNLIKELY_IF(is_empty) {
+		data_reg.w = 0x0000;
+	} else {
+		fetch_datareg_16();
 	}
 	__LIKELY_IF(dma_transfer_phase) {
 		write_signals(&outputs_drq, 0x0);
 	}
-	return val.w;
+	return data_reg.w;
 }
 
 void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
@@ -1241,6 +1208,7 @@ void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
 void TOWNS_CDROM::read_cdrom()
 {
 	mcu_ready = true;
+	#if 0
 	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
 		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
 		// @note 20201110 K.O
@@ -1248,6 +1216,9 @@ void TOWNS_CDROM::read_cdrom()
 	} else {
 		set_cdda_status(CDDA_OFF);
 	}
+	#else
+	set_cdda_status(CDDA_OFF);
+	#endif
 	if(status_media_changed_or_not_ready(false)) {
 		set_subq(0);
 		return;
@@ -1283,6 +1254,8 @@ void TOWNS_CDROM::read_cdrom()
 		return;
 	}
 
+	double usec = 50.0;
+	//double usec = get_seek_time(lba1);
 	//track = get_track(lba1);
 	track = get_track_noop(lba1);
 	if((track <= 0) || (track >= track_num)) {
@@ -1302,8 +1275,6 @@ void TOWNS_CDROM::read_cdrom()
 
 	// Kick a first
 	status_seek = true;
-	double usec = 50.0;
-	//double usec = get_seek_time(lba1);
 
 	stop_drq();
 	data_in = false;
@@ -1733,23 +1704,41 @@ uint32_t TOWNS_CDROM::cdrom_get_adr(int trk)
 	return 0x14; // return as data
 }
 
-const int TOWNS_CDROM::physical_block_size()
+
+const int TOWNS_CDROM::real_physical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-	if(is_iso) return 2352;
+
 	switch(toc_table[current_track].type) {
 	case MODE_AUDIO:
 		return 2352;
 	case MODE_MODE1_2048:
 		return 2048;
 	case MODE_MODE1_2352:
+		return (is_iso) ? 2048 : 2352;
 	case MODE_MODE2_2352:
 	case MODE_CDI_2352:
+		//return (is_iso) ? 2336 : 2352;
 		return 2352;
 	case MODE_MODE2_2336:
 	case MODE_CDI_2336:
 		return 2336;
+	case MODE_CD_G:
+		return 2448;
+	default:
+		break;
+	}
+	// OK?
+	return 2352;
+}
+
+const int TOWNS_CDROM::physical_block_size()
+{
+	if(current_track <= 0) return 2352; // PAD
+	if(!mounted()) return 2352; // PAD
+
+	switch(toc_table[current_track].type) {
 	case MODE_CD_G:
 		return 2448;
 	default:
@@ -1922,6 +1911,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 		 * @note 20201113 K.O
 		 */
+		data_in = false;
 		set_status_cddareply(false, 1, 0x00, 0x00);
 		break;
 	case EVENT_CDDA_REPEAT: // DELAY STARTING TO PLAY CDDA
@@ -1940,6 +1930,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				current_track = track;
 				seek_relative_frame_in_image(cdda_playing_frame);
 				cdda_stopped = false;
+				data_in = false;
 				if(prefetch_audio_sectors(1) < 1) {
 					//set_cdda_status(CDDA_OFF);
 					return; // READ ERROR
@@ -1952,6 +1943,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				cdda_start_frame = 0;
 				cdda_end_frame = 0;
 				cdda_stopped = true;
+				data_in = false;
 				//set_cdda_status(CDDA_OFF);
 				return;
 			}
@@ -1976,6 +1968,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDDA_DELAY_STOP:  // DELAY STOP
 		event_cdda_delay_stop = -1;
+		data_in = false;
 		stop_cdda_from_cmd();
 		break;
 	case EVENT_CDROM_RESTORE: // Restore to LBA 0.
@@ -2014,6 +2007,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDROM_TIMEOUT:  // CDC TIMEOUT (mostly READ BUFFER OVERRUN)
 		event_time_out = -1;
+		data_in = false;
 		status_time_out(false);
 		cdrom_debug_log(_T("READ TIME OUT"));
 		break;
@@ -2087,13 +2081,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		start_time_out();
 		break;
 	case EVENT_CDROM_DRQ_PERIOD:
-		if((dma_transfer) && (data_in)) {
-			__UNLIKELY_IF(!(dma_transfer_phase)) {
-				dma_transfer_phase = true;
-			} else {
-				__LIKELY_IF(check_dmac_running()) {
-					do_drq();
-				}
+		if((dma_transfer_phase) && (dma_transfer) && (data_in)) {
+			__LIKELY_IF(check_dmac_running()) {
+				do_drq();
 			}
 		}
 		break;
@@ -2104,14 +2094,68 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	}
 }
 
+int TOWNS_CDROM::read_sector_data(FILEIO* src, const size_t __logical_size, size_t _offset, size_t footer_size)
+{
+	__UNLIKELY_IF(src == NULL) {
+		return ERR_IO_NOT_ATTACHED; // Illegal
+	}
+	__UNLIKELY_IF(!(src->IsOpened())) {
+		return ERR_IO_CLOSED;
+	}
+	__UNLIKELY_IF((__logical_size == 0) || (__logical_size > fifo_length)) {
+		return ERR_ILLEGAL_PARAM;
+	}
+	__UNLIKELY_IF((datacount + __logical_size) > fifo_length) {
+		return ERR_BUFFER_FULL;
+	}
+	if(_offset != 0) {
+		if(src->Fseek((long)_offset, FILEIO_SEEK_CUR) != 0) {
+			// Seek Error
+			return ERR_IO_SEEK_ERROR;
+		}
+	}
+
+	writeptr &= fifo_mask;
+	const bool is_wrap = ((writeptr + __logical_size) > fifo_length) ? true : false;
+	size_t before_size = __logical_size;
+	size_t after_size = 0;
+	if(is_wrap) {
+		after_size = (writeptr + __logical_size) - fifo_length;
+		before_size -= after_size;
+	}
+	uint32_t wptr = writeptr;
+	__LIKELY_IF(before_size > 0) {
+		if(src->Fread(&(databuffer[wptr]), before_size, 1) != 1) {
+			return ERR_IO_READ_ERROR;
+		}
+		wptr += before_size;
+	}
+	__UNLIKELY_IF(after_size > 0) {
+		wptr = 0;
+		if(src->Fread(&(databuffer[0]), after_size, 1) != 1) {
+			return ERR_IO_READ_ERROR;
+		}
+		wptr += after_size;
+	}
+
+	// ToDo: Check CRC and Correct ECC for MODE-1.
+	if(footer_size != 0) {
+		if(src->Fseek((long)footer_size, FILEIO_SEEK_CUR) != 0) {
+			// Seek Error
+			return ERR_IO_SEEK_ERROR;
+		}
+	}
+	datacount += __logical_size;
+	writeptr = wptr;
+	return (int)__logical_size;
+}
+
 int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 {
-
-	cdimage_buffer_t tmpbuf;
 	size_t _read_size;		//!< read size from image file.
 	size_t _transfer_size;	//!< transfer size to data buffer.
 	size_t _offset = sizeof(cd_data_head_t); //!< Data offset from head of sector.
-
+	size_t footer_size = 0;
 	uint8_t* startp;
 	uint8_t* datap;
 
@@ -2121,32 +2165,22 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	case CDROM_READ_MODE1:
 		_transfer_size = 2048;
 		if(is_iso) {
-			_read_size = 2048;
-			startp = &(tmpbuf.mode1.data[0]);
+			_offset = 0;
 		} else {
-			_read_size = 2352;
-			startp = (uint8_t*)(&tmpbuf);
+			footer_size = sizeof(cd_data_mode1_t) - sizeof(cd_data_head_t) - _transfer_size;
 		}
-		datap = &(tmpbuf.mode1.data[0]);
 		break;
 	case CDROM_READ_MODE2:
 		_transfer_size = 2336;
 		if(is_iso) {
-			_read_size = 2336;
-			startp = &(tmpbuf.mode2.data[0]);
-		} else {
-			_read_size = 2352;
-			startp = (uint8_t*)(&tmpbuf);
+			_offset = 0;
 		}
-		datap = &(tmpbuf.mode2.data[0]);
 		break;
 	case CDROM_READ_RAW:
 	case CDROM_READ_AUDIO:
 		_offset = 0;
 		_read_size = 2352;
 		_transfer_size = 2352;
-		startp = (uint8_t*)(&tmpbuf);
-		datap = (uint8_t*)(&tmpbuf);
 		break;
 	default:
 		// ToDo: Implement for unexpected type.
@@ -2159,9 +2193,8 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 		if(buffer_left() < _transfer_size) {
 			break;
 		}
-		memset(&tmpbuf, 0x00, sizeof(tmpbuf));
 		int _trk = check_cdda_track_boundary(read_sector);
-		if(_trk <= 0) { // END
+		if((_trk <= 0) || (_trk >= track_num)) { // END
 			status_illegal_lba(0, 0x00, 0x00, 0x00);
 			return seccount;
 		}
@@ -2174,29 +2207,31 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 		}
 		// Phase 1: Check whether buffer remains.
 		// Phase 2: Read data from image.
-		if(!(fio_img->IsOpened())) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00); //<! OK? Maybe read error.
-			return seccount;
-		}
-		// Read data from Image, maybe includes (or doed not include) header and footer.
-		if(fio_img->Fread(startp, _read_size, 1) != 1) {
-			status_illegal_lba(0, 0x00, 0x00, 0x00);
-			return seccount;
-		}
-		// ToDo: Make pseudo header for ISO images.
-		// ToDo: Read or Make sub-channel field.
-
-		// Phase 3: Transfer main data to buffers.
-		if(write_buffer(datap, _transfer_size) < _transfer_size) { // Exception
+		int __stat = read_sector_data(fio_img, _transfer_size, _offset, footer_size);
+		__LIKELY_IF(__stat > 0) {
+			// Succeeded
+			transferred_bytes += _transfer_size;
 			read_sector++; // ToDo: Check boundary.
 			seccount++;
-			transferred_bytes += _transfer_size;
-			break;
+			sectors--;
+		} else {
+			switch(__stat) {
+			case ERR_BUFFER_FULL:
+				// ToDo: Waiting
+				break;
+			case ERR_ILLEGAL_PARAM:
+				// ToDo:
+				break;
+			case ERR_IO_NONE:
+			case ERR_IO_NOT_ATTACHED:
+			case ERR_IO_CLOSED:
+			default:
+				status_illegal_lba(0, 0x00, 0x00, 0x00); //<! OK? Maybe read error.
+				break;
+			}
+			return seccount;
 		}
-		transferred_bytes += _transfer_size;
-		read_sector++; // ToDo: Check boundary.
-		seccount++;
-		sectors--;
+
 	}
 	return seccount; // OK.
 }
@@ -2299,47 +2334,21 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		// @note ToDo: Make status interrupted.
 		return -1;
 	}
-	uint8_t tmpbuf[sectors * 2448 + 8];
+
 	if((read_sector > cdda_end_frame) || (read_sector > max_logical_block)) {
 		return 0; // OK?
 	}
 	if((current_track >= track_num) || (current_track <= 0)) {
 		return 0;
 	}
-	int track = get_track_noop(read_sector);
-	if(track != current_track) {
-		// BEYOND BOUNDARY OF TRACK.
-		if((track >= track_num) || (track <= 0)) {
-			status_parameter_error(false); // OK?
-			return 0;
-		}
-		if(!(toc_table[track].is_audio)) {
-			status_parameter_error(false); // OK?
-			return 0;
-		}
-		current_track = get_track(read_sector);
-		seek_relative_frame_in_image(read_sector);
+	if(!(toc_table[current_track].is_audio)) {
+		status_parameter_error(false); // OK?
+		return 0;
 	}
-	if((read_sector + sectors) > cdda_end_frame) {
-		sectors = cdda_end_frame - read_sector + 1;
+	uint32_t end_frame = std::min(cdda_end_frame, max_logical_block);
+	if((read_sector + sectors) > end_frame) {
+		sectors = end_frame - read_sector + 1;
 	}
-	if((read_sector + sectors) > max_logical_block) {
-		sectors = max_logical_block - read_sector;
-	}
-	#if 0
-	__UNLIKELY_IF(databuffer->left() < read_length) {
-		int tl = databuffer->left();
-		if(tl < sizeof(cd_audio_sector_t)) return 0; // Pending
-		int _s = tl / sizeof(cd_audio_sector_t);
-		if(_s < 1) return 0; // Pending
-		if(sectors > _s) {
-			sectors = _s;
-		}
-	}
-	if(get_track_noop(read_sector + sectors) != current_track) {
-		sectors = toc_table[current_track].index0 - read_sector;
-	}
-	#endif
 	if(sectors <= 0) {
 		return 0; // NOP.
 	}
@@ -2349,16 +2358,15 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 	uint32_t nbytes; // transferred_bytes
 	int _sectors = 0;
 	while(sectors > 0) {
-		size_t rsectors = read_sectors_image(sectors, nbytes);
+		int rsectors = read_sectors_image(sectors, nbytes);
 		//cdrom_debug_log(_T("READ AUDIO SECTOR(s) LBA=%d SECTORS=%d -> %d bytes=%d"),
 		//				read_sector, sectors, rsectors, nbytes);
-		if(rsectors == 0) {
+		if(rsectors <= 0) {
 			// Error
 			//set_cdda_status(CDDA_ENDED);
 			access = false;
 			return _sectors; // OK?
 		}
-		data_in = true;
 		sectors -= rsectors;
 		_sectors += rsectors;
 	}
@@ -2543,7 +2551,7 @@ uint32_t TOWNS_CDROM::get_image_cur_position()
 	if(is_device_ready()) {
 		if(fio_img->IsOpened()) {
 			uint32_t cur_position = (uint32_t)(fio_img->Ftell());
-			frame = (cur_position / ((is_iso) ? 2048 : physical_block_size()));
+			frame = cur_position / real_physical_block_size();
 			if(is_cue) {
 				frame = frame + toc_table[track].lba_offset;
 			}
@@ -2573,6 +2581,7 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 	if(!(status_media_changed_or_not_ready(false))) {
 		set_status(req_status, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_CDDA_PAUSED, 0x00, 0x00, true);
 	}
+	command_execute_phase = false;
 }
 
 void TOWNS_CDROM::unpause_cdda_from_cmd()
@@ -2586,6 +2595,7 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 	if(!(status_media_changed_or_not_ready(false))) {
 		set_status(req_status, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_NOERROR, 0x00, 0x00, true);
 	}
+	command_execute_phase = false;
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
@@ -2597,14 +2607,15 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 	if(!(status_media_changed_or_not_ready(false))) {
 		set_status(req_status, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_NOERROR, 0x00, 0x00, true);
 	}
+	command_execute_phase = false;
 	return;
 }
 
 
 bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 {
-	int phys_size = (is_iso) ? 2048 : physical_block_size();
-	if(frame_no >= toc_table[current_track].lba_offset) {
+	int phys_size = real_physical_block_size();
+	if((frame_no >= toc_table[current_track].lba_offset) && (phys_size > 0)) {
 		if(fio_img->IsOpened()) {
 			if(fio_img->Fseek(
 				   (frame_no - toc_table[current_track].lba_offset) * phys_size,
@@ -2623,8 +2634,12 @@ int TOWNS_CDROM::check_cdda_track_boundary(uint32_t frame_no)
 	if((frame_no >= toc_table[current_track + 1].index0) ||
 	   (frame_no < toc_table[current_track].index0)) {
 		int trk = get_track_noop(frame_no);
-		if((trk <= 0) || (trk >= track_num)) {
-			cdrom_debug_log(_T("CDDA: BEYOND OF TRACK BOUNDARY AND TO THE END, FRAME=%d"), frame_no);
+		if(trk <= 0) {
+			cdrom_debug_log(_T("MAYBE NONE TRACKS, FRAME=%d"), frame_no);
+			return 0;
+		}
+		if(trk >= track_num) {
+			cdrom_debug_log(_T("BEYOND OF TRACK BOUNDARY AND TO THE END, FRAME=%d"), frame_no);
 			return track_num;
 		}
 		cdrom_debug_log(_T("CDDA: BEYOND OF TRACK BOUNDARY, FRAME=%d"), frame_no);

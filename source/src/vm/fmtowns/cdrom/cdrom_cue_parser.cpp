@@ -24,6 +24,7 @@ enum {
 	CUE_PREGAP,
 };
 
+
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
@@ -171,13 +172,15 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//	toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
 				//}
 				if((strlen(track_data_path[i - 1]) > 0) && (with_filename[i])) {
+					if(toc_table[i].physical_size > 0) {
 					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
-						if((_n = fio_img->FileLength() / physical_block_size()) > 0) {
+						if((_n = fio_img->FileLength() / toc_table[i].physical_size) > 0) {
 							max_logical_block += _n;
 						} else {
 							_n = 0;
 						}
 						fio_img->Fclose();
+					}
 					}
 					toc_table[i].lba_size = _n;
 				}

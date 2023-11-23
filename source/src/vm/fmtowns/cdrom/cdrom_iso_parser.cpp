@@ -22,21 +22,23 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 	int nr_current_track = 0;
 	FILEIO* fio = new FILEIO();
 	if(fio == NULL) return false;
-	
+
 	get_long_full_path_name(file_path, full_path_iso, sizeof(full_path_iso));
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_iso);
 	memset(track_data_path[0], 0x00, _MAX_PATH * sizeof(_TCHAR));
-	
-	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) { // 
+
+	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) { //
 		uint64_t total_size = (uint64_t)fio->FileLength();
 		uint64_t sectors = total_size / 2048; //! @note Support only MODE1/2352.
+		uint8_t track_type = MODE_MODE1_2048; //! @note Support only MODE1/2352.
+		toc_table[0].type = MODE_NONE;
 		toc_table[0].lba_offset = 0;
 		toc_table[0].lba_size = 0;
 		toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 		if(sectors > 1) {
 			track_num = 2;
 			max_logical_block = sectors - 1;
-			
+			toc_table[1].type = track_type;
 			toc_table[1].lba_offset = 0;
 			toc_table[1].lba_size = sectors - 1;
 			toc_table[1].is_audio = false;
@@ -46,7 +48,8 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 			toc_table[1].physical_size = 2352;
 			toc_table[1].logical_size = 2048;
 
-			toc_table[2].lba_offset = sectors;
+
+			toc_table[2].type = MODE_NONE;
 			toc_table[2].lba_size = 0;
 			toc_table[2].is_audio = false;
 			toc_table[2].index0 = sectors;
@@ -69,5 +72,5 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 	delete fio;
 	return true;
 }
-	
+
 }
