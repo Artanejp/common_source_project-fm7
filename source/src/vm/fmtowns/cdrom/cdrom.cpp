@@ -440,18 +440,22 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 
 	switch(id) {
 	case SIG_TOWNS_CDROM_CDDA_STOP:
-		if(cdda_status != CDDA_OFF) {
-			if(_b) set_cdda_status(CDDA_OFF);
+		if(_b) {
+			set_cdda_status(CDDA_OFF);
 		}
 		break;
 	case SIG_TOWNS_CDROM_CDDA_PLAY:
-		if(cdda_status != CDDA_PLAYING) {
-			if(_b) set_cdda_status(CDDA_PLAYING);
+		if(_b) {
+			set_cdda_status(CDDA_PLAYING);
 		}
 		break;
 	case SIG_TOWNS_CDROM_CDDA_PAUSE:
-		if(cdda_status != CDDA_PAUSED) {
-			if(_b) set_cdda_status(CDDA_PAUSED);
+		if(_b) {
+			set_cdda_status(CDDA_PAUSED);
+		} else {
+			if(cdda_status == CDDA_PAUSED) {
+				set_cdda_status(CDDA_PLAYING);
+			}
 		}
 		break;
 	case SIG_TOWNS_CDROM_SET_TRACK:
@@ -645,28 +649,25 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 	// 0Dh : After STOPPING CD-DA.Will clear.
 	// 01h and 09h maybe incorrect.
 
-	//uint8_t playcode = TOWNS_CD_ACCEPT_DATA_TRACK; // OK?
-	uint8_t playcode = TOWNS_CD_ACCEPT_NOERROR; // OK?
-	if(cdda_status == CDDA_PAUSED) {
-		playcode = TOWNS_CD_ACCEPT_CDDA_PAUSED;
-	} else if(cdda_status == CDDA_PLAYING) {
+	uint8_t playcode = (toc_table[current_track].is_audio) ? TOWNS_CD_ACCEPT_NOERROR :  TOWNS_CD_ACCEPT_DATA_TRACK; // OK?
+	switch(cdda_status) {
+	case CDDA_PLAYING:
 		playcode = TOWNS_CD_ACCEPT_CDDA_PLAYING;
-	} else {
-		#if 0 // TRY 20230530 K.O
-		if(((latest_command & 0xb0) == 0xa0) ||
-		   ((prev_command & 0xb0) == 0xa0)) {
-			switch(exec_params[0]) {
-			case 0x04:
-				playcode = TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H;
-				break;
-			case 0x08:
-				playcode = TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H;
-				//playcode = TOWNS_CD_ACCEPT_NOERROR;
-				break;
-			}
+		break;
+	case CDDA_PAUSED:
+		playcode = TOWNS_CD_ACCEPT_CDDA_PAUSED;
+		break;
+	case CDDA_ENDED:
+		playcode = TOWNS_CD_ACCEPT_WAIT;
+		//set_cdda_status(CDDA_OFF);
+		break;
+	default:
+		if((cdda_stopped) && (toc_table[current_track].is_audio)) {
+			playcode = TOWNS_CD_ACCEPT_WAIT;
 		}
-		#endif
+		break;
 	}
+
 	clear_status_queue(true);
 	if(req_status) {
 		if(extra >= 0) {
@@ -888,7 +889,6 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 	case CDROM_COMMAND_READ_CDDA_STATE: // 06h
 		// ToDo: Some softwares check via this command, strongly to be fixed.
 		// -- 20220125 K.O
-		command_execute_phase = false;
 		if(req_status) {
 			if(status_media_changed_or_not_ready(false)) {
 				return;
@@ -896,21 +896,23 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			memcpy(subq_snapshot, subq_bytes, sizeof(subq_snapshot));
 			set_status(true, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_NOERROR, 0x00, 0x00, false);
 		} else {
+			command_execute_phase = false;
 			mcu_ready = true;
 		}
 		break;
 	case CDROM_COMMAND_1F:
 		cdrom_debug_log(_T("CMD UNKNOWN 1F(%02X)"), command);
-		command_execute_phase = false;
 		if(req_status) {
 			if(status_media_changed_or_not_ready(false)) {
 				return;
 			}
+			mcu_ready = true;
 			status_accept(0, 0, 0, true, true); // Say reply.
 		} else {
 			mcu_ready = true;
 			//set_delay_ready(false); // OK? 20230127 K.O
 		}
+		command_execute_phase = false;
 		break;
 	case CDROM_COMMAND_SET_STATE: // 80h
 		cdrom_debug_log(_T("CMD SET STATE(%02X) PARAM=%02X %02X %02X %02X %02X %02X %02X %02X"),
@@ -927,22 +929,54 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		command_execute_phase = false; // OK?
 		if(req_status) {
 			// ToDo:
-			if(status_media_changed_or_not_ready(false)) {
-				return;
-			}
-			#if 0
-			uint8_t __s1 = TOWNS_CD_ACCEPT_NOERROR;
+			//if(status_media_changed_or_not_ready(false)) {
+			//	return;
+			//}
+			uint8_t __s1 = (toc_table[current_track].is_audio) ? TOWNS_CD_ACCEPT_NOERROR :  TOWNS_CD_ACCEPT_DATA_TRACK; // OK?
 			clear_status_queue(true);
-			if(status_seek) {
-				// @note In SUPER REAL MAHJONG PIV, maybe check below.
-				// @note 20201110 K.O
-				__s1 = (toc_table[current_track].is_audio) ? TOWNS_CD_ACCEPT_WAIT : TOWNS_CD_ACCEPT_DATA_TRACK;
+			// @note In SUPER REAL MAHJONG PIV, maybe check below.
+			// @note 20201110 K.O
+			if(media_changed) {
+				__s1 = TOWNS_CD_ACCEPT_MEDIA_CHANGED;
+				media_changed = false;
+			} else {
+				switch(cdda_status) {
+				case CDDA_PAUSED:
+					if((prev_command & 0x9f) == CDROM_COMMAND_PAUSE_CDDA) {
+						/// @note SUPER READ MAHJONG PIV (and maybe others) polls until below status.
+						/// @note 20201110 K.O
+						__s1 = TOWNS_CD_ACCEPT_WAIT;
+					} else {
+						__s1 = TOWNS_CD_ACCEPT_CDDA_PAUSED;
+					}
+					break;
+				case CDDA_PLAYING:
+					__s1 = TOWNS_CD_ACCEPT_CDDA_PLAYING;
+					break;
+				case CDDA_ENDED:
+					__s1 = TOWNS_CD_ACCEPT_WAIT;
+					break;
+				case CDDA_OFF:
+					/// @note RANCEIII (and maybe others) polls until below status.
+					/// @note 20201110 K.
+					if((prev_command & 0x9f) == CDROM_COMMAND_STOP_CDDA) {
+						__s1 = TOWNS_CD_ACCEPT_WAIT;
+					}
+					break;
+				default:
+					if(exec_params[1] == 0x08) {
+						__s1 = TOWNS_CD_ACCEPT_08H_FOR_CMD_A0H;
+					} else if(exec_params[1] == 0x04) {
+						__s1 = TOWNS_CD_ACCEPT_04H_FOR_CMD_A0H;
+					} else if((cdda_stopped) && (toc_table[current_track].is_audio)) {
+						__s1 = TOWNS_CD_ACCEPT_WAIT;
+					}
+					break;
+				}
 			}
 			extra_status = 0;
 			push_status_queue(TOWNS_CD_STATUS_ACCEPT, __s1, 0x00, 0x00);
-			#else
-			status_accept(0, 0x00, 0x00, true, false); // Push queue Immediately
-			#endif
+			set_delay_ready(false);
 			if(cdda_status == CDDA_ENDED) {
 				// From Tsugaru 95afde8c :
 				// 2020/07/30
@@ -963,26 +997,22 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 				// PushStatusCDDAPlayEnded();
 				set_cdda_status(CDDA_OFF);
 			}
+			#if 0
 			if(stat_reply_intr) {
 				mcu_intr = true;
 				write_mcuint_signals(true);
 			}
+			#endif
 		}
 		mcu_ready = true;
 		break;
 	case CDROM_COMMAND_SET_CDDASET: // 81h
 		cdrom_debug_log(_T("%s(%02X)"), get_command_name_from_command(command), command);
-		command_execute_phase = false;
-		if(req_status) {
-			// FROM Tsugaru:
-			// I don't know what to do with this command.
-			// CDROM BIOS AH=52H fires command 0xA1 with parameters {07 FF 00 00 00 00 00 00}
-			if(!(status_media_changed_or_not_ready(false))) {
-				//status_accept(0, 0x00, 0x00, true, true); // OK?
-				status_accept(0, 0x00, 0x00, true, false); // OK?
-			}
-		}
 		mcu_ready = true;
+		if(!(status_media_changed_or_not_ready(false))) {
+			status_accept(0, 0x00, 0x00, true, false); // OK?
+			command_execute_phase = false;
+		}
 		break;
 	case CDROM_COMMAND_STOP_CDDA: // 84h
 		cdrom_debug_log(_T("CMD STOP CDDA(%02X)"), command);
@@ -1097,7 +1127,7 @@ void TOWNS_CDROM::dma_transfer_epilogue()
 	} else {
 		// Call to read next sector.
 		#if 1
-		//status_seek = true;  // OK?
+		status_seek = true;  // OK?
 		register_event(this, EVENT_CDROM_NEXT_SECTOR,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 					   1.0,
@@ -1135,7 +1165,7 @@ void TOWNS_CDROM::pio_transfer_epilogue()
 	} else {
 		// Call to read next sector.
 		#if 1
-		//status_seek = true;  // OK?
+		status_seek = true;  // OK?
 		register_event(this, EVENT_CDROM_NEXT_SECTOR,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 					   1.0,
@@ -1208,7 +1238,6 @@ void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
 void TOWNS_CDROM::read_cdrom()
 {
 	mcu_ready = true;
-	#if 0
 	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
 		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
 		// @note 20201110 K.O
@@ -1216,9 +1245,6 @@ void TOWNS_CDROM::read_cdrom()
 	} else {
 		set_cdda_status(CDDA_OFF);
 	}
-	#else
-	set_cdda_status(CDDA_OFF);
-	#endif
 	if(status_media_changed_or_not_ready(false)) {
 		set_subq(0);
 		return;
@@ -1289,8 +1315,6 @@ void TOWNS_CDROM::read_cdrom()
 	clear_event(this, event_next_sector);
 
 	register_event(this, EVENT_CDROM_READ_PRE_SEEK, usec, false, &event_next_sector);
-	mcu_intr = true;
-
 	status_accept(0, 0, 0, true, false);
 	mcu_ready = false;
 }
@@ -1347,7 +1371,6 @@ void TOWNS_CDROM::set_status_cddareply(const bool force_interrupt, int extra, ui
 		if(status_media_changed_or_not_ready(force_interrupt)) {
 			return;
 		}
-		mcu_intr = true;
 		status_accept(extra, s2, s3, true, force_interrupt);
 	}
 }
@@ -1444,6 +1467,7 @@ void TOWNS_CDROM::set_extra_status()
 					cdrom_debug_log(_T("TRACK=%d M:S:F=%02X:%02X:%02X"), stat_track - 1, msf.b.h2, msf.b.h, msf.b.l);
 					set_status_extra_toc_data(msf.b.h2, msf.b.h, msf.b.l); // OK?
 					if((track_num <= 0) || (stat_track >= track_num)) {
+						mcu_ready = true;
 						command_execute_phase = false; // OK?
 						extra_status = 0; // It's end.
 					}
@@ -1472,10 +1496,12 @@ void TOWNS_CDROM::set_extra_status()
 			// Absolute F
 			set_extra_status_values(TOWNS_CD_STATUS_SUBQ_READ4, 0x00, subq_snapshot[5], 0x00, false, false);
 			command_execute_phase = false;
+			mcu_ready = true;
 			extra_status = 0;
 			break;
 		default:
 			command_execute_phase = false;
+			mcu_ready = true;
 			extra_status = 0;
 			break;
 		}
@@ -1775,7 +1801,7 @@ const int TOWNS_CDROM::logical_block_size()
 
 bool TOWNS_CDROM::start_to_play_cdda()
 {
-	status_seek = false;
+	status_seek = true;
 	access = false;
 
 	//stop_time_out();
@@ -1931,10 +1957,10 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				seek_relative_frame_in_image(cdda_playing_frame);
 				cdda_stopped = false;
 				data_in = false;
-				if(prefetch_audio_sectors(1) < 1) {
-					//set_cdda_status(CDDA_OFF);
-					return; // READ ERROR
+				if(event_cdda < 0) {
+					register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
 				}
+				prefetch_audio_sectors(1);
 			} else {
 				// ERROR
 				current_track = get_track(0);
@@ -1944,13 +1970,8 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				cdda_end_frame = 0;
 				cdda_stopped = true;
 				data_in = false;
-				//set_cdda_status(CDDA_OFF);
+				set_cdda_status(CDDA_ENDED);
 				return;
-			}
-			if(mix_loop_num == 0) {
-				if(event_cdda < 0) {
-					register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
-				}
 			}
 			touch_sound();
 			set_realtime_render(this, true);
@@ -2016,7 +2037,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		current_track =	get_track(next_seek_lba);
 		read_sector = next_seek_lba;
 
-		status_seek = false;
+		//status_seek = false;
 		if((sectors_count > 0) && (current_track > 0) && (current_track < track_num)) {
 			// OK, NEXT
 			//event_callback(EVENT_CDROM_READY_TO_READ, 1);
@@ -2031,7 +2052,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		status_seek = false;
 		// ToDo: Prefetch 20201116
 		// ToDo: Abort Sequence 20231112
-		if((read_sector < 0) || (read_sector >= max_logical_block)) {
+		if((read_sector < 0) || (read_sector > max_logical_block)) {
 			status_illegal_lba(0, TOWNS_CD_ABEND_PARAMETER_ERROR, 0, 0); // OK?
 			break;
 		}
@@ -2309,11 +2330,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				}
 			}
 		}
-/*		int _ntrk =	_ntrk = check_cdda_track_boundary(read_sector);
-		__UNLIKELY_IF((_ntrk != current_track) && (_ntrk < track_num) && (_ntrk > 0)) {
-			current_track = get_track(read_sector);
-			seek_relative_frame_in_image(read_sector);
-		} else */if(force_seek) {
+		if(force_seek) {
 			double usec = get_seek_time(cdda_start_frame);
 			if(usec < 10.0) usec = 10.0;
 			force_register_event(this, EVENT_CDDA_REPEAT, usec, false, event_cdda_delay_play);
@@ -2342,7 +2359,7 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 		return 0;
 	}
 	if(!(toc_table[current_track].is_audio)) {
-		status_parameter_error(false); // OK?
+//		status_parameter_error(false); // OK?
 		return 0;
 	}
 	uint32_t end_frame = std::min(cdda_end_frame, max_logical_block);
@@ -2376,11 +2393,6 @@ int TOWNS_CDROM::prefetch_audio_sectors(int sectors)
 void TOWNS_CDROM::set_cdda_status(uint8_t status)
 {
 	if(status == CDDA_PLAYING) {
-		if(mix_loop_num == 0) {
-			if(event_cdda < 0) {
-				register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
-			}
-		}
 		if(cdda_status != CDDA_PLAYING) {
 			//// Notify to release bus.
 			write_mcuint_signals(false);
@@ -2411,6 +2423,9 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			} else {
 				cdda_stopped = false;
 			}
+			if(event_cdda < 0) {
+				register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
+			}
 			touch_sound();
 			set_realtime_render(this, true);
 			const _TCHAR *pp = get_cdda_status_name(cdda_status);
@@ -2419,6 +2434,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 	} else {
 		//clear_event(this, event_cdda);
 //		if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_ENDED)) {
+		clear_event(this, event_cdda);
 		if(cdda_status != status) {
 			// Notify to release bus.
 			write_mcuint_signals(false);
@@ -2572,41 +2588,49 @@ uint32_t TOWNS_CDROM::lba_to_msf_alt(uint32_t lba)
 
 void TOWNS_CDROM::pause_cdda_from_cmd()
 {
+	if((status_media_changed_or_not_ready(false))) {
+		return;
+	}
 	set_cdda_status(CDDA_PAUSED);
 	/*!
 	 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 	 * @note 20201113 K.O
 	 */
 	set_subq(cdda_playing_frame); // First
-	if(!(status_media_changed_or_not_ready(false))) {
-		set_status(req_status, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_CDDA_PAUSED, 0x00, 0x00, true);
-	}
+	status_accept(1, 0x00, 0x00, true, true);
+	mcu_ready = true;
 	command_execute_phase = false;
 }
 
 void TOWNS_CDROM::unpause_cdda_from_cmd()
 {
+	if((status_media_changed_or_not_ready(false))) {
+		return;
+	}
 	set_cdda_status(CDDA_PLAYING);
 	/*!
 	 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 	 * @note 20201113 K.O
 	 */
 	set_subq(cdda_playing_frame); // First
-	if(!(status_media_changed_or_not_ready(false))) {
-		set_status(req_status, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_NOERROR, 0x00, 0x00, true);
-	}
+	status_accept(1, 0x00, 0x00, true, true);
+	mcu_ready = true;
 	command_execute_phase = false;
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
 {
+	if((status_media_changed_or_not_ready(false))) {
+		return;
+	}
 	/// @note Even make additional status even stop.Workaround for RANCEIII.
 	/// @note - 20201110 K.O
-	set_cdda_status(CDDA_ENDED);
 	set_subq(cdda_playing_frame); // First
-	if(!(status_media_changed_or_not_ready(false))) {
-		set_status(req_status, 1, TOWNS_CD_STATUS_ACCEPT, TOWNS_CD_ACCEPT_NOERROR, 0x00, 0x00, true);
+	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
+		set_cdda_status(CDDA_ENDED);
 	}
+	status_accept(1, 0x00, 0x00, true, true);
+	mcu_ready = true;
 	command_execute_phase = false;
 	return;
 }
@@ -2698,7 +2722,8 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			// Workaround for Puyo Puyo, Interval stage.
 			if((track_tmp_s != current_track) || (track_tmp_e != current_track)) {
 				if(cdda_status == CDDA_PLAYING) {
-					set_cdda_status(CDDA_OFF);
+					//set_cdda_status(CDDA_OFF);
+					set_cdda_status(CDDA_ENDED);
 				}
 				if(!(toc_table[track_tmp_s].is_audio)) {
 					// If target LBA is not CDDA, reject command.
@@ -3067,8 +3092,6 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 			cdda_sample_l = tmp_l / mix_loop_num;
 			cdda_sample_r = tmp_r / mix_loop_num;
 		}
-//		int32_t val_l = apply_volume(apply_volume(cdda_sample_l, volume_m), volume_l);
-//		int32_t val_r = apply_volume(apply_volume(cdda_sample_r, volume_m), volume_r);
 		int32_t val_l = (mute_left) ? 0 : apply_volume(cdda_sample_l, volume_l);
 		int32_t val_r = (mute_right) ? 0 : apply_volume(cdda_sample_r, volume_r);
 
@@ -3083,8 +3106,9 @@ void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)
 {
 	_decibel_l = decibel_l;
 	_decibel_r = decibel_r;
-	volume_l = decibel_to_volume(_decibel_l + 6.0);
-	volume_r = decibel_to_volume(_decibel_r + 6.0);
+	// Workaround for YUMIMI MIX.
+	volume_l = decibel_to_volume(_decibel_l + 32.0);
+	volume_r = decibel_to_volume(_decibel_r + 32.0);
 }
 
 void TOWNS_CDROM::get_volume(int ch, int& decibel_l, int& decibel_r)
