@@ -882,7 +882,7 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			uint8_t mem_bak = mem_wait_val;
 			uint8_t vram_bak = vram_wait_val;
 			vram_wait_val = ((data & 0x01) != 0) ? 0 : 6;
-			mem_wait_val = ((data & 0x01) != 0) ? 0 : 6;
+			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
 			wait_register_ram = mem_wait_val;
 			wait_register_vram = vram_wait_val;
 			if((mem_bak != mem_wait_val) || (vram_bak != vram_wait_val)) {
