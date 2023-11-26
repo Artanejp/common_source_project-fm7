@@ -40,6 +40,9 @@
 #define SIG_TOWNS_CDROM_MUTE_L				0x29
 #define SIG_TOWNS_CDROM_MUTE_R				0x2a
 #define SIG_TOWNS_CDROM_MUTE_ALL			0x2b
+#define SIG_TOWNS_CDROM_VOLUME_OFFSET_L		0x2c
+#define SIG_TOWNS_CDROM_VOLUME_OFFSET_R		0x2d
+#define SIG_TOWNS_CDROM_VOLUME_OFFSET_ALL	0x2e
 
 
 class SCSI_HOST;
@@ -395,6 +398,8 @@ protected:
 
 	bool mute_left;
 	bool mute_right;
+	int offset_volume_l;
+	int offset_volume_r;
 
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
@@ -676,6 +681,8 @@ protected:
 		read_buffer(data_reg.b.l);
 		read_buffer(data_reg.b.h);
 	}
+	int __FASTCALL calculate_volume(int volume_db, int minus_offset_db);
+
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
 	bool force_logging;

@@ -408,22 +408,13 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	crtc->set_context_vram(vram);
 	crtc->set_context_font(fontrom);
 
-//	e_volumes[0]->set_context_device(0, line_in, 0,
-//									 MB87078_TYPE_MASK_LEFT);
-//	e_volumes[0]->set_context_device(1, line_in, 0,
-//									 MB87078_TYPE_MASK_RIGHT);
-	e_volumes[1]->set_context_device(0, cdrom, 0,
-									 MB87078_TYPE_SET_LEFT, SIG_TOWNS_CDROM_MUTE_L,
-									 0xffffffff,
-									 0xffffffff,
-									 false
-		);
-	e_volumes[1]->set_context_device(1, cdrom, 0,
-									 MB87078_TYPE_SET_RIGHT, SIG_TOWNS_CDROM_MUTE_R,
-									 0xffffffff,
-									 0xffffffff,
-									 false
-		);
+	//e_volumes[0]->set_context_target(0, line_in, SIG_TOWNS_LINEIN_VOLUME_L, SIG_TOWNS_LINEIN_MUTE_L, 0xffffffff);
+	//e_volumes[0]->set_context_target(1, line_in, SIG_TOWNS_LINEIN_VOLUME_L, SIG_TOWNS_LINEIN_MUTE_L, 0xffffffff);
+
+	e_volumes[1]->set_context_target(0, cdrom, SIG_TOWNS_CDROM_VOLUME_OFFSET_L, SIG_TOWNS_CDROM_MUTE_L, 0xffffffff);
+	e_volumes[1]->set_context_target(1, cdrom, SIG_TOWNS_CDROM_VOLUME_OFFSET_R, SIG_TOWNS_CDROM_MUTE_R, 0xffffffff);
+	//e_volumes[1]->set_context_target(2, mic_in, SIG_TOWNS_MIC_VOLUME, SIG_TOWNS_MIC_MUTE, 0xffffffff);
+	//e_volumes[1]->set_context_target(3, modem_in, SIG_TOWNS_MODEM_VOLUME, SIG_TOWNS_MODEM_MUTE, 0xffffffff);
 
 	memory->set_context_cpu(cpu);
 	memory->set_context_dmac(dma);
@@ -1147,9 +1138,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		}
 	}
 	else if(ch == 1) { // CD-ROM
-		if(e_volumes[1] != nullptr) {
-			e_volumes[1]->set_volumes(0, decibel_l, 1, decibel_r);
-		} else if(cdrom != nullptr) {
+		if(cdrom != nullptr) {
 			cdrom->set_volume(0, decibel_l, decibel_r);
 		}
 	}

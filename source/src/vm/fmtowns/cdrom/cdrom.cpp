@@ -175,7 +175,8 @@ void TOWNS_CDROM::initialize()
 	_decibel_r = 0;
 	mute_left = false;
 	mute_right = false;
-
+	offset_volume_l = 0;
+	offset_volume_r = 0;
 	memset(w_regs, 0x00, sizeof(w_regs));
 }
 
@@ -315,6 +316,8 @@ void TOWNS_CDROM::reset_device()
 	set_subq(0);
 	memcpy(subq_snapshot, subq_bytes, sizeof(subq_snapshot));
 
+	volume_l = calculate_volume(_decibel_l, offset_volume_l);
+	volume_r = calculate_volume(_decibel_r, offset_volume_r);
 	if(d_dmac != NULL) {
 		dmac_running = (d_dmac->read_signal(SIG_TOWNS_DMAC_MASK_CH3) != 0) ? true : false;
 	} else {
@@ -479,6 +482,20 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 		mute_right = mute_left;
 		break;
 		// By DMA/TC, EOT.This means ABORTing request from EXTERNAL BUS.
+	case SIG_TOWNS_CDROM_VOLUME_OFFSET_L:
+		offset_volume_l = data & 0x3f;
+		volume_l = calculate_volume(_decibel_l, offset_volume_l);
+		break;
+	case SIG_TOWNS_CDROM_VOLUME_OFFSET_R:
+		offset_volume_r = data & 0x3f;
+		volume_r = calculate_volume(_decibel_r, offset_volume_r);
+		break;
+	case SIG_TOWNS_CDROM_VOLUME_OFFSET_ALL:
+		offset_volume_l = data & 0x3f;
+		offset_volume_r = data & 0x3f;
+		volume_l = calculate_volume(_decibel_l, offset_volume_l);
+		volume_r = calculate_volume(_decibel_r, offset_volume_r);
+		break;
 	case SIG_TOWNS_CDROM_DMAINT:
 		if((data & mask) != 0) {
 			// This seems to be aborting to transfer?
@@ -3102,13 +3119,18 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 	}
 }
 
+int TOWNS_CDROM::calculate_volume(int volume_db, int minus_offset_db)
+{
+	return decibel_to_volume(volume_db + 24 - minus_offset_db);
+}
+
 void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)
 {
 	_decibel_l = decibel_l;
 	_decibel_r = decibel_r;
 	// Workaround for YUMIMI MIX.
-	volume_l = decibel_to_volume(_decibel_l + 32.0);
-	volume_r = decibel_to_volume(_decibel_r + 32.0);
+	volume_l = calculate_volume(_decibel_l, offset_volume_l);
+	volume_r = calculate_volume(_decibel_r, offset_volume_r);
 }
 
 void TOWNS_CDROM::get_volume(int ch, int& decibel_l, int& decibel_r)
@@ -3403,7 +3425,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	64
+#define STATE_VERSION	65
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3533,6 +3555,8 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(mute_left);
 	state_fio->StateValue(mute_right);
+	state_fio->StateValue(offset_volume_l);
+	state_fio->StateValue(offset_volume_r);
 
 	if(loading) {
 		offset = state_fio->FgetUint32_LE();
@@ -3571,10 +3595,8 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 			close_from_cmd();
 		}
 		make_bitslice_subc_q(subq_bytes, 96);
-
-		volume_l = decibel_to_volume(_decibel_l + 6.0);
-		volume_r = decibel_to_volume(_decibel_r + 6.0);
-
+		volume_l = calculate_volume(_decibel_l, offset_volume_l);
+		volume_r = calculate_volume(_decibel_r, offset_volume_r);
  	}
 	state_fio->StateValue(event_execute);
 	state_fio->StateValue(event_seek);
