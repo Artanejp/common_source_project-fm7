@@ -429,7 +429,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_timer(timer);
 	memory->set_context_serial_rom(serialrom);
 	memory->set_context_sprite(sprite);
-	memory->set_context_pcm(adpcm);
+	memory->set_context_pcm(rf5c68);
 	memory->set_context_iccard(iccard1, 0);
 	memory->set_context_iccard(iccard2, 1);
 
@@ -665,7 +665,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x04ea, adpcm); // PCM INTERRUPT MASK
 	io->set_iomap_single_r (0x04eb, adpcm); // PCM INTERRUPT STATUS
 	io->set_iomap_single_w (0x04ec, adpcm); // PCM LED/MUTE
-	io->set_iomap_range_w (0x04f0, 0x04f8, adpcm); // PCM CONTROL REGS (WO?)
+	io->set_iomap_range_w (0x04f0, 0x04f8, rf5c68); // PCM CONTROL REGS (WO?)
 
 	//io->set_iomap_single_rw(0x510, newpcm); // PCM BANK (after MX)
 	//io->set_iomap_single_rw(0x511, newpcm); // PCM DMA STATUS(after MX)

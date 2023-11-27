@@ -16,13 +16,11 @@
 namespace FMTOWNS {
 
 #define EVENT_ADC_CLOCK   1
-#define EVENT_ADPCM_CLOCK 2
 
 void ADPCM::initialize()
 {
 	adc_fifo = new FIFO(64); // OK?
 	event_adc_clock = -1;
-	event_adpcm_clock = -1;
 }
 
 void ADPCM::release()
@@ -48,11 +46,6 @@ void ADPCM::reset()
 	write_signals(&outputs_allmute, 0xffffffff); // OK?
 
 	initialize_adc_clock(-1);
-	if(event_adpcm_clock >= 0) {
-		cancel_event(this, event_adpcm_clock);
-	}
-	// Tick is (8.0e6 / 384.0)[Hz] .. Is this true?
-	register_event(this, EVENT_ADPCM_CLOCK, (384.0 * 2.0) / 16.0, true, &event_adpcm_clock);
 }
 
 void ADPCM::initialize_adc_clock(int freq)
@@ -79,9 +72,6 @@ void ADPCM::event_callback(int id, int err)
 			d_adc->read_data8(SIG_AD7820_DATA_REG); // Dummy read, start to  sample.
 		}
 		break;
-	case EVENT_ADPCM_CLOCK:
-		d_rf5c68->write_signal(SIG_RF5C68_DAC_PERIOD, 1, 1);
-		break;
 	}
 }
 
@@ -91,7 +81,6 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 	  0x04d5 : OPN2/ADPCM MUTE
 	  0x04e7 - 0x04e8 : ADC
 	  0x04e9 - 0x04ec : DAC CONTROL
-	  0x04f0 - 0x04f8 : DAC
 	*/
 	uint8_t val = 0x00;
 	switch(addr) {
@@ -129,7 +118,6 @@ uint32_t ADPCM::read_io8(uint32_t addr)
 		}
 		break;
 	default:
-		if((addr & 0xff) >= 0xf0) val = d_rf5c68->read_io8(addr & 0x0f); // AROUND DAC
 		break;
 	}
 	return val;
@@ -141,7 +129,6 @@ void ADPCM::write_io8(uint32_t addr, uint32_t data)
 	  0x04d5 : OPN2/ADPCM MUTE
 	  0x04e7 - 0x04e8 : ADC
 	  0x04e9 - 0x04ec : DAC CONTROL
-	  0x04f0 - 0x04f8 : DAC
 	*/
 	switch(addr) {
 	case 0x04d5:
@@ -161,64 +148,8 @@ void ADPCM::write_io8(uint32_t addr, uint32_t data)
 		write_signals(&outputs_allmute, ((data & 0x40) == 0) ? 0xffffffff : 0x00000000);
 		break;
 	default:
-		if(addr >= 0x04f0) {
-			d_rf5c68->write_io8(addr & 0x0f, data);
-		}
 		break;
 	}
-}
-
-uint32_t ADPCM::read_memory_mapped_io8w(uint32_t addr, int *wait)
-{
-	__LIKELY_IF(wait != NULL) {
-		*wait = 0;
-	}
-	return d_rf5c68->read_memory_mapped_io8(addr & 0x7fff);
-}
-
-uint32_t ADPCM::read_memory_mapped_io16w(uint32_t addr, int *wait)
-{
-	__LIKELY_IF(wait != NULL) {
-		*wait = 0;
-	}
-	return d_rf5c68->read_memory_mapped_io16(addr & 0x7fff);
-}
-
-void ADPCM::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait)
-{
-	__LIKELY_IF(wait != NULL) {
-		*wait = 0;
-	}
-	d_rf5c68->write_memory_mapped_io8(addr & 0x7fff, data);
-}
-
-void ADPCM::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* wait)
-{
-	__LIKELY_IF(wait != NULL) {
-		*wait = 0;
-	}
-	d_rf5c68->write_memory_mapped_io16(addr & 0x7fff, data);
-}
-
-
-uint32_t ADPCM::read_dma_data8w(uint32_t addr, int* wait)
-{
-	return d_rf5c68->read_dma_data8w(addr & 0x7fff, wait);
-}
-
-uint32_t ADPCM::read_dma_data16w(uint32_t addr, int* wait)
-{
-	return d_rf5c68->read_dma_data16w(addr & 0x7fff, wait);
-}
-
-void ADPCM::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
-{
-	d_rf5c68->write_dma_data8w(addr & 0x7fff, data, wait);
-}
-
-void ADPCM::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
-{
-	d_rf5c68->write_dma_data16w(addr & 0x7fff, data, wait);
 }
 
 void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
@@ -277,7 +208,8 @@ uint32_t ADPCM::read_signal(int ch)
 {
 	return 0;
 }
-#define STATE_VERSION	1
+
+#define STATE_VERSION	2
 
 bool ADPCM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -299,7 +231,6 @@ bool ADPCM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(latest_dac_intr);
 
 	state_fio->StateValue(event_adc_clock);
-	state_fio->StateValue(event_adpcm_clock);
 	return true;
 }
 

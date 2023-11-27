@@ -11,6 +11,9 @@
     I/O: 0-8
     MEMORY: 64KB (banked per 4kb).
 */
+#include <atomic>
+#include <mutex>
+
 #include "../device.h"
 #include "../../common.h"
 
@@ -45,16 +48,24 @@ protected:
 	bool is_mute;
 
 	double dac_rate;
+	double lpf_cutoff;
 	int mix_factor;
 	int mix_count;
-	int sample_words;
-	int sample_pointer;
-	int read_pointer;
+
+	int lastsample_l;
+	int lastsample_r;
+
+	bool _RF5C68_DRIVEN_BY_EXTERNAL_CLOCK;
+
+	std::recursive_mutex m_locker;
+	std::atomic<int> sample_words;
+	std::atomic<int> sample_pointer;
+	std::atomic<int> read_pointer;
 
 	__DECL_ALIGNED(16) bool dac_onoff[8];
 	__DECL_ALIGNED(16) pair32_t dac_addr_st[8];
 	__DECL_ALIGNED(16) uint32_t dac_addr[8];
-	__DECL_ALIGNED(16) uint32_t dac_env[8];
+	__DECL_ALIGNED(16) uint32_t dac_env[16];
 	__DECL_ALIGNED(16) uint32_t dac_pan[16];
 	__DECL_ALIGNED(16) pair32_t dac_ls[8];
 	__DECL_ALIGNED(16) pair32_t dac_fd[8];
@@ -64,15 +75,18 @@ protected:
 	bool dac_force_load[8];
 	__DECL_ALIGNED(16) int32_t  dac_tmpval[16];
 
-	int volume_l, volume_r;
+	std::atomic<int> volume_l, volume_r;
 	int32_t* sample_buffer;
 
-	int sample_length;
+	std::atomic<int> sample_length;
+	std::atomic<int> mix_rate;
 
-	int mix_rate;
-	double sample_tick_us;
+	int event_dac;
+	int event_lpf;
 
 	// ToDo: Work correct LPF.
+
+	virtual void do_dac_period();
 
 	virtual void __FASTCALL get_sample(int32_t *v, int words);
 	void __FASTCALL lpf_threetap(int32_t *v, int &lval, int &rval);
@@ -80,16 +94,15 @@ protected:
 public:
 	RF5C68(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		volume_l = volume_r = 1024;
 		sample_buffer = NULL;
 		sample_length = 0;
-		mix_rate = 1; // For Error
-		sample_tick_us = 0.0;
-		is_mute = true;
+		mix_rate = 48000; // For Error
 		initialize_output_signals(&interrupt_boundary);
 		d_debugger = NULL;
 
-		dac_rate = 8.0e6 / 384;
+		dac_rate = 8.0e6 / 384; // About 19.2KHz
+		lpf_cutoff = 4.0e3;
+		_RF5C68_DRIVEN_BY_EXTERNAL_CLOCK = false;
 		set_device_name(_T("ADPCM RF5C68"));
 	}
 	~RF5C68() {}
@@ -99,17 +112,13 @@ public:
 
 	virtual void reset() override;
 
-	virtual uint32_t __FASTCALL read_memory_mapped_io8(uint32_t addr) override;
-	virtual uint32_t __FASTCALL read_memory_mapped_io16(uint32_t addr) override;
+	virtual void __FASTCALL event_callback(int id, int err) override;
 
-	virtual void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
-	virtual void __FASTCALL write_memory_mapped_io16(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int* wait) override;
+	virtual void __FASTCALL write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* wait) override;
 
 	virtual uint32_t __FASTCALL read_dma_data8w(uint32_t addr, int* wait) override;
-	virtual uint32_t __FASTCALL read_dma_data16w(uint32_t addr, int* wait) override;
 	virtual void __FASTCALL write_dma_data8w(uint32_t addr, uint32_t data, int* wait) override;
-	virtual void __FASTCALL write_dma_data16w(uint32_t addr, uint32_t data, int* wait) override;
-
 	virtual uint32_t  __FASTCALL read_debug_data8(uint32_t addr) override;
 	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
 
@@ -120,11 +129,6 @@ public:
 	virtual void __FASTCALL write_signal(int ch, uint32_t data, uint32_t mask) override;
 
 	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
-
-	virtual uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr) override;
-	virtual uint32_t __FASTCALL read_via_debugger_data16(uint32_t addr) override;
-	virtual void __FASTCALL write_via_debugger_data16(uint32_t addr, uint32_t data) override;
-	virtual void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data) override;
 
 	void *get_debugger() override
 	{
@@ -146,13 +150,20 @@ public:
 	  unique functions
 	*/
 	virtual void initialize_sound(int sample_rate, int samples);
+
+	virtual void set_lpf_cutoff(double freq)
+	{
+		lpf_cutoff = freq;
+		//	calc_lpf_cutoff(freq);
+	}
 	virtual void set_dac_rate(double freq)
 	{
 		dac_rate = freq;
 		sample_words = 0;
 		sample_pointer = 0;
-		mix_factor = (int)(dac_rate * 4096.0 / (double)mix_rate);
+		//mix_factor = set_mix_factor(dac_rate, mix_rate);
 		mix_count = 0;
+		//calc_lpf_cutoff(lpf_cutoff);
 		if((sample_buffer != NULL) && (sample_length > 0)) {
 			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
 		}
@@ -161,7 +172,6 @@ public:
 	{
 		d_debugger = device;
 	}
-
 	void set_context_interrupt_boundary(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&interrupt_boundary, device, id, mask);
