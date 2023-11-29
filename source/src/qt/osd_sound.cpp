@@ -464,7 +464,27 @@ void OSD_BASE::update_sound(int* extra_frames)
 			sound_ok = true;
 			return;
 		}
+		#if 1
+		int64_t sound_samples = sound_drv->get_sample_count();
+		int _channels = sound_drv->get_channels();
+		size_t word_size = sound_drv->get_word_size();
+		int64_t _left = sound_drv->get_bytes_left();
+		__UNLIKELY_IF(sound_samples <= 0) {
+			return;
+		}
+		// Pass 1: Check available to write.
+		__UNLIKELY_IF((_channels <= 0) || (word_size == 0)) {
+			return;
+		}
+		if(_left < (sound_samples * (int64_t)(word_size * _channels))) {
+			return;
+		}
+		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		if(sound_buffer == nullptr) {
+			return;
+		}
 
+		#else
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
 		int64_t sound_samples = sound_drv->get_sample_count();
@@ -537,6 +557,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 				//printf("%d %ld\n", m_sound_period, _result);
 			}
 		}
+		#endif
 	}
 }
 
