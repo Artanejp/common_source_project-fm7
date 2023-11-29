@@ -469,7 +469,7 @@ namespace FIFO_BASE {
 		{
 		}
 		//!< Read one data
-		virtual bool write(T data)
+		virtual bool write(T data) override
 		{
 			__UNLIKELY_IF((m_buf == nullptr) || (m_dataCount >= (int)m_bufSize)
 						  || (m_bufSize == 0)) {
@@ -488,7 +488,7 @@ namespace FIFO_BASE {
 			}
 			return true;
 		}
-		virtual bool write_not_push(int offset, T data)
+		virtual bool write_not_push(int offset, T data) override
 		{
 			__UNLIKELY_IF((m_buf == nullptr) ||
 						  (m_bufSize == 0) || (offset < 0)) {
@@ -501,7 +501,7 @@ namespace FIFO_BASE {
 			m_buf[wp] = data;
 			return true;
 		}
-		virtual int write_from_buffer(T* src, int _count, bool& success)
+		virtual int write_from_buffer(T* src, int _count, bool& success) override
 		{
 			__UNLIKELY_IF((src == nullptr) || (_count <= 0) ||
 						  (m_buf == nullptr) || (m_bufSize == 0) ||
@@ -559,155 +559,66 @@ namespace FIFO_BASE {
 	class LOCKED_FIFO : public UNLOCKED_FIFO<T> {
 	protected:
 	public:
-		LOCKED_FIFO(int _size) :
+		LOCKED_FIFO(size_t _size) :
 		UNLOCKED_FIFO<T>(_size)
 		{
 		}
 		~LOCKED_FIFO()
 		{
 		}
-		virtual void initialize()
+		virtual T read(bool& success) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
+			return locked_read_base(success);
 		}
-		virtual void release()
+		virtual T read(void) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			UNLOCKED_FIFO<T>::release();
-		}
-		virtual void clear()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			UNLOCKED_FIFO<T>::clear();
-		}
-		virtual T read(bool& success)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::read(success);
-		}
-		virtual T read(void)
-		{
-			bool success;
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::read(success);
+			return locked_read_base();
 		}
 
-		virtual T read_not_remove(int offset, bool& success)
+		virtual T read_not_remove(size_t offset, bool& success) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::read_not_remove(offset, success);
+			return locked_read_not_remove_base(ofset, success);
 		}
-		virtual T read_not_remove(int offset)
+		virtual T read_not_remove(size_t offset) override
 		{
-			bool success;
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::read_not_remove(offset, success);
+			return locked_read_not_remove_base(ofset, success);
 		}
-		virtual int read_to_buffer(T* dst, int _count, bool& success)
+		virtual size_t read_to_buffer(T* dst, size_t _count, bool& success) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::read_to_buffer(dst, _count, success);
+			return locked_read_to_buffer_base(dst, _count, success);
 		}
-		virtual bool write(T data)
+		virtual size_t read_to_buffer(T* dst, size_t _count) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::write(data);
+			return locked_read_to_buffer_base(dst, _count);
 		}
-		virtual bool write_not_push(int offset, T data)
+		virtual bool write(T data) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::write_not_push(offset, data);
+			return locked_write_base(data);
 		}
-		virtual int write_from_buffer(T* src, int _count, bool& success)
+		virtual bool write_not_push(size_t offset, T data) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::write_from_buffer(src, _count, success);
+			return locked_write_not_push_base(offset, data);
 		}
-		virtual bool available()
+		virtual size_t write_from_buffer(T* src, size_t _count, bool& success) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::available();
+			return locked_write_from_buffer_base(src, _count, success);
 		}
-		virtual bool empty()
+		virtual size_t write_from_buffer(T* src, size_t _count) override
 		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::empty();
-		}
-		virtual bool read_ready()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::read_ready();
-		}
-		virtual bool write_ready()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::write_ready();
-		}
-
-		virtual bool full()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::full();
-		}
-		virtual int count()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::count();
-		}
-		virtual int fifo_size()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::fifo_size();
-		}
-		virtual int left()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::left();
-		}
-		virtual void set_high_warn_value(int val = INT_MAX - 1)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::set_high_warn_value(val);
-		}
-		virtual void set_low_warn_value(int val = INT_MIN + 1)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::set_low_warn_value(val);
-		}
-		virtual bool high_warn()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::high_warn();
-		}
-		virtual bool low_warn()
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::low_warn();
-		}
-		virtual bool resize(int _size, int _low_warn = INT_MIN + 1, int _high_warn = INT_MAX - 1)
-		{
-			std::lock_guard<std::recursive_mutex> locker(m_locker);
-			return UNLOCKED_FIFO<T>::resize(_size, _low_warn, _high_warn);
+			return locked_write_from_buffer_base(src, _count);
 		}
 	};
 
 	template <class T >
-	class UNLOCKED_RINGBUFFER : public UNLOCKED_FIFO<T> {
+	class UNLOCKED_RINGBUFFER : public FIFO_INTERFACE<T> {
 	public:
-		UNLOCKED_RINGBUFFER(int _size) :
-		UNLOCKED_FIFO<T>(_size)
+		UNLOCKED_RINGBUFFER(size_t _size) :
+		FIFO_INTERFACE<T>(_size)
 		{
+			m_is_ringbuffer = true;
 		}
 		~UNLOCKED_RINGBUFFER()
 		{
-		}
-		virtual void initialize()
-		{
-			UNLOCKED_FIFO<T>::initialize();
-		}
-		virtual void release()
-		{
-			UNLOCKED_FIFO<T>::release();
 		}
 		// RINGBUFFER :  Even write to buffer when full.
 		virtual bool write(T data)
@@ -789,21 +700,10 @@ namespace FIFO_BASE {
 			success = true;
 			return _count;
 		}
-		virtual bool write_ready()
+		virtual bool write_ready() override
 		{
-			bool f = UNLOCKED_FIFO<T>::available();
+			bool f = check_buffer_available();
 			return f; // OK?
-		}
-		virtual bool full()
-		{
-			return false; // OK?
-		}
-		virtual int left()
-		{
-			__UNLIKELY_IF((UNLOCKED_FIFO<T>::m_bufSize == 0) || (UNLOCKED_FIFO<T>::m_buf == nullptr)) {
-				return 0;
-			}
-			return (int)UNLOCKED_FIFO<T>::m_bufSize;
 		}
 	};
 
