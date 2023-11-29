@@ -385,10 +385,14 @@ namespace FIFO_BASE {
 			success = false;
 			__LIKELY_IF(check_data_available()) {
 				size_t buf_size = (size_t)get_buffer_size();
+				T* p = m_buf.get();
 				__LIKELY_IF(m_rptr.load() < buf_size) {
-					tmpval = m_buf[m_rptr++];
+					tmpval = p[m_rptr++];
 					m_dataCount--;
 					success = true;
+					__UNLIKELY_IF(m_rptr.load() >= buf_size) {
+						m_rptr = 0;
+					}
 				}
 			}
 			return tmpval;
@@ -435,8 +439,11 @@ namespace FIFO_BASE {
 				T* p = m_buf.get();
 				size_t words = 0;
 				for(; words < _count; words++) {
-					__UNLIKELY_IF((m_rptr.load() >= bufsize) || (m_dataCount.load() <= 0)) {
+					__UNLIKELY_IF(m_dataCount.load() <= 0) {
 						break;
+					}
+					__UNLIKELY_IF(m_rptr.load() >= buf_size) {
+						m_rptr = 0;
 					}
 					dst[words] = p[m_rptr++];
 					m_dataCount--;
