@@ -464,7 +464,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 			sound_ok = true;
 			return;
 		}
-		#if 1
+		#if 0
 		int64_t sound_samples = sound_drv->get_sample_count();
 		int _channels = sound_drv->get_channels();
 		size_t word_size = sound_drv->get_word_size();
@@ -552,6 +552,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(sound_drv.get() != nullptr) {
 			int64_t _result = 0;
 			_result = sound_drv->update_sound((void*)sound_buffer, sound_samples);
+			//printf(_T("%d %d %ld\n"), sound_samples, m_sound_period, _result);
 			if(_result > 0) {
 				m_sound_period = (m_sound_period + 1) % 2;
 				//printf("%d %ld\n", m_sound_period, _result);
