@@ -449,20 +449,22 @@ void OSD_BASE::update_sound(int* extra_frames)
 	}
 
 	now_mute = false;
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+	__UNLIKELY_IF(sound_drv.get() == nullptr) {
+		// ToDo: Fix delay.
+		sound_ok = false;
+		sound_initialized = false;
+		return;
+	}
 	if(sound_initialized) {
 		// Get sound driver
 		//m_sound_samples_count += m_sound_samples_factor;
-		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-		__UNLIKELY_IF(sound_drv.get() == nullptr) {
-			// ToDo: Fix delay.
-			sound_ok = false;
-			return;
-		}
 
 		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
 			// ToDo: Fix delay.
 			__LIKELY_IF(!(sound_ok)) {
 				sound_drv->start();
+				elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
 				__UNLIKELY_IF(p_config != nullptr) {
 					do_update_master_volume((int)(p_config->general_sound_level));
 				}
@@ -472,27 +474,29 @@ void OSD_BASE::update_sound(int* extra_frames)
 		}
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
-		calcurate_sample_factor(m_sound_rate, m_sound_samples, false);
-		__UNLIKELY_IF(m_sound_samples_factor == 0) {
+		//calcurate_sample_factor(m_sound_rate, m_sound_samples, (m_sound_samples_factor == 0));
+		//__UNLIKELY_IF(m_sound_samples_factor == 0) {
+		//	return;
+		//}
+
+		m_sound_samples_count += m_sound_samples_factor;
+		int64_t sound_usec = sound_drv->driver_elapsed_usec();
+		int64_t least_msecs = (((int64_t)m_sound_samples) * 1000) / ((int64_t)m_sound_rate);
+		//m_sound_samples_count &= ((65536 * 2) - 1);
+		//if(m_sound_period == 0) {
+		//	if(m_sound_samples_count < (65536 / 2)) {
+		//		return;
+		//	}
+		//} else {
+		//	if(m_sound_samples_count >= (65536 / 2)) {
+		//		return;
+		//	}
+		//}
+		//printf("%d\n", elapsed_us_before_rendered);
+		if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000)) { //
 			return;
 		}
-		m_sound_samples_count += m_sound_samples_factor;
-
-		if(m_sound_period == 0) {
-			if(m_sound_samples_count < (65536 / 2)) {
-				return;
-			}
-		} else {
-			if(m_sound_samples_count >= (65536 / 2)) {
-				if(m_sound_samples_count >= 65536) {
-					// Calcurate extra frames
-					//m_sound_samples_count = (m_sound_samples_count % 65536) - (65536 / 2);
-					m_sound_samples_count = m_sound_samples_count & 0x7fff;
-				} else {
-					return;
-				}
-			}
-		}
+		elapsed_us_before_rendered = sound_usec;
 		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
 		if(sound_buffer == nullptr) {
 			return;
@@ -528,12 +532,12 @@ void OSD_BASE::update_sound(int* extra_frames)
 			int64_t _result = 0;
 			int _samples = m_sound_samples;
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
-			//printf(_T("%d %d %ld\n"), sound_samples, m_sound_period, _result);
+			//printf(_T("%d %d %ld\n"), m_sound_samples, m_sound_period, _result);
 			//if(_result > 0) {
-				m_sound_period = (m_sound_period + 1) & 1;
 				//printf("%d %ld\n", m_sound_period, _result);
 			//}
 		}
+		m_sound_period = (m_sound_period + 1) & 1;
 	}
 }
 
@@ -560,6 +564,8 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 			const double buffer_frame_usec = 1.0e6 / m_fps;
 			const double buffer_samples_usec = (((double)m_sound_samples) / ((double)m_sound_rate)) * 1.0e6;
 			m_sound_samples_factor = (uint32_t)((buffer_frame_usec / buffer_samples_usec) * 65536.0);
+			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+					  _T("set samples factor = %d"), m_sound_samples_factor);
 			return true;
 		}
 	}
@@ -586,7 +592,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		}
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-
+	m_sound_rate = rate;
+	m_sound_samples = samples;
+	elapsed_us_before_rendered = 0;
 	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
 	if(sound_drv.get() != nullptr) {
@@ -595,14 +603,17 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		//sound_drv->update_render_point_usec();
 		if((p_rate > 0) && (p_samples > 0)) {
 			if(calcurate_sample_factor(p_rate, p_samples, true)) {
-				sound_initialized = true;
+				//sound_initialized = true;
 			}
+			m_sound_rate = p_rate;
+			m_sound_samples = p_samples;
 			if(presented_samples != nullptr) {
 				*presented_samples = p_samples;
 			}
 			if(presented_rate != nullptr) {
 				*presented_rate = p_rate;
 			}
+			sound_initialized = true;
 			sound_ok = false;
 			m_sound_samples_count = 0;
 		}

@@ -14,7 +14,7 @@
 
 namespace SOUND_MODULE {
 /* SOUND_MODULE */
-	
+
 	namespace OUTPUT {
 	/* SOUND_MODULE */
 	M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
@@ -36,7 +36,7 @@ namespace SOUND_MODULE {
 		extra_config_bytes )
 {
 	m_classname = "SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA";
-	
+
 	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_pause_audio()),  this, SLOT(do_sound_suspend()), Qt::QueuedConnection);
@@ -47,16 +47,16 @@ namespace SOUND_MODULE {
 	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
-	
+
 	initialize_sound_devices_list();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputDevice = QAudioDeviceInfo::defaultOutputDevice();
-#endif		
+#endif
 	m_device_is_default = true;
 	m_device_name = "Default";
-	
+
 	QString _drv = QString::fromStdString(m_device_name);
 	config_t* _ccp = get_config_ptr();
 	if(_ccp != nullptr) {
@@ -98,7 +98,7 @@ void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 		__debug_log_func(_T("AUDIO:INTERRUPTED"));
 		break;
 	#endif
-	
+
 	}
 }
 
@@ -107,6 +107,7 @@ void M_QT_MULTIMEDIA::update_driver_fileio()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_driver_fileio = m_fileio;
+	reopen_fileio(false);
 }
 
 
@@ -174,7 +175,7 @@ void M_QT_MULTIMEDIA::set_audio_format(QAudioDevice dest_device, QAudioFormat& d
 		desired.setChannelConfig(QAudioFormat::ChannelConfigStereo);
 		break;
 	}
-	desired.setChannelCount(channels);	
+	desired.setChannelCount(channels);
 }
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 void M_QT_MULTIMEDIA::set_audio_format(QAudioDeviceInfo dest_device, QAudioFormat& desired, int& channels, int& rate)
@@ -194,7 +195,7 @@ void M_QT_MULTIMEDIA::set_audio_format(QAudioDeviceInfo dest_device, QAudioForma
 	} else if(_max_channels < _channels) {
 		_channels = _max_channels;
 	}
-	
+
 	int _min_rate = INT_MAX;
 	int _max_rate = 0;
 	for(auto i = ratesList.begin() ; i != ratesList.end(); ++i) {
@@ -212,19 +213,19 @@ void M_QT_MULTIMEDIA::set_audio_format(QAudioDeviceInfo dest_device, QAudioForma
 	if(_channels > 0) {
 		channels = _channels; // Workaround 20221008 K.O
 	}
-	
+
 	desired.setSampleRate(rate);
 	desired.setSampleSize(16);
 	desired.setSampleType(QAudioFormat::SignedInt);
-	#if Q_BYTE_ORDER == Q_BIG_ENDIAN	
+	#if Q_BYTE_ORDER == Q_BIG_ENDIAN
 	desired.setByteOrder(QAudioFormat::BigEndian);
 	#else
 	desired.setByteOrder(QAudioFormat::LittleEndian);
 	#endif
 
-	desired.setChannelCount(channels);	
+	desired.setChannelCount(channels);
 }
-#endif		
+#endif
 
 bool M_QT_MULTIMEDIA::initialize_driver()
 {
@@ -237,7 +238,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 #endif
 	tmp_output_device = get_device_by_name(QString::fromStdString(m_device_name));
 	QAudioFormat tmp_output_format = tmp_output_device.preferredFormat();
-	
+
 	int _channels = m_channels.load();
 	int _rate = m_rate.load();
 	set_audio_format(tmp_output_device, tmp_output_format, _channels, _rate);
@@ -251,12 +252,12 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	}
 	m_audioOutputDevice = tmp_output_device;
 	m_audioOutputFormat = tmp_output_format;
-	
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputFormat, this));
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputFormat, this));
-#endif	
+#endif
 	result = ((m_audioOutputSink.get() != nullptr) /* || (m_audioInputSource.get() != nullptr) */);
 	if(result) {
 		connect(m_audioOutputSink.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
@@ -265,11 +266,11 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 		m_config_ok = true;
 	}
 	m_samples = ((qint64)m_latency_ms.load() * (qint64)(m_rate.load())) / 1000;
-	if(m_samples.load() <= 100) {
-		m_samples = 100;
+	if(m_samples.load() <= 0) {
+		m_samples = 1;
 	}
 	m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
-	m_buffer_bytes = m_chunk_bytes.load() * 2;
+	m_buffer_bytes = m_chunk_bytes.load() * 4;
 	update_driver_fileio();
 
 	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
@@ -289,7 +290,7 @@ void M_QT_MULTIMEDIA::initialize_sound_devices_list()
 	for(auto i = m_audioOutputsList.begin(); i != m_audioOutputsList.end(); ++i) {
 		devices_name_list.push_back((*i).deviceName().toStdString());
 	}
-#endif	
+#endif
 }
 
 std::list<std::string> M_QT_MULTIMEDIA::get_sound_devices_list()
@@ -308,14 +309,14 @@ QAudioDeviceInfo M_QT_MULTIMEDIA::get_device_by_name(QString driver_name)
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QAudioDeviceInfo dest_device = m_audioOutputDevice;
 #endif
-	
+
 	if((driver_name == QString::fromUtf8("Default")) || (driver_name.isEmpty())) {
 		m_device_is_default = true;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		dest_device = QMediaDevices::defaultAudioOutput();
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		dest_device = QAudioDeviceInfo::defaultOutputDevice();
-#endif		
+#endif
 	} else {
 		for(auto i = m_audioOutputsList.begin(); i != m_audioOutputsList.end(); ++i) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -339,12 +340,12 @@ QAudioDeviceInfo M_QT_MULTIMEDIA::get_device_by_name(QString driver_name)
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	dest_device_name = dest_device.deviceName();
 #endif
-	
+
 	__debug_log_func(_T("desired_driver=%s using=%s"), driver_name.toLocal8Bit().constData(), dest_device_name.toLocal8Bit().constData());
 
 	return dest_device;
 }
-	
+
 void M_QT_MULTIMEDIA::do_set_device_by_name(QString driver_name)
 {
 	if(m_device_name == driver_name.toLocal8Bit().toStdString()) {
@@ -371,9 +372,9 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 #endif
 {
 	if(dest_device.isNull()) return; // None initialize if NULL.
-	
+
 	__debug_log_func(_T("Expected: rate=%d channels=%d latency=%dmSec reinit=%d"), rate, channels, latency_ms, force_reinit);
-	
+
 	if(!(force_reinit)) {
 		// If already initialized and not changed, skip.
 		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -412,14 +413,14 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 		}
 	}
 
-	
+
 	if((force_reinit) || (force_req_reinit)) {
 		#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		QString __name = dest_device.description();
 		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		QString __name = dest_device.deviceName();
 		#endif
-		
+
 		QAudioFormat desired = dest_device.preferredFormat();
 		int _channels = channels;
 		int _rate = rate;
@@ -430,7 +431,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			rate = _rate;
 			return;
 		}
-		
+
 		if(m_audioOutputSink.get() != nullptr) {
 			if(m_audioOutputSink->state() != QAudio::StoppedState) {
 				m_audioOutputSink->stop();
@@ -439,10 +440,10 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			m_audioOutputSink->disconnect();
 			m_audioOutputSink.reset();
 		}
-		
+
 		m_audioOutputDevice = dest_device;
 		m_audioOutputFormat = desired;
-		
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		m_audioOutputSink.reset(new QAudioSink(dest_device, desired, this));
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -451,13 +452,12 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 		do_discard_sound();
 		m_prev_started = false;
 		m_before_rendered = 0;
-		
+
 		if(m_audioOutputSink.get() != nullptr) {
-			m_audioOutputSink->setBufferSize(m_chunk_bytes.load());
 			connect(m_audioOutputSink.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
 			channels = m_audioOutputSink->format().channelCount();
 			rate = m_audioOutputSink->format().sampleRate();
-			QString _tmpname = QString::fromUtf8("Defalut");
+			QString _tmpname = QString::fromUtf8("Default");
 			if(!(m_device_is_default)) {
 				#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 				_tmpname = m_audioOutputDevice.description();
@@ -473,7 +473,8 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			}
 			m_channels = channels;
 			recalc_samples(rate, latency_ms, true, true);
-			
+			//m_audioOutputSink->setBufferSize(m_fileio->size());
+
 			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 			m_config_ok = (m_fileio.get() != nullptr);
 			if(m_config_ok.load()) {
@@ -482,7 +483,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 		} else {
 			m_device_name.clear();
 			m_config_ok = false;
-			
+
 			int64_t _samples =
 				((int64_t)rate * latency_ms) / 1000;
 			if(_samples <= 100) _samples = 100;
@@ -499,7 +500,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			m_rate = rate;
 			m_channels = channels;
 			m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
-			m_buffer_bytes = m_chunk_bytes.load() * 2;
+			m_buffer_bytes = m_chunk_bytes.load() * 4;
 		}
 	}
 	__debug_log_func(_T("Result: rate=%d channels=%d latency=%dmSec reinit=%d"), m_rate.load(), m_channels.load(), m_latency_ms.load(), force_reinit);
@@ -518,23 +519,23 @@ const std::string M_QT_MULTIMEDIA::set_device_sound(const _TCHAR* driver_name, i
 	if(strlen(driver_name) <= 0) {
 		return (const std::string)(std::string(""));
 	}
-	
+
 	QString _name = QString::fromUtf8(driver_name);
-	
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QAudioDevice dest_device = get_device_by_name(_name);
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QAudioDeviceInfo dest_device = get_device_by_name(_name);
 #endif
 	setup_device(dest_device, rate, channels, latency_ms, false);
-	
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	return m_audioOutputDevice.description().toStdString();
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	return m_audioOutputDevice.deviceName().toStdString();
 #else
 	return (const std::string)(std::string(""));
-#endif	
+#endif
 }
 
 bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_ms)
@@ -558,8 +559,9 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 	m_channels = channels;
 	if(recalc_samples(rate, latency_ms, true, false)) {
 		m_prev_started = m_mute = false;
+		//m_audioOutputSink->setBufferSize(m_fileio->size());
 	}
-	
+
 	return m_config_ok.load();
 }
 
@@ -582,7 +584,7 @@ bool M_QT_MULTIMEDIA::release_driver()
 	if(!(wait_driver_stopped(1000))) return false;
 	return release_driver_fileio();
 }
-	
+
 void M_QT_MULTIMEDIA::do_sound_start()
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -603,10 +605,12 @@ void M_QT_MULTIMEDIA::do_sound_start()
 	}
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_driver_fileio->reset();
-	p->setBufferSize(m_chunk_bytes);
+	//p->setBufferSize((m_rate.load() * 400 * m_wordsize.load() * m_channels.load()) / 1000); // 400ms
+	p->setBufferSize(m_chunk_bytes.load());
+	//p->setBufferSize(m_driver_fileio->size());
 	p->start(m_driver_fileio.get());
 	update_render_point_usec();
-	__debug_log_func("GO. fileio=%0llx", m_driver_fileio.get());
+	__debug_log_func("GO. fileio=%0llx buffer size=%ld", m_driver_fileio.get(), m_audioOutputSink->bufferSize());
 
 	//update_render_point_usec();
 	m_prev_started = true;
@@ -699,11 +703,11 @@ bool M_QT_MULTIMEDIA::is_driver_started()
 	if(q.get() == nullptr) {
 		return false;
 	}
-	
+
 	if(!(q->isOpen())) {
 		return false;
 	}
-	
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink> p = m_audioOutputSink;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -760,7 +764,7 @@ void M_QT_MULTIMEDIA::unmute_sound()
 			}
 		}
 	}
-	m_mute = false;	
+	m_mute = false;
 }
 
 
@@ -800,4 +804,3 @@ void M_QT_MULTIMEDIA::stop_sound()
 /* SOUND_MODULE */
 
 }
-

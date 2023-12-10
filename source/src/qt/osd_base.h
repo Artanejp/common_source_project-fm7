@@ -163,6 +163,7 @@ class DLL_PREFIX OSD_BASE : public  QObject
 private:
 	#if 1 /* Note: Below are new sound driver. */
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE> m_sound_driver;
+	int64_t elapsed_us_before_rendered;
 	#else /* Note */
 	qint64 sound_us_before_rendered;
 	qint64 elapsed_us_before_rendered;

@@ -24,7 +24,7 @@ namespace SOUND_MODULE {
 				   int base_channels,
 				   void *extra_config_values,
 				   int extra_config_bytes)
-	: 
+	:
 	  m_config_ok(false),
 	  m_rate(base_rate),
 	  m_latency_ms(base_latency_ms),
@@ -44,10 +44,10 @@ namespace SOUND_MODULE {
 	m_using_flags.reset();
 	set_osd(parent);
 	m_fileio.reset();
-	
+
 	if(m_channels.load() <= 1) m_channels = 2;
 	recalc_samples(m_rate.load(), m_latency_ms.load(), true, false);
-	
+
 	bool _reinit = (deviceIO == nullptr) ? true : false;
 	if(!(_reinit)) {
 		if(deviceIO->isOpen()) {
@@ -66,7 +66,7 @@ namespace SOUND_MODULE {
 	m_loglevel = CSP_LOG_INFO;
 	m_logdomain = CSP_LOG_TYPE_SOUND;
 	__debug_log_func(_T("Initializing"));
-	
+
 	//initialize_driver();
 }
 
@@ -76,7 +76,7 @@ M_BASE::~M_BASE()
 		release_driver();
 	}
 	m_fileio.reset();
-	
+
 	m_config_ok = false;
 }
 
@@ -109,15 +109,15 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	int64_t _samples =
 		((int64_t)rate * latency_ms) / 1000;
 	size_t _chunk_bytes = (size_t)(_samples * m_wordsize.load() * m_channels.load());
-	int64_t _buffer_bytes = _chunk_bytes * 2;
-	
+	int64_t _buffer_bytes = _chunk_bytes * 4;
+
 	bool _need_restart = false;
 	if(need_resize_fileio) {
 		bool __reinit = true;
 		if(m_fileio.get() != nullptr) {
 			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 			if(_buffer_bytes != m_buffer_bytes.load()) {
-				bool _is_opened = m_fileio->isOpen(); 
+				bool _is_opened = m_fileio->isOpen();
 				if(_is_opened) {
 					m_fileio->close();
 				}
@@ -178,7 +178,7 @@ bool M_BASE::debug_log(const _TCHAR *_fmt, ...)
 	_tmps = QString::fromUtf8(buf, sizeof(buf));
 	return do_send_log(m_loglevel.load(), m_logdomain.load(), _tmps);
 }
-	
+
 void M_BASE::request_to_release()
 {
 	if(m_config_ok.load()) {
@@ -191,8 +191,8 @@ __FORMAT M_BASE::get_sound_format()
 {
 	return __FORMAT::Signed_Int;
 }
-		
-		
+
+
 bool M_BASE::wait_driver_started(int64_t timeout_msec)
 {
 	bool _r = m_prev_started.load();
@@ -200,7 +200,7 @@ bool M_BASE::wait_driver_started(int64_t timeout_msec)
 		return true;
 	}
 	bool _infinite = (timeout_msec == INT64_MIN);
-	
+
 	while((timeout_msec >= 4) || (_infinite)) {
 		if(!(m_prev_started.is_lock_free())) {
 			QThread::msleep(4);
@@ -223,7 +223,7 @@ bool M_BASE::wait_driver_stopped(int64_t timeout_msec)
 		return true;
 	}
 	bool _infinite = (timeout_msec == INT64_MIN);
-	
+
 	while((timeout_msec >= 4) || (_infinite)) {
 		if(!(m_prev_started.is_lock_free())) {
 			QThread::msleep(4);
@@ -283,7 +283,7 @@ bool M_BASE::update_latency(int latency_ms, bool force)
 		return false;
 	}
 	if(!(force) && (m_latency_ms.load() == latency_ms)) return true;
-	
+
 	stop();
 	recalc_samples(m_rate, latency_ms, true, true);
 	if(m_fileio.get() != nullptr) {
@@ -324,7 +324,7 @@ bool M_BASE::release_driver_fileio()
 	return false;
 }
 
-	
+
 bool M_BASE::real_reconfig_sound(int& rate,int& channels,int& latency_ms)
 {
 	if((rate <= 0) || (channels < 1) || (latency_ms < 10)) {
@@ -333,13 +333,13 @@ bool M_BASE::real_reconfig_sound(int& rate,int& channels,int& latency_ms)
 	return true;
 }
 
-	
+
 void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(samples <= 0) return;
 	if(rate <= 0) rate = 8000; // OK?
-	
+
 	int _latency_ms = (samples * 1000) / rate;
 	int channels = m_channels.load();
 	if(real_reconfig_sound(rate, channels, _latency_ms)) {
@@ -360,7 +360,7 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 		*presented_samples = m_samples.load();
 	}
 }
-	
+
 void M_BASE::release_sound()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -435,7 +435,7 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
 	if(q.get() == nullptr) return -1;
 	if(datasrc == nullptr) return -1;
-	
+
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(!(is_driver_started()) ||  !(q->isOpen())) {
 		return -1;
@@ -447,12 +447,12 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 	} else if(samples == 0) {
 		return _result;
 	}
-	if(_size > 0) {	
+	if(_size > 0) {
 		_result = (int64_t)q->write((const char *)datasrc, _size);
 	}
 	if(_result > 0) {
 		_result = _result / (qint64)(m_channels.load() * m_wordsize.load());
-		
+
 	}
 	return _result;
 }
@@ -465,7 +465,7 @@ bool M_BASE::start()
 		stop();
 		wait_driver_stopped(1000);
 	}
-	
+
 	bool _stat = reopen_fileio(true);
 	update_driver_fileio();
 
@@ -493,7 +493,7 @@ bool M_BASE::stop()
 	bool _stat = false;
 	emit sig_stop_audio();
 	_stat = wait_driver_stopped(1000);
-	
+
 	std::shared_ptr<SOUND_BUFFER_QT>q = m_fileio;
 	if(q.get() != nullptr) {
 		if(q->isOpen()) {
@@ -522,7 +522,7 @@ void M_BASE::set_volume(int level)
 	double xlevel = ((double)(level + INT16_MAX)) / ((double)UINT16_MAX);
 	emit sig_set_volume(xlevel);
 }
-	
+
 void M_BASE::mute_sound()
 {
 }
@@ -534,7 +534,7 @@ void M_BASE::unmute_sound()
 void M_BASE::stop_sound()
 {
 }
-	
+
 void M_BASE::do_set_device_by_name(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
@@ -556,7 +556,7 @@ bool M_BASE::do_send_log(int level, int domain, const _TCHAR* _str, int maxlen)
 {
 	__UNLIKELY_IF((_str == nullptr) || (maxlen <= 0)) return false;
 	__UNLIKELY_IF(strlen(_str) <= 0) return false;
-	
+
 	QString s = QString::fromUtf8(_str, maxlen);
 	emit sig_send_log(level, domain, s);
 	return true;
@@ -566,7 +566,7 @@ bool M_BASE::do_send_log(int level, int domain, const QString _str)
 {
 	__UNLIKELY_IF(_str.isEmpty()) return false;
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	
+
 	emit sig_send_log(level, domain, _str);
 	return true;
 }
@@ -660,7 +660,7 @@ int M_BASE::get_latency_ms()
 {
 	return m_latency_ms.load();
 }
-	
+
 int M_BASE::get_channels()
 {
 	return m_channels.load();
