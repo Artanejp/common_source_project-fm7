@@ -173,7 +173,12 @@ private:
 	QAudioFormat m_audioInputFormat;
 
 	#endif
-	uint8_t m_sound_period;
+	// Count half
+	uint32_t     m_sound_period;
+	// Count factor; this multiplies by 65536;
+	uint32_t     m_sound_samples_count;
+	uint32_t     m_sound_samples_factor;
+
 protected:
 	EmuThreadClass		*parent_thread;
 	sdl_snddata_t		snddata;
@@ -274,6 +279,7 @@ protected:
 	int vm_screen_width, vm_screen_height;
 	int draw_screen_width, draw_screen_height;
 	int rec_video_nsec, rec_video_fps_nsec;
+	double m_fps;
 
 	_TCHAR video_file_name[_MAX_PATH];
 	int rec_video_fps;
@@ -301,8 +307,9 @@ protected:
 	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
 #endif
 	virtual void init_sound_device_list();
+	bool __FASTCALL calcurate_sample_factor(int rate, int samples, const bool force);
 
-	int sound_rate, sound_samples;
+	int m_sound_rate, m_sound_samples;
 	bool sound_ok, sound_started, now_mute;
 	bool sound_first_half;
 	QStringList sound_device_list;
