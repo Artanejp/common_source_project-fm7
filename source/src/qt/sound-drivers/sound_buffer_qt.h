@@ -3,21 +3,20 @@
 #include <memory>
 #include <QIODevice>
 #include "../../fifo_templates.h"
-//#include "../../fifo.h"
 
 QT_BEGIN_NAMESPACE
 
 class DLL_PREFIX SOUND_BUFFER_QT : public QIODevice
 {
     Q_OBJECT
-
-protected:
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>>m_buffer;
-	//std::shared_ptr<FIFO>m_buffer;
+	
+protected:	
+	//std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>>m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>>m_buffer;
 public:
 	SOUND_BUFFER_QT(uint64_t depth = 0, QObject *parent = nullptr);
 	~SOUND_BUFFER_QT();
-
+	
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	virtual bool open(QIODeviceBase::OpenMode flags) override;
 #else

@@ -3,16 +3,16 @@
 
 SOUND_BUFFER_QT::SOUND_BUFFER_QT(uint64_t depth, QObject *parent) : QIODevice(parent)
 {
-	printf("SOUND_BUFFER_QT(%d)\n", depth);
+//	printf("SOUND_BUFFER_QT(%d)\n", depth);
 	if((depth > 0) && (depth < INT_MAX)) {
-		m_buffer.reset(new FIFO_BASE::LOCKED_FIFO<uint8_t>((size_t)depth));
-		//m_buffer.reset(new FIFO((int)depth));
+		//m_buffer.reset(new FIFO_BASE::LOCKED_FIFO<uint8_t>((int)depth));
+		m_buffer.reset(new FIFO_BASE::LOCKED_RINGBUFFER<uint8_t>((int)depth));
 	}
 }
 
 SOUND_BUFFER_QT::~SOUND_BUFFER_QT()
 {
-
+		
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -27,8 +27,7 @@ bool SOUND_BUFFER_QT::open(QIODeviceBase::OpenMode flags)
     }
 
     if ((flags & QIODeviceBase::Truncate) == QIODeviceBase::Truncate) {
-		std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//		auto p = m_buffer;
+		std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 		p->clear();
 	}
     //return QIODevice::open(flags | QIODevice::Unbuffered);
@@ -46,8 +45,7 @@ bool SOUND_BUFFER_QT::open(QIODevice::OpenMode flags)
     }
 
     if ((flags & QIODevice::Truncate) == QIODevice::Truncate) {
-		std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-		//auto p = m_buffer;
+		std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 		p->clear();
 	}
     //return QIODevice::open(flags | QIODevice::Unbuffered);
@@ -58,8 +56,7 @@ bool SOUND_BUFFER_QT::open(QIODevice::OpenMode flags)
 void SOUND_BUFFER_QT::close()
 {
 //	//printf("close()\n");
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 		p->clear();
 	}
@@ -69,15 +66,11 @@ void SOUND_BUFFER_QT::close()
 bool SOUND_BUFFER_QT::resize(qint64 sz)
 {
 //	printf("resize()\n");
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
-	if((sz <= 0) || (sz >= INT_MAX) /*|| !(p)*/) {
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
+	if((sz <= 0) || (sz >= INT_MAX) || !(p)) {
 		return false;
 	}
 	return p->resize((int)sz);
-//	m_buffer.reset(new FIFO((int)sz));
-//	if(m_buffer.get()) return true;
-//	return false;
 }
 
 bool SOUND_BUFFER_QT::isSequential() const
@@ -94,15 +87,14 @@ qint64 SOUND_BUFFER_QT::bytesToWrite() const
 {
 	qint64 _n = (qint64)0;
 
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	if((p) && ((openMode() & QIODeviceBase::Unbuffered) == 0)) {
 #else
 	if((p) && ((openMode() & QIODevice::Unbuffered) == 0)) {
 #endif
-		//_n = (qint64)(p->fifo_size() - p->count());
-		_n = (qint64)(p->count());
+		//_n = (qint64)(p->fifo_size() - p->count());		
+		_n = (qint64)(p->count());		
 	}
 
 	//printf("bytesToWrite() is %lld\n", _n);
@@ -112,11 +104,10 @@ qint64 SOUND_BUFFER_QT::bytesToWrite() const
 qint64 SOUND_BUFFER_QT::bytesAvailable() const
 {
 	qint64 _size = QIODevice::bytesAvailable();
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 		_size += p->count();
-		//_size += (qint64)(p->fifo_size() - p->count());
+		//_size += (qint64)(p->fifo_size() - p->count());		
 	}
 	//printf("bytesAvailable() is %lld\n", _size);
 	return _size;
@@ -125,9 +116,8 @@ qint64 SOUND_BUFFER_QT::bytesAvailable() const
 qint64 SOUND_BUFFER_QT::pos() const
 {
 	qint64 _pos = (qint64)0;
-#if 0
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+#if 0	
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 		_pos = (p->count()) % (p->fifo_size());
 	}
@@ -136,7 +126,7 @@ qint64 SOUND_BUFFER_QT::pos() const
     //return QIODevice::pos();
 }
 
-bool SOUND_BUFFER_QT::seek(qint64 pos)
+bool SOUND_BUFFER_QT::seek(qint64 pos) 
 {
 #if 0
 	if(pos < 0) {
@@ -145,8 +135,7 @@ bool SOUND_BUFFER_QT::seek(qint64 pos)
 	if(pos == 0) {
 		return true;
 	}
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 		if(pos < p->count()) {
 			uint8_t* buf = new uint8_t[pos];
@@ -167,8 +156,7 @@ bool SOUND_BUFFER_QT::atEnd() const
 {
 //	printf("atEnd()\n");
     const bool result = isOpen();
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 		return (!(result) || (p->empty()));
 	}
@@ -179,8 +167,7 @@ bool SOUND_BUFFER_QT::atEnd() const
 bool SOUND_BUFFER_QT::reset()
 {
 	//printf("reset()\n");
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-//	auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 		p->clear();
 		return true;
@@ -192,27 +179,17 @@ qint64 SOUND_BUFFER_QT::readData(char *data, qint64 len)
 {
 	//printf("readData() called len=%lld\n", len);
 	if(!(isReadable()) || !(isOpen())) return qint64(-1);
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-	//auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 
 	if(p) {
 	    if ((len = qMin(len, qint64(p->count()))) <= 0) {
 			return qint64(0);
 		}
-		bool _success = false;
-		uint8_t* q = (uint8_t*)data;
-		int _count = 0;
-		#if 0
-		for(; _count < len; _count++) {
-			if(p->empty()) break;
-			q[_count] = p->read();
-		}
-		if(_count > 0) _success = true;
-		#endif
-		_count = p->read_to_buffer((uint8_t *)data, (size_t)len, _success);
-		if((_count > (qint64)0) && (_success)) {
+		bool _success;
+		len = p->read_to_buffer((uint8_t *)data, (int)len, _success);
+		if((len > (qint64)0) && (_success)) {
 			//printf("readData() ok len=%lld\n", len);
-			return (qint64)_count;
+			return len;
 		}
 	}
 	return qint64(-1);
@@ -222,31 +199,21 @@ qint64 SOUND_BUFFER_QT::writeData(const char *data, qint64 len)
 {
 	if(!(isWritable()) || !(isOpen())) return qint64(-1);
 	//printf("writeData() called len=%lld\n", len);
-	std::shared_ptr<FIFO_BASE::LOCKED_FIFO<uint8_t>> p = m_buffer;
-	//auto p = m_buffer;
+	std::shared_ptr<FIFO_BASE::UNLOCKED_FIFO<uint8_t>> p = m_buffer;
 	if(p) {
 	    if ((len = qMin(len, qint64(p->left()))) <= 0) {
 			return qint64(0);
 		}
 		bool _success;
-		uint8_t* q = (uint8_t*)data;
-		int _count = 0;
-		#if 0
-		for(; _count < len; _count++) {
-			if(p->full()) break;
-			p->write(q[_count]);
-		}
-		if(_count > 0) _success = true;
-		#endif
-		//len = p->read_to_buffer((uint8_t *)data, (int)len, _success);
-		_count = p->write_from_buffer((uint8_t *)data, (size_t)len, _success);
+		len = p->write_from_buffer((uint8_t *)data, (int)len, _success);
 		//printf("writeData() ok len=%lld\n", len);
-
-		if((_count > (qint64)0) && (_success)) {
-			emit bytesWritten(_count);
+		if((len > (qint64)0) && (_success)) {
+			emit bytesWritten(len);
 			emit readyRead();
-			return _count;
+			return len;
 		}
 	}
 	return qint64(-1);
 }
+
+
