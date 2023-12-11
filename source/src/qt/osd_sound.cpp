@@ -493,14 +493,23 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//	}
 		//}
 		//printf("%d\n", elapsed_us_before_rendered);
-		if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000)) { //
+		if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000 - 100)) { //
 			return;
 		}
-		elapsed_us_before_rendered = sound_usec;
-		int16_t* sound_buffer = (int16_t*)create_sound(extra_frames);
+		const int64_t _channels = 2;
+		const int64_t _wordsize = (int64_t)sizeof(int16_t);
+		//if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
+		//	return;
+		//}
+		int __extra_frames = 0;
+		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
+		__LIKELY_IF(extra_frames != NULL) {
+			*extra_frames = __extra_frames;
+		}
 		if(sound_buffer == nullptr) {
 			return;
 		}
+		elapsed_us_before_rendered = sound_usec;
 		if(now_record_sound || now_record_video) {
 			if(m_sound_samples > rec_sound_buffer_ptr) {
 				int samples = m_sound_samples - rec_sound_buffer_ptr;

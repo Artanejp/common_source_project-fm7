@@ -48,6 +48,8 @@ namespace SOUND_MODULE {
 	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
 
+	connect(this, SIGNAL(sig_send_to_sink()), this, SLOT(do_send_to_sink()));
+
 	initialize_sound_devices_list();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	m_audioOutputDevice = QMediaDevices::defaultAudioOutput();
@@ -57,6 +59,7 @@ namespace SOUND_MODULE {
 	m_device_is_default = true;
 	m_device_name = "Default";
 
+	m_device_fileio = nullptr;
 	QString _drv = QString::fromStdString(m_device_name);
 	config_t* _ccp = get_config_ptr();
 	if(_ccp != nullptr) {
@@ -75,20 +78,195 @@ M_QT_MULTIMEDIA::~M_QT_MULTIMEDIA()
 {
 }
 
+bool M_QT_MULTIMEDIA::recalc_samples(int rate, int latency_ms, bool need_update, bool need_resize_fileio)
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	bool __need_restart = M_BASE::recalc_samples(rate, latency_ms, need_update, need_resize_fileio);
+	if(m_fileio.get() != nullptr) {
+		connect(m_fileio.get(), SIGNAL(bytesWritten(qint64)), this, SLOT(do_send_sound(qint64)));
+	}
+#if 0
+	if((__need_restart)) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+		std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+		std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+		if(drv.get() != nullptr) {
+			if(drv->state() != QAudio::StoppedState) {
+				drv->stop();
+			}
+			//drv->setBufferSize(m_chunk_bytes.load());
+			drv->reset();
+			m_device_fileio = drv->start();
+			if(m_device_fileio != nullptr) {
+				connect(m_device_fileio, SIGNAL(readyRead()), this, SLOT(do_send_to_sink()));
+			}
+			if(!(drv->isNull())) {
+				__need_restart |= true;
+			}
+		}
+	}
+#endif
+	return __need_restart;
+}
+
+bool M_QT_MULTIMEDIA::reopen_fileio(bool force_reopen)
+{
+	bool _stat = M_BASE::reopen_fileio(force_reopen);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	if(drv.get() != nullptr) {
+		if((force_reopen) || (drv->state() != QAudio::StoppedState)) {
+			drv->stop();
+		}
+		drv->reset();
+		m_device_fileio = drv->start();
+		if(m_device_fileio != nullptr) {
+			connect(m_device_fileio, SIGNAL(readyRead()), this, SLOT(do_send_to_sink()));
+		}
+		return (!(drv->isNull()) && (_stat)) ? true : false;
+	} else {
+		m_device_fileio = nullptr;
+	}
+	return false;
+}
+
+
+bool M_QT_MULTIMEDIA::release_driver_fileio()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+	if(drv.get() != nullptr) {
+		drv->stop();
+	}
+	if(m_fileio.get() != nullptr) {
+		m_fileio.reset();
+		return true;
+	}
+		// Maybe disconnect some signals via m_fileio.
+	return false;
+}
+
+void M_QT_MULTIMEDIA::release_sound()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	if(m_audioOutputSink.get() != nullptr) {
+		m_audioOutputSink->stop();
+		m_audioOutputSink->disconnect();
+	}
+	m_audioOutputSink.reset();
+	m_config_ok = false;
+	m_fileio.reset();
+}
+
+void M_QT_MULTIMEDIA::do_ready_to_sound()
+{
+	do_send_sound(0);
+}
+
+void M_QT_MULTIMEDIA::do_send_sound(qint64 bytes)
+{
+	#if 0
+	do_send_to_sink();
+	#else
+	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+	if(bytes <= 0) bytes = 0;
+
+	int64_t available_to_write = 0;
+	int64_t available_to_read = 0;
+	if(drv.get() != nullptr) {
+		available_to_write = drv->bytesFree();
+	}
+	if(q.get() != nullptr) {
+		available_to_read = q->bytesToWrite();
+	}
+	//available_to_read += bytes;
+	if(available_to_read <= 0) {
+		available_to_read = 0;
+	}
+	printf(_T("BYTES=%ld, TO READ=%ld, TO WRITE=%ld\n"), bytes, available_to_read, available_to_write);
+	if(available_to_write <= 0) {
+		return;
+	}
+	if(available_to_read > 0) {
+		char* buffer = new char[available_to_read];
+		if(buffer != nullptr) {
+			//if(available_to_write < available_to_read) {
+			//	available_to_read = available_to_write;
+			//}
+			int64_t __bytes = 0;
+			if((available_to_read > 0) && (q.get() != nullptr)) {
+				__bytes = q->read(buffer, available_to_read);
+			}
+			int64_t _written = 0;
+			if((__bytes > 0) && (m_device_fileio != nullptr)) {
+				_written = m_device_fileio->write((const char*)buffer, __bytes);
+			}
+			delete [] buffer;
+		}
+	}
+	#endif
+}
+bool M_QT_MULTIMEDIA::is_io_device_exists()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+	if(drv.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		bool _ba = !(drv->isNull());
+		bool _bb = (m_fileio.get() != nullptr) ? true : false;
+		return ((_ba) && (_bb));
+	}
+	return false;
+}
+
+
 void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	bool checkstat = false;
 	switch(newState) {
 	case QAudio::ActiveState:
-		__debug_log_func(_T("AUDIO:ACTIVE"));
+		//__debug_log_func(_T("AUDIO:ACTIVE"));
 		break;
 	case QAudio::IdleState:
-		__debug_log_func(_T("AUDIO:IDLE"));
+		//emit sig_send_to_sink();
 		//if(m_audioOutputSink != nullptr) {
 		//	m_audioOutputSink->stop();
 		//}
 		break;
 	case QAudio::StoppedState:
 		__debug_log_func(_T("AUDIO:STOP"));
+		if(drv.get() != nullptr) {
+			drv->reset();
+		}
+		__LIKELY_IF(fio.get() != nullptr) {
+			fio->reset();
+		}
+		m_device_fileio = nullptr;
 		break;
 	case QAudio::SuspendedState:
 		__debug_log_func(_T("AUDIO:SUSPEND"));
@@ -106,8 +284,8 @@ void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 void M_QT_MULTIMEDIA::update_driver_fileio()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	m_driver_fileio = m_fileio;
-	reopen_fileio(false);
+	//m_driver_fileio = m_fileio;
+	//reopen_fileio(false);
 }
 
 
@@ -270,7 +448,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 		m_samples = 1;
 	}
 	m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
-	m_buffer_bytes = m_chunk_bytes.load() * 4;
+	m_buffer_bytes = m_chunk_bytes.load() * 16;
 	update_driver_fileio();
 
 	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
@@ -446,17 +624,25 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		m_audioOutputSink.reset(new QAudioSink(dest_device, desired, this));
+		std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		m_audioOutputSink.reset(new QAudioOutput(dest_device, desired, this));
+		std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
 #endif
 		do_discard_sound();
 		m_prev_started = false;
 		m_before_rendered = 0;
+		m_channels = channels;
+		bool prepared = M_BASE::recalc_samples(rate, latency_ms, true, true);
+		if(m_fileio.get() != nullptr) {
+			connect(m_fileio.get(), SIGNAL(bytesWritten(qint64)), this, SLOT(do_send_sound(qint64)));
 
-		if(m_audioOutputSink.get() != nullptr) {
-			connect(m_audioOutputSink.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
-			channels = m_audioOutputSink->format().channelCount();
-			rate = m_audioOutputSink->format().sampleRate();
+		}
+
+		if(drv.get() != nullptr) {
+			connect(drv.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(driver_state_changed(QAudio::State)));
+			channels = drv->format().channelCount();
+			rate = drv->format().sampleRate();
 			QString _tmpname = QString::fromUtf8("Default");
 			if(!(m_device_is_default)) {
 				#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -472,35 +658,23 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 				my_tcscpy_s(_ccp->sound_device_name, (sizeof(_ccp->sound_device_name) / sizeof(_TCHAR)) - 1, _tmpname.toUtf8().constData());
 			}
 			m_channels = channels;
+			if(drv->state() != QAudio::StoppedState) {
+				drv->stop();
+			}
 			recalc_samples(rate, latency_ms, true, true);
-			//m_audioOutputSink->setBufferSize(m_fileio->size());
-
+			//drv->setBufferSize(m_chunk_bytes.load());
 			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-			m_config_ok = (m_fileio.get() != nullptr);
+			SOUND_BUFFER_QT* ffio = m_fileio.get();
+			if(ffio != nullptr) {
+				connect(ffio, SIGNAL(bytesWritten(qint64)), this, SLOT(do_send_sound(qint64)));
+			}
+			m_config_ok = !(drv->isNull());
 			if(m_config_ok.load()) {
 				real_reconfig_sound(rate, channels, latency_ms);
 			}
 		} else {
 			m_device_name.clear();
 			m_config_ok = false;
-
-			int64_t _samples =
-				((int64_t)rate * latency_ms) / 1000;
-			if(_samples <= 100) _samples = 100;
-			if(m_fileio.get() != nullptr) {
-				std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-				if(m_fileio->isOpen()) {
-					m_fileio->close();
-				}
-				m_fileio.reset();
-				update_driver_fileio();
-			}
-			m_samples = _samples;
-			m_latency_ms = latency_ms;
-			m_rate = rate;
-			m_channels = channels;
-			m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
-			m_buffer_bytes = m_chunk_bytes.load() * 4;
 		}
 	}
 	__debug_log_func(_T("Result: rate=%d channels=%d latency=%dmSec reinit=%d"), m_rate.load(), m_channels.load(), m_latency_ms.load(), force_reinit);
@@ -558,25 +732,11 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 	}
 	m_channels = channels;
 	if(recalc_samples(rate, latency_ms, true, false)) {
-		m_prev_started = m_mute = false;
-		//m_audioOutputSink->setBufferSize(m_fileio->size());
+		//m_prev_started = m_mute = false;
 	}
-
 	return m_config_ok.load();
 }
 
-
-void M_QT_MULTIMEDIA::release_sound()
-{
-//	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	if(m_audioOutputSink.get() != nullptr) {
-		m_audioOutputSink->stop();
-		m_audioOutputSink->disconnect();
-	}
-	m_audioOutputSink.reset();
-
-	M_BASE::release_sound();
-}
 
 bool M_QT_MULTIMEDIA::release_driver()
 {
@@ -599,18 +759,17 @@ void M_QT_MULTIMEDIA::do_sound_start()
 //		update_render_point_usec();
 		return;
 	}
-	if(m_driver_fileio.get() == nullptr) {
-		//m_driver_fileio->reset();
-		return;
-	}
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	m_driver_fileio->reset();
-	//p->setBufferSize((m_rate.load() * 400 * m_wordsize.load() * m_channels.load()) / 1000); // 400ms
-	p->setBufferSize(m_chunk_bytes.load());
-	//p->setBufferSize(m_driver_fileio->size());
-	p->start(m_driver_fileio.get());
+
+	p->reset();
+	//p->setBufferSize(m_chunk_bytes.load());
+	m_device_fileio = p->start();
+	if(m_device_fileio != nullptr) {
+		connect(m_device_fileio, SIGNAL(readyRead()), this, SLOT(do_send_to_sink()));
+		//SLOT(do_ready_to_sound()));
+	}
 	update_render_point_usec();
-	__debug_log_func("GO. fileio=%0llx buffer size=%ld", m_driver_fileio.get(), m_audioOutputSink->bufferSize());
+	__debug_log_func("GO. fileio=%0llx buffer size=%ld", m_device_fileio, p->bufferSize());
 
 	//update_render_point_usec();
 	m_prev_started = true;
@@ -699,15 +858,6 @@ bool M_QT_MULTIMEDIA::is_driver_started()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	bool _b = M_BASE::is_driver_started();
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_driver_fileio;
-	if(q.get() == nullptr) {
-		return false;
-	}
-
-	if(!(q->isOpen())) {
-		return false;
-	}
-
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink> p = m_audioOutputSink;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -730,6 +880,8 @@ void M_QT_MULTIMEDIA::mute_sound()
 	#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		std::shared_ptr<QAudioOutput> p = m_audioOutputSink;
 	#endif
+		std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+
 		if(p.get() != nullptr) {
 			switch(p->state()) {
 			case QAudio::ActiveState:
@@ -770,8 +922,16 @@ void M_QT_MULTIMEDIA::unmute_sound()
 
 void M_QT_MULTIMEDIA::do_discard_sound()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_driver_fileio;
+//	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> q = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> q = m_audioOutputSink;
+#endif
+	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+	if(fio.get() != nullptr) {
+		fio->reset();
+	}
 	if(q.get() != nullptr) {
 		q->reset();
 	}
@@ -785,6 +945,10 @@ void M_QT_MULTIMEDIA::stop_sound()
 		#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		std::shared_ptr<QAudioOutput> p = m_audioOutputSink;
 		#endif
+		std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+		if(fio.get() != nullptr) {
+			fio->reset();
+		}
 		if(p.get() != nullptr) {
 			switch(p->state()) {
 			case QAudio::ActiveState:
@@ -797,6 +961,116 @@ void M_QT_MULTIMEDIA::stop_sound()
 			}
 		}
 	}
+}
+
+void M_QT_MULTIMEDIA::do_send_to_sink()
+{
+#if 1
+	do_send_sound(0);
+#else
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
+	int64_t data_size = 0;
+	int64_t sound_left = 0;
+	if(q.get() != nullptr) {
+		if(!(q->isOpen())) {
+			M_BASE::reopen_fileio(true);
+			return;
+		}
+		data_size = q->bytesToWrite();
+	}
+	if(drv.get() != nullptr) {
+		sound_left = drv->bytesFree();
+	}
+	//printf(_T("DATA SIZE: %ld   SOUND LEFT:%ld\n"), data_size, sound_left);
+	int64_t buf_size = std::max(sound_left, data_size);
+	if(buf_size > 0) {
+		char *buf = new char[buf_size];
+		if(buf != nullptr) {
+			if((data_size > 0) && (q.get() != nullptr)){
+				int64_t _l = q->read(buf, data_size);
+				//printf(_T("GOT: %ld\n"), _l);
+				if(_l > 0) {
+					data_size -= _l;
+					if(m_device_fileio != nullptr) {
+						if(_l <= sound_left) {
+							int64_t _m = m_device_fileio->write((const char *)buf, _l);
+						//printf(_T("SENT: %ld\n"), _m);
+							if(_m > 0) {
+								sound_left -= _m;
+							}
+						}
+					}
+				}
+			}
+			delete [] buf;
+		}
+	}
+#endif
+}
+
+int64_t M_QT_MULTIMEDIA::update_sound(void* datasrc, int samples)
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
+	int64_t data_size = 0;
+	int64_t sound_left = 0;
+	int64_t readbuf_size = 0;
+	int64_t sample_bytes = ((int64_t)samples) * ((int64_t)(m_channels.load() * m_wordsize.load()));
+
+	if(sample_bytes <= 0) {
+		emit sig_send_to_sink();
+		return 0;
+	}
+	#if 1
+	int64_t wrote = 0;
+	if(m_device_fileio != nullptr) {
+		wrote = m_device_fileio->write((const char *)datasrc, sample_bytes);
+	}
+	if(wrote <= 0) {
+		return 0;
+	}
+	wrote = wrote / ((int64_t)(m_channels.load() * m_wordsize.load()));
+	return wrote;
+	#else
+	if(q.get() != nullptr) {
+		if(!(q->isOpen())) {
+			if(!(M_BASE::reopen_fileio(true))) {
+				return 0;
+			}
+		}
+		data_size = q->bytesToWrite();
+		readbuf_size = q->bytesAvailable();
+	}
+	//emit sig_send_to_sink();
+	if((data_size + sample_bytes) <= readbuf_size) {
+		if(q.get() != nullptr) {
+			q->write((const char *)datasrc, sample_bytes);
+		}
+		//emit sig_send_to_sink();
+		return samples;
+	}
+	int64_t send_sample_bytes = readbuf_size - data_size;
+	if(send_sample_bytes <= 0) {
+		emit sig_send_to_sink();
+		return 0;
+	}
+	if(q.get() != nullptr) {
+		int64_t _ll = q->write((const char*)datasrc, send_sample_bytes);
+		//emit sig_send_to_sink();
+		if(_ll > 0) {
+			_ll = _ll / ((int64_t)(m_channels.load() * m_wordsize.load()));
+			return _ll;
+		}
+	}
+	emit sig_send_to_sink();
+	return 0;
+	#endif
 }
 
 	/* SOUND_MODULE::OUTPUT */

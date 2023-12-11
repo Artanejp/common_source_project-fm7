@@ -22,7 +22,7 @@
 #include <QAudioDeviceInfo>
 #include <QAudioInput>
 #include <QAudioOutput>
-#endif	
+#endif
 
 #include "../osd_sound_mod_template.h"
 
@@ -42,6 +42,7 @@ protected:
 	std::string							m_device_name;
 	std::list<std::string>				devices_name_list;
 	bool								m_device_is_default;
+	QIODevice*							m_device_fileio;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink>			m_audioOutputSink;
 	QAudioDevice						m_audioOutputDevice;
@@ -51,7 +52,6 @@ protected:
 	std::shared_ptr<QAudioOutput>		m_audioOutputSink;
 	QAudioDeviceInfo					m_audioOutputDevice;
 	QList<QAudioDeviceInfo>				m_audioOutputsList;
-	
 	virtual void set_audio_format(QAudioDeviceInfo dest_device, QAudioFormat& desired, int& channels, int& rate);
 #endif
 
@@ -66,7 +66,13 @@ protected:
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms) override;
 	virtual void update_driver_fileio() override;
 	virtual const std::string set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms);
-	
+
+	virtual bool recalc_samples(int rate, int latency_ms,
+						bool need_update = false,
+						bool need_resize_fileio = false) override;
+	virtual bool reopen_fileio(bool force_reopen = false) override;
+
+
 public:
 	M_QT_MULTIMEDIA(
 		OSD_BASE *parent,
@@ -76,39 +82,47 @@ public:
 		int base_channels = 2,
 		void *extra_configvalues = nullptr,
 		int extra_config_bytes = 0);
-	
+
 	~M_QT_MULTIMEDIA();
-	
+
 	virtual bool initialize_driver() override;
 	virtual bool release_driver() override;
-	
+	virtual bool release_driver_fileio() override;
+
 	virtual int64_t driver_elapsed_usec() override;
 	virtual int64_t driver_processed_usec() override;
 	virtual bool is_driver_started() override;
-	
+	virtual int64_t update_sound(void* datasrc, int samples) override;
+
 	virtual std::list<std::string> get_sound_devices_list() override;
-																	
+	virtual bool is_io_device_exists() override;
+
 public slots:
 	virtual void release_sound() override;
 
 	virtual void mute_sound() override;
 	virtual void unmute_sound() override;
 	virtual void stop_sound() override;
-	
+
 	virtual void driver_state_changed(QAudio::State newState);
-	
+
 	virtual void do_sound_start();
 	virtual void do_sound_stop();
 	virtual void do_sound_resume();
 	virtual void do_sound_suspend();
 	virtual void do_discard_sound();
 	virtual void do_sound_volume(double level);
-	virtual void do_set_device_by_name(QString driver_name) override;
 
+	virtual void do_ready_to_sound();
+	virtual void do_send_sound(qint64 bytes);
+	virtual void do_send_to_sink();
+
+	virtual void do_set_device_by_name(QString driver_name) override;
+signals:
+	int sig_send_to_sink();
 };
 
 /* SOUND_MODULE::OUTPUT */
 	}
 /* SOUND_MODULE */
 }
-
