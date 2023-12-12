@@ -36,6 +36,7 @@ namespace SOUND_MODULE {
 	  m_before_rendered(0),
 	  m_samples(0),
 	  m_mute(false),
+	  m_external_fileio(false),
 	  m_classname("SOUND_MODULE::OUTPUT::M_BASE"),
 	  QObject(qobject_cast<QObject*>(parent))
 {
@@ -55,12 +56,13 @@ namespace SOUND_MODULE {
 			deviceIO->close();
 		}
 		if(deviceIO->resize(m_buffer_bytes.load())) {
+			m_external_fileio = true;
 			m_fileio.reset(deviceIO);
 		} else {
 			_reinit = true;
 		}
 	}
-	if(_reinit) {
+	if((_reinit) && !(m_external_fileio.load())) {
 		m_fileio.reset(new SOUND_BUFFER_QT(m_buffer_bytes.load(), this));
 		reopen_fileio(true);
 	}
@@ -116,11 +118,10 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	int64_t _buffer_bytes = _chunk_bytes * 16;
 
 	bool _need_restart = false;
-#if 1
 	if(need_resize_fileio) {
 		bool __reinit = true;
-		std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
-		if(fio.get()  != nullptr) {
+		if(m_fileio.get()  != nullptr) {
+			std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
 			if(_buffer_bytes != m_buffer_bytes.load()) {
 				bool _is_opened = fio->isOpen();
 				if(_is_opened) {
@@ -135,13 +136,15 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 		}
 		if(__reinit) {
 			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-			m_fileio.reset(new SOUND_BUFFER_QT(_buffer_bytes, this));
+			if(!(m_external_fileio.load())) {
+				m_fileio.reset(new SOUND_BUFFER_QT(_buffer_bytes, this));
+			}
 			reopen_fileio(true);
 			update_driver_fileio();
 			_need_restart = true;
 		}
 	}
-#endif
+
 	if((need_update) || (m_chunk_bytes.load() != _chunk_bytes) || (m_buffer_bytes.load() != _buffer_bytes) || (m_samples.load() != _samples)){
 		m_chunk_bytes  = _chunk_bytes;
 		m_buffer_bytes = _buffer_bytes;
@@ -154,6 +157,7 @@ bool M_BASE::reopen_fileio(bool force_reopen)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	SOUND_BUFFER_QT* fio = m_fileio.get();
+
 	if(fio != nullptr) {
 		if(force_reopen) {
 			if(fio->isOpen()) {
@@ -249,7 +253,6 @@ bool M_BASE::wait_driver_stopped(int64_t timeout_msec)
 
 bool M_BASE::update_latency(int latency_ms, bool force)
 {
-
 	if(latency_ms <= 0) {
 		return false;
 	}
@@ -286,8 +289,8 @@ bool M_BASE::reconfig_sound(int rate, int channels)
 
 bool M_BASE::release_driver_fileio()
 {
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
-	if(fio.get() != nullptr) {
+	if(m_fileio.get() != nullptr) {
+		std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
 		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		fio->close();
 		disconnect(fio.get(), nullptr, this, nullptr);
@@ -337,15 +340,17 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 
 void M_BASE::release_sound()
 {
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	m_config_ok = false;
-	if(fio.get() != nullptr) {
+	if(m_fileio.get() != nullptr) {
+		std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
 		if(fio->isOpen()) {
 			fio->close();
 		}
 	}
-	m_fileio.reset();
+	if(!(m_external_fileio.load())) {
+		m_fileio.reset();
+	}
 }
 
 bool M_BASE::check_elapsed_to_render()
@@ -678,7 +683,7 @@ int64_t M_BASE::get_bytes_left()
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
 	if(q.get() != nullptr) {
-		int64_t n = q->bytesAvailable() - q->bytesToWrite();
+		int64_t n =  q->size() - q->bytesAvailable();
 		if(n < 0) n = 0;
 		return n;
 	}

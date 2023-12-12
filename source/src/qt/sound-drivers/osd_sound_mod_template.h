@@ -71,6 +71,7 @@ protected:
 	std::atomic<int>					m_loglevel;
 	std::atomic<int>					m_logdomain;
 
+	std::atomic<bool>					m_external_fileio;
 	virtual void update_driver_fileio()
 	{
 		// Update driver side of fileio by m_fileio;
