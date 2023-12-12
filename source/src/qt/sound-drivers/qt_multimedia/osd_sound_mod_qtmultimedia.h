@@ -42,7 +42,6 @@ protected:
 	std::string							m_device_name;
 	std::list<std::string>				devices_name_list;
 	bool								m_device_is_default;
-	QIODevice*							m_device_fileio;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink>			m_audioOutputSink;
 	QAudioDevice						m_audioOutputDevice;
@@ -113,13 +112,7 @@ public slots:
 	virtual void do_discard_sound();
 	virtual void do_sound_volume(double level);
 
-	virtual void do_ready_to_sound();
-	virtual void do_send_sound(qint64 bytes);
-	virtual void do_send_to_sink();
-
 	virtual void do_set_device_by_name(QString driver_name) override;
-signals:
-	int sig_send_to_sink();
 };
 
 /* SOUND_MODULE::OUTPUT */
