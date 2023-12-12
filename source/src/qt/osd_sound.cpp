@@ -493,7 +493,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//	}
 		//}
 		//printf("%d\n", elapsed_us_before_rendered);
-		if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000 - 100)) { //
+		if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000 - 10000 / 2)) { // Margin for error is  5msec 20231213 K.O
 			return;
 		}
 		const int64_t _channels = 2;
