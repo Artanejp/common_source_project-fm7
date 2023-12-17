@@ -82,7 +82,6 @@ protected:
 	DEVICE* d_cmos;
 	DEVICE* d_sysrom;
 	DEVICE* d_msdos;
-	DEVICE* d_serialrom;
 	DEVICE* d_font;
 	DEVICE* d_font_20pix;
 
@@ -105,7 +104,7 @@ protected:
 
 	bool bankc0_vram;
 	bool ankcg_enabled;
-	bool select_d0_rom;
+	bool select_f8_rom;
 	bool select_d0_dict;
 
 	uint16_t machine_id;
@@ -144,8 +143,9 @@ protected:
 	virtual void reset_wait_values();
 	virtual void set_wait_values();
 	virtual void update_machine_features();
-	virtual void __FASTCALL config_page0f(const bool sysrombank, const bool force);
-	virtual void __FASTCALL config_page0c_0e(const bool vrambank, const bool dictbank, const bool force);
+	virtual void __FASTCALL config_page_f8(const bool sysrombank, const bool force);
+	virtual void __FASTCALL config_page_c0_e0(const bool vrambank, const bool dictbank, const bool force);
+	virtual void __FASTCALL config_dictionary(const bool vrambank, const bool dictbank, const bool force);
 
 	virtual bool set_cpu_clock_by_wait();
 	virtual void     __FASTCALL write_fmr_ports8(uint32_t addr, uint32_t data);
@@ -562,7 +562,6 @@ public:
 		d_cmos = NULL;
 		d_sysrom = NULL;
 		d_msdos = NULL;
-		d_serialrom = NULL;
 		d_font = NULL;
 		d_font_20pix = NULL;
 		initialized = false;
@@ -844,10 +843,6 @@ public:
 	void set_context_pcm(DEVICE* device)
 	{
 		d_pcm = device;
-	}
-	void set_context_serial_rom(DEVICE* device)
-	{
-		d_serialrom = device;
 	}
 	void set_context_planevram(DEVICE *dev)
 	{

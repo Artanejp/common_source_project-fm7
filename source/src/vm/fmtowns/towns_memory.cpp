@@ -14,7 +14,6 @@
 #include "./planevram.h"
 #include "./sprite.h"
 #include "./fontroms.h"
-#include "./serialrom.h"
 #include "./crtc.h"
 #include "./timer.h"
 
@@ -70,8 +69,8 @@ void TOWNS_MEMORY::initialize()
 
 	// Lower 100000h
 
-	config_page0c_0e(true, false, true);
-	config_page0f(true, true);
+	config_page_c0_e0(true, false, true);
+	config_page_f8(true, true);
 
 	set_region_device_rw(0x80000000, 0x8007ffff, d_vram, NOT_NEED_TO_OFFSET);
 	set_region_device_rw(0x80100000, 0x8017ffff, d_vram, NOT_NEED_TO_OFFSET);
@@ -109,52 +108,59 @@ void TOWNS_MEMORY::reset_wait_values()
 	set_dma_wait_rw (0x80400000, 0xffffffff, WAITVAL_RAM);
 }
 
-void TOWNS_MEMORY::config_page0c_0e(const bool vrambank, const bool dictbank, const bool force)
+void TOWNS_MEMORY::config_page_c0_e0(const bool vrambank, const bool dictbank, const bool force)
 {
-	const bool is_vram_bak = dma_is_vram;
-	const bool is_dict_bak = select_d0_dict;
-	if(vrambank) { // VRAM AND around TEXT
-		set_region_device_rw(0x000c0000, 0x000c7fff, d_planevram, NOT_NEED_TO_OFFSET);
-		set_region_device_rw(0x000c8000, 0x000cffff, this, NOT_NEED_TO_OFFSET);
+	if((dma_is_vram != vrambank) || (force)) {
+		if(vrambank) { // VRAM AND around TEXT
+			set_region_device_rw(0x000c0000, 0x000c7fff, d_planevram, NOT_NEED_TO_OFFSET);
+			set_region_device_rw(0x000c8000, 0x000cffff, this, NOT_NEED_TO_OFFSET);
 
-		set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
-		set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
+			set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
+			set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_VRAM); // Default Value
+			config_dictionary(vrambank, dictbank, force);
+		} else {
+			__LIKELY_IF(extra_ram != NULL) {
+				set_region_memory_rw(0x000c0000, 0x000effff, extra_ram, 0x000c0000);
+			} else {
+				unset_range_rw(0x000c0000, 0x000effff);
+			}
+			set_mmio_wait_rw(0x000c0000, 0x000effff, WAITVAL_RAM); // Default Value
+			set_dma_wait_rw (0x000c0000, 0x000effff, WAITVAL_RAM); // Default Value
+		}
+	}
+	dma_is_vram = vrambank;
+}
 
+void TOWNS_MEMORY::config_dictionary(const bool vrambank, const bool dictbank, const bool force)
+{
+	__UNLIKELY_IF((vrambank != dma_is_vram) || (force)) {
 		if(dictbank) {
 			set_region_device_r(0x000d0000, 0x000d7fff, d_dictionary, NOT_NEED_TO_OFFSET);
 			unset_range_w(0x000d0000, 0x000d7fff);
 			// REAL IS 0000D8000h - 000D9FFFh, but grain may be 8000h bytes.
 			set_region_device_rw(0x000d8000, 0x000dffff, d_cmos, 0);
+			unset_range_rw(0x000e0000, 0x000effff);
 		} else {
-			unset_range_rw(0x000d0000, 0x000dffff);
+			__LIKELY_IF(extra_ram != NULL) {
+				set_region_memory_rw(0x000d0000, 0x000effff, extra_ram, 0x000c0000);
+			} else {
+				unset_range_rw(0x000d0000, 0x000effff);
+			}
 		}
-		unset_range_rw(0x000e0000, 0x000effff); // Reserved
-		//set_mmio_wait_rw(0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
-		//set_dma_wait_rw (0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
-	} else {
-		__LIKELY_IF(extra_ram != NULL) {
-			set_region_memory_rw(0x000c0000, 0x000effff, extra_ram, 0x000c0000);
-		} else {
-			unset_range_rw(0x000c0000, 0x000effff);
-		}
-		set_mmio_wait_rw(0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
-		set_dma_wait_rw (0x000c0000, 0x000cffff, WAITVAL_RAM); // Default Value
-		//set_mmio_wait_rw(0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
-		//set_dma_wait_rw (0x000d0000, 0x000effff, WAITVAL_RAM); // Default Value
 	}
-	dma_is_vram = vrambank;
 	select_d0_dict = dictbank;
 }
-void TOWNS_MEMORY::config_page0f(const bool sysrombank, const bool force)
+
+void TOWNS_MEMORY::config_page_f8(const bool sysrombank, const bool force)
 {
-	bool sysrom_bak = select_d0_rom;
-	//__LIKELY_IF(extra_ram != NULL) {
-	//	set_region_memory_rw(0x000f0000, 0x000f7fff, extra_ram, 0x000f0000);
-	//}
-	//__UNLIKELY_IF((sysrombank != sysrom_bak) || (force)) {
+	__UNLIKELY_IF((sysrombank != select_f8_rom) || (force)) {
 		if(sysrombank) {
-			unset_range_w(0x000f8000, 0x000fffff);
 			set_region_device_r (0x000f8000, 0x000fffff, d_sysrom, 0x38000);
+			__LIKELY_IF(extra_ram != NULL) {
+				set_region_memory_w (0x000f8000, 0x000fffff, extra_ram, 0x000f8000);
+			} else {
+				unset_range_w(0x000f8000, 0x000fffff);
+			}
 		} else {
 			__LIKELY_IF(extra_ram != NULL) {
 				set_region_memory_rw(0x000f8000, 0x000fffff, extra_ram, 0x000f8000);
@@ -162,8 +168,8 @@ void TOWNS_MEMORY::config_page0f(const bool sysrombank, const bool force)
 				unset_range_rw(0x000f8000, 0x000fffff);
 			}
 		}
-	//}
-	select_d0_rom = sysrombank;
+	}
+	select_f8_rom = sysrombank;
 }
 
 void TOWNS_MEMORY::set_memory_devices_map_values(uint32_t start, uint32_t end, memory_device_map_t* dataptr, uint8_t* baseptr, DEVICE* device, uint32_t base_offset)
@@ -366,8 +372,8 @@ void TOWNS_MEMORY::reset()
 	ankcg_enabled = false;
 	nmi_mask = false;
 	reset_wait_values();
-	config_page0c_0e(true, false, true); // VRAM, DICT, FORCE
-	config_page0f(true,  true); // SYSROM, FORCE
+	config_page_c0_e0(true, false, true); // VRAM, DICT, FORCE
+	config_page_f8(true,  true); // SYSROM, FORCE
 
 	set_cpu_clock_by_wait();
 	set_wait_values();
@@ -520,15 +526,6 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 	case 0x0031:
 		val = ((machine_id >> 8) & 0xff);
 		break;
-	case 0x0032:
-		{
-			//bool __cs = (d_serialrom->read_signal(SIG_SERIALROM_CS) == 0);
-			bool __clk = (d_serialrom->read_signal(SIG_SERIALROM_CLK) != 0);
-			bool __reset = (d_serialrom->read_signal(SIG_SERIALROM_RESET) != 0);
-			bool __dat = (d_serialrom->read_signal(SIG_SERIALROM_DATA) != 0);
-			val = ((__reset) ? 0x80 : 0x00) | ((__clk) ? 0x40 : 0x00) | /*0x3e |*/ ((__dat) ? 0x01 : 0x00);
-		}
-		break;
 	case 0x00c0: // Cache
 		val = 0x00;
 		if((cpu_id == 0x02) || (cpu_id >= 0x04)) { // i486 SX/DX or After Pentium.
@@ -557,7 +554,7 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		break;
 	case 0x0480:
 		val  =  (select_d0_dict) ? 0x01 : 0x00;
-		val |=  ((select_d0_rom) ? 0x00 : 0x02);
+		val |=  ((select_f8_rom) ? 0x00 : 0x02);
 //		val |= 0xfc;
 		break;
 	case 0x05c0:
@@ -789,23 +786,23 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 		//	d_dmac->write_signal(SIG_TOWNS_DMAC_WRAP, data, 0xff);
 		//}
 		break;
-	case 0x0032:
-		d_serialrom->write_signal(SIG_SERIALROM_CS, ~data, 0x20);
-		d_serialrom->write_signal(SIG_SERIALROM_CLK, data, 0x40);
-		d_serialrom->write_signal(SIG_SERIALROM_RESET, data, 0x80);
-		break;
 	case 0x0404: // System Status Reg.
 		{
-			config_page0c_0e(((data & 0x80) == 0) ? true : false, select_d0_dict, false); // VRAM, DICT, FORCE
+			bool vram_new = ((data & 0x80) == 0) ? true : false;
+			config_page_c0_e0(vram_new, select_d0_dict, false);
 		}
 		break;
 	case 0x0480:
 		{
 			bool is_dict, is_sysrom;
+			bool dict_bak = select_d0_dict;
+			bool sysrom_bak =
 			is_dict = ((data & 0x01) != 0) ? true : false;
 			is_sysrom = ((data & 0x02) == 0) ? true : false;
-			config_page0c_0e(dma_is_vram, is_dict, false);
-			config_page0f(is_sysrom, false);
+			if(dict_bak != is_dict) {
+				config_page_c0_e0(dma_is_vram, is_dict, true);
+			}
+			config_page_f8(is_sysrom, false);
 		}
 		break;
 	case 0x05c0:
@@ -1107,11 +1104,16 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8w(uint32_t addr, int* wait)
 		}
 		break;
 	case 0x000cf000: // FONT / TEXT VRAM(KANJI)
-		__LIKELY_IF((addr >= 0x000cff80) && (addr <= 0x000cffbb)) {
+		__UNLIKELY_IF(addr >= 0x000cff80) {
 			return read_fmr_ports8(addr);
+		} else __LIKELY_IF(extra_ram != NULL) {
+				return extra_ram[addr];
 		}
 		break;
 	default:
+		__LIKELY_IF(extra_ram != NULL) {
+			return extra_ram[addr];
+		}
 		break;
 	}
 	return 0xff;
@@ -1153,17 +1155,31 @@ void TOWNS_MEMORY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* w
 	__UNLIKELY_IF((addr < 0x000c8000) || (addr >= 0x000d0000)) {
 		return;
 	}
-	__LIKELY_IF(addr < 0x000cb000) { // From Tsugaru.
-		// TEXT VRAM
+	switch(addr & 0xfffff000) {
+	case 0x000c8000: //
+	case 0x000c9000: //
+	case 0x000ca000:
 		__LIKELY_IF(d_sprite != NULL) {
 			d_sprite->write_memory_mapped_io8w(addr - 0xc8000, data,  &dummywait);
 			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
 		}
-		return;
-	}
-	__LIKELY_IF((addr >= 0x000cff80) && (addr <= 0x000cffbb)) { // I/O
-		write_fmr_ports8(addr, data);
-		return;
+		break;
+	case 0x000cf000:
+		__LIKELY_IF(addr < 0xcff80) {
+			__LIKELY_IF(extra_ram != NULL) {
+				extra_ram[addr] = data;
+			}
+			return;
+		} else { // I/O
+			write_fmr_ports8(addr, data);
+			return;
+		}
+		break;
+	default: // 000CB000h - 000CEFFFh
+		__LIKELY_IF(extra_ram != NULL) {
+			extra_ram[addr] = data;
+		}
+		break;
 	}
 	return;
 }
@@ -1228,11 +1244,9 @@ void TOWNS_MEMORY::write_signal(int ch, uint32_t data, uint32_t mask)
 	} else if(ch == SIG_FMTOWNS_NOTIFY_RESET) {
 		out_debug_log("RESET FROM CPU!!!\n");
 		reset_happened = true;
-		#if 0
-		config_page0c_0e(true, false, true);
-		config_page0f(true, true);
-		reset_wait_values();
-		set_wait_values();
+		#if 1
+		config_page_c0_e0(true, false, true);
+		config_page_f8(true, true);
 
 		__LIKELY_IF(d_cpu != NULL) {
 			d_cpu->set_address_mask(0xffffffff);
@@ -1316,7 +1330,7 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(nmi_mask);
 
 
-	state_fio->StateValue(select_d0_rom);
+	state_fio->StateValue(select_f8_rom);
 	state_fio->StateValue(select_d0_dict);
 	state_fio->StateValue(ankcg_enabled);
 
@@ -1349,8 +1363,8 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 			state_fio->Fread(extra_ram, extram_size + 0x00100000, 1);
 			//set_memory_rw(0x00100000, (extram_size + 0x00100000) - 1, extra_ram);
 		}
-		config_page0c_0e(dma_is_vram, select_d0_dict, true);
-		config_page0f(select_d0_rom, true);
+		config_page_c0_e0(dma_is_vram, select_d0_dict, true);
+		config_page_f8(select_f8_rom, true);
 		set_wait_values();
 		//config_page00();
 	} else {
