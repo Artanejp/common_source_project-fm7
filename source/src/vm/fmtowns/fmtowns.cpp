@@ -427,7 +427,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_cmos(cmos);
 	memory->set_context_font_rom(fontrom);
 	memory->set_context_timer(timer);
-	memory->set_context_serial_rom(serialrom);
+
 	memory->set_context_sprite(sprite);
 	memory->set_context_pcm(rf5c68);
 	memory->set_context_iccard(iccard1, 0);
@@ -568,8 +568,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0028, memory);         // NMI MASK
 
 	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
-	io->set_iomap_single_rw(0x0032, memory);	// serial rom (routed from memory)
-	io->set_iomap_single_r (0x0034, scsi);	// ENABLE/ UNABLE to WORD DMA for SCSI
+	io->set_iomap_alias_rw (0x0032, serialrom, 0);		// serial rom
+	io->set_iomap_single_r (0x0034, scsi);				// ENABLE/ UNABLE to WORD DMA for SCSI
 
 	io->set_iomap_alias_rw(0x0040, pit0, 0);
 	io->set_iomap_alias_rw(0x0042, pit0, 1);

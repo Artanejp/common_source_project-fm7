@@ -15,7 +15,6 @@
 #define SIG_SERIALROM_CS	        2
 #define SIG_SERIALROM_RESET	        3
 #define SIG_SERIALROM_DATA	        4
-#define SIG_SERIALROM_RESET_STATE   5
 
 namespace FMTOWNS {
 
@@ -27,13 +26,19 @@ protected:
 	bool cs;
 	bool clk;
 	bool reset_reg;
-	int reset_state;
 
 	uint8_t rom_addr;
 	uint8_t rom[32];
 
 	uint16_t machine_id;
 	uint8_t cpu_id;
+
+	inline void __FASTCALL pos2addr(uint8_t pos, uint8_t& nibble, uint8_t& bit)
+	{
+		nibble = (32 - 1) - ((pos >> 3) & (32 - 1));
+		bit = pos & 7;
+		return;
+	}
 public:
 	SERIAL_ROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
