@@ -53,6 +53,8 @@
 #include "ad7820kr.h"
 #include "ym2612.h"
 // 80387?
+// SERIAL ROM
+#include "serialrom.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -69,7 +71,7 @@
 #include "./mouse.h"
 #include "./msdosrom.h"
 #include "./scsi.h"
-#include "./serialrom.h"
+#include "./towns_serialrom.h"
 #include "./timer.h"
 #include "./iccard.h"
 
@@ -92,7 +94,7 @@ using FMTOWNS::KEYBOARD;
 using FMTOWNS::MOUSE;
 using FMTOWNS::MSDOSROM;
 using FMTOWNS::SCSI;
-using FMTOWNS::SERIAL_ROM;
+using FMTOWNS::TOWNS_SERIAL_ROM;
 using FMTOWNS::SYSROM;
 using FMTOWNS::TIMER;
 using FMTOWNS::TOWNS_ICCARD;
@@ -173,7 +175,18 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #if defined(HAS_20PIX_FONTS)
 	fontrom_20pix = new FONT_ROM_20PIX(this, emu);
 #endif
-	serialrom = new SERIAL_ROM(this, emu);
+	serialrom = new SERIALROM(this, emu);
+	serialrom->set_memory_size(32);
+#ifdef USE_DEBUGGER
+	serialrom->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	serialrom->set_device_name(_T("FM Towns SERIAL ROM"));
+
+	serialrom_if = new TOWNS_SERIAL_ROM(this, emu);
+	serialrom_if->set_context_serialrom(serialrom);
+#ifdef USE_DEBUGGER
+	serialrom_if->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 
 	adpcm = new ADPCM(this, emu);
 //	mixer = new MIXER(this, emu); // Pseudo mixer.
@@ -568,7 +581,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_single_rw(0x0028, memory);         // NMI MASK
 
 	io->set_iomap_range_r  (0x0030, 0x0031, memory);	// cpu id / machine id
-	io->set_iomap_alias_rw (0x0032, serialrom, 0);		// serial rom
+	io->set_iomap_alias_rw (0x0032, serialrom_if, 0);	// serial rom
 	io->set_iomap_single_r (0x0034, scsi);				// ENABLE/ UNABLE to WORD DMA for SCSI
 
 	io->set_iomap_alias_rw(0x0040, pit0, 0);
@@ -825,10 +838,10 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		scsi->set_cpu_id(cpu_id);
 		scsi->set_machine_id(machine_id);
 	}
-	if(serialrom != nullptr) {
-		serialrom->set_cpu_id(cpu_id);
-		serialrom->set_machine_id(machine_id);
-	}
+	//if(serialrom_if != nullptr) {
+	//	serialrom_if->set_cpu_id(cpu_id);
+	//	serialrom_if->set_machine_id(machine_id);
+	//}
 	if(floppy != nullptr) {
 		floppy->set_cpu_id(cpu_id);
 		floppy->set_machine_id(machine_id);

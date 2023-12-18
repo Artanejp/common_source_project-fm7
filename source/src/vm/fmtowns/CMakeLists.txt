@@ -28,11 +28,12 @@ set(VM_FMTOWNS_DEV_SRCS
 	msdosrom.cpp
 
 	scsi.cpp
-	serialrom.cpp
 	sprite.cpp
 	sysrom.cpp
 	timer.cpp
 	towns_memory.cpp
+	towns_serialrom.cpp
+
 	#towns_scsi_host.cpp
 
 	vram.cpp
@@ -47,6 +48,7 @@ set(VM_FMTOWNS_DEV_SRCS
 	../scsi_host.cpp
 	../msm58321.cpp
 	./mb87078.cpp
+	./serialrom.cpp
 
 	fmtowns.cpp
 )

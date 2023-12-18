@@ -7,96 +7,143 @@
 	[serial rom]
 */
 
-#include "../../fileio.h"
-#include "./serialrom.h"
+#include "debugger.h"
+#include "serialrom.h"
 
-namespace FMTOWNS {
-
-
-uint8_t SERIAL_ROM::read_rom_bits(uint8_t pos)
+void SERIALROM::initialize()
 {
-	uint8_t addr, bit;
+	DEVICE::initialize();
+	rom_addr = 0;
+	reset_reg = false; // NOTE: Initial state is UNSTABLE.
+	prev_reset = false;
+	clk = false;
+	cs = true;
+	addr_mask = 0;
+	bit_mask = 0;
+	if((rom_size > 0) && (rom == NULL)) {
+		allocate_memory(rom_size);
+	}
+	if((__USE_DEBUGGER) && (d_debugger != NULL)) {
+//		d_mem_stored = d_mem;
+		d_debugger->set_context_mem(this);
+	}
+}
+
+void SERIALROM::release()
+{
+	if(rom != NULL) {
+		free(rom);
+		rom = NULL;
+	}
+}
+
+void SERIALROM::pos2addr(uint32_t pos, uint32_t& nibble, uint8_t& bit)
+{
+	__UNLIKELY_IF(addr_mask == 0) {
+		nibble = 0;
+		bit = 0;
+		return;
+	}
+	nibble = addr_mask - ((pos >> 3) & addr_mask);
+	bit = pos & 7;
+	return;
+}
+
+uint32_t SERIALROM::read_rom_bit(uint32_t pos)
+{
+	__UNLIKELY_IF(rom == NULL) {
+		return 0;
+	}
+	uint32_t addr;
+	uint8_t  bit;
 	pos2addr(pos, addr, bit);
-	uint8_t val = ((rom[addr] & (1 << (bit & 7))) != 0) ? 0x01 : 0x00;
+
+	uint32_t val = ((rom[addr] & (1 << (bit & 7))) != 0) ? 0xffffffff : 0x00000000;
 	return val;
 }
 
-void SERIAL_ROM::initialize()
+
+uint32_t SERIALROM::load_data(const uint8_t* data, uint32_t size)
 {
-	bool loaded = false;
-	FILEIO *fio = new FILEIO();
-
-	// Default values are from Tsugaru, physmem.cpp.
-	// -> // Just took from my 2MX.
-	const unsigned char defSerialROM[32]=
-	{
-		0x04,0x65,0x54,0xA4,0x95,0x45,0x35,0x5F,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
-		0xFF,0xFF,0xFF,0xFF,0xFE,0xFF,0xFF,0x0C,0x02,0x00,0x00,0x00,0x15,0xE0,0x00,0x00,
-	};
-	uint8_t tmprom[32] = { 0xff };
-	cs = true;
-	clk = false;
-	reset_reg = false;
-	rom_addr = 0;
-
-	//memset(rom, 0xff, sizeof(rom));
-	memcpy(rom, defSerialROM, sizeof(rom));
-
-	// Q: Is override machineid? 20200627 K.O
-//	tmprom[24] = (machine_id >> 8);
-//	tmprom[25] = (machine_id & 0xf8) | (cpu_id & 0x07);
-
-	if(fio->Fopen(create_local_path(_T("MYTOWNS.ROM")), FILEIO_READ_BINARY)) { // FONT
-		if(fio->Fread(tmprom, sizeof(tmprom), 1) == 1) {
-			loaded = true;
-		}
-		fio->Fclose();
-	} else if(fio->Fopen(create_local_path(_T("SERIAL.ROM")), FILEIO_READ_BINARY)) { // FONT
-		if(fio->Fread(tmprom, sizeof(tmprom), 1) == 1) {
-			loaded = true;
-		}
-		fio->Fclose();
+	if((size == 0) || (rom_size == 0) || (data == NULL) || (rom == NULL)) {
+		return 0;
 	}
-	if(loaded) {
-		memcpy(rom, tmprom, sizeof(rom));
+	if(size > rom_size) {
+		size = rom_size;
+	}
+	memcpy(rom, data, size);
+	return size;
+}
+
+bool SERIALROM::is_initialized(uint32_t size)
+{
+	if((rom != NULL) && (rom_size == size) && (size != 0)) {
+		return true;
+	}
+	return false;
+}
+
+uint32_t SERIALROM::allocate_memory(uint32_t size)
+{
+	if(size == 0) {
+		return 0;
+	}
+	uint32_t realsize = 1;
+	for(int i = 0; i < (32 - 3); i++) {
+		if(size <= realsize) {
+			break;
+		}
+		realsize <<= 1;
+	}
+	if(realsize != 0) {
+		if(rom != NULL) {
+			free(rom);
+			rom = NULL;
+		}
+		rom = (uint8_t*)malloc(realsize);
+		if(rom != NULL) {
+			rom_size = realsize;
+			addr_mask = rom_size - 1;
+			bit_mask = (addr_mask << 3) | 0x07;
+		}
+	}
+	return rom_size;
+}
+
+void SERIALROM::check_and_reset_device()
+{
+	__UNLIKELY_IF((cs) && !(reset_reg) && (prev_reset)) {
+		rom_addr = 0;
+		prev_reset = false;
 	}
 }
 
-void SERIAL_ROM::reset()
-{
-	reset_reg = false;
-	clk = false;
-	cs = true;
-
-	rom_addr = 0;
-}
-
-void SERIAL_ROM::write_signal(int id, uint32_t data, uint32_t mask)
+void SERIALROM::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_SERIALROM_CLK:
-		if(cs) {
+		if((cs) && !(reset_reg)) {
 			if(!(clk)) {
 				if((data & mask) != 0) { // RISE UP
-					rom_addr = (rom_addr + 1) & 0xff;
+					rom_addr = (rom_addr + 1) & bit_mask;
 				}
 			}
 		}
 		clk = ((data & mask) != 0) ? true : false;
 		break;
 	case SIG_SERIALROM_CS:
-		cs = ((data & mask) == 0) ? true : false;
+		cs = ((data & mask) != 0) ? true : false;
+		//check_and_reset_device();
 		break;
 	case SIG_SERIALROM_RESET:
-		reset_reg = ((data & mask) != 0);
-		if((cs) && (reset_reg)) {
-			reset();
-		}
+		prev_reset = reset_reg;
+		reset_reg = ((data & mask) != 0) ? true : false;
+		check_and_reset_device();
 		break;
 	}
 }
 
-uint32_t SERIAL_ROM::read_signal(int ch)
+uint32_t SERIALROM::read_signal(int ch)
 {
 	switch(ch) {
 	case SIG_SERIALROM_CLK:
@@ -109,44 +156,29 @@ uint32_t SERIAL_ROM::read_signal(int ch)
 		return ((reset_reg) ? 0xffffffff : 0x00000000);
 		break;
 	case SIG_SERIALROM_DATA:
-		return (read_rom_bits(rom_addr) == 0x00) ? 0x00000000 : 0xffffffff;
+		return read_rom_bit(rom_addr);
 		break;
 	}
 	return 0;
 }
 
-uint32_t SERIAL_ROM::read_io8(uint32_t addr)
+uint32_t SERIALROM::read_debug_data8(uint32_t addr)
 {
-	__UNLIKELY_IF(addr != 0) {
-		return 0xff;
+	__UNLIKELY_IF((rom == NULL) || (addr_mask == 0) || (rom_size == 0)) {
+		return 0;
 	}
-	uint8_t val;
-	uint8_t val2;
-	val = ((reset_reg) ? 0x80 : 0x00) | ((clk) ? 0x40 : 0x00);
-	val2 = read_rom_bits(rom_addr);
-	return val | val2;
+	return rom[addr & addr_mask];
 }
 
-void SERIAL_ROM::write_io8(uint32_t addr, uint32_t data)
+void SERIALROM::write_debug_data8(uint32_t addr, uint32_t data)
 {
-	__LIKELY_IF(addr == 0) {
-		if((reset_reg) && ((data & 0x80) == 0) && ((data & 0x20) == 0)) {
-			// Reset
-			rom_addr = 0x00;
-		} else if(((data & 0x80) == 0x00) && ((data & 0x20) == 0x00)) {
-			// CS DOWN, ADDRESS UP.
-			if(!(clk) && ((data & 0x40) != 0)) {
-				rom_addr = (rom_addr + 1) & 0xff;
-			}
-		}
-
-		cs = ((data & 0x20) == 0) ? true : false;
-		clk = ((data & 0x40) != 0) ? true : false;
-		reset_reg = ((data & 0x80) != 0) ? true : false;
+	__UNLIKELY_IF((rom == NULL) || (addr_mask == 0) || (rom_size == 0)) {
+		return;
 	}
+	rom[addr & addr_mask] = data;
 }
 
-bool SERIAL_ROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
+bool SERIALROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	_TCHAR numseg[8] = {'\0'};
 	int noff = 0;
@@ -154,45 +186,32 @@ bool SERIAL_ROM::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return false;
 }
 
-bool SERIAL_ROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+bool SERIALROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 
 	// Dump raw value
-	my_tcscat_s(buffer, buffer_len, _T("** INFO:\n"));
-	my_tcscat_s(buffer, buffer_len, _T("ROM value is enable to modify, \n"));
-	my_tcscat_s(buffer, buffer_len, _T("  R00-R32 : Overwrite rom raw value by byte\n"));
-	my_tcscat_s(buffer, buffer_len, _T("  B000-B256 : Overwrite bit foo to (value != 0) ? 1 : 0\n"));
-
-	uint8_t nibble, bit;
+	uint32_t nibble;
+	uint8_t bit;
 	pos2addr(rom_addr, nibble, bit);
 
-	my_tcscat_s(buffer, buffer_len, _T("** STATS:\n"));
 	my_tcscat_s(buffer, buffer_len,
-				create_string(_T("    CS=%s CLK=%d RESET REG=%d ROM ADDR=%d\n   ROM BIT POSITION=%02d word + %01d bit\n\n"),
+				create_string(_T("\nSIZE=%d bytes\nCS=%s CLK=%s RESET REG=%s(PREV=%s)\nROM ADDR=%d (%08Xh) MASK=%08X\nROM BIT POSITION=%02d word + %01d bit\n\n"),
+							  (rom == NULL) ? 0 : rom_size,
 							  (cs) ? _T("ON ") : _T("OFF"),
-							  (clk) ? 1 : 0,
-							  (reset_reg) ? 1 : 0,
+							  (clk) ? _T("ON ") : _T("OFF"),
+							  (reset_reg) ? _T("ON ") : _T("OFF"),
+							  (prev_reset) ? _T("ON ") : _T("OFF"),
 							  rom_addr,
+							  rom_addr,
+							  addr_mask,
 							  nibble, bit)
 		);
-
-	my_tcscat_s(buffer, buffer_len, _T("** RAW MEMORY VALUE:\n"));
-	my_tcscat_s(buffer, buffer_len, _T("    +0  +1  +2  +3  +4  +5  +6  +7\n"));
-	my_tcscat_s(buffer, buffer_len, _T("    ------------------------------\n"));
-	for(int n = 0; n < 4; n++) {
-		my_tcscat_s(buffer, buffer_len,
-					create_string(_T("+%02X %02X  %02X  %02X  %02X  %02X  %02X  %02X  %02X\n"),
-								  n * 4,
-								  rom[n * 4 + 0], rom[n * 4 + 1], rom[n * 4 + 2], rom[n * 4 + 3],
-								  rom[n * 4 + 4], rom[n * 4 + 5], rom[n * 4 + 6], rom[n * 4 + 7])
-			);
-	}
 	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	1
 
-bool SERIAL_ROM::process_state(FILEIO* state_fio, bool loading)
+bool SERIALROM::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
  		return false;
@@ -200,15 +219,30 @@ bool SERIAL_ROM::process_state(FILEIO* state_fio, bool loading)
 	if(!state_fio->StateCheckInt32(this_device_id)) {
  		return false;
  	}
-	state_fio->StateValue(machine_id);
-	state_fio->StateValue(cpu_id);
 	state_fio->StateValue(cs);
 	state_fio->StateValue(clk);
 	state_fio->StateValue(reset_reg);
+	state_fio->StateValue(prev_reset);
+
+	state_fio->StateValue(rom_size);
 	state_fio->StateValue(rom_addr);
-	state_fio->StateArray(rom, sizeof(rom), 1);
-
+	if(loading) {
+		if(rom != NULL) {
+			free(rom);
+			rom = NULL;
+		}
+		addr_mask = 0;
+		bit_mask = 0;
+		if(rom_size != 0) {
+			rom = (uint8_t*)malloc(rom_size);
+			if(rom != NULL) {
+				addr_mask = rom_size - 1;
+				bit_mask = (addr_mask << 3) | 0x07;
+			}
+		}
+	}
+	if((rom != NULL) && (rom_size != 0)) {
+		state_fio->StateArray(rom, sizeof(rom), rom_size);
+	}
 	return true;
-}
-
 }

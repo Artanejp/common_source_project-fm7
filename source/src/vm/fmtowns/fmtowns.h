@@ -357,6 +357,7 @@ class SCSI_HOST;
 class SCSI_DEV;
 class SCSI_HDD;
 class SCSI_CDROM;
+class SERIALROM;
 
 namespace FMTOWNS {
 	class ADPCM;
@@ -365,7 +366,7 @@ namespace FMTOWNS {
 	class FLOPPY;
 	class JOYSTICK;
 	class KEYBOARD;
-	class SERIAL_ROM;
+	class TOWNS_SERIAL_ROM;
 	class SCSI;
 	class TIMER;
 
@@ -406,50 +407,51 @@ protected:
 	IO*       io;
 	MB8877*   fdc;
 	MSM58321* rtc;
-	FMTOWNS::TOWNS_DMAC* dma;
-	FMTOWNS::TOWNS_DMAC* extra_dma;
-	NOISE*    seek_sound;
-	NOISE*    head_up_sound;
-	NOISE*    head_down_sound;
+	NOISE*      seek_sound;
+	NOISE*      head_up_sound;
+	NOISE*      head_down_sound;
 
-	RF5C68*   rf5c68;
-	MB87078*  e_volumes[2];
-	AD7820KR* adc;
-	PCM1BIT*  beep;
-	YM2612*   opn2;
+	RF5C68*     rf5c68;
+	MB87078*    e_volumes[2];
+	AD7820KR*   adc;
+	PCM1BIT*    beep;
+	SCSI_HOST*  scsi_host;
+	SCSI_HDD*   scsi_hdd[8]; //
+	SERIALROM*  serialrom;
+	YM2612*     opn2;
 
 	FMTOWNS::ADPCM*          adpcm;
-	FMTOWNS::TOWNS_CRTC*     crtc;
-	FMTOWNS::FLOPPY*         floppy;
-	FMTOWNS::JOYSTICK*       joystick;
-	FMTOWNS::JOYPAD_2BTN*    joypad_2btn[2];
-	FMTOWNS::JOYPAD_6BTN*    joypad_6btn[2];
-	FMTOWNS::MOUSE*			 mouse[2];
-	FMTOWNS::KEYBOARD*       keyboard;
-	FMTOWNS::TIMER*          timer;
-	FMTOWNS::TOWNS_VRAM*     vram;
-	FMTOWNS::PLANEVRAM*	     planevram;
-	FMTOWNS::TOWNS_SPRITE*   sprite;
-	FMTOWNS::TOWNS_MEMORY*   memory;
-	FMTOWNS::DICTIONARY*     dictionary;
+//	FMTOWNS::CDC*            cdc;
 	FMTOWNS::CMOS*		     cmos;
-	FMTOWNS::SYSROM*         sysrom;
-	FMTOWNS::MSDOSROM*       msdosrom;
+	FMTOWNS::DICTIONARY*     dictionary;
+	FMTOWNS::FLOPPY*         floppy;
 	FMTOWNS::FONT_ROMS*      fontrom;
-	FMTOWNS::TOWNS_ICCARD*   iccard1;
-	FMTOWNS::TOWNS_ICCARD*   iccard2;
 #if defined(HAS_20PIX_FONTS)
 	FMTOWNS::FONT_ROM_20PIX* fontrom_20pix;
 #endif
-	FMTOWNS::SERIAL_ROM*     serialrom;
-//	FMTOWNS::CDC*            cdc;
-//	FMTOWNS::TOWNS_SCSI_HOST* cdc_scsi;
-	FMTOWNS::TOWNS_CDROM*    cdrom;
-
+	FMTOWNS::JOYPAD_2BTN*    joypad_2btn[2];
+	FMTOWNS::JOYPAD_6BTN*    joypad_6btn[2];
+	FMTOWNS::JOYSTICK*       joystick;
+	FMTOWNS::KEYBOARD*       keyboard;
+	FMTOWNS::MOUSE*			 mouse[2];
+	FMTOWNS::MSDOSROM*       msdosrom;
+	FMTOWNS::PLANEVRAM*	     planevram;
 	FMTOWNS::SCSI* scsi;
+
+	FMTOWNS::SYSROM*         sysrom;
+	FMTOWNS::TIMER*          timer;
+	FMTOWNS::TOWNS_CDROM*    cdrom;
+	FMTOWNS::TOWNS_CRTC*     crtc;
+	FMTOWNS::TOWNS_DMAC*     dma;
+	FMTOWNS::TOWNS_DMAC*     extra_dma;
+	FMTOWNS::TOWNS_MEMORY*   memory;
+	FMTOWNS::TOWNS_ICCARD*   iccard1;
+	FMTOWNS::TOWNS_ICCARD*   iccard2;
+	//	FMTOWNS::TOWNS_SCSI_HOST* cdc_scsi;
 	//FMTOWNS::TOWNS_SCSI_HOST* scsi_host;
-	SCSI_HOST* scsi_host;
-	SCSI_HDD*      scsi_hdd[8]; //
+	FMTOWNS::TOWNS_SERIAL_ROM*     serialrom_if;
+	FMTOWNS::TOWNS_SPRITE*   sprite;
+	FMTOWNS::TOWNS_VRAM*     vram;
 
 	bool boot_seq;
 

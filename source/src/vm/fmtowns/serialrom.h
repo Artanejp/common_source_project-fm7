@@ -1,75 +1,90 @@
 /*
-	FUJITSU FM Towns Emulator 'eFMTowns'
-
 	Author : Kyuma.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2019.01.09 -
 
-	[serial rom]
+	[serial rom template: for FM Towns]
 */
 
 #pragma once
 
-#include "../device.h"
+#include "device.h"
 
 #define SIG_SERIALROM_CLK	        1
 #define SIG_SERIALROM_CS	        2
 #define SIG_SERIALROM_RESET	        3
 #define SIG_SERIALROM_DATA	        4
 
-namespace FMTOWNS {
-
-class SERIAL_ROM : public DEVICE
+class DEBUGGER;
+class SERIALROM : public DEVICE
 {
-private:
-	uint8_t read_rom_bits(uint8_t pos);
 protected:
+	DEBUGGER* d_debugger;
+	uint32_t rom_size;
+	uint32_t addr_mask;
+	uint32_t bit_mask;
+	uint8_t *rom;
+
 	bool cs;
 	bool clk;
 	bool reset_reg;
+	bool prev_reset;
 
-	uint8_t rom_addr;
-	uint8_t rom[32];
+	uint32_t rom_addr;
 
-	uint16_t machine_id;
-	uint8_t cpu_id;
-
-	inline void __FASTCALL pos2addr(uint8_t pos, uint8_t& nibble, uint8_t& bit)
-	{
-		nibble = (32 - 1) - ((pos >> 3) & (32 - 1));
-		bit = pos & 7;
-		return;
-	}
+	virtual void __FASTCALL pos2addr(uint32_t pos, uint32_t& nibble, uint8_t& bit);
+	virtual uint32_t __FASTCALL read_rom_bit(uint32_t pos);
+	virtual void check_and_reset_device();
 public:
-	SERIAL_ROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SERIALROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		machine_id = 0x0100;
-		cpu_id = 0x01;
-		set_device_name(_T("FMTOWNS_SERIAL_ROM"));
+		rom = NULL;
+		d_debugger = NULL;
+		rom_size = 0;
+		addr_mask = 0;
+		__USE_DEBUGGER = false;
+		set_device_name(_T("SERIAL ROM"));
 	}
-	~SERIAL_ROM() {}
+	~SERIALROM() {}
 
-	void initialize() override;
-	void reset() override;
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
-	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual void initialize() override;
+	virtual void release() override;
 
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
-	uint32_t __FASTCALL read_signal(int ch) override;
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	virtual uint32_t __FASTCALL read_signal(int ch) override;
 
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	virtual bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
+	virtual bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
 
-	bool process_state(FILEIO* state_fio, bool loading) override;
+	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr) override;
+	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override;
 
-	// unique function
-	void set_machine_id(uint16_t val)
+	bool is_debugger_available() override
 	{
-		machine_id = val & 0xfff8;
+		return true;
 	}
-	void set_cpu_id(uint16_t val)
+	void *get_debugger() override
 	{
-		cpu_id = val & 0x07;
+		return d_debugger;
 	}
+	uint64_t get_debug_data_addr_space() override
+	{
+		return rom_size;
+	}
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
+
+	// unique function (available to inherit)
+	virtual uint32_t load_data(const uint8_t* data, uint32_t size);
+	virtual uint32_t allocate_memory(uint32_t size);
+	virtual bool is_initialized(uint32_t size);
+
+	// unique function (*NOT* available to inherit. Should call before initialize().)
+	void set_memory_size(uint32_t size)
+	{
+		rom_size = size;
+	}
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+
 };
-
-}
