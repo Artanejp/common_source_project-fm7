@@ -140,6 +140,11 @@ void SERIALROM::write_signal(int id, uint32_t data, uint32_t mask)
 		reset_reg = ((data & mask) != 0) ? true : false;
 		check_and_reset_device();
 		break;
+	case SIG_SERIALROM_DATA:
+		if((cs) && !(reset_reg)) {
+			write_rom_bit(rom_addr, ((data & mask) != 0) ? true : false);
+		}
+		break;
 	}
 }
 
