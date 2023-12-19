@@ -115,7 +115,7 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	int64_t _samples =
 		((int64_t)rate * latency_ms) / 1000;
 	size_t _chunk_bytes = (size_t)(_samples * m_wordsize.load() * m_channels.load());
-	int64_t _buffer_bytes = _chunk_bytes * 16;
+	int64_t _buffer_bytes = _chunk_bytes * 4;
 
 	bool _need_restart = false;
 	if(need_resize_fileio) {
@@ -505,6 +505,10 @@ void M_BASE::set_volume(int level)
 
 void M_BASE::mute_sound()
 {
+	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+	if(fio.get() != nullptr) {
+		fio->reset();
+	}
 }
 
 void M_BASE::unmute_sound()
@@ -513,6 +517,10 @@ void M_BASE::unmute_sound()
 
 void M_BASE::stop_sound()
 {
+	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+	if(fio.get() != nullptr) {
+		fio->reset();
+	}
 }
 
 void M_BASE::do_set_device_by_name(void)

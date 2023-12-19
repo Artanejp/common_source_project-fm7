@@ -193,12 +193,14 @@ void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 		break;
 	case QAudio::StoppedState:
 		__debug_log_func(_T("AUDIO:STOP"));
+		#if 0
 		if(drv.get() != nullptr) {
 			drv->reset();
 		}
 		__LIKELY_IF(fio.get() != nullptr) {
 			fio->reset();
 		}
+		#endif
 		break;
 	case QAudio::SuspendedState:
 		__debug_log_func(_T("AUDIO:SUSPEND"));
@@ -421,7 +423,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 		m_samples = 1;
 	}
 	m_chunk_bytes = m_samples.load() * m_wordsize.load() * m_channels.load();
-	m_buffer_bytes = m_chunk_bytes.load() * 16;
+	m_buffer_bytes = m_chunk_bytes.load() * 4;
 	update_driver_fileio();
 
 	__debug_log_func(_T("status=%s"), (m_config_ok) ? _T("OK") : _T("NG"));
@@ -724,11 +726,15 @@ void M_QT_MULTIMEDIA::do_sound_start()
 		return;
 	}
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+	if(fio.get() != nullptr) {
+		fio->reset();
+	}
 
 	p->reset();
 	//p->setBufferSize(m_chunk_bytes.load());
-	if(m_fileio.get() != nullptr) {
-		p->start(m_fileio.get());
+	if(fio.get() != nullptr) {
+		p->start(fio.get());
 	}
 	update_render_point_usec();
 	__debug_log_func("GO. fileio=%0llx buffer size=%ld", m_fileio.get(), p->bufferSize());
@@ -774,6 +780,10 @@ void M_QT_MULTIMEDIA::do_sound_suspend()
 #endif
 	if(p.get() != nullptr) {
 		p->suspend();
+	}
+	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
+	if(fio.get() != nullptr) {
+		fio->reset();
 	}
 }
 
