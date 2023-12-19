@@ -10,8 +10,6 @@
 #include "../cdrom.h"
 #include "../../../fileio.h"
 
-#include <string>
-#include <map>
 
 namespace FMTOWNS {
 
@@ -23,6 +21,8 @@ enum {
 	CUE_INDEX,
 	CUE_PREGAP,
 };
+#include <string>
+#include <map>
 
 
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
@@ -267,15 +267,15 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 
 	// Set image file
 	if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
-		std::map<std::string, int> cue_type;
+		std::map<std::string, CDROM_MODE_t> cue_type;
 		cue_type.insert(std::make_pair("AUDIO", MODE_AUDIO));
-		cue_type.insert(std::make_pair("MODE1/2048", MODE_MODE1_2048));
-		cue_type.insert(std::make_pair("MODE1/2352", MODE_MODE1_2352));
-		cue_type.insert(std::make_pair("MODE2/2336", MODE_MODE2_2336));
-		cue_type.insert(std::make_pair("MODE2/2352", MODE_MODE2_2352));
-		cue_type.insert(std::make_pair("CDI/2336", MODE_CDI_2336));
-		cue_type.insert(std::make_pair("CDI/2352", MODE_CDI_2352));
-		cue_type.insert(std::make_pair("CDG", MODE_CD_G));
+		cue_type.insert(std::make_pair("MODE1/2048", MODE1_2048));
+		cue_type.insert(std::make_pair("MODE1/2352", MODE1_2352));
+		cue_type.insert(std::make_pair("MODE2/2336", MODE2_2336));
+		cue_type.insert(std::make_pair("MODE2/2352", MODE2_2352));
+		cue_type.insert(std::make_pair("CDI/2336", CDI_2336));
+		cue_type.insert(std::make_pair("CDI/2352", CDI_2352));
+		cue_type.insert(std::make_pair("CDG", CD_G));
 
 		nr_current_track = _nr_num;
 		_arg3 = _arg3.substr(_arg3_ptr);
@@ -297,7 +297,7 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 		toc_table[nr_current_track].pregap = 0;
 		toc_table[nr_current_track].physical_size = 2352;
 		toc_table[nr_current_track].logical_size = 2048;
-		int track_type;
+		CDROM_MODE_t track_type;
 		try {
 			track_type = cue_type.at(_arg3);
 		} catch (std::out_of_range &e) {
@@ -310,32 +310,34 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 			toc_table[nr_current_track].is_audio = true;
 			toc_table[nr_current_track].logical_size = 2352;
 			break;
-		case MODE_MODE1_2048:
+		case MODE1_2048:
 			toc_table[nr_current_track].logical_size = 2048;
 			toc_table[nr_current_track].physical_size = 2048;
 			break;
-		case MODE_MODE1_2352:
+		case MODE1_2352:
 			toc_table[nr_current_track].logical_size = 2048;
 			break;
-		case MODE_MODE2_2336:
+		case MODE2_2336:
 			toc_table[nr_current_track].logical_size = 2336;
 			toc_table[nr_current_track].physical_size = 2336;
 			break;
-		case MODE_MODE2_2352:
+		case MODE2_2352:
 			toc_table[nr_current_track].logical_size = 2336;
 			break;
-		case MODE_CDI_2336:
+		case CDI_2336:
 			toc_table[nr_current_track].logical_size = 2336;
 			toc_table[nr_current_track].physical_size = 2336;
 			break;
-		case MODE_CDI_2352:
+		case CDI_2352:
 			toc_table[nr_current_track].logical_size = 2336;
 			break;
-		case MODE_CD_G:
+		case CD_G:
 			toc_table[nr_current_track].logical_size = 2448;
 			toc_table[nr_current_track].physical_size = 2448;
 			break;
 			// ToDo: Set data size.
+		default:
+			break;
 		}
 		if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
 	} else {

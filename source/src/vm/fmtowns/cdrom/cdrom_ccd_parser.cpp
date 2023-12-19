@@ -15,6 +15,53 @@
 
 namespace FMTOWNS {
 
+	namespace CCD_PARSER {
+		typedef enum {
+			PHASE_NULL = 0,
+			PHASE_ENTRY = 1,
+			PHASE_SESSION,
+			PHASE_CLONECD,
+			PHASE_DISC,
+			PHASE_TRACK
+		} CCD_PHASE_t;
+		typedef enum {
+			TYPE_NULL = 0,
+			POINT = 1,
+			CONTROL,
+			PLBA,
+			ALBA,
+			INDEX0,
+			INDEX1,
+			MODE,
+
+			TOC_ENTRIES = 0x101,
+			CDTEXT_LENGTH,
+
+			PREGAP_MODE = 0x201,
+			PREGAP_SUBC
+		} CCD_MODE_t;
+	}
+
+using CCD_PARSER::PHASE_NULL;
+using CCD_PARSER::PHASE_ENTRY;
+using CCD_PARSER::PHASE_SESSION;
+using CCD_PARSER::PHASE_CLONECD;
+using CCD_PARSER::PHASE_DISC;
+using CCD_PARSER::PHASE_TRACK;
+
+using CCD_PARSER::TYPE_NULL;
+using CCD_PARSER::POINT;
+using CCD_PARSER::CONTROL;
+using CCD_PARSER::PLBA;
+using CCD_PARSER::ALBA;
+using CCD_PARSER::INDEX0;
+using CCD_PARSER::INDEX1;
+using CCD_PARSER::MODE;
+using CCD_PARSER::TOC_ENTRIES;
+using CCD_PARSER::CDTEXT_LENGTH;
+using CCD_PARSER::PREGAP_MODE;
+using CCD_PARSER::PREGAP_SUBC;
+
 bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 {
 	my_stprintf_s(img_file_path, _MAX_PATH, _T("%s.img"), get_file_path_without_extensiton(file_path));
@@ -41,40 +88,40 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 	get_long_full_path_name(file_path, full_path_ccd, sizeof(full_path_ccd));
 //	out_debug_log(_T("open_ccd_file(): file_path = %s  / full_path_ccd = %s"), file_path, full_path_ccd);
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_ccd);
-	std::map<std::string, int> ccd_phase;
-	std::map<std::string, int> ccd_enum;
+	std::map<std::string, CCD_PARSER::CCD_PHASE_t> ccd_phase;
+	std::map<std::string, CCD_PARSER::CCD_MODE_t>  ccd_enum;
 
 	// Initialize
-	ccd_phase.insert(std::make_pair("[ENTRY ", CCD_PHASE_ENTRY));
-	ccd_phase.insert(std::make_pair("[SESSION ", CCD_PHASE_SESSION));
-	ccd_phase.insert(std::make_pair("[TRACK ", CCD_PHASE_TRACK));
-	ccd_phase.insert(std::make_pair("[CLONECD] ", CCD_PHASE_CLONECD));
-	ccd_phase.insert(std::make_pair("[DISC] ", CCD_PHASE_DISC));
+	ccd_phase.insert(std::make_pair("[ENTRY ", PHASE_ENTRY));
+	ccd_phase.insert(std::make_pair("[SESSION ", PHASE_SESSION));
+	ccd_phase.insert(std::make_pair("[TRACK ", PHASE_TRACK));
+	ccd_phase.insert(std::make_pair("[CLONECD] ", PHASE_CLONECD));
+	ccd_phase.insert(std::make_pair("[DISC] ", PHASE_DISC));
 
 	// [Entry foo]
 	// ToDo:
 	// Support AMin/ASec/AFrame and PMin/PSec/PFrame.
-	ccd_enum.insert(std::make_pair("POINT=", CCD_POINT));
-	ccd_enum.insert(std::make_pair("CONTROL=", CCD_CONTROL));
-	ccd_enum.insert(std::make_pair("PLBA=", CCD_PLBA));
-	ccd_enum.insert(std::make_pair("ALBA=", CCD_ALBA));
+	ccd_enum.insert(std::make_pair("POINT=", POINT));
+	ccd_enum.insert(std::make_pair("CONTROL=", CONTROL));
+	ccd_enum.insert(std::make_pair("PLBA=", PLBA));
+	ccd_enum.insert(std::make_pair("ALBA=", ALBA));
 	// Note: If ("INDEX 0" or "INDEX 1") has set, pregap may calculate from index0 and index1.Prefer than ALBA.
-	ccd_enum.insert(std::make_pair("INDEX 0=", CCD_INDEX_0));
-	ccd_enum.insert(std::make_pair("INDEX 1=", CCD_INDEX_1));
-	ccd_enum.insert(std::make_pair("MODE=", CCD_MODE));
+	ccd_enum.insert(std::make_pair("INDEX 0=", INDEX0));
+	ccd_enum.insert(std::make_pair("INDEX 1=", INDEX1));
+	ccd_enum.insert(std::make_pair("MODE=", MODE));
 
 	// [Disc]
 	// ToDo: Support DataTracksScrambled. OR, Will not support?
-	ccd_enum.insert(std::make_pair("TOCENTRIES=", CCD_TOC_ENTRIES));
-	ccd_enum.insert(std::make_pair("CDTEXTLENGTH=", CCD_CDTEXT_LENGTH));
+	ccd_enum.insert(std::make_pair("TOCENTRIES=", TOC_ENTRIES));
+	ccd_enum.insert(std::make_pair("CDTEXTLENGTH=", CDTEXT_LENGTH));
 
 	// [Session foo]
-	ccd_enum.insert(std::make_pair("PREGAPMODE=", CCD_PREGAP_MODE));
-	ccd_enum.insert(std::make_pair("PREGAPSUBC=", CCD_PREGAP_SUBC));
+	ccd_enum.insert(std::make_pair("PREGAPMODE=", PREGAP_MODE));
+	ccd_enum.insert(std::make_pair("PREGAPSUBC=", PREGAP_SUBC));
 
 #if 1
 	int entries = 0;
-	int phase = CCD_PHASE_NULL;
+	CCD_PARSER::CCD_PHASE_t phase = PHASE_NULL;
 	int64_t cdtext_length = -1;
 	if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
 		is_cue = false;
@@ -91,7 +138,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 					with_filename[i] = false;
 				}
 				for(int i = 0; i <= 100; i++) {
-					toc_table[i].type = MODE_MODE1_2352;
+					toc_table[i].type = MODE1_2352;
 					toc_table[i].index0 = 0;
 					toc_table[i].index1 = 0;
 					toc_table[i].pregap = 0;
@@ -128,7 +175,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 					;
 					if(line_buf[0] == '[') {
 						// Change phase
-						int tmp_phase = CCD_PHASE_NULL;
+						CCD_PARSER::CCD_PHASE_t tmp_phase = PHASE_NULL;
 						std::string token = line_buf;
 						size_t ptr1 = line_buf.find_first_of(" ");
 						size_t ptr2 = line_buf.find_first_of("]");
@@ -151,15 +198,15 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 						try {
 							tmp_phase = ccd_phase.at(token);
 						} catch (std::out_of_range &e) {
-							tmp_phase = CCD_PHASE_NULL;
+							tmp_phase = PHASE_NULL;
 						}
 						// ToDo: exception handling for CCD_NULL
-						if(tmp_phase != CCD_PHASE_NULL) {
+						if(tmp_phase != PHASE_NULL) {
 							phase = tmp_phase;
 						}
 //						out_debug_log(_T("open_ccd_file(): file_path = %s  / full_path_ccd = %s"), file_path, full_path_ccd);
 						switch(phase) {
-						case CCD_PHASE_ENTRY:
+						case PHASE_ENTRY:
 							phase_arg = string_to_numeric(arg2);
 							if((phase_arg != entry_num) && (phase_arg > 0)) {
 								// Recalc track
@@ -167,10 +214,10 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 								//calc_track_index(_track);
 							}
 							break;
-						case CCD_PHASE_SESSION:
+						case PHASE_SESSION:
 							phase_arg = string_to_numeric(arg2);
 							break;
-						case CCD_PHASE_TRACK:
+						case PHASE_TRACK:
 							phase_arg = string_to_numeric(arg2);
 							if((phase_arg > 0) && (phase_arg <= 100)) {
 								if(_track != phase_arg) {
@@ -187,7 +234,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 						}
 					} else {
 						// Per phase.
-						int local_type = CCD_TYPE_NULL;
+						CCD_PARSER::CCD_MODE_t local_type = TYPE_NULL;
 						std::string token = line_buf;
 						size_t ptr1 = token.find_first_of("=");
 						std::string arg2 = "";
@@ -196,7 +243,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 							try {
 								local_type = ccd_enum.at(token);
 							} catch (std::out_of_range &e) {
-								local_type = CCD_TYPE_NULL;
+								local_type = TYPE_NULL;
 							}
 							try {
 								arg2 = line_buf.substr(ptr1 + 1, line_buf.size());
@@ -205,27 +252,29 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 							}
 						}
 						int64_t arg_val = 0;
-						if(local_type != CCD_TYPE_NULL) {
+						if(local_type != TYPE_NULL) {
 							arg_val = string_to_numeric(arg2);
 						}
 						switch(phase) {
-						case CCD_PHASE_SESSION:
+						case PHASE_SESSION:
 
 							// ToDo: Imprement around pregap.
 							break;
-						case CCD_PHASE_DISC:
+						case PHASE_DISC:
 							switch(local_type) {
-							case CCD_TOC_ENTRIES:
+							case TOC_ENTRIES:
 								toc_entries = arg_val;
 								break;
-							case CCD_CDTEXT_LENGTH:
+							case CDTEXT_LENGTH:
 								cdtext_length = arg_val;
+								break;
+							default:
 								break;
 							}
 							break;
-						case CCD_PHASE_ENTRY:
+						case PHASE_ENTRY:
 							switch(local_type) {
-							case CCD_POINT:
+							case POINT:
 								// Point -> Track num
 								switch(arg_val) {
 								case 0xa0:
@@ -253,7 +302,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 									break;
 								}
 								break;
-							case CCD_CONTROL:
+							case CONTROL:
 								// Track type
 								if((_track >= 0) && (_track <= 100)) {
 									switch(arg_val) {
@@ -263,7 +312,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 										toc_table[_track].logical_size = 2352;
 										break;
 									case 4: // DATA
-										toc_table[_track].type = MODE_MODE1_2352;
+										toc_table[_track].type = MODE1_2352;
 										toc_table[_track].is_audio = false;
 										toc_table[_track].logical_size = 2048;
 										break;
@@ -271,56 +320,58 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 									}
 								}
 								break;
-							case CCD_PLBA:
+							case PLBA:
 								// PLBA -> LBA POSITION
 								if((_track >= 0) && (_track <= 100)) {
 									toc_table[_track].index1 = arg_val;
 								}
 								break;
-							case CCD_ALBA:
+							case ALBA:
 								// ALBA -> PREGAP
 								if((_track >= 0) && (_track <= 100)) {
 									toc_table[_track].pregap = -arg_val;
 								}
 								break;
-							case CCD_INDEX_0:
+							case INDEX0:
 								// Index0
 								if((_track >= 0) && (_track <= 100)) {
 									toc_table[_track].index0 = arg_val;
 									toc_table[_track].pregap = 0;
 								}
 								break;
-							case CCD_INDEX_1:
+							case INDEX1:
 								// Index0
 								if((_track > 0) && (_track <= 100)) {
 									toc_table[_track].index1 = arg_val;
 									toc_table[_track].pregap = 0;
 								}
+								break;
+							default:
 								break;
 							}
 							break;
-						case CCD_PHASE_TRACK:
+						case PHASE_TRACK:
 							switch(local_type) {
-							case CCD_INDEX_0:
+							case INDEX0:
 								// Index0
 								if((_track >= 0) && (_track <= 100)) {
 									toc_table[_track].index0 = arg_val;
 									toc_table[_track].pregap = 0;
 								}
 								break;
-							case CCD_INDEX_1:
+							case INDEX1:
 								// Index0
 								if((_track > 0) && (_track <= 100)) {
 									toc_table[_track].index1 = arg_val;
 									toc_table[_track].pregap = 0;
 								}
 								break;
-							case CCD_MODE:
+							case MODE:
 								// Index0
 								if((_track >= 0) && (_track <= 100)) {
 									switch(arg_val) {
 									case 1: // MODE1/2352
-										toc_table[_track].type = MODE_MODE1_2352;
+										toc_table[_track].type = MODE1_2352;
 										toc_table[_track].is_audio = false;
 										toc_table[_track].logical_size = 2048;
 										break;
@@ -331,6 +382,8 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 										break;
 									}
 								}
+								break;
+							default:
 								break;
 							}
 							break;
@@ -469,12 +522,12 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 								toc_table[track].logical_size = 2352;
 								break;
 							case 1:
-								toc_table[track].type = MODE_MODE1_2352;
+								toc_table[track].type = MODE1_2352;
 								toc_table[track].is_audio = false;
 								toc_table[track].logical_size = 2048;
 								break;
 							case 2:
-								toc_table[track].type = MODE_MODE2_2336;
+								toc_table[track].type = MODE2_2336;
 								toc_table[track].is_audio = false;
 								toc_table[track].logical_size = 2336;
 								break;

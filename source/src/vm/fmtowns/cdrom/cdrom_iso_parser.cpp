@@ -30,7 +30,7 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) { //
 		uint64_t total_size = (uint64_t)fio->FileLength();
 		uint64_t sectors = total_size / 2048; //! @note Support only MODE1/2352.
-		uint8_t track_type = MODE_MODE1_2048; //! @note Support only MODE1/2352.
+		CDROM_MODE_t track_type = MODE1_2048; //! @note Support only MODE1/2352.
 		toc_table[0].type = MODE_NONE;
 		toc_table[0].lba_offset = 0;
 		toc_table[0].lba_size = 0;
