@@ -2139,11 +2139,10 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		set_subq(next_seek_lba);
 		cdrom_debug_log(_T("SEEK COMPLETED to SECTOR %d"), next_seek_lba);
 		stop_time_out();
-		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		//	command_execute_phase = false;
+		//req_off_execute_phase = false; // With Seeking, will be complate.
 		req_off_execute_phase = true;
-		//}
-		status_accept(1, 0, 0, false, true); // Say reply. Force to interrupt.
+		set_status(req_status, 1, STATUS_ACCEPT, 0, 0, 0, true);
+		mcu_ready = true;
 		break;
 	case EVENT_TIMEOUT:  // CDC TIMEOUT (mostly READ BUFFER OVERRUN)
 		event_time_out = -1;
@@ -3220,7 +3219,7 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 
 int TOWNS_CDROM::calculate_volume(int volume_db, int minus_offset_db)
 {
-	return decibel_to_volume(volume_db + 30 - minus_offset_db);
+	return decibel_to_volume(volume_db - minus_offset_db);
 }
 
 void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)

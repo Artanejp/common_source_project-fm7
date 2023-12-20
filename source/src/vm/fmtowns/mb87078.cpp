@@ -25,14 +25,14 @@ void MB87078::write_io8(uint32_t addr, uint32_t data)
 		if((com_reg & 0x18) != 0) { // C0 or C32 has SET
 			return;
 		}
-		write_signals(&(target_volume[ch_reg]), data_reg[ch_reg]);
+		write_signals(&(target_volume[ch_reg]), 0x3f - data_reg[ch_reg]);
 		break;
 	case 1: // COM
 		com_reg = data;
 		ch_reg = com_reg & 3;
 		write_signals(&(target_mute[ch_reg]), ((com_reg & 0x04) == 0) ? 0xffffffff : 0x0);
 		if((com_reg & 0x10) != 0) { // C32
-			write_signals(&(target_volume[ch_reg]), 0x3f);
+			write_signals(&(target_volume[ch_reg]), 0x40);
 		} else if((com_reg & 0x08) != 0) { // C0
 			write_signals(&(target_volume[ch_reg]), 0x00);
 		}
