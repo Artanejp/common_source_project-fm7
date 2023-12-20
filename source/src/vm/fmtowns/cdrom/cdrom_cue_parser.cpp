@@ -260,6 +260,7 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 	_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
 
 	std::string _arg3 = _arg2.substr(_arg2_ptr_s);
+	std::string _arg4;
 	_arg2 = _arg2.substr(0, _arg2_ptr_s);
 	size_t _arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
 	size_t _arg3_ptr_s;
@@ -286,7 +287,7 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 //		with_filename[_nr_num - 1] = have_filename;
 //		have_filename = false;
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
-		_arg3.substr(0, _arg3_ptr_s);
+		_arg4 = _arg3.substr(0, _arg3_ptr_s);
 
 		std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
 					   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
@@ -351,6 +352,7 @@ int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
 {
 	int index = -1;
 	std::string _arg3;
+	std::string _arg4;
 	size_t _arg2_ptr_s;
 	size_t _arg3_ptr_s;
 	size_t _arg3_ptr;
@@ -365,7 +367,7 @@ int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
 
 		_arg3 = _arg3.substr(_arg3_ptr);
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
-		_arg3.substr(0, _arg3_ptr_s);
+		_arg4 = _arg3.substr(0, _arg3_ptr_s);
 		index = atoi(_arg2.c_str());
 
 		switch(index) {
