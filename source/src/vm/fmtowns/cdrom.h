@@ -236,6 +236,7 @@ protected:
 	int read_sector;
 	int transfer_speed;
 	int sectors_count;
+	int remain_sectors_in_buffer;
 
 	int next_seek_lba;
 	int read_mode;
@@ -253,6 +254,7 @@ protected:
 
 
 	bool command_execute_phase;
+	bool req_off_execute_phase;
 
 	bool mcu_intr;
 	bool dma_intr;
@@ -316,6 +318,7 @@ protected:
 	void unpause_cdda_from_cmd();
 	void stop_cdda_from_cmd();
 	void pause_cdda_from_cmd();
+	void set_state_cmd(const bool is_delay);
 
 	bool is_device_ready();
 	void reset_device();
