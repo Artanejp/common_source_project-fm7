@@ -19,6 +19,7 @@ class DLL_PREFIX SOUND_BUFFER_QT : public QIODevice
 	using QIODevice::OpenModeFlag;
 #endif
 	using BUFFER_TYPE = FIFO_BASE::LOCKED_RINGBUFFER<uint8_t>;
+	//using BUFFER_TYPE = FIFO_BASE::LOCKED_FIFO<uint8_t>;
 protected:
 	std::shared_ptr<BUFFER_TYPE>m_buffer;
 public:

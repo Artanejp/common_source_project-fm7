@@ -691,7 +691,7 @@ int64_t M_BASE::get_bytes_left()
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	std::shared_ptr<SOUND_BUFFER_QT> q = m_fileio;
 	if(q.get() != nullptr) {
-		int64_t n =  q->size() - q->bytesAvailable();
+		int64_t n =  q->bytesToWrite() - q->bytesAvailable();
 		if(n < 0) n = 0;
 		return n;
 	}
