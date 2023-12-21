@@ -161,19 +161,9 @@ class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
 private:
-	#if 1 /* Note: Below are new sound driver. */
+	/* Note: Below are new sound driver. */
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE> m_sound_driver;
 	int64_t elapsed_us_before_rendered;
-	#else /* Note */
-	qint64 sound_us_before_rendered;
-	qint64 elapsed_us_before_rendered;
-	SOUND_BUFFER_QT *m_audioOutput;
-	SOUND_BUFFER_QT *m_audioInput;
-
-	QAudioFormat m_audioOutputFormat;
-	QAudioFormat m_audioInputFormat;
-
-	#endif
 	// Count half
 	uint32_t     m_sound_period;
 	// Count factor; this multiplies by 65536;
