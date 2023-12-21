@@ -464,6 +464,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 			// ToDo: Fix delay.
 			__LIKELY_IF(!(sound_ok)) {
 				sound_drv->start();
+				//elapsed_us_before_rendered = sound_drv->driver_processed_usec();
 				elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
 				__UNLIKELY_IF(p_config != nullptr) {
 					do_update_master_volume((int)(p_config->general_sound_level));
@@ -478,10 +479,47 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//__UNLIKELY_IF(m_sound_samples_factor == 0) {
 		//	return;
 		//}
+		const int64_t _channels = 2;
+		const int64_t _wordsize = (int64_t)sizeof(int16_t);
 
 		m_sound_samples_count += m_sound_samples_factor;
-		int64_t sound_usec = sound_drv->driver_elapsed_usec();
-		int64_t least_msecs = (((int64_t)m_sound_samples) * 1000) / ((int64_t)m_sound_rate);
+		int64_t sound_usecs = sound_drv->driver_elapsed_usec();
+		//int64_t sound_usecs = sound_drv->driver_processed_usec();
+		int64_t least_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
+		int64_t usecs_window = least_usecs * 2;
+		int64_t usecs_mod = sound_usecs - elapsed_us_before_rendered;
+		int64_t margin_usecs = least_usecs / 8;
+		__UNLIKELY_IF(margin_usecs < 2000) {
+			margin_usecs = 2000;
+		}
+		__UNLIKELY_IF(usecs_mod < 0) {
+			usecs_mod = 0;
+			m_sound_period = 0;
+		}
+		__UNLIKELY_IF(usecs_mod > (least_usecs * 3)) {
+			usecs_mod = least_usecs * 3;
+		}
+//		debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
+//				  _T("Check uSec=%lld mod=%lld PERIOD=%d"), sound_usecs, usecs_mod, m_sound_period);
+		switch(m_sound_period) {
+		case 0:
+			__UNLIKELY_IF(usecs_mod > (least_usecs + margin_usecs)) { // Overflow
+				elapsed_us_before_rendered = sound_usecs + margin_usecs - least_usecs;
+			}
+			break;
+		default:
+			if(usecs_mod < ((least_usecs * m_sound_period) - 0)) {
+				return;
+			}
+			break;
+		}
+		if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
+			return;
+		}
+		m_sound_period = (m_sound_period + 1) % 3;
+		if(m_sound_period == 0) {
+			elapsed_us_before_rendered = sound_usecs;
+		}
 		//m_sound_samples_count &= ((65536 * 2) - 1);
 		//if(m_sound_period == 0) {
 		//	if(m_sound_samples_count < (65536 / 2)) {
@@ -493,11 +531,9 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//	}
 		//}
 		//printf("%d\n", elapsed_us_before_rendered);
-		if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000 - 10000 / 2)) { // Margin for error is  5msec 20231213 K.O
-			return;
-		}
-		const int64_t _channels = 2;
-		const int64_t _wordsize = (int64_t)sizeof(int16_t);
+		//if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000 - 10000 / 2)) { // Margin for error is  5msec 20231213 K.O
+		//	return;
+		//}
 		//if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
 		//	return;
 		//}
@@ -509,7 +545,6 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(sound_buffer == nullptr) {
 			return;
 		}
-		elapsed_us_before_rendered = sound_usec;
 		if(now_record_sound || now_record_video) {
 			if(m_sound_samples > rec_sound_buffer_ptr) {
 				int samples = m_sound_samples - rec_sound_buffer_ptr;
@@ -546,7 +581,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 				//printf("%d %ld\n", m_sound_period, _result);
 			//}
 		}
-		m_sound_period = (m_sound_period + 1) & 1;
+		//m_sound_period = (m_sound_period + 1) & 1;
 	}
 }
 
