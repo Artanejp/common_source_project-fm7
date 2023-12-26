@@ -172,7 +172,6 @@ private:
 
 protected:
 	EmuThreadClass		*parent_thread;
-	sdl_snddata_t		snddata;
 	std::shared_ptr<USING_FLAGS>			using_flags;
 	config_t			*p_config;
 	std::shared_ptr<CSP_Logger> p_logger;
@@ -285,18 +284,7 @@ protected:
 	bool self_invalidate;
 
 	// sound
-#if defined(USE_SDL2)
-	SDL_AudioDeviceID audio_dev_id;
-#else
-	int audio_dev_id;
-#endif
-	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	void release_sound();
-#if 0
-	static void audio_capture_callback(void *udata, Uint8 *stream, int len);
-	static void audio_callback(void *udata, Uint8 *stream, int len);
-	void convert_sound_format(uint8_t* dst1, uint8_t* dst2, int16_t* src1, int16_t* src2, int samples1, int samples2);
-#endif
 	virtual void init_sound_device_list();
 	bool __FASTCALL calcurate_sample_factor(int rate, int samples, const bool force);
 

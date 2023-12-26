@@ -35,18 +35,6 @@ class GLDrawClass;
 #include "qt_input.h"
 #endif
 
-typedef struct {
-	uint8_t **sound_buf_ptr;
-	int *sound_buffer_size;
-	int *sound_write_pos;
-	int *sound_data_len;
-	Uint8 *snd_total_volume;
-	bool *sound_exit;
-	bool *sound_debug;
-	SDL_AudioFormat sound_format;
-	config_t *p_config;
-} sdl_snddata_t;
-
 
 #if 0 // TODO
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
