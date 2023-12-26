@@ -42,10 +42,6 @@ void TOWNS_CRTC::initialize()
 	set_lines_per_frame(512); // Its dummy.
 
 	line_count[0] = line_count[1] = 0;
-	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
-		line_changed[0][i] = true;
-		line_changed[1][i] = true;
-	}
 	event_id_hsync = -1;
 	event_id_hsw = -1;
 	event_id_vsync = -1;
@@ -170,10 +166,6 @@ void TOWNS_CRTC::reset()
 		apalette_256_pixel[i] = RGBA_COLOR(r, g, b, 0xff);
 	}
 
-	for(int i = 0; i < TOWNS_CRTC_MAX_LINES; i++) {
-		line_changed[0][i] = true;
-		line_changed[1][i] = true;
-	}
 	for(int i = 0; i < 2; i++) {
 		timing_changed[i] = true;
 		address_changed[i] = true;

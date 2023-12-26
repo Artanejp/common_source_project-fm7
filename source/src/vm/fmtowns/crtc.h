@@ -231,7 +231,6 @@ protected:
 	uint32_t fo1_offset_value;
 
 	uint8_t display_mode[2];
-	bool line_changed[2][TOWNS_CRTC_MAX_LINES];
 	bool display_enabled;
 
 	double crtc_clock; //
