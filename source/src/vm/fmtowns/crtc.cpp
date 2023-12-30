@@ -532,6 +532,48 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	vst2_us = ((double)vst2) * horiz_ref; // VST2
 	eet_us  = ((double)eet) * horiz_ref;  // EET
 	double frame_us_tmp = frame_us;
+	/*!<
+	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).
+	 以下、FM Towns Technical data book (「赤本」)の Section 4.7 「CRTC周辺のハードウエアの仕組み」による。
+	 1. CSPのevent.cpp では、フレームが始まると:
+	     a. DEVICE_FOO::event_pre_frame() の処理
+		 b. frames_per_sec と lines_per_frame が更新してないかどうかチェック→タイミング変更処理
+		 c. DEVICE_FOO::event_frame() の処理
+		 d. DEVICE_BAR::event_vline(cur_vline, clocks[cur_vline]) の処理を全ライン行う
+		 e. 最後のLineまで終わったら、a.にもどる
+	    という処理を行って1フレームをエミュレートしている。
+	2. 実マシンでは:
+	     a. VSTART
+		 b. VST1 時間でVSYNC立ち上がり
+		 c. VST2 時間でVSYNC立ち下がり　→ここから事実上表示が始まる(いわゆるひとつの垂直同期信号)
+		 d. 画面レイヤーx (x=0 or 1) は、VDSXからはじまる(ラインオフセット)
+		    → VDSx < VST2 の場合、VST2までは表示されない！！(多分な)
+		 e. 1ラインは、VDSx からカウントが始まる:
+		 e-0. 水平同期間隔は、HST + 1 clocks.
+		 e-1. HSW1の間、HSYNCパルスが立ち上がる →水平同期信号
+		 e-2. HSTARTからHDSxまでの間、画面表示は始まらない → HOFFSETx
+		 e-3. HDExで、表示が終了 → HDEx > (HST + 1) の場合は、たぶん(HST + 1)で表示が切れる
+		 f. VDEx まで **マスターラインカウントが**達したら、そこで表示終了 → VDEx > (VST + 1) の場合は、多分下が切れる
+		 g. なお、a~cの間は、水平同期信号は事実上逆論理になり、HSW2の間、HSYNCパルスが立ち上がるようになる。
+	 3. 1. と 2.を比較すると、
+	     - CSPではVBLANK期間が考慮されていない
+	 4. ということになった場合の解決策は以下の感じになるか？ 
+		 - ダミーの表示期間を設定する必要がある？
+		 → set_vm_screen_size() と EVENT::set_lines_per_frame() は完全に分離する必要がある
+		    - 4.a. EVENT::set_lines_per_frame() は、vst_reg に依存させる
+			- 4.b. OSD::set_vm_screen_size(H, W) は、
+			  max(HDE0 - HDS0, HDE1 - HDS1), max(VDE0 - VDS0, VDE1 - VDS1)
+			  で設定すればいいかな？(´・ω・｀)
+			  H, V方向のスケーリングが必要(と言うか、ここらへんはCRTCで計算すりゃいいか)
+			- 4.c. 表示絡みのロジックは以下のような感じ？
+			    VLINE < VST1 : VSYNC=LOW, HSYNC=NEGATIVE
+				VLINE >= VST1 && VLINE < VST2 : VSYNC=HIGH, HSYNC=NEGATIVE
+				VSYNC割り込みは、VST1時点か?VST2時点か？それとも、CRTC::event_pre_frame()でやっちゃうか？
+				VLINE >= VST2 : 表示可能とする。
+				VLINE >= VDSx : レイヤーx表示可能。
+				VLINE >  VDEx : レイヤーx表示不可。
+	 ---- こんなんでましたけど(´・ω・｀) ---- 
+	*/
 	frame_us = ((double)vst_reg) * horiz_ref; // VST
 	__UNLIKELY_IF(frame_us_tmp != frame_us) {
 		__LIKELY_IF(frame_us > 0.0) {
