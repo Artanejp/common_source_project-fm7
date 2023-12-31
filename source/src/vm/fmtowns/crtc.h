@@ -242,10 +242,12 @@ protected:
 	double horiz_width_posi_us, horiz_width_nega_us; // HSW1, HSW2
 	double vert_us; // (VST +1) * horiz_us / 2.0
 	double vert_sync_end_us; // VST2 * horiz_us / 2.0
-	double eet_us;
 	double frame_us;
-	double vst1_us; // VST1 * horiz_us / 2.0
-	double vst2_us;
+	
+	uint16_t vst1_count; // VST1 * horiz_us / 2.0
+	uint16_t vst2_count;
+	uint16_t eet_count;
+	uint16_t lines_per_frame_current;
 	int hst[4], vst[4];
 
 	double horiz_us_next; // (HST + 1) * clock
@@ -496,7 +498,7 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) override;
 	void event_pre_frame() override;
 	void event_frame() override;
-
+	void event_vline(int v, int clock) override;
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	uint32_t __FASTCALL read_signal(int ch) override;
 
