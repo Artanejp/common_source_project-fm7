@@ -253,8 +253,6 @@ protected:
 	double horiz_us_next; // (HST + 1) * clock
 	double horiz_width_posi_us_next, horiz_width_nega_us_next; // HSW1, HSW2
 
-	double vert_start_us[2];
-	double vert_end_us[2];
 	double horiz_start_us[2];
 	double horiz_end_us[2];
 
@@ -282,7 +280,11 @@ protected:
 
 	bool is_sprite;
 	uint32_t sprite_offset;
-
+	int sprite_count;
+	int sprite_limit;
+	int32_t sprite_zoom;
+	int32_t sprite_zoom_factor;
+	
 	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_count_vert[2];
@@ -344,22 +346,13 @@ protected:
 	// End.
 	bool is_single_layer;
 
+	//int render_vpoint[2];
 	//
 	// Event IDs. Saved.
-	int event_id_hsync;
-	int event_id_hsw;
-	//int event_id_hsw1; //??
-	//int event_id_hsw2; //??
-	int event_id_vsync;
-	int event_id_vstart;
-	int event_id_vst1;
-	int event_id_vst2;
-	int event_id_hstart;
-	int event_id_vds[2];
-	int event_id_vde[2];
-	int event_id_hds[2];
-	int event_id_hde[2];
-
+	int event_hsync;
+	int event_hdisp[2];
+	
+	
 	std::atomic<int> display_linebuf;
 	std::atomic<int> render_linebuf;
 	const int display_linebuf_mask = 3;
@@ -373,7 +366,6 @@ protected:
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 
-	virtual void vline_hook();
 	virtual void copy_regs();
 	virtual void calc_pixels_lines();
 
@@ -387,7 +379,13 @@ protected:
 	virtual void stop_display();
 	virtual void notify_mode_changed(int layer, uint8_t mode);
 
-	void cancel_event_by_id(int& event_num);
+	inline void cancel_event_by_id(int& event_num)
+	{
+		if(event_num > -1) {
+			cancel_event(this, event_num);
+		}
+		event_num = -1;
+	}
 
 	void __FASTCALL set_crtc_clock(uint16_t val, bool force);
 	uint16_t read_reg30();
@@ -495,7 +493,7 @@ public:
 	void initialize() override;
 	void release() override;
 	void reset() override;
-	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) override;
+
 	void event_pre_frame() override;
 	void event_frame() override;
 	void event_vline(int v, int clock) override;

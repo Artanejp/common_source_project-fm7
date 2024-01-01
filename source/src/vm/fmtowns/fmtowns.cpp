@@ -539,7 +539,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	// IRQ15 : RESERVED.
 	cdrom->set_context_mpuint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
 	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff);
-	crtc->set_context_vsync(sprite, SIG_TOWNS_SPRITE_VSYNC, 0xffffffff);
+	//crtc->set_context_vsync(sprite, SIG_TOWNS_SPRITE_VSYNC, 0xffffffff);
 
 	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff);
 

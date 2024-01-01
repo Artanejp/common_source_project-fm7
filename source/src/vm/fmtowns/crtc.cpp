@@ -19,18 +19,11 @@
 
 namespace FMTOWNS {
 enum {
-	EVENT_CRTC_VSTART = 1,
-	EVENT_CRTC_VST1   = 2,
-	EVENT_CRTC_VST2   = 3,
-	EVENT_CRTC_HSTART = 4,
-	EVENT_CRTC_HEND   = 5,
-	EVENT_CRTC_HSW    = 6,
-	EVENT_CRTC_EET    = 7,
-	EVENT_CRTC_VDS    = 32,
-	EVENT_CRTC_VDE    = 34,
-	EVENT_CRTC_HDS    = 36,
-	EVENT_CRTC_HDE    = 38,
-
+	EVENT_HSYNC_OFF = 1,
+	EVENT_HDS0 = 2,
+	EVENT_HDS1 = 3,
+	EVENT_HDE0 = 4,
+	EVENT_HDE1 = 5,
 };
 
 
@@ -42,15 +35,9 @@ void TOWNS_CRTC::initialize()
 	set_lines_per_frame(512); // Its dummy.
 
 	line_count[0] = line_count[1] = 0;
-	event_id_hsync = -1;
-	event_id_hsw = -1;
-	event_id_vstart = -1;
-	event_id_hstart = -1;
+	event_hsync = -1;
 	for(int i = 0; i < 2; i++) {
-		event_id_vds[i] = -1;
-		event_id_vde[i] = -1;
-		event_id_hds[i] = -1;
-		event_id_hde[i] = -1;
+		event_hdisp[i] = -1;
 	}
 	for(int i = 0; i < 4; i++) {
 		for(int l = 0; l < TOWNS_CRTC_MAX_LINES; l++) {
@@ -64,6 +51,12 @@ void TOWNS_CRTC::initialize()
 	voutreg_ctrl = 0x15;
 	voutreg_prio = 0x00;
 	is_single_layer = false;
+
+	sprite_count = 0;  // First
+	// ToDo: Unlimited sprite (maybe 1024).
+	sprite_limit = 224; // OK?
+	sprite_zoom = 1 << 16;
+	sprite_zoom_factor =  (sprite_limit << 16) / 512;
 }
 
 void TOWNS_CRTC::release()
@@ -184,16 +177,9 @@ void TOWNS_CRTC::reset()
 		vert_offset_tmp[i] = 0;
 		horiz_offset_tmp[i] = 0;
 	}
-	cancel_event_by_id(event_id_hsync);
-	cancel_event_by_id(event_id_hsw);
-	cancel_event_by_id(event_id_vstart);
-	cancel_event_by_id(event_id_hstart);
-
+	cancel_event_by_id(event_hsync);
 	for(int i = 0; i < 2; i++) {
-		cancel_event_by_id(event_id_vds[i]);
-		cancel_event_by_id(event_id_hds[i]);
-		cancel_event_by_id(event_id_vde[i]);
-		cancel_event_by_id(event_id_hde[i]);
+		cancel_event_by_id(event_hdisp[i]);
 	}
 	// Register vstart
 	pixels_per_line = 640;
@@ -216,8 +202,11 @@ void TOWNS_CRTC::reset()
 	copy_regs();
 	calc_screen_parameters();
 	lines_per_frame = vst_reg;
-	
 	force_recalc_crtc_param();
+	vst1_count = vst1;
+	vst2_count = vst2;
+	eet_count = eet;
+	
 	update_horiz_khz();
 	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
 	calc_pixels_lines();
@@ -226,13 +215,13 @@ void TOWNS_CRTC::reset()
 		frame_offset_bak[i] = frame_offset[i];
 		line_offset_bak[i] = line_offset[i];
 	}
-//	register_event(this, EVENT_CRTC_VSTART, vstart_us, false, &event_id_vstart);
-}
 
-void TOWNS_CRTC::cancel_event_by_id(int& event_num)
-{
-	if(event_num > -1) cancel_event(this, event_num);
-	event_num = -1;
+	sprite_count = 0;  // First
+	// ToDo: Unlimited sprite (maybe 1024).
+	sprite_limit = 224; // OK?
+	sprite_zoom = 1 << 16;
+	sprite_zoom_factor = (sprite_limit << 16) / lines_per_frame; 
+	
 }
 
 void TOWNS_CRTC::reset_vsync()
@@ -512,67 +501,6 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	horiz_width_posi_us_next = crtc_clock * ((double)hsw1); // HSW1
 	horiz_width_nega_us_next = crtc_clock * ((double)hsw2); // HSW2
 	horiz_us_next = crtc_clock * ((double)hst_reg); // HST
-	double horiz_ref = horiz_us_next / 2.0;
-	
-	vst1_count = vst1;
-	vst2_count = vst2;
-	eet_count = eet;
-	
-	double frame_us_tmp = frame_us;
-	/*!<
-	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).
-	 以下、FM Towns Technical data book (「赤本」)の Section 4.7 「CRTC周辺のハードウエアの仕組み」による。
-	 1. CSPのevent.cpp では、フレームが始まると:
-	     a. DEVICE_FOO::event_pre_frame() の処理
-		 b. frames_per_sec と lines_per_frame が更新してないかどうかチェック→タイミング変更処理
-		 c. DEVICE_FOO::event_frame() の処理
-		 d. DEVICE_BAR::event_vline(cur_vline, clocks[cur_vline]) の処理を全ライン行う
-		 e. 最後のLineまで終わったら、a.にもどる
-	    という処理を行って1フレームをエミュレートしている。
-	2. 実マシンでは:
-	     a. VSTART
-		 b. VST1 時間でVSYNC立ち上がり
-		 c. VST2 時間でVSYNC立ち下がり　→ここから事実上表示が始まる(いわゆるひとつの垂直同期信号)
-		 d. 画面レイヤーx (x=0 or 1) は、VDSXからはじまる(ラインオフセット)
-		    → VDSx < VST2 の場合、VST2までは表示されない！！(多分な)
-		 e. 1ラインは、VDSx からカウントが始まる:
-		 e-0. 水平同期間隔は、HST + 1 clocks.
-		 e-1. HSW1の間、HSYNCパルスが立ち上がる →水平同期信号
-		 e-2. HSTARTからHDSxまでの間、画面表示は始まらない → HOFFSETx
-		 e-3. HDExで、表示が終了 → HDEx > (HST + 1) の場合は、たぶん(HST + 1)で表示が切れる
-		 f. VDEx まで **マスターラインカウントが**達したら、そこで表示終了 → VDEx > (VST + 1) の場合は、多分下が切れる
-		 g. なお、a~cの間は、水平同期信号は事実上逆論理になり、HSW2の間、HSYNCパルスが立ち上がるようになる。
-	 3. 1. と 2.を比較すると、
-	     - CSPではVBLANK期間が考慮されていない
-	 4. ということになった場合の解決策は以下の感じになるか？ 
-		 - ダミーの表示期間を設定する必要がある？
-		 → set_vm_screen_size() と EVENT::set_lines_per_frame() は完全に分離する必要がある
-		    - 4.a. EVENT::set_lines_per_frame() は、vst_reg に依存させる
-			- 4.b. OSD::set_vm_screen_size(H, W) は、
-			  max(HDE0 - HDS0, HDE1 - HDS1), max(VDE0 - VDS0, VDE1 - VDS1)
-			  で設定すればいいかな？(´・ω・｀)
-			  H, V方向のスケーリングが必要(と言うか、ここらへんはCRTCで計算すりゃいいか)
-			- 4.c. 表示絡みのロジックは以下のような感じ？
-			    VLINE < VST1 : VSYNC=LOW, HSYNC=NEGATIVE
-				VLINE >= VST1 && VLINE < VST2 : VSYNC=HIGH, HSYNC=NEGATIVE
-				VSYNC割り込みは、VST1時点か?VST2時点か？それとも、CRTC::event_pre_frame()でやっちゃうか？
-				VLINE >= VST2 : 表示可能とする。
-				VLINE >= VDSx : レイヤーx表示可能。
-				VLINE >  VDEx : レイヤーx表示不可。
-	 ---- こんなんでましたけど(´・ω・｀) ---- 
-	*/
-	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
-	
-	__UNLIKELY_IF(frame_us_tmp != frame_us) {
-		__LIKELY_IF(frame_us > 0.0) {
-			set_frames_per_sec(1.0e6 / frame_us); // Its dummy.
-		} else {
-			frame_us = 1.0e6 / FRAMES_PER_SEC;
-			set_frames_per_sec(FRAMES_PER_SEC); // Its dummy.
-		}
-	}
-//	out_debug_log(_T("RECALC PARAM: horiz_us=%f frame_us=%f"), horiz_us, frame_us);
-
 	for(int layer = 0; layer < 2; layer++) {
 		horiz_start_us_next[layer] = ((double)hstart_reg[layer]) * crtc_clock;
 		horiz_end_us_next[layer] =   ((double)hde[layer]) * crtc_clock ;   // HDEx
@@ -670,9 +598,9 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 	case TOWNS_CRTC_REG_VST2:
 	case TOWNS_CRTC_REG_EET:
 	case TOWNS_CRTC_REG_VST:
-		if(calc_screen_parameters()) {
-			force_recalc_crtc_param();
-		}
+		//if(calc_screen_parameters()) {
+		//	force_recalc_crtc_param();
+		//}
 		break;
 	case TOWNS_CRTC_REG_HDS0:
 	case TOWNS_CRTC_REG_HDE0:
@@ -684,7 +612,7 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 	case TOWNS_CRTC_REG_VDE1:
 	{
 		//if(reg_bak != data) {
-		copy_regs();
+		//copy_regs();
 		//}
 	}
 	break;
@@ -698,7 +626,7 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 	case TOWNS_CRTC_REG_LO1:
 	{
 		//if(reg_bak != data) {
-		copy_regs();
+		//copy_regs();
 		//}
 	}
 	break;
@@ -1852,7 +1780,6 @@ __DECL_VECTORIZED_LOOP
 		}
 	}
 }
-
 void TOWNS_CRTC::pre_transfer_line(int line)
 {
 	__UNLIKELY_IF(line < 0) return;
@@ -1975,7 +1902,7 @@ __DECL_VECTORIZED_LOOP
 
 }
 
-void TOWNS_CRTC::transfer_line(int render_vpos, int layer, int zoom_count)
+void TOWNS_CRTC::transfer_line(int line, int layer)
 {
 	int l = layer;	bool to_disp = true; // Dummy
 	static const uint32_t address_add[2] =  {0x00000000, 0x00040000};
@@ -1985,10 +1912,12 @@ void TOWNS_CRTC::transfer_line(int render_vpos, int layer, int zoom_count)
 	uint32_t address_shift = 0;
 	uint32_t address_mask = 0x0003ffff;
 
+	__UNLIKELY_IF(line < 0) return;
 	__UNLIKELY_IF(line >= TOWNS_CRTC_MAX_LINES) return;
 	__UNLIKELY_IF(d_vram == nullptr) return;
 	__UNLIKELY_IF(layer < 0) return;
 	__UNLIKELY_IF(layer > 1) return;
+	__UNLIKELY_IF(!(frame_in[layer])) return;
 	__UNLIKELY_IF(linebuffers[trans] == nullptr) return;
 /*	__UNLIKELY_IF((horiz_end_us[layer] <= 0.0) || (horiz_end_us[layer] < horiz_start_us[layer])) {
 		return;
@@ -2006,6 +1935,11 @@ void TOWNS_CRTC::transfer_line(int render_vpos, int layer, int zoom_count)
 		}*/
 
 	// Update some parameters per line. 20230731 K.O
+	hds[l] = regs[(l * 2) + TOWNS_CRTC_REG_HDS0] & 0x07ff;
+	hde[l] = regs[(l * 2) + TOWNS_CRTC_REG_HDE0] & 0x07ff;
+	haj[l] = regs[(l * 4) + TOWNS_CRTC_REG_HAJ0] & 0x07ff;
+	vstart_addr[l]  = regs[(l * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
+	line_offset[l]  = regs[(l * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
 
 	int bit_shift = max(0, (int)hds[l] - (int)haj[l]);
 	uint32_t magx = zoom_factor_horiz[l];
@@ -2130,14 +2064,6 @@ void TOWNS_CRTC::transfer_line(int render_vpos, int layer, int zoom_count)
 }
 
 
-void TOWNS_CRTC::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
-{
-	lines_per_frame = new_lines_per_frame;
-	frames_per_sec = new_frames_per_sec;
-	cpu_clocks = new_clocks;
-	req_recalc = false;
-}
-
 void TOWNS_CRTC::event_pre_frame()
 {
 	interlace_field = !interlace_field;
@@ -2156,7 +2082,70 @@ void TOWNS_CRTC::event_pre_frame()
 	update_horiz_khz();
 	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
 	calc_pixels_lines();
+	
+	horiz_width_posi_us = horiz_width_posi_us_next;
+	horiz_width_nega_us = horiz_width_nega_us_next;
+	horiz_us = horiz_us_next;
+
+	/*!<
+	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).
+	 以下、FM Towns Technical data book (「赤本」)の Section 4.7 「CRTC周辺のハードウエアの仕組み」による。
+	 1. CSPのevent.cpp では、フレームが始まると:
+	     a. DEVICE_FOO::event_pre_frame() の処理
+		 b. frames_per_sec と lines_per_frame が更新してないかどうかチェック→タイミング変更処理
+		 c. DEVICE_FOO::event_frame() の処理
+		 d. DEVICE_BAR::event_vline(cur_vline, clocks[cur_vline]) の処理を全ライン行う
+		 e. 最後のLineまで終わったら、a.にもどる
+	    という処理を行って1フレームをエミュレートしている。
+	2. 実マシンでは:
+	     a. VSTART
+		 b. VST1 時間でVSYNC立ち上がり
+		 c. VST2 時間でVSYNC立ち下がり　→ここから事実上表示が始まる(いわゆるひとつの垂直同期信号)
+		 d. 画面レイヤーx (x=0 or 1) は、VDSXからはじまる(ラインオフセット)
+		    → VDSx < VST2 の場合、VST2までは表示されない！！(多分な)
+		 e. 1ラインは、VDSx からカウントが始まる:
+		 e-0. 水平同期間隔は、HST + 1 clocks.
+		 e-1. HSW1の間、HSYNCパルスが立ち上がる →水平同期信号
+		 e-2. HSTARTからHDSxまでの間、画面表示は始まらない → HOFFSETx
+		 e-3. HDExで、表示が終了 → HDEx > (HST + 1) の場合は、たぶん(HST + 1)で表示が切れる
+		 f. VDEx まで **マスターラインカウントが**達したら、そこで表示終了 → VDEx > (VST + 1) の場合は、多分下が切れる
+		 g. なお、a~cの間は、水平同期信号は事実上逆論理になり、HSW2の間、HSYNCパルスが立ち上がるようになる。
+	 3. 1. と 2.を比較すると、
+	     - CSPではVBLANK期間が考慮されていない
+	 4. ということになった場合の解決策は以下の感じになるか？ 
+		 - ダミーの表示期間を設定する必要がある？
+		 → set_vm_screen_size() と EVENT::set_lines_per_frame() は完全に分離する必要がある
+		    - 4.a. EVENT::set_lines_per_frame() は、vst_reg に依存させる
+			- 4.b. OSD::set_vm_screen_size(H, W) は、
+			  max(HDE0 - HDS0, HDE1 - HDS1), max(VDE0 - VDS0, VDE1 - VDS1)
+			  で設定すればいいかな？(´・ω・｀)
+			  H, V方向のスケーリングが必要(と言うか、ここらへんはCRTCで計算すりゃいいか)
+			- 4.c. 表示絡みのロジックは以下のような感じ？
+			    VLINE < VST1 : VSYNC=LOW, HSYNC=NEGATIVE
+				VLINE >= VST1 && VLINE < VST2 : VSYNC=HIGH, HSYNC=NEGATIVE
+				VSYNC割り込みは、VST1時点か?VST2時点か？それとも、CRTC::event_pre_frame()でやっちゃうか？
+				VLINE >= VST2 : 表示可能とする。
+				VLINE >= VDSx : レイヤーx表示可能。
+				VLINE >  VDEx : レイヤーx表示不可。
+	 ---- こんなんでましたけど(´・ω・｀) ---- 
+	*/
+	double horiz_ref = horiz_us / 2.0;
+	
+	vst1_count = vst1;
+	vst2_count = vst2;
+	eet_count = eet;
+	for(int layer = 0; layer < 2; layer++) {
+		horiz_start_us[layer] = horiz_start_us_next[layer];
+		horiz_end_us[layer] =   horiz_end_us_next[layer];
+	}
+	
+	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
+	if(frame_us <= 0.0) {
+		frame_us = 1.0e6 / FRAMES_PER_SEC;
+	}
+	set_frames_per_sec(1.0e6 / frame_us);
 	set_lines_per_frame(lines_per_frame);
+
 	is_sprite = false;
 	sprite_offset = 0;
 	if(d_sprite != NULL) {
@@ -2179,16 +2168,6 @@ void TOWNS_CRTC::event_pre_frame()
 
 void TOWNS_CRTC::event_frame()
 {
-	// This calls after setting new frames parameters.
-	horiz_width_posi_us = horiz_width_posi_us_next;
-	horiz_width_nega_us = horiz_width_nega_us_next;
-	horiz_us = horiz_us_next;
-	sprite_count = 0;
-	
-	for(int layer = 0; layer < 2; layer++) {
-		horiz_start_us[layer] = horiz_start_us_next[layer];
-		horiz_end_us[layer] =   horiz_end_us_next[layer];
-	}
 	//display_linebuf = render_linebuf & display_linebuf_mask; // Incremant per vstart
 	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
 
@@ -2219,11 +2198,16 @@ void TOWNS_CRTC::event_frame()
 
 	hst[render_linebuf] = pixels_per_line;
 	vst[render_linebuf] = max_lines;
-	//lines_per_frame = max_lines;
 
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	hsync = false;
+	// This calls after setting new frames parameters.
+	sprite_count = 0;  // First
+	// ToDo: Unlimited sprite (maybe 1024).
+	sprite_limit = 224; // OK?
+	sprite_zoom = 1 << 16;
+	sprite_zoom_factor = (sprite_limit << 16) / lines_per_frame; 
 
 	// ToDo: EET
 	//register_event(this, EVENT_CRTC_VSTART, frame_us, false, &event_id_frame); // EVENT_VSTART MOVED TO event_frame().
@@ -2234,39 +2218,48 @@ void TOWNS_CRTC::event_frame()
 		frame_in[i] = false;
 		head_address[i] = 0;
 	}
-
-	cancel_event_by_id(event_id_hstart);
-	cancel_event_by_id(event_id_hsw);
+	
+	cancel_event_by_id(event_hsync);
+	for(int layer = 0; layer < 2; layer++) {
+		cancel_event_by_id(event_hdisp[layer]);
+	}
 }
 
 void TOWNS_CRTC::event_vline(int v, int clock)
 {
-	if(v < 0) {
+	__UNLIKELY_IF(v < 0) {
 		for(int i = 0; i < 2; i++) {
 			frame_in[i] = false;
 		}
 		return;
 	}
-	__UNLIKELY_IF((is_sprite) && ((v % sprite_zoom) == 0)) { // Render per sprite line.
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_HOOK_VLINE, sprite_count, 0xffffffff);
+	#if 0
+	if(is_sprite) {
+		while(sprite_zoom >= (1 << 16)) {
+			if(sprite_count >= sprite_limit) break;
+			__LIKELY_IF(d_sprite != NULL) {
+				d_sprite->write_signal(SIG_TOWNS_SPRITE_HOOK_VLINE, sprite_count, 0xffffffff);
+			}
+			sprite_zoom -= (1 << 16);
+			sprite_count++;
 		}
-		sprite_count++;
+		if(sprite_count < sprite_limit) {
+			sprite_zoom += sprite_zoom_factor;
+		}
 	}
+	#endif
+	cancel_event_by_id(event_hsync);
 	if(v < vst2_count) {
 		hsync = true;
-		cancel_event_by_id(event_hsync);
-		register_event(this, EVENT_HSYNC_OFF, horiz_width_nega_us, false, &event_hsync);
 		for(int i = 0; i < 2; i++) {
 			frame_in[i] = false;
 		}
 		__UNLIKELY_IF(v == vst1_count) {
 			set_vsync(true);
 		}
+		register_event(this, EVENT_HSYNC_OFF, horiz_width_nega_us, false, &event_hsync);
 	} else {
 		hsync = true;
-		cancel_event_by_id(event_hsync);
-		register_event(this, EVENT_HSYNC_OFF, horiz_width_posi_us, false, &event_hsync);
 		// Make frame_in[layer]
 		bool frame_in_old[2] = {false};
 		for(int i = 0; i < 2; i++) {
@@ -2279,28 +2272,34 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		}
 		__UNLIKELY_IF(v == vst2_count) {
 			set_vsync(false);
+			#if 1
+			// Start sprite tranferring when VSYNC has de-asserted.
+			// This is temporally working, not finally.
+			// - 20240102 K.O
+			__LIKELY_IF(d_sprite != NULL) {
+				d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
+			}
+			#endif
 			for(int i = 0; i < 2; i++) {
 				zoom_count_vert[i] = zoom_factor_vert[i] / 2;
-				render_vpoint[i] = vert_offset_tmp[i];
+				//render_vpoint[i] = vert_offset_tmp[i];
 			}
 		}
+		register_event(this, EVENT_HSYNC_OFF, horiz_width_posi_us, false, &event_hsync);
 		// Check frame_in[layer]
-		for(int i = 0; i < 2; i++) {
-			bool need_transfer = false;
-			int vzoom_count = 1;
-			zoom_count_vert[i]--;
-			__LIKELY_IF((frame_in[i])) {
-				if(zoom_count_vert[i] <= 0) {
-					need_transfer = true;
-					zoom_count_vert[i] = zoom_factor_vert[i] / 2; // Reload
-					vzoom_count = zoom_count_vert[i];
-				} else if(!(frame_in_old[i])) { //  First transfer
-					need_transfer = true;
-					vzoom_count = zoom_count_vert[i] + 1; // OK?
-				}
-				if((need_transfer) && (render_vpoint[i] < max_lines)) {
-					transfer_line(render_vpoint[i], i, vzoom_count);
-					render_vpoint[i]++;
+		if(frame_in[0] || frame_in[1]) {
+			vert_line_count++;
+			if(vert_line_count < max_lines) {
+				pre_transfer_line(vert_line_count);
+				for(int layer = 0; layer < 2; layer++) {
+					cancel_event_by_id(event_hdisp[layer]);
+					if(frame_in[layer]) {
+						__LIKELY_IF(horiz_start_us[layer] > 0.0) {
+							register_event(this, EVENT_HDS0 + layer, horiz_start_us[layer], false, &(event_hdisp[layer]));
+						} else {
+							event_callback(EVENT_HDS0 + layer, 1);
+						}
+					}
 				}
 			}
 		}
@@ -2309,7 +2308,7 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 
 void TOWNS_CRTC::calc_zoom_regs(uint16_t val)
 {
-	uint8_t zfv[2];
+		uint8_t zfv[2];
 	uint8_t zfh[2];
 	pair16_t pd;
 	regs[TOWNS_CRTC_REG_ZOOM] = val;
@@ -2375,101 +2374,53 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	 * FA1, HAJ1, LO1, FO1  : ToDo (For calculating address)
 	 * ZOOM (#27) : ToDo
 	 */
-	switch(id) {
+	switch(event_id) {
 	case EVENT_HSYNC_OFF:
 		event_hsync = -1;
 		hsync = false;
+		#if 0
+		// Start to render on HDSx. 20240101 K.O
+		if((vert_line_count < max_lines) && (vert_line_count >= 0)) {
+			for(int layer = 0; layer < 2; layer++) {
+				if(frame_in[layer]) {
+					transfer_line(vert_line_count, layer);
+				}
+			}
+		}
+		#endif
 		break;
-	
-	int eid2 = (event_id / 2) * 2;
-	// EVENT_VSTART MOVED TO event_frame().
-	if(eid2 == EVENT_CRTC_VDS) { // Display start
-		int layer = event_id & 1;
-//		if(vsync) {
-			frame_in[layer] = true;
-//		}
-		// DO ofset line?
-		event_id_vds[layer] = -1;
-		zoom_count_vert[layer] = zoom_factor_vert[layer] / 2;
-	} else if(eid2 == EVENT_CRTC_VDE) { // Display end
-		int layer = event_id & 1;
-		frame_in[layer] = false;
-		event_id_vde[layer] = -1;
-
-		// DO ofset line?
-	} else if(event_id == EVENT_CRTC_HSTART) {
-		vline_hook();
-	} else if(event_id == EVENT_CRTC_HSW) {
-		hsync = false;
-		event_id_hsw = -1;
-	} else if(eid2 == EVENT_CRTC_HDS) {
-		int layer = event_id & 1;
-		hdisp[layer] = true;
-/*
-		if(frame_in[layer]) {
-			if(vert_line_count < max_lines) {
-				__LIKELY_IF(pixels_per_line > 0) {
-					transfer_line(vert_line_count, layer); // Tranfer before line.
+	case EVENT_HDS0:
+	case EVENT_HDS1:
+		{
+			int layer = event_id - EVENT_HDS0;
+			hdisp[layer] = true;
+			event_hdisp[layer] = -1;
+			// Start to render on HDSx. 20240101 K.O
+			if((vert_line_count < max_lines) && (vert_line_count >= 0)) {
+				if(frame_in[layer]) {
+					transfer_line(vert_line_count, layer);
 				}
-			}
-		}
-*/
-		if((horiz_end_us[layer] <= horiz_start_us[layer]) || (horiz_end_us[layer] <= 0.0)){
-			cancel_event_by_id(event_id_hde[layer]);
-			event_callback(EVENT_CRTC_HDE + layer, 1);
-		}
-		event_id_hds[layer] = -1;
-	} else if(eid2 == EVENT_CRTC_HDE) {
-		int layer = event_id & 1;
-		hdisp[layer] = false;
-		if(frame_in[layer]) {
-			if(vert_line_count < max_lines) {
-				__LIKELY_IF(pixels_per_line > 0) {
-					transfer_line(vert_line_count, layer); // Tranfer before line.
-				}
-			}
-		}
-
-//		if(!(hdisp[0]) && !(hdisp[1])) hsync = false;
-		event_id_hde[layer] = -1;
-		cancel_event_by_id(event_id_hds[layer]);
-	}
-
-}
-
-void TOWNS_CRTC::vline_hook()
-{
-	hsync = true;
-	if(frame_in[0] || frame_in[1]) {
-		register_event(this, EVENT_CRTC_HSW, horiz_width_posi_us, false, &event_id_hsw);
-		vert_line_count++;
-		if(vert_line_count < max_lines) {
-			pre_transfer_line(vert_line_count);
-			__LIKELY_IF(d_sprite != nullptr) {
-				d_sprite->write_signal(SIG_TOWNS_SPRITE_HOOK_VLINE, vert_line_count, 0xffffffff);
-			}
-		}
-	} else {
-		register_event(this, EVENT_CRTC_HSW, horiz_width_nega_us, false, &event_id_hsw);
-	}
-	for(int layer = 0; layer < 2; layer++) {
-		hdisp[layer] = false;
-		cancel_event_by_id(event_id_hds[layer]);
-		cancel_event_by_id(event_id_hde[layer]);
-		if(frame_in[layer]) {
-			double hds_us = horiz_start_us[layer];
-			double hde_us = horiz_end_us[layer];
-			if(hds_us > 0.0) {
-				register_event(this, EVENT_CRTC_HDS + layer, hds_us, false, &event_id_hds[layer]); // HDSx
+			}				
+			if((horiz_end_us[layer] <= horiz_start_us[layer]) || (horiz_end_us[layer] <= 0.0)){
+				event_callback(EVENT_HDE0 + layer, 1);
 			} else {
-				event_callback(EVENT_CRTC_HDS + layer, 1);
-			}
-			if(hde_us > 0.0) {
-				register_event(this, EVENT_CRTC_HDE + layer, hde_us, false, &event_id_hde[layer]); // HDEx
+				register_event(this, EVENT_HDE0 + layer, horiz_end_us[layer] - horiz_start_us[layer], false, &(event_hdisp[layer]));
 			}
 		}
+		break;
+	case EVENT_HDE0:
+	case EVENT_HDE1:
+		{
+			int layer = event_id - EVENT_HDE0;
+			hdisp[layer] = false;
+			event_hdisp[layer] = -1;
+		}
+		break;
+	default:
+		break;
 	}
 }
+
 
 
 bool TOWNS_CRTC::write_debug_reg(const _TCHAR *reg, uint32_t data)
@@ -2505,10 +2456,11 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (is_single_layer) ? _T("NONE ") : twin_modes_list[display_mode[1] & 3]
 				  , ((voutreg_prio & 0x01) != 0) ? _T("L1 > L0") : _T("L0 > L1")
 				  , lines_per_frame, pixels_per_line, max_lines
-				  , eet_us
-				  , vst1_us, vst2_us
+				  , ((double)eet_count) * crtc_clock
+				  , ((double)vst1_count) * crtc_clock, ((double)vst2_count) * crtc_clock
 				  , horiz_us, horiz_width_posi_us, horiz_width_nega_us
-				  , vert_start_us[0], vert_start_us[1], vert_end_us[0], vert_end_us[1]
+				  , ((double)vds[0]) * horiz_us, ((double)vds[1]) * horiz_us
+				  , ((double)vde[0]) * horiz_us, ((double)vde[1]) * horiz_us
 				  , horiz_start_us[0], horiz_start_us[1], horiz_end_us[0], horiz_end_us[1]
 		);
 
@@ -2641,7 +2593,7 @@ void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 }
 
 
-#define STATE_VERSION	8
+#define STATE_VERSION	9
 
 bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2666,7 +2618,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(display_enabled);
 	state_fio->StateValue(crtc_clock);
-	state_fio->StateValue(max_lines);
 	state_fio->StateValue(frames_per_sec);
 	state_fio->StateValue(cpu_clocks);
 
@@ -2708,9 +2659,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(crtout_reg);
 	state_fio->StateArray(crtout, sizeof(crtout), 1);
 
-	state_fio->StateValue(pixels_per_line);
-	state_fio->StateValue(lines_per_frame);
-
 	state_fio->StateValue(apalette_code);
 	for(int l = 0; l < 2; l++) {
 		for(int i = 0; i < 16; i++) {
@@ -2726,26 +2674,15 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	}
 
 	state_fio->StateValue(is_sprite);
+	state_fio->StateValue(sprite_count);
+	state_fio->StateValue(sprite_limit);
+	state_fio->StateValue(sprite_zoom);
+	state_fio->StateValue(sprite_zoom_factor);
+
 	state_fio->StateValue(sprite_offset);
 
-	state_fio->StateValue(frame_us);
-	state_fio->StateValue(horiz_us);
-	state_fio->StateValue(horiz_width_posi_us);
-	state_fio->StateValue(horiz_width_nega_us);
-	state_fio->StateArray(horiz_start_us, sizeof(horiz_start_us), 1);
-	state_fio->StateArray(horiz_end_us, sizeof(horiz_end_us), 1);
-
-	state_fio->StateValue(event_id_hsync);
-	state_fio->StateValue(event_id_hsw);
-	state_fio->StateValue(event_id_vst1);
-	state_fio->StateValue(event_id_vst2);
-	state_fio->StateValue(event_id_vstart);
-	state_fio->StateValue(event_id_hstart);
-
-	state_fio->StateArray(event_id_vds, sizeof(event_id_vds), 1);
-	state_fio->StateArray(event_id_vde, sizeof(event_id_vde), 1);
-	state_fio->StateArray(event_id_hds, sizeof(event_id_hds), 1);
-	state_fio->StateArray(event_id_hde, sizeof(event_id_hde), 1);
+	state_fio->StateValue(event_hsync);
+	state_fio->StateArray(event_hdisp, sizeof(event_hdisp), 1);
 
 	if(loading) {
 		for(int i = 0; i < 16; i++) {
@@ -2767,12 +2704,32 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 		display_linebuf = 0;
 		render_linebuf = 0;
 		req_recalc = false;
+		
 		copy_regs();
 		calc_screen_parameters();
 		force_recalc_crtc_param();
 		update_horiz_khz();
 		calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
 		calc_pixels_lines();
+		
+		vst1_count = vst1;
+		vst2_count = vst2;
+		eet_count = eet;
+		for(int layer = 0; layer < 2; layer++) {
+			horiz_start_us[layer] = horiz_start_us_next[layer];
+			horiz_end_us[layer] =   horiz_end_us_next[layer];
+		}
+		horiz_width_posi_us = horiz_width_posi_us_next;
+		horiz_width_nega_us = horiz_width_nega_us_next;
+		horiz_us = horiz_us_next;
+		
+		lines_per_frame = vst_reg;
+		double horiz_ref = horiz_us / 2.0;
+		frame_us = ((double)lines_per_frame) * horiz_ref; // VST
+		if(frame_us <= 0.0) {
+			frame_us = 1.0e6 / FRAMES_PER_SEC;
+		}
+		set_frames_per_sec(1.0e6 / frame_us);
 		set_lines_per_frame(lines_per_frame);
 		for(int i = 0; i < 4; i++) {
 			hst[i] = pixels_per_line;
