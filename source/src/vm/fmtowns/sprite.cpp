@@ -1012,6 +1012,19 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 		tvram_enabled = ((data & mask) != 0);
 		tvram_enabled_bak = tvram_enabled;
 		break;
+	case SIG_TOWNS_SPRITE_HOOK_VLINE:
+		if(sprite_enabled) {
+			if(data < 1024) {
+				frame_out = false;
+				if(render_num > 0) {
+					sprite_busy = true;
+					event_callback(EVENT_RENDER, (int)data);
+				} else {
+					event_callback(EVENT_BUSY_OFF, (int)data);
+				}
+			}
+		}
+		break;
 	case SIG_TOWNS_SPRITE_VSYNC: //
 		if((sprite_enabled) && (frame_out)) { // AT FIRST VSYNC.
 			frame_out = false;
