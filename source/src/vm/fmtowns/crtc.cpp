@@ -187,30 +187,19 @@ void TOWNS_CRTC::reset()
 	max_lines = 400;
 
 	write_signals(&outputs_int_vsync, 0x0);
-
-	for(int i = 0; i < 4; i++) {
-		hst[i] = 640;
-		vst[i] = 400;
-	}
-
 	memset(tvram_snapshot, 0x00, sizeof(tvram_snapshot));
 	//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1,  WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	//emu->set_vm_screen_lines(vst);
 	// For DEBUG Only
 	// Mode 19
 	frame_us = NAN;
-	copy_regs();
-	calc_screen_parameters();
-	lines_per_frame = vst_reg;
-	force_recalc_crtc_param();
-	vst1_count = vst1;
-	vst2_count = vst2;
-	eet_count = eet;
 	
-	update_horiz_khz();
-	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
-	calc_pixels_lines();
-	set_lines_per_frame(lines_per_frame);
+	set_crtc_parameters_from_regs();
+	for(int i = 0; i < 4; i++) {
+		hst[i] = pixels_per_line;
+		vst[i] = max_lines;
+	}
+
 	for(int i = 0; i < 2; i++) {
 		frame_offset_bak[i] = frame_offset[i];
 		line_offset_bak[i] = line_offset[i];
@@ -2063,10 +2052,43 @@ void TOWNS_CRTC::transfer_line(int line, int layer)
 	}
 }
 
+void TOWNS_CRTC::set_crtc_parameters_from_regs()
+{
+	copy_regs();
+	calc_screen_parameters();
+	lines_per_frame = vst_reg;
+	
+	force_recalc_crtc_param();
+	update_horiz_khz();
+	calc_pixels_lines();
+	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
+
+	vst1_count = vst1;
+	vst2_count = vst2;
+	eet_count = eet;
+	for(int layer = 0; layer < 2; layer++) {
+		horiz_start_us[layer] = horiz_start_us_next[layer];
+		horiz_end_us[layer] =   horiz_end_us_next[layer];
+	}
+	horiz_width_posi_us = horiz_width_posi_us_next;
+	horiz_width_nega_us = horiz_width_nega_us_next;
+	horiz_us = horiz_us_next;
+		
+	lines_per_frame = vst_reg;
+	double horiz_ref = horiz_us / 2.0;
+	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
+	if(frame_us <= 0.0) {
+		frame_us = 1.0e6 / FRAMES_PER_SEC;
+	}
+	set_frames_per_sec(1.0e6 / frame_us);
+	set_lines_per_frame(lines_per_frame);
+}
 
 void TOWNS_CRTC::event_pre_frame()
 {
 	interlace_field = !interlace_field;
+	//display_linebuf = render_linebuf & display_linebuf_mask; // Incremant per vstart
+	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
 	int dummy_mode0, dummy_mode1;
 	make_dispmode(is_single_layer, dummy_mode0, dummy_mode1);
 
@@ -2074,19 +2096,7 @@ void TOWNS_CRTC::event_pre_frame()
 		hdisp[i] = false;
 		frame_in[i] = false;
 	}
-	copy_regs();
-	calc_screen_parameters();
-	lines_per_frame = vst_reg;
 	
-	force_recalc_crtc_param();
-	update_horiz_khz();
-	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
-	calc_pixels_lines();
-	
-	horiz_width_posi_us = horiz_width_posi_us_next;
-	horiz_width_nega_us = horiz_width_nega_us_next;
-	horiz_us = horiz_us_next;
-
 	/*!<
 	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).
 	 以下、FM Towns Technical data book (「赤本」)の Section 4.7 「CRTC周辺のハードウエアの仕組み」による。
@@ -2129,22 +2139,7 @@ void TOWNS_CRTC::event_pre_frame()
 				VLINE >  VDEx : レイヤーx表示不可。
 	 ---- こんなんでましたけど(´・ω・｀) ---- 
 	*/
-	double horiz_ref = horiz_us / 2.0;
-	
-	vst1_count = vst1;
-	vst2_count = vst2;
-	eet_count = eet;
-	for(int layer = 0; layer < 2; layer++) {
-		horiz_start_us[layer] = horiz_start_us_next[layer];
-		horiz_end_us[layer] =   horiz_end_us_next[layer];
-	}
-	
-	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
-	if(frame_us <= 0.0) {
-		frame_us = 1.0e6 / FRAMES_PER_SEC;
-	}
-	set_frames_per_sec(1.0e6 / frame_us);
-	set_lines_per_frame(lines_per_frame);
+	set_crtc_parameters_from_regs();
 
 	is_sprite = false;
 	sprite_offset = 0;
@@ -2168,8 +2163,6 @@ void TOWNS_CRTC::event_pre_frame()
 
 void TOWNS_CRTC::event_frame()
 {
-	//display_linebuf = render_linebuf & display_linebuf_mask; // Incremant per vstart
-	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
 
 	for(int i = 0; i < 2; i++) {
 		zoom_count_vert[i] = zoom_factor_vert[i] / 2;
@@ -2704,33 +2697,9 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 		display_linebuf = 0;
 		render_linebuf = 0;
 		req_recalc = false;
+
+		set_crtc_parameters_from_regs();
 		
-		copy_regs();
-		calc_screen_parameters();
-		force_recalc_crtc_param();
-		update_horiz_khz();
-		calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
-		calc_pixels_lines();
-		
-		vst1_count = vst1;
-		vst2_count = vst2;
-		eet_count = eet;
-		for(int layer = 0; layer < 2; layer++) {
-			horiz_start_us[layer] = horiz_start_us_next[layer];
-			horiz_end_us[layer] =   horiz_end_us_next[layer];
-		}
-		horiz_width_posi_us = horiz_width_posi_us_next;
-		horiz_width_nega_us = horiz_width_nega_us_next;
-		horiz_us = horiz_us_next;
-		
-		lines_per_frame = vst_reg;
-		double horiz_ref = horiz_us / 2.0;
-		frame_us = ((double)lines_per_frame) * horiz_ref; // VST
-		if(frame_us <= 0.0) {
-			frame_us = 1.0e6 / FRAMES_PER_SEC;
-		}
-		set_frames_per_sec(1.0e6 / frame_us);
-		set_lines_per_frame(lines_per_frame);
 		for(int i = 0; i < 4; i++) {
 			hst[i] = pixels_per_line;
 			vst[i] = max_lines;

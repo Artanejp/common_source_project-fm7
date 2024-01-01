@@ -374,6 +374,7 @@ protected:
 	virtual void force_recalc_crtc_param(void);
 	virtual bool calc_screen_parameters(void);
 	void __FASTCALL calc_zoom_regs(uint16_t val);
+	virtual void set_crtc_parameters_from_regs();
 
 	virtual void restart_display();
 	virtual void stop_display();
