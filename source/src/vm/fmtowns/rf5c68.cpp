@@ -515,6 +515,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 		if(mix_factor < 4096) {
 			for(int i = 0; i < (cnt << 1); i += 2) {
 				// ToDo: interpoolate.
+				#if 0
 				if((force_load) || ((need_load) && (sample_words.load() > 0))) {
 					// Reload data
 					__DECL_VECTORIZED_LOOP
@@ -539,6 +540,20 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 					buffer[i]     += lastsample_l;
 					buffer[i + 1] += lastsample_r;
 				}
+				#else
+				__LIKELY_IF(!(is_mute) && (sample_buffer != NULL)) {
+					int rptr = read_pointer.load();
+					int32_t* pp = &(sample_buffer[rptr << 1]);
+					lval = buffer[i + 0] + apply_volume(pp[0], volume_l);
+					rval = buffer[i + 1] + apply_volume(pp[1], volume_r);
+					lval = min(lval, 32767);
+					lval = max(lval, -32768);
+					rval = min(rval, 32767);
+					rval = max(rval, -32768);
+					buffer[i + 0] = lval;
+					buffer[i + 1] = rval;
+				}
+				#endif
 				mix_count += mix_factor;
 				if(mix_count >= 4096) {
 					std::lock_guard<std::recursive_mutex> locker(m_locker);
