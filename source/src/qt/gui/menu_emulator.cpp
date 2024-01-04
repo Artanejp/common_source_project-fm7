@@ -418,36 +418,40 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 				action_SetRenderPlatform[i]->setData(QVariant(i));
 				actionGroup_SetRenderPlatform->addAction(action_SetRenderPlatform[i]);
 				menu_SetRenderPlatform->addAction(action_SetRenderPlatform[i]);
-				if(i >= RENDER_PLATFORMS_END) {
-					action_SetRenderPlatform[i]->setVisible(false);
-				} else {
-					if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) {
-						if(_major_version == 3) {
-							if(_minor_version >= 1) {
-								if(i == RENDER_PLATFORMS_OPENGL_ES_31) {
-									action_SetRenderPlatform[i]->setChecked(true);
-								}
-							}
-						} else {
-							if(_major_version >= 2) {
-								if(i == RENDER_PLATFORMS_OPENGL_ES_2) {
-									action_SetRenderPlatform[i]->setChecked(true);
-								}
-							}
-						}
-					} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN) {
-						if(_major_version >= 3) {
-							if(i == RENDER_PLATFORMS_OPENGL3_MAIN) {
-								action_SetRenderPlatform[i]->setChecked(true);
-							}
-						} else if(i == RENDER_PLATFORMS_OPENGL2_MAIN) {
-							action_SetRenderPlatform[i]->setChecked(true);
-						}
-					} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
-						if(i == RENDER_PLATFORMS_OPENGL_CORE) {
-							action_SetRenderPlatform[i]->setChecked(true);
-						}
+				switch(i) {
+				case RENDER_PLATFORMS_OPENGL3_MAIN:
+					if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN)
+					   && (_major_version >= 3) && (_minor_version >= 0)) {
+						action_SetRenderPlatform[i]->setChecked(true);
 					}
+					break;
+				case RENDER_PLATFORMS_OPENGL2_MAIN:
+					if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_MAIN)
+					   && (_major_version == 2) && (_minor_version >= 0)) {
+						action_SetRenderPlatform[i]->setChecked(true);
+					}
+					break;
+				case RENDER_PLATFORMS_OPENGL_CORE:
+					if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE)
+					   && (((_major_version == 4) && (_major_version >= 3)) || (_minor_version >= 5))) {
+						action_SetRenderPlatform[i]->setChecked(true);
+					}
+					break;
+				case RENDER_PLATFORMS_OPENGL_ES_2:
+					if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES)
+					   && ((_major_version == 2) || ((_major_version == 3) && (_minor_version == 0)))) {
+						action_SetRenderPlatform[i]->setChecked(true);
+					}
+					break;
+				case RENDER_PLATFORMS_OPENGL_ES_31:
+					if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES)
+					   && ((_major_version >= 4) || ((_major_version == 3) && (_minor_version >= 1)))) {
+						action_SetRenderPlatform[i]->setChecked(true);
+					}
+					break;
+				default: // Unknown.
+					action_SetRenderPlatform[i]->setVisible(false);
+					break;
 				}
 				connect(action_SetRenderPlatform[i], SIGNAL(triggered()),
 						this, SLOT(do_select_render_platform(void)));

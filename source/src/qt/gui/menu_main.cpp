@@ -292,7 +292,7 @@ void Ui_MainWindowBase::do_select_render_platform(void)
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int num = cp->data().value<int>();
-
+	//printf("Render platform to %d\n", num);
 	int _major = 0;
 	int _minor = 0;
 	int _type = -1;
