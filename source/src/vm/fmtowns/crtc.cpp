@@ -492,7 +492,7 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 {
 	horiz_width_posi_us_next = crtc_clock * ((double)hsw1); // HSW1
 	horiz_width_nega_us_next = crtc_clock * ((double)hsw2); // HSW2
-	horiz_us_next = crtc_clock * ((double)hst_reg); // HST
+	horiz_us_next = crtc_clock * ((double)((hst_reg >> 1) + 1)); // HST
 	for(int layer = 0; layer < 2; layer++) {
 		horiz_start_us_next[layer] = ((double)hstart_reg[layer]) * crtc_clock;
 		horiz_end_us_next[layer] =   ((double)hde[layer]) * crtc_clock;   // HDEx
@@ -2154,7 +2154,7 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	horiz_us = horiz_us_next;
 		
 	lines_per_frame = vst_reg;
-	double horiz_ref = horiz_us / 2.0;
+	double horiz_ref = horiz_us;
 	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
 	if(frame_us <= 0.0) {
 		frame_us = 1.0e6 / FRAMES_PER_SEC;
@@ -2528,17 +2528,18 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	static const _TCHAR *single_modes_list[4] = { _T("NONE "), _T("NONE "), _T("32768"), _T("256  ") };
 	static const _TCHAR *twin_modes_list[4]   = { _T("NONE "), _T("32768"), _T("NONE "), _T("16   ") };
 
+	double horiz_ref = horiz_us;
 	my_stprintf_s(paramstr, sizeof(paramstr) / sizeof(_TCHAR),
 				  _T("\n")
-				  _T("DISPLAY: %s / VCOUNT=%d / FRAMES PER SEC=%6g / FRAME uS=%6g \n")
+				  _T("DISPLAY: %s / VCOUNT=%d / FRAMES PER SEC=%6g / FRAME uS=%6g\n")
 				  _T("CLOCK=%6gMHz / FREQ=%4gKHz\n")
 				  _T("SINGLE LAYER:%s COLORS: L0=%s L1=%s PRIORITY: %s \n")
 				  _T("LINES PER FRAME=%d / PIXELS PER LINE=%d / MAX LINE=%d\n")
 				  _T("\n")
-				  _T("RAW VALUES: VST REG=%d VST1=%d VST2=%d / HST REG=%04d HSW1=%d HDW2=%d\n\n")
+				  _T("RAW VALUES: VST REG=%d VST1=%d VST2=%d / HST REG=%04d HSW1=%d HSW2=%d\n\n")
 				  _T("EET   uS=%6g /")
 				  _T("VST1  uS=%6g / VST2  uS=%6g\n")
-				  _T("HORIZ uS=%6g / POSI  uS=%6g / NEGA  uS=%6g\n")
+				  _T("HORIZ uS=%6g / POSI  uS=%6g / NEGA uS=%6g\n")
 				  _T("VERT  START uS [0]=%6g [1]=%6g / END   uS [0]=%6g [1]=%6g\n")
 				  _T("HORIZ START uS [0]=%6g [1]=%6g / END   uS [0]=%6g [1]=%6g\n\n")
 				  , (display_enabled) ? _T("ON ") : _T("OFF"), vert_line_count
@@ -2549,11 +2550,11 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , ((voutreg_prio & 0x01) != 0) ? _T("L1 > L0") : _T("L0 > L1")
 				  , lines_per_frame, pixels_per_line, max_lines
 				  , vst_reg, vst1, vst2, hst_reg, hsw1, hsw2
-				  , ((double)eet_count) * crtc_clock
-				  , ((double)vst1_count) * crtc_clock, ((double)vst2_count) * crtc_clock
-				  , horiz_us, horiz_width_posi_us, horiz_width_nega_us
-				  , ((double)vds[0]) * horiz_us, ((double)vds[1]) * horiz_us
-				  , ((double)vde[0]) * horiz_us, ((double)vde[1]) * horiz_us
+				  , ((double)eet_count) * horiz_ref
+				  , ((double)vst1_count) * horiz_ref, ((double)vst2_count) * horiz_ref
+				  , horiz_ref, horiz_width_posi_us, horiz_width_nega_us
+				  , ((double)vds[0]) * horiz_ref, ((double)vds[1]) * horiz_ref
+				  , ((double)vde[0]) * horiz_ref, ((double)vde[1]) * horiz_ref
 				  , horiz_start_us[0], horiz_start_us[1], horiz_end_us[0], horiz_end_us[1]
 		);
 
