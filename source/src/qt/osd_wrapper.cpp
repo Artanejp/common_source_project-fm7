@@ -686,14 +686,15 @@ int OSD::draw_screen()
 {
 	// draw screen
 	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
-
 	bool mapped = false;
 	//QMutexLocker Locker_VM(&vm_mutex);
+	#if 0
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		//emit sig_movie_set_width(vm_screen_width);
 		//emit sig_movie_set_height(vm_screen_height);
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
+	#endif
 	#if 1
 	if(p_glv->is_ready_to_map_vram_texture()) {
 		vm_screen_buffer.is_mapped = true;
@@ -728,6 +729,7 @@ int OSD::draw_screen()
 
 void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	OSD_BASE::initialize_screen_buffer(buffer, width, height, mode);
 	buffer->glv = p_glv;
 	//emit sig_movie_set_width(width);

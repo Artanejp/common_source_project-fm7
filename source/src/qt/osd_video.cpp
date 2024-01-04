@@ -148,6 +148,7 @@ void OSD_BASE::show_capture_dev_filter()
 
 void OSD_BASE::show_capture_dev_pin()
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 #if 0	
 	if(cur_capture_dev_index != -1) {
 		if(!connect_capture_dev(cur_capture_dev_index, true)) {
@@ -159,6 +160,7 @@ void OSD_BASE::show_capture_dev_pin()
 
 void OSD_BASE::show_capture_dev_source()
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 #if 0
 	if(pCaptureGraphBuilder2 != NULL) {
 		IAMCrossbar *pCrs = NULL;
