@@ -1068,10 +1068,10 @@ void ProcessCmdLine(QCommandLineParser *cmdparser, const QStringList vmedialist,
 	x_t _t = {CONFIG_RENDER_PLATFORM_OPENGL_ES, 2, 1};
 	if(_glmap.contains(rendervalue)) {
 		_t = _glmap.value(rendervalue);
+		config.render_platform = _t.type;
+		config.render_major_version = _t.major;
+		config.render_minor_version = _t.minor;
 	}
-	config.render_platform = _t.type;
-	config.render_major_version = _t.major;
-	config.render_minor_version = _t.minor;
 
 	switch(config.render_platform) {
 	case CONFIG_RENDER_PLATFORM_OPENGL_MAIN:
