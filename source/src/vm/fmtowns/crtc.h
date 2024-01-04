@@ -172,9 +172,8 @@ typedef struct {
 	int32_t num[4];
 	uint32_t prio_dummy;
 #pragma pack(push, 1)
-	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
+	uint8_t r50_planemask[2]; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t crtout[2];
-	uint8_t r50_pad;
 #pragma pack(pop)
 	int32_t  bitshift[2];
 	uint32_t pad;
@@ -333,7 +332,7 @@ protected:
 	// Register 00 : Display mode.
 	// Register 11: Priority mode.
 	bool video_brightness; // false = high.
-
+	bool is_interlaced[4][2]; // cache values of layuer_is_interlaced().
 	// Others.
 	// VRAM CONTROL REGISTER.
 	uint8_t voutreg_num;  // I/O 0448h
@@ -405,8 +404,8 @@ protected:
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
 	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
 
-	virtual void __FASTCALL pre_transfer_line(int line);
-	virtual void __FASTCALL transfer_line(int line, int layer);
+	virtual void __FASTCALL pre_transfer_line(int layer, int line);
+	virtual void __FASTCALL transfer_line(int layer, int line);
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1);
@@ -442,6 +441,11 @@ protected:
 			layer0 = modes_by_CR0_multi[display_mode[0] & 3];
 			layer1 = modes_by_CR0_multi[display_mode[1] & 3];
 		}
+	}
+	constexpr bool layer_is_interlaced(int layer)
+	{
+		bool _b = (frame_offset[layer & 1] == 0) ? true : false;
+		return _b;
 	}
 	inline void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only)
 	{
@@ -479,7 +483,6 @@ protected:
 
 	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
 	virtual void render_text();
-
 public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

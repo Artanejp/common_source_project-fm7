@@ -245,13 +245,13 @@
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		55.4 // OK?
-#define LINES_PER_FRAME 	784  // OK?
+#define LINES_PER_FRAME 	1024  // OK?
 
 #define CPU_CLOCKS		16000000 // This maybe dummy value, see VM::VM().
 
 #undef FIXED_FRAMEBUFFER_SIZE
 #define SCREEN_WIDTH		    1024
-#define SCREEN_HEIGHT		    768
+#define SCREEN_HEIGHT		    1024 /* This is for full emulation. 20240104 K.O */
 #define WINDOW_WIDTH_ASPECT	    1024
 #define WINDOW_HEIGHT_ASPECT    768
 
@@ -307,9 +307,16 @@
 #define BASE_FLOPPY_DISK_NUM 0
 //#define USE_QUEUED_SCSI_TRANSFER
 
+#include "../vm_limits.h"
 #include "../../common.h"
 #include "../../fileio.h"
 #include "../vm_template.h"
+
+/* OVERRIDE EVENT PARAMETER(S) for high resolution */
+#if defined(MAX_LINES)
+#undef MAX_LINES
+#endif
+#define MAX_LINES (1280+128)
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
