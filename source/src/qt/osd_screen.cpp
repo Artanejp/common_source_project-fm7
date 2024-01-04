@@ -49,6 +49,7 @@ void OSD_BASE::set_vm_screen_lines(int lines)
 
 void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	if(vm_screen_width != screen_width || vm_screen_height != screen_height) {
 		if(window_width == -1) {
 			window_width = screen_width;
@@ -68,6 +69,10 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 		vm_window_height = window_height;
 		vm_window_width_aspect = window_width_aspect;
 		vm_window_height_aspect = window_height_aspect;
+
+		//emit sig_movie_set_width(vm_screen_width);
+		//emit sig_movie_set_height(vm_screen_height);
+		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 		
 		// change the window size
 		//emit sig_movie_set_width(screen_width);
@@ -126,6 +131,7 @@ void OSD_BASE::update_screen()
 void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
 {
 	// Dummy
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	release_screen_buffer(buffer);
 	buffer->width = width;
 	buffer->height = height;
@@ -143,6 +149,7 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 }
 void OSD_BASE::release_screen_buffer(bitmap_t *buffer)
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	if(!(buffer->width == 0 && buffer->height == 0)) {
 		//if(buffer->hPainter == NULL) delete buffer->hPainter;
 	}
