@@ -25,7 +25,8 @@ void RF5C68::initialize()
 	mix_factor = 4096;
 	event_dac = -1;
 	event_lpf = -1;
-
+	mix_count = 0;
+	
 	if(d_debugger != NULL) {
 		d_debugger->set_device_name(_T("Debugger (RICOH RF5C68)"));
 		d_debugger->set_context_mem(this);
@@ -35,14 +36,18 @@ void RF5C68::initialize()
 
 void RF5C68::release()
 {
-	//std::lock_guard<std::recursive_mutex> locker(m_locker);
-	if(sample_buffer != NULL) free(sample_buffer);
-	sample_buffer = NULL;
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	if(sample_buffer != NULL) {
+		free(sample_buffer);
+		sample_buffer = NULL;
+	}
+
 }
 
 void RF5C68::reset()
 {
 	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	touch_sound();
 	if(event_dac >= 0) cancel_event(this, event_dac);
 	if(event_lpf >= 0) cancel_event(this, event_lpf);
 	event_dac = -1;
@@ -66,18 +71,15 @@ void RF5C68::reset()
 	for(int i = 0; i < 16; i++) {
 		dac_tmpval[i] = 0x00000000;
 	}
-	if((sample_buffer != NULL) && (sample_length.load() > 0)) {
-		memset(sample_buffer, 0x00, sample_length.load() * sizeof(int32_t) * 2);
-	}
+	clear_buffer();
 	read_pointer = 0;
 	sample_pointer = 0;
 	sample_words = 0;
-	lastsample_l = apply_volume(0, volume_l) >> 1;
-	lastsample_r = apply_volume(0, volume_r) >> 1;
+	lastsample_l = 0;
+	lastsample_r = 0;
 
-	//mix_factor = set_mix_factor(dac_rate, mix_rate);
+	set_mix_factor();
 	mix_count = 0;
-
 }
 
 uint32_t RF5C68::read_signal(int ch)
@@ -117,7 +119,7 @@ uint32_t RF5C68::read_signal(int ch)
 	} else {
 		switch(ch) {
 		case SIG_RF5C68_MUTE:
-			return ((is_mute) ? 0xffffffff : 0x00000000);
+			return ((is_mute.load()) ? 0xffffffff : 0x00000000);
 			break;
 		case SIG_RF5C68_REG_ON:
 			return ((dac_on) ? 0xffffffff : 0x00000000);
@@ -137,12 +139,11 @@ uint32_t RF5C68::read_signal(int ch)
 
 void RF5C68::do_dac_period()
 {
+	int32_t lr[2] = {0};
+	touch_sound();
 	if(dac_on) {
 		__DECL_ALIGNED(16) uint8_t tmpval[8] = {0};
-		__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			dac_tmpval[i] = 0;
-		}
+		__DECL_ALIGNED(16) int32_t val[16] = {0};
 		for(int ch = 0; ch < 8; ch++) {
 			if(dac_onoff[ch]) {
 				uint32_t addr_old = (dac_addr[ch] >> 11) & 0xffff;
@@ -167,72 +168,58 @@ void RF5C68::do_dac_period()
 					}
 				}
 				dac_addr[ch] += dac_fd[ch].d;
-//					dac_addr[ch] = dac_addr[ch] & ((1 << 28) - 1);
+				int8_t rawval = tmpval[ch] & 0x7f;
+				if((tmpval[ch] & 0x80) == 0) {
+					rawval = -rawval;
+				}
+				val[chd + 0] = rawval;
+				val[chd + 1] = rawval;
 			}
-		}
-		__DECL_ALIGNED(16) int32_t sign[16] = {1};
-		__DECL_ALIGNED(16) int32_t val[16] = {0};
-		__DECL_VECTORIZED_LOOP
-		for(int ch = 0; ch < 8; ch++) {
-			int chd = ch << 1;
-			sign[chd + 0] = (dac_onoff[ch]) ? (((tmpval[ch] & 0x80) == 0) ? -1 : 1): 1; // 0 = minus
-			sign[chd + 1] = sign[chd + 0];
-			val[chd + 0] = (dac_onoff[ch]) ? (tmpval[ch] & 0x7f) : 0;
-			val[chd + 1] = val[chd + 0];
 		}
 		// VAL = VAL * ENV * PAN
 		__DECL_VECTORIZED_LOOP
 		for(int chd = 0; chd < 16; chd++) {
-			val[chd] = val[chd] * dac_env[chd];
+			val[chd] *= dac_env[chd];
 		}
 		__DECL_VECTORIZED_LOOP
 		for(int chd = 0; chd < 16; chd++) {
-			val[chd] = val[chd] * dac_pan[chd];
+			val[chd] *= dac_pan[chd];
 		}
-		// Sign
 		__DECL_VECTORIZED_LOOP
 		for(int chd = 0; chd < 16; chd++) {
-			dac_tmpval[chd] = val[chd] * sign[chd];
+			val[chd] /= (1 << 6);
 		}
+		// Clamping
+		__DECL_VECTORIZED_LOOP
+		for(int chd = 0; chd < 16; chd++) {
+			lr[chd & 1] += val[chd];
+		}
+		for(int i = 0; i < 2; i++) {
+			lr[i] <<= 4; // Expand volume.
+			//__UNLIKELY_IF(lr[i] >= 32768) {
+			//	lr[i] = 32768;
+			//}
+			//__UNLIKELY_IF(lr[i] < -32767) {
+			//	lr[i] = -32767;
+			//}
+		}
+		//for(int i = 0; i < 2; i++) {
+		//	lr[i] >>= 2;
+		//}
 		// Re-Init sample buffer
-		{
+		//	touch_sound();
+	}
+	{
 		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		if((sample_buffer != NULL) /*&& (sample_words < sample_length.load())*/){
-			int32_t* np = &(sample_buffer[sample_pointer << 1]);
-			__DECL_ALIGNED(8) int32_t lr[2];
-			for(int i = 0; i < 2; i++) {
-				lr[i] = 0;
-			}
-			// ADD or SUB
-			__DECL_VECTORIZED_LOOP
-			for(int chd = 0; chd < 16; chd++) {
-				lr[chd & 1] += dac_tmpval[chd];
-			}
-/*
-  static const int32_t uplimit = 127 << 6;
-  static const int32_t lowlimit  = -(127 << 6);
-  __DECL_VECTORIZED_LOOP
-  for(int chd = 0; chd < 2; chd++) {
-  if(lr[chd] > uplimit) {
-  lr[chd] = uplimit;
-  }
-  if(lr[chd] < lowlimit) {
-  lr[chd] = lowlimit;
-  }
-  lr[chd] >>= 2;
-  }
-*/
-			__DECL_VECTORIZED_LOOP
-			for(int chd = 0; chd < 2; chd++) {
-				lr[chd] >>= 2;
-			}
+		__LIKELY_IF(sample_buffer != NULL) {
+			int32_t* np = &(sample_buffer[sample_pointer.load() << 1]);
 			np[0] = lr[0];
 			np[1] = lr[1];
-			sample_pointer = (sample_pointer.load() + 1) % sample_length.load();
+		}
+		__LIKELY_IF(sample_words.load() < sample_length()) {
 			sample_words++;
-			sample_words = (sample_words.load() >= sample_length.load()) ? sample_length.load() : sample_words.load();
 		}
-		}
+		sample_pointer = (sample_pointer.load() + 1) % sample_length();
 	}
 }
 
@@ -252,6 +239,7 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 		write_signals(&interrupt_boundary, 0x80000008);
 		break;
 	case SIG_RF5C68_MUTE:
+		touch_sound();
 		is_mute = ((data & mask) != 0) ? true : false;
 		break;
 	case SIG_RF5C68_REG_BANK:
@@ -322,8 +310,9 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 //					  dac_ch, data);
 		break;
 	case 0x07: // Control
+		touch_sound();
 		{
-			bool old_dac_on = dac_on;
+			bool dac_on_bak = dac_on;
 			dac_on = ((data & 0x80) != 0) ? true : false;
 			if(dac_on) {
 				__UNLIKELY_IF((event_dac < 0) && !(_RF5C68_DRIVEN_BY_EXTERNAL_CLOCK)) {
@@ -345,12 +334,12 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 			} else { // WB3-0
 				dac_bank = ((data & 0x0f) << 12);
 			}
-			/*if((dac_on != old_dac_on) && !(dac_on)) {
+			/*if((dac_on != dac_on_bak) && !(dac_on)) {
 				sample_pointer = 0;
 				sample_words = 0;
 				read_pointer = 0;
-				if((sample_buffer != NULL) && (sample_length.load() > 0)) {
-					memset(sample_buffer, 0x00, sizeof(int32_t) * 2 * sample_length.load());
+				if((sample_buffer != NULL) && (sample_length() > 0)) {
+					memset(sample_buffer, 0x00, sizeof(int32_t) * 2 * sample_length());
 				}
 			}*/
 		}
@@ -360,6 +349,7 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 //					   dac_ch, dac_bank);
 		break;
 	case 0x08: // ON/OFF per CH
+		touch_sound();
 		{
 			uint32_t mask = 0x01;
 			for(int i = 0; i < 8; i++) {
@@ -451,39 +441,34 @@ void RF5C68::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 
 void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l - 4);
-	volume_r = decibel_to_volume(decibel_r - 4);
+	touch_sound();
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 
-void RF5C68::get_sample(int32_t *v, int words)
+int RF5C68::get_sample(int words, size_t ptr)
 {
-	__UNLIKELY_IF(v == NULL) return;
-
-	int swords = sample_words.load();
-	__UNLIKELY_IF(words > swords) words = swords;
-	__UNLIKELY_IF(words <= 0) return;
-	int rptr = read_pointer.load();
-	switch(words) {
-	case 1:
-		v[0] = sample_buffer[(rptr << 1) + 0];
-		v[1] = sample_buffer[(rptr << 1) + 1];
-		break;
-	default:
-		{
-			int nptr = rptr - words + 1;
-			int nwords = words << 1;
-			int slen = sample_length.load();
-			if(nptr < 0) nptr = rptr + slen - words;
-			for(int i = 0; i < nwords; i += 2) {
-				v[i + 0] = sample_buffer[(nptr << 1) + 0];
-				v[i + 1] = sample_buffer[(nptr << 1) + 1];
-				nptr = (nptr + 1) % slen;
-			}
-		}
-		break;
+	int count = 0;
+	size_t swords = sample_words.load();
+	dac_tmpval[0] = dac_tmpval[2];
+	dac_tmpval[1] = dac_tmpval[3];
+	__UNLIKELY_IF((sample_buffer == NULL) || (swords == 0)) {
+		return 0;
 	}
-	return;
+	for(int i = 2; i < ((words + 1) << 1); i += 2) {
+		__UNLIKELY_IF(swords < 1) break;
+		dac_tmpval[i + 0] = sample_buffer[(ptr << 1) + 0];
+		dac_tmpval[i + 1] = sample_buffer[(ptr << 1) + 1];
+		__UNLIKELY_IF(ptr == 0) {
+			ptr = sample_length() - 1;
+		} else {
+			ptr = (ptr - 1) % sample_length();
+		}
+		count++;
+		swords--;
+	}
+	return count;
 }
 
 void RF5C68::lpf_threetap(int32_t *v, int &lval, int &rval)
@@ -498,131 +483,55 @@ void RF5C68::lpf_threetap(int32_t *v, int &lval, int &rval)
 
 void RF5C68::mix(int32_t* buffer, int cnt)
 {
-	int32_t lval, rval = 0;
+	// ToDo: Synchronize at start of frame. 20240106 K.O
 	// ToDo: supress pop noise.
 	__UNLIKELY_IF(buffer == NULL) return;
 	__UNLIKELY_IF(cnt <= 0) return;
-	if(!(dac_on)) return;
-
-	int old_slen = sample_length.load();
+	//__UNLIKELY_IF(!(is_initialized.load())) return;
+	
+	size_t old_slen = sample_length();
 	bool need_load = true;
 	bool force_load = true;
-	if(old_slen > 0) {
-		__DECL_ALIGNED(16) int32_t val[16]; // 0,1 : before / 2,3 : after
-		mix_factor = lrint((dac_rate * 4096.0) / ((double)(mix_rate.load())));
-		int lval2, rval2 = 0;
+	int32_t* bp = buffer;
+	__LIKELY_IF(old_slen > 0) {
+		int64_t lval, rval;
+		size_t ptr;
 		// ToDo: mix_freq <= dac_freq ; mix_factor >= 4096.
-		if(mix_factor < 4096) {
-			for(int i = 0; i < (cnt << 1); i += 2) {
-				// ToDo: interpoolate.
-				#if 0
-				if((force_load) || ((need_load) && (sample_words.load() > 0))) {
-					// Reload data
-					__DECL_VECTORIZED_LOOP
-					for(int ii = 0; ii < (sizeof(val) / sizeof(int32_t)); ii++) {
-						val[ii] = 0;
-					}
-					{
-						std::lock_guard<std::recursive_mutex> locker(m_locker);
-						get_sample(val, 3);
-					}
-					lpf_threetap(val, lval, rval);
-					#if 1
-					lastsample_l = apply_volume(lval, volume_l);
-					lastsample_r = apply_volume(rval, volume_r);
-					#endif
-					if(sample_words.load() >= 3) {
-						need_load = false;
-					}
-					force_load = false;
-				}
-				__LIKELY_IF(!(is_mute)) {
-					buffer[i]     += lastsample_l;
-					buffer[i + 1] += lastsample_r;
-				}
-				#else
-				__LIKELY_IF(!(is_mute) && (sample_buffer != NULL)) {
-					int rptr = read_pointer.load();
-					int32_t* pp = &(sample_buffer[rptr << 1]);
-					lval = buffer[i + 0] + apply_volume(pp[0], volume_l);
-					rval = buffer[i + 1] + apply_volume(pp[1], volume_r);
-					lval = min(lval, 32767);
-					lval = max(lval, -32768);
-					rval = min(rval, 32767);
-					rval = max(rval, -32768);
-					buffer[i + 0] = lval;
-					buffer[i + 1] = rval;
-				}
-				#endif
-				mix_count += mix_factor;
-				if(mix_count >= 4096) {
-					std::lock_guard<std::recursive_mutex> locker(m_locker);
-//				out_debug_log(_T("MIX COUNT=%d FACTOR=%d"), mix_count, mix_factor);
-					int n = mix_count >> 12;
-					int old_rptr = read_pointer.load();
-					read_pointer += n;
-					if((old_rptr < sample_pointer.load()) && (read_pointer.load() >= sample_pointer.load())) {
-						// Overshoot read opinter
-						read_pointer = sample_pointer.load() - 1;
-						if(read_pointer.load() < 0) read_pointer = sample_length.load() - 1;
-						if(read_pointer.load() <= 0) read_pointer = 0;
-					} else if((old_rptr >= sample_pointer.load())) {
-						if(old_rptr < (sample_pointer.load() + sample_length.load() - sample_words.load())) {
-							read_pointer = (sample_pointer.load() + sample_length.load() - sample_words.load());
-						}
-					}
-					read_pointer = read_pointer.load() % sample_length.load();
-					need_load = true;
-					mix_count -= (n << 12);
-				}
-			}
-		} else 	if(mix_factor == 4096) {
-			// ToDo: Interpoolate
+		int mix_factor_bak = mix_factor.load();
+		for(int sptr = 0; sptr < cnt; sptr++) {
+			size_t got_words = 0;
+			size_t req_words = 1;
+			int mix_count_bak = mix_count.load();
+			ptr = read_pointer.load();
 			{
 				std::lock_guard<std::recursive_mutex> locker(m_locker);
-				get_sample(val, 4);
-			}
-			lpf_threetap(val, lval, rval);
-			for(int i = 0; i < (cnt << 1); i += 2) {
-				lastsample_l = apply_volume(lval, volume_l) >> 1;
-				lastsample_r = apply_volume(rval, volume_r) >> 1;
-				buffer[i]     += lastsample_l;
-				buffer[i + 1] += lastsample_r;
-				read_pointer = (read_pointer.load() + 1) % sample_length;
-				{
-					std::lock_guard<std::recursive_mutex> locker(m_locker);
-					get_sample(val, 4);
-				}
-				lpf_threetap(val, lval, rval);
-			}
-		} else { // MIX_FACTOR > 1.0
-			// ToDo: Correct downsampling.
-			{
-				std::lock_guard<std::recursive_mutex> locker(m_locker);
-				get_sample(val, 8);
-			}
-			lpf_threetap(val, lval, rval);
-			for(int i = 0; i < (cnt << 1); i += 2) {
-				lastsample_l = apply_volume(lval, volume_l) >> 1;
-				lastsample_r = apply_volume(rval, volume_r) >> 1;
-				buffer[i]     += lastsample_l;
-				buffer[i + 1] += lastsample_r;
-
-				int n = mix_count >> 12;
-				read_pointer += n;
-				read_pointer = read_pointer.load() % sample_length.load();
-				if(sample_words.load() > 0) {
-					// Reload data
-					memset(val, 0x00, sizeof(val));
-					get_sample(val, 8);
+				__LIKELY_IF((sample_buffer != NULL) && (is_initialized.load()) ) {
+					lval = sample_buffer[(ptr << 1) + 0];
+					rval = sample_buffer[(ptr << 1) + 1];
 				} else {
-					val[0] = val[2];
-					val[1] = val[3];
-					val[2] = 0;
-					val[3] = 0;
+					lval = 0;
+					rval = 0;
 				}
-				mix_count -= (n << 12);
-				lpf_threetap(val, lval, rval);
+				mix_count += mix_factor_bak;
+				__UNLIKELY_IF(mix_count.load() >= (1 << 12)) {
+					// ToDo: DownSampling.
+					mix_count -= (1 << 12);
+					//mix_count &= ((1 << 12) - 1);
+					//__UNLIKELY_IF(mix_factor_bak >= (1 << 12)) {
+					if(sample_words.load() > 0) {
+						ptr = (ptr + 1) % sample_length();
+						sample_words--;
+					}
+					read_pointer = ptr;
+					//}
+				}
+			}
+			__LIKELY_IF(!(is_mute.load())) {
+				int32_t true_lval = apply_volume((int32_t)lval, volume_l.load());
+				int32_t true_rval = apply_volume((int32_t)rval, volume_r.load());
+				bp[0] += true_lval;
+				bp[1] += true_rval;
+				bp += 2;
 			}
 		}
 	}
@@ -633,25 +542,18 @@ void RF5C68::initialize_sound(int sample_rate, int samples)
 	std::lock_guard<std::recursive_mutex> locker(m_locker);
 	if((sample_rate > 0) && (samples > 0)) {
 		mix_rate = sample_rate;
-		sample_length = samples;
-		//mix_factor = set_mix_factor(dac_rate, mix_rate);
-		mix_count = 0;
-		read_pointer = 0;
-		sample_pointer = 0;
-		sample_words = 0;
-
-		if(sample_buffer != NULL) free(sample_buffer);
-		sample_buffer = (int32_t*)malloc(sample_length * sizeof(int32_t) * 2);
-		if(sample_buffer != NULL) {
-			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
-		}
-	} else {
+		sample_buffer_length = samples * 2;
 		if(sample_buffer != NULL) {
 			free(sample_buffer);
 		}
-		sample_buffer = NULL;
-		sample_length = 0;
-		mix_rate = 1;
+		sample_buffer = (int32_t*)malloc(sample_buffer_length.load() * 2 * sizeof(int32_t));
+		if(sample_buffer == NULL) {
+			sample_buffer_length = 0;
+		} else {
+			is_initialized = true;
+		}
+		set_mix_factor();
+		clear_buffer();
 	}
 }
 
@@ -685,12 +587,12 @@ bool RF5C68::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_stprintf_s(buffer, buffer_len,
 				  _T("DAC %s BANK=%01X CH=%d MUTE=%s\n")
 				  _T("%s")
-				  , (dac_on) ? _T("ON ") : _T("OFF"), (dac_bank >> 12) & 0x0f, dac_ch, (is_mute) ? _T("ON ") : _T("OFF")
+				  , (dac_on) ? _T("ON ") : _T("OFF"), (dac_bank >> 12) & 0x0f, dac_ch, (is_mute.load()) ? _T("ON ") : _T("OFF")
 				  , sbuf2);
 	return true;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 {
@@ -703,7 +605,12 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(dac_on);
 	state_fio->StateValue(dac_bank);
 	state_fio->StateValue(dac_ch);
-	state_fio->StateValue(is_mute);
+	bool is_mute_tmp = is_mute.load();
+	state_fio->StateValue(is_mute_tmp);
+	if(loading) {
+		is_mute = is_mute_tmp;
+	}
+	
 	state_fio->StateArray(dac_onoff, sizeof(dac_onoff), 1);
 	state_fio->StateArray(dac_addr_st, sizeof(dac_addr_st), 1);
 	state_fio->StateArray(dac_addr, sizeof(dac_addr), 1);
@@ -727,10 +634,10 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(dac_tmpval, sizeof(dac_tmpval), 1);
 
 	// These vars use std::atmic<int> , below are workaround.
-	int sample_words_tmp = sample_words;
-	int sample_pointer_tmp = sample_pointer;
-	int read_pointer_tmp = read_pointer;
-
+	int sample_words_tmp = sample_words.load();
+	int sample_pointer_tmp = sample_pointer.load();
+	int read_pointer_tmp = read_pointer.load();
+	
 	state_fio->StateValue(sample_words_tmp);
 	state_fio->StateValue(sample_pointer_tmp);
 	state_fio->StateValue(read_pointer_tmp);
@@ -739,12 +646,14 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 		sample_pointer = sample_pointer_tmp;
 		read_pointer = read_pointer_tmp;
 	}
+	//state_fio->StateArray(sample_buffer, sizeof(sample_buffer), 1);
 
-//	int sample_length_old = sample_length;
-//	state_fio->StateValue(sample_length);
-
-//	state_fio->StateValue(mix_factor);
-	state_fio->StateValue(mix_count);
+	int mix_count_tmp = mix_count.load();
+	state_fio->StateValue(mix_count_tmp);
+	if(loading) {
+		mix_count = mix_count.load();
+	}
+	
 	state_fio->StateValue(dac_rate);
 	state_fio->StateValue(lpf_cutoff);
 
@@ -755,19 +664,5 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 
 	// ToDo: Save/Load sample_buffer.
 	// Post Process
-	if(loading) {
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		// ToDo: load sample_length & sample_buffer.
-		if(sample_buffer != NULL) free(sample_buffer);
-		sample_buffer = NULL;
-		if(sample_length.load() > 0) {
-			sample_buffer = (int32_t*)malloc(sample_length.load() * sizeof(int32_t) * 2);
-			if(sample_buffer != NULL) {
-				memset(sample_buffer, 0x00, sample_length.load() * sizeof(int32_t) * 2);
-			}
-		}
-	} else { // Saving
-		// ToDo: save sample_length & sample_buffer.
-	}
 	return true;
 }

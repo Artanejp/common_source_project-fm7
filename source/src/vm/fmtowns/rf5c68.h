@@ -45,12 +45,12 @@ protected:
 	bool dac_on;
 	uint16_t dac_bank;
 	uint8_t dac_ch;
-	bool is_mute;
+	std::atomic<bool> is_mute;
 
 	double dac_rate;
 	double lpf_cutoff;
-	int mix_factor;
-	int mix_count;
+	std::atomic<int> mix_factor;
+	std::atomic<int> mix_count;
 
 	int lastsample_l;
 	int lastsample_r;
@@ -61,12 +61,13 @@ protected:
 	std::atomic<int> sample_words;
 	std::atomic<int> sample_pointer;
 	std::atomic<int> read_pointer;
-
+	std::atomic<bool> is_initialized;
+	
 	__DECL_ALIGNED(16) bool dac_onoff[8];
 	__DECL_ALIGNED(16) pair32_t dac_addr_st[8];
 	__DECL_ALIGNED(16) uint32_t dac_addr[8];
-	__DECL_ALIGNED(16) uint32_t dac_env[16];
-	__DECL_ALIGNED(16) uint32_t dac_pan[16];
+	__DECL_ALIGNED(16) int32_t dac_env[16];
+	__DECL_ALIGNED(16) int32_t dac_pan[16];
 	__DECL_ALIGNED(16) pair32_t dac_ls[8];
 	__DECL_ALIGNED(16) pair32_t dac_fd[8];
 
@@ -76,30 +77,54 @@ protected:
 	__DECL_ALIGNED(16) int32_t  dac_tmpval[16];
 
 	std::atomic<int> volume_l, volume_r;
-	int32_t* sample_buffer;
-
-	std::atomic<int> sample_length;
+	int32_t* sample_buffer; // 64 Samples * 2 ch.
+	std::atomic<size_t>   sample_buffer_length;
 	std::atomic<int> mix_rate;
 
 	int event_dac;
 	int event_lpf;
 
 	// ToDo: Work correct LPF.
-
 	virtual void do_dac_period();
-
-	virtual void __FASTCALL get_sample(int32_t *v, int words);
+	inline size_t sample_length()
+	{
+		return sample_buffer_length.load();
+	}
+	inline void set_mix_factor()
+	{
+		int mix_factor_bak;
+		int mix_rate_bak = mix_rate.load();
+		__UNLIKELY_IF(mix_rate_bak <= 0) {
+			return;
+		}
+		__UNLIKELY_IF(dac_rate <= 0.0) {
+			return;
+		}
+		mix_factor_bak = lrint((dac_rate * 4096.0) / ((double)mix_rate_bak));
+		mix_factor = mix_factor_bak;
+	}
+	inline void clear_buffer(const int32_t dat = 0)
+	{
+		mix_count = 0;
+		read_pointer = 0;
+		sample_pointer = 0;
+		sample_words = 0;
+		__LIKELY_IF((sample_buffer != NULL) && (sample_buffer_length > 0)) {
+			memset(sample_buffer, 0x00, sample_buffer_length * 2 * sizeof(int32_t));
+		}
+	}
+	virtual int __FASTCALL get_sample(int words, size_t ptr);
 	void __FASTCALL lpf_threetap(int32_t *v, int &lval, int &rval);
 
 public:
 	RF5C68(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		sample_buffer = NULL;
-		sample_length = 0;
 		mix_rate = 48000; // For Error
+		is_initialized = false;
 		initialize_output_signals(&interrupt_boundary);
 		d_debugger = NULL;
-
+		sample_buffer = NULL;
+		sample_buffer_length = 0;
 		dac_rate = 8.0e6 / 384; // About 19.2KHz
 		lpf_cutoff = 4.0e3;
 		_RF5C68_DRIVEN_BY_EXTERNAL_CLOCK = false;
@@ -158,14 +183,12 @@ public:
 	}
 	virtual void set_dac_rate(double freq)
 	{
-		dac_rate = freq;
-		sample_words = 0;
-		sample_pointer = 0;
-		//mix_factor = set_mix_factor(dac_rate, mix_rate);
-		mix_count = 0;
-		//calc_lpf_cutoff(lpf_cutoff);
-		if((sample_buffer != NULL) && (sample_length > 0)) {
-			memset(sample_buffer, 0x00, sample_length * sizeof(int32_t) * 2);
+		__LIKELY_IF(freq > 0.0) {
+			dac_rate = freq;
+			clear_buffer();
+			if(is_initialized.load()) {
+				set_mix_factor();
+			}
 		}
 	}
 	void set_context_debugger(DEBUGGER* device)
