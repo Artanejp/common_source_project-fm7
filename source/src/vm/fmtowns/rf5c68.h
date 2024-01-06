@@ -86,6 +86,9 @@ protected:
 
 	// ToDo: Work correct LPF.
 	virtual void do_dac_period();
+	void start_dac_clock();
+	void stop_dac_clock();
+
 	inline size_t sample_length()
 	{
 		return sample_buffer_length.load();
@@ -109,6 +112,8 @@ protected:
 		read_pointer = 0;
 		sample_pointer = 0;
 		sample_words = 0;
+		lastsample_l = 0;
+		lastsample_r = 0;
 		__LIKELY_IF((sample_buffer != NULL) && (sample_buffer_length > 0)) {
 			memset(sample_buffer, 0x00, sample_buffer_length * 2 * sizeof(int32_t));
 		}
@@ -188,6 +193,8 @@ public:
 			clear_buffer();
 			if(is_initialized.load()) {
 				set_mix_factor();
+				stop_dac_clock();
+				start_dac_clock();
 			}
 		}
 	}
