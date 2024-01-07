@@ -143,7 +143,7 @@ void TOWNS_DMAC::write_io8(uint32_t addr, uint32_t data)
 		check_mask_and_cmd();
 		if(data & 1) {
 			reset_from_io();
-			out_debug_log(_T("RESET from I/O; B16=%s"), ((b16 & 2) != 0) ? _T("16bit") : _T("8bit"));
+			//out_debug_log(_T("RESET from I/O; B16=%s"), ((b16 & 2) != 0) ? _T("16bit") : _T("8bit"));
 		}
 		break;
 	case 0x02:
