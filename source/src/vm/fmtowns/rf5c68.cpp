@@ -215,7 +215,7 @@ void RF5C68::do_dac_period()
 			__UNLIKELY_IF(lr[i] < -65535) {
 				lr[i] = -65535;
 			}
-			lr[i] <<= 2; // Expand volume (Hacks for CSP)
+			//lr[i] <<= 2; // Expand volume (Hacks for CSP)
 		}
 		//for(int i = 0; i < 2; i++) {
 		//	lr[i] >>= 2;
