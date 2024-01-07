@@ -49,36 +49,32 @@ protected:
 
 	double dac_rate;
 	double lpf_cutoff;
-	std::atomic<int> mix_factor;
-	std::atomic<int> mix_count;
+	std::atomic<size_t> mix_factor;
+	std::atomic<size_t> mix_count;
 
-	int lastsample_l;
-	int lastsample_r;
+	std::atomic<int32_t> lastsample_l;
+	std::atomic<int32_t> lastsample_r;
+	std::atomic<int32_t> prevsample_l;
+	std::atomic<int32_t> prevsample_r;
 
 	bool _RF5C68_DRIVEN_BY_EXTERNAL_CLOCK;
 
 	std::recursive_mutex m_locker;
-	std::atomic<int> sample_words;
-	std::atomic<int> sample_pointer;
-	std::atomic<int> read_pointer;
+	std::atomic<bool> is_interpolate;
 	std::atomic<bool> is_initialized;
 	
 	__DECL_ALIGNED(16) bool dac_onoff[8];
 	__DECL_ALIGNED(16) pair32_t dac_addr_st[8];
 	__DECL_ALIGNED(16) uint32_t dac_addr[8];
-	__DECL_ALIGNED(16) int32_t dac_env[16];
-	__DECL_ALIGNED(16) int32_t dac_pan[16];
+	__DECL_ALIGNED(16) uint32_t dac_env[16];
+	__DECL_ALIGNED(16) uint32_t dac_pan[16];
 	__DECL_ALIGNED(16) pair32_t dac_ls[8];
 	__DECL_ALIGNED(16) pair32_t dac_fd[8];
 
 
 	// TMP Values
 	bool dac_force_load[8];
-	__DECL_ALIGNED(16) int32_t  dac_tmpval[16];
-
 	std::atomic<int> volume_l, volume_r;
-	int32_t* sample_buffer; // 64 Samples * 2 ch.
-	std::atomic<size_t>   sample_buffer_length;
 	std::atomic<int> mix_rate;
 
 	int event_dac;
@@ -89,10 +85,6 @@ protected:
 	void start_dac_clock();
 	void stop_dac_clock();
 
-	inline size_t sample_length()
-	{
-		return sample_buffer_length.load();
-	}
 	inline void set_mix_factor()
 	{
 		int mix_factor_bak;
@@ -103,22 +95,12 @@ protected:
 		__UNLIKELY_IF(dac_rate <= 0.0) {
 			return;
 		}
-		mix_factor_bak = lrint((dac_rate * 4096.0) / ((double)mix_rate_bak));
-		mix_factor = mix_factor_bak;
+		mix_factor = lrint((dac_rate * 4096.0) / ((double)mix_rate_bak));
 	}
 	inline void clear_buffer(const int32_t dat = 0)
 	{
 		mix_count = 0;
-		read_pointer = 0;
-		sample_pointer = 0;
-		sample_words = 0;
-		lastsample_l = 0;
-		lastsample_r = 0;
-		__LIKELY_IF((sample_buffer != NULL) && (sample_buffer_length > 0)) {
-			memset(sample_buffer, 0x00, sample_buffer_length * 2 * sizeof(int32_t));
-		}
 	}
-	virtual int __FASTCALL get_sample(int words, size_t ptr);
 	void __FASTCALL lpf_threetap(int32_t *v, int &lval, int &rval);
 
 public:
@@ -128,10 +110,9 @@ public:
 		is_initialized = false;
 		initialize_output_signals(&interrupt_boundary);
 		d_debugger = NULL;
-		sample_buffer = NULL;
-		sample_buffer_length = 0;
 		dac_rate = 8.0e6 / 384; // About 19.2KHz
 		lpf_cutoff = 4.0e3;
+		is_interpolate = false;
 		_RF5C68_DRIVEN_BY_EXTERNAL_CLOCK = false;
 		set_device_name(_T("ADPCM RF5C68"));
 	}
@@ -141,7 +122,6 @@ public:
 	virtual void release() override;
 
 	virtual void reset() override;
-
 	virtual void __FASTCALL event_callback(int id, int err) override;
 
 	virtual uint32_t __FASTCALL read_memory_mapped_io8w(uint32_t addr, int* wait) override;
@@ -180,7 +160,11 @@ public:
 	  unique functions
 	*/
 	virtual void initialize_sound(int sample_rate, int samples);
-
+	// Set ineterpolate rendering (still be imcomplete).
+	void set_mix_interpolate(bool val)
+	{
+		is_interpolate = val;
+	}
 	virtual void set_lpf_cutoff(double freq)
 	{
 		lpf_cutoff = freq;
