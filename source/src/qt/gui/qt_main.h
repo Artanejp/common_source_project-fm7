@@ -24,11 +24,9 @@
 //#include "../../emu.h"
 
 class META_MainWindow;
-extern class META_MainWindow *rMainWindow;
 // menu
 extern std::string DLL_PREFIX cpp_homedir;
 extern std::string DLL_PREFIX cpp_confdir;
-extern std::string DLL_PREFIX my_procname;
 extern std::string DLL_PREFIX sRssDir;
 
 extern const int DLL_PREFIX screen_mode_width[];

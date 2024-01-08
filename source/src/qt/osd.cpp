@@ -1363,15 +1363,13 @@ void OSD::set_features(void)
 	__USE_AUTO_KEY = true;
 #endif
 }
-
-extern std::string cpp_homedir;
-extern std::string my_procname;
-
 void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	// get module path
 	QString tmp_path;
-	tmp_path = QString::fromStdString(cpp_homedir);
+	if(using_flags.get() != nullptr) {
+		tmp_path = using_flags->get_home_directory();
+	}
 #if defined(Q_OS_WIN)
 	const char *delim = "\\";
 #else
@@ -1380,7 +1378,9 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 	//tmp_path = tmp_path + QString::fromUtf8(delim);
 	tmp_path = tmp_path + QString::fromUtf8("CommonSourceCodeProject");
 	tmp_path = tmp_path + QString::fromUtf8(delim);
-	tmp_path = tmp_path + QString::fromStdString(my_procname);
+	if(using_flags.get() != nullptr) {
+		tmp_path = tmp_path + using_flags->get_proc_name();
+	}
 	tmp_path = tmp_path + QString::fromUtf8(delim);
 	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH - 1);

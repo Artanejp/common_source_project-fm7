@@ -176,7 +176,6 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 	}
 	return vk;
 }
-extern std::string cpp_confdir;
 
 void GLDrawClass::initKeyCode(void)
 {
@@ -184,10 +183,13 @@ void GLDrawClass::initKeyCode(void)
 	{
 		// Replace only ScanCode
 		FILEIO *fio = new FILEIO();
-		std::string app_path2;
+		QString app_path2;
 		// Read scan table.
-		app_path2 = cpp_confdir + "scancode.cfg";
-		if(fio->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
+		if(using_flags.get() != nullptr) {
+			app_path2 = using_flags->get_config_directory();
+		}
+		app_path2 = app_path2 + "scancode.cfg";
+		if(fio->Fopen(app_path2.toLocal8Bit().constData(), FILEIO_READ_ASCII)) {
 			char buf[512];
 			memset(buf, 0x00, sizeof(buf));
 			while(fio->Fgets(buf, 512) != NULL) {
@@ -219,14 +221,18 @@ void GLDrawClass::releaseKeyCode(void)
 	// Replace only ScanCode
 	int i;
 	FILEIO *fio = new FILEIO();
-	std::string app_path2;
+
 	uint32_t scan;
 	uint32_t vk;
 	int n;
 	// Read scan table.
 	if(key_table == NULL) return;
-	app_path2 = cpp_confdir + "scancode.cfg";
-	if(fio->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
+	QString app_path2 = QString::fromUtf8("");
+	if(using_flags.get() != nullptr) {
+		app_path2 = using_flags->get_config_directory();
+	}
+	app_path2 = app_path2 + QString::fromUtf8("scancode.cfg");
+	if(fio->Fopen(app_path2.toLocal8Bit().constData(), FILEIO_WRITE_ASCII)) {
 		n = key_table->get_key_table_size();
 		for(i = 0; i <= n; i++) {
 			vk = key_table->get_vk_from_index(i);

@@ -174,7 +174,7 @@ void Ui_MainWindowBase::rise_mouse_dialog(void)
 
 void Ui_MainWindowBase::rise_joystick_dialog(void)
 {
-	if((graphicsView != NULL) && (hRunJoy != NULL)) {
+	if((graphicsView != NULL) && (hRunJoy.get() != NULL)) {
 		QStringList *lst = graphicsView->getVKNames();
 		CSP_DropDownJoysticks *dlg = new CSP_DropDownJoysticks(NULL, lst, using_flags, hRunJoy);
 		dlg->setWindowTitle(QApplication::translate("CSP_DropDownJoysticks", "Configure Joysticks", 0));

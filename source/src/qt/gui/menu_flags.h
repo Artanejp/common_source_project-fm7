@@ -3,6 +3,7 @@
 #define __CSP_QT_COMMON_MENU_FLAGS_H
 
 #include <QString>
+#include <mutex>
 #include "common.h"
 #include "config.h"
 
@@ -28,8 +29,14 @@ typedef struct {
 
 class DLL_PREFIX USING_FLAGS {
 protected:
+	std::recursive_mutex m_locker;
 	QString config_name;
 	QString device_name;
+	QString cpp_confdir;
+	QString cpp_homedir;
+	QString my_procname;
+	QString resource_directory;
+	
 	// USE_* flags
 	bool use_alt_f10_key;
 
@@ -392,7 +399,107 @@ public:
 	bool check_feature(const _TCHAR* key);
 	bool check_feature(const QString key);
 	bool check_vm_name(const QString name);
+	
+	void set_config_directory(std::string confdir)
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		cpp_confdir = QString::fromStdString(confdir);
+	}
+	QString get_config_directory()
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		return cpp_confdir;
+	}
+	size_t get_config_directory(_TCHAR* str, size_t maxlen)
+	{
+		__UNLIKELY_IF(maxlen <= 0) return 0;
+		__UNLIKELY_IF(str == nullptr) return 0;
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		_TCHAR* p = (_TCHAR*)(cpp_confdir.toLocal8Bit().constData());
+		__UNLIKELY_IF(p == nullptr) return 0;
+		size_t len = _tcslen(p);
+		if(len >= maxlen) {
+			len = maxlen;
+		}
+		my_tcscpy_s(str, len, p);
+		return len;
+	}
+	
+	void set_home_directory(std::string homedir)
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		cpp_homedir = QString::fromStdString(homedir);
+	}
+	QString get_home_directory()
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		return cpp_homedir;
+	}
+	size_t get_home_directory(_TCHAR* str, size_t maxlen)
+	{
+		__UNLIKELY_IF(maxlen <= 0) return 0;
+		__UNLIKELY_IF(str == nullptr) return 0;
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		_TCHAR* p = (_TCHAR*)(cpp_homedir.toLocal8Bit().constData());
+		__UNLIKELY_IF(p == nullptr) return 0;
+		size_t len = _tcslen(p);
+		if(len >= maxlen) {
+			len = maxlen;
+		}
+		my_tcscpy_s(str, len, p);
+		return len;
+	}
+	
+	void set_proc_name(std::string procname)
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		my_procname = QString::fromStdString(procname);
+	}
+	QString get_proc_name()
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		return my_procname;
+	}
+	size_t get_proc_name(_TCHAR* str, size_t maxlen)
+	{
+		__UNLIKELY_IF(maxlen <= 0) return 0;
+		__UNLIKELY_IF(str == nullptr) return 0;
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		_TCHAR* p = (_TCHAR*)(my_procname.toUtf8().constData());
+		__UNLIKELY_IF(p == nullptr) return 0;
+		size_t len = _tcslen(p);
+		if(len >= maxlen) {
+			len = maxlen;
+		}
+		my_tcscpy_s(str, len, p);
+		return len;
+	}
 
+	void set_resource_directory(std::string rssdir)
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		resource_directory = QString::fromStdString(rssdir);
+	}
+	QString get_resource_directory()
+	{
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		return resource_directory;
+	}
+	size_t get_resource_directory(_TCHAR* str, size_t maxlen)
+	{
+		__UNLIKELY_IF(maxlen <= 0) return 0;
+		__UNLIKELY_IF(str == nullptr) return 0;
+		std::lock_guard<std::recursive_mutex> locker(m_locker);
+		_TCHAR* p = (_TCHAR*)(resource_directory.toLocal8Bit().constData());
+		__UNLIKELY_IF(p == nullptr) return 0;
+		size_t len = _tcslen(p);
+		if(len >= maxlen) {
+			len = maxlen;
+		}
+		my_tcscpy_s(str, len, p);
+		return len;
+	}
+	
 	virtual const _TCHAR *get_sound_device_name(int num);
 	virtual const _TCHAR *get_sound_device_name();
 	virtual const int get_sound_sample_rate(int num);

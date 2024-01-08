@@ -14,8 +14,7 @@
 #include "dropdown_joystick.h"
 #include "joy_thread.h"
 
-
-CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p,JoyThreadClass *joy) : QWidget(parent)
+CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p,std::shared_ptr<JoyThreadClass> joy) : QWidget(parent)
 {
 	p_wid = parent;
 	using_flags = p;
@@ -34,10 +33,10 @@ CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, 
 		tabBox->addTab(pages[i], tmps);
 	}
 	layout->addWidget(tabBox);
-	if(p_joy != NULL) {
-		connect(p_joy, SIGNAL(sig_state_dpad(int, bool)), this, SLOT(do_check_dpademu(int, bool)));
-		connect(this, SIGNAL(sig_set_emulate_dpad(int, bool)), p_joy, SLOT(do_set_emulate_dpad(int, bool)));
-		connect(this, SIGNAL(sig_assign_joynum(int, int)), p_joy, SLOT(do_map_joy_num(int, int)));
+	if(p_joy.get() != NULL) {
+		connect(p_joy.get(), SIGNAL(sig_state_dpad(int, bool)), this, SLOT(do_check_dpademu(int, bool)));
+		connect(this, SIGNAL(sig_set_emulate_dpad(int, bool)), p_joy.get(), SLOT(do_set_emulate_dpad(int, bool)));
+		connect(this, SIGNAL(sig_assign_joynum(int, int)), p_joy.get(), SLOT(do_map_joy_num(int, int)));
 	}			
 
 	if(p_wid == NULL) this->setWindowIcon(QIcon(":/icon_gamepad.png"));
@@ -76,14 +75,10 @@ void CSP_DropDownJoysticks::do_check_dpademu(int num, bool val)
 
 void CSP_DropDownJoysticks::do_changed_state_dpademu(int num, bool val)
 {
-	if(p_joy != NULL) {
-		emit sig_set_emulate_dpad(num, val);
-	}
+	emit sig_set_emulate_dpad(num, val);
 }
 
 void CSP_DropDownJoysticks::do_assign_joynum(int joynum, int num)
 {
-	if(p_joy != NULL) {
-		emit sig_assign_joynum(joynum, num);
-	}
+	emit sig_assign_joynum(joynum, num);
 }

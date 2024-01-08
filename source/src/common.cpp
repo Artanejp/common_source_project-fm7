@@ -43,6 +43,7 @@
 #endif
 #if defined(_USE_QT)
 	std::string DLL_PREFIX cpp_homedir;
+	std::string DLL_PREFIX cpp_confdir;
 	std::string DLL_PREFIX my_procname;
 	std::string DLL_PREFIX sRssDir;
 #endif

@@ -31,7 +31,6 @@
 extern config_t config;
 extern std::string cpp_homedir;
 extern std::string cpp_confdir;
-extern std::string my_procname;
 extern std::string sRssDir;
 
 void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)

@@ -28,7 +28,7 @@ class DLL_PREFIX CSP_DropDownJoysticks: public QWidget {
 	Q_OBJECT
 protected:
 	config_t *p_config;
-	JoyThreadClass *p_joy;
+	std::shared_ptr<JoyThreadClass> p_joy;
 	QWidget *p_wid;
 	QWidget *window;
 	QHBoxLayout *layout;
@@ -37,7 +37,7 @@ protected:
 	QTabWidget *tabBox;
 	CSP_DropDownJSPage *pages[4];
 public:
-	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p, JoyThreadClass *joy);
+	CSP_DropDownJoysticks(QWidget *parent, QStringList *lst, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<JoyThreadClass> joy);
 	~CSP_DropDownJoysticks();
 
 public slots:

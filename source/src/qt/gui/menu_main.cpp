@@ -45,11 +45,13 @@
 #include "dialog_memory.h"
 
 #include "qt_gldraw.h"
-//#include "emu.h"
+#include "emu_template.h"
 #include "qt_main.h"
 #include "menu_flags.h"
 #include "csp_logger.h"
 #include "common.h"
+
+#include "../emu_thread/emu_thread_tmpl.h"
 
 //extern USING_FLAGS *using_flags;
 void DLL_PREFIX _resource_init(void)
@@ -961,7 +963,6 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 #include <string>
 // Move from common/qt_main.cpp
 // menu
-DLL_PREFIX std::string cpp_confdir;
 
 void Ui_MainWindowBase::do_emu_update_volume_level(int num, int level)
 {
@@ -1063,11 +1064,18 @@ void Ui_MainWindowBase::do_toggle_mouse(void)
 {
 }
 
-void Ui_MainWindowBase::LaunchEmuThread(EmuThreadClassBase *m)
+bool Ui_MainWindowBase::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 {
+	if(m.get() == nullptr) return false;
+	EMU_TEMPLATE* p_emu = m->get_emu();
+	if(p_emu == nullptr) return false;
+	OSD_BASE* p_osd = p_emu->get_osd();
+	if(p_osd == nullptr) return false;
+	hRunEmu = m;
+	return true;
 }
 
-void Ui_MainWindowBase::LaunchJoyThread(void)
+void Ui_MainWindowBase::LaunchJoyThread(std::shared_ptr<JoyThreadClass> m)
 {
 }
 

@@ -89,9 +89,6 @@ OSD_BASE::~OSD_BASE()
 	}
 }
 
-extern std::string cpp_homedir;
-extern std::string my_procname;
-
 const _TCHAR *OSD_BASE::get_lib_osd_version()
 {
 	const _TCHAR *p = (const _TCHAR *)"\0";

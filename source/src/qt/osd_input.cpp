@@ -130,12 +130,6 @@ void OSD_BASE::update_input()
 {
 	bool press_flag = false;
 	bool release_flag = false;
-//	bool get_keycode = false;
-//	if(get_use_auto_key()) {
-//		get_keycode = (!(now_auto_key) && !(config.romaji_to_kana));
-//	} else {
-//		get_keycode = true;
-//	}
 	{
 		//update numpad key status
 		if(key_shift_pressed && !key_shift_released) {

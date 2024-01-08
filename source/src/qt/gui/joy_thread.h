@@ -18,7 +18,7 @@
 #include "common.h"
 #include "config.h"
 
-class EMU_TEMPLATE;
+class EmuThreadClassBase;
 class OSD_BASE;
 class USING_FLAGS;
 
@@ -40,7 +40,7 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	bool emulate_dpad[4];
 	bool is_controller[16];
 	
-	EMU_TEMPLATE *p_emu;
+	std::shared_ptr<EmuThreadClassBase> p_emu_thread;
 	OSD_BASE *p_osd;
 	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
@@ -68,12 +68,10 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent = 0);
+	JoyThreadClass(std::shared_ptr<EmuThreadClassBase>  p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
-	void SetEmu(EMU_TEMPLATE *p) {
-		p_emu = p;
-	}
+	void SetEmu(std::shared_ptr<EmuThreadClassBase>  p);
 	bool search_joydb(QString str, QString& answer);
 	bool search_joydb_by_guid(QString guid, QString& answer);
 	QString make_guid(SDL_JoystickGUID guid);

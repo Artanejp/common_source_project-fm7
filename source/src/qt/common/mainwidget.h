@@ -33,10 +33,10 @@ public:
 	//void retranslateUI_Help(void);
 	// EmuThread
 	void StopEmuThread(void);
-	void LaunchEmuThread(EmuThreadClassBase *m);
+	bool LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m) override;
 	// JoyThread
-	void StopJoyThread(void);
-	void LaunchJoyThread(void);
+	void StopJoyThread(void) override;
+	void LaunchJoyThread(std::shared_ptr<JoyThreadClass> m) override;
 	// Screen
 	void OnWindowMove(void);
 	void OnWindowRedraw(void);

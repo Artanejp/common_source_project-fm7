@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <memory>
 #include "common.h"
 #include "fileio.h"
 
@@ -26,20 +27,13 @@
 #include <memory>
 
 // Start to define MainWindow.
-extern class META_MainWindow *rMainWindow;
-extern config_t config;
 extern int   MainLoop(int argc, char *argv[]);
 
 #include <QApplication>
 #include <qapplication.h>
 extern DLL_PREFIX_I void _resource_init(void);
 extern DLL_PREFIX_I void _resource_free(void);
-
-static std::shared_ptr<CSP_Logger> __logger;
-void DLL_PREFIX set_debug_logger(std::shared_ptr<CSP_Logger> p)
-{
-	__logger = p;
-}
+extern DLL_PREFIX_I std::shared_ptr<CSP_Logger> logger_ptr;
 
 void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -68,6 +62,8 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 	QString msgString = qFormatLogMessage(type, context, msg);
 	QString nmsg_l1 = msg_type;
 	QString nmsg_l2 = msg_type;
+	std::shared_ptr<CSP_Logger> __logger = logger_ptr;
+	
 #if 0   
    if(msgString.endsWith(QString::fromUtf8("\n"))) {
 	
@@ -80,24 +76,25 @@ void DLL_PREFIX CSP_DebugHandler(QtMsgType type, const QMessageLogContext &conte
 #endif   
     if(_nr_line) {
 	
-	nmsg_l2.append(" ");
-	nmsg_l2.append(msgString);
+		nmsg_l2.append(" ");
+		nmsg_l2.append(msgString);
 
-	QString tmps_l1 = QString("%1").arg(context.line);
-	nmsg_l1.append(" In line ");
-	nmsg_l1.append(tmps_l1);
-	nmsg_l1.append(" of ");
-	nmsg_l1.append(context.file);
-	nmsg_l1.append(" (Function: ");
-	nmsg_l1.append(context.function);
-	nmsg_l1.append(" )");
-	if(__logger.get() != nullptr) {
-		__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
-		__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
-	} else {
-		fprintf(stderr,"%s\n", nmsg_l1.toLocal8Bit().constData());
-		fprintf(stderr, "%s\n", nmsg_l2.toLocal8Bit().constData());
-	}		
+		QString tmps_l1 = QString("%1").arg(context.line);
+		nmsg_l1.append(" In line ");
+		nmsg_l1.append(tmps_l1);
+		nmsg_l1.append(" of ");
+		nmsg_l1.append(context.file);
+		nmsg_l1.append(" (Function: ");
+		nmsg_l1.append(context.function);
+		nmsg_l1.append(" )");
+
+		if(__logger.get() != nullptr) {
+			__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l1.toLocal8Bit().constData());
+			__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, nmsg_l2.toLocal8Bit().constData());
+		} else {
+			fprintf(stderr,"%s\n", nmsg_l1.toLocal8Bit().constData());
+			fprintf(stderr, "%s\n", nmsg_l2.toLocal8Bit().constData());
+		}		
 	} else {
 		if(__logger.get() != nullptr) {
 			__logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, msgString.toLocal8Bit().constData());
@@ -117,7 +114,7 @@ int main(int argc, char *argv[])
  * アプリケーション初期化
  */
 	_resource_init();
-	__logger.reset();
+	logger_ptr.reset();
 	
 	const char *_p_backtrace = "\n  at line %{line} of %{file} (Thread %{threadid}: function %{function}\nBacktrace:\n %{backtrace depth=15 separator=\"\n \" }";
 	QString _s_backtrace = QString::fromUtf8(_p_backtrace);

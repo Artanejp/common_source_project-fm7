@@ -281,6 +281,8 @@ class CSP_DockDisks;
 class MOVIE_SAVER;
 class EmuThreadClassBase;
 class EmuThreadClass;
+class JoyThreadClass;
+
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
@@ -641,9 +643,9 @@ protected:
 	QImage *bitmapImage;
 	QClipboard *ClipBoard;
 	// Constructor
-	EmuThreadClassBase *hRunEmu;
+	std::shared_ptr<EmuThreadClassBase> hRunEmu;
 	class DrawThreadClass *hDrawEmu;
-	class JoyThreadClass *hRunJoy;
+	std::shared_ptr<JoyThreadClass>     hRunJoy;
 	class MOVIE_SAVER *hSaveMovieThread;
 
 	int max_vm_nodes;
@@ -705,10 +707,10 @@ public:
 	virtual void initStatusBar(void);
 	// EmuThread
 	void StopEmuThread(void);
-	virtual void LaunchEmuThread(EmuThreadClassBase *m);
+	virtual bool LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m);
 	// JoyThread
 	virtual void StopJoyThread(void);
-	virtual void LaunchJoyThread(void);
+	virtual void LaunchJoyThread(std::shared_ptr<JoyThreadClass> m);
 	// Screen
 	virtual void OnWindowMove(void);
 	virtual void OnWindowRedraw(void);

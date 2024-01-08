@@ -20,32 +20,22 @@
 #include "csp_logger.h"
 
 #include "joy_thread.h"
-#include <string>
+#include "../emu_thread/emu_thread_tmpl.h"
 
 #include "../../fileio.h"
 
-extern DLL_PREFIX_I std::string cpp_confdir;
-
-JoyThreadClass::JoyThreadClass(EMU_TEMPLATE *p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(std::shared_ptr<EmuThreadClassBase> p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent) : QThread(parent)
 {
 	//int i, j;
 	int i;
 	int n;
-	p_emu = p;
 	p_osd = NULL;
-	if(p_emu != NULL) {
-		p_osd = p_emu->get_osd();
-	}
+	p_emu_thread.reset();
 	p_config = cfg;
 	using_flags = pflags;
 	csp_logger.reset();
 	joydb.clear();
-
-	if(p_osd != NULL) {
-		csp_logger = p_osd->get_logger();
-		connect(this, SIGNAL(sig_debug_log(int, int, QString)),
-				csp_logger.get(), SLOT(do_debug_log(int, int, QString)));
-	}
+	SetEmu(p);
 
 	char tmp_string[2048] = {0};
 	my_tcscat_s(tmp_string, 2047, "a:b0,b:b1,x:b2,y:b3,start:b9,guide:b8,");
@@ -122,6 +112,25 @@ JoyThreadClass::~JoyThreadClass()
 	}
 }
 
+void JoyThreadClass::SetEmu(std::shared_ptr<EmuThreadClassBase> p)
+{
+	if(p.get() != nullptr) {
+		p_emu_thread = p;
+		if(csp_logger.get() != nullptr) {
+			disconnect(this, NULL, csp_logger.get(), NULL);
+		}
+		EMU_TEMPLATE* p_emu = p_emu_thread->get_emu();
+		if(p_emu == nullptr) return;
+		
+		p_osd = p_emu->get_osd();
+		if(p_osd != NULL) {
+			csp_logger = p_osd->get_logger();
+			connect(this, SIGNAL(sig_debug_log(int, int, QString)),
+					csp_logger.get(), SLOT(do_debug_log(int, int, QString)));
+		}
+	}
+}
+
 void JoyThreadClass::debug_log(int level, int domain_num, QString msg)
 {
 	emit sig_debug_log(level, domain_num, msg);
@@ -129,17 +138,20 @@ void JoyThreadClass::debug_log(int level, int domain_num, QString msg)
 
 int JoyThreadClass::read_joydb()
 {
-	std::string app_path2;
-	app_path2 = cpp_confdir + JOY_DB_NAME;
+	QString app_path2 = QString::fromUtf8("");
+	if(using_flags.get() != nullptr) {
+		app_path2 = using_flags->get_config_directory();
+	}
+	app_path2 = app_path2 + QString::fromUtf8(JOY_DB_NAME);
 
-	if(FILEIO::IsFileExisting((const _TCHAR *)(app_path2.c_str()))) {
+	if(FILEIO::IsFileExisting((const _TCHAR *)(app_path2.toLocal8Bit().constData()))) {
 		return 0;
 	}
 	FILEIO *fp = new FILEIO();
 	int count = 0;
 
 	if(fp != NULL) {
-		if(fp->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
+		if(fp->Fopen(app_path2.toLocal8Bit().constData(), FILEIO_READ_ASCII)) {
 			char tmpline[2048] = {0};
 			while(fp->Fgets(tmpline, 2047) != (char *)0) {
 				QString n = QString::fromLocal8Bit(tmpline);
@@ -159,11 +171,14 @@ int JoyThreadClass::read_joydb()
 int JoyThreadClass::write_joydb()
 {
 	FILEIO *fp = new FILEIO();
-	std::string app_path2;
-	app_path2 = cpp_confdir + JOY_DB_NAME;
+	QString app_path2 = QString::fromUtf8("");
+	if(using_flags.get() != nullptr) {
+		app_path2 = using_flags->get_config_directory();
+	}
+	app_path2 = app_path2 + QString::fromUtf8(JOY_DB_NAME);
 	int count = 0;
 	if(fp != NULL) {
-		if(fp->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
+		if(fp->Fopen((const _TCHAR *)(app_path2.toLocal8Bit().constData()), FILEIO_WRITE_ASCII)) {
 			for(auto n = joydb.begin(); n != joydb.end(); ++n) {
 				if(fp->Fprintf("%s\n", (*n).toLocal8Bit().constData()) <= 0) break;
 				count++;
