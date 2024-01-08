@@ -124,7 +124,9 @@ void GLDraw_2_0::set_osd_vertex(int xbit)
 				 &(vertexOSD[i][0]), 4);
 }
 
-
+void GLDraw_2_0::set_led_vertex(int xbit)
+{
+}
 void GLDraw_2_0::drawOsdLeds()
 {
 	QVector4D color_on;
@@ -293,13 +295,6 @@ void GLDraw_2_0::setNormalVAO(QOpenGLShaderProgram *prg,
 void GLDraw_2_0::setChangeBrightness(bool flag)
 {
 	set_brightness = flag;
-}
-
-void GLDraw_2_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
-{
-	fBrightR = r;
-	fBrightG = g;
-	fBrightB = b;
 }
 
 void GLDraw_2_0::setImgPtr(QImage *p)
@@ -923,33 +918,10 @@ void GLDraw_2_0::resizeGL_SetVertexs(void)
 	}
 }
 
-void GLDraw_2_0::resizeGL(int width, int height)
+void GLDraw_2_0::resizeGL_Pre(int width, int height)
 {
-	//int side = qMin(width, height);
 	extfunc_2->glViewport(0, 0, width, height);
 	extfunc_2->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-	crt_flag = true;
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		doSetGridsHorizonal(vert_lines, true);
-		if(using_flags->is_use_vertical_pixel_lines()) {
-			doSetGridsVertical(horiz_pixels, true);
-		}
-	}
-	resizeGL_SetVertexs();
-	resizeGL_Screen();
-	if(using_flags->is_use_one_board_computer()) {
-		if(vertex_bitmap != NULL) {
-			if(vertex_bitmap->isCreated()) {
-				setNormalVAO(bitmap_shader, vertex_bitmap,
-							 buffer_bitmap_vertex,
-							 vertexBitmap, 4);
-			}
-		}
-	}
-
-	if(using_flags->get_max_button() > 0) {
-		updateButtonTexture();
-	}
 }
 
 void GLDraw_2_0::paintGL(void)

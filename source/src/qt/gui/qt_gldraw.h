@@ -62,7 +62,6 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
 	void paintGL();
-	void drawGrids(void);
 	//void paintEvent(QPaintEvent *ev);
 
 	uint32_t get106Scancode2VK(uint32_t data);

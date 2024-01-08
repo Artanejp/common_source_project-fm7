@@ -38,41 +38,42 @@ class DLL_PREFIX GLDraw_2_0 : public GLDraw_Tmpl
 private:
 	QOpenGLFunctions_2_0 *extfunc_2;
 protected:
-	virtual void initButtons(void);
+	virtual void initButtons(void) override;
 
-	virtual void initBitmapVAO(void);
+	virtual void initBitmapVAO(void) override;
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
+							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4) override;
 	
-	virtual void resizeGL_Screen(void);
-	virtual void drawGridsHorizonal(void);
-	virtual void drawGridsVertical(void);
+	virtual void resizeGL_Screen(void)  override;
+	virtual void drawGridsHorizonal(void) override;
+	virtual void drawGridsVertical(void) override;
 	
-	void resizeGL_SetVertexs(void);
+	void resizeGL_SetVertexs(void) override;
 	
 	void drawGridsMain(GLfloat *tp,
 					   int number,
 					   GLfloat lineWidth = 0.2f,
-					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
-	void drawButtons();
-	void drawBitmapTexture(void);
-	virtual void drawOsdLeds();
-	virtual void drawOsdIcons();
-	virtual void set_osd_vertex(int xbit);
+					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f)) override;
+	void drawButtons() override;
+	void drawBitmapTexture(void) override;
+	virtual void drawOsdLeds() override;
+	virtual void drawOsdIcons() override;
+	virtual void set_osd_vertex(int xbit) override;
+	virtual void set_led_vertex(int xbit) override;
 
 public:
 	GLDraw_2_0(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
 	~GLDraw_2_0();
 
-	virtual void initGLObjects();
-	virtual void initFBO(void);
-	virtual void initLocalGLObjects(void);
-	virtual void initOsdObjects(void);
+	virtual void initGLObjects() override;
+	virtual void initFBO(void) override;
+	virtual void initLocalGLObjects(void) override;
+	virtual void initOsdObjects(void) override;
 
-	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped);
+	virtual void uploadMainTexture(QImage *p, bool chromakey, bool was_mapped) override;
 
-	virtual void drawScreenTexture(void);
-	void drawGrids(void);
+	virtual void drawScreenTexture(void) override;
+	void drawGrids(void) override;
 
 	virtual void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 						  QOpenGLBuffer *bp,
@@ -80,27 +81,28 @@ public:
 						  GLuint texid,
 						  QVector4D color, bool f_smoosing,
 						  bool do_chromakey = false,
-						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
-public slots:
-	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b);
-	virtual void do_set_texture_size(QImage *p, int w, int h);
-	virtual void do_set_horiz_lines(int lines);
-	virtual void do_set_screen_multiply(float mul);
+						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f)) override;
 	
-	void initializeGL();
-	virtual void paintGL();
-	virtual void resizeGL(int width, int height);
+	virtual void resizeGL_Pre(int width, int height) override;
+																			
+public slots:
+	virtual void do_set_texture_size(QImage *p, int w, int h) override;
+	virtual void do_set_horiz_lines(int lines) override;
+	virtual void do_set_screen_multiply(float mul) override;
+	
+	void initializeGL() override;
+	virtual void paintGL() override;
+	
+	void setImgPtr(QImage *p) override;
+	void setSmoosing(bool) override;
+	void setDrawGLGridVert(bool) override;
+	void setDrawGLGridHoriz(bool) override;
+	void setVirtualVramSize(int ,int) override;	
+	void setChangeBrightness(bool) override;
 
-	void setImgPtr(QImage *p);
-	void setSmoosing(bool);
-	void setDrawGLGridVert(bool);
-	void setDrawGLGridHoriz(bool);
-	void setVirtualVramSize(int ,int);	
-	void setChangeBrightness(bool);
-
-	void paintGL_OffScreen(int count, int w, int h);
-	void set_emu_launched(void);
-	void do_set_led_width(int bitwidth);
+	void paintGL_OffScreen(int count, int w, int h) override;
+	void set_emu_launched(void) override;
+	void do_set_led_width(int bitwidth) override;
 };
 QT_END_NAMESPACE
 

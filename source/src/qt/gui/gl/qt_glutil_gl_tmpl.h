@@ -27,16 +27,19 @@
 
 QT_BEGIN_NAMESPACE
 class EMU_TEMPLATE;
-class QEvent;
+
 class GLDrawClass;
-class QOpenGLFramebufferObject;
-class QOpenGLFramebufferObjectFormat;
 class USING_FLAGS;
 class CSP_Logger;
+class GLScreenPack;
+
+class QEvent;
+class QOpenGLFramebufferObject;
+class QOpenGLFramebufferObjectFormat;
 class QOpenGLBuffer;
 class QOpenGLVertexArrayObject;
 class QOpenGLShaderProgram;
-class GLScreenPack;
+class QOpenGLTexture;
 
 namespace GLShader {
 class ShaderDesc {
@@ -318,7 +321,8 @@ protected:
 	QOpenGLVertexArrayObject *vertex_osd[32];
 	QOpenGLBuffer *buffer_osd[32];
 	QOpenGLShaderProgram *osd_shader;
-
+	QOpenGLShaderProgram *led_shader;
+	
 	QOpenGLTexture *uVramTextureID;
 	QOpenGLTexture *uButtonTextureID[128];
 	GLfloat fButtonX[128];
@@ -355,12 +359,12 @@ protected:
 	int osd_led_bit_width;
 	bool osd_onoff;
 
-	virtual void drawBitmapTexture(void) { }
 	virtual void initButtons(void);
 	
 	virtual void initBitmapVertex(void);
 	virtual void initBitmapVAO(void) { }
 	virtual void updateButtonTexture(void);
+	virtual QOpenGLTexture *createMainTexture(QImage *img) { return NULL; };
 
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 							  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4) { }
@@ -373,15 +377,26 @@ protected:
 							   int number,
 							   GLfloat lineWidth = 0.2f,
 							   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f)) { }
+	
+	virtual void drawBitmapTexture(void) { }
+	virtual void drawButtonsMain(int num, bool f_smoosing) { }
 	virtual void drawButtons() { }
 	virtual void prologueBlending() {}
 	virtual void epilogueBlending() {}
 	virtual void drawPolygon(int vertex_loc, uintptr_t p = 0) {}
+	virtual void renderToTmpFrameBuffer_nPass(GLuint src_texture,
+										  GLuint src_w,
+										  GLuint src_h,
+										  GLScreenPack *renderObject,
+										  GLuint dst_w,
+										  GLuint dst_h,
+										  bool use_chromakey = false) { };
 	
 	virtual void drawLedMain(GLScreenPack *obj, int num, QVector4D color);
 	virtual void drawOsdLeds();
 	virtual void drawOsdIcons();
-	virtual void set_osd_vertex(int xbit) { }
+	virtual void set_osd_vertex(int xbit);
+	virtual void set_led_vertex(int xbit);
 
 public:
 	GLDraw_Tmpl(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu = 0);
@@ -430,13 +445,14 @@ public:
 	virtual bool is_ready_to_map_vram_texture(void) { return false; }
 	virtual bool map_vram_texture(void) { return false; }
 	virtual bool unmap_vram_texture(void) { return false; }
+	virtual void resizeGL_Pre(int width, int height);
 
 public slots:
 	virtual void paintGL(void) { }
-	virtual void resizeGL(int width, int height) { }
+	virtual void resizeGL(int width, int height);
 	virtual void initializeGL() { }
 
-	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b) { }
+	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	virtual void do_set_texture_size(QImage *p, int w, int h) { }
 	virtual void do_set_horiz_lines(int lines) { }
 	virtual void setImgPtr(QImage *p) { }

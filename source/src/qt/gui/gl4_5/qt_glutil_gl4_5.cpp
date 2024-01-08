@@ -661,8 +661,6 @@ void GLDraw_4_5::renderToTmpFrameBuffer_nPass(GLuint src_texture,
 				QMatrix4x4 ortho;
 				//ortho.ortho(0.0f, (float)dst_w, 0.0f, (float)dst_h, -1.0, 1.0);
 				ortho.ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-
-
 				renderObject->bind();
 				extfunc->glViewport(0, 0, dst_w, dst_h);
 				//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
@@ -1224,27 +1222,6 @@ void GLDraw_4_5::paintGL(void)
 		extfunc->glFlush();
 }
 
-void GLDraw_4_5::setBrightness(GLfloat r, GLfloat g, GLfloat b)
-{
-	fBrightR = r;
-	fBrightG = g;
-	fBrightB = b;
-
-	if(imgptr != NULL) {
-		p_wid->makeCurrent();
-		if(uVramTextureID == NULL) {
-			uVramTextureID = createMainTexture(imgptr);
-		}
-//		if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
-//			uploadMainTexture(imgptr, true);
-//		} else {
-//			uploadMainTexture(imgptr, false);
-//		}
-		p_wid->doneCurrent();
-	}
-	crt_flag = true;
-}
-
 void GLDraw_4_5::set_texture_vertex(float wmul, float hmul)
 {
 	float wfactor = 1.0f;
@@ -1276,107 +1253,7 @@ void GLDraw_4_5::set_texture_vertex(float wmul, float hmul)
 }
 
 
-void GLDraw_4_5::set_osd_vertex(int xbit)
-{
-	float xbase, ybase, zbase;
-	VertexTexCoord_t vertex[4];
-	int major, minor, nl;
-	int i = xbit;
-	if((xbit < 0) || (xbit >= 32)) return;
-	if((i >= 2) && (i < 10)) { // FD
-		major = 0;
-		minor = i - 2;
-		nl = using_flags->get_max_drive();
-	} else if((i >= 10) && (i < 12)) { // QD
-		major = 2;
-		minor = i - 10;
-		nl = using_flags->get_max_qd();
-	} else if((i >= 12) && (i < 14)) { // CMT(R)
-		major = 1;
-		minor = i - 12;
-		nl = using_flags->get_max_tape();
-	} else if((i >= 14) && (i < 16)) { // CMT(W)
-		major = 1;
-		minor = i - 14;
-		nl = using_flags->get_max_tape();
-	} else if(i >= 16) {
-		major = 4 + (i / 8) - 2;
-		minor = i % 8;
-		nl = 8;
-	} else {
-		major = 6;
-		minor = i;
-		nl = 2;
-	}
-	xbase =  1.0f - (1.0f * 48.0f / 640.0f) * (float)(nl - minor) - (4.0f / 640.0f);;
-	ybase = -1.0f + (1.0f * 48.0f / 400.0f) * (float)(major + 1) + (4.0f / 400.0f);
-	zbase = -0.998f;
-	vertex[0].x = xbase;
-	vertex[0].y = ybase;
-	vertex[0].z = zbase;
-	vertex[0].s = 0.0f;
-	vertex[0].t = 0.0f;
-	
-	vertex[1].x = xbase + (48.0f / 640.0f);
-	vertex[1].y = ybase;
-	vertex[1].z = zbase;
-	vertex[1].s = 1.0f;
-	vertex[1].t = 0.0f;
-	
-	vertex[2].x = xbase + (48.0f / 640.0f);
-	vertex[2].y = ybase - (48.0f / 400.0f);
-	vertex[2].z = zbase;
-	vertex[2].s = 1.0f;
-	vertex[2].t = 1.0f;
-	
-	vertex[3].x = xbase;
-	vertex[3].y = ybase - (48.0f / 400.0f);
-	vertex[3].z = zbase;
-	vertex[3].s = 0.0f;
-	vertex[3].t = 1.0f;
-	
-	setNormalVAO(osd_pass->getShader(), osd_pass_vao[xbit],
-				 osd_pass_vbuffer[xbit],
-				 vertex, 4);
-}
 
-void GLDraw_4_5::set_led_vertex(int xbit)
-{
-	float xbase, ybase, zbase;
-	VertexTexCoord_t vertex[4];
-
-	if((xbit < 0) || (xbit >=32)) return;
-	xbase = 0.0f + (1.0f / 32.0f) * 31.0f - ((1.0f * (float)xbit) / 32.0f) + (1.0f / 128.0f);
-	ybase = -1.0f + (2.0f / 64.0f) * 1.5f;
-	zbase = -0.999f;
-	vertex[0].x = xbase;
-	vertex[0].y = ybase;
-	vertex[0].z = zbase;
-	vertex[0].s = 0.0f;
-	vertex[0].t = 0.0f;
-	
-	vertex[1].x = xbase + (1.0f / 64.0f);
-	vertex[1].y = ybase;
-	vertex[1].z = zbase;
-	vertex[1].s = 1.0f;
-	vertex[1].t = 0.0f;
-	
-	vertex[2].x = xbase + (1.0f / 64.0f);
-	vertex[2].y = ybase - (1.0f / 64.0f);
-	vertex[2].z = zbase;
-	vertex[2].s = 1.0f;
-	vertex[2].t = 1.0f;
-	
-	vertex[3].x = xbase;
-	vertex[3].y = ybase - (1.0f / 64.0f);
-	vertex[3].z = zbase;
-	vertex[3].s = 0.0f;
-	vertex[3].t = 1.0f;
-	
-	setNormalVAO(led_pass->getShader(), led_pass_vao[xbit],
-				 led_pass_vbuffer[xbit],
-				 vertex, 4);
-}
 
 void GLDraw_4_5::do_set_screen_multiply(float mul)
 {
@@ -1494,29 +1371,12 @@ void GLDraw_4_5::resizeGL_Screen(void)
 	}
 }	
 
-void GLDraw_4_5::resizeGL(int width, int height)
+void GLDraw_4_5::resizeGL_Pre(int width, int height)
 {
-	//int side = qMin(width, height);
 	extfunc->glViewport(0, 0, width, height);
 	//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-	crt_flag = true;
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
-		doSetGridsHorizonal(vert_lines, true);
-		if(using_flags->is_use_vertical_pixel_lines()) {
-			doSetGridsVertical(horiz_pixels, true);
-		}
-	}
-	resizeGL_SetVertexs();
-	resizeGL_Screen();
-	if(using_flags->is_use_one_board_computer()) {
-		setNormalVAO(bitmap_block->getShader(), bitmap_block->getVAO(),
-					 bitmap_block->getVertexBuffer(),
-					 vertexBitmap, 4);
-	}	
-	if(using_flags->get_max_button() > 0) {
-		updateButtonTexture();
-	}
 }
+
 
 
 void GLDraw_4_5::get_screen_geometry(int *w, int *h)

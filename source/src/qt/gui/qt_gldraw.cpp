@@ -33,10 +33,6 @@
 #include "./qt_drawitem.h"
 //extern USING_FLAGS *using_flags;
 
-void GLDrawClass::drawGrids(void)
-{
-	if(extfunc != NULL) extfunc->drawGrids();
-}
 
 void GLDrawClass::drawUpdateTexture(void *p, bool was_mapped)
 {
