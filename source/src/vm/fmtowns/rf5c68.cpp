@@ -209,11 +209,11 @@ void RF5C68::do_dac_period()
 		for(int i = 0; i < 2; i++) {
 			lr[i] &= 0xffffffc0; // Discard lower 6bits.
 			// Clamping
-			__UNLIKELY_IF(lr[i] > 65535) {
-				lr[i] = 65535;
+			__UNLIKELY_IF(lr[i] > 32767) {
+				lr[i] = 32767;
 			}
-			__UNLIKELY_IF(lr[i] < -65535) {
-				lr[i] = -65535;
+			__UNLIKELY_IF(lr[i] < -32767) {
+				lr[i] = -32767;
 			}
 			//lr[i] <<= 2; // Expand volume (Hacks for CSP)
 		}
