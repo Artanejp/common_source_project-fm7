@@ -43,7 +43,6 @@ void RF5C68::reset()
 {
 	std::lock_guard<std::recursive_mutex> locker(m_locker);
 	stop_dac_clock();
-	touch_sound();
 	
 	if(event_lpf >= 0) cancel_event(this, event_lpf);
 	event_lpf = -1;
@@ -72,6 +71,8 @@ void RF5C68::reset()
 
 	clear_buffer();
 	set_mix_factor();
+	touch_sound();
+	force_touch_count = 0;
 
 	start_dac_clock();
 }
@@ -150,6 +151,8 @@ uint32_t RF5C68::read_signal(int ch)
 void RF5C68::do_dac_period()
 {
 	int32_t lr[2] = {lastsample_l, lastsample_r};
+	bool _is_touch = false;
+	force_touch_count++;
 	if(dac_on) {
 		lr[0] = 0;
 		lr[1] = 0;
@@ -221,11 +224,14 @@ void RF5C68::do_dac_period()
 		//	lr[i] >>= 2;
 		//}
 		// Re-Init sample buffer
-		//	touch_sound();
+		_is_touch = ((lastsample_l.load() != lr[0]) || (lastsample_r.load() != lr[1])) ? true : false;
+		lastsample_l = lr[0];
+		lastsample_r = lr[1];
 	}
-	lastsample_l = lr[0];
-	lastsample_r = lr[1];
-	touch_sound();
+	__UNLIKELY_IF((_is_touch) || (force_touch_count >= 8)) {
+		touch_sound();
+		force_touch_count = 0;
+	}
 }
 
 void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
@@ -247,9 +253,10 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 		{
 			bool mute_bak = is_mute.load();
 			bool mute_new = ((data & mask) != 0) ? true : false;
-			//if(mute_bak != mute_new) {
-			//	touch_sound();
-			//}
+			if(mute_bak != mute_new) {
+				touch_sound();
+				force_touch_count = 0;
+			}
 			is_mute = mute_new;
 		}
 		break;
@@ -322,11 +329,12 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0x07: // Control
 		{
-			//bool dac_on_bak = dac_on;
+			bool dac_on_bak = dac_on;
 			dac_on = ((data & 0x80) != 0) ? true : false;
-			//__UNLIKELY_IF(dac_on_bak != dac_on) {
-			//	touch_sound();
-			//}
+			__UNLIKELY_IF(dac_on_bak != dac_on) {
+				touch_sound();
+				force_touch_count = 0;
+			}
 			if((data & 0x40) != 0) { // CB2-0
 				dac_ch = data & 0x07;
 			} else { // WB3-0
@@ -433,6 +441,7 @@ void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_l = decibel_to_volume(decibel_l);
 	volume_r = decibel_to_volume(decibel_r);
 	touch_sound();
+	force_touch_count = 0;
 }
 
 void RF5C68::lpf_threetap(int32_t *v, int &lval, int &rval)
@@ -604,5 +613,8 @@ bool RF5C68::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(wave_memory, sizeof(wave_memory), 1);
 
 	// Post Process
+	if(loading) {
+		force_touch_count = 0;
+	}
 	return true;
 }

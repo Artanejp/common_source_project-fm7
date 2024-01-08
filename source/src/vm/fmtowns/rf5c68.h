@@ -74,6 +74,7 @@ protected:
 
 	// TMP Values
 	bool dac_force_load[8];
+	uint8_t force_touch_count;
 	std::atomic<int> volume_l, volume_r;
 	std::atomic<int> mix_rate;
 
