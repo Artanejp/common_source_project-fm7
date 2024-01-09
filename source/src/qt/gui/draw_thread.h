@@ -72,7 +72,8 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	void run() { doWork("");}
 	void SetEmu(EMU_TEMPLATE *p);
 public slots:
-	void do_start_draw_thread(void);
+	void do_start_draw_thread(QThread::Priority prio);
+	void do_set_priority(QThread::Priority prio);
 	void doWork(const QString &);
 	void doExit(void);
 	void doDraw(bool flag);

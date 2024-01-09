@@ -40,8 +40,9 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p->set_osd((OSD*)p_osd);
 	poweroff_notified = false;
 
-	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)));
-	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)));
+	connect(this, SIGNAL(sig_emu_launched()), rootWindow->getGraphicsView(), SLOT(set_emu_launched()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)), Qt::QueuedConnection);
 //	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT((int, QString)));
 
 //	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
@@ -50,6 +51,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
 	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
+	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -146,6 +148,7 @@ void EmuThreadClass::doWork(const QString &params)
 //	_queue_begin = parse_command_queue(virtualMediaList);
 //	virtualMediaList.clear();
 	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
+	emit sig_emu_launched();
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
 		// Chack whether using_flags exists.
@@ -154,8 +157,8 @@ void EmuThreadClass::doWork(const QString &params)
 		}
 		is_up_null = (u_p.get() == nullptr);
 
-   		if((MainWindow == NULL) || (bBlockTask)) {
-			if(bRunThread == false){
+   		if((MainWindow == NULL) || (bBlockTask.load())) {
+			if(bRunThread.load() == false){
 				goto _exit;
 			}
 			msleep(10);
@@ -191,25 +194,25 @@ void EmuThreadClass::doWork(const QString &params)
 				_queue_begin = parse_command_queue(virtualMediaList);
 				virtualMediaList.clear();
 			}
-			if(bLoadStateReq != false) {
+			if(bLoadStateReq.load() != false) {
 				loadState();
 				bLoadStateReq = false;
 				req_draw = true;
 			}
 
-			if(bResetReq != false) {
+			if(bResetReq.load() != false) {
 				half_count = false;
 				resetEmu();
 				bResetReq = false;
 				req_draw = true;
 			}
-			if(bSpecialResetReq != false) {
+			if(bSpecialResetReq.load() != false) {
 				half_count = false;
 				specialResetEmu(specialResetNum);
 				bSpecialResetReq = false;
 				specialResetNum = 0;
 			}
-			if(bSaveStateReq != false) {
+			if(bSaveStateReq.load() != false) {
 				saveState();
 				bSaveStateReq = false;
 			}
@@ -225,12 +228,12 @@ void EmuThreadClass::doWork(const QString &params)
 				opengl_filter_num_bak = config.opengl_filter_num;
 			}
 			}
-			if(bStartRecordSoundReq != false) {
+			if(bStartRecordSoundReq.load() != false) {
 				p_emu->start_record_sound();
 				bStartRecordSoundReq = false;
 				req_draw = true;
 			}
-			if(bStopRecordSoundReq != false) {
+			if(bStopRecordSoundReq.load() != false) {
 				p_emu->stop_record_sound();
 				bStopRecordSoundReq = false;
 				req_draw = true;
@@ -240,9 +243,10 @@ void EmuThreadClass::doWork(const QString &params)
 				bUpdateConfigReq = false;
 				req_draw = true;
 			}
-			if(bStartRecordMovieReq != false) {
-				if(!prevRecordReq && (record_fps > 0) && (record_fps < 75)) {
-					p_emu->start_record_video(record_fps);
+			if(bStartRecordMovieReq.load() != false) {
+				int rfps = record_fps.load();
+				if(!prevRecordReq && (rfps > 0) && (rfps < 75)) {
+					p_emu->start_record_video(rfps);
 					prevRecordReq = true;
 				}
 			} else {
@@ -254,7 +258,7 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #if defined(USE_SOUND_VOLUME)
 			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
-				if(bUpdateVolumeReq[ii]) {
+				if(bUpdateVolumeReq[ii].load()) {
 					p_emu->set_sound_device_volume(ii, config.sound_volume_l[ii], config.sound_volume_r[ii]);
 					bUpdateVolumeReq[ii] = false;
 				}
@@ -443,7 +447,7 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 		}
 		req_draw = false;
-		if(bRunThread == false){
+		if(bRunThread.load() == false){
 			goto _exit;
 		}
 		if(sleep_period > 0) {
@@ -472,9 +476,8 @@ _exit:
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 							  "EmuThread : EXIT");
 	}
-	emit sig_draw_finished();
-	emit sig_emu_finished();
 	this->quit();
+	emit sig_draw_finished();
 }
 
 const _TCHAR *EmuThreadClass::get_device_name(void)

@@ -36,6 +36,7 @@
 #include "commonclasses.h"
 #include "config.h"
 #include <memory>
+#include <atomic>
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -112,16 +113,16 @@ protected:
 	Ui_MainWindowBase *MainWindow;
 	QElapsedTimer tick_timer;
 
-	bool bBlockTask;
-	bool bRunThread;
-	bool bResetReq;
-	bool bSpecialResetReq;
-	bool bLoadStateReq;
-	bool bSaveStateReq;
-	bool bUpdateConfigReq;
-	bool bStartRecordSoundReq;
-	bool bStopRecordSoundReq;
-	bool bStartRecordMovieReq;
+	std::atomic<bool> bBlockTask;
+	std::atomic<bool> bRunThread;
+	std::atomic<bool> bResetReq;
+	std::atomic<bool> bSpecialResetReq;
+	std::atomic<bool> bLoadStateReq;
+	std::atomic<bool> bSaveStateReq;
+	std::atomic<bool> bUpdateConfigReq;
+	std::atomic<bool> bStartRecordSoundReq;
+	std::atomic<bool> bStopRecordSoundReq;
+	std::atomic<bool> bStartRecordMovieReq;
 	QString sStateFile;
 	QString lStateFile;
 
@@ -134,11 +135,11 @@ protected:
 
 //	bool draw_timing;
 	bool doing_debug_command;
-	bool bUpdateVolumeReq[32];
-	int volume_balance[32];
-	int volume_avg[32];
-	int record_fps;
-	int  specialResetNum;
+	std::atomic<bool> bUpdateVolumeReq[32];
+	std::atomic<int>  volume_balance[32];
+	std::atomic<int>  volume_avg[32];
+	std::atomic<int>  record_fps;
+	std::atomic<int>  specialResetNum;
 
 	qint64 next_time;
 	qint64 update_fps_time;
@@ -285,7 +286,9 @@ public:
 	QString get_b77_file_path(int drive);
 public slots:
 	void doExit(void);
-
+	void do_start(QThread::Priority prio);
+	void do_set_priority(QThread::Priority prio);
+	
 	void do_reset(void);
 	void do_notify_power_off(void);
 	void do_special_reset(void);
@@ -307,7 +310,7 @@ public slots:
 	void do_set_emu_thread_to_fixed_cpu(int cpunum);
 	void do_block();
 	void do_unblock();
-	void do_start_emu_thread();
+
 	void do_set_emu_thread_to_fixed_cpu_from_action();
 	// From emu_thread_slots.cpp .
 	void do_set_display_size(int w, int h, int ww, int wh);
@@ -371,10 +374,12 @@ public slots:
 
 
 signals:
+	int sig_emu_launched(void);
+	
 	int message_changed(QString);
 	int window_title_changed(QString);
 	int sig_draw_thread(bool);
-	int quit_draw_thread(void);
+	int sig_quit_draw_thread(void);
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);
 	int sig_emu_finished(void);

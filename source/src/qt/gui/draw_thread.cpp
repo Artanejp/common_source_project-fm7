@@ -94,7 +94,7 @@ DrawThreadClass::~DrawThreadClass()
 
 }
 
-void DrawThreadClass::do_start_draw_thread(void)
+void DrawThreadClass::do_start_draw_thread(QThread::Priority prio)
 {
 	bool _separate = false;
 	if(p_config == nullptr) {
@@ -107,7 +107,7 @@ void DrawThreadClass::do_start_draw_thread(void)
 			_separate = true;
 		}
 	}
-	if(_separate) start(QThread::HighPriority);
+	if(_separate) start(prio);
 }
 
 void DrawThreadClass::SetEmu(EMU_TEMPLATE *p)
@@ -233,6 +233,12 @@ __exit:
 						  "DrawThread : Exit.");
 	this->exit(0);
 }
+
+void DrawThreadClass::do_set_priority(QThread::Priority prio)
+{
+	setPriority(prio);
+}
+
 
 void DrawThreadClass::do_change_refresh_rate(qreal rate)
 {

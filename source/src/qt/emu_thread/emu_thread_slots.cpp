@@ -744,3 +744,9 @@ void EmuThreadClassBase::dec_message_count(void)
 	if(p_emu == nullptr) return;
 	p_emu->message_count--;
 }
+
+// Scheduler
+void EmuThreadClassBase::do_set_priority(QThread::Priority prio)
+{
+	setPriority(prio);
+}

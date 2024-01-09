@@ -90,6 +90,9 @@ public slots:
 	bool replace_joydb(QString after);
 	bool replace_joydb_by_guid(QString guid, QString after);
 	void do_replace_default_assign(QString new_assign);
+	
+	void do_start(QThread::Priority prio);	
+	void do_set_priority(QThread::Priority prio);	
  signals:
 	int sig_finished(void);
 	int sig_debug_log(int, int, QString);

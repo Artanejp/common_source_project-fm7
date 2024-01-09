@@ -955,9 +955,9 @@ signals:
 	int message_changed(QString);
 	int sig_quit_emu_thread();
 	int call_joy_thread(EMU_TEMPLATE *);
-	int quit_joy_thread();
-	int quit_draw_thread();
-	int quit_emulator_all();
+	int sig_quit_joy_thread();
+	int sig_quit_draw_thread();
+	int sig_quit_emulator_all();
 	int sig_quit_movie_thread();
 	int sig_stop_saving_movie(void);
 	int sig_start_saving_movie(void);
@@ -1030,7 +1030,7 @@ signals:
 	int sig_set_led_width(int);
 	int sig_set_orientation_osd(int);
 	int sig_set_roma_kana(bool);
-	int quit_debugger_thread(void);
+	int sig_quit_debugger_thread(void);
 	int sig_quit_widgets(void);
 
 	int sig_emu_thread_to_fixed_cpu(int);
@@ -1038,10 +1038,15 @@ signals:
 
 	int sig_block_task();
 	int sig_unblock_task();
-	int sig_start_emu_thread(void);
-	int sig_start_draw_thread(void);
+	int sig_start_emu_thread(QThread::Priority prio);
+	int sig_start_draw_thread(QThread::Priority prio);
+	int sig_start_joystick_thread(QThread::Priority prio);
 	int sig_emu_launched(void);
 	int sig_glv_set_fixed_size(int, int);
+
+	int sig_set_priority_emu_thread(QThread::Priority prio);
+	int sig_set_priority_draw_thread(QThread::Priority prio);
+	int sig_set_priority_joystick_thread(QThread::Priority prio);
 
 	int sig_set_device_node_log(int, int, int, bool);
 	int sig_set_device_node_log(int, int, bool*, int, int);

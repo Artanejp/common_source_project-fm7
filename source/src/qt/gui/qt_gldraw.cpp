@@ -270,3 +270,9 @@ QString GLDrawClass::getRenderString()
 	}
 	return s + render_string;
 }
+
+void GLDrawClass::do_quit()
+{
+	releaseKeyCode();
+	//this->deleteLater();
+}

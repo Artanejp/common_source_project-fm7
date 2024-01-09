@@ -265,7 +265,7 @@ CSP_Debugger_Tmpl::CSP_Debugger_Tmpl(EMU_TEMPLATE* p_emu, QWidget *parent)
 
 	connect(this, SIGNAL(sig_finished()), this, SLOT(close()), Qt::QueuedConnection);
 	connect(text_command, SIGNAL(editingFinished2()), this, SLOT(call_debugger()), Qt::QueuedConnection);
-	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()), Qt::QueuedConnection);
+	connect(parent_object, SIGNAL(sig_quit_debugger_thread()), this, SLOT(close()), Qt::QueuedConnection);
 	
 	VBoxWindow = new QVBoxLayout;
 	TailButtons = new QHBoxLayout;

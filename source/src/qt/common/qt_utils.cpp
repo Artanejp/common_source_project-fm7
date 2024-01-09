@@ -403,7 +403,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
-	hRunEmu->start(QThread::HighestPriority);
+	//hRunEmu->start(QThread::HighestPriority);
 
 	hDrawEmu = new DrawThreadClass((OSD*)p_osd, csp_logger, this);
 	p_emu->set_parent_handler((EmuThreadClass*)hRunEmu.get(), hDrawEmu);
@@ -424,7 +424,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	//connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)), Qt::DirectConnection);
 	connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
-	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	connect(this, SIGNAL(sig_quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 	connect(hDrawEmu, SIGNAL(finished()), hDrawEmu, SLOT(deleteLater()));
 
 	connect(hRunEmu.get(), SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)), Qt::QueuedConnection);
@@ -441,7 +441,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 		connect(hRunEmu.get(), SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
 	}
 	//connect(hRunEmu.get(), SIGNAL(sig_draw_thread(bool)), (OSD*)p_osd, SLOT(do_draw(bool)));
-	connect(hRunEmu.get(), SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	connect(hRunEmu.get(), SIGNAL(sig_quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
 	connect(glv, SIGNAL(sig_notify_move_mouse(double, double, double, double)),
 			hRunEmu.get(), SLOT(do_move_mouse(double, double, double, double)), Qt::QueuedConnection);
@@ -451,7 +451,6 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 			hRunEmu.get(), SLOT(do_release_button_mouse(Qt::MouseButton)));
 
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
-	connect(this, SIGNAL(sig_emu_launched()), glv, SLOT(set_emu_launched()));
 
 #ifdef USE_MOUSE
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
@@ -520,14 +519,17 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 
 	connect(this, SIGNAL(sig_unblock_task()), hRunEmu.get(), SLOT(do_unblock()));
 	connect(this, SIGNAL(sig_block_task()), hRunEmu.get(), SLOT(do_block()));
-	connect(this, SIGNAL(sig_start_emu_thread()), hRunEmu.get(), SLOT(do_start_emu_thread()));
-	connect(this, SIGNAL(sig_start_draw_thread()), hDrawEmu, SLOT(do_start_draw_thread()));
+	
+	connect(this, SIGNAL(sig_start_emu_thread(QThread::Priority)), hRunEmu.get(), SLOT(do_start(QThread::Priority)));
+	connect(this, SIGNAL(sig_start_draw_thread(QThread::Priority)), hDrawEmu, SLOT(do_start_draw_thread(QThread::Priority)));
+	
+	connect(this, SIGNAL(sig_set_priority_emu_thread(QThread::Priority)), hRunEmu.get(), SLOT(do_set_priority(QThread::Priority)));
+	connect(this, SIGNAL(sig_set_priority_draw_thread(QThread::Priority)), hDrawEmu, SLOT(do_set_priority(QThread::Priority)));
 
-//	hRunEmu->start(QThread::HighestPriority);
 	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
-//	hRunEmu->start(QThread::HighestPriority);
+
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
 	return true;
 }
@@ -578,17 +580,19 @@ void Ui_MainWindow::LaunchJoyThread(std::shared_ptr<JoyThreadClass> m)
 	
 	if(using_flags->is_use_joystick()) {
 		hRunJoy = m;
-		connect(this, SIGNAL(quit_joy_thread()), hRunJoy.get(), SLOT(doExit()));
+		connect(this, SIGNAL(sig_quit_joy_thread()), hRunJoy.get(), SLOT(doExit()));
 		connect(hRunJoy.get(), SIGNAL(finished()), hRunJoy.get(), SLOT(deleteLater()));
+		connect(this, SIGNAL(sig_start_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_start(QThread::Priority)));
+	connect(this, SIGNAL(sig_set_priority_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_set_priority(QThread::Priority)));
 		hRunJoy->setObjectName("JoyThread");
-		hRunJoy->start();
+		emit sig_start_joystick_thread(QThread::InheritPriority);
 	}
 }
 
 void Ui_MainWindow::StopJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	emit quit_joy_thread();
+	emit sig_quit_joy_thread();
 #endif
 }
 
@@ -631,14 +635,16 @@ void Ui_MainWindow::OnWindowMove(void)
 void Ui_MainWindow::OnMainWindowClosed(void)
 {
 	// notify power off
+	std::shared_ptr<USING_FLAGS> upf = using_flags;
 	emit sig_notify_power_off();
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
-	emit quit_draw_thread();
-	emit quit_joy_thread();
+	emit sig_quit_draw_thread();
+	emit sig_quit_joy_thread();
 	emit sig_quit_emu_thread();
+
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
 
@@ -652,13 +658,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		hSaveMovieThread = NULL;
 	}
 
-//	if(hDrawEmu != nullptr) {
-//		if(!(hDrawEmu->wait(1000))) {
-//			hDrawEmu->terminate();
-//		}
-//		delete hDrawEmu;
-//		hDrawEmu = nullptr;
-//	}
+	int waitcount = 0;
 	if(hRunEmu.get() != nullptr) {
 		OnCloseDebugger();
 		if(hRunEmu->get_emu() != nullptr) {
@@ -668,13 +668,15 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 				op->moveToThread(this->thread());
 			}
 		}
-		hRunEmu->quit();
-		if(!(hRunEmu->wait(2000))) {
-			hRunEmu->terminate();
+		while(hRunEmu->isRunning()) {
+			if(waitcount >= 20) { // Wait 2Sec.
+				hRunEmu->terminate();
+				break;
+			}
 			QThread::msleep(100);
+			waitcount++;
 		}
-//		delete hRunEmu;
-		hRunEmu.reset();
+		
 #if 0
 		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 #else
@@ -689,6 +691,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		}
 #endif
 	}
+	
 #if defined(USE_JOYSTICK)
 //	if(hRunJoy != nullptr) {
 //		if(!(hRunJoy->wait(1000))) {
@@ -1440,9 +1443,9 @@ void Ui_MainWindow::OnOpenDebugger()
 			p_emu->stop_record_sound();
 			p_emu->stop_record_video();
 			//p_emu->now_debugging = true;
-			connect(this, SIGNAL(quit_debugger_thread()), p_emu->hDebugger.get(), SLOT(doExit()));
+			connect(this, SIGNAL(sig_quit_debugger_thread()), p_emu->hDebugger.get(), SLOT(doExit()));
 			connect(this, SIGNAL(destroyed()), p_emu->hDebugger.get(), SLOT(do_destroy_thread()));
-			//connect(this, SIGNAL(quit_debugger_thread()), p_emu->hDebugger, SLOT(close()));
+			//connect(this, SIGNAL(sig_quit_debugger_thread()), p_emu->hDebugger, SLOT(close()));
 			connect(p_emu->hDebugger.get(), SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
 			connect(p_emu->hDebugger.get(), SIGNAL(sig_put_string(QString)), p_emu->hDebugger.get(), SLOT(put_string(QString)));
 			p_emu->hDebugger->show();
@@ -1463,7 +1466,7 @@ void Ui_MainWindow::OnCloseDebugger(void )
 	// ToDo: Multiple debugger 20221105 K.O
  	if((p_emu->now_debugging) && (p_emu->hDebugger.get() != nullptr)) {
 		if(p_emu->hDebugger->debugger_thread_param.running) {
-			emit quit_debugger_thread();
+			emit sig_quit_debugger_thread();
 			//if(!(p_emu->hDebugger->wait(2000))) {
 			//	p_emu->hDebugger->terminate();
 			//	QThread::msleep(100);

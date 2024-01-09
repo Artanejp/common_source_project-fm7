@@ -799,7 +799,7 @@ void JoyThreadClass::doWork(const QString &params)
 			while(SDL_PollEvent(&event)) {
 				EventSDL(&event);
 			}
-			msleep(10);
+			msleep(5);
 		} while(1);
 	}
 	this->quit();
@@ -827,3 +827,14 @@ void JoyThreadClass::do_set_emulate_dpad(int num, bool val)
 	emulate_dpad[num] = val;
 	p_config->emulated_joystick_dpad[num] = val;
 }
+
+void JoyThreadClass::do_start(QThread::Priority prio)
+{
+	start(prio);
+}
+
+void JoyThreadClass::do_set_priority(QThread::Priority prio)
+{
+	setPriority(prio);
+}
+

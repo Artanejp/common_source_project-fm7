@@ -55,6 +55,8 @@ public:
 
 public slots:
 	void doWork(const QString &param);
+signals:
+	
 };
 
 QT_END_NAMESPACE

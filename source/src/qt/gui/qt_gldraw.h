@@ -114,7 +114,9 @@ public:
 	bool copy_screen_buffer(scrntype_t* target, int w, int h, int stride);
 
 	virtual QString getRenderString();
+								 
 public slots:
+	void do_quit(void);
 	void initKeyCode(void);
 	void releaseKeyCode(void);
 

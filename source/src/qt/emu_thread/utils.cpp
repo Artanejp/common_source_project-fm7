@@ -24,7 +24,7 @@
 
 void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
 {
-	int level = volume_avg[num];
+	int level = volume_avg[num].load();
 	int right;
 	int left;
 	volume_balance[num] = balance;
@@ -36,7 +36,7 @@ void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
 
 void EmuThreadClassBase::calc_volume_from_level(int num, int level)
 {
-	int balance = volume_balance[num];
+	int balance = volume_balance[num].load();
 	int right,left;
 	volume_avg[num] = level;
 	right = level + balance;

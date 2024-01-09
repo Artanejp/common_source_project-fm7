@@ -89,7 +89,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 			}
 		}
 	}
-	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(releaseKeyCode(void)));
+	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(do_quit()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_emu_finished()), rootWindow->getGraphicsView(), SLOT(deleteLater()));
 	virtualMediaList.clear();
 
@@ -108,6 +108,10 @@ EmuThreadClassBase::~EmuThreadClassBase()
 	delete key_fifo;
 };
 
+void EmuThreadClassBase::do_start(QThread::Priority prio)
+{
+	start(prio);
+}
 
 void EmuThreadClassBase::doExit(void)
 {
@@ -153,10 +157,6 @@ void EmuThreadClassBase::do_unblock()
 void EmuThreadClassBase::do_block()
 {
 	bBlockTask = true;
-}
-void EmuThreadClassBase::do_start_emu_thread()
-{
-	start(QThread::TimeCriticalPriority);
 }
 
 void EmuThreadClassBase::do_special_reset(void)
