@@ -376,8 +376,16 @@ __DECL_VECTORIZED_LOOP
 
 void YM2612::set_volume(int _ch, int decibel_l, int decibel_r)
 {
-	v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
-	v_left_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
+	__UNLIKELY_IF(decibel_r <= -40) {
+		v_right_volume = 0;
+	} else {
+		v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
+	}
+	__UNLIKELY_IF(decibel_l <= -40) {
+		v_left_volume = 0;
+	} else {
+		v_left_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
+	}
 	opn2->SetVolumeFM(base_decibel_fm + decibel_l, base_decibel_fm + decibel_r);
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
