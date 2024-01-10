@@ -335,8 +335,8 @@ void MSM5205::mix(int32_t* buffer, int cnt)
 
 void MSM5205::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l + 6.0);
-	volume_r = decibel_to_volume(decibel_r + 6.0);
+	volume_l = decibel_to_volume(decibel_l, 6);
+	volume_r = decibel_to_volume(decibel_r, 6);
 }
 
 #define STATE_VERSION	3

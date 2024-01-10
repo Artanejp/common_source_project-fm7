@@ -1441,8 +1441,8 @@ void SCSI_CDROM::mix(int32_t* buffer, int cnt)
 
 void SCSI_CDROM::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l + 3.0);
-	volume_r = decibel_to_volume(decibel_r + 3.0);
+	volume_l = decibel_to_volume(decibel_l, 3);
+	volume_r = decibel_to_volume(decibel_r, 3);
 }
 
 void SCSI_CDROM::set_volume(int volume)

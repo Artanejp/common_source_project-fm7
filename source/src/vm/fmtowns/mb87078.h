@@ -18,7 +18,7 @@
  *           if(sig_mute != 0) {
  *                return 0;
  *           }
- *           return decibel_to_volume(volume_value - val_att);
+ *           return decibel_to_volume(volume_value,  -val_att);
  *       }
  *
  *       See fmtowns/fmtowns.cpp and fmtowns/cdrom/cdrom.cpp fo example.

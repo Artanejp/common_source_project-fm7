@@ -3219,7 +3219,7 @@ void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 
 int TOWNS_CDROM::calculate_volume(int volume_db, int minus_offset_db)
 {
-	return decibel_to_volume(volume_db - minus_offset_db);
+	return decibel_to_volume(volume_db, -minus_offset_db);
 }
 
 void TOWNS_CDROM::set_volume(int ch, int decibel_l, int decibel_r)

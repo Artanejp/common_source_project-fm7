@@ -438,8 +438,8 @@ void RF5C68::write_dma_data8w(uint32_t addr, uint32_t data, int* wait)
 
 void RF5C68::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	volume_l = decibel_to_volume(decibel_l);
-	volume_r = decibel_to_volume(decibel_r);
+	volume_l = decibel_to_volume(decibel_l, 6);
+	volume_r = decibel_to_volume(decibel_r, 6);
 	touch_sound();
 	force_touch_count = 0;
 }
