@@ -117,10 +117,16 @@ bool M_QT_MULTIMEDIA::reopen_fileio(bool force_reopen)
 			drv->stop();
 		}
 		drv->reset();
+		bool _ba = false;
 		if(m_fileio.get() != nullptr) {
 			drv->start(m_fileio.get());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+			_ba = (drv->isNull()) ? true : false;			
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+			_ba = ((drv->error() != QAudio::UnderrunError) && (drv->error() != QAudio::NoError)) ? true : false;
+#endif
 		}
-		return (!(drv->isNull()) && (_stat)) ? true : false;
+		return ((_ba) && (_stat)) ? true : false;
 	}
 	return false;
 }
@@ -162,15 +168,21 @@ bool M_QT_MULTIMEDIA::is_io_device_exists()
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
-#endif
 	if(drv.get() != nullptr) {
 		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		bool _ba = !(drv->isNull());
 		bool _bb = (m_fileio.get() != nullptr) ? true : false;
 		return ((_ba) && (_bb));
 	}
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+	if(drv.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		bool _ba = ((drv->error() != QAudio::UnderrunError) && (drv->error() != QAudio::NoError)) ? true : false;
+		bool _bb = (m_fileio.get() != nullptr) ? true : false;
+		return ((_ba) && (_bb));
+	}
+#endif
 	return false;
 }
 
@@ -524,7 +536,7 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDevice dest_device, int& rate,int& chan
 void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit)
 #endif
 {
-	if(dest_device.isNull()) return; // None initialize if NULL.
+	if(dest_device.isNull()) return;
 
 	__debug_log_func(_T("Expected: rate=%d channels=%d latency=%dmSec reinit=%d"), rate, channels, latency_ms, force_reinit);
 
@@ -634,7 +646,11 @@ void M_QT_MULTIMEDIA::setup_device(QAudioDeviceInfo dest_device, int& rate,int& 
 			recalc_samples(rate, latency_ms, true, true);
 			//drv->setBufferSize(m_chunk_bytes.load());
 			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 			m_config_ok = !(drv->isNull());
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+			m_config_ok = (drv->error() != QAudio::FatalError);
+#endif
 			if(m_config_ok.load()) {
 				real_reconfig_sound(rate, channels, latency_ms);
 			}
