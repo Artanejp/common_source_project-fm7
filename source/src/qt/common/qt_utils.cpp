@@ -1303,6 +1303,7 @@ int MainLoop(int argc, char *argv[])
 	SetupLogger(emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
 	OpeningMessage(archstr, (const QMap<QString, QString>)virtualMediaList);
 	SetupSDL();
+	GuiMain->setApplicationName(QString::fromStdString(my_procname));
 
 	/*
 	 * Into Qt's Loop.
@@ -1343,11 +1344,13 @@ int MainLoop(int argc, char *argv[])
 
 //	USING_FLAGS_EXT *using_flags = new USING_FLAGS_EXT(&config);
 	// initialize emulation core
+
 	rMainWindow = new META_MainWindow(using_flags, logger_ptr);
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
 	rMainWindow->setCoreApplication(GuiMain);
 	rMainWindow->getWindow()->show();
 	rMainWindow->retranselateUi_Depended_OSD();
+	
 //	QMetaObject::connectSlotsByName(rMainWindow);
 	std::shared_ptr<EmuThreadClassBase> hRunEmu_Real;
 	hRunEmu_Real.reset(new EmuThreadClass(rMainWindow, using_flags));

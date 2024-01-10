@@ -6,6 +6,7 @@
  */
 
 #include <QStyle>
+#include <cstdint>
 
 #include "sound_dialog.h"
 #include "menu_flags.h"
@@ -23,7 +24,6 @@ Ui_SndSliderObject::~Ui_SndSliderObject()
 {
 }
 #include "../osd_base.h"
-#include <cstdint>
 
 void Ui_SndSliderObject::setValue(int level)
 {
@@ -52,10 +52,12 @@ void Ui_SndSliderObject::setLevelValue(int level)
 	if(bind_num <= 0) {
 		return;
 	} else if(using_flags->get_use_sound_volume() > 0) {
-		if(level < -60) level = -60;
-		if(level > 3)  level = 3;
+		int level_bak = level;
+		level_bak = min(level, minimum());
+		if(level <= minimum()) level = minimum();
+		if(level > maximum())  level = maximum();
 		if(bind_num <= using_flags->get_use_sound_volume()) {
-			emit sig_emu_update_volume_label(bind_num - 1, level);
+			emit sig_emu_update_volume_label(bind_num - 1, level_bak);
 			emit sig_emu_update_volume_level(bind_num - 1, level);
 		}
 	}
@@ -67,8 +69,8 @@ void Ui_SndSliderObject::setBalanceValue(int level)
 	if(bind_num <= 0) {
 		return;
 	} else if(using_flags->get_use_sound_volume() > 0) {
-		if(level < -20) level = -20;
-		if(level > 20)  level = 20;
+		if(level < minimum()) level = minimum();
+		if(level > maximum())  level = maximum();
 		if(bind_num <= using_flags->get_use_sound_volume()) {
 			emit sig_emu_update_volume_balance(bind_num - 1, level);
 		}
@@ -112,8 +114,8 @@ Ui_SoundDialog::Ui_SoundDialog(std::shared_ptr<USING_FLAGS> p, QWidget *parent) 
 	connect(sliderMasterVolume, SIGNAL(sig_emu_update_config()),
 			parent_widget, SLOT(do_emu_update_config()));
 
-	sliderMasterVolume->setMinimum(-32768);
-	sliderMasterVolume->setMaximum(32768);
+	sliderMasterVolume->setMinimum(INT16_MIN);
+	sliderMasterVolume->setMaximum(INT16_MAX);
 	sliderMasterVolume->setSingleStep(256);
 	sliderMasterVolume->setPageStep(4096);
 	sliderMasterVolume->setValue(p_config->general_sound_level);
