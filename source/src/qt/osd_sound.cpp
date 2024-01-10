@@ -298,6 +298,9 @@ void OSD_BASE::release_sound()
 
 void OSD_BASE::do_update_master_volume(int level)
 {
+	if(p_config != nullptr) {
+		p_config->general_sound_level = level;;
+	}
 	emit sig_set_sound_volume(level);
 }
 
