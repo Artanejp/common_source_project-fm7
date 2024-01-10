@@ -70,8 +70,6 @@ protected:
 						bool need_update = false,
 						bool need_resize_fileio = false) override;
 	virtual bool reopen_fileio(bool force_reopen = false) override;
-
-
 public:
 	M_QT_MULTIMEDIA(
 		OSD_BASE *parent,

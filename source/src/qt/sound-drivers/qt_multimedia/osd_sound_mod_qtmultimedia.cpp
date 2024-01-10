@@ -419,7 +419,7 @@ bool M_QT_MULTIMEDIA::initialize_driver()
 	m_audioOutputFormat = tmp_output_format;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputFormat, this));
+	m_audioOutputSink.reset(new QAudioSink(m_audioOutputDevice, m_audioOutputFormat));
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_audioOutputSink.reset(new QAudioOutput(m_audioOutputDevice, m_audioOutputFormat, this));
 #endif
