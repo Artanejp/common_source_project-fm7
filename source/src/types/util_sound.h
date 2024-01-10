@@ -17,8 +17,21 @@ bool DLL_PREFIX load_wav_to_monoral(void *__fio, int16_t **buffer, uint32_t *rat
 inline int __FASTCALL decibel_to_volume(int decibel)
 {
 	// +1 equals +0.5dB (same as fmgen)
+	__UNLIKELY_IF(decibel <= -40) {
+		return 0;
+	}
 	return (int)(1024.0 * pow(10.0, decibel / 40.0) + 0.5);
 }
+
+inline int __FASTCALL decibel_to_volume(int decibel, int offset)
+{
+	// +1 equals +0.5dB (same as fmgen)
+	__UNLIKELY_IF(decibel <= -40) {
+		return 0;
+	}
+	return (int)(1024.0 * pow(10.0, (decibel + offset) / 40.0) + 0.5);
+}
+
 
 inline int32_t __FASTCALL apply_volume(int32_t sample, int volume)
 {
