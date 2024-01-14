@@ -72,7 +72,7 @@ namespace SOUND_MODULE {
 	m_logdomain = CSP_LOG_TYPE_SOUND;
 	__debug_log_func(_T("Initializing"));
 
-	//initialize_driver();
+	//initialize_driver(parent);
 }
 
 M_BASE::~M_BASE()
@@ -351,6 +351,7 @@ void M_BASE::release_sound()
 	if(!(m_external_fileio.load())) {
 		m_fileio.reset();
 	}
+//	emit sig_sound_finished();
 }
 
 bool M_BASE::check_elapsed_to_render()

@@ -62,7 +62,9 @@ void OSD_BASE::update_sound(int* extra_frames)
 	__LIKELY_IF(extra_frames != nullptr) {
 		*extra_frames = 0;
 	}
-
+	if(sound_exit) {
+		return;
+	}
 	now_mute = false;
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	__UNLIKELY_IF(sound_drv.get() == nullptr) {
@@ -235,16 +237,41 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	// If sound driver hasn't initialized, initialize.
+	sound_exit = false;
 
 	if(m_sound_driver.get() == nullptr) {
 		m_sound_driver.reset(
-			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this,
+			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(nullptr,
 													 nullptr,
 													 rate,
 													 (samples * 1000) / rate,
 													 2,
 													 nullptr,
 													 0));
+		if(m_sound_driver.get() != nullptr) {
+			if(m_sound_thread != nullptr) {
+				if(m_sound_thread->isRunning()) {
+					m_sound_thread->quit();
+					if(!(m_sound_thread->wait(1000))) {
+						m_sound_thread->terminate();
+					}
+				}
+				delete m_sound_thread;
+			}
+			m_sound_thread = new QThread();
+			if(m_sound_thread != nullptr) {
+				connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(release_sound()));
+				//connect(m_sound_thread, SIGNAL(finished()), m_sound_thread, SLOT(deleteLater()));
+				//connect(m_sound_driver.get(), SIGNAL(sig_sound_finished()), m_sound_thread, SLOT(quit()));
+				m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
+				m_sound_driver->moveToThread(m_sound_thread);
+			}
+			m_sound_driver->initialize_driver(this);			
+			if(m_sound_thread != nullptr) {
+				m_sound_thread->start(QThread::HighPriority);
+			}
+		}
+
 		init_sound_device_list();
 		if(p_config != nullptr) {
 			do_update_master_volume((int)(p_config->general_sound_level));
@@ -287,13 +314,14 @@ void OSD_BASE::release_sound()
 	sound_initialized = false;
 	sound_ok = false;
 
+	m_sound_period = 0;
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
-		//sound_drv->update_render_point_usec();
+	if(m_sound_thread != nullptr) {
+		m_sound_thread->quit();
+		m_sound_thread->wait();
+	} else if(sound_drv.get() != nullptr) {
 		sound_drv->release_sound();
 	}
-	m_sound_period = 0;
-
 }
 
 void OSD_BASE::do_update_master_volume(int level)

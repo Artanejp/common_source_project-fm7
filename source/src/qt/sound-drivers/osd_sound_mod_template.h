@@ -111,7 +111,7 @@ public:
 	virtual bool wait_driver_started(int64_t timeout_msec = INT64_MIN);
 	virtual bool wait_driver_stopped(int64_t timeout_msec = INT64_MIN);
 	virtual bool is_driver_started();
-	virtual bool initialize_driver()
+	virtual bool initialize_driver(QObject *parent)
 	{
 		// AT LEAST:
 		// connect(this, SIGNAL(sig_start_audio()), ..., QObject::QueuedConnection);
@@ -213,13 +213,14 @@ public:
 public slots:
 
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
-	virtual void release_sound();
+	
 	virtual void mute_sound();
 	virtual void unmute_sound();
 	virtual void stop_sound();
 
 	virtual void update_config() {}
 	virtual void update_extra_config() {}
+	virtual void release_sound();
 
 	bool start();
 	bool pause();
@@ -282,6 +283,8 @@ public slots:
 	virtual void set_osd(OSD_BASE* p);
 
 signals:
+	void sig_sound_finished();
+
 	// loglevel, logdomain, message
 	void sig_send_log(int, int, QString);
 	void sig_send_log(int, int, const _TCHAR*, int);

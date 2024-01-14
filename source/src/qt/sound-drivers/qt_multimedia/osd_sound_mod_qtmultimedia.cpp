@@ -37,16 +37,6 @@ namespace SOUND_MODULE {
 {
 	m_classname = "SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA";
 
-	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()));
-	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()));
-	connect(this, SIGNAL(sig_pause_audio()),  this, SLOT(do_sound_suspend()));
-	connect(this, SIGNAL(sig_resume_audio()),  this, SLOT(do_sound_resume()));
-	connect(this, SIGNAL(sig_discard_audio()),  this, SLOT(do_discard_sound()));
-	connect(this, SIGNAL(sig_set_volume(double)),  this, SLOT(do_sound_volume(double)), Qt::QueuedConnection);
-
-	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
-	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
-	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
 
 	initialize_sound_devices_list();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -68,11 +58,25 @@ namespace SOUND_MODULE {
 	if(_match != devices_name_list.end()) {
 		m_device_name = (*_match);
 	}
-	m_config_ok = initialize_driver();
 }
 
 M_QT_MULTIMEDIA::~M_QT_MULTIMEDIA()
 {
+}
+
+bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
+{
+	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()));
+	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()));
+	connect(this, SIGNAL(sig_pause_audio()),  this, SLOT(do_sound_suspend()));
+	connect(this, SIGNAL(sig_resume_audio()),  this, SLOT(do_sound_resume()));
+	connect(this, SIGNAL(sig_discard_audio()),  this, SLOT(do_discard_sound()));
+	connect(this, SIGNAL(sig_set_volume(double)),  this, SLOT(do_sound_volume(double)), Qt::QueuedConnection);
+	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
+	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
+	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
+	m_config_ok = initialize_driver_post(parent);
+	return m_config_ok.load();
 }
 
 bool M_QT_MULTIMEDIA::recalc_samples(int rate, int latency_ms, bool need_update, bool need_resize_fileio)
@@ -153,14 +157,30 @@ bool M_QT_MULTIMEDIA::release_driver_fileio()
 void M_QT_MULTIMEDIA::release_sound()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	#if 1
+	if(m_audioOutputSink.get() != nullptr) {
+		if(m_audioOutputSink->state() != QAudio::StoppedState) {
+			m_audioOutputSink->stop();
+			wait_driver_stopped(1000);
+		}
+		m_audioOutputSink->disconnect();
+		m_audioOutputSink.reset();
+	}
+	M_BASE::release_sound();
+	emit sig_sound_finished();
+	#endif
+}
+
+void M_QT_MULTIMEDIA::do_release_source(QAudio::State state)
+{
+	// ToDo
+}		
+void M_QT_MULTIMEDIA::do_release_sink(QAudio::State state)
+{
 	if(m_audioOutputSink.get() != nullptr) {
 		m_audioOutputSink->stop();
-		m_audioOutputSink->disconnect();
-	}
-	m_audioOutputSink.reset();
-	m_config_ok = false;
-	if(!(m_external_fileio.load())) {
-		m_fileio.reset();
+		m_audioOutputSink->reset();	
+		m_audioOutputSink.reset();
 	}
 }
 
@@ -205,7 +225,7 @@ void M_QT_MULTIMEDIA::driver_state_changed(QAudio::State newState)
 		break;
 	case QAudio::StoppedState:
 		__debug_log_func(_T("AUDIO:STOP"));
-		#if 0
+		#if 1
 		if(drv.get() != nullptr) {
 			drv->reset();
 		}
@@ -392,7 +412,7 @@ void M_QT_MULTIMEDIA::set_audio_format(QAudioDeviceInfo dest_device, QAudioForma
 }
 #endif
 
-bool M_QT_MULTIMEDIA::initialize_driver()
+bool M_QT_MULTIMEDIA::initialize_driver_post(QObject* parent)
 {
 	bool result = false;
 

@@ -65,6 +65,7 @@ protected:
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms) override;
 	virtual void update_driver_fileio() override;
 	virtual const std::string set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms);
+	virtual bool initialize_driver_post(QObject *parent);
 
 	virtual bool recalc_samples(int rate, int latency_ms,
 						bool need_update = false,
@@ -82,7 +83,7 @@ public:
 
 	~M_QT_MULTIMEDIA();
 
-	virtual bool initialize_driver() override;
+	virtual bool initialize_driver(QObject *parent) override;
 	virtual bool release_driver() override;
 	virtual bool release_driver_fileio() override;
 
@@ -111,6 +112,9 @@ public slots:
 	virtual void do_sound_volume(double level);
 
 	virtual void do_set_device_by_name(QString driver_name) override;
+	// Unique SLOTS.
+	void do_release_sink(QAudio::State state);
+	void do_release_source(QAudio::State state);
 };
 
 /* SOUND_MODULE::OUTPUT */

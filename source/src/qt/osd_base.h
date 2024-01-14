@@ -172,6 +172,7 @@ private:
 
 protected:
 	EmuThreadClass		*parent_thread;
+	QThread				*m_sound_thread;
 	std::shared_ptr<USING_FLAGS>			using_flags;
 	config_t			*p_config;
 	std::shared_ptr<CSP_Logger> p_logger;
