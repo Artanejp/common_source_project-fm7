@@ -385,6 +385,11 @@ void OSD_BASE::reset_vm_node(void)
 	max_vm_nodes = 0;
 }
 
+void OSD_BASE::sync_some_devices()
+{
+	emit sig_reset_joystick();
+}
+
 void OSD_BASE::debug_log(int level, int domain_num, char *strbuf)
 {
 	QString tmps = QString::fromLocal8Bit(strbuf);

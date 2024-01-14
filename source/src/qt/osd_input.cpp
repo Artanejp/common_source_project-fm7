@@ -125,6 +125,12 @@ void OSD_BASE::update_input_mouse()
 	}
 
 }
+void OSD_BASE::do_update_joy_status(int num, uint32_t data)
+{
+	std::lock_guard<std::recursive_timed_mutex> n(joystick_mutex);
+	__UNLIKELY_IF((num < 0) || (num >= 32)) return;
+	joy_status[num] = data;
+}
 
 void OSD_BASE::update_input()
 {

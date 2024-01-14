@@ -580,7 +580,7 @@ void Ui_MainWindow::LaunchJoyThread(std::shared_ptr<JoyThreadClass> m)
 	
 	if(using_flags->is_use_joystick()) {
 		hRunJoy = m;
-		connect(this, SIGNAL(sig_quit_joy_thread()), hRunJoy.get(), SLOT(doExit()));
+		connect(this, SIGNAL(sig_quit_joy_thread()), hRunJoy.get(), SLOT(quit()));
 		connect(hRunJoy.get(), SIGNAL(finished()), hRunJoy.get(), SLOT(deleteLater()));
 		connect(this, SIGNAL(sig_start_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_start(QThread::Priority)));
 	connect(this, SIGNAL(sig_set_priority_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_set_priority(QThread::Priority)));

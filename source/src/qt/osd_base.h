@@ -620,7 +620,9 @@ public:
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
 	virtual void reset_vm_node(void);
-
+	// Sync devices status beyond any threads by OSD.(i.e. joystick).
+	virtual void sync_some_devices(void);
+	
 	void set_device_name(int id, char *name);
 
 	void set_vm_node(int id, const _TCHAR *name);
@@ -684,6 +686,7 @@ public slots:
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();
+	void do_update_joy_status(int num, uint32_t data);
 
 	void upload_bitmap(QImage *p);
 	void set_buttons();
@@ -751,7 +754,11 @@ signals:
 	int sig_update_device_node_name(int id, const _TCHAR *name);
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);
+
+	int sig_reset_joystick();
+	
 	int sig_close_console(void);
+	
 	int sig_set_attribute_debugger(QString, bool);
 	int sig_move_mouse_to_center(void);
 	int sig_clear_dbg_completion_list(void);

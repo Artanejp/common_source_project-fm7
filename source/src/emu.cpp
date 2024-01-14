@@ -138,6 +138,9 @@ EMU::EMU() : EMU()
 	}
 #endif
 	vm->reset();
+#if defined(_USE_QT) // Temporally
+	osd->sync_some_devices();
+#endif
 	now_suspended = false;
 }
 
@@ -374,7 +377,9 @@ void EMU::reset()
 		vm->reset();
 		osd->unlock_vm();
 	}
-
+#if defined(_USE_QT) // Temporally
+	osd->sync_some_devices();
+#endif
 #if !defined(_USE_QT) // Temporally
 	// restart recording
 	osd->restart_record_sound();

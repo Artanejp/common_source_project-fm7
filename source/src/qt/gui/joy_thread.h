@@ -18,6 +18,8 @@
 #include "common.h"
 #include "config.h"
 
+
+class QTimer;
 class EmuThreadClassBase;
 class OSD_BASE;
 class USING_FLAGS;
@@ -51,8 +53,9 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	int read_joydb();
 
  protected:
-	bool bRunThread;
 	std::shared_ptr<CSP_Logger> csp_logger;
+	QTimer* tick_timer;
+	uint32_t joy_status[32]; // See osd_base.h .
 	
 	void joystick_plugged(int num);
 	void joystick_unplugged(int num);
@@ -70,7 +73,6 @@ class DLL_PREFIX JoyThreadClass : public QThread {
  public:
 	JoyThreadClass(std::shared_ptr<EmuThreadClassBase>  p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent = 0);
 	~JoyThreadClass();
-	void run() { doWork("");}
 	void SetEmu(std::shared_ptr<EmuThreadClassBase>  p);
 	bool search_joydb(QString str, QString& answer);
 	bool search_joydb_by_guid(QString guid, QString& answer);
@@ -83,8 +85,9 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	void debug_log(int level, int domain_num, QString msg);
 	
 public slots:
-	void doWork(const QString &);
-	void doExit(void);
+	void do_reset_joystick();
+	void do_query_joystick();
+	
 	void do_map_joy_num(int num, int assign);
 	void do_set_emulate_dpad(int num, bool val);
 	bool replace_joydb(QString after);
@@ -97,6 +100,7 @@ public slots:
 	int sig_finished(void);
 	int sig_debug_log(int, int, QString);
 	int sig_state_dpad(int, bool);
+	int sig_joystick_changed(int, uint32_t);
 	// ToDo
 	int sig_update_joystick_guid(int, QString);
 	int sig_update_joystick_name(int, QString);

@@ -9,6 +9,9 @@
 */
 #include <Qt>
 #include <QApplication>
+#include <QTimer>
+#include <QElapsedTimer>
+
 #include <SDL.h>
 #include "emu_template.h"
 #include "osd_base.h"
@@ -35,6 +38,8 @@ JoyThreadClass::JoyThreadClass(std::shared_ptr<EmuThreadClassBase> p, std::share
 	using_flags = pflags;
 	csp_logger.reset();
 	joydb.clear();
+	tick_timer = NULL;
+	memset(joy_status, 0x00, sizeof(joy_status));
 	SetEmu(p);
 
 	char tmp_string[2048] = {0};
@@ -76,21 +81,26 @@ JoyThreadClass::JoyThreadClass(std::shared_ptr<EmuThreadClassBase> p, std::share
 		} else {
 			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Any joysticks were not connected.");
 		}
-		bRunThread = (result == 0) ? true : false;
 	} else {
 		for(i = 0; i < 16; i++) {
 			joyhandle[i] = NULL;
 			names[i] = QString::fromUtf8("None");
 		}
 	    debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : None launched because this VM has not supported joystick.");
-		bRunThread = false;
 	}
+	// GO.
 }
 
 
 JoyThreadClass::~JoyThreadClass()
 {
 	int i;
+	if(tick_timer != NULL) {
+		if(tick_timer->isActive()) {
+			tick_timer->stop();
+		}
+		delete tick_timer;
+	}
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {
@@ -127,6 +137,8 @@ void JoyThreadClass::SetEmu(std::shared_ptr<EmuThreadClassBase> p)
 			csp_logger = p_osd->get_logger();
 			connect(this, SIGNAL(sig_debug_log(int, int, QString)),
 					csp_logger.get(), SLOT(do_debug_log(int, int, QString)));
+			connect(this, SIGNAL(sig_joystick_changed(int, uint32_t)), p_osd, SLOT(do_update_joy_status(int, uint32_t)));
+			connect(p_osd, SIGNAL(sig_reset_joystick()), this, SLOT(do_reset_joystick()));
 		}
 	}
 }
@@ -412,7 +424,6 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 
 	if((true_index < 0) || (true_index >= 4)) return;
 
-	uint32_t *joy_status = (uint32_t *)(p_osd->get_joy_buffer());
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "X AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	if(joy_status != NULL) {
 		switch(type) {
@@ -433,8 +444,6 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 			break;
 		}
 	}
-	p_osd->release_joy_buffer(joy_status);
-
 }
 
 void JoyThreadClass::y_axis_changed(int idx, int type, int value)
@@ -445,7 +454,6 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 
 	if((true_index < 0) || (true_index >= 4)) return;
 
-	uint32_t *joy_status = p_osd->get_joy_buffer();
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Y AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	if(joy_status != NULL) {
 		switch(type) {
@@ -466,7 +474,6 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 			break;
 		}
 	}
-	p_osd->release_joy_buffer(joy_status);
 }
 
 void JoyThreadClass::button_down(int idx, unsigned int button)
@@ -478,8 +485,6 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
 
-	uint32_t *joy_status = p_osd->get_joy_buffer();
-
 	if(joy_status != NULL) {
 		switch(button) {
 		default:
@@ -490,8 +495,6 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 			break;
 		}
 	}
-	p_osd->release_joy_buffer(joy_status);
-
 }
 
 void JoyThreadClass::controller_button_down(int idx, unsigned int button)
@@ -502,8 +505,6 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
-	uint32_t *joy_status = p_osd->get_joy_buffer();
-
 	if(joy_status != NULL) {
 		switch(button) {
 		case SDL_CONTROLLER_BUTTON_DPAD_UP:
@@ -564,7 +565,6 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 			break;
 		}
 	}
-	p_osd->release_joy_buffer(joy_status);
 
 }
 
@@ -577,7 +577,6 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 16) return;
 
-	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
 		switch(button) {
 		default:
@@ -587,8 +586,6 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 			break;
 		}
 	}
-	p_osd->release_joy_buffer(joy_status);
-
 }
 
 void JoyThreadClass::controller_button_up(int idx, unsigned int button)
@@ -601,7 +598,6 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 12) return;
 
-	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
 		switch(button) {
 		case SDL_CONTROLLER_BUTTON_DPAD_UP:
@@ -657,7 +653,6 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 			break;
 		}
 	}
-	p_osd->release_joy_buffer(joy_status);
 }
 
 #if defined(USE_SDL2)
@@ -789,27 +784,40 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	return true;
 }
 
-void JoyThreadClass::doWork(const QString &params)
+void JoyThreadClass::do_query_joystick()
 {
+	uint32_t joy_status_bak[32]; // OK?
+	memcpy(joy_status_bak, joy_status, sizeof(joy_status));
+	QElapsedTimer tim;
+	tim.start();
 	if(using_flags->is_use_joystick()) {
-		do {
-			if(bRunThread == false) {
-				break;
-			}
-			while(SDL_PollEvent(&event)) {
-				EventSDL(&event);
-			}
-			msleep(5);
-		} while(1);
+		while(SDL_PollEvent(&event)) {
+			if(tim.hasExpired(4)) break; // If processed over 4mSec, Abort with remain events.
+			EventSDL(&event);
+		}
 	}
-	this->quit();
+	for(int idx = 0; idx < (sizeof(joy_status) / sizeof(uint32_t)); idx++) {
+		if(joy_status_bak[idx] != joy_status[idx]) {
+			emit sig_joystick_changed(idx, joy_status[idx]);
+		}
+	}
 }
 
-
-void JoyThreadClass::doExit(void)
+void JoyThreadClass::do_reset_joystick()
 {
-	bRunThread = false;
-	//this->quit();
+	// Synchronize from OSD.
+	uint32_t *p = NULL;
+	__LIKELY_IF(p_osd != NULL) {
+		p = p_osd->get_joy_buffer();
+	}
+	__UNLIKELY_IF(p == NULL) {
+		memset(joy_status, 0x00, sizeof(joy_status));
+	} else {
+		memcpy(joy_status, p, sizeof(joy_status));
+	}
+	__LIKELY_IF((p_osd != NULL) && (p != NULL)) {
+		p_osd->release_joy_buffer(p);
+	}
 }
 
 void JoyThreadClass::do_map_joy_num(int num, int assign)
@@ -830,6 +838,19 @@ void JoyThreadClass::do_set_emulate_dpad(int num, bool val)
 
 void JoyThreadClass::do_start(QThread::Priority prio)
 {
+	if(tick_timer == NULL) {
+		tick_timer = new QTimer(this);
+	} else {
+		if(tick_timer->isActive()) {
+			tick_timer->stop();
+		}
+	}
+	if(tick_timer != NULL) {
+		tick_timer->setTimerType(Qt::PreciseTimer);
+		tick_timer->setInterval(5);
+		connect(tick_timer, SIGNAL(timeout()), this, SLOT(do_query_joystick()));
+		tick_timer->start();
+	}
 	start(prio);
 }
 
