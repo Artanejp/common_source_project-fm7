@@ -156,19 +156,10 @@ bool M_QT_MULTIMEDIA::release_driver_fileio()
 
 void M_QT_MULTIMEDIA::release_sound()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	#if 1
-	if(m_audioOutputSink.get() != nullptr) {
-		if(m_audioOutputSink->state() != QAudio::StoppedState) {
-			m_audioOutputSink->stop();
-			wait_driver_stopped(1000);
-		}
-		m_audioOutputSink->disconnect();
-		m_audioOutputSink.reset();
-	}
-	M_BASE::release_sound();
+	emit sig_stop_audio();
+	wait_driver_stopped(10000);
+	release_driver_fileio();
 	emit sig_sound_finished();
-	#endif
 }
 
 void M_QT_MULTIMEDIA::do_release_source(QAudio::State state)
@@ -742,9 +733,11 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 
 bool M_QT_MULTIMEDIA::release_driver()
 {
-	emit sig_stop_audio();
-	if(!(wait_driver_stopped(1000))) return false;
-	return release_driver_fileio();
+	// Driver has released by release_sound();
+//	emit sig_stop_audio();
+//	if(!(wait_driver_stopped(1000))) return false;
+//	return release_driver_fileio();
+	return true;
 }
 
 void M_QT_MULTIMEDIA::do_sound_start()

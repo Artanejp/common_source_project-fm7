@@ -260,9 +260,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			}
 			m_sound_thread = new QThread();
 			if(m_sound_thread != nullptr) {
-				connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(release_sound()));
 				//connect(m_sound_thread, SIGNAL(finished()), m_sound_thread, SLOT(deleteLater()));
-				//connect(m_sound_driver.get(), SIGNAL(sig_sound_finished()), m_sound_thread, SLOT(quit()));
+				connect(m_sound_driver.get(), SIGNAL(sig_sound_finished()), m_sound_thread, SLOT(quit()));
+				connect(m_sound_thread, SIGNAL(finished()), m_sound_thread, SLOT(deleteLater()));
 				m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
 				m_sound_driver->moveToThread(m_sound_thread);
 			}
@@ -316,10 +316,7 @@ void OSD_BASE::release_sound()
 
 	m_sound_period = 0;
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-	if(m_sound_thread != nullptr) {
-		m_sound_thread->quit();
-		m_sound_thread->wait();
-	} else if(sound_drv.get() != nullptr) {
+	if(sound_drv.get() != nullptr) {
 		sound_drv->release_sound();
 	}
 }
