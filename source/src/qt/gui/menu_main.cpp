@@ -497,7 +497,6 @@ void Ui_MainWindowBase::setupUi(void)
 
 	MainWindow->setFocusProxy(graphicsView);
 	MainWindow->centralWidget()->adjustSize();
-	MainWindow->adjustSize();
 
 	statusbar = new QStatusBar(this);
 	statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -763,13 +762,13 @@ void Ui_MainWindowBase::setupUi(void)
 			break;
 		}
 	}
-	graphicsView->setFixedSize(w, h);
-
 	connect(this, SIGNAL(sig_screen_multiply(double)), graphicsView, SLOT(do_set_screen_multiply(double)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_glv_set_fixed_size(int, int)), graphicsView, SLOT(do_set_fixed_size(int, int)), Qt::QueuedConnection);
+	graphicsView->setFixedSize(w, h);
+	
+//	set_screen_size(w, h);
+//	set_screen_aspect(p_config->window_stretch_type);
 
-	set_screen_size(w, h);
-	set_screen_aspect(p_config->window_stretch_type);
 	if(actionScreenSize[p_config->window_mode] != nullptr) {
 		struct CSP_Ui_MainWidgets::ScreenMultiplyPair s_mul;
 		s_mul = actionScreenSize[p_config->window_mode]->data().value<CSP_Ui_MainWidgets::ScreenMultiplyPair>();
@@ -818,6 +817,7 @@ void Ui_MainWindowBase::setupUi(void)
 	VolumeHighIcon = QIcon(":/icon_volume_high.png");
 
 	ExitIcon = QIcon(":/icon_exit.png");
+	MainWindow->adjustSize();
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "setupUI() OK");
 } // setupUi
