@@ -111,24 +111,20 @@ class QRecursiveMutex;
 #else
 class QMutex;
 #endif
-
+class QTimer;
 class OSD_BASE;
 
 class DLL_PREFIX CSP_Log_ConsoleThread: public QThread {
 	Q_OBJECT
 	QContiguousCache<QString> conslog;
 	//QQueue<QString> conslog;
-#if QT_VERSION >= 0x051400
-	QRecursiveMutex *_mutex;
-#else
-	QMutex *_mutex;
-#endif
+	QTimer *tick_timer;
 public:
-	CSP_Log_ConsoleThread(QObject *parent);
+	CSP_Log_ConsoleThread(QObject *parent = nullptr);
 	~CSP_Log_ConsoleThread();
-	void run() override;
 public slots:
 	void do_message(QString header, QString message);
+	void do_print();
 
 };
 

@@ -123,23 +123,25 @@ CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *de
 	level_state_out_console = false;
 
 	console_printer = new CSP_Log_ConsoleThread(this);
-	console_printer->setObjectName(QString::fromUtf8("Console_Logger"));
-	console_printer->start(QThread::LowPriority);
-	//console_printer->moveToThread(console_printer);
-	connect(this, SIGNAL(sig_console_message(QString, QString)), console_printer, SLOT(do_message(QString, QString)));
-	connect(this, SIGNAL(sig_console_quit()), console_printer, SLOT(quit()));
+	if(console_printer != nullptr) {
+		console_printer->setObjectName(QString::fromUtf8("Console_Logger_To_Stdout"));
+		//console_printer->moveToThread(console_printer);
+		connect(this, SIGNAL(sig_console_message(QString, QString)), console_printer, SLOT(do_message(QString, QString)));
+		connect(this, SIGNAL(sig_console_quit()), console_printer, SLOT(quit()));
+		//connect(console_printer, SIGNAL(finished()), console_printer, SLOT(deleteLater()));
+		console_printer->start(QThread::LowPriority);
+	}
 }
 
 
 CSP_Logger::~CSP_Logger()
 {
+	QMutexLocker locker(lock_mutex);
 	emit sig_console_quit();
-	if(!(console_printer->wait(100))) {
-		console_printer->terminate();
-		QThread::msleep(100);
+	if(console_printer != nullptr) {
+		console_printer->wait();
 	}
 	delete console_printer;
-
 	loglist.clear();
 	log_sysname.clear();
 	squeue.clear();
@@ -874,47 +876,45 @@ double CSP_Logger::get_vm_clocks_usec()
 	return p_osd->get_vm_current_usec();
 }
 
+#include <QTimer>
+#include <QElapsedTimer>
 
 CSP_Log_ConsoleThread::CSP_Log_ConsoleThread(QObject *parent) : QThread(parent)
 {
-#if QT_VERSION >= 0x051400
-	_mutex = new QRecursiveMutex();
-#else
-	_mutex = new QMutex(QMutex::Recursive);
-#endif
-	conslog.setCapacity(256);
+	tick_timer = new QTimer(this);
+	conslog.setCapacity(1024);
+	if(tick_timer != nullptr) {
+		tick_timer->setTimerType(Qt::CoarseTimer);
+		tick_timer->setInterval(25); // 25mSec
+		connect(this, SIGNAL(started()), tick_timer, SLOT(start()));
+		connect(this, SIGNAL(finished()), tick_timer, SLOT(stop()));
+		connect(tick_timer, SIGNAL(timeout()), this, SLOT(do_print()));
+	}
 }
 
 CSP_Log_ConsoleThread::~CSP_Log_ConsoleThread()
 {
-	delete _mutex;
+	conslog.clear();
 }
 
 void CSP_Log_ConsoleThread::do_message(QString header, QString message)
 {
-	QMutexLocker l(_mutex);
 	QString tmps = header;
 	tmps = tmps + QString::fromUtf8(" : ") + message;
 	conslog.append(tmps);
 }
 
-void CSP_Log_ConsoleThread::run()
+void CSP_Log_ConsoleThread::do_print()
 {
+	//int leftline = 40;
 	QString tmps;
-	do {
-//		exec();
-		int leftline = 40;
-		while(!(conslog.isEmpty())) {
-			{
-				QMutexLocker l(_mutex);
-				tmps = conslog.takeFirst();
-			}
-			fprintf(stdout, "%s\n", tmps.toLocal8Bit().constData());
-			leftline--;
-			if(leftline < 0) break;
-		}
-		msleep(5);
-	} while(!isFinished());
+	QElapsedTimer tim;
+	tim.start();
+	while(!(conslog.isEmpty())) {
+		tmps = conslog.takeFirst();
+		fprintf(stdout, "%s\n", tmps.toLocal8Bit().constData());
+		if(tim.elapsed() >= 20) break; // 20mSec
+	}
 }
 
 
