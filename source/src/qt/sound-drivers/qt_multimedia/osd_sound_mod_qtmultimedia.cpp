@@ -75,6 +75,8 @@ bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
 	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_device_by_name(QString)), Qt::QueuedConnection);
+
+//	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 	m_config_ok = initialize_driver_post(parent);
 	return m_config_ok.load();
 }

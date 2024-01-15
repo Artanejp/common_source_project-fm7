@@ -290,7 +290,7 @@ protected:
 	bool __FASTCALL calcurate_sample_factor(int rate, int samples, const bool force);
 
 	int m_sound_rate, m_sound_samples;
-	bool sound_ok, sound_started, now_mute;
+	bool sound_started, now_mute;
 	bool sound_first_half;
 	QStringList sound_device_list;
 
@@ -747,6 +747,11 @@ signals:
 	int sig_set_sound_device(QString);
 	int sig_set_sound_volume(double);
 	int sig_set_sound_volume(int);
+	int sig_sound_mute();
+	int sig_sound_unmute();
+	int sig_sound_start();
+	int sig_sound_stop();
+	
 
 	int sig_update_sound_output_list();
 	int sig_clear_sound_output_list();
