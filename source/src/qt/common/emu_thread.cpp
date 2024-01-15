@@ -51,6 +51,7 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
 	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
+	connect(this, SIGNAL(sig_sound_stop()), p_osd, SLOT(stop_sound()));
 	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 }
 
@@ -472,12 +473,13 @@ _exit:
 	}
 	#endif
 
-	if(csp_logger != NULL) {
+	if(csp_logger.get() != NULL) {
 		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 							  "EmuThread : EXIT");
 	}
-	this->quit();
 	emit sig_draw_finished();
+	emit sig_sound_stop();
+	this->quit();
 }
 
 const _TCHAR *EmuThreadClass::get_device_name(void)
