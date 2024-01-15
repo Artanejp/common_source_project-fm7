@@ -69,7 +69,6 @@ void OSD_BASE::update_sound(int* extra_frames)
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	__UNLIKELY_IF(sound_drv.get() == nullptr) {
 		// ToDo: Fix delay.
-		sound_ok = false;
 		sound_initialized = false;
 		return;
 	}
@@ -79,15 +78,9 @@ void OSD_BASE::update_sound(int* extra_frames)
 
 		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
 			// ToDo: Fix delay.
-			__LIKELY_IF(!(sound_ok)) {
-				sound_drv->start();
-				//elapsed_us_before_rendered = sound_drv->driver_processed_usec();
-				elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
-				__UNLIKELY_IF(p_config != nullptr) {
-					do_update_master_volume((int)(p_config->general_sound_level));
-				}
-			}
-			sound_ok = true;
+			sound_drv->start();
+			//elapsed_us_before_rendered = sound_drv->driver_processed_usec();
+			elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
 			return;
 		}
 		// Check enough to render accumlated
@@ -192,6 +185,9 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(sound_drv.get() != nullptr) {
 			int64_t _result = 0;
 			int _samples = m_sound_samples;
+			if(p_config != nullptr) {
+				emit sig_set_sound_volume((int)(p_config->general_sound_level));
+			}
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
 			//printf(_T("%d %d %ld\n"), m_sound_samples, m_sound_period, _result);
 			//if(_result > 0) {
@@ -274,7 +270,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 
 		init_sound_device_list();
 		if(p_config != nullptr) {
-			do_update_master_volume((int)(p_config->general_sound_level));
+			emit sig_set_sound_volume((int)(p_config->general_sound_level));
 		}
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
@@ -300,7 +296,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				*presented_rate = p_rate;
 			}
 			sound_initialized = true;
-			sound_ok = false;
 			m_sound_samples_count = 0;
 		}
 		m_sound_period = 0;
@@ -312,13 +307,17 @@ void OSD_BASE::release_sound()
 	// release Qt Multimedia sound
 	sound_exit = true;
 	sound_initialized = false;
-	sound_ok = false;
 
 	m_sound_period = 0;
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
 		sound_drv->release_sound();
 	}
+	if(m_sound_thread != nullptr) {
+		m_sound_thread->wait();
+		delete m_sound_thread;
+	}
+	m_sound_driver.reset();
 }
 
 void OSD_BASE::do_update_master_volume(int level)
@@ -390,7 +389,6 @@ void OSD_BASE::stop_sound()
 		}
 	}
 	//sound_initialized = false;
-	sound_ok = false;
 }
 
 int OSD_BASE::get_sound_rate()

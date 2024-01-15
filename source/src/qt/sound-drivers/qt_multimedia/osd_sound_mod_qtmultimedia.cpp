@@ -156,8 +156,14 @@ bool M_QT_MULTIMEDIA::release_driver_fileio()
 
 void M_QT_MULTIMEDIA::release_sound()
 {
-	emit sig_stop_audio();
-	wait_driver_stopped(10000);
+	if(m_audioOutputSink.get() != nullptr) {
+		m_audioOutputSink->suspend();	
+		m_audioOutputSink->reset();	
+		m_audioOutputSink->stop();
+	}
+	if(m_fileio.get() != nullptr) {
+		m_fileio.get()->reset();
+	}
 	release_driver_fileio();
 	emit sig_sound_finished();
 }
