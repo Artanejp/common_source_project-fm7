@@ -386,6 +386,7 @@ signals:
 	int sig_draw_finished(void);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_hard_disk(int);
+	int sig_sound_stop();
 
 	int sig_change_osd(int, int, QString);
 	int sig_change_access_lamp(int, int, QString);
