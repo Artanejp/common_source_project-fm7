@@ -158,6 +158,7 @@ bool M_QT_MULTIMEDIA::release_driver_fileio()
 
 void M_QT_MULTIMEDIA::release_sound()
 {
+	#if 0
 	if(m_audioOutputSink.get() != nullptr) {
 		m_audioOutputSink->suspend();	
 		m_audioOutputSink->reset();	
@@ -167,20 +168,40 @@ void M_QT_MULTIMEDIA::release_sound()
 		m_fileio.get()->reset();
 	}
 	release_driver_fileio();
+	#endif
+	do_release_source();
+	do_release_sink();
+	
 	emit sig_sound_finished();
 }
 
-void M_QT_MULTIMEDIA::do_release_source(QAudio::State state)
+void M_QT_MULTIMEDIA::do_release_source()
 {
 	// ToDo
 }		
-void M_QT_MULTIMEDIA::do_release_sink(QAudio::State state)
+void M_QT_MULTIMEDIA::do_release_sink()
 {
-	if(m_audioOutputSink.get() != nullptr) {
-		m_audioOutputSink->stop();
-		m_audioOutputSink->reset();	
-		m_audioOutputSink.reset();
+	{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+		std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		std::shared_ptr<QAudioOutput> drv = m_audioOutputSink;
+#endif
+		if(drv.get() != nullptr) {
+			m_audioOutputSink->stop();
+			m_audioOutputSink->reset();	
+		}
 	}
+	while(m_audioOutputSink.use_count() != 0) {
+		__debug_log_func(_T("Sink: used remains %d"), m_audioOutputSink.use_count());
+		QThread::msleep(15);
+	}
+	m_audioOutputSink.reset();
+
+	if(m_fileio.get() != nullptr) {
+		m_fileio.get()->reset();
+	}
+	release_driver_fileio();
 }
 
 bool M_QT_MULTIMEDIA::is_io_device_exists()

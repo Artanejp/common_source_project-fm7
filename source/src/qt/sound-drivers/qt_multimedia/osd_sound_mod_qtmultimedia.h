@@ -113,8 +113,8 @@ public slots:
 
 	virtual void do_set_device_by_name(QString driver_name) override;
 	// Unique SLOTS.
-	void do_release_sink(QAudio::State state);
-	void do_release_source(QAudio::State state);
+	void do_release_sink();
+	void do_release_source();
 };
 
 /* SOUND_MODULE::OUTPUT */
