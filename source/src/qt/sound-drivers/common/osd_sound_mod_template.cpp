@@ -443,10 +443,10 @@ bool M_BASE::start()
 {
 //	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 //	QIODevice *q = m_fileio;
-	if(is_running_sound()) { // ToDo: STOP
-		stop();
-		wait_driver_stopped(1000);
-	}
+//	if(is_running_sound()) { // ToDo: STOP
+//		stop();
+//		wait_driver_stopped(1000);
+//	}
 
 	bool _stat = reopen_fileio(false);
 	update_driver_fileio();

@@ -70,6 +70,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 	__UNLIKELY_IF(sound_drv.get() == nullptr) {
 		// ToDo: Fix delay.
 		sound_initialized = false;
+		//m_sound_ok = false;
 		return;
 	}
 	if(sound_initialized) {
@@ -78,7 +79,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 
 		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
 			// ToDo: Fix delay.
-			emit sig_sound_start();
+			sound_drv->start();
 			//elapsed_us_before_rendered = sound_drv->driver_processed_usec();
 			elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
 			return;
@@ -234,35 +235,43 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 {
 	// If sound driver hasn't initialized, initialize.
 	sound_exit = false;
+	#if 1
 	if(m_sound_thread != nullptr) {
 		if(m_sound_thread->isRunning()) {
 			m_sound_thread->quit();
 			m_sound_thread->wait();
 		}
 	}
+	#endif
 	if((m_sound_driver.get() == nullptr) ||
 	   (m_sound_rate != rate) ||
 	   (m_sound_samples != samples)) {
+		//m_sound_ok = false;
 		if(m_sound_driver.get() != nullptr) {
 			std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>drv = m_sound_driver;
+			elapsed_us_before_rendered = drv->driver_elapsed_usec();
 			drv->stop_sound();
 			while(drv->is_driver_started()) {
 				QThread::msleep(10);
 			}
+		   
 		}
 		m_sound_driver.reset(
-			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(nullptr,
+			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this,
 													 nullptr,
 													 rate,
 													 (samples * 1000) / rate,
 													 2,
 													 nullptr,
 													 0));
-		m_sound_thread = new QThread();
+		if(m_sound_thread == nullptr) {
+			m_sound_thread = new QThread();
+		}
 		if(m_sound_thread != nullptr) {
 			m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
-			//connect(m_sound_thread, SIGNAL(finished()), m_sound_thread, SLOT(deleteLater()));
-			connect(m_sound_driver.get(), SIGNAL(sig_sound_finished()), m_sound_thread, SLOT(quit()));
+			connect(m_sound_driver.get(), SIGNAL(destroyed()), m_sound_thread, SLOT(quit()));
+			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(stop()));
+			connect(m_sound_thread, SIGNAL(destroyed()), m_sound_driver.get(), SLOT(stop()));
 			m_sound_driver->moveToThread(m_sound_thread);
 		}
 		
@@ -273,6 +282,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			connect(this, SIGNAL(sig_sound_unmute()), m_sound_driver.get(), SLOT(unmute_sound()));
 			connect(this, SIGNAL(sig_sound_stop()), m_sound_driver.get(), SLOT(stop_sound()));
 			connect(this, SIGNAL(sig_sound_start()), m_sound_driver.get(), SLOT(start()));
+			//connect(m_sound_driver.get(), SIGNAL(sig_acknowledge_started()), this, SLOT(do_acknowledge_sound_started()));
 		}
 		if(m_sound_thread != nullptr) {
 			m_sound_thread->start(QThread::HighPriority);
@@ -318,19 +328,20 @@ void OSD_BASE::release_sound()
 	sound_initialized = false;
 
 	m_sound_period = 0;
-	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
+
+	if(m_sound_driver.get() != nullptr) {
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 		sound_drv->release_sound();
 		while(sound_drv->is_driver_started()) {
 			QThread::msleep(10);
 		}
-//		m_sound_driver->moveToThread(this->thread());		
 	}
+	while(m_sound_driver.use_count() > 0) {
+		QThread::msleep(10);
+	}
+	m_sound_driver.reset();
 	if(m_sound_thread != nullptr) {
-		if(m_sound_thread->isRunning()) {
-			m_sound_thread->wait();
-		}
-		//delete m_sound_thread;
+		m_sound_thread->wait();
 	}
 }
 
@@ -387,12 +398,21 @@ void OSD_BASE::mute_sound()
 		now_mute = true;
 	}
 }
+
 void OSD_BASE::stop_sound()
 {
+	//m_sound_ok = false;
 	emit sig_sound_stop();
 	m_sound_period = 0;
+	elapsed_us_before_rendered = 0;
 	//sound_initialized = false;
 }
+
+//void OSD_BASE::do_acknowledge_sound_started()
+//{
+	//m_sound_ok = true;
+//	elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
+//}
 
 int OSD_BASE::get_sound_rate()
 {
