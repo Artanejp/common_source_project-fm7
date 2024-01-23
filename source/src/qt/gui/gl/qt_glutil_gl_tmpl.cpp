@@ -13,7 +13,7 @@
 #include <QRect>
 #include <QOpenGLTexture>
 
-GLDraw_Tmpl::GLDraw_Tmpl(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : QObject((QObject *)parent)
+GLDraw_Tmpl::GLDraw_Tmpl(GLDrawClass *parent, std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, EMU_TEMPLATE *emu) : QObject((QObject *)nullptr)
 {
 	p_wid = parent;
 	p_emu = emu;

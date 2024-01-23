@@ -453,6 +453,8 @@ void Ui_MainWindowBase::setupUi(void)
 	pCentralLayout->setContentsMargins(0, 0, 0, 0);
 	pCentralLayout->addWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
+	//emit sig_start_glview();
+	
 	switch(p_config->virtual_media_position) {
 	case 0:
 		pCentralLayout->setDirection(QBoxLayout::TopToBottom);

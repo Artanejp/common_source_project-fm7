@@ -382,12 +382,14 @@ _nr_end:
 			render_string = QString::fromUtf8("Emu:&nbsp;&nbsp;") + _head + QString::number(_major_version) +
 				QString::fromUtf8(".") + QString::number(_minor_version) + QString::fromUtf8("<BR>");
 		}
+		
 		extfunc->initGLObjects();
 		extfunc->initFBO();
 		extfunc->initLocalGLObjects();
 		connect(this, SIGNAL(sig_draw_timing()), extfunc, SLOT(paintGL()));
 		connect(this, SIGNAL(sig_set_display_osd(bool)), extfunc, SLOT(do_set_display_osd(bool)));
 		connect(this, SIGNAL(sig_display_osd_leds(int, bool)), extfunc, SLOT(do_display_osd_leds(int, bool)));
+		
 	} else {
 		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "None using OpenGL.Sorry.");
 	}

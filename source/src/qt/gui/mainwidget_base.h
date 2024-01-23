@@ -478,7 +478,7 @@ protected:
 	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 	std::shared_ptr<CSP_Logger> csp_logger;
-
+   
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
 	QMap<uint32_t, QString>phys_key_name_map; // VK, NAME
@@ -958,9 +958,12 @@ signals:
 	int sig_quit_joy_thread();
 	int sig_quit_draw_thread();
 	int sig_quit_emulator_all();
+	
 	int sig_quit_movie_thread();
 	int sig_stop_saving_movie(void);
 	int sig_start_saving_movie(void);
+
+	
 	int on_boot_mode(int);
 	int on_cpu_type(int);
 	int on_open_debugger(int);

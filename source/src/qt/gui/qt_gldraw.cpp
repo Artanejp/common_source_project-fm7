@@ -125,6 +125,7 @@ GLDrawClass::GLDrawClass(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Log
 	: QOpenGLWidget(parent, Qt::Widget)
 {
 
+
 	this->setFormat(fmt);
 
 	csp_logger = logger;
