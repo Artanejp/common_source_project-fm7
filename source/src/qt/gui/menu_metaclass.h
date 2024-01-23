@@ -128,6 +128,7 @@ public slots:
 
 	void do_set_initialize_directory(const char *dir);
 	virtual void do_open_dialog(void);
+	void do_delayed_open_dialog(void);
 	void do_clear_inner_media(void);
 	void do_select_inner_media(int num);
 	void do_update_inner_media(QStringList lst, int num);

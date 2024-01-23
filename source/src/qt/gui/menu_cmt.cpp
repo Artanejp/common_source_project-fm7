@@ -210,8 +210,11 @@ void Menu_CMTClass::do_open_rec_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
+
 	dlg->setOption(QFileDialog::ReadOnly, false);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	//dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
+	
 	dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->param->setDrive(media_drive);
 	dlg->setDirectory(initial_dir);
@@ -227,8 +230,8 @@ void Menu_CMTClass::do_open_rec_dialog()
 
 	dialogs.append(dlg);
 	dlg->setModal(false);
-	dlg->show();
-
+//	dlg->show();
+	dlg->exec();
 	return;
 }
 

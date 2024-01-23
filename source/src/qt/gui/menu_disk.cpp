@@ -48,18 +48,19 @@ void Menu_FDClass::do_set_create_mask(quint8 type, bool flag)
 
 void Menu_FDClass::do_open_dialog()
 {
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
+	//CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
+
 	do_open_dialog_common(dlg);
 
 	disconnect(dlg->param, SIGNAL(sig_open_media(int, QString)), this, SLOT(do_open_media(int, QString)));
 	connect(dlg->param, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)), Qt::QueuedConnection);
-
 	emit sig_show();
 }
 void Menu_FDClass::do_open_dialog_create_fd()
 {
-	CSP_CreateDiskDialog dlg(type_mask);
-
+	CSP_CreateDiskDialog* dlg = new CSP_CreateDiskDialog(type_mask, Qt::Widget);
+	dlg->setWindowModality(Qt::WindowModal);
 	if(initial_dir.isEmpty()) {
 		QDir dir;
 		char app[_MAX_PATH];
@@ -68,7 +69,7 @@ void Menu_FDClass::do_open_dialog_create_fd()
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 
-	dlg.dlg->setDirectory(initial_dir);
+	dlg->dlg->setDirectory(initial_dir);
 	QString create_ext = QString::fromUtf8("*.d88 *.d77");
 	QString create_desc = QString::fromUtf8("D88/D77 Virtual Floppy Image.");
 	QString all = QString::fromUtf8("All Files (*.*)");
@@ -83,7 +84,7 @@ void Menu_FDClass::do_open_dialog_create_fd()
 	__filter << tmps;
 	__filter << all;
 	__filter.removeDuplicates();
-	dlg.dlg->setNameFilters(__filter);
+	dlg->dlg->setNameFilters(__filter);
 
 	tmps.clear();
 	tmps = QApplication::translate("MenuMedia", "Create D88/D77 virtual floppy", 0);
@@ -92,13 +93,13 @@ void Menu_FDClass::do_open_dialog_create_fd()
 	} else {
 		tmps = tmps + QString::fromUtf8(" ") + this->title();
 	}
-	dlg.dlg->setWindowTitle(tmps);
+	dlg->dlg->setWindowTitle(tmps);
 
-	QObject::connect(&dlg, SIGNAL(sig_create_disk(quint8, QString)), this, SLOT(do_create_media(quint8, QString)));
-	QObject::connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
+	connect(dlg, SIGNAL(sig_create_disk(quint8, QString)), this, SLOT(do_create_media(quint8, QString)));
+	connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
 
-	dlg.show();
-	dlg.dlg->exec();
+	dlg->show();
+	//dlg->dlg->exec();
 	return;
 }
 

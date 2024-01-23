@@ -45,6 +45,7 @@ CSP_DialogMovie::CSP_DialogMovie(MOVIE_SAVER *ms, std::shared_ptr<USING_FLAGS> p
 	connect(close_button, SIGNAL(clicked()), this, SLOT(do_set_codecs()));
 	
 	this->show();
+	//this->exec();
 }
 
 CSP_DialogMovie::~CSP_DialogMovie()

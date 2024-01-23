@@ -105,7 +105,8 @@ void Dlg_LogViewer::rise_font_dialog(void)
 {
 	QFontDialog *dlg = new QFontDialog(TextBox->font(), this);
 	connect(dlg, SIGNAL(fontSelected(const QFont)), this, SLOT(set_font(const QFont)));
-	dlg->show();
+//	dlg->show();
+	dlg->exec();
 }
 
 void Dlg_LogViewer::resizeEvent(QResizeEvent *event)

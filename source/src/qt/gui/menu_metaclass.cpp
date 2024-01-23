@@ -28,7 +28,6 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 
 	p_wid = parent;
 	menu_root = root_entry;
-
 	//p_emu = ep;
 	using_flags = p;
 	p_config = p->get_config_ptr();
@@ -216,7 +215,7 @@ void Menu_MetaClass::do_finish(int i)
 
 void Menu_MetaClass::do_open_dialog()
 {
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
+	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
 	do_open_dialog_common(dlg);
 	emit sig_show();
 }
@@ -233,9 +232,12 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	}
 
 	dlg->setOption(QFileDialog::ReadOnly, false);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	//dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
+	
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setFileMode(QFileDialog::AnyFile);
+	
 	//dlg->setLabelText(QFileDialog::Accept, QApplication::translate("MenuMedia", "Open File", 0));
 	dlg->param->setDrive(media_drive);
 	dlg->param->setPlay(true);
@@ -260,14 +262,11 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
 
-	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_show()), dlg, SLOT(exec()), Qt::QueuedConnection);
 	dlg->do_update_params(); // update Extensions, directories
 
 	dialogs.append(dlg);
 
-	//dlg->open();
-	//dlg->show();
-	//dlg->exec();
 	return;
 }
 
@@ -373,7 +372,9 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 	_tmp_ins.setValue(tmp);
 	action_insert->setData(_tmp_ins);
 
-	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()), Qt::QueuedConnection);
+	
+	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_delayed_open_dialog()), Qt::QueuedConnection);
+	//connect(this, SIGNAL(sig_open_dialog()), this, SLOT(do_open_dialog()));	
 	action_insert->setIcon(icon_insert);
 
 	action_eject = new Action_Control(p_wid, using_flags);
@@ -459,6 +460,11 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		connect(action_write_protect_on, SIGNAL(triggered()), this, SLOT(do_write_protect_media()));
 		connect(action_write_protect_off, SIGNAL(triggered()), this, SLOT(do_write_unprotect_media()));
 	}
+}
+
+void Menu_MetaClass::do_delayed_open_dialog()
+{
+	QTimer::singleShot(10, this, SLOT(do_open_dialog()));
 }
 
 // This is virtual function, pls.apply

@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <QThread>
+
 #include "common.h"
 //#include "emu.h"
 #include "qt_main.h"
@@ -47,14 +49,16 @@ void CSP_DiskDialog::do_update_params()
 	setNameFilters(param->getNameFilters());
 }
 
-CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidget(parent)
+CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, Qt::WindowFlags flags, QWidget *parent) : QWidget(parent, flags)
 {
 	__real_media_type = 0x00;
-	dlg = new QFileDialog(NULL, Qt::Widget);
+	//dlg = new QFileDialog(nullptr, Qt::Widget);
+	dlg = new QFileDialog(nullptr, Qt::SubWindow);
 	dlg->setParent(this);
 	dlg->setOption(QFileDialog::ReadOnly, false);
 	dlg->setOption(QFileDialog::DontConfirmOverwrite, false);
 	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	
 	dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setFileMode(QFileDialog::AnyFile);
 
@@ -74,7 +78,8 @@ CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, QWidget *parent) : QWidg
 	this->setLayout(&layout);
 	connect(&media_type, SIGNAL(activated(int)), this, SLOT(do_set_type(int)));
 	connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_create_disk(QString)));
-
+	connect(dlg, SIGNAL(rejected()), this, SLOT(close()));
+	connect(dlg, SIGNAL(accepted()), this, SLOT(close()));
 }
 
 CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, int sectors, int surfaces, int cylinders, QWidget *parent) : QWidget(parent)
@@ -148,7 +153,8 @@ CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, i
 	layout.addWidget(&_size_label, 4, 3);
 	layout.addWidget(dlg, 5, 0, 5, 4);
 
-	this->setLayout(&layout);
+	setLayout(&layout);
+	
 	connect(&_preset_type, SIGNAL(activated(int)), this, SLOT(do_preset(int)));
 	connect(this, SIGNAL(sig_update_total_size(uint64_t)), this, SLOT(do_update_total_size(uint64_t)));
 //	connect(&_sector_size, SIGNAL(activated(int)), this, SLOT(do_change_sector_size(int)));
@@ -157,6 +163,8 @@ CSP_CreateHardDiskDialog::CSP_CreateHardDiskDialog(int drive, int sector_size, i
 	connect(&_surfaces, SIGNAL(valueChanged(int)), this, SLOT(do_update_values(int)));
 	connect(&_cylinders, SIGNAL(valueChanged(int)), this, SLOT(do_update_values(int)));
 	connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_create_disk(QString)));
+	connect(dlg, SIGNAL(rejected()), this, SLOT(close()));
+	connect(dlg, SIGNAL(accepted()), this, SLOT(close()));
 
 	do_preset(0); // Update label.
 }

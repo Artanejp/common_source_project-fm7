@@ -67,7 +67,7 @@ typedef class CSP_DiskDialog : public QFileDialog {
 	Q_OBJECT
 public:
 	CSP_FileParams *param;
-	CSP_DiskDialog(QWidget *parent = 0) : QFileDialog(parent) {
+	CSP_DiskDialog(QWidget *parent = 0, Qt::WindowFlags flags = Qt::SubWindow) : QFileDialog(parent, flags) {
 		param = new CSP_FileParams();
 	}
 	~CSP_DiskDialog() {
@@ -87,7 +87,7 @@ class CSP_CreateDiskDialog : public QWidget {
 public:
 	QFileDialog* dlg;
 	CSP_FileParams *param;
-	CSP_CreateDiskDialog(bool *masks, QWidget *parent = 0);
+	CSP_CreateDiskDialog(bool *masks, Qt::WindowFlags flags, QWidget *parent = 0);
 	~CSP_CreateDiskDialog() {
 		delete param;
 		delete dlg;
@@ -95,6 +95,12 @@ public:
 signals:
 	int sig_create_disk(quint8, QString);
 public slots:
+	void do_exec() {
+		if(dlg != nullptr) {
+			dlg->exec();
+		}
+		show();
+	}
 	void do_set_type(int i) {
 		__real_media_type = media_type.itemData(i).toUInt();
 	}

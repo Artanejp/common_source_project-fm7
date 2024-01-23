@@ -161,6 +161,7 @@ void Ui_MainWindowBase::rise_log_viewer(void)
 {
 	Dlg_LogViewer *dlg = new Dlg_LogViewer(using_flags, csp_logger, NULL);
 	dlg->show();
+//	dlg->exec();
 }
 
 void Ui_MainWindowBase::rise_mouse_dialog(void)
