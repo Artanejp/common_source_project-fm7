@@ -495,14 +495,8 @@ public:
 	void add_extra_frames(int extra_frames);
 	bool now_record_video;
 	bool screen_skip_line;
-	// common sound
-	void update_sound(int* extra_frames);
-	void mute_sound();
-	void unmute_sound();
-	void stop_sound();
-	void start_record_sound();
-	void stop_record_sound();
-	void restart_record_sound();
+	
+	// common sound : Moved to SLOT.
 
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
@@ -684,6 +678,15 @@ public:
 	void __FASTCALL int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data);
 
 public slots:
+	// common sound
+	void update_sound(int* extra_frames);
+	void mute_sound();
+	void unmute_sound();
+	void stop_sound();
+	void start_record_sound();
+	void stop_record_sound();
+	void restart_record_sound();
+	
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();
