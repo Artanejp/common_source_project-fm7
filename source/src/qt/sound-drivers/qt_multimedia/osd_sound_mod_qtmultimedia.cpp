@@ -85,7 +85,6 @@ bool M_QT_MULTIMEDIA::recalc_samples(int rate, int latency_ms, bool need_update,
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	bool __need_restart = M_BASE::recalc_samples(rate, latency_ms, need_update, need_resize_fileio);
-#if 1
 	if((__need_restart)) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 		std::shared_ptr<QAudioSink> drv = m_audioOutputSink;
@@ -100,12 +99,15 @@ bool M_QT_MULTIMEDIA::recalc_samples(int rate, int latency_ms, bool need_update,
 			if(m_fileio.get() != nullptr) {
 				drv->start(m_fileio.get());
 			}
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 			if(!(drv->isNull())) {
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+			if((drv->error() != QAudio::UnderrunError) && (drv->error() != QAudio::NoError)) {
+#endif
 				__need_restart |= true;
 			}
 		}
 	}
-#endif
 	return __need_restart;
 }
 
