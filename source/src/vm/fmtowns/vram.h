@@ -50,7 +50,6 @@ class TOWNS_VRAM : public DEVICE
 {
 private:
 	std::recursive_mutex vram_lock; // [bank][layer];
-
 protected:
 	// Accessing VRAM. Will be separated.
 	// Memory description:
@@ -83,10 +82,76 @@ protected:
 		// 0x80100000 : Single
 		// 0x80000000 : Double
 		return ((addr & (1 << (TOWNS_VRAM_ADDR_SHIFT + 1))) != 0) ?
-				((addr & 0x00000003) |
+			calc_single_page_address(addr) : calc_double_page_address(addr);
+	}
+	constexpr uint32_t calc_single_page_address(uint32_t addr)
+	{
+		// 0x80100000 : Single
+		// 0x80000000 : Double
+		return 	((addr & 0x00000003) |
 				 ((addr & 0x00000004) << (TOWNS_VRAM_ADDR_SHIFT - 3))
-				 | ((addr & (TOWNS_VRAM_ADDR_MASK & ~(7))) >> 1))
-				: (addr & TOWNS_VRAM_ADDR_MASK);
+				 | ((addr & (TOWNS_VRAM_ADDR_MASK & ~(7))) >> 1));
+	}
+	constexpr uint32_t calc_double_page_address(uint32_t addr)
+	{
+		// 0x80000000 : Double
+		return addr & TOWNS_VRAM_ADDR_MASK;
+	}
+	inline void transfer_data_from_double_pages(uint32_t offset, uint32_t bytes, uint8_t* dst)
+	{
+		const uint32_t bytes0 = bytes & (0xfffffff0 & TOWNS_VRAM_ADDR_MASK); // Align of 16.
+		const uint32_t bytes1 = bytes & 0x0000000f; // MOD  of 16.
+		uint8_t* p = dst;
+		__DECL_ALIGNED(32) uint8_t data_cache[32];
+		for(uint32_t ar = 0; ar < bytes0; ar += 32) {
+			uint32_t ar2 = ar + offset;
+			__DECL_VECTORIZED_LOOP
+			for(uint32_t j = 0; j < 32; j++) {
+				data_cache[j] = vram[ar2 + j];
+			}
+			__DECL_VECTORIZED_LOOP
+			for(size_t j = 0; j < 32; j++) {
+				p[j] = data_cache[j];
+			}
+			p += 32;
+		}
+		__UNLIKELY_IF(bytes1 != 0) {
+			uint32_t ar = offset + bytes0;
+			for(uint32_t j = 0; j < bytes1; j++) {
+				data_cache[j] = vram[ar + j];
+			}
+			for(uint32_t j = 0; j < bytes1; j++) {
+				p[j] = data_cache[j];
+			}
+		}
+	}
+	inline void transfer_data_from_single_page(uint32_t offset, uint32_t bytes, uint8_t* dst)
+	{
+		const uint32_t bytes0 = bytes & (0xfffffff0 & TOWNS_VRAM_ADDR_MASK); // Align of 16.
+		const uint32_t bytes1 = bytes & 0x0000000f; // MOD  of 16.
+		__DECL_ALIGNED(32) uint8_t data_cache[32];
+		uint8_t* p = dst;
+		for(uint32_t ar = 0; ar < bytes0; ar += 32) {
+			uint32_t ar2 = ar + offset;
+			__DECL_VECTORIZED_LOOP
+			for(uint32_t j = 0; j < 32; j++) {
+				data_cache[j] = vram[calc_single_page_address(ar2 + j)];
+			}
+			__DECL_VECTORIZED_LOOP
+			for(size_t j = 0; j < 32; j++) {
+				p[j] = data_cache[j];
+			}
+			p += 32;
+		}
+		__UNLIKELY_IF(bytes1 != 0) {
+			uint32_t ar = offset + bytes0;
+			for(uint32_t j = 0; j < bytes1; j++) {
+				data_cache[j] = vram[calc_single_page_address(ar + j)];
+			}
+			for(uint32_t j = 0; j < bytes1; j++) {
+				p[j] = data_cache[j];
+			}
+		}
 	}
 
 public:
@@ -126,13 +191,51 @@ public:
 	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// Unique Functions
+	// Get host data pointer for direct accessing.
 	virtual inline uint8_t* __FASTCALL get_vram_address(uint32_t offset)
 	{
 		//uint32_t offset2 = calc_std_address_offset(offset);
 		const uint32_t offset2 = offset & TOWNS_VRAM_ADDR_MASK;
 		return &(vram[offset2]);
 	}
-	virtual void __FASTCALL get_data_from_vram(bool is_single, uint32_t offset, uint32_t bytes, uint8_t* dst);
+	// Transfer VRAM data to CRTC.
+	virtual inline void __FASTCALL get_data_from_vram(const bool is_single, uint32_t offset, uint32_t bytes, uint8_t* dst)
+	{
+		__UNLIKELY_IF((bytes == 0) || (dst == nullptr)) {
+			return;
+		}
+		__UNLIKELY_IF(bytes > (TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t))) {
+			bytes = TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t);
+		}
+		uint32_t addr = offset & TOWNS_VRAM_ADDR_MASK;
+		uint8_t* p = dst;
+		bool is_wrap = ((addr + bytes) > (TOWNS_VRAM_ADDR_MASK + 1)) ? true : false;
+		__UNLIKELY_IF(is_wrap) {
+			uint32_t bytes0 = (TOWNS_VRAM_ADDR_MASK + 1) - addr;
+			uint32_t bytes1 = (addr + bytes) - (TOWNS_VRAM_ADDR_MASK + 1);
+			uint8_t* p0 = dst;
+			uint8_t* p1 = &(dst[bytes0]);
+			lock();
+			if(is_single) {
+				transfer_data_from_single_page(addr, bytes0, p0);
+				transfer_data_from_single_page(0, bytes1, p1);
+			} else {
+				transfer_data_from_double_pages(addr, bytes0, p0);
+				transfer_data_from_double_pages(0, bytes1, p1);
+			}
+			unlock();
+		} else {
+			lock();
+			if(is_single) {
+				transfer_data_from_single_page(addr, bytes, dst);
+			} else {
+				transfer_data_from_double_pages(addr, bytes, dst);
+			}
+			unlock();
+		}
+	}
+
+	
 	virtual bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words);
 	virtual bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words);
 	virtual inline uint32_t __FASTCALL get_vram_size()
