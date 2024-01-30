@@ -231,6 +231,7 @@ protected:
 	uint32_t fo1_offset_value;
 
 	uint8_t display_mode[2];
+	int     real_display_mode[2];
 	bool display_enabled;
 
 	double crtc_clock; //
@@ -270,7 +271,6 @@ protected:
 	uint32_t line_offset[2]; // LOx.
 
 	uint32_t frame_offset_bak[2]; // FOx(Backup).
-	uint32_t line_offset_bak[2]; // LOx(Backup).
 
 	uint32_t head_address[2];
 	int horiz_offset_tmp[2];
@@ -450,7 +450,7 @@ protected:
 	inline void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only)
 	{
 		if(!(calc_only)) {
-			if((cr0 & 0x8000) == 0) {
+			if((cr0 & 0x8000) != 0) {
 			// START BIT
 				restart_display();
 			} else {
