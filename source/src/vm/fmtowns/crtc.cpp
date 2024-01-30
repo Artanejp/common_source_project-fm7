@@ -1827,7 +1827,7 @@ void TOWNS_CRTC::render_text()
 				__LIKELY_IF(p != nullptr) {
 
 					d_vram->lock();
-__DECL_VECTORIZED_LOOP
+				__DECL_VECTORIZED_LOOP
 					for(int nb = 0; nb < 8; nb += 2) {
 //						pix = 0;
 						pix = ((tmpdata & 0x80) != 0) ? color : 0;
