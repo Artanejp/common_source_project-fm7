@@ -343,7 +343,7 @@ void TOWNS_VRAM::get_data_from_vram(bool is_single, uint32_t offset, uint32_t by
 		return;
 	}
 	uint32_t addr = offset & TOWNS_VRAM_ADDR_MASK;
-	uint8_t* p = ___assume_aligned(dst, 16);
+	uint8_t* p = dst;
 
 	lock();
 	if(is_single) {
@@ -351,6 +351,7 @@ void TOWNS_VRAM::get_data_from_vram(bool is_single, uint32_t offset, uint32_t by
 		__DECL_ALIGNED(32) uint8_t cache[16];
 		__DECL_ALIGNED(32) uint8_t cache2[16];
 		for(int i = bytes; i >= 16; i -= 16) {
+			__DECL_VECTORIZED_LOOP
 			for(int j = 0; j < 16; j++) {
 				cache[j] = vram[calc_std_address_offset(addr + j)];
 			}
