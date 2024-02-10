@@ -11,6 +11,7 @@
 #include "./vram.h"
 #include "./sprite.h"
 #include "./crtc.h"
+#include "./fontroms.h"
 
 #define EVENT_RENDER	1
 #define EVENT_BUSY_OFF	2
@@ -69,7 +70,136 @@ void TOWNS_SPRITE::reset()
 
 //	ankcg_enabled = false;
 }
-	// Still don't use cache.
+
+void TOWNS_SPRITE::render_text()
+{
+	int c = 0;
+	uint32_t plane_offset = 0x40000;
+	uint32_t linesize = 0x80 * 4;
+	__LIKELY_IF(d_crtc !=NULL) {
+		if(d_crtc->read_signal(SIG_TOWNS_CRTC_R50_PAGESEL) != 0) {
+			plane_offset += 0x20000;
+		}
+		linesize = d_crtc->read_signal(SIG_TOWNS_CRTC_REG_LO1) * 4;
+	}
+	for(int y = 0; y < 25; y++) {
+		uint32_t addr_of = y * (linesize * 16);
+		if(c >= 0x1000) break;
+		uint32_t romaddr = 0;
+		for(int x = 0; x < 80; x++) {
+			uint8_t attr;
+			uint32_t t = get_font_address(c, attr);
+			if(((attr & 0xc0) == 0) || ((attr & 0xc0) == 0x40)) {
+				// ANK OR KANJI LEFT
+				romaddr = t;
+			} else if((attr & 0xc0) == 0x80) {
+				// KANJI RIGHT
+				romaddr = romaddr + 1;
+			} else {
+				// Illegal
+				addr_of = (addr_of + 4) & 0x3ffff;
+				c += 2;
+				continue;
+			}
+			// Get data
+			uint32_t color = attr & 0x07;
+			if(attr & 0x20) color |= 0x08;
+			// Do render
+//			out_debug_log("ROMADDR=%08X", romaddr);
+			uint32_t of = addr_of;
+			for(int column = 0; column < 16; column++) {
+				uint8_t tmpdata = 0;
+				__LIKELY_IF(d_font != nullptr) {
+					if((attr & 0xc0) == 0) {
+						// ANK
+						tmpdata = d_font->read_direct_data8(column + romaddr);
+					} else {
+						tmpdata = d_font->read_direct_data8(column * 2 + romaddr);
+					}
+				}
+				if(attr & 0x08)
+				{
+					tmpdata = ~tmpdata;
+				}
+				__LIKELY_IF(d_vram != nullptr) {
+					uint32_t pix = 0;
+					uint8_t *p = d_vram->get_vram_address(of + plane_offset);
+					__LIKELY_IF(p != nullptr) {
+						d_vram->lock();
+						__DECL_VECTORIZED_LOOP
+						for(int nb = 0; nb < 8; nb += 2) {
+							pix = ((tmpdata & 0x80) != 0) ? color : 0;
+							pix = pix | (((tmpdata & 0x40) != 0) ? (color << 4) : 0);
+							tmpdata <<= 2;
+							*p++ = pix;
+						}
+						d_vram->unlock();
+					}
+				}
+				of = (of + linesize) & 0x3ffff;
+			}
+//		_leave0:
+			addr_of = (addr_of + 4) & 0x3ffff;
+			c += 2;
+		}
+	}
+}
+
+// From MAME 0.216
+// ToDo: Will refine.
+uint32_t TOWNS_SPRITE::get_font_address(uint32_t c, uint8_t &attr)
+{
+	static const uint32_t addr_base_jis = 0x00000;
+	static const uint32_t addr_base_ank = 0x3d800;
+	uint32_t romaddr = 0;
+	uint8_t *tvram_snapshot = &(pattern_ram[0x0000]);
+	
+	attr = tvram_snapshot[c + 1];
+	switch(attr & 0xc0) {
+	case 0x00:
+		{
+			uint8_t ank = tvram_snapshot[c];
+			romaddr = addr_base_ank + (ank * 16);
+		}
+		break;
+	case 0x40:
+		{ // KANJI LEFT
+			pair32_t jis;
+			jis.b.h = tvram_snapshot[c + 0x2000]; // CA000-CAFFF
+			jis.b.l = tvram_snapshot[c + 0x2001]; // CA000-CAFFF
+			if(jis.b.h < 0x30) {
+				romaddr =
+					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+					((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+					((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+					(((uint32_t)(jis.b.h & 0x07)) << 9);
+				romaddr <<= 1;
+			} else if(jis.b.h < 0x70) {
+				romaddr =
+					(((uint32_t)(jis.b.l & 0x1f)) << 5) +
+					((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
+					((uint32_t)((jis.b.h & 0x0f)) << 10) +
+					((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
+					0x8000;
+			} else {
+				romaddr =
+					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
+					((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
+					((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
+					(((uint32_t)(jis.b.h & 0x07)) << 9);
+				romaddr <<= 1;
+				romaddr |= 0x38000;
+			}
+			romaddr = addr_base_jis + romaddr;
+		}
+		break;
+	default: // KANJI RIGHT or ILLEGAL
+		return 0;
+	}
+	return romaddr;
+}
+	
+// Still don't use cache.
 void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t color)
 {
 //	uint16_t lot = reg_index & 0x3ff;
@@ -960,6 +1090,9 @@ void TOWNS_SPRITE::check_and_clear_vram()
 	if((sprite_enabled) && (render_num <= 0)) {
 		uint16_t lot = reg_index & 0x3ff;
 		render_num = 1024 - lot;
+		if(render_num > max_sprite_per_frame) {
+			render_num = max_sprite_per_frame;
+		}
 		__LIKELY_IF(d_vram != NULL){
 			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
 			draw_page1 = disp_page1;
@@ -1008,6 +1141,12 @@ void TOWNS_SPRITE::event_pre_frame()
 void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
+	case SIG_TOWNS_SPRITE_TEXT_RENDER:
+		if(tvram_enabled_bak) {
+			render_text();
+			tvram_enabled_bak = false;
+		}
+		break;
 	case SIG_TOWNS_SPRITE_TVRAM_ENABLED: // Wrote to C8000h - CAFFFh.
 		tvram_enabled = ((data & mask) != 0);
 		tvram_enabled_bak = tvram_enabled;
@@ -1042,6 +1181,9 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 		break;
 	case SIG_TOWNS_SPRITE_ANKCG: //
 		break;
+	case SIG_TOWNS_SPRITE_MAX_NUMBERS:
+		max_sprite_per_frame = (data & 0x3ff) + 1;
+		break;
 	default:
 		break;
 	}
@@ -1059,6 +1201,21 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	case SIG_TOWNS_SPRITE_BUSY:
 		return (sprite_busy) ? 0xffffffff : 0;
 		break;
+	case SIG_TOWNS_SPRITE_DISP_PAGE0:
+		if(tvram_enabled_bak) {
+			return 0;
+		}
+		return (disp_page0) ? 0xffffffff : 0;
+		break;
+	case SIG_TOWNS_SPRITE_DISP_PAGE1:
+		if(tvram_enabled_bak) {
+			return 0;
+		}
+		return (disp_page1) ? 0xffffffff : 0;
+		break;
+	case SIG_TOWNS_SPRITE_FRAME_IN:
+		return (frame_out) ? 0x00000000 : 0xffffffff;
+		break;
 	case SIG_TOWNS_SPRITE_TVRAM_ENABLED:
 		{
 			uint32_t v = ((tvram_enabled_bak) ? 0xffffffff : 0);
@@ -1066,14 +1223,11 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 			return v;
 		}
 		break;
-	case SIG_TOWNS_SPRITE_DISP_PAGE0:
-		return (disp_page0) ? 0xffffffff : 0;
-		break;
-	case SIG_TOWNS_SPRITE_DISP_PAGE1:
-		return (disp_page1) ? 0xffffffff : 0;
-		break;
-	case SIG_TOWNS_SPRITE_FRAME_IN:
-		return (frame_out) ? 0x00000000 : 0xffffffff;
+	case SIG_TOWNS_SPRITE_MAX_NUMBERS:
+		__LIKELY_IF(max_sprite_per_frame > 0) {
+			return max_sprite_per_frame;
+		}
+		return 0;
 		break;
 	default:
 		if(id >= SIG_TOWNS_SPRITE_PEEK_TVRAM) {

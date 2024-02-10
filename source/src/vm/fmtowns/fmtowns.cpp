@@ -407,8 +407,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	floppy->set_context_fdc(fdc);
 
 	sprite->set_context_vram(vram);
-//	sprite->set_context_font(fontrom);
-//	sprite->set_context_crtc(crtc);
+	sprite->set_context_font(fontrom);
+	sprite->set_context_crtc(crtc);
 #ifdef USE_DEBUGGER
 	sprite->set_context_debugger(new DEBUGGER(this, emu));
 #endif
@@ -419,7 +419,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 	crtc->set_context_sprite(sprite);
 	crtc->set_context_vram(vram);
-	crtc->set_context_font(fontrom);
 
 	//e_volumes[0]->set_context_target(0, line_in, SIG_TOWNS_LINEIN_VOLUME_L, SIG_TOWNS_LINEIN_MUTE_L, 0xffffffff);
 	//e_volumes[0]->set_context_target(1, line_in, SIG_TOWNS_LINEIN_VOLUME_L, SIG_TOWNS_LINEIN_MUTE_L, 0xffffffff);

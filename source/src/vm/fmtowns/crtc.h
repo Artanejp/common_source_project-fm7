@@ -101,7 +101,10 @@
 #define SIG_TOWNS_CRTC_ADD_VAL_FO1		11
 #define SIG_TOWNS_CRTC_CRTOUT			12
 #define SIG_TOWNS_CRTC_MMIO_CFF86H		13
-
+#define SIG_TOWNS_CRTC_R50_PAGESEL		14
+#define SIG_TOWNS_CRTC_REG_LO0			16
+#define SIG_TOWNS_CRTC_REG_LO1			17
+#define SIG_TOWNS_CRTC_REGISTER_VALUE	32
 class DEBUGGER;
 namespace FMTOWNS {
 
@@ -193,7 +196,6 @@ class TOWNS_CRTC : public DEVICE
 protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
-	FONT_ROMS*       d_font;
 
 	uint16_t machine_id;
 	uint8_t cpu_id;
@@ -279,7 +281,6 @@ protected:
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
 
-	bool is_sprite;
 	uint32_t sprite_offset;
 	int sprite_count;
 	int sprite_limit;
@@ -321,8 +322,6 @@ protected:
 	uint8_t   apalette_256_rgb[256][4];    // R * 65536 + G * 256 + B
 	scrntype_t apalette_256_pixel[256];  // Not saved. Must be calculated.
 
-	uint8_t tvram_snapshot[0x4000];
-
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t r50_pagesel;   // MMIO 000CF882h : BIT 4
@@ -356,7 +355,7 @@ protected:
 	
 	std::atomic<int> display_linebuf;
 	std::atomic<int> render_linebuf;
-	const int display_linebuf_mask = 3;
+	const int display_linebuf_mask = 1;
 
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
 
@@ -391,7 +390,6 @@ protected:
 
 	void __FASTCALL set_crtc_clock(uint16_t val, bool force);
 	uint16_t read_reg30();
-	uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
 
 	virtual void __FASTCALL update_crtc_reg(uint8_t ch, uint32_t data);
 	virtual void __FASTCALL calc_apalette16(int layer, int index);
@@ -481,15 +479,12 @@ protected:
 	inline scrntype_t *scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width);
 
 	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
-	virtual void render_text();
 public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_vsync);
 		d_sprite = NULL;
 		d_vram = NULL;
-		d_font = NULL;
-		is_sprite = false;
 		set_device_name(_T("FM-Towns CRTC"));
 	}
 	~TOWNS_CRTC() {}
@@ -542,10 +537,6 @@ public:
 	void set_context_vram(DEVICE* dev)
 	{
 		d_vram = (TOWNS_VRAM*)dev;
-	}
-	void set_context_font(FONT_ROMS* dev)
-	{
-		d_font = dev;
 	}
 	void set_machine_id(uint16_t val)
 	{

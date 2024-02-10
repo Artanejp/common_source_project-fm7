@@ -24,6 +24,7 @@ enum {
 	EVENT_HDS1 = 3,
 	EVENT_HDE0 = 4,
 	EVENT_HDE1 = 5,
+	EVENT_END_OF_FRAME = 6,
 };
 
 
@@ -52,11 +53,7 @@ void TOWNS_CRTC::initialize()
 	voutreg_prio = 0x00;
 	is_single_layer = false;
 
-	sprite_count = 0;  // First
-	// ToDo: Unlimited sprite (maybe 1024).
-	sprite_limit = 224; // OK?
-	sprite_zoom = 1 << 16;
-	sprite_zoom_factor =  (sprite_limit << 16) / 512;
+
 }
 
 void TOWNS_CRTC::release()
@@ -83,7 +80,6 @@ void TOWNS_CRTC::reset()
 	//memset(regs, 0, sizeof(regs));
 	crtc_ch = 0;
 	sprite_offset = 0x00000;
-	is_sprite = false;
 	// initial settings for 1st frame
 	req_recalc = false;
 
@@ -97,7 +93,7 @@ void TOWNS_CRTC::reset()
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
 	display_linebuf = 0;
-	render_linebuf  = 0;
+	render_linebuf = 0;
 
 	r50_planemask = 0x0f;
 	r50_pagesel = 0;
@@ -191,7 +187,6 @@ void TOWNS_CRTC::reset()
 	max_lines = TOWNS_CRTC_MAX_LINES + 100;
 
 	write_signals(&outputs_int_vsync, 0x0);
-	memset(tvram_snapshot, 0x00, sizeof(tvram_snapshot));
 	//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1,  WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	//emu->set_vm_screen_lines(vst);
 	// For DEBUG Only
@@ -211,12 +206,6 @@ void TOWNS_CRTC::reset()
 		frame_offset_bak[i] = frame_offset[i];
 	}
 
-	sprite_count = 0;  // First
-	// ToDo: Unlimited sprite (maybe 1024).
-	sprite_limit = 224; // OK?
-	sprite_zoom = 1 << 16;
-	sprite_zoom_factor = (sprite_limit << 16) / lines_per_frame; 
-	
 }
 
 void TOWNS_CRTC::reset_vsync()
@@ -1582,11 +1571,14 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 
 void TOWNS_CRTC::draw_screen()
 {
+	//int trans = (render_linebuf  - 1 )& display_linebuf_mask;
 	int trans = display_linebuf & display_linebuf_mask;
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF(d_vram == nullptr) {
 		return;
 	}
+
+	
 	int lines = vst[trans];
 	int width = hst[trans];
 	// Will remove.
@@ -1721,126 +1713,7 @@ void TOWNS_CRTC::draw_screen()
 	return;
 }
 
-// From MAME 0.216
-// ToDo: Will refine.
-uint32_t TOWNS_CRTC::get_font_address(uint32_t c, uint8_t &attr)
-{
-	static const uint32_t addr_base_jis = 0x00000;
-	static const uint32_t addr_base_ank = 0x3d800;
-	uint32_t romaddr = 0;
-	attr = tvram_snapshot[c + 1];
-	switch(attr & 0xc0) {
-	case 0x00:
-		{
-			uint8_t ank = tvram_snapshot[c];
-			romaddr = addr_base_ank + (ank * 16);
-		}
-		break;
-	case 0x40:
-		{ // KANJI LEFT
-			pair32_t jis;
-			jis.b.h = tvram_snapshot[c + 0x2000]; // CA000-CAFFF
-			jis.b.l = tvram_snapshot[c + 0x2001]; // CA000-CAFFF
-			if(jis.b.h < 0x30) {
-				romaddr =
-					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
-					((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
-					((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
-					(((uint32_t)(jis.b.h & 0x07)) << 9);
-				romaddr <<= 1;
-			} else if(jis.b.h < 0x70) {
-				romaddr =
-					(((uint32_t)(jis.b.l & 0x1f)) << 5) +
-					((uint32_t)((jis.b.l - 0x20) & 0x60) << 9) +
-					((uint32_t)((jis.b.h & 0x0f)) << 10) +
-					((uint32_t)((jis.b.h - 0x30) & 0x70) * 0xc00) +
-					0x8000;
-			} else {
-				romaddr =
-					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
-					((uint32_t)((jis.b.l - 0x20) & 0x20) << 8) |
-					((uint32_t)((jis.b.l - 0x20) & 0x40) << 6) |
-					(((uint32_t)(jis.b.h & 0x07)) << 9);
-				romaddr <<= 1;
-				romaddr |= 0x38000;
-			}
-			romaddr = addr_base_jis + romaddr;
-		}
-		break;
-	default: // KANJI RIGHT or ILLEGAL
-		return 0;
-	}
-	return romaddr;
-}
 
-void TOWNS_CRTC::render_text()
-{
-	int c = 0;
-	uint32_t plane_offset = 0x40000 + ((r50_pagesel != 0) ? 0x20000 : 0x00000);
-	for(int y = 0; y < 25; y++) {
-		uint32_t linesize = regs[TOWNS_CRTC_REG_LO1] * 4;
-		uint32_t addr_of = y * (linesize * 16);
-		if(c >= 0x1000) break;
-		uint32_t romaddr = 0;
-		for(int x = 0; x < 80; x++) {
-			uint8_t attr;
-			uint32_t t = get_font_address(c, attr);
-			if(((attr & 0xc0) == 0) || ((attr & 0xc0) == 0x40)) {
-				// ANK OR KANJI LEFT
-				romaddr = t;
-			} else if((attr & 0xc0) == 0x80) {
-				// KANJI RIGHT
-				romaddr = romaddr + 1;
-			} else {
-				// Illegal
-				addr_of = (addr_of + 4) & 0x3ffff;
-				c += 2;
-				continue;
-			}
-			// Get data
-			uint32_t color = attr & 0x07;
-			uint8_t tmpdata = 0;
-			if(attr & 0x20) color |= 0x08;
-
-			// Do render
-//			out_debug_log("ROMADDR=%08X", romaddr);
-			uint32_t of = addr_of;
-			for(int column = 0; column < 16; column++) {
-				__LIKELY_IF(d_font != nullptr) {
-					if((attr & 0xc0) == 0) {
-						// ANK
-						tmpdata = d_font->read_direct_data8(column + romaddr);
-					} else {
-						tmpdata = d_font->read_direct_data8(column * 2 + romaddr);
-					}
-				}
-				if(attr & 0x08)
-				{
-					tmpdata = ~tmpdata;
-				}
-				uint32_t pix = 0;
-				uint8_t *p = d_vram->get_vram_address(of + plane_offset);
-				__LIKELY_IF(p != nullptr) {
-
-					d_vram->lock();
-				__DECL_VECTORIZED_LOOP
-					for(int nb = 0; nb < 8; nb += 2) {
-//						pix = 0;
-						pix = ((tmpdata & 0x80) != 0) ? color : 0;
-						pix = pix | (((tmpdata & 0x40) != 0) ? (color << 4) : 0);
-						tmpdata <<= 2;
-						*p++ = pix;
-					}
-					d_vram->unlock();
-				}
-				of = (of + linesize) & 0x3ffff;
-			}
-//		_leave0:
-			addr_of = (addr_of + 4) & 0x3ffff;
-			c += 2;
-		}
-	}
-}
 void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 {
 	__UNLIKELY_IF(line < 0) return;
@@ -2234,30 +2107,27 @@ void TOWNS_CRTC::event_pre_frame()
 	 ---- こんなんでましたけど(´・ω・｀) ---- 
 	*/
 	display_linebuf = render_linebuf & display_linebuf_mask;
-	//vst[display_linebuf] = (vert_line_count <= 0) ? 1 : (vert_line_count + 1); 
-	//hst[display_linebuf] = pixels_per_line;
-	
 	//recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
 	set_crtc_parameters_from_regs();
-	//make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
-	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
-
-	is_sprite = false;
-	sprite_offset = 0;
-	sprite_count = 0;  // First
-	// This calls after setting new frames parameters.
-	// ToDo: Unlimited sprite (maybe 1024).
-	sprite_limit = 224; // OK?
-	sprite_zoom = 1 << 16;
-	sprite_zoom_factor = (sprite_limit << 16) / lines_per_frame; 
-	
+	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
 	// Reset VSYNC
-	reset_vsync();
+	vert_line_count = -1;
+}
+
+
+void TOWNS_CRTC::event_frame()
+{
+	//display_linebuf = render_linebuf & display_linebuf_mask;
+	//if(display_enabled) {
+		render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+	//}
+	int trans = render_linebuf & display_linebuf_mask;
+	vst[trans] = max_lines;
+	hst[trans] = pixels_per_line;
+	line_count[0] = line_count[1] = 0;
+	
 	hsync = false;
 	vsync = false; // Head to Vsync cutoff.
-
-	// Set ZOOM factor.
-	int trans = render_linebuf & display_linebuf_mask;
 	for(int i = 0; i < 2; i++) {
 		zoom_count_vert[i] = zoom_factor_vert[i];
 		frame_offset_bak[i] = frame_offset[i];
@@ -2270,14 +2140,10 @@ void TOWNS_CRTC::event_pre_frame()
 		interlace_field = false;
 	}
 	// Clear all frame buffer (of this) every turn.20230716 K.O
-	vst[trans] = max_lines;
-	hst[trans] = pixels_per_line;
-	line_count[0] = line_count[1] = 0;
-	vert_line_count = -1;
 	display_enabled = display_enabled_pre;
 
 	csp_vector8<uint16_t> dat((const uint16_t)0x0000);
-	for(int yy = 0; yy < max_lines; yy++) {
+	for(int yy = 0; yy < vst[trans]; yy++) {
 		for(int i = 0; i < 2; i++) {
 			// Maybe initialize.
 			linebuffers[trans][yy].pixels[i] = pixels_per_line;
@@ -2293,33 +2159,22 @@ void TOWNS_CRTC::event_pre_frame()
 //			}
 		}
 	}
-}
-
-
-void TOWNS_CRTC::event_frame()
-{
-	int trans = render_linebuf & display_linebuf_mask;
-
+	reset_vsync();
+	// Set ZOOM factor.
 	// ToDo: EET
 	cancel_event_by_id(event_hsync);
 	for(int layer = 0; layer < 2; layer++) {
 		cancel_event_by_id(event_hdisp[layer]);
 	}
 	// Rendering TEXT.
+	sprite_offset = 0;
 	if(d_sprite != NULL) {
-		if(d_sprite->read_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED) != 0) {	
-			// Render VRAM
-			d_sprite->get_tvram_snapshot(tvram_snapshot);
-			render_text();
-		} else if(d_sprite->read_signal(SIG_TOWNS_SPRITE_ENABLED) != 0) {
-			//! @note Every event_pre_frame() at SPRITE, clear VRAM if enabled.
-			is_sprite = true;
-		}
 		//! Note:
 		//! - Below is from Tsugaru, commit 1a442831 .
 		//! - I wonder sprite offset effects every display mode at page1.
 		//! - -- 20230715 K.O
 		sprite_offset = (d_sprite->read_signal(SIG_TOWNS_SPRITE_DISP_PAGE1) != 0) ? 0x20000 : 0x00000;
+		d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
 	}
 }
 
@@ -2346,6 +2201,8 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		}
 		#endif
 	}
+	int trans = render_linebuf & display_linebuf_mask;
+	int __max_lines = vst[trans];
 	__UNLIKELY_IF(v == vst1_count) {
 		set_vsync(true);
 	}
@@ -2371,8 +2228,7 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		// Check frame_in[layer]
 		if(frame_in[0] || frame_in[1]) {
 			vert_line_count++;
-			if(vert_line_count < max_lines) {
-				int trans = render_linebuf & display_linebuf_mask;
+			if(vert_line_count < __max_lines) {
 				for(int layer = 0; layer < 2; layer++) {
 					cancel_event_by_id(event_hdisp[layer]);
 					//if(display_enabled) {
@@ -2386,13 +2242,17 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 						}
 					}
 				}
+			} else {
+				frame_in[0] = false;
+				frame_in[1] = false;
 			}
 		}
 	}
+	int evnum = (v >= (lines_per_frame - 1)) ? EVENT_END_OF_FRAME : EVENT_HSYNC_OFF;
 	if(usec > 0.0) {
-		register_event(this, EVENT_HSYNC_OFF, usec, false, &event_hsync);
+		register_event(this, evnum, usec, false, &event_hsync);
 	} else {
-		event_callback(EVENT_HSYNC_OFF, 1);
+		event_callback(evnum, 1);
 	}
 		
 }
@@ -2466,15 +2326,25 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	 * ZOOM (#27) : ToDo
 	 */
 	switch(event_id) {
+	case EVENT_END_OF_FRAME:
+		event_hsync = -1;
+		hsync = false;
+		//display_linebuf = render_linebuf & display_linebuf_mask;
+		//render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+		break;
 	case EVENT_HSYNC_OFF:
 		event_hsync = -1;
 		hsync = false;
 		#if 0
 		// Start to render on HDSx. 20240101 K.O
-		if((vert_line_count < max_lines) && (vert_line_count >= 0)) {
-			for(int layer = 0; layer < 2; layer++) {
-				if(frame_in[layer]) {
-					transfer_line(layer, vert_line_count);
+		{
+			int trans = render_linebuf & display_linebuf_mask;
+			int __max_lines = vst[trans];
+			if((vert_line_count < __max_lines) && (vert_line_count >= 0)) {
+				for(int layer = 0; layer < 2; layer++) {
+					if(frame_in[layer]) {
+						transfer_line(layer, vert_line_count);
+					}
 				}
 			}
 		}
@@ -2485,6 +2355,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		{
 			int layer = event_id - EVENT_HDS0;
 			int trans = render_linebuf & display_linebuf_mask;
+			int __max_lines = vst[trans];
 			hdisp[layer] = true;
 			event_hdisp[layer] = -1;
 			// Start to render on HDSx. 20240101 K.O
@@ -2501,7 +2372,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 				}
 			}
 			*/
-			__LIKELY_IF((vert_line_count < max_lines) && (vert_line_count >= 0) /*&& (display_enabled)*/) {
+			__LIKELY_IF((vert_line_count < __max_lines) && (vert_line_count >= 0) /*&& (display_enabled)*/) {
 				if((frame_in[layer]) /*&& (need_transfer)*/) {
 					//pre_transfer_line(layer, vert_line_count);
 					transfer_line(layer, real_line_count);
@@ -2517,13 +2388,9 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	case EVENT_HDE0:
 	case EVENT_HDE1:
 		{
+			int trans = render_linebuf & display_linebuf_mask;
+			int __max_lines = vst[trans];
 			int layer = event_id - EVENT_HDE0;
-			__LIKELY_IF((vert_line_count < max_lines) && (vert_line_count >= 0) /*&& (display_enabled)*/) {
-				if((frame_in[layer]) /*&& (need_transfer)*/) {
-					//pre_transfer_line(layer, vert_line_count);
-					//transfer_line(layer, vert_line_count);
-				}
-			}				
 			hdisp[layer] = false;
 			event_hdisp[layer] = -1;
 		}
@@ -2691,6 +2558,15 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 	case SIG_TOWNS_CRTC_COMPATIBLE_MMIO:
 		return (is_compatible) ? 0xffffffff : 0x00000000;
 		break;
+	case SIG_TOWNS_CRTC_REG_LO0:
+	case SIG_TOWNS_CRTC_REG_LO1:
+		return (uint32_t)(regs[((ch - SIG_TOWNS_CRTC_REG_LO0) * 4) + TOWNS_CRTC_REG_LO0]);
+		break;
+	case SIG_TOWNS_CRTC_R50_PAGESEL:
+		return ((r50_pagesel != 0) ? 0xffffffff : 0);
+		break;
+	default:
+		break;
 	}
 	return 0;
 }
@@ -2789,11 +2665,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(apalette_256_rgb[i][TOWNS_CRTC_PALETTE_B]);
 	}
 
-	state_fio->StateValue(is_sprite);
-	state_fio->StateValue(sprite_count);
-	state_fio->StateValue(sprite_limit);
-	state_fio->StateValue(sprite_zoom);
-	state_fio->StateValue(sprite_zoom_factor);
 
 	state_fio->StateValue(sprite_offset);
 
@@ -2816,9 +2687,10 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 		recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
 		set_crtc_parameters_from_regs();
 		make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
-
+	
 		display_linebuf = 0;
 		render_linebuf = 0;
+
 		req_recalc = false;
 
 		// ToDo: Save these values??

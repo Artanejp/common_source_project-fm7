@@ -15,9 +15,13 @@
 #define SIG_TOWNS_SPRITE_VSYNC          266
 #define SIG_TOWNS_SPRITE_FRAME_IN       SIG_TOWNS_SPRITE_VSYNC
 #define SIG_TOWNS_SPRITE_RENDER_ENABLED 268
+#define SIG_TOWNS_SPRITE_MAX_NUMBERS	269
+#define SIG_TOWNS_SPRITE_TEXT_RENDER	270
 
 #define SIG_TOWNS_SPRITE_PEEK_TVRAM     0x00010000
 namespace FMTOWNS {
+	class FONT_ROMS;
+	class TOWNS_CRTC;
 	class TOWNS_VRAM;
 }
 
@@ -25,11 +29,10 @@ class DEBUGGER;
 namespace FMTOWNS {
 class TOWNS_SPRITE : public DEVICE
 {
-
 protected:
 	TOWNS_VRAM *d_vram;
-//	DEVICE *d_font;
-//	DEVICE *d_crtc;
+	FONT_ROMS  *d_font;
+	TOWNS_CRTC *d_crtc;
 	DEBUGGER *d_debugger;
 	// REGISTERS
 	uint8_t reg_addr;
@@ -67,13 +70,15 @@ protected:
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
 	virtual uint8_t __FASTCALL read_reg(uint32_t addr);
 	void check_and_clear_vram();
+	virtual uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
+	virtual void render_text();
 
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		d_vram = NULL;
-//		d_font = NULL;
-//		d_crtc = NULL;
+		d_font = NULL;
+		d_crtc = NULL;
 		set_device_name(_T("SPRITE"));
 	}
 	~TOWNS_SPRITE() {}
@@ -149,23 +154,17 @@ public:
 	{
 		d_vram = p;
 	}
-//	void set_context_font(DEVICE *p)
-//	{
-//		d_font = p;
-//	}
-//	void set_context_crtc(DEVICE *p)
-//	{
-//		d_crtc = p;
-//	}
+	void set_context_font(FONT_ROMS* dev)
+	{
+		d_font = dev;
+	}
+	void set_context_crtc(TOWNS_CRTC *p)
+	{
+		d_crtc = p;
+	}
 	void set_context_debugger(DEBUGGER *p)
 	{
 		d_debugger = p;
-	}
-	inline void __FASTCALL get_tvram_snapshot(uint8_t *p)
-	{
-		__LIKELY_IF(p != NULL) {
-			memcpy(&(p[0x0000]), &(pattern_ram[0x0000]), 0x4000);
-		}
 	}
 };
 }
