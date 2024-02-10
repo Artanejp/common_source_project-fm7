@@ -233,6 +233,7 @@ protected:
 	uint8_t display_mode[2];
 	int     real_display_mode[2];
 	bool display_enabled;
+	bool display_enabled_pre;
 
 	double crtc_clock; //
 	int cpu_clocks;
@@ -473,10 +474,8 @@ protected:
 		dmode[1] = (cr0 & 0x0c) >> 2;
 		for(int i = 0; i < 2; i++) {
 			__UNLIKELY_IF((dmode[i] != display_mode[i]) && !(calc_only)) {
-				mode_changed[i] = true;
 				notify_mode_changed(i, dmode[i]);
 			}
-			display_mode[i] = dmode[i];
 		}
 	}
 	inline scrntype_t *scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width);
