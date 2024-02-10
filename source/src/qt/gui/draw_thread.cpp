@@ -209,15 +209,16 @@ void DrawThreadClass::doWork(const QString &param)
 //			wait_factor = (int)_rate;
 //		}
 //		msleep(1);
-		if(renderSemaphore->tryAcquire(1, wait_factor)) { // Success
-			if(!bRunThread) goto __exit;
-			volatile bool _b = bRecentRenderStatus;
-			bRecentRenderStatus = false;
-			doDrawMain(_b);
-			rendered = true;
-		} else {
-			rendered = false;
-		}
+//		if(renderSemaphore->tryAcquire(1, wait_factor)) { // Success
+		renderSemaphore->acquire(); // Success
+		if(!bRunThread) goto __exit;
+		volatile bool _b = bRecentRenderStatus;
+		bRecentRenderStatus = false;
+		doDrawMain(_b);
+		rendered = true;
+//		} else {
+//			rendered = false;
+//		}
 		/*printf("RATE:%f VM_RATE:%f ELAPSED:%f WAIT_FACTOR:%d RENDER=%s\n", _rate, vrate, drate,  wait_factor,
 		  (rendered) ? "YES" : "NO");*/
 		if(!bRunThread) goto __exit;
