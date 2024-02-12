@@ -414,7 +414,12 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 				snprintf(buf, 255, _T("%s - %s"), get_device_name(), get_emu_message());
 				dec_message_count();
 			} else {
-				int ratio = (int)(100.0 * ((double)draw_frames / (double)total_frames) * 2.0 + 0.5);
+				int ratio;
+				__LIKELY_IF(p_emu != NULL) {
+					ratio = lrint(100.0 * ((double)draw_frames / (p_emu->get_frame_rate() * ((double)(current_time - update_fps_time + (1000 * 1000)) / 1.0e6))));
+				} else {
+					ratio = (int)(100.0 * ((double)draw_frames / (double)total_frames) * 2.0 + 0.5);
+				}
 				snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
 			}
 		}
@@ -426,7 +431,8 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 		}
 		emit message_changed(message);
 		emit window_title_changed(message);
-		update_fps_time += (1000 * 1000);
+		update_fps_time = current_time + (1000 * 1000);
+		//update_fps_time += (1000 * 1000);
 		total_frames = draw_frames = 0;
 	}
 	if(update_fps_time <= current_time) {
