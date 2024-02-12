@@ -32,33 +32,32 @@ public:
 	//virtual void retranslateUi(void);
 	//void retranslateUI_Help(void);
 	// EmuThread
-	void StopEmuThread(void);
 	bool LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m) override;
 	// JoyThread
 	void StopJoyThread(void) override;
 	void LaunchJoyThread(std::shared_ptr<JoyThreadClass> m) override;
 	// Screen
-	void OnWindowMove(void);
-	void OnWindowRedraw(void);
-	void OnMainWindowClosed(void);
+	void OnWindowMove(void) override;
+	void OnWindowRedraw(void) override;
+	void OnMainWindowClosed(void) override;
 
 	QString GetBubbleB77BubbleName(int drv, int num);
-	QString get_system_version();
-	QString get_build_date();
+	QString get_system_version() override;
+	QString get_build_date() override;
 
 public slots:
-	void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name);
-	void do_create_d88_media(int drv, quint8 media_type, QString name);
+	void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name) override;
+	void do_create_d88_media(int drv, quint8 media_type, QString name) override;
 #if defined(USE_DEBUGGER)
-	void OnOpenDebugger(void);
-	void OnCloseDebugger(void);
+	void OnOpenDebugger(void) override;
+	void OnCloseDebugger(void) override;
 #endif
-	void on_actionExit_triggered();
-	void do_release_emu_resources(void);
-	void delete_joy_thread(void);
-	void do_set_mouse_enable(bool flag);
-	void do_toggle_mouse(void);
-	void rise_movie_dialog(void);
+	void on_actionExit_triggered() override;
+	void do_release_emu_resources(void) override;
+	void delete_joy_thread(void) override;
+	void do_set_mouse_enable(bool flag) override;
+	void do_toggle_mouse(void) override;
+	void rise_movie_dialog(void) override;
 signals:
 	int sig_movie_set_width(int);
 	int sig_movie_set_height(int);
