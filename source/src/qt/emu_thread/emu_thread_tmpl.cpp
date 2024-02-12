@@ -415,12 +415,14 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 				dec_message_count();
 			} else {
 				int ratio;
+				double real_frames = (double)draw_frames;
+				real_frames = real_frames /  ((double)(current_time - update_fps_time + (1000 * 1000)) / 1.0e6);
 				__LIKELY_IF(p_emu != NULL) {
-					ratio = lrint(100.0 * ((double)draw_frames / (p_emu->get_frame_rate() * ((double)(current_time - update_fps_time + (1000 * 1000)) / 1.0e6))));
+					ratio = lrint(100.0 * (real_frames / p_emu->get_frame_rate()));
 				} else {
-					ratio = (int)(100.0 * ((double)draw_frames / (double)total_frames) * 2.0 + 0.5);
+					ratio = (int)(100.0 * (real_frames / (double)total_frames) * 2.0 + 0.5);
 				}
-				snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
+				snprintf(buf, 255, _T("%s - %.3ffps (%d%%)"), get_device_name(), real_frames, ratio);
 			}
 		}
 		if(p_config->romaji_to_kana) {
