@@ -145,10 +145,13 @@ int OSD::get_screen_height(void)
 }
 
 
-void OSD::set_draw_thread(DrawThreadClass *handler)
+void OSD::set_draw_thread(std::shared_ptr<DrawThreadClass> handler)
 {
-	//this->moveToThread(handler);
-	connect(this, SIGNAL(sig_update_screen(void *, bool)), handler, SLOT(do_update_screen(void *, bool)));
+	if(handler == nullptr) return;
+
+	m_draw_thread = handler;
+	
+	connect(this, SIGNAL(sig_update_screen(void *, bool)), m_draw_thread.get(), SLOT(do_update_screen(void *, bool)));
 	connect(this, SIGNAL(sig_save_screen(const char *)), p_glv, SLOT(do_save_frame_screen(const char *)));
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), p_glv, SLOT(do_set_texture_size(QImage *, int, int)));
 	connect(this, SIGNAL(sig_resize_vm_lines(int)), p_glv, SLOT(do_set_horiz_lines(int)));
@@ -716,8 +719,11 @@ int OSD::draw_screen()
 	// calculate screen size
 	// invalidate window
 	// ToDo: Support MAX_DRAW_RANGES. 20221212 K.O
-	emit sig_update_screen((void *)draw_screen_buffer, mapped);
-
+	//emit sig_update_screen((void *)draw_screen_buffer, mapped);
+	// Direct call to DrawThread, because this function called from DrawThread. 20240212 K.O
+	__LIKELY_IF(m_draw_thread.get() != nullptr) {
+		m_draw_thread->do_update_screen((void *)draw_screen_buffer, mapped);
+	}
 	first_draw_screen = self_invalidate = true;
 
 	// record avi file

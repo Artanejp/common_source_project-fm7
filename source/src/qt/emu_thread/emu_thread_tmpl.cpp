@@ -57,13 +57,11 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	thread_id = (Qt::HANDLE)0;
 	queue_fixed_cpu = -1;
 	prev_skip = false;
-	//tick_timer.start();
-	//update_fps_time = tick_timer.elapsed();
-	//next_time = update_fps_time;
+	update_fps_time = 0;
+
 	total_frames = 0;
 	draw_frames = 0;
 	skip_frames = 0;
-	calc_message = true;
 	mouse_flag = false;
 
 	drawCond = new QWaitCondition();
@@ -398,48 +396,42 @@ int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
 void EmuThreadClassBase::do_print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
-	if(calc_message) {
-		qint64 current_time = tick_timer.elapsed();
-		//qint64	current_time = SDL_GetTicks();
+	qint64 current_time = (qint64)get_current_tick_usec();
+	//qint64	current_time = SDL_GetTicks();
 
-		if(update_fps_time <= current_time && update_fps_time != 0) {
-			_TCHAR buf[256];
-			QString message;
-			//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+	if((update_fps_time <= current_time) && (update_fps_time != 0)) {
+		_TCHAR buf[256];
+		QString message;
+		//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 
-			if((poweroff_notified) || (p_emu == nullptr)) {
-				my_stprintf_s(buf, 255, _T("*Power OFF*"));
-			} else if(now_skip) {
-				int ratio = (int)(100.0 * (((double)total_frames / get_emu_frame_rate())  * 2.0) + 0.5);
-				my_stprintf_s(buf, 255, _T("%s - Skip Frames (%d %%)"), get_device_name(), ratio);
-			} else {
-					if(get_message_count() > 0) {
-						snprintf(buf, 255, _T("%s - %s"), get_device_name(), get_emu_message());
-						dec_message_count();
-					} else {
-						int ratio = (int)(100.0 * ((double)draw_frames / (double)total_frames) * 2.0 + 0.5);
-						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
-					}
-				}
-				if(p_config->romaji_to_kana) {
-					message = QString::fromUtf8("[R]");
-					message = message + QString::fromUtf8(buf);
-				} else {
-					message = buf;
-				}
-				emit message_changed(message);
-				emit window_title_changed(message);
-				update_fps_time += 1000;
-				total_frames = draw_frames = 0;
-
-			}
-			if(update_fps_time <= current_time) {
-				update_fps_time = current_time + 1000;
-			}
-			calc_message = false;
+		if((poweroff_notified) || (p_emu == nullptr)) {
+			my_stprintf_s(buf, 255, _T("*Power OFF*"));
+		} else if(now_skip) {
+			int ratio = (int)(100.0 * (((double)total_frames / get_emu_frame_rate())  * 2.0) + 0.5);
+			my_stprintf_s(buf, 255, _T("%s - Skip Frames (%d %%)"), get_device_name(), ratio);
 		} else {
-			calc_message = true;
+			if(get_message_count() > 0) {
+				snprintf(buf, 255, _T("%s - %s"), get_device_name(), get_emu_message());
+				dec_message_count();
+			} else {
+				int ratio = (int)(100.0 * ((double)draw_frames / (double)total_frames) * 2.0 + 0.5);
+				snprintf(buf, 255, _T("%s - %d fps (%d %%)"), get_device_name(), draw_frames, ratio);
+			}
 		}
+		if(p_config->romaji_to_kana) {
+			message = QString::fromUtf8("[R]");
+			message = message + QString::fromUtf8(buf);
+		} else {
+			message = buf;
+		}
+		emit message_changed(message);
+		emit window_title_changed(message);
+		update_fps_time += (1000 * 1000);
+		total_frames = draw_frames = 0;
+	}
+	if(update_fps_time <= current_time) {
+		update_fps_time = current_time + (1000 * 1000);
+	}
 }
 
 int EmuThreadClassBase::get_d88_file_cur_bank(int drive)

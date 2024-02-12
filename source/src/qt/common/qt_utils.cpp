@@ -405,7 +405,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	hRunEmu->setObjectName(objNameStr);
 	//hRunEmu->start(QThread::HighestPriority);
 
-	hDrawEmu = new DrawThreadClass((OSD*)p_osd, csp_logger, this);
+	hDrawEmu.reset(new DrawThreadClass((OSD*)p_osd, csp_logger, this));
 	p_emu->set_parent_handler((EmuThreadClass*)hRunEmu.get(), hDrawEmu);
 
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -421,27 +421,19 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
 
-	//connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)), Qt::DirectConnection);
+	connect(hDrawEmu.get(), SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
 	connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
-	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
-	connect(this, SIGNAL(sig_quit_draw_thread()), hDrawEmu, SLOT(doExit()));
-	connect(hDrawEmu, SIGNAL(finished()), hDrawEmu, SLOT(deleteLater()));
+	connect(hDrawEmu.get(), SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+	connect(this, SIGNAL(sig_quit_draw_thread()), hDrawEmu.get(), SLOT(do_exit_draw_thread()), Qt::QueuedConnection);
+	connect(hDrawEmu.get(), SIGNAL(finished()), hDrawEmu.get(), SLOT(deleteLater()));
 
 	connect(hRunEmu.get(), SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_quit_emu_thread()), hRunEmu.get(), SLOT(doExit()), Qt::QueuedConnection);
 	connect(hRunEmu.get(), SIGNAL(sig_mouse_enable(bool)),
 			this, SLOT(do_set_mouse_enable(bool)), Qt::QueuedConnection);
-	/*if(config.use_separate_thread_draw) {
-		connect(hRunEmu.get(), SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)));
-		connect(hRunEmu.get(), SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
-		connect(hRunEmu.get(), SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
-		} else*/ {
-		connect(hRunEmu.get(), SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)));
-		connect(hRunEmu.get(), SIGNAL(sig_set_draw_fps(double)), hDrawEmu, SLOT(do_set_frames_per_second(double)));
-		connect(hRunEmu.get(), SIGNAL(sig_draw_one_turn(bool)), hDrawEmu, SLOT(do_draw_one_turn(bool)));
-	}
-	//connect(hRunEmu.get(), SIGNAL(sig_draw_thread(bool)), (OSD*)p_osd, SLOT(do_draw(bool)));
-	connect(hRunEmu.get(), SIGNAL(sig_quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	connect(hRunEmu.get(), SIGNAL(sig_draw_thread(bool)), hDrawEmu.get(), SLOT(do_draw(bool)), Qt::QueuedConnection);
+	connect(hRunEmu.get(), SIGNAL(sig_set_draw_fps(double)), hDrawEmu.get(), SLOT(do_set_frames_per_second(double)), Qt::QueuedConnection);
+	connect(hRunEmu.get(), SIGNAL(sig_quit_draw_thread()), hDrawEmu.get(), SLOT(do_exit_draw_thread()), Qt::QueuedConnection);
 
 	connect(glv, SIGNAL(sig_notify_move_mouse(double, double, double, double)),
 			hRunEmu.get(), SLOT(do_move_mouse(double, double, double, double)), Qt::QueuedConnection);
@@ -468,7 +460,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 			this, SLOT(resize_statusbar(int, int)), Qt::QueuedConnection);
 
 	connect((OSD*)p_osd, SIGNAL(sig_req_encueue_video(int, int, int)),
-			hDrawEmu, SLOT(do_req_encueue_video(int, int, int)));
+			hDrawEmu.get(), SLOT(do_req_encueue_video(int, int, int)));
 
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
@@ -521,10 +513,10 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	connect(this, SIGNAL(sig_block_task()), hRunEmu.get(), SLOT(do_block()));
 	
 	connect(this, SIGNAL(sig_start_emu_thread(QThread::Priority)), hRunEmu.get(), SLOT(do_start(QThread::Priority)));
-	connect(this, SIGNAL(sig_start_draw_thread(QThread::Priority)), hDrawEmu, SLOT(do_start_draw_thread(QThread::Priority)));
+	connect(this, SIGNAL(sig_start_draw_thread(QThread::Priority)), hDrawEmu.get(), SLOT(do_start_draw_thread(QThread::Priority)));
 	
 	connect(this, SIGNAL(sig_set_priority_emu_thread(QThread::Priority)), hRunEmu.get(), SLOT(do_set_priority(QThread::Priority)));
-	connect(this, SIGNAL(sig_set_priority_draw_thread(QThread::Priority)), hDrawEmu, SLOT(do_set_priority(QThread::Priority)));
+	connect(this, SIGNAL(sig_set_priority_draw_thread(QThread::Priority)), hDrawEmu.get(), SLOT(do_set_priority(QThread::Priority)), Qt::QueuedConnection);
 
 //	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);

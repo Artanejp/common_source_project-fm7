@@ -171,11 +171,12 @@ private:
 	uint32_t     m_sound_samples_factor;
 
 protected:
-	EmuThreadClass		*parent_thread;
-	QThread				*m_sound_thread;
-	std::shared_ptr<USING_FLAGS>			using_flags;
-	config_t			*p_config;
-	std::shared_ptr<CSP_Logger> p_logger;
+	EmuThreadClass						*parent_thread;
+	QThread								*m_sound_thread;
+	std::shared_ptr<DrawThreadClass>	m_draw_thread;
+	std::shared_ptr<USING_FLAGS>		using_flags;
+	config_t							*p_config;
+	std::shared_ptr<CSP_Logger>			p_logger;
 
 	QOpenGLContext *glContext;
 	bool is_glcontext_shared;
@@ -612,7 +613,7 @@ public:
 	const _TCHAR *get_lib_osd_version();
 
 	// Wrapper
-	virtual void set_draw_thread(DrawThreadClass *handler);
+	virtual void set_draw_thread(std::shared_ptr<DrawThreadClass> handler);
 	virtual QString get_vm_config_name(void);
 	virtual void reset_vm_node(void);
 	// Sync devices status beyond any threads by OSD.(i.e. joystick).

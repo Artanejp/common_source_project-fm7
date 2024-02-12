@@ -195,7 +195,7 @@ public:
 #ifdef OSD_QT
 	// qt dependent
 	virtual EmuThreadClass *get_parent_handler() { return NULL; }
-	virtual void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q) {}
+	virtual void set_parent_handler(EmuThreadClass *p, std::shared_ptr<DrawThreadClass> q) {}
 	virtual void set_host_cpus(int v) {}
 	virtual int get_host_cpus() { return 1; }
 #endif

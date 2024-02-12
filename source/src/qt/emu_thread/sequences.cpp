@@ -22,13 +22,18 @@
 
 #include "menu_flags.h"
 
-int EmuThreadClassBase::get_interval(void)
+qint64 EmuThreadClassBase::get_interval(void)
 {
-	static int64_t accum = 0;
+	static qint64 accum = 0;
 	if(p_emu == nullptr) return 0;
-	accum += (p_emu->get_frame_interval() / 2);
-	int interval = accum >> 10;
-	accum -= interval << 10;
+	double _rate = p_emu->get_frame_rate();
+	double nsec = 1.0e6; // 1mS = 1.0e6 nSec.
+	__LIKELY_IF(_rate > 0.0) {
+		nsec = 1.0e9 / _rate;
+	}
+	accum += (qint64)(llrint(nsec / 2.0)); // Half emulating.
+	qint64 interval = accum / 1000; // By uSec
+	accum -= (interval * 1000);
 	return interval;
 }
 

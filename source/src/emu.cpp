@@ -152,13 +152,19 @@ EMU::~EMU()
 #ifdef USE_DEBUGGER
 	release_debugger();
 #endif
-	osd->lock_vm();
-	delete vm;
-	vm = nullptr;
-	osd->vm = nullptr;
-	osd->unlock_vm();
-	osd->release();
-	delete osd;
+	if(osd != NULL) {
+		osd->lock_vm();
+	}
+	if(vm != NULL) {
+		delete vm;
+		vm = NULL;
+	}
+	if(osd != NULL) {
+		osd->vm = nullptr;
+		osd->unlock_vm();
+		osd->release();
+		delete osd;
+	}
 #ifdef _DEBUG_LOG
 	release_debug_log();
 #endif
@@ -185,13 +191,18 @@ void EMU::osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_
 #ifdef OSD_QT
 EmuThreadClass *EMU::get_parent_handler()
 {
-	return osd->get_parent_handler();
+	__LIKELY_IF(osd != nullptr) {
+		return osd->get_parent_handler();
+	}
+	return NULL;
 }
 
-void EMU::set_parent_handler(EmuThreadClass *p, DrawThreadClass *q)
+void EMU::set_parent_handler(EmuThreadClass *p, std::shared_ptr<DrawThreadClass> q)
 {
-	osd->set_parent_thread(p);
-	osd->set_draw_thread(q);
+	__LIKELY_IF(osd != nullptr) {
+		osd->set_parent_thread(p);
+		osd->set_draw_thread(q);
+	}
 }
 
 void EMU::set_host_cpus(int v)
@@ -201,7 +212,10 @@ void EMU::set_host_cpus(int v)
 
 int EMU::get_host_cpus()
 {
-	return osd->host_cpus;
+	__LIKELY_IF(osd != nullptr) {
+		return osd->host_cpus;
+	}
+	return 0; // OK?
 }
 #endif
 

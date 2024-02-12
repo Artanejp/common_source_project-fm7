@@ -51,32 +51,26 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	bool bRunThread;
 	bool bDrawReq;
 	bool bRecentRenderStatus;
-	bool use_separate_thread_draw;
 	bitmap_t *draw_screen_buffer;
 	std::shared_ptr<CSP_Logger> csp_logger;
 	int ncount;
 	double emu_frame_rate;
 
 	bool mapping_status;
-	scrntype_t *mapping_pointer;
-	int mapping_width;
-	int mapping_height;
 	bool mapped_drawn;
 	void doDrawMain(bool flag);
  public:
 	DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger, QObject *parent = 0);
 	~DrawThreadClass();
-	QSemaphore *renderSemaphore;
 	QSemaphore *textureMappingSemaphore;
 	
-	void run() { doWork("");}
 	void SetEmu(EMU_TEMPLATE *p);
 public slots:
 	void do_start_draw_thread(QThread::Priority prio);
+	void do_exit_draw_thread(void);
 	void do_set_priority(QThread::Priority prio);
-	void doWork(const QString &);
-	void doExit(void);
-	void doDraw(bool flag);
+	
+	void do_draw(bool flag);
 	void do_change_refresh_rate(qreal rate);
 	void do_update_screen(void *p, bool is_mapped);
 	void do_req_encueue_video(int count, int width, int height);

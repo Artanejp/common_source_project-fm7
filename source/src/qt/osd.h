@@ -70,7 +70,7 @@ public:
 	void release();
 
 	// Screen
-	void set_draw_thread(DrawThreadClass *handler);
+	void set_draw_thread(std::shared_ptr<DrawThreadClass> handler);
 	void initialize_screen();
 	void release_screen();
 	int get_window_mode_width(int mode);

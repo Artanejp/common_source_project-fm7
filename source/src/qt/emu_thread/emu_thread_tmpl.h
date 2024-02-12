@@ -82,7 +82,6 @@ protected:
 	bool poweroff_notified;
 
 	bool now_skip;
-	bool calc_message;
 	bool tape_play_flag;
 	bool tape_rec_flag;
 	int tape_pos;
@@ -179,7 +178,7 @@ protected:
 	int get_message_count(void);
 	void dec_message_count(void);
 
-	int get_interval(void);
+	qint64 get_interval(void);
 
 	virtual const _TCHAR *get_device_name(void);
 	void resetEmu();
@@ -248,6 +247,13 @@ protected:
 	int parse_drive(QString key);
 	void parse_file(QString val, QString& filename);
 	void parse_file_slot(QString val, QString& filename, bool& protect_changed, bool& is_protected, int& slot );
+	inline int64_t get_current_tick_usec() const
+	{
+		__LIKELY_IF(tick_timer.isValid()) {
+			return tick_timer.nsecsElapsed() / 1000;
+		}
+		return 0;
+	}
 
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
@@ -428,7 +434,6 @@ signals:
 
 	// From emu_thread_slots.cpp .
 	int sig_set_draw_fps(double);
-	int sig_draw_one_turn(bool);
 
 // Signal from (EMU:: -> OSD:: ->) EMU_THREAD -> GUI(menu_foo[bar])
 	int sig_ui_update_quick_disk_list(int, QStringList);

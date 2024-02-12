@@ -282,6 +282,8 @@ class MOVIE_SAVER;
 class EmuThreadClassBase;
 class EmuThreadClass;
 class JoyThreadClass;
+class DrawThreadClass;
+class MOVIE_SAVER;
 
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
 {
@@ -644,9 +646,9 @@ protected:
 	QClipboard *ClipBoard;
 	// Constructor
 	std::shared_ptr<EmuThreadClassBase> hRunEmu;
-	class DrawThreadClass *hDrawEmu;
+	std::shared_ptr<DrawThreadClass>	hDrawEmu;
 	std::shared_ptr<JoyThreadClass>     hRunJoy;
-	class MOVIE_SAVER *hSaveMovieThread;
+	MOVIE_SAVER							*hSaveMovieThread;
 
 	int max_vm_nodes;
 	bool ui_retranslate_completed;

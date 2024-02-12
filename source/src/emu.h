@@ -114,7 +114,7 @@ public:
 #ifdef OSD_QT
 	// qt dependent
 	EmuThreadClass *get_parent_handler() override;
-	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q) override;
+	void set_parent_handler(EmuThreadClass *p, std::shared_ptr<DrawThreadClass> q) override;
 	void set_host_cpus(int v) override;
 	int get_host_cpus() override;
 #endif
