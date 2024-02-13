@@ -171,7 +171,7 @@ void EVENT::reset()
 #endif
 }
 
-void EVENT::drive()
+bool EVENT::drive()
 {
 	// Update cache from config.drive_vm_in_opecode .
 	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
@@ -325,6 +325,7 @@ skip1:
 			event_clocks_remain -= event_clocks_done;
 		}
 	}
+	return event_half;
 }
 
 void EVENT::update_event_in_opecode(int clock)

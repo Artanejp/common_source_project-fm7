@@ -4,7 +4,7 @@
 #include <string>
 
 class EMU_TEMPLATE;
-class EVENT;
+class EVENT_TEMPLATE;
 class DEVICE;
 class FILEIO;
 class DLL_PREFIX VM_TEMPLATE {
@@ -14,7 +14,7 @@ private:
 protected:
 	EMU_TEMPLATE* emu;
 	// devices
-	EVENT* event;
+	EVENT_TEMPLATE* event;
 	std::string m_git_revision;
 	
 	// These are temporally functiion(s) to make backward compatibilities.
@@ -40,7 +40,8 @@ public:
 	// drive virtual machine
 	virtual void reset();
 	virtual void special_reset(int num);
-	virtual void run();
+	virtual bool run();
+	virtual bool is_half_event();
 	virtual void notify_power_off();
 	
 	virtual double get_frame_rate();

@@ -11,9 +11,8 @@
 #define _EVENT_H_
 
 #include "./vm_limits.h"	/*!< Moved limit definitions to */
-
 #include "./vm.h"
-#include "device.h"
+#include "./event_template.h"
 
 #include <typeinfo>
 
@@ -30,7 +29,7 @@
   @brief EVENT manager, includes CPUs execution.
   @note Executing event has run per half of a frame by default at CSP/Qt.
 */
-class EVENT : public DEVICE
+class EVENT : public EVENT_TEMPLATE
 {
 private:
 	// event manager
@@ -49,7 +48,7 @@ private:
 	uint32_t cpu_update_clocks[MAX_CPU][6];
 	int dcount_cpu;	//! Numbers of Target CPUs.
 
-	bool event_half;	//! Display second half of frame.
+
 	int frame_clocks;
 	int vclocks[MAX_LINES];
 	int power;
@@ -124,7 +123,7 @@ private:
 	bool initialize_done;
 #endif
 public:
-	EVENT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
+	EVENT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : EVENT_TEMPLATE(parent_vm, parent_emu)
 	{
 		dcount_cpu = dcount_sound = 0;
 		frame_event_count = vline_event_count = 0;
@@ -282,23 +281,10 @@ public:
 	void touch_sound() override;
 	void set_realtime_render(DEVICE* device, bool flag) override;
 	uint64_t get_current_clock_uint64() override;
-	double get_current_usec();
+	double get_current_usec() override;
 	uint32_t __FASTCALL get_cpu_clock(int index) override;
-	// unique functions
-	/*!
-	  @brief Get frame rate of next frame period.
-	  @return Frame rate by Hz.
-	  @note This doesn't return FPS of this period.
-	*/
-	double get_frame_rate()
-	{
-		return next_frames_per_sec;
-	}
-	void drive();
 
-	void initialize_sound(int rate, int samples);
-	uint16_t* __FASTCALL create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	
 	// Sound input functions
 	void clear_sound_in_source(int bank) override;
 	int add_sound_in_source(int rate, int samples, int channels) override;
@@ -315,15 +301,22 @@ public:
 	// Add sampled values to sample buffer;value may be -32768 to +32767.
 	int __FASTCALL get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels) override;
 	int __FASTCALL get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels) override;
-	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples);
 
-	/*!
-	  @brief Register CPU to event manager.
-	  @param device Pointer of CPU DEVICE to register.
-	  @param clocks Basic clock Hz of this device.
-	  @return index number of regitered. -1 if failed to register.
-	*/
-	int set_context_cpu(DEVICE* device, uint32_t clocks = CPU_CLOCKS)
+	// unique functions, override¥n from EVENT_TEMPLATE.
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* __FASTCALL create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
+	int rechannel_sound_in_data(int32_t*dst, int16_t* src, int dst_channels, int src_channels, int samples) override;
+
+	// override from event_template.
+	bool drive() override;
+	
+	double get_frame_rate() override
+	{
+		return next_frames_per_sec;
+	}
+	
+	int set_context_cpu(DEVICE* device, uint32_t clocks = CPU_CLOCKS) override
 	{
 		assert(dcount_cpu < MAX_CPU);
 		if(dcount_cpu >= MAX_CPU) return -1;
@@ -334,15 +327,7 @@ public:
 		for(int k = 0; k < 6; k++) cpu_update_clocks[index][k] = d_cpu[index].update_clocks * k;
 		return index;
 	}
-	/*!
-	  @brief Remove CPU from EVENT MANAGER.
-	  @param device Device pointer requesting to remove.
-	  @param num  CPU number requesting to remove.
-	  @return true if success.
-	  @note You can't remove CPU #0, because this is base of scheduling.
-	  @note You should notify both num and device as same device.
-	*/
-	bool remove_context_cpu(DEVICE* device, int num)
+	bool remove_context_cpu(DEVICE* device, int num) override
 	{
 		if(num <= 0) return false; // Number one must not be removed.
 		if(num >= MAX_CPU) return false;
@@ -374,13 +359,7 @@ public:
 		}
 		return true;
 	}
-	/*!
-	  @brief Set CPU clocks for not primary CPU.
-	  @param device Device pointer expect to set.
-	  @param clocks expect CPU clock by Hz.
-	  @note For CPU #0, this don't effect to.
-	*/
-	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks)
+	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks) override
 	{
 		// XXX: primary cpu clock should not be changed
 		for(int index = 1; index < dcount_cpu; index++) {
@@ -394,12 +373,7 @@ public:
 			}
 		}
 	}
-	/*!
-	  @brief Add device to sound source (to mix).
-	  @param device Device pointer expect to add.
-	  @note You can register devices less than MAX_SOUND.
-	*/
-	void set_context_sound(DEVICE* device)
+	void set_context_sound(DEVICE* device) override
 	{
 		assert(dcount_sound < MAX_SOUND);
 		d_sound[dcount_sound++] = device;
@@ -408,7 +382,7 @@ public:
 	  @brief Check frame skippable.
 	  @return true if avalable to skip.
 	*/
-	bool is_frame_skippable();
+	bool is_frame_skippable() override;
 };
 
 /*

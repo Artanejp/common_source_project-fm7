@@ -8,6 +8,7 @@
 #include "../fileio.h"
 #include "../emu_template.h"
 #include "./device.h"
+#include "./event_template.h"
 
 VM_TEMPLATE::VM_TEMPLATE(EMU_TEMPLATE* parent_emu) :
 	emu(parent_emu),
@@ -32,8 +33,24 @@ void VM_TEMPLATE::special_reset(int num)
 {
 }
 
-void VM_TEMPLATE::run()
+// ----------------------------------------------------------------------------
+// drive virtual machine
+// ----------------------------------------------------------------------------
+
+bool VM_TEMPLATE::run()
 {
+	__LIKELY_IF(event != nullptr) {
+		return event->drive();
+	}
+	return false;
+}
+
+bool VM_TEMPLATE::is_half_event()
+{
+	__LIKELY_IF(event != nullptr) {
+		return event->is_half_event();
+	}
+	return false;
 }
 
 void VM_TEMPLATE::notify_power_off()
