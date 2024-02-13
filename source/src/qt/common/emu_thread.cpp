@@ -39,20 +39,12 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p->set_emu(emu);
 	p->set_osd((OSD*)p_osd);
 	poweroff_notified = false;
-
-	connect(this, SIGNAL(sig_emu_launched()), rootWindow->getGraphicsView(), SLOT(set_emu_launched()), Qt::QueuedConnection);
-	connect(this, SIGNAL(sig_open_binary_load(int, QString)), MainWindow, SLOT(_open_binary_load(int, QString)), Qt::QueuedConnection);
-	connect(this, SIGNAL(sig_open_binary_save(int, QString)), MainWindow, SLOT(_open_binary_save(int, QString)), Qt::QueuedConnection);
-//	connect(this, SIGNAL(sig_open_cart(int, QString)), MainWindow, SLOT((int, QString)));
-
-//	connect(this, SIGNAL(sig_open_bubble(int, QString)), MainWindow, SLOT(_open_bubble(int, QString)));
-//	connect(this, SIGNAL(sig_open_b77_bubble(int, QString, int)), this, SLOT(do_open_bubble_casette(int, QString, int)));
+	
 
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
 	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
 	connect(this, SIGNAL(sig_sound_stop()), p_osd, SLOT(stop_sound()));
-	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -68,6 +60,7 @@ void EmuThreadClass::doWork(const QString &params)
 {
 	int64_t interval = 0;
 	int64_t sleep_period = 0;
+	int64_t drawn_time = 0;
 	int run_frames;
 	qint64 current_time = 0;
 	bool first = true;
@@ -149,6 +142,7 @@ void EmuThreadClass::doWork(const QString &params)
 //	virtualMediaList.clear();
 	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
 	emit sig_emu_launched();
+	bool full_speed = config.full_speed;
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
 		// Chack whether using_flags exists.
@@ -185,8 +179,10 @@ void EmuThreadClass::doWork(const QString &params)
 
 				first = false;
 			}
+			drawn_time = get_current_tick_usec();
 		}
 		interval = 0;
+		full_speed = config.full_speed;
 
 		if(p_emu) {
 			// drive machine
@@ -300,6 +296,7 @@ void EmuThreadClass::doWork(const QString &params)
 
 			run_frames = p_emu->run();
 			total_frames += run_frames;
+			do_print_framerate(run_frames);
 			half_count = !(half_count);
 			// After frame, delayed open
 			
@@ -337,17 +334,17 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 				sample_access_drv();
 				now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
-				if((prev_skip && !now_skip) || next_time == 0) {
+				if((prev_skip && !now_skip) || (next_time == 0)) {
 					next_time = get_current_tick_usec();
 				}
 //				prev_skip = now_skip;
 			} else { // Half of a frame.
 				prev_skip = now_skip;
 			}
-			if(config.full_speed) {
-				interval = 1000;
-			} else {
+			if(!(full_speed)) {
 				interval = get_interval();
+			} else {
+				interval = 1000;
 			}
 			if(!now_skip) {
 				next_time += interval;
@@ -359,6 +356,9 @@ void EmuThreadClass::doWork(const QString &params)
 					count_limit = 0;
 				}
 			}
+			#if 0
+
+			#else
 			current_time = get_current_tick_usec();
 			if(next_time >= current_time) {
 				if(!(half_count)) { // End Of Frame.
@@ -383,6 +383,7 @@ void EmuThreadClass::doWork(const QString &params)
 					}
 				}
 			}
+			#endif
 			if(!(half_count)) { // End Of Frame.
 				double nd;
 				nd = p_emu->get_frame_rate();
@@ -392,18 +393,18 @@ void EmuThreadClass::doWork(const QString &params)
 				emit sig_draw_thread(req_draw); // Call offloading thread.
 			}
 		} else {
+			drawn_time = get_current_tick_usec();
 			msleep(1);
 		}
 		current_time = get_current_tick_usec();
 		// sleep 1 frame priod if need
 		//current_time = SDL_GetTicks();
 		sleep_period = 0;
-		if(config.full_speed) {
-			next_time = current_time + 1000;
-		} else {
-			if(next_time > current_time) {
-				sleep_period = next_time - current_time;
-			}
+		if(full_speed) {
+			next_time = current_time;
+		}
+		if(next_time > current_time) {
+			sleep_period = next_time - current_time;
 		}
 		req_draw = false;
 		if(bRunThread.load() == false){
@@ -430,7 +431,7 @@ _exit:
 	}
 	emit sig_draw_finished();
 	emit sig_sound_stop();
-	this->quit();
+	quit();
 }
 
 const _TCHAR *EmuThreadClass::get_device_name(void)

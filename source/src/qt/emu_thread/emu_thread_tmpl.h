@@ -43,7 +43,6 @@
 #endif
 #define MAX_COMMAND_LEN	64
 
-class QWaitCondition;
 class QOpenGLContext;
 
 class EMU_TEMPLATE;
@@ -100,7 +99,6 @@ protected:
 	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 
-	QWaitCondition *drawCond;
 #if QT_VERSION >= 0x051400
 	QRecursiveMutex keyMutex;
 	QRecursiveMutex mouseMutex;
@@ -381,6 +379,7 @@ public slots:
 
 signals:
 	int sig_emu_launched(void);
+	//int sig_emu_finished(void);
 	
 	int message_changed(QString);
 	int window_title_changed(QString);
@@ -388,7 +387,7 @@ signals:
 	int sig_quit_draw_thread(void);
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);
-	int sig_emu_finished(void);
+
 	int sig_draw_finished(void);
 	int sig_mouse_enable(bool);
 	int sig_update_recent_hard_disk(int);

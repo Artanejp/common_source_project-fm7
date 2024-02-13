@@ -12,7 +12,6 @@
 #include <QStringList>
 #include <QFileInfo>
 #include <QTextCodec>
-#include <QWaitCondition>
 #include <QWidget>
 #include <QOpenGLContext>
 
@@ -64,7 +63,6 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	skip_frames = 0;
 	mouse_flag = false;
 
-	drawCond = new QWaitCondition();
 //	keyMutex = new QMutex(QMutex::Recursive);
 
 	mouse_x = 0;
@@ -87,8 +85,14 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 			}
 		}
 	}
+
+	connect(this, SIGNAL(sig_open_binary_load(int, QString)), rootWindow, SLOT(_open_binary_load(int, QString)), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_open_binary_save(int, QString)), rootWindow, SLOT(_open_binary_save(int, QString)), Qt::QueuedConnection);
+	
+	connect(this, SIGNAL(sig_emu_launched()), rootWindow->getGraphicsView(), SLOT(set_emu_launched()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(do_quit()), Qt::QueuedConnection);
-	connect(this, SIGNAL(sig_emu_finished()), rootWindow->getGraphicsView(), SLOT(deleteLater()));
+	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+	
 	virtualMediaList.clear();
 
 	QMutexLocker _n(&keyMutex);
@@ -99,12 +103,9 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 
 EmuThreadClassBase::~EmuThreadClassBase()
 {
-
-	delete drawCond;
-
 	key_fifo->release();
 	delete key_fifo;
-};
+}
 
 void EmuThreadClassBase::do_start(QThread::Priority prio)
 {
