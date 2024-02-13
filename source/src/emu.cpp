@@ -253,6 +253,9 @@ const bool EMU::is_use_state()
 	return false;
 #endif
 }
+/*!
+ * @note Now, run() calles per half of a frame. 20240214 K.O
+ */
 int EMU::run()
 {
 #if defined(USE_DEBUGGER) && defined(USE_STATE)
@@ -313,8 +316,11 @@ int EMU::run()
 	// drive virtual machine
 	if(extra_frames == 0) {
 		osd->lock_vm();
-		vm->run();
-		extra_frames = 1;
+		if(vm->is_half_event()) {
+			if(!(vm->run())) { // Tail of frame, increment.
+				extra_frames = 1;
+			}
+		}
 		osd->unlock_vm();
 	}
 	osd->add_extra_frames(extra_frames);
