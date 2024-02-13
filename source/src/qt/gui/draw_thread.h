@@ -11,6 +11,7 @@
 #define _CSP_QT_DRAW_THREAD_H
 
 #include <QThread>
+#include <QElapsedTimer>
 #include <memory>
 #include "qt_gldraw.h"
 
@@ -32,7 +33,7 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	config_t *p_config; 
 	Ui_MainWindowBase *MainWindow;
 	GLDrawClass *glv;
-	
+
 	QOpenGLContext *glContext;
 	bool is_shared_glcontext;
 	
@@ -59,6 +60,8 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	bool mapping_status;
 	bool mapped_drawn;
 	void doDrawMain(bool flag);
+
+	QElapsedTimer tick_timer;
  public:
 	DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger, QObject *parent = 0);
 	~DrawThreadClass();
@@ -76,6 +79,8 @@ public slots:
 	void do_req_encueue_video(int count, int width, int height);
 	void do_draw_one_turn(bool _req_draw);
 	void do_set_frames_per_second(double fps);
+
+	void do_render_to_texture();
 
 	void req_map_screen_texture();
 	void req_unmap_screen_texture();

@@ -99,7 +99,7 @@ void Ui_MainWindowBase::do_start_emu_thread(void)
 
 void Ui_MainWindowBase::do_start_draw_thread(void)
 {
-	emit sig_start_draw_thread(QThread::HighPriority);
+	emit sig_start_draw_thread(QThread::HighestPriority);
 }
 
 void Ui_MainWindowBase::do_set_latency(void)

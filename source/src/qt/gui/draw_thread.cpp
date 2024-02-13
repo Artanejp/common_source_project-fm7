@@ -58,7 +58,7 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 
 	connect(this, SIGNAL(sig_update_osd()), glv, SLOT(update_osd()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_push_frames_to_avio(int, int, int)), glv->extfunc, SLOT(paintGL_OffScreen(int, int, int)));
-
+	connect(glv, SIGNAL(frameSwapped()), this, SLOT(do_render_to_texture()));
 	//connect(this, SIGNAL(sig_call_draw_screen()), p_osd, SLOT(draw_screen()));
 	//connect(this, SIGNAL(sig_call_no_draw_screen()), p_osd, SLOT(no_draw_screen()));
 	rec_frame_width = 640;
@@ -71,6 +71,7 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 	textureMappingSemaphore = new QSemaphore(0);
 	mapping_status = false;
 	mapped_drawn = false;
+	tick_timer.start();
 }
 
 DrawThreadClass::~DrawThreadClass()
@@ -85,6 +86,7 @@ DrawThreadClass::~DrawThreadClass()
 void DrawThreadClass::do_start_draw_thread(QThread::Priority prio)
 {
 	start(prio);
+	tick_timer.restart();
 }
 
 void DrawThreadClass::SetEmu(EMU_TEMPLATE *p)
@@ -113,14 +115,35 @@ void DrawThreadClass::doDrawMain(bool flag)
 		draw_frames = p_osd->no_draw_screen();
 	}
 	//req_unmap_screen_texture();
-	emit sig_draw_frames(draw_frames);
+	//emit sig_draw_frames(draw_frames);
 }
 
 void DrawThreadClass::do_draw(bool flag)
 {
+	// ToDo: Recording movies.
 	bRecentRenderStatus = flag;
-	doDrawMain(flag);
-	do_draw_one_turn(bDrawReq);
+	__LIKELY_IF(p_config != nullptr) {
+		__LIKELY_IF(!(p_config->full_speed)) {
+			doDrawMain(bRecentRenderStatus);
+			bRecentRenderStatus = false;
+		}
+	}
+//	doDrawMain(flag);
+//	do_draw_one_turn(bDrawReq);
+//	bDrawReq = false;
+}
+
+void DrawThreadClass::do_render_to_texture()
+{
+	// ToDo: Recording movies.
+	__LIKELY_IF(p_config != nullptr) {
+		__UNLIKELY_IF((p_config->full_speed)) {
+			doDrawMain(bRecentRenderStatus);
+			bRecentRenderStatus = false;
+		}
+	}
+//	do_draw_one_turn(bDrawReq);
+	do_draw_one_turn(true);
 	bDrawReq = false;
 }
 
@@ -133,14 +156,20 @@ void DrawThreadClass::do_exit_draw_thread(void)
 
 void DrawThreadClass::do_draw_one_turn(bool _req_draw)
 {
-	if((_req_draw) && (draw_screen_buffer != NULL)) {
-		emit sig_update_screen((void *)draw_screen_buffer, mapped_drawn);
-	}
-	if(ncount == 0) {
-		emit sig_update_osd();
-	}
-	ncount++;
-	if(ncount >= 8) ncount = 0;
+//	qint64 usecs = tick_timer.nsecsElapsed() / 1000;
+//	qint64 __limit = 0;
+
+//	if(usecs >= __limit) {
+		if((_req_draw) && (draw_screen_buffer != NULL)) {
+			emit sig_update_screen((void *)draw_screen_buffer, mapped_drawn);
+		}
+		if(ncount == 0) {
+			emit sig_update_osd();
+		}
+		ncount++;
+		if(ncount >= 8) ncount = 0;
+//		tick_timer.restart();
+//	}
 	if(rec_frame_count > 0) {
 		emit sig_push_frames_to_avio(rec_frame_count,
 									 rec_frame_width, rec_frame_height);
