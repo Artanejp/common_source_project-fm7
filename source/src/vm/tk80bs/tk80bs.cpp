@@ -281,10 +281,6 @@ void VM::reset()
 	pio_t->write_signal(SIG_I8255_PORT_A, 0xff, 0xff);
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 // ----------------------------------------------------------------------------
 // debugger

@@ -364,10 +364,10 @@ public:
 	// ----------------------------------------
 
 	// drive virtual machine
-	void reset();
-	void special_reset(int num);
-	void run();
-	double get_frame_rate();
+	void reset() override;
+	void special_reset(int num) override;
+	bool run() override;
+	double get_frame_rate() override;
 
 #ifdef USE_DEBUGGER
 	// debugger

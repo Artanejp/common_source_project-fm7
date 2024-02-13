@@ -249,10 +249,6 @@ void VM::reset()
 	pcm->write_signal(SIG_PCM1BIT_ON, 0, 1);
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 double VM::get_frame_rate()
 {

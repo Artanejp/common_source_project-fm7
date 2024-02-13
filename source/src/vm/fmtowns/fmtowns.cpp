@@ -883,12 +883,6 @@ void VM::special_reset(int num)
 	}
 }
 
-void VM::run()
-{
-	__LIKELY_IF(event != nullptr) {
-		event->drive();
-	}
-}
 void VM::process_boot_sequence(uint32_t val)
 {
 	if(boot_seq) {

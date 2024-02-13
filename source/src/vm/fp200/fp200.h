@@ -90,7 +90,6 @@ public:
 
 	// drive virtual machine
 	//void reset();
-	void run() override;
 	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;

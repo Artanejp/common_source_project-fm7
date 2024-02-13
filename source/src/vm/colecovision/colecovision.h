@@ -85,8 +85,7 @@ public:
 	// ----------------------------------------
 	
 	// drive virtual machine
-	void reset();
-	void run();
+	void reset() override;
 	
 #ifdef USE_DEBUGGER
 	// debugger

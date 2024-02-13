@@ -268,10 +268,13 @@ void VM::reset()
 	}
 }
 
-void VM::run()
+bool VM::run()
 {
-	event->drive();
-	cpu->write_signal(SIG_CPU_IRQ, 1, 1);
+	bool _b = VM_TEMPLATE::run();
+	if(!(_b)) {
+		cpu->write_signal(SIG_CPU_IRQ, 1, 1);
+	}
+	return _b;
 }
 
 // ----------------------------------------------------------------------------

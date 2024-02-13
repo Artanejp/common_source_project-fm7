@@ -107,10 +107,9 @@ public:
 	// ----------------------------------------
 
 	// drive virtual machine
-	void reset();
-	void notify_power_off();
-	void run();
-	double get_frame_rate()
+	void reset() override;
+	void notify_power_off() override;
+	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;
 	}

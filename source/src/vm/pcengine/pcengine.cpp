@@ -128,14 +128,20 @@ void VM::reset()
 	}
 }
 
-void VM::run()
+bool VM::run()
 {
-	pceevent->drive();
+	__LIKELY_IF(pceevent != NULL) {
+		return pceevent->drive();
+	}
+	return false;
 }
 
 double VM::get_frame_rate()
 {
-	return pceevent->get_frame_rate();
+	__LIKELY_IF(pceevent != NULL) {
+		return pceevent->get_frame_rate();
+	}
+	return FRAMES_PER_SEC;
 }
 
 // ----------------------------------------------------------------------------
@@ -168,8 +174,9 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	pceevent->initialize_sound(rate, samples);
-	
+	__LIKELY_IF(pceevent != NULL) {
+		pceevent->initialize_sound(rate, samples);
+	}	
 	// init sound gen
 	pce->initialize_sound(rate);
 	adpcm->initialize_sound(ADPCM_CLOCK / 6, MSM5205_S48_4B);
@@ -177,12 +184,18 @@ void VM::initialize_sound(int rate, int samples)
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	return pceevent->create_sound(extra_frames);
+	__LIKELY_IF(pceevent != NULL) {
+		return pceevent->create_sound(extra_frames);
+	}
+	return NULL;
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	return pceevent->get_sound_buffer_ptr();
+	__LIKELY_IF(pceevent != NULL) {
+		return pceevent->get_sound_buffer_ptr();
+	}
+	return 0;
 }
 
 #ifdef USE_SOUND_VOLUME

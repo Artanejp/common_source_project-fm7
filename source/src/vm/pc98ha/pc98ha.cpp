@@ -280,10 +280,6 @@ void VM::reset()
 	beep->write_signal(SIG_BEEP_MUTE, 1, 1);
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 // ----------------------------------------------------------------------------
 // debugger

@@ -773,12 +773,6 @@ void VM::special_reset(int num)
 	event->register_event(mainio, EVENT_UP_BREAK, 1000.0 * 1000.0, false, nullptr);
 }
 
-void VM::run()
-{
-	__LIKELY_IF(event != nullptr) {
-		event->drive();
-	}
-}
 
 double VM::get_frame_rate()
 {

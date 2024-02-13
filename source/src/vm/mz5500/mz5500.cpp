@@ -329,10 +329,6 @@ void VM::special_reset(int num)
 	sysport->nmi_reset();
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 double VM::get_frame_rate()
 {

@@ -344,11 +344,6 @@ void VM::special_reset(int num)
 	cpu->special_reset(num);
 }
 
-void VM::run()
-{
-	event->drive();
-}
-
 double VM::get_frame_rate()
 {
 	return event->get_frame_rate();

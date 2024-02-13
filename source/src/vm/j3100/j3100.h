@@ -160,7 +160,6 @@ public:
 	// drive virtual machine
 	void reset();
 	void notify_power_off() { }
-	void run();
 
 #ifdef USE_DEBUGGER
 	// debugger

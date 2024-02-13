@@ -565,24 +565,35 @@ void VM::special_reset(int num)
 	cpu->write_signal(SIG_CPU_NMI, 1, 1);
 }
 
-void VM::run()
+bool VM::run()
 {
-	event->drive();
+	bool _b = false;
+	__LIKELY_IF(event != NULL) {
+		_b = event->drive();
+	}
 #ifdef _X1TWIN
-	if(pce->is_cart_inserted()) {
-		pceevent->drive();
+	__LIKELY_IF(pceevent != NULL) {
+		if(pce->is_cart_inserted()) {
+			pceevent->drive();
+		}
 	}
 #endif
+	return _b;
 }
 
 double VM::get_frame_rate()
 {
 #ifdef _X1TWIN
-	if(pce->is_cart_inserted()) {
-		return pceevent->get_frame_rate();
+	__LIKELY_IF(pceevent != NULL) {
+		if(pce->is_cart_inserted()) {
+			return pceevent->get_frame_rate();
+		}
 	}
 #endif
-	return event->get_frame_rate();
+	__LIKELY_IF(event != NULL) {
+		return event->get_frame_rate();
+	}
+	return FRAMES_PER_SEC;
 }
 
 // ----------------------------------------------------------------------------
@@ -628,9 +639,13 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	event->initialize_sound(rate, samples);
+	__LIKELY_IF(event != NULL) {
+		event->initialize_sound(rate, samples);
+	}
 #ifdef _X1TWIN
-	pceevent->initialize_sound(rate, samples);
+	__LIKELY_IF(pceevent != NULL) {
+		pceevent->initialize_sound(rate, samples);
+	}
 #endif
 
 	// init sound gen
@@ -654,24 +669,36 @@ uint16_t* VM::create_sound(int* extra_frames)
 {
 #ifdef _X1TWIN
 	if(pce->is_cart_inserted()) {
-		uint16_t* buffer = pceevent->create_sound(extra_frames);
-		for(int i = 0; i < *extra_frames; i++) {
-			event->drive();
+		__LIKELY_IF(pceevent != NULL) {
+			uint16_t* buffer = pceevent->create_sound(extra_frames);
+			for(int i = 0; i < *extra_frames; i++) {
+				event->drive();
+			}
+			return buffer;
 		}
-		return buffer;
+		return NULL;
 	}
 #endif
-	return event->create_sound(extra_frames);
+	__LIKELY_IF(event != NULL) {
+		return event->create_sound(extra_frames);
+	}
+	return NULL;
 }
 
 int VM::get_sound_buffer_ptr()
 {
 #ifdef _X1TWIN
 	if(pce->is_cart_inserted()) {
-		return pceevent->get_sound_buffer_ptr();
+		__LIKELY_IF(pceevent != NULL) {
+			return pceevent->get_sound_buffer_ptr();
+		}
+		return 0;
 	}
 #endif
-	return event->get_sound_buffer_ptr();
+	__LIKELY_IF(event != NULL) {
+		return event->get_sound_buffer_ptr();
+	}
+	return 0;
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -988,10 +1015,15 @@ bool VM::is_frame_skippable()
 {
 #ifdef _X1TWIN
 	if(pce->is_cart_inserted()) {
-		return pceevent->is_frame_skippable();
+		__LIKELY_IF(pceevent != NULL) {
+			return pceevent->is_frame_skippable();
+		}
 	}
 #endif
-	return event->is_frame_skippable();
+	__LIKELY_IF(event != NULL) {
+		return event->is_frame_skippable();
+	}
+	return false;
 }
 
 #ifdef _X1TWIN

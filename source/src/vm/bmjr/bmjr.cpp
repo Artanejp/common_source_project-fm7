@@ -92,12 +92,6 @@ void VM::special_reset(int num)
 	VM_TEMPLATE::reset(); // OK?
 }
 
-void VM::run()
-{
-	if(event != nullptr) {
-		event->drive();
-	}
-}
 
 double VM::get_frame_rate()
 {

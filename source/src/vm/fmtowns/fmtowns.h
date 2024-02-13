@@ -487,7 +487,6 @@ public:
 	// drive virtual machine
 	void reset() override;
 	void special_reset(int num) override;
-	void run() override;
 
 #ifdef USE_DEBUGGER
 	// debugger

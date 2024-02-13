@@ -325,13 +325,16 @@ void VM::special_reset(int num)
 	ls244->write_signal(SIG_LS244_INPUT, 0x00, 0x80);
 }
 
-void VM::run()
+bool VM::run()
 {
 	// halt key is released (mz3500sm p.80)
 	if(halt != 0 && --halt == 0) {
 		ls244->write_signal(SIG_LS244_INPUT, 0x80, 0x80);
 	}
-	event->drive();
+	__LIKELY_IF(event != NULL) {
+		return event->drive();
+	}
+	return false;
 }
 
 double VM::get_frame_rate()

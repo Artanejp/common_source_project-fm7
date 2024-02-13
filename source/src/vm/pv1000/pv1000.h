@@ -104,8 +104,6 @@ public:
 
 	// drive virtual machine
 	void reset();
-	void run();
-
 #ifdef USE_DEBUGGER
 	// debugger
 	DEVICE *get_cpu(int index);

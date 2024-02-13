@@ -566,7 +566,6 @@ public:
 	// drive virtual machine
 	void reset() override;
 	void special_reset(int num) override;
-	void run() override;
 	double get_frame_rate() override;
 
 #ifdef USE_DEBUGGER

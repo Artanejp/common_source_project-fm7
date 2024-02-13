@@ -262,10 +262,6 @@ void VM::reset()
 //	pcu_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 // ----------------------------------------------------------------------------
 // debugger

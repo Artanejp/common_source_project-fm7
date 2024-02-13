@@ -1852,24 +1852,34 @@ void VM::reset()
 	initialize_ports();
 }
 
-void VM::run()
+bool VM::run()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(boot_mode != 0) {
-		pc88event->drive();
+	__UNLIKELY_IF(boot_mode != 0) {
+		__LIKELY_IF(pc88event != NULL) {
+			return pc88event->drive();
+		}
 	} else
 #endif
-	event->drive();
+	__LIKELY_IF(event != NULL) {
+		return event->drive();
+	}
+	return false;
 }
 
 double VM::get_frame_rate()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	if(config.boot_mode != 0) {
-		return pc88event->get_frame_rate();
+	__UNLIKELY_IF(config.boot_mode != 0) {
+		__LIKELY_IF(pc88event != NULL) {
+			return pc88event->get_frame_rate();
+		}
 	} else
 #endif
-	return event->get_frame_rate();
+		  __LIKELY_IF(event != NULL) {
+			  return event->get_frame_rate();
+		  }
+	return 30.0;
 }
 
 // ----------------------------------------------------------------------------
@@ -1931,8 +1941,9 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	event->initialize_sound(rate, samples);
-
+	__LIKELY_IF(event != NULL) {
+		event->initialize_sound(rate, samples);
+	}
 	// init sound gen
 #if defined(SUPPORT_OLD_BUZZER)
 	beep->initialize_sound(rate, 2400, 8000);
@@ -1958,8 +1969,9 @@ void VM::initialize_sound(int rate, int samples)
 
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	// init sound manager
-	pc88event->initialize_sound(rate, samples);
-
+	__LIKELY_IF(pc88event != NULL) {
+		pc88event->initialize_sound(rate, samples);
+	}
 	// init sound gen
 	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_OPN1
@@ -1984,20 +1996,30 @@ uint16_t* VM::create_sound(int* extra_frames)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
-		return pc88event->create_sound(extra_frames);
+		__LIKELY_IF(pc88event != NULL) {
+			return pc88event->create_sound(extra_frames);
+		}
 	} else
 #endif
-	return event->create_sound(extra_frames);
+		__LIKELY_IF(event != NULL) {
+			return event->create_sound(extra_frames);
+		}
+	return NULL;
 }
 
 int VM::get_sound_buffer_ptr()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
-		return pc88event->get_sound_buffer_ptr();
+		__LIKELY_IF(pc88event != NULL) {
+			return pc88event->get_sound_buffer_ptr();
+		}
 	} else
 #endif
-	return event->get_sound_buffer_ptr();
+		__LIKELY_IF(event != NULL) {
+			return event->get_sound_buffer_ptr();
+		}
+	return 0;
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -2359,11 +2381,16 @@ bool VM::is_frame_skippable()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
-//		return pc88event->is_frame_skippable();
-		return pc88->is_frame_skippable();
+		__LIKELY_IF(pc88event != NULL) {
+		//		return pc88event->is_frame_skippable();
+			return pc88->is_frame_skippable();
+		}
 	} else
 #endif
-	return event->is_frame_skippable();
+		__LIKELY_IF(event != NULL) {
+			return event->is_frame_skippable();
+		}
+	return false;
 }
 
 
@@ -2395,8 +2422,8 @@ double VM::get_current_usec()
 
 uint64_t VM::get_current_clock_uint64()
 {
-		if(event == NULL) return (uint64_t)0;
-		return event->get_current_clock_uint64();
+	if(event == NULL) return (uint64_t)0;
+	return event->get_current_clock_uint64();
 }
 
 #define STATE_VERSION	20

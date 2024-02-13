@@ -118,10 +118,6 @@ void VM::special_reset(int num)
 	io->sysreset();
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 // ----------------------------------------------------------------------------
 // debugger

@@ -262,11 +262,6 @@ void VM::reset()
 
 }
 
-void VM::run()
-{
-	__UNLIKELY_IF(event == nullptr) return;
-	event->drive();
-}
 
 // ----------------------------------------------------------------------------
 // debugger

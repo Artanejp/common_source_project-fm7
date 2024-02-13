@@ -165,7 +165,6 @@ public:
 	// drive virtual machine
 	void reset();
 	void special_reset(int num);
-	void run();
 	double get_frame_rate();
 
 #ifdef USE_DEBUGGER

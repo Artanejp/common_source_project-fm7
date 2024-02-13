@@ -661,14 +661,20 @@ void VM::reset()
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 }
 
-void VM::run()
+bool VM::run()
 {
-	pc88event->drive();
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->drive();
+	}
+	return false;
 }
 
 double VM::get_frame_rate()
 {
-	return pc88event->get_frame_rate();
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->get_frame_rate();
+	}
+	return 0.0;
 }
 
 // ----------------------------------------------------------------------------
@@ -707,8 +713,9 @@ void VM::draw_screen()
 void VM::initialize_sound(int rate, int samples)
 {
 	// init sound manager
-	pc88event->initialize_sound(rate, samples);
-
+	__LIKELY_IF(pc88event != NULL) {
+		pc88event->initialize_sound(rate, samples);
+	}
 	// init sound gen
 	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_OPN1
@@ -759,12 +766,18 @@ void VM::initialize_sound(int rate, int samples)
 
 uint16_t* VM::create_sound(int* extra_frames)
 {
-	return pc88event->create_sound(extra_frames);
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->create_sound(extra_frames);
+	}
+	return false;
 }
 
 int VM::get_sound_buffer_ptr()
 {
-	return pc88event->get_sound_buffer_ptr();
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->get_sound_buffer_ptr();
+	}
+	return 0;
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -1100,14 +1113,18 @@ void VM::update_config()
 
 double VM::get_current_usec()
 {
-	if(pc88event == NULL) return 0.0;
-	return pc88event->get_current_usec();
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->get_current_usec();
+	}
+	return 0.0;
 }
 
 uint64_t VM::get_current_clock_uint64()
 {
-	if(pc88event == NULL) return (uint64_t)0;
-	return pc88event->get_current_clock_uint64();
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->get_current_clock_uint64();
+	}
+	return 0;
 }
 
 #define STATE_VERSION	13

@@ -131,9 +131,10 @@ public:
 	// ----------------------------------------
 
 	// drive virtual machine
-	void reset();
-	void notify_power_off() { }
-	void run();
+	void reset() override;
+	void notify_power_off() override
+	{
+	}
 
 #ifdef USE_DEBUGGER
 	// debugger

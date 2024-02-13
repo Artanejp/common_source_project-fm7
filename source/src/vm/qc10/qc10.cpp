@@ -235,10 +235,6 @@ void VM::reset()
 	}
 }
 
-void VM::run()
-{
-	event->drive();
-}
 
 double VM::get_frame_rate()
 {

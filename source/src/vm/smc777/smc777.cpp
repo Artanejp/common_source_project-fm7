@@ -178,11 +178,6 @@ void VM::special_reset(int num)
 	memory->warm_start = true;
 }
 
-void VM::run()
-{
-	event->drive();
-}
-
 double VM::get_frame_rate()
 {
 	return event->get_frame_rate();

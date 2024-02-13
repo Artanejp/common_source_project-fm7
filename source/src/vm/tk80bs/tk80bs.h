@@ -251,7 +251,6 @@ public:
 
 	// drive virtual machine
 	void reset();
-	void run();
 	double get_frame_rate()
 	{
 		return FRAMES_PER_SEC;

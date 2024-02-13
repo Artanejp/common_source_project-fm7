@@ -115,8 +115,7 @@ public:
 
 	// drive virtual machine
 	//void reset();
-	void run();
-	double get_frame_rate();
+	double get_frame_rate() override;
 
 #ifdef USE_DEBUGGER
 	// debugger
