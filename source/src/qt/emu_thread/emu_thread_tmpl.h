@@ -143,6 +143,7 @@ protected:
 
 	bool half_count;
 	bool full_speed;
+	int64_t fps_accum;
 	
 	qint64 next_time;
 	qint64 update_fps_time;

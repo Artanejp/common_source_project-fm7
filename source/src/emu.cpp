@@ -316,10 +316,8 @@ int EMU::run()
 	// drive virtual machine
 	if(extra_frames == 0) {
 		osd->lock_vm();
-		if(vm->is_half_event()) {
-			if(!(vm->run())) { // Tail of frame, increment.
-				extra_frames = 1;
-			}
+		if(!(vm->run())) {
+			extra_frames = 1;
 		}
 		osd->unlock_vm();
 	}

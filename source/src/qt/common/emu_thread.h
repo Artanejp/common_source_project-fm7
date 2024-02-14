@@ -67,8 +67,10 @@ protected:
 public:
 	EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClass();
-
+	void run() override; 
+					 
 public slots:
+	
 	void do_initialize();
 	void doWork();
 signals:

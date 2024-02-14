@@ -24,17 +24,31 @@
 
 qint64 EmuThreadClassBase::get_interval(void)
 {
-	static qint64 accum = 0;
+	#if 0
 	if(p_emu == nullptr) return 0;
 	double _rate = p_emu->get_frame_rate();
 	double nsec = 1.0e6; // 1mS = 1.0e6 nSec.
 	__LIKELY_IF(_rate > 0.0) {
 		nsec = 1.0e9 / _rate;
 	}
-	accum += (qint64)(llrint(nsec / 2.0)); // Half emulating.
-	qint64 interval = accum / 1000; // By uSec
-	accum -= (interval * 1000);
+	qint64 f_usec = (qint64)llrint(nsec / 1000.0);
+	if(half_count) {
+		return f_usec / 2;
+	} else {
+		return (f_usec - (f_usec / 2));
+	}
+	#else
+	if(p_emu == nullptr) return 0;
+	double _rate = p_emu->get_frame_rate();
+	double nsec = 1.0e6; // 1mS = 1.0e6 nSec.
+	__LIKELY_IF(_rate > 0.0) {
+		nsec = 1.0e9 / _rate;
+	}
+	fps_accum += (qint64)(llrint(nsec / 2.0)); // Half emulating.
+	qint64 interval = fps_accum / 1000; // By uSec
+	fps_accum -= (interval * 1000);
 	return interval;
+	#endif
 }
 
 void EmuThreadClassBase::resetEmu()

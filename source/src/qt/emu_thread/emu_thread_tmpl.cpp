@@ -65,6 +65,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	draw_frames = 0;
 	skip_frames = 0;
 	mouse_flag = false;
+	fps_accum = 0;
 
 //	keyMutex = new QMutex(QMutex::Recursive);
 
@@ -125,19 +126,19 @@ void EmuThreadClassBase::do_start(QThread::Priority prio)
 void EmuThreadClassBase::doExit(void)
 {
 	bRunThread = false;
-	check_power_off();
-	emit sig_timer_stop();
-	if(p_osd != nullptr) {
-		std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
-		if(csp_logger.get() != NULL) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
-								  "EmuThread : EXIT");
-		}
-	}
-	emit sig_draw_finished();
-	emit sig_sound_stop();
-	
-	quit();
+//	check_power_off();
+//	emit sig_timer_stop();
+//	if(p_osd != nullptr) {
+//		std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
+//		if(csp_logger.get() != NULL) {
+//			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
+//								  "EmuThread : EXIT");
+//		}
+//	}
+//	emit sig_draw_finished();
+//	emit sig_sound_stop();
+//	
+//	quit();
 }
 
 
@@ -161,9 +162,10 @@ void EmuThreadClassBase::initialize_variables()
 
 	state_power_off = false;
 	
-	update_fps_time = get_current_tick_usec() + (1000 * 1000);
 
 	next_time = 0;
+	tick_timer.restart();
+	update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	mouse_flag = false;
 
 	key_mod = 0;
@@ -227,18 +229,30 @@ int EmuThreadClassBase::process_command_queue(bool& req_draw)
 		loadState();
 		bLoadStateReq = false;
 		req_draw = true;
+		fps_accum = 0;
+		next_time = 0;
+		tick_timer.restart();
+		update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	}
 	if(bResetReq.load() != false) {
 		half_count = false;
 		resetEmu();
 		bResetReq = false;
 		req_draw = true;
+		fps_accum = 0;
+		next_time = 0;
+		tick_timer.restart();
+		update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	}
 	if(bSpecialResetReq.load() != false) {
 		half_count = false;
 		specialResetEmu(specialResetNum);
 		bSpecialResetReq = false;
 		specialResetNum = 0;
+		fps_accum = 0;
+		next_time = 0;
+		tick_timer.restart();
+		update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	}
 	if(bSaveStateReq.load() != false) {
 		saveState();
@@ -683,10 +697,10 @@ int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
 void EmuThreadClassBase::do_print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
-	qint64 current_time = (qint64)get_current_tick_usec();
+	qint64 __current_time = (qint64)get_current_tick_usec();
 	//qint64	current_time = SDL_GetTicks();
 
-	if((update_fps_time <= current_time) && (update_fps_time != 0)) {
+	if((update_fps_time <= __current_time) && (update_fps_time != 0)) {
 		_TCHAR buf[256];
 		QString message;
 		//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
@@ -702,12 +716,12 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 				dec_message_count();
 			} else {
 				int ratio;
-				double real_frames = (double)draw_frames;
-				real_frames = real_frames /  ((double)(current_time - update_fps_time + (1000 * 1000)) / 1.0e6);
+				double real_frames = (double)total_frames;
+				real_frames = real_frames /  ((double)(__current_time - update_fps_time + (1000 * 1000)) / 1.0e6);
 				__LIKELY_IF(p_emu != NULL) {
 					ratio = lrint(100.0 * (real_frames / p_emu->get_frame_rate()));
 				} else {
-					ratio = (int)(100.0 * (real_frames / (double)total_frames) * 2.0 + 0.5);
+					ratio = 1.0;
 				}
 				snprintf(buf, 255, _T("%s - %.3ffps (%d%%)"), get_device_name(), real_frames, ratio);
 			}
@@ -720,13 +734,13 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 		}
 		emit message_changed(message);
 		emit window_title_changed(message);
-		update_fps_time = current_time + (1000 * 1000);
+		update_fps_time = __current_time + (1000 * 1000);
 		//update_fps_time += (1000 * 1000);
 		total_frames = draw_frames = 0;
 	}
-	if(update_fps_time <= current_time) {
-		update_fps_time = current_time + (1000 * 1000);
-	}
+//	if(update_fps_time <= __current_time) {
+//		update_fps_time = __current_time + (1000 * 1000);
+//	}
 }
 
 int EmuThreadClassBase::get_d88_file_cur_bank(int drive)
