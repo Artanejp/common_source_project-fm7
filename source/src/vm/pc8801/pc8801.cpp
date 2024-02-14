@@ -769,7 +769,7 @@ uint16_t* VM::create_sound(int* extra_frames)
 	__LIKELY_IF(pc88event != NULL) {
 		return pc88event->create_sound(extra_frames);
 	}
-	return false;
+	return NULL;
 }
 
 int VM::get_sound_buffer_ptr()
