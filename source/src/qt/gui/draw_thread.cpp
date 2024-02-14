@@ -121,13 +121,15 @@ void DrawThreadClass::doDrawMain(bool flag)
 void DrawThreadClass::do_draw(bool flag)
 {
 	// ToDo: Recording movies.
-	bRecentRenderStatus = flag;
-	__LIKELY_IF(p_config != nullptr) {
-		__LIKELY_IF(!(p_config->full_speed)) {
-			doDrawMain(bRecentRenderStatus);
-			bRecentRenderStatus = false;
-		}
+	if(flag) {
+		bRecentRenderStatus = true;
 	}
+//	__LIKELY_IF(p_config != nullptr) {
+//		__LIKELY_IF(!(p_config->full_speed)) {
+//			doDrawMain(bRecentRenderStatus);
+//			bRecentRenderStatus = false;
+//		}
+//	}
 //	doDrawMain(flag);
 //	do_draw_one_turn(bDrawReq);
 //	bDrawReq = false;
@@ -136,12 +138,12 @@ void DrawThreadClass::do_draw(bool flag)
 void DrawThreadClass::do_render_to_texture()
 {
 	// ToDo: Recording movies.
-	__LIKELY_IF(p_config != nullptr) {
-		__UNLIKELY_IF((p_config->full_speed)) {
+//	__LIKELY_IF(p_config != nullptr) {
+//		__UNLIKELY_IF((p_config->full_speed)) {
 			doDrawMain(bRecentRenderStatus);
 			bRecentRenderStatus = false;
-		}
-	}
+//		}
+//	}
 //	do_draw_one_turn(bDrawReq);
 	do_draw_one_turn(true);
 	bDrawReq = false;

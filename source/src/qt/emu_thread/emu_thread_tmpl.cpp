@@ -14,12 +14,14 @@
 #include <QTextCodec>
 #include <QWidget>
 #include <QOpenGLContext>
+#include <QTimer>
 
 //#include <SDL.h>
 
 #include "emu_thread_tmpl.h"
 #include "mainwidget_base.h"
 #include "qt_gldraw.h"
+#include "csp_logger.h"
 #include "common.h"
 #include "dock_disks.h"
 #include "../../osdcall_types.h"
@@ -38,7 +40,8 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	p_emu = nullptr;
 	p_osd = nullptr;
 	poweroff_notified = false; // OK?
-
+	thread_id = (Qt::HANDLE)nullptr;
+	
 	is_shared_glcontext = false;
 	glContext = nullptr;
 	glContext = new QOpenGLContext(this);
@@ -53,7 +56,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	}
 
 	bRunThread = true;
-	thread_id = (Qt::HANDLE)0;
+
 	queue_fixed_cpu = -1;
 	prev_skip = false;
 	update_fps_time = 0;
@@ -92,6 +95,8 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	connect(this, SIGNAL(sig_emu_launched()), rootWindow->getGraphicsView(), SLOT(set_emu_launched()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(do_quit()), Qt::QueuedConnection);
 	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+
+	call_timer = nullptr;
 	
 	virtualMediaList.clear();
 
@@ -103,6 +108,10 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 
 EmuThreadClassBase::~EmuThreadClassBase()
 {
+	emit sig_timer_stop();
+	if(call_timer != nullptr) {
+		delete call_timer;
+	}
 	key_fifo->release();
 	delete key_fifo;
 }
@@ -110,13 +119,290 @@ EmuThreadClassBase::~EmuThreadClassBase()
 void EmuThreadClassBase::do_start(QThread::Priority prio)
 {
 	start(prio);
+	emit sig_call_initialize();
 }
 
 void EmuThreadClassBase::doExit(void)
 {
 	bRunThread = false;
+	check_power_off();
+	emit sig_timer_stop();
+	if(p_osd != nullptr) {
+		std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
+		if(csp_logger.get() != NULL) {
+			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
+								  "EmuThread : EXIT");
+		}
+	}
+	emit sig_draw_finished();
+	emit sig_sound_stop();
+	
+	quit();
 }
 
+
+void EmuThreadClassBase::initialize_variables()
+{
+	bResetReq = false;
+	bSpecialResetReq = false;
+	bLoadStateReq = false;
+	bSaveStateReq = false;
+	bUpdateConfigReq = false;
+	bStartRecordSoundReq = false;
+	bStopRecordSoundReq = false;
+	bStartRecordMovieReq = false;
+	specialResetNum = 0;
+	sStateFile.clear();
+	lStateFile.clear();
+	prevRecordReq = false;
+	nr_fps = -1.0;
+	
+	record_fps = -1;
+
+	state_power_off = false;
+	
+	update_fps_time = get_current_tick_usec() + (1000 * 1000);
+
+	next_time = 0;
+	mouse_flag = false;
+
+	key_mod = 0;
+
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
+	bool is_up_null = (u_p.get() == nullptr);
+	if(is_up_null) {
+		for(int i = 0; i < u_p->get_max_qd(); i++) qd_text[i].clear();
+		for(int i = 0; i < u_p->get_max_drive(); i++) {
+			fd_text[i].clear();
+			fd_lamp[i] = QString::fromUtf8("×");
+		}
+		for(int i = 0; i < u_p->get_max_tape(); i++) {
+			cmt_text[i].clear();
+		}
+		for(int i = 0; i < (int)u_p->get_max_cd(); i++) {
+			cdrom_text[i] = QString::fromUtf8("×");
+		}
+		for(int i = 0; i < (int)u_p->get_max_ld(); i++) {
+			laserdisc_text[i].clear();
+		}
+		for(int i = 0; i < (int)u_p->get_max_hdd(); i++) {
+			hdd_text[i].clear();
+			hdd_lamp[i].clear();
+		}
+		for(int i = 0; i < u_p->get_max_bubble(); i++) bubble_text[i].clear();
+	}
+
+	full_speed = config.full_speed;
+	half_count = false;	
+}
+
+bool EmuThreadClassBase::initialize_messages()
+{
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
+	if(u_p.get() != nullptr) {
+		for(int ii = 0; ii < u_p->get_max_drive(); ii++ ) {
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
+		}
+		for(int ii = 0; ii < u_p->get_max_cd(); ii++ ) {
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, ii, cdrom_text[ii]);
+		}
+		for(int ii = 0; ii < u_p->get_max_hdd(); ii++ ) {
+			emit sig_change_access_lamp(CSP_DockDisks_Domain_HD, ii, hdd_text[ii]);
+		}
+		return true;
+	}
+	return false;
+}
+
+int EmuThreadClassBase::process_command_queue(bool& req_draw)
+{
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
+	if((u_p.get() == nullptr) || (p_config == nullptr) || (p_emu == nullptr)) {
+		return -1;
+	}
+	int count = parse_command_queue(virtualMediaList);
+	
+	virtualMediaList.clear();
+	if(bLoadStateReq.load() != false) {
+		loadState();
+		bLoadStateReq = false;
+		req_draw = true;
+	}
+	if(bResetReq.load() != false) {
+		half_count = false;
+		resetEmu();
+		bResetReq = false;
+		req_draw = true;
+	}
+	if(bSpecialResetReq.load() != false) {
+		half_count = false;
+		specialResetEmu(specialResetNum);
+		bSpecialResetReq = false;
+		specialResetNum = 0;
+	}
+	if(bSaveStateReq.load() != false) {
+		saveState();
+		bSaveStateReq = false;
+	}
+	if(bStartRecordSoundReq.load() != false) {
+		p_emu->start_record_sound();
+		bStartRecordSoundReq = false;
+		req_draw = true;
+	}
+	if(bStopRecordSoundReq.load() != false) {
+		p_emu->stop_record_sound();
+		bStopRecordSoundReq = false;
+		req_draw = true;
+	}
+	if(bUpdateConfigReq != false) {
+		p_emu->update_config();
+		bUpdateConfigReq = false;
+		req_draw = true;
+	}
+	if(bStartRecordMovieReq.load() != false) {
+		int rfps = record_fps.load();
+		if(!prevRecordReq && (rfps > 0) && (rfps < 75)) {
+			p_emu->start_record_video(rfps);
+			prevRecordReq = true;
+		}
+	} else {
+		if(prevRecordReq) {
+			p_emu->stop_record_video();
+			record_fps = -1;
+			prevRecordReq = false;
+		}
+	}
+	if(u_p->get_use_sound_volume() > 0) {
+		for(int ii = 0; ii < u_p->get_use_sound_volume(); ii++) {
+			if(bUpdateVolumeReq[ii].load()) {
+				p_emu->set_sound_device_volume(ii, p_config->sound_volume_l[ii], p_config->sound_volume_r[ii]);
+				bUpdateVolumeReq[ii] = false;
+			}
+		}
+	}
+	return count;
+}
+
+bool EmuThreadClassBase::check_power_off()
+{
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
+	if(u_p.get() != nullptr) {
+		if(u_p->is_use_notify_power_off()) {
+			if((poweroff_notified) && !(state_power_off) && (p_emu != nullptr))  {
+				p_emu->notify_power_off();
+				state_power_off = true;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool EmuThreadClassBase::set_led(uint32_t& led_data_old, bool& req_draw)
+{
+	uint32_t led_data = 0x00000000;
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
+	if((u_p.get() == nullptr) || (p_emu == nullptr)) {
+		return false;
+	}
+	bool _ind_caps_kana = false;
+	bool _key_lock = false;
+	int _led_shift = 0;
+	_ind_caps_kana = u_p->get_independent_caps_kana_led();
+	_key_lock = u_p->get_use_key_locked();
+	_led_shift = u_p->get_use_led_devices();
+	if(u_p->is_use_minimum_rendering()) {
+		req_draw |= p_emu->is_screen_changed();
+	} else {
+		req_draw = true;
+	}
+	if((_key_lock) && (_ind_caps_kana)) {
+		led_data |= ((p_emu->get_caps_locked()) ? 0x01 : 0x00);
+		led_data |= ((p_emu->get_kana_locked()) ? 0x02 : 0x00);
+		if(_led_shift > 0) {
+			led_data <<= _led_shift;
+		}
+	}
+	led_data |= p_emu->get_led_status();
+
+	if((_led_shift > 0) || (_key_lock)) {
+		if(led_data != led_data_old) {
+			emit sig_send_data_led((quint32)led_data);
+			led_data_old = led_data;
+			return true;
+		}
+	}
+	return false;
+}
+
+int EmuThreadClassBase::process_key_input()
+{
+	if((p_osd == nullptr) || (p_emu == nullptr)) {
+		return -1;
+	}
+	int count = 0;
+	while(!is_empty_key()) {
+		key_queue_t sp;
+		dequeue_key(&sp);
+		//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat);
+		switch(sp.type) {
+		case KEY_QUEUE_UP:
+			key_mod = sp.mod;
+			p_osd->key_modifiers(sp.mod);
+			p_emu->key_up(sp.code, true); // need decicion of extend.
+			count++;
+			break;
+		case KEY_QUEUE_DOWN:
+			if(config.romaji_to_kana) {
+				p_osd->key_modifiers(sp.mod);
+				p_emu->key_char(sp.code);
+			} else {
+				p_osd->key_modifiers(sp.mod);
+				p_emu->key_down(sp.code, true, sp.repeat);
+			}
+			count++;
+			break;
+		default:
+			break;
+		}
+	}
+	return count;
+}
+
+bool EmuThreadClassBase::check_scanline_params(bool force,
+											   bool& vert_line_bak,
+											   bool& horiz_line_bak,
+											   bool& gl_crt_filter_bak,
+											   int& opengl_filter_num_bak,
+											   bool& req_draw)
+{
+	std::shared_ptr<USING_FLAGS> u_p = using_flags;
+	if(p_config != nullptr) {
+		return false;
+	}
+	bool need_update = false;
+	if(u_p.get() != nullptr) {
+		if(u_p->is_use_minimum_rendering()) {
+			if((vert_line_bak != p_config->opengl_scanline_vert) ||
+			   (horiz_line_bak != p_config->opengl_scanline_horiz) ||
+			   (gl_crt_filter_bak != p_config->use_opengl_filters) ||
+			   (opengl_filter_num_bak != p_config->opengl_filter_num)) {
+				need_update = true;
+				if(!(force)) {
+					req_draw = true;
+				}
+			}
+		}
+	}
+	if((need_update) || (force)) {
+		vert_line_bak = p_config->opengl_scanline_vert;
+		horiz_line_bak = p_config->opengl_scanline_horiz;
+		gl_crt_filter_bak = p_config->use_opengl_filters;
+		opengl_filter_num_bak = p_config->opengl_filter_num;
+	}
+	return ((need_update) || (force));
+}
+											   
 void EmuThreadClassBase::set_tape_play(bool flag)
 {
 	tape_play_flag = flag;

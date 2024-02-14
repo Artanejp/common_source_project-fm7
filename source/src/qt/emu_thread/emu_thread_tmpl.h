@@ -69,6 +69,7 @@ typedef struct {
 	bool repeat;
 } key_queue_t;
 
+class QTimer;
 
 class DLL_PREFIX EmuThreadClassBase : public QThread {
 	Q_OBJECT
@@ -87,15 +88,17 @@ protected:
 	bool mouse_flag;
 	int mouse_x;
 	int mouse_y;
-	Qt::HANDLE thread_id;
 	int queue_fixed_cpu;
+	bool prevRecordReq;
+	double nr_fps;
 
     FIFO *key_fifo;
 	QOpenGLContext *glContext;
 	bool is_shared_glcontext;
 
 	uint32_t key_mod;
-
+	Qt::HANDLE thread_id;
+	QTimer* call_timer;
 	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 
@@ -131,13 +134,16 @@ protected:
 	char dbg_prev_command[MAX_COMMAND_LEN];
 
 //	bool draw_timing;
-	bool doing_debug_command;
 	std::atomic<bool> bUpdateVolumeReq[32];
 	std::atomic<int>  volume_balance[32];
 	std::atomic<int>  volume_avg[32];
 	std::atomic<int>  record_fps;
 	std::atomic<int>  specialResetNum;
+	std::atomic<bool> state_power_off;
 
+	bool half_count;
+	bool full_speed;
+	
 	qint64 next_time;
 	qint64 update_fps_time;
 	bool prev_skip;
@@ -245,6 +251,20 @@ protected:
 	int parse_drive(QString key);
 	void parse_file(QString val, QString& filename);
 	void parse_file_slot(QString val, QString& filename, bool& protect_changed, bool& is_protected, int& slot );
+
+	virtual void initialize_variables();
+	virtual bool initialize_messages();
+	virtual int process_command_queue(bool& req_draw);
+	virtual bool check_power_off();
+	bool set_led(uint32_t& led_data_old, bool& req_draw);
+	virtual int process_key_input();
+	bool check_scanline_params(bool force,
+							   bool& vert_line_bak,
+							   bool& horiz_line_bak,
+							   bool& gl_crt_filter_bak,
+							   int& opengl_filter_num_bak,
+							   bool& req_draw);
+
 	inline int64_t get_current_tick_usec() const
 	{
 		__LIKELY_IF(tick_timer.isValid()) {
@@ -256,7 +276,6 @@ protected:
 public:
 	EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent = 0);
 	~EmuThreadClassBase();
-	virtual void run() {};
 	void set_tape_play(bool);
 	void resize_screen(int sw, int sh, int stw, int sth);
 	void sample_access_drv(void);
@@ -379,6 +398,10 @@ public slots:
 
 signals:
 	int sig_emu_launched(void);
+	int sig_timer_start(int);
+	int sig_timer_stop();
+	int sig_call_initialize();
+	
 	//int sig_emu_finished(void);
 	
 	int message_changed(QString);

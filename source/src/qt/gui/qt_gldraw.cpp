@@ -150,7 +150,7 @@ GLDrawClass::GLDrawClass(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Log
 
 
 	this->initKeyCode();
-	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+	//connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 }
 
 GLDrawClass::~GLDrawClass()

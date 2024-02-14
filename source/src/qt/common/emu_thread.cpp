@@ -11,6 +11,7 @@
 #include <QString>
 #include <QTextCodec>
 #include <QWaitCondition>
+#include <QTimer>
 
 #include <SDL.h>
 
@@ -38,13 +39,41 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p_osd = emu->get_osd();
 	p->set_emu(emu);
 	p->set_osd((OSD*)p_osd);
+
 	poweroff_notified = false;
-	
 
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
 	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
 	connect(this, SIGNAL(sig_sound_stop()), p_osd, SLOT(stop_sound()));
+
+	call_timer = new QTimer(this);
+	call_timer->setTimerType(Qt::PreciseTimer);
+	call_timer->setSingleShot(true);
+	
+	connect(call_timer, SIGNAL(timeout()), this, SLOT(doWork()));
+	connect(this, SIGNAL(sig_timer_start(int)), call_timer, SLOT(start(int)));
+	connect(this, SIGNAL(sig_timer_stop()), call_timer, SLOT(stop()));
+	//connect(this, SIGNAL(finished()), call_timer, SLOT(stop()));
+	interval = 0;
+	sleep_period = 0;
+	drawn_time = 0;
+	run_frames = 0;
+	current_time = 0;
+	first = true;
+	// LED
+	led_data_old = 0x00000000;
+	turn_count = 0;
+	// Tape
+	// DIG_RESOLUTION
+	//
+	req_draw = true;
+	vert_line_bak = false;
+	horiz_line_bak = false;
+	gl_crt_filter_bak = false;
+	opengl_filter_num_bak = 0;
+	//connect(this, SIGNAL(sig_call_initialize()), this, SLOT(do_initialize()));
+	connect(this, SIGNAL(started()), this, SLOT(do_initialize()));
 }
 
 EmuThreadClass::~EmuThreadClass()
@@ -54,384 +83,165 @@ EmuThreadClass::~EmuThreadClass()
 #include <QStringList>
 #include <QFileInfo>
 
-
-
-void EmuThreadClass::doWork(const QString &params)
+void EmuThreadClass::do_initialize()
 {
-	int64_t interval = 0;
-	int64_t sleep_period = 0;
-	int64_t drawn_time = 0;
-	int run_frames;
-	qint64 current_time = 0;
-	bool first = true;
-	// LED
-	uint32_t led_data = 0x00000000;
-	uint32_t led_data_old = 0x00000000;
-	int turn_count = 0;
-	// Tape
-	// DIG_RESOLUTION
-	//
-	QString ctext;
-	bool req_draw = true;
-	bool vert_line_bak = config.opengl_scanline_vert;
-	bool horiz_line_bak = config.opengl_scanline_horiz;
-	bool gl_crt_filter_bak = config.use_opengl_filters;
-	int opengl_filter_num_bak = config.opengl_filter_num;
+	check_scanline_params(true, vert_line_bak, horiz_line_bak, gl_crt_filter_bak, opengl_filter_num_bak, req_draw);
+	req_draw = true;
+	no_draw_count = 0;
 	//uint32_t key_mod_old = 0xffffffff;
-	int no_draw_count = 0;
-	bool prevRecordReq = false;
-	double nr_fps = -1.0;
-	int _queue_begin;
-
-	bool state_power_off = false;
-
-	doing_debug_command = false;
-	ctext.clear();
-//	draw_timing = false;
-	bResetReq = false;
-	bSpecialResetReq = false;
-	bLoadStateReq = false;
-	bSaveStateReq = false;
-	bUpdateConfigReq = false;
-	bStartRecordSoundReq = false;
-	bStopRecordSoundReq = false;
-	bStartRecordMovieReq = false;
-	specialResetNum = 0;
-	sStateFile.clear();
-	lStateFile.clear();
-	thread_id = this->currentThreadId();
-	record_fps = -1;
+	initialize_variables();
 	tick_timer.start();
-	update_fps_time = get_current_tick_usec() + (1000 * 1000);
 
-	next_time = 0;
-	mouse_flag = false;
-
-	key_mod = 0;
-	//key_up_queue.clear();
-	//key_down_queue.clear();
 	clear_key_queue();
-	bool half_count = false;
+	thread_id = currentThreadId();
+	
+	emit sig_emu_launched();
+	bBlockTask = false;
+	emit sig_timer_start(10);
+
+}
+
+void EmuThreadClass::doWork()
+{
+	current_time = get_current_tick_usec();
+	if(!(bRunThread.load()) && !(first)) {
+		return;
+	}
 	std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
 	std::shared_ptr<USING_FLAGS> u_p = using_flags;
 
 	bool is_up_null = (u_p.get() == nullptr);
-	if(is_up_null) {
-		for(int i = 0; i < u_p->get_max_qd(); i++) qd_text[i].clear();
-		for(int i = 0; i < u_p->get_max_drive(); i++) {
-			fd_text[i].clear();
-			fd_lamp[i] = QString::fromUtf8("×");
-		}
-		for(int i = 0; i < u_p->get_max_tape(); i++) {
-			cmt_text[i].clear();
-		}
-		for(int i = 0; i < (int)u_p->get_max_cd(); i++) {
-			cdrom_text[i] = QString::fromUtf8("×");
-		}
-		for(int i = 0; i < (int)u_p->get_max_ld(); i++) {
-			laserdisc_text[i].clear();
-		}
-		for(int i = 0; i < (int)u_p->get_max_hdd(); i++) {
-			hdd_text[i].clear();
-			hdd_lamp[i].clear();
-		}
-		for(int i = 0; i < u_p->get_max_bubble(); i++) bubble_text[i].clear();
+	thread_id = currentThreadId();
+	
+	is_up_null = (u_p.get() == nullptr);
+
+	if((MainWindow == NULL) || (bBlockTask.load()) || (is_up_null)) {
+		//if(bRunThread.load() == false){
+		//	goto _exit;
+		//}
+		emit sig_timer_start(10);
+		return;
 	}
-
-//	_queue_begin = parse_command_queue(virtualMediaList);
-//	virtualMediaList.clear();
-	//SDL_SetHint(SDL_HINT_TIMER_RESOLUTION, "2");
-	emit sig_emu_launched();
-	bool full_speed = config.full_speed;
-	do {
-		//p_emu->SetHostCpus(this->idealThreadCount());
-		// Chack whether using_flags exists.
-		if(is_up_null) {
-			u_p = using_flags;
-		}
-		is_up_null = (u_p.get() == nullptr);
-
-   		if((MainWindow == NULL) || (bBlockTask.load())) {
-			if(bRunThread.load() == false){
-				goto _exit;
-			}
-			msleep(10);
-			//SDL_Delay(10);
-			continue;
-		}
-		if(queue_fixed_cpu >= 0) {
-			do_set_emu_thread_to_fixed_cpu(queue_fixed_cpu);
-			queue_fixed_cpu = -1;
-		}
-		if(first) {
+	if(queue_fixed_cpu >= 0) {
+		do_set_emu_thread_to_fixed_cpu(queue_fixed_cpu);
+		queue_fixed_cpu = -1;
+	}
+	if(first) {
+		if(initialize_messages()) {
 			if(!(is_up_null)) {
-
-				if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) emit sig_send_data_led((quint32)led_data);
-				for(int ii = 0; ii < u_p->get_max_drive(); ii++ ) {
-					emit sig_change_access_lamp(CSP_DockDisks_Domain_FD, ii, fd_lamp[ii]);
+				if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) {
+					emit sig_send_data_led((quint32)led_data_old);
 				}
-				for(int ii = 0; ii < u_p->get_max_cd(); ii++ ) {
-					emit sig_change_access_lamp(CSP_DockDisks_Domain_CD, ii, cdrom_text[ii]);
-				}
-				for(int ii = 0; ii < u_p->get_max_hdd(); ii++ ) {
-					emit sig_change_access_lamp(CSP_DockDisks_Domain_HD, ii, hdd_text[ii]);
-				}
-
-				first = false;
 			}
-			drawn_time = get_current_tick_usec();
+			first = false;
 		}
-		interval = 0;
-		full_speed = config.full_speed;
+		drawn_time = get_current_tick_usec();
+	}
+	interval = 0;
 
-		if(p_emu) {
-			// drive machine
-			if(!(half_count)) { // Start of frame.
-				_queue_begin = parse_command_queue(virtualMediaList);
-				virtualMediaList.clear();
-				if(bLoadStateReq.load() != false) {
-					loadState();
-					bLoadStateReq = false;
-					req_draw = true;
-					next_time = get_current_tick_usec();
-				}
-				if(bResetReq.load() != false) {
-					half_count = false;
-					resetEmu();
-					bResetReq = false;
-					req_draw = true;
-					next_time = get_current_tick_usec();
-				}
-				if(bSpecialResetReq.load() != false) {
-					half_count = false;
-					specialResetEmu(specialResetNum);
-					bSpecialResetReq = false;
-					specialResetNum = 0;
-					next_time = get_current_tick_usec();
-				}
-				if(bSaveStateReq.load() != false) {
-					saveState();
-					bSaveStateReq = false;
-				}
-				if(!(is_up_null)) {
-					if(u_p->is_use_minimum_rendering()) {
-						if((vert_line_bak != config.opengl_scanline_vert) ||
-						   (horiz_line_bak != config.opengl_scanline_horiz) ||
-						   (gl_crt_filter_bak != config.use_opengl_filters) ||
-						   (opengl_filter_num_bak != config.opengl_filter_num)) req_draw = true;
-						vert_line_bak = config.opengl_scanline_vert;
-						horiz_line_bak = config.opengl_scanline_horiz;
-						gl_crt_filter_bak = config.use_opengl_filters;
-						opengl_filter_num_bak = config.opengl_filter_num;
-					}
-				}
-				if(bStartRecordSoundReq.load() != false) {
-					p_emu->start_record_sound();
-					bStartRecordSoundReq = false;
-					req_draw = true;
-				}
-				if(bStopRecordSoundReq.load() != false) {
-					p_emu->stop_record_sound();
-					bStopRecordSoundReq = false;
-					req_draw = true;
-				}
-				if(bUpdateConfigReq != false) {
-					p_emu->update_config();
-					bUpdateConfigReq = false;
-					req_draw = true;
-				}
-				if(bStartRecordMovieReq.load() != false) {
-					int rfps = record_fps.load();
-					if(!prevRecordReq && (rfps > 0) && (rfps < 75)) {
-						p_emu->start_record_video(rfps);
-						prevRecordReq = true;
-					}
-				} else {
-					if(prevRecordReq) {
-						p_emu->stop_record_video();
-						record_fps = -1;
-						prevRecordReq = false;
-					}
-				}
-				#if defined(USE_SOUND_VOLUME)
-				for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
-					if(bUpdateVolumeReq[ii].load()) {
-						p_emu->set_sound_device_volume(ii, config.sound_volume_l[ii], config.sound_volume_r[ii]);
-						bUpdateVolumeReq[ii] = false;
-					}
-				}
-			#endif
-				if(p_osd != nullptr) {
-					while(!is_empty_key()) {
-						key_queue_t sp;
-						dequeue_key(&sp);
-						//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat);
-						switch(sp.type) {
-						case KEY_QUEUE_UP:
-							key_mod = sp.mod;
-							p_osd->key_modifiers(sp.mod);
-							p_emu->key_up(sp.code, true); // need decicion of extend.
-							break;
-						case KEY_QUEUE_DOWN:
-							if(config.romaji_to_kana) {
-								p_osd->key_modifiers(sp.mod);
-								p_emu->key_char(sp.code);
-							} else {
-								p_osd->key_modifiers(sp.mod);
-								p_emu->key_down(sp.code, true, sp.repeat);
-							}
-							break;
-						default:
-							break;
-						}
-					}
-				}
-				#ifdef USE_NOTIFY_POWER_OFF
-				if((poweroff_notified) && !(state_power_off))  {
-					p_emu->notify_power_off();
-					state_power_off = true;
-				}
-				#endif
-			}
-
-			run_frames = p_emu->run();
-			total_frames += run_frames;
-			do_print_framerate(run_frames);
-			half_count = !(half_count);
-			// After frame, delayed open
+	if(p_emu) {
+		// drive machine
+		if(!(half_count)) { // Start of frame.
+			process_command_queue(req_draw);
+			check_power_off();
+			check_scanline_params(false, vert_line_bak, horiz_line_bak, gl_crt_filter_bak, opengl_filter_num_bak, req_draw);
+		}
 			
-			if(!(half_count)) { // End of a frame.
-				led_data = 0x00;
-				bool _ind_caps_kana = false;
-				bool _key_lock = false;
-				int _led_shift = 0;
-				if(!(is_up_null)) {
-					_ind_caps_kana = u_p->get_independent_caps_kana_led();
-					_key_lock = u_p->get_use_key_locked();
-					_led_shift = u_p->get_use_led_devices();
-					if(u_p->is_use_minimum_rendering()) {
-						req_draw |= p_emu->is_screen_changed();
-					} else {
-						req_draw = true;
-					}
-					if((_key_lock) && (_ind_caps_kana)) {
-						led_data |= ((p_emu->get_caps_locked()) ? 0x01 : 0x00);
-						led_data |= ((p_emu->get_kana_locked()) ? 0x02 : 0x00);
-						if(_led_shift > 0) {
-							led_data <<= _led_shift;
-						}
-					}
-				} else {
+		process_key_input();
+		run_frames = p_emu->run();
+		total_frames += run_frames;
+		do_print_framerate(run_frames);
+		half_count = !(half_count);
+		// After frame, delayed open
+		__LIKELY_IF(p_config != nullptr) {
+			full_speed = p_config->full_speed;
+		} else {
+			full_speed = false;
+		}
+			
+		if(!(half_count)) { // End of a frame.
+			set_led(led_data_old, req_draw);
+			sample_access_drv();
+			now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
+			if((prev_skip && !now_skip) || (next_time == 0)) {
+				//next_time = get_current_tick_usec();
+				next_time = current_time;
+			}
+//				prev_skip = now_skip;
+		} else { // Half of a frame.
+			prev_skip = now_skip;
+		}
+		if(!(full_speed)) {
+			interval = get_interval();
+		} else {
+			interval = 0;
+		}
+		if(!(now_skip) && !(full_speed)) {
+			next_time += interval;
+		} else {
+			//next_time = current_time;
+		}
+		if(!(half_count)) { // End of a frame.
+			if(!(is_up_null) && (p_config != nullptr)) {
+				if((u_p->is_support_tv_render()) && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 					req_draw = true;
 				}
-				led_data |= p_emu->get_led_status();
-
-				if((_led_shift > 0) || (_key_lock)) {
-					if(led_data != led_data_old) {
-						emit sig_send_data_led((quint32)led_data);
-						led_data_old = led_data;
-					}
-				}
-				sample_access_drv();
-				now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
-				if((prev_skip && !now_skip) || (next_time == 0)) {
-					next_time = get_current_tick_usec();
-				}
-//				prev_skip = now_skip;
-			} else { // Half of a frame.
-				prev_skip = now_skip;
 			}
-			if(!(full_speed)) {
-				interval = get_interval();
-			} else {
-				interval = 1000;
-			}
-			if(!now_skip) {
-				next_time += interval;
-			}
-
-			int count_limit = (int)(FRAMES_PER_SEC / 3);
-			if(!(is_up_null)) {
-				if((u_p->is_support_tv_render()) && (config.rendering_type == CONFIG_RENDER_TYPE_TV)) {
-					count_limit = 0;
-				}
-			}
-			#if 0
-
-			#else
-			current_time = get_current_tick_usec();
-			if(next_time >= current_time) {
-				if(!(half_count)) { // End Of Frame.
-					if(!req_draw) {
-						no_draw_count++;
-						if(no_draw_count > count_limit) {
-							req_draw = true;
-							no_draw_count = 0;
-						}
-					} else {
-						no_draw_count = count_limit + 1;
-					}
-					skip_frames = 0;
-				}
-				
-			} else {
-				if(!(half_count)) {
+			if(!req_draw) {
+				if(next_time < get_current_tick_usec()) { // Even draw
 					if(++skip_frames > MAX_SKIP_FRAMES) {
 						req_draw = true;
 						skip_frames = 0;
-						no_draw_count = count_limit + 1;
 					}
 				}
+			} else {
+				skip_frames = 0;
 			}
-			#endif
-			if(!(half_count)) { // End Of Frame.
-				double nd;
-				nd = p_emu->get_frame_rate();
-				if(nr_fps != nd) emit sig_set_draw_fps(nd);
-				nr_fps = nd;
-				//printf("DRAW %dmsec\n", get_current_tick_usec());
-				emit sig_draw_thread(req_draw); // Call offloading thread.
+			if((full_speed) && (req_draw)) {
+				#if 0
+				const int count_limit = (int)(FRAMES_PER_SEC / MAX_SKIP_FRAMES);
+				no_draw_count++;
+				if(no_draw_count >= count_limit) {
+					req_draw = true;
+					skip_frames = 0;
+					no_draw_count = 0;
+				} else {
+					req_draw = false;
+				}
+				#endif
+			} else {
+				no_draw_count = 0;
 			}
-		} else {
-			drawn_time = get_current_tick_usec();
-			msleep(1);
+			double nd;
+			nd = p_emu->get_frame_rate();
+			if(nr_fps != nd) emit sig_set_draw_fps(nd);
+			nr_fps = nd;
+			//printf("DRAW %dmsec\n", get_current_tick_usec());
+			emit sig_draw_thread(req_draw); // Call offloading thread.
 		}
-		current_time = get_current_tick_usec();
-		// sleep 1 frame priod if need
-		//current_time = SDL_GetTicks();
+	} else {
+		// Fallback for not setting EMU:: .
+		emit sig_timer_start(10);
+		return;
+	}
+	//current_time = get_current_tick_usec();
+	// sleep 1 frame priod if need
+	//current_time = SDL_GetTicks();
+	sleep_period = 0;
+	if(next_time > current_time) {
+		sleep_period = next_time - current_time;
+	} else {
+		next_time = current_time + interval;
 		sleep_period = 0;
-		if(full_speed) {
-			next_time = current_time;
-		}
-		if(next_time > current_time) {
-			sleep_period = next_time - current_time;
-		}
-		req_draw = false;
-		if(bRunThread.load() == false){
-			goto _exit;
-		}
-		if(sleep_period > 0) {
-			//sleep_period = 1;
-			usleep(sleep_period);
-			//SDL_Delay(sleep_period);
-		}
-	} while(1);
-_exit:
-	//emit quit_draw_thread();
-	#ifdef USE_NOTIFY_POWER_OFF
-	if((poweroff_notified) && !(state_power_off) && (p_emu != nullptr))  {
-		p_emu->notify_power_off();
-		state_power_off = true;
 	}
-	#endif
-
-	if(csp_logger.get() != NULL) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
-							  "EmuThread : EXIT");
+	if(csp_logger.get() != nullptr) {
+		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_EMU,
+							  "EMU: Wait: %d mSec CURRENT=%d NEXT=%d", sleep_period / 1000, current_time, next_time);
 	}
-	emit sig_draw_finished();
-	emit sig_sound_stop();
-	quit();
+	req_draw = false;
+	if(bRunThread.load()) {
+		emit sig_timer_start(sleep_period / 1000);
+	}
 }
 
 const _TCHAR *EmuThreadClass::get_device_name(void)

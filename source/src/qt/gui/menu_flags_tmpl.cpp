@@ -94,16 +94,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	screen_mode_num = 1;
 	custom_screen_zoom_factor = 0.0;
 
-	use_sound_device_type = 0;
-	use_sound_volume = 0;
-	without_sound = false;
-	use_sound_files_fdd = false;
-	use_sound_files_relay = false;
-
-	use_special_reset = false;
 	special_reset_num = 0;
-
-	use_state = false;
 
 	use_vm_auto_key_table = false;
 	support_tv_render = false;
@@ -177,9 +168,6 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	max_qd = 0;
 	base_qd_num = 1;
 
-	use_scanline = use_screen_rotate = false;
-	screen_mode_num = 1;
-
 	use_sound_device_type = 0;
 	use_sound_volume = 0;
 	without_sound = false;
@@ -187,12 +175,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 	use_sound_files_relay = false;
 
 	use_special_reset = false;
-
 	use_state = false;
-
-	use_tape = use_tape_baud = use_tape_button = use_tape_ptr = false;
-	use_vm_auto_key_table = false;
-	support_tv_render = false;
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 400
