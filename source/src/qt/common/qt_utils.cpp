@@ -422,7 +422,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
 
 	connect(hDrawEmu.get(), SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
-	connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
+	//connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
 	connect(hDrawEmu.get(), SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(this, SIGNAL(sig_quit_draw_thread()), hDrawEmu.get(), SLOT(do_exit_draw_thread()), Qt::QueuedConnection);
 	connect(hDrawEmu.get(), SIGNAL(finished()), hDrawEmu.get(), SLOT(deleteLater()));
