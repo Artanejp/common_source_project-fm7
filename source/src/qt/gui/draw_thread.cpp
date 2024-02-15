@@ -115,7 +115,7 @@ void DrawThreadClass::doDrawMain(bool flag)
 		draw_frames = p_osd->no_draw_screen();
 	}
 	//req_unmap_screen_texture();
-	//emit sig_draw_frames(draw_frames);
+	emit sig_draw_frames(draw_frames);
 }
 
 void DrawThreadClass::do_draw(bool flag)
