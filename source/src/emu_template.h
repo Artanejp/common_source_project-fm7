@@ -200,10 +200,12 @@ public:
 	virtual int get_host_cpus() { return 1; }
 #endif
 	virtual double get_frame_rate() { return 59.94; }
-	virtual int get_frame_interval() { return 1; }
+	//<! @note: Return by uSec 20240216 K.O.
+	virtual int64_t get_frame_interval() { return 1000; }
 	virtual bool is_frame_skippable() { return false; }
+	virtual bool is_half_event() { return false; }
 	virtual const bool is_use_state() { return false; }
-
+	virtual void request_update_screen() {}
 	virtual int run() { return 1; }
 
 	virtual void reset() {}

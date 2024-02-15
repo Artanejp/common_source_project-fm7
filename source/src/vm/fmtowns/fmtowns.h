@@ -495,6 +495,7 @@ public:
 
 	// draw screen
 	void draw_screen() override;
+	void request_update_screen() override;
 
 	// sound generation
 	void initialize_sound(int rate, int samples) override;

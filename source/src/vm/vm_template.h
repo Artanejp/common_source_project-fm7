@@ -56,6 +56,7 @@ public:
 	
 	// draw screen
 	virtual void draw_screen();
+	virtual void request_update_screen() {}
 
 	// multimedia
 	virtual void movie_sound_callback(uint8_t *buffer, long size);

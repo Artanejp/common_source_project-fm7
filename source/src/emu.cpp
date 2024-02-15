@@ -123,21 +123,23 @@ EMU::EMU() : EMU()
 #endif
 	now_waiting_in_debugger = false;
 	initialize_media();
-	vm->initialize_sound(sound_rate, sound_samples);
+	__LIKELY_IF(vm != NULL) {
+		vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
-	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-	}
+		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+			vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+		}
 #endif
 #ifdef USE_HARD_DISK
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv])) {
-			vm->open_hard_disk(drv, config.last_hard_disk_path[drv]);
-			my_tcscpy_s(hard_disk_status[drv].path, _MAX_PATH, config.last_hard_disk_path[drv]);
+		for(int drv = 0; drv < USE_HARD_DISK; drv++) {
+			if(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv])) {
+				vm->open_hard_disk(drv, config.last_hard_disk_path[drv]);
+				my_tcscpy_s(hard_disk_status[drv].path, _MAX_PATH, config.last_hard_disk_path[drv]);
+			}
 		}
-	}
 #endif
-	vm->reset();
+		vm->reset();
+	}
 #if defined(_USE_QT) // Temporally
 	osd->sync_some_devices();
 #endif
@@ -225,16 +227,23 @@ int EMU::get_host_cpus()
 
 double EMU::get_frame_rate()
 {
-	return vm->get_frame_rate();
+	__LIKELY_IF(vm != NULL) {
+		return vm->get_frame_rate();
+	}
+	return 30.0; // Dummy
 }
 
-int EMU::get_frame_interval()
+int64_t EMU::get_frame_interval()
 {
-	static int prev_interval = 0;
+	// Note: Return by uSec.
+	static int64_t prev_interval = 0;
 	static double prev_fps = -1;
-	double fps = vm->get_frame_rate();
+	double fps = 30.0; // Dummy
+	__LIKELY_IF(vm != NULL) {
+		fps = vm->get_frame_rate();
+	}
 	if(prev_fps != fps) {
-		prev_interval = (int)(1024. * 1000. / fps + 0.5);
+		prev_interval = llrint(1024.0 * 1.0e6 / fps);
 		prev_fps = fps;
 	}
 	return prev_interval;
@@ -242,7 +251,25 @@ int EMU::get_frame_interval()
 
 bool EMU::is_frame_skippable()
 {
-	return vm->is_frame_skippable();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_frame_skippable();
+	}
+	return false;
+}
+
+bool EMU::is_half_event()
+{
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_half_event();
+	}
+	return false;
+}
+
+void EMU::request_update_screen()
+{
+	__LIKELY_IF(vm != NULL) {
+		vm->request_update_screen();
+	}
 }
 
 const bool EMU::is_use_state()
@@ -258,6 +285,10 @@ const bool EMU::is_use_state()
  */
 int EMU::run()
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return 1; // Dummy.
+	}
+
 #if defined(USE_DEBUGGER) && defined(USE_STATE)
 	if(request_save_state >= 0 || request_load_state >= 0) {
 		if(request_save_state >= 0) {
@@ -311,12 +342,13 @@ int EMU::run()
 
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
-	osd->update_sound(&extra_frames);
 
+	osd->update_sound(&extra_frames);
 	// drive virtual machine
 	if(extra_frames == 0) {
 		osd->lock_vm();
-		if(!(vm->run())) {
+		vm->run();
+		if(!(is_half_event())) {
 			extra_frames = 1;
 		}
 		osd->unlock_vm();
@@ -430,7 +462,9 @@ void EMU::special_reset(int num)
 #ifdef USE_NOTIFY_POWER_OFF
 void EMU::notify_power_off()
 {
-	vm->notify_power_off();
+	__LIKELY_IF(vm != NULL) {
+		vm->notify_power_off();
+	}
 	osd->notify_power_off(); // To GUI 20230120 K.O
 }
 #endif
@@ -525,12 +559,18 @@ void EMU::key_char(char code)
 #ifdef USE_KEY_LOCKED
 bool EMU::get_caps_locked()
 {
-	return vm->get_caps_locked();
+	__LIKELY_IF(vm != NULL) {
+		return vm->get_caps_locked();
+	}
+	return false;
 }
 
 bool EMU::get_kana_locked()
 {
-	return vm->get_kana_locked();
+	__LIKELY_IF(vm != NULL) {
+		return vm->get_kana_locked();
+	}
+	return false;
 }
 #endif
 
@@ -549,7 +589,9 @@ void EMU::press_button(int num)
 		osd->get_key_buffer()[code] = KEY_KEEP_FRAMES;
 	} else {
 		// code=0: reset virtual machine
-		vm->reset();
+		__LIKELY_IF(vm != NULL) {
+			vm->reset();
+		}
 	}
 }
 #endif
@@ -1717,7 +1759,10 @@ int EMU::get_vm_window_height_aspect()
 #if defined(USE_MINIMUM_RENDERING)
 bool EMU::is_screen_changed()
 {
-	return vm->is_screen_changed();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_screen_changed();
+	}
+	return true; // DUMMY
 }
 #endif
 
@@ -1746,9 +1791,13 @@ void EMU::screen_skip_line(bool skip_line)
 #ifdef ONE_BOARD_MICRO_COMPUTER
 void EMU::get_invalidated_rect(int *left, int *top, int *right, int *bottom)
 {
+
 #ifdef MAX_DRAW_RANGES
 	for(int i = 0; i < MAX_DRAW_RANGES; i++) {
 #else
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	for(int i = 0; i < vm->max_draw_ranges(); i++) { // for TK-80BS
 #endif
 		int x1 = vm_ranges[i].x;
@@ -2226,7 +2275,11 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 	lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
 #else
 	if(debug_log) {
-		_ftprintf(debug_log, _T("(%f uS) %s"), vm->get_current_usec(), buffer);
+		__UNLIKELY_IF(vm == NULL) {
+			_ftprintf(debug_log, _T("(unknown uS) %s"), buffer);
+		} else {
+			_ftprintf(debug_log, _T("(%f uS) %s"), vm->get_current_usec(), buffer);
+		}
 		static int size = 0;
 		if((size += _tcslen(buffer)) > 0x8000000) { // 128MB
 			fclose(debug_log);
@@ -2388,6 +2441,9 @@ extern void DLL_PREFIX_I Convert_CP932_to_UTF8(char *dst, char *src, int n_limit
 
 void EMU::update_media()
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 #ifdef USE_FLOPPY_DISK
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
@@ -2520,6 +2576,9 @@ void EMU::update_media()
 
 void EMU::restore_media()
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 #ifdef USE_CART
 	for(int drv = 0; drv < USE_CART; drv++) {
 		if(cart_status[drv].path[0] != _T('\0')) {
@@ -2665,7 +2724,9 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 void EMU::close_cart(int drv)
 {
 	if(drv < USE_CART) {
-		vm->close_cart(drv);
+		__LIKELY_IF(vm != NULL) {
+			vm->close_cart(drv);
+		}
 		clear_media_status(&cart_status[drv]);
 #if USE_CART > 1
 		out_message(_T("Cart%d: Ejected"), drv + BASE_CART_NUM);
@@ -2686,6 +2747,9 @@ void EMU::close_cart(int drv)
 
 bool EMU::is_cart_inserted(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return false;
+	}
 	if(drv < USE_CART) {
 		return vm->is_cart_inserted(drv);
 	} else {
@@ -2765,7 +2829,9 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 			}
 			delete fio;
 		}
-
+		__UNLIKELY_IF(vm == NULL) {
+			return;
+		}
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
 			// wait 0.5sec
@@ -2779,7 +2845,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 						drv,
 						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
 						0);
-	} else if(floppy_disk_status[drv].wait_count == 0) {
+		} else if(floppy_disk_status[drv].wait_count == 0) {
 			vm->open_floppy_disk(drv, file_path, bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, file_path);
@@ -2805,9 +2871,13 @@ void EMU::close_floppy_disk(int drv)
 		d88_file[drv].bank_num = 0;
 		d88_file[drv].cur_bank = -1;
 
-		vm->close_floppy_disk(drv);
+		__LIKELY_IF(vm != NULL) {
+			vm->close_floppy_disk(drv);
+		}
 		clear_media_status(&floppy_disk_status[drv]);
-		floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+		__LIKELY_IF(vm != NULL) {
+			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+		}
 #if USE_FLOPPY_DISK > 1
 		out_message(_T("FD%d: Ejected"), drv + BASE_FLOPPY_DISK_NUM);
 #else
@@ -2823,7 +2893,10 @@ void EMU::close_floppy_disk(int drv)
 bool EMU::is_floppy_disk_connected(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
-		return vm->is_floppy_disk_connected(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_floppy_disk_connected(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -2832,7 +2905,10 @@ bool EMU::is_floppy_disk_connected(int drv)
 bool EMU::is_floppy_disk_inserted(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
-		return vm->is_floppy_disk_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_floppy_disk_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -2841,7 +2917,9 @@ bool EMU::is_floppy_disk_inserted(int drv)
 void EMU::is_floppy_disk_protected(int drv, bool value)
 {
 	if(drv < USE_FLOPPY_DISK) {
-		vm->is_floppy_disk_protected(drv, value);
+		__LIKELY_IF(vm != NULL) {
+			vm->is_floppy_disk_protected(drv, value);
+		}
 	}
 	EMU_MESSAGE_TYPE::type_t mess =
 		(value) ?
@@ -2856,7 +2934,10 @@ void EMU::is_floppy_disk_protected(int drv, bool value)
 bool EMU::is_floppy_disk_protected(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
-		return vm->is_floppy_disk_protected(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_floppy_disk_protected(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -2864,12 +2945,18 @@ bool EMU::is_floppy_disk_protected(int drv)
 
 uint32_t EMU::is_floppy_disk_accessed()
 {
-	return vm->is_floppy_disk_accessed();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_floppy_disk_accessed();
+	}
+	return 0x00000000;
 }
 
 uint32_t EMU::floppy_disk_indicator_color()
 {
-	return vm->floppy_disk_indicator_color();
+	__LIKELY_IF(vm != NULL) {
+		return vm->floppy_disk_indicator_color();
+	}
+	return 0;
 }
 
 #endif
@@ -2877,6 +2964,9 @@ uint32_t EMU::floppy_disk_indicator_color()
 #ifdef USE_QUICK_DISK
 void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_QUICK_DISK) {
 		if(vm->is_quick_disk_inserted(drv)) {
 			vm->close_quick_disk(drv);
@@ -2909,6 +2999,9 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 
 void EMU::close_quick_disk(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_QUICK_DISK) {
 		vm->close_quick_disk(drv);
 		clear_media_status(&quick_disk_status[drv]);
@@ -2928,7 +3021,10 @@ void EMU::close_quick_disk(int drv)
 bool EMU::is_quick_disk_inserted(int drv)
 {
 	if(drv < USE_QUICK_DISK) {
-		return vm->is_quick_disk_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_quick_disk_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -2937,7 +3033,10 @@ bool EMU::is_quick_disk_inserted(int drv)
 bool EMU::is_quick_disk_connected(int drv)
 {
 	if(drv < USE_QUICK_DISK) {
-		return vm->is_quick_disk_connected(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_quick_disk_connected(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -2945,7 +3044,10 @@ bool EMU::is_quick_disk_connected(int drv)
 
 uint32_t EMU::is_quick_disk_accessed()
 {
-	return vm->is_quick_disk_accessed();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_quick_disk_accessed();
+	}
+	return false;
 }
 #endif
 
@@ -3038,6 +3140,9 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 
 void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_HARD_DISK) {
 		if(vm->is_hard_disk_inserted(drv)) {
 			vm->close_hard_disk(drv);
@@ -3071,6 +3176,9 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 
 void EMU::close_hard_disk(int drv)
 {
+	__LIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_HARD_DISK) {
 		vm->close_hard_disk(drv);
 		clear_media_status(&hard_disk_status[drv]);
@@ -3091,7 +3199,10 @@ void EMU::close_hard_disk(int drv)
 bool EMU::is_hard_disk_inserted(int drv)
 {
 	if(drv < USE_HARD_DISK) {
-		return vm->is_hard_disk_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_hard_disk_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3099,7 +3210,10 @@ bool EMU::is_hard_disk_inserted(int drv)
 
 uint32_t EMU::is_hard_disk_accessed()
 {
-	return vm->is_hard_disk_accessed();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_hard_disk_accessed();
+	}
+	return 0x00000000;
 }
 
 #endif
@@ -3107,6 +3221,9 @@ uint32_t EMU::is_hard_disk_accessed()
 #ifdef USE_TAPE
 void EMU::play_tape(int drv, const _TCHAR* file_path)
 {
+	__LIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		if(vm->is_tape_inserted(drv)) {
 			vm->close_tape(drv);
@@ -3140,6 +3257,9 @@ void EMU::play_tape(int drv, const _TCHAR* file_path)
 
 void EMU::rec_tape(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		if(vm->is_tape_inserted(drv)) {
 			vm->close_tape(drv);
@@ -3173,6 +3293,9 @@ void EMU::rec_tape(int drv, const _TCHAR* file_path)
 
 void EMU::close_tape(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->close_tape(drv);
 		clear_media_status(&tape_status[drv]);
@@ -3192,7 +3315,10 @@ void EMU::close_tape(int drv)
 bool EMU::is_tape_inserted(int drv)
 {
 	if(drv < USE_TAPE) {
-		return vm->is_tape_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_tape_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3201,7 +3327,10 @@ bool EMU::is_tape_inserted(int drv)
 bool EMU::is_tape_playing(int drv)
 {
 	if(drv < USE_TAPE) {
-		return vm->is_tape_playing(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_tape_playing(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3210,7 +3339,10 @@ bool EMU::is_tape_playing(int drv)
 bool EMU::is_tape_recording(int drv)
 {
 	if(drv < USE_TAPE) {
-		return vm->is_tape_recording(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_tape_recording(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3219,7 +3351,10 @@ bool EMU::is_tape_recording(int drv)
 int EMU::get_tape_position(int drv)
 {
 	if(drv < USE_TAPE) {
-		return vm->get_tape_position(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->get_tape_position(drv);
+		}
+		return 0;
 	} else {
 		return 0;
 	}
@@ -3228,7 +3363,10 @@ int EMU::get_tape_position(int drv)
 const _TCHAR* EMU::get_tape_message(int drv)
 {
 	if(drv < USE_TAPE) {
-		return vm->get_tape_message(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->get_tape_message(drv);
+		}
+		return NULL;
 	} else {
 		return NULL;
 	}
@@ -3236,6 +3374,9 @@ const _TCHAR* EMU::get_tape_message(int drv)
 
 void EMU::push_play(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->push_play(drv);
 		osdcall_int(EMU_MEDIA_TYPE::TAPE,
@@ -3247,6 +3388,9 @@ void EMU::push_play(int drv)
 
 void EMU::push_stop(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->push_stop(drv);
 		osdcall_int(EMU_MEDIA_TYPE::TAPE,
@@ -3258,6 +3402,9 @@ void EMU::push_stop(int drv)
 
 void EMU::push_fast_forward(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->push_fast_forward(drv);
 		osdcall_int(EMU_MEDIA_TYPE::TAPE,
@@ -3269,6 +3416,9 @@ void EMU::push_fast_forward(int drv)
 
 void EMU::push_fast_rewind(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->push_fast_rewind(drv);
 		osdcall_int(EMU_MEDIA_TYPE::TAPE,
@@ -3280,6 +3430,9 @@ void EMU::push_fast_rewind(int drv)
 
 void EMU::push_apss_forward(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->push_apss_forward(drv);
 		osdcall_int(EMU_MEDIA_TYPE::TAPE,
@@ -3291,6 +3444,9 @@ void EMU::push_apss_forward(int drv)
 
 void EMU::push_apss_rewind(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_TAPE) {
 		vm->push_apss_rewind(drv);
 		osdcall_int(EMU_MEDIA_TYPE::TAPE,
@@ -3304,6 +3460,9 @@ void EMU::push_apss_rewind(int drv)
 #ifdef USE_COMPACT_DISC
 void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_COMPACT_DISC) {
 		//printf(_T("open_compact_disc(): CALLED: %s\n"), file_path);
 		if(vm->is_compact_disc_inserted(drv)) {
@@ -3339,6 +3498,9 @@ void EMU::open_compact_disc(int drv, const _TCHAR* file_path)
 
 void EMU::close_compact_disc(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_COMPACT_DISC) {
 		vm->close_compact_disc(drv);
 		clear_media_status(&compact_disc_status[drv]);
@@ -3358,7 +3520,10 @@ void EMU::close_compact_disc(int drv)
 bool EMU::is_compact_disc_inserted(int drv)
 {
 	if(drv < USE_COMPACT_DISC) {
-		return vm->is_compact_disc_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_compact_disc_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3366,13 +3531,19 @@ bool EMU::is_compact_disc_inserted(int drv)
 
 uint32_t EMU::is_compact_disc_accessed()
 {
-	return vm->is_compact_disc_accessed();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_compact_disc_accessed();
+	}
+	return 0x00000000;
 }
 #endif
 
 #ifdef USE_LASER_DISC
 void EMU::open_laser_disc(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_LASER_DISC) {
 		if(vm->is_laser_disc_inserted(drv)) {
 			vm->close_laser_disc(drv);
@@ -3405,6 +3576,9 @@ void EMU::open_laser_disc(int drv, const _TCHAR* file_path)
 
 void EMU::close_laser_disc(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_LASER_DISC) {
 		vm->close_laser_disc(drv);
 		clear_media_status(&laser_disc_status[drv]);
@@ -3424,7 +3598,10 @@ void EMU::close_laser_disc(int drv)
 bool EMU::is_laser_disc_inserted(int drv)
 {
 	if(drv < USE_LASER_DISC) {
-		return vm->is_laser_disc_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_laser_disc_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3432,7 +3609,10 @@ bool EMU::is_laser_disc_inserted(int drv)
 
 uint32_t EMU::is_laser_disc_accessed()
 {
-	return vm->is_laser_disc_accessed();
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_laser_disc_accessed();
+	}
+	return 0x00000000;
 }
 
 #endif
@@ -3440,6 +3620,9 @@ uint32_t EMU::is_laser_disc_accessed()
 #ifdef USE_BINARY_FILE
 void EMU::load_binary(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_BINARY_FILE) {
 		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, create_local_path(_T("hex2bin.$$$")))) {
 			vm->load_binary(drv, create_local_path(_T("hex2bin.$$$")));
@@ -3461,6 +3644,9 @@ void EMU::load_binary(int drv, const _TCHAR* file_path)
 
 void EMU::save_binary(int drv, const _TCHAR* file_path)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_BINARY_FILE) {
  		vm->save_binary(drv, file_path);
 #if USE_BINARY_FILE > 1
@@ -3479,6 +3665,9 @@ void EMU::save_binary(int drv, const _TCHAR* file_path)
 #ifdef USE_BUBBLE
 void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_BUBBLE) {
 		if(vm->is_bubble_casette_inserted(drv)) {
 			vm->close_bubble_casette(drv);
@@ -3514,6 +3703,9 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 
 void EMU::close_bubble_casette(int drv)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_BUBBLE) {
 		vm->close_bubble_casette(drv);
 		clear_media_status(&bubble_casette_status[drv]);
@@ -3533,7 +3725,10 @@ void EMU::close_bubble_casette(int drv)
 bool EMU::is_bubble_casette_inserted(int drv)
 {
 	if(drv < USE_BUBBLE) {
-		return vm->is_bubble_casette_inserted(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_bubble_casette_inserted(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3542,7 +3737,10 @@ bool EMU::is_bubble_casette_inserted(int drv)
 bool EMU::is_bubble_casette_protected(int drv)
 {
 	if(drv < USE_BUBBLE) {
-		return vm->is_bubble_casette_protected(drv);
+		__LIKELY_IF(vm != NULL) {
+			return vm->is_bubble_casette_protected(drv);
+		}
+		return false;
 	} else {
 		return false;
 	}
@@ -3550,6 +3748,9 @@ bool EMU::is_bubble_casette_protected(int drv)
 
 void EMU::is_bubble_casette_protected(int drv, bool flag)
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return;
+	}
 	if(drv < USE_BUBBLE) {
 		vm->is_bubble_casette_protected(drv, flag);
 		EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_OTHERS;
@@ -3568,6 +3769,9 @@ void EMU::is_bubble_casette_protected(int drv, bool flag)
 #ifdef USE_LED_DEVICE
 uint32_t EMU::get_led_status()
 {
+	__UNLIKELY_IF(vm == NULL) {
+		return 0x00000000;
+	}
 	return vm->get_led_status();
 }
 #endif
@@ -3576,13 +3780,17 @@ uint32_t EMU::get_led_status()
 #ifdef USE_SOUND_VOLUME
 void EMU::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
-	vm->set_sound_device_volume(ch, decibel_l, decibel_r);
+	__LIKELY_IF(vm != NULL) {
+		vm->set_sound_device_volume(ch, decibel_l, decibel_r);
+	}
 }
 #endif
 
 void EMU::update_config()
 {
-	vm->update_config();
+	__LIKELY_IF(vm != NULL) {
+		vm->update_config();
+	}
 }
 
 
@@ -3637,7 +3845,9 @@ void EMU::save_state(const _TCHAR* file_path)
 		fio->Fwrite(&bubble_casette_status, sizeof(bubble_casette_status), 1);
 #endif
 		// save vm state
-		vm->process_state(fio, false);
+		__LIKELY_IF(vm != NULL) {
+			vm->process_state(fio, false);
+		}
 		// end of state file
 		fio->FputInt32_LE(-1);
 		fio->Fclose();
@@ -3764,23 +3974,29 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 						sound_rate = presented_rate;
 						sound_samples = presented_samples;
 					}
-					vm->initialize_sound(sound_rate, sound_samples);
+					__LIKELY_IF(vm != NULL) {
+						vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
-					for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-						vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-					}
+						for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+							vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+						}
 #endif
-					restore_media();
-					vm->reset();
+						restore_media();
+						vm->reset();
+					}
 					//osd->unlock_vm();
 				} else {
 					// restore inserted medias
 					restore_media();
 				}
 				// load vm state
-				if(vm->process_state(fio, true)) {
-					// check end of state
-					result = (fio->FgetInt32_LE() == -1);
+				__LIKELY_IF(vm != NULL) {
+					if(vm->process_state(fio, true)) {
+						// check end of state
+						result = (fio->FgetInt32_LE() == -1);
+					}
+				} else {
+					result = false;
 				}
 			}
 		}

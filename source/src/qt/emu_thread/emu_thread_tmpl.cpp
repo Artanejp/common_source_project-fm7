@@ -156,14 +156,13 @@ void EmuThreadClassBase::initialize_variables()
 	sStateFile.clear();
 	lStateFile.clear();
 	prevRecordReq = false;
-	nr_fps = -1.0;
+	nr_fps = get_emu_frame_rate();
 	
 	record_fps = -1;
 
 	state_power_off = false;
-	
-
 	next_time = 0;
+
 	tick_timer.restart();
 	update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	mouse_flag = false;
@@ -216,7 +215,7 @@ bool EmuThreadClassBase::initialize_messages()
 	return false;
 }
 
-int EmuThreadClassBase::process_command_queue(bool& req_draw)
+int EmuThreadClassBase::process_command_queue()
 {
 	std::shared_ptr<USING_FLAGS> u_p = using_flags;
 	if((u_p.get() == nullptr) || (p_config == nullptr) || (p_emu == nullptr)) {
@@ -228,31 +227,14 @@ int EmuThreadClassBase::process_command_queue(bool& req_draw)
 	if(bLoadStateReq.load() != false) {
 		loadState();
 		bLoadStateReq = false;
-		req_draw = true;
-		fps_accum = 0;
-		next_time = 0;
-		tick_timer.restart();
-		update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	}
 	if(bResetReq.load() != false) {
-		half_count = false;
 		resetEmu();
 		bResetReq = false;
-		req_draw = true;
-		fps_accum = 0;
-		next_time = 0;
-		tick_timer.restart();
-		update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	}
 	if(bSpecialResetReq.load() != false) {
-		half_count = false;
 		specialResetEmu(specialResetNum);
 		bSpecialResetReq = false;
-		specialResetNum = 0;
-		fps_accum = 0;
-		next_time = 0;
-		tick_timer.restart();
-		update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	}
 	if(bSaveStateReq.load() != false) {
 		saveState();
@@ -261,17 +243,14 @@ int EmuThreadClassBase::process_command_queue(bool& req_draw)
 	if(bStartRecordSoundReq.load() != false) {
 		p_emu->start_record_sound();
 		bStartRecordSoundReq = false;
-		req_draw = true;
 	}
 	if(bStopRecordSoundReq.load() != false) {
 		p_emu->stop_record_sound();
 		bStopRecordSoundReq = false;
-		req_draw = true;
 	}
 	if(bUpdateConfigReq != false) {
 		p_emu->update_config();
 		bUpdateConfigReq = false;
-		req_draw = true;
 	}
 	if(bStartRecordMovieReq.load() != false) {
 		int rfps = record_fps.load();
@@ -312,7 +291,7 @@ bool EmuThreadClassBase::check_power_off()
 	return false;
 }
 
-bool EmuThreadClassBase::set_led(uint32_t& led_data_old, bool& req_draw)
+bool EmuThreadClassBase::set_led()
 {
 	uint32_t led_data = 0x00000000;
 	std::shared_ptr<USING_FLAGS> u_p = using_flags;
@@ -383,12 +362,7 @@ int EmuThreadClassBase::process_key_input()
 	return count;
 }
 
-bool EmuThreadClassBase::check_scanline_params(bool force,
-											   bool& vert_line_bak,
-											   bool& horiz_line_bak,
-											   bool& gl_crt_filter_bak,
-											   int& opengl_filter_num_bak,
-											   bool& req_draw)
+bool EmuThreadClassBase::check_scanline_params(bool force)
 {
 	std::shared_ptr<USING_FLAGS> u_p = using_flags;
 	if(p_config != nullptr) {
@@ -708,20 +682,21 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 		if((poweroff_notified) || (p_emu == nullptr)) {
 			my_stprintf_s(buf, 255, _T("*Power OFF*"));
 		} else if(now_skip) {
-			int ratio = (int)(100.0 * (((double)total_frames / get_emu_frame_rate())  * 2.0) + 0.5);
+			int ratio = 100;
+			__LIKELY_IF(nr_fps > 0.0) {
+				ratio = (int)(100.0 * (((double)draw_frames / nr_fps)  * 2.0) + 0.5);
+			}
 			my_stprintf_s(buf, 255, _T("%s - Skip Frames (%d %%)"), get_device_name(), ratio);
 		} else {
 			if(get_message_count() > 0) {
 				snprintf(buf, 255, _T("%s - %s"), get_device_name(), get_emu_message());
 				dec_message_count();
 			} else {
-				int ratio;
-				double real_frames = (double)total_frames;
+				int ratio = 100;
+				double real_frames = (double)draw_frames;
 				real_frames = real_frames /  ((double)(__current_time - update_fps_time + (1000 * 1000)) / 1.0e6);
-				__LIKELY_IF(p_emu != NULL) {
-					ratio = lrint(100.0 * (real_frames / p_emu->get_frame_rate()));
-				} else {
-					ratio = 1.0;
+				__LIKELY_IF(nr_fps > 0.0) {
+					ratio = lrint(100.0 * (real_frames / nr_fps));
 				}
 				snprintf(buf, 255, _T("%s - %.3ffps (%d%%)"), get_device_name(), real_frames, ratio);
 			}
@@ -738,9 +713,9 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 		//update_fps_time += (1000 * 1000);
 		total_frames = draw_frames = 0;
 	}
-//	if(update_fps_time <= __current_time) {
-//		update_fps_time = __current_time + (1000 * 1000);
-//	}
+	if(update_fps_time <= 0) {
+		update_fps_time = __current_time + (1000 * 1000);
+	}
 }
 
 int EmuThreadClassBase::get_d88_file_cur_bank(int drive)

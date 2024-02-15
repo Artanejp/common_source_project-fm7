@@ -89,8 +89,18 @@ protected:
 	int mouse_x;
 	int mouse_y;
 	int queue_fixed_cpu;
+	
 	bool prevRecordReq;
+	
 	double nr_fps;
+	uint32_t led_data_old;
+	int turn_count;
+	bool req_draw;
+	bool vert_line_bak;
+	bool horiz_line_bak;
+	bool gl_crt_filter_bak;
+	int opengl_filter_num_bak;
+	int no_draw_count;
 
     FIFO *key_fifo;
 	QOpenGLContext *glContext;
@@ -145,6 +155,7 @@ protected:
 	bool full_speed;
 	int64_t fps_accum;
 	
+	qint64 current_time;
 	qint64 next_time;
 	qint64 update_fps_time;
 	bool prev_skip;
@@ -190,55 +201,13 @@ protected:
 	void specialResetEmu(int num);
 	void loadState();
 	void saveState();
+	virtual void reset_emulation_values();
 
-	void enqueue_key_up(key_queue_t s) {
-		QMutexLocker n(&keyMutex);
-		key_fifo->write(KEY_QUEUE_UP);
-		key_fifo->write(s.code);
-		key_fifo->write(s.mod);
-		key_fifo->write(s.repeat? 1 : 0);
-	};
-	void enqueue_key_down(key_queue_t s) {
-		QMutexLocker n(&keyMutex);
-		key_fifo->write(KEY_QUEUE_DOWN);
-		key_fifo->write(s.code);
-		key_fifo->write(s.mod);
-		key_fifo->write(s.repeat? 1 : 0);
-	};
-	void dequeue_key(key_queue_t *s) {
-		QMutexLocker n(&keyMutex);
-		uint32_t _type = (uint32_t)key_fifo->read();
-		if(_type == 	KEY_QUEUE_DOWN) {
-			s->type = _type;
-			s->code = (uint32_t)key_fifo->read();
-			s->mod  = (uint32_t)key_fifo->read();
-			if(key_fifo->read() != 0) {
-				s->repeat = true;
-			} else {
-				s->repeat = false;
-			}
-		} else if(_type == KEY_QUEUE_UP) {
-			s->type = _type;
-			s->code = (uint32_t)key_fifo->read();
-			s->mod  = (uint32_t)key_fifo->read();
-			volatile uint32_t dummy = key_fifo->read();
-			s->repeat = false;
-		} else {
-			s->type = 0;
-			s->code = 0;
-			s->mod = 0;
-			s->repeat = false;
-		}
-	};
-	bool is_empty_key() {
-		QMutexLocker n(&keyMutex);
-		bool f = key_fifo->empty();
-		return f;
-	};
-	void clear_key_queue() {
-		QMutexLocker n(&keyMutex);
-		key_fifo->clear();
-	};
+	void __FASTCALL enqueue_key_up(key_queue_t s);
+	void __FASTCALL enqueue_key_down(key_queue_t s);
+	void __FASTCALL dequeue_key(key_queue_t *s);
+	bool is_empty_key();
+	void clear_key_queue();
 	// Thread HOOK.
 	void sub_close_bubble_casette_internal(int drv);
 	void sub_close_cartridge_internal(int drv);
@@ -255,16 +224,11 @@ protected:
 
 	virtual void initialize_variables();
 	virtual bool initialize_messages();
-	virtual int process_command_queue(bool& req_draw);
+	virtual int process_command_queue();
 	virtual bool check_power_off();
-	bool set_led(uint32_t& led_data_old, bool& req_draw);
+	bool set_led();
 	virtual int process_key_input();
-	bool check_scanline_params(bool force,
-							   bool& vert_line_bak,
-							   bool& horiz_line_bak,
-							   bool& gl_crt_filter_bak,
-							   int& opengl_filter_num_bak,
-							   bool& req_draw);
+	bool check_scanline_params(bool force);
 
 	inline int64_t get_current_tick_usec() const
 	{

@@ -48,19 +48,9 @@ class EmuThreadClass : public EmuThreadClassBase {
 private:
 	int64_t interval;
 	int64_t sleep_period;
-	int64_t drawn_time;
 	int run_frames;
-	qint64 current_time;
 	bool first;
 	// LED
-	uint32_t led_data_old;
-	int turn_count;
-	bool req_draw;
-	bool vert_line_bak;
-	bool horiz_line_bak;
-	bool gl_crt_filter_bak;
-	int opengl_filter_num_bak;
-	int no_draw_count;
 protected:
 	const _TCHAR *get_device_name(void) override;
 

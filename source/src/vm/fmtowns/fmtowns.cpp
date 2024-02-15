@@ -920,6 +920,12 @@ void VM::draw_screen()
 	}
 }
 
+void VM::request_update_screen()
+{
+	__LIKELY_IF(crtc != nullptr) {
+		crtc->request_update_screen();
+	}
+}
 
 // ----------------------------------------------------------------------------
 // soud manager
