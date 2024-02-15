@@ -11,6 +11,8 @@
 #include <QWidget>
 
 #include "config.h"
+#include "fileio.h"
+
 #include "emu_template.h"
 #include "emu_thread_tmpl.h"
 #include "mainwidget_base.h"
@@ -24,31 +26,33 @@
 
 qint64 EmuThreadClassBase::get_interval(void)
 {
-	#if 0
-	if(p_emu == nullptr) return 0;
-	double _rate = p_emu->get_frame_rate();
-	double nsec = 1.0e6; // 1mS = 1.0e6 nSec.
-	__LIKELY_IF(_rate > 0.0) {
-		nsec = 1.0e9 / _rate;
+	qint64 interval = 0;
+	__LIKELY_IF(p_emu != nullptr) {
+		if(!(half_count)) {
+			fps_accum += p_emu->get_frame_interval();
+		}
+		interval = (fps_accum >> 10) / 2;
+		fps_accum -= (interval << 10);
 	}
-	qint64 f_usec = (qint64)llrint(nsec / 1000.0);
-	if(half_count) {
-		return f_usec / 2;
-	} else {
-		return (f_usec - (f_usec / 2));
-	}
-	#else
-	if(p_emu == nullptr) return 0;
-	double _rate = p_emu->get_frame_rate();
-	double nsec = 1.0e6; // 1mS = 1.0e6 nSec.
-	__LIKELY_IF(_rate > 0.0) {
-		nsec = 1.0e9 / _rate;
-	}
-	fps_accum += (qint64)(llrint(nsec / 2.0)); // Half emulating.
-	qint64 interval = fps_accum / 1000; // By uSec
-	fps_accum -= (interval * 1000);
 	return interval;
-	#endif
+}
+
+void EmuThreadClassBase::reset_emulation_values()
+{
+	nr_fps = get_emu_frame_rate();
+	emit sig_set_draw_fps(nr_fps);
+	req_draw = true;
+	next_time = 0;
+	tick_timer.restart();
+	update_fps_time = get_current_tick_usec() + (1000 * 1000);
+	current_time = get_current_tick_usec();
+	
+	if(p_emu != nullptr) {
+		half_count = p_emu->is_half_event();
+	} else {
+		half_count = false;
+	}
+	
 }
 
 void EmuThreadClassBase::resetEmu()
@@ -56,6 +60,7 @@ void EmuThreadClassBase::resetEmu()
 	clear_key_queue();
 	if(p_emu == nullptr) return;
 	p_emu->reset();
+	reset_emulation_values();
 }
 
 void EmuThreadClassBase::specialResetEmu(int num)
@@ -66,6 +71,7 @@ void EmuThreadClassBase::specialResetEmu(int num)
 
 	if(p->is_use_special_reset()) {
 		p_emu->special_reset(num);
+		reset_emulation_values();
 	}
 }
 
@@ -78,8 +84,11 @@ void EmuThreadClassBase::loadState()
 	if(!(p->is_use_state())) return;
 
 	if(!lStateFile.isEmpty()) {
-		p_emu->load_state(lStateFile.toLocal8Bit().constData());
-		lStateFile.clear();
+		if(FILEIO::IsFileExisting(lStateFile.toLocal8Bit().constData())) {
+			p_emu->load_state(lStateFile.toLocal8Bit().constData());
+			lStateFile.clear();
+			reset_emulation_values();
+		}
 	}
 }
 

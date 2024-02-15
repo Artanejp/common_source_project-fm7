@@ -27,6 +27,70 @@
 #include "menu_flags.h"
 
 
+void EmuThreadClassBase::enqueue_key_up(key_queue_t s)
+{
+	__UNLIKELY_IF(key_fifo == nullptr) {
+		return;
+	}
+	QMutexLocker n(&keyMutex);
+	key_fifo->write(KEY_QUEUE_UP);
+	key_fifo->write(s.code);
+	key_fifo->write(s.mod);
+	key_fifo->write(s.repeat? 1 : 0);
+}
+void EmuThreadClassBase::enqueue_key_down(key_queue_t s)
+{
+	__UNLIKELY_IF(key_fifo == nullptr) {
+		return;
+	}
+	QMutexLocker n(&keyMutex);
+	key_fifo->write(KEY_QUEUE_DOWN);
+	key_fifo->write(s.code);
+	key_fifo->write(s.mod);
+	key_fifo->write(s.repeat? 1 : 0);
+}
+void EmuThreadClassBase::dequeue_key(key_queue_t *s)
+{
+	__UNLIKELY_IF((s == nullptr) || (key_fifo == nullptr)) {
+		return;
+	}
+	QMutexLocker n(&keyMutex);
+	uint32_t _type = (uint32_t)key_fifo->read();
+	if(_type == 	KEY_QUEUE_DOWN) {
+		s->type = _type;
+		s->code = (uint32_t)key_fifo->read();
+		s->mod  = (uint32_t)key_fifo->read();
+		if(key_fifo->read() != 0) {
+			s->repeat = true;
+		} else {
+			s->repeat = false;
+		}
+	} else if(_type == KEY_QUEUE_UP) {
+		s->type = _type;
+		s->code = (uint32_t)key_fifo->read();
+		s->mod  = (uint32_t)key_fifo->read();
+		volatile uint32_t dummy = key_fifo->read();
+		s->repeat = false;
+	} else {
+		s->type = 0;
+		s->code = 0;
+		s->mod = 0;
+		s->repeat = false;
+	}
+}
+bool EmuThreadClassBase::is_empty_key()
+{
+	QMutexLocker n(&keyMutex);
+	bool f = key_fifo->empty();
+	return f;
+}
+void EmuThreadClassBase::clear_key_queue()
+{
+	QMutexLocker n(&keyMutex);
+	key_fifo->clear();
+}
+
+
 void EmuThreadClassBase::do_move_mouse(double x, double y, double globalx, double globaly)
 {
 	if(p_osd == nullptr) return;
