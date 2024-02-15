@@ -64,7 +64,7 @@ void TOWNS_CRTC::reset()
 {
 	// initialize
 	display_enabled = true;
-	display_enabled = display_enabled_pre;
+	display_enabled_pre = display_enabled;
 	vsync = hsync = false;
 	fo1_offset_value = 0;
 	// 20230717 K.O
@@ -182,17 +182,7 @@ void TOWNS_CRTC::reset()
 		cancel_event_by_id(event_hdisp[i]);
 	}
 	// Register vstart
-	pixels_per_line = 640;
-	lines_per_frame = 800;
-	max_lines = TOWNS_CRTC_MAX_LINES + 100;
-
 	write_signals(&outputs_int_vsync, 0x0);
-	//osd->set_vm_screen_size((hst <= SCREEN_WIDTH) ? hst : SCREEN_WIDTH, (vst <= SCREEN_HEIGHT) ? vst : SCREEN_HEIGHT, -1, -1,  WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-	//emu->set_vm_screen_lines(vst);
-	// For DEBUG Only
-	// Mode 19
-	frame_us = NAN;
-	
 	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
 	set_crtc_parameters_from_regs();
 	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
@@ -476,8 +466,6 @@ void TOWNS_CRTC::calc_pixels_lines()
 	}
 	// ToDo: High resolution MODE.
 
-//	max_lines = min(512, max_lines);  // ToDo: High Resolution.
-//	pixels_per_line = min(640, pixels_per_line);
 	__UNLIKELY_IF(pixels_per_line >= TOWNS_CRTC_MAX_PIXELS) pixels_per_line = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(max_lines >= TOWNS_CRTC_MAX_LINES) max_lines = TOWNS_CRTC_MAX_LINES;
 }
@@ -626,7 +614,7 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 		calc_zoom_regs((uint16_t)data);
 		break;
 	case TOWNS_CRTC_REG_DISPMODE: // CR0
-		recalc_cr0(data, false);
+		recalc_cr0(data, true);
 		break;
 	case TOWNS_CRTC_REG_CLK: // CR1
 		set_crtc_clock((uint16_t)data, false);
@@ -1571,14 +1559,12 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 
 void TOWNS_CRTC::draw_screen()
 {
-	//int trans = (render_linebuf  - 1 )& display_linebuf_mask;
 	int trans = display_linebuf & display_linebuf_mask;
+	//int trans = display_linebuf & display_linebuf_mask;
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF(d_vram == nullptr) {
 		return;
 	}
-
-	
 	int lines = vst[trans];
 	int width = hst[trans];
 	// Will remove.
@@ -1743,7 +1729,7 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 	}
 //	out_debug_log("LINE %d CTRL=%02X \n", line, ctrl);
 	bool to_disp[2] = { false, false};
-	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
+	//make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
 	
 	int mode_layer0 = real_display_mode[0];
 	int mode_layer1 = real_display_mode[1];
@@ -2023,8 +2009,6 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 {
 	copy_regs();
 	calc_screen_parameters();
-	lines_per_frame = vst_reg;
-	
 	force_recalc_crtc_param();
 	update_horiz_khz();
 	calc_pixels_lines();
@@ -2032,6 +2016,7 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 
 	vst1_count = vst1;
 	vst2_count = vst2;
+	lines_per_frame = vst_reg;
 
 //	if(vst1_count >= vst2_count) {
 //		vst1_count = vst2_count;
@@ -2046,7 +2031,6 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	horiz_width_nega_us = horiz_width_nega_us_next;
 	horiz_us = horiz_us_next;
 		
-	lines_per_frame = vst_reg;
 	double horiz_ref = horiz_us;
 	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
 	if(frame_us <= 0.0) {
@@ -2106,24 +2090,17 @@ void TOWNS_CRTC::event_pre_frame()
 				VLINE >  VDEx : レイヤーx表示不可。
 	 ---- こんなんでましたけど(´・ω・｀) ---- 
 	*/
-	display_linebuf = render_linebuf & display_linebuf_mask;
-	//recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
+	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
 	set_crtc_parameters_from_regs();
 	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
-	// Reset VSYNC
-	vert_line_count = -1;
-}
 
-
-void TOWNS_CRTC::event_frame()
-{
-	//display_linebuf = render_linebuf & display_linebuf_mask;
-	//if(display_enabled) {
-		render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
-	//}
 	int trans = render_linebuf & display_linebuf_mask;
 	vst[trans] = max_lines;
 	hst[trans] = pixels_per_line;
+	
+	// Reset VSYNC
+	vert_line_count = -1;
 	line_count[0] = line_count[1] = 0;
 	
 	hsync = false;
@@ -2139,6 +2116,12 @@ void TOWNS_CRTC::event_frame()
 	} else {
 		interlace_field = false;
 	}
+}
+
+
+void TOWNS_CRTC::event_frame()
+{
+	int trans = render_linebuf & display_linebuf_mask;
 	// Clear all frame buffer (of this) every turn.20230716 K.O
 	display_enabled = display_enabled_pre;
 
@@ -2248,8 +2231,13 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 			}
 		}
 	}
-	int evnum = (v >= (lines_per_frame - 1)) ? EVENT_END_OF_FRAME : EVENT_HSYNC_OFF;
-	if(usec > 0.0) {
+	int evnum;
+	__UNLIKELY_IF(v >= (lines_per_frame - 1)) {
+		evnum = EVENT_END_OF_FRAME;
+	} else {
+		evnum = EVENT_HSYNC_OFF;
+	}
+	__LIKELY_IF(usec > 0.0) {
 		register_event(this, evnum, usec, false, &event_hsync);
 	} else {
 		event_callback(evnum, 1);
@@ -2329,8 +2317,6 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	case EVENT_END_OF_FRAME:
 		event_hsync = -1;
 		hsync = false;
-		//display_linebuf = render_linebuf & display_linebuf_mask;
-		//render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
 		break;
 	case EVENT_HSYNC_OFF:
 		event_hsync = -1;
@@ -2434,8 +2420,8 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (display_enabled) ? _T("ON ") : _T("OFF"), vert_line_count
 				  , 1.0e6 / frame_us , frame_us, 1.0 / crtc_clock, horiz_khz_tmp
 				  , (is_single_layer) ? _T("YES") : _T("NO ")
-				  , (is_single_layer) ? (((voutreg_ctrl & 0x08) != 0) ? single_modes_list[display_mode[0] & 3] : _T("NONE ")) : twin_modes_list[display_mode[0] & 3]
-				  , (is_single_layer) ? _T("NONE ") : twin_modes_list[display_mode[1] & 3]
+				  , (is_single_layer) ? (((voutreg_ctrl & 0x08) != 0) ? single_modes_list[real_display_mode[0] & 3] : _T("NONE ")) : twin_modes_list[real_display_mode[0] & 3]
+				  , (is_single_layer) ? _T("NONE ") : twin_modes_list[real_display_mode[1] & 3]
 				  , ((voutreg_prio & 0x01) != 0) ? _T("L1 > L0") : _T("L0 > L1")
 				  , lines_per_frame, pixels_per_line, max_lines
 				  , vst_reg, vst1, vst2, hst_reg, hsw1, hsw2

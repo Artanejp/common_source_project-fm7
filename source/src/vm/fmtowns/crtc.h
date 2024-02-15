@@ -355,7 +355,7 @@ protected:
 	
 	std::atomic<int> display_linebuf;
 	std::atomic<int> render_linebuf;
-	const int display_linebuf_mask = 1;
+	const int display_linebuf_mask = 3;
 
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
 
@@ -471,7 +471,7 @@ protected:
 		dmode[0] = cr0 & 0x03;
 		dmode[1] = (cr0 & 0x0c) >> 2;
 		for(int i = 0; i < 2; i++) {
-			__UNLIKELY_IF((dmode[i] != display_mode[i]) && !(calc_only)) {
+			__UNLIKELY_IF(dmode[i] != display_mode[i]) {
 				notify_mode_changed(i, dmode[i]);
 			}
 		}
@@ -522,6 +522,10 @@ public:
 	}
 	// unique functions
 	void draw_screen();
+	inline void request_update_screen()
+	{
+		display_linebuf = render_linebuf.load();
+	}
 	inline linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{
 		page = page & 1;
