@@ -24,7 +24,6 @@ enum {
 	EVENT_HDS1 = 3,
 	EVENT_HDE0 = 4,
 	EVENT_HDE1 = 5,
-	EVENT_END_OF_FRAME = 6,
 };
 
 
@@ -366,14 +365,6 @@ void TOWNS_CRTC::copy_regs()
 		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
 
 		frame_offset[layer] = regs[(layer * 4) + TOWNS_CRTC_REG_FO0]  & 0xffff;
-#if 0
-		vert_offset_tmp[layer] = (vds[layer] > vst2) ? (vds[layer] - vst2) : 0;
-		horiz_offset_tmp[layer] = (hds[layer] > hsw1) ? (hds[layer] - hsw1) : 0;
-		hstart_reg[layer] = (hds[layer] > haj[layer]) ? hds[layer] : haj[layer];
-		hwidth_reg[layer] = (hde[layer] > hstart_reg[layer]) ? (hde[layer] - hstart_reg[layer]) : 0;
-
-		vheight_reg[layer] = (vde[layer] > vds[layer]) ? (vde[layer] - vds[layer]) : 0;
-#else
 		// From Tsugaru
 		int hstart_tmp = (int)(max(hds[layer], haj[layer]));
 		int hoffset_tmp = max(0, (int)(haj[layer]) - (int)(hds[layer]));
@@ -431,7 +422,6 @@ void TOWNS_CRTC::copy_regs()
 		vert_offset_tmp[layer] = vstart_tmp;
 		hwidth_reg[layer]  = hwidth_tmp;
 		vheight_reg[layer] = vheight_tmp;
-#endif
 	}
 }
 
@@ -470,14 +460,29 @@ void TOWNS_CRTC::calc_pixels_lines()
 	__UNLIKELY_IF(max_lines >= TOWNS_CRTC_MAX_LINES) max_lines = TOWNS_CRTC_MAX_LINES;
 }
 
+void TOWNS_CRTC::recalc_hdisp_from_crtc_params(double& start_us, double& end_us)
+{
+	layer = layer & 1;
+	start_us = ((double)hstart_reg[layer]) * crtc_clock;
+	end_us   = ((double)hde[layer]) * crtc_clock;   // HDEx
+	__UNLIKELY_IF(start_us >= horiz_us) {
+		start_us = horiz_us - 0.01;
+	}
+	__UNLIKELY_IF(end_us >= horiz_us) {
+		end_us = horiz_us - 0.01;
+	}
+	__UNLIKELY_IF(start_us >= end_us) {
+		start_us = end_us - 0.01;
+	}
+}
+
 void TOWNS_CRTC::force_recalc_crtc_param(void)
 {
 	horiz_width_posi_us_next = crtc_clock * ((double)hsw1); // HSW1
 	horiz_width_nega_us_next = crtc_clock * ((double)hsw2); // HSW2
 	horiz_us_next = crtc_clock * ((double)((hst_reg >> 1) + 1)); // HST
 	for(int layer = 0; layer < 2; layer++) {
-		horiz_start_us_next[layer] = ((double)hstart_reg[layer]) * crtc_clock;
-		horiz_end_us_next[layer] =   ((double)hde[layer]) * crtc_clock;   // HDEx
+		recalc_hdisp_from_crtc_params(layer, horiz_start_us_next[layer], horiz_end_us_next[layer]);
 	}
 
 	req_recalc = false;
@@ -1734,6 +1739,8 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 	int mode_layer0 = real_display_mode[0];
 	int mode_layer1 = real_display_mode[1];
 
+	// Recalc horiz_start_us, horiz_end_us
+
 	to_disp[0] = (mode_layer0 != DISPMODE_NONE) ? true : false;
 	to_disp[1] = (mode_layer1 != DISPMODE_NONE) ? true : false;
 	if(is_single_layer) {
@@ -2018,19 +2025,20 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	vst2_count = vst2;
 	lines_per_frame = vst_reg;
 
-//	if(vst1_count >= vst2_count) {
-//		vst1_count = vst2_count;
-//		//vst2_count = vst1_count + 1;
-//	}
 	eet_count = eet;
+	horiz_us = horiz_us_next;
+	
 	for(int layer = 0; layer < 2; layer++) {
-		horiz_start_us[layer] = horiz_start_us_next[layer];
-		horiz_end_us[layer] =   horiz_end_us_next[layer];
+		recalc_hdisp_from_crtc_params(layer, horiz_start_us[layer], horiz_end_us[layer]);
 	}
 	horiz_width_posi_us = horiz_width_posi_us_next;
 	horiz_width_nega_us = horiz_width_nega_us_next;
-	horiz_us = horiz_us_next;
-		
+	if(horiz_width_posi_us >= horiz_us) {
+		horiz_wirth_posi_us = horiz_us - 0.01;
+	}
+	if(horiz_width_nega_us >= horiz_us) {
+		horiz_wirth_nega_us = horiz_us - 0.01;
+	}
 	double horiz_ref = horiz_us;
 	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
 	if(frame_us <= 0.0) {
@@ -2231,18 +2239,18 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 			}
 		}
 	}
-	int evnum;
-	__UNLIKELY_IF(v >= (lines_per_frame - 1)) {
-		evnum = EVENT_END_OF_FRAME;
-	} else {
-		evnum = EVENT_HSYNC_OFF;
+	if(event_hsync >= 0) {
+		cancel_event(this, event_hsync);
+		event_hsync = -1;
 	}
-	__LIKELY_IF(usec > 0.0) {
-		register_event(this, evnum, usec, false, &event_hsync);
-	} else {
-		event_callback(evnum, 1);
+	__UNLIKELY_IF(usec > horiz_us) {
+		usec = horiz_us - 0.01; // Insert previous of Hstart. 
 	}
-		
+	if((v < lines_per_frame) && (usec > 0.0)) {
+		register_event(this, EVENT_HSYNC_OFF, usec, false, &event_hsync);
+	} else {
+		hsync = false;
+	}
 }
 
 void TOWNS_CRTC::calc_zoom_regs(uint16_t val)
@@ -2314,10 +2322,6 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 	 * ZOOM (#27) : ToDo
 	 */
 	switch(event_id) {
-	case EVENT_END_OF_FRAME:
-		event_hsync = -1;
-		hsync = false;
-		break;
 	case EVENT_HSYNC_OFF:
 		event_hsync = -1;
 		hsync = false;
