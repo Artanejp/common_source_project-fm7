@@ -443,7 +443,6 @@ void TOWNS_CRTC::calc_pixels_lines()
 			}
 		}
 	}
-
 	if(is_single_layer) {
 		// Single layer
 		max_lines = _height[0];
@@ -460,7 +459,7 @@ void TOWNS_CRTC::calc_pixels_lines()
 	__UNLIKELY_IF(max_lines >= TOWNS_CRTC_MAX_LINES) max_lines = TOWNS_CRTC_MAX_LINES;
 }
 
-void TOWNS_CRTC::recalc_hdisp_from_crtc_params(double& start_us, double& end_us)
+void TOWNS_CRTC::recalc_hdisp_from_crtc_params(int layer, double& start_us, double& end_us)
 {
 	layer = layer & 1;
 	start_us = ((double)hstart_reg[layer]) * crtc_clock;
@@ -1565,7 +1564,12 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 void TOWNS_CRTC::draw_screen()
 {
 	int trans = display_linebuf & display_linebuf_mask;
-	//int trans = display_linebuf & display_linebuf_mask;
+	display_remain--;
+	if(display_remain.load() >= 0) {
+		display_linebuf = (display_linebuf.load() + 1) & display_linebuf_mask;
+	} else {
+		display_remain = 0;
+	}
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF(d_vram == nullptr) {
 		return;
@@ -2014,12 +2018,14 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 
 void TOWNS_CRTC::set_crtc_parameters_from_regs()
 {
-	copy_regs();
-	calc_screen_parameters();
-	force_recalc_crtc_param();
+	calc_screen_parameters();  // Re-Calculate general display parameters.
+	
+	copy_regs(); // Calculate display parameters per layer.
+	
 	update_horiz_khz();
-	calc_pixels_lines();
-	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
+	force_recalc_crtc_param(); // Calculate parameter around HSYNC.
+	
+	calc_pixels_lines(); 
 
 	vst1_count = vst1;
 	vst2_count = vst2;
@@ -2028,17 +2034,6 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	eet_count = eet;
 	horiz_us = horiz_us_next;
 	
-	for(int layer = 0; layer < 2; layer++) {
-		recalc_hdisp_from_crtc_params(layer, horiz_start_us[layer], horiz_end_us[layer]);
-	}
-	horiz_width_posi_us = horiz_width_posi_us_next;
-	horiz_width_nega_us = horiz_width_nega_us_next;
-	if(horiz_width_posi_us >= horiz_us) {
-		horiz_wirth_posi_us = horiz_us - 0.01;
-	}
-	if(horiz_width_nega_us >= horiz_us) {
-		horiz_wirth_nega_us = horiz_us - 0.01;
-	}
 	double horiz_ref = horiz_us;
 	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
 	if(frame_us <= 0.0) {
@@ -2046,6 +2041,62 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	}
 	set_frames_per_sec(1.0e6 / frame_us);
 	set_lines_per_frame(lines_per_frame);
+}
+
+void TOWNS_CRTC::begin_of_display()
+{
+//	display_linebuf = render_linebuf.load();
+	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+	display_remain++;
+	if(display_remain.load() > display_linebuf_mask) {
+		display_remain = display_linebuf_mask;
+		display_linebuf = (render_linebuf.load() - display_linebuf_mask) & display_linebuf_mask;
+	}
+	int trans = render_linebuf & display_linebuf_mask;
+	
+	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
+	copy_regs();
+
+	//int max_lines_bak = max_lines;
+	//int pixels_per_line_bak = pixels_per_line;
+	calc_pixels_lines();
+	
+	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
+	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
+
+	
+	vst[trans] = max_lines;
+	hst[trans] = pixels_per_line;
+	for(int i = 0; i < 2; i++) {
+		zoom_count_vert[i] = zoom_factor_vert[i];
+		frame_offset_bak[i] = frame_offset[i];
+		is_interlaced[trans][i] = layer_is_interlaced(i);
+	}
+
+	csp_vector8<uint16_t> dat((const uint16_t)0x0000);
+	for(int yy = 0; yy < vst[trans]; yy++) {
+		for(int i = 0; i < 2; i++) {
+			// Maybe initialize.
+			linebuffers[trans][yy].pixels[i] = pixels_per_line;
+			linebuffers[trans][yy].mag[i] = 1;
+			linebuffers[trans][yy].num[i] = -1;
+			linebuffers[trans][yy].mode[i] = DISPMODE_NONE;
+			linebuffers[trans][yy].crtout[i] = 0;
+			linebuffers[trans][yy].bitshift[i] = 0;
+//			uint16_t* p = (uint16_t*)(&(linebuffers[trans][yy].pixels_layer[i][0]));
+//			for(int xx = 0; xx < (TOWNS_CRTC_MAX_PIXELS / 8); xx++) {
+//				dat.store_aligned(p);
+//				p += 8;
+//			}
+		}
+	}
+	// Check whether Interlaced.
+	__UNLIKELY_IF((is_interlaced[trans][0]) || (is_interlaced[trans][1])) {
+		interlace_field = !interlace_field;
+	} else {
+		interlace_field = false;
+	}
+	
 }
 
 void TOWNS_CRTC::event_pre_frame()
@@ -2098,14 +2149,21 @@ void TOWNS_CRTC::event_pre_frame()
 				VLINE >  VDEx : レイヤーx表示不可。
 	 ---- こんなんでましたけど(´・ω・｀) ---- 
 	*/
-	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
-	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
+//	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
+	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], true);
 	set_crtc_parameters_from_regs();
-	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
-
-	int trans = render_linebuf & display_linebuf_mask;
-	vst[trans] = max_lines;
-	hst[trans] = pixels_per_line;
+	
+	for(int layer = 0; layer < 2; layer++) {
+		recalc_hdisp_from_crtc_params(layer, horiz_start_us[layer], horiz_end_us[layer]);
+	}
+	horiz_width_posi_us = horiz_width_posi_us_next;
+	horiz_width_nega_us = horiz_width_nega_us_next;
+	if(horiz_width_posi_us >= horiz_us) {
+		horiz_width_posi_us = horiz_us - 0.01;
+	}
+	if(horiz_width_nega_us >= horiz_us) {
+		horiz_width_nega_us = horiz_us - 0.01;
+	}
 	
 	// Reset VSYNC
 	vert_line_count = -1;
@@ -2113,43 +2171,14 @@ void TOWNS_CRTC::event_pre_frame()
 	
 	hsync = false;
 	vsync = false; // Head to Vsync cutoff.
-	for(int i = 0; i < 2; i++) {
-		zoom_count_vert[i] = zoom_factor_vert[i];
-		frame_offset_bak[i] = frame_offset[i];
-		is_interlaced[trans][i] = layer_is_interlaced(i);
-	}
-	// Check whether Interlaced.
-	__UNLIKELY_IF((is_interlaced[trans][0]) || (is_interlaced[trans][1])) {
-		interlace_field = !interlace_field;
-	} else {
-		interlace_field = false;
-	}
 }
 
 
 void TOWNS_CRTC::event_frame()
 {
-	int trans = render_linebuf & display_linebuf_mask;
 	// Clear all frame buffer (of this) every turn.20230716 K.O
 	display_enabled = display_enabled_pre;
 
-	csp_vector8<uint16_t> dat((const uint16_t)0x0000);
-	for(int yy = 0; yy < vst[trans]; yy++) {
-		for(int i = 0; i < 2; i++) {
-			// Maybe initialize.
-			linebuffers[trans][yy].pixels[i] = pixels_per_line;
-			linebuffers[trans][yy].mag[i] = 1;
-			linebuffers[trans][yy].num[i] = -1;
-			linebuffers[trans][yy].mode[i] = DISPMODE_NONE;
-			linebuffers[trans][yy].crtout[i] = 0;
-			linebuffers[trans][yy].bitshift[i] = 0;
-//			uint16_t* p = (uint16_t*)(&(linebuffers[trans][yy].pixels_layer[i][0]));
-//			for(int xx = 0; xx < (TOWNS_CRTC_MAX_PIXELS / 8); xx++) {
-//				dat.store_aligned(p);
-//				p += 8;
-//			}
-		}
-	}
 	reset_vsync();
 	// Set ZOOM factor.
 	// ToDo: EET
@@ -2192,8 +2221,7 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		}
 		#endif
 	}
-	int trans = render_linebuf & display_linebuf_mask;
-	int __max_lines = vst[trans];
+	int __max_lines = max_lines;
 	__UNLIKELY_IF(v == vst1_count) {
 		set_vsync(true);
 	}
@@ -2214,6 +2242,8 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 			}
 		}
 		__UNLIKELY_IF(v == vst2_count) {
+			begin_of_display();
+			__max_lines = max_lines;
 			set_vsync(false);
 		}
 		// Check frame_in[layer]

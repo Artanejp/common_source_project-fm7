@@ -355,6 +355,8 @@ protected:
 	
 	std::atomic<int> display_linebuf;
 	std::atomic<int> render_linebuf;
+	std::atomic<int> display_remain;
+	
 	const int display_linebuf_mask = 3;
 
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
@@ -378,7 +380,8 @@ protected:
 
 	virtual void restart_display();
 	virtual void stop_display();
-	virtual void notify_mode_changed(int layer, uint8_t mode);
+	virtual void __FASTCALL notify_mode_changed(int layer, uint8_t mode);
+	virtual void __FASTCALL recalc_hdisp_from_crtc_params(int layer, double& start_us, double& end_us);
 
 	inline void cancel_event_by_id(int& event_num)
 	{
@@ -409,6 +412,7 @@ protected:
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1);
 
+	virtual void begin_of_display();
 	virtual void update_horiz_khz()
 	{
 		double horiz_us_tmp;
@@ -524,7 +528,7 @@ public:
 	void draw_screen();
 	inline void request_update_screen()
 	{
-		display_linebuf = render_linebuf.load();
+		//display_linebuf = render_linebuf.load();
 	}
 	inline linebuffer_t* __FASTCALL get_line_buffer(int page, int line)
 	{
