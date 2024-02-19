@@ -525,6 +525,9 @@ public:
 	void __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io16(uint32_t addr) override;
 
+	void __FASTCALL write_io32(uint32_t addr, uint32_t data) override;
+	//uint32_t __FASTCALL read_io16(uint32_t addr) override;
+	
 	void __FASTCALL event_callback(int event_id, int err) override;
 
 	bool process_state(FILEIO* state_fio, bool loading) override;
