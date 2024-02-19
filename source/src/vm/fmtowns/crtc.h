@@ -158,6 +158,13 @@ namespace FMTOWNS {
 		DISPMODE_16,
 		DISPMODE_DUP = 0x100,
 	};
+	enum {
+		VOUTREG_CTRL = 0,
+		VOUTREG_PRIO = 1,
+		VOUTREG_2,
+		VOUTREG_3,
+	};
+		
 }
 
 namespace FMTOWNS {
@@ -336,13 +343,9 @@ protected:
 	// Others.
 	// VRAM CONTROL REGISTER.
 	uint8_t voutreg_num;  // I/O 0448h
-	uint8_t voutreg_ctrl; // I/O 044Ah : voutreg_num = 0.
-	uint8_t voutreg_prio; // I/O 044Ah : voutreg_num = 1.
-	uint8_t video_out_regs[2];
+	uint8_t video_out_regs[4]; // I/O 044Ah 
 	bool crtout[2];              // I/O FDA0H WRITE
 	uint8_t crtout_reg;
-	uint8_t voutreg_ctrl_bak;
-	uint8_t voutreg_prio_bak;
 	// End.
 	bool is_single_layer;
 
@@ -428,17 +431,22 @@ protected:
 		crtout[0] = ((data & 0x0c) != 0) ? true : false;
 		crtout[1] = ((data & 0x03) != 0) ? true : false;
 	}
+	constexpr bool is_single_mode_for_standard()
+	{
+		return (((video_out_regs[FMTOWNS::VOUTREG_CTRL] & 0x10) == 0) ? true : false);
+	}
 	inline void __FASTCALL make_dispmode(bool& is_single, int& layer0, int& layer1)
 	{
 		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
 		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
-		is_single = ((voutreg_ctrl & 0x10) == 0) ? true : false;
+		uint8_t _ctrl = video_out_regs[FMTOWNS::VOUTREG_CTRL];
+		is_single = is_single_mode_for_standard();
 		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
 		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };
 		static const int modes_by_CR0_multi[4] = { DISPMODE_NONE, DISPMODE_32768, DISPMODE_NONE, DISPMODE_16 };
 		// ToDo: High resolution.
 		if(is_single) {
-			layer0 =  ((voutreg_ctrl & 0x08) != 0) ? modes_by_CR0_single[display_mode[0]] : DISPMODE_NONE;
+			layer0 =  ((_ctrl & 0x08) != 0) ? modes_by_CR0_single[display_mode[0]] : DISPMODE_NONE;
 			layer1 = DISPMODE_NONE;
 		} else {
 			layer0 = modes_by_CR0_multi[display_mode[0] & 3];
@@ -449,6 +457,14 @@ protected:
 	{
 		bool _b = (frame_offset[layer & 1] == 0) ? true : false;
 		return _b;
+	}
+	inline void set_io_044a(const uint32_t data)
+	{
+		video_out_regs[voutreg_num & 3] = data & 0xff;
+	}
+	inline uint8_y get_io_044a()
+	{
+		return video_out_regs[voutreg_num & 3];
 	}
 	inline void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only)
 	{
@@ -526,6 +542,7 @@ public:
 	}
 	// unique functions
 	void draw_screen();
+	
 	inline void request_update_screen()
 	{
 		//display_linebuf = render_linebuf.load();
