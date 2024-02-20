@@ -284,9 +284,12 @@ protected:
 
 	uint32_t head_address[2];
 	int horiz_offset_tmp[2];
+	int bit_shift_reg[2];
 	int vert_offset_tmp[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
+	uint8_t priority_cache;
+	uint8_t control_cache;
 
 	uint32_t sprite_offset;
 	int sprite_count;
@@ -371,7 +374,8 @@ protected:
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 
-	virtual void copy_regs();
+	virtual void copy_regs_v();
+	virtual void copy_regs_h();
 	virtual void calc_pixels_lines();
 
 	void reset_vsync();
@@ -433,13 +437,13 @@ protected:
 	}
 	constexpr bool is_single_mode_for_standard()
 	{
-		return (((video_out_regs[FMTOWNS::VOUTREG_CTRL] & 0x10) == 0) ? true : false);
+		return (((control_cache & 0x10) == 0) ? true : false);
 	}
 	inline void __FASTCALL make_dispmode(bool& is_single, int& layer0, int& layer1)
 	{
 		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
 		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
-		uint8_t _ctrl = video_out_regs[FMTOWNS::VOUTREG_CTRL];
+		uint8_t _ctrl = control_cache;
 		is_single = is_single_mode_for_standard();
 		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
 		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };
