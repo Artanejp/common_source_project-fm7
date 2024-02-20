@@ -462,7 +462,7 @@ protected:
 	{
 		video_out_regs[voutreg_num & 3] = data & 0xff;
 	}
-	inline uint8_y get_io_044a()
+	inline uint8_t get_io_044a()
 	{
 		return video_out_regs[voutreg_num & 3];
 	}
