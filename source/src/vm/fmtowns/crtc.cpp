@@ -183,7 +183,7 @@ void TOWNS_CRTC::reset()
 		vstart_addr[i] = 0;
 		head_address[i] = 0;
 		vert_offset_tmp[i] = 0;
-		horiz_offset_tmp[i] = 0;
+		horiz_offset_reg[i] = 0;
 	}
 	cancel_event_by_id(event_hsync);
 	for(int i = 0; i < 2; i++) {
@@ -412,25 +412,21 @@ void TOWNS_CRTC::copy_regs_h()
 		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
 		// From Tsugaru
 		int hstart_tmp = (int)(max(hds[layer], haj[layer]));
-		int hoffset_tmp = max(0, (int)(haj[layer]) - (int)(hds[layer]));
-		int bit_shift_tmp = max(0, (int)(hds[layer]) - (int)(haj[layer]));
+		int hoffset_tmp = min(0, (int)(hds[layer]) - (int)(haj[layer]));
 		
 		int hend_tmp =   (int)(hde[layer]);
 		int hwidth_tmp = max(0, (int)(hde[layer]) - (int)(hds[layer]));
 		switch(clksel) {
 		case 0x00: // 28.6363MHz
 			hstart_tmp = (hstart_tmp - 0x0129) >> 1;
-			hoffset_tmp = hoffset_tmp >> 1;
-			bit_shift_tmp = bit_shift_tmp >> 1;
-			//hwidth_tmp >>= 1;
+			//hoffset_tmp = hoffset_tmp >> 1;
 			break;
 		case 0x01:
 			if(hst_reg == 0x031f) {
 				hstart_tmp = hstart_tmp - 0x008a;
 			} else {
 				hstart_tmp = (hstart_tmp - 0x00e7) >> 1;
-				hoffset_tmp = hoffset_tmp >> 1;
-				bit_shift_tmp = bit_shift_tmp >> 1;
+				//hoffset_tmp = hoffset_tmp >> 1;
 			}
 			break;
 		case 0x02:
@@ -449,16 +445,13 @@ void TOWNS_CRTC::copy_regs_h()
 			break;
 		}
 		//hstart_reg[layer] = hstart_tmp;
-		if(horiz_khz <= 16) {
-			hstart_tmp = hstart_tmp >> 1;
-			hoffset_tmp = hoffset_tmp >> 1;
-			bit_shift_tmp = bit_shift_tmp >> 1;
+		if(horiz_khz < 16) {
+			//hstart_tmp = hstart_tmp >> 1;
 			hwidth_tmp >>= 1;
 		}
 		hstart_reg[layer] = hstart_tmp;
-		horiz_offset_tmp[layer] = hoffset_tmp;
+		horiz_offset_reg[layer] = hoffset_tmp;
 		hwidth_reg[layer]  = hwidth_tmp;
-		bit_shift_reg[layer] = bit_shift_tmp;
 	}
 }
 
@@ -1094,7 +1087,7 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 	int pwidth = linebuffers[trans][y].pixels[0];
 	int num = linebuffers[trans][y].num[0];
 	uint8_t *p = linebuffers[trans][y].pixels_layer[0];
-	int bitshift0 = linebuffers[trans][y].bitshift[0];
+
 	scrntype_t* q = dst;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 	bool odd_mag = (((magx & 1) != 0) && (magx > 2)) ? true : false;
@@ -1486,60 +1479,86 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 	__LIKELY_IF(pp != nullptr) {
 		if((do_mix0) && (do_mix1)) {
 			// alpha blending
-			//csp_vector8<scrntype_t>pixbuf0;
-			//csp_vector8<scrntype_t>pixbuf1;
-			//csp_vector8<scrntype_t>maskbuf_front;
-			//csp_vector8<scrntype_t>maskbuf_back;
-
 			int of0 = max(0, bitshift0);
 			int of1 = max(0, bitshift1);
+			
+			csp_vector8<scrntype_t>pixbuf0(RGBA_COLOR(0, 0, 0, 255));
+			csp_vector8<scrntype_t>pixbuf1(RGBA_COLOR(0, 0, 0, 255));
+			csp_vector8<scrntype_t>maskbuf_front(RGBA_COLOR(0, 0, 0, 0));
+			csp_vector8<scrntype_t>maskbuf_back(RGBA_COLOR(255, 255, 255, 255));
+			int x0 = 0;
+			int x1 = 0;
 			for(int xx = 0; xx < width; xx += 8) {
-				csp_vector8<scrntype_t>pixbuf0((scrntype_t)0);
-				csp_vector8<scrntype_t>pixbuf1((scrntype_t)0);
-				csp_vector8<scrntype_t>maskbuf_front((scrntype_t)0);
-				csp_vector8<scrntype_t>maskbuf_back((scrntype_t)0);
-
-//				maskbuf_front.fill(0);
-//				pixbuf0.fill(0);
-//				pixbuf1.fill(0);
-				scrntype_t *px1 = &(lbuffer1[xx]);
-				__LIKELY_IF(words1 >= 8) {
-					__LIKELY_IF(xx >= of1){
-						pixbuf1.load(px1);
-						words1 -= 8;
-					} else if((xx + 8) > of1) {
-						size_t ofset1 = of1 - xx;
-						//size_t bytes1 = xx + 8 - of1;
-						pixbuf1.load_offset(px1, ofset1, 8); // ToDo
-						words1 -= (8 - ofset1);
-						//words1 -= 8;
-					}
-				} else if(words1 > 0) {
-					__LIKELY_IF(xx >= of1) {
-						pixbuf1.load_limited(px1, words1);
-						words1 = 0;
-					}
-				}
-				scrntype_t *px0 = &(lbuffer0[xx]);
-				scrntype_t *ax0 = &(abuffer0[xx]);
-				__LIKELY_IF(words0 >= 8) {
-					__LIKELY_IF(xx >= of0) {
+				// Get front
+				scrntype_t *px0 = &(lbuffer0[x0]);
+				scrntype_t *ax0 = &(abuffer0[x0]);
+				__LIKELY_IF(of0 <= xx) {
+					__LIKELY_IF(words0 >= 8) {
 						pixbuf0.load(px0);
 						maskbuf_front.load(ax0);
 						words0 -= 8;
-					} else if((xx + 8) > of0) {
-						size_t ofset0 = of0 - xx;
-						size_t bytes0 = xx + 8 - of0;
-						pixbuf0.load_offset(px0, ofset0); // ToDo
-						maskbuf_front.load_offset(ax0, ofset0); // ToDo
-						words0 -= (8 - ofset0);
-						//words0 -= 8;
-					}
-				} else if(words0 > 0) {
-					__LIKELY_IF(xx >= of0) {
-						pixbuf0.load_limited(px0, words0); // ToDo
-						maskbuf_front.load_limited(ax0, words0); // ToDo
+						x0 += 8;
+					} else if(words0 > 0) { // Last words0 bytes
+						pixbuf0.fill(RGBA_COLOR(0, 0, 0, 255));
+						pixbuf0.load_limited(px0, words0);
+						
+						maskbuf_front.clear();
+						maskbuf_front.load_limited(ax0, words0);
+						x0 += words0;
 						words0 = 0;
+					} else {
+						pixbuf0.fill(RGBA_COLOR(0, 0, 0, 255));
+						maskbuf_front.clear();
+					}
+				} else { // Lower
+					pixbuf0.fill(RGBA_COLOR(0, 0, 0, 255));
+					maskbuf_front.clear();
+					__UNLIKELY_IF(words0 > 0) {
+						size_t words00 = 8;
+						__UNLIKELY_IF(words0 < 8) {
+							words00 = words0;
+						}
+						__UNLIKELY_IF((of0 + words00) > xx) {
+							// Get Left
+							size_t ofset00 = xx - of0;
+							words00 = (of0 + words00) - xx;
+							pixbuf0.load_offset(px0, ofset00, words00);
+							maskbuf_front.load_offset(ax0, ofset00, words00);
+							words0 -= words00;
+							x0 += words00;
+						}
+					}
+				}
+				// Get Back
+				scrntype_t *px1 = &(lbuffer1[x1]);
+				__LIKELY_IF(of1 <= xx) {
+					__LIKELY_IF(words1 >= 8) {
+						pixbuf1.load(px1);
+						words1 -= 8;
+						x1 += 8;
+					} else if(words1 > 0) { // Last words0 bytes
+						pixbuf1.fill(RGBA_COLOR(0, 0, 0, 255));
+						pixbuf1.load_limited(px1, words1);
+						x1 += words1;
+						words1 = 0;
+					} else {
+						pixbuf1.fill(RGBA_COLOR(0, 0, 0, 255));
+					}
+				} else { // Lower
+					pixbuf1.fill(RGBA_COLOR(0, 0, 0, 255));
+					__UNLIKELY_IF(words1 > 0) {
+						size_t words01 = 8;
+						__UNLIKELY_IF(words1 < 8) {
+							words01 = words1;
+						}
+						__UNLIKELY_IF((of1 + words01) > xx) {
+							// Get Left
+							size_t ofset01 = xx - of1;
+							words01 = (of1 + words01) - xx;
+							pixbuf1.load_offset(px1, ofset01, words01);
+							x1 += words01;
+							words1 -= words01;
+						}
 					}
 				}
 				maskbuf_back.negate(maskbuf_front); // Replacement of "~"
@@ -1551,66 +1570,82 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				pp += 8;
 			}
 		} else if(do_mix0) {
-			__LIKELY_IF(bitshift0 <= 0) {
-				int words_new = min(words0, width);
-				__LIKELY_IF(words_new > 0) {
-					transfer_pixels(pp, lbuffer0, words_new);
-				}
-				if(words_new >= 0) {
-					for(int xx = words_new; xx < width; xx++) {
-						pp[xx] = RGBA_COLOR(0, 0, 0, 255);
+			csp_vector8<scrntype_t>pixbuf0(RGBA_COLOR(0, 0, 0, 255));
+			int of0 = max(0, bitshift0);
+			int x0 = 0;
+			for(int xx = 0; xx < width; xx += 8) {
+				scrntype_t *px0 = &(lbuffer0[x0]);
+				__LIKELY_IF(of0 <= xx) {
+					__LIKELY_IF(words0 >= 8) {
+						pixbuf0.load(px0);
+						x0 += 8;
+						words0 -= 8;
+					} else __UNLIKELY_IF(words0 > 0) { // Last words0 bytes
+						pixbuf0.fill(RGBA_COLOR(0, 0, 0, 255));
+						pixbuf0.load_limited(px0, words0);
+						x0 += words0;
+						words0 = 0;
+					} else {
+						pixbuf0.fill(RGBA_COLOR(0, 0, 0, 255));
+					}
+				} else {
+					pixbuf0.fill(RGBA_COLOR(0, 0, 0, 255));
+					__UNLIKELY_IF(words0 > 0) {
+						size_t words00 = 8;
+						__UNLIKELY_IF(words0 < 8) {
+							words00 = words0;
+						}
+						__UNLIKELY_IF((of0 + words00) > xx) {
+							// Get Left
+							size_t ofset00 = xx - of0;
+							words00 = (of0 + words00) - xx;
+							pixbuf0.load_offset(px0, ofset00, words00);
+							x0 += words00;
+							words0 -= words00;
+						}
 					}
 				}
-			} else if(bitshift0 < width) {
-				int words_new = min(words0, width - bitshift0);
-				int xx = 0;
-				for(xx = 0; xx < bitshift0; xx++) {
-					pp[xx] = RGBA_COLOR(0, 0, 0, 255);
-				}
-				for(int ii = 0; ii < words_new; ii++) {
-					pp[xx] = lbuffer0[ii];
-					xx++;
-				}
-				__LIKELY_IF(xx < width) {
-					for(; xx < width; xx++) {
-						pp[xx] = RGBA_COLOR(0, 0, 0, 255);
-					}
-				}
-			} else {
-				for(int xx = 0; xx < width; xx++) {
-					pp[xx] = RGBA_COLOR(0, 0, 0, 255);
-				}
+				pixbuf0.store(pp);
+				pp += 8;
 			}
 		} else if(do_mix1) {
-			__LIKELY_IF(bitshift1 <= 0) {
-				int words_new = min(words1, width);
-				__LIKELY_IF(words_new > 0) {
-					transfer_pixels(pp, lbuffer1, words_new);
-				}
-				if(words_new >= 0) {
-					for(int xx = words_new; xx < width; xx++) {
-						pp[xx] = RGBA_COLOR(0, 0, 0, 255);
+			csp_vector8<scrntype_t>pixbuf1(RGBA_COLOR(0, 0, 0, 255));
+			int of1 = max(0, bitshift1);
+			int x1 = 0;
+			for(int xx = 0; xx < width; xx += 8) {
+				scrntype_t *px1 = &(lbuffer1[x1]);
+				__LIKELY_IF(of1 <= xx) {
+					__LIKELY_IF(words1 >= 8) {
+						pixbuf1.load(px1);
+						x1 += 8;
+						words0 -= 8;
+					} else __UNLIKELY_IF(words0 > 1) { // Last words0 bytes
+						pixbuf1.fill(RGBA_COLOR(0, 0, 0, 255));
+						pixbuf1.load_limited(px1, words1);
+						x1 += words1;
+						words1 = 0;
+					} else {
+						pixbuf1.fill(RGBA_COLOR(0, 0, 0, 255));
+					}
+				} else {
+					pixbuf1.fill(RGBA_COLOR(0, 0, 0, 255));
+					__UNLIKELY_IF(words1 > 0) {
+						size_t words01 = 8;
+						__UNLIKELY_IF(words1 < 8) {
+							words01 = words1;
+						}
+						__UNLIKELY_IF((of1 + words01) > xx) {
+							// Get Left
+							size_t ofset01 = xx - of1;
+							words01 = (of1 + words01) - xx;
+							pixbuf1.load_offset(px1, ofset01, words01);
+							x1 += words01;
+							words1 -= words01;
+						}
 					}
 				}
-			} else if(bitshift1 < width) {
-				int words_new = min(words1, width - bitshift1);
-				int xx = 0;
-				for(xx = 0; xx < bitshift1; xx++) {
-					pp[xx] = RGBA_COLOR(0, 0, 0, 255);
-				}
-				for(int ii = 0; ii < words_new; ii++) {
-					pp[xx] = lbuffer1[ii];
-					xx++;
-				}
-				__LIKELY_IF(xx < width) {
-					for(; xx < width; xx++) {
-						pp[xx] = RGBA_COLOR(0, 0, 0, 255);
-					}
-				}
-			} else {
-				for(int xx = 0; xx < width; xx++) {
-					pp[xx] = RGBA_COLOR(0, 0, 0, 255);
-				}
+				pixbuf1.store(pp);
+				pp += 8;
 			}
 		} else {
 			for(int xx = 0; xx < width; xx++) {
@@ -1912,7 +1947,7 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	uint32_t __vstart_addr  = vstart_addr[l];
 	uint32_t __line_offset  = line_offset[l];
 	
-	int bit_shift = max(0, bit_shift_reg[l]);
+	int bit_shift = horiz_offset_reg[l];
 	uint32_t magx = zoom_factor_horiz[l];
 	// FAx
 	// Note: Re-Wrote related by Tsugaru. 20230806 K.O
@@ -1979,13 +2014,10 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 		hwidth = 0;
 	}
 	uint32_t pixels = hwidth * ((is_single_layer) ? 2 : 1);
-//	int hoffset = horiz_offset_tmp[l] * ((is_single_layer) ? 2 : 1);
-	int hoffset = horiz_offset_tmp[l];
 	if((clksel == 0x03) && (hst_reg == 0x029d) && (magx >= 5)) {
 		pixels = (((pixels << 16) * magx) / 4) >> 16;
-//		hoffset = (((hoffset << 16) * magx) / 4) >> 16;
 	}
-
+	int hoffset = horiz_offset_reg[l];
 	__LIKELY_IF((pixels > 0) && (linebuffers[trans][line].crtout[l] != 0)){
 		__LIKELY_IF(/*(pixels >= magx) && */(magx != 0)){
 			//__UNLIKELY_IF(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
@@ -2373,23 +2405,32 @@ void TOWNS_CRTC::calc_zoom_regs(uint16_t val)
 	pair16_t pd;
 	regs[TOWNS_CRTC_REG_ZOOM] = val;
 	pd.w = val;
-	zfv[0] = ((pd.b.l & 0xf0) >> 4) + 1;
-	zfh[0] = (pd.b.l & 0x0f) + 1;
-	zfv[1] = ((pd.b.h & 0xf0) >> 4) + 1;
-	zfh[1] = (pd.b.h & 0x0f) + 1;
+	zfv[0] = ((pd.b.l & 0xf0) >> 4);
+	zfh[0] = (pd.b.l & 0x0f);
+	zfv[1] = ((pd.b.h & 0xf0) >> 4);
+	zfh[1] = (pd.b.h & 0x0f);
 
 	for(int layer = 0; layer < 2; layer++) {
-		uint32_t h = zfh[layer];
-		uint32_t v = zfv[layer];
-		if(horiz_khz <= 16) {
-			if(!(is_single_layer)) {
+		uint32_t h = zfh[layer] + 1;
+		uint32_t v = zfv[layer] + 1;
+		if(horiz_khz < 16) {
+			if(is_single_layer) {
 				v *= 2;
 			} else {
 				v *= 4;
-				//v *= 2;
 			}
 		} else if((clksel == 0x03) && (hst_reg == 0x029d)) {
-			h = 2 + 3 * (h - 1);
+			// From Tsugaru: 
+			// VING games use this settings.  Apparently zoom-x needs to be interpreted as 4+(pageZoom&15).
+			// Chase HQ        HST=029DH  ZOOM=1111H  Zoom2X=5
+			// Viewpoint       HST=029DH  ZOOM=1111H  Zoom2X=5
+			// Pu Li Ru La     HST=029DH  ZOOM=1111H  Zoom2X=5
+			// Splatter House  HST=029DH  ZOOM=1111H  Zoom2X=5
+			// Operation Wolf  N/A
+			// New Zealand Story  N/A
+			// Alshark Opening HST=029DH  ZOOM=0000H  Zoom2X=2
+			// Freeware Collection 8 Oh!FM TOWNS Cover Picture Collection  HST=029DH  ZOOM=0000H  Zoom2X=2
+			h = 2 + 3 * zfh[layer];
 			v  *= 2;
 		} else {
 			h *= 2;
@@ -2558,7 +2599,7 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 					  _T("          VSTART=%04X LINE OFFSET=%04X FRAME OFFSET=%04X\n")
 					  , layer
 					  , vds[layer], vde[layer], hds[layer], haj[layer], hde[layer]
-					  , hwidth_reg[layer], horiz_offset_tmp[layer],  hstart_reg[layer]
+					  , hwidth_reg[layer], horiz_offset_reg[layer],  hstart_reg[layer]
 					  , vheight_reg[layer], vert_offset_tmp[layer]
 					  , vstart_addr[layer], line_offset[layer], frame_offset[layer]
 			);

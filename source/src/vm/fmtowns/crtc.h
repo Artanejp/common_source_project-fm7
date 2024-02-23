@@ -283,8 +283,7 @@ protected:
 	uint32_t frame_offset_bak[2]; // FOx(Backup).
 
 	uint32_t head_address[2];
-	int horiz_offset_tmp[2];
-	int bit_shift_reg[2];
+	int horiz_offset_reg[2];
 	int vert_offset_tmp[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
