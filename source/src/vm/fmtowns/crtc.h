@@ -283,7 +283,8 @@ protected:
 	uint32_t frame_offset_bak[2]; // FOx(Backup).
 
 	uint32_t head_address[2];
-	int horiz_offset_reg[2];
+	int horiz_offset_tmp[2];
+	int horiz_skip_tmp[2];
 	int vert_offset_tmp[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
@@ -375,6 +376,8 @@ protected:
 
 	virtual void copy_regs_v();
 	virtual void copy_regs_h();
+	virtual void __FASTCALL update_regs_h(const int layer);
+	virtual void __FASTCALL update_regs_v(const int layer);
 	virtual void calc_pixels_lines();
 
 	void reset_vsync();
@@ -419,6 +422,16 @@ protected:
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1);
 
 	virtual void begin_of_display();
+	inline void update_vstart(const int layer)
+	{
+		vstart_addr[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
+	}
+	
+	inline void update_line_offset(const int layer)
+	{
+		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
+	}
+	
 	virtual void update_horiz_khz()
 	{
 		double horiz_us_tmp;
