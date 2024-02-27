@@ -431,6 +431,7 @@ void TOWNS_CRTC::update_regs_h(const int layer)
 	int hstart_tmp = (int)(max(hds[layer], haj[layer]));
 	int hds_tmp = (int)hds[layer];
 	int haj_tmp = (int)haj[layer];
+	int hde_tmp = (int)hde[layer];
 	int hwidth_tmp = max(0, (int)(hde[layer]) - (int)(hds[layer]));
 	switch(clksel) {
 	case 0x00: // 28.6363MHz
@@ -480,14 +481,80 @@ void TOWNS_CRTC::update_regs_h(const int layer)
 	horiz_offset_tmp[layer] = haj_tmp - hstart_tmp;
 	horiz_skip_tmp[layer] = hds_tmp - hstart_tmp;
 	hwidth_reg[layer]  = hwidth_tmp;
+	haj_val[layer] = haj_tmp;
+	hds_val[layer] = hds_tmp;
+	
 }
 
-
+void TOWNS_CRTC::calc_width_and_hstart(bool is_single, int max_pixels, int& hstart_p, int& hwidth_p)
+{
+	int layers = (is_single) ? 1 : 2;
+	int hst_tmp[2];
+	int haj_tmp[2];
+	int hstart_tmp[2];
+	int hwidth_tmp[2];
+	int true_hwidth_tmp[2] = {0};
+	for(int l = 0; l < layers; l++) {
+		haj_tmp[l] = (int)haj_val[l];
+		hst_tmp[l] = (int)hst_val[l];
+		hwidth_tmp[l] = (int)hwidth_reg[l];
+		__UNLIKELY_IF((clksel == 0x03) && (hst_reg == 0x029d)) {
+			uint32_t magx = zoom_factor_horiz[l];
+			if(magx >= 5) {
+				hwidth_tmp[l] = (((hwidth_tmp[l] << 12) * magx) / 4) >> 12;
+			}
+		}
+	}
+	int hde_tmp[2] = {0}; // RE-Calc end point.
+	for(int l = 0; l < layers; l++) {
+		__LIKELY_IF(haj_tmp[l] <= hst_tmp[l]) {
+			hstart_tmp[l] = haj_tmp[l];
+			hde_tmp[l] = hwidth_tmp[l] + hst_tmp[l];
+		} else {
+			hstart_tmp[l] = hst_tmp[l];
+			hde_tmp[l] = hwidth_tmp[l] + haj_tmp[l];
+		}
+		__UNLIKELY_IF(hstart_tmp[l] < 0) {
+			hstart_tmp[l] = 0;
+		}
+		__UNLIKELY_IF(hde_tmp[l] > max_pixels) {
+			hde_tmp[l] = max_pixels;
+		}
+	}
+	int hend_p;
+	if(is_single) {
+		hstart_p = hstart_tmp[0];
+		hend_p = hde_tmp[0];
+	} else {
+		hstart_p = min(hstart_tmp[0], hstart_tmp[1]);
+		hend_p = max(hde_tmp[0], hde_tmp[1]);
+	}
+	hwidth_p = hend_p - hstart_p;
+	__UNLIKELY_IF(true_width > max_pixels) {
+		hwidth_p = max_pixels;
+	}
+	__UNLIKELY_IF(hwidth_p < 0) {
+		hwidth_p = 0;
+	}
+}
+		
+}
 void TOWNS_CRTC::calc_pixels_lines()
 {
 	int _width[2];
 	int _height[2];
 
+	const int pixels_per_line_next = (const int)((hst_reg >> 1) + 1);
+	#if 1
+	bool is_single = is_single_mode_for_standard();
+	calc_width_and_hstart(is_single, pixels_per_line_next, pixels_per_line, hstart_position);
+	if(is_single) {
+		// Single layer
+		max_lines = (int)vheight_reg[0];
+	} else {
+		max_lines = max((int)vheight_reg[0], (int)vheight_reg[1]);
+	}
+	#else
 	for(int l = 0; l < 2; l++) {
 		_width[l] = hwidth_reg[l];
 		_height[l] = vheight_reg[l];
@@ -512,9 +579,12 @@ void TOWNS_CRTC::calc_pixels_lines()
 		pixels_per_line = max(_width[0], _width[1]);
 		//max_lines >>= 1;
 	}
+	#endif
 	// ToDo: High resolution MODE.
 
+	__UNLIKELY_IF(pixels_per_line < 0) pixels_per_line = 0;
 	__UNLIKELY_IF(pixels_per_line >= TOWNS_CRTC_MAX_PIXELS) pixels_per_line = TOWNS_CRTC_MAX_PIXELS;
+	__UNLIKELY_IF(max_lines < 0) max_lines = 0;
 	__UNLIKELY_IF(max_lines >= TOWNS_CRTC_MAX_LINES) max_lines = TOWNS_CRTC_MAX_LINES;
 }
 
@@ -1888,6 +1958,7 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 	to_disp[0] = (mode_layer0 != DISPMODE_NONE) ? true : false;
 	to_disp[1] = (mode_layer1 != DISPMODE_NONE) ? true : false;
 	is_single_layer = is_single_mode_for_standard();
+
 	if(is_single_layer) {
 		// One layer mode
 		bool disp = frame_in[0];
@@ -1991,17 +2062,27 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	// Update some parameters per line. 20230731 K.O
 	uint32_t __vstart_addr  = vstart_addr[l];
 	uint32_t __line_offset  = line_offset[l];
-	
-	int bit_shift = max(0, horiz_skip_tmp[l]);
-	int hoffset = max(0, horiz_offset_tmp[l]);
-	uint32_t magx = zoom_factor_horiz[l];
-	// FAx
-	// Note: Re-Wrote related by Tsugaru. 20230806 K.O
 	uint32_t address_mask = 0x0003ffff;
 	uint32_t offset = __vstart_addr; // ToDo: Larger VRAM
 	uint32_t lo = __line_offset * ((is_single_layer) ? 8 : 4);
 	uint32_t hscroll_mask = (__line_offset == 256) ? (lo - 1) : 0xffffffff;
 	uint32_t hskip_pixels;
+	uint32_t magx = zoom_factor_horiz[l];
+
+	#if 1
+	int hoffset   = haj[l] - hstart_position;
+	int bit_shift = 0;
+	__UNLIKELY_IF(horiz_offset_tmp[l] >= 0) {
+		bit_shift = -horiz_skip_tmp[l];
+	} else {
+		bit_shift = -horiz_offset_tmp[l];
+	}
+	#else
+	int bit_shift = max(0, horiz_skip_tmp[l]);
+	int hoffset = max(0, horiz_offset_tmp[l]);
+	#endif
+	// FAx
+	// Note: Re-Wrote related by Tsugaru. 20230806 K.O
 	if((is_single_layer) && (l == 0)) {
 		address_mask = 0x0007ffff;
 	}
@@ -2185,10 +2266,10 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	update_horiz_khz();
 	force_recalc_crtc_param(); // Calculate parameter around HSYNC.
 	
-	calc_pixels_lines(); 
-
 	vst1_count = vst1 << 1;
 	vst2_count = vst2 << 1;
+	calc_pixels_lines(); 
+
 	lines_per_frame = vst_reg;
 
 	eet_count = eet;
