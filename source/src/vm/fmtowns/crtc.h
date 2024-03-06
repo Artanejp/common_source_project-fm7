@@ -226,12 +226,12 @@ protected:
 	uint16_t hds[2];
 	uint16_t hde[2];
 	uint16_t haj[2];
-	int hstart_reg[2];
-	int hend_reg[2];
-	int vstart_reg[2];
-	int vend_reg[2];
-	uint16_t hwidth_reg[2];
-	uint16_t vheight_reg[2];
+	int hstart_val[2];
+	int hbitshift_val[2];
+	int hoffset_val[2];
+	int hwidth_val[2];
+	int voffset_val[2];
+	int vheight_val[2];
 
 	uint8_t crtc_ch;         // I/O 0440H
 	bool timing_changed[2];
@@ -260,6 +260,7 @@ protected:
 	uint16_t eet_count;
 	uint16_t lines_per_frame_current;
 	int hst[4], vst[4];
+	int voffset[4][2];
 
 	double horiz_us_next; // (HST + 1) * clock
 	double horiz_width_posi_us_next, horiz_width_nega_us_next; // HSW1, HSW2
@@ -275,17 +276,12 @@ protected:
 	double frames_per_sec;
 
 	uint32_t vstart_addr[2];  // VSTART ADDRESS
-    uint32_t hstart_words[2]; // HSTART ((HDS[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
-    uint32_t hend_words[2];   // HEND   ((HDE[01] * clock) : Horizonal offset words (Related by ZH[01]). Maybe 0.
 	uint32_t frame_offset[2]; // FOx.
 	uint32_t line_offset[2]; // LOx.
 
 	uint32_t frame_offset_bak[2]; // FOx(Backup).
 
 	uint32_t head_address[2];
-	int horiz_offset_tmp[2];
-	int horiz_skip_tmp[2];
-	int vert_offset_tmp[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
 	uint8_t priority_cache;
@@ -308,6 +304,7 @@ protected:
 	int pixels_per_line;
 	int lines_per_frame;
 	int max_lines;
+	int hstart_position;
 
 	int vert_line_count; // Not separate per layer.Total count.
 	// Note: To display to real screen, use blending of OpenGL/DirectX
@@ -380,12 +377,15 @@ protected:
 	virtual void __FASTCALL update_regs_v(const int layer);
 	virtual void calc_pixels_lines();
 
+	void reset_paletts();
+
 	void reset_vsync();
 	void __FASTCALL set_vsync(bool val);
 	virtual void force_recalc_crtc_param(void);
 	virtual bool calc_screen_parameters(void);
 	void __FASTCALL calc_zoom_regs(uint16_t val);
 	virtual void set_crtc_parameters_from_regs();
+	virtual void __FASTCALL calc_width_and_hstart(bool is_single, int max_pixels, int& hstart_p, int& hwidth_p);
 
 	virtual void restart_display();
 	virtual void stop_display();
