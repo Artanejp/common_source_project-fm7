@@ -386,6 +386,7 @@ protected:
 	void __FASTCALL calc_zoom_regs(uint16_t val);
 	virtual void set_crtc_parameters_from_regs();
 	virtual void __FASTCALL calc_width_and_hstart(bool is_single, int max_pixels, int& hstart_p, int& hwidth_p);
+	virtual void __FASTCALL recalc_width_by_clock(const uint32_t magx, int64_t& width, int& hoffset_p, int64_t& hbitshift_p);
 
 	virtual void restart_display();
 	virtual void stop_display();
@@ -411,6 +412,7 @@ protected:
 	virtual uint8_t __FASTCALL get_apalette_r();
 	virtual uint8_t __FASTCALL get_apalette_g();
 
+	
 	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
 	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
