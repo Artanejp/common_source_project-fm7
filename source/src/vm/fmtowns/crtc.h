@@ -385,8 +385,9 @@ protected:
 	virtual bool calc_screen_parameters(void);
 	void __FASTCALL calc_zoom_regs(uint16_t val);
 	virtual void set_crtc_parameters_from_regs();
-	virtual void __FASTCALL calc_width_and_hstart(bool is_single, int max_pixels, int& hstart_p, int& hwidth_p);
-	virtual void __FASTCALL recalc_width_by_clock(const uint32_t magx, int64_t& width, int& hoffset_p, int64_t& hbitshift_p);
+	virtual void __FASTCALL calc_width(const bool is_single, int64_t& hwidth_p);
+	virtual void __FASTCALL recalc_width_by_clock(const uint32_t magx, int64_t& width);
+	virtual void __FASTCALL recalc_offset_by_clock(const uint32_t magx, int& hoffset_p, int64_t& hbitshift_p);
 
 	virtual void restart_display();
 	virtual void stop_display();

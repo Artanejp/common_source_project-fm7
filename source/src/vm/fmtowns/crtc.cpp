@@ -420,7 +420,8 @@ void TOWNS_CRTC::update_regs_v(const int layer)
 		break;
 	}
 	__UNLIKELY_IF(horiz_khz < 16) {
-		vheight_tmp = vheight_tmp * 2;
+		vheight_tmp <<= 1;
+		voffset_tmp <<= 1;
 	}
 //	__LIKELY_IF(frame_offset[layer] == 0) {
 //		vheight_tmp = vheight_tmp / 2;
@@ -443,39 +444,37 @@ void TOWNS_CRTC::update_regs_h(const int layer)
 	hde[layer] = regs[(layer * 2) + TOWNS_CRTC_REG_HDE0] & 0x07ff;
 	haj[layer] = regs[(layer * 4) + TOWNS_CRTC_REG_HAJ0] & 0x07ff;
 
-	int hstart_tmp = (int)(max(haj[layer], hds[layer]));
+	int hstart_tmp = (int)(min(haj[layer], hds[layer]));
 	int hwidth_tmp = max(0, (int)(hde[layer]) - (int)(hds[layer]));
-	int hoff_tmp = max(0, (int)(haj[layer]) - (int)(hds[layer]));
-	int hbitshift_tmp = max(0, (int)(hds[layer]) - (int)(haj[layer]));
+	int hoff_tmp = (int)(max(haj[layer], hds[layer]));
+	int hbitshift_tmp = 0;
 
+	__LIKELY_IF(hds[layer] > haj[layer]) {
+		hbitshift_tmp = (int)(hds[layer] - haj[layer]);
+	}
 	switch(clksel) {
 	case 0x00: // 28.6363MHz
-		hstart_tmp = (hstart_tmp - 0x0129) >> 1;
-		hoff_tmp >>= 1;
-		hbitshift_tmp >>= 1;
+		hoff_tmp = (hoff_tmp - 0x0129) >> 1;
 		break;
 	case 0x01:
 		__UNLIKELY_IF(hst_reg == 0x031f) {
-			hstart_tmp -= 0x008a;
+			hoff_tmp -= 0x008a;
 		} else {
-			hstart_tmp = (hstart_tmp - 0x00e7) >> 1;
-			hoff_tmp >>= 1;
-			hbitshift_tmp >>= 1;
+			hoff_tmp = (hoff_tmp - 0x00e7) >> 1;
 		}
 		break;
 	case 0x02:
-		hstart_tmp = hstart_tmp - 0x008a;
+		hoff_tmp -= 0x008a;
 		break;
 	case 0x03:
 		__LIKELY_IF(hst_reg != 0x029d) {
-			hstart_tmp = hstart_tmp - 0x009c;
+			hoff_tmp -= 0x009c;
 		} else {
-			hstart_tmp = hstart_tmp - 0x008a;
+			hoff_tmp -= 0x008a;
 		}
-		//vheight_tmp >>= 1;
 		break;
 	default:
-		hstart_tmp = 0;
+		hoff_tmp = 0;
 		break;
 	}
 	// Width
@@ -485,63 +484,61 @@ void TOWNS_CRTC::update_regs_h(const int layer)
 	hoffset_val[layer]  = hoff_tmp;
 }
 
-void TOWNS_CRTC::recalc_width_by_clock(const uint32_t magx, int64_t& width, int& hoffset_p, int64_t& hbitshift_p)
+void TOWNS_CRTC::recalc_offset_by_clock(const uint32_t magx, int& hoffset_p, int64_t& hbitshift_p)
 {
-	width = width << 16;
+	uint32_t magxx = magx;
+	__UNLIKELY_IF(magx == 0) {
+		magxx = 1;
+	}
+	__UNLIKELY_IF(horiz_khz < 16) {
+		hbitshift_p = ((hbitshift_p << 16) / (magxx * 2)) >> 16;
+		hoffset_p = ((hoffset_p << 16) / (magxx * 2)) >> 16;
+	} else {
+		hbitshift_p = ((hbitshift_p << 16) / magxx) >> 16;
+		hoffset_p = ((hoffset_p << 16) / magxx) >> 16;
+	}
+}
+		
+void TOWNS_CRTC::recalc_width_by_clock(const uint32_t magx, int64_t& width)
+{
 	__UNLIKELY_IF(horiz_khz < 16) {
 		width = width / 2;
-		hoffset_p /= 2;
-		hbitshift_p = hbitshift_p << 16;
-		__LIKELY_IF(magx > 0) {
-			hbitshift_p = hbitshift_p / (magx * 2);
-		} else {
-			hbitshift_p = hbitshift_p / 2;
-		}
 	} else {
-		__UNLIKELY_IF((clksel == 3) && (hst_reg == 0x029d) && (magx >= 5)) {
-			width = (width * magx) / 4;
-			hbitshift_p = ((hbitshift_p << 16) * magx) / 4;
-			__UNLIKELY_IF(width > (640 << 16)) {
-				width = 640 << 16;
-			}
-			//__LIKELY_IF(hoffset_p > 640) {
-			//	hoffset_p = 640;
-			//}
-		} else {
-			hbitshift_p = hbitshift_p << 16;
-			__LIKELY_IF(magx > 0) {
-				//hoffset_p = (hoffset_p << 16) / magx;
-				hbitshift_p =  hbitshift_p / magx;
+		// From Tsugaru: 
+		// VING games use this settings.  Apparently zoom-x needs to be interpreted as 4+(pageZoom&15).
+		// Chase HQ        HST=029DH  ZOOM=1111H  Zoom2X=5
+		// Viewpoint       HST=029DH  ZOOM=1111H  Zoom2X=5
+		// Pu Li Ru La     HST=029DH  ZOOM=1111H  Zoom2X=5
+		// Splatter House  HST=029DH  ZOOM=1111H  Zoom2X=5
+		// Operation Wolf  N/A
+		// New Zealand Story  N/A
+		// Alshark Opening HST=029DH  ZOOM=0000H  Zoom2X=2
+		// Freeware Collection 8 Oh!FM TOWNS Cover Picture Collection  HST=029DH  ZOOM=0000H  Zoom2X=2
+		__UNLIKELY_IF((clksel == 3) && (hst_reg == 0x029d)) {
+			__LIKELY_IF(magx >= 5) {
+				width = (width * magx) >> 2; // magx / 4
+				__UNLIKELY_IF(width > 640) {
+					width = 640;
+				}
 			}
 		}
 	}
-	width >>= 16;
-
 }
 
 
-void TOWNS_CRTC::calc_width_and_hstart(bool is_single, int max_pixels, int& hstart_p, int& hwidth_p)
+void TOWNS_CRTC::calc_width(const bool is_single, int64_t& hwidth_p)
 {
 	if(is_single) {
-		hstart_p = hstart_val[0];
 		hwidth_p = hwidth_val[0];
-		int hoffset_tmp = hoffset_val[0];
-		int64_t hbitshift_tmp = hbitshift_val[0];
 		uint32_t magx = zoom_factor_horiz[0];
-		int64_t hwidth_tmp = hwidth_p;
-		recalc_width_by_clock(magx, hwidth_tmp, hoffset_tmp, hbitshift_tmp);
-		hwidth_p = hwidth_tmp;
+		recalc_width_by_clock(magx, hwidth_p);
 	} else {
 		int64_t hwidth_tmp[2] = {0};
 		for(int l = 0; l < 2; l++) {
 			uint32_t magx = zoom_factor_horiz[l];
-			int64_t hbitshift_tmp = hbitshift_val[l];
-			int hoffset_tmp  = hoffset_val[l];
-			
 			hwidth_tmp[l] = hwidth_val[l];
-			recalc_width_by_clock(magx, hwidth_tmp[l], hoffset_tmp, hbitshift_tmp);
+			recalc_width_by_clock(magx, hwidth_tmp[l]);
 		}
-		hstart_p = min(hstart_val[0], hstart_val[1]);
 		hwidth_p  = max((int)hwidth_tmp[0], (int)hwidth_tmp[1]);
 	}
 }
@@ -552,9 +549,16 @@ void TOWNS_CRTC::calc_pixels_lines()
 	int _width[2];
 	int _height[2];
 
-	const int pixels_per_line_next = (const int)((hst_reg >> 1) + 1);
+//	const int pixels_per_line_limit = (const int)((hst_reg >> 1) + 1);
 	bool is_single = is_single_mode_for_standard();
-	calc_width_and_hstart(is_single, pixels_per_line_next, hstart_position, pixels_per_line);
+	int64_t pixels_per_line_next;
+	calc_width(is_single, pixels_per_line_next);
+	pixels_per_line = pixels_per_line_next;
+//	__UNLIKELY_IF(pixels_per_line > pixels_per_line_limit) {
+//		pixels_per_line = pixels_per_line_limit;
+//	}
+	
+	// Omit around FO0.
 	if(is_single) {
 		// Single layer
 		max_lines = vheight_val[0];
@@ -2068,7 +2072,7 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	uint32_t lo = __line_offset;
 	uint32_t hscroll_mask = ((lo == 128) || (lo == 256)) ? lo : 0xffffffff;
 	//uint32_t hscroll_mask = 0xffffffff; // ToDo.
-	uint64_t hskip_pixels = 0;
+	int32_t hskip_pixels = 0;
 	uint32_t magx = zoom_factor_horiz[l];
 
 	int hoffset   = hoffset_val[l];
@@ -2081,36 +2085,30 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	}
 
 	uint32_t skip_zoom = magx;
-	__UNLIKELY_IF(skip_zoom == 0) {
-		skip_zoom = 1; // ToDo: Temporally workaround. will fix.
-	}
-	recalc_width_by_clock(skip_zoom, hwidth, hoffset, bit_shift);
-	__LIKELY_IF(bit_shift > 0) {
-		hskip_pixels = bit_shift;
-	}
+	recalc_offset_by_clock(skip_zoom, hoffset, bit_shift);
+	hskip_pixels = bit_shift;
 	uint32_t address_shift;
 	int32_t  hskip_bytes;
 	switch(linebuffers[trans][line].mode[l]) {
 	case DISPMODE_32768:
 		if(is_single_layer) {
 			address_shift = 3; // FM-Towns Manual P.145
-			hskip_bytes = (hskip_pixels >> (16 - 2)) & 0x000ffffe; // 4 bytes per pixel ?
+			hskip_bytes = (hskip_pixels * 4) & 0x000ffffe; // 4 bytes per pixel ?
 		} else {
 			address_shift = 2; // FM-Towns Manual P.145
-			hskip_bytes = hskip_pixels >> (16 - 1) & 0x000ffffe; // 2 bytes per pixel ?
+			hskip_bytes = (hskip_pixels * 2) & 0x000ffffe; // 2 bytes per pixel ?
 		}
 		break;
 	case DISPMODE_256:
 		address_shift = 3; // FM-Towns Manual P.145
-		hskip_bytes = hskip_pixels >> 16; // 1 byte per pixel ?
+		hskip_bytes = hskip_pixels; // 1 byte per pixel ?
 		break;
 	case DISPMODE_16:
 	default:
-		hskip_bytes = hskip_pixels >> (16 + 1); // Default is 16 colors; 0.5 bytes per pixel ?
+		hskip_bytes = hskip_pixels / 2; // Default is 16 colors; 0.5 bytes per pixel ?
 		address_shift = 2; //  Default is 16 colors; FM-Towns Manual P.145		
 		break;
 	}
-	uint32_t shift_mask = (1 << address_shift) - 1;
 
 	//! Note:
 	//! - Below is from Tsugaru, commit 1a442831 .
@@ -2123,22 +2121,17 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	} else {
 		page_offset = sprite_offset;
 	}
-	__UNLIKELY_IF(hwidth < 0) {
-		hwidth = 0;
-	} else if(hwidth > TOWNS_CRTC_MAX_PIXELS) {
-		hwidth = TOWNS_CRTC_MAX_PIXELS;
-	}
-	__UNLIKELY_IF(hoffset > hwidth) {
-		hoffset = hwidth;
-	} else if(hoffset < 0) {
-		hoffset = 0;
-	}
 	uint32_t pixels = hwidth * ((is_single_layer) ? 2 : 1);
+	__UNLIKELY_IF(pixels < 0) {
+		pixels = 0;
+	} else if(pixels > TOWNS_CRTC_MAX_PIXELS) {
+		pixels = TOWNS_CRTC_MAX_PIXELS;
+	}
 	__LIKELY_IF((pixels > 0) && (linebuffers[trans][line].crtout[l] != 0)){
 		__LIKELY_IF(/*(pixels >= magx) && */(magx != 0)){
 			//__UNLIKELY_IF(pixels >= TOWNS_CRTC_MAX_PIXELS) pixels = TOWNS_CRTC_MAX_PIXELS;
 			uint32_t pixels_bak = pixels;
-			linebuffers[trans][line].bitshift[l] =  max(0, hoffset);
+			linebuffers[trans][line].bitshift[l] =  hoffset;
 			linebuffers[trans][line].pixels[l] = pixels;
 			linebuffers[trans][line].mag[l] = magx; // ToDo: Real magnif
 			pixels = ((pixels_bak << 16) / magx) >> 15;
@@ -2214,8 +2207,11 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 				if(is_xwrap) {
 					uint32_t mask_inv = ~hscroll_mask;
 					uint32_t addr_head = (offset & mask_inv) & 0x0007ffff;
-					int tr_bytes0 = (hscroll_mask + (1 << address_shift)) - ((offset + tr_bytes) & hscroll_mask);
+					int tr_bytes0 = (hscroll_mask + 1) - (hscroll_mask & offset);
 					uint32_t offset_0 = addr_head | (offset & hscroll_mask);
+					__UNLIKELY_IF(tr_bytes0 > tr_bytes) {
+						tr_bytes0 = tr_bytes;
+					}
 					int tr_bytes1 = tr_bytes - tr_bytes0;
 					uint32_t offset_1 = addr_head;
 					__LIKELY_IF(tr_bytes0 > 0) {
