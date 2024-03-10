@@ -107,7 +107,9 @@
 #define SIG_TOWNS_CRTC_REGISTER_VALUE	32
 class DEBUGGER;
 namespace FMTOWNS {
-
+	enum {
+		CRTC_BUFFER_NUM = 4,
+	};
 	enum {
 		TOWNS_CRTC_PALETTE_INDEX = 0xff,
 		TOWNS_CRTC_PALETTE_R = 0,
@@ -259,8 +261,8 @@ protected:
 	uint16_t vst2_count;
 	uint16_t eet_count;
 	uint16_t lines_per_frame_current;
-	int hst[4], vst[4];
-	int voffset[4][2];
+	int hst[FMTOWNS::CRTC_BUFFER_NUM], vst[FMTOWNS::CRTC_BUFFER_NUM];
+	int voffset[FMTOWNS::CRTC_BUFFER_NUM][2];
 
 	double horiz_us_next; // (HST + 1) * clock
 	double horiz_width_posi_us_next, horiz_width_nega_us_next; // HSW1, HSW2
@@ -284,8 +286,8 @@ protected:
 	uint32_t head_address[2];
 	bool impose_mode[2]; // OK?
 	bool carry_enable[2]; //OK?
-	uint8_t priority_cache;
-	uint8_t control_cache;
+	uint8_t priority_cache[FMTOWNS::CRTC_BUFFER_NUM];
+	uint8_t control_cache[FMTOWNS::CRTC_BUFFER_NUM];
 
 	uint32_t sprite_offset;
 	int sprite_count;
@@ -339,7 +341,7 @@ protected:
 	// Register 00 : Display mode.
 	// Register 11: Priority mode.
 	bool video_brightness; // false = high.
-	bool is_interlaced[4][2]; // cache values of layuer_is_interlaced().
+	bool is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2]; // cache values of layuer_is_interlaced().
 	// Others.
 	// VRAM CONTROL REGISTER.
 	uint8_t voutreg_num;  // I/O 0448h
@@ -360,9 +362,9 @@ protected:
 	std::atomic<int> render_linebuf;
 	std::atomic<int> display_remain;
 	
-	const int display_linebuf_mask = 3;
+	const int display_linebuf_mask = FMTOWNS::CRTC_BUFFER_NUM - 1;
 
-	__DECL_ALIGNED(32) linebuffer_t linebuffers[4][TOWNS_CRTC_MAX_LINES];
+	__DECL_ALIGNED(32) linebuffer_t linebuffers[FMTOWNS::CRTC_BUFFER_NUM][TOWNS_CRTC_MAX_LINES];
 
 	// Render buffer
 		// ToDo: faster alpha blending.
@@ -450,16 +452,16 @@ protected:
 		crtout[0] = ((data & 0x0c) != 0) ? true : false;
 		crtout[1] = ((data & 0x03) != 0) ? true : false;
 	}
-	constexpr bool is_single_mode_for_standard()
+	constexpr bool is_single_mode_for_standard(const uint8_t control_reg_val)
 	{
-		return (((control_cache & 0x10) == 0) ? true : false);
+		return (((control_reg_val & 0x10) == 0) ? true : false);
 	}
 	inline void __FASTCALL make_dispmode(bool& is_single, int& layer0, int& layer1)
 	{
 		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
 		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
-		uint8_t _ctrl = control_cache;
-		is_single = is_single_mode_for_standard();
+		uint8_t _ctrl = control_cache[render_linebuf & display_linebuf_mask];
+		is_single = is_single_mode_for_standard(_ctrl);
 		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
 		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };
 		static const int modes_by_CR0_multi[4] = { DISPMODE_NONE, DISPMODE_32768, DISPMODE_NONE, DISPMODE_16 };
