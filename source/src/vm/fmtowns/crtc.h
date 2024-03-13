@@ -195,7 +195,7 @@ typedef struct {
 	int32_t pixels[4];
 	int32_t num[4];
 	int32_t  bitoffset[2];
-	uint32_t pad[2];
+	int32_t prev_y[2];
 #pragma pack(pop)
 	// Align of 16 * 32 bits = 512 bits.
 //#pragma pack(push, 16)
