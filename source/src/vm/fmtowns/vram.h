@@ -199,7 +199,7 @@ public:
 		return &(vram[offset2]);
 	}
 	// Transfer VRAM data to CRTC.
-	virtual inline void __FASTCALL get_data_from_vram(const bool is_single, uint32_t offset, uint32_t bytes, uint8_t* dst)
+	virtual inline void __FASTCALL get_data_from_vram(const bool is_single, uint32_t offset, uint32_t bytes, uint8_t* dst, const uint32_t hscroll_mask = 0xffffffff)
 	{
 		__UNLIKELY_IF((bytes == 0) || (dst == nullptr)) {
 			return;
@@ -209,19 +209,29 @@ public:
 		}
 		uint32_t addr = offset & TOWNS_VRAM_ADDR_MASK;
 		uint8_t* p = dst;
-		bool is_wrap = ((addr + bytes) > (TOWNS_VRAM_ADDR_MASK + 1)) ? true : false;
+		bool is_wrap = false;
+		__LIKELY_IF(hscroll_mask >= TOWNS_VRAM_ADDR_MASK) {
+			is_wrap = ((addr + bytes) > (TOWNS_VRAM_ADDR_MASK + 1)) ? true : false;
+		} else {
+			is_wrap = (((addr & hscroll_mask) + bytes) > hscroll_mask) ? true :  false;
+		}
 		__UNLIKELY_IF(is_wrap) {
-			uint32_t bytes0 = (TOWNS_VRAM_ADDR_MASK + 1) - addr;
-			uint32_t bytes1 = (addr + bytes) - (TOWNS_VRAM_ADDR_MASK + 1);
+			uint32_t head_mask = ~hscroll_mask;
+			uint32_t bytes0 = ((hscroll_mask + 1) - (addr & hscroll_mask));
+			__UNLIKELY_IF(bytes0 > bytes) {
+				bytes0 = bytes;
+			}
+			uint32_t bytes1 = bytes - bytes0;
 			uint8_t* p0 = dst;
 			uint8_t* p1 = &(dst[bytes0]);
+			uint32_t addr_head = addr & head_mask;
 			lock();
 			if(is_single) {
 				transfer_data_from_single_page(addr, bytes0, p0);
-				transfer_data_from_single_page(0, bytes1, p1);
+				transfer_data_from_single_page(addr_head, bytes1, p1);
 			} else {
 				transfer_data_from_double_pages(addr, bytes0, p0);
-				transfer_data_from_double_pages(0, bytes1, p1);
+				transfer_data_from_double_pages(addr_head, bytes1, p1);
 			}
 			unlock();
 		} else {

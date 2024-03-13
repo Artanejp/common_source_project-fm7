@@ -111,6 +111,10 @@ namespace FMTOWNS {
 		CRTC_BUFFER_NUM = 4,
 	};
 	enum {
+		NOT_LOOP = 0,
+		IS_LOOP = 255
+	};
+	enum {
 		TOWNS_CRTC_PALETTE_INDEX = 0xff,
 		TOWNS_CRTC_PALETTE_R = 0,
 		TOWNS_CRTC_PALETTE_G,
@@ -158,7 +162,7 @@ namespace FMTOWNS {
 		DISPMODE_256,
 		DISPMODE_32768,
 		DISPMODE_16,
-		DISPMODE_DUP = 0x100,
+		DISPMODE_DUP = 0x80,
 	};
 	enum {
 		VOUTREG_CTRL = 0,
@@ -176,25 +180,31 @@ typedef struct {
 	scrntype_t pixels[256];
 } palette_backup_t;
 // May align to be faster.
-#pragma pack(push, 4)
+
 typedef struct {
-	int32_t mode[4];
-	int32_t pixels[4];
-	int32_t mag[4];
-	int32_t num[4];
-	uint32_t prio_dummy;
 #pragma pack(push, 1)
+	// 32 * 4
+	uint8_t mode[4];
+	uint8_t is_hloop[4];
+	int8_t mag[4];
 	uint8_t r50_planemask[2]; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t crtout[2];
 #pragma pack(pop)
-	int32_t  bitshift[2];
-	uint32_t pad;
-	// Align of 4 * (4 + 1 + 3) = 4 * 8 [bytes] = 256 [bits]
-	__DECL_ALIGNED(16) uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
-	__DECL_ALIGNED(16) palette_backup_t palettes[2];
+#pragma pack(push, 4)
+	// 32 * 12
+	int32_t pixels[4];
+	int32_t num[4];
+	int32_t  bitoffset[2];
+	uint32_t pad[2];
+#pragma pack(pop)
+	// Align of 16 * 32 bits = 512 bits.
+//#pragma pack(push, 16)
+	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
+	palette_backup_t palettes[2];
+//#pragma pack(pop)
 	// pixels_lauyer[][] : 1024 * 2 * 8 = 1024 * 16 [bytes]
 } linebuffer_t;
-#pragma pack(pop)
+
 
 
 class TOWNS_VRAM;
@@ -295,6 +305,8 @@ protected:
 	int32_t sprite_zoom;
 	int32_t sprite_zoom_factor;
 	
+	uint8_t zoom_raw_vert[2];
+	uint8_t zoom_raw_horiz[2];
 	uint8_t zoom_factor_vert[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_factor_horiz[2]; // Related display resolutions of two layers and zoom factors.
 	uint8_t zoom_count_vert[2];
@@ -424,7 +436,7 @@ protected:
 	virtual void __FASTCALL transfer_line(int layer, int line);
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
 
-	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1);
+	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
 
 	virtual void begin_of_display();
 	inline void update_vstart(const int layer)
