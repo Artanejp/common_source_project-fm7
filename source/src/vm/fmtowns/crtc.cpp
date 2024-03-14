@@ -152,6 +152,7 @@ void TOWNS_CRTC::reset()
 	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
 	set_crtc_parameters_from_regs();
 	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
+	begin_of_display();
 	
 	for(int i = 0; i <= display_linebuf_mask; i++) {
 		hst[i] = pixels_per_line;
@@ -234,6 +235,19 @@ void TOWNS_CRTC::set_vsync(bool val)
 	vsync = val;
 	if(vsync_bak != val) {
 		write_signals(&outputs_int_vsync, (val) ? 0x00000000 : 0xffffffff);
+		if(!(val)) {
+			sprite_offset = get_sprite_offset();
+			// Start sprite tranferring when VSYNC has asserted.
+			// This is temporally working, not finally.
+			// - 2024314 K.O
+			__LIKELY_IF(d_sprite != NULL) {
+				//! Note:
+				//! - Below is from Tsugaru, commit 1a442831 .
+				//! - I wonder sprite offset effects every display mode at page1.
+				//! - -- 20230715 K.O
+				d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
+			}
+		}
 	}
 }
 void TOWNS_CRTC::restart_display()
@@ -786,22 +800,54 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 	}
 	break;
 	case TOWNS_CRTC_REG_FA0:
+		#if 0
+		out_debug_log(_T("FA0 changed to 0x%04x; V=%d VST1=%d VST2=%d\n    VSYNC=%s HSYNC=%s HDISP0=%s FRAME IN=%s"),
+					  data,
+					  get_cur_vline(),
+					  vst1,
+					  vst2,
+					  (vsync) ? _T("ON ") : _T("OFF"),
+					  (hsync) ? _T("ON ") : _T("OFF"),
+					  (hdisp[0]) ? _T("ON ") : _T("OFF"),
+					  (frame_in[0]) ? _T("ON ") : _T("OFF")
+			);
+		out_debug_log(_T("    HDS0=%04x HAJ0=%04x HDE0=%04x"),
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDS0],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HAJ0],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDE0]);
 		update_vstart(0);
+		#endif
 		break;
 	case TOWNS_CRTC_REG_FA1:
+		#if 0
+		out_debug_log(_T("FA1 changed to 0x%04x; V=%d VST1=%d VST2=%d\n    VSYNC=%s HSYNC=%s HDISP1=%s FRAME IN=%s"),
+					  data,
+					  get_cur_vline(),
+					  vst1,
+					  vst2,
+					  (vsync) ? _T("ON ") : _T("OFF"),
+					  (hsync) ? _T("ON ") : _T("OFF"),
+					  (hdisp[1]) ? _T("ON ") : _T("OFF"),
+					  (frame_in[1]) ? _T("ON ") : _T("OFF")
+			);
+		out_debug_log(_T("    HDS1=%04x HAJ1=%04x HDE1=%04x"),
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDS1],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HAJ1],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDE1]);
 		update_vstart(1);
+		#endif
 		break;
 	case TOWNS_CRTC_REG_HAJ0:
 	case TOWNS_CRTC_REG_FO0:
 		break;
 	case TOWNS_CRTC_REG_LO0:
-		update_line_offset(0);
+		//update_line_offset(0);
 		break;
 	case TOWNS_CRTC_REG_HAJ1:
 	case TOWNS_CRTC_REG_FO1:
 		break;
 	case TOWNS_CRTC_REG_LO1:
-		update_line_offset(1);
+		//update_line_offset(1);
 		break;
 	break;
 	case TOWNS_CRTC_REG_EHAJ:
@@ -2095,7 +2141,8 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 		linebuffers[trans][line].crtout[realpage] =
 			(disp) ? 0xff : 0x00;
 	}
-	switch(linebuffers[trans][line].mode[layer]) {
+	// Copy (sampling) palettes
+	switch(linebuffers[trans][line].mode[layer] & ~(DISPMODE_DUP)) {
 	case DISPMODE_256:
 		memcpy(&(linebuffers[trans][line].palettes[layer].raw[0][0]), &(apalette_256_rgb[0][0]), sizeof(uint8_t) * 256 * 4); // Copy RAW
 		memcpy(&(linebuffers[trans][line].palettes[layer].pixels[0]), &(apalette_256_pixel[0]), sizeof(scrntype_t) * 256); // Copy Pixels
@@ -2110,6 +2157,7 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 		break;
 	}
 	// Fill by skelton colors;
+	#if 0
 	uint32_t *p = (uint32_t*)(&(linebuffers[trans][line].pixels_layer[layer][0]));
 	__DECL_ALIGNED(16) pair32_t pix[8];
 	__UNLIKELY_IF(!(to_disp[layer])) {
@@ -2133,6 +2181,7 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 			p += 8;
 		}
 	}
+	#endif
 }
 
 void TOWNS_CRTC::transfer_line(int layer, int line)
@@ -2140,7 +2189,6 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	int l = layer;
 	bool to_disp = true; // Dummy
 	static const uint32_t address_add[2] =  {0x00000000, 0x00040000};
-	uint8_t page_16mode = r50_pagesel;
 	uint8_t ctrl, prio;
 	int trans = render_linebuf.load() & display_linebuf_mask;
 
@@ -2207,7 +2255,7 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	//! - -- 20230715 K.O
 	uint32_t page_offset;
 	if(l == 0) {
-		page_offset = ((page_16mode != 0) ? 0x20000 : 0);
+		page_offset = ((r50_pagesel != 0) ? 0x20000 : 0);
 	} else {
 		page_offset = sprite_offset;
 	}
@@ -2356,17 +2404,12 @@ void TOWNS_CRTC::begin_of_display()
 	priority_cache[trans] = video_out_regs[FMTOWNS::VOUTREG_PRIO];
 	control_cache[trans] = video_out_regs[FMTOWNS::VOUTREG_CTRL];
 
-
 	calc_zoom_regs(regs[TOWNS_CRTC_REG_ZOOM]);
 	set_crtc_parameters_from_regs();
 	for(int layer = 0; layer < 2; layer++) {
 		horiz_start_us[layer] = horiz_start_us_next[layer];
 		horiz_end_us[layer] = horiz_end_us_next[layer];
 	}
-//	for(int i = 0; i < 2; i++) {
-//		update_vstart(i);	
-//		update_line_offset(i);
-//	}
 	
 	vst[trans] = max_lines;
 	hst[trans] = pixels_per_line;
@@ -2380,7 +2423,6 @@ void TOWNS_CRTC::begin_of_display()
 		is_interlaced[trans][i] = layer_is_interlaced(i);
 	}
 
-	csp_vector8<uint16_t> dat((const uint16_t)0x0000);
 	for(int yy = 0; yy < vst[trans]; yy++) {
 		for(int i = 0; i < 2; i++) {
 			// Maybe initialize.
@@ -2392,12 +2434,6 @@ void TOWNS_CRTC::begin_of_display()
 			linebuffers[trans][yy].crtout[i] = 0;
 			linebuffers[trans][yy].bitoffset[i] = 0;
 			linebuffers[trans][yy].prev_y[i] = -1;
-			
-//			uint16_t* p = (uint16_t*)(&(linebuffers[trans][yy].pixels_layer[i][0]));
-//			for(int xx = 0; xx < (TOWNS_CRTC_MAX_PIXELS / 8); xx++) {
-//				dat.store_aligned(p);
-//				p += 8;
-//			}
 		}
 	}
 	// Check whether Interlaced.
@@ -2418,7 +2454,12 @@ void TOWNS_CRTC::event_pre_frame()
 		update_vstart(i);	
 		update_line_offset(i);
 	}
-	//vsync = false;
+	display_linebuf = render_linebuf.load();
+	__LIKELY_IF(display_enabled) {
+		render_linebuf++;
+		render_linebuf &= display_linebuf_mask;
+	}
+
 	/*!<
 	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).
 	 以下、FM Towns Technical data book (「赤本」)の Section 4.7 「CRTC周辺のハードウエアの仕組み」による。
@@ -2461,9 +2502,9 @@ void TOWNS_CRTC::event_pre_frame()
 				VLINE >  VDEx : レイヤーx表示不可。
 	 ---- こんなんでましたけど(´・ω・｀) ---- 
 	*/
-//	render_linebuf = (render_linebuf + 1) & display_linebuf_mask; // Incremant per vstart
 	recalc_cr0(regs[TOWNS_CRTC_REG_DISPMODE], false);
 	make_dispmode(is_single_layer, real_display_mode[0], real_display_mode[1]);
+	begin_of_display();
    
 	// Reset VSYNC
 	vert_line_count = -1;
@@ -2474,7 +2515,13 @@ void TOWNS_CRTC::event_pre_frame()
 	reset_vsync(); // Auto interrupt off.
 }
 
-
+uint32_t TOWNS_CRTC::get_sprite_offset()
+{
+	if(d_sprite != NULL) {
+		return (d_sprite->read_signal(SIG_TOWNS_SPRITE_BANK) != 0) ? 0x20000 : 0x00000;
+	}
+	return 0x00000;
+}
 void TOWNS_CRTC::event_frame()
 {
 	// Clear all frame buffer (of this) every turn.20230716 K.O
@@ -2483,11 +2530,6 @@ void TOWNS_CRTC::event_frame()
 	
 	display_enabled = display_enabled_pre;
 	
-	display_linebuf = render_linebuf.load();
-	__LIKELY_IF(display_enabled) {
-		render_linebuf++;
-		render_linebuf &= display_linebuf_mask;
-	}
 	priority_cache[render_linebuf] = video_out_regs[FMTOWNS::VOUTREG_PRIO];
 	control_cache[render_linebuf] = video_out_regs[FMTOWNS::VOUTREG_CTRL];
 
@@ -2498,8 +2540,8 @@ void TOWNS_CRTC::event_frame()
 	display_linebuf = (render_linebuf.load() - display_linebuf_mask) & display_linebuf_mask;
 	}
 */
+
 	__LIKELY_IF(vst1_count >= vst2_count) {
-		begin_of_display();
 		hsync = true;
 		set_vsync(true);
 	}	
@@ -2510,15 +2552,7 @@ void TOWNS_CRTC::event_frame()
 		cancel_event_by_id(event_hdisp[layer]);
 	}
 	// Rendering TEXT.
-	sprite_offset = 0;
-	if(d_sprite != NULL) {
-		//! Note:
-		//! - Below is from Tsugaru, commit 1a442831 .
-		//! - I wonder sprite offset effects every display mode at page1.
-		//! - -- 20230715 K.O
-		sprite_offset = (d_sprite->read_signal(SIG_TOWNS_SPRITE_DISP_PAGE1) != 0) ? 0x20000 : 0x00000;
-		d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
-	}
+	sprite_offset = get_sprite_offset();
 }
 
 void TOWNS_CRTC::event_vline(int v, int clock)
@@ -2534,23 +2568,12 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 	}
 	cancel_event_by_id(event_hsync);
 
-	__UNLIKELY_IF(v == 0) {
-		#if 1
-		// Start sprite tranferring when VSYNC has de-asserted.
-		// This is temporally working, not finally.
-		// - 20240102 K.O
-		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
-		}
-		#endif
-	}
 	int __max_lines = max_lines;
 	double usec = 0.0;
 
 	hsync = true;
 	if(v < vst2_count) {
 		__UNLIKELY_IF(v == vst1_count) { // Normally, vst1 < vst2.
-			begin_of_display();
 			set_vsync(true);
 		}
 		usec = horiz_width_nega_us;
@@ -2563,7 +2586,10 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		// Make frame_in[layer]
 		int trans = render_linebuf & display_linebuf_mask;
 		bool is_single_tmp = is_single_mode_for_standard(control_cache[trans]);
+		bool fin_bak[2] = {false};
+		
 		for(int i = 0; i < 2; i++) {
+			fin_bak[i] = frame_in[i];
 			hdisp[i] = false; // HDISP should turn off until HDSx.
 			__LIKELY_IF((v >= vds[i]) && (v <= vde[i]) && (v < lines_per_frame) && (display_enabled)) {
 				__UNLIKELY_IF((is_single_tmp) && (i != 0)) {
@@ -2577,6 +2603,21 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		}
 		__UNLIKELY_IF(v == vst2_count) {
 			set_vsync(false);
+		}
+		// Update vstart (by FAx) and line offset (by LOx) when frame_in[layer] has changed.
+		// -- 20240314 K.O
+		for(int i = 0; i < 2; i++) {
+			__UNLIKELY_IF(fin_bak[i] != frame_in[i]) {
+				update_vstart(i);	
+				update_line_offset(i);
+				recalc_hdisp_from_crtc_params(i, horiz_start_us[i], horiz_end_us[i]);
+				__LIKELY_IF(d_sprite != NULL) {
+					if((i == 0) && !(is_single_layer)) {
+						// Text rendering starts related by LO0. 20240314 K.O
+						d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
+					}
+				}
+			}
 		}
 		// Check frame_in[layer]
 		if(frame_in[0] || frame_in[1]) {

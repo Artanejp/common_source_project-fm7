@@ -27,8 +27,8 @@ void TOWNS_SPRITE::initialize(void)
 	reg_index = 0x0000;
 	frame_out = false;
 	disp_page1 = false;
-	draw_page1 = false;
-	disp_page0 = false;
+	draw_page1 = true;
+	
 	reg_spen = false;
 	reg_addr = 0;
 	memset(reg_data, 0x00, sizeof(reg_data));
@@ -36,6 +36,8 @@ void TOWNS_SPRITE::initialize(void)
 	max_sprite_per_frame = 224;
 	event_busy = -1;
 	page_changed = true;
+
+	is_older_sprite = true;
 
 	register_frame_event(this);
 }
@@ -48,8 +50,7 @@ void TOWNS_SPRITE::reset()
 	reg_hoffset = 0x0000; // REG#04, #05
 	reg_index = 0x0000;
 	disp_page1 = false;
-	draw_page1 = false;
-	disp_page0 = false;
+	draw_page1 = true;
 	reg_spen = false;
 	reg_addr = 0;
 	render_num = 0;
@@ -65,7 +66,9 @@ void TOWNS_SPRITE::reset()
 	page_changed = true;
 
 	memset(reg_data, 0x00, sizeof(reg_data)); // OK?
-
+	is_older_sprite = true;
+	sprite_usec = get_sprite_usec(224);
+	
 	clear_event(this, event_busy);
 
 //	ankcg_enabled = false;
@@ -817,13 +820,7 @@ void TOWNS_SPRITE::write_reg(uint32_t addr, uint32_t data)
 		reg_voffset = ((uint16_t)(reg_data[4]) + (((uint16_t)(reg_data[5] & 0x01)) << 8));
 		break;
 	case 6:
-		{
-			// From Tsugaru
-			bool _bak = disp_page1;
-			disp_page0 = ((data & 0x08) != 0) ? true : false;
-			disp_page1 = ((data & 0x80) != 0) ? true : false;
-			/*if(_bak != disp_page1) */page_changed = true;
-		}
+		reg_data[6] = reg_data[6] & 0x88; // From Tsugaru
 		break;
 	default:
 		break;
@@ -861,8 +858,8 @@ uint8_t TOWNS_SPRITE::read_reg(uint32_t addr)
 		break;
 	case 6:
 		// From Tsugaru
-		val = (disp_page0) ? 0x01 : 0x00;
-		val = val | ((disp_page1) ? 0x10 : 0x00);
+		val = ((reg_data[addr] & 0x08) != 0) ? 0x01 : 0x00;
+		val = val | (((reg_data[addr] & 0x80) != 0) ? 0x10 : 0x00);
 		break;
 	default:
 //		val = 0x00;
@@ -1013,14 +1010,13 @@ bool TOWNS_SPRITE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_tcscat_s(regstr, 1024, sstr);
 
 	memset(sstr, 0x00, sizeof(sstr));
-	my_stprintf_s(sstr, 127, _T("SPRITE:%s LOT=%d NUM=%d\nHOFFSET=%d VOFFSET=%d DISP0=%d DISP1=%d\n")
+	my_stprintf_s(sstr, 127, _T("SPRITE:%s LOT=%d NUM=%d\nHOFFSET=%d VOFFSET=%d DISP_PAGE=%s\n")
 				  , (reg_spen) ? _T("ENABLED ") : _T("DISABLED")
 				  , ((reg_index & 0x3ff) == 0) ? 1024 : (reg_index & 0x3ff)
 				  , render_num
 				  , reg_hoffset
 				  , reg_voffset
-				  , (disp_page0) ? 1 : 0
-				  , (disp_page1) ? 1 : 0
+				  , (read_signal(SIG_TOWNS_SPRITE_BANK) != 0) ? 1 : 0
 		);
 	my_tcscat_s(regstr, 1024, sstr);
 
@@ -1093,9 +1089,13 @@ void TOWNS_SPRITE::check_and_clear_vram()
 		if(render_num > max_sprite_per_frame) {
 			render_num = max_sprite_per_frame;
 		}
-		__LIKELY_IF(d_vram != NULL){
-			uint32_t noffset = (disp_page1) ? 0x40000 : 0x60000;
+		sprite_usec = get_sprite_usec(render_num);
+		__LIKELY_IF(render_num <= 1024) {
 			draw_page1 = disp_page1;
+			disp_page1 = !(disp_page1);
+		}		
+		uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
+		__LIKELY_IF(d_vram != NULL){
 			__LIKELY_IF(render_num <= 1024) {
 				d_vram->lock();
 				pair16_t *p = (pair16_t*)(d_vram->get_vram_address(noffset));
@@ -1130,9 +1130,6 @@ void TOWNS_SPRITE::event_pre_frame()
 	clear_event(this, event_busy);
 
 	sprite_busy = false;
-	if((sprite_enabled) && (render_num <= 0)) {
-		disp_page1 = !(disp_page1);
-	}
 }
 
 
@@ -1172,9 +1169,9 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 				event_callback(EVENT_RENDER, 0);
 				clear_event(this, event_busy);
 				if(render_num > 0) {
-					register_event(this, EVENT_RENDER, 57.0, true, &event_busy);
+					register_event(this, EVENT_RENDER, sprite_usec, true, &event_busy);
 				} else {
-					register_event(this, EVENT_BUSY_OFF, 57.0, false, &event_busy);
+					register_event(this, EVENT_BUSY_OFF, sprite_usec, false, &event_busy);
 				}
 			}
 		}
@@ -1201,17 +1198,18 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	case SIG_TOWNS_SPRITE_BUSY:
 		return (sprite_busy) ? 0xffffffff : 0;
 		break;
-	case SIG_TOWNS_SPRITE_DISP_PAGE0:
-		if(tvram_enabled_bak) {
-			return 0;
-		}
-		return (disp_page0) ? 0xffffffff : 0;
-		break;
 	case SIG_TOWNS_SPRITE_DISP_PAGE1:
 		if(tvram_enabled_bak) {
 			return 0;
 		}
 		return (disp_page1) ? 0xffffffff : 0;
+		break;
+	case SIG_TOWNS_SPRITE_BANK:
+		__LIKELY_IF(sprite_enabled) {
+			return (draw_page1) ? 0xffffffff : 0;
+		} else {
+			return ((reg_data[6] & 0x80) != 0) ? 0xffffffff : 0;
+		}
 		break;
 	case SIG_TOWNS_SPRITE_FRAME_IN:
 		return (frame_out) ? 0x00000000 : 0xffffffff;
@@ -1241,7 +1239,7 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	return 0;
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1262,7 +1260,6 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(reg_index);
 	state_fio->StateValue(reg_voffset);
 	state_fio->StateValue(reg_hoffset);
-	state_fio->StateValue(disp_page0);
 	state_fio->StateValue(disp_page1);
 	state_fio->StateValue(draw_page1);
 
@@ -1276,6 +1273,8 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(max_sprite_per_frame);
 	state_fio->StateValue(tvram_enabled);
 	state_fio->StateValue(tvram_enabled_bak);
+	state_fio->StateValue(is_older_sprite);
+	state_fio->StateValue(sprite_usec);
 
 	state_fio->StateValue(event_busy);
 

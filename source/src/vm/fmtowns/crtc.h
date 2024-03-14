@@ -532,6 +532,8 @@ protected:
 	inline scrntype_t *scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width);
 
 	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
+	uint32_t get_sprite_offset();
+
 public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

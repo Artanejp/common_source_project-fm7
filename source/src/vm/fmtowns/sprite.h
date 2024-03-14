@@ -10,7 +10,7 @@
 
 #define SIG_TOWNS_SPRITE_ENABLED        262
 #define SIG_TOWNS_SPRITE_BUSY           263
-#define SIG_TOWNS_SPRITE_DISP_PAGE0		264
+#define SIG_TOWNS_SPRITE_BANK			264
 #define SIG_TOWNS_SPRITE_DISP_PAGE1		265
 #define SIG_TOWNS_SPRITE_VSYNC          266
 #define SIG_TOWNS_SPRITE_FRAME_IN       SIG_TOWNS_SPRITE_VSYNC
@@ -47,7 +47,6 @@ protected:
 
 	uint16_t reg_voffset;
 	uint16_t reg_hoffset;
-	bool disp_page0;
 	bool disp_page1;
 	bool draw_page1;
 
@@ -63,6 +62,9 @@ protected:
 	bool tvram_enabled_bak;
 
 	bool ankcg_enabled;
+	bool is_older_sprite;
+	double sprite_usec;
+	
 	int event_busy;
 
 	virtual void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
@@ -72,7 +74,15 @@ protected:
 	void check_and_clear_vram();
 	virtual uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
 	virtual void render_text();
-
+	virtual inline double get_sprite_usec(int num)
+	{
+		__LIKELY_IF(!(is_older_sprite)) {
+			int num_limit = max(1024, num);
+			num_limit = min(224, num_limit);
+			return (1.0e6 / 59.94) / ((double)(num_limit * 2)); // OK?
+		}
+		return 57.0;
+	}
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
