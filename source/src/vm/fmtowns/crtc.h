@@ -194,7 +194,7 @@ typedef struct {
 	// 32 * 12
 	int32_t pixels[4];
 	int32_t num[4];
-	int32_t  bitoffset[2];
+	int32_t bitoffset[2];
 	int32_t prev_y[2];
 #pragma pack(pop)
 	// Align of 16 * 32 bits = 512 bits.
@@ -361,8 +361,7 @@ protected:
 	bool crtout[2];              // I/O FDA0H WRITE
 	uint8_t crtout_reg;
 	// End.
-	bool is_single_layer;
-
+	bool is_single_layer[FMTOWNS::CRTC_BUFFER_NUM];
 	//int render_vpoint[2];
 	//
 	// Event IDs. Saved.
@@ -435,6 +434,8 @@ protected:
 	virtual void __FASTCALL pre_transfer_line(int layer, int line);
 	virtual void __FASTCALL transfer_line(int layer, int line);
 	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
+	void __FASTCALL copy_line(const int trans, int layer, const int from_y, const int to_y);
+	virtual void __FASTCALL clear_line(const int trans, int layer, const int y);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
 
