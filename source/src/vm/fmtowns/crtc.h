@@ -356,9 +356,10 @@ protected:
 	bool is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2]; // cache values of layuer_is_interlaced().
 	// Others.
 	// VRAM CONTROL REGISTER.
-	uint8_t voutreg_num;  // I/O 0448h
+	uint8_t voutreg_num;       // I/O 0448h
 	uint8_t video_out_regs[4]; // I/O 044Ah 
-	bool crtout[2];              // I/O FDA0H WRITE
+	bool crtout_towns[2];      // I/O 044AH WRITE (REG #0)
+	bool crtout_fmr[2];        // I/O FDA0H WRITE
 	uint8_t crtout_reg;
 	// End.
 	bool is_single_layer[FMTOWNS::CRTC_BUFFER_NUM];
@@ -462,8 +463,8 @@ protected:
 	}
 	inline void make_crtout_from_fda0h(uint8_t data)
 	{
-		crtout[0] = ((data & 0x0c) != 0) ? true : false;
-		crtout[1] = ((data & 0x03) != 0) ? true : false;
+		crtout_fmr[0] = ((data & 0x0c) != 0) ? true : false;
+		crtout_fmr[1] = ((data & 0x03) != 0) ? true : false;
 	}
 	constexpr bool is_single_mode_for_standard(const uint8_t control_reg_val)
 	{
@@ -495,6 +496,26 @@ protected:
 	inline void set_io_044a(const uint32_t data)
 	{
 		video_out_regs[voutreg_num & 3] = data & 0xff;
+		if((voutreg_num & 3) == FMTOWNS::VOUTREG_CTRL) {
+			make_crtout_from_044a(data);
+		}
+	}
+	inline virtual void update_control_registers(const int trans)
+	{
+		const int num = trans & display_linebuf_mask;
+		priority_cache[num] = video_out_regs[FMTOWNS::VOUTREG_PRIO];
+		control_cache[num] = video_out_regs[FMTOWNS::VOUTREG_CTRL];
+	}
+	inline virtual void make_crtout_from_044a(uint8_t data)
+	{
+		bool is_single = ((data & 0x10) == 0) ? true : false;
+		if(is_single) {
+			crtout_towns[0] = ((data & 0x08) != 0) ? true : false;
+			crtout_towns[1] = false;
+		} else {
+			crtout_towns[0] = ((data & 0x01) != 0) ? true : false;
+			crtout_towns[1] = ((data & 0x04) != 0) ? true : false;
+		}
 	}
 	inline uint8_t get_io_044a()
 	{
