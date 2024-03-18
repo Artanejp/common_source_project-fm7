@@ -78,6 +78,22 @@ public:
 			m_data[i] = p[j];
 		}
 	}
+	constexpr void load2(T* p)
+	{
+		for(size_t i0 = 0, i1 = 1, k = 0; k < 4; i0 += 2, i1 += 2, k++) {
+			m_data[i0] = p[k];
+			m_data[i1] = p[k];
+		}
+	}
+	constexpr void load4(T* p)
+	{
+		for(size_t i0 = 0, i1 = 1, i2 = 2, i3 = 3, k = 0; k < 2; i0 += 4, i1 += 4, i2 += 4, i3 += 4, k++) {
+			m_data[i0] = p[k];
+			m_data[i1] = p[k];
+			m_data[i2] = p[k];
+			m_data[i3] = p[k];
+		}
+	}
 	template <class T2>
 		constexpr void load(T2* p)
 	{
@@ -100,6 +116,24 @@ public:
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j++) {
 			m_data[i] = (T2)(p[j]);
+		}
+	}
+	template <class T2>
+		constexpr void load2(T2* p)
+	{
+		for(size_t i0 = 0, i1 = 1, k = 0; k < 4; i0 += 2, i1 += 2, k++) {
+			m_data[i0] = (T)(p[k]);
+			m_data[i1] = (T)(p[k]);
+		}
+	}
+	template <class T2>
+		constexpr void load4(T2* p)
+	{
+		for(size_t i0 = 0, i1 = 1, i2 = 2, i3 = 3, k = 0; k < 2; i0 += 4, i1 += 4, i2 += 4, i3 += 4, k++) {
+			m_data[i0] = (T)(p[k]);
+			m_data[i1] = (T)(p[k]);
+			m_data[i2] = (T)(p[k]);
+			m_data[i3] = (T)(p[k]);
 		}
 	}
 	// Pointer may be unaligned, or aligned.
@@ -420,13 +454,21 @@ public:
 			m_data[__n] = __val;
 		}
 	}
-	inline void  set(size_t __n, T __val)
+	inline void set(size_t __n, T __val)
 	{
 		m_data[__n] = __val;
 	}
 	inline void reset(size_t __n)
 	{
 		m_data[__n] = (T)0;
+	}
+	constexpr void lshift(const size_t pos, const size_t val)
+	{
+		m_data[pos] <<= val;
+	}
+	constexpr void rshift(const size_t pos, const size_t val)
+	{
+		m_data[pos] >>= val;
 	}
 	constexpr csp_vector8<T>& clamp_upper(const T upper_val)
 	{
