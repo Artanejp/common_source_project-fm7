@@ -1902,9 +1902,9 @@ void TOWNS_CRTC::draw_screen()
 				}
 			}
 		}
-		if(y == 128) {
-			out_debug_log(_T("MIX: %d %d RENDER: %d %d WIDTH:%d %d SCREEN_WIDTH:%d"), do_mix[0], do_mix[1], do_render[0], do_render[1], rendered_words[0], rendered_words[1], width);
-		}
+//		if(y == 128) {
+//			out_debug_log(_T("MIX: %d %d RENDER: %d %d WIDTH:%d %d SCREEN_WIDTH:%d"), do_mix[0], do_mix[1], do_render[0], do_render[1], rendered_words[0], rendered_words[1], width);
+//		}
 		
 		__LIKELY_IF((do_mix[0]) && (do_mix[1])) {
 			if(bitshift[0] > bitshift[1]) {
