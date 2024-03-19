@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "types/system_endians.h"
 #include "types/optimizer_utils.h"
 
 #if !defined(__MINIMUM_ALIGN_LENGTH)
@@ -63,6 +64,41 @@ public:
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] = p[i];
 		}
+	}
+	constexpr void exchange_endian()
+	{
+		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t shadow_data[sizeof(T) * 8];
+		uint8_t *q = (uint8_t *)(&(m_data[0]));
+		
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < sizeof(T) * 8; i++) {
+			shadow_data[i] = q[i];
+		}
+		size_t k = 0;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			uint8_t *r = (uint8_t *)(&(m_data[i]));
+			__DECL_VECTORIZED_LOOP
+			for(size_t j = sizeof(T); j > 0; j--) {
+				r[j - 1] = q[k];
+				k++;
+			}
+		}
+	}		
+	
+	constexpr void load_from_le(uint8_t* p)
+	{
+		load((T*)p);
+		#if defined(__BIG_ENDIAN__)
+		exchange_endian();
+		#endif
+	}
+	constexpr void load_from_be(uint8_t* p)
+	{
+		load((T*)p);
+		#if defined(__LITTLE_ENDIAN__)
+		exchange_endian();
+		#endif
 	}
 	constexpr  void load_limited(T* p, const size_t _limit)
 	{
@@ -646,7 +682,241 @@ public:
 		}
 		shuffle(_p);
 	}
+	template <class T2>
+		inline void make_rgb555(csp_vector8<T2> r ,csp_vector8<T2> g ,csp_vector8<T2> b)
+	{
+		csp_vector8<uint16_t> tmpdata;
+		csp_vector8<uint16_t> rshadow;
+		csp_vector8<uint16_t> gshadow;
+		csp_vector8<uint16_t> bshadow;
 
+		csp_vector8<uint16_t> mask(0x001f);
+		rshadow.get(r);
+		gshadow.get(g);
+		bshadow.get(b);
+		
+		rshadow &= mask;
+		gshadow &= mask;
+		bshadow &= mask;
+		// ToDo: Difference endian.
+		rshadow <<= 10;
+		gshadow <<= 5;
+		
+		tmpdata =  rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+	}
+
+	template <class T2>
+		inline void  make_rgb565(csp_vector8<T2> r ,const csp_vector8<T2> g, csp_vector8<T2> b)
+	{
+		csp_vector8<uint16_t> tmpdata;
+		csp_vector8<uint16_t> rshadow;
+		csp_vector8<uint16_t> gshadow;
+		csp_vector8<uint16_t> bshadow;
+
+		csp_vector8<uint16_t> mask1(0x001f);
+		csp_vector8<uint16_t> mask2(0x003f);
+		rshadow.get(r);
+		gshadow.get(g);
+		bshadow.get(b);
+		
+		rshadow &= mask1;
+		gshadow &= mask2;
+		bshadow &= mask1;
+		// ToDo: Difference endian.
+		rshadow <<= 11;
+		gshadow <<= 5;
+		
+		tmpdata =  rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+	}
+
+	inline void make_rgb565(csp_vector8<uint16_t> r ,csp_vector8<uint16_t> g, csp_vector8<uint16_t> b)
+	{
+		csp_vector8<uint16_t> tmpdata;
+		csp_vector8<uint16_t> rshadow;
+		csp_vector8<uint16_t> gshadow;
+		csp_vector8<uint16_t> bshadow;
+
+		csp_vector8<uint16_t> mask1(0x001f);
+		csp_vector8<uint16_t> mask2(0x003f);
+		
+		rshadow = r;
+		gshadow = g;
+		bshadow = b;
+		
+		rshadow &= mask1;
+		gshadow &= mask2;
+		bshadow &= mask1;
+		// ToDo: Difference endian.
+		rshadow <<= 11;
+		gshadow <<= 5;
+		
+		tmpdata =  rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+		return *this;
+	}
+
+	template <class T2>
+		inline void  make_rgba32(csp_vector8<T2> r ,csp_vector8<T2> g, csp_vector8<T2> b,csp_vector8<T2> a)
+	{
+		csp_vector8<scrntype_t> tmpdata;
+		csp_vector8<scrntype_t> rshadow;
+		csp_vector8<scrntype_t> gshadow;
+		csp_vector8<scrntype_t> bshadow;
+		csp_vector8<scrntype_t> ashadow;
+
+		csp_vector8<scrntype_t> mask;
+
+		mask.fill(255);
+		
+		rshadow.get(r);
+		gshadow.get(g);
+		bshadow.get(b);
+		ashadow.get(a);
+		
+		rshadow &= mask;
+		gshadow &= mask;
+		bshadow &= mask;
+		ashadow &= mask;
+		
+		// ToDo: Difference endian.
+		#if defined(__LITTLE_ENDIAN__)
+		bshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#else
+		rshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#endif
+		
+		tmpdata = ashadow;
+		tmpdata |= rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+	}
+
+	inline void  make_rgba32(csp_vector8<uint8_t> r ,csp_vector8<uint8_t> g, csp_vector8<uint8_t> b, csp_vector8<uint8_t> a)
+	{
+		csp_vector8<scrntype_t> tmpdata;
+		csp_vector8<scrntype_t> rshadow;
+		csp_vector8<scrntype_t> gshadow;
+		csp_vector8<scrntype_t> bshadow;
+		csp_vector8<scrntype_t> ashadow;
+
+		
+		rshadow.get(r);
+		gshadow.get(g);
+		bshadow.get(b);
+		ashadow.get(a);
+		// ToDo: Difference endian.
+		#if defined(__LITTLE_ENDIAN__)
+		bshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#else
+		rshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#endif
+		
+		tmpdata = ashadow;
+		tmpdata |= rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+	}
+
+	inline void  make_rgba32_fast(csp_vector8<uint16_t> r ,csp_vector8<uint16_t> g, csp_vector8<uint16_t> b, csp_vector8<uint16_t> a)
+	{
+		csp_vector8<scrntype_t> tmpdata;
+		csp_vector8<scrntype_t> rshadow;
+		csp_vector8<scrntype_t> gshadow;
+		csp_vector8<scrntype_t> bshadow;
+		csp_vector8<scrntype_t> ashadow;
+
+		rshadow.get(r);
+		gshadow.get(g);
+		bshadow.get(b);
+		ashadow.get(a);
+		// ToDo: Difference endian.
+		#if defined(__LITTLE_ENDIAN__)
+		tmpdata = rshadow;
+		bshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#else
+		rshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#endif
+		
+		tmpdata = ashadow;
+		tmpdata |= rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+	}
+	inline void  make_rgba32_fast(csp_vector8<uint8_t> r ,csp_vector8<uint8_t> g, csp_vector8<uint8_t> b, csp_vector8<uint8_t> a)
+	{
+		csp_vector8<scrntype_t> tmpdata;
+		csp_vector8<scrntype_t> rshadow;
+		csp_vector8<scrntype_t> gshadow;
+		csp_vector8<scrntype_t> bshadow;
+		csp_vector8<scrntype_t> ashadow;
+
+		rshadow.get(r);
+		gshadow.get(g);
+		bshadow.get(b);
+		ashadow.get(a);
+		// ToDo: Difference endian.
+		#if defined(__LITTLE_ENDIAN__)
+		tmpdata = rshadow;
+		bshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#else
+		rshadow <<= 16;
+		gshadow <<= 8;
+		ashadow <<= 24;
+		#endif
+		
+		tmpdata = ashadow;
+		tmpdata |= rshadow;
+		tmpdata |= gshadow;
+		tmpdata |= bshadow;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = tmpdata.at(i);
+		}
+		return *this;
+	}
 	constexpr T operator[](const size_t& __n)
 	{
 		return m_data[__n];
