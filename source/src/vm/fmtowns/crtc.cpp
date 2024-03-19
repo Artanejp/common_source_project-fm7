@@ -1361,11 +1361,32 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
+	__DECL_ALIGNED(32) static const scrntype_t maskdata_transparent[16] = {
+		RGBA_COLOR(0, 0, 0, 0),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255),
+		RGBA_COLOR(255, 255, 255, 255)
+	};	
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
 	uint8_t *p = linebuffers[trans][y].pixels_layer[layer];
 	scrntype_t *q = dst;
-	scrntype_t *r2 = mask;
+	scrntype_t *r2 = (do_alpha) ? NULL : mask;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
 	bool odd_mag = (((magx & 1) != 0) && (magx > 2)) ? true : false;
@@ -1400,8 +1421,6 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	csp_vector8<uint8_t> mbuf;
 	csp_vector8<scrntype_t> sbuf[2];
 	csp_vector8<scrntype_t> abuf[2];
-	__DECL_ALIGNED(32) scrntype_t pmasks_pix[16] = {RGBA_COLOR(255, 255, 255, 255)};
-
 	__DECL_ALIGNED(32) scrntype_t palbuf[16];
 	
 	uint8_t pmask = linebuffers[trans][y].r50_planemask[layer] & 0x0f;
@@ -1413,7 +1432,12 @@ __DECL_VECTORIZED_LOOP
 		palbuf[i] = pal[i];
 	}
 	// Clear palbuf[0]?
-//	palbuf[0] = RGBA_COLOR(0, 0, 0, 255); 
+	if((do_alpha) && (is_transparent)) {
+		palbuf[0] &= RGBA_COLOR(255, 255, 255, 0); // OK?
+	} else if(!is_transparent) {
+		abuf[0].fill(RGBA_COLOR(255, 255, 255, 255));
+		abuf[1].fill(RGBA_COLOR(255, 255, 255, 255));
+	}
 	int k = 0;
 
 	size_t width_tmp1 = pwidth << 1;
@@ -1441,26 +1465,18 @@ __DECL_VECTORIZED_LOOP
 		hlbuf[0] &= mbuf;
 		hlbuf[1] &= mbuf;
 
-		if(is_transparent) {
-			pmasks_pix[0] = RGBA_COLOR(0, 0, 0, 0);
-			palbuf[0] = RGBA_COLOR(0, 0, 0, 0);
-		} else {
-			pmasks_pix[0] = RGBA_COLOR(255, 255, 255, 255);
-//			palbuf[0] = RGBA_COLOR(0, 0, 0, 255);
-		}
-		
 		sbuf[0].lookup(hlbuf[0], palbuf);
 		sbuf[1].lookup(hlbuf[1], palbuf);
 		
-		if(!(do_alpha)) {
-			abuf[0].lookup(hlbuf[0], pmasks_pix);
-			abuf[1].lookup(hlbuf[1], pmasks_pix);
+		if(!(do_alpha) && (is_transparent)) {
+			abuf[0].lookup(hlbuf[0], (scrntype_t*)maskdata_transparent);
+			abuf[1].lookup(hlbuf[1], (scrntype_t*)maskdata_transparent);
 		}			
 		int kbak = k;
 		__LIKELY_IF((((magx << 4) + k) <= width) && !(odd_mag)) {
 			__LIKELY_IF((width_tmp1 >= 16)) {
 				q = scaling_store(q, sbuf, magx, 2, width_tmp1);
-				__LIKELY_IF(!(do_alpha) && (r2 != nullptr)) {
+				__LIKELY_IF(r2 != nullptr) {
 					r2 = scaling_store(r2, abuf, magx, 2, width_tmp2);
 				}
 				k += (16 * magx);
@@ -1482,7 +1498,7 @@ __DECL_VECTORIZED_LOOP
 						__UNLIKELY_IF(k >= width) break;
 					}
 				}
-				__LIKELY_IF((r2 != NULL) && !(do_alpha)) {
+				__LIKELY_IF(r2 != NULL) {
 					for(size_t i = 0; i < 8; i++) {
 						size_t dm = abuf[i0].at(i);
 						for(int j = 0; j < magx_tmp[i]; j++) {
