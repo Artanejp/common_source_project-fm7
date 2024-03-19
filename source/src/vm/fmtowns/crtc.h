@@ -551,7 +551,7 @@ protected:
 			}
 		}
 	}
-	inline scrntype_t *scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width);
+	inline size_t scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
 
 	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
 	uint32_t get_sprite_offset();
@@ -643,23 +643,26 @@ public:
 
 };
 
-inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const int words, size_t& width)
+inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width)
 {
-	__UNLIKELY_IF((dst == NULL) || (src == NULL)) return NULL;
+	__UNLIKELY_IF((dst == NULL) || (src == NULL)) return 0;
 
 	uintptr_t dstval = (uintptr_t)dst;
+	size_t pixels_count = 0;
 	const uintptr_t as = alignof(csp_vector8<scrntype_t>) - 1;
 	__LIKELY_IF((dstval & as) == 0) { // ALIGNED
-		for(int x = 0; (x < words) && (width > 0) ; x++) {
+		for(size_t x = 0; (x < words) && (width > 0) ; x++) {
 			switch(mag) {
 			case 1:
 				__LIKELY_IF(width >= 8) {
 					src[x].store_aligned(dst);
 					dst += 8;
 					width -= 8;
+					pixels_count += 8;
 				} else {
 					src[x].store_limited(dst, width);
 					dst += width;
+					pixels_count += width;
 					width = 0;
 					break;
 				}
@@ -669,9 +672,11 @@ inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrnty
 					src[x].store2_aligned(dst);
 					dst += 16;
 					width -= 16;
+					pixels_count += 16;
 				} else {
 					src[x].store2_limited(dst, width);
 					dst += (2 * width);
+					pixels_count += (2 * width);
 					width = 0;
 					break;
 				}
@@ -681,9 +686,11 @@ inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrnty
 					src[x].store4_aligned(dst);
 					dst += 32;
 					width -= 32;
+					pixels_count += 32;
 				} else {
 					src[x].store4_limited(dst, width);
 					dst += (width * 4);
+					pixels_count += (width * 4);
 					width = 0;
 					break;
 				}
@@ -693,25 +700,29 @@ inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrnty
 					src[x].store_n(dst, mag);
 					dst += (8 * mag);
 					width -= (8 * mag);
+					pixels_count += (8 * mag);
 				} else {
 					src[x].store_n_limited(dst, mag, width);
 					dst += (width * mag);
+					pixels_count += (width * mag);
 					width = 0;
 				}
 				break;
 			}
 		}
 	} else { // Not aligned
-		for(int x = 0; (x < words) && (width > 0) ; x++) {
+		for(size_t x = 0; (x < words) && (width > 0) ; x++) {
 			switch(mag) {
 			case 1:
 				__LIKELY_IF(width >= 8) {
 					src[x].store(dst);
 					dst += 8;
 					width -= 8;
+					pixels_count += 8;
 				} else {
 					src[x].store_limited(dst, width);
 					dst += width;
+					pixels_count += width;
 					width = 0;
 					break;
 				}
@@ -720,10 +731,12 @@ inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrnty
 				__LIKELY_IF(width >= 16) {
 					src[x].store2(dst);
 					dst += 16;
+					pixels_count += 16;
 					width -= 16;
 				} else {
 					src[x].store2_limited(dst, width);
 					dst += (2 * width);
+					pixels_count += (2 * width);
 					width = 0;
 					break;
 				}
@@ -733,9 +746,11 @@ inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrnty
 					src[x].store4(dst);
 					dst += 32;
 					width -= 32;
+					pixels_count += 32;
 				} else {
 					src[x].store4_limited(dst, width);
 					dst += (width * 4);
+					pixels_count += (4 * width);
 					width = 0;
 					break;
 				}
@@ -745,16 +760,18 @@ inline scrntype_t* TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrnty
 					src[x].store_n(dst, mag);
 					dst += (8 * mag);
 					width -= (8 * mag);
+					pixels_count += (8 * mag);
 				} else {
 					src[x].store_n_limited(dst, mag, width);
 					dst += (width * mag);
+					pixels_count += (width * mag);
 					width = 0;
 				}
 				break;
 			}
 		}
 	}
-	return dst;
+	return pixels_count;
 }
 }
 
