@@ -105,7 +105,6 @@ protected:
 		__DECL_ALIGNED(32) uint8_t data_cache[32];
 		for(uint32_t ar = 0; ar < bytes0; ar += 32) {
 			uint32_t ar2 = ar + offset;
-			__DECL_VECTORIZED_LOOP
 			for(uint32_t j = 0; j < 32; j++) {
 				data_cache[j] = vram[ar2 + j];
 			}
@@ -133,7 +132,6 @@ protected:
 		uint8_t* p = dst;
 		for(uint32_t ar = 0; ar < bytes0; ar += 32) {
 			uint32_t ar2 = ar + offset;
-			__DECL_VECTORIZED_LOOP
 			for(uint32_t j = 0; j < 32; j++) {
 				data_cache[j] = vram[calc_single_page_address(ar2 + j)];
 			}
