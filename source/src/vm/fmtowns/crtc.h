@@ -439,6 +439,18 @@ protected:
 	virtual void __FASTCALL clear_line(const int trans, int layer, const int y);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
+	
+	inline ssize_t load_loop(csp_vector8<scrntype_t>& pix, csp_vector8<scrntype_t>& mask,
+							 const size_t xx, const size_t width,
+							 const size_t bitshift, const int words_limit, ssize_t& words_left,
+							 scrntype_t* lbuf, scrntype_t* abuf,
+							 size_t& offset, size_t& xptr, bool& is_got);
+	
+	inline ssize_t load_non_loop(csp_vector8<scrntype_t>& pix, csp_vector8<scrntype_t>& mask,
+								 const size_t xx, const size_t width,
+								 const size_t bitshift, const int words_limit, ssize_t& words_left,
+								 scrntype_t* lbuf, scrntype_t* abuf,
+								 size_t& xptr, bool& is_got);
 
 	virtual void begin_of_display();
 	inline void update_vstart(const int layer)
@@ -773,6 +785,216 @@ inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t>
 	}
 	return pixels_count;
 }
+
+
+inline ssize_t TOWNS_CRTC::load_loop(
+	csp_vector8<scrntype_t>& pix, csp_vector8<scrntype_t>& mask,
+	const size_t xx, const size_t width,
+	const size_t bitshift, const int words_limit, ssize_t& words_left,
+	scrntype_t* lbuf, scrntype_t* abuf,
+	size_t& offset, size_t& xptr, bool& is_got)
+{
+	is_got = false;
+	__UNLIKELY_IF(words_left > words_limit) {
+		words_left = words_limit;
+	}
+	__UNLIKELY_IF((words_left <= 0) || (words_limit <= 0)){
+		return 0;
+	}
+	__LIKELY_IF(words_left >= 8) {
+		if(xx < bitshift) {
+			__LIKELY_IF((xx + 8) <= bitshift) {
+				__LIKELY_IF(lbuf != NULL) {
+					pix.load(&(lbuf[offset]));
+				}
+				__LIKELY_IF(abuf != NULL) {
+					mask.load(&(abuf[offset]));
+				}
+				offset += 8;
+				words_left -= 8;
+				is_got = true;
+			} else {
+				mask.fill(RGBA_COLOR(0, 0, 0, 0));
+				ssize_t lwidth = (ssize_t)width - (ssize_t)(xx + 8);
+				__UNLIKELY_IF(lwidth > words_left) {
+					lwidth = words_left;
+				}
+				__LIKELY_IF(lwidth > 0) {
+					__LIKELY_IF(lbuf != NULL) {
+						pix.load_limited(&(lbuf[offset]), lwidth);
+					}
+					__LIKELY_IF(abuf != NULL) {
+						mask.load_limited(&(abuf[offset]), lwidth);
+					}
+					offset += lwidth;
+					words_left -= lwidth;
+					is_got = true;
+				} else {
+					lwidth = 0;
+				}
+				ssize_t rwidth = 8 - lwidth;
+				__UNLIKELY_IF(rwidth > words_left) {
+					rwidth = words_left;
+				}
+				__LIKELY_IF(rwidth > 0) {
+					__LIKELY_IF(lbuf != NULL) {
+						pix.load_offset(&(lbuf[xptr]), lwidth, rwidth);
+					}
+					__LIKELY_IF(abuf != NULL) {
+						mask.load_offset(&(abuf[xptr]), lwidth, rwidth);
+					}
+					xptr += rwidth;
+					words_left -= rwidth;
+					is_got = true;
+				} else {
+					rwidth = 0;
+				}
+
+			}
+		} else {
+			__UNLIKELY_IF((xptr + words_left) >= words_limit) {
+				words_left = words_limit - xptr;
+			}
+			__LIKELY_IF(words_left > 0) {
+				__LIKELY_IF(words_left >= 8) {
+					__LIKELY_IF(lbuf != NULL) {
+						pix.load(&(lbuf[xptr]));
+					}
+					__LIKELY_IF(abuf != NULL) {
+						mask.load(&(abuf[xptr]));
+					}
+					xptr += 8;
+					words_left -= 8;
+					is_got = true;
+				} else {
+					mask.fill(RGBA_COLOR(0, 0, 0, 0));
+					__LIKELY_IF(lbuf != NULL) {
+						pix.load_limited(&(lbuf[xptr]), words_left);
+					}
+					__LIKELY_IF(abuf != NULL) {
+						mask.load_limited(&(abuf[xptr]), words_left);
+					}
+					xptr += words_left;
+					words_left = 0;
+					is_got = true;
+				}
+			}
+		}
+	} else {
+		if(xx < bitshift) {
+			mask.fill(RGBA_COLOR(0, 0, 0, 0));
+			__UNLIKELY_IF((ssize_t)width <= (ssize_t)(xx + words_left)) {
+				words_left = (ssize_t)width - (ssize_t)xx;
+			}
+			ssize_t lwords = words_left;
+			__UNLIKELY_IF(((xx + words_left) >= bitshift) && (lwords > 0)) {
+				lwords = bitshift - xx;
+			}
+			__LIKELY_IF(lwords > 0) {
+				__LIKELY_IF(lbuf != NULL) {
+					pix.load_limited(&(lbuf[offset]), lwords);
+				}
+				__LIKELY_IF(abuf != NULL) {
+					mask.load_limited(&(abuf[offset]), lwords);
+				}
+				offset += lwords;
+				words_left -= lwords;
+				is_got = true;
+			}
+			__LIKELY_IF(words_left > 0) {
+				__LIKELY_IF(lbuf != NULL) {
+					pix.load_offset(&(lbuf[xptr]), lwords, words_left);
+				}
+				__LIKELY_IF(abuf != NULL) {
+					mask.load_offset(&(abuf[xptr]), lwords, words_left);
+				}
+				xptr += words_left;
+				words_left = 0;
+				is_got = true;
+			}
+		} else {
+			mask.fill(RGBA_COLOR(0, 0, 0, 0));
+			__UNLIKELY_IF((xptr + words_left) >= words_limit) {
+				words_left = words_limit - xptr;
+			}
+			__LIKELY_IF(words_left > 0) {
+				__LIKELY_IF(lbuf != NULL) {
+					pix.load_limited(&(lbuf[xptr]), words_left);
+				}
+				__LIKELY_IF(abuf != NULL) {
+					mask.load_limited(&(abuf[xptr]), words_left);
+				}
+				xptr += words_left;
+				words_left = 0;
+				is_got = true;
+			}
+		}
+	}
+	return words_left;
+}
+
+inline ssize_t TOWNS_CRTC::load_non_loop(
+	csp_vector8<scrntype_t>& pix, csp_vector8<scrntype_t>& mask,
+	const size_t xx, const size_t width,
+	const size_t bitshift, const int words_limit, ssize_t& words_left,
+	scrntype_t* lbuf, scrntype_t* abuf,
+	size_t& xptr, bool& is_got)
+{
+	is_got = false;
+	__UNLIKELY_IF(words_left > words_limit) {
+		words_left = words_limit;
+	}
+	mask.fill(RGBA_COLOR(0, 0, 0, 0));
+	__UNLIKELY_IF((words_left <= 0) || (words_limit <= 0)){
+		return 0;
+	}
+	size_t lwords = words_left;
+	__LIKELY_IF(lwords > 8) {
+		lwords = 8;
+	}
+	__UNLIKELY_IF((xx + lwords) < bitshift) {
+		return words_left;
+	}
+	
+	__UNLIKELY_IF(xx < bitshift) {
+		ssize_t rwords = lwords - ((ssize_t)bitshift - (ssize_t)xx);
+		__LIKELY_IF(rwords > 0) {
+			__LIKELY_IF(lbuf != NULL) {
+				pix.load_offset(&(lbuf[xptr]), lwords - rwords, rwords);
+			}
+			__LIKELY_IF(abuf != NULL) {
+				mask.load_offset(&(abuf[xptr]), lwords - rwords, rwords);
+			}
+			words_left -= rwords;
+			xptr += rwords;
+			is_got = true;
+		}
+	} else {
+		__LIKELY_IF(lwords == 8) {
+			__LIKELY_IF(lbuf != NULL) {
+				pix.load(&(lbuf[xptr]));
+			}
+			__LIKELY_IF(abuf != NULL) {
+				mask.load(&(abuf[xptr]));
+			}
+			words_left -= 8;
+			xptr += 8;
+			is_got = true;
+		} else if(lwords > 0) {
+			__LIKELY_IF(lbuf != NULL) {
+				pix.load_limited(&(lbuf[xptr]), lwords);
+			}
+			__LIKELY_IF(abuf != NULL) {
+				mask.load_limited(&(abuf[xptr]), lwords);
+			}
+			words_left -= lwords;
+			xptr += lwords;
+			is_got = true;
+		}
+	}
+	return words_left;
+}
+
 }
 
 

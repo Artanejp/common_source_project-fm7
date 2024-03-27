@@ -1658,6 +1658,7 @@ inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 // This function does alpha-blending.
 // If CSP support hardware-accelalations, will support.
 // (i.e: Hardware Alpha blending, Hardware rendaring...)
+
 void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1)
 {
 	__UNLIKELY_IF(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
@@ -1705,6 +1706,69 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		size_t xptr0 = 0;
 		size_t xptr1 = 0;
 		// Store BG
+		int mod_x = width & 7;
+		// This is weird.Will Fix (；´Д｀) 20240328 K.O
+		#if 0
+		csp_vector8<scrntype_t> pix0;
+		csp_vector8<scrntype_t> pix1;
+		csp_vector8<scrntype_t> mask_front;
+		csp_vector8<scrntype_t> mask_dummy;
+		csp_vector8<scrntype_t> mask_back;
+		ssize_t words_count0 = words0;
+		ssize_t words_count1 = words1;
+		for(size_t xx = 0; xx < width; xx += 8) {
+			bool is_got0 = false;
+			bool is_got1 = false;
+			pix0.fill(RGBA_COLOR(0, 0, 0, 255));
+			pix1.fill(RGBA_COLOR(0, 0, 0, 255));
+			mask_front.fill(RGBA_COLOR(255, 255, 255, 255));
+			if(do_mix0) {
+				__LIKELY_IF(words_count0 > 0) {
+					if(is_hloop0) {
+						load_loop(pix0, mask_front, xx, width,
+								  bitshift0, words0, words_count0,
+								  lbuffer0, abuffer0,
+								  offset00, xptr0, is_got0);
+					} else {
+						load_non_loop(pix0, mask_front, xx, width,
+									  bitshift0, words0, words_count0,
+									  lbuffer0, abuffer0,
+									  xptr0, is_got0);
+					}
+				}
+			}
+			if(do_mix1) {
+				__LIKELY_IF(words_count1 > 0) {
+					if(is_hloop1) {
+						load_loop(pix1, mask_dummy, xx, width,
+								  bitshift1, words1, words_count1,
+								  lbuffer1, NULL,
+								  offset10, xptr1, is_got1);
+					} else {
+						load_non_loop(pix1, mask_dummy, xx, width,
+									  bitshift1, words1, words_count1,
+									  lbuffer1, NULL,
+									  xptr1, is_got1);
+					}
+				}
+			}
+			__LIKELY_IF((is_got0) && (is_got1)) {
+				mask_back = ~mask_front;
+				pix1 &= mask_back;
+				pix0 &= mask_front;
+				pix0 |= pix1;
+				pix0.store(&(pp[xx]));
+			} else if(is_got0) {
+				pix0.store(&(pp[xx]));
+			} else if(is_got1) {
+				pix1.store(&(pp[xx]));
+			} else {
+				pix0.fill(RGBA_COLOR(0, 0, 0, 255));
+				pix0.store(&(pp[xx]));
+			}
+		}
+		
+		#else
 		scrntype_t pix1;
 		scrntype_t pix0;
 		scrntype_t mask_front;
@@ -1767,6 +1831,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				pp[xx] = pix1;
 			}
 		}
+		#endif
 	}
 }
 
