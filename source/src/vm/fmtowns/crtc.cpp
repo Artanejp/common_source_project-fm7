@@ -1834,24 +1834,39 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			scrntype_t p1;
 			scrntype_t mf;
 			scrntype_t mb;
-			csp_vector8<scrntype_t> pix0;
-			csp_vector8<scrntype_t> pix1;
-			csp_vector8<scrntype_t> mask_front;
-			csp_vector8<scrntype_t> mask_back;
+			csp_vector8<scrntype_t> pix00;
+			csp_vector8<scrntype_t> pix01;
+			csp_vector8<scrntype_t> pix10;
+			csp_vector8<scrntype_t> pix11;
+			csp_vector8<scrntype_t> mask_front0;
+			csp_vector8<scrntype_t> mask_front1;
+			csp_vector8<scrntype_t> mask_back0;
+			csp_vector8<scrntype_t> mask_back1;
 			__LIKELY_IF(bitshift0 == 0) {
-				for(size_t xx = 0; xx < width; xx += 8) {
-					pix0.load_aligned(&(lbuffer0[xx]));
-					pix1.load_aligned(&(pix_cache[xx]));
-					mask_front.load_aligned(&(abuffer0[xx]));
-					mask_back = mask_front;
-					mask_back.negate();
-					pix0 &= mask_front;
-					pix1 &= mask_back;
-					pix0 |= pix1;
-					pix0.store(&(pp[xx]));
+				__LIKELY_IF(width > 15) {
+					for(size_t xx = 0; xx < width; xx += 16) {
+						pix00.load_aligned(&(lbuffer0[xx]));
+						pix01.load_aligned(&(lbuffer0[xx + 8]));
+						pix10.load_aligned(&(pix_cache[xx]));
+						pix11.load_aligned(&(pix_cache[xx + 8]));
+						mask_front0.load_aligned(&(abuffer0[xx]));
+						mask_front1.load_aligned(&(abuffer0[xx + 8]));
+						mask_back0 = mask_front0;
+						mask_back1 = mask_front1;
+						mask_back0.negate();
+						mask_back1.negate();
+						pix00 &= mask_front0;
+						pix01 &= mask_front1;
+						pix10 &= mask_back0;
+						pix11 &= mask_back1;
+						pix00 |= pix10;
+						pix01 |= pix11;
+						pix00.store(&(pp[xx]));
+						pix01.store(&(pp[xx + 8]));
+					}
 				}
-				if((width & 7) != 0) {
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
+				if((width & 15) != 0) {
+					for(size_t xx = (width & ~(15)); xx < width; xx++) {
 						p0 = lbuffer0[xx];
 						mf = abuffer0[xx];
 						p1 = pix_cache[xx];
@@ -1863,19 +1878,30 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 					}
 				}
 			} else {
-				for(size_t xx = 0; xx < width; xx += 8) {
-					pix0.load_aligned(&(pix_cache0[xx]));
-					pix1.load_aligned(&(pix_cache[xx]));
-					mask_front.load_aligned(&(alpha_cache[xx]));
-					mask_back = mask_front;
-					mask_back.negate();
-					pix0 &= mask_front;
-					pix1 &= mask_back;
-					pix0 |= pix1;
-					pix0.store(&(pp[xx]));
+				__LIKELY_IF(width > 15) {
+					for(size_t xx = 0; xx < width; xx += 16) {
+						pix00.load_aligned(&(pix_cache0[xx]));
+						pix01.load_aligned(&(pix_cache0[xx + 8]));
+						pix10.load_aligned(&(pix_cache[xx]));
+						pix11.load_aligned(&(pix_cache[xx + 8]));
+						mask_front0.load_aligned(&(alpha_cache[xx]));
+						mask_front1.load_aligned(&(alpha_cache[xx + 8]));
+						mask_back0 = mask_front0;
+						mask_back1 = mask_front1;
+						mask_back0.negate();
+						mask_back1.negate();
+						pix00 &= mask_front0;
+						pix01 &= mask_front1;
+						pix10 &= mask_back0;
+						pix11 &= mask_back1;
+						pix00 |= pix10;
+						pix01 |= pix11;
+						pix00.store(&(pp[xx]));
+						pix01.store(&(pp[xx + 8]));
+					}
 				}
-				if((width & 7) != 0) {
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
+				if((width & 15) != 0) {
+					for(size_t xx = (width & ~(15)); xx < width; xx++) {
 						p0 = pix_cache0[xx];
 						mf = alpha_cache[xx];
 						p1 = pix_cache[xx];
@@ -1889,206 +1915,20 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			}
 			
 		} else if(got_1) {
-			csp_vector8<scrntype_t> pix;
-			for(size_t xx = 0; xx < width; xx += 8) {
-				pix.load_aligned(&(pix_cache[xx]));
-			}
-			if((width & 7) != 0) {
-				for(size_t xx = (width & ~(7)); xx < width; xx++) {
-					pp[xx] = pix_cache[xx];
-				}
-			}
+			simd_copy(pp, pix_cache, width);
 		} else if(got_0) {
-			csp_vector8<scrntype_t> pix;
 			if(bitshift0 == 0) {
-				for(size_t xx = 0; xx < width; xx += 8) {
-					pix.load_aligned(&(lbuffer0[xx]));
-					pix.store(&(pp[xx]));
-				}
-				if((width & 7) != 0) {
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
-						pp[xx] = lbuffer0[xx];
-					}
-				}
+				simd_copy(pp, lbuffer0, width);
 			} else {
-				for(size_t xx = 0; xx < width; xx += 8) {
-					pix.load_aligned(&(pix_cache0[xx]));
-					pix.store(&(pp[xx]));
-				}
-				if((width & 7) != 0) {
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
-						pp[xx] = pix_cache0[xx];
-					}
-				}
+				simd_copy(pp, pix_cache0, width);
 			}
 		} else {
 			// Clear ONLY
 			if((do_mix0) || (do_mix1)) {
 				csp_vector8<scrntype_t> pix(RGBA_COLOR(0, 0, 0, 255));
-				for(size_t xx = 0; xx < width; xx += 8) {
-					pix.store(&(pp[xx]));
-				}
-				if((width & 7) != 0) {
-					pix.store_limited(&(pp[width & ~(7)]), (size_t)(width & 7));
-				}
+				simd_fill(pp, pix, width);
 			}
 		}
-		#if 0
-		if((do_mix1) || (do_mix0)) {
-			// Clear BG
-			csp_vector8<scrntype_t> bgclean((scrntype_t)RGBA_COLOR(0, 0, 0, 255));
-			for(int xx = 0; xx < width; xx += 8) {
-				bgclean.store(&(pp[xx]));
-			}
-			if((width & 7) != 0) {
-				bgclean.store_limited(&(pp[width & ~(7)]), (const size_t)(width & 7));
-			}
-		}
-		size_t begin_x0, end_x0, begin_x1, end_x1;
-		size_t offset00, offset10;
-		begin_x0 = bitshift0;
-		end_x0 = bitshift0 + words0;
-		begin_x1 = bitshift1;
-		if(is_hloop0) {
-			offset00 = words0 - bitshift0;
-		} else {
-		    offset00 = 0;
-		}
-		if(is_hloop1) {
-			offset10 = words1 - bitshift1;
-		} else {
-		    offset10 = 0;
-		}
-		size_t xptr0 = 0;
-		size_t xptr1 = 0;
-		// Store BG
-		int mod_x = width & 7;
-		// This is weird.Will Fix (；´Д｀) 20240328 K.O
-		#if 0
-		csp_vector8<scrntype_t> pix0;
-		csp_vector8<scrntype_t> pix1;
-		csp_vector8<scrntype_t> mask_front;
-		csp_vector8<scrntype_t> mask_dummy;
-		csp_vector8<scrntype_t> mask_back;
-		ssize_t words_count0 = words0;
-		ssize_t words_count1 = words1;
-		for(size_t xx = 0; xx < width; xx += 8) {
-			bool is_got0 = false;
-			bool is_got1 = false;
-			pix0.fill(RGBA_COLOR(0, 0, 0, 255));
-			pix1.fill(RGBA_COLOR(0, 0, 0, 255));
-			mask_front.fill(RGBA_COLOR(255, 255, 255, 255));
-			if(do_mix0) {
-				__LIKELY_IF(words_count0 > 0) {
-					if(is_hloop0) {
-						load_loop(pix0, mask_front, xx, width,
-								  bitshift0, words0, words_count0,
-								  lbuffer0, abuffer0,
-								  offset00, xptr0, is_got0);
-					} else {
-						load_non_loop(pix0, mask_front, xx, width,
-									  bitshift0, words0, words_count0,
-									  lbuffer0, abuffer0,
-									  xptr0, is_got0);
-					}
-				}
-			}
-			if(do_mix1) {
-				__LIKELY_IF(words_count1 > 0) {
-					if(is_hloop1) {
-						load_loop(pix1, mask_dummy, xx, width,
-								  bitshift1, words1, words_count1,
-								  lbuffer1, NULL,
-								  offset10, xptr1, is_got1);
-					} else {
-						load_non_loop(pix1, mask_dummy, xx, width,
-									  bitshift1, words1, words_count1,
-									  lbuffer1, NULL,
-									  xptr1, is_got1);
-					}
-				}
-			}
-			__LIKELY_IF((is_got0) && (is_got1)) {
-				mask_back = ~mask_front;
-				pix1 &= mask_back;
-				pix0 &= mask_front;
-				pix0 |= pix1;
-				pix0.store(&(pp[xx]));
-			} else if(is_got0) {
-				pix0.store(&(pp[xx]));
-			} else if(is_got1) {
-				pix1.store(&(pp[xx]));
-			} else {
-				pix0.fill(RGBA_COLOR(0, 0, 0, 255));
-				pix0.store(&(pp[xx]));
-			}
-		}
-		
-		#else
-		scrntype_t pix1;
-		scrntype_t pix0;
-		scrntype_t mask_front;
-		for(size_t xx = 0; xx < width; xx++) {
-			bool is_got0 = false;
-			bool is_got1 = false;
-			pix1   = RGBA_COLOR(0, 0, 0, 255);
-			pix0   = RGBA_COLOR(0, 0, 0, 255);
-			mask_front = RGBA_COLOR(255, 255, 255, 255);
-			if(do_mix0) {
-				if(is_hloop0) {
-					if(xx < bitshift0) { // Lower
-						pix0 = lbuffer0[offset00];
-						mask_front = abuffer0[offset00];
-						offset00++;
-						is_got0 = true;
-					} else if((xx >= bitshift0) && (xx < (bitshift0 + words0))) {
-						pix0 = lbuffer0[xptr0];
-						mask_front = abuffer0[xptr0];
-						xptr0++;
-						is_got0 = true;
-					}
-				} else {
-					__LIKELY_IF((xx >= bitshift0) && (xx < (bitshift0 + words0))) {
-						pix0 = lbuffer0[xptr0];
-						mask_front = abuffer0[xptr0];
-						xptr0++;
-						is_got0 = true;
-					}
-				}
-			}
-			if(do_mix1) {
-				if(is_hloop1) {
-					if(xx < bitshift1) { // Lower
-						pix1 = lbuffer1[offset10];
-						offset10++;
-						is_got1 = true;
-					} else if((xx >= bitshift1) && (xx < (bitshift1 + words1))) {
-						pix1 = lbuffer1[xptr1];
-						xptr1++;
-						is_got1 = true;
-					}
-				} else {
-					__LIKELY_IF((xx >= bitshift1) && (xx < (bitshift1 + words1))) {
-						pix1 = lbuffer1[xptr1];
-						xptr1++;
-						is_got1 = true;
-					}
-				}
-			}
-			__LIKELY_IF((is_got0) && (is_got1)) {
-				scrntype_t mask_back = ~(mask_front);
-				pix1 &= mask_back;
-				pix0 &= mask_front;
-				pix0 |= pix1;
-				pp[xx] = pix0;
-			} else if(is_got0) {
-				pp[xx] = pix0;
-			} else if(is_got1) {
-				pp[xx] = pix1;
-			}
-		}
-		#endif
-		#endif
 	}
 }
 
