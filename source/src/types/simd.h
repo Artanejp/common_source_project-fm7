@@ -52,7 +52,7 @@ public:
 	{
 		//clear();
 	}
-	~csp_vector8() {}
+	constexpr ~csp_vector8() {}
 
 	constexpr T at(const size_t& n)
 	{
@@ -1083,43 +1083,31 @@ public:
 
 	constexpr void equals(csp_vector8<bool>& __ret, const csp_vector8<T>& __a)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool m_result[8];
-		__a.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_result[i] = (m_shadow[i] == m_data[i]);
+			__ret.set(i, (__a.at(i) == m_data[i]));
 		}
-		__ret.load_aligned(m_result);
 	}
 	constexpr void equals(csp_vector8<bool>& __ret, const T __a)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool m_result[8];
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_result[i]  = (m_data[i] == __a);
+			__ret.set(i, (m_data[i] == __a));
 		}
-		__ret.load_aligned(m_result);
 	}
 	constexpr void not_equals(csp_vector8<bool>& __ret, const csp_vector8<T>& __a)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool m_result[8];
-		__a.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_result[i]  = (m_data[i] != m_shadow[i]);
+			__ret.set(i, (__a.at(i) != m_data[i]));
 		}
-		__ret.load_aligned(m_result);
 	}
 	constexpr void not_equals(csp_vector8<bool>& __ret, const T __a)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool m_result[8];
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_result[i]  = (m_data[i] != __a);
+			__ret.set(i, (m_data[i] != __a));
 		}
-		__ret.load_aligned(m_result);
 	}
 	constexpr void check_bits(csp_vector8<bool>& __ret, const T& _bitmask)
 	{
@@ -1230,6 +1218,37 @@ template <class T>
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret >>= __shift;
 	return __ret;
+}
+
+template <class T>
+	constexpr csp_vector8<bool>& operator==(csp_vector8<bool>& __a, const csp_vector8<T>& __b)
+{
+	equals(__a, __b);
+	return __a;
+}
+
+template <class T>
+	constexpr csp_vector8<bool>& operator==(csp_vector8<bool>& __a, const T __b)
+{
+	equals(__a, __b);
+	return __a;
+}
+
+template <class T>
+	constexpr csp_vector8<bool>& operator!=(csp_vector8<bool>& __a, const T __b)
+{
+	not_equals(__a, __b);
+	return __a;
+}
+
+template <class T>
+	constexpr csp_vector8<T>& operator~(csp_vector8<T>& __a)
+{
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		__a.set(i, ~(__a.at(i)));
+	}
+	return __a;
 }
 
 // Please include type specified (and MPU specified) templates.
