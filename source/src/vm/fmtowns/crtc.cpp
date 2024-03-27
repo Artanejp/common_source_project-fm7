@@ -1053,7 +1053,7 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 	csp_vector8<scrntype_t> abuf;
 	csp_vector8<bool> pix_transparent;
 	csp_vector8<uint16_t> a2buf;
-	csp_vector8<uint16_t> adummy(255);
+
 	pair16_t ptmp16;
 	int rwidth = pwidth & 7;
 
@@ -1090,26 +1090,14 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 			} else {
 				a2buf.fill(255);
 			}
-			#if defined(_RGB555)
-			sbuf.make_rgb555(rbuf, gbuf, bbuf); // ToDo
-			#elif defined(_RGB565)
-			sbuf.make_rgb565(rbuf, gbuf, bbuf); // ToDo
-			#else
-			sbuf.make_rgba32_fast(rbuf, gbuf, bbuf, a2buf); // ToDo
-			#endif
+			make_rgba_vec8(sbuf, rbuf, gbuf, bbuf, a2buf);
 		} else {
 			if(is_transparent) {
 				abuf.set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
 			} else {
 				abuf.fill(RGBA_COLOR(255, 255, 255, 255));
 			}
-			#if defined(_RGB555)
-			sbuf.make_rgb555(rbuf, gbuf, bbuf); // ToDo
-			#elif defined(_RGB565)
-			sbuf.make_rgb565(rbuf, gbuf, bbuf); // ToDo
-			#else
-			sbuf.make_rgba32_fast(rbuf, gbuf, bbuf, adummy); // ToDo
-			#endif
+			make_rgb_vec8(sbuf, rbuf, gbuf, bbuf); // ToDo
 		}
 		__LIKELY_IF((((magx << 3) + k) <= width) && !(odd_mag)) {
 			size_t __l = 0;
@@ -1187,26 +1175,14 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 //			} else {
 //				a2buf.fill(255);
 //			}
-			#if defined(_RGB555)
-			sbuf.make_rgb555(rbuf, gbuf, bbuf); // ToDo
-			#elif defined(_RGB565)
-			sbuf.make_rgb565(rbuf, gbuf, bbuf); // ToDo
-			#else
-			sbuf.make_rgba32_fast(rbuf, gbuf, bbuf, a2buf); // ToDo
-			#endif
+			make_rgba_vec8(sbuf, rbuf, gbuf, bbuf, a2buf); // ToDo
 		} else {
 //			if(is_transparent) {
 				abuf.set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
 //			} else {
 //				abuf.fill(RGBA_COLOR(255, 255, 255, 255));
 //			}
-			#if defined(_RGB555)
-			sbuf.make_rgb555(rbuf, gbuf, bbuf); // ToDo
-			#elif defined(_RGB565)
-			sbuf.make_rgb565(rbuf, gbuf, bbuf); // ToDo
-			#else
-			sbuf.make_rgba32_fast(rbuf, gbuf, bbuf, adummy); // ToDo
-			#endif
+			make_rgb_vec8(sbuf, rbuf, gbuf, bbuf); // ToDo
 		}
 		if((magx < 2) || !(odd_mag)) {
 			size_t __l = 0;
@@ -2200,7 +2176,7 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 		// ToDo: High resolution.
 		if(layer != 0) {
 			disp = false;
-		} else if((mode_tmp == DISPMODE_16)) {
+		} else if(mode_tmp == DISPMODE_16) {
 			disp = false;
 		}
 	} else {
