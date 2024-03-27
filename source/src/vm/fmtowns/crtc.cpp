@@ -1678,6 +1678,262 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		__UNLIKELY_IF(words1 <= 0) {
 			do_mix1 = false;
 		}
+		// Clear cache
+		csp_vector8<scrntype_t> blank(RGBA_COLOR(0, 0, 0, 255));
+		csp_vector8<scrntype_t> blank_alpha(RGBA_COLOR(0, 0, 0, 0));
+
+		if(do_mix1) {
+			simd_fill(pix_cache, blank, width);
+		}
+		if((do_mix0) && (bitshift0 != 0)) {
+			simd_fill(pix_cache0, blank, width);
+		}
+		bool got_0 = false;
+		bool got_1 = false;
+		__LIKELY_IF(do_mix1) {
+			__UNLIKELY_IF(words1 >= TOWNS_CRTC_MAX_PIXELS) {
+				words1 = TOWNS_CRTC_MAX_PIXELS;
+			}
+			if(is_hloop1) {
+				// COPY 0 to (words)
+				if(bitshift1 == 0) {
+					simd_copy(&(pix_cache[0]), &(lbuffer1[0]), words1);
+					got_1 = true;
+				} else if(bitshift1 < 0) {
+					int x10 = -bitshift1;
+					int w10 = words1 - x10;
+					__LIKELY_IF((x10 >= 0) && (w10 <= words1)){
+						simd_copy(&(pix_cache[0]), &(lbuffer1[x10]), w10);
+						left1 -= w10;
+						got_1 = true;
+					}
+					__LIKELY_IF((left1 > 0) && (w10 >= 0)) {
+						simd_copy(&(pix_cache[w10]), &(lbuffer1[0]), left1);
+						got_1 = true;
+					}
+				} else {
+					int x10 = bitshift1;
+					int w10 = words1 - x10;
+					__LIKELY_IF((x10 >= 0) && (x10 <= words1) && (w10 > 0)){
+						simd_copy(&(pix_cache[x10]), &(lbuffer1[0]), w10);
+						left1 -= w10;
+						got_1 = true;
+					}
+					__LIKELY_IF((left1 > 0) && (x10 >= 0)) {
+						simd_copy(&(pix_cache[0]), &(lbuffer1[w10]), left1);
+						got_1 = true;
+					}
+				}
+			} else {
+				if(bitshift1 == 0) {
+					simd_copy(&(pix_cache[0]), &(lbuffer1[0]), words1);
+					got_1 = true;
+				} else if(bitshift1 < 0) {
+					int x10 = -bitshift1;
+					int w10 = words1;
+					__LIKELY_IF(x10 >= 0) {
+						__UNLIKELY_IF((x10 + w10) >= TOWNS_CRTC_MAX_PIXELS) {
+							w10 = TOWNS_CRTC_MAX_PIXELS - x10;
+						}
+						__LIKELY_IF(w10 > 0) {
+							simd_copy(&(pix_cache[0]), &(lbuffer1[x10]), w10);
+							left1 -= w10;
+							got_1 = true;
+						}
+					}
+				} else {
+					int x10 = bitshift1;
+					int w10 = words1;
+					__LIKELY_IF(x10 >= 0) {
+						__UNLIKELY_IF((x10 + w10) >= TOWNS_CRTC_MAX_PIXELS) {
+							w10 = TOWNS_CRTC_MAX_PIXELS - x10;
+						}
+						__LIKELY_IF(w10 > 0) {
+							simd_copy(&(pix_cache[x10]), &(lbuffer1[0]), w10);
+							left1 -= w10;
+							got_1 = true;
+						}
+					}
+				}
+			}
+		}
+		if((got_1) && (do_mix0)) {
+			simd_fill(alpha_cache, blank_alpha, width);
+		}
+		__LIKELY_IF(do_mix0) {
+			__UNLIKELY_IF(words0 >= TOWNS_CRTC_MAX_PIXELS) {
+				words0 = TOWNS_CRTC_MAX_PIXELS;
+			}
+			
+			if((is_hloop0) && (bitshift0 != 0)) {
+				ssize_t of00 = 0;
+				ssize_t of01 = 0;
+				if(bitshift0 > 0) {
+					of00 = bitshift0;
+					of01 = 0;
+				} else if(bitshift0 < 0) {
+					of00 = 0;
+					of01 = -bitshift0;
+				}
+				ssize_t w00 = words0 - of01;
+				ssize_t w01 = words0 - of00;
+				
+				__LIKELY_IF((of00 < width) && (of01 < width)) {
+					__LIKELY_IF(w00 > 0) {
+						simd_copy(&(pix_cache0[of00]), &(lbuffer0[of01]), w00);
+						if(got_1) {
+							simd_copy(&(alpha_cache[of00]), &(abuffer0[of01]), w00);
+						}
+						got_0 = true;
+					}
+					__LIKELY_IF(w01 > 0) {
+					    simd_copy(&(pix_cache0[of01]), &(lbuffer0[of00]), w01);
+						if(got_1) {
+							simd_copy(&(alpha_cache[of01]), &(abuffer0[of00]), w01);
+						}
+						got_0 = true;
+					}
+				}
+			} else if(bitshift0 != 0) {
+				ssize_t of00 = 0;
+				ssize_t of01 = 0;
+				ssize_t w00 = words0;
+				if(bitshift0 > 0) {
+					of00 = bitshift0;
+					of01 = 0;
+					__UNLIKELY_IF((w00 + of00) >= width) {
+						w00 = width - of00;
+					}
+				} else if(bitshift0 < 0) {
+					of00 = 0;
+					of01 = -bitshift0;
+					__UNLIKELY_IF((w00 + of01) >= width) {
+						w00 = width - of01;
+					}
+				}
+				
+				__LIKELY_IF((of00 < width) && (of01 < width)) {
+					__LIKELY_IF(w00 > 0) {
+						simd_copy(&(pix_cache0[of00]), &(lbuffer0[of01]), w00);
+						if(got_1) {
+							simd_copy(&(alpha_cache[of00]), &(abuffer0[of01]), w00);
+						}
+						words0 = w00;
+						got_0 = true;
+					}
+				}
+			} else {
+				__LIKELY_IF(words0 > 0) {
+					got_0 = true;
+				}
+			}
+		}
+		
+		if((got_0) && (got_1)) {
+			scrntype_t p0;
+			scrntype_t p1;
+			scrntype_t mf;
+			scrntype_t mb;
+			csp_vector8<scrntype_t> pix0;
+			csp_vector8<scrntype_t> pix1;
+			csp_vector8<scrntype_t> mask_front;
+			csp_vector8<scrntype_t> mask_back;
+			__LIKELY_IF(bitshift0 == 0) {
+				for(size_t xx = 0; xx < width; xx += 8) {
+					pix0.load_aligned(&(lbuffer0[xx]));
+					pix1.load_aligned(&(pix_cache[xx]));
+					mask_front.load_aligned(&(abuffer0[xx]));
+					mask_back = mask_front;
+					mask_back.negate();
+					pix0 &= mask_front;
+					pix1 &= mask_back;
+					pix0 |= pix1;
+					pix0.store(&(pp[xx]));
+				}
+				if((width & 7) != 0) {
+					for(size_t xx = (width & ~(7)); xx < width; xx++) {
+						p0 = lbuffer0[xx];
+						mf = abuffer0[xx];
+						p1 = pix_cache[xx];
+						mb = ~mf;
+						p0 &= mf;
+						p1 &= mb;
+						p0 |= p1;
+						pp[xx] = p0;
+					}
+				}
+			} else {
+				for(size_t xx = 0; xx < width; xx += 8) {
+					pix0.load_aligned(&(pix_cache0[xx]));
+					pix1.load_aligned(&(pix_cache[xx]));
+					mask_front.load_aligned(&(alpha_cache[xx]));
+					mask_back = mask_front;
+					mask_back.negate();
+					pix0 &= mask_front;
+					pix1 &= mask_back;
+					pix0 |= pix1;
+					pix0.store(&(pp[xx]));
+				}
+				if((width & 7) != 0) {
+					for(size_t xx = (width & ~(7)); xx < width; xx++) {
+						p0 = pix_cache0[xx];
+						mf = alpha_cache[xx];
+						p1 = pix_cache[xx];
+						mb = ~mf;
+						p0 &= mf;
+						p1 &= mb;
+						p0 |= p1;
+						pp[xx] = p0;
+					}
+				}
+			}
+			
+		} else if(got_1) {
+			csp_vector8<scrntype_t> pix;
+			for(size_t xx = 0; xx < width; xx += 8) {
+				pix.load_aligned(&(pix_cache[xx]));
+			}
+			if((width & 7) != 0) {
+				for(size_t xx = (width & ~(7)); xx < width; xx++) {
+					pp[xx] = pix_cache[xx];
+				}
+			}
+		} else if(got_0) {
+			csp_vector8<scrntype_t> pix;
+			if(bitshift0 == 0) {
+				for(size_t xx = 0; xx < width; xx += 8) {
+					pix.load_aligned(&(lbuffer0[xx]));
+					pix.store(&(pp[xx]));
+				}
+				if((width & 7) != 0) {
+					for(size_t xx = (width & ~(7)); xx < width; xx++) {
+						pp[xx] = lbuffer0[xx];
+					}
+				}
+			} else {
+				for(size_t xx = 0; xx < width; xx += 8) {
+					pix.load_aligned(&(pix_cache0[xx]));
+					pix.store(&(pp[xx]));
+				}
+				if((width & 7) != 0) {
+					for(size_t xx = (width & ~(7)); xx < width; xx++) {
+						pp[xx] = pix_cache0[xx];
+					}
+				}
+			}
+		} else {
+			// Clear ONLY
+			if((do_mix0) || (do_mix1)) {
+				csp_vector8<scrntype_t> pix(RGBA_COLOR(0, 0, 0, 255));
+				for(size_t xx = 0; xx < width; xx += 8) {
+					pix.store(&(pp[xx]));
+				}
+				if((width & 7) != 0) {
+					pix.store_limited(&(pp[width & ~(7)]), (size_t)(width & 7));
+				}
+			}
+		}
+		#if 0
 		if((do_mix1) || (do_mix0)) {
 			// Clear BG
 			csp_vector8<scrntype_t> bgclean((scrntype_t)RGBA_COLOR(0, 0, 0, 255));
@@ -1831,6 +2087,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				pp[xx] = pix1;
 			}
 		}
+		#endif
 		#endif
 	}
 }

@@ -384,6 +384,9 @@ protected:
 	__DECL_ALIGNED(16) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(16) scrntype_t pix_cache[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(16) scrntype_t pix_cache0[TOWNS_CRTC_MAX_PIXELS + 16];
+	__DECL_ALIGNED(16) scrntype_t alpha_cache[TOWNS_CRTC_MAX_PIXELS + 16];
 
 	virtual void copy_regs_v();
 	virtual void copy_regs_h();
@@ -439,7 +442,68 @@ protected:
 	virtual void __FASTCALL clear_line(const int trans, int layer, const int y);
 
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
-	
+
+	inline void simd_fill(scrntype_t* dst, csp_vector8<scrntype_t> data, size_t words)
+	{
+		const uintptr_t pdst = (uintptr_t)dst;
+		const size_t width_8 = sizeof(scrntype_t) * 8;
+		const size_t mask_8 = ~width_8;
+		__LIKELY_IF(words > 7) {
+			__LIKELY_IF((pdst & mask_8) == 0) {
+				for(size_t xx = 0; xx < words; xx += 8) {
+					data.store_aligned(&(dst[xx]));
+				}
+			} else {
+				for(size_t xx = 0; xx < words; xx += 8) {
+					data.store(&(dst[xx]));
+				}
+			}
+		}
+		if((words & 7) != 0) {
+			size_t xx = words & (~7);
+			data.store_limited(&(dst[xx]), words & 7);
+		}
+	}
+
+	inline void simd_copy(scrntype_t* dst, scrntype_t* src, size_t words)
+	{
+		const uintptr_t pdst = (uintptr_t)dst;
+		const uintptr_t psrc = (uintptr_t)src;
+		const size_t width_8 = sizeof(scrntype_t) * 8;
+		const size_t mask_8 = ~width_8;
+		csp_vector8<scrntype_t> pix;
+		__LIKELY_IF(words > 7) {
+			__LIKELY_IF((psrc & mask_8) == 0) { // Aligned
+				if((pdst & mask_8) == 0) { // Aligned
+					for(size_t xx = 0; xx < words; xx += 8) {
+						pix.load_aligned(&(src[xx]));
+						pix.store_aligned(&(dst[xx]));
+					}
+				} else {
+					for(size_t xx = 0; xx < words; xx += 8) {
+						pix.load_aligned(&(src[xx]));
+						pix.store(&(dst[xx]));
+					}
+				}
+			} else __LIKELY_IF((pdst & mask_8) == 0) { // DST ONLY ALIGNED
+				for(size_t xx = 0; xx < words; xx += 8) {
+					pix.load(&(src[xx]));
+					pix.store_aligned(&(dst[xx]));
+				}
+			} else {
+				for(size_t xx = 0; xx < words; xx += 8) {
+					pix.load(&(src[xx]));
+					pix.store(&(dst[xx]));
+				}
+			}
+		}
+		if((words & 7) != 0) {
+			size_t xx = words & 0xfffffff8;
+			size_t w = words & 7;
+			pix.load_limited(&(src[xx]), w);
+			pix.store_limited(&(dst[xx]), w);
+		}
+	}
 	inline ssize_t load_loop(csp_vector8<scrntype_t>& pix, csp_vector8<scrntype_t>& mask,
 							 const size_t xx, const size_t width,
 							 const size_t bitshift, const int words_limit, ssize_t& words_left,
