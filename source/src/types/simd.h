@@ -384,20 +384,18 @@ public:
 	}
 	constexpr void store2(T* p)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> tmpdata[2];
-		size_t j = 0;
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i += 2, j++) {
-			tmpdata[0].set(i, p[j]);
-			tmpdata[0].set(i + 1, p[j]);
+		csp_vector8<T> tmpval[2];
+		for(size_t k = 0; k < 2; k++) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = (k * 4), j = 0; i < ((k * 4) + 4); i++, j += 2) {
+				tmpval[k].set(j    , m_data[i]);
+				tmpval[k].set(j + 1, m_data[i]);
+			}
 		}
 		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i += 2, j++) {
-			tmpdata[1].set(i, p[j]);
-			tmpdata[1].set(i + 1, p[j]);
+		for(size_t k = 0; k < 2; k++) {
+			tmpval[k].store(&(p[k * 8]));
 		}
-		tmpdata[0].store(&(p[0]));
-		tmpdata[1].store(&(p[4]));
 	}
 	constexpr void store2_limited(T* p, const size_t _limit)
 	{
@@ -448,13 +446,19 @@ public:
 	}
 	constexpr void store4(T* p)
 	{
+		csp_vector8<T> tmpval[4];
+		for(size_t k = 0; k < 4; k++) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = (k * 2), j = 0; i < ((k * 2) + 2); i++, j += 4) {
+				tmpval[k].set(j    , m_data[i]);
+				tmpval[k].set(j + 1, m_data[i]);
+				tmpval[k].set(j + 2, m_data[i]);
+				tmpval[k].set(j + 3, m_data[i]);
+			}
+		}
 		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0, j = 0; i < 8; i++, j += 4) {
-			T tmp = m_data[i];
-			p[j] = tmp;
-			p[j + 1] = tmp;
-			p[j + 2] = tmp;
-			p[j + 3] = tmp;
+		for(size_t k = 0; k < 4; k++) {
+			tmpval[k].store(&(p[k * 8]));
 		}
 	}
 	constexpr void store4_limited(T* p, const size_t _limit)
@@ -613,24 +617,36 @@ public:
 	}
 	constexpr void store2_aligned(T* p)
 	{
+		csp_vector8<T> tmpval[2];
+		for(size_t k = 0; k < 2; k++) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = (k * 4), j = 0; i < ((k * 4) + 4); i++, j += 2) {
+				tmpval[k].set(j    , m_data[i]);
+				tmpval[k].set(j + 1, m_data[i]);
+			}
+		}
 		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
 		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0, j = 0; i < 8; i++, j += 2) {
-			T tmp = m_data[i];
-			q[j] = tmp;
-			q[j + 1] = tmp;
+		for(size_t k = 0; k < 2; k++) {
+			tmpval[k].store_aligned(&(q[k * 8]));
 		}
 	}
 	constexpr void store4_aligned(T* p)
 	{
+		csp_vector8<T> tmpval[4];
+		for(size_t k = 0; k < 4; k++) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = (k * 2), j = 0; i < ((k * 2) + 2); i++, j += 4) {
+				tmpval[k].set(j    , m_data[i]);
+				tmpval[k].set(j + 1, m_data[i]);
+				tmpval[k].set(j + 2, m_data[i]);
+				tmpval[k].set(j + 3, m_data[i]);
+			}
+		}
 		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
 		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0, j = 0; i < 8; i++, j += 4) {
-			T tmp = m_data[i];
-			q[j] = tmp;
-			q[j + 1] = tmp;
-			q[j + 2] = tmp;
-			q[j + 3] = tmp;
+		for(size_t k = 0; k < 4; k++) {
+			tmpval[k].store_aligned(&(q[k * 8]));
 		}
 	}
 	
