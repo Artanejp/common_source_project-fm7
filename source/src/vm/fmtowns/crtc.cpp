@@ -1049,8 +1049,8 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 	csp_vector8<uint16_t> bbuf;
 	csp_vector8<uint16_t> pixture_mask((uint16_t)0x001f);
 	
-	csp_vector8<scrntype_t> sbuf;
-	csp_vector8<scrntype_t> abuf;
+	csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	csp_vector8<scrntype_t> abuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	csp_vector8<bool> pix_transparent;
 	csp_vector8<uint16_t> a2buf;
 
@@ -1090,34 +1090,36 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 			} else {
 				a2buf.fill(255);
 			}
-			make_rgba_vec8(sbuf, rbuf, gbuf, bbuf, a2buf);
+			make_rgba_vec8(sbuf[x], rbuf, gbuf, bbuf, a2buf);
 		} else {
 			if(is_transparent) {
-				abuf.set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
+				abuf[x].set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
 			} else {
-				abuf.fill(RGBA_COLOR(255, 255, 255, 255));
+				abuf[x].fill(RGBA_COLOR(255, 255, 255, 255));
 			}
-			make_rgb_vec8(sbuf, rbuf, gbuf, bbuf); // ToDo
+			make_rgb_vec8(sbuf[x], rbuf, gbuf, bbuf); // ToDo
 		}
-		__LIKELY_IF((((magx << 3) + k) <= width) && !(odd_mag)) {
-			size_t __l = 0;
-			__LIKELY_IF(q != NULL) {
-				__l = scaling_store(q, &sbuf, magx, 1, width_tmp1);
-				q = &(q[__l]);
-			}
-			rendered_pixels += __l;
-			__LIKELY_IF(r2 != NULL) {
-				__l = scaling_store(r2, &abuf, magx, 1, width_tmp2);
-				r2 = &(r2[__l]);
-			}
-			k += (magx << 3);
-			__UNLIKELY_IF((width_tmp1 <= 0) || (width_tmp2 <= 0)) break;
-		} else {
+	}
+	__LIKELY_IF(!(odd_mag)) {
+		size_t __l = 0;
+		__LIKELY_IF(q != NULL) {
+			__l = scaling_store(q, sbuf, magx, (pwidth >> 3), width_tmp1);
+			q = &(q[__l]);
+		}
+		rendered_pixels += __l;
+		k += __l;
+		__LIKELY_IF(r2 != NULL) {
+			__l = scaling_store(r2, abuf, magx, (pwidth >> 3), width_tmp2);
+			r2 = &(r2[__l]);
+		}
+		__UNLIKELY_IF((width_tmp1 <= 0) || (width_tmp2 <= 0)) return true;
+	} else {
+		for(int x = 0; x < (pwidth >> 3); x++) {
 			int kbak = k;
 			size_t __l = 0;
 			__LIKELY_IF(q != NULL) {
 				for(int i = 0; i < 8; i++) {
-					scrntype_t dd = sbuf.at(i);
+					scrntype_t dd = sbuf[x].at(i);
 					for(int j = 0; j < magx_tmp[i]; j++) {
 						*q++ = dd;
 						kbak++;
@@ -1129,7 +1131,7 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 			rendered_pixels += __l;
 			__LIKELY_IF(r2 != nullptr) {
 				for(int i = 0; i < 8; i++) {
-					scrntype_t dm = abuf.at(i);
+					scrntype_t dm = abuf[x].at(i);
 					for(int j = 0; j < magx_tmp[i]; j++) {
 						*r2++ = dm;
 						k++;
@@ -1142,6 +1144,8 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 		}
 	}
 	__LIKELY_IF(k >= width) return true;
+	csp_vector8<scrntype_t> sbuf2;
+	csp_vector8<scrntype_t> abuf2;
 
 	__UNLIKELY_IF((pwidth & 7) != 0) {
 		pbuf.fill(0x8000);
@@ -1175,24 +1179,24 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 //			} else {
 //				a2buf.fill(255);
 //			}
-			make_rgba_vec8(sbuf, rbuf, gbuf, bbuf, a2buf); // ToDo
+			make_rgba_vec8(sbuf2, rbuf, gbuf, bbuf, a2buf); // ToDo
 		} else {
 //			if(is_transparent) {
-				abuf.set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
+				abuf2.set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
 //			} else {
 //				abuf.fill(RGBA_COLOR(255, 255, 255, 255));
 //			}
-			make_rgb_vec8(sbuf, rbuf, gbuf, bbuf); // ToDo
+			make_rgb_vec8(sbuf2, rbuf, gbuf, bbuf); // ToDo
 		}
 		if((magx < 2) || !(odd_mag)) {
 			size_t __l = 0;
 			__LIKELY_IF(q != NULL) {
-				__l = scaling_store(q, &sbuf, magx, 1, width_tmp1);
+				__l = scaling_store(q, &sbuf2, magx, 1, width_tmp1);
 				q = &(q[__l]);
 			}
 			rendered_pixels += __l;
 			__LIKELY_IF(r2 != NULL) {
-				__l = scaling_store(r2, &abuf, magx, 1, width_tmp2);
+				__l = scaling_store(r2, &abuf2, magx, 1, width_tmp2);
 				r2 = &(r2[__l]);
 			}
 			k += (magx << 3);
@@ -1200,8 +1204,8 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 		} else {
 			size_t __l = 0;
 			for(int i = 0; i < rwidth; i++) {
-				scrntype_t dd = sbuf.at(i);
-				scrntype_t dm = abuf.at(i);
+				scrntype_t dd = sbuf2.at(i);
+				scrntype_t dm = abuf2.at(i);
 				for(int j = 0; j < magx_tmp[i]; j++) {
 					__LIKELY_IF(q != NULL) {
 						*q++ = dd;
