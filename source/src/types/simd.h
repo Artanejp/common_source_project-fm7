@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <type_traits>
+#include <utility>
 #include "types/system_endians.h"
 #include "types/optimizer_utils.h"
 
@@ -65,39 +67,197 @@ public:
 			m_data[i] = p[i];
 		}
 	}
-	constexpr void exchange_endian()
+	constexpr csp_vector8<T>& exchange_endian()
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t shadow_data[sizeof(T) * 8];
-		uint8_t *q = (uint8_t *)(&(m_data[0]));
-		
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < sizeof(T) * 8; i++) {
-			shadow_data[i] = q[i];
-		}
-		size_t k = 0;
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			uint8_t *r = (uint8_t *)(&(m_data[i]));
+		constexpr size_t __size = sizeof(T);
+		if(__size <= 1) return *this;
+
+		uint8_t *q = ___assume_aligned((uint8_t *)(&(m_data[0])), __M__MINIMUM_ALIGN_LENGTH);
+		if(__size == 2) {
 			__DECL_VECTORIZED_LOOP
-			for(size_t j = sizeof(T); j > 0; j--) {
-				r[j - 1] = q[k];
-				k++;
+			for(size_t i = 0; i < 16; i += 2) {
+				std::swap(q[i] , q[i + 1]);
+			}
+			return *this;
+		}
+		if(__size == 4) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 32; i += 4) {
+				std::swap(q[i]     , q[i + 3]);
+				std::swap(q[i + 1] , q[i + 2]);
+			}
+			return *this;
+		}
+		if(__size == 8) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 64; i += 8) {
+				std::swap(q[i]     , q[i + 7]);
+				std::swap(q[i + 1] , q[i + 6]);
+				std::swap(q[i + 2] , q[i + 5]);
+				std::swap(q[i + 3] , q[i + 4]);
+			}
+			return *this;
+		}
+		if(__size == 16) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 128; i += 16) {
+				std::swap(q[i]     , q[i + 15]);
+				std::swap(q[i + 1] , q[i + 14]);
+				std::swap(q[i + 2] , q[i + 13]);
+				std::swap(q[i + 3] , q[i + 12]);
+				std::swap(q[i * 4] , q[i + 11]);
+				std::swap(q[i + 5] , q[i + 10]);
+				std::swap(q[i + 6] , q[i +  9]);
+				std::swap(q[i + 7] , q[i +  8]);
+			}
+			return *this;
+		}
+		if(__size == 32) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 256; i += 32) {
+				std::swap(q[i]      , q[i + 31]);
+				std::swap(q[i + 1]  , q[i + 30]);
+				std::swap(q[i + 2]  , q[i + 29]);
+				std::swap(q[i + 3]  , q[i + 28]);
+				std::swap(q[i * 4]  , q[i + 27]);
+				std::swap(q[i + 5]  , q[i + 26]);
+				std::swap(q[i + 6]  , q[i + 25]);
+				std::swap(q[i + 7]  , q[i + 24]);
+				std::swap(q[i + 8]  , q[i + 23]);
+				std::swap(q[i + 9]  , q[i + 22]);
+				std::swap(q[i + 10] , q[i + 21]);
+				std::swap(q[i + 11] , q[i + 20]);
+				std::swap(q[i * 12] , q[i + 19]);
+				std::swap(q[i + 13] , q[i + 18]);
+				std::swap(q[i + 14] , q[i + 17]);
+				std::swap(q[i + 15] , q[i + 16]);
+			}
+			return *this;
+		}
+		
+		for(size_t i = 0, j = 0; i < (__size * 8); i += __size, j++) {
+			uint8_t* r = (uint8_t*)(&m_data[j]);
+			__DECL_VECTORIZED_LOOP
+			for(size_t k = 0; k < (__size / 2); k++) {
+				std::swap(r[k], r[(__size - (k + 1))]);
 			}
 		}
+		return *this;
 	}		
-	
+	constexpr void load_with_swapping_endian(uint8_t* p)
+	{
+		constexpr size_t __size = sizeof(T);
+		uint8_t *q = ___assume_aligned((uint8_t *)(&(m_data[0])), __M__MINIMUM_ALIGN_LENGTH);
+		uint8_t *r = (uint8_t*)p;
+		if(__size == 2) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 16; i += 2) {
+				q[i]     = r[i + 1];
+				q[i + 1] = r[i];
+			}
+			return;
+		}
+		if(__size == 4) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 32; i += 4) {
+				q[i]     = r[i + 3];
+				q[i + 1] = r[i + 2];
+				q[i + 2] = r[i + 1];
+				q[i + 3] = r[i];
+			}
+			return;
+		}
+		if(__size == 8) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 64; i += 8) {
+				q[i]     = r[i + 7];
+				q[i + 1] = r[i + 6];
+				q[i + 2] = r[i + 5];
+				q[i + 3] = r[i + 4];
+				q[i + 4] = r[i + 3];
+				q[i + 5] = r[i + 2];
+				q[i + 6] = r[i + 1];
+				q[i + 7] = r[i];
+			}
+			return;
+		}
+		// Otherwise...
+		load((T*)p);
+		exchange_endian();
+	}
+	constexpr void store_with_swapping_endian(uint8_t* p)
+	{
+		constexpr size_t __size = sizeof(T);
+		uint8_t *r = ___assume_aligned((uint8_t *)(&(m_data[0])), __M__MINIMUM_ALIGN_LENGTH);
+		uint8_t *q = (uint8_t*)p;
+		if(__size == 2) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 16; i += 2) {
+				q[i]     = r[i + 1];
+				q[i + 1] = r[i];
+			}
+			return;
+		}
+		if(__size == 4) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 32; i += 4) {
+				q[i]     = r[i + 3];
+				q[i + 1] = r[i + 2];
+				q[i + 2] = r[i + 1];
+				q[i + 3] = r[i];
+			}
+			return;
+		}
+		if(__size == 8) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 64; i += 8) {
+				q[i]     = r[i + 7];
+				q[i + 1] = r[i + 6];
+				q[i + 2] = r[i + 5];
+				q[i + 3] = r[i + 4];
+				q[i + 4] = r[i + 3];
+				q[i + 5] = r[i + 2];
+				q[i + 6] = r[i + 1];
+				q[i + 7] = r[i];
+			}
+			return;
+		}
+		// Otherwise...
+		csp_vector8<T> pp;
+		pp.load_aligned(m_data);
+		pp.exchange_endian();
+		pp.store((T*)p);
+	}
 	constexpr void load_from_le(uint8_t* p)
 	{
+		#if defined(__LITTLE_ENDIAN__)
 		load((T*)p);
-		#if defined(__BIG_ENDIAN__)
-		exchange_endian();
+		#else
+		load_with_swapping_endian(p);
 		#endif
 	}
 	constexpr void load_from_be(uint8_t* p)
 	{
-		load((T*)p);
 		#if defined(__LITTLE_ENDIAN__)
-		exchange_endian();
+		load_with_swapping_endian(p);
+		#else
+		load((T*)p);
+		#endif
+	}
+	constexpr void store_to_le(uint8_t* p)
+	{
+		#if defined(__LITTLE_ENDIAN__)
+		store((T*)p);
+		#else
+		store_with_swapping_endian(p);
+		#endif
+	}
+	constexpr void store_to_be(uint8_t* p)
+	{
+		#if defined(__LITTLE_ENDIAN__)
+		store_with_swapping_endian(p);
+		#else
+		store((T*)p);
 		#endif
 	}
 	constexpr  void load_limited(T* p, const size_t _limit)
@@ -114,21 +274,27 @@ public:
 			m_data[i] = p[j];
 		}
 	}
-	constexpr void load2(T* p)
+	constexpr T *load2(T* p)
 	{
-		for(size_t i0 = 0, i1 = 1, k = 0; k < 4; i0 += 2, i1 += 2, k++) {
-			m_data[i0] = p[k];
-			m_data[i1] = p[k];
+		size_t j = 0;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i += 2, j++) {
+			m_data[i]     = p[j];
+			m_data[i + 1] = p[j];
 		}
+		return &(p[4]);
 	}
 	constexpr void load4(T* p)
 	{
-		for(size_t i0 = 0, i1 = 1, i2 = 2, i3 = 3, k = 0; k < 2; i0 += 4, i1 += 4, i2 += 4, i3 += 4, k++) {
-			m_data[i0] = p[k];
-			m_data[i1] = p[k];
-			m_data[i2] = p[k];
-			m_data[i3] = p[k];
+		size_t j = 0;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i += 4, j++) {
+			m_data[i]     = p[j];
+			m_data[i + 1] = p[j];
+			m_data[i + 2] = p[j];
+			m_data[i + 3] = p[j];
 		}
+		return &(p[2]);
 	}
 	template <class T2>
 		constexpr void load(T2* p)
@@ -218,11 +384,20 @@ public:
 	}
 	constexpr void store2(T* p)
 	{
-		for(size_t i = 0, j = 0; i < 8; i++, j += 2) {
-			T tmpval = m_data[i];
-			p[j] = tmpval;
-			p[j + 1] = tmpval;
+		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> tmpdata[2];
+		size_t j = 0;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i += 2, j++) {
+			tmpdata[0].set(i, p[j]);
+			tmpdata[0].set(i + 1, p[j]);
 		}
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i += 2, j++) {
+			tmpdata[1].set(i, p[j]);
+			tmpdata[1].set(i + 1, p[j]);
+		}
+		tmpdata[0].store(&(p[0]));
+		tmpdata[1].store(&(p[4]));
 	}
 	constexpr void store2_limited(T* p, const size_t _limit)
 	{
@@ -458,23 +633,35 @@ public:
 			q[j + 3] = tmp;
 		}
 	}
-	inline void copy(const csp_vector8<T> __b)
+	
+	constexpr void get(const csp_vector8<T>& __b)
 	{
 		__b.store_aligned(m_data);
 	}
 
 	template <class T2>
-		constexpr void get(csp_vector8<T2> __b)
+		constexpr void get(csp_vector8<T2>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T dst[8];
-		__b.store_aligned(dst);
-
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = dst[i];
+			m_data[i] = __b.at(i);
 		}
 	}
 
+	constexpr void put(const csp_vector8<T>& __b)
+	{
+		__b.load_aligned(m_data);
+	}
+
+	template <class T2>
+		constexpr void put(csp_vector8<T2>& __b)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			__b.set(i, (T2)(m_data[i]));
+		}
+	}
+	
 	inline void clear()
 	{
 	__DECL_VECTORIZED_LOOP
@@ -498,14 +685,93 @@ public:
 	{
 		m_data[__n] = (T)0;
 	}
+	
+	
 	constexpr void lshift(const size_t pos, const size_t val)
 	{
 		m_data[pos] <<= val;
 	}
+	constexpr void lshift(const size_t val)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] <<= val;
+		}
+	}
+	
 	constexpr void rshift(const size_t pos, const size_t val)
 	{
 		m_data[pos] >>= val;
 	}
+	constexpr csp_vector8<T>& rshift(const size_t val)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] >>= val;
+		}
+		return *this;
+	}
+
+	template <class T2>
+		constexpr csp_vector8<T>& shift(const T2 val)
+	{
+		constexpr bool _signed = std::is_signed<T2>().value;
+		if(_signed) {
+			constexpr ssize_t __shift = (ssize_t)val;
+			if(__shift < 0) {
+				const size_t __shift2 = ((const size_t)(-__shift)) % ((sizeof(T) * 8) - 1);
+				rshift(__shift2);
+			} else if(__shift > 0) {
+				const size_t __shift2 = ((const size_t)__shift) % ((sizeof(T) * 8) - 1);
+				lshift(__shift2);
+			}
+		} else {
+			const size_t __shift = (const size_t)val % (sizeof(T) * 8);
+			lshift(__shift);
+		}
+		return *this;
+	}
+
+	template <class T2>
+		constexpr void shift(size_t pos, const T2 val)
+	{
+		constexpr bool _signed = std::is_signed<T2>().value;
+		if(_signed) {
+			constexpr ssize_t __shift = (ssize_t)val;
+			if(__shift < 0) {
+				const size_t __shift2 = ((const size_t)(-__shift)) % ((sizeof(T) * 8) - 1);
+				rshift(pos, __shift2);
+			} else if(__shift > 0) {
+				const size_t __shift2 = ((const size_t)__shift) % ((sizeof(T) * 8) - 1);
+				lshift(pos, __shift2);
+			}
+		} else {
+			const size_t __shift = (const size_t)val % (sizeof(T) * 8);
+			lshift(pos, __shift);
+		}
+	}
+	
+	constexpr void shift(size_t pos, const ssize_t val)
+	{
+		if(val < 0) {
+			rshift(pos, (-val) % ((sizeof(T) * 8) - 1));
+		} else if(val > 0) {
+			lshift(pos, val % ((sizeof(T) * 8) - 1));
+		}
+	}
+	constexpr void shift(size_t pos, const size_t val)
+	{
+		lshift(pos, val % (sizeof(T) * 8));
+	}
+	constexpr csp_vector8<T>&  shift(csp_vector8<ssize_t>& val)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			shift(i, val.at(i));
+		}
+		return *this;
+	}
+	
 	constexpr csp_vector8<T>& clamp_upper(const T upper_val)
 	{
 		__DECL_VECTORIZED_LOOP
@@ -602,39 +868,33 @@ public:
 		}
 		return *this;
 	}
-	// Pointer must be aligned minimum of 16 bytes.
+
 	constexpr csp_vector8<T>& set_cond(csp_vector8<bool>& __flags, const T __true_val, const T __false_val)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool __p[8];
-		__flags.store_aligned(__p);
 	__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = (__p[i]) ? __true_val : __false_val;
+			m_data[i] = (__flags.at(i)) ? __true_val : __false_val;
 		}
 		return *this;
 	}
 	constexpr csp_vector8<T>& set_if_true(csp_vector8<bool>& __flags, const T __val)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool __p[8];
-		__flags.store_aligned(__p);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = (__p[i]) ?  m_data[i] : __val;
+			m_data[i] = (__flags.at(i)) ?  m_data[i] : __val;
 		}
 		return *this;
 	}
 	constexpr csp_vector8<T>& set_if_false(csp_vector8<bool>& __flags, const T __val)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool __p[8];
-		__flags.store_aligned(__p);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = (__p[i]) ? __val : m_data[i];
+			m_data[i] = (__flags.at(i)) ? __val : m_data[i];
 		}
 		return *this;
 	}
 	template <typename T2>
-	inline void shuffle(csp_vector8<T2>& __positions)
+		inline void shuffle(csp_vector8<T2>& __positions)
 	{
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T __d[8];
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t __p[8];
@@ -645,8 +905,7 @@ public:
 		if(__is_signed) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t i = 0; i < 8; i++) {
-				T2 _tmp = __positions.at(i);
-				__p[i] = (_tmp < 0) ? (uint8_t)(_tmp) : (uint8_t)(-_tmp);
+				__p[i] = (__positions.at(i) < 0) ? (uint8_t)(-(__positions.at(i))) : (uint8_t)(__positions.at(i));
 			}
 		} else {
 			__DECL_VECTORIZED_LOOP
@@ -694,84 +953,71 @@ public:
 	}
 	constexpr csp_vector8<T>& operator~()
 	{
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] = ~(m_data[i]);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator+=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator+=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] += m_shadow[i];
+			m_data[i] += __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator-=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator-=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] -= m_shadow[i];
+			m_data[i] -= __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator/=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator/=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] /= m_shadow[i];
+			m_data[i] /= __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator*=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator*=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
 	__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] *= m_shadow[i];
+			m_data[i] *= __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator&=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator&=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] &= m_shadow[i];
+			m_data[i] &= __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator|=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator|=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] |= m_shadow[i];
+			m_data[i] |= __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator^=(const csp_vector8<T>& __b)
+	constexpr csp_vector8<T>& operator^=(csp_vector8<T>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] ^= m_shadow[i];
+			m_data[i] ^= __b.at(i);
 		}
 		return *this;
 	}
 	constexpr csp_vector8<T>& operator<<=(const size_t __n)
 	{
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] <<= __n;
 		}
@@ -779,7 +1025,7 @@ public:
 	}
 	constexpr csp_vector8<T>& operator>>=(const size_t __n)
 	{
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] >>= __n;
 		}
@@ -787,67 +1033,59 @@ public:
 	}
 	constexpr csp_vector8<T>& operator>>=(csp_vector8<size_t>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] >>= m_shadow[i];
+			m_data[i] >>= (size_t)(__b.at(i));
 		}
 		return *this;
 	}
 	constexpr csp_vector8<T>& operator<<=(csp_vector8<size_t>& __b)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__b.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] <<= m_shadow[i];
+			m_data[i] <<= (size_t)(__b.at(i));
 		}
 		return *this;
 	}
 
-	constexpr bool operator==(const csp_vector8<T>& __a)
+	constexpr bool operator==(csp_vector8<T>& __a)
 	{
 		bool __f = true;
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__a.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			__f &= (m_shadow[i] == m_data[i]);
+			__f &= (__a.at(i) == m_data[i]);
 		}
 		return __f;
 	}
 	constexpr bool operator==(const T __a)
 	{
 		bool __f = true;
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			__f &= (m_data[i] == __a);
 		}
 		return __f;
 	}
-	constexpr bool operator!=(const csp_vector8<T>& __a)
+	constexpr bool operator!=(csp_vector8<T>& __a)
 	{
 		bool __f = true;
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_shadow[8];
-		__a.store_aligned(m_shadow);
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			__f &= (m_shadow[i] != m_data[i]);
+			__f &= (__a.at(i) != m_data[i]);
 		}
 		return __f;
 	}
 	constexpr bool operator!=(const T __a)
 	{
 		bool __f = true;
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			__f &= (__a != m_data[i]);
 		}
 		return __f;
 	}
 
-	constexpr void equals(csp_vector8<bool>& __ret, const csp_vector8<T>& __a)
+	constexpr void equals(csp_vector8<bool>& __ret, csp_vector8<T>& __a)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -861,7 +1099,7 @@ public:
 			__ret.set(i, (m_data[i] == __a));
 		}
 	}
-	constexpr void not_equals(csp_vector8<bool>& __ret, const csp_vector8<T>& __a)
+	constexpr void not_equals(csp_vector8<bool>& __ret, csp_vector8<T>& __a)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -877,22 +1115,18 @@ public:
 	}
 	constexpr void check_bits(csp_vector8<bool>& __ret, const T& _bitmask)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool m_result[8];
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_result[i] = ((m_data[i] & _bitmask) == _bitmask);
+			__ret.set(i, ((m_data[i] & _bitmask) == _bitmask));
 		}
-		__ret.load_aligned(m_result);
 	}
 	// Maybe faster than check_bits().
 	constexpr void check_any_bits(csp_vector8<bool>& __ret, const T& _bitmask)
 	{
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) bool m_result[8];
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_result[i] = ((m_data[i] & _bitmask) != 0);
+			__ret.set(i, ((m_data[i] & _bitmask) != 0));
 		}
-		__ret.load_aligned(m_result);
 	}
 
 };
