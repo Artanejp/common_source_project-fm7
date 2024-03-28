@@ -616,6 +616,13 @@ protected:
 		}
 	}
 	inline size_t scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
+	inline size_t store1_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
+	inline size_t store2_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
+	inline size_t store4_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
+	inline size_t store1_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
+	inline size_t store2_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
+	inline size_t store4_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
+	inline size_t store_n_any(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
 
 	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
 	uint32_t get_sprite_offset();
@@ -707,6 +714,146 @@ public:
 
 };
 
+inline size_t TOWNS_CRTC::store1_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= 8) {
+			src[x].store_aligned(dst);
+			dst += 8;
+			width -= 8;
+			pixels_count += 8;
+		} else {
+			src[x].store_limited(dst, width);
+			dst += width;
+			pixels_count += width;
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
+}
+
+inline size_t TOWNS_CRTC::store2_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= 16) {
+			src[x].store2_aligned(dst);
+			dst += 16;
+			width -= 16;
+			pixels_count += 16;
+		} else {
+			src[x].store2_limited(dst, width);
+			dst += (2 * width);
+			pixels_count += (2 * width);
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
+}
+
+inline size_t TOWNS_CRTC::store4_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= 32) {
+			src[x].store4_aligned(dst);
+			dst += 32;
+			width -= 32;
+			pixels_count += 32;
+		} else {
+			src[x].store4_limited(dst, width);
+			dst += (width * 4);
+			pixels_count += (width * 4);
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
+}
+
+inline size_t TOWNS_CRTC::store_n_any(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= (8 * mag)) {
+			src[x].store_n(dst, mag);
+			dst += (8 * mag);
+			width -= (8 * mag);
+			pixels_count += (8 * mag);
+		} else {
+			src[x].store_n_limited(dst, mag, width);
+			dst += (width * mag);
+			pixels_count += (width * mag);
+			width = 0;
+		}
+	}
+	return pixels_count;
+}
+
+inline size_t TOWNS_CRTC::store1_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= 8) {
+			src[x].store(dst);
+			dst += 8;
+			width -= 8;
+			pixels_count += 8;
+		} else {
+			src[x].store_limited(dst, width);
+			dst += width;
+			pixels_count += width;
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
+}
+
+inline size_t TOWNS_CRTC::store2_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= 16) {
+			src[x].store2(dst);
+			dst += 16;
+			width -= 16;
+			pixels_count += 16;
+		} else {
+			src[x].store2_limited(dst, width);
+			dst += (2 * width);
+			pixels_count += (2 * width);
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
+}
+
+inline size_t TOWNS_CRTC::store4_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
+{
+	size_t pixels_count = 0;
+	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
+		__LIKELY_IF(width >= 32) {
+			src[x].store4(dst);
+			dst += 32;
+			width -= 32;
+			pixels_count += 32;
+		} else {
+			src[x].store4_limited(dst, width);
+			dst += (width * 4);
+			pixels_count += (width * 4);
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
+}
+
+
 inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width)
 {
 	__UNLIKELY_IF((dst == NULL) || (src == NULL)) return 0;
@@ -715,124 +862,34 @@ inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t>
 	size_t pixels_count = 0;
 	const uintptr_t as = alignof(csp_vector8<scrntype_t>) - 1;
 	__LIKELY_IF((dstval & as) == 0) { // ALIGNED
-		for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-			switch(mag) {
-			case 1:
-				__LIKELY_IF(width >= 8) {
-					src[x].store_aligned(dst);
-					dst += 8;
-					width -= 8;
-					pixels_count += 8;
-				} else {
-					src[x].store_limited(dst, width);
-					dst += width;
-					pixels_count += width;
-					width = 0;
-					break;
-				}
-				break;
-			case 2:
-				__LIKELY_IF(width >= 16) {
-					src[x].store2_aligned(dst);
-					dst += 16;
-					width -= 16;
-					pixels_count += 16;
-				} else {
-					src[x].store2_limited(dst, width);
-					dst += (2 * width);
-					pixels_count += (2 * width);
-					width = 0;
-					break;
-				}
-				break;
-			case 4:
-				__LIKELY_IF(width >= 32) {
-					src[x].store4_aligned(dst);
-					dst += 32;
-					width -= 32;
-					pixels_count += 32;
-				} else {
-					src[x].store4_limited(dst, width);
-					dst += (width * 4);
-					pixels_count += (width * 4);
-					width = 0;
-					break;
-				}
-				break;
-			default:
-				__LIKELY_IF(width >= (8 * mag)) {
-					src[x].store_n(dst, mag);
-					dst += (8 * mag);
-					width -= (8 * mag);
-					pixels_count += (8 * mag);
-				} else {
-					src[x].store_n_limited(dst, mag, width);
-					dst += (width * mag);
-					pixels_count += (width * mag);
-					width = 0;
-				}
-				break;
-			}
+		switch(mag) {
+		case 1:
+			pixels_count = store1_aligned(dst, src, words, width);
+			break;
+		case 2:
+			pixels_count = store2_aligned(dst, src, words, width);
+			break;
+		case 4:
+			pixels_count = store4_aligned(dst, src, words, width);
+			break;
+		default:
+			pixels_count = store_n_any(dst, src, mag, words, width);
+			break;
 		}
 	} else { // Not aligned
-		for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-			switch(mag) {
-			case 1:
-				__LIKELY_IF(width >= 8) {
-					src[x].store(dst);
-					dst += 8;
-					width -= 8;
-					pixels_count += 8;
-				} else {
-					src[x].store_limited(dst, width);
-					dst += width;
-					pixels_count += width;
-					width = 0;
-					break;
-				}
-				break;
-			case 2:
-				__LIKELY_IF(width >= 16) {
-					src[x].store2(dst);
-					dst += 16;
-					pixels_count += 16;
-					width -= 16;
-				} else {
-					src[x].store2_limited(dst, width);
-					dst += (2 * width);
-					pixels_count += (2 * width);
-					width = 0;
-					break;
-				}
-				break;
-			case 4:
-				__LIKELY_IF(width >= 32) {
-					src[x].store4(dst);
-					dst += 32;
-					width -= 32;
-					pixels_count += 32;
-				} else {
-					src[x].store4_limited(dst, width);
-					dst += (width * 4);
-					pixels_count += (4 * width);
-					width = 0;
-					break;
-				}
-				break;
-			default:
-				__LIKELY_IF(width >= (8 * mag)) {
-					src[x].store_n(dst, mag);
-					dst += (8 * mag);
-					width -= (8 * mag);
-					pixels_count += (8 * mag);
-				} else {
-					src[x].store_n_limited(dst, mag, width);
-					dst += (width * mag);
-					pixels_count += (width * mag);
-					width = 0;
-				}
-				break;
-			}
+		switch(mag) {
+		case 1:
+			pixels_count = store1_unaligned(dst, src, words, width);
+			break;
+		case 2:
+			pixels_count = store2_unaligned(dst, src, words, width);
+			break;
+		case 4:
+			pixels_count = store4_unaligned(dst, src, words, width);
+			break;
+		default:
+			pixels_count = store_n_any(dst, src, mag, words, width);
+			break;
 		}
 	}
 	return pixels_count;
