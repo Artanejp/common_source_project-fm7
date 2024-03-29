@@ -1123,7 +1123,6 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 		}
 		words++;
 	}
-
 	
 	size_t __l = 0;
 	__LIKELY_IF(!(odd_mag)) {
@@ -1149,7 +1148,7 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 			r2 = &(r2[__l]);
 		}
 	}
-	return true;
+	return (rendered_pixels > 0) ? true : false;
 }
 
 bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels)
@@ -1163,10 +1162,10 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 	scrntype_t* q = dst;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 	bool odd_mag = (((magx & 1) != 0) && (magx > 2)) ? true : false;
-	__DECL_ALIGNED(16) int magx_tmp[16];
+	csp_vector8<uint16_t> magx_tmp;
 	__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 16; i++) {
-		magx_tmp[i] = (magx + (i & 1)) / 2;
+	for(size_t i = 0; i < 8; i++) {
+		magx_tmp.set(i, (magx + (i & 1)) / 2);
 	}
 
 	const int width = ((hst[trans] * 2 + 16 * magx) > (TOWNS_CRTC_MAX_PIXELS * 2)) ? (TOWNS_CRTC_MAX_PIXELS * 2) : (hst[trans] * 2 + 16 * magx);
@@ -1190,110 +1189,53 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
 	__DECL_ALIGNED(32)  scrntype_t apal256[256];
-	my_memcpy(apal256, &(linebuffers[trans][y].palettes[0].pixels[0]), sizeof(scrntype_t) * 256);
-
+	simd_copy(apal256, &(linebuffers[trans][y].palettes[0].pixels[0]), 256);
 
 //	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d pWIDTH=%d"), y, magx, width, pwidth);
 	__UNLIKELY_IF(pwidth < 1) pwidth = 1;
-	int xx = 0;
-	int k = 0;
-	csp_vector8<uint8_t> __pbuf[2];
-	csp_vector8<scrntype_t> __sbuf[2];
-	size_t width_tmp1 = width;
-	for(int x = 0; x < (pwidth >> 4); x++) {
-__DECL_VECTORIZED_LOOP
-		for(int ii = 0; ii < 2; ii++) {
-			__pbuf[ii].load(&p[ii << 3]);
-		}
-__DECL_VECTORIZED_LOOP
-		for(int ii = 0; ii < 2; ii++) {
-			__sbuf[ii].lookup(__pbuf[ii], apal256);
-		}
-		p += 16;
-		int kbak = k;
-		if((((magx << 4) + k) <= width) && !(odd_mag)) {
-			__LIKELY_IF(width_tmp1 >= 16) {
-				size_t __l = 0;
-				__LIKELY_IF(q != NULL) {
-					__l = scaling_store(q, __sbuf, magx, 2, width_tmp1);
-					q = &(q[__l]);
-				}
-				k += (magx * 16);
-				rendered_pixels += __l;
-			}
-			__UNLIKELY_IF(width_tmp1 < 16) break;
-		} else {
-			size_t __l = 0;
-			for(size_t ii = 0; ii < 2; ii++) {
-				for(size_t i = 0; i < 8; i++) {
-					scrntype_t tmp = __sbuf[ii].at(i);
-					for(int j = 0; j < magx_tmp[(ii << 3) + i]; j++) {
-						*q++ = tmp;
-						k++;
-						__l++;
-						__UNLIKELY_IF(k >= width) break;
-					}
-					__UNLIKELY_IF(k >= width) break;
-				}
-				__UNLIKELY_IF(k >= width) break;
-			}
-			rendered_pixels += __l;
-		}
-	}
-	__LIKELY_IF(k >= width) return true;
-	size_t w = pwidth & 0x0f;
-	__UNLIKELY_IF(w != 0) {
-		__pbuf[0].clear();
-		__sbuf[0].clear();
-		__pbuf[0].load_limited(p, w);
-		__sbuf[0].lookup(__pbuf[0], apal256, w);
+	csp_vector8<uint8_t> pbuf;
+	csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
 
-		size_t __l = 0;
-		if((((magx * w) + k) <= width) && !(odd_mag)) {
-			switch(magx) {
-			case 1:
-				__sbuf[0].store_limited(q, w);
-				k += w;
-				q += w;
-				__l += w;
-				break;
-			case 2:
-				__sbuf[0].store2_limited(q, w);
-				k += (w << 1);
-				q += (w << 1);
-				__l += (w << 1);
-				break;
-			case 4:
-				__sbuf[0].store4_limited(q, w);
-				k += (w << 2);
-				q += (w << 2);
-				__l += (w << 2);
-				break;
-			default:
-				__sbuf[0].store_n_limited(q, magx, w);
-				q += (magx * w);
-				k += (magx * w);
-				__l += (magx * w);
-				break;
-			}
-			rendered_pixels += __l;
-		} else {
-			__DECL_ALIGNED(32) scrntype_t sbuf[16];
-			__sbuf[0].store_aligned(sbuf);
-			for(int i = 0; i < w; i++) {
-				for(int j = 0; j < magx_tmp[i]; j++) {
-					q[j] = sbuf[i];
-					k++;
-					__l++;
-					__UNLIKELY_IF(k >= width) break;
-				}
-				__UNLIKELY_IF(k >= width) break;
-				q += magx;
-			}
-			rendered_pixels += __l;
+	size_t rwidth = pwidth & 7;
+	size_t width_tmp1 = (hst[trans] > TOWNS_CRTC_MAX_PIXELS) ? TOWNS_CRTC_MAX_PIXELS : hst[trans];
+	__UNLIKELY_IF(width_tmp1 == 0) return false;
+
+	size_t words = 0;
+	for(size_t x = 0; x < pwidth; x += 8) {
+		size_t xx = x >> 3;
+		__UNLIKELY_IF(xx >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
+			break;
 		}
+		__UNLIKELY_IF(xx == (pwidth >> 3)) {
+			pbuf.clear();
+			sbuf[xx].clear();
+			__LIKELY_IF(rwidth != 0) {
+				pbuf.load_limited(p, rwidth);
+				p += rwidth;
+				sbuf[xx].lookup(pbuf, apal256);
+			}
+		} else {
+			pbuf.load(p);
+			sbuf[xx].lookup(pbuf, apal256);
+			p += 8;
+		}
+		words++;
 	}
-	return true;
+	size_t __l = 0;
+	__LIKELY_IF(!(odd_mag)) {
+		__LIKELY_IF(q != NULL) {
+			__l = scaling_store(q, sbuf, magx, words, width_tmp1);
+			q = &(q[__l]);
+		}
+		rendered_pixels += __l;
+	} else {
+		__LIKELY_IF(q != NULL) {
+			__l = scaling_store_by_map(q, sbuf, magx_tmp, words, width_tmp1);
+			q = &(q[__l]);
+		}
+		rendered_pixels += __l;
+	}
+	return (rendered_pixels > 0) ? true : false;
 }
 
 bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels)
