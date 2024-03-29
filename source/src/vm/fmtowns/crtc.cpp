@@ -1271,10 +1271,10 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
 	bool odd_mag = (((magx & 1) != 0) && (magx > 2)) ? true : false;
-	__DECL_ALIGNED(16) int magx_tmp[16];
+	csp_vector8<uint16_t> magx_tmp;
 	__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 16; i++) {
-		magx_tmp[i] = (magx + (i & 1)) / 2;
+	for(size_t i = 0; i < 8; i++) {
+		magx_tmp.set(i, (magx + (i & 1)) / 2);
 	}
 
 	const int width = ((hst[trans] * 2 + 16 * magx) > (TOWNS_CRTC_MAX_PIXELS * 2)) ? (TOWNS_CRTC_MAX_PIXELS * 2) : (hst[trans] * 2 + 16 * magx);
@@ -1297,32 +1297,37 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	__UNLIKELY_IF(pwidth <= 1) return false;
 	__UNLIKELY_IF(magx < 1) return false;
 
-	csp_vector8<uint8_t> pbuf;
+
 	csp_vector8<uint8_t> hlbuf[2];
 	csp_vector8<uint8_t> mbuf;
-	csp_vector8<scrntype_t> sbuf[2];
-	csp_vector8<scrntype_t> abuf[2];
+	csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	csp_vector8<scrntype_t> abuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	
 	__DECL_ALIGNED(32) scrntype_t palbuf[16];
 	
 	uint8_t pmask = linebuffers[trans][y].r50_planemask[layer] & 0x0f;
 	mbuf.fill(pmask);
 
 	scrntype_t *pal = &(linebuffers[trans][y].palettes[layer].pixels[0]);
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 16; i++) {
-		palbuf[i] = pal[i];
-	}
+	simd_copy(palbuf, pal, 16);
 	// Clear palbuf[0]?
 	if((do_alpha) && (is_transparent)) {
 		palbuf[0] &= RGBA_COLOR(255, 255, 255, 0); // OK?
 	} else if(!is_transparent) {
-		abuf[0].fill(RGBA_COLOR(255, 255, 255, 255));
-		abuf[1].fill(RGBA_COLOR(255, 255, 255, 255));
+		for(size_t x = 0; x < (TOWNS_CRTC_MAX_PIXELS / 8); x++) {
+			abuf[x].fill(RGBA_COLOR(255, 255, 255, 255));
+		}
 	}
 	int k = 0;
 
-	size_t width_tmp1 = pwidth << 1;
-	size_t width_tmp2 = pwidth << 1;
+	size_t width_tmp = (hst[trans] > TOWNS_CRTC_MAX_PIXELS) ? TOWNS_CRTC_MAX_PIXELS : hst[trans];
+	__UNLIKELY_IF(width_tmp == 0) return false;
+//	size_t width_tmp1 = pwidth << 1;
+//	size_t width_tmp2 = pwidth << 1;
+	size_t width_tmp1 = width_tmp;
+	size_t width_tmp2 = width_tmp;
+	size_t words = 0;
+	size_t pptr = 0;
 
 	csp_vector8<uint8_t> bytes_mask;
 	for(int i = 0; i < 8; i += 2) {
@@ -1330,10 +1335,28 @@ __DECL_VECTORIZED_LOOP
 		bytes_mask.set(i + 1, 0xf0);
 	}
 		
-	for(int x = 0; x < (pwidth >> 3); x++) {
-		hlbuf[0].load2(&(p[0]));
-		hlbuf[1].load2(&(p[4]));
-		p += 8;
+	for(int x = 0; x < pwidth ; x++) {
+		size_t xx = x >> 3;
+		__UNLIKELY_IF((pptr + 1) >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
+			break;
+		}
+		__UNLIKELY_IF(xx == (pwidth >> 3)) {
+			sbuf[pptr].clear();
+			sbuf[pptr + 1].clear();
+			__DECL_ALIGNED(16) uint8_t tmp[8] = {0};
+			size_t j;
+
+			for(int i = x; i < pwidth; i++, j++) {
+				tmp[j] = *p;
+				p++;
+			}
+			hlbuf[0].load2(&(tmp[0]));
+			hlbuf[1].load2(&(tmp[4]));
+		} else {
+			hlbuf[0].load2(&(p[0]));
+			hlbuf[1].load2(&(p[4]));
+			p += 8;
+		}
 
 		hlbuf[0] &= bytes_mask;
 		hlbuf[1] &= bytes_mask;
@@ -1346,152 +1369,50 @@ __DECL_VECTORIZED_LOOP
 		hlbuf[0] &= mbuf;
 		hlbuf[1] &= mbuf;
 
-		sbuf[0].lookup(hlbuf[0], palbuf);
-		sbuf[1].lookup(hlbuf[1], palbuf);
-		
+		sbuf[pptr].lookup(hlbuf[0], palbuf);
 		if(!(do_alpha) && (is_transparent)) {
-			abuf[0].lookup(hlbuf[0], (scrntype_t*)maskdata_transparent);
-			abuf[1].lookup(hlbuf[1], (scrntype_t*)maskdata_transparent);
-		}			
-		int kbak = k;
-		__LIKELY_IF((((magx << 4) + k) <= width) && !(odd_mag)) {
-			__LIKELY_IF((width_tmp1 >= 16)) {
-				size_t __l = 0;
-				__LIKELY_IF(q != nullptr) {
-					__l = scaling_store(q, sbuf, magx, 2, width_tmp1);
-					q = &(q[__l]);
-				}
-				rendered_pixels += __l;
-				__LIKELY_IF(r2 != nullptr) {
-					__l = scaling_store(r2, abuf, magx, 2, width_tmp2);
-					r2 = &(r2[__l]);
-				}
-				k += (16 * magx);
-			}
-			__UNLIKELY_IF((width_tmp1 < 16) || (width_tmp2 < 16)) break;
-		} else {
-			int i1 = 0;
-			auto kbak = k;
-			size_t __l = 0;
-			for(size_t i0 = 0; i0 < 2; i0++) {
-				__LIKELY_IF(q != NULL) {
-					for(size_t i = 0; i < 8; i++) {
-						size_t dd = sbuf[i0].at(i);
-						for(int j = 0; j < magx_tmp[i]; j++) {
-							*q++ = dd;
-							k++;
-							width_tmp1--;
-							__l++;
-							__UNLIKELY_IF(k >= width) break;
-						}
-						__UNLIKELY_IF(k >= width) break;
-					}
-				}
-				__LIKELY_IF(r2 != NULL) {
-					for(size_t i = 0; i < 8; i++) {
-						size_t dm = abuf[i0].at(i);
-						for(int j = 0; j < magx_tmp[i]; j++) {
-							*r2++ = dm;
-							kbak++;
-							width_tmp2--;
-							__UNLIKELY_IF(kbak >= width) break;
-						}
-						__UNLIKELY_IF(kbak >= width) break;
-					}
-				}
-				__UNLIKELY_IF((width_tmp1 < 8) || (width_tmp2 < 8)) break;
-			}
-			rendered_pixels += __l;
+			abuf[pptr].lookup(hlbuf[0], (scrntype_t*)maskdata_transparent);
+		}		
+		words++;
+		pptr++;
+		__UNLIKELY_IF(pptr >= (width_tmp / 8)) {
+			break;
 		}
-
-		__UNLIKELY_IF(k >= width) return true;
+		sbuf[pptr].lookup(hlbuf[1], palbuf);
+		if(!(do_alpha) && (is_transparent)) {
+			abuf[pptr].lookup(hlbuf[1], (scrntype_t*)maskdata_transparent);
+		}		
+		words++;
+		pptr++;
+		__UNLIKELY_IF(pptr >= (width_tmp / 8)) {
+			break;
+		}
 	}
-	__LIKELY_IF(k >= width) return true;
-	uint8_t tmpp;
-	uint8_t tmph;
-	uint8_t tmpl;
-	scrntype_t ah, al;
-	int rwidth = pwidth & 7;
-	scrntype_t stmp[2];
-
-	__UNLIKELY_IF(rwidth > 0) {
-		size_t __l = 0;
-		for(int x = 0; x < rwidth; x++) {
-			tmpp = *p++;
-			tmph = tmpp >> 4;
-			tmpl = tmpp & 0x0f;
-			__UNLIKELY_IF(do_alpha) {
-				if(is_transparent) {
-					stmp[0] = (tmph == 0) ? RGBA_COLOR(0, 0, 0, 0) : palbuf[tmph];
-					stmp[1] = (tmpl == 0) ? RGBA_COLOR(0, 0, 0, 0) : palbuf[tmpl];
-				} else {
-					stmp[0] = palbuf[tmph];
-					stmp[1] = palbuf[tmpl];
-				}
-
-				if((magx == 1) && !(odd_mag)) {
-					for(int ii = 0; ii < 2; ii++) {
-						*q++ = stmp[ii];
-						k++;
-						__l++;
-						__UNLIKELY_IF(k >= TOWNS_CRTC_MAX_PIXELS) break;
-					}
-				} else {
-					for(int ii = 0; ii < 2; ii++) {
-						for(int xx = 0; xx < magx_tmp[(x << 1) + ii]; xx++) {
-							*q++ = stmp[ii];
-							__l++;
-							k++;
-							__UNLIKELY_IF(k >= TOWNS_CRTC_MAX_PIXELS) break;
-						}
-						__UNLIKELY_IF(k >= width) break;
-					}
-				}
-			} else {
-				stmp[0] = palbuf[tmph];
-				stmp[1] = palbuf[tmpl];
-				if(is_transparent) {
-					ah = (tmph == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
-					al = (tmpl == 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
-				} else {
-					ah = RGBA_COLOR(255, 255, 255,255);
-					al = RGBA_COLOR(255, 255, 255,255);
-				}
-				if((magx == 1) && !(odd_mag)) {
-					for(int ii = 0; ii < 2; ii++) {
-						*q++ = stmp[ii];
-					}
-					__l += 2;
-					__LIKELY_IF(r2 != nullptr) {
-						*r2++ = ah;
-						*r2++ = al;
-					}
-					k += 2;
-					__UNLIKELY_IF(k >= (TOWNS_CRTC_MAX_PIXELS - 1)) break;
-				} else {
-					for(int ii = 0; ii < 2; ii++) {
-						scrntype_t tmp = stmp[ii];
-						for(int j = 0; j < magx_tmp[(x << 1) + ii]; j++) {
-							*q++ = tmp;
-							__l++;
-						}
-					}
-					__LIKELY_IF(r2 != nullptr) {
-						for(int j = 0; j < magx_tmp[(x << 1) + 0]; j++) {
-							*r2++ = ah;
-						}
-						for(int j = 0; j < magx_tmp[(x << 1) + 1]; j++) {
-							*r2++ = al;
-						}
-					}
-					k += 2;
-					__UNLIKELY_IF(k >= (TOWNS_CRTC_MAX_PIXELS - 2)) break;
-				}
-			}
+	size_t __l = 0;
+	__LIKELY_IF(!(odd_mag)) {
+		__LIKELY_IF(q != NULL) {
+			__l = scaling_store(q, sbuf, magx, words, width_tmp1);
+			q = &(q[__l]);
 		}
 		rendered_pixels += __l;
+		k += __l;
+		__LIKELY_IF(r2 != NULL) {
+			__l = scaling_store(r2, abuf, magx, words, width_tmp2);
+			r2 = &(r2[__l]);
+		}
+	} else {
+		__LIKELY_IF(q != NULL) {
+			__l = scaling_store_by_map(q, sbuf, magx_tmp, words, width_tmp1);
+			q = &(q[__l]);
+		}
+		rendered_pixels += __l;
+		k += __l;
+		__LIKELY_IF(r2 != NULL) {
+			__l = scaling_store_by_map(r2, abuf, magx_tmp, words, width_tmp2);
+			r2 = &(r2[__l]);
+		}
 	}
-	return true;
+	return (rendered_pixels > 0) ? true : false;
 }
 
 inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
