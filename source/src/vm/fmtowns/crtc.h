@@ -616,6 +616,8 @@ protected:
 		}
 	}
 	inline size_t scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
+	inline size_t scaling_store_by_map(scrntype_t *dst, csp_vector8<scrntype_t> *src, csp_vector8<uint16_t> magx_map, const size_t words, size_t& width);
+	
 	inline size_t store1_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
 	inline size_t store2_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
 	inline size_t store4_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
@@ -853,7 +855,6 @@ inline size_t TOWNS_CRTC::store4_unaligned(scrntype_t *dst, csp_vector8<scrntype
 	return pixels_count;
 }
 
-
 inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width)
 {
 	__UNLIKELY_IF((dst == NULL) || (src == NULL)) return 0;
@@ -895,10 +896,59 @@ inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t>
 	return pixels_count;
 }
 
-
-
+inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, csp_vector8<scrntype_t> *src, csp_vector8<uint16_t> magx_map, const size_t words, size_t& width)
+{
+	if((words == 0) || (width == 0)) return 0;
+	size_t pixels_count = 0;
+	const size_t width_limit = width;
+	size_t rwidth = width & 7;
+	size_t __sum = 0;
+	__DECL_VECTORIZED_LOOP
+	for(size_t x = 0; x < 8; x++) {
+		__sum += magx_map.at(x);
+	}
+	scrntype_t pix;
+	size_t ptr = 0;
+	for(size_t x = 0; x < words; x++) {
+		__UNLIKELY_IF(pixels_count >= width_limit ) {
+			pixels_count = width_limit;
+			break;
+		}
+		__LIKELY_IF(width >= __sum) {
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 8; i++) {
+				pix = src[x].at(i);
+				for(size_t j = 0; j < magx_map.at(i); j++) {
+					dst[ptr++] = pix; 
+				}
+			}
+			width -= __sum;
+			pixels_count += __sum;
+		} else {
+			__UNLIKELY_IF(rwidth == 0) {
+				rwidth = 8; // Temporally value
+			}
+			for(size_t i = 0; i < rwidth; i++) {
+				pix = src[x].at(i);
+				for(size_t j = 0; j < magx_map.at(i); j++) {
+					dst[ptr++] = pix;
+					pixels_count++;
+					__UNLIKELY_IF(pixels_count >= width_limit) {
+						break;
+					}
+				}
+				__UNLIKELY_IF(pixels_count >= width_limit) {
+					pixels_count = width_limit;
+					break;
+				}
+			}
+			width = 0;
+			break;
+		}
+	}
+	return pixels_count;
 }
-
+}
 
 
 #endif
