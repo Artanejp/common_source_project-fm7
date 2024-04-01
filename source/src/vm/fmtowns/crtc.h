@@ -272,7 +272,6 @@ protected:
 	uint16_t eet_count;
 	uint16_t lines_per_frame_current;
 	int hst[FMTOWNS::CRTC_BUFFER_NUM], vst[FMTOWNS::CRTC_BUFFER_NUM];
-	int voffset[FMTOWNS::CRTC_BUFFER_NUM][2];
 
 	double horiz_us_next; // (HST + 1) * clock
 	double horiz_width_posi_us_next, horiz_width_nega_us_next; // HSW1, HSW2

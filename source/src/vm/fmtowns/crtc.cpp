@@ -152,9 +152,6 @@ void TOWNS_CRTC::reset()
 		hst[i] = pixels_per_line;
 		vst[i] = max_lines;
 		is_single_layer[i] = is_single_layer[0];
-		for(int l = 0; l < 2; l++) {
-			voffset[i][l] = voffset_val[l];
-		}
 		is_interlaced[i][0] = layer_is_interlaced(0);
 		is_interlaced[i][1] = layer_is_interlaced(1);
 		update_control_registers(i);
@@ -221,7 +218,10 @@ void TOWNS_CRTC::reset_paletts()
 
 void TOWNS_CRTC::reset_vsync()
 {
-	write_signals(&outputs_int_vsync, 0);
+	if(vsync) {
+		vsync = false;
+		write_signals(&outputs_int_vsync, 0);
+	}
 }
 void TOWNS_CRTC::set_vsync(bool val)
 {
@@ -229,18 +229,18 @@ void TOWNS_CRTC::set_vsync(bool val)
 	vsync = val;
 	if(vsync_bak != val) {
 		write_signals(&outputs_int_vsync, (val) ? 0x00000000 : 0xffffffff);
-		if(!(val)) {
-			sprite_offset = get_sprite_offset();
-			// Start sprite tranferring when VSYNC has asserted.
-			// This is temporally working, not finally.
-			// - 2024314 K.O
-			__LIKELY_IF(d_sprite != NULL) {
-				//! Note:
-				//! - Below is from Tsugaru, commit 1a442831 .
-				//! - I wonder sprite offset effects every display mode at page1.
-				//! - -- 20230715 K.O
-				d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
-			}
+	}
+	if(!(val)) {
+		sprite_offset = get_sprite_offset();
+		// Start sprite tranferring when VSYNC has asserted.
+		// This is temporally working, not finally.
+		// - 2024314 K.O
+		__LIKELY_IF(d_sprite != NULL) {
+			//! Note:
+			//! - Below is from Tsugaru, commit 1a442831 .
+			//! - I wonder sprite offset effects every display mode at page1.
+			//! - -- 20230715 K.O
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
 		}
 	}
 }
@@ -586,13 +586,13 @@ void TOWNS_CRTC::calc_pixels_lines()
 	// Omit around FO0.
 	if(is_single_tmp) {
 		// Single layer
-		max_lines = vheight_val[0];
+		max_lines = vheight_val[0] + voffset_val[0];
 	} else {
-		max_lines = max(vheight_val[0], vheight_val[1]);
+		max_lines = max((vheight_val[0] + voffset_val[0]) , (vheight_val[1] + voffset_val[1]));
 	}
-
+   
 	// ToDo: High resolution MODE.
-
+	
 	__UNLIKELY_IF(pixels_per_line < 0) pixels_per_line = 0;
 	__UNLIKELY_IF(pixels_per_line >= TOWNS_CRTC_MAX_PIXELS) pixels_per_line = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(max_lines < 0) max_lines = 0;
@@ -1735,11 +1735,11 @@ void TOWNS_CRTC::draw_screen()
 	int ycount[2] = {0};
 
 	int disp_y = 0;
-	if(voffset[trans][1] > voffset[trans][0]) {
-		yskip[1] = voffset[trans][1] - voffset[trans][0];
-	} else if(voffset[trans][0] > voffset[trans][1]) {
-		yskip[0] = voffset[trans][0] - voffset[trans][1];
-	}
+
+	// Note: Start origin must be from 0.
+	yskip[0] = 0;
+	yskip[1] = 0;
+
 	for(int y = 0; y < lines; y++) {
 		int real_mode[2] = { DISPMODE_NONE };
 		int real_y[2] = {0};
@@ -2245,9 +2245,6 @@ void TOWNS_CRTC::begin_of_display()
 	hst[trans] = pixels_per_line;
 	
 	for(int i = 0; i < 2; i++) {
-		voffset[trans][i] = voffset_val[i];
-	}
-	for(int i = 0; i < 2; i++) {
 		zoom_count_vert[i] = zoom_factor_vert[i];
 		frame_offset_bak[i] = frame_offset[i];
 		is_interlaced[trans][i] = layer_is_interlaced(i);
@@ -2339,7 +2336,6 @@ void TOWNS_CRTC::event_pre_frame()
 	// Reset VSYNC
 	vert_line_count = -1;
 	hsync = false;
-	vsync = false;
 	reset_vsync(); // Auto interrupt off.
 }
 
@@ -2387,7 +2383,6 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 			frame_in[i] = false;
 		}
 		hsync = false;
-		vsync = false;
 		reset_vsync();
 		return;
 	}
@@ -2410,6 +2405,13 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		}
 	} else {
 		usec = horiz_width_posi_us;
+		__UNLIKELY_IF(v == vst2_count) {
+			set_vsync(false);
+			for(int i = 0; i < 2; i++) {
+				// Need to update on vert offset
+				update_regs_v(i);
+			}
+		}
 		// Make frame_in[layer]
 		bool fin_bak[2] = {false};
 		
@@ -2426,15 +2428,13 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 				frame_in[i] = false;
 			}
 		}
-		__UNLIKELY_IF(v == vst2_count) {
-			set_vsync(false);
-		}
 		// Update vstart (by FAx) and line offset (by LOx) when frame_in[layer] has changed.
 		// -- 20240314 K.O
 		for(int i = 0; i < 2; i++) {
 			__UNLIKELY_IF(fin_bak[i] != frame_in[i]) {
-				update_vstart(i);	
+				update_vstart(i);
 				update_line_offset(i);
+				// Need to update on vert offset
 				recalc_hdisp_from_crtc_params(i, horiz_start_us[i], horiz_end_us[i]);
 				__LIKELY_IF(d_sprite != NULL) {
 					if((i == 0) && !(is_single_tmp)) {
@@ -2596,7 +2596,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 			hdisp[layer] = true;
 			// Start to render on HDSx. 20240101 K.O
 			// Update VSTART/LO at th end of frame.
-			//update_vstart(layer);	
+
 			__LIKELY_IF((vert_line_count < __max_lines) && (vert_line_count >= 0)) {
 				pre_transfer_line(layer, vert_line_count);
 				//transfer_line(layer, vert_line_count);
@@ -3021,7 +3021,6 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 			vst[i] = max_lines;
 			is_single_layer[i] = is_single_layer_tmp;
 			for(int l = 0; l < 2; l++) {
-				voffset[i][l] = voffset_val[l];
 				is_interlaced[i][l] = is_interlaced_tmp[l];
 			}
 			update_control_registers(i);
