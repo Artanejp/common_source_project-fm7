@@ -148,15 +148,10 @@ set(USE_LTO ON CACHE BOOL "Use link-time-optimization to build.")
 set(USE_OPENMP OFF)
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
+
 if(USE_OPENGL)
 	add_definitions(-D_USE_OPENGL -DUSE_OPENGL)
 endif()
-#set(IS_ENABLE_LTO FALSE)
-#if(CMAKE_VERSION VERSION_GREATER 3.8)
-#  if(USE_LTO)
-#	include(CheckIPOSupported)
-#  endif()
-#endif()
 
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
@@ -173,6 +168,7 @@ endif()
 SET(CMAKE_AUTOMOC OFF)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
@@ -327,25 +323,50 @@ include_directories(
 				"${PROJECT_SOURCE_DIR}/src/qt"
 )
 
+if(USE_LTO)
+	include(CheckIPOSupported)
+	#check_ipo_supported(RESULT CSP_ENABLE_LTO
+	#		LANGUAGES C,CXX)
+	#check_cxx_compiler_flag("-flto" CSP_ENABLE_LTO)
+	#if(CSP_ENABLE_LTO)
+		#SET_PROPERTY(GLOBAL PROPERTY PROPERTY
+		#	INTERPROCEDURAL_OPTIMIZATION TRUE)
+		# ToDo: Change per compiler toolchain
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto") 
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto") 
+		#add_link_options(-fuse-ld=${CMAKE_LD})
+		set(CSP_GENERAL_LINKER_FLAGS "-flto ${CSP_GENERAL_LINKER_FLAGS}")
+	#endif()
+endif()
+if(DEFINED CMAKE_LD)
+	add_link_options(-fuse-ld=${CMAKE_LD})
+endif()
+
+
+
 # Additional flags from toolchain.
 function(additional_link_options n_target)
 	string(TOUPPER "${CMAKE_BUILD_TYPE}" U_BUILD_TYPE)
 	if("${U_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO")
 		if(DEFINED CSP_ADDTIONAL_FLAGS_LINK_RELWITHDEBINFO)
 			target_link_options(${n_target}
-				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}
+				PRIVATE
+				${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}
+				
 			)
 		endif()
 	elseif("${U_BUILD_TYPE}" STREQUAL "RELEASE")
 		if(DEFINED CSP_ADDTIONAL_FLAGS_LINK_RELEASE)
 			target_link_options(${n_target}
-				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}
+				PRIVATE
+				${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}
 			)
 		endif()
 	elseif("${U_BUILD_TYPE}" STREQUAL "DEBUG")
 		if(DEFINED CSP_ADDTIONAL_FLAGS_LINK_DEBUG)
 			target_link_options(${n_target}
-				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}
+				PRIVATE
+				${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}
 			)
 		endif()
 	endif()
@@ -356,19 +377,22 @@ function(additional_options n_target)
 	if("${U_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO")
 		if(DEFINED CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO)
 			target_compile_options(${n_target}
-				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}
+				PRIVATE
+				${CSP_ADDTIONAL_FLAGS_COMPILE_RELWITHDEBINFO}
 			)
 		endif()
 	elseif("${U_BUILD_TYPE}" STREQUAL "RELEASE")
 		if(DEFINED CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE)
 			target_compile_options(${n_target}
-				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}
+				PRIVATE
+				${CSP_ADDTIONAL_FLAGS_COMPILE_RELEASE}
 			)
 		endif()
 	elseif("${U_BUILD_TYPE}" STREQUAL "DEBUG")
 		if(DEFINED CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG)
 			target_compile_options(${n_target}
-				PRIVATE ${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}
+				PRIVATE
+				${CSP_ADDTIONAL_FLAGS_COMPILE_DEBUG}
 			)
 		endif()
 	endif()
@@ -606,14 +630,6 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		PRIVATE  ${VMDEF}
 	)
 
-#	additional_options(common_${EXE_NAME})
-#	additional_options(vm_${EXE_NAME})
-#	additional_options(qt_${EXE_NAME})
-#	additional_options(qt_debug_${EXE_NAME})
-
-#	additional_options(${EXE_NAME})
-#	additional_link_options(${EXE_NAME})
-
 	if(WIN32)
 		# Note: With Debian's foo-mingw-w64-g++, needs below workaround
 		# due to problems of linker.
@@ -627,6 +643,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 #			libpthread.a
 			-lpthread
 		)
+		
 	else()
 		target_link_libraries(${EXE_NAME}
 			${LOCAL_LIBS}

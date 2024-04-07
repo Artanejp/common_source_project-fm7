@@ -32,6 +32,7 @@ SET(s_qt_osd_srcs
 
 	${s_qt_osd_headers_MOC}
 )
+
 add_definitions(-D__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
 
 include (GenerateExportHeader)
@@ -40,71 +41,72 @@ add_library(CSPosd SHARED
 	${s_qt_osd_srcs}
 	${s_qt_osd_headers_MOC}
 )
+
 set_std(CSPosd)
 
 if(WIN32)
-  if(CHECK_QT_6)
-	target_link_libraries(CSPosd PUBLIC
-	  CSPemu_utils
-	  Qt::Core
-	  Qt::Gui
-	  Qt::OpenGL
-	  Qt::Widgets
-	  Qt::Network
-	  Qt::Multimedia
-	  Qt::Core5Compat
-	  ${SDL2_LIBRARIES}
-	  ${ADDITIONAL_DLL_LIBRARIES}
-	  )
-  else()
-	target_link_libraries(CSPosd
-	  PUBLIC CSPemu_utils
-	  Qt5::Core
-	  Qt5::Gui
-	  Qt5::OpenGL
-	  Qt5::Widgets
-	  Qt5::Network
-	  Qt5::Multimedia
-	  ${SDL2_LIBRARIES}
-	  ${ADDITIONAL_DLL_LIBRARIES}
-	  )
-  endif()
-  generate_export_header(CSPosd
-    BASE_NAME CSPosd
-    EXPORT_MACRO_NAME CSPosd_EXPORT
-    EXPORT_FILE_NAME CSPosd_Export.h
-    STATIC_DEFINE CSPgosd_BUILT_AS_STATIC
-	)
-  set_target_properties(CSPosd PROPERTIES
-	SOVERSION ${THIS_LIB_VERSION}
-	VERSION ${THIS_LIB_VERSION}
-	)
-else()
-  if(CHECK_QT_6)
-	target_link_libraries(CSPosd PUBLIC
-		Qt::Core
-		Qt::Gui
-		Qt::Widgets
-		Qt::Network
-		Qt::Multimedia
-		Qt::Core5Compat
-		${SDL2_LIBRARIES}
-		${ADDITIONAL_DLL_LIBRARIES}
+	if(CHECK_QT_6)
+		target_link_libraries(CSPosd PUBLIC
+			CSPemu_utils
+			Qt::Core
+			Qt::Gui
+			Qt::OpenGL
+			Qt::Widgets
+			Qt::Network
+			Qt::Multimedia
+			Qt::Core5Compat
+			${SDL2_LIBRARIES}
+			${ADDITIONAL_DLL_LIBRARIES}
 		)
 	else()
-	target_link_libraries(CSPosd PUBLIC
-		Qt5::Core
-		Qt5::Gui
-		Qt5::Widgets
-		Qt5::Network
-		Qt5::Multimedia
-		${SDL2_LIBRARIES}
-		${ADDITIONAL_DLL_LIBRARIES}
+		target_link_libraries(CSPosd
+			PUBLIC CSPemu_utils
+			Qt5::Core
+			Qt5::Gui
+			Qt5::OpenGL
+			Qt5::Widgets
+			Qt5::Network
+			Qt5::Multimedia
+			${SDL2_LIBRARIES}
+			${ADDITIONAL_DLL_LIBRARIES}
+		)
+	endif()
+	generate_export_header(CSPosd
+		BASE_NAME CSPosd
+		EXPORT_MACRO_NAME CSPosd_EXPORT
+		EXPORT_FILE_NAME CSPosd_Export.h
+		STATIC_DEFINE CSPgosd_BUILT_AS_STATIC
+	)
+	set_target_properties(CSPosd PROPERTIES
+		SOVERSION ${THIS_LIB_VERSION}
+		VERSION ${THIS_LIB_VERSION}
+	)
+else()
+	if(CHECK_QT_6)
+		target_link_libraries(CSPosd PUBLIC
+			Qt::Core
+			Qt::Gui
+			Qt::Widgets
+			Qt::Network
+			Qt::Multimedia
+			Qt::Core5Compat
+			${SDL2_LIBRARIES}
+			${ADDITIONAL_DLL_LIBRARIES}
+		)
+	else()
+		target_link_libraries(CSPosd PUBLIC
+			Qt5::Core
+			Qt5::Gui
+			Qt5::Widgets
+			Qt5::Network
+			Qt5::Multimedia
+			${SDL2_LIBRARIES}
+			${ADDITIONAL_DLL_LIBRARIES}
 		)
 	endif()
 	set_target_properties(CSPosd PROPERTIES
-	  SOVERSION ${THIS_LIB_VERSION}
-	  VERSION ${THIS_LIB_VERSION}
-	  )
+		SOVERSION ${THIS_LIB_VERSION}
+		VERSION ${THIS_LIB_VERSION}
+	)
 	INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

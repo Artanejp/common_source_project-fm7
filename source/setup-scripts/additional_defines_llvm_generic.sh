@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 function detect_llvm_version () {
 	if [ "__xx__${TOOLCHAIN_VERSION}" = "__xx__" ] ; then
 		TEST_CC="clang"
@@ -23,6 +22,8 @@ else
 fi
 
 BASICOPTS+=(${OPTIMIZE_LEVEL})
+CMAKE_OPTS_PREFIX+=(-DCMAKE_CXX_COMPILER_VERSION=${C_MAJOR_VERSION})
+CMAKE_OPTS_PREFIX+=(-DCMAKE_C_COMPILER_VERSION=${C_MAJOR_VERSION})
 
 if [ "__x__${OPTIMIZE_LEVEL}" != "__x__-O0" ] ; then
 	if [ $C_MAJOR_VERSION -le 12 ] ; then
@@ -33,9 +34,6 @@ if [ "__x__${OPTIMIZE_LEVEL}" != "__x__-O0" ] ; then
 	fi
 fi
 
-if [ $USE_LTO -ne 0 ] ; then
-	BASICOPTS+=(-flto)
-fi
 
 . ${SCRIPTS_DIR}/additional_defines_simd_types_llvm.sh
 
@@ -44,14 +42,17 @@ BASICOPTS+=(-Wreserved-user-defined-literal)
 if [ "__xx__${TOOLCHAIN_VERSION}" != "__xx__" ] ; then
 	DLL_LDOPTS+=(-fuse-ld=lld-${TOOLCHAIN_VERSION})
 	EXE_LDOPTS+=(-fuse-ld=lld-${TOOLCHAIN_VERSION})
+	#if [ $USE_LTO -ne 0 ] ; then
+	#	CMAKE_OPTS_PREFIX+=(-DCMAKE_LINKER_TYPE=LLD)
+	#fi
 else
 	DLL_LDOPTS+=(-fuse-ld=lld)
 	EXE_LDOPTS+=(-fuse-ld=lld)
 fi
-if [ $USE_LTO -ne 0 ] ; then
-	DLL_LDOPTS+=(-flto=jobserver)
-	EXE_LDOPTS+=(-flto=jobserver)
-fi
+#if [ $USE_LTO -ne 0 ] ; then
+#	DLL_LDOPTS+=(-flto=jobserver)
+#	EXE_LDOPTS+=(-flto=jobserver)
+#fi
 if [ __x__"${BUILD_TYPE}" != __x__Release ] ; then
 	DEBUGFLAGS+=(-gdwarf)
 	DEBUGFLAGS+=(-gz)
@@ -66,10 +67,10 @@ else
 fi
 
 if [ __x__"${BUILD_TYPE}" != __x__Debug ] ; then
-	if [ $USE_LTO -ne 0 ] ; then
-		DLL_LDOPTS+=(-Wl,--lto-O3)
-		EXE_LDOPTS+=(-Wl,--lto-O3)
-	fi
+	#if [ $USE_LTO -ne 0 ] ; then
+	#	DLL_LDOPTS+=(-Wl,--lto-O3)
+	#	EXE_LDOPTS+=(-Wl,--lto-O3)
+	#fi
 	EXE_LDOPTS+=(-fwhole-program-vtables)
 fi
 #EXE_LDOPTS+=(-Wl,--allow-shlib-undefined)

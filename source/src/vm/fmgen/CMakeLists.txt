@@ -37,20 +37,20 @@ if(WIN32)
 	set_std(CSPfmgen)
 
 else()
-  if(USE_DEVICES_SHARED_LIB)
-      add_library(CSPfmgen SHARED
-                 ${s_vm_fmgen_srcs}
-		 )
-      set_target_properties(CSPfmgen PROPERTIES
-                        SOVERSION ${THIS_LIB_VERSION}
+	if(USE_DEVICES_SHARED_LIB)
+		add_library(CSPfmgen SHARED
+			${s_vm_fmgen_srcs}
+		)
+		set_target_properties(CSPfmgen PROPERTIES
+			SOVERSION ${THIS_LIB_VERSION}
 			VERSION ${THIS_LIB_VERSION}
-			)
-      INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
-	set_std(CSPfmgen)
-  else()
-    add_library(fmgen STATIC
-      ${s_vm_fmgen_srcs}
-	)
-	set_std(fmgen)
-  endif()
+		)
+		INSTALL(TARGETS CSPfmgen DESTINATION ${LIBCSP_INSTALL_DIR})
+		set_std(CSPfmgen)
+	else()
+		add_library(fmgen STATIC
+		  	${s_vm_fmgen_srcs}
+		)
+		set_std(fmgen)
+	endif()
 endif()
