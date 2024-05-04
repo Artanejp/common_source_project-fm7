@@ -97,6 +97,7 @@
 #undef __HAS_BUILTIN_BSWAP16_X
 #undef __HAS_BUILTIN_BSWAP32_X
 #undef __HAS_BUILTIN_BSWAP64_X
+#undef __HAS_BUILTIN_BSWAP128_X
 
 #if defined(__has_builtin)
 	#if __has_builtin(__builtin_bswap16)
@@ -107,6 +108,9 @@
 	#endif
 	#if __has_builtin(__builtin_bswap64)
 	#define __HAS_BUILTIN_BSWAP64_X 1
+	#endif
+	#if __has_builtin(__builtin_bswap128)
+	#define __HAS_BUILTIN_BSWAP128_X 1
 	#endif
 #endif
 

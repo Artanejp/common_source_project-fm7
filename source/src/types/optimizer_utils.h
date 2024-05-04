@@ -3,6 +3,7 @@
 /*!
   @todo will move to another directory.
 */
+#include "./basic_types.h"
 
 // hint for SIMD
 #if defined(__clang__)
@@ -85,3 +86,111 @@
 			#define __UNLIKELY_IF(foo) if(foo)
 	#endif
 #endif
+
+inline uint16_t swapendian_16(uint16_t src)
+{
+#if defined(__HAS_BUILTIN_BSWAP16_X)
+	uint16_t n = __builtin_bswap16((uint16_t)src);
+	return n;
+#else
+	union {
+		uint16_t w;
+		uint8_t  b[2];
+	} n;
+	n.w = src;
+	std::swap(n.b[0], n.b[1]);
+	return n.w;
+#endif
+}
+
+inline uint32_t swapendian_32(uint32_t src)
+{
+#if defined(__HAS_BUILTIN_BSWAP32_X)
+	uint32_t n = __builtin_bswap32(src);
+	return n;
+#else
+	union {
+		uint32_t d;
+		uint8_t  b[4];
+	} n;
+	n.d = src;
+	std::swap(n.b[0], n.b[3]);
+	std::swap(n.b[1], n.b[2]);
+	return n.d;
+#endif
+}
+
+inline uint64_t swapendian_64(uint64_t src)
+{
+#if defined(__HAS_BUILTIN_BSWAP64_X)
+	uint64_t n = __builtin_bswap64((uint64_t)src);
+	return n;
+#else
+	__DECL_ALIGNED(8) union {
+		uint64_t l;
+		uint8_t  b[8];
+	} n;
+	n.l = src;
+	std::swap(n.b[0], n.b[7]);
+	std::swap(n.b[1], n.b[6]);
+	std::swap(n.b[2], n.b[5]);
+	std::swap(n.b[3], n.b[4]);
+	return n.l;
+#endif
+}
+
+#if defined(__HAS_BUILTIN_BSWAP128_X)
+inline uint128_t swapendian_128(uint128_t src)
+{
+	uint128_t n = __builtin_bswap128(src);
+	return n;
+}
+#endif
+
+template <class T>
+	inline T swapendian_T(T src)
+{
+	constexpr size_t __size = sizeof(T);
+
+	if(__size <= 1) {
+		return src;
+	}
+	if(__size == 16) {
+	#if defined(__HAS_BUILTIN_BSWAP128_X)
+		return (T)swapendian_128((uint128_t)src);
+	#else
+		__DECL_ALIGNED(16) union {
+			T        dat;
+			uint8_t  b[16];
+		} n;
+		n.dat = src;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0, j = 15; i < 8; i++, j--) {
+			std::swap(n.b[i], n.b[j]);
+		}
+		return n.dat;
+	#endif
+	}
+	if(__size == 32) {
+		__DECL_ALIGNED(16) union {
+			T        dat;
+			uint8_t  b[32];
+		} n;
+		n.dat = src;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0, j = 31; i < 16; i++, j--) {
+			std::swap(n.b[i], n.b[j]);
+		}
+		return (T)(n.dat);
+	}
+	__DECL_ALIGNED(32) T tmp = src;
+	uint8_t *p = (uint8_t*)(&tmp);
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0, j = __size - 1; i < (__size / 2); i++, j--) {
+		std::swap(p[i], p[j]);
+	}
+	return tmp;
+}
+	
+
+

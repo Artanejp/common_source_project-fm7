@@ -12,6 +12,8 @@
 
 #include <type_traits>
 #include <utility>
+
+#include "types/basic_types.h"
 #include "types/system_endians.h"
 #include "types/optimizer_utils.h"
 
@@ -67,161 +69,63 @@ public:
 			m_data[i] = p[i];
 		}
 	}
+
+	
 	constexpr csp_vector8<T>& exchange_endian()
 	{
 		constexpr size_t __size = sizeof(T);
 		if(__size <= 1) return *this;
 
-		uint8_t *q = ___assume_aligned((uint8_t *)(&(m_data[0])), __M__MINIMUM_ALIGN_LENGTH);
 		if(__size == 2) {
 			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 16; i += 2) {
-				std::swap(q[i] , q[i + 1]);
+			for(size_t i = 0; i < 8; i++) {
+				uint16_t n = (uint16_t)(m_data[i]);
+				m_data[i] = (T)swapendian_16(n);
 			}
 			return *this;
 		}
 		if(__size == 4) {
 			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 32; i += 4) {
-				std::swap(q[i]     , q[i + 3]);
-				std::swap(q[i + 1] , q[i + 2]);
+			for(size_t i = 0; i < 8; i++) {
+				uint32_t n = (uint32_t)(m_data[i]);
+				m_data[i] = (T)swapendian_32(n);
 			}
 			return *this;
 		}
 		if(__size == 8) {
 			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 64; i += 8) {
-				std::swap(q[i]     , q[i + 7]);
-				std::swap(q[i + 1] , q[i + 6]);
-				std::swap(q[i + 2] , q[i + 5]);
-				std::swap(q[i + 3] , q[i + 4]);
+			for(size_t i = 0; i < 8; i++) {
+				uint64_t n = (uint64_t)(m_data[i]);
+				m_data[i] = (T)swapendian_64(n);
 			}
 			return *this;
 		}
+		#if defined(__HAS_BUILTIN_BSWAP128_X)
 		if(__size == 16) {
 			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 128; i += 16) {
-				std::swap(q[i]     , q[i + 15]);
-				std::swap(q[i + 1] , q[i + 14]);
-				std::swap(q[i + 2] , q[i + 13]);
-				std::swap(q[i + 3] , q[i + 12]);
-				std::swap(q[i * 4] , q[i + 11]);
-				std::swap(q[i + 5] , q[i + 10]);
-				std::swap(q[i + 6] , q[i +  9]);
-				std::swap(q[i + 7] , q[i +  8]);
+			for(size_t i = 0; i < 8; i++) {
+				uint128_t n = (uint128_t)(m_data[i]);
+				m_data[i] = (T)swapendian_128(n);
 			}
 			return *this;
 		}
-		if(__size == 32) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 256; i += 32) {
-				std::swap(q[i]      , q[i + 31]);
-				std::swap(q[i + 1]  , q[i + 30]);
-				std::swap(q[i + 2]  , q[i + 29]);
-				std::swap(q[i + 3]  , q[i + 28]);
-				std::swap(q[i * 4]  , q[i + 27]);
-				std::swap(q[i + 5]  , q[i + 26]);
-				std::swap(q[i + 6]  , q[i + 25]);
-				std::swap(q[i + 7]  , q[i + 24]);
-				std::swap(q[i + 8]  , q[i + 23]);
-				std::swap(q[i + 9]  , q[i + 22]);
-				std::swap(q[i + 10] , q[i + 21]);
-				std::swap(q[i + 11] , q[i + 20]);
-				std::swap(q[i * 12] , q[i + 19]);
-				std::swap(q[i + 13] , q[i + 18]);
-				std::swap(q[i + 14] , q[i + 17]);
-				std::swap(q[i + 15] , q[i + 16]);
-			}
-			return *this;
-		}
-		
-		for(size_t i = 0, j = 0; i < (__size * 8); i += __size, j++) {
-			uint8_t* r = (uint8_t*)(&m_data[j]);
-			__DECL_VECTORIZED_LOOP
-			for(size_t k = 0; k < (__size / 2); k++) {
-				std::swap(r[k], r[(__size - (k + 1))]);
-			}
+		#endif
+		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T tmp;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			tmp = m_data[i];
+			tmp = swapendian_T(tmp);
+			m_data[i] = tmp;
 		}
 		return *this;
 	}		
 	constexpr void load_with_swapping_endian(uint8_t* p)
 	{
-		constexpr size_t __size = sizeof(T);
-		uint8_t *q = ___assume_aligned((uint8_t *)(&(m_data[0])), __M__MINIMUM_ALIGN_LENGTH);
-		uint8_t *r = (uint8_t*)p;
-		if(__size == 2) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 16; i += 2) {
-				q[i]     = r[i + 1];
-				q[i + 1] = r[i];
-			}
-			return;
-		}
-		if(__size == 4) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 32; i += 4) {
-				q[i]     = r[i + 3];
-				q[i + 1] = r[i + 2];
-				q[i + 2] = r[i + 1];
-				q[i + 3] = r[i];
-			}
-			return;
-		}
-		if(__size == 8) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 64; i += 8) {
-				q[i]     = r[i + 7];
-				q[i + 1] = r[i + 6];
-				q[i + 2] = r[i + 5];
-				q[i + 3] = r[i + 4];
-				q[i + 4] = r[i + 3];
-				q[i + 5] = r[i + 2];
-				q[i + 6] = r[i + 1];
-				q[i + 7] = r[i];
-			}
-			return;
-		}
-		// Otherwise...
 		load((T*)p);
 		exchange_endian();
 	}
 	constexpr void store_with_swapping_endian(uint8_t* p)
 	{
-		constexpr size_t __size = sizeof(T);
-		uint8_t *r = ___assume_aligned((uint8_t *)(&(m_data[0])), __M__MINIMUM_ALIGN_LENGTH);
-		uint8_t *q = (uint8_t*)p;
-		if(__size == 2) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 16; i += 2) {
-				q[i]     = r[i + 1];
-				q[i + 1] = r[i];
-			}
-			return;
-		}
-		if(__size == 4) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 32; i += 4) {
-				q[i]     = r[i + 3];
-				q[i + 1] = r[i + 2];
-				q[i + 2] = r[i + 1];
-				q[i + 3] = r[i];
-			}
-			return;
-		}
-		if(__size == 8) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 64; i += 8) {
-				q[i]     = r[i + 7];
-				q[i + 1] = r[i + 6];
-				q[i + 2] = r[i + 5];
-				q[i + 3] = r[i + 4];
-				q[i + 4] = r[i + 3];
-				q[i + 5] = r[i + 2];
-				q[i + 6] = r[i + 1];
-				q[i + 7] = r[i];
-			}
-			return;
-		}
 		// Otherwise...
 		csp_vector8<T> pp;
 		pp.load_aligned(m_data);
