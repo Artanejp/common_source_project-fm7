@@ -1442,6 +1442,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 	__LIKELY_IF(pp != nullptr) {
 		int left0 = words0;
 		int left1 = words1;
+		make_prefetch_write_local(pp, TOWNS_CRTC_MAX_PIXELS * sizeof(scrntype_t));
 		__UNLIKELY_IF(words0 <= 0) {
 			do_mix0 = false;
 		}
@@ -1762,31 +1763,6 @@ void TOWNS_CRTC::draw_screen()
 				ycount[l]++;
 			}
 		}
-		for(int l = 0; l < 2; l++) {
-			__LIKELY_IF(do_render[l]) {
-				int prio_l = prio[l];
-				int __y = real_y[l];
-				#if 0
-				__UNLIKELY_IF(((real_mode[l] & DISPMODE_DUP) != 0) && (do_render[l])) {
-					int prev_line = linebuffers[trans][__y].prev_y[l];
-					__LIKELY_IF((prev_line >= 0) && (prev_line < TOWNS_CRTC_MAX_LINES)){
-						int prev_pwidth = linebuffers[trans][prev_line].pixels[l];
-						if(prev_pwidth > 0) {
-							copy_line(trans, l, prev_line, __y);
-						} else {
-							clear_line(trans, l, __y);
-							do_render[l] = false;
-							real_mode[l] = DISPMODE_NONE;
-						}
-					} else {
-						clear_line(trans, l, __y);
-						do_render[l] = false;
-						real_mode[l] = DISPMODE_NONE;
-					}
-				}
-			#endif
-			}
-		}
 		if((do_render[0]) || (do_render[1])) {
 			disp_y++;
 			memset(lbuffer1, 0x00, sizeof(lbuffer1));
@@ -1811,12 +1787,12 @@ void TOWNS_CRTC::draw_screen()
 			int prio_l = (is_single_tmp) ? 0 : (prio[l] & 1); // Will Fix
 			is_transparent = ((do_render[0]) && (do_render[1]) && (prio_l == 0)) ? true : false;			
 			if(do_render[l]) {
-
 				scrntype_t* pix = pix_array[prio_l];
 				scrntype_t* alpha = alpha_array[prio_l];
 				int yyy = real_y[l]; // ToDo: Reduce rendering costs.
 				bitshift[prio_l] = linebuffers[trans][yyy].bitoffset[l];
 				is_hloop[prio_l] = (linebuffers[trans][yyy].is_hloop[l] != 0) ? true : false;
+				
 				switch(real_mode[l] & ~(DISPMODE_DUP)) {
 				case DISPMODE_256:
 					if(prio_l == 0) {
@@ -1852,13 +1828,29 @@ void TOWNS_CRTC::draw_screen()
 //			__UNLIKELY_IF(is_transparent[1]) {
 //				memset(abuffer1, 0xff, sizeof(abuffer1));
 //			}
+			__LIKELY_IF((rendered_words[0] > 0)) {
+				make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
+				make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
+			}
+			__LIKELY_IF((rendered_words[1] > 0)) {
+				make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
+				make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
+			}
 			mix_screen(y, width, do_mix[0], do_mix[1], bitshift[0], bitshift[1], rendered_words[0], rendered_words[1], is_hloop[0], is_hloop[1]);
 		} else {
 			__LIKELY_IF(do_mix[0]) {
 				//memset(abuffer0, 0xff, sizeof(abuffer0));
+				__LIKELY_IF((rendered_words[0] > 0)) {
+					make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
+					//make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
+				}
 				mix_screen(y, width, do_mix[0], false, bitshift[0], 0, rendered_words[0], 0, is_hloop[0], false);
 			} else if(do_mix[1]) {
 				//memset(abuffer1, 0xff, sizeof(abuffer1));
+				__LIKELY_IF((rendered_words[1] > 0)) {
+					make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
+					//make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
+				}
 				mix_screen(y, width, false, do_mix[1], 0, bitshift[1], 0, rendered_words[1], false, is_hloop[1]);
 			}
 			// ToDo: Clear VRAM?
@@ -1911,26 +1903,24 @@ void TOWNS_CRTC::copy_line(const int trans, int layer, const int from_y, const i
 void TOWNS_CRTC::clear_line(const int trans, int layer, const int y)
 {
 	layer &= 1;
-	__DECL_ALIGNED(32) uint8_t clrdata[32]; // 8 * 2
+
+	union {
+		uint16_t w;
+		uint8_t b[2];
+	} n;
+
+	uint16_t *p = (uint16_t*)(&(linebuffers[trans][y].pixels_layer[layer][0]));
+	uint16_t *q = ___assume_aligned(p, 16);
 	if((linebuffers[trans][y].mode[layer] & ~(DISPMODE_DUP)) == DISPMODE_32768) {
-		__DECL_VECTORIZED_LOOP
-		for(int ii = 0; ii < 32; ii += 2) {
-			clrdata[ii + 0] = 0x00;
-			clrdata[ii + 1] = 0x80;
-		}
+		n.b[0] = 0x00;
+		n.b[1] = 0x80;
 	} else {
-		__DECL_VECTORIZED_LOOP
-		for(int ii = 0; ii < 32; ii++) {
-			clrdata[ii] = 0x00;
-		}
+		n.w = 0x0000;
 	}
-	for(int x = 0; (x < TOWNS_CRTC_MAX_PIXELS * 2); x += 32) {
-		__DECL_VECTORIZED_LOOP
-		for(int xx = 0; xx < 32; xx++) {
-			linebuffers[trans][y].pixels_layer[layer][x + xx] = clrdata[xx];
-		}
+	csp_vector8<uint16_t> clrdata(n.w);
+	for(size_t x = 0; x < TOWNS_CRTC_MAX_PIXELS; x += 8) {
+		clrdata.store(&(q[x]));
 	}
-	
 }
 void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 {
