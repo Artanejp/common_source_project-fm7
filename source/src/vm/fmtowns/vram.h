@@ -126,28 +126,41 @@ protected:
 	}
 	inline void transfer_data_from_single_page(uint32_t offset, uint32_t bytes, uint8_t* dst)
 	{
-		const uint32_t bytes0 = bytes & (0xfffffff0 & TOWNS_VRAM_ADDR_MASK); // Align of 16.
-		const uint32_t bytes1 = bytes & 0x0000000f; // MOD  of 16.
-		__DECL_ALIGNED(32) uint8_t data_cache[32];
 		uint8_t* p = dst;
-		for(uint32_t ar = 0; ar < bytes0; ar += 32) {
-			uint32_t ar2 = ar + offset;
-			for(uint32_t j = 0; j < 32; j++) {
-				data_cache[j] = vram[calc_single_page_address(ar2 + j)];
+		uint32_t bytes00 = bytes;
+		uint32_t offset00 = offset & ~(0x00000003);
+		__UNLIKELY_IF((offset & 3) != 0) {
+			uint32_t bytes01 = min(bytes00, 4 - (offset & 3));
+			uint32_t addr01 = calc_single_page_address(offset);
+			for(uint32_t i = 0; i < bytes01; i++) { 
+				p[i] = vram[addr01];
+				addr01++;
 			}
-			__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 32; j++) {
-				p[j] = data_cache[j];
+			__UNLIKELY_IF(bytes00 <= bytes01) {
+				return;
 			}
-			p += 32;
+			p += bytes01;
+			bytes00 -= bytes01;
+			offset00 = offset00 + 0x00000004; // INC offset
 		}
-		__UNLIKELY_IF(bytes1 != 0) {
-			uint32_t ar = offset + bytes0;
-			for(uint32_t j = 0; j < bytes1; j++) {
-				data_cache[j] = vram[calc_single_page_address(ar + j)];
+		// I expect to optimize below by compiler - 20240505 K.O
+		uint32_t offset1 = 0;
+		for(offset1 = 0; offset1 < bytes00; offset1 += 4) {
+			uint32_t addr01 = calc_single_page_address(offset00 + offset1);
+			uint8_t* q = &(vram[addr01]);
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 4; i++) {
+				p[i] = q[i];
 			}
-			for(uint32_t j = 0; j < bytes1; j++) {
-				p[j] = data_cache[j];
+			p += 4;
+		}
+		__UNLIKELY_IF((bytes00 + 4) > offset1) {
+			p -= 4;
+			uint32_t bytes01 = offset1 - bytes00;
+			uint32_t addr01 = calc_single_page_address(offset00 + offset1);
+			uint8_t* q = &(vram[addr01]);
+			for(uint32_t i = 0; i < bytes01; i++) {
+				p[i] = q[i];
 			}
 		}
 	}
