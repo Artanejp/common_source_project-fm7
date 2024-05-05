@@ -173,6 +173,10 @@ void EVENT::reset()
 
 bool EVENT::drive()
 {
+
+	// Prefetch event table at first.
+	make_prefetch_volatile(event, sizeof(event_t) * MAX_EVENT); 
+	
 	// Update cache from config.drive_vm_in_opecode .
 	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
 	if(event_half) {
@@ -244,6 +248,11 @@ skip1:
 	event_clocks_remain += _fclocks;
 	cpu_clocks_remain += _fclocks << power;
 
+	// Cache some tables
+	__LIKELY_IF(dcount_cpu > 0) {
+		make_prefetch_volatile(d_cpu, sizeof(cpu_t) * dcount_cpu);
+		make_prefetch_volatile(cpu_update_clocks, sizeof(uint32_t) * 6 * dcount_cpu);
+	}
 	while(event_clocks_remain > 0) {
 		int event_clocks_done = event_clocks_remain;
 		__LIKELY_IF(cpu_clocks_remain > 0) {
@@ -325,6 +334,11 @@ skip1:
 			event_clocks_remain -= event_clocks_done;
 		}
 	}
+	__LIKELY_IF(dcount_cpu > 0) {
+		flush_cache(d_cpu, sizeof(cpu_t) * dcount_cpu);
+		flush_cache(cpu_update_clocks, sizeof(uint32_t) * 6 * dcount_cpu);
+	}
+	flush_cache(event, sizeof(event_t) * MAX_EVENT); 
 	return event_half;
 }
 
