@@ -1438,11 +1438,13 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 	if(y == 128) {
 		//out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d DST=%08X"), y, width, pp);
 	}
-	
+
+	bool pix_cached = false;
+	bool alpha_cached = false;
+	bool pix0_cached = false;
 	__LIKELY_IF(pp != nullptr) {
 		int left0 = words0;
 		int left1 = words1;
-		make_prefetch(pp, TOWNS_CRTC_MAX_PIXELS * sizeof(scrntype_t));
 		__UNLIKELY_IF(words0 <= 0) {
 			do_mix0 = false;
 		}
@@ -1455,9 +1457,13 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 
 		if(do_mix1) {
 			simd_fill(pix_cache, blank, width);
+			make_prefetch(pix_cache, sizeof(pix_cache));
+			pix_cached = true;
 		}
 		if((do_mix0) && (bitshift0 != 0)) {
 			simd_fill(pix_cache0, blank, width);
+			make_prefetch(pix_cache0, sizeof(pix_cache0));
+			pix0_cached = true;
 		}
 		bool got_0 = false;
 		bool got_1 = false;
@@ -1530,12 +1536,14 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		}
 		if((got_1) && (do_mix0)) {
 			simd_fill(alpha_cache, blank_alpha, width);
+			make_prefetch(alpha_cache, sizeof(alpha_cache));
+			alpha_cached = true;
 		}
 		__LIKELY_IF(do_mix0) {
 			__UNLIKELY_IF(words0 >= TOWNS_CRTC_MAX_PIXELS) {
 				words0 = TOWNS_CRTC_MAX_PIXELS;
 			}
-			
+			make_prefetch(lbuffer0, sizeof(lbuffer0));
 			if((is_hloop0) && (bitshift0 != 0)) {
 				ssize_t of00 = 0;
 				ssize_t of01 = 0;
@@ -1699,6 +1707,18 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				csp_vector8<scrntype_t> pix(RGBA_COLOR(0, 0, 0, 255));
 				simd_fill(pp, pix, width);
 			}
+		}
+		if(do_mix0) {
+			flush_cache(lbuffer0, sizeof(lbuffer0));
+		}			
+		if(pix_cached) {
+			flush_cache(pix_cache, sizeof(pix_cache));
+		}
+		if(pix0_cached) {
+			flush_cache(pix_cache0, sizeof(pix_cache0));
+		}
+		if(alpha_cached) {
+			flush_cache(alpha_cache, sizeof(alpha_cache));
 		}
 	}
 }
