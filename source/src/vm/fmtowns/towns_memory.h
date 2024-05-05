@@ -632,7 +632,10 @@ public:
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	virtual uint32_t __FASTCALL read_signal(int ch) override;
 
-	//void event_frame();
+	//!< @note Make caching memory map table at event_vline(). - 20240505 K.O
+	void event_vline(int v, int clock) override;
+	void event_pre_frame() override;
+	
 	virtual void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit) override;
 
 	bool process_state(FILEIO* state_fio, bool loading) override;

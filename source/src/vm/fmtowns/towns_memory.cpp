@@ -96,6 +96,8 @@ void TOWNS_MEMORY::initialize()
 	// load rom image
 	// ToDo: More smart.
 	vram_size = 0x80000; // OK?
+	register_vline_event(this);
+	register_frame_event(this);
 }
 
 void TOWNS_MEMORY::reset_wait_values()
@@ -355,6 +357,7 @@ void TOWNS_MEMORY::release()
 	}
 
 }
+
 void TOWNS_MEMORY::reset()
 {
 	// reset memory
@@ -388,6 +391,77 @@ void TOWNS_MEMORY::reset()
 #endif
 }
 
+/*!
+ @note This uses for caching memory table.
+*/
+void TOWNS_MEMORY::event_pre_frame()
+{
+	event_vline(0, 0); // Force reload cache.
+}
+void TOWNS_MEMORY::event_vline(int v, int clk)
+{
+	__LIKELY_IF((v & 3) != 0) {
+		return;
+	}
+	// Prefetch tables.
+	memory_device_map_t *mr_p;
+	memory_device_map_t *mw_p;
+	memory_device_map_t *dr_p;
+	memory_device_map_t *dw_p;
+
+	// 0x00000000 - EXTRA_RAM END
+	size_t mainmem_tbl_bytes = (((size_t)extram_size + 0x00100000) >> memory_map_shift()) * sizeof(memory_device_map_t);
+	mr_p = &(membus_read_map[0]);
+	mw_p = &(membus_write_map[0]);
+	dr_p = &(dma_read_map[0]);
+	dr_p = &(dma_write_map[0]);
+	
+	make_prefetch_volatile(mr_p, mainmem_tbl_bytes);
+	make_prefetch_volatile(mw_p, mainmem_tbl_bytes);
+	make_prefetch_volatile(dr_p, mainmem_tbl_bytes);	
+	make_prefetch_volatile(dw_p, mainmem_tbl_bytes);
+
+	uint32_t vram_begin = 0x80000000 >> memory_map_shift();
+	size_t vram_tbl_bytes = ((0x81020000 - 0x80000000) >> memory_map_shift()) * sizeof(memory_device_map_t);
+	mr_p = &(membus_read_map[vram_begin]);
+	mw_p = &(membus_write_map[vram_begin]);
+	dr_p = &(dma_read_map[vram_begin]);
+	dr_p = &(dma_write_map[vram_begin]);
+	
+	make_prefetch_volatile(mr_p, vram_tbl_bytes);
+	make_prefetch_volatile(mw_p, vram_tbl_bytes);
+	make_prefetch_volatile(dr_p, vram_tbl_bytes);	
+	make_prefetch_volatile(dw_p, vram_tbl_bytes);
+
+	// ToDo: High resolution VRAMs.
+
+	// MISC DEVICES
+	uint32_t dev_begin = 0xc2000000 >> memory_map_shift();
+	size_t   dev_tbl_bytes = ((0xc2200000 - 0xc2000000) >> memory_map_shift()) * sizeof(memory_device_map_t);
+	mr_p = &(membus_read_map[dev_begin]);
+	mw_p = &(membus_write_map[dev_begin]);
+	dr_p = &(dma_read_map[dev_begin]);
+	dr_p = &(dma_write_map[dev_begin]);
+	
+	make_prefetch(mr_p, dev_tbl_bytes);
+	make_prefetch(mw_p, dev_tbl_bytes);
+	make_prefetch(dr_p, dev_tbl_bytes);	
+	make_prefetch(dw_p, dev_tbl_bytes);
+
+	// SYSTEM ROM
+	uint32_t sysrom_begin = 0xfffc0000 >> memory_map_shift();
+	size_t   sysrom_tbl_bytes = (0x00040000 >> memory_map_shift()) * sizeof(memory_device_map_t);
+	mr_p = &(membus_read_map[sysrom_begin]);
+	mw_p = &(membus_write_map[sysrom_begin]);
+	dr_p = &(dma_read_map[sysrom_begin]);
+	dr_p = &(dma_write_map[sysrom_begin]);
+	
+	make_prefetch_volatile(mr_p, sysrom_tbl_bytes);
+	make_prefetch_volatile(mw_p, sysrom_tbl_bytes);
+	make_prefetch_volatile(dr_p, sysrom_tbl_bytes);	
+	make_prefetch_volatile(dw_p, sysrom_tbl_bytes);
+
+}
 void TOWNS_MEMORY::update_machine_features()
 {
 	// 0024h: MISC3

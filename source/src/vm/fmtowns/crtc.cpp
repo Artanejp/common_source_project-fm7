@@ -1442,7 +1442,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 	__LIKELY_IF(pp != nullptr) {
 		int left0 = words0;
 		int left1 = words1;
-		make_prefetch_write_local(pp, TOWNS_CRTC_MAX_PIXELS * sizeof(scrntype_t));
+		make_prefetch(pp, TOWNS_CRTC_MAX_PIXELS * sizeof(scrntype_t));
 		__UNLIKELY_IF(words0 <= 0) {
 			do_mix0 = false;
 		}
@@ -1828,29 +1828,29 @@ void TOWNS_CRTC::draw_screen()
 //			__UNLIKELY_IF(is_transparent[1]) {
 //				memset(abuffer1, 0xff, sizeof(abuffer1));
 //			}
-			__LIKELY_IF((rendered_words[0] > 0)) {
-				make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
-				make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
-			}
-			__LIKELY_IF((rendered_words[1] > 0)) {
-				make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
-				make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
-			}
+			//__LIKELY_IF((rendered_words[0] > 0)) {
+			//	make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
+			//	make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
+			//}
+			//__LIKELY_IF((rendered_words[1] > 0)) {
+			//	make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
+			//	make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
+			//}
 			mix_screen(y, width, do_mix[0], do_mix[1], bitshift[0], bitshift[1], rendered_words[0], rendered_words[1], is_hloop[0], is_hloop[1]);
 		} else {
 			__LIKELY_IF(do_mix[0]) {
 				//memset(abuffer0, 0xff, sizeof(abuffer0));
-				__LIKELY_IF((rendered_words[0] > 0)) {
-					make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
-					//make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
-				}
+				//__LIKELY_IF((rendered_words[0] > 0)) {
+				//	make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
+				//	//make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
+				//}
 				mix_screen(y, width, do_mix[0], false, bitshift[0], 0, rendered_words[0], 0, is_hloop[0], false);
 			} else if(do_mix[1]) {
 				//memset(abuffer1, 0xff, sizeof(abuffer1));
-				__LIKELY_IF((rendered_words[1] > 0)) {
-					make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
-					//make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
-				}
+				//__LIKELY_IF((rendered_words[1] > 0)) {
+				//	make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
+				//	//make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
+				//}
 				mix_screen(y, width, false, do_mix[1], 0, bitshift[1], 0, rendered_words[1], false, is_hloop[1]);
 			}
 			// ToDo: Clear VRAM?
