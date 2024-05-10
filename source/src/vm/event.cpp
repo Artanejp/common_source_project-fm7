@@ -1017,7 +1017,9 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	if(sound_in_samples[bank] <= 0) return 0;
 	if(expect_channels <= 0) return 0;
 	if(dst == NULL) return 0;
-
+	int16_t* tmpbuf = new int16_t[sound_in_channels[bank] + 1];
+	if(tmpbuf == NULL) return 0;
+	
 	int readptr = sound_in_writeptr[bank] - 1;
 	if(readptr < 0) {
 		readptr = sound_in_samples[bank] - 1;
@@ -1025,7 +1027,7 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	if(readptr >= sound_in_samples[bank]) {
 		readptr = 0;
 	}
-	int16_t tmpbuf[sound_in_channels[bank] + 1];
+
 	int16_t* p = sound_in_tmp_buffer[bank];
 	if(p == NULL) return 0;
 	p =&(p[readptr * sound_in_channels[bank]]);
@@ -1040,7 +1042,9 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	}
 	sound_in_readptr[bank] = readptr;
 	sound_in_write_size[bank] = 0;
-	return rechannel_sound_in_data(dst, tmpbuf, expect_channels, sound_in_channels[bank], 1);
+	gave_samples = rechannel_sound_in_data(dst, tmpbuf, expect_channels, sound_in_channels[bank], 1);
+	delete [] tmpbuf;
+	return gave_samples;
 }
 
 int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int expect_rate, int expect_channels)
@@ -1063,19 +1067,14 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 	if(in_count >= sound_in_write_size[bank]) in_count = sound_in_write_size[bank];
 	if(in_count <= 0) return 0;
 
-	int16_t tmpbuf_in[(in_count + 1) * sound_in_channels[bank]];
-	int32_t tmpbuf[(in_count + 1) * expect_channels];
-	memset(tmpbuf, 0x00, sizeof(int32_t) * (in_count + 1) * expect_channels);
-
-	int mp = 0;
-	for(int i = 0; i < in_count; i++) {
-		int tmpr = readptr * sound_in_channels[bank];
-		for(int j = 0; j < sound_in_channels[bank]; j++) {
-			tmpbuf_in[mp] = src[tmpr + j];
-			mp++;
-		}
-		readptr++;
-		if(readptr >= sound_in_samples[bank]) readptr = 0;
+	int16_t* tmpbuf_in = new int16_t[(in_count + 1) * sound_in_channels[bank]];
+	if(tmpbuf_in == NULL) {
+		return 0;
+	}
+	int32_t* tmpbuf = new int32_t[(in_count + 1) * expect_channels];
+	if(tmpbuf == NULL) {
+		delete [] tmpbuf_in;
+		return 0;
 	}
 	sound_in_readptr[bank] = readptr;
 	sound_in_write_size[bank] -= in_count;
@@ -1092,7 +1091,6 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 		for(int i = 0; i < (gave_samples * expect_channels); i++) {
 			q[i] = p[i];
 		}
-		return gave_samples;
 	} else if(expect_rate > sound_in_rate[bank]) {
 		int32_t* p = tmpbuf;
 		int32_t* q = dst;
@@ -1102,7 +1100,7 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 		int mod_count = 0;
 		// ToDo: Interpollate
 		int n_samples = (int)((double)gave_samples * ((double)expect_rate / (double)sound_in_rate[bank]));
-		int32_t tmpdata[expect_channels];
+		std::valarray<int32_t> tmpdata(expect_channels);
 		for(int i = 0; i < n_samples; i++) {
 			for(int ch = 0; ch < expect_channels; ch++) {
 				tmpdata[ch] = p[ch];
@@ -1123,7 +1121,7 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 			}
 			p = p + expect_channels;
 		}
-		return n_samples;
+		gave_samples =  n_samples;
 	} else { // expect_rate < sound_in_rate[bank]
 		// ToDo: Interpollate
 		int32_t* p = tmpbuf;
@@ -1136,8 +1134,9 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 		int s_count = 0;
 		// ToDo: Interpollate
 		int n_samples = (int)((double)gave_samples * ((double)expect_rate / (double)sound_in_rate[bank]));
-		int32_t tmpdata[expect_channels];
-		memset(tmpdata, 0x00, sizeof(int32_t) * expect_channels);;
+		std::valarray<int32_t> tmpdata(expect_channels);
+		tmpdata = 0;
+
 		for(int i = 0; i < gave_samples; i++) {
 			for(int ch = 0; ch < expect_channels; ch++) {
 				tmpdata[ch] += p[ch];
@@ -1159,9 +1158,11 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 			}
 			p = p + expect_channels;
 		}
-		return n_samples;
+		gave_samples =  n_samples;
 	}
-	return 0;
+	delete [] tmpbuf;
+	delete [] tmpbuf_in;
+	return gave_samples;
 }
 void EVENT::request_skip_frames()
 {
