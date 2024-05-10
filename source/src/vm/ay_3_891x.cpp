@@ -229,8 +229,14 @@ void AY_3_891X::mix(int32_t* buffer, int cnt)
 	if(cnt > 0 && !mute) {
 		if((use_lpf) || (use_hpf)) {
 			int32_t* p;
-			int32_t p_h[cnt * 2];
-			int32_t p_l[cnt * 2];
+			int32_t *p_h = (int32_t*)malloc(sizeof(int32_t) *  cnt * 2);
+			if(p_h == NULL) return;
+			
+			int32_t *p_l = (int32_t*)malloc(sizeof(int32_t) *  cnt * 2);
+			if(p_l == NULL) {
+				free(p_h);
+				return;
+			}
 			memset(p_h, 0x00, sizeof(int32_t) * cnt * 2);
 			memset(p_l, 0x00, sizeof(int32_t) * cnt * 2);
 			p = p_l;
@@ -246,6 +252,8 @@ void AY_3_891X::mix(int32_t* buffer, int cnt)
 			if(use_hpf) {
 				calc_high_pass_filter(buffer, p, sample_rate, hpf_freq, cnt, hpf_quality, true);
 			}
+			free(p_h);
+			free(p_l);
 		} else {
 			opn->Mix(buffer, cnt);
 		}
