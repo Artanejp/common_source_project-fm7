@@ -66,11 +66,11 @@ M_QT_MULTIMEDIA::~M_QT_MULTIMEDIA()
 
 bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
 {
-	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()));
-	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()));
-	connect(this, SIGNAL(sig_pause_audio()),  this, SLOT(do_sound_suspend()));
-	connect(this, SIGNAL(sig_resume_audio()),  this, SLOT(do_sound_resume()));
-	connect(this, SIGNAL(sig_discard_audio()),  this, SLOT(do_discard_sound()));
+	connect(this, SIGNAL(sig_start_audio()),  this, SLOT(do_sound_start()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_stop_audio()),  this, SLOT(do_sound_stop()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_pause_audio()),  this, SLOT(do_sound_suspend()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_resume_audio()),  this, SLOT(do_sound_resume()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_discard_audio()),  this, SLOT(do_discard_sound()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_set_volume(double)),  this, SLOT(do_sound_volume(double)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
 	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
