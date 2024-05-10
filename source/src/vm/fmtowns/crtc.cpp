@@ -138,9 +138,9 @@ void TOWNS_CRTC::reset()
 		head_address[i] = 0;
 		voffset_val[i] = 0;
 	}
-	cancel_event_by_id(event_hsync);
+	clear_event(this, event_hsync);
 	for(int i = 0; i < 2; i++) {
-		cancel_event_by_id(event_hdisp[i]);
+		clear_event(this, event_hdisp[i]);
 		update_vstart(i);	
 		update_line_offset(i);
 	}
@@ -997,6 +997,13 @@ uint32_t TOWNS_CRTC::read_io16(uint32_t addr)
 	}
 	return DEVICE::read_io16(addr);
 }
+
+/*
+ * Below are renderer from VM's linebuffer to HOST's pixeldata.
+ */
+
+#include "crtc_utils.h"
+
 
 bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels)
 {
@@ -2378,9 +2385,9 @@ void TOWNS_CRTC::event_frame()
 	}	
 	// Set ZOOM factor.
 	// ToDo: EET
-	cancel_event_by_id(event_hsync);
+	clear_event(this, event_hsync);
 	for(int layer = 0; layer < 2; layer++) {
-		cancel_event_by_id(event_hdisp[layer]);
+		clear_event(this, event_hdisp[layer]);
 	}
 	// Rendering TEXT.
 	sprite_offset = get_sprite_offset();
@@ -2396,7 +2403,7 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		reset_vsync();
 		return;
 	}
-	cancel_event_by_id(event_hsync);
+	clear_event(this, event_hsync);
 
 	int __max_lines = max_lines;
 	double usec = 0.0;
@@ -2466,7 +2473,7 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 			}
 		}
 	}
-	cancel_event_by_id(event_hsync);
+	clear_event(this, event_hsync);
 	__UNLIKELY_IF(usec > horiz_us) {
 		usec = horiz_us - 0.01; // Insert previous of Hstart. 
 	}
@@ -2581,7 +2588,7 @@ void TOWNS_CRTC::event_callback(int event_id, int err)
 		*/
 		if(vert_line_count < vst[trans]) {
 			for(int layer = 0; layer < 2; layer++) {
-				cancel_event_by_id(event_hdisp[layer]);
+				clear_event(this, event_hdisp[layer]);
 				//pre_transfer_line(layer, vert_line_count);
 				if(frame_in[layer]) {
 					double usec = horiz_start_us[layer];

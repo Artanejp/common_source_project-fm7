@@ -16,6 +16,8 @@
 #include "device.h"
 #include "towns_common.h"
 #include "types/simd.h"
+#include "./crtc_types.h"
+
 /*
  * I/O Address :
  *  0440H : Register address (8bit W/O : bit7 to 5 must be '0').
@@ -105,108 +107,10 @@
 #define SIG_TOWNS_CRTC_REG_LO0			16
 #define SIG_TOWNS_CRTC_REG_LO1			17
 #define SIG_TOWNS_CRTC_REGISTER_VALUE	32
+
 class DEBUGGER;
-namespace FMTOWNS {
-	enum {
-		CRTC_BUFFER_NUM = 4,
-	};
-	enum {
-		NOT_LOOP = 0,
-		IS_LOOP = 255
-	};
-	enum {
-		TOWNS_CRTC_PALETTE_INDEX = 0xff,
-		TOWNS_CRTC_PALETTE_R = 0,
-		TOWNS_CRTC_PALETTE_G,
-		TOWNS_CRTC_PALETTE_B,
-		TOWNS_CRTC_PALETTE_I,
-	};
-	enum {
-		TOWNS_CRTC_REG_HSW1 = 0,
-		TOWNS_CRTC_REG_HSW2 = 1,
-		TOWNS_CRTC_REG_HST  = 4,
-		TOWNS_CRTC_REG_VST1 = 5,
-		TOWNS_CRTC_REG_VST2 = 6,
-		TOWNS_CRTC_REG_EET  = 7,
-
-		TOWNS_CRTC_REG_VST  = 8,
-		TOWNS_CRTC_REG_HDS0 = 9,
-		TOWNS_CRTC_REG_HDE0 = 10,
-		TOWNS_CRTC_REG_HDS1 = 11,
-		TOWNS_CRTC_REG_HDE1 = 12,
-		TOWNS_CRTC_REG_VDS0 = 13,
-		TOWNS_CRTC_REG_VDE0 = 14,
-		TOWNS_CRTC_REG_VDS1 = 15,
-
-		TOWNS_CRTC_REG_VDE1 = 16,
-		TOWNS_CRTC_REG_FA0  = 17,
-		TOWNS_CRTC_REG_HAJ0 = 18,
-		TOWNS_CRTC_REG_FO0  = 19,
-		TOWNS_CRTC_REG_LO0  = 20,
-		TOWNS_CRTC_REG_FA1  = 21,
-		TOWNS_CRTC_REG_HAJ1 = 22,
-		TOWNS_CRTC_REG_FO1  = 23,
-
-		TOWNS_CRTC_REG_LO1  = 24,
-		TOWNS_CRTC_REG_EHAJ = 25,
-		TOWNS_CRTC_REG_EVAJ = 26,
-		TOWNS_CRTC_REG_ZOOM = 27,
-		TOWNS_CRTC_REG_DISPMODE = 28,
-		TOWNS_CRTC_REG_CLK      = 29,
-		TOWNS_CRTC_REG_DUMMY    = 30,
-		TOWNS_CRTC_REG_CTRL     = 31,
-	};
-
-	enum {
-		DISPMODE_NONE = 0,
-		DISPMODE_256,
-		DISPMODE_32768,
-		DISPMODE_16,
-		DISPMODE_DUP = 0x80,
-	};
-	enum {
-		VOUTREG_CTRL = 0,
-		VOUTREG_PRIO = 1,
-		VOUTREG_2,
-		VOUTREG_3,
-	};
-		
-}
 
 namespace FMTOWNS {
-
-typedef struct {
-	uint8_t raw[256][4];
-	scrntype_t pixels[256];
-} palette_backup_t;
-// May align to be faster.
-
-typedef struct {
-#pragma pack(push, 1)
-	// 32 * 4
-	uint8_t mode[4];
-	uint8_t is_hloop[4];
-	int8_t mag[4];
-	uint8_t r50_planemask[2]; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
-	uint8_t crtout[2];
-#pragma pack(pop)
-#pragma pack(push, 4)
-	// 32 * 12
-	int32_t pixels[4];
-	int32_t num[4];
-	int32_t bitoffset[2];
-	int32_t prev_y[2];
-#pragma pack(pop)
-	// Align of 16 * 32 bits = 512 bits.
-//#pragma pack(push, 16)
-	uint8_t pixels_layer[2][TOWNS_CRTC_MAX_PIXELS * sizeof(uint16_t)]; // RAW VALUE
-	palette_backup_t palettes[2];
-//#pragma pack(pop)
-	// pixels_lauyer[][] : 1024 * 2 * 8 = 1024 * 16 [bytes]
-} linebuffer_t;
-
-
-
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
 class FONT_ROMS;
@@ -378,7 +282,7 @@ protected:
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[FMTOWNS::CRTC_BUFFER_NUM][TOWNS_CRTC_MAX_LINES];
 
 	// Render buffer
-		// ToDo: faster alpha blending.
+	// ToDo: faster alpha blending.
 	__DECL_ALIGNED(16) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
@@ -409,165 +313,14 @@ protected:
 	virtual void stop_display();
 	virtual void __FASTCALL notify_mode_changed(int layer, uint8_t mode);
 	virtual void __FASTCALL recalc_hdisp_from_crtc_params(int layer, double& start_us, double& end_us);
-
-	inline void cancel_event_by_id(int& event_num)
-	{
-		if(event_num > -1) {
-			cancel_event(this, event_num);
-		}
-		event_num = -1;
-	}
-
 	void __FASTCALL set_crtc_clock(uint16_t val, bool force);
-	uint16_t read_reg30();
-
 	virtual void __FASTCALL update_crtc_reg(uint8_t ch, uint32_t data);
-	virtual void __FASTCALL calc_apalette16(int layer, int index);
-	virtual void __FASTCALL calc_apalette256(int index);
-
-	virtual uint8_t __FASTCALL get_apalette_b();
-	virtual uint8_t __FASTCALL get_apalette_r();
-	virtual uint8_t __FASTCALL get_apalette_g();
-
 	
-	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
-	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
-	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
-
-	virtual void __FASTCALL pre_transfer_line(int layer, int line);
-	virtual void __FASTCALL transfer_line(int layer, int line);
-	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
-	void __FASTCALL copy_line(const int trans, int layer, const int from_y, const int to_y);
-	virtual void __FASTCALL clear_line(const int trans, int layer, const int y);
-
-	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
-
-	inline void simd_fill(scrntype_t* dst, csp_vector8<scrntype_t> data, size_t words)
-	{
-		const uintptr_t pdst = (uintptr_t)dst;
-		const size_t width_8 = sizeof(scrntype_t) * 8;
-		const size_t mask_8 = ~width_8;
-		__LIKELY_IF(words > 7) {
-			__LIKELY_IF((pdst & mask_8) == 0) {
-				for(size_t xx = 0; xx < words; xx += 8) {
-					data.store_aligned(&(dst[xx]));
-				}
-			} else {
-				for(size_t xx = 0; xx < words; xx += 8) {
-					data.store(&(dst[xx]));
-				}
-			}
-		}
-		if((words & 7) != 0) {
-			size_t xx = words & (~7);
-			data.store_limited(&(dst[xx]), words & 7);
-		}
-	}
-
-	inline void simd_copy(scrntype_t* dst, scrntype_t* src, size_t words)
-	{
-		const uintptr_t pdst = (uintptr_t)dst;
-		const uintptr_t psrc = (uintptr_t)src;
-		const size_t width_8 = sizeof(scrntype_t) * 8;
-		const size_t mask_8 = ~width_8;
-		csp_vector8<scrntype_t> pix;
-		__LIKELY_IF(words > 7) {
-			__LIKELY_IF((psrc & mask_8) == 0) { // Aligned
-				if((pdst & mask_8) == 0) { // Aligned
-					for(size_t xx = 0; xx < words; xx += 8) {
-						pix.load_aligned(&(src[xx]));
-						pix.store_aligned(&(dst[xx]));
-					}
-				} else {
-					for(size_t xx = 0; xx < words; xx += 8) {
-						pix.load_aligned(&(src[xx]));
-						pix.store(&(dst[xx]));
-					}
-				}
-			} else __LIKELY_IF((pdst & mask_8) == 0) { // DST ONLY ALIGNED
-				for(size_t xx = 0; xx < words; xx += 8) {
-					pix.load(&(src[xx]));
-					pix.store_aligned(&(dst[xx]));
-				}
-			} else {
-				for(size_t xx = 0; xx < words; xx += 8) {
-					pix.load(&(src[xx]));
-					pix.store(&(dst[xx]));
-				}
-			}
-		}
-		if((words & 7) != 0) {
-			size_t xx = words & 0xfffffff8;
-			size_t w = words & 7;
-			pix.load_limited(&(src[xx]), w);
-			pix.store_limited(&(dst[xx]), w);
-		}
-	}
-	virtual void begin_of_display();
-	inline void update_vstart(const int layer)
-	{
-		vstart_addr[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
-	}
-	
-	inline void update_line_offset(const int layer)
-	{
-		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
-	}
-	
-	virtual void update_horiz_khz()
-	{
-		double horiz_us_tmp;
-		__LIKELY_IF(hst_reg != 0) {
-			horiz_us_tmp = crtc_clock * (double)hst_reg;
-		} else {
-			horiz_us_tmp = crtc_clock;
-		}
-		horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
-	}
+	uint16_t read_reg30();
 	inline void make_crtout_from_fda0h(uint8_t data)
 	{
 		crtout_fmr[0] = ((data & 0x0c) != 0) ? true : false;
 		crtout_fmr[1] = ((data & 0x03) != 0) ? true : false;
-	}
-	constexpr bool is_single_mode_for_standard(const uint8_t control_reg_val)
-	{
-		return (((control_reg_val & 0x10) == 0) ? true : false);
-	}
-	inline void __FASTCALL make_dispmode(bool& is_single, int& layer0, int& layer1)
-	{
-		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
-		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
-		uint8_t _ctrl = control_cache[render_linebuf & display_linebuf_mask];
-		is_single = is_single_mode_for_standard(_ctrl);
-		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
-		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };
-		static const int modes_by_CR0_multi[4] = { DISPMODE_NONE, DISPMODE_32768, DISPMODE_NONE, DISPMODE_16 };
-		// ToDo: High resolution.
-		if(is_single) {
-			layer0 =  ((_ctrl & 0x08) != 0) ? modes_by_CR0_single[display_mode[0]] : DISPMODE_NONE;
-			layer1 = DISPMODE_NONE;
-		} else {
-			layer0 = modes_by_CR0_multi[display_mode[0] & 3];
-			layer1 = modes_by_CR0_multi[display_mode[1] & 3];
-		}
-	}
-	constexpr bool layer_is_interlaced(int layer)
-	{
-		bool _b = (frame_offset[layer & 1] == 0) ? true : false;
-		return _b;
-	}
-	inline void set_io_044a(const uint32_t data)
-	{
-		video_out_regs[voutreg_num & 3] = data & 0xff;
-		if((voutreg_num & 3) == FMTOWNS::VOUTREG_CTRL) {
-			make_crtout_from_044a(data);
-		}
-	}
-	inline virtual void update_control_registers(const int trans)
-	{
-		const int num = trans & display_linebuf_mask;
-		priority_cache[num] = video_out_regs[FMTOWNS::VOUTREG_PRIO];
-		control_cache[num] = video_out_regs[FMTOWNS::VOUTREG_CTRL];
 	}
 	inline virtual void make_crtout_from_044a(uint8_t data)
 	{
@@ -580,9 +333,22 @@ protected:
 			crtout_towns[1] = ((data & 0x04) != 0) ? true : false;
 		}
 	}
+	inline void set_io_044a(const uint32_t data)
+	{
+		video_out_regs[voutreg_num & 3] = data & 0xff;
+		if((voutreg_num & 3) == FMTOWNS::VOUTREG_CTRL) {
+			make_crtout_from_044a(data);
+		}
+	}
 	inline uint8_t get_io_044a()
 	{
 		return video_out_regs[voutreg_num & 3];
+	}
+	inline virtual void update_control_registers(const int trans)
+	{
+		const int num = trans & display_linebuf_mask;
+		priority_cache[num] = video_out_regs[FMTOWNS::VOUTREG_PRIO];
+		control_cache[num] = video_out_regs[FMTOWNS::VOUTREG_CTRL];
 	}
 	inline void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only)
 	{
@@ -614,6 +380,85 @@ protected:
 			}
 		}
 	}
+	
+	// Palettes
+	virtual void __FASTCALL calc_apalette16(int layer, int index);
+	virtual void __FASTCALL calc_apalette256(int index);
+
+	virtual uint8_t __FASTCALL get_apalette_b();
+	virtual uint8_t __FASTCALL get_apalette_r();
+	virtual uint8_t __FASTCALL get_apalette_g();
+	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
+
+	// Transfer vram data to line buffer (per line)
+	virtual void __FASTCALL pre_transfer_line(int layer, int line);
+	virtual void __FASTCALL transfer_line(int layer, int line);
+	inline void __FASTCALL transfer_pixels(scrntype_t* dst, scrntype_t* src, int w);
+	void __FASTCALL copy_line(const int trans, int layer, const int from_y, const int to_y);
+	virtual void __FASTCALL clear_line(const int trans, int layer, const int y);
+	uint32_t get_sprite_offset();
+	
+	virtual void begin_of_display();
+	inline void update_vstart(const int layer)
+	{
+		vstart_addr[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
+	}
+	
+	inline void update_line_offset(const int layer)
+	{
+		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
+	}
+	
+	virtual void update_horiz_khz()
+	{
+		double horiz_us_tmp;
+		__LIKELY_IF(hst_reg != 0) {
+			horiz_us_tmp = crtc_clock * (double)hst_reg;
+		} else {
+			horiz_us_tmp = crtc_clock;
+		}
+		horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
+	}
+	constexpr bool is_single_mode_for_standard(const uint8_t control_reg_val)
+	{
+		return (((control_reg_val & 0x10) == 0) ? true : false);
+	}
+	inline void __FASTCALL make_dispmode(bool& is_single, int& layer0, int& layer1)
+	{
+		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
+		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
+		uint8_t _ctrl = control_cache[render_linebuf & display_linebuf_mask];
+		is_single = is_single_mode_for_standard(_ctrl);
+		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
+		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };
+		static const int modes_by_CR0_multi[4] = { DISPMODE_NONE, DISPMODE_32768, DISPMODE_NONE, DISPMODE_16 };
+		// ToDo: High resolution.
+		if(is_single) {
+			layer0 =  ((_ctrl & 0x08) != 0) ? modes_by_CR0_single[display_mode[0]] : DISPMODE_NONE;
+			layer1 = DISPMODE_NONE;
+		} else {
+			layer0 = modes_by_CR0_multi[display_mode[0] & 3];
+			layer1 = modes_by_CR0_multi[display_mode[1] & 3];
+		}
+	}
+	constexpr bool layer_is_interlaced(int layer)
+	{
+		bool _b = (frame_offset[layer & 1] == 0) ? true : false;
+		return _b;
+	}
+	
+	// Renderer. 
+	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
+	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
+	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
+
+	// Mix screens (already rendered) to one screen.
+	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
+	
+	// Primitives maybe around rendering... these are splitted to ./crtc_utils.h .
+	inline void simd_fill(scrntype_t* dst, csp_vector8<scrntype_t> data, size_t words);
+	inline void simd_copy(scrntype_t* dst, scrntype_t* src, size_t words);
+	
 	inline size_t scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
 	inline size_t scaling_store_by_map(scrntype_t *dst, csp_vector8<scrntype_t> *src, csp_vector8<uint16_t> magx_map, const size_t words, size_t& width);
 	
@@ -624,9 +469,6 @@ protected:
 	inline size_t store2_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
 	inline size_t store4_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
 	inline size_t store_n_any(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
-
-	virtual void __FASTCALL set_apalette(uint8_t ch, uint8_t val, bool recalc);
-	uint32_t get_sprite_offset();
 
 public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -714,240 +556,7 @@ public:
 	}
 
 };
-
-inline size_t TOWNS_CRTC::store1_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= 8) {
-			src[x].store_aligned(dst);
-			dst += 8;
-			width -= 8;
-			pixels_count += 8;
-		} else {
-			src[x].store_limited(dst, width);
-			dst += width;
-			pixels_count += width;
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
+	
 }
-
-inline size_t TOWNS_CRTC::store2_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= 16) {
-			src[x].store2_aligned(dst);
-			dst += 16;
-			width -= 16;
-			pixels_count += 16;
-		} else {
-			src[x].store2_limited(dst, width);
-			dst += (2 * width);
-			pixels_count += (2 * width);
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::store4_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= 32) {
-			src[x].store4_aligned(dst);
-			dst += 32;
-			width -= 32;
-			pixels_count += 32;
-		} else {
-			src[x].store4_limited(dst, width);
-			dst += (width * 4);
-			pixels_count += (width * 4);
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::store_n_any(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= (8 * mag)) {
-			src[x].store_n(dst, mag);
-			dst += (8 * mag);
-			width -= (8 * mag);
-			pixels_count += (8 * mag);
-		} else {
-			src[x].store_n_limited(dst, mag, width);
-			dst += (width * mag);
-			pixels_count += (width * mag);
-			width = 0;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::store1_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= 8) {
-			src[x].store(dst);
-			dst += 8;
-			width -= 8;
-			pixels_count += 8;
-		} else {
-			src[x].store_limited(dst, width);
-			dst += width;
-			pixels_count += width;
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::store2_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= 16) {
-			src[x].store2(dst);
-			dst += 16;
-			width -= 16;
-			pixels_count += 16;
-		} else {
-			src[x].store2_limited(dst, width);
-			dst += (2 * width);
-			pixels_count += (2 * width);
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::store4_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width)
-{
-	size_t pixels_count = 0;
-	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
-		__LIKELY_IF(width >= 32) {
-			src[x].store4(dst);
-			dst += 32;
-			width -= 32;
-			pixels_count += 32;
-		} else {
-			src[x].store4_limited(dst, width);
-			dst += (width * 4);
-			pixels_count += (width * 4);
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width)
-{
-	__UNLIKELY_IF((dst == NULL) || (src == NULL)) return 0;
-
-	uintptr_t dstval = (uintptr_t)dst;
-	size_t pixels_count = 0;
-	const uintptr_t as = alignof(csp_vector8<scrntype_t>) - 1;
-	__LIKELY_IF((dstval & as) == 0) { // ALIGNED
-		switch(mag) {
-		case 1:
-			pixels_count = store1_aligned(dst, src, words, width);
-			break;
-		case 2:
-			pixels_count = store2_aligned(dst, src, words, width);
-			break;
-		case 4:
-			pixels_count = store4_aligned(dst, src, words, width);
-			break;
-		default:
-			pixels_count = store_n_any(dst, src, mag, words, width);
-			break;
-		}
-	} else { // Not aligned
-		switch(mag) {
-		case 1:
-			pixels_count = store1_unaligned(dst, src, words, width);
-			break;
-		case 2:
-			pixels_count = store2_unaligned(dst, src, words, width);
-			break;
-		case 4:
-			pixels_count = store4_unaligned(dst, src, words, width);
-			break;
-		default:
-			pixels_count = store_n_any(dst, src, mag, words, width);
-			break;
-		}
-	}
-	return pixels_count;
-}
-
-inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, csp_vector8<scrntype_t> *src, csp_vector8<uint16_t> magx_map, const size_t words, size_t& width)
-{
-	if((words == 0) || (width == 0)) return 0;
-	size_t pixels_count = 0;
-	const size_t width_limit = width;
-	size_t rwidth = width & 7;
-	size_t __sum = 0;
-	__DECL_VECTORIZED_LOOP
-	for(size_t x = 0; x < 8; x++) {
-		__sum += magx_map.at(x);
-	}
-	scrntype_t pix;
-	size_t ptr = 0;
-	for(size_t x = 0; x < words; x++) {
-		__UNLIKELY_IF(pixels_count >= width_limit ) {
-			pixels_count = width_limit;
-			break;
-		}
-		__LIKELY_IF(width >= __sum) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				pix = src[x].at(i);
-				for(size_t j = 0; j < magx_map.at(i); j++) {
-					dst[ptr++] = pix; 
-				}
-			}
-			width -= __sum;
-			pixels_count += __sum;
-		} else {
-			__UNLIKELY_IF(rwidth == 0) {
-				rwidth = 8; // Temporally value
-			}
-			for(size_t i = 0; i < rwidth; i++) {
-				pix = src[x].at(i);
-				for(size_t j = 0; j < magx_map.at(i); j++) {
-					dst[ptr++] = pix;
-					pixels_count++;
-					__UNLIKELY_IF(pixels_count >= width_limit) {
-						break;
-					}
-				}
-				__UNLIKELY_IF(pixels_count >= width_limit) {
-					pixels_count = width_limit;
-					break;
-				}
-			}
-			width = 0;
-			break;
-		}
-	}
-	return pixels_count;
-}
-}
-
 
 #endif
