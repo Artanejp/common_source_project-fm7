@@ -2447,6 +2447,7 @@ void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_fre
 	if(alpha <= 0.0f) alpha = 0.0f;
 	float ialpha = 1.0f - alpha;
 
+	#if 0
 	__DECL_ALIGNED(16) float tmp_v[samples * 2 + 4]; // 2ch stereo
 	__DECL_ALIGNED(16) float tmp_h[samples * 2 + 4];
 	for(int i = 0; i < (samples * 2); i ++) {
@@ -2460,6 +2461,20 @@ void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_fre
 		tmp_v[i + 0] = tmp_h[i + 0] - tmp_v[i + 0];
 		tmp_v[i + 1] = tmp_h[i + 1] - tmp_v[i + 1];
 	}
+	#else
+	const size_t n_samples = samples * 2;
+	__DECL_ALIGNED(16) std::valarray<float> tmp_h(n_samples + 4);
+	__DECL_ALIGNED(16) std::valarray<float> tmp_v(n_samples + 4);
+	for(size_t i = 0; i < n_samples; i++) {
+		tmp_h[i] = (float)(src[i]);
+	}
+	tmp_v[0] = tmp_h[0];
+	tmp_v[1] = tmp_h[1];
+
+	for(int i = 2; i < n_samples; i++) {
+		tmp_v[i] = tmp_h[i] - (tmp_h[i] * alpha + tmp_v[i - 2] * ialpha);
+	}
+	#endif
 	if(is_add) {
 		for(int i = 0; i < (samples * 2); i++) {
 			dst[i] = dst[i] + (int32_t)(tmp_v[i]);
@@ -2469,6 +2484,7 @@ void DLL_PREFIX calc_high_pass_filter(int32_t* dst, int32_t* src, int sample_fre
 			dst[i] = (int32_t)(tmp_v[i]);
 		}
 	}
+	
 }
 
 // From https://en.wikipedia.org/wiki/Low-pass_filter
@@ -2484,6 +2500,7 @@ void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq
 	if(alpha <= 0.0f) alpha = 0.0f;
 	float ialpha = 1.0f - alpha;
 
+	#if 0
 	__DECL_ALIGNED(16) float tmp_v[samples * 2 + 4]; // 2ch stereo
 	__DECL_ALIGNED(16) float tmp_h[samples * 2 + 4];
 
@@ -2493,9 +2510,23 @@ void DLL_PREFIX calc_low_pass_filter(int32_t* dst, int32_t* src, int sample_freq
 	tmp_v[0] = tmp_h[0];
 	tmp_v[1] = tmp_h[1];
 	for(int i = 2; i < (samples * 2); i += 2) {
-		tmp_v[i + 0] = tmp_h[i + 0] + alpha * tmp_v[i - 2 + 0] * ialpha;
-		tmp_v[i + 1] = tmp_h[i + 1] + alpha * tmp_v[i - 2 + 1] * ialpha;
+		tmp_v[i + 0] = tmp_h[i + 0] * alpha + tmp_v[i - 2 + 0] * ialpha;
+		tmp_v[i + 1] = tmp_h[i + 1] * alpha + tmp_v[i - 2 + 1] * ialpha;
 	}
+	#else
+	const size_t n_samples = samples * 2;
+	__DECL_ALIGNED(16) std::valarray<float> tmp_h(n_samples + 4);
+	__DECL_ALIGNED(16) std::valarray<float> tmp_v(n_samples + 4);
+	for(size_t i = 0; i < n_samples; i++) {
+		tmp_h[i] = (float)(src[i]);
+	}
+	tmp_v[0] = tmp_h[0];
+	tmp_v[1] = tmp_h[1];
+
+	for(int i = 2; i < n_samples; i++) {
+		tmp_v[i] = tmp_h[i] * alpha + tmp_v[i - 2] * ialpha;
+	}
+	#endif
 	if(is_add) {
 		for(int i = 0; i < (samples * 2); i++) {
 			dst[i] = dst[i] + (int32_t)(tmp_v[i]);
