@@ -58,7 +58,7 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	max_vm_nodes = 0;
 	p_logger = logger;
 	vm = NULL;
-
+	will_delete_vm = true;
 	SupportedFeatures.clear();
 
 	is_glcontext_shared = false;
@@ -270,8 +270,7 @@ void OSD_BASE::vm_key_down(int code, bool flag)
 {
 	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-
-	if(vm != NULL) {
+	if(!(is_will_delete_vm()) && (vm != NULL)) {
 		vm->key_down(code, flag);
 	}
 }
@@ -281,7 +280,7 @@ void OSD_BASE::vm_key_up(int code)
 	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 
-	if(vm != NULL) {
+	if(!(is_will_delete_vm()) && (vm != NULL)) {
 		vm->key_up(code);
 	}
 }
@@ -289,7 +288,7 @@ void OSD_BASE::vm_key_up(int code)
 void OSD_BASE::vm_reset(void)
 {
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-	if(vm != NULL) {
+	if(!(is_will_delete_vm()) && (vm != NULL)) {
 		vm->reset();
 	}
 }
@@ -317,30 +316,6 @@ int OSD_BASE::get_screen_width(void)
 int OSD_BASE::get_screen_height(void)
 {
 	return 200;
-}
-
-void OSD_BASE::lock_vm(void)
-{
-	locked_vm = true;
-	vm_mutex.lock();
-}
-
-void OSD_BASE::unlock_vm(void)
-{
-	vm_mutex.unlock();
-	locked_vm = false;
-}
-
-
-bool OSD_BASE::is_vm_locked(void)
-{
-	return locked_vm;
-}
-
-void OSD_BASE::force_unlock_vm(void)
-{
-	vm_mutex.unlock();
-	locked_vm = false;
 }
 
 void OSD_BASE::set_draw_thread(std::shared_ptr<DrawThreadClass> handler)
@@ -670,7 +645,10 @@ const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
 {
 	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-	return vm->get_vm_git_version();
+	if(!(is_will_delete_vm()) && (vm != NULL)) {
+		return vm->get_vm_git_version();
+	}
+	return NULL;
 }
 
 
@@ -678,20 +656,24 @@ const _TCHAR *OSD_BASE::get_lib_common_vm_git_version()
 void OSD_BASE::vm_draw_screen(void)
 {
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-	vm->draw_screen();
+	if(!(is_will_delete_vm()) && (vm != NULL)) {
+		vm->draw_screen();
+	}
 }
 
 double OSD_BASE::vm_frame_rate(void)
 {
 	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
-	return vm->get_frame_rate();
+	if(!(is_will_delete_vm()) && (vm != NULL)) {
+		return vm->get_frame_rate();
+	}
+	return 30.0;
 }
 
 Sint16* OSD_BASE::create_sound(int *extra_frames)
 {
-	// ToDo: Really need to lock? 20221011 K.O
-	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
+	// Called from only within EMU_THREAD:: /
 	return (Sint16 *)vm->create_sound(extra_frames);
 }
 

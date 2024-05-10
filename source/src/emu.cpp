@@ -112,6 +112,7 @@ EMU::EMU() : EMU()
    	vm = new VM(this);
 	osd->vm = vm;
 # if defined(_USE_QT)
+	osd->vm_has_set();
 	osd->reset_vm_node();
 	osd->update_keyname_table();
 # endif
@@ -157,13 +158,15 @@ EMU::~EMU()
 	if(osd != NULL) {
 		osd->lock_vm();
 	}
+	if(osd != NULL) {
+		osd->vm = nullptr;
+		osd->force_unlock_vm();
+	}
 	if(vm != NULL) {
 		delete vm;
 		vm = NULL;
 	}
 	if(osd != NULL) {
-		osd->vm = nullptr;
-		osd->unlock_vm();
 		osd->release();
 		delete osd;
 	}
@@ -390,13 +393,14 @@ void EMU::reset()
 		// stop sound
 		osd->stop_sound();
 		// reinitialize virtual machine
-		osd->lock_vm();
+		osd->vm = nullptr;
+		osd->force_unlock_vm();
 		delete vm;
 		vm = nullptr;
-		osd->vm = nullptr;
 		vm = new VM(this);
- 		osd->vm = vm;;
+ 		osd->vm = vm;
 #if defined(_USE_QT)
+		osd->vm_has_set();
 		osd->reset_vm_node();
 		osd->update_keyname_table();
 		osd->reset_screen_buffer();
@@ -3955,11 +3959,13 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					//osd->lock_vm();
 					// reinitialize virtual machine
 					osd->stop_sound();
-					delete vm;
 					osd->vm = nullptr;
+					osd->force_unlock_vm();
+					delete vm;
 					vm = new VM(this);
 					osd->vm = vm;
 # if defined(_USE_QT)
+					osd->vm_has_set();
 					osd->reset_vm_node();
 					osd->update_keyname_table();
 					osd->reset_screen_buffer();

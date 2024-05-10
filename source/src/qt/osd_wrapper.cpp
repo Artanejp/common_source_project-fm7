@@ -290,10 +290,12 @@ void OSD::do_run_movie_audio_callback(uint8_t *data, long len)
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 #if defined(_PX7)
 	{
-		lock_vm();
-		this->vm->movie_sound_callback(data, len);
-		unlock_vm();
+		std::lock_guard<std::recursive_timed_mutex>  n(vm_mutex);
+		if((vm != NULL) && !(is_will_delete_vm())) {
+			vm->movie_sound_callback(data, len);
+		}
 	}
+
 #endif
 #endif
 	free(data);
@@ -547,7 +549,7 @@ void OSD::disconnect_socket(int ch)
 			}
 		}
 	}
-	if(vm == nullptr) return;
+	if((vm == nullptr) || (is_will_delete_vm())) return;
 	vm->notify_socket_disconnected(ch);
 #endif
 }
@@ -574,7 +576,7 @@ void OSD::send_socket_data_tcp(int ch)
 	// ToDo: Really need to lock? 20221011 K.O
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 
-	if(vm == nullptr) return;
+	if((vm == nullptr) || (is_will_delete_vm())) return;
 	if(is_tcp[ch]) {
 		while(1) {
 			int size;
@@ -608,7 +610,7 @@ void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 	std::lock_guard<std::recursive_timed_mutex> lv(vm_mutex);
 
 	QHostAddress addr = QHostAddress((quint32)ipaddr);
-	if(vm == nullptr) return;
+	if((vm == nullptr) || (is_will_delete_vm())) return;
 	if(!(is_tcp[ch])) {
 		while(1) {
 			int size;
@@ -912,7 +914,8 @@ void OSD::reset_vm_node(void)
 	emit sig_logger_reset();
 
 	max_vm_nodes = 0;
-	if(vm == NULL) return;
+	if((vm == nullptr) || (is_will_delete_vm())) return;
+
 	for(DEVICE *p = vm->first_device; p != NULL; p = p->next_device) {
 		sp.id = p->this_device_id;
 		sp.name = p->this_device_name;

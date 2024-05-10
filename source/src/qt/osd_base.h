@@ -187,7 +187,9 @@ protected:
 
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
-	bool locked_vm;
+	std::atomic<bool> locked_vm;
+	std::atomic<bool> will_delete_vm;
+
 	// console
 	virtual void initialize_console();
 	virtual void release_console();
@@ -604,10 +606,33 @@ public:
 	_TCHAR *console_input_string(void);
 	void clear_console_input_string(void);
 
-	void lock_vm(void);
-	void unlock_vm(void);
-	void force_unlock_vm(void);
-	bool is_vm_locked(void);
+	inline void lock_vm()
+	{
+		locked_vm = true;
+		vm_mutex.lock();
+	}
+	inline void unlock_vm()
+	{
+		vm_mutex.unlock();
+		locked_vm = false;
+	}
+	inline void force_unlock_vm()
+	{
+		will_delete_vm = true;
+		unlock_vm();
+	}
+	inline bool is_vm_locked()
+	{
+		return locked_vm.load();
+	}
+	inline bool is_will_delete_vm()
+	{
+		return will_delete_vm.load();
+	}
+	inline void vm_has_set()
+	{
+		will_delete_vm = false;
+	}
 	virtual const _TCHAR *get_lib_common_vm_version();
 	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
