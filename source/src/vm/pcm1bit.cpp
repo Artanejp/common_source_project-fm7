@@ -80,9 +80,13 @@ void PCM1BIT::event_frame()
 
 void PCM1BIT::mix(int32_t* buffer, int cnt)
 {
-	int32_t p[cnt * 2];
-	int32_t p_h[cnt * 2];
-	int32_t p_l[cnt * 2];
+	int32_t *p = (int32_t*)malloc(sizeof(int32_t) * cnt * 2);
+	if(p == NULL) {
+		return;
+	}
+	int32_t *p_h = NULL;
+	int32_t *p_l = NULL;
+	
 	int32_t* pp = p;
 	if(on && !mute && changed) {
 		if(!(before_on)) {
@@ -110,12 +114,18 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 			nptr += 2;
 		}
 		if(use_lpf) {
-			this->calc_low_pass_filter(p_l, pp, cnt, (use_hpf) ? false : true);
-			pp = p_l;
+			p_l = (int32_t*)malloc(sizeof(int32_t) * cnt * 2);
+			__LIKELY_IF(p_l != NULL) {
+				this->calc_low_pass_filter(p_l, pp, cnt, (use_hpf) ? false : true);
+				pp = p_l;
+			}
 		}
 		if(use_hpf) {
-			this->calc_high_pass_filter(p_h, pp, cnt, true);
-			pp = p_h;
+			p_h = (int32_t*)malloc(sizeof(int32_t) * cnt * 2);
+			__LIKELY_IF(p_h != NULL) {
+				this->calc_high_pass_filter(p_h, pp, cnt, true);
+				pp = p_h;
+			}
 		}
 	} else {
 		// suppress petite noise when go to mute
@@ -142,6 +152,15 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 		buffer[i] = buffer[i] + pp[i];
 //		if(buffer[i] >  32767) buffer[i] = 32767;
 //		if(buffer[i] < -32768) buffer[i] = -32768;
+	}
+	__LIKELY_IF(p != NULL) {
+		free(p);
+	}
+	__LIKELY_IF(p_h != NULL) {
+		free(p_h);
+	}
+	__LIKELY_IF(p_l != NULL) {
+		free(p_l);
 	}
 	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;
@@ -179,8 +198,8 @@ void PCM1BIT::calc_low_pass_filter(int32_t* dst, int32_t* src, int samples, int 
 		memset(dst, 0x00, sizeof(int32_t) * samples * 2);
 		return;
 	}
-	__DECL_ALIGNED(16) float tval[(samples + 1) * 2 + 2];
-	__DECL_ALIGNED(16) float oval[(samples + 1) * 2 + 2];
+	__DECL_ALIGNED(16) std::valarray<float> tval((samples + 1) * 2 + 2);
+	__DECL_ALIGNED(16) std::valarray<float> oval((samples + 1) * 2 + 2);
 	int __begin = 0;
 	
 	tval[0] = before_filter_l;
@@ -191,14 +210,12 @@ void PCM1BIT::calc_low_pass_filter(int32_t* dst, int32_t* src, int samples, int 
 		tval[i] = (float)(src[i - 2]);
 	}
 	
-	for(int i = 2; i < ((samples + 1) * 2); i += 2) {
-		oval[i + 0] = tval[i + 0] * lpf_alpha + oval[i - 2 + 0] * lpf_ialpha;
-		oval[i + 1] = tval[i + 1] * lpf_alpha + oval[i - 2 + 1] * lpf_ialpha;
+	for(int i = 2; i < ((samples + 1) * 2); i++) {
+		oval[i + 0] = tval[i + 0] * lpf_alpha + oval[i - 2] * lpf_ialpha;
 	}
 	// copy
-	for(int i = 2; i < ((samples + 1) * 2) ; i += 2) {
-		dst[i - 2 + 0] = (int32_t)(oval[i + 0]);
-		dst[i - 2 + 1] = (int32_t)(oval[i + 1]);
+	for(int i = 2; i < ((samples + 1) * 2) ; i++) {
+		dst[i - 2] = (int32_t)(oval[i]);
 	}
 	if(is_set_val) {
 		before_filter_l = oval[samples * 2 + 0];
@@ -237,8 +254,8 @@ void PCM1BIT::calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int
 		memset(dst, 0x00, sizeof(int32_t) * samples * 2);
 		return;
 	}
-	__DECL_ALIGNED(16) float tval[(samples + 1) * 2 + 2];
-	__DECL_ALIGNED(16) float oval[(samples + 1) * 2 + 2];
+	__DECL_ALIGNED(16) std::valarray<float> tval((samples + 1) * 2 + 2);
+	__DECL_ALIGNED(16) std::valarray<float> oval((samples + 1) * 2 + 2);
 	int __begin = 0;
 
 	tval[0] = before_filter_l;
@@ -249,15 +266,12 @@ void PCM1BIT::calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int
 		tval[i] = (float)(src[i - 2]);
 	}
 	for(int i = 2; i < ((samples + 1) * 2); i++) {
-		oval[i + 0] = tval[i + 0] * hpf_alpha + oval[i - 2 + 0] * hpf_alpha;
-		oval[i + 1] = tval[i + 1] * hpf_alpha + oval[i - 2 + 1] * hpf_alpha;
-		oval[i + 0] = tval[i + 0] - oval[i + 0];
-		oval[i + 1] = tval[i + 1] - oval[i + 1];
+		oval[i] = tval[i] * hpf_alpha + oval[i - 2] * hpf_alpha;
+		oval[i] = tval[i] - oval[i];
 	}		
 	// copy
-	for(int i = 2; i < ((samples + 1) * 2) ; i += 2) {
-		dst[i - 2 + 0] = (int32_t)(oval[i + 0]);
-		dst[i - 2 + 1] = (int32_t)(oval[i + 1]);
+	for(int i = 2; i < ((samples + 1) * 2) ; i++) {
+		dst[i - 2] = (int32_t)(oval[i]);
 	}
 	if(is_set_val) {
 		before_filter_l = oval[samples * 2 + 0];
