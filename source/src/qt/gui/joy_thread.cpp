@@ -425,7 +425,7 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 	if((true_index < 0) || (true_index >= 4)) return;
 
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "X AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
-	if(joy_status != NULL) {
+	{
 		switch(type) {
 		case JS_AXIS_TYPE_LEFT:
 			joy_status[(true_index * 2) + 4] = value + 32768;
@@ -455,7 +455,7 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 	if((true_index < 0) || (true_index >= 4)) return;
 
 	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Y AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
-	if(joy_status != NULL) {
+	{
 		switch(type) {
 		case JS_AXIS_TYPE_LEFT:
 			joy_status[(true_index * 2) + 4 + 1] = value + 32768;
@@ -485,7 +485,7 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
 
-	if(joy_status != NULL) {
+	{
 		switch(button) {
 		default:
 			if(button < 24) {
@@ -505,7 +505,7 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= SDL_CONTROLLER_BUTTON_MAX) return;
-	if(joy_status != NULL) {
+	{
 		switch(button) {
 		case SDL_CONTROLLER_BUTTON_DPAD_UP:
 			joy_status[true_index] |= 0x01;
@@ -577,7 +577,7 @@ void JoyThreadClass::button_up(int idx, unsigned int button)
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 16) return;
 
-	if(joy_status != NULL) {
+	{
 		switch(button) {
 		default:
 			if(button < 24) {
@@ -598,7 +598,7 @@ void JoyThreadClass::controller_button_up(int idx, unsigned int button)
 	if((true_index < 0) || (true_index >= 4)) return;
 	if(button >= 12) return;
 
-	if(joy_status != NULL) {
+	{
 		switch(button) {
 		case SDL_CONTROLLER_BUTTON_DPAD_UP:
 			joy_status[true_index] &= ~0x01;
