@@ -90,7 +90,7 @@ public:
 	// ----------------------------------------
 
 	// drive virtual machine
-	//void reset();
+	//void reset() override;
 	double get_frame_rate() override
 	{
 		return FRAMES_PER_SEC;
@@ -133,7 +133,7 @@ public:
 	void push_apss_rewind(int drv) override {}
 	bool is_frame_skippable()  override;
 
-	//void update_config();
+	//void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
 
 	// ----------------------------------------
@@ -141,7 +141,7 @@ public:
 	// ----------------------------------------
 
 	// devices
-//	DEVICE* get_device(int id);
+//	DEVICE* get_device(int id) override;
 //	DEVICE* dummy;
 //	DEVICE* first_device;
 //	DEVICE* last_device;
