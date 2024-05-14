@@ -112,10 +112,12 @@ public:
 	
 	uint32_t __FASTCALL read_signal(int id) override;
 	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
-	bool open(_TCHAR* file_path, int bank) override;
-	void close() override;
 	void __FASTCALL event_callback(int event_id, int err) override;
 	bool process_state(FILEIO *state_fio, bool loading) override;
+
+	// Unique functions
+	bool open(_TCHAR* file_path, int bank);
+	void close();
 	
 	bool is_bubble_inserted()
 	{
