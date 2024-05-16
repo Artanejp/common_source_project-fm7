@@ -52,7 +52,8 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	history.clear();
 
 	dialogs.clear();
-
+	dlgptr.reset();
+	
 	inner_media_list.clear();
 	window_title = QString::fromUtf8("");
 
@@ -111,6 +112,17 @@ void Menu_MetaClass::do_open_media(int drv, QString name)
 {
 	//write_protect = false; // Right? On D88, May be writing entry  exists.
 	emit sig_open_media(drv, name);
+}
+
+void Menu_MetaClass::do_open_media(QString name)
+{
+	//write_protect = false; // Right? On D88, May be writing entry  exists.
+	if(dlgptr.get() != nullptr) {
+		dlgptr->deleteLater();
+	}
+	if(!(name.isEmpty())) {
+		emit sig_open_media(media_drive, name);
+	}
 }
 
 void Menu_MetaClass::do_insert_media(void)
@@ -198,26 +210,76 @@ void Menu_MetaClass::do_select_inner_media(int num)
 }
 void Menu_MetaClass::do_close_window()
 {
-	CSP_DiskDialog *p = qobject_cast<CSP_DiskDialog*>(QObject::sender());
-	for(auto i = dialogs.begin(); i != dialogs.end(); ++i) {
-		if((*i) == p) {
-			dialogs.erase(i);
-			p->deleteLater();
-			//dialogs.squeeze();
-			return;
-		}
-	}
+	dlgptr.reset();
 }
 void Menu_MetaClass::do_finish(int i)
 {
-	do_close_window();
+//	do_close_window();
+	if(dlgptr.get() != nullptr) {
+		dlgptr->deleteLater();
+	}
 }
 
 void Menu_MetaClass::do_open_dialog()
 {
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-	do_open_dialog_common(dlg);
-	emit sig_show();
+//	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
+//	do_open_dialog_common(dlg);
+//	emit sig_show();
+	if(initial_dir.isEmpty()) {
+		QDir dir;
+		char app[_MAX_PATH];
+		initial_dir = dir.currentPath();
+		strncpy(app, initial_dir.toLocal8Bit().constData(), _MAX_PATH - 1);
+		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
+	}
+
+	if(dlgptr.get() != nullptr) {
+		return;
+	}
+	QString tmps;
+	tmps = QApplication::translate("MenuMedia", "Open", 0);
+	if(!window_title.isEmpty()) {
+		tmps = tmps + QString::fromUtf8(" ") + window_title;
+	} else {
+		tmps = tmps + QString::fromUtf8(" ") + this->title();
+	}
+	QString tmp_filter;
+	for(auto p = ext_filter.begin() ; p != ext_filter.end(); ++p) {
+		if(!((*p).isEmpty())) {
+			tmp_filter.append(*p);
+			tmp_filter.append(QString::fromUtf8(" ;; "));
+		}
+	}
+	dlgptr.reset(new QFileDialog(nullptr, tmps,
+								 initial_dir,
+								 tmp_filter));
+//	dialogs.append(dlg);
+	
+	dlgptr->setAttribute(Qt::WA_DeleteOnClose, true);
+	
+//	dlg->setOption(QFileDialog::ReadOnly, false);
+	dlgptr->setOption(QFileDialog::DontUseNativeDialog, false);
+	//dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
+	dlgptr->setAcceptMode(QFileDialog::AcceptOpen);
+	dlgptr->setFileMode(QFileDialog::ExistingFile);
+	//dlgptr->setLabelText(QFileDialog::Accept, QApplication::translate("MenuMedia", "Open File", 0));
+//	dlgptr->setModal(false);
+//	dlgptr->setModal(true);
+//	dlgptr->setVisible(true);
+//	dlgptr->setWindowState(Qt::WindowActive);
+//	connect(this, SIGNAL(sig_show()), dlgptr.get(), SLOT(open()));
+	connect(dlgptr.get(), SIGNAL(fileSelected(QString)), this, SLOT(do_open_media(QString)));
+	connect(dlgptr.get(), SIGNAL(rejected()), this, SLOT(do_close_window()));
+	connect(dlgptr.get(), SIGNAL(destroyed()), this, SLOT(do_close_window()));
+	connect(dlgptr.get(), SIGNAL(finished(int)), this, SLOT(do_finish(int)));
+	dlgptr->setWindowModality(Qt::WindowModal);
+//	dlgptr->show();
+//	dlgptr->raise();
+//	dlgptr->activateWindow();
+	dlgptr->open();
+	
+//	emit sig_show();
+//	dlgptr->open(this, SLOT(do_open_media(QString)));
 }
 
 void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
@@ -232,7 +294,7 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	}
 
 	dlg->setOption(QFileDialog::ReadOnly, false);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	//dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
 	
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
@@ -253,7 +315,9 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	}
 	dlg->setWindowTitle(tmps);
 
-	dlg->setModal(false);
+//	dlg->setModal(false);
+	dlg->setModal(true);
+	dlg->setVisible(true);
 
 	// ToDo: Be more sotisficated .
 	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_media(QString)));
@@ -262,7 +326,8 @@ void Menu_MetaClass::do_open_dialog_common(CSP_DiskDialog* dlg)
 	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
 
-	connect(this, SIGNAL(sig_show()), dlg, SLOT(exec()), Qt::QueuedConnection);
+	//connect(this, SIGNAL(sig_show()), dlg, SLOT(exec()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()), Qt::QueuedConnection);
 	dlg->do_update_params(); // update Extensions, directories
 
 	dialogs.append(dlg);
@@ -373,7 +438,8 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 	action_insert->setData(_tmp_ins);
 
 	
-	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_delayed_open_dialog()), Qt::QueuedConnection);
+	//connect(action_insert, SIGNAL(triggered()), this, SLOT(do_delayed_open_dialog()));
+	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()), Qt::QueuedConnection);
 	//connect(this, SIGNAL(sig_open_dialog()), this, SLOT(do_open_dialog()));	
 	action_insert->setIcon(icon_insert);
 

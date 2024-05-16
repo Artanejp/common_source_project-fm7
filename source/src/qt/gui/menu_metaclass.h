@@ -76,6 +76,7 @@ protected:
 	QActionGroup *action_group_inner_media;
 	QActionGroup *action_group_protect;
 
+	std::shared_ptr<QFileDialog> dlgptr;
 	QString object_desc;
 
 	int media_drive;
@@ -116,6 +117,7 @@ public:
 	//QAction *menuAction(void);
 public slots:
 	void do_set_write_protect(bool f);
+	void do_open_media(QString name);
 	void do_open_media(int drv, QString name);
 	void do_insert_media(void);
 	void do_eject_media(void);
