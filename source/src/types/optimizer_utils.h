@@ -246,9 +246,9 @@ inline uint64_t swapendian_64(uint64_t src)
 }
 
 #if defined(__HAS_BUILTIN_BSWAP128_X)
-inline uint128_t swapendian_128(uint128_t src)
+inline __uint128_t swapendian_128(__uint128_t src)
 {
-	uint128_t n = __builtin_bswap128(src);
+	__uint128_t n = __builtin_bswap128(src);
 	return n;
 }
 #endif
@@ -263,7 +263,7 @@ template <class T>
 	}
 	if(__size == 16) {
 	#if defined(__HAS_BUILTIN_BSWAP128_X)
-		return (T)swapendian_128((uint128_t)src);
+		return (T)swapendian_128((__uint128_t)src);
 	#else
 		__DECL_ALIGNED(16) union {
 			T        dat;

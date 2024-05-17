@@ -104,7 +104,7 @@ public:
 		if(__size == 16) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t i = 0; i < 8; i++) {
-				uint128_t n = (uint128_t)(m_data[i]);
+				__uint128_t n = (__uint128_t)(m_data[i]);
 				m_data[i] = (T)swapendian_128(n);
 			}
 			return *this;
