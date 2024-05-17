@@ -32,6 +32,14 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 	action_saving->setVisible(true);
 	action_saving->setCheckable(false);
 
+	struct CSP_Ui_Menu::DriveIndexPair tmp;
+	QVariant _tmp_ins;
+
+	tmp.drive = media_drive;
+	tmp.index = 0;
+	_tmp_ins.setValue(tmp);
+	action_saving->setData(_tmp_ins);
+	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_save_dialog()), Qt::QueuedConnection);
 	//menu_history_save = new QMenu(this);
 	//menu_history_save->setObjectName(QString::fromUtf8("menu_history_save_") + object_desc);
 
@@ -61,13 +69,6 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 	}
 }
 
-void Menu_BinaryClass::do_open_media_save(int drv, QString name) {
-	emit sig_open_media_save(drv, name);
-}
-
-void Menu_BinaryClass::do_open_recent_media_save(int drv, int slot) {
-	emit sig_set_recent_media_save(drv, slot);
-}
 
 void Menu_BinaryClass::do_update_histories(QStringList lst)
 {
@@ -106,50 +107,10 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 	}
 	connect(action_saving, SIGNAL(triggered()),	this, SLOT(do_open_save_dialog()));
 
-	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_binary_load(int, QString)));
+	connect(this, SIGNAL(sig_open_media_load(int, QString)), p_wid, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_media_save(int, QString)), p_wid, SLOT(_open_binary_save(int, QString)));
 }
 
-
-
-void Menu_BinaryClass::do_open_save_dialog()
-{
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-
-	if(initial_dir.isEmpty()) {
-		QDir dir;
-		char app[PATH_MAX];
-		initial_dir = dir.currentPath();
-		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
-		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
-	}
-	dlg->setOption(QFileDialog::ReadOnly, false);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
-	//dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
-	
-	dlg->setAcceptMode(QFileDialog::AcceptSave);
-	
-	dlg->param->setDrive(media_drive);
-	dlg->param->setPlay(false);
-	dlg->setWindowTitle(QApplication::translate("MenuMedia", "Save Binary", 0));
-	dlg->setDirectory(initial_dir);
-	dlg->setNameFilters(ext_filter);
-
-	connect(dlg, SIGNAL(fileSelected(QString)), dlg->param, SLOT(_open_media(QString)));
-	connect(dlg->param, SIGNAL(sig_open_media(int, QString)),
-					 this, SLOT(do_open_media_save(int, QString)));
-
-	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);
-	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
-	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
-
-	dialogs.append(dlg);
-	dlg->setModal(false);
-
-	//dlg->show();
-	dlg->exec();
-	return;
-}
 
 void Menu_BinaryClass::retranslate_pulldown_menu_device_sub(void)
 {

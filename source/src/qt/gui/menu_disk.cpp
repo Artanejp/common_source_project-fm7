@@ -46,17 +46,6 @@ void Menu_FDClass::do_set_create_mask(quint8 type, bool flag)
 	}
 }
 
-void Menu_FDClass::do_open_dialog()
-{
-	//CSP_DiskDialog *dlg = new CSP_DiskDialog(this);
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-
-	do_open_dialog_common(dlg);
-
-	disconnect(dlg->param, SIGNAL(sig_open_media(int, QString)), this, SLOT(do_open_media(int, QString)));
-	connect(dlg->param, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)), Qt::QueuedConnection);
-	emit sig_show();
-}
 void Menu_FDClass::do_open_dialog_create_fd()
 {
 	CSP_CreateDiskDialog* dlg = new CSP_CreateDiskDialog(type_mask, Qt::Widget);
@@ -96,7 +85,6 @@ void Menu_FDClass::do_open_dialog_create_fd()
 	dlg->dlg->setWindowTitle(tmps);
 
 	connect(dlg, SIGNAL(sig_create_disk(quint8, QString)), this, SLOT(do_create_media(quint8, QString)));
-	connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
 
 	dlg->show();
 	//dlg->dlg->exec();
@@ -201,10 +189,10 @@ void Menu_FDClass::connect_menu_device_sub(void)
 			this, SLOT(do_set_disk_count_immediate(bool)));
 
 	connect(action_create_fd, SIGNAL(triggered()), this, SLOT(do_open_dialog_create_fd()));
-
+	connect(this, SIGNAL(sig_create_d88_media(int, quint8, QString)), p_wid, SLOT(do_create_d88_media(int, quint8, QString)));
+	
 	// Need Change
-   	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
-
+   	connect(this, SIGNAL(sig_open_media_load(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
 	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
 
 //	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_emu_write_protect_floppy_disk(int, bool)));

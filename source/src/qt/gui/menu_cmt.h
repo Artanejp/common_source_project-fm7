@@ -16,7 +16,6 @@ class DLL_PREFIX Menu_CMTClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 	QString desc_rec;
-	QStringList ext_rec_filter;
 
 	QActionGroup *action_group_tape_button;
 	class Action_Control *action_play_start;
@@ -48,10 +47,7 @@ public:
 	void connect_via_emu_thread(EmuThreadClassBase *p) override;
 
 public slots:
-	void do_open_rec_dialog();
-	void do_add_rec_media_extension(QString ext, QString description);
-	void do_open_write_cmt(QString s);
-
+	void do_open_save_dialog() override;
 signals:
 	int sig_direct_load_mzt(int, bool);
 	int sig_open_write_cmt(int, QString);

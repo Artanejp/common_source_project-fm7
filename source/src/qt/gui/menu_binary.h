@@ -19,21 +19,15 @@ protected:
 	class Action_Control *action_recent_save_list[MAX_HISTORY];
 	class Action_Control *action_saving;
 
-	QMenu *menu_history_save;
 public:
 	Menu_BinaryClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_BinaryClass();
-	void create_pulldown_menu_device_sub();
-	void connect_menu_device_sub(void);
-	void retranslate_pulldown_menu_device_sub(void);
+	void create_pulldown_menu_device_sub() override;
+	void connect_menu_device_sub(void) override;
+	void retranslate_pulldown_menu_device_sub(void) override;
 public slots:
-	void do_open_recent_media_save(int drv, int slot);
-	void do_open_media_save(int drv, QString name);
-	void do_open_save_dialog();
-	void do_update_histories(QStringList lst);
+	void do_update_histories(QStringList lst) override;
 signals:
-	void sig_open_media_save(int, QString);
-	void sig_set_recent_media_save(int, int);
 };
 
 QT_END_NAMESPACE

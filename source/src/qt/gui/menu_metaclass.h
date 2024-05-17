@@ -56,6 +56,7 @@ protected:
 
 	QMenu *menu_inner_media;
 	QMenu *menu_history;
+	QMenu *menu_history_save;
 	QMenu *menu_write_protect;
 
 	QIcon icon_insert;
@@ -71,12 +72,10 @@ protected:
 	class Action_Control *action_write_protect_off;
 	class Action_Control *action_select_media_list[128];
 	class Action_Control *action_recent_list[MAX_HISTORY];
-	QList<CSP_DiskDialog*>   dialogs;
 	QActionGroup *action_group_recent;
 	QActionGroup *action_group_inner_media;
 	QActionGroup *action_group_protect;
 
-	std::shared_ptr<QFileDialog> dlgptr;
 	QString object_desc;
 
 	int media_drive;
@@ -89,11 +88,12 @@ protected:
 
 	void create_pulldown_menu_sub(void);
 	void retranslate_pulldown_menu_sub(void);
-	void do_open_dialog_common(CSP_DiskDialog* dlg);
+	bool do_open_dialog_common(QFileDialog* dlg, bool is_save = false);
 
 	QString window_title;
 	QString initial_dir;
 	QStringList ext_filter;
+	QStringList ext_save_filter;
 	QStringList history;
 	QStringList inner_media_list;
 public:
@@ -116,42 +116,54 @@ public:
 
 	//QAction *menuAction(void);
 public slots:
-	void do_set_write_protect(bool f);
-	void do_open_media(QString name);
-	void do_open_media(int drv, QString name);
+	void do_add_media_extension(QString ext, QString description);
+	void do_set_initialize_directory(const char *dir);
+	
+	virtual void do_open_dialog(void);
+	virtual void do_open_save_dialog(void);
+	void do_delayed_open_dialog(void);
+	void do_delayed_open_save_dialog(void);
+	
 	void do_insert_media(void);
 	void do_eject_media(void);
-
 	void do_open_inner_media(void);
 	void do_open_recent_media(void);
 	void do_write_protect_media(void);
 	void do_write_unprotect_media(void);
-	void do_add_media_extension(QString ext, QString description);
 
-	void do_set_initialize_directory(const char *dir);
-	virtual void do_open_dialog(void);
-	void do_delayed_open_dialog(void);
+	virtual void do_open_media_load(QString name);
+	virtual void do_open_media_save(QString name);
+	virtual void do_set_write_protect(bool f);
+	
+	void do_close_window();
+	void do_finish(int i);
+	
 	void do_clear_inner_media(void);
 	void do_select_inner_media(int num);
 	void do_update_inner_media(QStringList lst, int num);
 	void do_update_inner_media_bubble(QStringList lst, int num);
-	void do_update_histories(QStringList lst);
+	virtual void do_update_histories(QStringList lst);
 	void do_insert_history(QString path);
 
 	void do_set_window_title(QString s);
-	void do_close_window();
-	void do_finish(int i);
 
 signals:
-	int sig_open_media(int, QString);
+	int sig_open_media_load(int, QString);
+	int sig_open_media_save(int, QString);
+	
 	int sig_eject_media(int);
 	int sig_write_protect_media(int, bool);
+	
 	int sig_set_recent_media(int, int);
+	int sig_set_recent_media_save(int, int);
+	
 	int sig_set_inner_slot(int, int);
 	int sig_insert_media(int);
 	int sig_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
 								QStringList lst, int num, bool use_d88_menus);
+	
 	int sig_emu_update_config();
+	
 	int sig_show();
 };
 QT_END_NAMESPACE

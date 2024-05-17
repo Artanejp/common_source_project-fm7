@@ -26,8 +26,9 @@ public:
 	void retranslate_pulldown_menu_device_sub(void) override;
 public slots:
 	void do_open_dialog_create_hd();
+	void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name);
 signals:
-//	int sig_create_media(int, quint8, QString);
+	int sig_create_disk(int, int, int, int, int, QString);
 };
 
 QT_END_NAMESPACE

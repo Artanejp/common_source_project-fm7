@@ -75,7 +75,7 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 	desc_rec  = "Data Recorder Tape [Rec]";
 
 	menu_CMT[drive]->do_add_media_extension(ext_play, desc_play);
-	menu_CMT[drive]->do_add_rec_media_extension(ext_rec, desc_rec);
+	menu_CMT[drive]->do_add_save_media_extension(ext_rec, desc_rec);
 }
 
 int Ui_MainWindowBase::set_recent_cmt(int drv, int num)

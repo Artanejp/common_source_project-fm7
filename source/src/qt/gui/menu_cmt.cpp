@@ -24,8 +24,6 @@ Menu_CMTClass::Menu_CMTClass(QMenuBar *root_entry, QString desc, std::shared_ptr
 	use_write_protect = true;
 	use_d88_menus = false;
 
-	ext_rec_filter.clear();
-
 	icon_cmt = QIcon(":/icon_cmt.png");
 	icon_play_start = QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
 	icon_play_stop = QApplication::style()->standardIcon(QStyle::SP_MediaStop);
@@ -63,10 +61,6 @@ void Menu_CMTClass::connect_via_emu_thread(EmuThreadClassBase *p)
 	}
 }
 
-void Menu_CMTClass::do_open_write_cmt(QString s)
-{
-	emit sig_open_write_cmt(media_drive, s);
-}
 
 
 void Menu_CMTClass::create_pulldown_menu_device_sub(void)
@@ -173,67 +167,28 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 		if(using_flags->is_machine_cmt_mz_series()) {
 			this->addAction(action_direct_load_mzt);
 		}
-		connect(action_recording, SIGNAL(triggered()), this, SLOT(do_open_rec_dialog()));
-		connect(this, SIGNAL(sig_open_media(int, QString)),	p_wid, SLOT(do_open_read_cmt(int, QString)));
+		connect(action_recording, SIGNAL(triggered()), this, SLOT(do_open_save_dialog()));
+		connect(this, SIGNAL(sig_open_media_load(int, QString)),	p_wid, SLOT(do_open_read_cmt(int, QString)));
 
 		connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cmt(int, int)));
+		
+		connect(this, SIGNAL(sig_open_media_save(int, QString)), p_wid, SLOT(do_open_write_cmt(int, QString)));
+		
 		/*if(using_flags->is_use_tape_button())*/ {
 		}
 	}
 }
 
-void Menu_CMTClass::do_add_rec_media_extension(QString ext, QString description)
+
+void Menu_CMTClass::do_open_save_dialog()
 {
-	QString tmps = description;
-	QString all = QString::fromUtf8("All Files (*.*)");
-
-	tmps.append(QString::fromUtf8(" ("));
-	tmps.append(ext.toLower());
-	tmps.append(QString::fromUtf8(" "));
-	tmps.append(ext.toUpper());
-	tmps.append(QString::fromUtf8(")"));
-
-	ext_rec_filter << tmps;
-	ext_rec_filter << all;
-
-	ext_rec_filter.removeDuplicates();
+	QFileDialog* dlgptr = new QFileDialog(nullptr, Qt::Dialog);
+	do_open_dialog_common(dlgptr , true);
+   
+	//dlgptr->setWindowTitle(QApplication::translate("MenuMedia", "Save Tape", 0));
+	emit sig_show();
 }
 
-void Menu_CMTClass::do_open_rec_dialog()
-{
-	CSP_DiskDialog *dlg = new CSP_DiskDialog(nullptr);
-
-	if(initial_dir.isEmpty()) {
-		QDir dir;
-		char app[PATH_MAX];
-		initial_dir = dir.currentPath();
-		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX - 1);
-		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
-	}
-
-	dlg->setOption(QFileDialog::ReadOnly, false);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
-	//dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
-	
-	dlg->setAcceptMode(QFileDialog::AcceptSave);
-	dlg->param->setDrive(media_drive);
-	dlg->setDirectory(initial_dir);
-	dlg->setNameFilters(ext_rec_filter);
-	dlg->setWindowTitle(desc_rec);
-	dlg->setWindowTitle(QApplication::translate("MenuMedia", "Save Tape", 0));
-
-	connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_write_cmt(QString)));
-	connect(this, SIGNAL(sig_open_write_cmt(int, QString)), p_wid, SLOT(do_open_write_cmt(int, QString)));
-	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);
-	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
-	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
-
-	dialogs.append(dlg);
-	dlg->setModal(false);
-//	dlg->show();
-	dlg->exec();
-	return;
-}
 
 
 void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)

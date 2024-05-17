@@ -52,7 +52,7 @@ void Menu_CompactDiscClass::create_pulldown_menu_device_sub(void)
 void Menu_CompactDiscClass::connect_menu_device_sub(void)
 {
 
-	connect(this, SIGNAL(sig_open_media(int, QString)),	p_wid, SLOT(do_open_compact_disc_ui(int, QString)));
+	connect(this, SIGNAL(sig_open_media_load(int, QString)),	p_wid, SLOT(do_open_compact_disc_ui(int, QString)));
 	connect(this, SIGNAL(sig_eject_media(int)),	p_wid, SLOT(do_eject_compact_disc(int)));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_compact_disc(int, int)));
 	// Will move to EMUTHREADCLASS?
