@@ -134,7 +134,7 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	config_t *p;
 	struct CSP_Ui_Menu::DriveIndexPair tmp;
 
-	action_ignore_crc_error = new Action_Control(p_wid, using_flags);
+	action_ignore_crc_error = new QAction(p_wid);
 	action_ignore_crc_error->setVisible(true);
 	action_ignore_crc_error->setCheckable(true);
 	tmp.drive = media_drive;
@@ -143,21 +143,21 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	_tmp_ic.setValue(tmp);
 	action_ignore_crc_error->setData(_tmp_ic);
 
-	action_correct_timing = new Action_Control(p_wid, using_flags);
+	action_correct_timing = new QAction(p_wid);
 	action_correct_timing->setVisible(true);
 	action_correct_timing->setCheckable(true);
 	QVariant _tmp_ct;
 	_tmp_ct.setValue(tmp);
 	action_correct_timing->setData(_tmp_ct);
 
-	action_count_immediate = new Action_Control(p_wid, using_flags);
+	action_count_immediate = new QAction(p_wid);
 	action_count_immediate->setVisible(true);
 	action_count_immediate->setCheckable(true);
 	QVariant _tmp_ci;
 	_tmp_ci.setValue(tmp);
 	action_count_immediate->setData(_tmp_ci);
 
-	action_create_fd = new Action_Control(p_wid, using_flags);
+	action_create_fd = new QAction(p_wid);
 	action_create_fd->setVisible(true);
 	action_create_fd->setCheckable(false);
 

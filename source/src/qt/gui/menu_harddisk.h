@@ -16,7 +16,7 @@ QT_BEGIN_NAMESPACE
 class DLL_PREFIX Menu_HDDClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
-	class Action_Control *action_create_hdd;
+	QAction *action_create_hdd;
 public:
 	Menu_HDDClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
 	~Menu_HDDClass();

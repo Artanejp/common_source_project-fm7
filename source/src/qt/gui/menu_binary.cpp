@@ -28,7 +28,7 @@ Menu_BinaryClass::~Menu_BinaryClass()
 void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 {
 	int ii;
-	action_saving = new Action_Control(p_wid, using_flags);
+	action_saving = new QAction(p_wid);
 	action_saving->setVisible(true);
 	action_saving->setCheckable(false);
 
@@ -50,7 +50,7 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
-			action_recent_save_list[ii] = new Action_Control(p_wid, using_flags);
+			action_recent_save_list[ii] = new QAction(p_wid);
 			struct CSP_Ui_Menu::DriveIndexPair tmp;
 			tmp.drive = media_drive;
 			tmp.index = ii;

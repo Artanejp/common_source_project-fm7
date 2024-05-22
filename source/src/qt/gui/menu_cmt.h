@@ -18,16 +18,16 @@ protected:
 	QString desc_rec;
 
 	QActionGroup *action_group_tape_button;
-	class Action_Control *action_play_start;
-	class Action_Control *action_play_stop;
-	class Action_Control *action_fast_forward;
-	class Action_Control *action_fast_rewind;
-	class Action_Control *action_apss_forward;
-	class Action_Control *action_apss_rewind;
-	class Action_Control *action_recording;
+	QAction *action_play_start;
+	QAction *action_play_stop;
+	QAction *action_fast_forward;
+	QAction *action_fast_rewind;
+	QAction *action_apss_forward;
+	QAction *action_apss_rewind;
+	QAction *action_recording;
 
-	class Action_Control *action_wave_shaper;
-	class Action_Control *action_direct_load_mzt;
+	QAction *action_wave_shaper;
+	QAction *action_direct_load_mzt;
 
 	QIcon icon_cmt;
 	QIcon icon_play_start;

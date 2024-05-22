@@ -262,7 +262,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 		return false;
 	}
 	dlg->setAttribute(Qt::WA_DeleteOnClose, true);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
 	
 	dlg->setDirectory(initial_dir);
 	if(is_save) {
@@ -273,7 +274,7 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	dlg->setOption(QFileDialog::ReadOnly, (is_save) ? false : true);
 	//dlg->setOption(QFileDialog::ReadOnly, false);
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
-	dlgr->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
+	dlg->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
 	dlg->setFileMode((is_save) ? QFileDialog::AnyFile : QFileDialog::ExistingFile);
 
 	QString tmps;
@@ -289,19 +290,20 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setWindowTitle(tmps);
 
-	dlg->setModal(false);
+	dlg->setModal(true);
+	dlg->setWindowModality(Qt::WindowModal);
 //	dlg->setVisible(true);
 
 	// ToDo: Be more sotisficated .
 	if(is_save) {
-		connect(dlgptr, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_save(QString)), Qt::QueuedConnection);
+		connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_save(QString)), Qt::QueuedConnection);
 	} else {
-		connect(dlgptr, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_load(QString)), Qt::QueuedConnection);
+		connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_load(QString)), Qt::QueuedConnection);
 	}
 //	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 //	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
-	connect(dlgptr, SIGNAL(destroyed()), this, SLOT(do_close_window()));
+	connect(dlg, SIGNAL(destroyed()), this, SLOT(do_close_window()));
 
 	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
 	return true;
@@ -388,17 +390,17 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 	}
 }
 
-void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
-{
-	QString tmps;
-	inner_media_list.clear();
-	emit sig_update_inner_bubble(media_drive, inner_media_list, action_select_media_list,
-								 lst, num, use_d88_menus);
-}
+//void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
+//{
+//	QString tmps;
+//	inner_media_list.clear();
+//	emit sig_update_inner_bubble(media_drive, inner_media_list, action_select_media_list,
+//								 lst, num, use_d88_menus);
+//}
 
 void Menu_MetaClass::create_pulldown_menu_sub(void)
 {
-	action_insert = new Action_Control(p_wid, using_flags);
+	action_insert = new QAction(p_wid);
 	action_insert->setObjectName(QString::fromUtf8("action_insert_") + object_desc);
 
 	struct CSP_Ui_Menu::DriveIndexPair tmp;
@@ -415,7 +417,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 	//connect(this, SIGNAL(sig_open_dialog()), this, SLOT(do_open_dialog()));	
 	action_insert->setIcon(icon_insert);
 
-	action_eject = new Action_Control(p_wid, using_flags);
+	action_eject = new QAction(p_wid);
 	action_eject->setObjectName(QString::fromUtf8("action_eject_") + object_desc);
 
 	QVariant _tmp_eject;
@@ -433,7 +435,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
 			tmps = history.value(ii, "");
-			action_recent_list[ii] = new Action_Control(p_wid, using_flags);
+			action_recent_list[ii] = new QAction(p_wid);
 			struct CSP_Ui_Menu::DriveIndexPair tmp2;
 			tmp2.drive = media_drive;
 			tmp2.index = ii;
@@ -459,7 +461,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			tmps = history.value(ii, "");
-			action_select_media_list[ii] = new Action_Control(p_wid, using_flags);
+			action_select_media_list[ii] = new QAction(p_wid);
 			struct CSP_Ui_Menu::DriveIndexPair tmp2;
 			tmp2.drive = media_drive;
 			tmp2.index = ii;
@@ -482,13 +484,13 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		action_group_protect = new QActionGroup(p_wid);
 		action_group_protect->setExclusive(true);
 
-		action_write_protect_on = new Action_Control(p_wid, using_flags);
+		action_write_protect_on = new QAction(p_wid);
 		action_write_protect_on->setObjectName(QString::fromUtf8("action_write_protect_on_") + object_desc);
 		action_write_protect_on->setCheckable(true);
 		action_write_protect_on->setChecked(true);
 		action_write_protect_on->setData(QVariant(media_drive));
 
-		action_write_protect_off = new Action_Control(p_wid, using_flags);
+		action_write_protect_off = new QAction(p_wid);
 		action_write_protect_off->setObjectName(QString::fromUtf8("action_write_protect_off_") + object_desc);
 		action_write_protect_off->setCheckable(true);
 		action_write_protect_off->setData(QVariant(media_drive));

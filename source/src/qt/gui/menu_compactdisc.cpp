@@ -28,7 +28,7 @@ Menu_CompactDiscClass::~Menu_CompactDiscClass()
 void Menu_CompactDiscClass::create_pulldown_menu_device_sub(void)
 {
 	//
-	action_swap_byteorder = new Action_Control(p_wid, using_flags);
+	action_swap_byteorder = new QAction(p_wid);
 
 	struct CSP_Ui_Menu::DriveIndexPair tmp;
 	QVariant _tmp_ins;

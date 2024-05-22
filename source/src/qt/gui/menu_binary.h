@@ -16,8 +16,8 @@ class DLL_PREFIX Menu_BinaryClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
 	QActionGroup *action_group_save_recent;
-	class Action_Control *action_recent_save_list[MAX_HISTORY];
-	class Action_Control *action_saving;
+	QAction *action_recent_save_list[MAX_HISTORY];
+	QAction *action_saving;
 
 public:
 	Menu_BinaryClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);

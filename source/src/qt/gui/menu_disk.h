@@ -16,10 +16,10 @@ QT_BEGIN_NAMESPACE
 class DLL_PREFIX Menu_FDClass: public Menu_MetaClass {
 	Q_OBJECT
 protected:
-	class Action_Control *action_create_fd;
-	class Action_Control *action_ignore_crc_error;
-	class Action_Control *action_correct_timing;
-	class Action_Control *action_count_immediate;
+	QAction *action_create_fd;
+	QAction *action_ignore_crc_error;
+	QAction *action_correct_timing;
+	QAction *action_count_immediate;
 	QIcon icon_floppy;
 	bool type_mask[6];
 public:
@@ -33,7 +33,7 @@ public:
 public slots:
 	void do_set_create_mask(quint8 type, bool flag);
 
-	void do_open_dialog(void) override;
+//	void do_open_dialog(void) override;
 	void do_open_dialog_create_fd();
 	void do_create_media(quint8 media_type, QString name);
 

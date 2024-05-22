@@ -31,7 +31,7 @@ void Menu_HDDClass::do_create_hard_disk(int drv, int sector_size, int sectors, i
 
 void Menu_HDDClass::create_pulldown_menu_device_sub(void)
 {
-	action_create_hdd = new Action_Control(p_wid, using_flags);
+	action_create_hdd = new QAction(p_wid);
 	action_create_hdd->setVisible(true);
 	action_create_hdd->setCheckable(false);
 }

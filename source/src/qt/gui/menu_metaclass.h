@@ -64,14 +64,14 @@ protected:
 	QIcon icon_write_protected;
 	QIcon icon_write_enabled;
 
-	class Action_Control *action_insert;
-	class Action_Control *action_eject;
-	class Action_Control *action_recent;
-	class Action_Control *action_inner_media;
-	class Action_Control *action_write_protect_on;
-	class Action_Control *action_write_protect_off;
-	class Action_Control *action_select_media_list[128];
-	class Action_Control *action_recent_list[MAX_HISTORY];
+	QAction *action_insert;
+	QAction *action_eject;
+	QAction *action_recent;
+	QAction *action_inner_media;
+	QAction *action_write_protect_on;
+	QAction *action_write_protect_off;
+	QAction *action_select_media_list[128];
+	QAction *action_recent_list[MAX_HISTORY];
 	QActionGroup *action_group_recent;
 	QActionGroup *action_group_inner_media;
 	QActionGroup *action_group_protect;
@@ -128,20 +128,24 @@ public slots:
 	void do_eject_media(void);
 	void do_open_inner_media(void);
 	void do_open_recent_media(void);
+
 	void do_write_protect_media(void);
 	void do_write_unprotect_media(void);
 
 	virtual void do_open_media_load(QString name);
 	virtual void do_open_media_save(QString name);
 	virtual void do_set_write_protect(bool f);
-	
+
+	void do_add_save_media_extension(QString ext, QString description);
+	void do_open_recent_media_save(void);
+
 	void do_close_window();
 	void do_finish(int i);
 	
 	void do_clear_inner_media(void);
 	void do_select_inner_media(int num);
 	void do_update_inner_media(QStringList lst, int num);
-	void do_update_inner_media_bubble(QStringList lst, int num);
+//	void do_update_inner_media_bubble(QStringList lst, int num);
 	virtual void do_update_histories(QStringList lst);
 	void do_insert_history(QString path);
 
@@ -159,8 +163,8 @@ signals:
 	
 	int sig_set_inner_slot(int, int);
 	int sig_insert_media(int);
-	int sig_update_inner_bubble(int drv, QStringList base, class Action_Control **action_select_media_list,
-								QStringList lst, int num, bool use_d88_menus);
+	//int sig_update_inner_bubble(int drv, QStringList base, QAction *action_select_media_list,
+	//							QStringList lst, int num, bool use_d88_menus);
 	
 	int sig_emu_update_config();
 	
