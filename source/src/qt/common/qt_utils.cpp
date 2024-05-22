@@ -37,6 +37,7 @@
 #include "emu_thread.h"
 #include "joy_thread.h"
 #include "draw_thread.h"
+#include "housekeeper.h"
 
 #include "qt_gldraw.h"
 #include "../gui/gl2/qt_glutil_gl2_0.h"
@@ -639,6 +640,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
+	emit sig_quit_housekeeper();
 
 	if(hSaveMovieThread != nullptr) {
 		// When recording movie, stopping will spend a lot of seconds.
@@ -1362,6 +1364,15 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)p_osd, SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
 
+	HouseKeeperClass _housekeeper(rMainWindow);
+	QThread _housekeeperThread(nullptr);
+	_housekeeper.moveToThread(&_housekeeperThread);
+	QObject::connect(rMainWindow, SIGNAL(sig_quit_housekeeper()), &_housekeeperThread, SLOT(quit()), Qt::QueuedConnection);
+	QObject::connect(rMainWindow, SIGNAL(sig_start_housekeeper()), &_housekeeperThread, SLOT(start()), Qt::QueuedConnection);
+
+	// Start Housekeeper
+	// _housekeeper.do_set_interval(msec);
+					 
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_sound_output_list()), rMainWindow, SLOT(do_update_sound_output_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_clear_sound_output_list()), rMainWindow, SLOT(do_clear_sound_output_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_append_sound_output_list(QString)), rMainWindow, SLOT(do_append_sound_output_list(QString)));
@@ -1390,6 +1401,7 @@ int MainLoop(int argc, char *argv[])
 	}
 #endif
 	rMainWindow->do_start_emu_thread();
+	
 //	set_screen_size(w, h);
 	rMainWindow->set_screen_aspect(config.window_stretch_type);
 	rMainWindow->do_unblock_task();

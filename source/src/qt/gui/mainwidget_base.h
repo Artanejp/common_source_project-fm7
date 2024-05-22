@@ -1037,7 +1037,10 @@ signals:
 	int sig_set_roma_kana(bool);
 	int sig_quit_debugger_thread(void);
 	int sig_quit_widgets(void);
-
+	
+	int sig_start_housekeeper(void);
+	int sig_quit_housekeeper(void);
+	
 	int sig_emu_thread_to_fixed_cpu(int);
 	int sig_add_keyname_table(uint32_t, QString);
 

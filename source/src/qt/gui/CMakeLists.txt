@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 11.1.0)
+set(THIS_LIB_VERSION 11.2.0)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h
@@ -54,6 +54,7 @@ set(s_qt_gui_headers
 
 	  draw_thread.h
 	  joy_thread.h
+	  housekeeper.h
 	  ../emu_thread/emu_thread_tmpl.h
 
 	  qt_debugger_tmpl.h
@@ -135,6 +136,8 @@ set(s_qt_gui_srcs
 	  draw_thread.cpp
 	  joy_thread.cpp
 
+	  housekeeper.cpp
+	  
 	  qt_debugger_tmpl.cpp
 
 	  menu_flags_tmpl.cpp
