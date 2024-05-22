@@ -108,6 +108,7 @@ void DrawThreadClass::doDrawMain(bool flag)
 {
 	//req_map_screen_texture();
 	if(p_osd == nullptr) return;
+	
 	p_osd->do_decode_movie(1);
 	if(flag) {
 		draw_frames = p_osd->draw_screen();
