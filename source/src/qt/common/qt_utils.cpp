@@ -23,6 +23,7 @@
 #include <QTranslator>
 #include <QProcessEnvironment>
 #include <QCommandLineParser>
+#include <QSettings>
 
 #include "common.h"
 #include "fileio.h"
@@ -652,7 +653,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
-	//emit sig_quit_housekeeper();
+	emit sig_quit_housekeeper();
 
 	if(hSaveMovieThread != nullptr) {
 		// When recording movie, stopping will spend a lot of seconds.
@@ -1258,6 +1259,11 @@ int MainLoop(int argc, char *argv[])
 	std::string delim;
 	QString emudesc;
 	setup_logs();
+	QCoreApplication::setApplicationName(QString::fromStdString(my_procname));
+	QCoreApplication::setOrganizationName(QString::fromUtf8("CommonSourceCodeProject"));
+	QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, QString::fromStdString(cpp_confdir));
+	QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope, QString::fromStdString(cpp_confdir));
+//	QApplication::
 
 #if defined(Q_OS_WIN)
 	delim = "\\";
@@ -1309,8 +1315,6 @@ int MainLoop(int argc, char *argv[])
 	SetupLogger(emustr, CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1);
 	OpeningMessage(archstr, (const QMap<QString, QString>)virtualMediaList);
 	SetupSDL();
-	GuiMain->setApplicationName(QString::fromStdString(my_procname));
-
 	/*
 	 * Into Qt's Loop.
 	 */
@@ -1376,9 +1380,6 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)p_osd, SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
 
-	// Start Housekeeper
-	// _housekeeper.do_set_interval(msec);
-					 
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_sound_output_list()), rMainWindow, SLOT(do_update_sound_output_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_clear_sound_output_list()), rMainWindow, SLOT(do_clear_sound_output_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_append_sound_output_list(QString)), rMainWindow, SLOT(do_append_sound_output_list(QString)));
@@ -1407,8 +1408,10 @@ int MainLoop(int argc, char *argv[])
 	}
 #endif
 
-	//std::shared_ptr<HouseKeeperClass> p_housekeeper(new HouseKeeperClass(nullptr));
-	//rMainWindow->LaunchHouseKeeperThread(p_housekeeper);
+	// Start Housekeeper
+	// _housekeeper.do_set_interval(msec);
+	std::shared_ptr<HouseKeeperClass> p_housekeeper(new HouseKeeperClass(GuiMain, nullptr));
+	rMainWindow->LaunchHouseKeeperThread(p_housekeeper);
 
 	rMainWindow->do_start_emu_thread();
 	
