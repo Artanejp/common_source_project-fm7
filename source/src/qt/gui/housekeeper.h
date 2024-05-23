@@ -8,13 +8,15 @@
 QT_BEGIN_NAMESPACE
 
 class QTimer;
+class QCoreApplication;
 class DLL_PREFIX HouseKeeperClass : public QThread {
 	Q_OBJECT
 private:
 	std::atomic<uint32_t> m_tick;
 	QTimer* m_timer;
+	QCoreApplication* m_app;
 public:
-	HouseKeeperClass(QObject* parent = nullptr);
+	HouseKeeperClass(QCoreApplication* app, QObject* parent = nullptr);
 	~HouseKeeperClass();
 
 public slots:

@@ -4,9 +4,10 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-HouseKeeperClass::HouseKeeperClass(QObject* parent)
+HouseKeeperClass::HouseKeeperClass(QCoreApplication* app, QObject* parent)
 	: QThread(parent) , m_tick(25), m_timer(nullptr)
 {
+	m_app = app;
 }
 
 HouseKeeperClass::~HouseKeeperClass()
@@ -74,7 +75,10 @@ void HouseKeeperClass::do_housekeep()
 		msec = INT32_MAX;
 	}
 	msec = (msec * 75) / 100; // Overhead should be upto 75%
-	QCoreApplication::processEvents(QEventLoop::AllEvents, msec);
+//	QCoreApplication::processEvents(QEventLoop::AllEvents, msec);
+	if(m_app != nullptr) {
+		m_app->processEvents(QEventLoop::AllEvents, msec);
+	}
 	emit sig_req_housekeeping();
 }
 
