@@ -99,7 +99,6 @@ void Ui_MainWindowBase::do_start_emu_thread(void)
 
 void Ui_MainWindowBase::do_start_draw_thread(void)
 {
-	emit sig_start_housekeeper();
 	emit sig_start_draw_thread(QThread::HighestPriority);
 }
 

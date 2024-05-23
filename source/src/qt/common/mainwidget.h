@@ -36,6 +36,7 @@ public:
 	// JoyThread
 	void StopJoyThread(void) override;
 	void LaunchJoyThread(std::shared_ptr<JoyThreadClass> m) override;
+	void LaunchHouseKeeperThread(std::shared_ptr<HouseKeeperClass> m) override;
 	// Screen
 	void OnWindowMove(void) override;
 	void OnWindowRedraw(void) override;

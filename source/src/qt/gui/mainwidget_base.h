@@ -283,6 +283,7 @@ class EmuThreadClassBase;
 class EmuThreadClass;
 class JoyThreadClass;
 class DrawThreadClass;
+class HouseKeeperClass;
 class MOVIE_SAVER;
 
 class DLL_PREFIX Ui_MainWindowBase : public QMainWindow
@@ -494,7 +495,8 @@ protected:
 
 	QTimer *statusUpdateTimer;
 	QTimer *ledUpdateTimer;
-
+	QTimer *houseKeepingTimer;
+	
 	const float screen_multiply_table[16] = {
 		0.5, 1.0, 1.5, 2.0,
 		2.25, 2.5, 3.0, 3.5,
@@ -648,6 +650,7 @@ protected:
 	std::shared_ptr<EmuThreadClassBase> hRunEmu;
 	std::shared_ptr<DrawThreadClass>	hDrawEmu;
 	std::shared_ptr<JoyThreadClass>     hRunJoy;
+	std::shared_ptr<HouseKeeperClass>   hHouseKeeper;
 	MOVIE_SAVER							*hSaveMovieThread;
 
 	int max_vm_nodes;
@@ -707,12 +710,18 @@ public:
 	void retranslateOpMenuAny(QString _Text, QString _ToolTip, bool _visible = true); // for config.drive_vm_in_opecode
 	// About Status bar
 	virtual void initStatusBar(void);
+	// Housekeeping
+	virtual void initHouseKeeper(void);
+	
 	// EmuThread
 	void StopEmuThread(void);
 	virtual bool LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m);
 	// JoyThread
 	virtual void StopJoyThread(void);
 	virtual void LaunchJoyThread(std::shared_ptr<JoyThreadClass> m);
+	// GUI housekeeper
+	virtual void LaunchHouseKeeperThread(std::shared_ptr<HouseKeeperClass> m);
+
 	// Screen
 	virtual void OnWindowMove(void);
 	virtual void OnWindowRedraw(void);
@@ -752,6 +761,7 @@ public slots:
 	virtual void do_set_window_title(QString s);
 	virtual void redraw_status_bar(void);
 	virtual void redraw_leds(void);
+	virtual void do_housekeeping();
 	void do_recv_data_led(quint32 d);
 
 	void do_update_volume(int level);

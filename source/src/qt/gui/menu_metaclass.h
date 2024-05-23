@@ -86,6 +86,9 @@ protected:
 
 	bool write_protect;
 
+	std::atomic<int> m_timer_id;
+	virtual void timerEvent(QTimerEvent* event) override;
+	
 	void create_pulldown_menu_sub(void);
 	void retranslate_pulldown_menu_sub(void);
 	bool do_open_dialog_common(QFileDialog* dlg, bool is_save = false);

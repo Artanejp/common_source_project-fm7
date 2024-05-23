@@ -73,6 +73,9 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 	p_config = p->get_config_ptr();
 	driveData = NULL;
 	ledUpdateTimer = NULL;
+	houseKeepingTimer = NULL;
+	statusUpdateTimer = NULL;
+	
 	setupUi();
 	createContextMenu();
 	max_vm_nodes = 0;
@@ -821,9 +824,23 @@ void Ui_MainWindowBase::setupUi(void)
 	ExitIcon = QIcon(":/icon_exit.png");
 	MainWindow->adjustSize();
 
+	initHouseKeeper();
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "setupUI() OK");
+
+	
 } // setupUi
 
+void Ui_MainWindowBase::initHouseKeeper()
+{
+	houseKeepingTimer = new QTimer;
+	connect(houseKeepingTimer, SIGNAL(timeout()), this, SLOT(do_housekeeping()));
+	houseKeepingTimer->start(50);
+}
+
+void Ui_MainWindowBase::do_housekeeping()
+{
+	QCoreApplication::processEvents(QEventLoop::AllEvents, 35);
+}
 
 QString Ui_MainWindowBase::get_system_version()
 {
@@ -1078,6 +1095,10 @@ bool Ui_MainWindowBase::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 }
 
 void Ui_MainWindowBase::LaunchJoyThread(std::shared_ptr<JoyThreadClass> m)
+{
+}
+
+void Ui_MainWindowBase::LaunchHouseKeeperThread(std::shared_ptr<HouseKeeperClass> m)
 {
 }
 

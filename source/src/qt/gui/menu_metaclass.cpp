@@ -35,6 +35,8 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	media_drive = drv;
 	base_drive = base_drv;
 
+	m_timer_id = 0;
+	
 	tmps.setNum(drv);
 	object_desc = QString::fromUtf8("Obj_") + desc;
 	object_desc.append(tmps);
@@ -70,6 +72,23 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 
 Menu_MetaClass::~Menu_MetaClass()
 {
+	int _id = m_timer_id.load();
+	if(_id != 0) {
+		killTimer(_id);
+	}
+}
+
+void Menu_MetaClass::timerEvent(QTimerEvent* event)
+{
+	if(event == nullptr) {
+		return;
+	}
+	int _id = m_timer_id.load();
+	if(event->timerId() == _id) {
+		QCoreApplication::processEvents();
+	} else {
+		QMenu::timerEvent(event);
+	}		   
 }
 
 // This is dummy.Please implement.
@@ -248,6 +267,7 @@ void Menu_MetaClass::do_open_save_dialog()
 	emit sig_show();
 }
 
+
 bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 {
 	// ToDo : Load State of Qt.
@@ -290,8 +310,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setWindowTitle(tmps);
 
-	dlg->setModal(true);
-	dlg->setWindowModality(Qt::WindowModal);
+	//dlg->setModal(true);
+	//dlg->setWindowModality(Qt::WindowModal);
 //	dlg->setVisible(true);
 
 	// ToDo: Be more sotisficated .
@@ -304,8 +324,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 //	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(destroyed()), this, SLOT(do_close_window()));
-
 	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
+
 	return true;
 }
 

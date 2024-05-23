@@ -565,6 +565,17 @@ void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, i
 	}
 }
 
+void Ui_MainWindow::LaunchHouseKeeperThread(std::shared_ptr<HouseKeeperClass> m)
+{
+	hHouseKeeper = m;
+	connect(this, SIGNAL(sig_quit_housekeeper()), hHouseKeeper.get(), SLOT(quit()), Qt::QueuedConnection);
+	connect(this, SIGNAL(sig_start_housekeeper()), hHouseKeeper.get(), SLOT(do_start()), Qt::QueuedConnection);
+	connect(hHouseKeeper.get(), SIGNAL(finished()), hHouseKeeper.get(), SLOT(deleteLater()));
+	connect(this, SIGNAL(sig_set_priority_housekeeper_thread(QThread::Priority)), hHouseKeeper.get(), SLOT(do_set_priority(QThread::Priority)));
+	hHouseKeeper->setObjectName("HouseKeeperThread");
+	emit sig_start_housekeeper();
+}
+
 void Ui_MainWindow::LaunchJoyThread(std::shared_ptr<JoyThreadClass> m)
 {
 	if(m.get() == nullptr) return;
@@ -576,7 +587,7 @@ void Ui_MainWindow::LaunchJoyThread(std::shared_ptr<JoyThreadClass> m)
 		connect(this, SIGNAL(sig_quit_joy_thread()), hRunJoy.get(), SLOT(quit()));
 		connect(hRunJoy.get(), SIGNAL(finished()), hRunJoy.get(), SLOT(deleteLater()));
 		connect(this, SIGNAL(sig_start_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_start(QThread::Priority)));
-	connect(this, SIGNAL(sig_set_priority_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_set_priority(QThread::Priority)));
+		connect(this, SIGNAL(sig_set_priority_joystick_thread(QThread::Priority)), hRunJoy.get(), SLOT(do_set_priority(QThread::Priority)));
 		hRunJoy->setObjectName("JoyThread");
 		emit sig_start_joystick_thread(QThread::InheritPriority);
 	}
@@ -631,6 +642,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	std::shared_ptr<USING_FLAGS> upf = using_flags;
 	emit sig_notify_power_off();
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
+	if(houseKeepingTimer != NULL) houseKeepingTimer->stop();
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
@@ -640,7 +652,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
-	emit sig_quit_housekeeper();
+	//emit sig_quit_housekeeper();
 
 	if(hSaveMovieThread != nullptr) {
 		// When recording movie, stopping will spend a lot of seconds.
@@ -1364,12 +1376,6 @@ int MainLoop(int argc, char *argv[])
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)p_osd, SLOT(do_set_host_sound_output_device(QString)));
 	rMainWindow->do_update_sound_output_list();
 
-	HouseKeeperClass _housekeeper(rMainWindow);
-	QThread _housekeeperThread(nullptr);
-	_housekeeper.moveToThread(&_housekeeperThread);
-	QObject::connect(rMainWindow, SIGNAL(sig_quit_housekeeper()), &_housekeeperThread, SLOT(quit()), Qt::QueuedConnection);
-	QObject::connect(rMainWindow, SIGNAL(sig_start_housekeeper()), &_housekeeperThread, SLOT(start()), Qt::QueuedConnection);
-
 	// Start Housekeeper
 	// _housekeeper.do_set_interval(msec);
 					 
@@ -1400,6 +1406,10 @@ int MainLoop(int argc, char *argv[])
 		rMainWindow->LaunchJoyThread(p_joy);
 	}
 #endif
+
+	//std::shared_ptr<HouseKeeperClass> p_housekeeper(new HouseKeeperClass(nullptr));
+	//rMainWindow->LaunchHouseKeeperThread(p_housekeeper);
+
 	rMainWindow->do_start_emu_thread();
 	
 //	set_screen_size(w, h);
