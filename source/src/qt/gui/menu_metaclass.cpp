@@ -85,7 +85,7 @@ void Menu_MetaClass::timerEvent(QTimerEvent* event)
 	}
 	int _id = m_timer_id.load();
 	if(event->timerId() == _id) {
-		QCoreApplication::processEvents();
+		QApplication::processEvents();
 	} else {
 		QMenu::timerEvent(event);
 	}		   
@@ -248,6 +248,7 @@ void Menu_MetaClass::do_select_inner_media(int num)
 }
 void Menu_MetaClass::do_close_window()
 {
+	
 }
 void Menu_MetaClass::do_finish(int i)
 {
@@ -256,7 +257,10 @@ void Menu_MetaClass::do_finish(int i)
 void Menu_MetaClass::do_open_dialog()
 {
 	QFileDialog* dlgptr = new QFileDialog(nullptr, Qt::Dialog);
+	//QFileDialog* dlgptr = new QFileDialog(this, Qt::Dialog);
+	//QFileDialog* dlgptr = new QFileDialog(this);
 	do_open_dialog_common(dlgptr , false);
+//	dlgptr->open();
 	emit sig_show();
 }
 
@@ -282,8 +286,9 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 		return false;
 	}
 	dlg->setAttribute(Qt::WA_DeleteOnClose, true);
-	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	dlg->setAttribute(Qt::WA_ForceUpdatesDisabled, false);	
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	//dlg->setOption(QFileDialog::DontUseNativeDialog, false);
 	
 	dlg->setDirectory(initial_dir);
 	if(is_save) {
@@ -292,11 +297,14 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 		dlg->setNameFilters(ext_filter);
 	}
 	dlg->setOption(QFileDialog::ReadOnly, (is_save) ? false : true);
+	dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
+	//dlg->setOption(QFileDialog::DontResolveSymlinks, true);
 	//dlg->setOption(QFileDialog::ReadOnly, false);
 	//dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
 	dlg->setFileMode((is_save) ? QFileDialog::AnyFile : QFileDialog::ExistingFile);
-
+	dlg->setViewMode(QFileDialog::Detail);
+	
 	QString tmps;
 	if(is_save) {
 		tmps = QApplication::translate("MenuMedia", "Save", 0);
@@ -310,9 +318,9 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setWindowTitle(tmps);
 
-	//dlg->setModal(true);
+	dlg->setModal(false);
 	//dlg->setWindowModality(Qt::WindowModal);
-//	dlg->setVisible(true);
+	dlg->setVisible(true);
 
 	// ToDo: Be more sotisficated .
 	if(is_save) {
@@ -324,7 +332,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 //	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(destroyed()), this, SLOT(do_close_window()));
-	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
+//	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
+	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()));
 
 	return true;
 }
@@ -433,7 +442,8 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 
 	
 	//connect(action_insert, SIGNAL(triggered()), this, SLOT(do_delayed_open_dialog()));
-	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()), Qt::QueuedConnection);
+	//connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()), Qt::QueuedConnection);
+	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()), Qt::DirectConnection);
 	//connect(this, SIGNAL(sig_open_dialog()), this, SLOT(do_open_dialog()));	
 	action_insert->setIcon(icon_insert);
 

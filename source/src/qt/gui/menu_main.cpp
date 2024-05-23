@@ -832,14 +832,14 @@ void Ui_MainWindowBase::setupUi(void)
 
 void Ui_MainWindowBase::initHouseKeeper()
 {
-	houseKeepingTimer = new QTimer;
-	connect(houseKeepingTimer, SIGNAL(timeout()), this, SLOT(do_housekeeping()));
-	houseKeepingTimer->start(50);
+//	houseKeepingTimer = new QTimer;
+//	connect(houseKeepingTimer, SIGNAL(timeout()), this, SLOT(do_housekeeping()));
+//	houseKeepingTimer->start(50);
 }
 
 void Ui_MainWindowBase::do_housekeeping()
 {
-	QCoreApplication::processEvents(QEventLoop::AllEvents, 35);
+//	QCoreApplication::processEvents(QEventLoop::AllEvents, 35);
 }
 
 QString Ui_MainWindowBase::get_system_version()
