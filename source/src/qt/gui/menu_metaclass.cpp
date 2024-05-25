@@ -261,14 +261,15 @@ void Menu_MetaClass::do_open_dialog()
 	//QFileDialog* dlgptr = new QFileDialog(nullptr, Qt::BypassWindowManagerHint | Qt::Dialog);
 	//QFileDialog* dlgptr = new QFileDialog(this->window(), Qt::Dialog);
 	do_open_dialog_common(dlgptr , false);
-	QTimer *tim = new QTimer(this);
-	connect(tim, SIGNAL(timeout()), dlgptr, SLOT(update()));
-	connect(this, SIGNAL(sig_stop_timer()), tim, SLOT(stop()));
-	connect(dlgptr, SIGNAL(destroyed()), tim, SLOT(deleteLater()));
+//	QTimer *tim = new QTimer(this);
+//	connect(tim, SIGNAL(timeout()), dlgptr, SLOT(update()));
+//	connect(this, SIGNAL(sig_stop_timer()), tim, SLOT(stop()));
+//	connect(dlgptr, SIGNAL(destroyed()), tim, SLOT(deleteLater()));
 //	t->start();
 //	dlgptr->open();
 	emit sig_show();
-	tim->start(100);
+//	dlgptr->windowHandle()->requestActivate();
+//	tim->start(100);
 }
 
 void Menu_MetaClass::do_open_save_dialog()
@@ -338,8 +339,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 //	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)));
 //	connect(dlg, SIGNAL(destroyed()), this, SLOT(do_close_window()));
-	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
-//	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()));
+//	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
+	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()));
 //	connect(this, SIGNAL(sig_show()), dlg, SLOT(exec()));
 
 	// They are workaround from window_bring_to_front(QWidget * window)
@@ -349,8 +350,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 //	dlg->windowHandle()->setWindowState(Qt::WindowActive, true);
 //	dlg->windowHandle()->setVisibility(QWindow::AutomaticVisibility);
 //	dlg->windowHandle()->requestActivate();
-//    dlg->raise();
-//	dlg->activateWindow();
+    dlg->raise();
+	dlg->activateWindow();
 
 	return true;
 }
