@@ -1065,6 +1065,7 @@ signals:
 	int sig_set_priority_emu_thread(QThread::Priority prio);
 	int sig_set_priority_draw_thread(QThread::Priority prio);
 	int sig_set_priority_joystick_thread(QThread::Priority prio);
+	int sig_set_priority_housekeeper_thread(QThread::Priority prio);
 
 	int sig_set_device_node_log(int, int, int, bool);
 	int sig_set_device_node_log(int, int, bool*, int, int);

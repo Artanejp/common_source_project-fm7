@@ -9,7 +9,7 @@ HouseKeeperClass::HouseKeeperClass(QCoreApplication* app, QObject* parent)
 {
 	m_app = app;
 	connect(this, SIGNAL(started()), this, SLOT(__started()));
-	connect(this, SIGNAL(finished()), this, SLOT(___finished()));
+	connect(this, SIGNAL(finished()), this, SLOT(__finished()));
 }
 
 HouseKeeperClass::~HouseKeeperClass()
