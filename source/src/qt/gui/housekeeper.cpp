@@ -2,38 +2,40 @@
 #include "mainwidget_base.h"
 
 #include <QCoreApplication>
-#include <QTimer>
+#include <QElapsedTimer>
 
 HouseKeeperClass::HouseKeeperClass(QCoreApplication* app, QObject* parent)
-	: QThread(parent) , m_tick(25), m_timer(nullptr)
+	: QThread(parent) , m_tick(25), m_started(false), m_running(true), m_paused(false), m_event_loop(this)
 {
 	m_app = app;
+	connect(this, SIGNAL(started()), this, SLOT(__started()));
+	connect(this, SIGNAL(finished()), this, SLOT(___finished()));
 }
 
 HouseKeeperClass::~HouseKeeperClass()
 {
-	if(m_timer != nullptr) {
-		if(m_timer->isActive()) {
-			m_timer->stop();
-		}
-		delete m_timer;
-	}
 }
 
 void HouseKeeperClass::do_start()
 {
-	if(m_timer == nullptr) {
-		m_timer = new QTimer(this);
-	}
-	if(m_timer != nullptr) {
-		int _t = (int)(do_set_interval(0, false));
-		m_timer->setTimerType(Qt::CoarseTimer);
-		connect(m_timer, SIGNAL(timeout()), this, SLOT(do_housekeep()));
-		connect(this, SIGNAL(sig_timer_start(int)), m_timer, SLOT(start()), Qt::QueuedConnection);
-		connect(this, SIGNAL(sig_timer_stop()), m_timer, SLOT(stop()), Qt::QueuedConnection);
-		m_timer->start(_t);
-	}
+//	m_event_loop.wakeUp();
 	start(QThread::NormalPriority);
+}
+
+void HouseKeeperClass::__started()
+{
+	// Started signal met.
+//	m_event_loop.moveToThread(this->thread());
+	m_started = true;
+	emit sig_started();
+}
+
+void HouseKeeperClass::__finished()
+{
+	// Started signal met.
+	m_running = false;
+	m_started = false;
+	emit sig_finished();
 }
 
 void HouseKeeperClass::do_set_priority(QThread::Priority prio)
@@ -41,44 +43,67 @@ void HouseKeeperClass::do_set_priority(QThread::Priority prio)
 	setPriority(prio);
 }
 
-void HouseKeeperClass::do_start_timer(int msec)
+void HouseKeeperClass::do_pause()
 {
-	if(msec < 0) {
+	m_paused = true;
+}
+
+void HouseKeeperClass::do_unpause()
+{
+	m_paused = false;
+}
+
+qint64 HouseKeeperClass::do_set_interval(uint32_t msec)
+{
+	if((msec > 0) && (msec < INT32_MAX)) {
+		m_tick = (qint64)msec;
+		return m_tick.load();
+	}
+	return 0;
+}
+
+
+qint64 HouseKeeperClass::calc_remain_ms(qint64 tick)
+{
+	__UNLIKELY_IF(m_elapsed.isValid()) {
+		return 0;
+	}
+	qint64 elapsed = m_elapsed.elapsed();
+	if(tick < elapsed) {
+		return 0;
+	}
+	return (tick - elapsed);
+}
+
+void HouseKeeperClass::run()
+{
+	qint64 msec = 0;
+	QAbstractEventDispatcher *dispatcher = eventDispatcher();
+	while(!(m_running.load())) {
 		msec = 0;
+		m_elapsed.start();
+		qint64 tick = m_tick.load();
+		qint64 msec2 = (qint64)tick;
+		msec2 = (msec2 * 75) / 100; // Overhead should be upto 75%
+		if(msec2 > 0) {
+			m_event_loop.processEvents(QEventLoop::AllEvents, msec2);
+		}
+		if(!(m_started.load()) && !(m_running.load())) {
+			break; // Exit Loop.
+		}
+		qint64 diff = 0;
+		if(!(m_paused.load())) {
+//			diff = calc_remain_ms(tick);
+//			if(diff > 0) {
+			QCoreApplication::processEvents(QEventLoop::AllEvents, tick);
+//			}
+		}
+		diff = calc_remain_ms(tick);
+		if(diff > 0) {
+			QThread::msleep(diff);
+		}
+		QThread::yieldCurrentThread();
 	}
-	do_set_interval((uint32_t)msec, true);
 }
 
-void HouseKeeperClass::do_stop_timer()
-{
-	emit sig_timer_stop();
-}
-int HouseKeeperClass::do_set_interval(uint32_t msec, bool is_timer_reset)
-{
-	if(msec == 0) {
-		msec = m_tick.load();
-	}
-	if((msec >= INT32_MAX) || (msec < 10)){
-		msec = 10;
-	}
-	m_tick = msec;
-	if((is_timer_reset) && (m_timer != nullptr)) {
-		emit sig_timer_start((int)msec);
-	}
-	return msec;
-}
-
-void HouseKeeperClass::do_housekeep()
-{
-	int64_t msec = (int64_t)(m_tick.load());
-	if(msec > INT32_MAX) {
-		msec = INT32_MAX;
-	}
-	msec = (msec * 75) / 100; // Overhead should be upto 75%
-//	QCoreApplication::processEvents(QEventLoop::AllEvents, msec);
-	if(m_app != nullptr) {
-		m_app->processEvents(QEventLoop::AllEvents, msec);
-	}
-	emit sig_req_housekeeping();
-}
 

@@ -1,36 +1,48 @@
 #pragma once
 
+#include <QEventLoop>
 #include <QThread>
+#include <QElapsedTimer>
 #include <memory>
 
 #include "../../common.h"
 
 QT_BEGIN_NAMESPACE
 
-class QTimer;
 class QCoreApplication;
 class DLL_PREFIX HouseKeeperClass : public QThread {
 	Q_OBJECT
-private:
-	std::atomic<uint32_t> m_tick;
-	QTimer* m_timer;
-	QCoreApplication* m_app;
+protected:
+	std::atomic<qint64> m_tick;
+	std::atomic<bool> m_started;
+	std::atomic<bool> m_running;
+	std::atomic<bool> m_paused;
+	
+	QElapsedTimer m_elapsed;
+	QCoreApplication *m_app;
+	QEventLoop m_event_loop;
+	
+	qint64 calc_remain_ms(qint64 tick);
+
+	void run() override;
 public:
 	HouseKeeperClass(QCoreApplication* app, QObject* parent = nullptr);
 	~HouseKeeperClass();
-
-public slots:
-	void do_start();
-	void do_housekeep();
-	void do_set_priority(QThread::Priority prio);
+protected slots:
+	virtual void __started();
+	virtual void __finished();
 	
-	void do_start_timer(int msec);
-	void do_stop_timer();
-	int do_set_interval(uint32_t msec, bool is_timer_reset = false);
+public slots:
+	void do_set_priority(QThread::Priority prio);
+	virtual qint64 do_set_interval(uint32_t msec);
+
+	
+	void do_start();
+	void do_pause();
+	void do_unpause();
 signals:
-	int sig_timer_start(int);
-	int sig_timer_stop();
-	int sig_req_housekeeping();
+	int sig_started();
+	int sig_finished();
 };
 QT_END_NAMESPACE
 
