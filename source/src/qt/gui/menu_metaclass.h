@@ -172,6 +172,7 @@ signals:
 	int sig_emu_update_config();
 	
 	int sig_show();
+	int sig_stop_timer();
 };
 QT_END_NAMESPACE
 
