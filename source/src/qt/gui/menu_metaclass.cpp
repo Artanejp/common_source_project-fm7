@@ -256,19 +256,19 @@ void Menu_MetaClass::do_finish(int i)
 
 void Menu_MetaClass::do_open_dialog()
 {
-	QFileDialog* dlgptr = new QFileDialog(nullptr, Qt::Dialog);
-	//QFileDialog* dlgptr = new QFileDialog(this, Qt::Dialog);
-	//QFileDialog* dlgptr = new QFileDialog(this);
+	QFileDialog* dlgptr = new QFileDialog(nullptr, Qt::ForeignWindow);
+	//QFileDialog* dlgptr = new QFileDialog(this->window(), Qt::Dialog);
+	//QFileDialog* dlgptr = new QFileDialog(nullptr);
 	do_open_dialog_common(dlgptr , false);
 //	dlgptr->open();
-	emit sig_show();
+//	emit sig_show();
 }
 
 void Menu_MetaClass::do_open_save_dialog()
 {
 	QFileDialog* dlgptr = new QFileDialog(nullptr, Qt::Dialog);
 	do_open_dialog_common(dlgptr , true);
-	emit sig_show();
+//	emit sig_show();
 }
 
 
@@ -287,8 +287,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setAttribute(Qt::WA_DeleteOnClose, true);
 	dlg->setAttribute(Qt::WA_ForceUpdatesDisabled, false);	
-	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
-	//dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
 	
 	dlg->setDirectory(initial_dir);
 	if(is_save) {
@@ -298,9 +298,6 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setOption(QFileDialog::ReadOnly, (is_save) ? false : true);
 	dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
-	//dlg->setOption(QFileDialog::DontResolveSymlinks, true);
-	//dlg->setOption(QFileDialog::ReadOnly, false);
-	//dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
 	dlg->setFileMode((is_save) ? QFileDialog::AnyFile : QFileDialog::ExistingFile);
 	dlg->setViewMode(QFileDialog::Detail);
@@ -318,22 +315,34 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setWindowTitle(tmps);
 
-	dlg->setModal(false);
-	//dlg->setWindowModality(Qt::WindowModal);
-	dlg->setVisible(true);
-
+//	dlg->setModal(true);
+//	dlg->setWindowModality(Qt::WindowModal);
+//	dlg->setVisible(true);
+	
 	// ToDo: Be more sotisficated .
 	if(is_save) {
 		connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_save(QString)), Qt::QueuedConnection);
 	} else {
 		connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_load(QString)), Qt::QueuedConnection);
 	}
+
+
 //	connect(dlg, SIGNAL(accepted()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 //	connect(dlg, SIGNAL(rejected()), this, SLOT(do_close_window()), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)), Qt::QueuedConnection);
 	connect(dlg, SIGNAL(destroyed()), this, SLOT(do_close_window()));
+
 //	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
-	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()));
+//	connect(this, SIGNAL(sig_show()), dlg, SLOT(show()));
+
+	// They are workaround from window_bring_to_front(QWidget * window)
+	// of libaudqt/audqt.cc of audacious. - 240525 K.O
+    dlg->open();
+//	dlg->windowHandle()->setWindowState(Qt::WindowActive, true);
+	dlg->windowHandle()->setVisibility(QWindow::AutomaticVisibility);
+	dlg->windowHandle()->requestActivate();
+//    dlg->raise();
+//  dlg->activateWindow();
 
 	return true;
 }

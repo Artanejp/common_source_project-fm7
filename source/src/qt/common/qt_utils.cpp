@@ -569,9 +569,10 @@ void Ui_MainWindow::do_create_hard_disk(int drv, int sector_size, int sectors, i
 void Ui_MainWindow::LaunchHouseKeeperThread(std::shared_ptr<HouseKeeperClass> m)
 {
 	hHouseKeeper = m;
-	connect(this, SIGNAL(sig_quit_housekeeper()), hHouseKeeper.get(), SLOT(quit()), Qt::QueuedConnection);
-	connect(this, SIGNAL(sig_start_housekeeper()), hHouseKeeper.get(), SLOT(do_start()), Qt::QueuedConnection);
-	connect(hHouseKeeper.get(), SIGNAL(finished()), hHouseKeeper.get(), SLOT(deleteLater()));
+	connect(this, SIGNAL(sig_quit_housekeeper()), hHouseKeeper.get(), SLOT(quit()));
+	connect(this, SIGNAL(sig_start_housekeeper()), hHouseKeeper.get(), SLOT(do_start()));
+	
+	connect(hHouseKeeper.get(), SIGNAL(sig_finished()), hHouseKeeper.get(), SLOT(deleteLater()));
 	connect(this, SIGNAL(sig_set_priority_housekeeper_thread(QThread::Priority)), hHouseKeeper.get(), SLOT(do_set_priority(QThread::Priority)));
 	hHouseKeeper->setObjectName("HouseKeeperThread");
 	emit sig_start_housekeeper();
@@ -643,7 +644,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	std::shared_ptr<USING_FLAGS> upf = using_flags;
 	emit sig_notify_power_off();
 	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
-	if(houseKeepingTimer != NULL) houseKeepingTimer->stop();
+
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
