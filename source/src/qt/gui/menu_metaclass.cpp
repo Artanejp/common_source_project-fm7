@@ -285,16 +285,9 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 		return false;
 	}
 	dlg->setAttribute(Qt::WA_DeleteOnClose, true);
-	dlg->setAttribute(Qt::WA_ForceUpdatesDisabled, false);	
-	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setAttribute(Qt::WA_ForceUpdatesDisabled, true);	
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
 	//dlg->setOption(QFileDialog::DontUseNativeDialog, false);
-	
-	dlg->setDirectory(initial_dir);
-	if(is_save) {
-		dlg->setNameFilters(ext_save_filter);
-	} else {
-		dlg->setNameFilters(ext_filter);
-	}
 	dlg->setOption(QFileDialog::ReadOnly, (is_save) ? false : true);
 	dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
 	dlg->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
@@ -325,12 +318,17 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	} else {
 		connect(dlg, SIGNAL(fileSelected(QString)), this, SLOT(do_open_media_load(QString)));
 	}
-
-
 	connect(dlg, SIGNAL(finished(int)), this, SLOT(do_finish(int)));
 	connect(dlg, SIGNAL(destroyed()), this, SLOT(do_close_window()));
 //	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
 
+	dlg->setDirectory(initial_dir);
+
+	if(is_save) {
+		dlg->setNameFilters(ext_save_filter);
+	} else {
+		dlg->setNameFilters(ext_filter);
+	}
 	// They are workaround from window_bring_to_front(QWidget * window)
 	// of libaudqt/audqt.cc of audacious. - 240525 K.O
 //	dlg->show();
