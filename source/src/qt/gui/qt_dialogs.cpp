@@ -57,7 +57,8 @@ CSP_CreateDiskDialog::CSP_CreateDiskDialog(bool *masks, Qt::WindowFlags flags, Q
 	dlg->setParent(this);
 	dlg->setOption(QFileDialog::ReadOnly, false);
 	dlg->setOption(QFileDialog::DontConfirmOverwrite, false);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
 	
 	dlg->setAcceptMode(QFileDialog::AcceptSave);
 	dlg->setFileMode(QFileDialog::AnyFile);
