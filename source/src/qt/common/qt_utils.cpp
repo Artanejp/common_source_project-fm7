@@ -654,7 +654,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 
 	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
-	emit sig_quit_housekeeper();
+	//emit sig_quit_housekeeper();
 
 	if(hSaveMovieThread != nullptr) {
 		// When recording movie, stopping will spend a lot of seconds.
@@ -1411,8 +1411,8 @@ int MainLoop(int argc, char *argv[])
 
 	// Start Housekeeper
 	// _housekeeper.do_set_interval(msec);
-	std::shared_ptr<HouseKeeperClass> p_housekeeper(new HouseKeeperClass(GuiMain, nullptr));
-	rMainWindow->LaunchHouseKeeperThread(p_housekeeper);
+	//std::shared_ptr<HouseKeeperClass> p_housekeeper(new HouseKeeperClass(GuiMain, nullptr));
+	//rMainWindow->LaunchHouseKeeperThread(p_housekeeper);
 
 	rMainWindow->do_start_emu_thread();
 	
