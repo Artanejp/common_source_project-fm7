@@ -54,6 +54,7 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_floppy_disk_path[drv][num]);
 	if(!(s_path.isEmpty())) {
+		
 		_open_disk(drv, s_path);
 		return 0;
 	}

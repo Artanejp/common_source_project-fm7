@@ -8,10 +8,12 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QWidget>
+#include <QFileInfo>
 #include <QDir>
 #include <QStyle>
 #include <QApplication>
 #include <QMenuBar>
+#include <QSettings>
 
 #include "qt_dialogs.h"
 #include "menu_metaclass.h"
@@ -35,11 +37,10 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	media_drive = drv;
 	base_drive = base_drv;
 
-	m_timer_id = 0;
 	
 	tmps.setNum(drv);
-	object_desc = QString::fromUtf8("Obj_") + desc;
-	object_desc.append(tmps);
+	menu_desc = desc + tmps;
+	object_desc = QString::fromUtf8("Obj_") + menu_desc;
 	setObjectName(object_desc);
 
 	for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
@@ -52,7 +53,8 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 	ext_filter.clear();
 	ext_save_filter.clear();
 
-	history.clear();
+	load_dir_history = load_state(false);
+	save_dir_history = load_state(true);
 
 	inner_media_list.clear();
 	window_title = QString::fromUtf8("");
@@ -72,24 +74,62 @@ Menu_MetaClass::Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_p
 
 Menu_MetaClass::~Menu_MetaClass()
 {
-	int _id = m_timer_id.load();
-	if(_id != 0) {
-		killTimer(_id);
+	
+}
+
+QStringList Menu_MetaClass::load_state(bool is_save)
+{
+	QStringList tmplist;
+	QSettings *setting = using_flags->get_settings();
+	if(setting == nullptr) {
+		return tmplist;
+	}
+	
+	QString head;
+	if(is_save) {
+		head = QString::fromUtf8("FileDialog_Save_");
+	} else {
+		head = QString::fromUtf8("FileDialog_Load_");
+	}
+	head = head + menu_desc;
+	setting->beginGroup(head);
+	QString tmps;
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		tmps = QString::fromUtf8("Directory_%1").arg(i);
+		if(setting->contains(tmps)) {
+			tmplist.push_front(setting->value(tmps).toString());
+		}
+	}
+	setting->endGroup();
+	return tmplist;
+}
+
+void Menu_MetaClass::save_state(QStringList listval, bool is_save, bool is_sync)
+{
+	QSettings *setting = using_flags->get_settings();
+	if(setting == nullptr) {
+		return;
+	}
+	QString head;
+	if(is_save) {
+		head = QString::fromUtf8("FileDialog_Save_");
+	} else {
+		head = QString::fromUtf8("FileDialog_Load_");
+	}
+	head = head + menu_desc;
+	setting->beginGroup(head);
+	QString tmps;
+	for(int i = 0; i < listval.size(); i++) {
+		if(i >= MAX_HISTORY) break;
+		tmps = QString::fromUtf8("Directory_%1").arg(i);
+		setting->setValue(tmps, listval.at(i));
+	}
+	setting->endGroup();
+	if(is_sync) {
+		setting->sync();
 	}
 }
 
-void Menu_MetaClass::timerEvent(QTimerEvent* event)
-{
-	if(event == nullptr) {
-		return;
-	}
-	int _id = m_timer_id.load();
-	if(event->timerId() == _id) {
-		QApplication::processEvents();
-	} else {
-		QMenu::timerEvent(event);
-	}		   
-}
 
 // This is dummy.Please implement.
 void Menu_MetaClass::connect_via_emu_thread(EmuThreadClassBase *p)
@@ -119,11 +159,37 @@ void Menu_MetaClass::do_set_initialize_directory(const char *s)
 	initial_dir = QString::fromLocal8Bit(s);
 }
 
+QStringList Menu_MetaClass::insert_dir_history_by_filename(QStringList& l, QString name)
+{
+	QFileInfo info(name);
+	QDir dir;
+	QStringList tmplist;
+	tmplist = l;
+	
+//	if(!info.exists()) {
+//		return tmplist;
+//	}
+	dir = info.dir();
+	dir.makeAbsolute();
+	printf("%s %s\n", name.toLocal8Bit().constData(), dir.path().toLocal8Bit().constData());
+	if(!(dir.path().isEmpty())) {
+		tmplist.removeAll(dir.path());
+		tmplist.push_front(dir.path());
+		if(tmplist.size() > MAX_HISTORY) {
+			tmplist.resize(MAX_HISTORY);
+			tmplist.squeeze();
+		}
+		l = tmplist;
+	}
+	return l;
+}
 
 void Menu_MetaClass::do_open_media_load(QString name)
 {
 	//write_protect = false; // Right? On D88, May be writing entry  exists.
 	if(!(name.isEmpty())) {
+		insert_dir_history_by_filename(load_dir_history, name);
+		save_state(load_dir_history, false, true); // ToDo.
 		emit sig_open_media_load(media_drive, name);
 	}
 }
@@ -132,6 +198,8 @@ void Menu_MetaClass::do_open_media_save(QString name)
 {
 	//write_protect = false; // Right? On D88, May be writing entry  exists.
 	if(!(name.isEmpty())) {
+		insert_dir_history_by_filename(save_dir_history, name);
+		save_state(save_dir_history, true, true); // ToDo.
 		emit sig_open_media_save(media_drive, name);
 	}
 }
@@ -252,7 +320,7 @@ void Menu_MetaClass::do_close_window()
 }
 void Menu_MetaClass::do_finish(int i)
 {
-	emit sig_stop_timer();
+	//emit sig_stop_timer();
 }
 
 void Menu_MetaClass::do_open_dialog()
@@ -274,6 +342,8 @@ void Menu_MetaClass::do_open_save_dialog()
 bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 {
 	// ToDo : Load State of Qt.
+
+
 	if(initial_dir.isEmpty()) {
 		QDir dir;
 		char app[_MAX_PATH];
@@ -286,8 +356,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setAttribute(Qt::WA_DeleteOnClose, true);
 	dlg->setAttribute(Qt::WA_ForceUpdatesDisabled, true);	
-	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
-	//dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
 	dlg->setOption(QFileDialog::ReadOnly, (is_save) ? false : true);
 	dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
 	dlg->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
@@ -323,7 +393,10 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 //	connect(this, SIGNAL(sig_show()), dlg, SLOT(open()));
 
 	dlg->setDirectory(initial_dir);
-
+	QStringList hist = (is_save) ? save_dir_history : load_dir_history;
+	if(!(hist.isEmpty())) {
+		dlg->setHistory(hist);
+	}
 	if(is_save) {
 		dlg->setNameFilters(ext_save_filter);
 	} else {
@@ -340,6 +413,24 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 //	dlg->activateWindow();
 
 	return true;
+}
+
+QStringList Menu_MetaClass::get_history(bool is_save)
+{
+	QStringList lst;
+	QAction **p = nullptr;
+	if(!(is_save)) { // ToDo: History for saving.
+		p = action_recent_list;
+	}
+	if(p != nullptr) {
+		for(int i = 0; i < MAX_HISTORY ; i++) {
+			if(p[i] != nullptr) {
+				QString tmpstr = p[i]->text();
+				lst.append(tmpstr);
+			}
+		}
+	}
+	return lst;
 }
 
 void Menu_MetaClass::do_insert_history(QString path)
@@ -468,7 +559,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		action_group_recent->setExclusive(true);
 
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
-			tmps = history.value(ii, "");
+			tmps = QString::fromUtf8("");
 			action_recent_list[ii] = new QAction(p_wid);
 			struct CSP_Ui_Menu::DriveIndexPair tmp2;
 			tmp2.drive = media_drive;
@@ -494,7 +585,7 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 		action_group_inner_media->setExclusive(true);
 
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
-			tmps = history.value(ii, "");
+			tmps = QString::fromUtf8("");
 			action_select_media_list[ii] = new QAction(p_wid);
 			struct CSP_Ui_Menu::DriveIndexPair tmp2;
 			tmp2.drive = media_drive;

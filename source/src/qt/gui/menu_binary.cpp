@@ -49,7 +49,7 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 		action_group_save_recent->setExclusive(true);
 
 		for(ii = 0; ii < MAX_HISTORY; ii++) {
-			tmps = history.value(ii, "");
+			tmps = QString::fromUtf8("");
 			action_recent_save_list[ii] = new QAction(p_wid);
 			struct CSP_Ui_Menu::DriveIndexPair tmp;
 			tmp.drive = media_drive;

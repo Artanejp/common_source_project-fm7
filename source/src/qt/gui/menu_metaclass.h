@@ -77,6 +77,7 @@ protected:
 	QActionGroup *action_group_protect;
 
 	QString object_desc;
+	QString menu_desc;
 
 	int media_drive;
 	int base_drive;
@@ -87,7 +88,6 @@ protected:
 	bool write_protect;
 
 	std::atomic<int> m_timer_id;
-	virtual void timerEvent(QTimerEvent* event) override;
 	
 	void create_pulldown_menu_sub(void);
 	void retranslate_pulldown_menu_sub(void);
@@ -97,7 +97,9 @@ protected:
 	QString initial_dir;
 	QStringList ext_filter;
 	QStringList ext_save_filter;
-	QStringList history;
+	QStringList load_dir_history;
+	QStringList save_dir_history;
+	
 	QStringList inner_media_list;
 public:
 	Menu_MetaClass(QMenuBar *root_entry, QString desc, std::shared_ptr<USING_FLAGS> p, QWidget *parent = 0, int drv = 0, int base_drv = 1);
@@ -115,6 +117,11 @@ public:
 	bool getWriteProtect(void) {
 		return write_protect;
 	}
+	virtual QStringList get_history(bool is_save);
+	virtual QStringList load_state(bool is_save);
+	virtual void save_state(QStringList listval, bool is_save, bool is_sync = false);
+	QStringList insert_dir_history_by_filename(QStringList& l, QString name);
+	
 	virtual void connect_via_emu_thread(EmuThreadClassBase *p);
 
 	//QAction *menuAction(void);

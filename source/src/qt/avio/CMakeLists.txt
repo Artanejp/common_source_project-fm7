@@ -1,6 +1,6 @@
 message("* qt/avio")
 
-SET(THIS_LIB_VERSION 11.0.0)
+SET(THIS_LIB_VERSION 11.0.1)
 set(s_qt_avio_headers
 	csp_avio_basic.h
 	movie_saver.h

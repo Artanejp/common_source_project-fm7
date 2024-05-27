@@ -1275,6 +1275,8 @@ int MainLoop(int argc, char *argv[])
 	QApplication *GuiMain = NULL;
 	GuiMain = new QApplication(argc, argv);
 	GuiMain->setObjectName(QString::fromUtf8("Gui_Main"));
+	QSettings settings;
+	
     QCommandLineParser cmdparser;
 	QStringList vmedia_aliases;
 
@@ -1297,7 +1299,7 @@ int MainLoop(int argc, char *argv[])
 	archstr = "ia32";
 #endif
 	emustr = emustr + cfgstr;
-	std::shared_ptr<USING_FLAGS> using_flags = std::shared_ptr<USING_FLAGS>(new USING_FLAGS_EXT(&config));
+	std::shared_ptr<USING_FLAGS> using_flags = std::shared_ptr<USING_FLAGS>(new USING_FLAGS_EXT(&config, &settings));
 	cmdparser.process(arglist);
 	
 	QMap<QString, QString> virtualMediaList;

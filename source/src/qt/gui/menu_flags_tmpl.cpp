@@ -1,11 +1,13 @@
 #include "common.h"
 #include "menu_flags.h"
 #include "osd_base.h"
+#include <QSettings>
 
-USING_FLAGS::USING_FLAGS(config_t *cfg)
+USING_FLAGS::USING_FLAGS(config_t *cfg, QSettings* set)
 {
 	p_osd = nullptr;
 	p_emu = nullptr;
+	p_settings = set;
 
 	use_alt_f10_key = false;
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
@@ -227,6 +229,9 @@ USING_FLAGS::USING_FLAGS(config_t *cfg)
 
 USING_FLAGS::~USING_FLAGS()
 {
+	if(p_settings != nullptr) {
+		p_settings->sync();
+	}
 }
 
 const _TCHAR *USING_FLAGS::get_joy_button_captions(int num)

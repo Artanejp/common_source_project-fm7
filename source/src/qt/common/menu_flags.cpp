@@ -21,7 +21,7 @@ static const int s_freq_table[8] = {
 		96000,
 };
 
-USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg) : USING_FLAGS(cfg)
+USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg, QSettings* settings) : USING_FLAGS(cfg, settings)
 {
 	#if defined(USE_FLOPPY_TYPE_BIT)
 	floppy_type_bit = USE_FLOPPY_TYPE_BIT;

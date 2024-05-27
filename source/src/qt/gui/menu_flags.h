@@ -14,7 +14,7 @@
 class EMU;
 class EMU_TEMPLATE;
 class OSD;
-
+class QSettings;
 
 typedef struct {
 	int x, y;
@@ -207,14 +207,17 @@ protected:
 
 	button_desc_t *vm_buttons_d;
 	vm_ranges_t *vm_ranges_d;
+	
 	EMU_TEMPLATE *p_emu;
 	OSD_BASE *p_osd;
 	config_t *p_config;
+	QSettings* p_settings;
 public:
-	USING_FLAGS(config_t *cfg);
+	USING_FLAGS(config_t *cfg, QSettings* set);
 	~USING_FLAGS();
 	QString get_config_name() { return config_name; }
 	QString get_device_name() { return device_name; }
+	QSettings *get_settings() { return p_settings; }
 
 	bool is_use_alt_f10_key() { return use_alt_f10_key; }
 	bool is_use_auto_key() { return use_auto_key; }

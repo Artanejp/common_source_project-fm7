@@ -13,12 +13,13 @@
 
 class EMU;
 class OSD;
+class QSettings;
 class USING_FLAGS_EXT : public USING_FLAGS
 {
 private:
 
 public:
-	USING_FLAGS_EXT(config_t *cfg);
+	USING_FLAGS_EXT(config_t *cfg, QSettings* settings);
 	~USING_FLAGS_EXT();
 	const _TCHAR *get_joy_button_captions(int num);
 	const _TCHAR *get_sound_device_caption(int num);
