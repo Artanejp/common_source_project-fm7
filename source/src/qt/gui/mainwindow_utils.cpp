@@ -674,7 +674,6 @@ void Ui_MainWindowBase::setTextAndToolTip(QAction *p, QString text, QString tool
 	p->setToolTip(tooltip);
 }
 
-
 void Ui_MainWindowBase::setTextAndToolTip(QMenu *p, QString text, QString tooltip)
 {
 	if(p == nullptr) return;
