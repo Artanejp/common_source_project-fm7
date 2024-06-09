@@ -141,16 +141,13 @@ Dlg_LogViewer::Dlg_LogViewer(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP
 	TextBox->setMinimumSize(800, 470);
 	TextBox->setOpenExternalLinks(true);
 	if(csp_logger.get() != nullptr) {
-		CSP_LoggerLine *p;
+		std::shared_ptr<CSP_LoggerLine> p;
 		QString tmpstr;
 		QString beforestr;
 		bool first = true;
 		do {
-			{
-				QMutexLocker locker(lock_mutex);
-				p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
-				if(p == NULL) break;
-			}
+			p = csp_logger->get_raw_data(false, now_end_line, NULL);
+			if(p.get() == NULL) break;
 			if(p->check_level(_domain, -1)) {
 				tmpstr = p->get_element_console();
 				if(!beforestr.endsWith("\n") && !first) log_str.append("\n");
@@ -215,18 +212,15 @@ void Dlg_LogViewer::do_search_by_domain(QString _domain_name, uint32_t _level)
 void Dlg_LogViewer::do_update(void)
 {
 	//log_str.clear();
-	CSP_LoggerLine *p;
+	std::shared_ptr<CSP_LoggerLine> p;
 	QString strlist;
 	int64_t line = now_end_line;
 	QString tmpstr;
 	QString beforestr;
 	bool first = true;
 	do {
-		{
-			QMutexLocker locker(lock_mutex);
-			p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, line, NULL));
-			if(p == NULL) break;
-		}
+		p = csp_logger->get_raw_data(false, line, NULL);
+		if(p.get() == nullptr) break;
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, i)) {
@@ -251,18 +245,15 @@ void Dlg_LogViewer::do_update(void)
 
 void Dlg_LogViewer::do_refresh(void)
 {
-	CSP_LoggerLine *p;
+	std::shared_ptr<CSP_LoggerLine> p;
 	QString tmpstr;
 	QString beforestr;
 	bool first = true;
 	log_str.clear();
 	now_end_line = 0;
 	do {
-		{
-			QMutexLocker locker(lock_mutex);
-			p = (CSP_LoggerLine *)(csp_logger->get_raw_data(false, now_end_line, NULL));
-			if(p == NULL) break;
-		}
+		p = csp_logger->get_raw_data(false, now_end_line, NULL);
+		if(p.get() == nullptr) break;
 		for(int i = 0; i < 8; i++) {
 			if((level_map & (1 << i)) != 0) {  
 				if(p->check_level(domain_name, 1 << i)) {

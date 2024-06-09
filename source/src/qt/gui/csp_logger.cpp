@@ -411,47 +411,49 @@ void CSP_Logger::debug_log(int level, int domain_num, char *strbuf)
 
 		do {
 			if(p != NULL) {
-				CSP_LoggerLine *tmps = NULL;
-				tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromUtf8(p), get_vm_clocks_usec());
+				std::shared_ptr<CSP_LoggerLine> tmps =
+					std::make_shared<CSP_LoggerLine>(linenum, level, domain_s, time_s, QString::fromUtf8(p), get_vm_clocks_usec());
 				//tmps = new CSP_LoggerLine(linenum, level, domain_s, time_s, QString::fromLocal8Bit(p));
-				if(log_onoff) {
-					if(cons_log_level_n != 0) {
-						emit sig_console_message(log_sysname, tmps->get_element_console());
-					}
+				if(tmps.get() != nullptr) {
+					if(log_onoff) {
+						if(cons_log_level_n != 0) {
+							emit sig_console_message(log_sysname, tmps->get_element_console());
+						}
 #if !defined(Q_OS_WIN)
-					if(sys_log_level_n != 0) {
-						syslog(level_flag, "%s",
-							   tmps->get_element_syslog().toLocal8Bit().constData());
-					}
+						if(sys_log_level_n != 0) {
+							syslog(level_flag, "%s",
+								   tmps->get_element_syslog().toLocal8Bit().constData());
+						}
 #endif
 
-				}
-				{
-#ifdef __MINGW32__
-					p = strtok(NULL, delim);
-#else
-					p = strtok_r(NULL, delim, &p_bak);
-#endif
-				}
-				if(!record_flag) {
-					delete tmps;
-				} else {
-					//squeue.enqueue(tmps);
-					squeue.push_back(tmps);
-					if(linenum == LLONG_MAX) {
-						line_wrap++;
-						linenum = 0;
-					} else {
-						linenum++;
 					}
-				}
-				//if(tmps != NULL) delete tmps;
-			}
-#if defined(Q_OS_WIN)
-			{
-				fflush(stdout);
-			}
+					{
+#ifdef __MINGW32__
+						p = strtok(NULL, delim);
+#else
+						p = strtok_r(NULL, delim, &p_bak);
 #endif
+					}
+					if(!record_flag) {
+						tmps.reset();
+					} else {
+						//squeue.enqueue(tmps);
+						squeue.push_back(tmps);
+						if(linenum == LLONG_MAX) {
+							line_wrap++;
+							linenum = 0;
+						} else {
+							linenum++;
+						}
+					}
+					//if(tmps != NULL) delete tmps;
+				}
+#if defined(Q_OS_WIN)
+				{
+					fflush(stdout);
+				}
+#endif
+			}
 		} while(p != NULL);
 	}
 }
@@ -519,13 +521,9 @@ void CSP_Logger::close(void)
 //		CSP_LoggerLine *p = squeue.dequeue();
 //		if(p != NULL) delete p;
 //	}
-	for(auto p = squeue.begin(); p != squeue.end(); ++p) {
-		CSP_LoggerLine *np = (*p);
-		if(np != NULL) delete p;
-	}
 	loglist.clear();
 	log_sysname.clear();
-	squeue.clear();
+	clear_log();
 }
 
 void CSP_Logger::set_emu_vm_name(const char *devname)
@@ -702,7 +700,7 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 	if(dom.isEmpty()) not_match_domain = true;
 
 	int64_t total_size = 0;
-	CSP_LoggerLine *t;
+	std::shared_ptr<CSP_LoggerLine> t;
 	QString tmps;
 	char *pp = buffer;
 	bool check_line = ((start >= 0) && (end >= start));
@@ -713,7 +711,7 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 			QMutexLocker locker(lock_mutex);
 			t = (*p);
 		}
-		if(t != NULL) {
+		if(t.get() != NULL) {
 			int64_t n_line = t->get_line_num();
 			if(end_line != NULL) *end_line = n_line;
 			if(check_line) {
@@ -721,7 +719,6 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 					if(forget) {
 						QMutexLocker locker(lock_mutex);
 						squeue.removeAt(ipos);
-						delete t;
 					}
 					ipos++;
 					continue;
@@ -758,14 +755,14 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 				} else {
 					if(forget) {
 						QMutexLocker locker(lock_mutex);
-						delete t;
+						squeue.erase(p);
 					}
 					break;
 				}
 			}
 			if(forget) {
 				QMutexLocker locker(lock_mutex);
-				delete t;
+				squeue.erase(p);
 			}
 		}
 	}
@@ -775,10 +772,9 @@ int64_t CSP_Logger::get_console_list(char *buffer, int64_t buf_size, bool utf8, 
 void CSP_Logger::clear_log(void)
 {
 	QMutexLocker locker(lock_mutex);
-	for(auto p = squeue.begin(); p != squeue.end(); ++p) {
-		CSP_LoggerLine *pp = (*p);
-		if(pp != NULL) delete pp;
-	}
+//	for(auto p = squeue.begin(); p != squeue.end(); ++p) {
+//		(*p).reset();
+//	}
 	squeue.clear();
 }
 
@@ -843,25 +839,23 @@ int64_t CSP_Logger::copy_log(char *buffer, int64_t buf_size, int64_t *lines, cha
 	return ssize;
 }
 
-void *CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
+std::shared_ptr<CSP_LoggerLine> CSP_Logger::get_raw_data(bool forget, int64_t start, int64_t *end_line)
 {
 	QMutexLocker locker(lock_mutex);
-	CSP_LoggerLine *t;
 	int64_t n = squeue.size();
-
-	if(start < 0)  return (void *)NULL;
-	if(start >= n) return (void *)NULL;
-	if(forget) {
+	std::shared_ptr<CSP_LoggerLine> t;
+	t.reset();
+	
+	if((start >= 0) && (start < n)) {
 		t = squeue.at(start);
-		squeue.removeAt(start);
-	} else {
-		t = squeue.at(start);
+		if(forget) {
+			squeue.removeAt(start);
+		}
+		if(t.get() != NULL) {
+			if(end_line != NULL) *end_line = t->get_line_num();
+		}
 	}
-	if(t != NULL) {
-		if(end_line != NULL) *end_line = t->get_line_num();
-		return (void *)t;
-	}
-	return (void *)NULL;
+	return t;
 }
 
 uint64_t CSP_Logger::get_vm_clocks()

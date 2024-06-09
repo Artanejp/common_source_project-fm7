@@ -11,6 +11,8 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <memory>
+
 #include <QObject>
 #include <QStringList>
 #include <QVector>
@@ -166,7 +168,7 @@ private:
 	bool level_cpu_out_syslog[8][CSP_LOG_LEVELS]; // Syslog chain
 	bool level_cpu_out_console[8][CSP_LOG_LEVELS]; // Console log chain
 
-	QVector<CSP_LoggerLine *> squeue;
+	QVector<std::shared_ptr<CSP_LoggerLine>> squeue;
 #if QT_VERSION >= 0x051400
 	QRecursiveMutex *lock_mutex;
 #else
@@ -204,7 +206,8 @@ public:
 	void clear_log(void);
 	int64_t write_log(const _TCHAR *name, const char *domain_name = NULL, bool utf8 = true, bool forget = false);
 	int64_t copy_log(char *buffer, int64_t buf_size, int64_t *lines = NULL, char *domainname = NULL, bool utf8 = true, bool forget = false, int64_t start = 0, int64_t start_size = 0, int64_t *end_line = 0);
-	void *get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
+	std::shared_ptr<CSP_LoggerLine> get_raw_data(bool forget = false, int64_t start = 0, int64_t *end_line = NULL);
+
 public slots:
 	void reset(void);
 	void do_debug_log(int level, int domain_num, QString mes);
