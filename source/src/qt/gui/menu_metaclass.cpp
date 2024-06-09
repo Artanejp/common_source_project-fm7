@@ -291,14 +291,10 @@ void Menu_MetaClass::do_add_media_extension(QString ext, QString description)
 
 void Menu_MetaClass::do_add_save_media_extension(QString ext, QString description)
 {
-	QString tmps = description;
+	QString tmps;
 	QString all = QString::fromUtf8("All Files (*.*)");
 
-	tmps.append(QString::fromUtf8(" ("));
-	tmps.append(ext.toLower());
-	tmps.append(QString::fromUtf8(" "));
-	tmps.append(ext.toUpper());
-	tmps.append(QString::fromUtf8(")"));
+	tmps = description + QString::fromUtf8(" (%1 %2)").arg(ext.toLower()).arg(ext.toUpper());
 
 	ext_save_filter << tmps;
 	ext_save_filter << all;
@@ -356,8 +352,8 @@ bool Menu_MetaClass::do_open_dialog_common(QFileDialog* dlg, bool is_save)
 	}
 	dlg->setAttribute(Qt::WA_DeleteOnClose, true);
 	dlg->setAttribute(Qt::WA_ForceUpdatesDisabled, true);	
-	//dlg->setOption(QFileDialog::DontUseNativeDialog, true);
-	dlg->setOption(QFileDialog::DontUseNativeDialog, false);
+	dlg->setOption(QFileDialog::DontUseNativeDialog, true);
+	//dlg->setOption(QFileDialog::DontUseNativeDialog, false);
 	dlg->setOption(QFileDialog::ReadOnly, (is_save) ? false : true);
 	dlg->setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
 	dlg->setAcceptMode((is_save) ? QFileDialog::AcceptSave : QFileDialog::AcceptOpen);
