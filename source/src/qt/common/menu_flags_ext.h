@@ -21,15 +21,9 @@ private:
 public:
 	USING_FLAGS_EXT(config_t *cfg, QSettings* settings);
 	~USING_FLAGS_EXT();
-	const _TCHAR *get_joy_button_captions(int num);
-	const _TCHAR *get_sound_device_caption(int num);
-	int get_s_freq_table(int num);
-	int get_vm_node_size();
-	void set_vm_node_name(int id, const _TCHAR *name);
-	_TCHAR *get_vm_node_name(int id);
-	const _TCHAR *get_sound_device_name(int num);
-	const _TCHAR *get_sound_device_name();
-	const int get_sound_sample_rate(int num);
+	const _TCHAR *get_joy_button_captions(int num) override;
+	const _TCHAR *get_sound_device_caption(int num) override;
+
 };
 
 

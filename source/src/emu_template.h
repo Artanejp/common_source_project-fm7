@@ -77,6 +77,7 @@ protected:
 	OSD_BASE* osd;
 #if defined(OSD_QT)
 	std::shared_ptr<CSP_Logger> csp_logger;
+	std::shared_ptr<USING_FLAGS> using_flags;
 #endif
 	_TCHAR app_path[_MAX_PATH];
 	// misc
@@ -171,6 +172,7 @@ public:
 
 #if defined(OSD_QT)
 		csp_logger = p_logger;
+		using_flags = p;
 		debugger_thread_id = (pthread_t)0;
 
 		// ToDo: Multiple debugger 20221105 K.O

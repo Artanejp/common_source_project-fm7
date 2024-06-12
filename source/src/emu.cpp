@@ -9,6 +9,7 @@
 
 #if defined(_USE_QT)
 #include <string>
+#include "qt/common/menu_flags_ext.h"
 #endif
 
 #include "emu.h"
@@ -24,6 +25,7 @@
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
+#if !defined(_USE_QT)
 static const int sound_frequency_table[8] = {
 	2000, 4000, 8000, 11025, 22050, 44100,
 #ifdef OVERRIDE_SOUND_FREQ_48000HZ
@@ -34,6 +36,7 @@ static const int sound_frequency_table[8] = {
 	96000,
 };
 static const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
+#endif
 
 #if defined(_USE_QT)
 // Please permit at least them m(.. )m
@@ -68,11 +71,20 @@ EMU::EMU() : EMU()
 	if(!(0 <= config.sound_latency && config.sound_latency < 5)) {
 		config.sound_latency = 1;	// default: 100msec
 	}
-	sound_frequency = config.sound_frequency;
-	sound_latency = config.sound_latency;
+	#if !defined(_USE_QT)
 	sound_rate = sound_frequency_table[config.sound_frequency];
 	sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
-
+	#else
+	if(using_flags.get() != nullptr) {
+		sound_rate = using_flags->get_sound_sample_rate(config.sound_frequency);
+		sound_samples = (int)(sound_rate * using_flags->get_sound_latency(config.sound_latency) + 0.5);
+	} else {
+		// Fallback
+		sound_rate = 48000;
+		sound_samples = (int)(sound_rate * 0.1 + 0.5); // 100mSec
+	}
+	#endif
+	
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
 #endif
@@ -407,8 +419,19 @@ void EMU::reset()
 #endif
 		int presented_rate;
 		int presented_samples;
+		#if !defined(_USE_QT)
 		sound_rate = sound_frequency_table[config.sound_frequency];
 		sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
+		#else
+		if(using_flags.get() != nullptr) {
+			sound_rate = using_flags->get_sound_sample_rate(config.sound_frequency);
+			sound_samples = (int)(sound_rate * using_flags->get_sound_latency(config.sound_latency) + 0.5);
+		} else {
+			// Fallback
+			sound_rate = 48000;
+			sound_samples = (int)(sound_rate * 0.1 + 0.5); // 100mSec
+		}
+		#endif
 		osd->initialize_sound(sound_rate, sound_samples, &presented_rate, &presented_samples);
 		if((sound_rate != presented_rate) ||
 		   (sound_samples != presented_samples)) {
@@ -3964,16 +3987,28 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					delete vm;
 					vm = new VM(this);
 					osd->vm = vm;
-# if defined(_USE_QT)
+					#if defined(_USE_QT)
 					osd->vm_has_set();
 					osd->reset_vm_node();
 					osd->update_keyname_table();
 					osd->reset_screen_buffer();
-# endif
+					#endif
 					int presented_rate;
 					int presented_samples;
+					#if !defined(_USE_QT)
 					sound_rate = sound_frequency_table[config.sound_frequency];
 					sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
+					#else
+					if(using_flags.get() != nullptr) {
+						sound_rate = using_flags->get_sound_sample_rate(config.sound_frequency);
+						sound_samples = (int)(sound_rate * using_flags->get_sound_latency(config.sound_latency) + 0.5);
+					} else {
+						// Fallback
+						sound_rate = 48000;
+						sound_samples = (int)(sound_rate * 0.1 + 0.5); // 100mSec
+					}
+					#endif
+					
 					osd->initialize_sound(sound_rate, sound_samples, &presented_rate, &presented_samples);
 					if((sound_rate != presented_rate) ||
 					   (sound_samples != presented_samples)) {
@@ -3982,11 +4017,11 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					}
 					__LIKELY_IF(vm != NULL) {
 						vm->initialize_sound(sound_rate, sound_samples);
-#ifdef USE_SOUND_VOLUME
+					#ifdef USE_SOUND_VOLUME
 						for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 							vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
 						}
-#endif
+					#endif
 						restore_media();
 						vm->reset();
 					}

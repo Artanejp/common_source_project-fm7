@@ -20,7 +20,6 @@
 #include "../osd_base.h"
 
 // WIP: Will move to another file
-const double s_late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 
 void Ui_MainWindowBase::do_clear_sound_output_list(void)
 {
@@ -248,7 +247,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	actionGroup_Sound_Freq->setExclusive(true);
 	for(i = 0; i < 8; i++) {
 		action_Freq[i] = new Action_Control(this, using_flags);
-		int _freq = using_flags->get_s_freq_table(i);
+		int _freq = using_flags->get_sound_sample_rate(i);
 		tmps.setNum(_freq);
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
 		action_Freq[i]->setObjectName(tmps);
@@ -256,7 +255,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 		action_Freq[i]->setData(QVariant(i));
 		if(i == p_config->sound_frequency) {
 			action_Freq[i]->setChecked(true);
-			//freq = using_flags->get_s_freq_table(i);
+			//freq = using_flags->get_sound_sample_rate(i);;
 		}
 		actionGroup_Sound_Freq->addAction(action_Freq[i]);
 	}
@@ -265,7 +264,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 
 	for(i = 0; i < 5; i++) {
 		action_Latency[i] = new Action_Control(this, using_flags);
-		dval = s_late_table[i];
+		dval = using_flags->get_sound_latency(i);
 		dval = dval * 1000.0;
 		tmps.setNum(dval);
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("ms");
@@ -311,12 +310,12 @@ void Ui_MainWindowBase::retranslateSoundMenu(void)
 	if(using_flags->is_without_sound()) return;
 
 	for(i = 0; i < 8; i++) {
-		tmps.setNum(using_flags->get_s_freq_table(i));
+		tmps.setNum(using_flags->get_sound_sample_rate(i));
 		tmps = tmps + QApplication::translate("MenuSound", "Hz", 0);
 		action_Freq[i]->setText(tmps);
 	}
 	for(i = 0; i < 5; i++) {
-		dval = s_late_table[i];
+		dval = using_flags->get_sound_latency(i);
 		dval = dval * 1000.0;
 		tmps.setNum((int)dval);
 		tmps = tmps + QApplication::translate("MenuSound", "mSec", 0);

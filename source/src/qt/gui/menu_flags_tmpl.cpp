@@ -3,10 +3,12 @@
 #include "osd_base.h"
 #include <QSettings>
 
-USING_FLAGS::USING_FLAGS(config_t *cfg, QSettings* set)
+USING_FLAGS::USING_FLAGS(config_t *cfg, QSettings* set) :
+	override_sound_frequency_48000hz(48000),
+	p_osd(nullptr),
+	p_emu(nullptr)
+   
 {
-	p_osd = nullptr;
-	p_emu = nullptr;
 	p_settings = set;
 
 	use_alt_f10_key = false;
@@ -260,24 +262,24 @@ config_t *USING_FLAGS::get_config_ptr(void)
 	return p_config;
 }
 
-int USING_FLAGS::get_s_freq_table(int num)
-{
-	return 48000;
-}
 
-int USING_FLAGS::get_vm_node_size(void)
+const int USING_FLAGS::get_vm_node_size(void)
 {
-	return 0;
+	if(p_osd == NULL) return 0;
+	return p_osd->get_vm_node_size();
 }
 
 void USING_FLAGS::set_vm_node_name(int id, const _TCHAR *name)
 {
+	if(p_osd == NULL) return;
+	p_osd->set_vm_node(id, name);
 }
 
-
-_TCHAR *USING_FLAGS::get_vm_node_name(int id)
+const _TCHAR *USING_FLAGS::get_vm_node_name(int id)
 {
-	return (_TCHAR *)"NODE";
+	if(p_osd == nullptr) return _T("NODE");
+
+	return (const _TCHAR *)(p_osd->get_vm_node_name(id));
 }
 
 void USING_FLAGS::set_emu(EMU_TEMPLATE *p)
@@ -292,25 +294,36 @@ EMU_TEMPLATE *USING_FLAGS::get_emu(void)
 
 const _TCHAR *USING_FLAGS::get_sound_device_name(int num)
 {
-	return NULL;
+	if(p_osd == nullptr) return NULL;
+	return (const _TCHAR *)(p_osd->get_sound_device_name(num));
 }
 
 const _TCHAR *USING_FLAGS::get_sound_device_name()
 {
-	return NULL;
+	__UNLIKELY_IF(p_osd == nullptr) return NULL;
+	return (const _TCHAR *)(p_osd->get_sound_device_name(-1));
 }
+
 
 const int USING_FLAGS::get_sound_sample_rate(int num)
 {
-	const int sound_frequency_table[8] = {
-		2000, 4000, 8000, 11025, 22050, 44100,
-		48000,
-		96000,
-	};
-	if((num < 0) || (num >= 8)) return 44100;
-	return sound_frequency_table[num];
+	__UNLIKELY_IF((num < 0) || (num >= (sizeof(sound_frequency_table) / sizeof(int)))) {
+			return override_sound_frequency_48000hz;
+	}
+	const int f = sound_frequency_table[num];
+	if(f <= 0) {
+		return (const int)override_sound_frequency_48000hz;
+	}
+	return f;
 }
 
+const double USING_FLAGS::get_sound_latency(int num)
+{
+	__UNLIKELY_IF((num < 0) || (num >= 5)) {
+		num = 1;
+	}
+	return sound_latency_table[num];
+}
 
 bool USING_FLAGS::is_support_phy_key_name()
 {
@@ -319,13 +332,13 @@ bool USING_FLAGS::is_support_phy_key_name()
 
 bool USING_FLAGS::check_feature(const _TCHAR* key)
 {
-	if(p_osd == nullptr) return false;
+	__UNLIKELY_IF(p_osd == nullptr) return false;
 	return p_osd->check_feature(key);
 }
 
 bool USING_FLAGS::check_feature(const QString key)
 {
-	if(p_osd == nullptr) return false;
+	__UNLIKELY_IF(p_osd == nullptr) return false;
 	if(key.isEmpty()) return false;
 
 	const _TCHAR* p_key = (const _TCHAR *)(key.toUtf8().constData());
@@ -335,4 +348,134 @@ bool USING_FLAGS::check_feature(const QString key)
 bool USING_FLAGS::check_vm_name(const QString name)
 {
 	return check_feature(name);
+}
+
+void USING_FLAGS::set_config_directory(std::string confdir)
+{
+	set_config_directory(QString::fromStdString(confdir));
+}
+
+void USING_FLAGS::set_config_directory(QString confdir)
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	cpp_confdir = confdir;
+}
+
+QString USING_FLAGS::get_config_directory()
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	return cpp_confdir;
+}
+
+
+size_t USING_FLAGS::get_config_directory(_TCHAR* str, size_t maxlen)
+{
+	__UNLIKELY_IF(maxlen <= 0) return 0;
+	__UNLIKELY_IF(str == nullptr) return 0;
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	_TCHAR* p = (_TCHAR*)(cpp_confdir.toLocal8Bit().constData());
+	__UNLIKELY_IF(p == nullptr) return 0;
+	size_t len = _tcslen(p);
+	if(len >= maxlen) {
+		len = maxlen;
+	}
+	my_tcscpy_s(str, len, p);
+	return len;
+}
+
+
+void USING_FLAGS::set_home_directory(std::string homedir)
+{
+	set_home_directory(QString::fromStdString(homedir));
+}
+
+void USING_FLAGS::set_home_directory(QString homedir)
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	cpp_homedir = homedir;
+}
+
+QString USING_FLAGS::get_home_directory()
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	return cpp_homedir;
+}
+
+size_t USING_FLAGS::get_home_directory(_TCHAR* str, size_t maxlen)
+{
+	__UNLIKELY_IF(maxlen <= 0) return 0;
+	__UNLIKELY_IF(str == nullptr) return 0;
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	_TCHAR* p = (_TCHAR*)(cpp_homedir.toLocal8Bit().constData());
+	__UNLIKELY_IF(p == nullptr) return 0;
+	size_t len = _tcslen(p);
+	if(len >= maxlen) {
+		len = maxlen;
+	}
+	my_tcscpy_s(str, len, p);
+	return len;
+}
+
+void USING_FLAGS::set_proc_name(std::string procname)
+{
+	set_proc_name(QString::fromStdString(procname));
+}
+
+void USING_FLAGS::set_proc_name(QString procname)
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	my_procname = procname;
+}
+
+QString USING_FLAGS::get_proc_name()
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	return my_procname;
+}
+
+size_t USING_FLAGS::get_proc_name(_TCHAR* str, size_t maxlen)
+{
+	__UNLIKELY_IF(maxlen <= 0) return 0;
+	__UNLIKELY_IF(str == nullptr) return 0;
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	_TCHAR* p = (_TCHAR*)(my_procname.toUtf8().constData());
+	__UNLIKELY_IF(p == nullptr) return 0;
+	size_t len = _tcslen(p);
+	if(len >= maxlen) {
+		len = maxlen;
+	}
+	my_tcscpy_s(str, len, p);
+	return len;
+}
+
+void USING_FLAGS::set_resource_directory(std::string rssdir)
+{
+	set_resource_directory(QString::fromStdString(rssdir));
+}
+
+void USING_FLAGS::set_resource_directory(QString rssdir)
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	resource_directory = rssdir;
+}
+
+QString USING_FLAGS::get_resource_directory()
+{
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	return resource_directory;
+}
+
+size_t USING_FLAGS::get_resource_directory(_TCHAR* str, size_t maxlen)
+{
+	__UNLIKELY_IF(maxlen <= 0) return 0;
+	__UNLIKELY_IF(str == nullptr) return 0;
+	std::lock_guard<std::recursive_mutex> locker(m_locker);
+	_TCHAR* p = (_TCHAR*)(resource_directory.toLocal8Bit().constData());
+	__UNLIKELY_IF(p == nullptr) return 0;
+	size_t len = _tcslen(p);
+	if(len >= maxlen) {
+		len = maxlen;
+	}
+	my_tcscpy_s(str, len, p);
+	return len;
 }

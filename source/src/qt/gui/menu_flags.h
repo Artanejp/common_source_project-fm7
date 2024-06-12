@@ -212,9 +212,25 @@ protected:
 	OSD_BASE *p_osd;
 	config_t *p_config;
 	QSettings* p_settings;
+
+	int override_sound_frequency_48000hz;
+	const int sound_frequency_table[8] = {
+		2000, 4000, 8000, 11025, 22050, 44100,
+		-1 /* TO OVERRIDE (mostry by 48000Hz) */ ,
+		96000
+	};
+	const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
+	
 public:
 	USING_FLAGS(config_t *cfg, QSettings* set);
 	~USING_FLAGS();
+
+	void set_emu(EMU_TEMPLATE *p);
+	EMU_TEMPLATE *get_emu(void);
+	
+	void set_osd(OSD_BASE *p);
+	OSD_BASE *get_osd(void);
+	
 	QString get_config_name() { return config_name; }
 	QString get_device_name() { return device_name; }
 	QSettings *get_settings() { return p_settings; }
@@ -392,130 +408,54 @@ public:
 	bool is_machine_has_pcengine() { return machine_has_pcengine; }
 	bool is_machine_sc3000() { return machine_sc3000; }
 	bool is_machine_z80tvgame() { return machine_z80tvgame; }
-	virtual const _TCHAR *get_joy_button_captions(int num);
-	virtual const _TCHAR *get_sound_device_caption(int num);
-	virtual int get_s_freq_table(int num);
-	void set_emu(EMU_TEMPLATE *p);
-	EMU_TEMPLATE *get_emu(void);
-	void set_osd(OSD_BASE *p);
-	OSD_BASE *get_osd(void);
+	
 	bool check_feature(const _TCHAR* key);
 	bool check_feature(const QString key);
 	bool check_vm_name(const QString name);
 	
-	void set_config_directory(std::string confdir)
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		cpp_confdir = QString::fromStdString(confdir);
-	}
-	QString get_config_directory()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		return cpp_confdir;
-	}
-	size_t get_config_directory(_TCHAR* str, size_t maxlen)
-	{
-		__UNLIKELY_IF(maxlen <= 0) return 0;
-		__UNLIKELY_IF(str == nullptr) return 0;
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		_TCHAR* p = (_TCHAR*)(cpp_confdir.toLocal8Bit().constData());
-		__UNLIKELY_IF(p == nullptr) return 0;
-		size_t len = _tcslen(p);
-		if(len >= maxlen) {
-			len = maxlen;
-		}
-		my_tcscpy_s(str, len, p);
-		return len;
-	}
+	void set_config_directory(QString confdir);
+	void set_config_directory(std::string confdir);
+	QString get_config_directory();
+	size_t get_config_directory(_TCHAR* str, size_t maxlen);
 	
-	void set_home_directory(std::string homedir)
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		cpp_homedir = QString::fromStdString(homedir);
-	}
-	QString get_home_directory()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		return cpp_homedir;
-	}
-	size_t get_home_directory(_TCHAR* str, size_t maxlen)
-	{
-		__UNLIKELY_IF(maxlen <= 0) return 0;
-		__UNLIKELY_IF(str == nullptr) return 0;
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		_TCHAR* p = (_TCHAR*)(cpp_homedir.toLocal8Bit().constData());
-		__UNLIKELY_IF(p == nullptr) return 0;
-		size_t len = _tcslen(p);
-		if(len >= maxlen) {
-			len = maxlen;
-		}
-		my_tcscpy_s(str, len, p);
-		return len;
-	}
+	void set_home_directory(QString homedir);
+	void set_home_directory(std::string homedir);
+	QString get_home_directory();
+	size_t get_home_directory(_TCHAR* str, size_t maxlen);
 	
-	void set_proc_name(std::string procname)
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		my_procname = QString::fromStdString(procname);
-	}
-	QString get_proc_name()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		return my_procname;
-	}
-	size_t get_proc_name(_TCHAR* str, size_t maxlen)
-	{
-		__UNLIKELY_IF(maxlen <= 0) return 0;
-		__UNLIKELY_IF(str == nullptr) return 0;
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		_TCHAR* p = (_TCHAR*)(my_procname.toUtf8().constData());
-		__UNLIKELY_IF(p == nullptr) return 0;
-		size_t len = _tcslen(p);
-		if(len >= maxlen) {
-			len = maxlen;
-		}
-		my_tcscpy_s(str, len, p);
-		return len;
-	}
+	void set_proc_name(QString procname);
+	void set_proc_name(std::string procname);
+	QString get_proc_name();
+	size_t get_proc_name(_TCHAR* str, size_t maxlen);
+	
+	void set_resource_directory(QString rssdir);
+	void set_resource_directory(std::string rssdir);
+	QString get_resource_directory();
+	size_t get_resource_directory(_TCHAR* str, size_t maxlen);
+	
+	const _TCHAR *get_sound_device_name(int num);
+	const _TCHAR *get_sound_device_name();
 
-	void set_resource_directory(std::string rssdir)
+	const int get_vm_node_size();
+	void set_vm_node_name(int id, const _TCHAR *name);
+	const _TCHAR *get_vm_node_name(int id);
+
+	const bool is_override_sound_48000hz()
 	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		resource_directory = QString::fromStdString(rssdir);
-	}
-	QString get_resource_directory()
-	{
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		return resource_directory;
-	}
-	size_t get_resource_directory(_TCHAR* str, size_t maxlen)
-	{
-		__UNLIKELY_IF(maxlen <= 0) return 0;
-		__UNLIKELY_IF(str == nullptr) return 0;
-		std::lock_guard<std::recursive_mutex> locker(m_locker);
-		_TCHAR* p = (_TCHAR*)(resource_directory.toLocal8Bit().constData());
-		__UNLIKELY_IF(p == nullptr) return 0;
-		size_t len = _tcslen(p);
-		if(len >= maxlen) {
-			len = maxlen;
+		if(override_sound_frequency_48000hz != 48000) {
+			return true;
 		}
-		my_tcscpy_s(str, len, p);
-		return len;
+		return false;
 	}
+	const int get_sound_sample_rate(int num);
+	const double get_sound_latency(int num);
 	
-	virtual const _TCHAR *get_sound_device_name(int num);
-	virtual const _TCHAR *get_sound_device_name();
-	virtual const int get_sound_sample_rate(int num);
-	virtual const double get_sound_latency(int num)
-	{
-		const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
-		if((num < 0) || (num >= 5)) num = 1;
-		return sound_latency_table[num];
-	}
-	virtual int get_vm_node_size();
-	virtual void set_vm_node_name(int id, const _TCHAR *name);
-	virtual _TCHAR *get_vm_node_name(int id);
+	// captions
+	virtual const _TCHAR *get_joy_button_captions(int num);
+	virtual const _TCHAR *get_sound_device_caption(int num);
+	// ToDo
 	virtual bool is_support_phy_key_name();
+	
 	config_t *get_config_ptr(void);
 };
 

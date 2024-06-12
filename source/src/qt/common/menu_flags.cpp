@@ -11,22 +11,15 @@ static const _TCHAR *sound_device_caption[] = {""};
 static const _TCHAR *joy_button_captions[] = {""};
 #endif
 
-static const int s_freq_table[8] = {
-		2000, 4000, 8000, 11025, 22050, 44100,
-#ifdef OVERRIDE_SOUND_FREQ_48000HZ
-		OVERRIDE_SOUND_FREQ_48000HZ,
-#else
-		48000,
-#endif
-		96000,
-};
 
 USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg, QSettings* settings) : USING_FLAGS(cfg, settings)
 {
 	#if defined(USE_FLOPPY_TYPE_BIT)
 	floppy_type_bit = USE_FLOPPY_TYPE_BIT;
 	#endif
-
+	#if defined(OVERRIDE_SOUND_FREQ_48000HZ)
+	override_sound_frequency_48000hz = OVERRIDE_SOUND_FREQ_48000HZ;
+	#endif
 	#if defined(USE_VARIABLE_MEMORY)
 	use_ram_size = true;
 	max_ram_size = USE_VARIABLE_MEMORY;
@@ -414,54 +407,3 @@ const _TCHAR *USING_FLAGS_EXT::get_sound_device_caption(int num)
 }
 
 
-int USING_FLAGS_EXT::get_s_freq_table(int num)
-{
-	if(num < 0) return s_freq_table[0];
-	if(num >= (int)(sizeof(s_freq_table) / sizeof(int))) return s_freq_table[sizeof(s_freq_table) / sizeof(int) - 1];
-	return s_freq_table[num];
-}
-
-int USING_FLAGS_EXT::get_vm_node_size(void)
-{
-	if(p_emu == NULL) return 0;
-	return p_emu->get_osd()->get_vm_node_size();
-}
-
-void USING_FLAGS_EXT::set_vm_node_name(int id, const _TCHAR *name)
-{
-	if(p_emu == NULL) return;
-	p_emu->get_osd()->set_vm_node(id, name);
-}
-
-_TCHAR *USING_FLAGS_EXT::get_vm_node_name(int id)
-{
-	if(p_emu == NULL) return NULL;
-	return (_TCHAR *)p_emu->get_osd()->get_vm_node_name(id);
-}
-
-const _TCHAR *USING_FLAGS_EXT::get_sound_device_name(int num)
-{
-	if(p_emu == nullptr) return NULL;
-	return (const _TCHAR *)(p_emu->get_osd()->get_sound_device_name(num));
-}
-
-const _TCHAR *USING_FLAGS_EXT::get_sound_device_name()
-{
-	if(p_emu == nullptr) return NULL;
-	return (const _TCHAR *)(p_emu->get_osd()->get_sound_device_name(-1));
-}
-
-const int USING_FLAGS_EXT::get_sound_sample_rate(int num)
-{
-	const int sound_frequency_table[8] = {
-		2000, 4000, 8000, 11025, 22050, 44100,
-#ifdef OVERRIDE_SOUND_FREQ_48000HZ
-		OVERRIDE_SOUND_FREQ_48000HZ,
-#else
-		48000,
-#endif
-		96000,
-	};
-	if((num < 0) || (num >= 8)) return 44100;
-	return sound_frequency_table[num];
-}
