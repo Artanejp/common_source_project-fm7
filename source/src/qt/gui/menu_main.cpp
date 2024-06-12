@@ -1021,21 +1021,30 @@ void Ui_MainWindowBase::delete_emu_thread(void)
 
 void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit)
 {
-	QTextCodec *srcCodec = QTextCodec::codecForName( "SJIS" );
-	QTextCodec *dstCodec = QTextCodec::codecForName( "UTF-8" );
-	QString dst_b;
-	QByteArray dst_s;
-	if(src == NULL) {
-		if(dst != NULL) dst[0] = '\0';
+	if((src == NULL) || (i_limit <= 0)) {
+		if((dst != NULL) && (n_limit > 0)) {
+			dst[0] = '\0';
+		}
 		return;
 	}
-	if(dst == NULL) return;
-	dst_b = srcCodec->toUnicode(src, strlen(src));
-	dst_s = dstCodec->fromUnicode(dst_b);
+	if((dst == NULL) || (n_limit <= 0)) {
+		return;
+	}
+	QTextCodec *srcCodec = QTextCodec::codecForName( "Shift-JIS" );
+	QTextDecoder decoder(srcCodec);
+	QString dst_s;
+	char *tmps = new char [i_limit + 1];
+	if(tmps == nullptr) {
+		return;
+	}
+	memset(tmps, 0x00, i_limit);
+	my_tcscpy_s((_TCHAR *)tmps, i_limit, src);
+	dst_s = decoder.toUnicode((const char*)tmps);
 	if(n_limit > 0) {
 		memset(dst, 0x00, n_limit);
-		strncpy(dst, dst_s.constData(), n_limit - 1);
+		my_tcscpy_s(dst, n_limit - 1, dst_s.toUtf8().constData());
 	}
+	delete [] tmps;
 }
 
 void Ui_MainWindowBase::set_window_title()

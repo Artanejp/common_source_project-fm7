@@ -88,6 +88,7 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 			}
 		}
 	}
+
 }
 
 
