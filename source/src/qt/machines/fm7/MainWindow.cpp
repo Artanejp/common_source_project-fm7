@@ -615,7 +615,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionGroup_Auto_5_8key = new QActionGroup(this);
 	actionGroup_Auto_5_8key->setExclusive(true);
 
-	action_Neither_5_or_8key = new Action_Control(this, using_flags);
+	action_Neither_5_or_8key = new QAction(this);
 	action_Neither_5_or_8key->setCheckable(true);
 	action_Neither_5_or_8key->setVisible(true);
 	action_Neither_5_or_8key->setData(QVariant((int)0));
@@ -624,7 +624,7 @@ void META_MainWindow::setupUI_Emu(void)
 	if((tmpv &  FM7_DIPSW_AUTO_5_OR_8KEY) == 0) action_Neither_5_or_8key->setChecked(true);
 	connect(action_Neither_5_or_8key, SIGNAL(triggered()), this, SLOT(do_set_autokey_5_8()));
 
-	action_Auto_5key = new Action_Control(this, using_flags);
+	action_Auto_5key = new QAction(this);
 	action_Auto_5key->setCheckable(true);
 	action_Auto_5key->setVisible(true);
 	action_Auto_5key->setData(QVariant((int)1));
@@ -637,7 +637,7 @@ void META_MainWindow::setupUI_Emu(void)
 	}
 	connect(action_Auto_5key, SIGNAL(triggered()), this, SLOT(do_set_autokey_5_8()));
 
-	action_Auto_8key = new Action_Control(this, using_flags);
+	action_Auto_8key = new QAction(this);
 	action_Auto_8key->setCheckable(true);
 	action_Auto_8key->setVisible(true);
 	action_Auto_8key->setData(QVariant((int)2));

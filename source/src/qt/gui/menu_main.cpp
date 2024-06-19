@@ -395,7 +395,7 @@ void Ui_MainWindowBase::setupUi(void)
 		ConfigBubbleMenu();
 	}
 	ConfigEmulatorMenu();
-	actionAbout = new Action_Control(this, using_flags);
+	actionAbout = new QAction(this);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 
 	{
@@ -576,7 +576,7 @@ void Ui_MainWindowBase::setupUi(void)
 
 	if(using_flags->is_use_mouse()) {
 		SET_ACTION_SINGLE_CONNECT(actionMouseEnable, true , true, false, SIGNAL(toggled(bool)), SLOT(do_set_mouse_enable(bool)));
-//		actionMouseEnable = new Action_Control(this, using_flags);
+//		actionMouseEnable = new QAction(this);
 //		actionMouseEnable->setCheckable(true);
 //		actionMouseEnable->setVisible(true);
 //		actionMouseEnable->setChecked(false);
@@ -585,7 +585,7 @@ void Ui_MainWindowBase::setupUi(void)
 		menuMachine->addAction(actionMouseEnable);
 	}
 	if(using_flags->is_use_ram_size()) {
-		action_RAMSize = new Action_Control(this, using_flags);
+		action_RAMSize = new QAction(this);
 		menuMachine->addSeparator();
 		menuMachine->addAction(action_RAMSize);
 		connect(action_RAMSize, SIGNAL(triggered()), this, SLOT(do_show_ram_size_dialog()));
@@ -692,7 +692,7 @@ void Ui_MainWindowBase::setupUi(void)
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(do_show_about()));
 	menuHELP->addSeparator();
 
-	actionHelp_AboutQt = new Action_Control(this, using_flags);
+	actionHelp_AboutQt = new QAction(this);
 	actionHelp_AboutQt->setObjectName(QString::fromUtf8("menuHelp_AboutQt"));
 	menuHELP->addAction(actionHelp_AboutQt);
 	menuHELP->addSeparator();

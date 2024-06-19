@@ -78,7 +78,7 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenMultiplyPair)
 Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 
 #define SET_ACTION_SINGLE(__action,__checkable,__enabled,__cfgif) { \
-		__action = new Action_Control(this, using_flags);		  \
+		__action = new QAction(this);		  \
 		__action->setCheckable(__checkable);					  \
 		__action->setEnabled(__enabled);						  \
 		__action->setChecked(__cfgif);							  \
@@ -143,7 +143,7 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 	}
 
 #define SET_ACTION_ANYVALUES(__action,__vars) {							\
-		__action = new Action_Control(this, using_flags);				\
+		__action = new QAction(this);				\
 		__action->setCheckable(true);									\
 		__action->setEnabled(true);										\
 		__action->setData(QVariant(__vars));							\
@@ -218,7 +218,7 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 	}
 
 #define SET_HELP_MENUENTRY(__menu,__action,__objname,__txtname) {		\
-		__action = new Action_Control(this, using_flags);				\
+		__action = new QAction(this);				\
 		__action->setObjectName(QString::fromUtf8(__objname));			\
 		__action->setData(QVariant(QString::fromUtf8(__txtname)));		\
 		connect(__action, SIGNAL(triggered()), this, SLOT(do_browse_document())); \
@@ -227,14 +227,14 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 
 
 #define SET_ACTION_CONTROL_ARRAY(__start,__end,							\
-								 __parent,__using_flags,				\
+								 __parent,								\
 								 __menu,__action,						\
 								 __checkable,__enabled,__cnf,			\
 								 __signal1,__slot1						\
 	)																	\
 	{																	\
 		for(int _i = __start; _i < __end;  _i++) {						\
-			__action[_i] = new Action_Control(__parent, __using_flags);	\
+			__action[_i] = new QAction(__parent);						\
 			__action[_i]->setCheckable(__checkable);					\
 			__action[_i]->setEnabled(__enabled);						\
 			__action[_i]->setData(QVariant(_i));						\
@@ -304,14 +304,14 @@ private:
 
 	// File
 	QActionGroup *actionGroup_CpuSpeed;
-	Action_Control *actionSpeed_x1;
-	Action_Control *actionSpeed_x2;
-	Action_Control *actionSpeed_x4;
-	Action_Control *actionSpeed_x8;
-	Action_Control *actionSpeed_x16;
-	Action_Control *actionSpeed_FULL;
-	Action_Control *actionPaste_from_Clipboard;
-	Action_Control *actionStop_Pasting;
+	QAction *actionSpeed_x1;
+	QAction *actionSpeed_x2;
+	QAction *actionSpeed_x4;
+	QAction *actionSpeed_x8;
+	QAction *actionSpeed_x16;
+	QAction *actionSpeed_FULL;
+	QAction *actionPaste_from_Clipboard;
+	QAction *actionStop_Pasting;
 	QMenu *menuSave_State;
 	QMenu *menuLoad_State;
 
@@ -319,22 +319,23 @@ private:
 	QActionGroup *actionGroup_Stretch;
 	QActionGroup *actionGroup_SetRenderPlatform;
 	QActionGroup *actionGroup_RotateType;
-	Action_Control *action_ScreenSeparateThread;
-	Action_Control *action_ScreenUseOSD;
-	Action_Control *actionZoom;
-	Action_Control *actionDisplay_Mode;
-	Action_Control *actionScanLine;
-	Action_Control *actionScanLine_Auto;
-	Action_Control *actionGLScanLineHoriz;
-	Action_Control *actionGLScanLineVert;
+	QAction *action_ScreenSeparateThread;
+	QAction *action_ScreenUseOSD;
+	QAction *actionZoom;
+	QAction *actionDisplay_Mode;
+	QAction *actionScanLine;
+	QAction *actionScanLine_Auto;
+	QAction *actionGLScanLineHoriz;
+	QAction *actionGLScanLineVert;
 
-	Action_Control *actionRotate[4];
-	Action_Control *actionCRT_Filter;
-	Action_Control *actionOpenGL_Filter;
-	Action_Control *actionDot_by_Dot;
-	Action_Control *actionReferToX_Display;
-	Action_Control *actionReferToY_Display;
-	Action_Control *actionFill_Display;
+	QAction *actionRotate[4];
+	QAction *actionCRT_Filter;
+	QAction *actionOpenGL_Filter;
+	QAction *actionDot_by_Dot;
+	QAction *actionReferToX_Display;
+	QAction *actionReferToY_Display;
+	QAction *actionFill_Display;
+	
 	QActionGroup *actionGroup_ScreenSize;
 	QActionGroup *actionGroup_RenderMode;
 
@@ -342,14 +343,14 @@ private:
 	QActionGroup   *actionGroup_Sound_Freq;
 	QActionGroup   *actionGroup_Sound_Latency;
 	QActionGroup   *actionGroup_Sound_HostDevices;
-	//Action_Control *actionSoundCMT;
-	Action_Control *action_VolumeDialog;
-	Action_Control *actionSoundTapeSignal;
-	Action_Control *actionSoundTapeVoice;
-	Action_Control *actionSoundStrictRendering;
-	Action_Control *action_SoundFilesFDD;
-	Action_Control *action_SoundFilesRelay;
-	QVector<Action_Control *> action_HostSoundDevice;
+	//QAction *actionSoundCMT;
+	QAction *action_VolumeDialog;
+	QAction *actionSoundTapeSignal;
+	QAction *actionSoundTapeVoice;
+	QAction *actionSoundStrictRendering;
+	QAction *action_SoundFilesFDD;
+	QAction *action_SoundFilesRelay;
+	QVector<QAction *> action_HostSoundDevice;
 	//QMenu *menuLogToConsole;
 	//QMenu *menuLogToSyslog;
 	QMenu *menuDevLogToConsole;
@@ -359,50 +360,51 @@ private:
 	// Misc
 	QMenu *menu_DispVirtualMedias;
 	QActionGroup *actionGroup_DispVirtualMedias;
-	Action_Control *action_DispVirtualMedias[5];
-	Action_Control *action_FocusWithClick;
-	Action_Control *action_UseRomaKana;
-	Action_Control *action_DriveInOpCode;
-	Action_Control *action_NumPadEnterAsFullkey;
-	Action_Control *action_UseJoykey;
-	Action_Control *action_Logging_FDC;
-	Action_Control *action_LogToSyslog;
-	Action_Control *action_LogToConsole;
-	Action_Control *action_LogRecord;
-	Action_Control *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	Action_Control *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	Action_Control *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	
+	QAction *action_DispVirtualMedias[5];
+	QAction *action_FocusWithClick;
+	QAction *action_UseRomaKana;
+	QAction *action_DriveInOpCode;
+	QAction *action_NumPadEnterAsFullkey;
+	QAction *action_UseJoykey;
+	QAction *action_Logging_FDC;
+	QAction *action_LogToSyslog;
+	QAction *action_LogToConsole;
+	QAction *action_LogRecord;
+	QAction *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	QAction *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	QAction *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
 	// Emulator
-	Action_Control *action_SetupMouse;
-	Action_Control *action_SetupJoystick;
-	Action_Control *action_SetupJoykey;
-	Action_Control *action_SetupKeyboard;
-	Action_Control *action_LogView;
-	Action_Control *action_PrintCpuStatistics;
+	QAction *action_SetupMouse;
+	QAction *action_SetupJoystick;
+	QAction *action_SetupJoykey;
+	QAction *action_SetupKeyboard;
+	QAction *action_LogView;
+	QAction *action_PrintCpuStatistics;
 
 	QMenu *menu_EmulateCursorAs;
 	QActionGroup *actionGroup_EmulateCursorAs;
-	Action_Control *action_EmulateCursorAs[4];
+	QAction *action_EmulateCursorAs[4];
 
 	// Help
-	Action_Control *actionHelp_README_BIOS;
-	Action_Control *actionHelp_README;
-	Action_Control *actionHelp_README_QT;
-	Action_Control *actionHelp_README_MR_TANAM;
-	Action_Control *actionHelp_README_MR_GORRY;
-	Action_Control *actionHelp_README_MR_MEISTER;
-	Action_Control *actionHelp_README_Artane;
-	Action_Control *actionHelp_README_Umaiboux;
-	Action_Control *actionHelp_README_FAQ;
-	Action_Control *actionHelp_README_FAQ_JP;
-	Action_Control *actionHelp_README_FM7;
-	Action_Control *actionHelp_README_FM7_JP;
-	Action_Control *actionHelp_History;
-	Action_Control *actionHelp_History_Relnote;
-	Action_Control *actionHelp_History_ChangeLog;
-	Action_Control *actionHelp_History_MR_TANAM;
-	Action_Control *actionHelp_License;
-	Action_Control *actionHelp_License_JP;
+	QAction *actionHelp_README_BIOS;
+	QAction *actionHelp_README;
+	QAction *actionHelp_README_QT;
+	QAction *actionHelp_README_MR_TANAM;
+	QAction *actionHelp_README_MR_GORRY;
+	QAction *actionHelp_README_MR_MEISTER;
+	QAction *actionHelp_README_Artane;
+	QAction *actionHelp_README_Umaiboux;
+	QAction *actionHelp_README_FAQ;
+	QAction *actionHelp_README_FAQ_JP;
+	QAction *actionHelp_README_FM7;
+	QAction *actionHelp_README_FM7_JP;
+	QAction *actionHelp_History;
+	QAction *actionHelp_History_Relnote;
+	QAction *actionHelp_History_ChangeLog;
+	QAction *actionHelp_History_MR_TANAM;
+	QAction *actionHelp_License;
+	QAction *actionHelp_License_JP;
 
 	// Led: OSD.
 	bool flags_led[32];
@@ -529,31 +531,33 @@ protected:
 	// Some Functions
 	QActionGroup *actionGroup_BootMode;
 	QActionGroup *actionGroup_CpuType;
-	Action_Control *actionReset;
-	Action_Control *actionSpecial_Reset[16];
-	Action_Control *actionExit_Emulator;
-	Action_Control *actionCpuType[8];
-	Action_Control *actionBootMode[8];
-	Action_Control *actionDebugger[_MAX_DEBUGGER];
-	Action_Control *actionSave_State[10];
-	Action_Control *actionLoad_State[10];
-	//Action_Control *actionClose_Debuggers;
-	Action_Control *actionScreenSize[32];
-	Action_Control *actionAbout;
-	Action_Control *actionMouseEnable;
-	Action_Control *actionHelp_AboutQt;
-	Action_Control *action_ResetFixedCpu;
-	Action_Control *action_SetFixedCpu[128];
+	QAction *actionReset;
+	QAction *actionSpecial_Reset[16];
+	QAction *actionExit_Emulator;
+	QAction *actionCpuType[8];
+	QAction *actionBootMode[8];
+	QAction *actionDebugger[_MAX_DEBUGGER];
+	
+	QAction *actionSave_State[10];
+	QAction *actionLoad_State[10];
+	
+	//QAction *actionClose_Debuggers;
+	QAction *actionScreenSize[32];
+	QAction *actionAbout;
+	QAction *actionMouseEnable;
+	QAction *actionHelp_AboutQt;
+	QAction *action_ResetFixedCpu;
+	QAction *action_SetFixedCpu[128];
 
-	Action_Control *action_RAMSize;
+	QAction *action_RAMSize;
 	// Screen
-	Action_Control *actionCapture_Screen;
-	Action_Control *action_SetRenderMode[8];
+	QAction *actionCapture_Screen;
+	QAction *action_SetRenderMode[8];
 	// Sound
-	Action_Control *action_Freq[8];
-	Action_Control *action_Latency[6];
-	Action_Control *actionStart_Record;
-	Action_Control *actionStop_Record;
+	QAction *action_Freq[8];
+	QAction *action_Latency[6];
+	QAction *actionStart_Record;
+	QAction *actionStop_Record;
 
 	// Emulator
 	QActionGroup *actionGroup_DeviceType;
@@ -575,24 +579,24 @@ protected:
 	QMenu *menuSerialDevice;
 	QMenu *menu_SetFixedCpu;
 
-	Action_Control *actionDeviceType[16];
-	Action_Control *actionKeyboardType[16];
-	Action_Control *actionJoystickType[16];
-	Action_Control *actionMouseType[8];
-	Action_Control *actionDriveType[8];
-	Action_Control *actionSoundDevice[32]; //
-	Action_Control *actionPrintDevice[16];
-	Action_Control *actionSerialDevice[16];
-	Action_Control *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
+	QAction *actionDeviceType[16];
+	QAction *actionKeyboardType[16];
+	QAction *actionJoystickType[16];
+	QAction *actionMouseType[8];
+	QAction *actionDriveType[8];
+	QAction *actionSoundDevice[32]; //
+	QAction *actionPrintDevice[16];
+	QAction *actionSerialDevice[16];
+	QAction *action_SetRenderPlatform[MAX_RENDER_PLATFORMS];
 
 
-	Action_Control *actionStart_Record_Movie;
-	Action_Control *actionStop_Record_Movie;
-	Action_Control *action_SetupMovie; // 15, 24, 30, 60
+	QAction *actionStart_Record_Movie;
+	QAction *actionStop_Record_Movie;
+	QAction *action_SetupMovie; // 15, 24, 30, 60
 
 	QMenu *menuMonitorType;
 	QActionGroup *actionGroup_MonitorType;
-	Action_Control *actionMonitorType[16];
+	QAction *actionMonitorType[16];
 
 	// Menus
 	QMenu *menuControl;

@@ -414,7 +414,7 @@ void Ui_MainWindowBase::ConfigDeviceType(void)
 		actionGroup_DeviceType = new QActionGroup(this);
 		actionGroup_DeviceType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_device_type(); ii++) {
-			actionDeviceType[ii] = new Action_Control(this, using_flags);
+			actionDeviceType[ii] = new QAction(this);
 			actionGroup_DeviceType->addAction(actionDeviceType[ii]);
 			actionDeviceType[ii]->setCheckable(true);
 			actionDeviceType[ii]->setVisible(true);
@@ -439,7 +439,7 @@ void Ui_MainWindowBase::ConfigJoystickType(void)
 		actionGroup_JoystickType = new QActionGroup(this);
 		actionGroup_JoystickType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_joystick_type(); ii++) {
-			actionJoystickType[ii] = new Action_Control(this, using_flags);
+			actionJoystickType[ii] = new QAction(this);
 			actionGroup_JoystickType->addAction(actionJoystickType[ii]);
 			actionJoystickType[ii]->setCheckable(true);
 			actionJoystickType[ii]->setVisible(true);
@@ -476,7 +476,7 @@ void Ui_MainWindowBase::ConfigKeyboardType(void)
 		actionGroup_KeyboardType = new QActionGroup(this);
 		actionGroup_KeyboardType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_keyboard_type(); ii++) {
-			actionKeyboardType[ii] = new Action_Control(this, using_flags);
+			actionKeyboardType[ii] = new QAction(this);
 			actionGroup_KeyboardType->addAction(actionKeyboardType[ii]);
 			actionKeyboardType[ii]->setCheckable(true);
 			actionKeyboardType[ii]->setVisible(true);
@@ -501,7 +501,7 @@ void Ui_MainWindowBase::ConfigMouseType(void)
 		actionGroup_MouseType = new QActionGroup(this);
 		actionGroup_MouseType->setExclusive(true);
 		for(ii = 0; ii < using_flags->get_use_mouse_type(); ii++) {
-			actionMouseType[ii] = new Action_Control(this, using_flags);
+			actionMouseType[ii] = new QAction(this);
 			actionGroup_MouseType->addAction(actionMouseType[ii]);
 			actionMouseType[ii]->setCheckable(true);
 			actionMouseType[ii]->setVisible(true);
@@ -527,7 +527,7 @@ void Ui_MainWindowBase::ConfigDriveType(void)
 		actionGroup_DriveType->setExclusive(true);
 		menuMachine->addAction(menuDriveType->menuAction());
 		for(i = 0; i < using_flags->get_use_drive_type(); i++) {
-			actionDriveType[i] = new Action_Control(this, using_flags);
+			actionDriveType[i] = new QAction(this);
 			actionDriveType[i]->setCheckable(true);
 			actionDriveType[i]->setVisible(true);
 			actionDriveType[i]->setData(QVariant(i));
@@ -553,7 +553,7 @@ void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 		actionGroup_SoundDevice->setExclusive(true);
 		menuMachine->addAction(menuSoundDevice->menuAction());
 		for(i = 0; i < using_flags->get_use_sound_device_type(); i++) {
-			actionSoundDevice[i] = new Action_Control(this, using_flags);
+			actionSoundDevice[i] = new QAction(this);
 			actionSoundDevice[i]->setCheckable(true);
 			actionSoundDevice[i]->setData(QVariant(i));
 			if(i == p_config->sound_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
@@ -584,7 +584,7 @@ void Ui_MainWindowBase::ConfigPrinterType(void)
 		menuMachine->addAction(menuPrintDevice->menuAction());
 
 		for(i = 0; i < ilim; i++) {
-			actionPrintDevice[i] = new Action_Control(this, using_flags);
+			actionPrintDevice[i] = new QAction(this);
 			actionPrintDevice[i]->setCheckable(true);
 			actionPrintDevice[i]->setData(QVariant(i));
 			if(i == p_config->printer_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
@@ -634,7 +634,7 @@ void Ui_MainWindowBase::ConfigSerialType(void)
 		menuMachine->addAction(menuSerialDevice->menuAction());
 
 		for(i = 0; i < ilim; i++) {
-			actionSerialDevice[i] = new Action_Control(this, using_flags);
+			actionSerialDevice[i] = new QAction(this);
 			actionSerialDevice[i]->setCheckable(true);
 			actionSerialDevice[i]->setData(QVariant(i));
 			if(i == p_config->serial_type) actionSerialDevice[i]->setChecked(true); // Need to write configure

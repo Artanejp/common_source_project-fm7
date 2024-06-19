@@ -17,28 +17,28 @@
 
 void Ui_MainWindowBase::ConfigCpuSpeed(void)
 {
-	actionSpeed_x1 = new Action_Control(this, using_flags);
+	actionSpeed_x1 = new QAction(this);
 	actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
 	actionSpeed_x1->setCheckable(true);
 	actionSpeed_x1->setChecked(true);
 	actionSpeed_x1->setData(QVariant((int)0));
 
-	actionSpeed_x2 = new Action_Control(this, using_flags);
+	actionSpeed_x2 = new QAction(this);
 	actionSpeed_x2->setObjectName(QString::fromUtf8("actionSpeed_x2"));
 	actionSpeed_x2->setCheckable(true);
 	actionSpeed_x2->setData(QVariant((int)1));
 
-	actionSpeed_x4 = new Action_Control(this, using_flags);
+	actionSpeed_x4 = new QAction(this);
 	actionSpeed_x4->setObjectName(QString::fromUtf8("actionSpeed_x4"));
 	actionSpeed_x4->setCheckable(true);
 	actionSpeed_x4->setData(QVariant((int)2));
 
-	actionSpeed_x8 = new Action_Control(this, using_flags);
+	actionSpeed_x8 = new QAction(this);
 	actionSpeed_x8->setObjectName(QString::fromUtf8("actionSpeed_x8"));
 	actionSpeed_x8->setCheckable(true);
 	actionSpeed_x8->setData(QVariant((int)3));
 
-	actionSpeed_x16 = new Action_Control(this, using_flags);
+	actionSpeed_x16 = new QAction(this);
 	actionSpeed_x16->setObjectName(QString::fromUtf8("actionSpeed_x16"));
 	actionSpeed_x16->setCheckable(true);
 	actionSpeed_x16->setData(QVariant((int)4));
@@ -106,7 +106,7 @@ void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 	actionGroup_BootMode = new QActionGroup(this);
 	actionGroup_BootMode->setExclusive(true);
 	for(i = 0; i < num; i++) {
-		actionBootMode[i] = new Action_Control(this, using_flags);
+		actionBootMode[i] = new QAction(this);
 		tmps = tmps.setNum(i);
 		tmps = QString::fromUtf8("actionBootMode_") + tmps;
 		actionBootMode[i]->setObjectName(tmps);
@@ -143,7 +143,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 	actionGroup_CpuType = new QActionGroup(this);
 	actionGroup_CpuType->setExclusive(true);
 	for(i = 0; i < num; i++) {
-		actionCpuType[i] = new Action_Control(this, using_flags);
+		actionCpuType[i] = new QAction(this);
 		tmps = tmps.setNum(i);
 		tmps = QString::fromUtf8("actionCpuType_") + tmps;
 		actionCpuType[i]->setObjectName(tmps);
@@ -160,7 +160,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 void Ui_MainWindowBase::ConfigControlMenu(void)
 {
 	int i;
-	actionReset = new Action_Control(this, using_flags);
+	actionReset = new QAction(this);
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
 		this, SLOT(OnReset())); // OK?
@@ -170,24 +170,24 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			QString tmps;
 			tmps.setNum(i);
 			tmps = QString::fromUtf8("actionSpecial_Reset") + tmps;
-			actionSpecial_Reset[i] = new Action_Control(this, using_flags);
+			actionSpecial_Reset[i] = new QAction(this);
 			actionSpecial_Reset[i]->setObjectName(tmps);
 			actionSpecial_Reset[i]->setData(QVariant(i));
 			if(i >= 15) break;
 		}
 	}
 
-	actionExit_Emulator = new Action_Control(this, using_flags);
+	actionExit_Emulator = new QAction(this);
 	actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
 	//connect(actionExit_Emulator, SIGNAL(triggered()),
 	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?
 
 	if(using_flags->is_use_auto_key()) {
-		actionPaste_from_Clipboard = new Action_Control(this, using_flags);
+		actionPaste_from_Clipboard = new QAction(this);
 		actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
 		connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
 				this, SLOT(OnStartAutoKey())); // OK?
-		actionStop_Pasting = new Action_Control(this, using_flags);
+		actionStop_Pasting = new QAction(this);
 		actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
 		connect(actionStop_Pasting, SIGNAL(triggered()),
 				this, SLOT(OnStopAutoKey())); // OK?
@@ -197,7 +197,7 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			QString tmps;
 			QString tmpss;
 			_TCHAR tmpbuf[_MAX_PATH];
-			actionSave_State[i] = new Action_Control(this, using_flags);
+			actionSave_State[i] = new QAction(this);
 
 			strncpy(tmpbuf, create_local_path(_T("%s.sta%d"), using_flags->get_config_name().toLocal8Bit().constData(), i), _MAX_PATH - 1);
 
@@ -206,9 +206,11 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 			tmpss.setNum(i);
 			tmps = QString::fromUtf8("actionSave_State") + tmpss;
 			actionSave_State[i]->setObjectName(tmps);
-			actionLoad_State[i] = new Action_Control(this, using_flags);
+			
+			actionLoad_State[i] = new QAction(this);
 			tmps = QString::fromUtf8("actionLoad_State") + tmpss;
 			actionLoad_State[i]->setObjectName(tmps);
+			
 			tmps = QString::fromLocal8Bit(tmpbuf);
 			actionSave_State[i]->setData(QVariant(tmps));
 			actionLoad_State[i]->setData(QVariant(tmps));
@@ -218,7 +220,7 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 		for(i = 0; i < _MAX_DEBUGGER; i++) {
 			QString tmps;
 			tmps.setNum(i);
-			actionDebugger[i] = new Action_Control(this, using_flags);
+			actionDebugger[i] = new QAction(this);
 			actionDebugger[i]->setObjectName(QString::fromUtf8("actionDebugger") + tmps);
 			actionDebugger[i]->setData(QVariant(i));
 			connect(actionDebugger[i], SIGNAL(triggered()),

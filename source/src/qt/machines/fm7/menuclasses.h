@@ -17,46 +17,46 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	QMenu *menuFrameSkip;
 	QActionGroup *actionGroup_FrameSkip;
-	class Action_Control *actionFrameSkip[4];
+	QAction *actionFrameSkip[4];
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-	class Action_Control *actionExtRam;
+	QAction *actionExtRam;
 # endif
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	class Action_Control *actionKanjiRom;
+	QAction *actionKanjiRom;
 # endif
 # if defined(CAPABLE_JCOMMCARD)
-	class Action_Control *actionJCOMMCARD;
+	QAction *actionJCOMMCARD;
 # endif
 	
 # if defined(_FM8)
-	class Action_Control *actionRamProtect;
+	QAction *actionRamProtect;
 # else	
-	class Action_Control *actionCycleSteal;
+	QAction *actionCycleSteal;
 # endif  
 
-	class Action_Control *actionSyncToHsync;
+	QAction *actionSyncToHsync;
 
 #if defined(CAPABLE_DICTROM) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
-	class Action_Control *actionDictCard;
+	QAction *actionDictCard;
 #endif
 	QActionGroup *actionGroup_Auto_5_8key;
 	QMenu *menuAuto5_8Key;
-	class Action_Control *action_Neither_5_or_8key;
-	class Action_Control *action_Auto_5key;
-	class Action_Control *action_Auto_8key;
+	QAction *action_Neither_5_or_8key;
+	QAction *action_Auto_5key;
+	QAction *action_Auto_8key;
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	class Action_Control *action_320kFloppy;
+	QAction *action_320kFloppy;
 # endif  
 # if defined(HAS_2HD)
-	class Action_Control *action_1MFloppy;
+	QAction *action_1MFloppy;
 # endif  
 # if defined(WITH_Z80)
-	class Action_Control *actionZ80CARD_ON;
-	class Action_Control *actionZ80_IRQ;
-	class Action_Control *actionZ80_FIRQ;
-	class Action_Control *actionZ80_NMI;
+	QAction *actionZ80CARD_ON;
+	QAction *actionZ80_IRQ;
+	QAction *actionZ80_FIRQ;
+	QAction *actionZ80_NMI;
 #endif
-	class Action_Control *actionUART[3];
+	QAction *actionUART[3];
 	
 	void setupUI_Emu(void);
 	void retranslateUi(void);

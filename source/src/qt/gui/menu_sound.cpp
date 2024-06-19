@@ -43,7 +43,7 @@ void Ui_MainWindowBase::do_append_sound_output_list(QString _name)
 	if(nums < 0) nums = 0;
 	QString tmps = QString::fromUtf8("action_HostSoundDevice") + QString::number(nums);
 
-	action_HostSoundDevice.append(new Action_Control(this, using_flags));
+	action_HostSoundDevice.append(new QAction(this));
 	action_HostSoundDevice[nums]->setChecked(false);
 	action_HostSoundDevice[nums]->setObjectName(tmps);
 	action_HostSoundDevice[nums]->setCheckable(true);
@@ -186,7 +186,7 @@ void Ui_MainWindowBase::CreateSoundMenu(void)
 										"actionSoundTapeVoice", p_config->sound_tape_voice,
 										SIGNAL(toggled(bool)), SLOT(do_set_sound_tape_voice(bool)));
 
-	//actionSoundStrictRendering = new Action_Control(this, using_flags);
+	//actionSoundStrictRendering = new QAction(this);
 	//actionSoundStrictRendering->setObjectName(QString::fromUtf8("actionSoundStrictRendering"));
 	//actionSoundStrictRendering->setCheckable(true);
 	//if(p_config->sound_strict_rendering) actionSoundStrictRendering->setChecked(true);
@@ -246,7 +246,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	actionGroup_Sound_Freq = new QActionGroup(this);
 	actionGroup_Sound_Freq->setExclusive(true);
 	for(i = 0; i < 8; i++) {
-		action_Freq[i] = new Action_Control(this, using_flags);
+		action_Freq[i] = new QAction(this);
 		int _freq = using_flags->get_sound_sample_rate(i);
 		tmps.setNum(_freq);
 		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
@@ -263,7 +263,7 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	actionGroup_Sound_Latency->setExclusive(true);
 
 	for(i = 0; i < 5; i++) {
-		action_Latency[i] = new Action_Control(this, using_flags);
+		action_Latency[i] = new QAction(this);
 		dval = using_flags->get_sound_latency(i);
 		dval = dval * 1000.0;
 		tmps.setNum(dval);
@@ -276,13 +276,13 @@ void Ui_MainWindowBase::ConfigSoundMenu(void)
 	}
 
 	SET_ACTION_SINGLE(actionStart_Record, true, true, false);
-	//actionStart_Record = new Action_Control(this, using_flags);
+	//actionStart_Record = new QAction(this);
 	//actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
 	//actionStart_Record->setCheckable(true);
 	//actionStart_Record->setChecked(false);
 	connect(actionStart_Record, SIGNAL(toggled(bool)), this, SLOT(start_record_sound(bool)));
 
-	action_VolumeDialog = new Action_Control(this, using_flags);
+	action_VolumeDialog = new QAction(this);
 	connect(action_VolumeDialog, SIGNAL(triggered()), this, SLOT(rise_volume_dialog()));
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
 }

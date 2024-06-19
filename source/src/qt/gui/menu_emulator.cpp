@@ -268,7 +268,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	menu_DispVirtualMedias = new QMenu(this);
 	menu_DispVirtualMedias->setToolTipsVisible(true);
 	for(i = 0; i < 3; i++) {
-		action_DispVirtualMedias[i] = new Action_Control(this, using_flags);
+		action_DispVirtualMedias[i] = new QAction(this);
 		action_DispVirtualMedias[i]->setCheckable(true);
 		action_DispVirtualMedias[i]->setChecked(false);
 		if(i == p_config->virtual_media_position) action_DispVirtualMedias[i]->setChecked(true);
@@ -307,7 +307,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	{
 		for(i = 0; i < 3; i++) {
 			tmps = QString::number(i);
-			action_EmulateCursorAs[i] = new Action_Control(this, using_flags);
+			action_EmulateCursorAs[i] = new QAction(this);
 			action_EmulateCursorAs[i]->setObjectName(QString::fromUtf8("action_EmulateCursorAs", -1) + tmps);
 			action_EmulateCursorAs[i]->setCheckable(true);
 			action_EmulateCursorAs[i]->setData(QVariant(i));
@@ -323,11 +323,11 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(actionSpeed_FULL, "actionSpeed_FULL", p_config->full_speed, SIGNAL(toggled(bool)), SLOT(do_emu_full_speed(bool)));
 
 	if(using_flags->is_use_mouse()) {
-		action_SetupMouse = new Action_Control(this, using_flags);
+		action_SetupMouse = new QAction(this);
 	}
 	if(using_flags->is_use_joystick()) {
-		action_SetupJoystick = new Action_Control(this, using_flags);
-		action_SetupJoykey = new Action_Control(this, using_flags);
+		action_SetupJoystick = new QAction(this);
+		action_SetupJoykey = new QAction(this);
 	}
 
 	SET_ACTION_CHECKABLE_SINGLE_CONNECT_NOMENU(action_FocusWithClick, "actionFocus_With_Click", p_config->focus_with_click, SIGNAL(toggled(bool)), SLOT(do_set_window_focus_type(bool)));
@@ -343,7 +343,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	menuDevLogToSyslog = new QMenu(this);
 	menuDevLogToSyslog->setToolTipsVisible(true);
 	SET_ACTION_CONTROL_ARRAY(0, (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1),
-							 this, using_flags,
+							 this, 
 							 menuDevLogToSyslog, action_DevLogToSyslog, true, false,
 							 dev_log_to_syslog,
 							 SIGNAL(toggled(bool)),
@@ -357,13 +357,13 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	menuDevLogToConsole->setToolTipsVisible(true);
 
 	SET_ACTION_CONTROL_ARRAY(0, (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1),
-							 this, using_flags,
+							 this, 
 							 menuDevLogToConsole, action_DevLogToConsole, true, false,
 							 dev_log_to_console,
 							 SIGNAL(toggled(bool)),
 							 SLOT(do_set_dev_log_to_console(bool)));
 
-	action_LogView = new Action_Control(this, using_flags);
+	action_LogView = new QAction(this);
 	connect(action_LogView, SIGNAL(triggered()),
 			this, SLOT(rise_log_viewer()));
 
@@ -385,7 +385,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		actionGroup_SetFixedCpu->setExclusive(true);
 		if(cpus >= 128) cpus = 128;
 
-		action_ResetFixedCpu = new Action_Control(this, using_flags);
+		action_ResetFixedCpu = new QAction(this);
 		action_ResetFixedCpu->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
 		action_ResetFixedCpu->setCheckable(true);
 		action_ResetFixedCpu->setData(QVariant((int)-1));
@@ -394,7 +394,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 		for(i = 0; i < cpus; i++) {
 			tmps = QString::number(i);
-			action_SetFixedCpu[i] = new Action_Control(this, using_flags);
+			action_SetFixedCpu[i] = new QAction(this);
 			action_SetFixedCpu[i]->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
 			action_SetFixedCpu[i]->setCheckable(true);
 			action_SetFixedCpu[i]->setData(QVariant(i));
@@ -413,7 +413,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 			//int _minor_version = p_config->render_minor_version; // ToDo
 			for(i = 0; i < MAX_RENDER_PLATFORMS; i++) {
 				tmps = QString::number(i);
-				action_SetRenderPlatform[i] = new Action_Control(this, using_flags);
+				action_SetRenderPlatform[i] = new QAction(this);
 				action_SetRenderPlatform[i]->setObjectName(QString::fromUtf8("action_SetRenderPlatform", -1) + tmps);
 				action_SetRenderPlatform[i]->setCheckable(true);
 				action_SetRenderPlatform[i]->setData(QVariant(i));
@@ -458,9 +458,9 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 						this, SLOT(do_select_render_platform(void)));
 			}
 	}
-	action_SetupKeyboard = new Action_Control(this, using_flags);
+	action_SetupKeyboard = new QAction(this);
 
-	action_SetupMovie = new Action_Control(this, using_flags);
+	action_SetupMovie = new QAction(this);
 
 }
 

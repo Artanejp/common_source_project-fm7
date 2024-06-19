@@ -114,7 +114,7 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 	int w, h;
 	QString tmps;
 
-	for(int i = 0; i < (sizeof(actionScreenSize) / sizeof(Action_Control *)); i++) {
+	for(int i = 0; i < (sizeof(actionScreenSize) / sizeof(QAction *)); i++) {
 		actionScreenSize[i] = nullptr;
 	}
 
@@ -170,9 +170,9 @@ void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 void Ui_MainWindowBase::ConfigScreenMenu(void)
 {
 
-	actionZoom = new Action_Control(this, using_flags);
+	actionZoom = new QAction(this);
 	actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
-	actionDisplay_Mode = new Action_Control(this, using_flags);
+	actionDisplay_Mode = new QAction(this);
 	actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
 
 	SET_ACTION_SINGLE(action_ScreenSeparateThread, true, true, (p_config->use_separate_thread_draw));
@@ -190,7 +190,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			actionScanLine_Auto->setVisible(up->is_use_scanline_auto());
 		}
 		if(!(up->is_use_one_board_computer()) && (up->get_max_button() <= 0)) {
-			actionGLScanLineHoriz = new Action_Control(this, using_flags);
+			actionGLScanLineHoriz = new QAction(this);
 			actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
 			actionGLScanLineHoriz->setCheckable(true);
 			if(p_config->opengl_scanline_horiz != 0) {
@@ -201,7 +201,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 			connect(actionGLScanLineHoriz, SIGNAL(toggled(bool)),
 					this, SLOT(set_gl_scan_line_horiz(bool)));
 			if(up->is_use_vertical_pixel_lines()) {
-				actionGLScanLineVert = new Action_Control(this, using_flags);
+				actionGLScanLineVert = new QAction(this);
 				actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
 				actionGLScanLineVert->setCheckable(true);
 				if(p_config->opengl_scanline_vert != 0) {
@@ -218,7 +218,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	actionGroup_RotateType->setExclusive(true);
 
 	for(int i = 0; i < 4; i++) {
-		actionRotate[i] = new Action_Control(this, using_flags);
+		actionRotate[i] = new QAction(this);
 		actionRotate[i]->setObjectName(QString::fromUtf8("actionRotate") + QString("%1").arg(i));
 		actionRotate[i]->setCheckable(true);
 		actionRotate[i]->setData(QVariant(i));
@@ -227,7 +227,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionRotate[i], SIGNAL(triggered()), this, SLOT(do_set_screen_rotate()));
 	}
 
-	actionOpenGL_Filter = new Action_Control(this, using_flags);
+	actionOpenGL_Filter = new QAction(this);
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
 	actionOpenGL_Filter->setEnabled(true);
 	actionOpenGL_Filter->setCheckable(true);
@@ -237,25 +237,25 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 	if(up.get() != nullptr) {
 	if((up->get_screen_height_aspect() != up->get_screen_height()) ||
 	   (up->get_screen_width_aspect() != up->get_screen_width())) {
-		actionDot_by_Dot = new Action_Control(this, using_flags);
+		actionDot_by_Dot = new QAction(this);
 		actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 		actionDot_by_Dot->setCheckable(true);
 		if(p_config->window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
 		actionDot_by_Dot->setData(QVariant((int)0));
 
-		actionReferToX_Display = new Action_Control(this, using_flags);
+		actionReferToX_Display = new QAction(this);
 		actionReferToX_Display->setObjectName(QString::fromUtf8("actionReferToX_Display"));
 		actionReferToX_Display->setCheckable(true);
 		actionReferToX_Display->setData(QVariant((int)1));
 		if(p_config->window_stretch_type == 1) actionReferToX_Display->setChecked(true);
 
-		actionReferToY_Display = new Action_Control(this, using_flags);
+		actionReferToY_Display = new QAction(this);
 		actionReferToY_Display->setObjectName(QString::fromUtf8("actionReferToY_Display"));
 		actionReferToY_Display->setCheckable(true);
 		actionReferToY_Display->setData(QVariant((int)2));
 		if(p_config->window_stretch_type == 2) actionReferToY_Display->setChecked(true);
 
-		actionFill_Display = new Action_Control(this, using_flags);
+		actionFill_Display = new QAction(this);
 		actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 		actionFill_Display->setCheckable(true);
 		actionFill_Display->setData(QVariant((int)3));
@@ -273,14 +273,14 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		connect(actionFill_Display, SIGNAL(triggered()), this, SLOT(do_set_screen_aspect()));
 	}
 	}
-	actionCapture_Screen = new Action_Control(this, using_flags);
+	actionCapture_Screen = new QAction(this);
 	actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
 
-	actionStart_Record_Movie = new Action_Control(this, using_flags);
+	actionStart_Record_Movie = new QAction(this);
 	actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
 	actionStart_Record_Movie->setCheckable(false);
 
-	actionStop_Record_Movie = new Action_Control(this, using_flags);
+	actionStop_Record_Movie = new QAction(this);
 	actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
 	actionStop_Record_Movie->setCheckable(false);
 
@@ -295,7 +295,7 @@ void Ui_MainWindowBase::ConfigScreenMenu(void)
 		actionGroup_RenderMode->setExclusive(true);
 
 		for(i = 0; i < ii; i++) {
-			action_SetRenderMode[i] = new Action_Control(this, using_flags);
+			action_SetRenderMode[i] = new QAction(this);
 			action_SetRenderMode[i]->setCheckable(true);
 			action_SetRenderMode[i]->setEnabled(false);
 			action_SetRenderMode[i]->setVisible(false);
