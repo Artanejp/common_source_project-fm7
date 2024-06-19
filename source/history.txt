@@ -1,3 +1,8 @@
+12/16/2023
+
+[X1TURBO/DISPLAY] fix text renderer for vertial doubled character
+
+
 6/11/2023
 
 [VM/I8257] support i8257

@@ -1078,12 +1078,14 @@ void DISPLAY::draw_text(int yy)
 		}
 		prev_attr = attr;
 	}
-	if(cur_vert_double && !prev_vert_double) {
-		prev_vert_double = true;
-		raster = ch_height >> 1;
-	} else {
-		prev_vert_double = false;
-		raster = 0;
+	if((yy % ch_height) == (ch_height - 1)) {
+		if(cur_vert_double && !prev_vert_double) {
+			prev_vert_double = true;
+			raster = ch_height >> 1;
+		} else {
+			prev_vert_double = false;
+			raster = 0;
+		}
 	}
 }
 
