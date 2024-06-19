@@ -768,22 +768,24 @@ void OSD::set_features_machine(void)
 // SHARP X1
 #ifdef _X1
 	add_feature(_T("_X1"), 1);
+	add_feature(_T("_X1_SERIES"), 1);
 #endif
 
 // SHARP X1turbo
 #ifdef _X1TURBO
-	add_feature(_T("_X1"), 1);
 	add_feature(_T("_X1TURBO"), 1);
+	add_feature(_T("_X1_SERIES"), 1);
 #endif
 // SHARP X1turboZ
 #ifdef _X1TURBOZ
-	add_feature(_T("_X1"), 1);
 	add_feature(_T("_X1TURBOZ"), 1);
+	add_feature(_T("_X1_SERIES"), 1);
 #endif
 
 // SHARP X1twin
 #ifdef _X1TWIN
 	add_feature(_T("_X1TWIN"), 1);
+	add_feature(_T("_X1_SERIES"), 1);
 #endif
 
 // Yuasa Kyouiku System YALKY

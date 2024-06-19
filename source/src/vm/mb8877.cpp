@@ -200,8 +200,7 @@ void MB8877::initialize()
 	} else {
 		set_device_name(_T("MB8877 FDC"));
 	}		
-	if(osd->check_feature(_T("_X1")) || osd->check_feature(_T("_X1TWIN")) ||
-		osd->check_feature(_T("_X1TURBO")) || osd->check_feature(_T("_X1TURBOZ"))) {
+	if(osd->check_feature(_T("_X1_SERIES")) || osd->check_feature(_T("_X1TWIN"))) {
 		type_x1 = true;
 	}
 	if(osd->check_feature(_T("_FM7")) || osd->check_feature(_T("_FM8")) ||

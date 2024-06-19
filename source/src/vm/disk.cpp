@@ -133,14 +133,10 @@ void DISK::setup_fd_formats(void)
 		checked = true;
 		type_smc70 = true;
 		nt = { MEDIA_TYPE_2DD, 70, 1, 16,  256, MFM, 0, 0, FM };	// 1DD	280KB
-	} else if (osd->check_feature(_T("_X1")) || osd->check_feature(_T("_X1TWIN"))) {
+	} else if((osd->check_feature(_T("_X1_SERIES"))) || osd->check_feature(_T("_X1TWIN"))) {
 		checked = true;
 		type_x1 = true;
-		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM, 0, 0, FM };	// 2D	320KB
-	} else if(osd->check_feature(_T("_X1TURBO")) || osd->check_feature(_T("_X1TURBOZ"))) {
-		checked = true;
-		type_x1 = true;
-		type_x1turbo = true;
+		type_x1turbo = (osd->check_feature(_T("_X1TURBO_FEATURE")) ? true : false;
 		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM, 0, 0, FM };	// 2D	320KB
 	} else if(osd->check_feature(_T("_M5"))) {
 		checked = true;
