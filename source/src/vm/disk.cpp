@@ -1300,7 +1300,7 @@ void DISK::set_sector_info(uint8_t *t)
 	// t[6]: 0x00 = double-density, 0x40 = single-density
 	// t[7]: 0x00 = normal, 0x10 = deleted mark
 	// t[8]: 0x00 = valid, 0x10 = valid (deleted data), 0xa0 = id crc error, 0xb0 = data crc error, 0xe0 = address mark missing, 0xf0 = data mark missing
-	density = t[6];
+	sector_mfm = (t[6] == 0);
 	deleted = (t[7] != 0);
 //	if(ignore_crc()) {
 //		addr_crc_error = false;
@@ -1313,7 +1313,7 @@ void DISK::set_sector_info(uint8_t *t)
 	sector_size.read_2bytes_le_from(t + 14);
 }
 
-bool DISK::get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length)
+bool DISK::get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, bool *mfm, int *length)
 {
 	if(media_type == MEDIA_TYPE_2D && drive_type == DRIVE_TYPE_2DD) {
 		if(trk >= 0) {
@@ -1325,10 +1325,10 @@ bool DISK::get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h,
 	} else if(media_type == MEDIA_TYPE_2DD && drive_type == DRIVE_TYPE_2D) {
 		if(trk >= 0) trk <<= 1;
 	}
-	return get_sector_info_tmp(trk, side, index, c, h, r, n, length);
+	return get_sector_info_tmp(trk, side, index, c, h, r, n, mfm, length);
 }
 
-bool DISK::get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length)
+bool DISK::get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, bool *mfm, int *length)
 {
 	// search track
 	if(trk == -1 && side == -1) {
@@ -1365,6 +1365,7 @@ bool DISK::get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t
 	*h = t[1];
 	*r = t[2];
 	*n = t[3];
+	*mfm = (t[6] == 0);
 	*length = data_size.sd;
 	return true;
 }
@@ -1576,7 +1577,7 @@ int DISK::get_max_tracks()
 
 int DISK::get_rpm()
 {
-	if(drive_rpm != 0) {
+	if(drive_rpm > 0) {
 		return drive_rpm;
 	} else if(inserted) {
 		return (media_type == MEDIA_TYPE_2HD) ? 360 : 300;
@@ -2889,7 +2890,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	return true;
 }
 
-#define STATE_VERSION	15
+#define STATE_VERSION	16
 
 bool DISK::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2944,7 +2945,7 @@ bool DISK::process_state(FILEIO* state_fio, bool loading)
 	}
 	state_fio->StateValue(sector_size.sd);
 	state_fio->StateArray(id, sizeof(id), 1);
-	state_fio->StateValue(density);
+	state_fio->StateValue(sector_mfm);
 	state_fio->StateValue(deleted);
 	state_fio->StateValue(addr_crc_error);
 	state_fio->StateValue(data_crc_error);

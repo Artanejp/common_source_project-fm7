@@ -26,6 +26,7 @@ void FLOPPY::reset()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		d_fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+		d_fdc->set_drive_mfm (i, true);
 	}
 }
 
@@ -36,6 +37,9 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		// drive control register
 		fdcr = data;
 		update_intr();
+		for(int i = 0; i < 4; i++) {
+			d_fdc->set_drive_mfm(i, ((data & 2) != 0));
+		}
 //		d_fdc->write_signal(SIG_MB8877_MOTOR, data, 0x18);
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 4);
 		break;

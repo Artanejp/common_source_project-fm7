@@ -36,6 +36,12 @@ void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 		// side reg
 		d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 1);
 		break;
+	case 0xde:
+		// density reg
+		for(int i = 0; i < 4; i++) {
+			d_fdc->set_drive_mfm(i, (data & 1) == 0);
+		}
+		break;
 	}
 }
 

@@ -349,7 +349,10 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 			break;
 		case 0x34:
 			// bit0: drive num	0 = drive A, 1 = drive B
-			d_fdc->write_signal(SIG_MB8877_DRIVEREG, data, 1);
+#if defined(_SMC70)
+			d_fdc->write_signal(SIG_MB8877_SIDEREG, data, 0x80);
+#endif
+			d_fdc->write_signal(SIG_MB8877_DRIVEREG, data, 0x01);
 			break;
 #if defined(_SMC777)
 		case 0x51:

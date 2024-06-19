@@ -1287,7 +1287,12 @@ uint8_t MB8877::search_track()
 	// verify track number
 	if(disk[drvreg]->ignore_crc()) {
 		for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
-			disk[drvreg]->get_sector(-1, -1, i);
+			if(!disk[drvreg]->get_sector(-1, -1, i)) {
+				continue;
+			}
+			if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+				continue;
+			}
 			if(disk[drvreg]->id[0] == trkreg) {
 				fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
 				fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
@@ -1296,7 +1301,12 @@ uint8_t MB8877::search_track()
 		}
 	} else {
 		for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
-			disk[drvreg]->get_sector(-1, -1, i);
+			if(!disk[drvreg]->get_sector(-1, -1, i)) {
+				continue;
+			}
+			if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+				continue;
+			}
 			if(disk[drvreg]->id[0] == trkreg && !disk[drvreg]->addr_crc_error) {
 				fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
 				fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
@@ -1304,7 +1314,12 @@ uint8_t MB8877::search_track()
 			}
 		}
 		for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
-			disk[drvreg]->get_sector(-1, -1, i);
+			if(!disk[drvreg]->get_sector(-1, -1, i)) {
+				continue;
+			}
+			if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+				continue;
+			}
 			if(disk[drvreg]->id[0] == trkreg) {
 				return FDC_ST_SEEKERR | FDC_ST_CRCERR;
 			}
@@ -1350,8 +1365,13 @@ uint8_t MB8877::search_sector()
 	for(int i = 0; i < sector_num; i++) {
 		// get sector
 		int index = (first_sector + i) % sector_num;
-		disk[drvreg]->get_sector(-1, -1, index);
 		
+		if(!disk[drvreg]->get_sector(-1, -1, index)) {
+			continue;
+		}
+		if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+			continue;
+		}
 		// check id
 		if(disk[drvreg]->id[0] != trkreg) {
 			continue;
@@ -1424,9 +1444,17 @@ uint8_t MB8877::search_addr()
 	}
 	
 	// get sector
-	if(disk[drvreg]->get_sector(-1, -1, first_sector)) {
-		fdc[drvreg].next_trans_position = disk[drvreg]->id_position[first_sector] + 1;
-		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[first_sector];
+	for(int i = 0; i < sector_num; i++) {
+		int index = (first_sector + i) % sector_num;
+		
+		if(!disk[drvreg]->get_sector(-1, -1, index)) {
+			continue;
+		}
+		if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+			continue;
+		}
+		fdc[drvreg].next_trans_position = disk[drvreg]->id_position[index] + 1;
+		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[index];
 		fdc[drvreg].index = 0;
 		secreg = disk[drvreg]->id[0];
 		return 0;
@@ -1691,10 +1719,12 @@ bool MB8877::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	
 	for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
 		uint8_t c, h, r, n;
+		bool mfm;
 		int length;
-		if(disk[drvreg]->get_sector_info(-1, -1, i, &c, &h, &r, &n, &length)) {
+		if(disk[drvreg]->get_sector_info(-1, -1, i, &c, &h, &r, &n, &mfm, &length)) {
 			my_tcscat_s(buffer, buffer_len,
-			create_string(_T("\nSECTOR %2d: C=%02X H=%02X R=%02X N=%02X SIZE=%4d AM1=%5d DATA=%5d"), i + 1, c, h, r, n, length, disk[drvreg]->am1_position[i], disk[drvreg]->data_position[i]));
+			create_string(_T("\nSECTOR %2d: C=%02X H=%02X R=%02X N=%02X DENS=%s SIZE=%4d AM1=%5d DATA=%5d"),
+				i + 1, c, h, r, n, mfm ? "MFM" : " FM", length, disk[drvreg]->am1_position[i], disk[drvreg]->data_position[i]));
 			if(position >= disk[drvreg]->am1_position[i] && position < disk[drvreg]->data_position[i] + length) {
 				my_tcscat_s(buffer, buffer_len, _T(" <==="));
 			}

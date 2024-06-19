@@ -175,6 +175,9 @@ void MAIN::write_io8(uint32_t addr, uint32_t data)
 		break;
 
 	case 0xfd34:
+		for(int i = 0; i < 4; i++) {
+			d_fdc_2hd->set_drive_mfm(i, ((data & 0x40) != 0));
+		}
 		d_fdc_2hd->write_signal(SIG_MB8877_SIDEREG, data, 0x01);
 		sidereg_2hd = data;
 		break;

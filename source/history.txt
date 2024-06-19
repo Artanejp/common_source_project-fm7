@@ -1,9 +1,30 @@
-1/28/2022
+5/29/2023
+
+[VM/MB8877] improve for mix-density disk
+[VM/T3444A] improve for mix-density disk
+[VM/UPD765A] improve for mix-density disk
+[VM/UPD7220] remove ugly hack to keep pitch value for QC-10
+
+[FM16BETA/MAIN] support switching floppy drive density
+[FMR30/FLOPPY] support switching floppy drive density
+[FMR50/FLOPPY] support switching floppy drive density
+[M23/FLOPPY] fix switching floppy drive density (thanks Mr.Tsunozemi)
+[MZ1500/FLOPPY] support switching floppy drive density
+[MZ1500/QUICKDISK] improve not to stop playing seek noise
+[MZ2500/FLOPPY] support switching floppy drive density
+[MZ2800/FLOPPY] support switching floppy drive density
+[PC8801/PC88] improve screen renderer for PDDOS
+[SMC70/MEMORY] support switching floppy drive side
+[X1TURBO/DISPLAY] improve to render text screen in every vline (thanks Mr.Sato)
+[X1TURBO/FLOPPY] support switching floppy drive density and rpm
+
+
+1/28/2023
 
 [PC98HA] support docking station
 
 
-1/24/2022
+1/24/2023
 
 [VM/UPD7220] fix EGC access issue
 [VM/UPD7220] fix PITCH and VECTW to consider DGD flag
@@ -11,7 +32,7 @@
 [PC9801/DISPLAY] improve to notify EGC access mode to GDC
 
 
-1/22/2022
+1/22/2023
 
 [VM/I386_NP21] update to Neko Project 21/W ver0.86 rev88 beta5
 [VM/UPD7220] fix replace operation in pset

@@ -3134,10 +3134,15 @@ void PC88::draw_text()
 //		memset(crtc.attrib.expand, 2, 200 * 80);
 	}
 	
-	// for Xak2 opening
-	memset(text, 8, sizeof(text));
+	// for PDDOS and Xak2 opening
 	memset(text_color, 7, sizeof(text_color));
 	memset(text_reverse, 0, sizeof(text_reverse));
+	
+	if(dmac.ch[3].count.sd == 0) {
+		memset(text, 0, sizeof(text));
+		return;
+	}
+	memset(text, 8, sizeof(text));
 	
 	int char_height = crtc.char_height;
 	uint8_t color_mask = Port30_COLOR ? 0 : 7;

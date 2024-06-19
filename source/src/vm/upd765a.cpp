@@ -1039,13 +1039,15 @@ void UPD765A::read_diagnostic()
 		shift_to_result7();
 		return;
 	}
-	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
-//		result = ST1_ND;
-		result = ST0_AT | ST1_MA;
-		shift_to_result7();
-		return;
-	}
-	if(disk[drv]->get_sector(trk, side, 0)) {
+	bool found = false;
+	for(int i = 0; i < disk[drv]->sector_num.sd; i++) {
+		if(!disk[drv]->get_sector(trk, side, i)) {
+			continue;
+		}
+		if((command & 0x40) != (disk[drv]->sector_mfm ? 0x40 : 0)) {
+			continue;
+		}
+		found = true;
 #if 0
 		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] /*|| disk[drv]->id[3] != id[3]*/) {
 #else
@@ -1053,6 +1055,13 @@ void UPD765A::read_diagnostic()
 #endif
 			result = ST1_ND;
 		}
+		break;
+	}
+	if(!found) {
+//		result = ST1_ND;
+		result = ST0_AT | ST1_MA;
+		shift_to_result7();
+		return;		
 	}
 	
 	// FIXME: we need to consider the case that the first sector does not have a data field
@@ -1078,9 +1087,6 @@ uint32_t UPD765A::read_sector()
 #endif
 		return ST0_AT | ST1_MA;
 	}
-	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
-		return ST0_AT | ST1_MA;
-	}
 	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 #ifdef _FDC_DEBUG_LOG
@@ -1091,6 +1097,9 @@ uint32_t UPD765A::read_sector()
 	int cy = -1;
 	for(int i = 0; i < secnum; i++) {
 		if(!disk[drv]->get_sector(trk, side, i)) {
+			continue;
+		}
+		if((command & 0x40) != (disk[drv]->sector_mfm ? 0x40 : 0)) {
 			continue;
 		}
 		cy = disk[drv]->id[0];
@@ -1131,7 +1140,10 @@ uint32_t UPD765A::read_sector()
 #ifdef _FDC_DEBUG_LOG
 	this->out_debug_log(_T("FDC: SECTOR NOT FOUND (TRK=%d SIDE=%d ID=%2x,%2x,%2x,%2x)\n"), trk, side, id[0], id[1], id[2], id[3]);
 #endif
-	if(cy != id[0] && cy != -1) {
+	if(cy == -1) {
+		return ST0_AT | ST1_MA;
+	}
+	if(cy != id[0]) {
 		if(cy == 0xff) {
 			return ST0_AT | ST1_ND | ST2_BC;
 		} else {
@@ -1196,9 +1208,6 @@ uint32_t UPD765A::find_id()
 	if(!disk[drv]->get_track(trk, side)) {
 		return ST0_AT | ST1_MA;
 	}
-	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
-		return ST0_AT | ST1_MA;
-	}
 	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 		return ST0_AT | ST1_MA;
@@ -1206,6 +1215,9 @@ uint32_t UPD765A::find_id()
 	int cy = -1;
 	for(int i = 0; i < secnum; i++) {
 		if(!disk[drv]->get_sector(trk, side, i)) {
+			continue;
+		}
+		if((command & 0x40) != (disk[drv]->sector_mfm ? 0x40 : 0)) {
 			continue;
 		}
 		cy = disk[drv]->id[0];
@@ -1219,7 +1231,10 @@ uint32_t UPD765A::find_id()
 		fdc[drv].next_trans_position = disk[drv]->data_position[i];
 		return 0;
 	}
-	if(cy != id[0] && cy != -1) {
+	if(cy == -1) {
+		return ST0_AT | ST1_MA;
+	}
+	if(cy != id[0]) {
 		if(cy == 0xff) {
 			return ST0_AT | ST1_ND | ST2_BC;
 		} else {
@@ -1361,9 +1376,6 @@ uint32_t UPD765A::read_id()
 	if(!disk[drv]->get_track(trk, side)) {
 		return ST0_AT | ST1_MA;
 	}
-	if((command & 0x40) != (disk[drv]->track_mfm ? 0x40 : 0)) {
-		return ST0_AT | ST1_MA;
-	}
 	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 		return ST0_AT | ST1_MA;
@@ -1382,16 +1394,21 @@ uint32_t UPD765A::read_id()
 	}
 	for(int i = 0; i < secnum; i++) {
 		int index = (first_sector + i) % secnum;
-		if(disk[drv]->get_sector(trk, side, index)) {
-			id[0] = disk[drv]->id[0];
-			id[1] = disk[drv]->id[1];
-			id[2] = disk[drv]->id[2];
-			id[3] = disk[drv]->id[3];
-			fdc[drv].next_trans_position = disk[drv]->id_position[index] + 6;
-			return 0;
+		if(!disk[drv]->get_sector(trk, side, index)) {
+			continue;
 		}
+		if((command & 0x40) != (disk[drv]->sector_mfm ? 0x40 : 0)) {
+			continue;
+		}
+		id[0] = disk[drv]->id[0];
+		id[1] = disk[drv]->id[1];
+		id[2] = disk[drv]->id[2];
+		id[3] = disk[drv]->id[3];
+		fdc[drv].next_trans_position = disk[drv]->id_position[index] + 6;
+		return 0;
 	}
-	return ST0_AT | ST1_ND;
+//	return ST0_AT | ST1_ND;
+	return ST0_AT | ST1_MA;
 }
 
 uint32_t UPD765A::write_id()
@@ -1777,10 +1794,12 @@ bool UPD765A::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	
 	for(int i = 0; i < disk[drv]->sector_num.sd; i++) {
 		uint8_t c, h, r, n;
+		bool mfm;
 		int length;
-		if(disk[drv]->get_sector_info(-1, -1, i, &c, &h, &r, &n, &length)) {
+		if(disk[drv]->get_sector_info(-1, -1, i, &c, &h, &r, &n, &mfm, &length)) {
 			my_tcscat_s(buffer, buffer_len,
-			create_string(_T("\nSECTOR %2d: C=%02X H=%02X R=%02X N=%02X SIZE=%4d AM1=%5d DATA=%5d"), i + 1, c, h, r, n, length, disk[drv]->am1_position[i], disk[drv]->data_position[i]));
+			create_string(_T("\nSECTOR %2d: C=%02X H=%02X R=%02X N=%02X DENS=%s SIZE=%4d AM1=%5d DATA=%5d"),
+				i + 1, c, h, r, n, mfm ? "MFM" : " FM", length, disk[drv]->am1_position[i], disk[drv]->data_position[i]));
 			if(position >= disk[drv]->am1_position[i] && position < disk[drv]->data_position[i] + length) {
 				my_tcscat_s(buffer, buffer_len, _T(" <==="));
 			}

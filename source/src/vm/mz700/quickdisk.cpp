@@ -233,7 +233,7 @@ void QUICKDISK::restore()
 	buffer_ptr = 0;
 	first_data = send_break = true;
 	
-	d_noise_seek->stop();
+//	d_noise_seek->stop();
 	d_noise_seek->play();
 	
 	// start to send
@@ -316,7 +316,7 @@ void QUICKDISK::end_of_disk()
 	// reached to end of disk
 	if(mton || !wrga) {
 		if(motor_on) {
-			d_noise_seek->stop();
+//			d_noise_seek->stop();
 			motor_on = false;
 		}
 	} else {

@@ -101,7 +101,7 @@ private:
 	bool get_sector_tmp(int trk, int side, int index);
 	int get_track_num(uint8_t *t);
 	uint8_t *get_unstable_sector(uint8_t *t, int index);
-	bool get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length);
+	bool get_sector_info_tmp(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, bool *mfm, int *length);
 	bool format_track_tmp(int trk, int side);
 	
 public:
@@ -147,7 +147,7 @@ public:
 	bool get_track(int trk, int side);
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
-	bool get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, int *length);
+	bool get_sector_info(int trk, int side, int index, uint8_t *c, uint8_t *h, uint8_t *r, uint8_t *n, bool *mfm, int *length);
 	void set_deleted(bool value);
 	void set_data_crc_error(bool value);
 	void set_data_mark_missing();
@@ -191,7 +191,7 @@ public:
 	uint8_t* unstable;
 	pair32_t sector_size;
 	uint8_t id[6];
-	uint8_t density;
+	bool sector_mfm;
 	bool deleted;
 	bool addr_crc_error;
 	bool data_crc_error;

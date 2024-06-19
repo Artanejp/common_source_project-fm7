@@ -732,9 +732,10 @@ void DISPLAY::get_cur_code_line()
 void DISPLAY::draw_line(int v)
 {
 	if((regs[8] & 0x30) != 0x30) {
-		if((v % ch_height) == 0) {
-			draw_text(v / ch_height);
-		}
+		//if((v % ch_height) == 0) {
+		//	draw_text(v / ch_height);
+		//}
+		draw_text(v);
 #ifdef _X1TURBOZ
 		if(AEN && !hireso && column40) {
 			draw_cg(v, 1);
@@ -937,8 +938,9 @@ void DISPLAY::draw_screen()
 #endif
 }
 
-void DISPLAY::draw_text(int y)
+void DISPLAY::draw_text(int yy)
 {
+	int y = yy / ch_height;
 	int width = column40 ? 40 : 80;
 	uint16_t src = st_addr + hz_disp * y;
 	
@@ -1013,7 +1015,9 @@ void DISPLAY::draw_text(int y)
 		}
 		
 		// render character
-		for(int l = 0; l < ch_height; l++) {
+//		for(int l = 0; l < ch_height; l++)
+		{
+			int l = yy % ch_height;
 			uint8_t b, r, g;
 			int line = cur_vert_double ? raster + (l >> 1) : l;
 #ifdef _X1TURBO_FEATURE
@@ -1045,7 +1049,7 @@ void DISPLAY::draw_text(int y)
 				g = (!(col & 4)) ? 0 : g;
 			}
 			
-			int yy = y * ch_height + l;
+//			int yy = y * ch_height + l;
 #ifdef _X1TURBO_FEATURE
 			if(yy >= 400) {
 #else

@@ -85,6 +85,7 @@ void T3444A::initialize()
 	// initialize d88 handler
 	for(int i = 0; i < 4; i++) {
 		disk[i] = new DISK(emu);
+		disk[i]->drive_mfm = false;
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
 	
@@ -203,10 +204,7 @@ void T3444A::write_io8(uint32_t addr, uint32_t data)
 				
 				if(fdc[drvreg].index >= SECTORS_IN_TRACK * 4) {
 					// format in single-density
-					bool drive_mfm = disk[drvreg]->drive_mfm;
-					disk[drvreg]->drive_mfm = false;
 					disk[drvreg]->format_track(fdc[drvreg].track, sidereg);
-					disk[drvreg]->drive_mfm = drive_mfm;
 					for(int i = 0; i < SECTORS_IN_TRACK; i++) {
 						disk[drvreg]->insert_sector(sector_id[i * 4], sector_id[i * 4 + 1], sector_id[i * 4 + 2], sector_id[i * 4 + 3], false, false, 0xff, 128);
 					}
@@ -581,7 +579,13 @@ uint8_t T3444A::search_sector()
 	for(int i = 0; i < sector_num; i++) {
 		// get sector
 		int index = (first_sector + i) % sector_num;
-		disk[drvreg]->get_sector(-1, -1, index);
+		
+		if(!disk[drvreg]->get_sector(-1, -1, index)) {
+			continue;
+		}
+		if(disk[drvreg]->sector_mfm) {
+			continue;
+		}
 		
 		// check id
 		if(disk[drvreg]->id[0] == 0xff) {
@@ -771,13 +775,6 @@ void T3444A::set_drive_rpm(int drv, int rpm)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		disk[drv]->drive_rpm = rpm;
-	}
-}
-
-void T3444A::set_drive_mfm(int drv, bool mfm)
-{
-	if(drv < 4 && drv < MAX_DRIVE) {
-		disk[drv]->drive_mfm = mfm;
 	}
 }
 

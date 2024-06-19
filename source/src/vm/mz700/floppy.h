@@ -1,4 +1,5 @@
 /*
+	SHARP MZ-700 Emulator 'EmuZ-700'
 	SHARP MZ-800 Emulator 'EmuZ-800'
 	SHARP MZ-1500 Emulator 'EmuZ-1500'
 
@@ -17,11 +18,13 @@
 
 #define SIG_FLOPPY_DRQ	0
 
+class MB8877;
+
 class FLOPPY : public DEVICE
 {
 private:
 	DEVICE* d_cpu;
-	DEVICE* d_fdc;
+	MB8877* d_fdc;
 	
 	uint32_t prev_dc;
 	int register_id;
@@ -48,7 +51,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_context_fdc(DEVICE* device)
+	void set_context_fdc(MB8877* device)
 	{
 		d_fdc = device;
 	}

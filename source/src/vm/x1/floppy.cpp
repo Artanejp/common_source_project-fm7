@@ -59,19 +59,19 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0xffc:	// FM
-//		for(int drv = 0; drv < 4; drv++) {
-//			d_fdc->set_drive_mfm(drv, false);
-//		}
+		for(int drv = 0; drv < 4; drv++) {
+			d_fdc->set_drive_mfm(drv, false);
+		}
 		return 0xff;
 	case 0xffd:	// MFM
-//		for(int drv = 0; drv < 4; drv++) {
-//			d_fdc->set_drive_mfm(drv, true);
-//		}
+		for(int drv = 0; drv < 4; drv++) {
+			d_fdc->set_drive_mfm(drv, true);
+		}
 		return 0xff;
 	case 0xffe:	// 2HD
 		for(int drv = 0; drv < 4; drv++) {
 			d_fdc->set_drive_type(drv, DRIVE_TYPE_2HD);
-//			d_fdc->set_drive_rpm(drv, 360);
+			d_fdc->set_drive_rpm(drv, 360);
 		}
 		return 0xff;
 	case 0xfff:	// 2D/2DD
@@ -81,7 +81,7 @@ uint32_t FLOPPY::read_io8(uint32_t addr)
 			} else {
 				d_fdc->set_drive_type(drv, DRIVE_TYPE_2D);
 			}
-//			d_fdc->set_drive_rpm(drv, 300);
+			d_fdc->set_drive_rpm(drv, 300);
 		}
 		return 0xff;
 	}

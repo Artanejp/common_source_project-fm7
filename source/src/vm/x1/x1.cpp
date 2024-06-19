@@ -476,10 +476,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 //#ifdef _X1TURBO_FEATURE
 //		if(config.drive_type == 2) {
 //			fdc->set_drive_type(drv, DRIVE_TYPE_2HD);
-//		} else
+//			fdc->set_drive_rpm (drv, 360);
+//		} else {
 ///#ndif
-		fdc->set_drive_type(drv, DRIVE_TYPE_2D);
-//		fdc->set_drive_rpm(drv, 300);
+			fdc->set_drive_type(drv, DRIVE_TYPE_2D);
+			fdc->set_drive_rpm (drv, 300);
+//#ifdef _X1TURBO_FEATURE
+//		}
+//#endif
 //		fdc->set_drive_mfm(drv, true);
 	}
 	for(int drv = 0; drv < USE_HARD_DISK; drv++) {

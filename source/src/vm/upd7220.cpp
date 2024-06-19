@@ -599,12 +599,10 @@ void UPD7220::cmd_sync(bool flag)
 			sync[i] = params[i];
 			sync_changed = true;
 		}
-#ifndef UPD7220_FIXED_PITCH
 		if(i == 1) {
 			pitch2 = params[1] + 2;
 			pitch = pitch2 >> (dgd ? 1 : 0);
 		}
-#endif
 	}
 	start = flag;
 	cmdreg = -1;
@@ -671,10 +669,8 @@ void UPD7220::cmd_csrform()
 void UPD7220::cmd_pitch()
 {
 	if(params_count > 0) {
-#ifndef UPD7220_FIXED_PITCH
 		pitch2 = params[0];
 		pitch = pitch2 >> (dgd ? 1 : 0);
-#endif
 		cmdreg = -1;
 	}
 }

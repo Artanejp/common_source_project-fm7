@@ -18,10 +18,12 @@
 
 #define SIG_FLOPPY_REVERSE	0
 
+class MB8877;
+
 class FLOPPY : public DEVICE
 {
 private:
-	DEVICE* d_fdc;
+	MB8877* d_fdc;
 #ifdef _MZ2500
 	bool reversed;
 #endif
@@ -44,7 +46,7 @@ public:
 #endif
 	
 	// unique functions
-	void set_context_fdc(DEVICE* device)
+	void set_context_fdc(MB8877* device)
 	{
 		d_fdc = device;
 	}

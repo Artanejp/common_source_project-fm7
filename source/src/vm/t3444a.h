@@ -176,7 +176,6 @@ public:
 	void set_drive_type(int drv, uint8_t type);
 	uint8_t get_drive_type(int drv);
 	void set_drive_rpm(int drv, int rpm);
-	void set_drive_mfm(int drv, bool mfm);
 };
 
 #endif
