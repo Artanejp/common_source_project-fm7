@@ -678,12 +678,12 @@ public:
 		}
 		return event_manager->get_cpu_clocks(device);
 	}
-	virtual void update_event_in_opecode(int clock)
+	virtual void update_event_in_op(int clock)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		event_manager->update_event_in_opecode(clock);
+		event_manager->update_event_in_op(clock);
 	}
 	virtual void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id)
 	{

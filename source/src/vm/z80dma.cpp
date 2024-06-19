@@ -845,6 +845,7 @@ void Z80DMA::notify_intr_reti()
 	if(d_child != NULL) {
 		d_child->notify_intr_reti();
 	}
+	update_intr();
 }
 
 #ifdef USE_DEBUGGER

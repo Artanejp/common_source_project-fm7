@@ -295,10 +295,11 @@ uint32_t Z80PIO::get_intr_ack()
 			return 0xff;
 		}
 		if(port[ch].enb_intr && port[ch].req_intr) {
+			uint8_t vector = port[ch].vector;
 			port[ch].req_intr = false;
 			port[ch].in_service = true;
 			update_intr();
-			return port[ch].vector;
+			return vector;
 		}
 	}
 	if(d_child) {
@@ -320,6 +321,7 @@ void Z80PIO::notify_intr_reti()
 	if(d_child) {
 		d_child->notify_intr_reti();
 	}
+	update_intr();
 }
 
 #define STATE_VERSION	1

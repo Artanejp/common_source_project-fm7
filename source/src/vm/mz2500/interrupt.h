@@ -31,7 +31,6 @@ private:
 		bool req_intr;
 		bool in_service;
 	} irq[4];
-	int req_intr_ch;
 	
 	// z80 daisy chain
 	DEVICE *d_cpu, *d_child;

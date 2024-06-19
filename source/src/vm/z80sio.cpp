@@ -913,6 +913,7 @@ void Z80SIO::notify_intr_reti()
 	if(d_child) {
 		d_child->notify_intr_reti();
 	}
+	update_intr();
 }
 
 #define STATE_VERSION	3

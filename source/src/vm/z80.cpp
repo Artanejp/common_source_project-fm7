@@ -229,8 +229,10 @@ static const uint8_t cc_ex[0x100] = {
 	if(is_primary) { \
 		if(wait || wait_icount > 0) { \
 			wait_icount += (clock); \
+		} else { \
+			event_icount += (clock); \
 		} \
-		event_icount += (clock); \
+		in_op_icount += (clock); \
 	} \
 } while(0)
 
@@ -238,13 +240,14 @@ static const uint8_t cc_ex[0x100] = {
 	if(is_primary ) { \
 		if(wait || wait_icount > 0) { \
 			wait_icount += (clock); \
+		} else { \
+			event_icount += (clock); \
 		} \
-		event_icount += (clock); \
-		if(!(wait || wait_icount > 0)) { \
-			update_event_in_opecode(event_icount); \
-			event_done_icount += event_icount; \
+		if(event_icount > 0) { \
+			update_event_in_op(event_icount); \
 			event_icount = 0; \
 		} \
+		in_op_icount += (clock); \
 	} \
 } while(0)
 
@@ -2093,9 +2096,10 @@ void Z80::special_reset()
 	ea = 0;
 	
 	im = iff1 = iff2 = icr = 0;
-	after_halt = after_ei = false;
+	after_halt = after_ei = prev_after_ei = false;
 	after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
+	intr_enb = true;
 }
 
 void Z80::reset()
@@ -2177,10 +2181,10 @@ int Z80::run(int clock)
 			return icount;
 		} else {
 			// run only one opcode
-			icount = event_icount = event_done_icount = 0;
+			icount = event_icount = in_op_icount = 0;
 			run_one_opecode();
 			if(wait || wait_icount > 0) {
-				event_icount = (-icount) - (event_icount + event_done_icount);
+				event_icount = (-icount) - in_op_icount;
 				#ifdef _DEBUG
 					assert(event_icount >= 0);
 				#endif
@@ -2262,9 +2266,38 @@ int Z80::run(int clock)
 
 void Z80::run_one_opecode()
 {
-	// rune one opecode
-	bool prev_after_ei = after_ei;
+	if(!after_ei) {
+#ifdef USE_DEBUGGER
+		if(d_debugger->now_debugging) {
+			d_mem = d_io = d_debugger;
+			
+			// not just after EI is done
+			if(prev_after_ei && !after_di) {
+				// EI and any instruction (ex. RET, not DI/EI) are done
+				d_pic->notify_intr_ei();
+			}
+			check_interrupt();
+			
+			if(!d_debugger->now_going) {
+				d_debugger->now_suspended = true;
+			}
+			d_mem = d_mem_stored;
+			d_io = d_io_stored;
+		} else {
+#endif
+			// not just after EI is done
+			if(prev_after_ei && !after_di) {
+				// EI and any instruction (ex. RET, not DI/EI) are done
+				d_pic->notify_intr_ei();
+			}
+			check_interrupt();
+#ifdef USE_DEBUGGER
+		}
+#endif
+	}
 	
+	// rune one opecode
+	prev_after_ei = after_ei;
 	after_halt = after_di = after_ei = false;
 	after_ldair = false;
 	
@@ -2293,14 +2326,6 @@ void Z80::run_one_opecode()
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 		}
 #endif
-		if(!after_ei) {
-			// not just after EI is done
-			if(prev_after_ei && !after_di) {
-				// EI and any instruction (ex. RET, not DI/EI) are done
-				d_pic->notify_intr_ei();
-			}
-			check_interrupt();
-		}
 		if(now_debugging) {
 			if(!d_debugger->now_going) {
 				d_debugger->now_suspended = true;
@@ -2317,14 +2342,6 @@ void Z80::run_one_opecode()
 			F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 		}
 #endif
-		if(!after_ei) {
-			// not just after EI is done
-			if(prev_after_ei && !after_di) {
-				// EI and any instruction (ex. RET, not DI/EI) are done
-				d_pic->notify_intr_ei();
-			}
-			check_interrupt();
-		}
 #ifdef USE_DEBUGGER
 	}
 #endif
@@ -2333,7 +2350,7 @@ void Z80::run_one_opecode()
 void Z80::check_interrupt()
 {
 	// check interrupt
-	if(intr_req_bit) {
+	if(intr_req_bit && intr_enb) {
 		if(intr_req_bit & NMI_REQ_BIT) {
 			// nmi
 			LEAVE_HALT();
@@ -3955,7 +3972,7 @@ void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len, symbol_t *first_s
 }
 #endif
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool Z80::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3997,9 +4014,11 @@ bool Z80::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(iff2);
 	state_fio->StateValue(icr);
 	state_fio->StateValue(after_ei);
+	state_fio->StateValue(prev_after_ei);
 	state_fio->StateValue(after_ldair);
 	state_fio->StateValue(intr_req_bit);
 	state_fio->StateValue(intr_pend_bit);
+	state_fio->StateValue(intr_enb);
 	
 #ifdef USE_DEBUGGER
 	// post process

@@ -136,6 +136,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	display->set_vram_ptr(memory->get_vram());
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);
+	memory->set_context_cpu(cpu);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);

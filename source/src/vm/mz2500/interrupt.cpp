@@ -9,8 +9,6 @@
 
 #include "interrupt.h"
 
-//#define SUPPURT_CHILD_DEVICE
-
 void INTERRUPT::reset()
 {
 	for(int ch = 0; ch < 4; ch++) {
@@ -19,7 +17,6 @@ void INTERRUPT::reset()
 		irq[ch].in_service = false;
 	}
 	iei = oei = true;
-	req_intr_ch = -1;
 	select = 0;
 }
 
@@ -99,11 +96,10 @@ void INTERRUPT::set_intr_iei(bool val)
 
 void INTERRUPT::update_intr()
 {
-#ifdef SUPPURT_CHILD_DEVICE
-	// set oei signal
 	bool next = false;
-	if(iei) {
-		next = true;
+	
+	// set oei signal
+	if((next = iei) == true) {
 		for(int ch = 0; ch < 4; ch++) {
 			if(irq[ch].in_service) {
 				next = false;
@@ -112,44 +108,44 @@ void INTERRUPT::update_intr()
 		}
 	}
 	set_intr_oei(next);
-#endif
+	
 	// set int signal
-	req_intr_ch = -1;
-	if(iei) {
+	if((next = iei) == true) {
+		next = false;
 		for(int ch = 0; ch < 4; ch++) {
 			if(irq[ch].in_service) {
 				break;
 			}
 			if(irq[ch].enb_intr && irq[ch].req_intr) {
-				req_intr_ch = ch;
+				next = true;
 				break;
 			}
 		}
 	}
-	if(req_intr_ch != -1) {
-		d_cpu->set_intr_line(true, true, intr_bit);
-	} else {
-		d_cpu->set_intr_line(false, true, intr_bit);
+	if(d_cpu) {
+		d_cpu->set_intr_line(next, true, intr_bit);
 	}
 }
 
 uint32_t INTERRUPT::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
-	if(req_intr_ch != -1) {
-		int ch = req_intr_ch;
-		irq[ch].req_intr = false;
-		irq[ch].in_service = true;
-#ifdef SUPPURT_CHILD_DEVICE
-		update_intr();
-#endif
-		return irq[ch].vector;
+	for(int ch = 0; ch < 4; ch++) {
+		if(irq[ch].in_service) {
+			// invalid interrupt status
+			return 0xff;
+		}
+		if(irq[ch].enb_intr && irq[ch].req_intr) {
+			uint8_t vector = irq[ch].vector;
+			irq[ch].req_intr = false;
+			irq[ch].in_service = true;
+			update_intr();
+			return vector;
+		}
 	}
-#ifdef SUPPURT_CHILD_DEVICE
 	if(d_child) {
 		return d_child->get_intr_ack();
 	}
-#endif
 	return 0xff;
 }
 
@@ -163,14 +159,13 @@ void INTERRUPT::notify_intr_reti()
 			return;
 		}
 	}
-#ifdef SUPPURT_CHILD_DEVICE
 	if(d_child) {
 		d_child->notify_intr_reti();
 	}
-#endif
+	update_intr();
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 {
@@ -187,7 +182,6 @@ bool INTERRUPT::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(irq[i].req_intr);
 		state_fio->StateValue(irq[i].in_service);
 	}
-	state_fio->StateValue(req_intr_ch);
 	state_fio->StateValue(iei);
 	state_fio->StateValue(oei);
 	state_fio->StateValue(intr_bit);

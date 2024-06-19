@@ -58,7 +58,7 @@ private:
 #endif
 	int icount;
 	int dma_icount;
-	int wait_icount, event_icount, event_done_icount;
+	int wait_icount, event_icount, in_op_icount;
 	uint16_t prevpc;
 	pair32_t pc, sp, af, bc, de, hl, ix, iy, wz;
 	pair32_t af2, bc2, de2, hl2;
@@ -67,8 +67,10 @@ private:
 	
 	bool busreq, wait, after_halt;
 	uint8_t im, iff1, iff2, icr;
-	bool after_di, after_ei, after_ldair;
+	bool after_di, after_ei, prev_after_ei;
+	bool after_ldair;
 	uint32_t intr_req_bit, intr_pend_bit;
+	bool intr_enb;
 	
 	inline uint8_t RM8(uint32_t addr);
 	inline void WM8(uint32_t addr, uint8_t val);
@@ -233,6 +235,10 @@ public:
 	void set_sp(uint16_t value)
 	{
 		sp.w.l = value;
+	}
+	void set_intr_enb(bool value)
+	{
+		intr_enb = value;
 	}
 };
 

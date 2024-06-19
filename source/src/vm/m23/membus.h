@@ -13,9 +13,13 @@
 
 #include "../memory.h"
 
+class Z80;
+
 class MEMBUS : public MEMORY
 {
 private:
+	Z80* d_cpu;
+	
 	uint8_t ram[0x20000];
 #if defined(_M68)
 	uint8_t rom[0x1000];
@@ -50,7 +54,11 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique function
+	// unique functions
+	void set_context_cpu(Z80* device)
+	{
+		d_cpu = device;
+	}
 	uint8_t* get_vram()
 	{
 		return ram + 0x1f000;

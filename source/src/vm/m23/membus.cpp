@@ -8,6 +8,7 @@
 	[ memory bus ]
 */
 
+#include "../z80.h"
 #include "membus.h"
 
 void MEMBUS::initialize()
@@ -53,6 +54,7 @@ uint32_t MEMBUS::read_data8w(uint32_t addr, int *wait)
 {
 	if(page_exchange) {
 		page_exchange = false;
+		d_cpu->set_intr_enb(true);
 		return ram[(page ? 0 : 0x10000) | (addr & 0xffff)];
 	}
 	return MEMORY::read_data8w(addr, wait);
@@ -62,6 +64,7 @@ void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	if(page_exchange) {
 		page_exchange = false;
+		d_cpu->set_intr_enb(true);
 		ram[(page ? 0 : 0x10000) | (addr & 0xffff)] = data;
 		return;
 	}
@@ -113,6 +116,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0xd2:
 		page_exchange = true;
+		d_cpu->set_intr_enb(false);
 		break;
 	}
 }
