@@ -371,66 +371,66 @@ public:
 
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
 
 	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
-	bool get_caps_locked();
-	bool get_kana_locked();
+	void key_down(int code, bool repeat) override;
+	void key_up(int code) override;
+	bool get_caps_locked() override;
+	bool get_kana_locked() override;
 
 	// user interface
-	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_floppy_disk(int drv);
-	bool is_floppy_disk_inserted(int drv);
-	void is_floppy_disk_protected(int drv, bool value);
-	bool is_floppy_disk_protected(int drv);
-	uint32_t is_floppy_disk_accessed();
-	uint32_t floppy_disk_indicator_color();
-	void open_hard_disk(int drv, const _TCHAR* file_path);
-	void close_hard_disk(int drv);
-	bool is_hard_disk_inserted(int drv);
-	uint32_t is_hard_disk_accessed();
-	void play_tape(int drv, const _TCHAR* file_path);
-	void rec_tape(int drv, const _TCHAR* file_path);
-	void close_tape(int drv);
-	bool is_tape_inserted(int drv);
-	bool is_tape_playing(int drv);
-	bool is_tape_recording(int drv);
-	int get_tape_position(int drv);
-	const _TCHAR* get_tape_message(int drv);
-	void push_play(int drv);
-	void push_stop(int drv);
-	void push_fast_forward(int drv);
-	void push_fast_rewind(int drv);
-	void push_apss_forward(int drv);
-	void push_apss_rewind(int drv);
-	bool is_frame_skippable();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank) override;
+	void close_floppy_disk(int drv) override;
+	bool is_floppy_disk_inserted(int drv) override;
+	void is_floppy_disk_protected(int drv, bool value) override;
+	bool is_floppy_disk_protected(int drv) override;
+	uint32_t is_floppy_disk_accessed() override;
+	uint32_t floppy_disk_indicator_color() override;
+	void open_hard_disk(int drv, const _TCHAR* file_path) override;
+	void close_hard_disk(int drv) override;
+	bool is_hard_disk_inserted(int drv) override;
+	uint32_t is_hard_disk_accessed() override;
+	void play_tape(int drv, const _TCHAR* file_path) override;
+	void rec_tape(int drv, const _TCHAR* file_path) override;
+	void close_tape(int drv) override;
+	bool is_tape_inserted(int drv) override;
+	bool is_tape_playing(int drv) override;
+	bool is_tape_recording(int drv) override;
+	int get_tape_position(int drv) override;
+	const _TCHAR* get_tape_message(int drv) override;
+	void push_play(int drv) override;
+	void push_stop(int drv) override;
+	void push_fast_forward(int drv) override;
+	void push_fast_rewind(int drv) override;
+	void push_apss_forward(int drv) override;
+	void push_apss_rewind(int drv) override;
+	bool is_frame_skippable() override;
 #ifdef _X1TWIN
-	void open_cart(int drv, const _TCHAR* file_path);
-	void close_cart(int drv);
-	bool is_cart_inserted(int drv);
+	void open_cart(int drv, const _TCHAR* file_path) override;
+	void close_cart(int drv) override;
+	bool is_cart_inserted(int drv) override;
 #endif
 
-	void update_config();
+	void update_config() override;
 #ifdef _X1TURBO_FEATURE
-	void update_dipswitch();
+	void update_dipswitch() override;
 #endif
 
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 
 	bool process_state(FILEIO* state_fio, bool loading);
 
@@ -439,7 +439,7 @@ public:
 	// ----------------------------------------
 
 	// devices
-	DEVICE* get_device(int id);
+	DEVICE* get_device(int id) override;
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;
