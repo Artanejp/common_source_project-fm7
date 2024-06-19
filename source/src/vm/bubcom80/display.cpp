@@ -824,6 +824,9 @@ void dmac_t::write_io8(uint32_t addr, uint32_t data)
 		high_low = !high_low;
 		break;
 	case 0x08:
+		if(!(data & 0x80)) {
+			status &= ~0x10;
+		}
 		mode = data;
 		high_low = false;
 		break;
@@ -890,6 +893,7 @@ void dmac_t::run(int c)
 			}
 			ch[c].addr.sd++;
 			ch[c].count.sd--;
+			status &= ~0x10;
 		}
 		if(ch[c].count.sd < 0) {
 			finish(c);
@@ -910,11 +914,13 @@ void dmac_t::finish(int c)
 			}
 			ch[c].addr.sd++;
 			ch[c].count.sd--;
+			status &= ~0x10;
 		}
 		if((mode & 0x80) && c == 2) {
 			ch[2].addr.sd = ch[3].addr.sd;
 			ch[2].count.sd = ch[3].count.sd;
 			ch[2].mode = ch[3].mode;
+			status |= 0x10;
 		} else if(mode & 0x40) {
 			mode &= ~(1 << c);
 		}

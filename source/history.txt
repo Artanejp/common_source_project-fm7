@@ -1,3 +1,12 @@
+6/11/2023
+
+[VM/I8257] support i8257
+
+[BUBCOM80/DISPLAY] fix i8257 status register
+[PC8801/PC88] fix i8257 status register
+[QC10/MEMORY] fix beep sound
+
+
 6/7/2023
 
 [VM/UPD765A] fix sence devstat when drive is empty and force ready is performed

@@ -37,7 +37,7 @@ private:
 	uint8_t bank, psel, csel;
 	void update_map();
 	
-	bool pcm_on, pcm_cont, pcm_pit;
+	bool pcm_cont, pcm_pit;
 	void update_pcm();
 	
 	bool fdc_irq, motor;

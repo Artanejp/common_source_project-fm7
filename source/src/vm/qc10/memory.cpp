@@ -63,7 +63,8 @@ void MEMORY::reset()
 	update_map();
 	
 	// init pcm
-	pcm_on = pcm_cont = pcm_pit = false;
+	pcm_cont = pcm_pit = false;
+	update_pcm();
 	
 	// init fdc/fdd status
 	fdc_irq = motor = false;
@@ -171,16 +172,14 @@ void MEMORY::update_map()
 
 void MEMORY::update_pcm()
 {
-	if(!pcm_on && (pcm_cont || pcm_pit)) {
+	if(pcm_cont || pcm_pit) {
 		d_pcm->write_signal(SIG_PCM1BIT_ON, 1, 1);
-		pcm_on = true;
-	} else if(pcm_on && !(pcm_cont || pcm_pit)) {
+	} else {
 		d_pcm->write_signal(SIG_PCM1BIT_ON, 0, 1);
-		pcm_on = false;
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -196,7 +195,6 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(bank);
 	state_fio->StateValue(psel);
 	state_fio->StateValue(csel);
-	state_fio->StateValue(pcm_on);
 	state_fio->StateValue(pcm_cont);
 	state_fio->StateValue(pcm_pit);
 	state_fio->StateValue(fdc_irq);
