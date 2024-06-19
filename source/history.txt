@@ -1,3 +1,8 @@
+5/30/2023
+
+[MZ2500/CRTC] fix text vblank signal when vdisp pos is equal to vblank pos
+
+
 5/29/2023
 
 [VM/MB8877] improve for mix-density disk

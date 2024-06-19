@@ -656,12 +656,12 @@ void CRTC::event_vline(int v, int clock)
 	// https://twitter.com/youkan700/status/794210717398286337
 	
 	// vblank/hblank of text screen
-	if(v == textreg[3] * (monitor_200line ? 1 : 2)) {
-		d_mem->write_signal(SIG_MEMORY_VBLANK_TEXT, 0, 1);
-		vblank_t = false;
-	} else if(v == textreg[5] * (monitor_200line ? 1 : 2)) {
+	if(v == textreg[5] * (monitor_200line ? 1 : 2)) {
 		d_mem->write_signal(SIG_MEMORY_VBLANK_TEXT, 1, 1);
 		vblank_t = true;
+	} else if(v == textreg[3] * (monitor_200line ? 1 : 2)) {
+		d_mem->write_signal(SIG_MEMORY_VBLANK_TEXT, 0, 1);
+		vblank_t = false;
 	}
 	if((textreg[7] & 0x7f) < (textreg[8] & 0x7f)) {
 		register_event_by_clock(this, EVENT_HDISP_TEXT_S, (int)(clocks_per_char * (textreg[7] & 0x7f) + 0.5) - 2, false, NULL);
