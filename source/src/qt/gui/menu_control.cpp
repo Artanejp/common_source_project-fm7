@@ -10,7 +10,6 @@
 #include <QApplication>
 #include <QActionGroup>
 
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_flags.h"
 

@@ -37,7 +37,7 @@ public:
 		//delete binds;
 	}
 public slots:
-	void do_set_window_focus_type(bool flag);
+	//void do_set_window_focus_type(bool flag);
 
 signals:
 	int sig_quit_emu_thread(void);

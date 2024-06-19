@@ -12,17 +12,12 @@
 #include <QApplication>
 #include <QMenu>
 
-#include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
 
 //QT_BEGIN_NAMESPACE
 
-
-void META_MainWindow::setupUI_Emu(void)
-{
-}
 
 void META_MainWindow::retranslateUi(void)
 {

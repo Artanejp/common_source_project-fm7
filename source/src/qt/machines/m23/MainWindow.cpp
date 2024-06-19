@@ -12,8 +12,9 @@
 #include <QtGui>
 #include <QMenu>
 
+
 #include "config.h"
-#include "commonclasses.h"
+
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"

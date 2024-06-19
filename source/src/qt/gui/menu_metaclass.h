@@ -33,7 +33,7 @@ class QFileDialog;
 class CSP_DiskDialog;
 class EmuThreadClassBase;
 class USING_FLAGS;
-class Action_Control;
+
 
 namespace CSP_Ui_Menu {
 	struct DriveIndexPair {

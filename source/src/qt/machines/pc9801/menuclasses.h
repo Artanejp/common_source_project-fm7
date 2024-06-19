@@ -2,7 +2,6 @@
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
-#include "commonclasses.h"
 #include "mainwidget.h"
 
 // This extends class CSP_MainWindow as Ui_MainWindow.
@@ -19,46 +18,47 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	// DipSW 1
 #if defined(SUPPORT_EGC)
-	Action_Control *actionEGC;
+	QAction *actionEGC;
 #endif
 #if defined(SUPPORT_320KB_FDD_IF)
-	Action_Control *actionConnect2D;
+	QAction *actionConnect2D;
 #endif
 #if defined(_PC9801) || defined(_PC9801E)
-	Action_Control *actionConnect2DD;
-	Action_Control *actionConnect2HD;
+	QAction *actionConnect2DD;
+	QAction *actionConnect2HD;
 #endif
 	// DipSW 2
-	Action_Control *actionGDC_FAST;
-	Action_Control *actionFDD_INTFDD_OFF;
-	Action_Control *actionINTHDD_ON;
-	Action_Control *actionINIT_MEMSW;
-	Action_Control *actionHEIGHT20;
-	Action_Control *actionWIDTH40;
-	Action_Control *actionTERMINAL;
-	Action_Control *actionLT;
+	QAction *actionGDC_FAST;
+	QAction *actionFDD_INTFDD_OFF;
+	QAction *actionINTHDD_ON;
+	QAction *actionINIT_MEMSW;
+	QAction *actionHEIGHT20;
+	QAction *actionWIDTH40;
+	QAction *actionTERMINAL;
+	QAction *actionLT;
 
 	// DipSW 3
-	Action_Control *actionRAM_512K;
+	QAction *actionRAM_512K;
 #if defined(HAS_SUB_V30)
-	Action_Control *actionSUB_V30;
+	QAction *actionSUB_V30;
 #endif
 
 #if defined(_PC98DO)
-	Action_Control *actionMemoryWait;
-	Action_Control *actionCMD_Sing; //
-	Action_Control *actionPalette; //
-	Action_Control *actionFDD_5Inch; //
-//	Action_Control *actionFDD_8Inch; //
+	QAction *actionMemoryWait;
+	QAction *actionCMD_Sing; //
+	QAction *actionPalette; //
+	QAction *actionFDD_5Inch; //
+//	QAction *actionFDD_8Inch; //
 
-	Action_Control *actionM88DRV; //
-	Action_Control *actionQuasiS88CMT; //
+	QAction *actionM88DRV; //
+	QAction *actionQuasiS88CMT; //
 #endif
-	void setupUI_Emu(void);
-	void retranslateUi(void);
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
+
+	void setupUI_Emu(void) override;
+	void retranslateUi(void) override;
 };
 
 QT_END_NAMESPACE

@@ -13,7 +13,6 @@
 #include <QMenu>
 #include <QActionGroup>
 
-#include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"

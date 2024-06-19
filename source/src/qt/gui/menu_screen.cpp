@@ -11,7 +11,6 @@
 #include <QMenuBar>
 #include <QActionGroup>
 
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "qt_main.h"

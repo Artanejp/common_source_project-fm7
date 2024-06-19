@@ -17,7 +17,7 @@
 
 #include "qt_dialogs.h"
 #include "menu_metaclass.h"
-#include "commonclasses.h"
+
 #include "mainwidget_base.h"
 #include "emu_thread_tmpl.h"
 

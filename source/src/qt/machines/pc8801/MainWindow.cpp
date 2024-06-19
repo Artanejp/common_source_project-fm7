@@ -13,9 +13,8 @@
 #include <QMenu>
 
 #include "../../../src/vm/vm.h"
-#include "commonclasses.h"
+
 #include "menuclasses.h"
-#include "emu.h"
 #include "qt_main.h"
 #include "sound_dialog.h"
 

@@ -12,7 +12,6 @@
 #include <QMenuBar>
 #include <QThread>
 
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "qt_gldraw.h"
 

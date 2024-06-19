@@ -10,16 +10,14 @@
 #include <QApplication>
 #include <QVariant>
 #include <QtGui>
-#include "commonclasses.h"
+
 #include "menuclasses.h"
-#include "emu.h"
 #include "qt_main.h"
 
 //QT_BEGIN_NAMESPACE
 
 void META_MainWindow::retranslateUi(void)
 {
-
 	Ui_MainWindowBase::retranslateUi();
 	retranslateControlMenu("", false);
 	retranslateOpMenuZ80(true);
@@ -32,13 +30,6 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	// Set Labels
 } // retranslateUi
-
-void META_MainWindow::setupUI_Emu(void)
-{
-
-
-}
-
 
 META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {

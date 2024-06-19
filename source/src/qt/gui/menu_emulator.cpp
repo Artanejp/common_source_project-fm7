@@ -20,7 +20,6 @@
 #include <QMenuBar>
 #include <QStyle>
 
-#include "commonclasses.h"
 #include "display_text_document.h"
 #include "mainwidget_base.h"
 #include "dock_disks.h"

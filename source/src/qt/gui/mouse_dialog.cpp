@@ -13,7 +13,6 @@
 #include "mouse_dialog.h"
 
 #include "qt_main.h"
-#include "commonclasses.h"
 
 #include "menu_flags.h"
 

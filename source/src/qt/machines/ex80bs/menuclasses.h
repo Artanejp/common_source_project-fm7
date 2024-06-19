@@ -5,7 +5,7 @@
 #define _CSP_QT_MENUCLASSES_H
 
 #include "emu.h"
-#include "commonclasses.h"
+
 #include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
@@ -25,22 +25,19 @@ private:
 	QActionGroup *actionGroup_DipSW2;
 	QActionGroup *actionGroup_VramAddr;
 	
-	Action_Control *actionDipSW1_ON;
-	Action_Control *actionDipSW1_OFF;
+	QAction *actionDipSW1_ON;
+	QAction *actionDipSW1_OFF;
 	
-	Action_Control *actionDipSW2_ON;
-	Action_Control *actionDipSW2_OFF;
+	QAction *actionDipSW2_ON;
+	QAction *actionDipSW2_OFF;
 	
-	Action_Control *actionVramAddr[4];
-protected:
-	void setupUI_Emu(void);
-	void retranslateUi(void);
-  
+	QAction *actionVramAddr[4];
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
-public slots:
-
+	
+	void setupUI_Emu(void) override;
+	void retranslateUi(void) override;
 };
 
 QT_END_NAMESPACE

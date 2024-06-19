@@ -27,7 +27,6 @@
 #include <QStyle>
 #include <QMessageBox>
 
-#include "commonclasses.h"
 #include "display_about.h"
 #include "display_text_document.h"
 #include "mainwidget_base.h"
@@ -129,11 +128,6 @@ QString Ui_MainWindowBase::get_gui_version()
 }
 
 
-
-void Action_Control::do_set_window_focus_type(bool f)
-{
-	emit sig_set_window_focus_type(f);
-}
 
 void Ui_MainWindowBase::do_set_window_focus_type(bool flag)
 {

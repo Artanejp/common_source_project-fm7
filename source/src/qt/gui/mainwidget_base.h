@@ -266,7 +266,7 @@ class QVBoxLayout;
 class QGridLayout;
 class Ui_SoundDialog;
 class GLDrawClass;
-class Action_Control;
+
 class Menu_MetaClass;
 class Menu_FDClass;
 class Menu_CMTClass;
@@ -694,7 +694,6 @@ protected:
 	void retranslateSoundMenu(void);
 	QMenu  *createMenuNode(QMenuBar *parent, QString objname = QString::fromUtf8(""));
 	QMenu  *createMenuNode(QMenu *parent, QString objname = QString::fromUtf8(""));
-
 public:
 	Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
@@ -704,6 +703,11 @@ public:
 	void createContextMenu(void);
 	void setupUi(void);
 	// Belows are able to re-implement.
+	
+	// Setup for redefine label of  menues.
+	// Setup for VM specified UIs.
+	virtual void setupUI_Emu(void)	{}
+	
 	virtual void retranslateUi(void);
 	virtual void retranslateUI_Help(void);
 	virtual void retranslateCartMenu(int drv, int basedrv);

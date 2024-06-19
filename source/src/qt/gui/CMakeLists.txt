@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 11.4.1)
+set(THIS_LIB_VERSION 11.5.0)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h
@@ -13,7 +13,6 @@ set(s_qt_gui_headers
 	  gl4_5/qt_glutil_gl4_5.h
 	  gles2/qt_glutil_gles_2.h
 
-	  commonclasses.h
 	  sound_dialog.h
 	  mouse_dialog.h
 

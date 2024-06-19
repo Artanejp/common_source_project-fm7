@@ -6,20 +6,10 @@
  *   History :
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
-
-#include <QApplication>
-#include <QVariant>
 #include <QtGui>
-#include "emu.h"
-#include "commonclasses.h"
+
 #include "menuclasses.h"
 #include "qt_main.h"
-
-
-void META_MainWindow::setupUI_Emu(void)
-{
-
-}
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -35,8 +25,6 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	// Set Labels
 } // retranslateUi
-
-
 
 META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {

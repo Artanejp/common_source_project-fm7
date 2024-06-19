@@ -2,7 +2,6 @@
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
-#include "commonclasses.h"
 #include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
@@ -18,14 +17,13 @@ protected:
 	QMenu *menuDisplayType;
 	QActionGroup *actionGroup_DisplayType;
 	
-	//Action_Control *action_DisplayType[4];
-	void setupUI_Emu(void);
-	void retranslateUi(void);
+	//QAction *action_DisplayType[4];
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
-public slots:
-		
+
+	void setupUI_Emu(void) override;
+	void retranslateUi(void) override;
 };
 
 QT_END_NAMESPACE

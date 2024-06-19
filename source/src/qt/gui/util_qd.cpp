@@ -9,7 +9,6 @@
 #include <QApplication>
 
 #include "mainwidget_base.h"
-#include "commonclasses.h"
 #include "qt_dialogs.h"
 #include "csp_logger.h"
 #include "menu_quickdisk.h"

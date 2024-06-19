@@ -28,7 +28,6 @@
 //#include "emu.h"
 
 #include "qt_main.h"
-#include "commonclasses.h"
 #include "menu_flags.h"
 
 QT_BEGIN_NAMESPACE

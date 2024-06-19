@@ -6,7 +6,6 @@
  *            Nov 13, 2015 : Integrate to Menu_MetaClass.
  */
 
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_quickdisk.h"
 

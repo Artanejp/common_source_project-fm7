@@ -33,7 +33,6 @@
 
 #include "menuclasses.h"
 #include "mainwidget.h"
-#include "commonclasses.h"
 #include "qt_main.h"
 #include "emu_thread.h"
 #include "joy_thread.h"

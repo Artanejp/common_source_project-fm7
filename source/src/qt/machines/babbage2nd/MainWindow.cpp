@@ -10,7 +10,6 @@
 #include <QtCore/QVariant>
 #include <QtGui>
 #include "menuclasses.h"
-#include "commonclasses.h"
 
 #include "emu.h"
 #include "qt_main.h"
@@ -29,10 +28,6 @@ void META_MainWindow::retranslateUi(void)
 	// Set Labels
 	retranslateOpMenuZ80(true);
 } // retranslateUi
-
-void META_MainWindow::setupUI_Emu(void)
-{
-}
 
 
 META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)

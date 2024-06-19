@@ -7,7 +7,6 @@
  */
 
 #include <QApplication>
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "menu_compactdisc.h"
 

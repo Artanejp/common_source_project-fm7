@@ -18,7 +18,6 @@
 #include <QMenuBar>
 #include <QStyle>
 
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 
 #include "qt_gldraw.h"

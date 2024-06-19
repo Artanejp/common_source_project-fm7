@@ -17,10 +17,6 @@
 #include "qt_main.h"
 #include "qt_dialogs.h"
 
-//#include "csp_logger.h"
-#include "commonclasses.h"
-//#include "menuclasses.h"
-
 void CSP_DiskParams::_open_media(QString s)
 {
 	int d = getDrive();

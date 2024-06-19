@@ -7,8 +7,6 @@
  * Mar 20, 2016 : Initial
  */
 
-
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "qt_dialogs.h"
 #include "csp_logger.h"

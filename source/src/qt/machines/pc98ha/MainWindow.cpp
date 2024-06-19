@@ -12,7 +12,6 @@
 #include <QtGui>
 #include <QMenu>
 
-#include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
@@ -44,11 +43,6 @@ void META_MainWindow::retranslateUi(void)
 	// Set Labels
 	
 } // retranslateUi
-
-void META_MainWindow::setupUI_Emu(void)
-{
-}
-
 
 META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {

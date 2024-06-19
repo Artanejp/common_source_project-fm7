@@ -15,15 +15,13 @@ class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
 	QActionGroup *actionGroup_JOYPortType[2];
-	Action_Control *actionJOYPORT_TYPE[2][8];
-	
-	void setupUI_Emu(void);
-	void retranslateUi(void);
+	QAction *actionJOYPORT_TYPE[2][8];
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
-
-public slots:
+	
+	void setupUI_Emu(void) override;
+	void retranslateUi(void) override;
 };
 
 QT_END_NAMESPACE

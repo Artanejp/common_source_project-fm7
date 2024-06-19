@@ -12,7 +12,6 @@
 #include <QtGui>
 #include <QMenu>
 
-#include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
@@ -63,14 +62,6 @@ void META_MainWindow::retranslateUi(void)
 	actionMonitorType[1]->setToolTip(QApplication::translate("Machine", "Using ancient \"Green Display\" to display.\nChanges will be applied at reset, not immediately.", 0));
 #endif
 } // retranslateUi
-
-void META_MainWindow::setupUI_Emu(void)
-{
-//	int i;
-//	uint32_t skip;
-//	ConfigCPUTypes(1);
-//	ConfigCPUBootMode(USE_BOOT_MODE);
-}
 
 
 META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)

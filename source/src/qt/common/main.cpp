@@ -20,7 +20,6 @@
 
 //#include "./menuclasses.h"
 #include "mainwidget_base.h"
-#include "commonclasses.h"
 #include "qt_main.h"
 
 // emulation core

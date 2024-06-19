@@ -10,12 +10,9 @@
 #include <QApplication>
 #include <QVariant>
 #include <QtGui>
-#include "menuclasses.h"
-#include "commonclasses.h"
 
-#include "emu.h"
+#include "menuclasses.h"
 #include "qt_main.h"
-#include "vm.h"
 
 //QT_BEGIN_NAMESPACE
 
@@ -43,11 +40,6 @@ void META_MainWindow::retranslateUi(void)
 #endif
 
 } // retranslateUi
-
-void META_MainWindow::setupUI_Emu(void)
-{
-}
-
 
 META_MainWindow::META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent) : Ui_MainWindow(p, logger, parent)
 {

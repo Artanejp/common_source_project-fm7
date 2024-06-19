@@ -7,8 +7,6 @@
  * Jan 24, 2014 : Moved from some files.
  */
 
-
-#include "commonclasses.h"
 #include "mainwidget_base.h"
 #include "qt_dialogs.h"
 #include "csp_logger.h"

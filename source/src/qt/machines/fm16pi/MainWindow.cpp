@@ -9,18 +9,13 @@
 #include <QVariant>
 #include <QApplication>
 #include <QtGui>
+
 #include "menuclasses.h"
-#include "commonclasses.h"
+
 #include "emu.h"
 #include "qt_main.h"
 
 //QT_BEGIN_NAMESPACE
-
-void META_MainWindow::setupUI_Emu(void)
-{
-   int i;
-   QString tmps;
-}
 
 void META_MainWindow::retranslateUi(void)
 {

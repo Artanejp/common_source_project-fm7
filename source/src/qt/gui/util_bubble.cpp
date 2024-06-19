@@ -11,7 +11,6 @@
 #include <QAction>
 
 #include "mainwidget_base.h"
-#include "commonclasses.h"
 #include "menu_bubble.h"
 
 #include "qt_dialogs.h"

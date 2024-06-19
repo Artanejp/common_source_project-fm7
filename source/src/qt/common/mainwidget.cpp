@@ -6,7 +6,6 @@
 #include <QImageReader>
 #include <QPixmap>
 
-#include "commonclasses.h"
 #include "display_about.h"
 #include "display_text_document.h"
 #include "mainwidget.h"

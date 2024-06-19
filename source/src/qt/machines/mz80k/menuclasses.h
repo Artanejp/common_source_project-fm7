@@ -3,7 +3,6 @@
 #define _CSP_QT_MENUCLASSES_H
 
 #include "mainwidget.h"
-#include "commonclasses.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
@@ -16,14 +15,14 @@ class QActionGroup;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
-	Action_Control *action_Emu_DipSw;
+	QAction *action_Emu_DipSw;
 	
-	void setupUI_Emu(void);
-	void retranslateUi(void);
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
-public slots:
+
+	void setupUI_Emu(void) override;
+	void retranslateUi(void) override;
 };
 
 QT_END_NAMESPACE

@@ -7,19 +7,10 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
-#include <QApplication>
-#include <QVariant>
 #include <QtGui>
-#include "emu.h"
-#include "commonclasses.h"
+
 #include "menuclasses.h"
 #include "qt_main.h"
-
-
-void META_MainWindow::setupUI_Emu(void)
-{
-
-}
 
 void META_MainWindow::retranslateUi(void)
 {

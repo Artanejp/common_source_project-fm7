@@ -15,15 +15,12 @@ class USING_FLAGS;
 class CSP_Logger;
 class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
-protected:
-	void setupUI_Emu(void);
-	void retranslateUi(void);
-	
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();
-public slots:
 
+	void setupUI_Emu(void) override;
+	void retranslateUi(void) override;
 };
 
 QT_END_NAMESPACE
