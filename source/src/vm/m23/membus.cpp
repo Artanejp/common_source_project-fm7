@@ -42,6 +42,7 @@ uint32_t MEMBUS::fetch_op(uint32_t addr, int *wait)
 		if(page != page_after_jump) {
 			page = page_after_jump;
 			update_bank();
+			d_cpu->set_intr_enb(true);
 		}
 		after_jump = false;
 	} else if(val == 0xc3) {
@@ -109,10 +110,16 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 	case 0xd0:
-		page_after_jump = false;
+		if(page_after_jump) {
+			page_after_jump = false;
+			d_cpu->set_intr_enb(false);
+		}
 		break;
 	case 0xd1:
-		page_after_jump = true;
+		if(!page_after_jump) {
+			page_after_jump = true;
+			d_cpu->set_intr_enb(false);
+		}
 		break;
 	case 0xd2:
 		page_exchange = true;

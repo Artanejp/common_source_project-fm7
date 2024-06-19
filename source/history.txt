@@ -1,3 +1,10 @@
+6/7/2023
+
+[VM/UPD765A] fix sence devstat when drive is empty and force ready is performed
+
+[M23/MEMBUS] fix to disable interrupt when jump to another memory bank
+
+
 6/4/2023
 
 [VM/EVENT] improve to drive vline event as normal event

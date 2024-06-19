@@ -686,11 +686,6 @@ uint8_t UPD765A::get_devstat(int drv)
 	if(drv >= MAX_DRIVE) {
 		return ST3_FT | drv;
 	}
-	// XM8 version 1.20
-	if(force_ready && !disk[drv]->inserted) {
-		return drv;
-	}
-//	return drv | ((fdc[drv].track & 1) ? ST3_HD : 0) | (disk[drv]->inserted && disk[drv]->two_side ? ST3_TS : 0) | (fdc[drv].track ? 0 : ST3_T0) | (force_ready || disk[drv]->inserted ? ST3_RY : 0) | (disk[drv]->write_protected ? ST3_WP : 0);
 	return drv | ((fdc[drv].track & 1) ? ST3_HD : 0) | ST3_TS | (fdc[drv].track ? 0 : ST3_T0) | (force_ready || disk[drv]->inserted ? ST3_RY : 0) | (disk[drv]->write_protected ? ST3_WP : 0);
 }
 
