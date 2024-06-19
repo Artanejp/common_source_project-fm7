@@ -407,6 +407,10 @@ devenv.com svi3x8.vcproj /Rebuild Release
 mkdir build_xp\svi3x8
 copy Release\svi3x8.exe build_xp\svi3x8\.
 
+devenv.com t250.vcproj /Rebuild Release
+mkdir build_xp\t250
+copy Release\t250.exe build_xp\t250\.
+
 devenv.com tk80bs.vcproj /Rebuild Release
 mkdir build_xp\tk80bs
 copy Release\tk80bs.exe build_xp\tk80bs\.

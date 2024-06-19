@@ -66,6 +66,8 @@ void MEMBUS::initialize()
 
 void MEMBUS::reset()
 {
+	MEMORY::reset();
+	
 	bank1 = 0xe0;
 	bank2 = 0;
 	update_bank();
@@ -167,6 +169,9 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!MEMORY::process_state(state_fio, loading)) {
 		return false;
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);

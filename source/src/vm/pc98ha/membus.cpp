@@ -98,10 +98,14 @@ void MEMBUS::release()
 	}
 #endif
 	delete fio;
+	
+	MEMORY::release();
 }
 
 void MEMBUS::reset()
 {
+	MEMORY::reset();
+	
 	// set memory bank
 	learn_bank = dic_bank = kanji_bank = romdrv_bank = 0;
 #ifdef _PC98HA
@@ -273,6 +277,9 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!MEMORY::process_state(state_fio, loading)) {
 		return false;
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);

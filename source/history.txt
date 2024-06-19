@@ -1,3 +1,10 @@
+12/31/2023
+
+[VM/I8257] add code for debug
+
+[T250] support TOSHIBA T-250
+
+
 12/16/2023
 
 [X1TURBO/DISPLAY] fix text renderer for vertial doubled character

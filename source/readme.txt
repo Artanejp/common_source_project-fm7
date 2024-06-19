@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								7/3/2022
+								12/31/2023
 
 --- What's this ?
 
@@ -159,6 +159,7 @@ This archive includes the all source codes of emulators listed below:
 		EmuPIA7		PASOPIA7
 		eJ-3100GT	J-3100GT (work in progress)
 		eJ-3100SL	J-3100SL (work in progress)
+		eT-250		T-250
 	YAMAHA
 		eYIS		YIS
 	Yuasa Kyouiku System

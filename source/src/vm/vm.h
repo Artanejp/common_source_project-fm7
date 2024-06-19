@@ -578,6 +578,16 @@
 #include "svi3x8/msx_ex.h"
 #endif
 
+// TOSHIBA T-200
+#ifdef _T200
+#include "t250/t250.h"
+#endif
+
+// TOSHIBA T-250
+#ifdef _T250
+#include "t250/t250.h"
+#endif
+
 // NEC TK-80BS (COMPO BS/80)
 #ifdef _TK80BS
 #include "tk80bs/tk80bs.h"

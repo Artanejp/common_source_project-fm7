@@ -46,6 +46,8 @@ static const uint8_t bios2[] = {
 
 void MEMBUS::initialize()
 {
+	MEMORY::initialize();
+	
 	// init memory
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
@@ -93,6 +95,8 @@ void MEMBUS::initialize()
 
 void MEMBUS::reset()
 {
+	MEMORY::reset();
+	
 	// reset crtc
 	lcdadr = 0;
 	memset(lcdreg, 0, sizeof(lcdreg));
@@ -499,6 +503,9 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	if(!state_fio->StateCheckInt32(this_device_id)) {
+		return false;
+	}
+	if(!MEMORY::process_state(state_fio, loading)) {
 		return false;
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);

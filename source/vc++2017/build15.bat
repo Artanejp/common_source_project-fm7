@@ -403,6 +403,10 @@ msbuild.exe svi3x8.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="W
 mkdir build_vc15\svi3x8
 copy bin\x86\Release\svi3x8.exe build_vc15\svi3x8\.
 
+msbuild.exe t250.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
+mkdir build_vc15\t250
+copy bin\x86\Release\t250.exe build_vc15\t250\.
+
 msbuild.exe tk80bs.vcxproj /t:clean;rebuild /p:Configuration=Release;Platform="Win32"
 mkdir build_vc15\tk80bs
 copy bin\x86\Release\tk80bs.exe build_vc15\tk80bs\.

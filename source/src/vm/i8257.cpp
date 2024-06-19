@@ -56,6 +56,9 @@ void I8257::write_io8(uint32_t addr, uint32_t data)
 			ch[c].addr.b.h = data;
 			ch[c].addr.b.h2 = ch[c].addr.b.h3 = 0;
 		}
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("I8257: Ch.%d Addr=%04x\n"), c, ch[c].addr.w.l);
+#endif
 		high_low = !high_low;
 		break;
 	case 0x01: case 0x09:
@@ -77,6 +80,9 @@ void I8257::write_io8(uint32_t addr, uint32_t data)
 			ch[c].count.b.h2 = ch[c].count.b.h3 = 0;
 			ch[c].mode = data & 0xc0;
 		}
+#ifdef _DMA_DEBUG_LOG
+		this->out_debug_log(_T("I8257: Ch.%d Count=%04x\n"), c, ch[c].count.w.l);
+#endif
 		high_low = !high_low;
 		break;
 	case 0x08:
@@ -232,26 +238,41 @@ void I8257::write_mem(uint32_t addr, uint32_t data, int *wait)
 	} else
 #endif
 	this->write_via_debugger_data8w(addr, data, wait);
+#ifdef _DMA_DEBUG_LOG
+	this->out_debug_log(_T("RAM[%04x]\n"), addr);
+#endif
 }
 
 uint32_t I8257::read_mem(uint32_t addr, int *wait)
 {
+	uint32_t val;
 #ifdef USE_DEBUGGER
 	if(d_debugger != NULL && d_debugger->now_device_debugging) {
-		return d_debugger->read_via_debugger_data8w(addr, wait);
+		val = d_debugger->read_via_debugger_data8w(addr, wait);
 	} else
 #endif
-	return this->read_via_debugger_data8w(addr, wait);
+	val = this->read_via_debugger_data8w(addr, wait);
+#ifdef _DMA_DEBUG_LOG
+	this->out_debug_log(_T("I8257: RAM[%04x]=%02x -> "), addr, val);
+#endif
+	return val;
 }
 
 void I8257::write_io(int c, uint32_t data, int *wait)
 {
 	ch[c].io->write_dma_io8w(0, data, wait);
+#ifdef _DMA_DEBUG_LOG
+	this->out_debug_log(_T("I/O(Ch.%d)\n"), c);
+#endif
 }
 
 uint32_t I8257::read_io(int c, int *wait)
 {
-	return ch[c].io->read_dma_io8w(0, wait);
+	uint32_t val = ch[c].io->read_dma_io8w(0, wait);
+#ifdef _DMA_DEBUG_LOG
+	this->out_debug_log(_T("I8257: I/O(Ch.%d)=%02x -> "), c, val);
+#endif
+	return val;
 }
 
 #ifdef USE_DEBUGGER

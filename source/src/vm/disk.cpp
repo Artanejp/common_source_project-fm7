@@ -2212,7 +2212,7 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 	
 	// create tracks
 	int trkcnt = 0, trkptr = sizeof(d88_hdr_t);
-	int img_mode = -1;
+	int total = 0;
 	uint8_t dst[8192];
 	
 	while(pos < size) {
@@ -2250,9 +2250,7 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 			}
 			d88_hdr.trkptr(trkside, trkptr);
 		}
-		if(img_mode == -1) {
-			img_mode = mode & 3;
-		}
+		total += actual_size * sector_count;
 		
 		// read sectors in this track
 		for(int i = 0; i < sector_count; i++) {
@@ -2282,6 +2280,9 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 					pos += d88_sct.size();
 				}
 			}
+#ifndef _ANY2D88
+			emu->out_debug_log(_T("IMD: Track=%d Head=%d Size=%d\tC=%02X H=%02X R=%02X N=%02x\n"), track, head, d88_sct.size(), d88_sct.c, d88_sct.h, d88_sct.r, d88_sct.n);
+#endif
 			
 			// copy to d88
 			if(trkside < 164) {
@@ -2291,7 +2292,7 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 			}
 		}
 	}
-	d88_hdr.type = (img_mode == 0) ? MEDIA_TYPE_2HD : (((trkcnt + 1) >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
+	d88_hdr.type = (total < (368640 + 655360) / 2) ? MEDIA_TYPE_2D : (total < (737280 + 1228800) / 2) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2HD;
 	d88_hdr.size(trkptr);
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
