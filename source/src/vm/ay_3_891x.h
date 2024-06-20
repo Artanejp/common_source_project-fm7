@@ -112,52 +112,56 @@ public:
 	~AY_3_891X() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_vline(int v, int clock);
-	void __FASTCALL event_callback(int event_id, int error);
-	void __FASTCALL mix(int32_t* buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
-	void set_low_pass_filter_freq(int freq, double quality = 1.0);
-	void set_high_pass_filter_freq(int freq, double quality = 1.0);
+	void initialize() override;
+	void release() override;
+	void reset() override;
 	
-	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	
+	void event_vline(int v, int clock) override;
+	
+	void __FASTCALL event_callback(int event_id, int error) override;
+	void __FASTCALL mix(int32_t* buffer, int cnt) override;
+	void set_volume(int ch, int decibel_l, int decibel_r) override;
+	void set_low_pass_filter_freq(int freq, double quality = 1.0) override;
+	void set_high_pass_filter_freq(int freq, double quality = 1.0) override;
+	
+	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) override;
 	// for debugging
-	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr);
-	bool is_debugger_available()
+	void __FASTCALL write_via_debugger_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_via_debugger_data8(uint32_t addr) override;
+	bool is_debugger_available() override
 	{
 		return true;
 	}
-	void *get_debugger()
+	void *get_debugger() override
 	{
 		return d_debugger;
 	}
-	uint64_t get_debug_data_addr_space()
+	uint64_t get_debug_data_addr_space() override
 	{
 		return 16;
 	}
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data) override;
 	
-	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
+	void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override
 	{
 		if(addr < 16) {
 			write_via_debugger_data8(addr, data);
 		}
 	}
-	uint32_t __FASTCALL read_debug_data8(uint32_t addr)
+	uint32_t __FASTCALL read_debug_data8(uint32_t addr) override
 	{
 		if(addr < 16) {
 			return read_via_debugger_data8(addr);
 		}
 		return 0;
 	}
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)

@@ -121,13 +121,13 @@ public:
 	~SY6522() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL event_callback(int event_id, int err);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)

@@ -43,8 +43,9 @@ public:
 	~AND() {}
 	
 	// common functions
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+	
 	// unique functions
 	void set_context_out(DEVICE* device, int id, uint32_t mask)
 	{

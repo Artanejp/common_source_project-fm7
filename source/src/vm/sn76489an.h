@@ -56,15 +56,19 @@ public:
 	~SN76489AN() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void __FASTCALL mix(int32_t* buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool process_state(FILEIO* state_fio, bool loading);
-	bool is_debugger_available()
+	void initialize() override;
+	
+	void reset() override;
+	
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void __FASTCALL mix(int32_t* buffer, int cnt) override;
+	
+	void set_volume(int ch, int decibel_l, int decibel_r) override;
+	
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
+	bool is_debugger_available() override
 	{
 		return true;
 	}
