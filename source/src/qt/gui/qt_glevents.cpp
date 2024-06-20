@@ -23,14 +23,16 @@
 
 //extern USING_FLAGS *using_flags;
 
-void GLDrawClass::enterEvent(QEvent *event)
+void GLDrawClass::enterEvent(QEnterEvent *event)
 {
+	QOpenGLWidget::enterEvent(event);
 	this->grabKeyboard();
 }
 
 void GLDrawClass::leaveEvent(QEvent *event)
 {
 	this->releaseKeyboard();
+	QOpenGLWidget::leaveEvent(event);
 }
 
 void GLDrawClass::setEnableMouse(bool enable)

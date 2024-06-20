@@ -58,11 +58,17 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 	bool run_vm;
 	QString render_string;
 
-	void keyReleaseEvent(QKeyEvent *event);
-	void keyPressEvent(QKeyEvent *event);
-	void initializeGL();
-	void paintGL();
-	//void paintEvent(QPaintEvent *ev);
+	void keyReleaseEvent(QKeyEvent *event) override;
+	void keyPressEvent(QKeyEvent *event) override;
+	void enterEvent(QEnterEvent *) override;
+	void leaveEvent(QEvent *) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	//void paintEvent(QPaintEvent *ev) override;
+	
+	void initializeGL() override;
+	void paintGL() override;
 
 	uint32_t get106Scancode2VK(uint32_t data);
 	bool QueryGLExtensions(const char *str);
@@ -80,8 +86,8 @@ public:
 	~GLDrawClass();
 	GLDraw_Tmpl *extfunc;
 
-	QSize minimumSizeHint() const;
-	QSize sizeHint() const;
+	QSize minimumSizeHint() const override;
+	QSize sizeHint() const override;
 	QSize getCanvasSize();
 	QSize getDrawSize();
 
@@ -98,7 +104,7 @@ public:
 	quint32 getModState(void) { return modifier;}
 
 	void InitFBO(void);
-	void closeEvent(QCloseEvent *event);
+	void closeEvent(QCloseEvent *event) override;
 	void drawUpdateTexture(void *p, bool was_mapped);
 	QString logGLString(bool getExtensions = false);
 	bool emu_launched;
@@ -122,10 +128,7 @@ public slots:
 
 	void update_screen(void *p, bool was_mapped);
 	void update_osd(void);
-	void resizeGL(int width, int height);
-	void mouseMoveEvent(QMouseEvent *event);
-	void mousePressEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event);
+	void resizeGL(int width, int height) override;
 
 	void setEnableMouse(bool flag);
 	void setSmoosing(bool);
@@ -138,8 +141,6 @@ public slots:
 	void updateBitmap(QImage *);
 
 	void set_emu_launched(void);
-	void enterEvent(QEvent *);
-	void leaveEvent(QEvent *);
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
 	void do_set_texture_size(QImage *p, int w, int h);
