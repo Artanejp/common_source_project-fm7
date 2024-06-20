@@ -22,7 +22,7 @@
 class Z80;
 
 namespace BUBCOM80 {
-typedef struct {
+typedef struct crtc_t {
 	struct {
 		int rate, counter;
 		uint8_t cursor, attrib;
@@ -65,7 +65,7 @@ typedef struct {
 	void set_attrib(uint8_t code);
 } crtc_t;
 
-typedef struct {
+typedef struct dmac_t {
 	struct {
 		pair32_t addr, count;
 		uint8_t mode;
