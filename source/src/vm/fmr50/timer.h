@@ -29,8 +29,6 @@ private:
 	uint16_t free_run_counter;
 	uint8_t intr_reg, rtc_data;
 	bool tmout0, tmout1;
-	void update_intr();
-	
 public:
 	TIMER(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -39,11 +37,15 @@ public:
 	~TIMER() {}
 	
 	// common functions
-	void initialize();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+
+	void update_intr() override;
+	
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_pcm(DEVICE* device)

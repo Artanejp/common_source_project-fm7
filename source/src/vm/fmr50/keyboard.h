@@ -72,13 +72,16 @@ public:
 	~KEYBOARD() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void event_frame();
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	
+	void event_frame() override;
+	
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_pic(DEVICE* device)
