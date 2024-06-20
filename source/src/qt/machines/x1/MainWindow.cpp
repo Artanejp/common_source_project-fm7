@@ -12,7 +12,7 @@
 
 #include "menuclasses.h"
 #include "qt_main.h"
-
+#include "menu_cart.h"
 
 void META_MainWindow::retranslateUi(void)
 {

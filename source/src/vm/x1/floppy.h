@@ -42,13 +42,13 @@ public:
 	~FLOPPY() {}
 	
 	// common functions
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 #ifdef _X1TURBO_FEATURE
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 #endif
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL event_callback(int event_id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_fdc(MB8877* device)

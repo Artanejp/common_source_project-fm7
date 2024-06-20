@@ -8,9 +8,11 @@
  */
 
 #include <QtGui>
+#include <QMenu>
 
 #include "menuclasses.h"
 #include "qt_main.h"
+#include "menu_binary.h"
 
 void META_MainWindow::setupUI_Emu(void)
 {

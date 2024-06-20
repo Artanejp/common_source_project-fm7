@@ -117,37 +117,37 @@ public:
 	
 #ifdef USE_DEBUGGER
 	// debugger
-	DEVICE *get_cpu(int index);
+	DEVICE *get_cpu(int index) override;
 #endif
 	
 	// draw screen
-	void draw_screen();
+	void draw_screen() override;
 	
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
+	void initialize_sound(int rate, int samples) override;
+	uint16_t* create_sound(int* extra_frames) override;
+	int get_sound_buffer_ptr() override;
 #ifdef USE_SOUND_VOLUME
-	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r) override;
 #endif
 	
 	// user interface
-	void open_cart(int drv, const _TCHAR* file_path);
-	void close_cart(int drv);
-	bool is_cart_inserted(int drv);
-	void open_compact_disc(int drv, const _TCHAR* file_path);
-	void close_compact_disc(int drv);
-	bool is_compact_disc_inserted(int drv);
-	uint32_t is_compact_disc_accessed();
-	bool is_frame_skippable()
+	void open_cart(int drv, const _TCHAR* file_path) override;
+	void close_cart(int drv) override;
+	bool is_cart_inserted(int drv) override;
+	void open_compact_disc(int drv, const _TCHAR* file_path) override;
+	void close_compact_disc(int drv) override;
+	bool is_compact_disc_inserted(int drv) override;
+	uint32_t is_compact_disc_accessed() override;
+	bool is_frame_skippable() override
 	{
 		return false;
 	}
 	
-	double get_current_usec();
-	uint64_t get_current_clock_uint64();
+	double get_current_usec() override;
+	uint64_t get_current_clock_uint64() override;
 	
-	void update_config();
+	void update_config() override;
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// ----------------------------------------
@@ -155,7 +155,7 @@ public:
 	// ----------------------------------------
 	
 	// devices
-	DEVICE* get_device(int id);
+	DEVICE* get_device(int id) override;
 	//DEVICE* dummy;
 	//DEVICE* first_device;
 	//DEVICE* last_device;

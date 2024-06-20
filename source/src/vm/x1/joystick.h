@@ -33,8 +33,8 @@ public:
 	~JOYSTICK() {}
 	
 	// common functions
-	void initialize();
-	void event_frame();
+	void initialize() override;
+	void event_frame() override;
 	
 	// unique function
 	void set_context_psg(DEVICE* device)

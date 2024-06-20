@@ -10,10 +10,10 @@
 #include <QtGui>
 #include <QMenu>
 
-#include "config.h"
-
 #include "menuclasses.h"
 #include "qt_main.h"
+#include "menu_binary.h"
+#include "menu_cmt.h"
 
 void META_MainWindow::retranslateUi(void)
 {

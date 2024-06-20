@@ -68,15 +68,15 @@ public:
 	~MEMORY() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_frame();
-	void __FASTCALL mix(int32_t* buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_frame() override;
+	void __FASTCALL mix(int32_t* buffer, int cnt) override;
+	void set_volume(int ch, int decibel_l, int decibel_r) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_drec(DEVICE* device)

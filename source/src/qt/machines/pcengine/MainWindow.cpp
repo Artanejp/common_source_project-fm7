@@ -13,8 +13,9 @@
 #include <QMenu>
 
 #include "menuclasses.h"
-#include "emu.h"
 #include "qt_main.h"
+#include "menu_cart.h"
+#include "menu_compactdisc.h"
 //QT_BEGIN_NAMESPACE
 
 void META_MainWindow::retranslateUi(void)

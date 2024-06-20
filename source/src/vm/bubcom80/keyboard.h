@@ -29,8 +29,8 @@ public:
 	~KEYBOARD() {}
 	
 	// common functions
-	void initialize();
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void initialize() override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 };
 }
 #endif

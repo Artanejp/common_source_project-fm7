@@ -48,16 +48,16 @@ public:
 	~MEMORY() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
 #ifndef _X1TURBO_FEATURE
-	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) override;
 #endif
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique function
 #ifdef _X1TURBO_FEATURE

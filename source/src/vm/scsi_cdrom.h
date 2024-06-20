@@ -60,7 +60,7 @@ protected:
 
 	void __FASTCALL set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
-	double __FASTCALL get_seek_time(uint32_t lba);
+	double __FASTCALL get_seek_time(uint32_t lba) override;
 
 	int volume_m;
 	int volume_l, volume_r;

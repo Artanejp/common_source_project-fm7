@@ -164,17 +164,17 @@ public:
 	~DISPLAY() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_frame();
-	void event_vline(int v, int clock);
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_frame() override;
+	void event_vline(int v, int clock) override;
 #ifdef _X1TURBO_FEATURE
-	void __FASTCALL event_callback(int event_id, int err);
+	void __FASTCALL event_callback(int event_id, int err) override;
 #endif
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 #ifdef _X1TURBO_FEATURE

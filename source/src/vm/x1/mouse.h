@@ -37,8 +37,8 @@ public:
 	~MOUSE() {}
 	
 	// common functions
-	void initialize();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
+	void initialize() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
 	
 	// unique function
 	void set_context_sio(DEVICE* device)

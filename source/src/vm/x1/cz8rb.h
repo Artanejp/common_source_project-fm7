@@ -34,26 +34,26 @@ public:
 	~CZ8RB() {}
 	
 	// common functions
-	virtual void initialize();
-	virtual void reset();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void initialize() override;
+	virtual void reset() override;
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 //#ifdef USE_DEBUGGER
-	virtual bool is_debugger_available()
+	virtual bool is_debugger_available() override
 	{
 		return true;
 	}
-	virtual uint64_t get_debug_data_addr_space()
+	virtual uint64_t get_debug_data_addr_space() override
 	{
 		return CZ8RB_BUFFER_SIZE;
 	}
-	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data)
+	virtual void __FASTCALL write_debug_data8(uint32_t addr, uint32_t data) override
 	{
 		if(addr < CZ8RB_BUFFER_SIZE) {
 			data_buffer[addr] = data;
 		}
 	}
-	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr)
+	virtual uint32_t __FASTCALL read_debug_data8(uint32_t addr) override
 	{
 		if(addr < CZ8RB_BUFFER_SIZE) {
 			return data_buffer[addr];
@@ -61,7 +61,7 @@ public:
 		return 0;
 	}
 //#endif
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 };
 }
 #endif

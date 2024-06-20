@@ -53,7 +53,7 @@ public:
 	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) override;
 	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_data8(uint32_t addr) override;
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions

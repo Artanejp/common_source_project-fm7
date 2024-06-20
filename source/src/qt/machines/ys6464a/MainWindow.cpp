@@ -11,9 +11,7 @@
 
 #include "menuclasses.h"
 #include "qt_main.h"
-
-//QT_BEGIN_NAMESPACE
-
+#include "menu_binary.h"
 
 void META_MainWindow::retranslateUi(void)
 {

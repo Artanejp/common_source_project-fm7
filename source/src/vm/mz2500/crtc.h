@@ -135,7 +135,7 @@ public:
 	void __FASTCALL event_callback(int event_id, int err) override;
 	void event_vline(int v, int clock) override;
 	void update_config() override;
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique function
 	void set_context_mem(DEVICE* device)
