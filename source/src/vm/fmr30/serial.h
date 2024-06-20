@@ -38,9 +38,8 @@ private:
 		uint8_t intmask;
 		uint8_t intstat;
 	} sioctrl[4];
-	
-	void update_intr(int ch);
-	
+
+	void __FASTCALL update_intr_local(int ch);
 public:
 	SERIAL(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -49,11 +48,12 @@ public:
 	~SERIAL() {}
 	
 	// common functions
-	void initialize();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_pic(DEVICE* device)

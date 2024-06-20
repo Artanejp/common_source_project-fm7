@@ -32,7 +32,7 @@ public:
 	~KEYBOARD() {}
 	
 	// common function
-	void reset();
+	void reset() override;
 	
 	// unique functions
 	void set_context_sio(DEVICE* device)

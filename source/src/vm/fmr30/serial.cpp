@@ -27,7 +27,7 @@ void SERIAL::write_io8(uint32_t addr, uint32_t data)
 	case 0x0b:
 		sioctrl[0].ctrl = data;
 		d_kb->write_signal(SIG_I8251_LOOPBACK, data, 8);
-		update_intr(0);
+		update_intr_local(0);
 		break;
 	case 0x12:
 		sioctrl[1].baud = data;
@@ -35,7 +35,7 @@ void SERIAL::write_io8(uint32_t addr, uint32_t data)
 	case 0x13:
 		sioctrl[1].ctrl = data;
 		d_sub->write_signal(SIG_I8251_LOOPBACK, data, 8);
-		update_intr(1);
+		update_intr_local(1);
 		break;
 	case 0x62:
 		sioctrl[2].baud = data;
@@ -43,7 +43,7 @@ void SERIAL::write_io8(uint32_t addr, uint32_t data)
 	case 0x63:
 		sioctrl[2].ctrl = data;
 		d_ch1->write_signal(SIG_I8251_LOOPBACK, data, 8);
-		update_intr(2);
+		update_intr_local(2);
 		break;
 	case 0x64:
 		sioctrl[2].intmask = data;
@@ -57,7 +57,7 @@ void SERIAL::write_io8(uint32_t addr, uint32_t data)
 	case 0x73:
 		sioctrl[3].ctrl = data;
 		d_ch2->write_signal(SIG_I8251_LOOPBACK, data, 8);
-		update_intr(3);
+		update_intr_local(3);
 		break;
 	case 0x74:
 		sioctrl[3].intmask = data;
@@ -111,19 +111,19 @@ void SERIAL::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_SERIAL_RXRDY_CH1:
 	case SIG_SERIAL_RXRDY_CH2:
 		sioctrl[id & 3].rxrdy = ((data & mask) != 0);
-		update_intr(id & 3);
+		update_intr_local(id & 3);
 		break;
 	case SIG_SERIAL_TXRDY_KB:
 	case SIG_SERIAL_TXRDY_SUB:
 	case SIG_SERIAL_TXRDY_CH1:
 	case SIG_SERIAL_TXRDY_CH2:
 		sioctrl[id & 3].txrdy = ((data & mask) != 0);
-		update_intr(id & 3);
+		update_intr_local(id & 3);
 		break;
 	}
 }
 
-void SERIAL::update_intr(int ch)
+void SERIAL::update_intr_local(int ch)
 {
 	static const int pic_ids[4] = {
 		SIG_I8259_CHIP0 | SIG_I8259_IR2,	// keyboard

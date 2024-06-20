@@ -30,7 +30,6 @@ private:
 	void  read_from_cur_time();
 	void  write_to_cur_time();
 	void  update_checksum();
-	void  update_intr() override;
 public:
 	RTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -41,13 +40,18 @@ public:
 	// common functions
 	void initialize() override;
 	void release() override;
+	
 	void  __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t  __FASTCALL read_io8(uint32_t addr) override;
 	void  __FASTCALL write_io16(uint32_t addr, uint32_t data) override;
 	uint32_t  __FASTCALL read_io16(uint32_t addr) override;
 	void  __FASTCALL write_io16w(uint32_t addr, uint32_t data, int *wait) override;
 	uint32_t  __FASTCALL read_io16w(uint32_t addr, int *wait) override;
+	
 	void __FASTCALL event_callback(int event_id, int err) override;
+	
+	void  update_intr() override;
+	
 	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique function
