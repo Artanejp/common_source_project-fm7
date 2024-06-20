@@ -60,7 +60,7 @@ protected:
 
 	void __FASTCALL set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
-	double __FASTCALL get_seek_time(uint32_t lba) override;
+	double __FASTCALL get_seek_time(uint32_t lba);
 
 	int volume_m;
 	int volume_l, volume_r;
@@ -97,39 +97,42 @@ public:
 	~SCSI_CDROM() {}
 
 	// common functions
-	virtual void initialize();
-	virtual void release();
-	virtual void reset();
-	virtual uint32_t __FASTCALL read_signal(int id);
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual void __FASTCALL event_callback(int event_id, int err);
-	virtual void __FASTCALL mix(int32_t* buffer, int cnt);
-	virtual void set_volume(int ch, int decibel_l, int decibel_r);
-	virtual bool process_state(FILEIO* state_fio, bool loading);
-	virtual void out_debug_log(const _TCHAR *format, ...);
+	virtual void initialize() override;
+	virtual void release() override;
+	
+	virtual void reset() override;
+	
+	virtual uint32_t __FASTCALL read_signal(int id) override;
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	
+	virtual void __FASTCALL event_callback(int event_id, int err) override;
+	virtual void __FASTCALL mix(int32_t* buffer, int cnt) override;
+	virtual void set_volume(int ch, int decibel_l, int decibel_r) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
+	virtual void out_debug_log(const _TCHAR *format, ...) override;
 
 	// virtual scsi functions
-	virtual void reset_device();
-	virtual bool is_device_ready();
-	uint32_t physical_block_size()
+	virtual void reset_device() override;
+	virtual bool is_device_ready() override;
+	uint32_t physical_block_size() override
 	{
 		return 2352;
 	}
-	uint32_t logical_block_size()
+	uint32_t logical_block_size() override
 	{
 		return read_mode ? 2340 : 2048;
 	}
-	uint32_t max_logical_block_addr()
+	uint32_t max_logical_block_addr() override
 	{
 		if(max_logical_block > 0) {
 			return max_logical_block - 1;
 		}
 		return 0;
 	}
-	virtual int get_command_length(int value);
-	virtual void start_command();
-	virtual bool read_buffer(int length);
-	virtual bool write_buffer(int length);
+	virtual int __FASTCALL get_command_length(int value) override;
+	virtual void start_command() override;
+	virtual bool read_buffer(int length) override;
+	virtual bool write_buffer(int length) override;
 
 	// unique functions
 	void set_context_done(DEVICE* device, int id, uint32_t mask)

@@ -203,13 +203,15 @@ public:
 	~SCSI_DEV() {}
 
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
-	virtual void out_debug_log(const char *fmt, ...);
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	
+	bool process_state(FILEIO* state_fio, bool loading) override;
+	virtual void out_debug_log(const char *fmt, ...) override;
 
 	// unique functions
 	void set_context_interface(DEVICE* device)
@@ -272,15 +274,15 @@ public:
 	{
 		return 0;
 	}
-	virtual uint32_t max_logical_block_addr()
+	virtual uint32_t __FASTCALL max_logical_block_addr()
 	{
 		return 0;
 	}
-	virtual double get_seek_time(uint64_t new_position, uint64_t length)
+	virtual double __FASTCALL get_seek_time(uint64_t new_position, uint64_t length)
 	{
 		return seek_time;
 	}
-	virtual int get_command_length(int value);
+	virtual int __FASTCALL get_command_length(int value);
 	virtual void start_command();
 	virtual bool read_buffer(int length);
 	virtual bool write_buffer(int length);

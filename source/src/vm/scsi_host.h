@@ -70,10 +70,12 @@ public:
 	~SCSI_HOST() {}
 	
 	// common functions
-	virtual void reset();
-	virtual void initialize();
-	virtual void release();
-	virtual void __FASTCALL event_callback(int id, int err);
+	virtual void reset() override;
+	
+	virtual void initialize() override;	
+	virtual void release() override;
+	
+	virtual void __FASTCALL event_callback(int id, int err) override;
 /*
 #ifdef SCSI_HOST_WIDE
 	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
@@ -83,14 +85,14 @@ public:
 	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
 #endif
 */
-	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr);
+	virtual void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data) override;
+	virtual void __FASTCALL write_dma_io16(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_dma_io8(uint32_t addr) override;
+	virtual uint32_t __FASTCALL read_dma_io16(uint32_t addr) override;
 	
-	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	virtual uint32_t __FASTCALL read_signal(int id);
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	virtual uint32_t __FASTCALL read_signal(int id) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)

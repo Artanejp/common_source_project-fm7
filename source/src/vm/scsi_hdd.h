@@ -50,18 +50,21 @@ public:
 	~SCSI_HDD() {}
 
 	// common functions
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// virtual scsi functions
-	void release();
-	void reset();
-	bool is_device_existing();
-	uint32_t physical_block_size();
-	uint32_t logical_block_size();
-	uint32_t max_logical_block_addr();
-	bool read_buffer(int length);
-	bool write_buffer(int length);
-	double get_seek_time(uint64_t new_position, uint64_t length);
+	void release() override;
+	void reset() override;
+	
+	bool is_device_existing() override;
+	uint32_t physical_block_size() override;
+	uint32_t logical_block_size() override;
+	uint32_t max_logical_block_addr() override;
+	
+	bool read_buffer(int length) override;
+	bool write_buffer(int length) override;
+	
+	double __FASTCALL get_seek_time(uint64_t new_position, uint64_t length) override;
 
 	// unique functions
 	void set_disk_handler(int drv, HARDDISK* device)
@@ -85,8 +88,8 @@ public:
 	int step_period;
 
 	// virtual scsi functions
-	virtual void out_debug_log(const _TCHAR *format, ...);
-	virtual void start_command();
+	virtual void out_debug_log(const _TCHAR *format, ...) override;
+	virtual void start_command() override;
 };
 
 class DLL_PREFIX SASI_HDD : public SCSI_HDD
@@ -99,9 +102,9 @@ public:
 	~SASI_HDD() {}
 
 	// virtual scsi functions
-	virtual void out_debug_log(const _TCHAR *format, ...);
-	void start_command();
-	bool write_buffer(int length);
+	virtual void out_debug_log(const _TCHAR *format, ...) override;
+	void start_command() override;
+	bool write_buffer(int length) override;
 };
 
 #endif
