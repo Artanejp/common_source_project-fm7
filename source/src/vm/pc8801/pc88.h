@@ -229,7 +229,7 @@ private:
 	uint8_t gvram_plane, gvram_sel;
 #endif
 
-	void update_timing();
+	void update_timing_local();
 	int get_m1_wait(bool addr_f000);
 	int get_main_wait(bool read);
 #if defined(PC8801SR_VARIANT)
@@ -340,7 +340,6 @@ private:
 #endif
 	uint8_t intr_mask1, intr_mask2;
 	void __FASTCALL request_intr(int level, bool status);
-	void update_intr();
 
 	// data recorder
 	FILEIO *cmt_fio;
@@ -421,29 +420,33 @@ public:
 	~PC88() {}
 
 	// common functions
-	void initialize();
-	void release();
-	void reset();
+	void initialize() override;
+	void release() override;
+	void reset() override;
 
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
-	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 #ifdef _IO_DEBUG_LOG
-	uint32_t __FASTCALL read_io8_debug(uint32_t addr);
+	uint32_t __FASTCALL read_io8_debug(uint32_t addr) override;
 #endif
 
-	uint32_t __FASTCALL read_dma_data8(uint32_t addr);
-	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t __FASTCALL read_dma_data8(uint32_t addr) override;
+	void __FASTCALL write_dma_data8(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data) override;
 
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void __FASTCALL event_callback(int event_id, int err);
-	void event_frame();
-	void event_vline(int v, int clock);
-	uint32_t get_intr_ack();
-	void notify_intr_ei();
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	
+	void __FASTCALL event_callback(int event_id, int err) override;
+	void event_frame() override;
+	void event_vline(int v, int clock) override;
+	
+	uint32_t get_intr_ack() override;
+	void notify_intr_ei() override;
+	void update_intr() override;
+	
 	bool process_state(FILEIO* state_fio, bool loading);
 
 	// unique functions

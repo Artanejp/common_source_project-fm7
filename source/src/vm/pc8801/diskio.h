@@ -40,11 +40,13 @@ public:
 	~DiskIO() {}
 
 	// common functions
-	virtual void initialize();
-	virtual void release();
-	virtual void reset();
-	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
+	virtual void initialize() override;
+	virtual void release() override;
+	
+	virtual void reset() override;
+	
+	virtual void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
 
 private:
 	void Reset(uint32_t a, uint32_t d);

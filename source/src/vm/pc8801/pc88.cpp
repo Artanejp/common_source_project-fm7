@@ -674,7 +674,7 @@ void PC88::reset()
 	// crtc
 	memset(&crtc, 0, sizeof(crtc));
 	crtc.reset(hireso);
-	update_timing();
+	update_timing_local();
 
 	memset(palette, 0, sizeof(palette));
 	for(int i = 1; i < 8; i++) {
@@ -1118,7 +1118,7 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 			update_palette = true;
 		}
 		if(mod & 0x11) {
-			update_timing();
+			update_timing_local();
 			update_palette = true;
 		}
 #ifdef NIPPY_PATCH
@@ -1211,7 +1211,7 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 	case 0x50:
 		crtc.write_param(data);
 		if(crtc.timing_changed) {
-			update_timing();
+			update_timing_local();
 			crtc.timing_changed = false;
 		}
 		break;
@@ -2021,7 +2021,7 @@ void PC88::write_dma_io8(uint32_t addr, uint32_t data)
 	crtc.write_buffer(data);
 }
 
-void PC88::update_timing()
+void PC88::update_timing_local()
 {
 	int lines_per_frame = (crtc.height + crtc.vretrace) * crtc.char_height;
 	// 56.4229Hz (25line) on PC-8801MA2 (XM8 version 1.00)
