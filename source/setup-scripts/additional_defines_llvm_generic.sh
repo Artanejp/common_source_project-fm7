@@ -25,6 +25,9 @@ BASICOPTS+=(${OPTIMIZE_LEVEL})
 CMAKE_OPTS_PREFIX+=(-DCMAKE_CXX_COMPILER_VERSION=${C_MAJOR_VERSION})
 CMAKE_OPTS_PREFIX+=(-DCMAKE_C_COMPILER_VERSION=${C_MAJOR_VERSION})
 
+# For development
+COPTS+=(-Woverloaded-virtual)
+
 if [ "__x__${OPTIMIZE_LEVEL}" != "__x__-O0" ] ; then
 	if [ $C_MAJOR_VERSION -le 12 ] ; then
 		COPTS+=(-fslp-vectorize)
