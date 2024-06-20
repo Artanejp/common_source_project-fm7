@@ -89,7 +89,7 @@ protected:
 	
 	void __FASTCALL do_vclk(bool flag);
 	void msm_init();
-	bool __FASTCALL do_dma(uint8_t data);
+	bool __FASTCALL do_dma_local(uint8_t data);
 	void do_cmd(uint8_t cmd);
 	void do_play();
 	void __FASTCALL do_pause(bool pause);

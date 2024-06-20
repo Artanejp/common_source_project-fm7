@@ -232,7 +232,7 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 			reg_0c |= ADPCM_REMAIN_WRITE_BUF;
 			written_size = 0;
 			if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
-				do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
+				do_dma_local(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 				out_debug_log(_T("Start DMA port $0B/ALREADY READ DATA ADPCM_WRITE_PTR=%04x ADPCM_READ_PTR=%04x MSM_START_ADDR=%04x\n"),write_ptr, read_ptr, msm_ptr);
 			} else {
 				out_debug_log(_T("Start DMA port $0B/WAIT FOR DATA\n"));
@@ -248,19 +248,19 @@ void ADPCM::write_signal(int ch, uint32_t data, uint32_t mask)
 		do_cmd(data);
 		break;
 	case SIG_ADPCM_WRITE_DMA_DATA:
-		do_dma(data);
+		do_dma_local(data);
 		break;
 	case SIG_ADPCM_DO_DMA_TRANSFER:
 		set_dma_status(true);
 		dma_connected = true;
-		do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
+		do_dma_local(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 		break;
 	case SIG_ADPCM_FORCE_DMA_TRANSFER:
 		if(flag) {
 			if(!(dma_connected)) written_size = 0;
 			dma_connected = true;
 			if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
-				do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
+				do_dma_local(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 			}
 		}
 		break;
@@ -547,7 +547,7 @@ void ADPCM::do_vclk(bool flag)
 					if(written_size <= 0x10) {
 						if((dma_connected) && (dma_enabled)) {
 							if(d_pce->read_signal(SIG_PCE_CDROM_DATA_IN) != 0) {
-								do_dma(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
+								do_dma_local(d_pce->read_signal(SIG_PCE_CDROM_RAW_DATA));
 							}
 						}
 					}
@@ -561,7 +561,7 @@ void ADPCM::do_vclk(bool flag)
 	}
 }
 
-bool ADPCM::do_dma(uint8_t data)
+bool ADPCM::do_dma_local(uint8_t data)
 {
 	ram[write_ptr & 0xffff] = data;
 	write_ptr = write_ptr + 1;
