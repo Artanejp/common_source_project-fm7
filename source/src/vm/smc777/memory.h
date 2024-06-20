@@ -164,7 +164,7 @@ private:
 	
 	uint8_t key_code;
 	uint8_t key_status;
-	uint8_t key_cmd;
+	int key_cmd;
 	int key_repeat_start;
 	int key_repeat_interval;
 	int key_repeat_event;
