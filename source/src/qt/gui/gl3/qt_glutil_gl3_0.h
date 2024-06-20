@@ -35,12 +35,12 @@ protected:
 									GLfloat *tp,
 									int number);
 
-	virtual void drawGridsMain_3(QOpenGLShaderProgram *prg,
+	virtual void drawGridsMain(QOpenGLShaderProgram *prg,
 								 QOpenGLBuffer *bp,
 								 QOpenGLVertexArrayObject *vp,
 								 int number,
 								 GLfloat lineWidth = 0.2f,
-								 QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0));
+								 QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0)) override;
 	virtual void resizeGL_Screen(void) override;
 	virtual void initPackedGLObject(GLScreenPack **p,
 									int _width, int _height,

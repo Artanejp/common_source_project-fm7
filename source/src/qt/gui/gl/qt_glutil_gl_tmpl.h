@@ -377,6 +377,12 @@ protected:
 							   int number,
 							   GLfloat lineWidth = 0.2f,
 							   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f)) { }
+	virtual void drawGridsMain(QOpenGLShaderProgram *prg,
+							   QOpenGLBuffer *bp,
+							   QOpenGLVertexArrayObject *vp,
+							   int number,
+							   GLfloat lineWidth = 0.2f,
+							   QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0)) {}
 	
 	virtual void drawBitmapTexture(void) { }
 	virtual void drawButtonsMain(int num, bool f_smoosing) { }

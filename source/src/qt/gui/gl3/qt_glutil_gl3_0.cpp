@@ -360,7 +360,7 @@ void GLDraw_3_0::updateGridsVAO(QOpenGLBuffer *bp,
 		vp->release();
 	}
 }
-void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
+void GLDraw_3_0::drawGridsMain(QOpenGLShaderProgram *prg,
 								 QOpenGLBuffer *bp,
 								 QOpenGLVertexArrayObject *vp,
 								 int number,
@@ -442,7 +442,7 @@ void GLDraw_3_0::doSetGridsHorizonal(int lines, bool force)
 void GLDraw_3_0::drawGridsHorizonal(void)
 {
 	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
-	drawGridsMain_3(grids_shader,
+	drawGridsMain(grids_shader,
 					grids_horizonal_buffer,
 					grids_horizonal_vertex,
 					vert_lines,
@@ -453,7 +453,7 @@ void GLDraw_3_0::drawGridsHorizonal(void)
 void GLDraw_3_0::drawGridsVertical(void)
 {
 	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
-	drawGridsMain_3(grids_shader,
+	drawGridsMain(grids_shader,
 					grids_vertical_buffer,
 					grids_vertical_vertex,
 					horiz_pixels,
