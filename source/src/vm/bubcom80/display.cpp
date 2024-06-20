@@ -57,7 +57,7 @@ void DISPLAY::reset()
 {
 	memset(&crtc, 0, sizeof(crtc));
 	crtc.reset();
-	update_timing();
+	update_timing_local();
 	
 	STORE_DMAC_CONTEXTS();
 	memset(&dmac, 0, sizeof(dmac));
@@ -77,7 +77,7 @@ void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 	case 0x1e:
 		crtc.write_param(data);
 		if(crtc.timing_changed) {
-			update_timing();
+			update_timing_local();
 			crtc.timing_changed = false;
 		}
 		break;
@@ -267,7 +267,7 @@ void DISPLAY::event_vline(int v, int clock)
 	}
 }
 
-void DISPLAY::update_timing()
+void DISPLAY::update_timing_local()
 {
 	int lines_per_frame = (crtc.height + crtc.vretrace) * crtc.char_height;
 	double frames_per_sec = 15980.0 / (double)lines_per_frame;

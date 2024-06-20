@@ -107,7 +107,7 @@ private:
 	uint8_t text[200][640];
 	uint8_t graph[200][640];
 	
-	void update_timing();
+	void update_timing_local();
 	void draw_text();
 	void draw_graph();
 	
