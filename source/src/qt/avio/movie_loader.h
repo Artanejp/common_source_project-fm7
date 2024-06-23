@@ -62,11 +62,12 @@ private:
 	int decode_audio(AVCodecContext *dec_ctx,  int *got_frame);
 	int decode_video(AVCodecContext *dec_ctx,  int *got_frame);
 #if defined(USE_LIBAV)
-	AVFormatContext *fmt_ctx; // = NULL;
-	AVCodecContext *video_dec_ctx;// = NULL
-	AVCodecContext *audio_dec_ctx;
+	AVFormatContext* fmt_ctx; // = NULL;
+	AVCodecContext* video_dec_ctx;// = NULL
+	AVCodecContext* audio_dec_ctx;
 	enum AVPixelFormat pix_fmt;
-	AVStream *video_stream, *audio_stream; // NULL
+	AVStream* video_stream;
+	AVStream* audio_stream; // NULL
 	uint8_t *video_dst_data[4]; // = {NULL};
 	int      video_dst_linesize[4];
 	int video_dst_bufsize;

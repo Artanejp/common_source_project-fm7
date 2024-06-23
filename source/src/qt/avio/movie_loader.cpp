@@ -60,21 +60,21 @@ MOVIE_LOADER::MOVIE_LOADER(OSD_BASE *osd, config_t *cfg) : QObject(NULL)
 	req_transfer = true;
 
 #if defined(USE_LIBAV)
-	fmt_ctx = NULL;
-	video_dec_ctx = NULL;
-	audio_dec_ctx = NULL;
-	sws_context = NULL;
-	swr_context = NULL;
-	pkt = NULL;
+	fmt_ctx = nullptr;
+	video_dec_ctx = nullptr;
+	audio_dec_ctx = nullptr;
+	sws_context = nullptr;
+	swr_context = nullptr;
+	pkt = nullptr;
 
-	video_stream = NULL;
-	audio_stream = NULL;
-	for(int i = 0; i < 4; i++) video_dst_data[i] = NULL;
+	video_stream = nullptr;
+	audio_stream = nullptr;
+	for(int i = 0; i < 4; i++) video_dst_data[i] = nullptr;
 	for(int i = 0; i < 4; i++) video_dst_linesize[i] = 0;
 	video_dst_bufsize = 0;
 	video_stream_idx = -1;
 	audio_stream_idx = -1;
-	frame = NULL;
+	frame = nullptr;
 	refcount = 0;
 #endif
 
@@ -417,7 +417,10 @@ bool MOVIE_LOADER::open(QString filename)
     int ret = 0;
 	_filename = filename;
 	if(_filename.isEmpty()) return false;
+	if(fmt_ctx != nullptr) return false; // Maybe already opened.
 
+	QMutexLocker Locker_V(video_mutex);
+	
 	mod_frames = 0.0;
 	req_transfer = true;
 
@@ -436,25 +439,20 @@ bool MOVIE_LOADER::open(QString filename)
 			avformat_free_context(fmt_ctx);
 			fmt_ctx = NULL;
 		}
-        return -1;
+        return false;
     }
 
     /* retrieve stream information */
     if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
         out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not find stream information\n");
-        return -1;;
+        return false;
     }
 
     if (open_codec_context(&video_stream_idx, fmt_ctx, &video_dec_ctx, AVMEDIA_TYPE_VIDEO) >= 0) {
         video_stream = fmt_ctx->streams[video_stream_idx];
-		if(video_dec_ctx == NULL) {
+		if(video_dec_ctx == nullptr) {
 			goto _end;
 		}
-//		if(avcodec_parameters_to_context(video_dec_ctx,
-//										 video_stream->codecpar) < 0) {
-//			goto _end;
-//		}
-
         /* allocate image where the decoded image will be put */
         src_width = video_dec_ctx->width;
         src_height = video_dec_ctx->height;
@@ -481,7 +479,7 @@ bool MOVIE_LOADER::open(QString filename)
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate resampler context\n");
 		goto _end;
 	}
-	av_opt_set_int	   (swr_context, "in_channel_count",   audio_dec_ctx->channels,	   0);
+	av_opt_set_int	   (swr_context, "in_channel_count",   audio_dec_ctx->ch_layout.nb_channels,	   0); // Seems to audio_dec_ctx->channels has deprecated from FFMpeg 5.x.
 	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_dec_ctx->sample_rate,	0);
 	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_dec_ctx->sample_fmt, 0);
 	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
