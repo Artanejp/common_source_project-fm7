@@ -35,6 +35,104 @@ extern "C" {
 #endif
 /**************************************************************/
 /* video output */
+void MOVIE_SAVER::setup_video(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id)
+{
+#if defined(USE_LIBAV)
+	AVCodecContext *c = codec_context;
+
+	__UNLIKELY_IF((codec == nullptr) || (c == nullptr)) {
+		return;
+	}
+	#ifdef AVCODEC_UPPER_V56
+	AVRational ratio; // ToDo: Correct aspect ratio 20240624 K.O
+	ratio.num = 1;
+	ratio.den = 1;
+	AVCodecParameters  cp;
+	avcodec_parameters_from_context(&cp, c);
+	cp.codec_type = AVMEDIA_TYPE_VIDEO;
+	cp.codec_id = codec_id;
+	cp.format = STREAM_PIX_FMT;
+	cp.bit_rate = video_bit_rate;
+	cp.width	= video_geometry.width();
+	cp.height   = video_geometry.height();
+//		cp->profile = ;
+//		cp->level = ;
+	cp.sample_aspect_ratio = ratio;
+	cp.field_order = AV_FIELD_PROGRESSIVE;
+	cp.format = STREAM_PIX_FMT;
+	avcodec_parameters_to_context(c, &cp);
+	int __type = CSP_AVIO_BASIC::csp_avio_get_codec_type((_TCHAR*)avcodec_get_name(codec_id));
+	switch(__type) {
+	case CSP_AVIO_BASIC::TYPE_MPEG1:
+		c->mb_decision = 2;
+		break;
+		/* just for testing, we also add B frames */
+	case CSP_AVIO_BASIC::TYPE_MPEG2:
+		c->max_b_frames = 2;
+		c->gop_size  = rec_fps; /* emit one intra frame every one second */
+		break;
+	case CSP_AVIO_BASIC::TYPE_MPEG4:
+		setup_mpeg4((void *)c);
+		break;
+	case CSP_AVIO_BASIC::TYPE_H264:
+	case CSP_AVIO_BASIC::TYPE_LIBX264:
+		setup_h264((void *)c);
+		break;
+	case CSP_AVIO_BASIC::TYPE_VP9:
+	case CSP_AVIO_BASIC::TYPE_VPX_VP9:
+		// ToDo
+		break;
+	case CSP_AVIO_BASIC::TYPE_HEVC:
+	case CSP_AVIO_BASIC::TYPE_LIBX265:
+		// ToDo
+		break;
+	case CSP_AVIO_BASIC::TYPE_AV1:
+	case CSP_AVIO_BASIC::TYPE_LIBRAB1E_AV1:
+		// ToDo
+		break;
+	default:
+		break;
+	}
+	#else /* AVCODEC_UPPER_V56 */
+	c->codec_id = codec_id;
+	c->bit_rate = video_bit_rate;
+	// https://libav.org/avconv.html#Video-Options
+	/* Resolution must be a multiple of two. */
+	c->width	= video_geometry.width();
+	c->height   = video_geometry.height();
+	c->pix_fmt	= STREAM_PIX_FMT;
+	switch(codec_id) {
+	case AV_CODEC_ID_MPEG2VIDEO:
+		/* just for testing, we also add B frames */
+		c->max_b_frames = 2;
+		c->gop_size  = rec_fps; /* emit one intra frame every one second */
+		break;
+	case AV_CODEC_ID_MPEG4:
+		setup_mpeg4((void *)c);
+		break;
+	case AV_CODEC_ID_MPEG1VIDEO:
+		/* Needed to avoid using macroblocks in which some coeffs overflow.
+		 * This does not happen with normal video, it just happens here as
+		 * the motion of the chroma plane does not match the luma plane. */
+		c->mb_decision = 2;
+		break;
+	case AV_CODEC_ID_H264:
+		setup_h264((void *)c);
+		break;
+		// ToDo:
+		//case AV_CODEC_ID_HEVC:
+		//break;
+		//case AV_CODEC_ID_VP9:
+		//break;
+		//case AV_CODEC_ID_AV1:
+		//break;
+	default:
+		break;
+	}
+	#endif /* !(AVCODEC_UPPER_V56) */
+	c->thread_count	 = video_encode_threads;
+#endif /* USE_LIBAV */
+}
 
 void MOVIE_SAVER::setup_h264(void *_codec_context)
 {
@@ -228,6 +326,9 @@ void *MOVIE_SAVER::get_video_frame(void)
 #ifdef AVCODEC_UPPER_V56
 	c = ost->context;
 #else
+	__UNLIKELY_IF(ost->st == nullptr) {
+		return nullptr;
+	}
 	c = ost->st->codec;
 #endif
 
@@ -235,16 +336,16 @@ void *MOVIE_SAVER::get_video_frame(void)
 		/* as we only generate a YUV420P picture, we must convert it
 		 * to the codec pixel format if needed */
 	if((old_width != _width) || (old_height != _height)) {
-		if(ost->sws_ctx != NULL) { 
+		if(ost->sws_ctx != nullptr) { 
 			sws_freeContext(ost->sws_ctx);
-			ost->sws_ctx = NULL;
+			ost->sws_ctx = nullptr;
 		}
-		if(ost->tmp_frame != NULL) {
-			av_frame_free(&ost->tmp_frame);
+		if(ost->tmp_frame != nullptr) {
+			av_frame_free(&(ost->tmp_frame));
 			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
-			if (ost->tmp_frame == NULL) {
+			if (ost->tmp_frame == nullptr) {
 				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not re-allocate video frame\n");
-				return (void *)NULL;
+				return nullptr;
 			}
 		}
 	}
@@ -252,13 +353,15 @@ void *MOVIE_SAVER::get_video_frame(void)
 	old_height = _height;
 	old_width = _width;
 	
-	if (!ost->sws_ctx) {
-		ost->sws_ctx = sws_getContext(ost->tmp_frame->width, ost->tmp_frame->height,
-									  AV_PIX_FMT_RGBA,
-									  c->width, c->height,
-									  c->pix_fmt,
-									  SCALE_FLAGS, NULL, NULL, NULL);
-		if (!ost->sws_ctx) {
+	if (ost->sws_ctx == nullptr) {
+		if(ost->tmp_frame != nullptr) {
+			ost->sws_ctx = sws_getContext(ost->tmp_frame->width, ost->tmp_frame->height,
+										  AV_PIX_FMT_RGBA,
+										  c->width, c->height,
+										  c->pix_fmt,
+										  SCALE_FLAGS, NULL, NULL, NULL);
+		}
+		if (ost->sws_ctx == nullptr) {
 			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
 					"Could not initialize the conversion context\n");
 			return (void *)NULL;
@@ -266,7 +369,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 	}
 	//const int in_linesize[1] = { 4 * _width };
 	//fill_yuv_image(ost->tmp_frame, ost->next_pts, c->width, c->height);
-	{
+	if((ost->sws_ctx != nullptr) && (ost->tmp_frame != nullptr) && (ost->frame != nullptr)) {
 		int w = _width;
 		int h = _height;
 		int x;
@@ -275,51 +378,49 @@ void *MOVIE_SAVER::get_video_frame(void)
 		uint32_t *p;
 		AVFrame *qq = ost->tmp_frame;
 		uint32_t *q;
-		uint32_t cacheline[8];
+		__DECL_ALIGNED(16) uint32_t cacheline[8];
 		//int ret;
-		if(ost->tmp_frame != NULL) {
-			//ret = av_frame_make_writable(ost->tmp_frame);
-			av_frame_make_writable(ost->tmp_frame);
-			//if (ret < 0)
-			//exit(1);
-			for(y = 0; y < h; y++) {
-				yy[0] = y * qq->linesize[0];
-				p = (uint32_t *)(&(video_frame_buf[y * w]));
-				q = (uint32_t *)(&(qq->data[0][yy[0]]));
-				for(x = 0; x < (w / 8); x++) {
-					cacheline[0] = p[0];
-					cacheline[1] = p[1];
-					cacheline[2] = p[2];
-					cacheline[3] = p[3];
-					cacheline[4] = p[4];
-					cacheline[5] = p[5];
-					cacheline[6] = p[6];
-					cacheline[7] = p[7];
+		//ret = av_frame_make_writable(ost->tmp_frame);
+		av_frame_make_writable(ost->tmp_frame);
+		//if (ret < 0)
+		//exit(1);
+		for(y = 0; y < h; y++) {
+			yy[0] = y * qq->linesize[0];
+			p = (uint32_t *)(&(video_frame_buf[y * w]));
+			q = (uint32_t *)(&(qq->data[0][yy[0]]));
+			for(x = 0; x < (w / 8); x++) {
+				cacheline[0] = p[0];
+				cacheline[1] = p[1];
+				cacheline[2] = p[2];
+				cacheline[3] = p[3];
+				cacheline[4] = p[4];
+				cacheline[5] = p[5];
+				cacheline[6] = p[6];
+				cacheline[7] = p[7];
 
-					q[0] = cacheline[0];
-					q[1] = cacheline[1];
-					q[2] = cacheline[2];
-					q[3] = cacheline[3];
-					q[4] = cacheline[4];
-					q[5] = cacheline[5];
-					q[6] = cacheline[6];
-					q[7] = cacheline[7];
+				q[0] = cacheline[0];
+				q[1] = cacheline[1];
+				q[2] = cacheline[2];
+				q[3] = cacheline[3];
+				q[4] = cacheline[4];
+				q[5] = cacheline[5];
+				q[6] = cacheline[6];
+				q[7] = cacheline[7];
 
-					q += 8;
-					p += 8;
-				}
-				if((w & 7) != 0) {
-					for(x = 0; x < (w & 7); x++) {
-						q[x] = p[x];
-					}
+				q += 8;
+				p += 8;
+			}
+			if((w & 7) != 0) {
+				for(x = 0; x < (w & 7); x++) {
+					q[x] = p[x];
 				}
 			}
 		}
 		sws_scale(ost->sws_ctx,
 				  ost->tmp_frame->data, ost->tmp_frame->linesize,
 				  0, _height, ost->frame->data, ost->frame->linesize);
+		ost->frame->pts = ost->next_pts++;
 	}
-	ost->frame->pts = ost->next_pts++;
 	return (void *)(ost->frame);
 #else
 	return (void *)NULL;
@@ -334,8 +435,11 @@ void *MOVIE_SAVER::get_video_frame(void)
 int MOVIE_SAVER::write_video_frame()
 {
 #if defined(USE_LIBAV)
+	__UNLIKELY_IF(output_context.get() == nullptr) {
+		return 0;
+	}
 	int ret;
-	AVFormatContext *oc = output_context;
+	std::shared_ptr<AVFormatContext> oc = output_context;
 	OutputStream *ost = &video_st;
 	AVCodecContext *c;
 	AVFrame *frame;
@@ -344,9 +448,14 @@ int MOVIE_SAVER::write_video_frame()
 #ifdef AVCODEC_UPPER_V56
 	c = ost->context;
 #else
+	__UNLIKELY_IF(ost->st == nullptr) {
+		return -1;
+	}
 	c = ost->st->codec;
 #endif
-
+	__UNLIKELY_IF(c == nullptr) {
+		return -1;
+	}
 	frame = (AVFrame *)get_video_frame();
 	if(frame == nullptr) {
 		return -1;
@@ -357,41 +466,36 @@ int MOVIE_SAVER::write_video_frame()
 	//while(got_packet) {
 #ifdef AVCODEC_UPPER_V56
 	pkt = av_packet_alloc();
-	if(pkt == nullptr) {
+	__UNLIKELY_IF(pkt == nullptr) {
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Failed to allocate a packet",
 							__FUNCTION__);
 		return -1;
 	}
-	
-	if(frame != NULL) {
-		ret = avcodec_send_frame(c, frame);
-		if(ret < 0) {
-			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Failed to send a frame: %s\n",
-								__FUNCTION__,
-								err2str(ret).toLocal8Bit().constData());
+	__UNLIKELY_IF(avcodec_send_frame(c, frame) < 0) {
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Failed to send a frame: %s\n",
+					  __FUNCTION__,
+					  err2str(ret).toLocal8Bit().constData());
+		goto __error_1;
+	}
+	totalDstFrame++;
+	while (ret  >= 0) {
+		ret = avcodec_receive_packet(c, pkt);
+		__UNLIKELY_IF((ret == AVERROR(EAGAIN)) || (ret == AVERROR_EOF)) {
+			break;
+		} else if (ret < 0) {
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n",
+						  err2str(ret).toLocal8Bit().constData());
 			goto __error_1;
 		}
-		totalDstFrame++;
-		while (ret  >= 0) {
-			ret = avcodec_receive_packet(c, pkt);
-			if((ret == AVERROR(EAGAIN)) || (ret == AVERROR_EOF)) {
-				break;
-			} else if (ret < 0) {
-				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing video frame: %s\n",
-									err2str(ret).toLocal8Bit().constData());
-				goto __error_1;
-			}
-			pkt->stream_index = 0;
-			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
-			
-			if (ret2 < 0) {
-				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Error while writing video frame: %s\n", err2str(ret2).toLocal8Bit().constData());
-				goto __error_1;
-			}
-			got_packet = 1;
+		pkt->stream_index = 0;
+		int ret2 = write_frame((const void *)(&(c->time_base)), (void *)(ost->st), (void *)pkt);
+		__UNLIKELY_IF(ret2 < 0) {
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "%s: Error while writing video frame: %s\n", err2str(ret2).toLocal8Bit().constData());
+			goto __error_1;
 		}
-		av_packet_unref(pkt);
+		got_packet = 1;
 	}
+	av_packet_unref(pkt);
 #else
 	pkt = malloc(sizeof(AVPacket));
 	if(pkt == nullptr) {
@@ -407,8 +511,8 @@ int MOVIE_SAVER::write_video_frame()
 	}
 	//if(!got_packet) break;
 	totalDstFrame++;
-	if (got_packet) {
-		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
+	if (got_packet != 0) {
+		ret = write_frame((const void *)(&(c->time_base)), (void *)(ost->st), (void *)pkt);
 		
 		// ret = write_frame(oc, &c->time_base, ost->st, &pkt);
 	} else {
@@ -433,7 +537,7 @@ __return_normal:
 #else
 		free(pkt);
 #endif
-	return (frame || got_packet) ? 0 : 1;
+		return ((frame != nullptr) || (got_packet != 0)) ? 0 : 1;
 __error_1:
 #ifdef AVCODEC_UPPER_V56
 		av_packet_free(&pkt);

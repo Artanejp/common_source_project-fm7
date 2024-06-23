@@ -32,35 +32,36 @@ extern "C" {
 //static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
 //								  uint64_t channel_layout,
 //								  int sample_rate, int nb_samples)
-void *MOVIE_SAVER::alloc_audio_frame(uint64_t _sample_fmt,
-								  uint64_t channel_layout,
-								  int sample_rate, int nb_samples)
+void *MOVIE_SAVER::alloc_audio_frame(void *ctx,  int nb_samples)
 {
+	if((ctx == nullptr) || (nb_samples <= 0)) return nullptr;
 #if defined(USE_LIBAV)
 	AVFrame *frame = av_frame_alloc();
+	AVCodecContext* p_ctx = (AVCodecContext*)ctx;
 	int ret;
-	enum AVSampleFormat sample_fmt = (enum AVSampleFormat)_sample_fmt; 
+	enum AVSampleFormat sample_fmt = p_ctx->sample_fmt; 
 	if (!frame) {
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio frame\n");
-		exit(1);
+		return nullptr;
 	}
 
-	frame->format = sample_fmt;
-	frame->channel_layout = channel_layout;
-	frame->sample_rate = sample_rate;
+	frame->format = p_ctx->sample_fmt;
+    if(av_channel_layout_copy(&(frame->ch_layout), &(p_ctx->ch_layout)) < 0) {
+		av_frame_free(&frame);
+		return nullptr;
+	}
+	frame->sample_rate = p_ctx->sample_rate;
 	frame->nb_samples = nb_samples;
-
-	if (nb_samples) {
-		ret = av_frame_get_buffer(frame, 0);
-		if (ret < 0) {
+	if(av_frame_get_buffer(frame, 0) < 0) {
 			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error allocating an audio buffer\n");
-			return NULL;
+			av_frame_free(&frame);
+			return nullptr;
 		}
 	}
 
 	return (void *)frame;
 #else
-	return (void *)NULL;
+	return nullptr;
 #endif
 }
 
@@ -206,7 +207,10 @@ void *MOVIE_SAVER::get_audio_frame()
 int MOVIE_SAVER::write_audio_frame()
 {
 #if defined(USE_LIBAV)
-	AVFormatContext *oc = output_context;
+	std::shared_ptr<AVFormatContext> oc = output_context;
+	__UNLIKELY_IF(oc.get() == nullptr) {
+		return 0;
+	}
 	OutputStream *ost = &audio_st;
 	AVCodecContext *c;
 	AVPacket *pkt = NULL; // data and size must be 0;
@@ -294,7 +298,7 @@ int MOVIE_SAVER::write_audio_frame()
 			}
 			got_packet = 1;
 			pkt->stream_index = 1;
-			int ret2 = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
+			int ret2 = this->write_frame((const void *)&c->time_base, (void *)ost->st, (void *)pkt);
 			if (ret2 < 0) {
 				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n", err2str(ret2).toLocal8Bit().constData());
 				goto __error_1;
@@ -310,7 +314,7 @@ int MOVIE_SAVER::write_audio_frame()
 	}
 
 	if (got_packet) {
-		ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)pkt);
+		ret = this->write_frame((const void *)&c->time_base, (void *)ost->st, (void *)pkt);
 		if (ret < 0) {
 			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Error while writing audio frame: %s\n",
 					err2str(ret).toLocal8Bit().constData());
@@ -358,54 +362,58 @@ __eof:
 #endif
 }
 
-void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
-{
 #if defined(USE_LIBAV)
-	AVCodecContext *c = (AVCodecContext *)_codec_context;
-	AVCodec **codec = (AVCodec **)_codec;
+void MOVIE_SAVER::setup_audio(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id)
+{
+	AVCodecContext *c = codec_context;
+
+	__UNLIKELY_IF((codec == nullptr) || (c == nullptr)) {
+		return;
+	}
+	// Check support samplerate
+	std::list<int> samplerates;	
+	if((*codec)->supported_samplerates != nullptr) {
+		int* p = (*codec)->supported_samplerates;
+		for(i = 0; p[i] != 0; i++) {
+			samplerates.insert(p[i]);
+		}
+		samplerates.sort();
+	}
+	int newrate = -1;
+	for(auto _v = samplerates.begin(); _v != samplerates.end(); ++_v) {
+		if((*_v) == audio_sample_rate) {
+			newrate = audio_sample_rate;
+			break;
+		}
+		if((*_v) > audio_sample_rate) {
+			break;
+		}
+		newrate = (*_v);
+	}
+	if(newrate <= 0) {
+		return;
+	}
+	int cutoff;
+	if(newrate < 32000) {
+		cutoff = (newrate * 3) / 5;
+	} else {
+		cutoff = newrate / 2;
+	}
 	
 	#ifndef AVCODEC_UPPER_V56
 	c->sample_fmt  = (*codec)->sample_fmts ? (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
 	c->bit_rate	= audio_bit_rate;
-	c->sample_rate = audio_sample_rate;
-	if(c->codec_id == AUDIO_CODEC_AAC) {
+	c->sample_rate = newrate;
+	c->codec_id = codec_id;
+	if(codec_id == AV_CODEC_ID_AAC) {
 		c->strict_std_compliance = -2; // For internal AAC
 		c->global_quality = 100;
 	}
-	if(c->codec_id == AUDIO_CODEC_MP3) {
+	if(codec_id == AV_CODEC_ID_MP3) {
 		c->compression_level = 9; // Quality
 		// ABR/CBR/VBR
 	}
-	#else
-	int __type = CSP_AVIO_BASIC::csp_avio_get_codec_type((_TCHAR*)avcodec_get_name(c->codec_id));
-	switch(__type) {
-	case CSP_AVIO_BASIC::TYPE_MP3:
-		c->compression_level = 9; // Quality
-		// ABR/CBR/VBR
-		break;
-	case CSP_AVIO_BASIC::TYPE_AAC:
-	case CSP_AVIO_BASIC::TYPE_AAC_LATM:
-		c->strict_std_compliance = -2; // For internal AAC
-		c->global_quality = 100;
-		break;
-	default:
-		break;
-	}
-	#endif
-	
-	if(audio_sample_rate < 32000) {
-		c->cutoff = (audio_sample_rate * 3) / 5;
-	} else {
-		c->cutoff = audio_sample_rate / 2;
-	}
-	#ifndef AVCODEC_UPPER_V56
-	if ((*codec)->supported_samplerates) {
-		c->sample_rate = (*codec)->supported_samplerates[0];
-		for (int i = 0; (*codec)->supported_samplerates[i]; i++) {
-			if ((*codec)->supported_samplerates[i] == audio_sample_rate)
-				c->sample_rate = audio_sample_rate;
-		}
-	}
+	c->cutoff = cutoff;
 	c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
 	c->channel_layout = AV_CH_LAYOUT_STEREO;
 	if ((*codec)->channel_layouts) {
@@ -416,6 +424,72 @@ void MOVIE_SAVER::setup_audio(void *_codec_context, void **_codec)
 		}
 	}
 	c->channels		= av_get_channel_layout_nb_channels(c->channel_layout);
+	#else
+	int __type = CSP_AVIO_BASIC::csp_avio_get_codec_type((_TCHAR*)avcodec_get_name(codec_id));
+	struct AVCodecParameters params;
+	if(avcodec_parameters_from_context(&params, c) < 0) {
+		return;
+	}
+	params.codec_id = codec_id;
+	params.bit_rate = audio_bit_rate;
+	params.sample_rate = newrate;
+	params.frame_size = 1024; // ToDo: Modify value.
+	switch(__type) {
+	case CSP_AVIO_BASIC::TYPE_MP3:
+		params.format = AV_SAMPLE_FMT_S16P;
+		// ABR/CBR/VBR
+		break;
+	case CSP_AVIO_BASIC::TYPE_AAC:
+	case CSP_AVIO_BASIC::TYPE_AAC_LATM:
+		params.format = AV_SAMPLE_FMT_FLTP;
+		break;
+	case CSP_AVIO_BASIC::TYPE_FLAC:
+		params.format = AV_SAMPLE_FMT_S16; // OK?
+		// ToDo
+		break;
+	case CSP_AVIO_BASIC::TYPE_PCM_S16LE:
+		params.format = AV_SAMPLE_FMT_S16;
+		params.bits_per_raw_sample = 16;
+		// ToDo
+		break;
+	case CSP_AVIO_BASIC::TYPE_PCM_S24LE:
+		params.format = AV_SAMPLE_FMT_S32;
+		params.bits_per_raw_sample = 24;
+		// ToDo
+		break;
+	case CSP_AVIO_BASIC::TYPE_VORBIS:
+		params.format = AV_SAMPLE_FMT_FLTP;
+		// ToDo
+		break;
+	default:
+		break;
+	}
+	if(avcodec_parameters_to_context(c, &params) < 0) {
+		return;
+	}
+	switch(__type) {
+	case CSP_AVIO_BASIC::TYPE_MP3:
+		c->compression_level = 9; // Quality: Will modify?
+		break;
+	case CSP_AVIO_BASIC::TYPE_AAC:
+	case CSP_AVIO_BASIC::TYPE_AAC_LATM:
+		c->global_quality = 100;
+		break;
+	case CSP_AVIO_BASIC::TYPE_FLAC:
+		c->compression_level = 8; // Maximum compress. Will modify?
+		break;
+	case CSP_AVIO_BASIC::TYPE_VORBIS:
+		break;
+	default:
+		break;
+	}
+	c->cutoff = cutoff;
+	AVChannelLayout a_layout;
+	av_channel_layout_default(&a_layout, 2);
+	if(av_channel_layout_copy(&(c->channel_layout), &a_layout) < 0) {
+		return;
+	}
+	
 	#endif
-#endif
 }
+#endif

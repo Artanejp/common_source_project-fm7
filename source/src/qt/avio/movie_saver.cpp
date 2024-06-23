@@ -6,6 +6,7 @@
  */
 
 #include <QDateTime>
+#include <QElapsedTimer>
 
 #include "./csp_avio_basic.h"
 #include "movie_saver.h"
@@ -32,20 +33,19 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	
 	recording = false;
 	audio_sample_rate = 48000;
+	output_context.reset();
+	
 #if defined(USE_MOVIE_SAVER)
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
 	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
-	output_context = NULL;
-	stream_format = NULL;
+
 	audio_codec = video_codec = NULL;
 	raw_options_list = NULL;
 	
 	memset(&video_st, 0x00, sizeof(video_st));
 	memset(&audio_st, 0x00, sizeof(audio_st));
 #endif
-
-	output_context = NULL;
-	
+	init_codecs_map();
 	audio_data_queue.clear();
 	video_data_queue.clear();
 	
@@ -74,6 +74,29 @@ MOVIE_SAVER::~MOVIE_SAVER()
 	if(recording) do_close_main();
 }
 
+void MOVIE_SAVER::init_codecs_map()
+{
+#if defined(USE_LIBAV)
+	video_codec_map.clear();
+	video_codec_map.insert(VIDEO_CODEC_MP4, AV_CODEC_ID_MPEG4);
+	video_codec_map.insert(VIDEO_CODEC_H264, AV_CODEC_ID_H264);
+//	video_codec_map.insert(VIDEO_CODEC_HEVC, AV_CODEC_ID_HEVC);
+//	video_codec_map.insert(VIDEO_CODEC_VP9, AV_CODEC_ID_VP9);
+//	video_codec_map.insert(VIDEO_CODEC_AV1, AV_CODEC_ID_AV1);
+
+	audio_codec_map.clear();
+	audio_codec_map.insert(AUDIO_CODEC_MP3, AV_CODEC_ID_MP3);
+	audio_codec_map.insert(AUDIO_CODEC_AAC, AV_CODEC_ID_AAC);
+	audio_codec_map.insert(AUDIO_CODEC_VORBIS, AV_CODEC_ID_VORBIS);
+	audio_codec_map.insert(AUDIO_CODEC_PCM16, AV_CODEC_ID_PCM_S16LE);
+	audio_codec_map.insert(AUDIO_CODEC_PCM32, AV_CODEC_ID_PCM_S32LE);
+	audio_codec_map.insert(AUDIO_CODEC_FLAC, AV_CODEC_ID_PCM_FLAC);
+//	audio_codec_map.insert(AUDIO_CODEC_OPUS, AV_CODEC_ID_OPUS);
+	
+#endif /* USE_LIBAV */
+}
+	
+	
 QString MOVIE_SAVER::get_avio_version()
 {
 #if defined(__LIBAVIO_VERSION)
@@ -117,13 +140,16 @@ QString MOVIE_SAVER::err2str(int errnum)
 #endif
 }		   
 
-//void MOVIE_SAVER::log_packet(const AVFormatContext *fmt_ctx, const AVPacket *pkt)
-void MOVIE_SAVER::log_packet(const void *_fmt_ctx, const void *_pkt)
+//void MOVIE_SAVER::log_packet(const AVPacket *pkt)
+void MOVIE_SAVER::log_packet(const void *_pkt)
 {
-#if defined(USE_LIBAV)	
-	const AVFormatContext *fmt_ctx = (const AVFormatContext *)_fmt_ctx;
+#if defined(USE_LIBAV)
+	__UNLIKELY_IF((output_context.get() == nullptr) || (_pkt == nullptr)) {
+		return;
+	}
+	std::shared_ptr<AVFormatContext> fmt_ctx = output_context;
 	const AVPacket *pkt = (const AVPacket *)_pkt;
-	AVRational *time_base = &fmt_ctx->streams[pkt->stream_index]->time_base;
+	AVRational *time_base = &(fmt_ctx->streams[pkt->stream_index]->time_base);
 
 	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
 		   ts2str(pkt->pts).toLocal8Bit().constData(),
@@ -232,8 +258,8 @@ void MOVIE_SAVER::run()
 	bRunThread = true;
 	//out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE THREAD: Start");
 	int ret;
-	int fps_wait = (int)((1000.0 / (double)rec_fps) / 4.0);
-	int tmp_wait = fps_wait;
+	qint64 fps_wait = (qint64)((1.0e9 / (double)rec_fps) / 4.0);
+	qint64 tmp_wait = fps_wait;
 	bool need_audio_transcode = false;
 	bool need_video_transcode = false;
 	bool a_f, v_f;
@@ -249,6 +275,7 @@ void MOVIE_SAVER::run()
 	req_close = false;
 	req_stop = false;
 	left_frames = 0;
+	QElapsedTimer elapsed;
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
@@ -271,6 +298,9 @@ void MOVIE_SAVER::run()
 				out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Start to recording.");
 				old_recording = true;
 				a_f = v_f = false;
+				fps_wait = (qint64)((1.0e9 / (double)rec_fps) / 4.0);
+				tmp_wait = fps_wait;
+				elapsed.restart();
 			}
 			if(audio_remain <= 0) {
 				a_f = audio_data_queue.isEmpty();
@@ -286,10 +316,11 @@ void MOVIE_SAVER::run()
 				if(v_f)
 					goto _write_frame;
 				if(left_frames <= 0) dequeue_video(video_frame_buf);
-				left_frames--;
 				video_remain = video_size;
 				video_offset = 0;
-				need_video_transcode = true;
+				if(left_frames > 0) {
+					need_video_transcode = true;
+				}
 			}
 		_write_frame:
 			int result_ts = 0;
@@ -313,7 +344,12 @@ void MOVIE_SAVER::run()
 			if ((n_encode_video == 0) &&
 				((n_encode_audio != 0) ||
 				 (result_ts <= 0))) {
-				n_encode_video = write_video_frame();
+				if(left_frames > 0) {
+					n_encode_video = write_video_frame();
+					left_frames--;
+				} else {
+					n_encode_video = 0;
+				}
 				ret = n_encode_video;
 				if(n_encode_video < 0) {
 					out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "MOVIE/Saver: Something wrong with encoding video.");
@@ -349,15 +385,19 @@ void MOVIE_SAVER::run()
 			need_video_transcode = need_audio_transcode = false;
 			continue;
 		}
-		if(fps_wait >= tmp_wait) {
-			this->msleep(tmp_wait);
-			tmp_wait = 0;
-		} else {
-			this->msleep(fps_wait);
-			tmp_wait -= fps_wait;
+		if(elapsed.isValid()) {
+			qint64 nsec = elapsed.nsecsElapsed();
+			tmp_wait -= nsec;
 		}
+		elapsed.restart();
+		if(tmp_wait >= (2000 * 1000)) { // Over 2ms
+			msleep(tmp_wait / (1000 * 1000));
+		} else {
+			yieldCurrentThread();
+		}
+		if(!bRunThread) break;
 		if(tmp_wait <= 0) {
-			fps_wait = (int)((1000.0 / (double)rec_fps) / 4.0);
+			fps_wait = (int)((1.0e9 / (double)rec_fps) / 4.0);
 			//fps_wait = 10;
 			tmp_wait = fps_wait;
 		}

@@ -37,37 +37,42 @@ extern "C" {
 //#define SCALE_FLAGS SWS_BICUBLIN
 #define SCALE_FLAGS SWS_POINT
 
-enum {
+typedef enum {
 	VIDEO_CODEC_MPEG4 = 0,
 	VIDEO_CODEC_H264,
 	VIDEO_CODEC_HEVC,  // ToDo
 	VIDEO_CODEC_VP9,   // ToDo
+	VIDEO_CODEC_AV1,   // ToDo
 	VIDEO_CODEC_END,
+	VIDEO_CODEC_TYPE_MASK   = 255,
 	// ToDo: HWACCEL feature (maybe will not imprement).
-	VIDEO_CODEC_ACCEL_VAAPI = 32, // Intel VAAPI (GNU/Linux and some systems)
-	VIDEO_CODEC_ACCEL_QSV   = 64, // Intel QSV (libmfx)
-	VIDEO_CODEC_ACCEL_NVENC = 96, // NVidia NVENC (maybe Windows Only)
-	VIDEO_CODEC_ACCEL_AMF   = 128, // AMD UVD/VCE (Windows Only)
-	VIDEO_CODEC_ACCEL_VDPAU = 4096, // NVidia VDPAU (GNU/Linux and some systems; Only for decoding (and scaling)).
-	VIDEO_CODEC_ACCEL_DXVA2 = 8192, // Microsoft DXVA2 (Windows only)
-	VIDEO_CODEC_ACCEL_D3D11 = 12228, // Microsoft Direct3D 11 (Windows only)
-};
+	VIDEO_CODEC_ACCEL_VAAPI = 256,  // Intel VAAPI (GNU/Linux and some systems)
+	VIDEO_CODEC_ACCEL_VDPAU = 512, // NVidia VDPAU (GNU/Linux and some systems; Only for decoding (and scaling)).
+	VIDEO_CODEC_ACCEL_QSV   = (256 + 512),  // Intel QSV (libmfx)
+	VIDEO_CODEC_ACCEL_NVENC = (512 + 512),  // NVidia NVENC (maybe Windows Only)
+	
+	VIDEO_CODEC_ACCEL_DXVA2 = 65536, // Microsoft DXVA2 (Windows only)
+	VIDEO_CODEC_ACCEL_AMF   = (65536 + 16384), // AMD UVD/VCE (Windows Only)
+	VIDEO_CODEC_ACCEL_D3D11 = (65536 + 65536), // Microsoft Direct3D 11 (Windows only)
+} MOVIE_SAVER_VIDEO_Codec_t;
 
 enum {
 	AUDIO_CODEC_MP3 = 0,
 	AUDIO_CODEC_AAC,
 	AUDIO_CODEC_VORBIS,
+	AUDIO_CODEC_PCM16,
+	AUDIO_CODEC_PCM32,
+	AUDIO_CODEC_FLAC,
 	AUIIO_CODEC_OPUS, // ToDo
 	AUDIO_CODEC_END,
-};
+} MOVIE_SAVER_AUDIO_Codec_t;
 
 enum {
 	VIDEO_CONTAINER_TYPE_MP4 = 0,
 	VIDEO_CONTAINER_TYPE_MKV,
 	VIDEO_CONTAINER_TYPE_WEBM, // ToDo
 	VIDEO_CONTAINER_TYPE_END,
-
-};
+} MOVIE_SAVER_CONTAINER_t;
 	
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
@@ -132,17 +137,28 @@ protected:
 
 	bool have_video;
 	bool have_audio;
-	bool encode_video;
-	bool encode_audio;
+
 	int64_t audio_count;
 	int64_t video_count;
 	QStringList encode_opt_keys;
 	QStringList encode_options;
 #if defined(USE_LIBAV)
-	AVOutputFormat *stream_format;
-	AVFormatContext *output_context;
+	std::shared_ptr<AVFormatContext> output_context;
+	QMap<MOVIE_SAVER_AUDIO_Codec_t, enum AVCodecID> audio_codec_map;
+	QMap<MOVIE_SAVER_VIDEO_Codec_t, enum AVCodecID> video_codec_map;
 	AVCodec *audio_codec, *video_codec;
 	AVDictionary *raw_options_list;
+
+	struct avf_context_deleter {
+		void operator()(AVFormatContext *p) {
+			if(p != nullptr) {
+				avformat_free_context(p);
+			}
+		}
+	};
+	
+#else
+	std::shared_ptr<void> output_context;
 #endif
 	OutputStream video_st;
 	OutputStream audio_st;
@@ -161,7 +177,6 @@ protected:
 	
 	bool recording;
 	int rec_fps;
-
 	
 	uint64_t audio_size;
 	uint64_t video_size;
@@ -199,19 +214,18 @@ protected:
 
 	// Got from FFMPEG 3.0.2, doc/examples/muxer.c 
 	//void log_packet(const AVFormatContext *fmt_ctx, const AVPacket *pkt)
-	void log_packet(const void *_fmt_ctx, const void *_pkt);
-	//int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AVStream *st, AVPacket *pkt)
-	int write_frame(void *_fmt_ctx, const void *_time_base, void *_st, void *_pkt);
-	//void add_stream(OutputStream *ost, AVFormatContext *oc, AVCodec **codec, enum AVCodecID codec_id)
-	bool add_stream(void *_ost, void *_oc, void **_codec, uint64_t codec_id);
+	void __FASTCALL log_packet(const void *_fmt_ctx, const void *_pkt);
+	//int write_frame(const AVRational *time_base, AVStream *st, AVPacket *pkt)
+	int __FASTCALL write_frame(const void *_time_base, void *_st, void *_pkt);
+	//void add_stream(OutputStream *ost, AVCodec **codec, enum AVCodecID codec_id)
+	bool add_stream(void *_ost, void **_codec, uint64_t codec_id);
 	//AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt, uint64_t channel_layout, int sample_rate, int nb_samples)
-	void *alloc_audio_frame(uint64_t _sample_fmt, uint64_t channel_layout,
-							int sample_rate, int nb_samples);
-	//static void open_audio(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
+	void *alloc_audio_frame(void* ctx, int nb_samples);
+
 	bool open_audio(void);
 	//static AVFrame *get_audio_frame(OutputStream *ost)
 	void *get_audio_frame();
-	//static int write_audio_frame(AVFormatContext *oc, OutputStream *ost)
+
 	int write_audio_frame();
 	//static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
 	void *alloc_picture(uint64_t _pix_fmt, int width, int height);
@@ -219,20 +233,23 @@ protected:
 	bool open_video();
 	//AVFrame *get_video_frame(OutputStream *ost)
 	void *get_video_frame(void);
-	//static int write_video_frame(AVFormatContext *oc, OutputStream *ost)
 	int write_video_frame();
-	//void MOVIE_SAVER::close_stream(AVFormatContext *oc, OutputStream *ost)
-	void close_stream(void *_oc, void *_ost);
-	//void MOVIE_SAVER::setup_h264(AVCodecContext *_codec)
+	
+	//void close_stream(OutputStream *ost)
+	void close_stream(void *_ost);
+	//void setup_h264(AVCodecContext *_codec)
 	void setup_h264(void *_codec);
-	//void MOVIE_SAVER::setup_mpeg4(AVCodecContext *_codec)
+	//void setup_mpeg4(AVCodecContext *_codec)
 	void setup_mpeg4(void *_codec);
-	//void MOVIE_SAVER::setup_audio(AVCodecContext *_codec_context, AVCodec **_codec)
-	void setup_audio(void *_codec_context, void **_codec);
-
+#if defined(USE_LIBAV)
+	void setup_audio(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id);
+	void setup_video(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id);
+#endif
 	QString ts2str(int64_t ts);
 	QString ts2timestr(int64_t ts, void *timebase);
 	QString err2str(int errnum);
+	
+	void init_codecs_map();
 	void do_close_main();
 	bool do_open_main();
 
