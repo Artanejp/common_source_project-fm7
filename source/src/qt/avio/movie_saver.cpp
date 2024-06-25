@@ -300,6 +300,7 @@ void MOVIE_SAVER::run()
 				tmp_wait = fps_wait;
 				elapsed.restart();
 			}
+			// ToDo: Make synchronize both Audio and Video. 20240626 K.O
 			if(audio_remain <= 0) {
 				a_f = audio_data_queue.isEmpty();
 				if(a_f) goto _video;
