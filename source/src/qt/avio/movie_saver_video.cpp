@@ -8,8 +8,9 @@
 #include <QDateTime>
 #include "common.h"
 
-#include "./csp_avio_basic.h"
+#include "csp_avio_basic.h"
 #include "movie_saver.h"
+
 #include "../osd.h"
 #include "csp_logger.h"
 
@@ -18,49 +19,47 @@
 #include <string.h>
 #include <math.h>
 
-#if defined(USE_LIBAV)
-extern "C" {
-	#include <libavutil/avassert.h>
-	#include <libavutil/channel_layout.h>
-	#include <libavutil/opt.h>
-	#include <libavutil/mathematics.h>
-	#include <libavutil/timestamp.h>
-	#include <libavformat/avformat.h>
-	#include <libswscale/swscale.h>
-	#include <libswresample/swresample.h>
-}
-	#if (LIBAVCODEC_VERSION_MAJOR > 56)
-	#define AVCODEC_UPPER_V56
-	#endif
-#endif
 /**************************************************************/
 /* video output */
-void MOVIE_SAVER::setup_video(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id)
+void MOVIE_SAVER::setup_video(AVCodecContext *codec_context, OutputStream *ost, AVCodec **codec, enum AVCodecID codec_id)
 {
 #if defined(USE_LIBAV)
 	AVCodecContext *c = codec_context;
 
-	__UNLIKELY_IF((codec == nullptr) || (c == nullptr)) {
+	__UNLIKELY_IF((codec == nullptr) || (c == nullptr) || (ost == nullptr)) {
+		return;
+	}
+	__UNLIKELY_IF(ost->st == nullptr) {
 		return;
 	}
 	#ifdef AVCODEC_UPPER_V56
 	AVRational ratio; // ToDo: Correct aspect ratio 20240624 K.O
 	ratio.num = 1;
 	ratio.den = 1;
-	AVCodecParameters  cp;
-	avcodec_parameters_from_context(&cp, c);
-	cp.codec_type = AVMEDIA_TYPE_VIDEO;
-	cp.codec_id = codec_id;
-	cp.format = STREAM_PIX_FMT;
-	cp.bit_rate = video_bit_rate;
-	cp.width	= video_geometry.width();
-	cp.height   = video_geometry.height();
+	c->codec_id = codec_id;
+	c->pix_fmt	= AV_PIX_FMT_YUV420P; // ToDo : 10Bit 
+	// https://libav.org/avconv.html#Video-Options
+	/* Resolution must be a multiple of two. */
+	c->width	= video_geometry.width();
+	c->height   = video_geometry.height();
+	AVCodecParameters  *cp = ost->st->codecpar;
+	if(cp == nullptr) {
+		return;
+	}
+//	AVCodecParameters  cp;
+	//avcodec_parameters_from_context(&cp, c);
+	cp->codec_type = AVMEDIA_TYPE_VIDEO;
+	cp->codec_id = codec_id;
+	cp->format = STREAM_PIX_FMT;
+	cp->bit_rate = video_bit_rate;
+	cp->width	= video_geometry.width();
+	cp->height   = video_geometry.height();
 //		cp->profile = ;
 //		cp->level = ;
-	cp.sample_aspect_ratio = ratio;
-	cp.field_order = AV_FIELD_PROGRESSIVE;
-	cp.format = STREAM_PIX_FMT;
-	avcodec_parameters_to_context(c, &cp);
+	cp->sample_aspect_ratio = ratio;
+	cp->field_order = AV_FIELD_PROGRESSIVE;
+	cp->format = STREAM_PIX_FMT;
+//	avcodec_parameters_to_context(c, &cp);
 	int __type = CSP_AVIO_BASIC::csp_avio_get_codec_type((_TCHAR*)avcodec_get_name(codec_id));
 	switch(__type) {
 	case CSP_AVIO_BASIC::TYPE_MPEG1:
@@ -87,7 +86,7 @@ void MOVIE_SAVER::setup_video(AVCodecContext *codec_context, AVCodec **codec, en
 		// ToDo
 		break;
 	case CSP_AVIO_BASIC::TYPE_AV1:
-	case CSP_AVIO_BASIC::TYPE_LIBRAB1E_AV1:
+	case CSP_AVIO_BASIC::TYPE_LIBRAV1E_AV1:
 		// ToDo
 		break;
 	default:
@@ -100,7 +99,7 @@ void MOVIE_SAVER::setup_video(AVCodecContext *codec_context, AVCodec **codec, en
 	/* Resolution must be a multiple of two. */
 	c->width	= video_geometry.width();
 	c->height   = video_geometry.height();
-	c->pix_fmt	= STREAM_PIX_FMT;
+	c->pix_fmt	= AV_PIX_FMT_YUV420P; // ToDo : 10Bit 
 	switch(codec_id) {
 	case AV_CODEC_ID_MPEG2VIDEO:
 		/* just for testing, we also add B frames */
@@ -163,7 +162,7 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	 * the motion of the chroma plane does not match the luma plane. */
 	c->mb_decision = 2;
 	c->profile=FF_PROFILE_H264_HIGH;
-#ifdef AVCODEC_UPPER_V56
+	#ifdef AVCODEC_UPPER_V56
 	av_dict_set(&raw_options_list, _T("me_method"), _T("umh"), 0);
 	av_dict_set_int(&raw_options_list, _T("qmin"), p_config->video_h264_minq, 0);
 	av_dict_set_int(&raw_options_list, _T("qmax"), p_config->video_h264_maxq, 0);
@@ -171,14 +170,14 @@ void MOVIE_SAVER::setup_h264(void *_codec_context)
 	av_dict_set_int(&raw_options_list, _T("noise_reduction"), 0, 0);
 	av_dict_set_int(&raw_options_list, _T("chromaoffset"), 2, 0);	
 	av_dict_set_int(&raw_options_list, _T("b_strategy"), p_config->video_h264_b_adapt, 0);	
-#else
+	#else
 	c->scenechange_threshold = 40;
 	c->noise_reduction = 0;
 	c->chromaoffset = 2;
 	c->b_frame_strategy = p_config->video_h264_b_adapt;
 	c->b_sensitivity = 55;
 	c->me_method = ME_UMH;
-#endif
+	#endif
 #endif
 }
 
@@ -213,22 +212,22 @@ void MOVIE_SAVER::setup_mpeg4(void *_codec)
 	c->b_quant_offset = 2;
 	c->temporal_cplx_masking = 0.1;
 	c->spatial_cplx_masking = 0.15;
-#ifdef AVCODEC_UPPER_V56
+	#ifdef AVCODEC_UPPER_V56
 	av_dict_set_int(&raw_options_list, _T("sc_threshold"), 30, 0);
 	av_dict_set_int(&raw_options_list, _T("quantizer_noise_shaping"), 0, 0);
 	av_dict_set_int(&raw_options_list, _T("b_strategy"), 1, 0);
 	av_dict_set_int(&raw_options_list, _T("b_sensitivity"), 55, 0);
-#else
+	#else
 	c->scenechange_threshold = 30;
 	c->noise_reduction = 0;
 	c->chromaoffset = 2;
 //	c->b_strategy = 1;
 	c->b_sensitivity = 55;
-#endif
+	#endif
 #endif
 }
 //static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
-void *MOVIE_SAVER::alloc_picture(uint64_t _pix_fmt, int width, int height)
+void *MOVIE_SAVER::alloc_picture(int64_t _pix_fmt, int width, int height)
 {
 #if defined(USE_LIBAV)
 	enum AVPixelFormat pix_fmt = (enum AVPixelFormat)_pix_fmt;
@@ -266,11 +265,11 @@ bool MOVIE_SAVER::open_video()
 	AVCodec *codec = video_codec;
 	AVCodecContext *c;
 	AVDictionary *opt = NULL;
-#ifdef AVCODEC_UPPER_V56
+	#ifdef AVCODEC_UPPER_V56
 	c = ost->context;
-#else
+	#else
 	c = ost->st->codec;
-#endif
+	#endif
 
 	av_dict_copy(&opt, opt_arg, 0);
 
@@ -301,13 +300,13 @@ bool MOVIE_SAVER::open_video()
 		return false;
 	}
 	//}
-#ifdef AVCODEC_UPPER_V56
+	#ifdef AVCODEC_UPPER_V56
 	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
 	if (ret < 0) {
 		out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,  "Could not copy the stream parameters\n");
 		return false;
 	}
-#endif
+	#endif
 	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER,
 						  "MOVIE: Open to write video : Success.");
 	return true;
@@ -323,14 +322,14 @@ void *MOVIE_SAVER::get_video_frame(void)
 #if defined(USE_LIBAV)
 	OutputStream *ost = &video_st;
 	AVCodecContext *c;
-#ifdef AVCODEC_UPPER_V56
+	#ifdef AVCODEC_UPPER_V56
 	c = ost->context;
-#else
+	#else
 	__UNLIKELY_IF(ost->st == nullptr) {
 		return nullptr;
 	}
 	c = ost->st->codec;
-#endif
+	#endif
 
 	//if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
 		/* as we only generate a YUV420P picture, we must convert it
@@ -435,24 +434,24 @@ void *MOVIE_SAVER::get_video_frame(void)
 int MOVIE_SAVER::write_video_frame()
 {
 #if defined(USE_LIBAV)
-	__UNLIKELY_IF(output_context.get() == nullptr) {
+	__UNLIKELY_IF(output_context == nullptr) {
 		return 0;
 	}
 	int ret;
-	std::shared_ptr<AVFormatContext> oc = output_context;
+
 	OutputStream *ost = &video_st;
 	AVCodecContext *c;
 	AVFrame *frame;
 	AVPacket *pkt = NULL;
 	int got_packet = 0;
-#ifdef AVCODEC_UPPER_V56
+	#ifdef AVCODEC_UPPER_V56
 	c = ost->context;
-#else
+	#else
 	__UNLIKELY_IF(ost->st == nullptr) {
 		return -1;
 	}
 	c = ost->st->codec;
-#endif
+	#endif
 	__UNLIKELY_IF(c == nullptr) {
 		return -1;
 	}

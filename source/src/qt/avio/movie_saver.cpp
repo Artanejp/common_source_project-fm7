@@ -8,15 +8,13 @@
 #include <QDateTime>
 #include <QElapsedTimer>
 
+#include <utility>
+
 #include "./csp_avio_basic.h"
 #include "movie_saver.h"
 #include "../osd.h"
 #include "common.h"
 #include "csp_logger.h"
-
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
-#define AVCODEC_UPPER_V56
-#endif
 
 MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg) : QThread(0)
 {
@@ -33,7 +31,7 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg
 	
 	recording = false;
 	audio_sample_rate = 48000;
-	output_context.reset();
+	output_context = nullptr;
 	
 #if defined(USE_MOVIE_SAVER)
 	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
@@ -78,20 +76,20 @@ void MOVIE_SAVER::init_codecs_map()
 {
 #if defined(USE_LIBAV)
 	video_codec_map.clear();
-	video_codec_map.insert(VIDEO_CODEC_MP4, AV_CODEC_ID_MPEG4);
-	video_codec_map.insert(VIDEO_CODEC_H264, AV_CODEC_ID_H264);
-//	video_codec_map.insert(VIDEO_CODEC_HEVC, AV_CODEC_ID_HEVC);
-//	video_codec_map.insert(VIDEO_CODEC_VP9, AV_CODEC_ID_VP9);
-//	video_codec_map.insert(VIDEO_CODEC_AV1, AV_CODEC_ID_AV1);
+	video_codec_map.emplace(std::make_pair(VIDEO_CODEC_MPEG4, AV_CODEC_ID_MPEG4));
+	video_codec_map.emplace(std::make_pair(VIDEO_CODEC_H264, AV_CODEC_ID_H264));
+//	video_codec_map.emplace(std::make_pair(VIDEO_CODEC_HEVC, AV_CODEC_ID_HEVC));
+//	video_codec_map.emplace(std::make_pair(VIDEO_CODEC_VP9, AV_CODEC_ID_VP9));
+//	video_codec_map.emplace(std::make_pair(VIDEO_CODEC_AV1, AV_CODEC_ID_AV1));
 
 	audio_codec_map.clear();
-	audio_codec_map.insert(AUDIO_CODEC_MP3, AV_CODEC_ID_MP3);
-	audio_codec_map.insert(AUDIO_CODEC_AAC, AV_CODEC_ID_AAC);
-	audio_codec_map.insert(AUDIO_CODEC_VORBIS, AV_CODEC_ID_VORBIS);
-	audio_codec_map.insert(AUDIO_CODEC_PCM16, AV_CODEC_ID_PCM_S16LE);
-	audio_codec_map.insert(AUDIO_CODEC_PCM32, AV_CODEC_ID_PCM_S32LE);
-	audio_codec_map.insert(AUDIO_CODEC_FLAC, AV_CODEC_ID_PCM_FLAC);
-//	audio_codec_map.insert(AUDIO_CODEC_OPUS, AV_CODEC_ID_OPUS);
+	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_MP3, AV_CODEC_ID_MP3));
+	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_AAC, AV_CODEC_ID_AAC));
+	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_VORBIS, AV_CODEC_ID_VORBIS));
+	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_PCM16, AV_CODEC_ID_PCM_S16LE));
+	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_PCM32, AV_CODEC_ID_PCM_S32LE));
+	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_FLAC, AV_CODEC_ID_FLAC));
+//	audio_codec_map.emplace(std::make_pair(AUDIO_CODEC_OPUS, AV_CODEC_ID_OPUS));
 	
 #endif /* USE_LIBAV */
 }
@@ -144,12 +142,12 @@ QString MOVIE_SAVER::err2str(int errnum)
 void MOVIE_SAVER::log_packet(const void *_pkt)
 {
 #if defined(USE_LIBAV)
-	__UNLIKELY_IF((output_context.get() == nullptr) || (_pkt == nullptr)) {
+	__UNLIKELY_IF((output_context == nullptr) || (_pkt == nullptr)) {
 		return;
 	}
-	std::shared_ptr<AVFormatContext> fmt_ctx = output_context;
+	AVFormatContext *ctx = output_context;
 	const AVPacket *pkt = (const AVPacket *)_pkt;
-	AVRational *time_base = &(fmt_ctx->streams[pkt->stream_index]->time_base);
+	AVRational *time_base = &(ctx->streams[pkt->stream_index]->time_base);
 
 	out_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_MOVIE_SAVER, "pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
 		   ts2str(pkt->pts).toLocal8Bit().constData(),

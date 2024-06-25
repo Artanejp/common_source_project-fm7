@@ -98,7 +98,7 @@ int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 	if(pkt == nullptr) {
 		return ret;
 	}
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
     /* send the packet with the compressed data to the decoder */
     ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
@@ -113,7 +113,7 @@ int MOVIE_LOADER::decode_audio(AVCodecContext *dec_ctx, int *got_frame)
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;
-#endif
+	#endif
 	return ret;
 }
 
@@ -123,7 +123,7 @@ int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 	if(pkt == nullptr) {
 		return ret;
 	}
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
     /* send the packet with the compressed data to the decoder */
 	if(got_frame != NULL) *got_frame = 0;
     ret = avcodec_send_packet(dec_ctx, pkt);
@@ -141,7 +141,7 @@ int MOVIE_LOADER::decode_video(AVCodecContext *dec_ctx, int *got_frame)
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;
-#endif
+	#endif
 	return ret;
 }
 
@@ -158,11 +158,11 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 
 	if (pkt->stream_index == video_stream_idx) {
 		/* decode video frame */
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
 		ret = decode_video(video_dec_ctx, got_frame);
-#else
+	#else
 		ret = avcodec_decode_video2(video_dec_ctx, frame, got_frame, pkt);
-#endif
+	#endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -181,7 +181,8 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 							  "new: width = %d, height = %d, format = %s\n",
 							  src_width, src_height, av_get_pix_fmt_name(pix_fmt),
 							  frame->width, frame->height,
-									  av_get_pix_fmt_name((enum AVPixelFormat)frame->format));
+							  av_get_pix_fmt_name((enum AVPixelFormat)(frame->format))
+					);
                 return -1;
             }
 			if((old_dst_width != dst_width) || (old_dst_height != dst_height)) { // You sould allocate on opening.
@@ -239,11 +240,11 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 		}
 	} else if (pkt->stream_index == audio_stream_idx) {
 		/* decode audio frame */
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
 		ret = decode_audio(audio_dec_ctx, got_frame);
-#else
+	#else
 		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, pkt);
-#endif
+	#endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -265,9 +266,9 @@ int MOVIE_LOADER::decode_packet(int *got_frame, int cached)
 				out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Audio: Failed to allocate context\n");
 				return -1;
 			}
-#if LIBAVCODEC_VERSION_MAJOR > 56
+	#ifdef AVCODEC_UPPER_V56
 			avcodec_parameters_to_context(c, audio_stream->codecpar);
-#endif
+	#endif
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
@@ -345,10 +346,10 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
         st = _fmt_ctx->streams[stream_index];
 
         /* find decoder for the stream */
-#if LIBAVCODEC_VERSION_MAJOR <= 56
+	#ifndef  AVCODEC_UPPER_V56
 		dec_ctx = st->codec;
 		__dec = avcodec_find_decoder(dec_ctx->codec_id);
-#else
+	#else
 		__dec = (AVCodec *)avcodec_find_decoder(st->codecpar->codec_id);
 		if (!__dec) {
 			//avcodec_free_context(&dec_ctx);
@@ -358,7 +359,7 @@ int MOVIE_LOADER::open_codec_context(int *stream_idx,
         }
 		dec_ctx = avcodec_alloc_context3(__dec);
 		avcodec_parameters_to_context(dec_ctx, st->codecpar);
-#endif
+	#endif
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "CODEC %s\n", __dec->name);
 		if(ctx != NULL) {
 			*ctx = dec_ctx;
@@ -429,9 +430,9 @@ bool MOVIE_LOADER::open(QString filename)
 	audio_total_samples = 0;
 
     /* register all formats and codecs */
-#if (LIBAVCODEC_VERSION_MAJOR <= 56)
+	#ifndef AVCODEC_UPPER_V56
     av_register_all();
-#endif
+	#endif
     /* open input file, and allocate format context */
     if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
         out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not open source file %s\n", _filename.toLocal8Bit().constData());
@@ -458,11 +459,11 @@ bool MOVIE_LOADER::open(QString filename)
         src_height = video_dec_ctx->height;
         pix_fmt = video_dec_ctx->pix_fmt;
 		AVRational rate;
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
 		rate = video_stream->avg_frame_rate;
-#else
+	#else
 		rate = av_stream_get_r_frame_rate(video_stream);
-#endif
+	#endif
 		frame_rate = av_q2d(rate);
         if (ret < 0) {
             out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_LOADER, "Could not allocate raw video buffer\n");
@@ -511,24 +512,24 @@ bool MOVIE_LOADER::open(QString filename)
 
     /* initialize packet, set data to NULL, let the demuxer fill it */
 	if(pkt != nullptr) {
-#if LIBAVCODEC_VERSION_MAJOR <= 56
+	#ifndef AVCODEC_UPPER_V56
 		free(pkt);
-#else
+	#else
 		av_packet_free(&pkt);
-#endif
+	#endif
 	}
-#if LIBAVCODEC_VERSION_MAJOR <= 56
+	#ifdef AVCODEC_UPPER_V56
+	pkt = av_packet_alloc();
+	if(pkt == nullptr) {
+		goto _end;
+	}
+	#else
 	pkt = malloc(sizeof(AVPacket));
 	if(pkt == nullptr) {
 		goto _end;
 	}
     av_init_packet(pkt);
-#else
-	pkt = av_packet_alloc();
-	if(pkt == nullptr) {
-		goto _end;
-	}
-#endif
+	#endif
     pkt->data = NULL;
     pkt->size = 0;
 
@@ -583,11 +584,11 @@ void MOVIE_LOADER::close(void)
 	video_mutex->unlock();
 
 	if(pkt != nullptr) {
-#if LIBAVCODEC_VERSION_MAJOR <= 56
-		free(pkt);
-#else
+	#ifdef AVCODEC_UPPER_V56
 		av_packet_free(&pkt);
-#endif
+	#else
+		free(pkt);
+	#endif
 		pkt = NULL;
 	}
 	video_dec_ctx = NULL;

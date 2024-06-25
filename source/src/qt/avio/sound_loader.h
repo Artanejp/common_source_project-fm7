@@ -11,18 +11,7 @@
 #include <QString>
 
 #if defined(USE_LIBAV)
-extern "C" {
-	#include "libavutil/channel_layout.h"
-	#include "libavutil/opt.h"
-	#include "libavutil/mathematics.h"
-	#include "libavutil/timestamp.h"
-	#include "libavutil/imgutils.h"
-	#include "libavutil/samplefmt.h"
-	#include "libavformat/avformat.h"
-	#include "libswscale/swscale.h"
-	#include "libswresample/swresample.h"
-	#include "libavcodec/avcodec.h"
-}
+#include "avio_ffmpeg.h"
 #endif
 
 #include <memory>

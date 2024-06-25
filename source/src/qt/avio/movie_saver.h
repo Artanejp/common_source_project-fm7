@@ -15,20 +15,13 @@
 #include <QThread>
 #include <QSize>
 #include <QImage>
+
+#include <map>
 #include <memory>
 #include "config.h"
 
 #if defined(USE_LIBAV)
-extern "C" {
-	#include "libavutil/channel_layout.h"
-	#include "libavutil/opt.h"
-	#include "libavutil/mathematics.h"
-	#include "libavutil/timestamp.h"
-	#include "libavformat/avformat.h"
-	#include "libswscale/swscale.h"
-	#include "libswresample/swresample.h"
-	#include "libavcodec/avcodec.h"
-}
+#include "avio_ffmpeg.h"
 #endif
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 
@@ -37,7 +30,7 @@ extern "C" {
 //#define SCALE_FLAGS SWS_BICUBLIN
 #define SCALE_FLAGS SWS_POINT
 
-typedef enum {
+typedef enum  MOVIE_SAVER_VIDEO_Codec_t {
 	VIDEO_CODEC_MPEG4 = 0,
 	VIDEO_CODEC_H264,
 	VIDEO_CODEC_HEVC,  // ToDo
@@ -56,7 +49,7 @@ typedef enum {
 	VIDEO_CODEC_ACCEL_D3D11 = (65536 + 65536), // Microsoft Direct3D 11 (Windows only)
 } MOVIE_SAVER_VIDEO_Codec_t;
 
-enum {
+typedef enum  MOVIE_SAVER_AUDIO_Codec_t {
 	AUDIO_CODEC_MP3 = 0,
 	AUDIO_CODEC_AAC,
 	AUDIO_CODEC_VORBIS,
@@ -67,13 +60,14 @@ enum {
 	AUDIO_CODEC_END,
 } MOVIE_SAVER_AUDIO_Codec_t;
 
-enum {
+typedef enum  MOVIE_SAVER_CONTAINER_t {
 	VIDEO_CONTAINER_TYPE_MP4 = 0,
 	VIDEO_CONTAINER_TYPE_MKV,
 	VIDEO_CONTAINER_TYPE_WEBM, // ToDo
 	VIDEO_CONTAINER_TYPE_END,
 } MOVIE_SAVER_CONTAINER_t;
 	
+#if defined(USE_LIBAV)
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
 	AVStream *st;
@@ -89,10 +83,11 @@ typedef struct OutputStream {
 
 	struct SwsContext *sws_ctx;
 	struct SwrContext *swr_ctx;
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
 	AVCodecContext *context;
-#endif   
+	#endif   
 } OutputStream;
+#endif /* USE_LIBAV */
 
 class OSD;
 
@@ -143,25 +138,32 @@ protected:
 	QStringList encode_opt_keys;
 	QStringList encode_options;
 #if defined(USE_LIBAV)
-	std::shared_ptr<AVFormatContext> output_context;
-	QMap<MOVIE_SAVER_AUDIO_Codec_t, enum AVCodecID> audio_codec_map;
-	QMap<MOVIE_SAVER_VIDEO_Codec_t, enum AVCodecID> video_codec_map;
+	AVFormatContext* output_context;
+	std::map<MOVIE_SAVER_AUDIO_Codec_t, enum AVCodecID> audio_codec_map;
+	std::map<MOVIE_SAVER_VIDEO_Codec_t, enum AVCodecID> video_codec_map;
 	AVCodec *audio_codec, *video_codec;
 	AVDictionary *raw_options_list;
 
-	struct avf_context_deleter {
-		void operator()(AVFormatContext *p) {
-			if(p != nullptr) {
-				avformat_free_context(p);
-			}
+	inline void free_context()
+	{
+		if(output_context != nullptr) {
+			avformat_free_context(output_context);
 		}
-	};
-	
-#else
-	std::shared_ptr<void> output_context;
-#endif
+		output_context = nullptr;
+	}
 	OutputStream video_st;
 	OutputStream audio_st;
+	
+#else
+	void* output_context;
+	inline void free_context()
+	{
+		if(output_context != nullptr) {
+			free(output_context);
+		}
+		output_context = nullptr;
+	}
+#endif
 	QString _filename;
 	bool bRunThread;
 	bool debug_timestamp;
@@ -218,9 +220,8 @@ protected:
 	//int write_frame(const AVRational *time_base, AVStream *st, AVPacket *pkt)
 	int __FASTCALL write_frame(const void *_time_base, void *_st, void *_pkt);
 	//void add_stream(OutputStream *ost, AVCodec **codec, enum AVCodecID codec_id)
-	bool add_stream(void *_ost, void **_codec, uint64_t codec_id);
-	//AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt, uint64_t channel_layout, int sample_rate, int nb_samples)
-	void *alloc_audio_frame(void* ctx, int nb_samples);
+	bool add_stream(void *_ost, void **_codec, int64_t codec_id);
+	void  __FASTCALL *alloc_audio_frame(void* ctx, int64_t fmt, int nb_samples);
 
 	bool open_audio(void);
 	//static AVFrame *get_audio_frame(OutputStream *ost)
@@ -228,7 +229,7 @@ protected:
 
 	int write_audio_frame();
 	//static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
-	void *alloc_picture(uint64_t _pix_fmt, int width, int height);
+	void __FASTCALL *alloc_picture(int64_t _pix_fmt, int width, int height);
 	//void open_video(OutputStream *_ost, AVDictionary *_opt_arg)
 	bool open_video();
 	//AVFrame *get_video_frame(OutputStream *ost)
@@ -242,8 +243,8 @@ protected:
 	//void setup_mpeg4(AVCodecContext *_codec)
 	void setup_mpeg4(void *_codec);
 #if defined(USE_LIBAV)
-	void setup_audio(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id);
-	void setup_video(AVCodecContext *codec_context, AVCodec **codec, enum AVCodecID codec_id);
+	void setup_audio(AVCodecContext *codec_context, OutputStream *ost, AVCodec **codec, enum AVCodecID codec_id);
+	void setup_video(AVCodecContext *codec_context, OutputStream *ost, AVCodec **codec, enum AVCodecID codec_id);
 #endif
 	QString ts2str(int64_t ts);
 	QString ts2timestr(int64_t ts, void *timebase);
@@ -252,6 +253,7 @@ protected:
 	void init_codecs_map();
 	void do_close_main();
 	bool do_open_main();
+	void __FASTCALL log_packet(const void *_pkt);
 
 public:
 	MOVIE_SAVER(int width, int height, int fps, OSD *osd, config_t *cfg);

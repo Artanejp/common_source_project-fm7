@@ -9,21 +9,10 @@
 #define _QT_OSD_MOVIE_LOADER_H
 
 #include <memory>
-#if defined(USE_LIBAV)
-extern "C" {
-	#include "libavutil/channel_layout.h"
-	#include "libavutil/opt.h"
-	#include "libavutil/mathematics.h"
-	#include "libavutil/timestamp.h"
-	#include "libavutil/imgutils.h"
-	#include "libavutil/samplefmt.h"
-	#include "libavformat/avformat.h"
-	#include "libswscale/swscale.h"
-	#include "libswresample/swresample.h"
-	#include "libavcodec/avcodec.h"
-}
-#endif
 
+#if defined(USE_LIBAV)
+#include "avio_ffmpeg.h"
+#endif
 // Copy from FFMPEG-3.0.2; doc/example/muxing.c .
 #define STREAM_PIX_FMT	AV_PIX_FMT_RGBA /* default pix_fmt */
 

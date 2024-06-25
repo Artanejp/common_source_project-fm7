@@ -9,6 +9,7 @@
 
 #include "./csp_avio_basic.h"
 #include "sound_loader.h"
+
 #include "../osd_base.h"
 
 SOUND_LOADER::SOUND_LOADER(void *prev_sound_loader, std::shared_ptr<CSP_Logger> logger)
@@ -53,9 +54,9 @@ bool SOUND_LOADER::open(int id, QString filename)
 	_data_size = 0;
 	_dataptr = 0;
 	/* register all formats and codecs */
-#if (LIBAVCODEC_VERSION_MAJOR <= 56)
+	#ifndef AVCODEC_UPPER_V56
 	av_register_all();
-#endif
+	#endif
 	
 	/* open input file, and allocate format context */
 	if (avformat_open_input(&fmt_ctx, _filename.toLocal8Bit().constData(), NULL, NULL) < 0) {
@@ -71,11 +72,11 @@ bool SOUND_LOADER::open(int id, QString filename)
 
 	if (open_codec_context(&audio_stream_idx, fmt_ctx, &audio_dec_ctx, AVMEDIA_TYPE_AUDIO) >= 0) {
 		audio_stream = fmt_ctx->streams[audio_stream_idx];
-#if LIBAVCODEC_VERSION_MAJOR > 56
+	#ifdef AVCODEC_UPPER_V56
 		sound_rate = audio_stream->codecpar->sample_rate;
-#else
+	#else
 		sound_rate = audio_stream->codec->sample_rate;
-#endif
+	#endif
 	}
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
@@ -114,20 +115,20 @@ bool SOUND_LOADER::open(int id, QString filename)
 	
 	/* initialize packet, set data to NULL, let the demuxer fill it */
 
-#if LIBAVCODEC_VERSION_MAJOR > 56
+	#ifdef AVCODEC_UPPER_V56
 	if(packet != nullptr) {
 		av_packet_free(&packet);
 	}
 	packet = av_packet_alloc();
 	if(packet == nullptr) goto _end;
-#else
+	#else
 	if(packet != nullptr) {
 		free(packet);
 	}
 	packet = malloc(sizeof(AVPacket));
 	if(packet == nullptr) goto _end;
 	av_init_packet(packet);
-#endif
+	#endif
 	packet->data = NULL;
 	packet->size = 0;
 	// ToDo : Initialize SWScaler and SWresampler.
@@ -155,7 +156,7 @@ void SOUND_LOADER::close(void)
 	audio_stream_idx = -1;
 	frame = NULL;
 	if(packet != nullptr) {
-	#if LIBAVCODEC_VERSION_MAJOR > 56
+	#ifdef AVCODEC_UPPER_V56
 		av_packet_free(&packet);
 	#else
 		free(packet);
@@ -175,7 +176,7 @@ int SOUND_LOADER::decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *
 								int *got_frame)
 {
     int ret = 0;
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#ifdef AVCODEC_UPPER_V56
     /* send the packet with the compressed data to the decoder */
     ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0) {
@@ -190,7 +191,9 @@ int SOUND_LOADER::decode_audio(AVCodecContext *dec_ctx, AVPacket *pkt, AVFrame *
 		return ret;
 	}
 	if(got_frame != NULL) *got_frame = 1;
-#endif
+	#else
+	ret = avcodec_decode_audio4(dec_ctx, frame, got_frame, pkt);
+	#endif
 	return ret;
 }
 
@@ -204,11 +207,7 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 	int decoded = packet->size;
 	
 	if (packet->stream_index == audio_stream_idx) {
-#if (LIBAVCODEC_VERSION_MAJOR > 56)
 		ret = decode_audio(audio_dec_ctx, packet, frame, got_frame);
-#else
-		ret = avcodec_decode_audio4(audio_dec_ctx, frame, got_frame, packet);
-#endif
 		if (ret < 0) {
 			char str_buf[AV_ERROR_MAX_STRING_SIZE] = {0};
 			av_make_error_string(str_buf, AV_ERROR_MAX_STRING_SIZE, ret);
@@ -224,11 +223,11 @@ int SOUND_LOADER::decode_packet(int *got_frame, int cached)
 		if (*got_frame) {
 			//size_t unpadded_linesize = frame->nb_samples * av_get_bytes_per_sample((enum AVSampleFormat)frame->format);
 			//char str_buf[AV_TS_MAX_STRING_SIZE] = {0};
-#if LIBAVCODEC_VERSION_MAJOR > 56
+	#ifdef AVCODEC_UPPER_V56
 			AVCodecParameters *c = audio_stream->codecpar;
-#else
+	#else
 			AVCodecContext *c = audio_stream->codec;
-#endif
+	#endif
 			int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context, c->sample_rate) + frame->nb_samples,
 												c->sample_rate, c->sample_rate,  AV_ROUND_UP);
 			//av_ts_make_time_string(str_buf, frame->pts, &audio_dec_ctx->time_base);
@@ -304,7 +303,7 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         st = fmt_ctx->streams[stream_index];
 
         /* find decoder for the stream */
-#if LIBAVCODEC_VERSION_MAJOR > 56
+	#ifdef AVCODEC_UPPER_V56
 		dec = (AVCodec *)avcodec_find_decoder(st->codecpar->codec_id);
         if (!dec) {
             out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to find %s codec\n",
@@ -313,10 +312,10 @@ int SOUND_LOADER::open_codec_context(int *stream_idx,
         }
 		dec_ctx = avcodec_alloc_context3(dec);
 		avcodec_parameters_to_context(dec_ctx, st->codecpar);
-#else
+	#else
 		dec = avcodec_find_decoder(st->codec->codec_id);
 		dec_ctx = st->codec;
-#endif
+	#endif
 		if(ctx != NULL) {
 			*ctx = dec_ctx;
 		}
