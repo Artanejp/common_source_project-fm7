@@ -135,6 +135,8 @@ void SUB::event_frame()
 
 void SUB::draw_screen()
 {
+	// Q: Does support multi-threaded rendering for this time??
+	//    -- 20240710 K.O
 	memset(screen_chr, 0, sizeof(screen_chr));
 	memset(screen_gfx, 0, sizeof(screen_gfx));
 	

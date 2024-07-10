@@ -55,6 +55,9 @@ private:
 public:
 	SUB(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_gdc_chr = NULL;
+		d_gdc_gfx = NULL;
+		d_main = NULL;
 		set_device_name(_T("Memory Bus (Sub)"));
 	}
 	~SUB() {}
