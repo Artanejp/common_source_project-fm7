@@ -1745,38 +1745,8 @@ void DISPLAY::draw_chr_screen()
 	int ymax = SCREEN_HEIGHT / bl + ((SCREEN_HEIGHT % bl) != 0);
 
 	// ToDo: Will Support 30lines project.
-
 //	printf("PITCH=%d HEIGHT=%d\n", _width, _height);
-	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32_t ra = ra_chr[i * 4];
-		ra |= ra_chr[i * 4 + 1] << 8;
-		ra |= ra_chr[i * 4 + 2] << 16;
-		ra |= ra_chr[i * 4 + 3] << 24;
-		uint32_t sad = (ra << 1) & 0x1fff;
-		int len = (ra >> 20) & 0x3ff;
-#if defined(SUPPORT_HIRESO)
-		len <<= 1;
-#endif
-		len /= bl;
-		if(len == 0) len = ylimit;
-//		printf("#%d: %04X %d\n", i, sad, len);
-		for(int y = ytop; (y < (ytop + len)) && (y < ylimit); y++) {
-			for(int x = 0; x < ((_width > 80) ? 80 : _width); x++) {
-				gdc_addr[y][x] = sad;
-				sad = (sad + 2) & 0x1fff;
-			}
-		}
-		if((ytop += len) >= ylimit) break;
-	}
 
-	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
-	int cursor_top = d_gdc_chr->cursor_top();
-	int cursor_bottom = d_gdc_chr->cursor_bottom();
-#if defined(SUPPORT_HIRESO)
-	cursor_top <<= 1;
-	cursor_bottom <<= 1;
-#endif
-	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
 		ra |= ra_chr[i * 4 + 1] << 8;

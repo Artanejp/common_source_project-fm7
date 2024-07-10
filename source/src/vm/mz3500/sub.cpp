@@ -551,6 +551,8 @@ void SUB::draw_gfx_200line_16bit()
 
 void SUB::draw_gfx_200line_8bit()
 {
+	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
+	
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;
