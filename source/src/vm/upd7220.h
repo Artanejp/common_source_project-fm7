@@ -25,8 +25,6 @@
 
 #define SIG_UPD7220_CLOCK_FREQ  1
 #define SIG_UPD7220_EXT_VSYNC   2
-#define SIG_UPD7220_WIDTH_BYTES 3
-#define SIG_UPD7220_HEIGHT      4
 #define SIG_UPD7220_PITCH       5
 #define SIG_UPD7220_DISP_WIDTH  6
 #define SIG_UPD7220_DISP_HEIGHT 7
@@ -53,6 +51,7 @@ protected:
 	bool __QC10;
 	bool _UPD7220_MSB_FIRST;
 	bool _UPD7220_UGLY_PC98_HACK;
+	bool _UPD7220_FIXED_PITCH;
 	int  _UPD7220_HORIZ_FREQ;
 	int  _UPD7220_A_VERSION;
 	int  _LINES_PER_FRAME;
@@ -85,8 +84,6 @@ protected:
 	int blink_rate;
 	bool low_high;
 	bool cmd_write_done;
-	int width;
-	int height;
 
 	int cpu_clocks;
 
@@ -166,8 +163,7 @@ public:
 		vram = NULL;
 		vram_size = plane_size = 0;
 		vram_data_mask = 0xffff;
-		width = 80;
-		height = 25; // ToDo
+
 		clock_freq = 2500 * 1000; // Hz
 		vram_plane_addr_mask = 0x7fff; // Normally 32KB/plane
 		set_device_name(_T("uPD7220 GDC"));
@@ -234,14 +230,6 @@ public:
 	{
 		plane_size = size;
 	}
-	void set_screen_width(int value)
-	{
-		width = value;
-	}
-	void set_screen_height(int val)
-	{
-		height = val;
-	}
 //#ifdef UPD7220_HORIZ_FREQ
 	void set_horiz_freq(int freq)
 	{
@@ -252,9 +240,13 @@ public:
 	{
 		return sync;
 	}
-	uint8_t* get_zoom()
+	uint8_t get_zoom()
 	{
-		return &zoom;
+		return zoom;
+	}
+	uint8_t get_pitch()
+	{
+		return pitch;
 	}
 	uint8_t* get_ra()
 	{
@@ -264,9 +256,9 @@ public:
 	{
 		return cs;
 	}
-	int* get_ead()
+	int get_ead()
 	{
-		return &ead;
+		return ead;
 	}
 	bool get_start()
 	{
