@@ -42,9 +42,7 @@ private:
 	UPD7220 *d_gdc_chr, *d_gdc_gfx;
 
 	outputs_t output_gdc_freq;
-	uint8_t *ra_chr;
-	uint8_t *ra_gfx, *cs_gfx;
-
+	
 	uint8_t tvram[0x4000];
 	uint32_t vram_bank;
 #if !defined(SUPPORT_HIRESO)
@@ -161,10 +159,15 @@ private:
 	uint16_t font_code;
 	uint8_t font_line;
 //	uint16_t font_lr;
+	bool hireso;
 	bool b_gfx_ff;
 
 	uint8_t screen_chr[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
 	uint8_t screen_gfx[SCREEN_HEIGHT][SCREEN_WIDTH];
+	uint8_t scroll_tmp[6];
+	uint8_t tvram_tmp[0x4000];
+	int draw_width, draw_height;
+	
 	uint32_t bank_table[0x10];
 
 #if !defined(SUPPORT_HIRESO)
@@ -246,6 +249,8 @@ public:
 	void release() override;
 	void reset() override;
 	void event_frame() override;
+	void event_vline(int v, int clock) override;
+	
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	void __FASTCALL write_memory_mapped_io8(uint32_t addr, uint32_t data) override;
@@ -270,15 +275,13 @@ public:
 	{
 		d_pic = device;
 	}
-	void set_context_gdc_chr(UPD7220 *device, uint8_t *ra)
+	void set_context_gdc_chr(UPD7220 *device)
 	{
 		d_gdc_chr = device;
-		ra_chr = ra;
 	}
-	void set_context_gdc_gfx(UPD7220 *device, uint8_t *ra, uint8_t *cs)
+	void set_context_gdc_gfx(UPD7220 *device)
 	{
 		d_gdc_gfx = device;
-		ra_gfx = ra; cs_gfx = cs;
 	}
 	void set_context_pio_prn(DEVICE* device)
 	{

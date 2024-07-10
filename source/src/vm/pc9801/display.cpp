@@ -258,7 +258,6 @@ void DISPLAY::initialize()
 
 	// set vram pointer to gdc
 	d_gdc_chr->set_vram_ptr(tvram, 0x2000);
-	d_gdc_chr->set_screen_width(80);
 #if !defined(SUPPORT_HIRESO)
 	#if !defined(SUPPORT_2ND_VRAM)
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x20000);
@@ -270,10 +269,10 @@ void DISPLAY::initialize()
 	d_gdc_gfx->set_vram_bus_ptr(this, 0x80000);
 	// Q: Plane size at HIRESO? 20230323 K.O
 #endif
-	d_gdc_gfx->set_screen_width(SCREEN_WIDTH >> 3);
 
-	// register event
+	// register events
 	register_frame_event(this);
+	register_vline_event(this);
 }
 
 
@@ -349,11 +348,6 @@ void DISPLAY::reset()
 #endif
 	vram_draw   = vram + 0x00000;
 	vram_bank = 0x00000;
-#if defined(USE_MONITOR_TYPE)
-	display_high = (config.monitor_type == 0) ? true : false; // OK?
-#else
-	display_high = false;
-#endif
 	crtv = 2;
 
 	scroll[SCROLL_PL ] = 0;
@@ -423,6 +417,12 @@ void DISPLAY::reset()
 	font_code = 0;
 	font_line = 0;
 //	font_lr = 0;
+#if defined(USE_MONITOR_TYPE)
+	hireso = (config.monitor_type == 0) ? true : false; // OK?
+#else
+	hireso = false;
+#endif
+
 	for(int i = 0x00; i < 0x08; i++) {
 		bank_table[i] = 0x80000000; // Disable
 	}
@@ -456,6 +456,15 @@ void DISPLAY::event_frame()
 	}
 }
 
+void DISPLAY::event_vline(int v, int clock)
+{
+	if(v == 15) {
+		memcpy(scroll_tmp, scroll, sizeof(scroll));
+	} else if(v == (hireso ? 400 : 200)) {
+		memcpy(tvram_tmp, tvram, sizeof(tvram));
+	}
+}
+
 void DISPLAY::write_signal(int ch, uint32_t data, uint32_t mask)
 {
 	switch(ch) {
@@ -481,8 +490,8 @@ void DISPLAY::write_signal(int ch, uint32_t data, uint32_t mask)
 		break;
 	/*case SIG_DISPLAY98_HIGH_RESOLUTION:
 		  {
-		  display_high = ((data & mask) != 0);
-		  printf("DISP MODE=%d\n", display_high);
+		  hireso = ((data & mask) != 0);
+		  printf("DISP MODE=%d\n", hireso);
 		  }
 		  break;
 	*/
@@ -1630,11 +1639,13 @@ uint32_t DISPLAY::grcg_readw(uint32_t addr1)
 
 void DISPLAY::draw_screen()
 {
+	// Q: Does support multi-threaded rendering for this time??
+	//    -- 20240710 K.O
 	bool gdc_chr_start = d_gdc_chr->get_start();
 	bool gdc_gfx_start = d_gdc_gfx->get_start();
-	int _height = d_gdc_chr->read_signal(SIG_UPD7220_DISP_HEIGHT) << 4;
-	int _height2 = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_HEIGHT);
-	if(_height < _height2) _height = _height2;
+//	int _height = d_gdc_chr->read_signal(SIG_UPD7220_DISP_HEIGHT) << 4;
+//	int _height2 = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_HEIGHT);
+//	if(_height < _height2) _height = _height2;
 	if(modereg1[MODE1_DISP] && (gdc_chr_start || gdc_gfx_start)) {
 		if(gdc_chr_start) {
 			draw_chr_screen();
@@ -1644,62 +1655,52 @@ void DISPLAY::draw_screen()
 		if(gdc_gfx_start) {
 			draw_gfx_screen();
 		} else {
+			draw_width = SCREEN_WIDTH;
+			draw_height = SCREEN_HEIGHT;
 			memset(screen_gfx, 0, sizeof(screen_gfx));
 		}
-		int _width = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_WIDTH);
-		_width <<= 4;
-//		_width -= 16;
-		if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
-		for(int y = 0; y < SCREEN_HEIGHT; y++) {
+		//int _width = d_gdc_gfx->read_signal(SIG_UPD7220_DISP_WIDTH);
+		//_width <<= 4;
+		//if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
+		int offset_x = (SCREEN_WIDTH - draw_width) >> 1;
+		int offset_y = (SCREEN_HEIGHT - draw_height) >> 1;
+		
+		for(int y = 0; y < offset_y; y++) {
 			scrntype_t *dest = emu->get_screen_buffer(y);
-			uint8_t *src_chr;
-#if defined(USE_MONITOR_TYPE) && !defined(SUPPORT_HIRESO)
-			if(display_high) {
-				src_chr = screen_chr[y];
-			} else {
-				src_chr = screen_chr[y >> 1];
+			memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
+		}
+		for(int y = 0; y < draw_height; y++) {
+			scrntype_t *dest = emu->get_screen_buffer(offset_y + y);
+			if(draw_width != SCREEN_WIDTH) {
+				memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
+				dest += offset_x;
 			}
-#else
-			src_chr = screen_chr[y];
-#endif
+			uint8_t *src_chr = screen_chr[hireso ? y : (y >> 1)];
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MDOE2_TXTSHIFT]) {
 				src_chr++;
 			}
 #endif
-			if(y >= _height) {
-				for(int x = _width; x < SCREEN_WIDTH; x++) {
-					dest[x] = border_color;
-				}
-				continue;
-			}
 			uint8_t *src_gfx = screen_gfx[y];
-
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MODE2_16COLOR]) {
 #endif
-				for(int x = 0; x < _width; x++) {
+				for(int x = 0; x < SCREEN_WIDTH; x++) {
 					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx8[src_gfx[x] & 7];
 				}
-				// ToDo: Variable width
-				for(int x = _width; x < SCREEN_WIDTH; x++) {
-					uint8_t chr = src_chr[x];
-					dest[x] = (chr) ? palette_chr[chr & 7] : border_color;
-				}
 #if defined(SUPPORT_16_COLORS)
 			} else {
-				for(int x = 0; x < _width; x++) {
+				for(int x = 0; x < SCREEN_WIDTH; x++) {
 					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx16[src_gfx[x]];
 				}
-				// ToDo: Variable width
-				for(int x = _width; x < SCREEN_WIDTH; x++) {
-					uint8_t chr = src_chr[x];
-					dest[x] = (chr) ? palette_chr[chr & 7] : border_color;
-				}
 			}
 #endif
+		}
+		for(int y = offset_y + draw_height; y < SCREEN_HEIGHT; y++) {
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			memset(dest, 0, SCREEN_WIDTH * sizeof(scrntype_t));
 		}
 	} else {
 		for(int y = 0; y < SCREEN_HEIGHT; y++) {
@@ -1710,34 +1711,41 @@ void DISPLAY::draw_screen()
 	emu->set_vm_screen_lines(SCREEN_HEIGHT);
 	emu->screen_skip_line(false);
 }
+
 void DISPLAY::draw_chr_screen()
 {
+	// Q: Does support multi-threaded rendering for this time??
+	//    -- 20240710 K.O
+	if(emu->now_waiting_in_debugger) {
+		memcpy(scroll_tmp, scroll, sizeof(scroll));
+		memcpy(tvram_tmp, tvram, sizeof(tvram));
+	}
+	
 	// scroll registers
-	int _height = d_gdc_chr->read_signal(SIG_UPD7220_HEIGHT);
-	int _width  = d_gdc_chr->read_signal(SIG_UPD7220_PITCH);
-	int _width2  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
-	int _height2 = d_gdc_gfx->read_signal(SIG_UPD7220_HEIGHT) >> 4;
-//	if(_width > _width2) _width = _width2;
-//	if(_height > _height2) _height = _height2;
-	if(_height > (SCREEN_HEIGHT >> 4)) _height = SCREEN_HEIGHT >> 4;
-	int pl = scroll[SCROLL_PL] & 31;
+	int pl = scroll_tmp[SCROLL_PL] & 31;
 	if(pl) {
 		pl = 32 - pl;
 	}
-	int bl = scroll[SCROLL_BL] + pl + 1;
-	int cl = scroll[SCROLL_CL];
-	int ssl = scroll[SCROLL_SSL];
-	int sur = scroll[SCROLL_SUR] & 31;
+	int bl = scroll_tmp[SCROLL_BL] + pl + 1;
+	int cl = scroll_tmp[SCROLL_CL];
+#if defined(SUPPORT_HIRESO)
+	bl <<= 1;
+	cl <<= 1;
+#endif
+	int ssl = scroll_tmp[SCROLL_SSL];
+	int sur = scroll_tmp[SCROLL_SUR] & 31;
 	if(sur) {
 		sur = 32 - sur;
 	}
-	int sdr = scroll[SCROLL_SDR] + 1;
+	int sdr = scroll_tmp[SCROLL_SDR] + 1;
 
 	// address from gdc
-	uint32_t gdc_addr[30][80] = {0};
+	uint8_t *ra_chr = d_gdc_chr->get_ra();
+	uint32_t gdc_addr[SCREEN_HEIGHT][80] = {0};
+	int ymax = SCREEN_HEIGHT / bl + ((SCREEN_HEIGHT % bl) != 0);
 
 	// ToDo: Will Support 30lines project.
-	const int ylimit = (_height  > 30) ? 30 : _height;
+
 //	printf("PITCH=%d HEIGHT=%d\n", _width, _height);
 	for(int i = 0, ytop = 0; i < 4; i++) {
 		uint32_t ra = ra_chr[i * 4];
@@ -1768,43 +1776,62 @@ void DISPLAY::draw_chr_screen()
 	cursor_top <<= 1;
 	cursor_bottom <<= 1;
 #endif
+	
+	for(int i = 0, ytop = 0; i < 4; i++) {
+		uint32_t ra = ra_chr[i * 4];
+		ra |= ra_chr[i * 4 + 1] << 8;
+		ra |= ra_chr[i * 4 + 2] << 16;
+		ra |= ra_chr[i * 4 + 3] << 24;
+		uint32_t sad = (ra << 1) & 0x1fff;
+		int len = ((ra >> 20) & 0x3ff) + 1;
+#if defined(SUPPORT_HIRESO)
+		len <<= 1;
+#endif
+		len /= bl;
+		if(!len) len = ymax;
+		
+		for(int y = ytop; y < (ytop + len) && y < ymax; y++) {
+			for(int x = 0; x < 80; x++) {
+				gdc_addr[y][x] = sad;
+				sad = (sad + 2) & 0x1fff;
+			}
+		}
+		if((ytop += len) >= ymax) break;
+	}
+	
+	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
+	int cursor_top = d_gdc_chr->cursor_top();
+	int cursor_bottom = d_gdc_chr->cursor_bottom();
+#if defined(SUPPORT_HIRESO)
+	cursor_top <<= 1;
+	cursor_bottom <<= 1;
+#endif
 	bool attr_blink = d_gdc_chr->attr_blink();
-
+	
 	// render
-	int ysur = bl * sur;
-	int ysdr = bl * (sur + sdr);
 	int xofs = modereg1[MODE1_COLUMN] ? (FONT_WIDTH * 2) : FONT_WIDTH;
 	int addrofs = modereg1[MODE1_COLUMN] ? 2 : 1;
-
+	
 	uint32_t *addr  = &gdc_addr[0][0];
 	uint32_t *addr2 = addr;
-
+	
 	memset(screen_chr, 0, sizeof(screen_chr));
-
-	_width <<= 4;
-	_height <<= 4;
-	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
-	//out_debug_log("WxH: %dx%d", _width, _height);
-	if(_width  < 0) _width = 0;
-	static const uint32_t __vramsize = SCREEN_HEIGHT * (SCREEN_WIDTH >> 3);
-	uint32_t of = 0;
-
-	for(int y = 0, cy = 0, ytop = 0; y < _height && cy < 25; y += bl, cy++) {
+	
+	for(int y = 0, cy = 0, ytop = 0; y < SCREEN_HEIGHT && cy < ymax; y += bl, cy++) {
 		uint32_t gaiji1st = 0, last = 0, offset;
 		int kanji2nd = 0;
-		if(y == ysur) {
-			ytop = y;
-			y -= ssl;
-			ysur = _height;
+		if(cy == sur) {
+			ytop = bl * cy;
+			y = ytop - ssl;
 		}
-		if(y >= ysdr) {
-			y = ytop = ysdr;
+		if(cy == sur + sdr) {
+			ytop = bl * cy;
+			y = ytop;
 			addr = addr2;
-			ysdr = _height;
 		}
-		for(int x = 0, cx = 0; x < _width && cx < 80; x += xofs, cx++) {
-			uint16_t code = tvram[(*addr)] | (tvram[(*addr) + 1] << 8);
-			uint8_t attr = tvram[(*addr) | 0x2000];
+		for(int x = 0, cx = 0; x < SCREEN_WIDTH && cx < 80; x += xofs, cx++) {
+			uint16_t code = tvram_tmp[(*addr)] | (tvram_tmp[(*addr) + 1] << 8);
+			uint8_t attr = tvram_tmp[(*addr) | 0x2000];
 			uint8_t color = (attr & ATTR_COL) ? (attr >> 5) : 8;
 			bool cursor = ((*addr) == cursor_addr);
 			addr  += addrofs;
@@ -1839,19 +1866,13 @@ void DISPLAY::draw_chr_screen()
 				gaiji1st = 0;
 			}
 			last = offset;
+			
 			for(int l = 0; l < bl; l++) {
-				int yy;
-				yy =  y + l + pl;
-				if(yy >= ytop && yy < _height) {
+				int yy = y + l + pl;
+				if(yy >= ytop && yy < SCREEN_HEIGHT) {
 					uint8_t *dest = &screen_chr[yy][x];
 #if !defined(SUPPORT_HIRESO)
-					uint8_t pattern;
-#if defined(USE_MONITOR_TYPE) && !defined(SUPPORT_HIRESO)
-					if(!(display_high) && ((code >= 0x100) || (kanji2nd))) {
-						pattern = (l < cl && l < (FONT_HEIGHT >> 1)) ? (font[offset + (l << 1)] | font[offset + (l << 1) + 1]) : 0;
-					} else
-#endif
-					pattern  = (l < cl && l < FONT_HEIGHT) ? font[offset + l] : 0;
+					uint8_t pattern = (l < cl && l < FONT_HEIGHT) ? font[offset + l] : 0;
 #else
 					uint16_t pattern = (l < cl && l < FONT_HEIGHT) ? (font[offset + l * 2] | (font[offset + l * 2 + 1] << 8)) : 0;
 #endif
@@ -1932,130 +1953,140 @@ void DISPLAY::draw_chr_screen()
 					}
 				}
 			}
-			of++;
-			if(of >= __vramsize) break;
 		}
-		if(of >= __vramsize) break;
 	}
 }
 
 void DISPLAY::draw_gfx_screen()
 {
+	// Q: Does support multi-threaded rendering for this time??
+	//    -- 20240710 K.O
 	// address from gdc
-	int _height = d_gdc_gfx->read_signal(SIG_UPD7220_HEIGHT) << 4;
-	int _width  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
+//	int _height = d_gdc_gfx->read_signal(SIG_UPD7220_HEIGHT) << 4;
+//	int _width  = d_gdc_gfx->read_signal(SIG_UPD7220_PITCH);
+//
+//	uint32_t gdc_addr[480][SCREEN_WIDTH >> 3] = {0}; // Dragon Buster.
+//
+//	if(_height < 0) _height = 0;
+//	if(_height > 480) _height = 480;
+//	_width <<= 4;
+//	int _width2 = SCREEN_WIDTH - _width;;
+//	if(_width  < 0) _width = 0;
+//	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
+//	if(_width2 < 0) _width2 = 0;
+//	//out_debug_log("WxH: %dx%d", _width, _height);
 
-	uint32_t gdc_addr[480][SCREEN_WIDTH >> 3] = {0}; // Dragon Buster.
-
-	if(_height < 0) _height = 0;
-	if(_height > 480) _height = 480;
-	_width <<= 4;
-	int _width2 = SCREEN_WIDTH - _width;;
-	if(_width  < 0) _width = 0;
-	if(_width > SCREEN_WIDTH) _width = SCREEN_WIDTH;
-	if(_width2 < 0) _width2 = 0;
-	//out_debug_log("WxH: %dx%d", _width, _height);
-	int ytop = 0;
-	for(int i = 0; i < 4; i++) {
+	uint8_t *sync_gfx = d_gdc_gfx->get_sync();
+	int cr = sync_gfx[1] + 2;
+	int lf = sync_gfx[6] | ((sync_gfx[7] & 0x03) << 8);
+	int pitch = d_gdc_gfx->get_pitch();
+	
+	if(cr <= (SCREEN_WIDTH >> 4) && pitch <= (SCREEN_WIDTH >> 4)) {
+		cr <<= 1;
+		pitch <<= 1;
+	}
+#if !defined(SUPPORT_HIRESO)
+	if(lf <= (SCREEN_HEIGHT >> 1)) {
+		lf <<= 1;
+	}
+#else
+	lf <<= 1;
+#endif
+	uint8_t *ra_gfx = d_gdc_gfx->get_ra();
+	uint8_t *cs_gfx = d_gdc_gfx->get_cs();
+	uint32_t gdc_addr[SCREEN_HEIGHT][SCREEN_WIDTH >> 3] = {0};
+	uint8_t blank[SCREEN_HEIGHT] = {0};
+	int ymax = min(lf, SCREEN_HEIGHT);
+	int xmax = min(pitch, SCREEN_WIDTH >> 3);
+	
+	memset(screen_gfx, 0, sizeof(screen_gfx));
+	
+	for(int i = 0, ytop = 0; i < 4 && ytop < ymax; i++) {
 		uint32_t ra = ra_gfx[i * 4];
 		ra |= ra_gfx[i * 4 + 1] << 8;
 		ra |= ra_gfx[i * 4 + 2] << 16;
 		ra |= ra_gfx[i * 4 + 3] << 24;
 		uint32_t sad = (ra << 1) & VRAM_PLANE_ADDR_MASK;
 		int len = (ra >> 20) & 0x3ff;
-
-		for(int y = ytop; y < (ytop + len) && y < _height; y++) {
-			for(int x = 0; x < (_width >> 3); x++) {
-				gdc_addr[y][x] = sad;
-				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
-			}
-//			for(int x = (_width >> 3); x < (SCREEN_WIDTH >> 3); x++) {
-//				gdc_addr[y][x] = 0;
-//			}
-		}
-		if((ytop += len) >= _height) break;
-	}
-	if(ytop < SCREEN_HEIGHT) {
-		// Madou Monogatari 1-2-3
-		uint32_t ra = ra_gfx[0];
-		ra |= ra_gfx[1] << 8;
-		ra |= ra_gfx[2] << 16;
-		ra |= ra_gfx[3] << 24;
-		uint32_t sad = (ra << 1) & VRAM_PLANE_ADDR_MASK;
-
-		for(int y = 0; y < SCREEN_HEIGHT; y++) {
-			for(int x = 0; x < (SCREEN_WIDTH >> 3); x++) {
-				gdc_addr[y][x] = sad;
-				sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
-			}
-		}
-	}
-	uint32_t *addr = &gdc_addr[0][0];
-	uint8_t *dest = &screen_gfx[0][0];
-
-	static const uint32_t __vramsize = SCREEN_HEIGHT * (SCREEN_WIDTH >> 3);
-	uint32_t of = 0;
-	for(int y = 0; y < _height; y++) {
-		for(int x = 0; x < _width; x += 8) {
-			uint8_t b = vram_disp_b[(*addr)];
-			uint8_t r = vram_disp_r[(*addr)];
-			uint8_t g = vram_disp_g[(*addr)];
-#if defined(SUPPORT_16_COLORS)
-			uint8_t e = vram_disp_e[(*addr)];
+#if !defined(SUPPORT_HIRESO)
+		if(len == 0) len = ymax;
 #else
-			uint8_t e = 0;
+		len <<= 1;
 #endif
-			addr++;
+		int lr = cs_gfx[0] & 0x1f;
+		if((ra >> 30) & 1) lr = 0;
 
-			*dest++ = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((e & 0x80) >> 4);
-			*dest++ = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4) | ((e & 0x40) >> 3);
-			*dest++ = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3) | ((e & 0x20) >> 2);
-			*dest++ = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2) | ((e & 0x10) >> 1);
-			*dest++ = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1) | ((e & 0x08)     );
-			*dest++ = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     ) | ((e & 0x04) << 1);
-			*dest++ = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1) | ((e & 0x02) << 2);
-			*dest++ = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2) | ((e & 0x01) << 3);
-			of++;
-			if(of >= __vramsize) break;
-		}
-		for(int x = 0; x < _width2; x += 8) {
-			*dest++ = 0;
-			*dest++ = 0;
-			*dest++ = 0;
-			*dest++ = 0;
-			*dest++ = 0;
-			*dest++ = 0;
-			*dest++ = 0;
-			*dest++ = 0;
-			addr++;
-			of++;
-			if(of >= __vramsize) break;
-		}
-		if(((cs_gfx[0] & 0x1f) == 1) || !(display_high)){
-			// 200 line
-			if(modereg1[MODE1_200LINE]) {
-				//memset(dest, 0, 640);
-				if(config.scan_line) {
-					memset(dest, 0, SCREEN_WIDTH);
-				} else {
-					my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
-				}
-			} else {
-				//my_memcpy(dest, dest - 640, 640);
-				my_memcpy(dest, dest - SCREEN_WIDTH, SCREEN_WIDTH);
+		// Note: Check older commits using _height and _width. -- 20240710 K.O
+		for(int y = 0, y2 = ytop; y < len && y2 < ymax; y++, y2++) {
+			for(int x = 0; x < xmax; x++) {
+				gdc_addr[y2][x] = (sad++) & VRAM_PLANE_ADDR_MASK;
 			}
-			dest += 640;
-			of += 80;
-			y++;
-			if(y >= SCREEN_HEIGHT) break; // Temp: Dragon Buster.
-			if(of >= __vramsize) break;
+			if((lr || (hireso && modereg1[MODE1_200LINE])) && (y2 + 1) < ymax) {
+				if(modereg1[MODE1_200LINE]) {
+					blank[y2 + 1] = 1;
+				} else {
+					memcpy(gdc_addr[y2 + 1], gdc_addr[y2], sizeof(gdc_addr[0]));
+				}
+				y++;
+				y2++;
+			}
 		}
-		if(of >= __vramsize) break;
-		if(y >= SCREEN_HEIGHT) break; // Temp: Dragon Buster.
+		ytop += len; // * (1 + lr);
+		//if(ytop >= SCREEN_HEIGHT) break; 
+		//if(ytop < SCREEN_HEIGHT) {
+		//// Madou Monogatari 1-2-3
+		//uint32_t ra = ra_gfx[0];
+		//ra |= ra_gfx[1] << 8;
+		//ra |= ra_gfx[2] << 16;
+		//ra |= ra_gfx[3] << 24;
+		//uint32_t sad = (ra << 1) & VRAM_PLANE_ADDR_MASK;
+
+		//for(int y = 0; y < SCREEN_HEIGHT; y++) {
+		//	for(int x = 0; x < (SCREEN_WIDTH >> 3); x++) {
+		//		gdc_addr[y][x] = sad;
+		//		sad = (sad + 1) & VRAM_PLANE_ADDR_MASK;
+		//	}
+		//}
 	}
+	xmax = min(xmax, cr);
+	
+	for(int y = 0, y2 = 0; y < ymax; y++, y2++) {
+		if(!blank[y]) {
+			uint8_t *dest = &screen_gfx[y][0];
+			for(int x = 0; x < xmax; x++) {
+				uint32_t addr = gdc_addr[y2][x];
+				uint8_t b = vram_disp_b[addr];
+				uint8_t r = vram_disp_r[addr];
+				uint8_t g = vram_disp_g[addr];
+#if defined(SUPPORT_16_COLORS)
+				uint8_t e = vram_disp_e[addr];
+#else
+				uint8_t e = 0;
+#endif
+				*dest++ = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((e & 0x80) >> 4);
+				*dest++ = ((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4) | ((e & 0x40) >> 3);
+				*dest++ = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3) | ((e & 0x20) >> 2);
+				*dest++ = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2) | ((e & 0x10) >> 1);
+				*dest++ = ((b & 0x08) >> 3) | ((r & 0x08) >> 2) | ((g & 0x08) >> 1) | ((e & 0x08)     );
+				*dest++ = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     ) | ((e & 0x04) << 1);
+				*dest++ = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1) | ((e & 0x02) << 2);
+				*dest++ = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2) | ((e & 0x01) << 3);
+			}
+		}
+		if(!hireso) {
+			if(config.scan_line) {
+				memset(screen_gfx[y + 1], 0, SCREEN_WIDTH);
+			} else {
+				my_memcpy(screen_gfx[y + 1], screen_gfx[y], SCREEN_WIDTH);
+			}
+			y++;
+		}
+	}
+	draw_width = xmax << 3;
+	draw_height = ymax;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -2129,6 +2160,7 @@ bool DISPLAY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(font_code);
 	state_fio->StateValue(font_line);
 //	state_fio->StateValue(font_lr);
+	state_fio->StateValue(hireso);
 	state_fio->StateArray(bank_table, sizeof(bank_table), 1);
 
 	// post process
