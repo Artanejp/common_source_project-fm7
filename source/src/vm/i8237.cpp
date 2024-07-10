@@ -219,6 +219,7 @@ void I8237::do_dma()
 				switch(dma[ch].mode & 0x0c) {
 				case 0x00:
 					// verify
+					tmp = read_io(ch, &wait_r);
 					wait += compressed ? 5 : 7;
 					break;
 				case 0x04:
@@ -237,8 +238,7 @@ void I8237::do_dma()
 					if(exptended) wait += wait_r + wait_w;
 					break;
 				}
-//				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
-
+				if(d_cpu != NULL) d_cpu->set_extra_clock(wait);
 				if(dma[ch].mode & 0x20) {
 					dma[ch].areg--;
 					if(dma[ch].areg == 0xffff) {
