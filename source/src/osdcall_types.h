@@ -61,7 +61,10 @@ namespace EMU_MESSAGE_TYPE {
 		MEDIA_MOUNTED = (1    << 8),
 		MEDIA_REMOVED = (2    << 8),
 		MEDIA_OTHERS  = (0 << 8),
-		VIRT_MEDIA_SELECTED = (4 << 8),
+		VIRT_MEDIA_SELECTED = (8 << 8),
+		VIRT_MEDIA_UPDATE = (9 << 8),
+		VIRT_MEDIA_CLEAR  = (10 << 8),
+		VIRT_MEDIA_FINISH = (11 << 8),
 
 		TYPE_MEDIA   = (0x00 << 24),
 		TYPE_MESSAGE = (0x10 << 24),

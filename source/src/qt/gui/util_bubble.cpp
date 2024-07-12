@@ -21,18 +21,6 @@
 
 
 // Common Routine
-#ifndef UPDATE_B77_LIST
-#define UPDATE_B77_LIST(__d, lst) { \
-		QString __tmps;									\
-		lst.clear();												\
-		int ___bn = hRunEmu->get_b77_file_bank_num(__d);			\
-		for(int iii = 0; iii < ((___bn < 16) ? ___bn : 16); iii++) {	\
-			__tmps = hRunEmu->get_b77_file_media_name(__d, iii);		\
-			lst << __tmps;												\
-		}																\
-	}
-
-#endif
 
 void Ui_MainWindowBase::CreateBubbleMenu(int drv, int drv_base)
 {
@@ -161,17 +149,12 @@ void Ui_MainWindowBase::do_ui_bubble_insert_history(int drv, QString fname, quin
 		menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
 		do_update_bubble_history(drv, listBubbles[drv]);
 	}
-	listB77[drv].clear();
 	QString int_name = fname;
 	if(check_file_extension(path_shadow, ".b77")) {
-		UPDATE_B77_LIST(drv, listB77[drv]);
 		unsigned int xbank = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
 		if(listB77[drv].size() > xbank) {
 			int_name = listB77[drv].at(xbank);
 		}
-	}
-	if(menu_bubbles[drv] != nullptr) {
-		menu_bubbles[drv]->do_update_inner_media(listB77[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 	}
 	// ToDO: Replace signal model.
 	if(driveData != nullptr) {
@@ -185,6 +168,7 @@ void Ui_MainWindowBase::do_ui_eject_bubble_casette(int drv)
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
 
+	listB77[drv].clear();
 	if(menu_bubbles[drv] != nullptr) {
 		menu_bubbles[drv]->do_clear_inner_media();
 	}
@@ -217,14 +201,39 @@ void Ui_MainWindowBase::do_update_bubble_history(int drive, QStringList lst)
 		menu_bubbles[drive]->do_update_histories(lst);
 	}
 }
-void Ui_MainWindowBase::do_update_b77_list(int drv, int bank)
+
+
+void Ui_MainWindowBase::do_clear_b77_list(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
-
-	UPDATE_B77_LIST(drv, listB77[drv]);
+	listB77[drv].clear();
 	if(menu_bubbles[drv] != nullptr) {
-		menu_bubbles[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+		menu_bubbles[drv]->do_update_inner_media(listB77[drv], 0);
 	}
 }
+
+void Ui_MainWindowBase::do_insert_b77_list(int drv, QString name, quint64 _slot)
+{
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(_slot > 64) return;
+	QString _s = name;
+	if(_s.isEmpty()) {
+		_s = QString::fromUtf8(" ");
+	}
+	listB77[drv] << _s;
+}
+
+void Ui_MainWindowBase::do_finish_b77_list(int drv, quint64 bank)
+{
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles[drv] != nullptr) {
+		menu_bubbles[drv]->do_update_inner_media(listB77[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	}
+}
+//#endif

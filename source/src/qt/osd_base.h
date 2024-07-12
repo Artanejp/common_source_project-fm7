@@ -381,6 +381,10 @@ protected:
 	virtual void __FASTCALL osdcall_mount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString path);
 	virtual void __FASTCALL osdcall_unmount(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type);
 	virtual void __FASTCALL osdcall_misc(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message_str, int64_t data);
+	
+	virtual void __FASTCALL osdcall_clear_virt_media(EMU_MEDIA_TYPE::type_t media_type, int drive);
+	virtual void __FASTCALL osdcall_update_virt_media(EMU_MEDIA_TYPE::type_t media_type, int drive, QString name);
+	virtual void __FASTCALL osdcall_finish_virt_media(EMU_MEDIA_TYPE::type_t media_type, int drive);
 
 public:
 	OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger);
@@ -811,6 +815,9 @@ signals:
 	int sig_ui_floppy_insert_history(int, QString, quint64);
 	int sig_ui_floppy_close(int);
 	int sig_ui_floppy_write_protect(int, quint64);
+	int sig_ui_floppy_clear_virtual_media(int);
+	int sig_ui_floppy_update_virtual_media(int, QString, quint64);
+	int sig_ui_floppy_finish_virtual_media(int, quint64);
 
 	int sig_ui_quick_disk_insert_history(int, QString);
 	int sig_ui_quick_disk_close(int);
@@ -852,6 +859,9 @@ signals:
 	int sig_ui_bubble_insert_history(int, QString, quint64);
 	int sig_ui_bubble_closed(int);
 	int sig_ui_bubble_write_protect(int, quint64);
+	int sig_ui_bubble_clear_virtual_media(int);
+	int sig_ui_bubble_update_virtual_media(int, QString, quint64);
+	int sig_ui_bubble_finish_virtual_media(int, quint64);
 
 	// To Logger.
 	int sig_debug_log(int, int, QString);

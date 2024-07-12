@@ -10,17 +10,6 @@
 
 //#if defined(USE_FLOPPY_DISK)
 
-#ifndef UPDATE_D88_LIST
-#define UPDATE_D88_LIST(__d, lst) {						\
-		QString __tmps;									\
-		int ___bn = hRunEmu->get_d88_file_bank_num(__d);			\
-		for(int iii = 0; iii < ((___bn < 64) ? ___bn : 64); iii++) {	\
-			__tmps = hRunEmu->get_d88_file_disk_name(__d, iii);			\
-			lst << __tmps;												\
-		}																\
-	}
-
-#endif
 
 
 //extern DLL_PREFIX_I EMU *emu;
@@ -53,7 +42,6 @@ int Ui_MainWindowBase::set_recent_disk(int drv, int num)
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_floppy_disk_path[drv][num]);
 	if(!(s_path.isEmpty())) {
-		
 		_open_disk(drv, s_path);
 		return 0;
 	}
@@ -86,18 +74,10 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
 		do_update_floppy_history(drv, listFDs[drv]);
 	}
-
-	listD88[drv].clear();
 	QString int_name = fname;
-	if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
-		UPDATE_D88_LIST(drv, listD88[drv]);
-		unsigned int xbank = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
-		if(listD88[drv].size() > xbank) {
-			int_name = listD88[drv].at(xbank);
-		}
-	}
-	if(menu_fds[drv] != nullptr) {
-		menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d8e") ||
+		check_file_extension(path_shadow, ".d77") || check_file_extension(path_shadow, ".1dd")) {
+		return;
 	}
 	// ToDO: Replace signal model.
 	if(driveData != nullptr) {
@@ -112,27 +92,51 @@ void Ui_MainWindowBase::_open_disk(int drv, const QString fname)
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
 	if(fname.length() <= 0) return;
 
-
 	const _TCHAR *fnamep = (const _TCHAR*)(fname.toLocal8Bit().constData());
 	if(fnamep == nullptr) return;
 
 	if(!(FILEIO::IsFileExisting(fnamep))) return; // File not found.
 
-	emit sig_close_floppy_disk_ui(drv);
+	//printf("%d %s %s\n", drv, fname.toUtf8().constData(), fnamep);
+	//emit sig_close_floppy_disk_ui(drv);
 	emit sig_open_floppy_disk(drv, fname, 0);
-
 }
 
-
-void Ui_MainWindowBase::do_update_d88_list(int drv, int bank)
+void Ui_MainWindowBase::do_clear_d88_list(int drv)
 {
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
+	listD88[drv].clear();
+	if(menu_fds[drv] != nullptr) {
+		menu_fds[drv]->do_update_inner_media(listD88[drv], 0);
+	}
+}
 
-	UPDATE_D88_LIST(drv, listD88[drv]);
+void Ui_MainWindowBase::do_insert_d88_list(int drv, QString name, quint64 _slot)
+{
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
+	if(_slot > 64) return;
+	QString _s = name;
+	if(_s.isEmpty()) {
+		_s = QString::fromUtf8(" ");
+	}
+	listD88[drv] << _s;
+}
+
+void Ui_MainWindowBase::do_finish_d88_list(int drv, quint64 bank)
+{
+	std::shared_ptr<USING_FLAGS> p = using_flags;
+	if(p.get() == nullptr) return;
+	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
 	if(menu_fds[drv] != nullptr) {
 		menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	}
+	QString int_name = listD88[drv].at(bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	if(driveData != nullptr) {
+		driveData->updateMediaFileName(CSP_DockDisks_Domain_FD, drv, int_name);
 	}
 }
 //#endif

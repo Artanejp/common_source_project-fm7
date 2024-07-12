@@ -221,7 +221,8 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		file_size.d = fio->FileLength();
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		
-		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
+		if(check_file_extension(file_path, _T(".d88")) || /* check_file_extension(file_path, _T(".d8e")) || */
+		   check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
 			// d88 image
 			uint32_t offset = 0;
 			for(int i = 0; i < bank; i++) {
@@ -809,7 +810,8 @@ void DISK::close()
 			uint8_t *pre_buffer = NULL, *post_buffer = NULL;
 			
 			// is this d88 format ?
-			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
+			if(check_file_extension(dest_path, _T(".d88")) || /*check_file_extension(file_path, _T(".d8e")) || */
+			   check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
 				if(fio->Fopen(dest_path, FILEIO_READ_BINARY)) {
 					fio->Fseek(0, FILEIO_SEEK_END);
 					uint32_t total_size = fio->Ftell(), offset = 0;

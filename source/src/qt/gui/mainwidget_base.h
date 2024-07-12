@@ -861,17 +861,18 @@ public slots:
 	void eject_hard_disk(int drv);
 	virtual void do_create_d88_media(int drv, quint8 media_type, QString name) { }
 	virtual void do_create_hard_disk(int drv, int sector_size, int sectors, int surfaces, int cylinders, QString name) { }
-	void do_update_d88_list(int drv, int bank);
 
 	void do_update_bubble_history(int drive, QStringList lst);
 	void do_ui_bubble_insert_history(int drv, QString fname, quint64 bank);
 	void do_ui_eject_bubble_casette(int drv);
 	void do_ui_bubble_write_protect(int drv, quint64 flag);
+	void do_clear_b77_list(int drv);
+	void do_insert_b77_list(int drv, QString name, quint64 _slot);
+	void do_finish_b77_list(int drv, quint64 bank);
 
 	int set_recent_bubble(int drv, int num);
 	void _open_bubble(int drv, const QString fname);
-	void do_update_b77_list(int drv, int bank);
-
+	
 	void _open_disk(int drv, const QString fname);
 	int set_recent_disk(int, int);
 
@@ -929,6 +930,9 @@ public slots:
 	void do_ui_floppy_insert_history(int drv, QString fname, quint64 bank);
 	void do_ui_eject_floppy_disk(int drv);
 	void do_ui_write_protect_floppy_disk(int drv, quint64 flag);
+	void do_clear_d88_list(int drv);
+	void do_insert_d88_list(int drv, QString name, quint64 _slot);
+	void do_finish_d88_list(int drv, quint64 bank);
 
 	void do_ui_eject_hard_disk(int drv);
 	void do_ui_hard_disk_insert_history(int drv, QString fname);

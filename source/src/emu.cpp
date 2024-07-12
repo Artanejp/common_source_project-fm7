@@ -204,7 +204,132 @@ void EMU::osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_
 	}
 }
 
+void EMU::osdcall_bubble_inserted(int drv, _TCHAR* filestr, int bank)
+{
+#ifdef USE_BUBBLE
+	if((vm == NULL) || (drv < 0) || (drv >= USE_BUBBLE) || (drv >= 16)) {
+		return;
+	}
+	if(!(vm->is_bubble_casette_inserted(drv))) {
+		return;
+	}
+	EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+	mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
 
+	if((bank < 0) || (b77_file[drv].bank_num <= 0)) {
+		bank = 0;
+	}
+	
+	EMU_MEDIA_TYPE::type_t media_type = EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	
+	osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
+				drv,
+				EMU_MESSAGE_TYPE::VIRT_MEDIA_CLEAR,
+				0);
+	if(b77_file[drv].bank_num > 0) {
+		for(uint64_t i = 0; i < b77_file[drv].bank_num; i++) {
+			if(i >= 16) break;
+			EMU_MEDIA_TYPE::type_t submedia_type = EMU_MEDIA_TYPE::BUBBLE_CASETTE | i;
+			EMU_MESSAGE_TYPE::type_t submess = EMU_MESSAGE_TYPE::VIRT_MEDIA_UPDATE;
+			if(strlen(b77_file[drv].bubble_name[i]) > 0) {
+				osdcall_string(submedia_type, drv, submess, b77_file[drv].bubble_name[i]);
+			}
+		}
+		osdcall_int(media_type, drv, EMU_MESSAGE_TYPE::VIRT_MEDIA_FINISH, 0);
+	}
+	osdcall_string(media_type, drv, mess, filestr);
+
+#endif
+}
+
+void EMU::osdcall_bubble_ejected(int drv)
+{
+#ifdef USE_BUBBLE
+	if((drv < 0) || (drv >= USE_BUBBLE)) {
+		return;
+	}
+	osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
+				drv,
+				EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+				0);
+#endif
+}
+
+void EMU::osdcall_floppy_inserted(int drv, _TCHAR* filestr, int bank)
+{
+#ifdef USE_FLOPPY_DISK
+	if((vm == NULL) || (drv < 0) || (drv >= USE_FLOPPY_DISK) || (drv >= 16)) {
+		return;
+	}
+	if(!(vm->is_floppy_disk_inserted(drv))) {
+		return;
+	}
+	EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
+	mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
+	EMU_MEDIA_TYPE::type_t media_type = EMU_MEDIA_TYPE::FLOPPY_DISK | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK);
+	
+	osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+				drv,
+				EMU_MESSAGE_TYPE::VIRT_MEDIA_CLEAR,
+				0);
+	if(d88_file[drv].bank_num > 0) {
+		for(uint64_t i = 0; i < d88_file[drv].bank_num; i++) {
+			if(i >= 16) break;
+			EMU_MEDIA_TYPE::type_t submedia_type = EMU_MEDIA_TYPE::FLOPPY_DISK | i;
+			EMU_MESSAGE_TYPE::type_t submess = EMU_MESSAGE_TYPE::VIRT_MEDIA_UPDATE;
+			if(strlen(d88_file[drv].disk_name[i]) > 0) {
+				osdcall_string(submedia_type, drv, submess, d88_file[drv].disk_name[i]);
+			}
+		}
+		osdcall_int(media_type, drv, EMU_MESSAGE_TYPE::VIRT_MEDIA_FINISH, 0);
+	}
+	
+	osdcall_string(media_type, drv, mess, filestr);
+#endif
+}
+
+void EMU::osdcall_floppy_ejected(int drv)
+{
+#ifdef USE_FLOPPY_DISK
+	if((drv < 0) || (drv >= USE_FLOPPY_DISK)) {
+		return;
+	}
+	osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
+				drv,
+				EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+				0);
+#endif
+}
+
+void EMU::osdcall_quickdisk_inserted(int drv, _TCHAR* filestr)
+{
+#ifdef USE_QUICK_DISK
+	if((vm == NULL) || (drv < 0) || (drv >= USE_QUICK_DISK)) {
+		return;
+	}
+	if(!(vm->is_quick_disk_inserted(drv))) {
+		return;
+	}
+	// ToDo: Write Protect
+	osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
+				   drv,
+				   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
+				   filestr);
+#endif
+}
+
+void EMU::osdcall_quickdisk_ejected(int drv)
+{
+#ifdef USE_QUICK_DISK
+	if((vm == NULL) || (drv < 0) || (drv >= USE_QUICK_DISK)) {
+		return;
+	}
+	osdcall_int(EMU_MEDIA_TYPE::QUICK_DISK,
+				drv,
+				EMU_MESSAGE_TYPE::MEDIA_REMOVED,
+				0);
+#endif
+}
 #ifdef OSD_QT
 EmuThreadClass *EMU::get_parent_handler()
 {
@@ -2437,28 +2562,28 @@ static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
 void EMU::initialize_media()
 {
 #ifdef USE_CART
-	memset(&(cart_status[0]), 0, sizeof(cart_status));
+	memset(cart_status, 0, sizeof(cart_status));
 #endif
 #ifdef USE_FLOPPY_DISK
-	memset(&(floppy_disk_status[0]), 0, sizeof(floppy_disk_status));
+	memset(floppy_disk_status, 0, sizeof(floppy_disk_status));
 #endif
 #ifdef USE_QUICK_DISK
-	memset(&(quick_disk_status[0]), 0, sizeof(quick_disk_status));
+	memset(quick_disk_status, 0, sizeof(quick_disk_status));
 #endif
 #ifdef USE_HARD_DISK
-	memset(&(hard_disk_status[0]), 0, sizeof(hard_disk_status));
+	memset(hard_disk_status, 0, sizeof(hard_disk_status));
 #endif
 #ifdef USE_TAPE
-	memset(&(tape_status[0]), 0, sizeof(tape_status));
+	memset(tape_status, 0, sizeof(tape_status));
 #endif
 #ifdef USE_COMPACT_DISC
-	memset(&(compact_disc_status[0]), 0, sizeof(compact_disc_status));
+	memset(compact_disc_status, 0, sizeof(compact_disc_status));
 #endif
 #ifdef USE_LASER_DISC
-	memset(&(laser_disc_status[0]), 0, sizeof(laser_disc_status));
+	memset(laser_disc_status, 0, sizeof(laser_disc_status));
 #endif
 #ifdef USE_BUBBLE
-	memset(&(bubble_casette_status[0]), 0, sizeof(bubble_casette_status));
+	memset(bubble_casette_status, 0, sizeof(bubble_casette_status));
 #endif
 }
 
@@ -2475,64 +2600,13 @@ void EMU::update_media()
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
 			if(strlen(floppy_disk_status[drv].path) > 0) {
-				if(check_file_extension(floppy_disk_status[drv].path, _T(".d88")) || check_file_extension(floppy_disk_status[drv].path, _T(".d77")) || check_file_extension(floppy_disk_status[drv].path, _T(".1dd"))) {
-					FILEIO *fio = new FILEIO();
-					if(fio->Fopen(floppy_disk_status[drv].path, FILEIO_READ_BINARY)) {
-						d88_file[drv].bank_num = 0;
-						try {
-							fio->Fseek(0, FILEIO_SEEK_END);
-							uint32_t file_size = fio->Ftell(), file_offset = 0;
-							while(file_offset + 0x2b0 <= file_size && d88_file[drv].bank_num < MAX_D88_BANKS) {
-								fio->Fseek(file_offset, FILEIO_SEEK_SET);
-#ifdef _UNICODE
-								char tmp[18];
-								fio->Fread(tmp, 17, 1);
-								tmp[17] = 0;
-#if defined(_USE_QT)
-								memset(d88_file[drv].disk_name[d88_file[drv].bank_num], 0x00, 128);
-								if(strlen(tmp) > 0) {
-									Convert_CP932_to_UTF8(d88_file[drv].disk_name[d88_file[drv].bank_num], tmp, 127, 17);
-								}
-#else /* not _USE_QT */
-								MultiByteToWideChar(CP_ACP, 0, tmp, -1, d88_file[drv].disk_name[d88_file[drv].bank_num], 18);
-#endif
-#else
-								fio->Fread(d88_file[drv].disk_name[d88_file[drv].bank_num], 17, 1);
-								d88_file[drv].disk_name[d88_file[drv].bank_num][17] = 0;
-#endif
-								fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
-								file_offset += fio->FgetUint32_LE();
-								d88_file[drv].bank_num++;
-							}
-							my_tcscpy_s(d88_file[drv].path, _MAX_PATH, floppy_disk_status[drv].path);
-						} catch(...) {
-							d88_file[drv].bank_num = 0;
-						}
-						fio->Fclose();
-					}
-					delete fio;
-					int bank = floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
-					if(bank >= d88_file[drv].bank_num) {
-						bank = 0;
-					}
-					d88_file[drv].cur_bank = bank;
-				} else {
-					d88_file[drv].bank_num = 0;
-					d88_file[drv].cur_bank = 0;
-				}
-
 				vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
 				out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, floppy_disk_status[drv].path);
 #else
 				out_message(_T("FD: %s"), floppy_disk_status[drv].path);
 #endif
-				EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-				mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
-				osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
-							   drv,
-							   mess,
-							   floppy_disk_status[drv].path);
+				osdcall_floppy_inserted(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
 			}
 		}
 	}
@@ -2546,11 +2620,7 @@ void EMU::update_media()
 #else
 			out_message(_T("QD: %s"), quick_disk_status[drv].path);
 #endif
-			// ToDo: Write Protect
-			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
-						   drv,
-						   EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-						   (_TCHAR *)quick_disk_status[drv].path);
+			osdcall_quickdisk_inserted(drv, quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2637,13 +2707,7 @@ void EMU::update_media()
 			out_message(_T("Bubble: %s"), bubble_casette_status[drv].path);
 #endif
 			// ToDo: Write protect.
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
-
-			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bubble_casette_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
-						   drv,
-						   mess,
-						   (_TCHAR *)bubble_casette_status[drv].path);
+			osdcall_bubble_inserted(drv, bubble_casette_status[drv].path, b77_file[drv].cur_bank);
 		}
 	}
 #endif
@@ -2677,12 +2741,7 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].path[0] != _T('\0')) {
 			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
-			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (floppy_disk_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
-						   drv,
-						   mess,
-						   floppy_disk_status[drv].path);
+			osdcall_floppy_inserted(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
 		}
 	}
 #endif
@@ -2690,13 +2749,7 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_QUICK_DISK; drv++) {
 		if(quick_disk_status[drv].path[0] != _T('\0')) {
 			vm->open_quick_disk(drv, quick_disk_status[drv].path);
-
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			// ToDo: write protect
-			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
-						   drv,
-						   mess,
-						   quick_disk_status[drv].path);
+			osdcall_quickdisk_inserted(drv, quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2708,7 +2761,7 @@ void EMU::restore_media()
 			osdcall_string(EMU_MEDIA_TYPE::HARD_DISK,
 						   drv,
 						   mess,
-						   quick_disk_status[drv].path);
+						   hard_disk_status[drv].path);
 		}
 	}
 #endif
@@ -2755,13 +2808,7 @@ void EMU::restore_media()
 	for(int drv = 0; drv < USE_BUBBLE; drv++) {
 		if(bubble_casette_status[drv].path[0] != _T('\0')) {
 			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
-
-			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bubble_casette_status[drv].bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK),
-						   drv,
-						   mess,
-						   (_TCHAR *)bubble_casette_status[drv].path);
+			osdcall_bubble_inserted(drv, bubble_casette_status[drv].path, b77_file[drv].cur_bank);
 		}
 	}
 #endif
@@ -2864,12 +2911,46 @@ bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	if((drv < USE_FLOPPY_DISK) && (file_path != NULL)) {
-		__UNLIKELY_IF((vm == NULL) || (strlen(file_path) <= 0)) {
-			return;
-		}
-		if(bank < 0) {
-			bank = 0;
+	if(drv < USE_FLOPPY_DISK) {
+		d88_file[drv].bank_num = 0;
+		d88_file[drv].cur_bank = -1;
+		if(check_file_extension(file_path, _T(".d88")) || /*check_file_extension(file_path, _T(".d8e")) || */
+		   check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
+			FILEIO *fio = new FILEIO();
+			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+				try {
+					fio->Fseek(0, FILEIO_SEEK_END);
+					uint32_t file_size = fio->Ftell(), file_offset = 0;
+					while(file_offset + 0x2b0 <= file_size && d88_file[drv].bank_num < MAX_D88_BANKS) {
+						fio->Fseek(file_offset, FILEIO_SEEK_SET);
+#ifdef _UNICODE
+						char tmp[18];
+						fio->Fread(tmp, 17, 1);
+						tmp[17] = 0;
+	#if defined(_USE_QT)
+		
+						if(strlen(tmp) > 0) {
+							Convert_CP932_to_UTF8(d88_file[drv].disk_name[d88_file[drv].bank_num], tmp, 128, 18);
+						}
+	#else
+						MultiByteToWideChar(CP_ACP, 0, tmp, -1, d88_file[drv].disk_name[d88_file[drv].bank_num], 18);
+	#endif						
+#else
+						fio->Fread(d88_file[drv].disk_name[d88_file[drv].bank_num], 17, 1);
+						d88_file[drv].disk_name[d88_file[drv].bank_num][17] = 0;
+#endif
+						fio->Fseek(file_offset + 0x1c, SEEK_SET);
+						file_offset += fio->FgetUint32_LE();
+						d88_file[drv].bank_num++;
+					}
+					my_tcscpy_s(d88_file[drv].path, _MAX_PATH, file_path);
+					d88_file[drv].cur_bank = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
+				} catch(...) {
+					d88_file[drv].bank_num = 0;
+				}
+				fio->Fclose();
+			}
+			delete fio;
 		}
 		if(vm->is_floppy_disk_inserted(drv)) {
 			vm->close_floppy_disk(drv);
@@ -2880,10 +2961,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("FD: Ejected"));
 #endif
-			osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-						0);
+			osdcall_floppy_ejected(drv);			
 		} else if(floppy_disk_status[drv].wait_count == 0) {
 			vm->open_floppy_disk(drv, file_path, bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 #if USE_FLOPPY_DISK > 1
@@ -2891,14 +2969,10 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("FD: %s"), file_path);
 #endif
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			mess |= ((is_floppy_disk_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
-			osdcall_string(EMU_MEDIA_TYPE::FLOPPY_DISK | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK),
-						   drv,
-						   mess,
-						   (_TCHAR *)file_path);
+			osdcall_floppy_inserted(drv, (_TCHAR *)file_path, bank);
 		}
-		//printf("%s\n", file_path);
+		//QString tmps = QString::fromLocal8Bit(file_path);
+		//printf("%d %s\n", drv, tmps.toUtf8().constData());
 		my_tcscpy_s(floppy_disk_status[drv].path, _MAX_PATH, file_path);
 		floppy_disk_status[drv].bank = bank;
 	}
@@ -2923,10 +2997,7 @@ void EMU::close_floppy_disk(int drv)
 #else
 		out_message(_T("FD: Ejected"));
 #endif
-		osdcall_int(EMU_MEDIA_TYPE::FLOPPY_DISK,
-					drv,
-					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-					0);
+		osdcall_floppy_ejected(drv);			
 	}
 }
 
@@ -3017,10 +3088,7 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("QD: Ejected"));
 #endif
-			osdcall_int(EMU_MEDIA_TYPE::QUICK_DISK,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-						0);
+			osdcall_quickdisk_ejected(drv);
 		} else if(quick_disk_status[drv].wait_count == 0) {
 			vm->open_quick_disk(drv, file_path);
 #if USE_QUICK_DISK > 1
@@ -3028,10 +3096,7 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("QD: %s"), file_path);
 #endif
-			osdcall_string(EMU_MEDIA_TYPE::QUICK_DISK,
-							drv,
-							EMU_MESSAGE_TYPE::MEDIA_MOUNTED,
-							(_TCHAR*)file_path);
+			osdcall_quickdisk_inserted(drv, (_TCHAR*)file_path);
 		}
 		my_tcscpy_s(quick_disk_status[drv].path, _MAX_PATH, file_path);
 	}
@@ -3051,10 +3116,7 @@ void EMU::close_quick_disk(int drv)
 #else
 		out_message(_T("QD: Ejected"));
 #endif
-		osdcall_int(EMU_MEDIA_TYPE::QUICK_DISK,
-					drv,
-					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-					0);
+		osdcall_quickdisk_ejected(drv);
 	}
 }
 
@@ -3718,10 +3780,7 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("Bubble: Ejected"));
 #endif
-			osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
-						drv,
-						EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-						0);
+			osdcall_bubble_ejected(drv);
 		} else if(bubble_casette_status[drv].wait_count == 0) {
 			vm->open_bubble_casette(drv, file_path, bank);
 #if USE_BUBBLE > 1
@@ -3729,12 +3788,7 @@ void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
 #else
 			out_message(_T("Bubble: %s"), file_path);
 #endif
-			EMU_MESSAGE_TYPE::type_t mess = EMU_MESSAGE_TYPE::MEDIA_MOUNTED;
-			mess |= ((is_bubble_casette_protected(drv)) ? EMU_MESSAGE_TYPE::WRITE_PROTECT : 0);
-			osdcall_string(EMU_MEDIA_TYPE::BUBBLE_CASETTE | (bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_MASK),
-							drv,
-							mess,
-							(_TCHAR*)file_path);
+			osdcall_bubble_inserted(drv, (_TCHAR*)file_path, bank);
 		}
 		my_tcscpy_s(bubble_casette_status[drv].path, _MAX_PATH, file_path);
 		bubble_casette_status[drv].bank = bank;
@@ -3755,10 +3809,7 @@ void EMU::close_bubble_casette(int drv)
 #else
 		out_message(_T("Bubble: Ejected"));
 #endif
-		osdcall_int(EMU_MEDIA_TYPE::BUBBLE_CASETTE,
-					drv,
-					EMU_MESSAGE_TYPE::MEDIA_REMOVED,
-					0);
+		osdcall_bubble_ejected(drv);
 	}
 }
 

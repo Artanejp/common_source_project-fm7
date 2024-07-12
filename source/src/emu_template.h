@@ -561,5 +561,13 @@ public:
 	// 20230125 K.O
 	virtual void __FASTCALL osdcall_string(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message) {}
 	virtual void __FASTCALL osdcall_int(EMU_MEDIA_TYPE::type_t media_type, int drive,  EMU_MESSAGE_TYPE::type_t message_type, int64_t data) { }
+	
+	virtual void __FASTCALL osdcall_bubble_inserted(int drv, _TCHAR* filestr, int bank) {}
+	virtual void __FASTCALL osdcall_bubble_ejected(int drv) {}
+	
+	virtual void __FASTCALL osdcall_floppy_inserted(int drv, _TCHAR* filestr, int bank) {}
+	virtual void __FASTCALL osdcall_floppy_ejected(int drv) {}
 
+	virtual void __FASTCALL osdcall_quickdisk_inserted(int drv, _TCHAR* filestr) {}
+	virtual void __FASTCALL osdcall_quickdisk_ejected(int drv) {}
 };

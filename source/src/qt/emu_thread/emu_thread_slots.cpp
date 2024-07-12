@@ -76,15 +76,21 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
+	_TCHAR tmppath[_MAX_PATH] = {0}; // For Security.
+	my_tcscpy_s(tmppath, _MAX_PATH, file_path);
 
-	p_emu->open_floppy_disk(drv, file_path, bank);
+	p_emu->open_floppy_disk(drv, tmppath, bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
 
 	if((p->get_max_drive() > (drv + 1)) && ((drv & 1) == 0) /* EVEN DRIVE NUM */ &&
 	   ((bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK) == 0)) {
-		if(check_file_extension(file_path, ".d88") || check_file_extension(file_path, ".d77")) {
+		if(check_file_extension(file_path, ".d88") || /* check_file_extension(file_path, ".d8e") || */
+		   check_file_extension(file_path, ".d77") || check_file_extension(file_path, ".1dd")) {
 			if((bank + 1) < get_d88_file_bank_num(drv)) {
-				p_emu->close_floppy_disk(drv + 1);
-				p_emu->open_floppy_disk(drv + 1, file_path, (bank + 1) | EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK);
+				//if(!(p_emu->is_floppy_disk_inserted(drv + 1))) {
+				do_open_floppy_disk(drv + 1, path, (bank + 1) | EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK);
+				//}
+				//p_emu->close_floppy_disk(drv + 1);
+				//p_emu->open_floppy_disk(drv + 1, file_path, (bank + 1) | EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK);
 			}
 		}
 	}
@@ -374,8 +380,10 @@ void EmuThreadClassBase::do_open_quick_disk(int drv, QString path)
 
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
+	_TCHAR tmppath[_MAX_PATH] = {0}; // For Security.
+	my_tcscpy_s(tmppath, _MAX_PATH, file_path);
 
-	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
+	p_emu->open_quick_disk(drv, tmppath);
 }
 
 
@@ -408,7 +416,9 @@ void EmuThreadClassBase::do_open_compact_disc(int drv, QString path)
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-	p_emu->open_compact_disc(drv, file_path);
+	_TCHAR tmppath[_MAX_PATH] = {0}; // For Security.
+	my_tcscpy_s(tmppath, _MAX_PATH, file_path);
+	p_emu->open_compact_disc(drv, tmppath);
 }
 
 void EmuThreadClassBase::do_eject_compact_disc_ui(int drive)
@@ -467,7 +477,9 @@ void EmuThreadClassBase::do_open_hard_disk(int drv, QString path)
 		//QMutexLocker _locker(&uiMutex);
 		const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 		if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
-		p_emu->open_hard_disk(drv, file_path);
+		_TCHAR tmppath[_MAX_PATH] = {0}; // For Security.
+		my_tcscpy_s(tmppath, _MAX_PATH, file_path);
+		p_emu->open_hard_disk(drv, tmppath);
 	}
 }
 
@@ -508,7 +520,11 @@ void EmuThreadClassBase::do_open_cartridge(int drv, QString path)
 
 	if((p->is_use_cart()) && (drv < p->get_max_cart())) {
 		//QMutexLocker _locker(&uiMutex);
-		p_emu->open_cart(drv, path.toLocal8Bit().constData());
+		const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
+		if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
+		_TCHAR tmppath[_MAX_PATH] = {0}; // For Security.
+		my_tcscpy_s(tmppath, _MAX_PATH, file_path);
+		p_emu->open_cart(drv, tmppath);
 	}
 }
 
@@ -555,7 +571,9 @@ void EmuThreadClassBase::do_open_laser_disc(int drv, QString path)
 	const _TCHAR *file_path = (const _TCHAR *)(path.toLocal8Bit().constData());
 	if(!(FILEIO::IsFileExisting(file_path))) return; // File not found.
 
-	p_emu->open_laser_disc(drv, file_path);
+	_TCHAR tmppath[_MAX_PATH] = {0}; // For Security.
+	my_tcscpy_s(tmppath, _MAX_PATH, file_path);
+	p_emu->open_laser_disc(drv, tmppath);
 }
 
 void EmuThreadClassBase::do_load_binary(int drv, QString path)

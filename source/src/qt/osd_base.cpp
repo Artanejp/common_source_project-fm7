@@ -849,6 +849,58 @@ void OSD_BASE::osdcall_misc(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_ME
 	}
 }
 
+void OSD_BASE::osdcall_update_virt_media(EMU_MEDIA_TYPE::type_t media_type, int drive, QString name)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+	switch(_type) {
+	case EMU_MEDIA_TYPE::BUBBLE_CASETTE:
+		emit sig_ui_bubble_update_virtual_media(drive,
+												name,
+												(quint64)_slot);
+		break;
+	case EMU_MEDIA_TYPE::FLOPPY_DISK:
+		emit sig_ui_floppy_update_virtual_media(drive,
+												name,
+												(quint64)_slot);
+		break;
+	default:
+		break;
+	}
+}
+
+void OSD_BASE::osdcall_clear_virt_media(EMU_MEDIA_TYPE::type_t media_type, int drive)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint64_t _slot = media_type & 255;
+	switch(_type) {
+	case EMU_MEDIA_TYPE::BUBBLE_CASETTE:
+		emit sig_ui_bubble_clear_virtual_media(drive);
+		break;
+	case EMU_MEDIA_TYPE::FLOPPY_DISK:
+		emit sig_ui_floppy_clear_virtual_media(drive);
+		break;
+	default:
+		break;
+	}
+}
+
+void OSD_BASE::osdcall_finish_virt_media(EMU_MEDIA_TYPE::type_t media_type, int drive)
+{
+	uint64_t _type = media_type & EMU_MEDIA_TYPE::UI_MEDIA_MASK;
+	uint32_t _slot = media_type & 255;
+	switch(_type) {
+	case EMU_MEDIA_TYPE::BUBBLE_CASETTE:
+		emit sig_ui_bubble_finish_virtual_media(drive, _slot);
+		break;
+	case EMU_MEDIA_TYPE::FLOPPY_DISK:
+		emit sig_ui_floppy_finish_virtual_media(drive, _slot);
+		break;
+	default:
+		break;
+	}
+}
+
 void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, _TCHAR* message)
 {
 //	switch(media_type) {
@@ -878,6 +930,18 @@ void OSD_BASE::string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int dr
 		case EMU_MESSAGE_TYPE::MEDIA_OTHERS  :
 			osdcall_misc(media_type, drive, message_type, tmps, INT64_MIN);
 			break;
+		case EMU_MESSAGE_TYPE::VIRT_MEDIA_SELECTED:
+			// ToDo.
+			break;
+		case EMU_MESSAGE_TYPE::VIRT_MEDIA_UPDATE:
+			osdcall_update_virt_media(media_type, drive, tmps);
+			break;
+		case EMU_MESSAGE_TYPE::VIRT_MEDIA_CLEAR:
+			osdcall_clear_virt_media(media_type, drive);
+			break;
+		case EMU_MESSAGE_TYPE::VIRT_MEDIA_FINISH:
+			osdcall_finish_virt_media(media_type, drive);
+			break;
 		default:
 			break;
 		}
@@ -906,6 +970,12 @@ void OSD_BASE::int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive
 			break;
 		case EMU_MESSAGE_TYPE::MEDIA_OTHERS  :
 			osdcall_misc(media_type, drive, message_type, QString::fromUtf8(""), data);
+			break;
+		case EMU_MESSAGE_TYPE::VIRT_MEDIA_CLEAR:
+			osdcall_clear_virt_media(media_type, drive);
+			break;
+		case EMU_MESSAGE_TYPE::VIRT_MEDIA_FINISH:
+			osdcall_finish_virt_media(media_type, drive);
 			break;
 		default:
 			break;

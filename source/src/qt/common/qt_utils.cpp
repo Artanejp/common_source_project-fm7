@@ -206,6 +206,18 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 			this, SLOT(do_ui_eject_floppy_disk(int)),
 			Qt::QueuedConnection);
 
+	connect(p_osd, SIGNAL(sig_ui_floppy_clear_virtual_media(int)),
+			this, SLOT(do_clear_d88_list(int)),
+			Qt::QueuedConnection);
+	
+	connect(p_osd, SIGNAL(sig_ui_floppy_update_virtual_media(int, QString, quint64)),
+			this, SLOT(do_insert_d88_list(int, QString, quint64)),
+			Qt::QueuedConnection);
+
+	connect(p_osd, SIGNAL(sig_ui_floppy_finish_virtual_media(int, quint64)),
+			this, SLOT(do_finish_d88_list(int, quint64)),
+			Qt::QueuedConnection);
+	
 	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
 		if(menu_fds[ii] != nullptr) {
@@ -388,7 +400,19 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	connect(p_osd, SIGNAL(sig_ui_bubble_closed(int)),
 			this, SLOT(do_ui_eject_bubble_casette(int)),
 			Qt::QueuedConnection);
+	
+	connect(p_osd, SIGNAL(sig_ui_bubble_clear_virtual_media(int)),
+			this, SLOT(do_clear_b77_list(int)),
+			Qt::QueuedConnection);
+	
+	connect(p_osd, SIGNAL(sig_ui_bubble_update_virtual_media(int, QString, quint64)),
+			this, SLOT(do_insert_b77_list(int, QString, quint64)),
+			Qt::QueuedConnection);
 
+	connect(p_osd, SIGNAL(sig_ui_bubble_finish_virtual_media(int, quint64)),
+			this, SLOT(do_finish_b77_list(int, quint64)),
+			Qt::QueuedConnection);
+	
 #endif
 
 	hRunEmu->set_tape_play(false);
