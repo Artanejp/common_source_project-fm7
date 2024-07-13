@@ -59,30 +59,16 @@ void Ui_MainWindowBase::do_set_print_cpu_statistics(bool flag)
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_none()
 {
-	QRect rect;
 	driveData->setVisible(false);
 	p_config->virtual_media_position = 0;
 	set_screen_size(graphicsView->width(), graphicsView->height());
 
 	pCentralLayout->setDirection(QBoxLayout::TopToBottom);
-	rect.setRect(0, 0, graphicsView->width(), graphicsView->height() + 2);
-
-	pCentralLayout->removeWidget(driveData);
-	pCentralWidget->setGeometry(rect);
-	//pCentralLayout->setGeometry(rect);
-	pCentralLayout->update();
-	pCentralWidget->setLayout(pCentralLayout);
-	pCentralWidget->adjustSize();
-
-	MainWindow->setCentralWidget(pCentralWidget);
-	MainWindow->adjustSize();
-
-	//emit sig_set_display_osd(true);
+	do_resize_central_widget();
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 {
-	QRect rect;
 	driveData->setVisible(true);
 	p_config->virtual_media_position = 1;
 	set_screen_size(graphicsView->width(), graphicsView->height());
@@ -92,21 +78,12 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_upper()
 	pCentralLayout->removeWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
 	pCentralLayout->addWidget(graphicsView);
-	rect.setRect(0, 0, graphicsView->width(), graphicsView->height() + driveData->height() + 2);
-	pCentralWidget->setGeometry(rect);
-	//pCentralLayout->setGeometry(rect);
-	pCentralLayout->update();
-	pCentralWidget->setLayout(pCentralLayout);
-	pCentralWidget->adjustSize();
-
-	MainWindow->setCentralWidget(pCentralWidget);
-	MainWindow->adjustSize();
-	//emit sig_set_display_osd(false);
+	
+	do_resize_central_widget();
 }
 
 void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 {
-	QRect rect;
 	driveData->setVisible(true);
 	p_config->virtual_media_position = 2;
 	set_screen_size(graphicsView->width(), graphicsView->height());
@@ -116,17 +93,39 @@ void Ui_MainWindowBase::do_set_visible_virtual_media_lower()
 	pCentralLayout->removeWidget(graphicsView);
 	pCentralLayout->addWidget(driveData);
 	pCentralLayout->addWidget(graphicsView);
+	do_resize_central_widget();
+}
 
-	rect.setRect(0, 0, graphicsView->width(), graphicsView->height() + driveData->height() + 2);
+void Ui_MainWindowBase::do_resize_central_widget()
+{
+	bool vmedia_visible = false;
+	int vmedia_height = 0;
+	int _width = 640;
+	int _height = 480;
+	QRect rect;
+	if(driveData != nullptr) {
+		vmedia_visible = driveData->isVisible();
+		if(vmedia_visible) {
+			vmedia_height = driveData->height();
+		}
+	}
+	if(graphicsView != nullptr) {
+		_width = graphicsView->width();
+		_height = graphicsView->height() + vmedia_height;
+	}
+	if((pCentralWidget == nullptr) || (pCentralLayout == nullptr)) {
+		return;
+	}
+	rect.setRect(0, 0, _width, _height + 2);
 	pCentralWidget->setGeometry(rect);
 	pCentralLayout->update();
 	pCentralWidget->setLayout(pCentralLayout);
 	pCentralWidget->adjustSize();
 
-	MainWindow->setCentralWidget(pCentralWidget);
-	MainWindow->adjustSize();
+	setCentralWidget(pCentralWidget);
+	adjustSize();
+	
 }
-
 void Ui_MainWindowBase::do_set_visible_virtual_media_left()
 {
 #if 0

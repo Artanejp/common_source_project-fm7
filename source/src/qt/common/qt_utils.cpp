@@ -542,6 +542,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	
 	connect(this, SIGNAL(sig_set_priority_emu_thread(QThread::Priority)), hRunEmu.get(), SLOT(do_set_priority(QThread::Priority)));
 	connect(this, SIGNAL(sig_set_priority_draw_thread(QThread::Priority)), hDrawEmu.get(), SLOT(do_set_priority(QThread::Priority)));
+	connect(hDrawEmu.get(), SIGNAL(started()), this, SLOT(do_adjust_window_by_glv_resize()), Qt::QueuedConnection);
 
 //	this->set_screen_aspect(config.window_stretch_type);
 	emit sig_movie_set_width(SCREEN_WIDTH);
@@ -1441,10 +1442,10 @@ int MainLoop(int argc, char *argv[])
 
 	rMainWindow->do_start_emu_thread();
 	
-//	set_screen_size(w, h);
 	rMainWindow->set_screen_aspect(config.window_stretch_type);
 	rMainWindow->do_unblock_task();
 	rMainWindow->do_start_draw_thread();
+	
 	GuiMain->exec();
 	return 0;
 }

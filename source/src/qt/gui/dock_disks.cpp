@@ -680,6 +680,9 @@ void CSP_DockDisks::setScreenWidth(int width)
 	for(int i = 0; i < 2; i++) {
 		if(pCMT[i] != NULL) pCMT[i]->setScreenWidth(width, -1);
 	}
+	for(int i = 0; i < 8; i++) {
+		if(pHardDisk[i] != NULL) pHardDisk[i]->setScreenWidth(width, -1);
+	}
 	for(int i = 0; i < 2; i++) {
 		if(pCompactDisc[i] != NULL) pCompactDisc[i]->setScreenWidth(width, -1);
 	}
