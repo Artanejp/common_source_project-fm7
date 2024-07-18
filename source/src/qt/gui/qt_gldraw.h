@@ -60,7 +60,7 @@ class DLL_PREFIX GLDrawClass: public QOpenGLWidget
 
 	void keyReleaseEvent(QKeyEvent *event) override;
 	void keyPressEvent(QKeyEvent *event) override;
-	void enterEvent(QEnterEvent *) override;
+	void enterEvent(QEnterEvent *);
 	void leaveEvent(QEvent *) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
