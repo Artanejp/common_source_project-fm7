@@ -366,7 +366,7 @@ void OSD_BASE::do_update_master_volume(int level)
 void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 {
 	if(device_name.isEmpty()) return;
-	emit sig_set_sound_device(device_name);
+	emit sig_set_sound_output_device(device_name);
 }
 
 const _TCHAR *OSD_BASE::get_sound_device_name(int num)

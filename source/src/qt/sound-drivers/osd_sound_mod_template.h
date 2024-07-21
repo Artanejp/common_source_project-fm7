@@ -258,25 +258,42 @@ public slots:
 		return do_send_log(m_loglevel.load(), m_logdomain.load(), _str);
 	}
 
-	virtual void do_set_device_by_name(QString name) {};
-	virtual void do_set_device_by_name(const _TCHAR *name)
+	virtual void do_set_output_by_name(QString name) {};
+	virtual void do_set_output_by_name(const _TCHAR *name)
 	{
 		if(name != nullptr) {
 			do_set_device_by_name(QString::fromUtf8(name));
 		}
 	}
-	virtual void do_set_device_by_name(const _TCHAR *name, int maxlen)
+	virtual void do_set_output_by_name(const _TCHAR *name, int maxlen)
 	{
 		if((name != nullptr) && (maxlen > 0)) {
 			do_set_device_by_name(QString::fromUtf8(name, maxlen));
 		}
 	}
-	virtual void do_set_device_by_number(int) {};
+	virtual void do_set_output_by_number(int) {};
 
+	virtual void do_set_input_by_name(QString name) {};
+	virtual void do_set_input_by_name(const _TCHAR *name)
+	{
+		if(name != nullptr) {
+			do_set_input_by_name(QString::fromUtf8(name));
+		}
+	}
+	virtual void do_set_input_by_name(const _TCHAR *name, int maxlen)
+	{
+		if((name != nullptr) && (maxlen > 0)) {
+			do_set_input_by_name(QString::fromUtf8(name, maxlen));
+		}
+	}
+	virtual void do_set_input_by_number(int) {};
+	
 	// This set device by device-name having QAction (as QObject).
-	virtual void do_set_device_by_name(void);
-	virtual void do_set_device_by_number(void);
+	virtual void do_set_output_by_name(void);
+	virtual void do_set_output_by_number(void);
 
+	virtual void do_set_input_by_name(void);
+	virtual void do_set_input_by_number(void);
 	// From real driver: notify to update sound devices list.
 	virtual void do_update_device_list() {}
 

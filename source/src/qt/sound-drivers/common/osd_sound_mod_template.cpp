@@ -524,20 +524,36 @@ void M_BASE::stop_sound()
 	}
 }
 
-void M_BASE::do_set_device_by_name(void)
+void M_BASE::do_set_output_by_name(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	QString _id = cp->data().value<QString>();
-	do_set_device_by_name(_id);
+	do_set_output_by_name(_id);
 }
 
-void M_BASE::do_set_device_by_number(void)
+void M_BASE::do_set_input_by_name(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	QString _id = cp->data().value<QString>();
+	do_set_input_by_name(_id);
+}
+
+void M_BASE::do_set_output_by_number(void)
 {
 	QAction *cp = qobject_cast<QAction*>(QObject::sender());
 	if(cp == nullptr) return;
 	int _id = cp->data().value<int>();
-	do_set_device_by_number(_id);
+	do_set_output_by_number(_id);
+}
+
+void M_BASE::do_set_input_by_number(void)
+{
+	QAction *cp = qobject_cast<QAction*>(QObject::sender());
+	if(cp == nullptr) return;
+	int _id = cp->data().value<int>();
+	do_set_input_by_number(_id);
 }
 
 

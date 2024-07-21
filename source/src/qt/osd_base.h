@@ -777,7 +777,7 @@ signals:
 	int sig_movie_eject();
 	int sig_movie_quit();
 
-	int sig_set_sound_device(QString);
+	int sig_set_sound_output_device(QString);
 	int sig_set_sound_volume(double);
 	int sig_set_sound_volume(int);
 	int sig_sound_mute();
