@@ -20,6 +20,9 @@
 #include <QStringList>
 #include <QOpenGLTexture>
 
+#include <QApplication>
+#include <QScreen>
+
 #include "config.h"
 #include "common.h"
 #include "qt_glpack.h"
@@ -447,6 +450,9 @@ public:
 	virtual void get_screen_geometry(int *w, int *h) {
 		if(w != NULL) *w = 0;
 		if(h != NULL) *h = 0;
+	}
+	virtual float get_screen_scaling_factor(){
+		return QApplication::primaryScreen()->devicePixelRatio();
 	}
 	virtual bool is_ready_to_map_vram_texture(void) { return false; }
 	virtual bool map_vram_texture(void) { return false; }
