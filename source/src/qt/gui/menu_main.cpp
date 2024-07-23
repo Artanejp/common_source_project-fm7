@@ -434,7 +434,6 @@ void Ui_MainWindowBase::setupUi(void)
 		graphicsView->setAttribute(Qt::WA_KeyCompression, false);
 		connect(this, SIGNAL(sig_set_display_osd(bool)), graphicsView, SLOT(do_set_display_osd(bool)));
 		connect(this, SIGNAL(sig_set_led_width(int)), graphicsView, SLOT(do_set_led_width(int)));
-		connect(graphicsView, SIGNAL(resized()), this, SLOT(do_adjust_window_by_glv_resize()));
 	}
 
 	bitmapImage = NULL;

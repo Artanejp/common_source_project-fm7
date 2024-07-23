@@ -771,9 +771,7 @@ public slots:
 	virtual void redraw_leds(void);
 	virtual void do_housekeeping();
 	void do_recv_data_led(quint32 d);
-	void do_adjust_window_by_glv_resize();
-	void do_resize_central_widget();
-	
+
 	void do_update_volume(int level);
 	void do_set_screen_aspect(void);
 	void do_set_screen_size(void);
@@ -917,11 +915,9 @@ public slots:
 	void do_set_dev_log_to_syslog(bool f);
 	void do_set_roma_kana(bool f);
 	void do_set_numpad_enter_as_fullkey(bool f);
-	
 	void do_set_render_mode_std(void);
 	void do_set_render_mode_tv(void);
 	void do_select_render_platform(void);
-	
 	void do_set_window_focus_type(bool flag);
 
 	void do_set_visible_virtual_media_none();

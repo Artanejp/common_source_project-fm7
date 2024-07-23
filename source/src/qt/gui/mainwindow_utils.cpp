@@ -313,13 +313,6 @@ void Ui_MainWindowBase::set_drive_type(void)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindowBase::do_adjust_window_by_glv_resize()
-{
-	if(graphicsView != nullptr) {
-		resize_statusbar(graphicsView->width(), graphicsView->height());
-	}
-	do_resize_central_widget();	
-}
 
 void Ui_MainWindowBase::set_screen_size(int w, int h)
 {
@@ -329,6 +322,10 @@ void Ui_MainWindowBase::set_screen_size(int w, int h)
 		//emit sig_resize_osd(h);
 	}
 	emit sig_glv_set_fixed_size(w, h);
+	resize_statusbar(w, h);
+
+	MainWindow->centralWidget()->adjustSize();
+	MainWindow->adjustSize();
 }
 
 void Ui_MainWindowBase::set_screen_aspect(int num)
