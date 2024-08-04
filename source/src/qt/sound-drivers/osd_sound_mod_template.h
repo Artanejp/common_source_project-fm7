@@ -84,8 +84,12 @@ protected:
 	// Maybe disconnect some signals via m_fileio.
 	virtual bool release_driver_fileio();
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms);
+	
+	virtual bool has_output_device(QString name) { return false; }
+	virtual bool is_default_output_device() { return false; }
+	virtual bool has_input_device(QString name) { return false; }
+	virtual bool is_default_input_device() { return false; }
 
-	config_t*					 get_config_ptr();
 
 	virtual bool recalc_samples(int rate, int latency_ms,
 						bool need_update = false,
@@ -94,6 +98,7 @@ protected:
 
 	bool debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...);
 	bool debug_log(const _TCHAR *_fmt, ...);
+	config_t*					 get_config_ptr();
 
 public:
 	M_BASE(OSD_BASE *parent,
@@ -262,13 +267,13 @@ public slots:
 	virtual void do_set_output_by_name(const _TCHAR *name)
 	{
 		if(name != nullptr) {
-			do_set_device_by_name(QString::fromUtf8(name));
+			do_set_output_by_name(QString::fromUtf8(name));
 		}
 	}
 	virtual void do_set_output_by_name(const _TCHAR *name, int maxlen)
 	{
 		if((name != nullptr) && (maxlen > 0)) {
-			do_set_device_by_name(QString::fromUtf8(name, maxlen));
+			do_set_output_by_name(QString::fromUtf8(name, maxlen));
 		}
 	}
 	virtual void do_set_output_by_number(int) {};

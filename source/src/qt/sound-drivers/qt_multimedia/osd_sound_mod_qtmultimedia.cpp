@@ -54,9 +54,9 @@ namespace SOUND_MODULE {
 		}
 	}
 
-	if(has_output_device(_drv)) {
+//	if(has_output_device(_drv)) {
 		m_device_name = _drv.toLocal8Bit().toStdString();
-	}
+//	}
 }
 
 M_QT_MULTIMEDIA::~M_QT_MULTIMEDIA()
@@ -237,11 +237,13 @@ bool M_QT_MULTIMEDIA::is_default_output_device()
 		
 bool M_QT_MULTIMEDIA::has_input_device(QString name)
 {
+	// ToDo
 	return false;
 }
 
 bool M_QT_MULTIMEDIA::is_default_input_device()
 {
+	// ToDo
 	return false;
 }
 
@@ -546,7 +548,7 @@ std::list<std::string> M_QT_MULTIMEDIA::get_sound_devices_list()
 	#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		tmps = (*n).deviceName();
 	#endif
-		_l.append(tmps.toStdString());
+		_l.push_back(tmps.toStdString());
 	}
 		
 	return _l;
@@ -620,6 +622,11 @@ void M_QT_MULTIMEDIA::do_set_output_by_name(QString driver_name)
 	m_latency_ms = _latency;
 }
 
+void M_QT_MULTIMEDIA::do_set_input_by_name(QString driver_name)
+{
+	// ToDo.
+}
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 void M_QT_MULTIMEDIA::setup_output_device(QAudioDevice dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit)
 #else
@@ -646,7 +653,8 @@ void M_QT_MULTIMEDIA::setup_output_device(QAudioDeviceInfo dest_device, int& rat
 			__debug_log_func(_T("Nothing changed.Exit."));
 
 			//real_reconfig_sound(rate, channels, latency_ms);
-			do_sound_start();
+			//do_sound_start();
+			emit sig_start_audio();
 			return;
 		}
 	}
@@ -752,7 +760,8 @@ void M_QT_MULTIMEDIA::setup_output_device(QAudioDeviceInfo dest_device, int& rat
 	__debug_log_func(_T("Result: rate=%d channels=%d latency=%dmSec reinit=%d"), m_rate.load(), m_channels.load(), m_latency_ms.load(), force_reinit);
 	if(m_audioOutputSink.get() != nullptr) {
 		update_driver_fileio();
-		do_sound_start();
+		emit sig_start_audio();
+		//do_sound_start();
 		//update_render_point_usec();
 	}
 }
@@ -804,7 +813,7 @@ bool M_QT_MULTIMEDIA::real_reconfig_sound(int& rate,int& channels,int& latency_m
 	}
 	m_channels = channels;
 	if(recalc_samples(rate, latency_ms, true, false)) {
-		//m_prev_started = m_mute = false;
+		m_prev_started = m_mute = false;
 	}
 	return m_config_ok.load();
 }

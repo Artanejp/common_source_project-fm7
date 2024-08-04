@@ -54,17 +54,23 @@ protected:
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	QAudioDevice get_device_by_name(QString driver_name);
-	void setup_device(QAudioDevice dest_device, int& rate, int& channels, int& latency_ms, bool force_reinit = false);
+	QAudioDevice get_output_device_by_name(QString driver_name);
+	void setup_output_device(QAudioDevice dest_device, int& rate, int& channels, int& latency_ms, bool force_reinit = false);
 #else
-	QAudioDeviceInfo get_device_by_name(QString driver_name);
-	void setup_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
+	QAudioDeviceInfo get_output_device_by_name(QString driver_name);
+	void setup_output_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
 #endif
 	virtual void initialize_sound_devices_list();
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms) override;
 	virtual void update_driver_fileio() override;
+	
 	virtual const std::string set_device_sound(const _TCHAR* driver_name, int& rate,int& channels,int& latency_ms);
 	virtual bool initialize_driver_post(QObject *parent);
+
+	bool has_output_device(QString name) override;
+	bool is_default_output_device() override;
+	bool has_input_device(QString name) override;
+	bool is_default_input_device() override;
 
 	virtual bool recalc_samples(int rate, int latency_ms,
 						bool need_update = false,
@@ -110,7 +116,9 @@ public slots:
 	virtual void do_discard_sound();
 	virtual void do_sound_volume(double level);
 
-	virtual void do_set_device_by_name(QString driver_name) override;
+	virtual void do_set_output_by_name(QString driver_name) override;
+	virtual void do_set_input_by_name(QString name) override;
+	
 	// Unique SLOTS.
 	void do_release_sink();
 	void do_release_source();
