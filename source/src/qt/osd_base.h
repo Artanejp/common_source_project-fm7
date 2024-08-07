@@ -166,9 +166,9 @@ private:
 	int64_t elapsed_us_before_rendered;
 	// Count half
 	uint32_t     m_sound_period;
-	// Count factor; this multiplies by 65536;
-	uint32_t     m_sound_samples_count;
-	uint32_t     m_sound_samples_factor;
+	// Count factor; this multiplies by 2^32;
+	std::atomic<uint64_t>     m_sound_samples_count;
+	std::atomic<uint64_t>     m_sound_samples_factor;
 
 protected:
 	EmuThreadClass						*parent_thread;

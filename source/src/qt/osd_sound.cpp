@@ -69,31 +69,27 @@ void OSD_BASE::update_sound(int* extra_frames)
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 	__UNLIKELY_IF(sound_drv.get() == nullptr) {
 		// ToDo: Fix delay.
-		sound_initialized = false;
+		//sound_initialized = false;
 		//m_sound_ok = false;
 		return;
 	}
 	if(sound_initialized) {
 		// Get sound driver
-		//m_sound_samples_count += m_sound_samples_factor;
 
-		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
-			// ToDo: Fix delay.
-			sound_drv->start();
-			//elapsed_us_before_rendered = sound_drv->driver_processed_usec();
-			elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
-			return;
-		}
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
-		//calcurate_sample_factor(m_sound_rate, m_sound_samples, (m_sound_samples_factor == 0));
-		//__UNLIKELY_IF(m_sound_samples_factor == 0) {
-		//	return;
-		//}
+		if(!(calcurate_sample_factor(m_sound_rate, m_sound_samples, false))) {
+			//return;
+		}
+		__UNLIKELY_IF(m_sound_samples_factor.load() == 0) {
+			m_sound_samples_count = 0;
+			return;
+		}
 		const int64_t _channels = 2;
 		const int64_t _wordsize = (int64_t)sizeof(int16_t);
 
 		m_sound_samples_count += m_sound_samples_factor;
+		#if 0
 		int64_t sound_usecs = sound_drv->driver_elapsed_usec();
 		//int64_t sound_usecs = sound_drv->driver_processed_usec();
 		int64_t least_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
@@ -124,23 +120,70 @@ void OSD_BASE::update_sound(int* extra_frames)
 			}
 			break;
 		}
-		if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
-			return;
-		}
+//		if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
+//			return;
+//		}
 		m_sound_period = (m_sound_period + 1) % 3;
 		if(m_sound_period == 0) {
 			elapsed_us_before_rendered = sound_usecs;
 		}
+		#else
 		//m_sound_samples_count &= ((65536 * 2) - 1);
-		//if(m_sound_period == 0) {
-		//	if(m_sound_samples_count < (65536 / 2)) {
-		//		return;
-		//	}
-		//} else {
-		//	if(m_sound_samples_count >= (65536 / 2)) {
-		//		return;
-		//	}
-		//}
+		#if 0
+		uint64_t _sound_samples_count = m_sound_samples_count.load();
+		const uint64_t __tick = 1000 * 1000;
+		uint32_t __period = m_sound_period & 3;
+		const uint64_t __local_tick = __tick * 2;
+		const uint64_t __lower = __local_tick * __period;
+		const uint64_t __higher = __local_tick * (__period + 1);
+		const uint64_t __margin = 2000; // OK?
+		
+		if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
+			return;
+		}
+		if(__period == 0) {
+			_sound_samples_count = _sound_samples_count % __tick;
+		} else {
+			if(_sound_samples_count < (__lower - __margin)) {
+				return;
+			}
+		}
+		__period = (__period + 1) & 1;
+		if(__period == 0) {
+			_sound_samples_count %= __tick;
+		}
+		m_sound_samples_count = _sound_samples_count;
+		m_sound_period = __period;
+		#else
+		uint64_t _sound_samples_count = m_sound_samples_count.load();
+		uint32_t __period = m_sound_period & 3;
+		const uint64_t __tick_us = ((((uint64_t)m_sound_samples) * 1000 * 1000) / (uint64_t)m_sound_rate);
+		const uint64_t __margin = __tick_us / 16; // OK?
+		if(__period == 0) {
+			//__UNLIKELY_IF(_sound_samples_count >  (__tick_us + __margin)) {
+			//	_sound_samples_count = _sound_samples_count - __tick_us; // Maybe Overflow. 
+			//}
+			__LIKELY_IF(_sound_samples_count <=  (__tick_us  - __margin)) {
+				return;
+			}
+		} else {
+			//_sound_samples_count %= __tick_us;
+			__LIKELY_IF(_sound_samples_count < ((__tick_us  * (__period + 1))  - __margin)) {
+				return;
+			}
+			//__LIKELY_IF(_sound_samples_count >=  (__tick_us / 2)) {
+			//	return;
+			//}
+		}
+		__period = (__period + 1) & 3;
+		if(__period == 0) {
+//			_sound_samples_count %= __tick_us;
+			_sound_samples_count = 0         ;
+		}
+		m_sound_samples_count = _sound_samples_count;
+		m_sound_period = __period;
+		#endif
+		#endif
 		//printf("%d\n", elapsed_us_before_rendered);
 		//if((sound_usec - elapsed_us_before_rendered) < (least_msecs * 1000 - 10000 / 2)) { // Margin for error is  5msec 20231213 K.O
 		//	return;
@@ -153,8 +196,26 @@ void OSD_BASE::update_sound(int* extra_frames)
 		__LIKELY_IF(extra_frames != NULL) {
 			*extra_frames = __extra_frames;
 		}
+		#if 1
+//		__LIKELY_IF(__extra_frames > 1) {
+//			_sound_samples_count += (((uint64_t)(__extra_frames - 1)) * m_sound_samples_factor.load());
+//		}
+		#else
+		_sound_samples_count %= ((m_sound_samples * 1000 * 1000) / m_sound_rate);
+		m_sound_samples_count = _sound_samples_count;
+		
+		#endif
 		if(sound_buffer == nullptr) {
 			return;
+		}
+		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
+			// ToDo: Fix delay.
+			//sound_drv->start();
+			emit sig_sound_start();
+			//m_sound_samples_count = 0;
+			//elapsed_us_before_rendered = sound_drv->driver_processed_usec();
+			//elapsed_us_before_rendered = sound_drv->driver_elapsed_usec();
+			//return;
 		}
 		if(now_record_sound || now_record_video) {
 			if(m_sound_samples > rec_sound_buffer_ptr) {
@@ -189,13 +250,15 @@ void OSD_BASE::update_sound(int* extra_frames)
 			if(p_config != nullptr) {
 				emit sig_set_sound_volume((int)(p_config->general_sound_level));
 			}
+			//if(sound_drv->get_bytes_left() < (m_sound_samples * _channels * _wordsize)) {
+			//	return;
+			//}
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
 			//printf(_T("%d %d %ld\n"), m_sound_samples, m_sound_period, _result);
 			//if(_result > 0) {
 				//printf("%d %ld\n", m_sound_period, _result);
 			//}
 		}
-		//m_sound_period = (m_sound_period + 1) & 1;
 	}
 }
 
@@ -208,7 +271,7 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 	if((rate <= 0) || (samples <= 0) || (fps <= 0.0)) {
 		return false;
 	}
-	if((samples != m_sound_samples) || (rate != m_sound_rate) || (m_fps != fps) || (force)) {
+	if((samples != m_sound_samples) || (rate != m_sound_rate) || (m_fps != fps) || (force) || (m_sound_samples_factor.load() == 0)) {
 		if(samples > 0) {
 			m_sound_samples = samples;
 		}
@@ -219,15 +282,20 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 			m_fps = fps;
 		}
 		if((m_fps > 0.0) && (m_sound_rate > 0) && (m_sound_samples > 0)) {
-			const double buffer_frame_usec = 1.0e6 / m_fps;
-			const double buffer_samples_usec = (((double)m_sound_samples) / ((double)m_sound_rate)) * 1.0e6;
-			m_sound_samples_factor = (uint32_t)((buffer_frame_usec / buffer_samples_usec) * 65536.0);
+			#if 0
+			uint64_t __frame_us = llrint(1.0e6 / m_fps);
+			uint64_t __period_us = (((uint64_t)m_sound_samples) * 1000 * 1000) / ((uint64_t)m_sound_rate);
+			m_sound_samples_factor = (__frame_us * (1000 * 1000 / 8)) / __period_us;
+			#else
+			m_sound_samples_factor = llrint(1.0e6 / m_fps) / 2;
+			#endif
 			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-					  _T("set samples factor = %d"), m_sound_samples_factor);
+					  _T("set samples factor = %lld"), m_sound_samples_factor.load());
 			return true;
 		}
+		return false;
 	}
-	return false;
+	return true;
 }
 
 
@@ -242,7 +310,8 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		if(m_sound_driver.get() != nullptr) {
 			std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>drv = m_sound_driver;
 			elapsed_us_before_rendered = drv->driver_elapsed_usec();
-			drv->stop_sound();
+			emit sig_sound_stop();
+			//drv->stop_sound();
 			while(drv->is_driver_started()) {
 				QThread::msleep(10);
 			}
@@ -258,23 +327,13 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			m_sound_thread = nullptr;
 		}
 		m_sound_driver.reset(
-			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this,
+			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this ,
 													 nullptr,
 													 rate,
 													 (samples * 1000) / rate,
 													 2,
 													 nullptr,
 													 0));
-		if(m_sound_thread == nullptr) {
-			m_sound_thread = new QThread();
-		}
-		if(m_sound_thread != nullptr) {
-			m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
-			connect(m_sound_driver.get(), SIGNAL(destroyed()), m_sound_thread, SLOT(quit()));
-			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(stop()));
-			connect(m_sound_thread, SIGNAL(destroyed()), m_sound_driver.get(), SLOT(stop()));
-			m_sound_driver->moveToThread(m_sound_thread);
-		}
 		if(m_sound_driver.get() != nullptr) {
 			m_sound_driver->set_osd(this);
 			m_sound_driver->initialize_driver(this);
@@ -284,7 +343,15 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			connect(this, SIGNAL(sig_sound_start()), m_sound_driver.get(), SLOT(start()), Qt::QueuedConnection);
 			//connect(m_sound_driver.get(), SIGNAL(sig_acknowledge_started()), this, SLOT(do_acknowledge_sound_started()));
 		}
-		if(m_sound_thread != nullptr) {
+		if(m_sound_thread == nullptr) {
+			m_sound_thread = new QThread();
+		}
+		if((m_sound_thread != nullptr) && (m_sound_driver.get() != nullptr)) {
+			m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
+			m_sound_driver->moveToThread(m_sound_thread);
+			connect(m_sound_driver.get(), SIGNAL(destroyed()), m_sound_thread, SLOT(quit()));
+			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(stop()));
+			connect(m_sound_thread, SIGNAL(destroyed()), m_sound_driver.get(), SLOT(stop()));
 			if(!(m_sound_thread->isRunning())) {
 				m_sound_thread->start(QThread::HighPriority);
 			}
@@ -295,8 +362,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		emit sig_set_sound_volume((int)(p_config->general_sound_level));
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-	m_sound_rate = rate;
-	m_sound_samples = samples;
 	elapsed_us_before_rendered = 0;
 	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
@@ -306,7 +371,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		//sound_drv->update_render_point_usec();
 		if((p_rate > 0) && (p_samples > 0)) {
 			if(calcurate_sample_factor(p_rate, p_samples, true)) {
-				//sound_initialized = true;
 			}
 			m_sound_rate = p_rate;
 			m_sound_samples = p_samples;
