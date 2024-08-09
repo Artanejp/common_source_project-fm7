@@ -45,7 +45,9 @@ EmuThreadClass::EmuThreadClass(Ui_MainWindowBase *rootWindow, std::shared_ptr<US
 	p_osd->setParent(this);
 	//p_osd->moveToThread(this);
 	connect(p_osd, SIGNAL(sig_notify_power_off()), this, SLOT(do_notify_power_off()));
-	connect(this, SIGNAL(sig_sound_stop()), p_osd, SLOT(stop_sound()));
+	connect(this, SIGNAL(sig_restart_sound_timer()), p_osd, SLOT(do_restart_sound_timer()), Qt::DirectConnection);
+	connect(this, SIGNAL(sig_stop_sound_timer()), p_osd, SLOT(do_stop_sound_timer()), Qt::DirectConnection);
+	connect(this, SIGNAL(sig_sound_stop()), p_osd, SLOT(stop_sound()), Qt::QueuedConnection);
 
 	//call_timer = new QTimer(this);
 	//call_timer->setTimerType(Qt::PreciseTimer);
@@ -143,6 +145,7 @@ void EmuThreadClass::doWork()
 				}
 				first = false;
 				nr_fps = get_emu_frame_rate();
+				emit sig_restart_sound_timer();
 				current_time = get_current_tick_usec();
 				if(p_emu != nullptr) {
 					half_count = p_emu->is_half_event();
@@ -266,6 +269,7 @@ void EmuThreadClass::doWork()
 	}
 	msleep(10);
 	emit sig_draw_finished();
+	emit sig_stop_sound_timer();
 	emit sig_sound_stop();
 	
 	quit();

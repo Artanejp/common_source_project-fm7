@@ -224,17 +224,24 @@ int EmuThreadClassBase::process_command_queue()
 	int count = parse_command_queue(virtualMediaList);
 	
 	virtualMediaList.clear();
+	bool req_sound_restart = false;
 	if(bLoadStateReq.load() != false) {
 		loadState();
 		bLoadStateReq = false;
+		req_sound_restart = true;
 	}
 	if(bResetReq.load() != false) {
 		resetEmu();
 		bResetReq = false;
+		req_sound_restart = true;
 	}
 	if(bSpecialResetReq.load() != false) {
 		specialResetEmu(specialResetNum);
 		bSpecialResetReq = false;
+		req_sound_restart = true;
+	}
+	if(req_sound_restart) {
+		emit sig_restart_sound_timer();
 	}
 	if(bSaveStateReq.load() != false) {
 		saveState();

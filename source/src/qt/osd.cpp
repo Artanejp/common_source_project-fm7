@@ -1365,6 +1365,7 @@ void OSD::set_features(void)
 	__USE_AUTO_KEY = true;
 #endif
 }
+
 void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	// get module path
@@ -1388,9 +1389,6 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH - 1);
 
 	console_cmd_str.clear();
-
-	osd_timer.start();
-
 	initialize_console();
 	initialize_input();
 	initialize_printer();

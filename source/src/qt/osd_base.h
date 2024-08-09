@@ -153,8 +153,6 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
-
-
 class SOUND_BUFFER_QT;
 
 class DLL_PREFIX OSD_BASE : public  QObject
@@ -163,13 +161,12 @@ class DLL_PREFIX OSD_BASE : public  QObject
 private:
 	/* Note: Below are new sound driver. */
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE> m_sound_driver;
-	int64_t elapsed_us_before_rendered;
-	// Count half
+	std::atomic<int64_t> elapsed_us_before_rendered;	// Count half
 	uint32_t     m_sound_period;
 	// Count factor; this multiplies by 2^32;
 	std::atomic<uint64_t>     m_sound_samples_count;
 	std::atomic<uint64_t>     m_sound_samples_factor;
-
+	std::atomic<int64_t>      m_sound_margin_usecs;
 protected:
 	EmuThreadClass						*parent_thread;
 	QThread								*m_sound_thread;
@@ -186,7 +183,7 @@ protected:
 	bool __USE_AUTO_KEY;
 
 	_TCHAR app_path[_MAX_PATH];
-	QElapsedTimer osd_timer;
+	QElapsedTimer sound_tick_timer;
 	std::atomic<bool> locked_vm;
 	std::atomic<bool> will_delete_vm;
 
@@ -706,6 +703,8 @@ public:
 	// Messaging wrapper from EMU:: to OSD::
 	void __FASTCALL string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t  message_type, _TCHAR* message);
 	void __FASTCALL int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data);
+	
+    // Tick around sound rendering
 
 public slots:
 	// common sound
@@ -750,6 +749,9 @@ public slots:
 	void do_set_host_sound_output_device(QString device_name);
 	void do_update_master_volume(int level);
 
+	void do_restart_sound_timer();
+	void do_stop_sound_timer();
+	
 signals:
 	int sig_update_screen(void *, bool);
 	int sig_save_screen(const char *);

@@ -73,6 +73,8 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	m_sound_driver.reset();
 	m_sound_thread = nullptr;
 	m_sound_period = 0;
+	m_sound_margin_usecs = 0;
+	
 	m_draw_thread.reset();
 	sound_initialized = false;
 
@@ -594,6 +596,18 @@ void OSD_BASE::start_waiting_in_debugger()
 	// ToDo: Wait for rising up debugger window.
 	debug_mutex.lock();
 }
+
+// Elapsed Timer: This uses for sound, mainly.
+void OSD_BASE::do_restart_sound_timer()
+{
+	sound_tick_timer.restart();
+}
+
+void OSD_BASE::do_stop_sound_timer()
+{
+	sound_tick_timer.invalidate();
+}
+
 
 void OSD_BASE::finish_waiting_in_debugger()
 {
