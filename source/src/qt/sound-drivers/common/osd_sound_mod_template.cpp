@@ -37,8 +37,8 @@ namespace SOUND_MODULE {
 	  m_samples(0),
 	  m_mute(false),
 	  m_external_fileio(false),
-	  m_classname("SOUND_MODULE::OUTPUT::M_BASE"),
-	  QObject(qobject_cast<QObject*>(parent))
+	  m_classname("SOUND_MODULE::OUTPUT::M_BASE")/*,
+	   QObject(qobject_cast<QObject*>(parent))*/
 {
 
 	m_logger.reset();
@@ -71,7 +71,6 @@ namespace SOUND_MODULE {
 	m_loglevel = CSP_LOG_INFO;
 	m_logdomain = CSP_LOG_TYPE_SOUND;
 	__debug_log_func(_T("Initializing"));
-
 	//initialize_driver(parent);
 }
 

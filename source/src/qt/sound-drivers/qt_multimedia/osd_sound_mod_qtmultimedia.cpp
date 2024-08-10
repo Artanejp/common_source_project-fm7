@@ -37,7 +37,6 @@ namespace SOUND_MODULE {
 {
 	m_classname = "SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA";
 
-
 	initialize_sound_devices_list();
 	/*
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -73,11 +72,8 @@ bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
 	connect(this, SIGNAL(sig_resume_audio()),  this, SLOT(do_sound_resume()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_discard_audio()),  this, SLOT(do_discard_sound()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_set_volume(double)),  this, SLOT(do_sound_volume(double)), Qt::QueuedConnection);
-	connect(parent, SIGNAL(sig_set_sound_volume(int)),  this, SLOT(set_volume(int)), Qt::QueuedConnection);
-	connect(parent, SIGNAL(sig_set_sound_volume(double)),  this, SLOT(set_volume(double)), Qt::QueuedConnection);
-	connect(parent, SIGNAL(sig_set_sound_device(QString)),  this, SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
 
-//	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+
 	m_config_ok = initialize_driver_post(parent);
 	return m_config_ok.load();
 }
@@ -980,7 +976,7 @@ void M_QT_MULTIMEDIA::mute_sound()
 			case QAudio::ActiveState:
 			case QAudio::IdleState:
 				do_sound_suspend();
-				//do_discard_sound();
+				do_discard_sound();
 				break;
 			default:
 				break;
@@ -1002,7 +998,7 @@ void M_QT_MULTIMEDIA::unmute_sound()
 			switch(p->state()) {
 			case QAudio::SuspendedState:
 			case QAudio::IdleState:
-				//do_discard_sound();
+				do_discard_sound();
 				do_sound_resume();
 				break;
 			default:

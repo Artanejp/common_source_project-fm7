@@ -67,20 +67,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 	}
 	now_mute = false;
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-	__UNLIKELY_IF(sound_drv.get() == nullptr) {
-		// ToDo: Fix delay.
-		//sound_initialized = false;
-		//m_sound_ok = false;
-		return;
-	}
 	if(sound_initialized) {
 		// Get sound driver
-//		__UNLIKELY_IF(!(sound_drv->is_driver_started())) {
-			// ToDo: Fix delay.
-			//sound_drv->start();
-//			emit sig_sound_start();
-//			return;
-//		}
 		if(!(sound_tick_timer.isValid())) {
 			sound_tick_timer.start();
 		}
@@ -94,36 +82,44 @@ void OSD_BASE::update_sound(int* extra_frames)
 		int64_t period_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
 		int64_t margin_usecs = m_sound_margin_usecs.load();
 		
-		__UNLIKELY_IF((period_usecs <= 0) || (margin_usecs < 1000)) {
-			int64_t tmp_frame_us = llrint(1.0e6 / vm_frame_rate());
-			__UNLIKELY_IF(tmp_frame_us < 3300) { // About over 300fps
-				return;
-			}
-			if(period_usecs < tmp_frame_us) {
-				period_usecs = tmp_frame_us + 1000; // Frame rate + 1mSec.
-			}
-			if(margin_usecs < (tmp_frame_us / 2)) {
-				margin_usecs = tmp_frame_us / 2;
-				m_sound_margin_usecs = margin_usecs;
-			}
+		int64_t tmp_frame_us = llrint(1.0e6 / vm_frame_rate());
+		
+		__UNLIKELY_IF(margin_usecs < (tmp_frame_us / 4)) {
+			margin_usecs = (tmp_frame_us / 4); // OK?
 		}
+		__UNLIKELY_IF(margin_usecs >= (period_usecs / 2)) {
+			margin_usecs = (period_usecs / 2); // OK?
+		}
+//		__UNLIKELY_IF(tmp_frame_us < 3300) { // About over 300fps
+//			return;
+//		}
+//		if(period_usecs < (tmp_frame_us + 1000)) {
+//			period_usecs = tmp_frame_us + 1000; // Frame rate + 1mSec.
+//		}
 		
 		__LIKELY_IF(elapsed_usec < (period_usecs - margin_usecs)) {
 			return;
 		}
+//		__LIKELY_IF(sound_drv.get() != nullptr) { // Return if driver buffer maybe full.
+//			if((sound_drv->is_driver_started()) && (sound_drv->get_bytes_left() < (m_sound_samples * 2 * sizeof(int16_t)))) {
+//				return;
+//			}
+//		}
+		// Restart Timer
+		sound_tick_timer.restart();
 		int __extra_frames = 0;
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
 		__LIKELY_IF(extra_frames != NULL) {
 			*extra_frames = __extra_frames;
 		}
 		// Go to output sound.
-		// Restart Timer 
-		int64_t __frame_us = llrint(1.0e6 / vm_frame_rate());
-		__UNLIKELY_IF(__frame_us < 3300) { // About over 300fps
-			__frame_us = 3300; // 300fps.
-		}
-		m_sound_margin_usecs = __frame_us / 2;
-		sound_tick_timer.restart();
+		margin_usecs = tmp_frame_us / 4;
+//		margin_usecs = period_usecs / 16;
+//		if(__extra_frames > 1) {
+//			margin_usecs += ((int64_t)(__extra_frames - 1)) * tmp_frame_us;
+//		}
+		m_sound_margin_usecs = margin_usecs;
+
 		if(sound_buffer == nullptr) {
 			return;
 		}
@@ -160,9 +156,9 @@ void OSD_BASE::update_sound(int* extra_frames)
 			if(p_config != nullptr) {
 				emit sig_set_sound_volume((int)(p_config->general_sound_level));
 			}
-			if(sound_drv->get_bytes_left() < (_samples * 2 * sizeof(int16_t))) {
-				return;
-			}
+//			if(sound_drv->get_bytes_left() < (_samples * 2 * sizeof(int16_t))) {
+//				return;
+//			}
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
 //			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 //					  _T("Push sound %d samples -> %ld\n"), m_sound_samples, _result);
@@ -194,13 +190,7 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 			m_fps = fps;
 		}
 		if((m_fps > 0.0) && (m_sound_rate > 0) && (m_sound_samples > 0)) {
-			#if 0
-			uint64_t __frame_us = llrint(1.0e6 / m_fps);
-			uint64_t __period_us = (((uint64_t)m_sound_samples) * 1000 * 1000) / ((uint64_t)m_sound_rate);
-			m_sound_samples_factor = (__frame_us * (1000 * 1000 / 8)) / __period_us;
-			#else
 			m_sound_samples_factor = llrint(1.0e6 / m_fps) / 2;
-			#endif
 			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 					  _T("set samples factor = %lld"), m_sound_samples_factor.load());
 			return true;
@@ -229,6 +219,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			
 		}
 		//m_sound_driver.reset(); // 20240511 K.O
+		/*
 		if(m_sound_thread != nullptr) {
 			if(m_sound_thread->isRunning()) {
 				m_sound_thread->quit();
@@ -237,6 +228,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			delete m_sound_thread;
 			m_sound_thread = nullptr;
 		}
+		*/
 		m_sound_driver.reset(
 			new SOUND_MODULE::OUTPUT::M_QT_MULTIMEDIA(this ,
 													 nullptr,
@@ -246,12 +238,15 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 													 nullptr,
 													 0));
 		if(m_sound_driver.get() != nullptr) {
-			m_sound_driver->set_osd(this);
 			m_sound_driver->initialize_driver(this);
 			connect(this, SIGNAL(sig_sound_mute()), m_sound_driver.get(), SLOT(mute_sound()), Qt::QueuedConnection);
 			connect(this, SIGNAL(sig_sound_unmute()), m_sound_driver.get(), SLOT(unmute_sound()), Qt::QueuedConnection);
 			connect(this, SIGNAL(sig_sound_stop()), m_sound_driver.get(), SLOT(stop_sound()), Qt::QueuedConnection);
 			connect(this, SIGNAL(sig_sound_start()), m_sound_driver.get(), SLOT(start()), Qt::QueuedConnection);
+			connect(this, SIGNAL(sig_set_sound_output_device(QString)), m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
+			connect(this, SIGNAL(sig_set_sound_volume(int)),  m_sound_driver.get(), SLOT(set_volume(int)), Qt::QueuedConnection);
+			connect(this, SIGNAL(sig_set_sound_volume(double)),  m_sound_driver.get(), SLOT(set_volume(double)), Qt::QueuedConnection);
+			connect(this, SIGNAL(sig_set_sound_device(QString)),  m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
 
 			/*
 			connect(this, SIGNAL(sig_sound_mute()), m_sound_driver.get(), SLOT(mute_sound()));
@@ -261,25 +256,46 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			*/
 			//connect(m_sound_driver.get(), SIGNAL(sig_acknowledge_started()), this, SLOT(do_acknowledge_sound_started()));
 		}
+		#if 1
 		if(m_sound_thread == nullptr) {
 			m_sound_thread = new QThread();
 		}
 		if((m_sound_thread != nullptr) && (m_sound_driver.get() != nullptr)) {
 			m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
 			m_sound_driver->moveToThread(m_sound_thread);
-			connect(m_sound_driver.get(), SIGNAL(destroyed()), m_sound_thread, SLOT(quit()));
-			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(stop()));
-			connect(m_sound_thread, SIGNAL(destroyed()), m_sound_driver.get(), SLOT(stop()));
+			//connect(m_sound_driver.get(), SIGNAL(destroyed()), m_sound_thread, SLOT(quit()));
+			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(deleteLater()));
+			//connect(m_sound_thread, SIGNAL(destroyed()), this, SLOT(do_reset_sound_thread()));
 			if(!(m_sound_thread->isRunning())) {
-				m_sound_thread->start(QThread::HighPriority);
+				m_sound_thread->start(QThread::LowPriority);
 			}
 		}
-	}
-	init_sound_device_list();
-	if(p_config != nullptr) {
-		emit sig_set_sound_volume((int)(p_config->general_sound_level));
+		#else
+		connect(this->thread(), SIGNAL(finished()), m_sound_driver.get(), SLOT(deleteLater()));
+		m_sound_driver->moveToThread(this->thread());
+		#endif		
 	}
 	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+	
+	init_sound_device_list();
+	if(p_config != nullptr) {
+		QString outdev = QString::fromUtf8("Default");
+		std::string tmpout = QString::fromLocal8Bit(p_config->sound_device_name, (sizeof(p_config->sound_device_name) / sizeof(_TCHAR)) - 1).toStdString();
+		if(!(tmpout.empty()) && (tmpout.compare("Default") != 0)) {
+			if(sound_drv.get() != nullptr) {
+				std::list<std::string> _l = sound_drv->get_sound_devices_list();
+				for(auto s = _l.begin(); s != _l.end(); ++s) {
+					if((*s) == tmpout) {
+						outdev = QString::fromStdString(tmpout);
+						break;
+					}
+				}
+			}
+		}
+		emit sig_set_sound_output_device(outdev);
+		emit sig_set_sound_volume((int)(p_config->general_sound_level));
+	}
+
 	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
 	m_sound_rate = rate;
@@ -327,19 +343,6 @@ void OSD_BASE::release_sound()
 
 	m_sound_period = 0;
 
-	if(m_sound_driver.get() != nullptr) {
-		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-		sound_drv->stop_sound();
-		sound_drv->release_sound();
-		while(sound_drv->is_driver_started()) {
-			QThread::msleep(10);
-		}
-	}
-	while(m_sound_driver.use_count() > 0) {
-		QThread::msleep(10);
-	}
-	m_sound_driver.reset();
-	/*
 	if(m_sound_thread != nullptr) {
 		if(m_sound_thread->isRunning()) {
 			m_sound_thread->quit();
@@ -348,7 +351,18 @@ void OSD_BASE::release_sound()
 		delete m_sound_thread;
 		m_sound_thread = nullptr;
 	}
-	*/
+	if(m_sound_driver.get() != nullptr) {
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+		sound_drv->stop_sound();
+		while(sound_drv->is_driver_started()) {
+			QThread::msleep(10);
+		}
+		sound_drv->release_sound();
+	}
+	while(m_sound_driver.use_count() > 0) {
+		QThread::msleep(10);
+	}
+	m_sound_driver.reset();
 }
 
 
