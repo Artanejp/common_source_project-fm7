@@ -10,7 +10,7 @@ SOUND_BUFFER_QT::SOUND_BUFFER_QT(uint64_t depth, QObject *parent)
 		//m_buffer.reset(new FIFO_BASE::LOCKED_FIFO<uint8_t>((int)depth));
 		m_buffer.reset(new BUFFER_TYPE((int)depth));
 	}
-	connect(this, SIGNAL(_signal_for_write()), this, SLOT(_emit_for_write()), Qt::QueuedConnection);
+	connect(this, SIGNAL(_signal_for_write()), this, SLOT(_emit_for_write()), /*Qt::QueuedConnection */ Qt::DirectConnection);
 }
 
 SOUND_BUFFER_QT::~SOUND_BUFFER_QT()
@@ -146,12 +146,14 @@ bool SOUND_BUFFER_QT::reset()
 	//printf("reset()\n");
 	wroteFromBefore = 0;
 	is_emitted = false;
+	bool _b = false;
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	if(p) {
 		p->clear();
-		return true;
+		_b = true;
 	}
-	return false;
+	_b &= QIODevice::reset();
+	return _b;
 }
 
 qint64 SOUND_BUFFER_QT::read_from_buffer(char *data, qint64 len)

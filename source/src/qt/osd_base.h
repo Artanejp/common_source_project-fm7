@@ -83,9 +83,7 @@ class CSP_logger;
 
 class QOpenGLContext;
 namespace SOUND_MODULE {
-	namespace OUTPUT {
-		class M_BASE;
-	}
+	class M_BASE;
 }
 
 QT_BEGIN_NAMESPACE
@@ -160,7 +158,7 @@ class DLL_PREFIX OSD_BASE : public  QObject
 	Q_OBJECT
 private:
 	/* Note: Below are new sound driver. */
-	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE> m_sound_driver;
+	std::shared_ptr<SOUND_MODULE::M_BASE> m_sound_driver;
 	std::atomic<int64_t> elapsed_us_before_rendered;	// Count half
 	uint32_t     m_sound_period;
 	// Count factor; this multiplies by 2^32;
@@ -292,9 +290,10 @@ protected:
 	int m_sound_rate, m_sound_samples;
 	bool sound_started, now_mute;
 	bool sound_first_half;
-	QStringList sound_device_list;
-
+	QStringList sound_output_device_list;
+	
 	_TCHAR sound_file_name[_MAX_PATH];
+	
 	FILEIO* rec_sound_fio;
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
@@ -504,12 +503,16 @@ public:
 
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
-	QStringList  get_sound_device_list()
+	
+	QStringList  get_sound_output_device_list()
 	{
-		return sound_device_list;
+		return sound_output_device_list;
+	}
+	QStringList  get_sound_capture_device_list()
+	{
+		return sound_capture_device_list;
 	}
 
-	int get_sound_device_num();
 
 	bool now_record_sound;
 	int get_sound_rate();
@@ -786,6 +789,7 @@ signals:
 	int sig_sound_unmute();
 	int sig_sound_start();
 	int sig_sound_stop();
+	int sig_sound_about_to_quit();
 	
 
 	int sig_update_sound_output_list();

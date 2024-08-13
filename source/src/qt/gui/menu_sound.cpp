@@ -68,7 +68,7 @@ void Ui_MainWindowBase::do_update_sound_output_list(void)
 	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
 	int i = 0;
 	if(using_flags->get_osd() != nullptr) {
-		QStringList _l =  using_flags->get_osd()->get_sound_device_list();
+		QStringList _l =  using_flags->get_osd()->get_sound_output_device_list();
 		for(auto p = _l.begin(); p != _l.end(); ++p) {
 			do_append_sound_output_list((*p));
 			if((*p) == _setname) {
