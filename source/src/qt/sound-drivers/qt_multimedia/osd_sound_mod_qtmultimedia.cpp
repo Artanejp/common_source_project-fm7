@@ -77,6 +77,9 @@ bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
 	return m_config_ok.load();
 }
 
+// ToDo: Connect SINGAL(FILEIO::bytesWritten(bytes)) to OSD's SLOT.
+// ToDo: Independent latancy_ms when sink_driver->start() (start() without  QIODevice).
+// - 20240818 K.O
 bool M_QT_MULTIMEDIA::recalc_samples(int rate, int latency_ms, bool need_update, bool need_resize_fileio)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
@@ -763,6 +766,8 @@ bool M_QT_MULTIMEDIA::wait_start_sink(int64_t msec)
 	return _b;
 }
 
+// ToDo: Connect SINGAL(FILEIO::bytesWritten(bytes)) to OSD's SLOT.
+// - 20240818 K.O
 bool M_QT_MULTIMEDIA::do_start_sink()
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
