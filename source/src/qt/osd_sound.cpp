@@ -53,6 +53,22 @@
 
 /* Note: Below are new sound driver. */
 #include "./sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.h"
+
+void OSD_BASE::do_sink_empty()
+{
+	m_sink_empty = true;
+}
+
+void OSD_BASE::do_sink_started()
+{
+	m_sink_started = true;
+}
+
+void OSD_BASE::do_sink_stopped()
+{
+	m_sink_started = false;
+}
+
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	__LIKELY_IF(extra_frames != nullptr) {
@@ -92,10 +108,12 @@ void OSD_BASE::update_sound(int* extra_frames)
 //		if(period_usecs < (tmp_frame_us + 1000)) {
 //			period_usecs = tmp_frame_us + 1000; // Frame rate + 1mSec.
 //		}
-		
-		__LIKELY_IF(elapsed_usec < (period_usecs - margin_usecs)) {
-			return;
+		__LIKELY_IF(!((m_sink_started.load()) && (m_sink_empty.load())) || (sound_drv.get() == nullptr)) {
+			__LIKELY_IF(elapsed_usec < (period_usecs - margin_usecs)) {
+				return;
+			}
 		}
+		m_sink_empty = false;
 //		__LIKELY_IF(sound_drv.get() != nullptr) { // Return if driver buffer maybe full.
 //			if((sound_drv->is_output_driver_started()) && (sound_drv->get_bytes_left() < (m_sound_samples * 2 * sizeof(int16_t)))) {
 //				return;
@@ -150,11 +168,8 @@ void OSD_BASE::update_sound(int* extra_frames)
 			int64_t _result = 0;
 			int _samples = m_sound_samples;
 			if(p_config != nullptr) {
-				emit sig_set_sound_volume((int)(p_config->general_sound_level));
+				sound_drv->set_sink_volume((int)(p_config->general_sound_level));
 			}
-//			if(sound_drv->get_bytes_left() < (_samples * 2 * sizeof(int16_t))) {
-//				return;
-//			}
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
 //			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 //					  _T("Push sound %d samples -> %ld\n"), m_sound_samples, _result);
@@ -207,7 +222,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		//m_sound_ok = false;
 		if(m_sound_driver.get() != nullptr) {
 			std::shared_ptr<SOUND_MODULE::M_BASE>drv = m_sound_driver;
-			emit sig_sound_stop();
+			emit sig_stop_sink();
 			//drv->stop_sound();
 			while((drv->is_output_driver_started()) || (drv->is_capture_driver_started())) {
 				QThread::msleep(10);
@@ -225,23 +240,22 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			m_sound_thread = nullptr;
 		}
 		*/
+		m_sink_started = false;
+		m_sink_empty = false; // OK?
+		m_source_started = false;
+		m_source_empty = false; // OK?
 		m_sound_driver.reset(
 			new SOUND_MODULE::M_QT_MULTIMEDIA(this ,
-													 nullptr,
-													 rate,
-													 (samples * 1000) / rate,
-													 2,
-													 nullptr,
-													 0));
+											  nullptr,
+											  nullptr,
+											  rate,
+											  (samples * 1000) / rate,
+											  2,
+											  nullptr,
+											  0));
 		if(m_sound_driver.get() != nullptr) {
 			m_sound_driver->initialize_driver(this);
-			connect(this, SIGNAL(sig_sound_mute()), m_sound_driver.get(), SLOT(mute_sound()), Qt::QueuedConnection);
-			connect(this, SIGNAL(sig_sound_unmute()), m_sound_driver.get(), SLOT(unmute_sound()), Qt::QueuedConnection);
-			connect(this, SIGNAL(sig_sound_stop()), m_sound_driver.get(), SLOT(stop_sound()), Qt::QueuedConnection);
-			connect(this, SIGNAL(sig_sound_start()), m_sound_driver.get(), SLOT(start()), Qt::QueuedConnection);
 			connect(this, SIGNAL(sig_set_sound_output_device(QString)), m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
-			connect(this, SIGNAL(sig_set_sound_volume(int)),  m_sound_driver.get(), SLOT(set_volume(int)), Qt::QueuedConnection);
-			connect(this, SIGNAL(sig_set_sound_volume(double)),  m_sound_driver.get(), SLOT(set_volume(double)), Qt::QueuedConnection);
 			connect(this, SIGNAL(sig_set_sound_device(QString)),  m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
 
 			/*
@@ -289,7 +303,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			}
 		}
 		emit sig_set_sound_output_device(outdev);
-		emit sig_set_sound_volume((int)(p_config->general_sound_level));
+		if(sound_drv.get() != nullptr) {
+			sound_drv->set_sink_volume((int)(p_config->general_sound_level));
+		}
 	}
 
 	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
@@ -304,7 +320,11 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			*presented_rate = rate;
 		}
 		sound_initialized = true;
-		emit sig_sound_start();
+		m_sink_empty = true;
+		m_source_empty = true;
+		m_sink_started = false;
+		m_source_started = false;
+		sound_dvr->start_sink();
 	}
 }
 
@@ -314,6 +334,10 @@ void OSD_BASE::release_sound()
 	// release Qt Multimedia sound
 	sound_exit = true;
 	sound_initialized = false;
+	m_sink_started = false;
+	m_sink_empty = false; // OK?
+	m_source_started = false;
+	m_source_empty = false; // OK?
 
 	m_sound_period = 0;
 
@@ -339,7 +363,10 @@ void OSD_BASE::do_update_master_volume(int level)
 	if(p_config != nullptr) {
 		p_config->general_sound_level = level;;
 	}
-	emit sig_set_sound_volume(level);
+	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
+	if(sound_drv.get() != nullptr) {
+		sound_drv->set_sink_volume((int)(p_config->general_sound_level));
+	}
 }
 
 void OSD_BASE::do_set_host_sound_output_device(QString device_name)
@@ -380,14 +407,20 @@ void OSD_BASE::init_sound_device_list()
 void OSD_BASE::unmute_sound()
 {
 	if(now_mute) {
-		emit sig_sound_unmute();
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+		if(sound_drv.get() != nullptr) {
+			sound_drv->unmute_sink();
+		}
 		now_mute = false;
 	}
 }
 void OSD_BASE::mute_sound()
 {
 	if(!now_mute) {
-		emit sig_sound_mute();
+		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+		if(sound_drv.get() != nullptr) {
+			sound_drv->mute_sink();
+		}
 		now_mute = true;
 	}
 }
@@ -395,7 +428,10 @@ void OSD_BASE::mute_sound()
 void OSD_BASE::stop_sound()
 {
 	//m_sound_ok = false;
-	emit sig_sound_stop();
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+	if(sound_drv.get() != nullptr) {
+		sound_drv->stop_sink();
+	}
 	m_sound_period = 0;
 	sound_tick_timer.invalidate(); // Don't use timer.
 	sound_initialized = false;

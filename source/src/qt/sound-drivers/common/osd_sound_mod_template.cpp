@@ -10,13 +10,14 @@
 
 #include "../osd_sound_mod_consts.h"
 #include "../osd_sound_mod_utils.h"
+#incluse <cmath>
 
 namespace SOUND_MODULE {
 /* SOUND_MODULE */
 
 	M_BASE::M_BASE(OSD_BASE *parent,
-				   SOUND_BUFFER_QT* sinkDeviceIO,
-				   SOUND_BUFFER_QT* sourceDeviceIO,
+				   QIODevice* sinkDeviceIO,
+				   QIODevice* sourceDeviceIO,
 				   int base_rate,
 				   int base_latency_ms,
 				   int base_channels,
@@ -29,12 +30,14 @@ namespace SOUND_MODULE {
 	  m_sink_channels(base_channels),
 	  m_sink_samples(0),
 	  m_sink_wordsize(sizeof(int16_t)),
+	  m_sink_volume(std::nan("1")),
 	  
 	  m_source_rate(base_rate),
 	  m_source_latency_ms(base_latency_ms),
 	  m_source_channels(base_channels),
 	  m_source_samples(0),
 	  m_source_wordsize(sizeof(int16_t)),
+	  m_source_volume(std::nan("1")),
 	  
 	  m_extconfig_ptr(extra_config_values),
 	  m_extconfig_bytes(extra_config_bytes),
@@ -57,7 +60,7 @@ namespace SOUND_MODULE {
 	set_osd(parent);
 
 	if(m_channels.load() <= 1) m_channels = 2;
-	recalc_samples(m_rate.load(), m_latency_ms.load(), true, false);
+	recalc_samples(m_rate.load(), m_latency_ms.load(), true);
 	// Belows are specified buffer function.
 
 	bool sink_reinit = (sinkDeviceIO == nullptr) ? true : false;
@@ -65,17 +68,13 @@ namespace SOUND_MODULE {
 		if(sinkDeviceIO->isOpen()) {
 			sinkDeviceIO->close();
 		}
-		if(sinkDeviceIO->resize(m_buffer_bytes.load())) {
-			m_sink_external_fileio = true;
-			m_sink_fileio.reset(sinkDeviceIO);
-		} else {
-			sink_reinit = true;
-		}
+		m_sink_external_fileio = true;
+		m_sink_fileio.reset(sinkDeviceIO);
 	}
-	if((sink_reinit) && !(m_sink_external_fileio.load())) {
-		m_sink_fileio.reset(new SOUND_BUFFER_QT(m_sink_buffer_bytes.load(), this));
-		reopen_sink_fileio(true);
-	}
+//	if((sink_reinit) && !(m_sink_external_fileio.load())) {
+//		m_sink_fileio.reset(new SOUND_BUFFER_QT(m_sink_buffer_bytes.load(), this));
+//		reopen_sink_fileio(true);
+//	}
 	update_sink_driver_fileio();
 	
 #if 0 // Temporally unavaiable.
@@ -135,7 +134,7 @@ bool M_BASE::debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...)
 	return do_send_log(m_loglevel.load(), m_logdomain.load(), _tmps);
 }
 
-bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool need_resize_fileio)
+bool M_BASE::recalc_samples(int rate, int latency_ms, bool force)
 {
 	if(rate < 1000) rate = 1000;
 	if(latency_ms < 1) latency_ms = 1;
@@ -144,45 +143,19 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool need_update, bool nee
 	size_t _chunk_bytes = (size_t)(_samples * m_sink_wordsize.load() * m_sink_channels.load());
 	int64_t _buffer_bytes = _chunk_bytes * 4;
 
-	bool _need_restart = false;
-	if(need_resize_fileio) {
-		bool __reinit = true;
-		if(m_sink_fileio.get()  != nullptr) {
-			std::shared_ptr<SOUND_BUFFER_QT> fio = m_sink_fileio;
-			if(_buffer_bytes != m_sink_buffer_bytes.load()) {
-				bool _is_opened = fio->isOpen();
-				if(_is_opened) {
-					fio->close();
-				}
-				__reinit = !(fio->resize(_buffer_bytes));
-				update_sink_driver_fileio();
-				_need_restart = true;
-			} else {
-				__reinit = false;
-			}
-		}
-		if(__reinit) {
-			std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-			if(!(m_sink_external_fileio.load())) {
-				m_sink_fileio.reset(new SOUND_BUFFER_QT(_buffer_bytes, this));
-			}
-			reopen_sink_fileio(true);
-			update_sink_driver_fileio();
-			_need_restart = true;
-		}
+	if((m_rate.load() == rate) && (m_latency_ms.load() == latency_ms) && !(force)) {
+		return true;
 	}
-
-	if((need_update) || (m_sink_chunk_bytes.load() != _chunk_bytes) || (m_sink_buffer_bytes.load() != _buffer_bytes) || (m_sink_samples.load() != _samples)){
-		m_sink_chunk_bytes  = _chunk_bytes;
-		m_sink_buffer_bytes = _buffer_bytes;
-		m_sink_samples = _samples;
-	}
+	
+	m_sink_chunk_bytes  = _chunk_bytes;
+	m_sink_buffer_bytes = _buffer_bytes;
+	m_sink_samples = _samples;
 	return _need_restart;
 }
 
 bool M_BASE::reopen_sink_fileio(bool force_reopen)
 {
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_sink_fileio;
+	std::shared_ptr<QIODevice> fio = m_sink_fileio;
 
 	if(fio.get() != nullptr) {
 		if(force_reopen) {
@@ -206,7 +179,7 @@ bool M_BASE::reopen_sink_fileio(bool force_reopen)
 
 bool M_BASE::reopen_source_fileio(bool force_reopen)
 {
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_source_fileio;
+	std::shared_ptr<QIODevice> fio = m_source_fileio;
 
 	if(fio.get() != nullptr) {
 		if(force_reopen) {
@@ -258,97 +231,7 @@ __FORMAT M_BASE::get_source_sound_format()
 }
 
 
-bool M_BASE::wait_sink_driver_started(int64_t timeout_msec)
-{
-	bool _r = m_prev_sink_started.load();
-	if(_r) {
-		return true;
-	}
-	bool _infinite = (timeout_msec == INT64_MIN);
 
-	while((timeout_msec >= 4) || (_infinite)) {
-		if(!(m_prev_sink_started.is_lock_free())) {
-			QThread::msleep(4);
-		} else {
-			_r = m_prev_sink_started.load();
-			if(_r) {
-				return true;
-			}
-			QThread::msleep(4);
-		}
-		timeout_msec -= 4;
-	}
-	return _r;
-}
-
-bool M_BASE::wait_sink_driver_stopped(int64_t timeout_msec)
-{
-	bool _r = m_prev_sink_started.load();
-	if(!(_r)) {
-		return true;
-	}
-	bool _infinite = (timeout_msec == INT64_MIN);
-
-	while((timeout_msec >= 4) || (_infinite)) {
-		if(!(m_prev_sink_started.is_lock_free())) {
-			QThread::msleep(4);
-		} else {
-			_r = m_prev_sink_started.load();
-			if(!(_r)) {
-				return true;
-			}
-			QThread::msleep(4);
-		}
-		timeout_msec -= 4;
-	}
-	return !(_r);
-}
-
-bool M_BASE::wait_source_driver_started(int64_t timeout_msec)
-{
-	bool _r = m_prev_source_started.load();
-	if(_r) {
-		return true;
-	}
-	bool _infinite = (timeout_msec == INT64_MIN);
-
-	while((timeout_msec >= 4) || (_infinite)) {
-		if(!(m_prev_source_started.is_lock_free())) {
-			QThread::msleep(4);
-		} else {
-			_r = m_prev_source_started.load();
-			if(_r) {
-				return true;
-			}
-			QThread::msleep(4);
-		}
-		timeout_msec -= 4;
-	}
-	return _r;
-}
-
-bool M_BASE::wait_source_driver_stopped(int64_t timeout_msec)
-{
-	bool _r = m_prev_source_started.load();
-	if(!(_r)) {
-		return true;
-	}
-	bool _infinite = (timeout_msec == INT64_MIN);
-
-	while((timeout_msec >= 4) || (_infinite)) {
-		if(!(m_prev_source_started.is_lock_free())) {
-			QThread::msleep(4);
-		} else {
-			_r = m_prev_source_started.load();
-			if(!(_r)) {
-				return true;
-			}
-			QThread::msleep(4);
-		}
-		timeout_msec -= 4;
-	}
-	return !(_r);
-}
 
 
 
@@ -359,15 +242,17 @@ bool M_BASE::update_latency(int latency_ms, bool force)
 	}
 	if(!(force) && (m_latency_ms.load() == latency_ms)) return true;
 
-	stop();
-	recalc_samples(m_rate, latency_ms, true, true);
+	stop_sink();
+	recalc_samples(m_rate.load(), latency_ms, true);
 
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_fileio;
-	if(fio.get() != nullptr) {
-		fio->reset();
+	if(m_sink_external_fileio.load()) {
+		std::shared_ptr<QIODevice> fio = m_sink_fileio;
+		if(fio.get() != nullptr) {
+			fio->reset();
+		}
 	}
 //	return (start() && (m_fileio != nullptr));
-	return (start());
+	return (start_sink());
 }
 
 
@@ -391,19 +276,27 @@ bool M_BASE::reconfig_sound(int rate, int channels)
 bool M_BASE::release_driver_fileio()
 {
 	bool result_sink = false;
-	if(m_sink_fileio.get() != nullptr) {
-		std::shared_ptr<SOUND_BUFFER_QT> fio = m_sink_fileio;
-		fio->close();
-		disconnect(fio.get(), nullptr, this, nullptr);
-		disconnect(this, nullptr, fio.get(), nullptr);
+	if(m_sink_external_fileio.load()) {
+		std::shared_ptr<QIODevice> fio_sink = m_sink_fileio;
+		if(fio_sink.get() != nullptr) {
+			fio_sink->close();
+			disconnect(fio_sink.get(), nullptr, this, nullptr);
+			disconnect(this, nullptr, fio_sink.get(), nullptr);
+			result_sink = true;
+		}
+	} else {
 		result_sink = true;
 	}
 	bool result_source = false;
-	if(m_source_fileio.get() != nullptr) {
-		std::shared_ptr<SOUND_BUFFER_QT> fio = m_source_fileio;
-		fio->close();
-		disconnect(fio.get(), nullptr, this, nullptr);
-		disconnect(this, nullptr, fio.get(), nullptr);
+	if(m_source_external_fileio.load()) {
+		std::shared_ptr<QIODevice> fio_source = m_source_fileio;
+		if(fio_source.get() != nullptr) {
+			fio_source->close();
+			disconnect(fio_source.get(), nullptr, this, nullptr);
+			disconnect(this, nullptr, fio_source.get(), nullptr);
+			result_source = true;
+		}
+	} else {
 		result_source = true;
 	}
 
@@ -432,7 +325,7 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 		m_config_ok = true;
 		config_t* p_config = get_config_ptr();
 		if(p_config != nullptr) {
-			set_volume((int)(p_config->general_sound_level));
+			set_sink_volume((int)(p_config->general_sound_level));
 		}
 		__debug_log_func("Success. Sample rate=%d samples=%d", m_rate.load(), m_samples.load());
 	} else {
@@ -505,120 +398,119 @@ bool M_BASE::check_enough_to_render()
 	return ((m_chunk_bytes.load() < _left) ? true : false);
 }
 
+// Below APIs can call directry from OSD:: .
 int64_t M_BASE::update_sound(void* datasrc, int samples)
 {
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_sink_fileio;
-	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
-	if(q.get() == nullptr) return -1;
-	if(datasrc == nullptr) return -1;
-
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	std::shared_ptr<QIODevice> q = m_sink_fileio;
+	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
+	__UNLIKELY_IF(q.get() == nullptr) return -1;
+	__UNLIKELY_IF(datasrc == nullptr) return -1;
+	__UNLIKELY_IF(samples < 0) return -1;
+	qint64 bytes_per_sample = (qint64)(m_sink_channels.load() * m_sink_wordsize.load());
+	__UNLIKELY_IF(bytes_per_sample <= 0) {
+		retrun -1;
+	}
 	if(!(is_driver_started()) ||  !(q->isOpen())) {
 		return -1;
 	}
 	int64_t _result = -1;
 	qint64 _size = m_sink_chunk_bytes.load();
-	if(samples > 0) {
-		_size = (qint64)samples * (qint64)(m_sink_channels.load() * m_sink_wordsize.load());
-	} else if(samples == 0) {
-		return _result;
+	__LIKELY_IF(samples > 0) {
+		_size = (qint64)samples * bytes_per_sample;
 	}
-
-	if(_size > 0) {
+	__LIKELY_IF(_size > 0) {
 		_result = (int64_t)q->write((const char *)datasrc, _size);
 	}
-	if(_result > 0) {
-		_result = _result / (qint64)(m_sink_channels.load() * m_sink_wordsize.load());
-
+	__LIKELY_IF(_result >= (int64_t)bytes_per_sample) {
+		_result = _result / (int64_t)bytes_per_sample;
+	} else {
+		_result = -1;
 	}
 	return _result;
 }
 
 
-bool M_BASE::start()
+bool M_BASE::start_sink()
 {
-//	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-//	QIODevice *q = m_sink_fileio;
-//	if(is_running_sound()) { // ToDo: STOP
-//		stop();
-//		wait_driver_stopped(1000);
-//	}
-
-	bool _stat = reopen_sink_fileio(false);
-	update_sink_driver_fileio();
-
-	if(_stat) {
-		emit sig_start_audio();
-		return wait_sink_driver_started(1000);
-	}
-	return _stat;
-}
-
-bool M_BASE::pause()
-{
-	emit sig_pause_audio();
-	return true;
-}
-
-bool M_BASE::resume()
-{
-	emit sig_resume_audio();
-	return true;
-}
-
-bool M_BASE::stop()
-{
-	bool _stat = false;
-	emit sig_stop_audio();
-	_stat = wait_driver_stopped(1000);
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_sink_fileio;
-	if(q.get() != nullptr) {
-		if(q->isOpen()) {
-			q->close();
+	if(m_sink_external_fileio.load()) {
+		_stat = reopen_sink_fileio(false);
+		if(_stat) {
+			update_sink_driver_fileio();
 		}
 	}
-	return _stat;
-}
+	emit sig_start_sink();
 
-bool M_BASE::discard()
-{
-	emit sig_discard_audio();
 	return true;
 }
 
-void M_BASE::set_volume(double level)
+
+bool M_BASE::stop_sink()
 {
-	emit sig_set_volume(level);
+	emit sig_stop_sink();
+	if(m_sink_external_fileio.load()) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		std::shared_ptr<QIODevice> q = m_sink_fileio;
+		if(q.get() != nullptr) {
+			if(q->isOpen()) {
+				q->close();
+			}
+		}
+	}
+	m_sink_volume = std::nan("1");
+	return true;
 }
 
-void M_BASE::set_volume(int level)
+bool M_BASE::discard_sink()
 {
+	if(m_sink_external_fileio.load()) {
+		std::shared_ptr<QIODevice> fio = m_sink_fileio;
+		if(fio.get() != nullptr) {
+			fio->reset();
+		}
+	}
+	emit sig_discard_sink();
+	return true;
+}
 
+void M_BASE::set_sink_volume(double level)
+{
+	double xlevel = m_sink_volume.load();
+	if((std::isNan(xlevel)) || (level != xlevel)) {
+		emit sig_set_sink_volume(level);
+	}
+}
+
+void M_BASE::set_sink_volume(int level)
+{
 	level = std::min(std::max(level, (int)INT16_MIN), (int)INT16_MAX);
 	double xlevel = ((double)(level + INT16_MAX)) / ((double)UINT16_MAX);
-	emit sig_set_volume(xlevel);
+	set_sink_volume(xlevel);
 }
 
-void M_BASE::mute_sound()
+void M_BASE::mute_sink()
 {
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_sink_fileio;
-	if(fio.get() != nullptr) {
-		fio->reset();
+	if(m_sink_external_fileio.load()) {
+		std::shared_ptr<QIODevice> fio = m_sink_fileio;
+		if(fio.get() != nullptr) {
+			fio->reset();
+		}
 	}
+	emit sig_mute_sink();
 }
 
-void M_BASE::unmute_sound()
+void M_BASE::unmute_sink()
 {
-}
-
-void M_BASE::stop_sound()
-{
-	std::shared_ptr<SOUND_BUFFER_QT> fio = m_sink_fileio;
-	if(fio.get() != nullptr) {
-		fio->reset();
+	/*
+	if(m_sink_external_fileio.load()) {
+		// ToDo.
 	}
+	*/
+	emit sig_unmute_sink();
 }
+
+// END OF: Below APIs can call directry from OSD:: .
 
 void M_BASE::do_set_output_by_name(void)
 {
@@ -694,6 +586,9 @@ void M_BASE::set_osd(OSD_BASE* p)
 		m_OSD = p;
 		set_logger(p->get_logger());
 		set_system_flags(p->get_config_flags());
+		connect(this, SIGNAL(sig_sink_started()), p, SLOT(do_sink_started()), Qt::DirectConnection);
+		connect(this, SIGNAL(sig_sink_stopped()), p, SLOT(do_sink_stopped()), Qt::DirectConnection);
+		connect(this, SIGNAL(sig_sink_empty()), p, SLOT(do_sink_empty()), Qt::DirectConnection);
 	} else {
 		m_OSD = nullptr;
 		if(m_logger.get() != nullptr) {
@@ -769,22 +664,24 @@ void M_BASE::get_sink_parameters(int& channels, int& rate,
 	buffer_bytes = m_sink_buffer_bytes.load();
 }
 
-int64_t M_BASE::get_sink_bytes_available()
+int64_t M_BASE::get_sink_bytes_size()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_sink_fileio;
+	std::shared_ptr<QIODevice> q = m_sink_fileio;
 	if(q.get() != nullptr) {
-		return q->bytesAvailable();
+		int64_t n =  (int64_t)(q->size());
+		if(n < 0) n = 0;
+		return n;
 	}
 	return 0;
 }
-
+	
 int64_t M_BASE::get_sink_bytes_left()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_sink_fileio;
+	std::shared_ptr<QIODevice> q = m_sink_fileio;
 	if(q.get() != nullptr) {
-		int64_t n =  q->bytesToWrite() - q->bytesAvailable();
+		int64_t n =  (int64_t)(q->bytesAvailable());
 		if(n < 0) n = 0;
 		return n;
 	}
@@ -803,12 +700,14 @@ void M_BASE::get_source_parameters(int& channels, int& rate,
 	buffer_bytes = m_source_buffer_bytes.load();
 }
 
-int64_t M_BASE::get_source_bytes_available()
+int64_t M_BASE::get_source_bytes_size()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_source_fileio;
+	std::shared_ptr<QIODevice> q = m_source_fileio;
 	if(q.get() != nullptr) {
-		return q->bytesAvailable();
+		int64_t n =  (int64_t)(q->size());
+		if(n < 0) n = 0;
+		return n;
 	}
 	return 0;
 }
@@ -816,9 +715,9 @@ int64_t M_BASE::get_source_bytes_available()
 int64_t M_BASE::get_source_bytes_left()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<SOUND_BUFFER_QT> q = m_source_fileio;
+	std::shared_ptr<QIODevice> q = m_source_fileio;
 	if(q.get() != nullptr) {
-		int64_t n =  q->bytesToWrite() - q->bytesAvailable();
+		int64_t n =  (int64_t)(q->bytesAvailable());
 		if(n < 0) n = 0;
 		return n;
 	}

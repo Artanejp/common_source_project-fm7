@@ -3,6 +3,8 @@
 SOUND_BUFFER_QT::SOUND_BUFFER_QT(uint64_t depth, QObject *parent)
 	: QIODevice(parent),
 	  wroteFromBefore(0),
+	  m_read_opened(false),
+	  m_write_opened(false),
 	  is_emitted(false)
 {
 
@@ -20,7 +22,7 @@ SOUND_BUFFER_QT::~SOUND_BUFFER_QT()
 
 bool SOUND_BUFFER_QT::open(OpenMode flags)
 {
-//	printf("open() flags=%08x\n", flags);
+
     if ((flags & (Append | Truncate)) != 0)
 		flags |= WriteOnly;
 
@@ -29,7 +31,23 @@ bool SOUND_BUFFER_QT::open(OpenMode flags)
         return false;
     }
 
-    if ((flags & Truncate) == Truncate) {
+	if(m_write_opened.load()) {
+		// Already opened as read, but open to read twice
+		if((flags & WriteOnly) != 0) {
+			qWarning("SOUND_BUFFER_QT::open: Already opened as writing.");
+			return false;
+		}
+	}
+	if(m_read_opened.load()) {
+		// Already opened as read, but open to read twice
+		if((flags & ReadOnly) != 0) {
+			qWarning("SOUND_BUFFER_QT::open: Already opened as reading.");
+			return false;
+		}
+		
+	}
+	// If opened as 
+    if (((flags & Truncate) == Truncate) || (!(m_write_opened.load()) && ((flags & WriteOnly != 0)))){
 		std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 		if(p) {
 			p->clear();
@@ -42,11 +60,11 @@ bool SOUND_BUFFER_QT::open(OpenMode flags)
 void SOUND_BUFFER_QT::close()
 {
 //	//printf("close()\n");
+	QIODevice::close();
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	if(p) {
 		p->clear();
 	}
-	QIODevice::close();
 }
 
 bool SOUND_BUFFER_QT::isSequential() const
@@ -56,86 +74,59 @@ bool SOUND_BUFFER_QT::isSequential() const
 
 qint64 SOUND_BUFFER_QT::size() const
 {
-	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
-	if(p) {
-		return (qint64)(p->count());
+	__LIKELY_IF(isSequential()) {
+		return bytesAvailable();
 	}
 	return 0;
 }
 
 qint64 SOUND_BUFFER_QT::bytesToWrite() const
 {
-	qint64 _n = (qint64)0;
-
+	qint64 _n = QIODevice::bytesToWrite();
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	if(p) {
-		_n = (qint64)(p->fifo_size());
+		_n = (qint64)(p->count());
 	}
 	return (qint64)_n;
 }
 
 qint64 SOUND_BUFFER_QT::bytesAvailable() const
 {
-	#if 0
-	qint64 _size = QIODevice::bytesAvailable();
-	#else
-	qint64 _size = 0;
-	#endif
+	qint64 _n = QIODevice::bytesAvailable();
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	if(p) {
-		_size += (qint64)(p->count());
-		//_size += p->fifo_size();
+		_n += (qint64)(p->left());
 	}
-	//printf("bytesAvailable() is %lld\n", _size);
-	return _size;
+	return _n;
 }
 
 qint64 SOUND_BUFFER_QT::pos() const
 {
-	qint64 _pos = (qint64)0;
-#if 0
-	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
-	if(p) {
-		_pos = (p->count()) % (p->fifo_size());
-	}
-#endif
-    return (qint64)_pos;
-    //return QIODevice::pos();
+	/*
+	  pos() should return 0, because this buffer is streaming buffer.
+	  - 20240817 K.O
+	*/
+    return 0;
 }
 
 bool SOUND_BUFFER_QT::seek(qint64 pos)
 {
-#if 0
-	if(pos < 0) {
-		return false;
-	}
-	if(pos == 0) {
-		return true;
-	}
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
-	if(p) {
-		if(pos < p->count()) {
-			uint8_t* buf = new uint8_t[pos];
-			bool _success;
-			p->read_to_buffer(buf, pos, _success);
-			delete[] buf;
-			return true;
-		} else if(pos == p->count()) {
-			p->clear();
-			return true;
-		}
+	bool _stat = false;
+	int64_t ptr;
+	__LIKELY_IF(p.get() != nullptr) {
+		ptr = p->seek((int)pos, _stat);
 	}
-#endif
-	return false;
+	return stat;
 }
 
 bool SOUND_BUFFER_QT::atEnd() const
 {
 //	printf("atEnd()\n");
-    const bool result = isOpen();
+	bool result = QIODevice::atEnd();
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	if(p) {
-		return (!(result) || (p->empty()));
+		result &= (!(isOpen()) || (p->empty()));
 	}
 	return result;
 }
@@ -147,12 +138,12 @@ bool SOUND_BUFFER_QT::reset()
 	wroteFromBefore = 0;
 	is_emitted = false;
 	bool _b = false;
+	QIODevice::reset(); // Maybe status may not related inherit QIODevice:: . 20240817 K.O
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	if(p) {
 		p->clear();
 		_b = true;
 	}
-	_b &= QIODevice::reset();
 	return _b;
 }
 

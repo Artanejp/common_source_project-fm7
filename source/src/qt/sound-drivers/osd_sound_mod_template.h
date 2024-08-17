@@ -28,7 +28,7 @@
 QT_BEGIN_NAMESPACE
 
 
-class SOUND_BUFFER_QT;
+class QIODevice;
 class OSD_BASE;
 class USING_FLAGS;
 class CSP_Logger;
@@ -47,8 +47,8 @@ protected:
 	std::shared_ptr<USING_FLAGS>		m_using_flags;
 	std::shared_ptr<CSP_Logger>			m_logger;
 
-	std::shared_ptr<SOUND_BUFFER_QT>	m_sink_fileio;
-	std::shared_ptr<SOUND_BUFFER_QT>	m_source_fileio;
+	std::shared_ptr<QIODevice>			m_sink_fileio;
+	std::shared_ptr<QIODevice>			m_source_fileio;
 	std::atomic<bool>					m_sink_external_fileio;
 	std::atomic<bool>					m_source_external_fileio;
 	
@@ -120,8 +120,8 @@ protected:
 
 public:
 	M_BASE(OSD_BASE *parent,
-							 SOUND_BUFFER_QT* sinkDeviceIO = nullptr,
-							 SOUND_BUFFER_QT* sourceDeviceIO = nullptr,
+							 QIODevice* sinkDeviceIO = nullptr,
+							 QIODevice* sourceDeviceIO = nullptr,
 							 int base_rate = 48000,
 							 int base_latency_ms = 100,
 							 int base_channels = 2,
@@ -131,11 +131,6 @@ public:
 	~M_BASE();
 
 	std::recursive_timed_mutex				m_locker;
-
-	virtual bool wait_sink_driver_started(int64_t timeout_msec = INT64_MIN);
-	virtual bool wait_sink_driver_stopped(int64_t timeout_msec = INT64_MIN);
-	virtual bool wait_source_driver_started(int64_t timeout_msec = INT64_MIN);
-	virtual bool wait_source_driver_stopped(int64_t timeout_msec = INT64_MIN);
 
 	virtual bool is_output_driver_started();
 	virtual bool is_capture_driver_started();
@@ -161,11 +156,11 @@ public:
 
 	virtual int64_t update_sound(void* datasrc, int samples);
 
-	std::shared_ptr<SOUND_BUFFER_QT> get_sink_io_device()
+	std::shared_ptr<QIODevice> get_sink_io_device()
 	{
 		return m_sink_fileio;
 	}
-	std::shared_ptr<SOUND_BUFFER_QT> get_source_io_device()
+	std::shared_ptr<QIODevice> get_source_io_device()
 	{
 		return m_source_fileio;
 	}
@@ -255,10 +250,10 @@ public:
 	void get_sink_parameters(int& channels, int& rate, int& latency_ms,
 							   size_t& word_size, int& chunk_bytes, int& buffer_bytes);
 	
-	virtual int64_t get_sink_bytes_available();
 	virtual int64_t get_sink_bytes_left();
-	virtual int64_t get_source_bytes_available();
 	virtual int64_t get_source_bytes_left();
+	virtual int64_t get_sink_bytes_size();
+	virtual int64_t get_source_bytes_size();
 
 	virtual M_BASE* get_real_driver()
 	{
@@ -302,23 +297,12 @@ public slots:
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 	virtual void do_about_to_quit();
 	
-	virtual void mute_sound();
-	virtual void unmute_sound();
-	virtual void stop_sound();
-
 	virtual void update_config() {}
 	virtual void update_extra_config() {}
 	virtual void release_sound();
 
-	bool start();
-	bool pause();
-	bool resume();
-	bool stop();
-	bool discard();
 
 	virtual void reset_to_defalut() {}
-	virtual void set_volume(double level);
-	virtual void set_volume(int level);
 	virtual bool is_running_sound()
 	{
 		return true;
@@ -384,7 +368,16 @@ public slots:
 	// From real driver: notify to update sound devices list.
 	virtual void do_update_device_list() {}
 
+	// Below SLOTs can call directry from OSD:: .
 	virtual void set_osd(OSD_BASE* p);
+	
+	void set_sink_volume(double level);
+	void set_sink_volume(int level);
+	bool start_sink();
+	bool pause_sink();
+	bool resume_sink();
+	bool stop_sink();
+	bool discard_sink();
 
 signals:
 	void sig_sound_finished();
@@ -394,15 +387,34 @@ signals:
 	void sig_send_log(int, int, const _TCHAR*, int);
 	// rate, channels, path
 	void sig_req_open_sound(int, int, QString);
-	//
-	void sig_start_audio();
-	void sig_stop_audio();
-	void sig_pause_audio();
-	void sig_resume_audio();
-	void sig_close_audio();
-	void sig_discard_audio();
+	
+	// To real drivers (SINK/OUTPUT)
+	void sig_start_sink();
+	void sig_stop_sink();
+	void sig_mute_sink();
+	void sig_unmute_sink();
+	void sig_discard_sink();
+	void sig_set_sink_volume(double);
+	
+	// To real drivers (SOURCE/INPUT)
+	void sig_start_source();
+	void sig_stop_source();
+	void sig_mute_source();
+	void sig_unmute_source();
+	void sig_discard_source();
+	void sig_set_source_volume(double);
 
-	void sig_set_volume(double);
+	// To notify to OSD:: .
+	void sig_sink_started();
+	void sig_sink_stopped();
+	//void sig_sink_full();
+	void sig_sink_empty();
+	
+	void sig_source_started();
+	void sig_source_stopped();
+	void sig_source_full();
+	//void sig_source_empty();
+	void sig_source_got_data(size_t bytes);
 	//
 	// notify completed to release sound driver.
 	void sig_released(bool);
