@@ -144,13 +144,13 @@ bool M_BASE::recalc_samples(int rate, int latency_ms, bool force)
 	int64_t _buffer_bytes = _chunk_bytes * 4;
 
 	if((m_rate.load() == rate) && (m_latency_ms.load() == latency_ms) && !(force)) {
-		return true;
+		return false;
 	}
 	
 	m_sink_chunk_bytes  = _chunk_bytes;
 	m_sink_buffer_bytes = _buffer_bytes;
 	m_sink_samples = _samples;
-	return _need_restart;
+	return true;
 }
 
 bool M_BASE::reopen_sink_fileio(bool force_reopen)

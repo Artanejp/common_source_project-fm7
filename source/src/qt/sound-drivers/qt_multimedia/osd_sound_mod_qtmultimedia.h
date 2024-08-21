@@ -68,7 +68,10 @@ protected:
 	
 	bool has_input_device(QString name) override;
 	bool is_default_input_device() override;
-
+	
+	bool is_output_stopped();
+	bool is_input_stopped();
+	
 	virtual bool recalc_samples(int rate, int latency_ms,
 						bool need_update = false,
 						bool need_resize_fileio = false) override;
