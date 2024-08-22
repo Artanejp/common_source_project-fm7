@@ -42,11 +42,18 @@ protected:
 	QAudioDevice						m_audioOutputDevice;
 	QList<QAudioDevice>					m_audioOutputsList;
 	virtual void set_audio_format(QAudioDevice dest_device, QAudioFormat& desired, int& channels, int& rate);
+	std::shared_ptr<QAudioSource>		m_audioInputSource;
+	QAudioDevice						m_audiInputDevice;
+	QList<QAudioDevice>					m_audioInputssList;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	std::shared_ptr<QAudioOutput>		m_audioOutputSink;
 	QAudioDeviceInfo					m_audioOutputDevice;
 	QList<QAudioDeviceInfo>				m_audioOutputsList;
 	virtual void set_audio_format(QAudioDeviceInfo dest_device, QAudioFormat& desired, int& channels, int& rate);
+
+	std::shared_ptr<QAudioInput>		m_audioInputSource;
+	QAudioDeviceInfo					m_audioInputDevice;
+	QList<QAudioDeviceInfo>				m_audioInputsList;
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
@@ -79,13 +86,13 @@ protected:
 public:
 	M_QT_MULTIMEDIA(
 		OSD_BASE *parent,
-		SOUND_BUFFER_QT* sinkDeviceIO = nullptr,
-		SOUND_BUFFER_QT* sourceDeviceIO = nullptr,
-		int base_rate = 48000,
-		int base_latency_ms = 100,
-		int base_channels = 2,
+		QIODevice* sinkDeviceIO = nullptr,
+		QIODevice* sourceDeviceIO = nullptr,
+		size_t base_rate = 48000,
+		size_t base_latency_ms = 100,
+		size_t base_channels = 2,
 		void *extra_configvalues = nullptr,
-		int extra_config_bytes = 0);
+		size_t extra_config_bytes = 0);
 
 	~M_QT_MULTIMEDIA();
 

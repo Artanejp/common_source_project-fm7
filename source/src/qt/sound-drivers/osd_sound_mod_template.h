@@ -42,50 +42,52 @@ class DLL_PREFIX M_BASE : public QObject
 {
 	Q_OBJECT
 protected:
-	OSD_BASE*							m_OSD;
-	std::string							m_classname;
-	std::shared_ptr<USING_FLAGS>		m_using_flags;
-	std::shared_ptr<CSP_Logger>			m_logger;
+	OSD_BASE*						m_OSD;
+	std::string						m_classname;
+	std::shared_ptr<USING_FLAGS>	m_using_flags;
+	std::shared_ptr<CSP_Logger>		m_logger;
 
-	std::shared_ptr<QIODevice>			m_sink_fileio;
-	std::shared_ptr<QIODevice>			m_source_fileio;
-	std::atomic<bool>					m_sink_external_fileio;
-	std::atomic<bool>					m_source_external_fileio;
+	std::shared_ptr<QIODevice>		m_sink_fileio;
+	std::shared_ptr<QIODevice>		m_source_fileio;
+	std::atomic<bool>				m_sink_external_fileio;
+	std::atomic<bool>				m_source_external_fileio;
 	
-	std::atomic<int>					m_loglevel;
-	std::atomic<int>					m_logdomain;
+	std::atomic<int>				m_loglevel;
+	std::atomic<int>				m_logdomain;
 
-	std::atomic<bool>					m_config_ok;
+	std::atomic<bool>				m_config_ok;
 	
-	std::atomic<bool>					m_prev_sink_started;
-	std::atomic<bool>					m_prev_source_started;
+	std::atomic<bool>				m_prev_sink_started;
+	std::atomic<bool>				m_prev_source_started;
 	
-	std::atomic<bool>					m_mute;
+	std::atomic<bool>				m_mute;
 
-	std::atomic<int64_t>				m_sink_chunk_bytes;
-	std::atomic<int64_t>				m_sink_buffer_bytes;
-	std::atomic<int64_t>				m_sink_before_rendered;
-	std::atomic<int>					m_sink_samples;
-	std::atomic<int>					m_sink_rate;
-	std::atomic<int>					m_sink_latency_ms;
-	std::atomic<int>					m_sink_channels;
-	std::atomic<size_t>					m_sink_wordsize;
+	std::atomic<size_t>				m_sink_chunk_bytes;
+	std::atomic<size_t>				m_sink_buffer_bytes;
+	std::atomic<size_t>				m_sink_before_rendered;
+	std::atomic<size_t>				m_sink_samples;
+	std::atomic<size_t>				m_sink_rate;
+	std::atomic<size_t>				m_sink_latency_ms;
+	std::atomic<size_t>				m_sink_channels;
+	std::atomic<size_t>				m_sink_wordsize;
+	std::atomic<double>				m_sink_volume;
 	
-	std::atomic<int64_t>				m_source_chunk_bytes;
-	std::atomic<int64_t>				m_source_buffer_bytes;
-	std::atomic<int64_t>				m_source_before_rendered;
-	std::atomic<int>					m_source_samples;
-	std::atomic<int>					m_source_rate;
-	std::atomic<int>					m_source_latency_ms;
-	std::atomic<int>					m_source_channels;
-	std::atomic<size_t>					m_source_wordsize;
+	std::atomic<size_t>				m_source_chunk_bytes;
+	std::atomic<size_t>				m_source_buffer_bytes;
+	std::atomic<size_t>				m_source_before_rendered;
+	std::atomic<size_t>				m_source_samples;
+	std::atomic<size_t>				m_source_rate;
+	std::atomic<size_t>				m_source_latency_ms;
+	std::atomic<size_t>				m_source_channels;
+	std::atomic<size_t>				m_source_wordsize;
+	std::atomic<double>				m_source_volume;
 	
-	std::atomic<void*>					m_extconfig_ptr;
-	std::atomic<int>					m_extconfig_bytes;
+	std::atomic<void*>				m_extconfig_ptr;
+	std::atomic<size_t>				m_extconfig_bytes;
 	
 	
-	std::string							m_sink_device_name;
-	std::string							m_source_device_name;
+	std::string						m_sink_device_name;
+	std::string						m_source_device_name;
 	virtual void update_sink_driver_fileio()
 	{
 		// Update driver side of fileio by m_sink_fileio and m_source_fileio;
@@ -107,10 +109,8 @@ protected:
 	virtual bool has_input_device(QString name) { return false; }
 	virtual bool is_default_input_device() { return false; }
 
-
-	virtual bool recalc_samples(int rate, int latency_ms,
-						bool need_update = false,
-						bool need_resize_fileio = false);
+	virtual bool recalc_samples(size_t rate, size_t latency_ms, bool force = false);
+	
 	virtual bool reopen_sink_fileio(bool force_reopen = false);
 	virtual bool reopen_source_fileio(bool force_reopen = false);
 
@@ -120,13 +120,13 @@ protected:
 
 public:
 	M_BASE(OSD_BASE *parent,
-							 QIODevice* sinkDeviceIO = nullptr,
-							 QIODevice* sourceDeviceIO = nullptr,
-							 int base_rate = 48000,
-							 int base_latency_ms = 100,
-							 int base_channels = 2,
-							 void *extra_config_values = nullptr,
-							 int extra_config_bytes = 0);
+		   QIODevice* sinkDeviceIO = nullptr,
+		   QIODevice* sourceDeviceIO = nullptr,
+		   size_t base_rate = 48000,
+		   size_t base_latency_ms = 100,
+		   size_t base_channels = 2,
+		   void   *extra_config_values = nullptr,
+		   size_t extra_config_bytes = 0);
 
 	~M_BASE();
 
@@ -173,27 +173,24 @@ public:
 		return m_config_ok.load();
 	}
 
-	inline int64_t get_sink_buffer_bytes()
-	{
-		return m_sink_buffer_bytes.load();
-	}
-	inline int64_t get_sink_chunk_bytes()
+	virtual size_t get_sink_buffer_bytes();
+	virtual size_t get_sink_chunk_bytes()
 	{
 		return m_sink_chunk_bytes.load();
 	}
-	inline int get_sink_sample_count()
+	inline size_t get_sink_sample_count()
 	{
-		return m_sink_samples;
+		return m_sink_samples.load();
 	}
-	inline int get_sink_latency_ms()
+	inline size_t get_sink_latency_ms()
 	{
 		return m_sink_latency_ms.load();
 	}
-	inline int get_sink_channels()
+	inline size_t get_sink_channels()
 	{
 		return m_sink_channels.load();
 	}
-	inline int get_sink_sample_rate()
+	inline size_t get_sink_sample_rate()
 	{
 		return m_sink_rate.load();
 	}
@@ -201,40 +198,25 @@ public:
 	{
 		return m_sink_wordsize.load();
 	}
-	inline int64_t get_sink_buffer_bytes()
-	{
-		return m_sink_buffer_bytes.load();
-	}
-	inline int64_t get_sink_chunk_bytes()
-	{
-		return m_sink_chunk_bytes.load();
-	}
-	inline int get_sink_sample_count()
-	{
-		return m_sink_samples;
-	}
 	
-	inline int64_t get_source_buffer_bytes()
-	{
-		return m_source_buffer_bytes.load();
-	}
-	inline int64_t get_source_chunk_bytes()
+	virtual size_t get_source_buffer_bytes();
+	virtual size_t get_source_chunk_bytes()
 	{
 		return m_source_chunk_bytes.load();
 	}
-	inline int get_source_sample_count()
+	inline size_t get_source_sample_count()
 	{
-		return m_source_samples;
+		return m_source_samples.load();
 	}
-	inline int get_source_latency_ms()
+	inline size_t get_source_latency_ms()
 	{
 		return m_source_latency_ms.load();
 	}
-	inline int get_source_channels()
+	inline size_t get_source_channels()
 	{
 		return m_source_channels.load();
 	}
-	inline int get_source_sample_rate()
+	inline size_t get_source_sample_rate()
 	{
 		return m_source_rate.load();
 	}

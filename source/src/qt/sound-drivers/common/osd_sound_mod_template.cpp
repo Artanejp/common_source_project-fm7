@@ -18,11 +18,11 @@ namespace SOUND_MODULE {
 	M_BASE::M_BASE(OSD_BASE *parent,
 				   QIODevice* sinkDeviceIO,
 				   QIODevice* sourceDeviceIO,
-				   int base_rate,
-				   int base_latency_ms,
-				   int base_channels,
-				   void *extra_config_values,
-				   int extra_config_bytes)
+				   size_t base_rate,
+				   size_t base_latency_ms,
+				   size_t base_channels,
+				   void  *extra_config_values,
+				   size_t extra_config_bytes)
 	:
 	  m_config_ok(false),
 	  m_sink_rate(base_rate),
@@ -134,14 +134,14 @@ bool M_BASE::debug_log_func(const _TCHAR *_funcname, const _TCHAR *_fmt, ...)
 	return do_send_log(m_loglevel.load(), m_logdomain.load(), _tmps);
 }
 
-bool M_BASE::recalc_samples(int rate, int latency_ms, bool force)
+bool M_BASE::recalc_samples(size_t rate, size_t latency_ms, bool force)
 {
 	if(rate < 1000) rate = 1000;
 	if(latency_ms < 1) latency_ms = 1;
-	int64_t _samples =
-		((int64_t)rate * latency_ms) / 1000;
-	size_t _chunk_bytes = (size_t)(_samples * m_sink_wordsize.load() * m_sink_channels.load());
-	int64_t _buffer_bytes = _chunk_bytes * 4;
+	uint64_t _samples =
+		(((uint64_t)rate) * ((uint64_t)latency_ms)) / 1000;
+	size_t _chunk_bytes = (size_t)(_samples * (uint64_t)(m_sink_wordsize.load()) * (uint64_t)(m_sink_channels.load()));
+	size_t _buffer_bytes = _chunk_bytes * 4;
 
 	if((m_rate.load() == rate) && (m_latency_ms.load() == latency_ms) && !(force)) {
 		return false;
@@ -243,7 +243,7 @@ bool M_BASE::update_latency(int latency_ms, bool force)
 	if(!(force) && (m_latency_ms.load() == latency_ms)) return true;
 
 	stop_sink();
-	recalc_samples(m_rate.load(), latency_ms, true);
+	recalc_samples(m_rate.load(), (size_t)latency_ms, true);
 
 	if(m_sink_external_fileio.load()) {
 		std::shared_ptr<QIODevice> fio = m_sink_fileio;
@@ -439,6 +439,8 @@ bool M_BASE::start_sink()
 		if(_stat) {
 			update_sink_driver_fileio();
 		}
+	} else {
+		size_t bufsize = get_
 	}
 	emit sig_start_sink();
 
@@ -656,12 +658,12 @@ void M_BASE::get_sink_parameters(int& channels, int& rate,
 													 int& latency_ms, size_t& word_size,
 													 int& chunk_bytes, int& buffer_bytes)
 {
-	channels = m_sink_channels.load();
-	rate = m_sink_rate.load();
-	latency_ms = m_sink_latency_ms.load();
-	word_size = m_sink_wordsize.load();
-	chunk_bytes = m_sink_chunk_bytes.load();
-	buffer_bytes = m_sink_buffer_bytes.load();
+	channels = (int)(m_sink_channels.load());
+	rate = (int)(m_sink_rate.load());
+	latency_ms = (int)(m_sink_latency_ms.load());
+	word_size = (int)(m_sink_wordsize.load());
+	chunk_bytes = (int)(m_sink_chunk_bytes.load());
+	buffer_bytes = (int)(m_sink_buffer_bytes.load());
 }
 
 int64_t M_BASE::get_sink_bytes_size()
@@ -723,5 +725,22 @@ int64_t M_BASE::get_source_bytes_left()
 	}
 	return 0;
 }
-	/* SOUND_MODULE */
+
+size_t M_BASE::get_sink_buffer_bytes()
+{
+	if(m_sink_external_fileio.load()) {
+		return get_sink_bytes_size();
+	}
+	return m_sink_buffer_size.load();
+}
+
+size_t M_BASE::get_source_buffer_bytes()
+{
+	if(m_source_external_fileio.load()) {
+		return get_source_bytes_size();
+	}
+	return m_source_buffer_size.load();
+}
+
+/* SOUND_MODULE */
 }
