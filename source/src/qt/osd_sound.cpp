@@ -256,8 +256,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		if(m_sound_driver.get() != nullptr) {
 			m_sound_driver->initialize_driver(this);
 			connect(this, SIGNAL(sig_set_sound_output_device(QString)), m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
-			connect(this, SIGNAL(sig_set_sound_device(QString)),  m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
-
 			/*
 			connect(this, SIGNAL(sig_sound_mute()), m_sound_driver.get(), SLOT(mute_sound()));
 			connect(this, SIGNAL(sig_sound_unmute()), m_sound_driver.get(), SLOT(unmute_sound()));

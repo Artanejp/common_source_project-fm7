@@ -102,7 +102,7 @@ protected:
 	}
 	// Maybe disconnect some signals via m_sink_fileio and m_source_fileio.
 	virtual bool release_driver_fileio();
-	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms);
+	virtual bool real_reconfig_sound(size_t& rate,size_t& channels,size_t& latency_ms, bool force);
 	
 	virtual bool has_output_device(QString name) { return false; }
 	virtual bool is_default_output_device() { return false; }
