@@ -69,15 +69,20 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	m_fps = 0.0;
 	m_sound_samples_factor = 0;
 	m_sound_samples_count = 0;
-
+	m_elapsed_us_before_rendered = 0;
+	
 	m_sound_driver.reset();
 	m_sound_thread = nullptr;
 	m_sound_period = 0;
 	m_sound_margin_usecs = 0;
 	
+	m_sound_initialized = false;
+	m_sound_exit = false;
+	m_sound_debug = true; // ToDo
+	
 	m_draw_thread.reset();
-	sound_initialized = false;
-
+	
+	
 	connect(this, SIGNAL(sig_debug_log(int, int, QString)), p_logger.get(), SLOT(do_debug_log(int, int, QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_logger_reset()), p_logger.get(), SLOT(reset()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_logger_set_device_name(int, QString)), p_logger.get(), SLOT(do_set_device_name(int, QString)), Qt::QueuedConnection);
@@ -600,11 +605,15 @@ void OSD_BASE::start_waiting_in_debugger()
 // Elapsed Timer: This uses for sound, mainly.
 void OSD_BASE::do_restart_sound_timer()
 {
+	m_elapsed_us_before_rendered = 0; // OK?
 	sound_tick_timer.restart();
 }
 
 void OSD_BASE::do_stop_sound_timer()
 {
+	if(m_sound_tick_timer.isValid()) {
+		m_elapsed_us_before_rendered = (int64_t)sound_tick_timer.nsecsElapsed() / 1000;
+	}
 	sound_tick_timer.invalidate();
 }
 

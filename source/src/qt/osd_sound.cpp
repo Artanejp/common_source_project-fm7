@@ -56,12 +56,21 @@
 
 void OSD_BASE::do_sink_empty()
 {
+	if((m_now_mute.load()) && (m_sound_initialized)) {
+		// Continue to mute.
+		//if(sound_tick_timer.isValid()) {
+			//m_elapsed_us_before_rendered = 0;
+			//sound_tick_timer.restart();
+		//}
+		put_null_sound();
+	}
 	m_sink_empty = true;
 }
 
 void OSD_BASE::do_sink_started()
 {
 	m_sink_started = true;
+	m_sound_first_half = true;
 }
 
 void OSD_BASE::do_sink_stopped()
@@ -69,31 +78,57 @@ void OSD_BASE::do_sink_stopped()
 	m_sink_started = false;
 }
 
+void OSD_BASE::sound_debug_log(const char *fmt, ...)
+{
+	if(m_sound_debug.load()) {
+		char strbuf[4096];
+		va_list ap;
+		
+		va_start(ap, fmt);
+		vsnprintf(strbuf, 4095, fmt, ap);
+		va_end(ap);
+		QString tmps = QString::fromLocal8Bit(strbuf);
+		emit sig_debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND, tmps);
+	}
+}
+
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	__LIKELY_IF(extra_frames != nullptr) {
 		*extra_frames = 0;
 	}
-	if(sound_exit) {
+	if(m_sound_exit.load()) {
 		return;
 	}
-	now_mute = false;
+
 	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(sound_initialized) {
+	if(m_sound_initialized.load()) {
 		// Get sound driver
+		bool prev_mute = m_now_mute.load();
+		unmute_sound();
 		if(!(sound_tick_timer.isValid())) {
 			sound_tick_timer.start();
 		}
+		bool first_half = m_sound_first_half.load();
 
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
 		__UNLIKELY_IF((m_sound_rate <= 0) || (m_sound_samples <= 0)) {
 			return; 
 		}
-		const int64_t elapsed_usec = (int64_t)sound_tick_timer.nsecsElapsed() / 1000; 
-		int64_t period_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
-		int64_t margin_usecs = m_sound_margin_usecs.load();
+		int64_t elapsed_us_before_rendered = m_elapsed_us_before_rendered.load();
+		const int64_t period_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
 		
+		__UNLIKELY_IF(elapsed_us_before_rendered < 0) {
+			elapsed_us_before_rendered = 0;
+			m_elapsed_us_before_rendered = 0;
+		} else if(elapsed_us_before_rendered >= period_usecs) {
+			elapsed_us_before_rendered = period_usecs - 1 // Margin?
+			m_elapsed_us_before_rendered = elapsed_us_before_rendered;
+		}
+
+		const int64_t elapsed_usec = ((int64_t)sound_tick_timer.nsecsElapsed() / 1000) + elapsed_us_before_rendered; 
+		int64_t margin_usecs = m_sound_margin_usecs.load();
 		int64_t tmp_frame_us = llrint(1.0e6 / vm_frame_rate());
 		
 		__UNLIKELY_IF(margin_usecs < (tmp_frame_us / 4)) {
@@ -102,24 +137,13 @@ void OSD_BASE::update_sound(int* extra_frames)
 		__UNLIKELY_IF(margin_usecs >= (period_usecs / 2)) {
 			margin_usecs = (period_usecs / 2); // OK?
 		}
-//		__UNLIKELY_IF(tmp_frame_us < 3300) { // About over 300fps
-//			return;
-//		}
-//		if(period_usecs < (tmp_frame_us + 1000)) {
-//			period_usecs = tmp_frame_us + 1000; // Frame rate + 1mSec.
-//		}
-		__LIKELY_IF(!((m_sink_started.load()) && (m_sink_empty.load())) || (sound_drv.get() == nullptr)) {
+//		__LIKELY_IF(!((m_sink_started.load()) && (prev_mute)) || (sound_drv.get() == nullptr)) {
 			__LIKELY_IF(elapsed_usec < (period_usecs - margin_usecs)) {
 				return;
 			}
-		}
-		m_sink_empty = false;
-//		__LIKELY_IF(sound_drv.get() != nullptr) { // Return if driver buffer maybe full.
-//			if((sound_drv->is_output_driver_started()) && (sound_drv->get_bytes_left() < (m_sound_samples * 2 * sizeof(int16_t)))) {
-//				return;
-//			}
 //		}
 		// Restart Timer
+		m_elapsed_us_before_rendered = 0;
 		sound_tick_timer.restart();
 		int __extra_frames = 0;
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
@@ -167,17 +191,17 @@ void OSD_BASE::update_sound(int* extra_frames)
 		if(sound_drv.get() != nullptr) {
 			int64_t _result = 0;
 			int _samples = m_sound_samples;
-			if(p_config != nullptr) {
-				sound_drv->set_sink_volume((int)(p_config->general_sound_level));
-			}
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
+			if(_result > 0) {
+				m_sink_empty = false;
+			}
 //			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
 //					  _T("Push sound %d samples -> %ld\n"), m_sound_samples, _result);
 			//if(_result > 0) {
 				//printf("%d %ld\n", m_sound_period, _result);
 			//}
 		}
-	
+		m_sound_first_half = !(first_half);
 	}
 }
 
@@ -202,8 +226,7 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 		}
 		if((m_fps > 0.0) && (m_sound_rate > 0) && (m_sound_samples > 0)) {
 			m_sound_samples_factor = llrint(1.0e6 / m_fps) / 2;
-			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-					  _T("set samples factor = %lld"), m_sound_samples_factor.load());
+			sound_debug_log(_T("set samples factor = %lld"), m_sound_samples_factor.load());
 			return true;
 		}
 		return false;
@@ -215,19 +238,19 @@ bool OSD_BASE::calcurate_sample_factor(int rate, int samples, const bool force)
 void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
 	// If sound driver hasn't initialized, initialize.
-	sound_exit = false;
+	m_sound_exit = false;
+	m_elapsed_us_before_rendered = 0; // OK?
+	sound_tick_timer.invalidate(); // OK?
+	
 	if((m_sound_driver.get() == nullptr)  ||
 	   (m_sound_rate != rate) ||
 	   (m_sound_samples != samples)) {
 		//m_sound_ok = false;
 		if(m_sound_driver.get() != nullptr) {
-			std::shared_ptr<SOUND_MODULE::M_BASE>drv = m_sound_driver;
-			emit sig_stop_sink();
-			//drv->stop_sound();
-			while((drv->is_output_driver_started()) || (drv->is_capture_driver_started())) {
+			m_sound_driver->deleteLater();
+			while(m_sound_driver.use_count() > 0) {
 				QThread::msleep(10);
 			}
-			
 		}
 		//m_sound_driver.reset(); // 20240511 K.O
 		/*
@@ -240,10 +263,14 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			m_sound_thread = nullptr;
 		}
 		*/
+		m_sound_initialized = false;
 		m_sink_started = false;
 		m_sink_empty = false; // OK?
 		m_source_started = false;
 		m_source_empty = false; // OK?
+		m_sound_first_half = true;
+		m_sound_margin_usecs = 0;
+		
 		m_sound_driver.reset(
 			new SOUND_MODULE::M_QT_MULTIMEDIA(this ,
 											  nullptr,
@@ -256,13 +283,8 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		if(m_sound_driver.get() != nullptr) {
 			m_sound_driver->initialize_driver(this);
 			connect(this, SIGNAL(sig_set_sound_output_device(QString)), m_sound_driver.get(), SLOT(do_set_output_by_name(QString)), Qt::QueuedConnection);
-			/*
-			connect(this, SIGNAL(sig_sound_mute()), m_sound_driver.get(), SLOT(mute_sound()));
-			connect(this, SIGNAL(sig_sound_unmute()), m_sound_driver.get(), SLOT(unmute_sound()));
-			connect(this, SIGNAL(sig_sound_stop()), m_sound_driver.get(), SLOT(stop_sound()));
-			connect(this, SIGNAL(sig_sound_start()), m_sound_driver.get(), SLOT(start()));
-			*/
-			//connect(m_sound_driver.get(), SIGNAL(sig_acknowledge_started()), this, SLOT(do_acknowledge_sound_started()));
+			m_sound_margin_usecs = llrint(1.0e6 / vm_frame_rate()); // Margine is 1 frame.
+		
 		}
 		#if 1
 		if(m_sound_thread == nullptr) {
@@ -301,15 +323,15 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			}
 		}
 		emit sig_set_sound_output_device(outdev);
-		if(sound_drv.get() != nullptr) {
-			sound_drv->set_sink_volume((int)(p_config->general_sound_level));
-		}
 	}
 
-	debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-			  "OSD::%s rate=%d samples=%d m_sound_driver=%llx", __func__, rate, samples, (uintptr_t)(sound_drv.get()));
+	sound_debug_log(_T("OSD::%s rate=%d samples=%d m_sound_driver=%llx"), __func__, rate, samples, (uintptr_t)(sound_drv.get()));
+	
 	m_sound_rate = rate;
 	m_sound_samples = samples;
+	m_sound_initialized = true;
+	m_elapsed_us_before_rendered = 0;
+	
 	if(sound_drv.get() != nullptr) {
 		if(presented_samples != nullptr) {
 			*presented_samples = samples;
@@ -317,12 +339,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		if(presented_rate != nullptr) {
 			*presented_rate = rate;
 		}
-		sound_initialized = true;
-		m_sink_empty = true;
-		m_source_empty = true;
-		m_sink_started = false;
-		m_source_started = false;
+		m_now_mute = false;
 		sound_dvr->start_sink();
+		mute_sound(); // Fill blank data a sample period.
 	}
 }
 
@@ -330,8 +349,8 @@ void OSD_BASE::release_sound()
 {
 	// ToDo: Sound Input
 	// release Qt Multimedia sound
-	sound_exit = true;
-	sound_initialized = false;
+	m_sound_exit = true;
+	m_sound_initialized = false;
 	m_sink_started = false;
 	m_sink_empty = false; // OK?
 	m_source_started = false;
@@ -339,7 +358,6 @@ void OSD_BASE::release_sound()
 
 	m_sound_period = 0;
 
-	emit sig_sound_about_to_quit();
 	if(m_sound_thread != nullptr) {
 		if(m_sound_thread->isRunning()) {
 			m_sound_thread->quit();
@@ -394,33 +412,53 @@ void OSD_BASE::init_sound_device_list()
 		int _xi = 1;
 		for(auto s = _l.begin(); s != _l.end(); ++s) {
 			sound_output_device_list.append(QString::fromStdString(*s));
-			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-					  "SOUND OUTPUT DEVICE#%03d %s", _xi, (*s).c_str());
+			sound_debug_log("SOUND OUTPUT DEVICE#%03d %s", _xi, (*s).c_str());
 			_xi++;
 		}
 	}
 	// ToDo: Capturing (SOURCE)
 }
 
-void OSD_BASE::unmute_sound()
+void OSD_BASE::put_null_sound()
 {
-	if(now_mute) {
-		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
-		if(sound_drv.get() != nullptr) {
-			sound_drv->unmute_sink();
+	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
+	if(sound_drv.get() != nullptr) {
+		//sound_drv->mute_sink();
+		size_t chunk_bytes = sound_drv->get_sink_chunk_bytes();
+		size_t samples = sound_drv->get_sink_sample_count();
+		uint8_t* buf = new uint8_t[chunk_bytes];
+		if(buf != nullptr) {
+			memset(buf, 0x00, chunk_bytes);
+			sound_drv->update_sound((void*)buf, _samples);
+			delete [] buf;
+			m_sink_empty = false;
 		}
-		now_mute = false;
 	}
 }
-void OSD_BASE::mute_sound()
+
+void OSD_BASE::unmute_sound()
 {
-	if(!now_mute) {
+	if((m_now_mute.load()) && (m_sound_initialized.load())) {
 		std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE>sound_drv = m_sound_driver;
 		if(sound_drv.get() != nullptr) {
-			sound_drv->mute_sink();
+			//sound_drv->unmute_sink();
+			sound_drv->discard_sink(); // Resume.
 		}
-		now_mute = true;
 	}
+	m_now_mute = false;
+}
+
+void OSD_BASE::mute_sound()
+{
+	if(!(m_now_mute.load()) && (m_sound_initialized.load())) {
+		if(sound_tick_timer.isValid()) {
+			m_elapsed_us_before_rendered = (int64_t)sound_tick_timer.nsecsElapsed() / 1000;
+			sound_tick_timer.invalidate();
+		}
+		put_null_sound();
+	}
+	m_now_mute = true;
+	
 }
 
 void OSD_BASE::stop_sound()
@@ -430,9 +468,10 @@ void OSD_BASE::stop_sound()
 	if(sound_drv.get() != nullptr) {
 		sound_drv->stop_sink();
 	}
+	m_elapsed_us_before_rendered = 0;
 	m_sound_period = 0;
 	sound_tick_timer.invalidate(); // Don't use timer.
-	sound_initialized = false;
+	m_sound_initialized = false;
 }
 
 //void OSD_BASE::do_acknowledge_sound_started()

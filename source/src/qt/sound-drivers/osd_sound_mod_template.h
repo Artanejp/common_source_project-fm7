@@ -283,7 +283,6 @@ public slots:
 	virtual void update_extra_config() {}
 	virtual void release_sound();
 
-
 	virtual void reset_to_defalut() {}
 	virtual bool is_running_sound()
 	{

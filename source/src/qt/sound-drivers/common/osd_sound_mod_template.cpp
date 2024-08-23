@@ -261,7 +261,7 @@ bool M_BASE::reconfig_sound(int rate, int channels)
 	// ToDo
 	if((rate != m_rate.load()) || (channels != m_channels.load())) {
 		int _latency = m_latency_ms.load();
-		bool _b = real_reconfig_sound(rate, channels, _latency);
+		bool _b = real_reconfig_sound(rate, channels, _latency, false);
 		m_latency_ms = _latency;
 		if(_b) {
 			m_rate = rate;
@@ -304,32 +304,36 @@ bool M_BASE::release_driver_fileio()
 }
 
 
-bool M_BASE::real_reconfig_sound(int& rate,int& channels,int& latency_ms)
+bool M_BASE::real_reconfig_sound(int& rate,int& channels,int& latency_ms, const bool force)
 {
+//	if(force) {
+//		m_config_ok = true;
+//		return m_config_ok.load();
+//	}
 	if((rate <= 0) || (channels < 1) || (latency_ms < 10)) {
-		return false;
+		m_config_ok = false;
+		return m_config_ok.load();
 	}
-	return true;
+	m_config_ok = true;
+	return m_config_ok.load();
 }
 
 
 void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(samples <= 0) return;
 	if(rate <= 0) rate = 8000; // OK?
 
 	int _latency_ms = (samples * 1000) / rate;
 	int channels = m_channels.load();
-	if(real_reconfig_sound(rate, channels, _latency_ms)) {
-		m_config_ok = true;
+	if(real_reconfig_sound(rate, channels, _latency_ms, true)) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		config_t* p_config = get_config_ptr();
 		if(p_config != nullptr) {
 			set_sink_volume((int)(p_config->general_sound_level));
 		}
 		__debug_log_func("Success. Sample rate=%d samples=%d", m_rate.load(), m_samples.load());
 	} else {
-		m_config_ok = false;
 		__debug_log_func("Failed.");
 	}
 	if(presented_rate != nullptr) {

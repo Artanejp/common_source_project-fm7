@@ -159,7 +159,7 @@ class DLL_PREFIX OSD_BASE : public  QObject
 private:
 	/* Note: Below are new sound driver. */
 	std::shared_ptr<SOUND_MODULE::M_BASE> m_sound_driver;
-	std::atomic<int64_t> elapsed_us_before_rendered;	// Count half
+	std::atomic<int64_t> m_elapsed_us_before_rendered;	// Count half
 	uint32_t     m_sound_period;
 	// Count factor; this multiplies by 2^32;
 	std::atomic<uint64_t>     m_sound_samples_count;
@@ -284,12 +284,13 @@ protected:
 
 	// sound
 	void release_sound();
-	virtual void init_sound_device_list();
+	void init_sound_device_list();
 	bool __FASTCALL calcurate_sample_factor(int rate, int samples, const bool force);
+	void __FASTCALL sound_debug_log(const char *fmt, ...);
+	void put_null_sound();
 
 	int m_sound_rate, m_sound_samples;
-	bool sound_started, now_mute;
-	bool sound_first_half;
+	std::atomic<bool> m_sound_first_half;
 	QStringList sound_output_device_list;
 	
 	_TCHAR sound_file_name[_MAX_PATH];
@@ -298,15 +299,10 @@ protected:
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
 
-	int sound_buffer_size;
-	int sound_data_len;
-	int sound_data_pos;
-	int sound_write_pos;
-	bool sound_exit;
-	bool sound_debug;
-	bool sound_initialized;
-	uint8_t *sound_buf_ptr;
-	Uint8 snd_total_volume;
+	std::atomic<bool> m_now_mute;
+	std::atomic<bool> m_sound_exit;
+	std::atomic<bool> m_sound_debug;
+	std::atomic<bool> m_sound_initialized;
 
 	// sound capture
 	QStringList sound_capture_device_list;
