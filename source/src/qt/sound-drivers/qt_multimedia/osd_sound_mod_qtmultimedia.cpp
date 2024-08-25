@@ -8,9 +8,10 @@
 
 #include <algorithm>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-#include <QMediaDevices>
-#endif
+//#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+//#include <QAudioInput>
+//#include <QAudioOutput>
+//#endif
 
 namespace SOUND_MODULE {
 /* SOUND_MODULE */
@@ -38,7 +39,7 @@ namespace SOUND_MODULE {
 	
 {
 	m_classname = "SOUND_MODULE::M_QT_MULTIMEDIA";
-
+	
 	initialize_sink_devices_list();
 	initialize_source_devices_list();
 	/*
@@ -74,7 +75,15 @@ bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
 	connect(this, SIGNAL(sig_unmute_sink()),  this, SLOT(do_unmute_sink()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_discard_sink()),  this, SLOT(do_discard_sink()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_set_sink_volume(double)),  this, SLOT(do_sink_volume(double)), Qt::QueuedConnection);
+	
+	initialize_sink_sound_devices_list();
+	initialize_source_sound_devices_list();
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	connect(&m_Root, SIGNAL(audioOutputsChanged()), this, SLOT(do_reload_sink_sound_devices()));
+	connect(&m_Root, SIGNAL(audioInputsChanged()), this, SLOT(do_reload_source_sound_devices()));
+#endif
+	
 	return true;
 }
 
@@ -280,7 +289,10 @@ void M_QT_MULTIMEDIA::update_sink_driver_fileio()
 	}
 }
 
-
+void M_QT_MULTIMEDIA::source_state_changed(QAudio::State newState)
+{
+	// ToDo:
+}
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 void M_QT_MULTIMEDIA::set_audio_format(QAudioDevice dest_device, QAudioFormat& desired, int& channels, int& rate)
@@ -544,18 +556,19 @@ QAudioDeviceInfo M_QT_MULTIMEDIA::get_output_device_by_name(QString driver_name)
 
 void M_QT_MULTIMEDIA::do_set_output_by_name(QString driver_name)
 {
-//	if(m_sink_device_name == driver_name.toLocal8Bit().toStdString()) {
-//		return;
-//	}
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QAudioDevice dest_device = get_output_device_by_name(driver_name);
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QAudioDeviceInfo dest_device = get_output_device_by_name(driver_name);
 #endif
+	bool force = false;
+	if(!(m_config_ok.load())) {
+		force = true;
+	}
 	int _rate = m_sink_rate.load();
 	int _channels = m_sink_channels.load();
 	int _latency = m_sink_latency_ms.load();
-	setup_output_device(dest_device, _rate, _channels, _latency, false);
+	setup_output_device(dest_device, _rate, _channels, _latency, force);
 	m_sink_rate = _rate;
 	m_sink_channels = _channels;
 	m_sink_latency_ms = _latency;
@@ -987,6 +1000,19 @@ void M_QT_MULTIMEDIA::do_stop_sink()
 	m_sink_volume = std::nan("1");
 }
 
+
+void M_QT_MULTIMEDIA::do_reload_sink_sound_devices()
+{
+	initialize_sink_sound_devices_list();
+	// Check current device still aveilable.
+	// I not, todo?
+}
+void M_QT_MULTIMEDIA::do_reload_source_sound_devices()
+{
+	initialize_sink_sound_devices_list();
+	// Check current device still aveilable.
+	// I not, todo?
+}
 
 int64_t M_QT_MULTIMEDIA::update_sound(void* datasrc, int samples)
 {

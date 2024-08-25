@@ -76,6 +76,11 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	m_sound_period = 0;
 	m_sound_margin_usecs = 0;
 	
+	m_sink_empty = false;
+	m_sink_started = false;
+	m_source_empty = false;
+	m_source_started = false;
+	
 	m_sound_initialized = false;
 	m_sound_exit = false;
 	m_sound_debug = true; // ToDo
@@ -606,15 +611,15 @@ void OSD_BASE::start_waiting_in_debugger()
 void OSD_BASE::do_restart_sound_timer()
 {
 	m_elapsed_us_before_rendered = 0; // OK?
-	sound_tick_timer.restart();
+	m_sound_tick_timer.restart();
 }
 
 void OSD_BASE::do_stop_sound_timer()
 {
 	if(m_sound_tick_timer.isValid()) {
-		m_elapsed_us_before_rendered = (int64_t)sound_tick_timer.nsecsElapsed() / 1000;
+		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
 	}
-	sound_tick_timer.invalidate();
+	m_sound_tick_timer.invalidate();
 }
 
 

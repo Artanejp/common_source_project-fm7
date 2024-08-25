@@ -102,7 +102,7 @@ protected:
 	}
 	// Maybe disconnect some signals via m_sink_fileio and m_source_fileio.
 	virtual bool release_driver_fileio();
-	virtual bool real_reconfig_sound(size_t& rate,size_t& channels,size_t& latency_ms, bool force);
+	virtual bool real_reconfig_sound(size_t& rate, size_t& channels, size_t& latency_ms, bool force);
 	
 	virtual bool has_output_device(QString name) { return false; }
 	virtual bool is_default_output_device() { return false; }
@@ -247,7 +247,7 @@ public:
 		static std::list<std::string> dummy_list;
 		return dummy_list;
 	}
-	virtual std::list<std::string> get_source_sink_devices_list()
+	virtual std::list<std::string> get_sound_source_devices_list()
 	{
 		static std::list<std::string> dummy_list;
 		return dummy_list;
@@ -275,7 +275,6 @@ public:
 	virtual bool set_extra_config(void* p, int bytes);
 	virtual bool modify_extra_config(void* p, int& bytes);
 public slots:
-
 	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 	virtual void do_about_to_quit();
 	
@@ -288,16 +287,16 @@ public slots:
 	{
 		return true;
 	}
-	bool update_rate(int rate)
+	bool update_rate(size_t rate)
 	{
-		return reconfig_sound(rate, m_channels.load());
+		return reconfig_sound(rate, m_sink_channels.load());
 	}
-	bool update_channels(int channels)
+	bool update_channels(size_t channels)
 	{
-		return reconfig_sound(m_rate.load(), channels);
+		return reconfig_sound(m_sink_rate.load(), channels);
 	}
-	virtual bool update_latency(int latency_ms, bool fortce = false);
-	bool reconfig_sound(int rate, int channels);
+	virtual bool update_latency(size_t latency_ms, bool fortce = false);
+	bool reconfig_sound(size_t rate, size_t channels);
 
 	virtual bool do_send_log(int level, int domain, QString _str);
 	virtual bool do_send_log(int level, int domain, const _TCHAR* _str, int maxlen);
@@ -347,7 +346,9 @@ public slots:
 	virtual void do_set_input_by_name(void);
 	virtual void do_set_input_by_number(void);
 	// From real driver: notify to update sound devices list.
-	virtual void do_update_device_list() {}
+	
+	virtual void do_update_output_devices_list() {}
+	virtual void do_update_input_devices_list() {}
 
 	// Below SLOTs can call directry from OSD:: .
 	virtual void set_osd(OSD_BASE* p);
@@ -400,11 +401,8 @@ signals:
 	// notify completed to release sound driver.
 	void sig_released(bool);
 	// To UI: notify reset sound device list.
-	void sig_reset_sound_device_list();
-	// To UI: notify update sound device list #arg1 to #arg2.
-	void sig_set_sound_device(int, QString);
-	// To UI: notify adding sound device list #arg1.
-	void sig_add_sound_device(QString);
+	void sig_update_output_devices_list();
+	void sig_update_input_devices_list();
 };
 /* SOUND_MODULE */
 }

@@ -181,7 +181,7 @@ protected:
 	bool __USE_AUTO_KEY;
 
 	_TCHAR app_path[_MAX_PATH];
-	QElapsedTimer sound_tick_timer;
+	QElapsedTimer m_sound_tick_timer;
 	std::atomic<bool> locked_vm;
 	std::atomic<bool> will_delete_vm;
 
@@ -291,7 +291,10 @@ protected:
 
 	int m_sound_rate, m_sound_samples;
 	std::atomic<bool> m_sound_first_half;
-	QStringList sound_output_device_list;
+	QStringList sound_output_devices_list;
+	
+	std::atomic<bool> m_sink_empty;
+	std::atomic<bool> m_sink_started;
 	
 	_TCHAR sound_file_name[_MAX_PATH];
 	
@@ -305,7 +308,7 @@ protected:
 	std::atomic<bool> m_sound_initialized;
 
 	// sound capture
-	QStringList sound_capture_device_list;
+	QStringList sound_capture_devices_list;
 	bool sound_capturing_emu[MAX_CAPTURE_SOUNDS];
 	osd_snd_capture_desc_t  sound_capture_desc[MAX_CAPTURE_SOUNDS]; // To EMU:: and VM::
 	bool capturing_sound[MAX_SOUND_CAPTURE_DEVICES];
@@ -324,6 +327,10 @@ protected:
 
 	void enum_capture_devs();
 	bool connect_capture_dev(int index, bool pin);
+
+	std::atomic<bool> m_source_empty;
+	std::atomic<bool> m_source_started;
+	
 	int cur_capture_dev_index;
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
@@ -500,13 +507,13 @@ public:
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
 	
-	QStringList  get_sound_output_device_list()
+	QStringList  get_sound_output_devices_list()
 	{
-		return sound_output_device_list;
+		return sound_output_devices_list;
 	}
-	QStringList  get_sound_capture_device_list()
+	QStringList  get_sound_capture_devices_list()
 	{
-		return sound_capture_device_list;
+		return sound_capture_devices_list;
 	}
 
 
@@ -714,6 +721,11 @@ public slots:
 	void start_record_sound();
 	void stop_record_sound();
 	void restart_record_sound();
+
+	// sound state machine.
+	void do_sink_empty();
+	void do_sink_started();
+	void do_sink_stopped();
 	
 	void enable_mouse();
 	void disable_mouse();
@@ -788,10 +800,14 @@ signals:
 	int sig_sound_about_to_quit();
 	
 
-	int sig_update_sound_output_list();
-	int sig_clear_sound_output_list();
-	int sig_append_sound_output_list(QString);
+	int sig_update_sound_outputs_list();
+	int sig_clear_sound_outputs_list();
+	int sig_append_sound_outputs_list(QString);
 
+	int sig_update_sound_inputs_list();
+	int sig_clear_sound_inputs_list();
+	int sig_append_sound_inputs_list(QString);
+	
 	int sig_update_device_node_name(int id, const _TCHAR *name);
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);

@@ -112,12 +112,11 @@ qint64 SOUND_BUFFER_QT::pos() const
 bool SOUND_BUFFER_QT::seek(qint64 pos)
 {
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
-	bool _stat = false;
 	int64_t ptr;
 	__LIKELY_IF(p.get() != nullptr) {
 		ptr = p->seek((int)pos, _stat);
 	}
-	return stat;
+	return true; // OK?
 }
 
 bool SOUND_BUFFER_QT::atEnd() const

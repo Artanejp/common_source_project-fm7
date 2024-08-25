@@ -22,6 +22,9 @@ class DLL_PREFIX SOUND_BUFFER_QT : public QIODevice
 	//using BUFFER_TYPE = FIFO_BASE::LOCKED_FIFO<uint8_t>;
 protected:
 	std::shared_ptr<BUFFER_TYPE>m_buffer;
+	std::atomic<bool> m_read_opened;
+	std::atomic<bool> m_write_opened;
+	
 public:
 	SOUND_BUFFER_QT(uint64_t depth = 0, QObject *parent = nullptr);
 	~SOUND_BUFFER_QT();

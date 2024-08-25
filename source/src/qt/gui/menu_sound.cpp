@@ -20,7 +20,7 @@
 
 // WIP: Will move to another file
 
-void Ui_MainWindowBase::do_clear_sound_output_list(void)
+void Ui_MainWindowBase::do_clear_sound_outputs_list(void)
 {
 	if(!(action_HostSoundDevice.empty())) {
 		for(auto ix = action_HostSoundDevice.begin(); ix != action_HostSoundDevice.end(); ++ix) {
@@ -36,7 +36,7 @@ void Ui_MainWindowBase::do_clear_sound_output_list(void)
 	action_HostSoundDevice.clear();
 }
 
-void Ui_MainWindowBase::do_append_sound_output_list(QString _name)
+void Ui_MainWindowBase::do_append_sound_outputs_list(QString _name)
 {
 	int nums = action_HostSoundDevice.size();
 	if(nums < 0) nums = 0;
@@ -55,7 +55,7 @@ void Ui_MainWindowBase::do_append_sound_output_list(QString _name)
 
 }
 
-void Ui_MainWindowBase::do_update_sound_output_list(void)
+void Ui_MainWindowBase::do_update_sound_outputs_list(void)
 {
 	if((p_config == nullptr) || (using_flags == nullptr)) return;
 	int _match = -1;
@@ -68,7 +68,7 @@ void Ui_MainWindowBase::do_update_sound_output_list(void)
 	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
 	int i = 0;
 	if(using_flags->get_osd() != nullptr) {
-		QStringList _l =  using_flags->get_osd()->get_sound_output_device_list();
+		QStringList _l =  using_flags->get_osd()->get_sound_output_devices_list();
 		for(auto p = _l.begin(); p != _l.end(); ++p) {
 			do_append_sound_output_list((*p));
 			if((*p) == _setname) {

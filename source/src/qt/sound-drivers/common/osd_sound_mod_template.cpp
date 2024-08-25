@@ -10,7 +10,7 @@
 
 #include "../osd_sound_mod_consts.h"
 #include "../osd_sound_mod_utils.h"
-#incluse <cmath>
+#include <cmath>
 
 namespace SOUND_MODULE {
 /* SOUND_MODULE */
@@ -45,7 +45,7 @@ namespace SOUND_MODULE {
 	  m_prev_sink_started(false),
 	  m_prev_source_started(false),
 
-	  m_before_rendered(0),
+	  m_sink_before_rendered(0),
 	  m_mute(false),
 	  m_sink_external_fileio(false),
 	  m_source_external_fileio(false),
@@ -59,8 +59,8 @@ namespace SOUND_MODULE {
 	m_source_fileio.reset();
 	set_osd(parent);
 
-	if(m_channels.load() <= 1) m_channels = 2;
-	recalc_samples(m_rate.load(), m_latency_ms.load(), true);
+	if(m_sink_channels.load() <= 1) m_sink_channels = 2;
+	recalc_samples(m_sink_rate.load(), m_sink_latency_ms.load(), true);
 	// Belows are specified buffer function.
 
 	bool sink_reinit = (sinkDeviceIO == nullptr) ? true : false;
@@ -143,7 +143,7 @@ bool M_BASE::recalc_samples(size_t rate, size_t latency_ms, bool force)
 	size_t _chunk_bytes = (size_t)(_samples * (uint64_t)(m_sink_wordsize.load()) * (uint64_t)(m_sink_channels.load()));
 	size_t _buffer_bytes = _chunk_bytes * 4;
 
-	if((m_rate.load() == rate) && (m_latency_ms.load() == latency_ms) && !(force)) {
+	if((m_sink_rate.load() == rate) && (m_sink_latency_ms.load() == latency_ms) && !(force)) {
 		return false;
 	}
 	
@@ -235,16 +235,20 @@ __FORMAT M_BASE::get_source_sound_format()
 
 
 
-bool M_BASE::update_latency(int latency_ms, bool force)
+bool M_BASE::update_latency(size_t latency_ms, bool force)
 {
-	if(latency_ms <= 0) {
+	if(latency_ms == 0) {
 		return false;
 	}
-	if(!(force) && (m_latency_ms.load() == latency_ms)) return true;
-
+	
+	if(!(force) && (m_sink_latency_ms.load() == latency_ms)) return true;
+	size_t _rate = m_sink_rate.load();
+	
 	stop_sink();
-	recalc_samples(m_rate.load(), (size_t)latency_ms, true);
+	recalc_samples(_rate, latency_ms, true);
 
+	m_sink_rate = _rate;
+	
 	if(m_sink_external_fileio.load()) {
 		std::shared_ptr<QIODevice> fio = m_sink_fileio;
 		if(fio.get() != nullptr) {
@@ -256,13 +260,13 @@ bool M_BASE::update_latency(int latency_ms, bool force)
 }
 
 
-bool M_BASE::reconfig_sound(int rate, int channels)
+bool M_BASE::reconfig_sound(size_t rate, size_t channels)
 {
 	// ToDo
-	if((rate != m_rate.load()) || (channels != m_channels.load())) {
-		int _latency = m_latency_ms.load();
+	if((rate != m_sink_rate.load()) || (channels != m_sink_channels.load())) {
+		size_t _latency = m_sink_latency_ms.load();
 		bool _b = real_reconfig_sound(rate, channels, _latency, false);
-		m_latency_ms = _latency;
+		m_sink_latency_ms = _latency;
 		if(_b) {
 			m_rate = rate;
 			m_channels = channels;
