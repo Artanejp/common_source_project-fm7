@@ -440,14 +440,12 @@ bool M_BASE::start_sink()
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(m_sink_external_fileio.load()) {
 		_stat = reopen_sink_fileio(false);
+		// ToDo: Restart fio.
 		if(_stat) {
 			update_sink_driver_fileio();
 		}
-	} else {
-		size_t bufsize = get_
 	}
 	emit sig_start_sink();
-
 	return true;
 }
 
