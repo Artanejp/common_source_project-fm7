@@ -15,18 +15,24 @@
 
 #include <QAudioFormat>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+// Qt 6.x
 #include <QMediaDevices>
 #include <QAudioDevice>
 
 #include <QAudioSource>
 #include <QAudioSink>
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+// Qt 5.x
 #include <QAudioDeviceInfo>
 #include <QAudioInput>
 #include <QAudioOutput>
+#else
+#error "This version of Qt don't supports Qt Multimedia. Please remove to build this"."
 #endif
 
 #include "../osd_sound_mod_template.h"
+
+
 
 QT_BEGIN_NAMESPACE
 
@@ -43,39 +49,38 @@ class DLL_PREFIX M_QT_MULTIMEDIA
 	Q_OBJECT
 protected:
 	QAudioFormat						m_audioOutputFormat;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+using OutputSinkType  = QAudioSink;
+using InputSourceType = QAudioSource;
+using DeviceInfoType  = QAudioDevice;
+#else
+using OutputSinkType  = QAudioOutput;
+using InputSourceType = QAudioInput;
+using DeviceInfoType  = QAudioDeviceInfo;
+#endif
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QMediaDevices						m_Root;
 	//QAudioOutput						*m_Output;
 	//QAudioInput						*m_Input;
-	
-	std::shared_ptr<QAudioSink>			m_audioOutputSink;
-	QAudioDevice						m_audioOutputDevice;
-	QList<QAudioDevice>					m_audioOutputsList;
-	virtual void set_audio_format(QAudioDevice dest_device, QAudioFormat& desired, int& channels, int& rate);
-	std::shared_ptr<QAudioSource>		m_audioInputSource;
-	QAudioDevice						m_audiInputDevice;
-	QList<QAudioDevice>					m_audioInputssList;
-#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	std::shared_ptr<QAudioOutput>		m_audioOutputSink;
-	QAudioDeviceInfo					m_audioOutputDevice;
-	QList<QAudioDeviceInfo>				m_audioOutputsList;
-	virtual void set_audio_format(QAudioDeviceInfo dest_device, QAudioFormat& desired, int& channels, int& rate);
-
-	std::shared_ptr<QAudioInput>		m_audioInputSource;
-	QAudioDeviceInfo					m_audioInputDevice;
-	QList<QAudioDeviceInfo>				m_audioInputsList;
 #endif
+	
+	std::shared_ptr<OutputSinkType>		m_audioOutputSink;
+	DeviceInfoType						m_audioOutputDevice;
+	QList<DeviceInfoType>				m_audioOutputsList;
+
+	std::shared_ptr<InputSourceType>	m_audioInputSource;
+	DeviceInfoType						m_audiInputDevice;
+	QList<DeviceInfoType>				m_audioInputssList;
 	
 	std::atomic<QAudio::State>			m_prev_sink_state;
 	std::atomic<QAudio::State>			m_prev_source_state;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	QAudioDevice get_output_device_by_name(QString driver_name);
-	void setup_output_device(QAudioDevice dest_device, int& rate, int& channels, int& latency_ms, bool force_reinit = false);
-#else
-	QAudioDeviceInfo get_output_device_by_name(QString driver_name);
-	void setup_output_device(QAudioDeviceInfo dest_device, int& rate,int& channels,int& latency_ms, bool force_reinit = false);
-#endif
+	virtual void set_audio_format(DeviceInfoType dest_device, QAudioFormat& desired, int& channels, int& rate);
+	DeviceInfoType get_output_device_by_name(QString driver_name);
+	void setup_output_device(DeviceInfoType dest_device, int& rate, int& channels, int& latency_ms, bool force_reinit = false);
+	
 	virtual bool real_reconfig_sound(int& rate,int& channels,int& latency_ms, const bool force) override;
 	virtual void update_sink_driver_fileio() override;
 	
@@ -99,6 +104,14 @@ protected:
 	virtual bool initialize_sink_driver_post(QObject* parent);
 	virtual bool initialize_source_driver_post(QObject* parent);
 
+	inline QString get_audio_device_name(DeviceInfoType x)
+	{
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		return x.description();
+	#else
+		return x.deviceName();
+	#endif
+	}
 public:
 	M_QT_MULTIMEDIA(
 		OSD_BASE *parent,
