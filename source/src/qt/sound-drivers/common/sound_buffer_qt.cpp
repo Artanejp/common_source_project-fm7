@@ -113,6 +113,7 @@ bool SOUND_BUFFER_QT::seek(qint64 pos)
 {
 	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 	int64_t ptr;
+	bool _stat;
 	__LIKELY_IF(p.get() != nullptr) {
 		ptr = p->seek((int)pos, _stat);
 	}

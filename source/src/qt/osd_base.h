@@ -722,6 +722,10 @@ public slots:
 	void stop_record_sound();
 	void restart_record_sound();
 
+	// To throw GUI.
+	void do_update_sound_output_devices_list();
+	void do_update_sound_capture_devices_list();
+
 	// sound state machine.
 	void do_sink_empty();
 	void do_sink_started();

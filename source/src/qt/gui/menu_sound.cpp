@@ -61,16 +61,16 @@ void Ui_MainWindowBase::do_update_sound_outputs_list(void)
 	int _match = -1;
 	QString matched_devname = QString::fromUtf8("Default");
 
-	do_clear_sound_output_list();
+	do_clear_sound_outputs_list();
 
-	do_append_sound_output_list(QString::fromUtf8("Default"));
+	do_append_sound_outputs_list(QString::fromUtf8("Default"));
 
 	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
 	int i = 0;
 	if(using_flags->get_osd() != nullptr) {
 		QStringList _l =  using_flags->get_osd()->get_sound_output_devices_list();
 		for(auto p = _l.begin(); p != _l.end(); ++p) {
-			do_append_sound_output_list((*p));
+			do_append_sound_outputs_list((*p));
 			if((*p) == _setname) {
 				_match = i + 1;
 				matched_devname = (*p);

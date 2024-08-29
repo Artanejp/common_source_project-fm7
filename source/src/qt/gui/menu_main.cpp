@@ -94,7 +94,7 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 Ui_MainWindowBase::~Ui_MainWindowBase()
 {
 	// May need delete items via QVector.
-	do_clear_sound_output_list();
+	do_clear_sound_outputs_list();
 
 	graphicsView->releaseKeyboard();
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;

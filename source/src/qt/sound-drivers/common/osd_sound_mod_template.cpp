@@ -31,6 +31,7 @@ namespace SOUND_MODULE {
 	  m_sink_samples(0),
 	  m_sink_wordsize(sizeof(int16_t)),
 	  m_sink_volume(std::nan("1")),
+	  m_sink_fileio(nullptr),
 	  
 	  m_source_rate(base_rate),
 	  m_source_latency_ms(base_latency_ms),
@@ -38,6 +39,7 @@ namespace SOUND_MODULE {
 	  m_source_samples(0),
 	  m_source_wordsize(sizeof(int16_t)),
 	  m_source_volume(std::nan("1")),
+	  m_source_fileio(nullptr),
 	  
 	  m_extconfig_ptr(extra_config_values),
 	  m_extconfig_bytes(extra_config_bytes),
@@ -53,10 +55,9 @@ namespace SOUND_MODULE {
 	   QObject(qobject_cast<QObject*>(parent))*/
 {
 
+	m_OSD = nullptr;
 	m_logger.reset();
 	m_using_flags.reset();
-	m_sink_fileio.reset();
-	m_source_fileio.reset();
 	set_osd(parent);
 
 	if(m_sink_channels.load() <= 1) m_sink_channels = 2;
@@ -69,7 +70,7 @@ namespace SOUND_MODULE {
 			sinkDeviceIO->close();
 		}
 		m_sink_external_fileio = true;
-		m_sink_fileio.reset(sinkDeviceIO);
+		m_sink_fileio = sinkDeviceIO;
 	}
 //	if((sink_reinit) && !(m_sink_external_fileio.load())) {
 //		m_sink_fileio.reset(new SOUND_BUFFER_QT(m_sink_buffer_bytes.load(), this));
@@ -85,13 +86,13 @@ namespace SOUND_MODULE {
 		}
 		if(sourceDeviceIO->resize(m_source_buffer_bytes.load())) {
 			m_source_external_fileio = true;
-			m_source_fileio.reset(sourceDeviceIO);
+			m_source_fileio = sourceDeviceIO;
 		} else {
 			sink_reinit = true;
 		}
 	}
 	if((source_reinit) && !(m_source_external_fileio.load())) {
-		m_source_fileio.reset(new SOUND_BUFFER_QT(m_source_buffer_bytes.load(), this));
+		m_source_fileio = new SOUND_BUFFER_QT(m_source_buffer_bytes.load(), this);
 		reopen_source_fileio(true);
 	}
 #endif	
@@ -107,8 +108,8 @@ M_BASE::~M_BASE()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	release_sound();
-	m_sink_fileio.reset(); // Force to clear FILEIO, even using external this.
-	m_source_fileio.reset(); // Force to clear FILEIO, even using external this.
+	m_sink_fileio = nullptr; // Force to clear FILEIO, even using external this.
+	m_source_fileio = nullptr; // Force to clear FILEIO, even using external this.
 	m_config_ok = false;
 }
 
@@ -155,9 +156,10 @@ bool M_BASE::recalc_samples(size_t rate, size_t latency_ms, bool force)
 
 bool M_BASE::reopen_sink_fileio(bool force_reopen)
 {
-	std::shared_ptr<QIODevice> fio = m_sink_fileio;
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	QIODevice* fio = m_sink_fileio;
 
-	if(fio.get() != nullptr) {
+	if(fio != nullptr) {
 		if(force_reopen) {
 			if(fio->isOpen()) {
 				fio->close();
@@ -179,9 +181,9 @@ bool M_BASE::reopen_sink_fileio(bool force_reopen)
 
 bool M_BASE::reopen_source_fileio(bool force_reopen)
 {
-	std::shared_ptr<QIODevice> fio = m_source_fileio;
+	QIODevice* fio = m_source_fileio;
 
-	if(fio.get() != nullptr) {
+	if(fio != nullptr) {
 		if(force_reopen) {
 			if(fio->isOpen()) {
 				fio->close();
@@ -250,8 +252,9 @@ bool M_BASE::update_latency(size_t latency_ms, bool force)
 	m_sink_rate = _rate;
 	
 	if(m_sink_external_fileio.load()) {
-		std::shared_ptr<QIODevice> fio = m_sink_fileio;
-		if(fio.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		QIODevice* fio = m_sink_fileio;
+		if(fio != nullptr) {
 			fio->reset();
 		}
 	}
@@ -268,9 +271,9 @@ bool M_BASE::reconfig_sound(size_t rate, size_t channels)
 		bool _b = real_reconfig_sound(rate, channels, _latency, false);
 		m_sink_latency_ms = _latency;
 		if(_b) {
-			m_rate = rate;
-			m_channels = channels;
-			m_config_ok = update_latency(m_latency_ms.load(), true);
+			m_sink_rate = rate;
+			m_sink_channels = channels;
+			m_config_ok = update_latency(m_sink_latency_ms.load(), true);
 			return m_config_ok.load();
 		}
 	}
@@ -281,11 +284,12 @@ bool M_BASE::release_driver_fileio()
 {
 	bool result_sink = false;
 	if(m_sink_external_fileio.load()) {
-		std::shared_ptr<QIODevice> fio_sink = m_sink_fileio;
-		if(fio_sink.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		QIODevice* fio_sink = m_sink_fileio;
+		if(fio_sink != nullptr) {
 			fio_sink->close();
-			disconnect(fio_sink.get(), nullptr, this, nullptr);
-			disconnect(this, nullptr, fio_sink.get(), nullptr);
+			disconnect(fio_sink, nullptr, this, nullptr);
+			disconnect(this, nullptr, fio_sink, nullptr);
 			result_sink = true;
 		}
 	} else {
@@ -293,11 +297,12 @@ bool M_BASE::release_driver_fileio()
 	}
 	bool result_source = false;
 	if(m_source_external_fileio.load()) {
-		std::shared_ptr<QIODevice> fio_source = m_source_fileio;
-		if(fio_source.get() != nullptr) {
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		QIODevice* fio_source = m_source_fileio;
+		if(fio_source != nullptr) {
 			fio_source->close();
-			disconnect(fio_source.get(), nullptr, this, nullptr);
-			disconnect(this, nullptr, fio_source.get(), nullptr);
+			disconnect(fio_source, nullptr, this, nullptr);
+			disconnect(this, nullptr, fio_source, nullptr);
 			result_source = true;
 		}
 	} else {
@@ -308,7 +313,7 @@ bool M_BASE::release_driver_fileio()
 }
 
 
-bool M_BASE::real_reconfig_sound(int& rate,int& channels,int& latency_ms, const bool force)
+bool M_BASE::real_reconfig_sound(size_t& rate, size_t& channels, size_t& latency_ms, const bool force)
 {
 //	if(force) {
 //		m_config_ok = true;
@@ -328,23 +333,26 @@ void M_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* p
 	if(samples <= 0) return;
 	if(rate <= 0) rate = 8000; // OK?
 
-	int _latency_ms = (samples * 1000) / rate;
-	int channels = m_channels.load();
-	if(real_reconfig_sound(rate, channels, _latency_ms, true)) {
+	size_t _samples = (size_t)samples;
+	size_t _rate = (size_t)rate;
+	size_t _latency_ms = (_samples * 1000) / _rate;
+	size_t _channels = m_sink_channels.load();
+	
+	if(real_reconfig_sound(_rate, _channels, _latency_ms, true)) {
 		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 		config_t* p_config = get_config_ptr();
 		if(p_config != nullptr) {
 			set_sink_volume((int)(p_config->general_sound_level));
 		}
-		__debug_log_func("Success. Sample rate=%d samples=%d", m_rate.load(), m_samples.load());
+		__debug_log_func("Success. Sample rate=%d samples=%d", m_sink_rate.load(), m_sink_samples.load());
 	} else {
 		__debug_log_func("Failed.");
 	}
 	if(presented_rate != nullptr) {
-		*presented_rate = m_rate.load();
+		*presented_rate = (int)(m_sink_rate.load());
 	}
 	if(presented_samples != nullptr) {
-		*presented_samples = m_samples.load();
+		*presented_samples = (int)(m_sink_samples.load());
 	}
 }
 
@@ -367,10 +375,10 @@ void M_BASE::release_sound()
 	bool _r = release_driver_fileio();
 	
 	if(!(m_sink_external_fileio.load())) {
-		m_sink_fileio.reset();
+		m_sink_fileio = nullptr;
 	}
 	if(!(m_source_external_fileio.load())) {
-		m_source_fileio.reset();
+		m_source_fileio = nullptr;
 	}
 	m_config_ok = false;
 }
@@ -382,10 +390,24 @@ bool M_BASE::is_output_driver_started()
 	return _b;
 }
 
+bool M_BASE::is_output_driver_stopped()
+{
+	bool _b = !(m_prev_sink_started.load());
+	_b &= !(m_config_ok.load());
+	return _b;
+}
+
 bool M_BASE::is_capture_driver_started()
 {
 	bool _b = m_config_ok.load();
 	_b &= m_prev_source_started.load();
+	return _b;
+}
+
+bool M_BASE::is_capture_driver_stopped()
+{
+	bool _b = !(m_prev_source_started.load());
+	_b &= !(m_config_ok.load());
 	return _b;
 }
 
@@ -400,26 +422,20 @@ config_t* M_BASE::get_config_ptr()
 }
 
 
-bool M_BASE::check_enough_to_render()
-{
-	int64_t _left = get_bytes_left();
-	return ((m_chunk_bytes.load() < _left) ? true : false);
-}
-
 // Below APIs can call directry from OSD:: .
 int64_t M_BASE::update_sound(void* datasrc, int samples)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<QIODevice> q = m_sink_fileio;
+	QIODevice* q = m_sink_fileio;
 	//__debug_log_func(_T("SRC=%0llx  samples=%d fileio=%0llx"), (uintptr_t)datasrc, samples, (uintptr_t)(q.get()));
-	__UNLIKELY_IF(q.get() == nullptr) return -1;
+	__UNLIKELY_IF(q == nullptr) return -1;
 	__UNLIKELY_IF(datasrc == nullptr) return -1;
 	__UNLIKELY_IF(samples < 0) return -1;
 	qint64 bytes_per_sample = (qint64)(m_sink_channels.load() * m_sink_wordsize.load());
 	__UNLIKELY_IF(bytes_per_sample <= 0) {
-		retrun -1;
+		return -1;
 	}
-	if(!(is_driver_started()) ||  !(q->isOpen())) {
+	if(!(is_output_driver_started()) ||  !(q->isOpen())) {
 		return -1;
 	}
 	int64_t _result = -1;
@@ -441,9 +457,9 @@ int64_t M_BASE::update_sound(void* datasrc, int samples)
 
 bool M_BASE::start_sink()
 {
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	if(m_sink_external_fileio.load()) {
-		_stat = reopen_sink_fileio(false);
+		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+		bool _stat = reopen_sink_fileio(false);
 		// ToDo: Restart fio.
 		if(_stat) {
 			update_sink_driver_fileio();
@@ -459,8 +475,8 @@ bool M_BASE::stop_sink()
 	emit sig_stop_sink();
 	if(m_sink_external_fileio.load()) {
 		std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-		std::shared_ptr<QIODevice> q = m_sink_fileio;
-		if(q.get() != nullptr) {
+		QIODevice* q = m_sink_fileio;
+		if(q != nullptr) {
 			if(q->isOpen()) {
 				q->close();
 			}
@@ -473,8 +489,8 @@ bool M_BASE::stop_sink()
 bool M_BASE::discard_sink()
 {
 	if(m_sink_external_fileio.load()) {
-		std::shared_ptr<QIODevice> fio = m_sink_fileio;
-		if(fio.get() != nullptr) {
+		QIODevice* fio = m_sink_fileio;
+		if(fio != nullptr) {
 			fio->reset();
 		}
 	}
@@ -485,7 +501,7 @@ bool M_BASE::discard_sink()
 void M_BASE::set_sink_volume(double level)
 {
 	double xlevel = m_sink_volume.load();
-	if((std::isNan(xlevel)) || (level != xlevel)) {
+	if((std::isnan(xlevel)) || (level != xlevel)) {
 		emit sig_set_sink_volume(level);
 	}
 }
@@ -500,8 +516,8 @@ void M_BASE::set_sink_volume(int level)
 void M_BASE::mute_sink()
 {
 	if(m_sink_external_fileio.load()) {
-		std::shared_ptr<QIODevice> fio = m_sink_fileio;
-		if(fio.get() != nullptr) {
+		QIODevice* fio = m_sink_fileio;
+		if(fio != nullptr) {
 			fio->reset();
 		}
 	}
@@ -597,7 +613,12 @@ void M_BASE::set_osd(OSD_BASE* p)
 		connect(this, SIGNAL(sig_sink_started()), p, SLOT(do_sink_started()), Qt::DirectConnection);
 		connect(this, SIGNAL(sig_sink_stopped()), p, SLOT(do_sink_stopped()), Qt::DirectConnection);
 		connect(this, SIGNAL(sig_sink_empty()), p, SLOT(do_sink_empty()), Qt::DirectConnection);
+		connect(this, SIGNAL(sig_output_devices_list_changed()), p, SLOT(do_update_sound_output_devices_list()), Qt::QueuedConnection);
+		connect(this, SIGNAL(sig_input_devices_list_changed()), p, SLOT(do_update_sound_input_devices_list()), Qt::QueuedConnection);
 	} else {
+		if(m_OSD != nullptr) {
+			disconnect(this, nullptr, m_OSD, nullptr);
+		}
 		m_OSD = nullptr;
 		if(m_logger.get() != nullptr) {
 			disconnect(this, nullptr, m_logger.get(), nullptr);
@@ -635,7 +656,10 @@ bool M_BASE::modify_extra_config(void* p, int& bytes)
 	if(q == nullptr) {
 		return false;
 	}
-	bytes = std::min(bytes, m_extconfig_bytes.load());
+	bytes = std::min(bytes, (int)(m_extconfig_bytes.load()));
+	if(bytes <= 0) {
+		return false;
+	}
 	memcpy(q, p, bytes);
 	update_extra_config();
 	return true;
@@ -644,7 +668,7 @@ bool M_BASE::modify_extra_config(void* p, int& bytes)
 bool M_BASE::is_sink_io_device_exists()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	if(m_sink_fileio.get() != nullptr) {
+	if(m_sink_fileio != nullptr) {
 		return true;
 	}
 	return false;
@@ -653,7 +677,7 @@ bool M_BASE::is_sink_io_device_exists()
 bool M_BASE::is_source_io_device_exists()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	if(m_source_fileio.get() != nullptr) {
+	if(m_source_fileio != nullptr) {
 		return true;
 	}
 	return false;
@@ -675,8 +699,8 @@ void M_BASE::get_sink_parameters(int& channels, int& rate,
 int64_t M_BASE::get_sink_bytes_size()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<QIODevice> q = m_sink_fileio;
-	if(q.get() != nullptr) {
+	QIODevice* q = m_sink_fileio;
+	if(q != nullptr) {
 		int64_t n =  (int64_t)(q->size());
 		if(n < 0) n = 0;
 		return n;
@@ -687,8 +711,8 @@ int64_t M_BASE::get_sink_bytes_size()
 int64_t M_BASE::get_sink_bytes_left()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<QIODevice> q = m_sink_fileio;
-	if(q.get() != nullptr) {
+	QIODevice* q = m_sink_fileio;
+	if(q != nullptr) {
 		int64_t n =  (int64_t)(q->bytesAvailable());
 		if(n < 0) n = 0;
 		return n;
@@ -700,19 +724,19 @@ void M_BASE::get_source_parameters(int& channels, int& rate,
 													 int& latency_ms, size_t& word_size,
 													 int& chunk_bytes, int& buffer_bytes)
 {
-	channels = m_source_channels.load();
-	rate = m_source_rate.load();
-	latency_ms = m_source_latency_ms.load();
-	word_size = m_source_wordsize.load();
-	chunk_bytes = m_source_chunk_bytes.load();
-	buffer_bytes = m_source_buffer_bytes.load();
+	channels = (int)(m_source_channels.load());
+	rate = (int)(m_source_rate.load());
+	latency_ms = (int)(m_source_latency_ms.load());
+	word_size = (int)(m_source_wordsize.load());
+	chunk_bytes = (int)(m_source_chunk_bytes.load());
+	buffer_bytes = (int)(m_source_buffer_bytes.load());
 }
 
 int64_t M_BASE::get_source_bytes_size()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<QIODevice> q = m_source_fileio;
-	if(q.get() != nullptr) {
+	QIODevice* q = m_source_fileio;
+	if(q != nullptr) {
 		int64_t n =  (int64_t)(q->size());
 		if(n < 0) n = 0;
 		return n;
@@ -723,8 +747,8 @@ int64_t M_BASE::get_source_bytes_size()
 int64_t M_BASE::get_source_bytes_left()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	std::shared_ptr<QIODevice> q = m_source_fileio;
-	if(q.get() != nullptr) {
+	QIODevice* q = m_source_fileio;
+	if(q != nullptr) {
 		int64_t n =  (int64_t)(q->bytesAvailable());
 		if(n < 0) n = 0;
 		return n;
@@ -737,7 +761,7 @@ size_t M_BASE::get_sink_buffer_bytes()
 	if(m_sink_external_fileio.load()) {
 		return get_sink_bytes_size();
 	}
-	return m_sink_buffer_size.load();
+	return m_sink_buffer_bytes.load();
 }
 
 size_t M_BASE::get_source_buffer_bytes()
@@ -745,7 +769,7 @@ size_t M_BASE::get_source_buffer_bytes()
 	if(m_source_external_fileio.load()) {
 		return get_source_bytes_size();
 	}
-	return m_source_buffer_size.load();
+	return m_source_buffer_bytes.load();
 }
 
 /* SOUND_MODULE */

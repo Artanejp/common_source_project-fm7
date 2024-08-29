@@ -1405,7 +1405,7 @@ int MainLoop(int argc, char *argv[])
 	}
 	// ToDo: Update raltime.
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_osd_sound_output_device(QString)), (OSD*)p_osd, SLOT(do_set_host_sound_output_device(QString)));
-	rMainWindow->do_update_sound_output_list();
+	rMainWindow->do_update_sound_outputs_list();
 
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_update_sound_outputs_list()), rMainWindow, SLOT(do_update_sound_outputs_list()));
 	QObject::connect((OSD*)p_osd, SIGNAL(sig_clear_sound_outputs_list()), rMainWindow, SLOT(do_clear_sound_outputs_list()));

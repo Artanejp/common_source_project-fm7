@@ -47,8 +47,8 @@ protected:
 	std::shared_ptr<USING_FLAGS>	m_using_flags;
 	std::shared_ptr<CSP_Logger>		m_logger;
 
-	std::shared_ptr<QIODevice>		m_sink_fileio;
-	std::shared_ptr<QIODevice>		m_source_fileio;
+	QIODevice*						m_sink_fileio;
+	QIODevice*						m_source_fileio;
 	std::atomic<bool>				m_sink_external_fileio;
 	std::atomic<bool>				m_source_external_fileio;
 	
@@ -102,7 +102,7 @@ protected:
 	}
 	// Maybe disconnect some signals via m_sink_fileio and m_source_fileio.
 	virtual bool release_driver_fileio();
-	virtual bool real_reconfig_sound(size_t& rate, size_t& channels, size_t& latency_ms, bool force);
+	virtual bool real_reconfig_sound(size_t& rate, size_t& channels, size_t& latency_ms, const bool force);
 	
 	virtual bool has_output_device(QString name) { return false; }
 	virtual bool is_default_output_device() { return false; }
@@ -133,7 +133,9 @@ public:
 	std::recursive_timed_mutex				m_locker;
 
 	virtual bool is_output_driver_started();
+	virtual bool is_output_driver_stopped();
 	virtual bool is_capture_driver_started();
+	virtual bool is_capture_driver_stopped();
 	
 	virtual bool initialize_driver(QObject *parent)
 	{
@@ -156,11 +158,11 @@ public:
 
 	virtual int64_t update_sound(void* datasrc, int samples);
 
-	std::shared_ptr<QIODevice> get_sink_io_device()
+	QIODevice* get_sink_io_device()
 	{
 		return m_sink_fileio;
 	}
-	std::shared_ptr<QIODevice> get_source_io_device()
+	QIODevice* get_source_io_device()
 	{
 		return m_source_fileio;
 	}
@@ -230,6 +232,9 @@ public:
 
 	
 	void get_sink_parameters(int& channels, int& rate, int& latency_ms,
+							   size_t& word_size, int& chunk_bytes, int& buffer_bytes);
+	
+	void get_source_parameters(int& channels, int& rate, int& latency_ms,
 							   size_t& word_size, int& chunk_bytes, int& buffer_bytes);
 	
 	virtual int64_t get_sink_bytes_left();
@@ -356,8 +361,8 @@ public slots:
 	void set_sink_volume(double level);
 	void set_sink_volume(int level);
 	bool start_sink();
-	bool pause_sink();
-	bool resume_sink();
+	void mute_sink();
+	void unmute_sink();
 	bool stop_sink();
 	bool discard_sink();
 
@@ -389,11 +394,19 @@ signals:
 	// To notify to OSD:: .
 	void sig_sink_started();
 	void sig_sink_stopped();
+	void sig_sink_suspended();
+	void sig_sink_resumed();
+	
+	void sig_output_devices_list_changed();
+	void sig_input_devices_list_changed();
+
 	//void sig_sink_full();
 	void sig_sink_empty();
 	
 	void sig_source_started();
 	void sig_source_stopped();
+	void sig_source_suspended();
+	void sig_source_resumed();
 	void sig_source_full();
 	//void sig_source_empty();
 	void sig_source_got_data(size_t bytes);
