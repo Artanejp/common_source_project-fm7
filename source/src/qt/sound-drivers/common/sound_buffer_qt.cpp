@@ -47,7 +47,7 @@ bool SOUND_BUFFER_QT::open(OpenMode flags)
 		
 	}
 	// If opened as 
-    if (((flags & Truncate) == Truncate) || (!(m_write_opened.load()) && ((flags & WriteOnly != 0)))){
+    if (((flags & Truncate) == Truncate) || (!(m_write_opened.load()) && ((flags & WriteOnly) != 0))){
 		std::shared_ptr<BUFFER_TYPE> p = m_buffer;
 		if(p) {
 			p->clear();
