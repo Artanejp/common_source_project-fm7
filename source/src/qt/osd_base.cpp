@@ -64,12 +64,18 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	is_glcontext_shared = false;
 	glContext = NULL;
 
+	memset(app_path, 0x00, sizeof(app_path));
+	
+	__USE_AUTO_KEY = false;
+	
 	m_sound_samples = -1;
 	m_sound_rate = -1;
 	m_fps = 0.0;
 	m_sound_samples_factor = 0;
 	m_sound_samples_count = 0;
 	m_elapsed_us_before_rendered = 0;
+	rec_sound_fio = nullptr; // Must clear.
+	memset(sound_file_name, 0x00, sizeof(sound_file_name));
 	
 	m_sound_driver.reset();
 	m_sound_thread = nullptr;
@@ -87,6 +93,8 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	
 	m_draw_thread.reset();
 	
+	memset(video_file_name, 0x00, sizeof(video_file_name));
+	memset(prn_file_name, 0x00, sizeof(prn_file_name));
 	
 	connect(this, SIGNAL(sig_debug_log(int, int, QString)), p_logger.get(), SLOT(do_debug_log(int, int, QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_logger_reset()), p_logger.get(), SLOT(reset()), Qt::QueuedConnection);
@@ -244,36 +252,64 @@ _TCHAR* OSD_BASE::application_path()
 
 bool OSD_BASE::get_use_socket(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_socket();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_auto_key(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_auto_key();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_dont_keeep_key_pressed(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_dont_keeep_key_pressed();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_one_board_micro_computer(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_one_board_computer();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_screen_rotate(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_screen_rotate();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_movie_player(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_movie_player();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_video_capture(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_video_capture();
+	}
 	return false;
 }
 

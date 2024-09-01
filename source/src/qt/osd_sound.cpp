@@ -56,14 +56,14 @@
 
 void OSD_BASE::do_sink_empty()
 {
-	if((m_now_mute.load()) && (m_sound_initialized)) {
+//	if((m_now_mute.load()) && (m_sound_initialized)) {
 		// Continue to mute.
 		//if(m_sound_tick_timer.isValid()) {
 			//m_elapsed_us_before_rendered = 0;
 			//m_sound_tick_timer.restart();
 		//}
 		//put_null_sound();
-	}
+//	}
 	m_sink_empty = true;
 }
 
@@ -170,7 +170,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 					emit sig_enqueue_audio((int16_t *)(&(sound_buffer[rec_sound_buffer_ptr * 2])), length);
 				}
 				// record sound
-				if(now_record_sound) {
+				if((now_record_sound) && (rec_sound_fio != nullptr)) {
 					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				}
 				//if(now_record_video) {
@@ -240,7 +240,8 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	m_sound_exit = false;
 	m_elapsed_us_before_rendered = 0; // OK?
 	m_sound_tick_timer.invalidate(); // OK?
-	
+	int old_rate = m_sound_rate;
+		
 	if((m_sound_driver.get() == nullptr)  ||
 	   (m_sound_rate != rate) ||
 	   (m_sound_samples != samples)) {
@@ -251,17 +252,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				QThread::msleep(10);
 			}
 		}
-		//m_sound_driver.reset(); // 20240511 K.O
-		/*
-		if(m_sound_thread != nullptr) {
-			if(m_sound_thread->isRunning()) {
-				m_sound_thread->quit();
-				m_sound_thread->wait();
-			}
-			delete m_sound_thread;
-			m_sound_thread = nullptr;
-		}
-		*/
+
 		m_sound_initialized = false;
 		m_sink_started = false;
 		m_sink_empty = false; // OK?
@@ -286,28 +277,23 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		
 			init_sound_device_list();
 		}
-		#if 1
 		if(m_sound_thread == nullptr) {
 			m_sound_thread = new QThread();
 		}
 		if((m_sound_thread != nullptr) && (m_sound_driver.get() != nullptr)) {
 			m_sound_thread->setObjectName(QString::fromUtf8("SoundThread"));
 			m_sound_driver->moveToThread(m_sound_thread);
-			//connect(m_sound_driver.get(), SIGNAL(destroyed()), m_sound_thread, SLOT(quit()));
+			// Re-use sound-thread even changing driver. 
 			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(deleteLater()));
-			//connect(m_sound_thread, SIGNAL(destroyed()), this, SLOT(do_reset_sound_thread()));
 			if(!(m_sound_thread->isRunning())) {
-				//m_sound_thread->start(QThread::LowPriority);
-				m_sound_thread->start(QThread::HighPriority);
+				// Thread priority makes higher to be safer (to reduce jitter)
+				// 240901 K.O
+				m_sound_thread->start(QThread::HighPriority); 
 			}
 		}
-		#else
-		connect(this->thread(), SIGNAL(finished()), m_sound_driver.get(), SLOT(deleteLater()));
-		m_sound_driver->moveToThread(this->thread());
-		#endif		
 	}
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
 	
+	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
 	if(sound_drv.get() != nullptr) {
 		int _pr = rate;
 		int _ps = samples;
@@ -330,6 +316,16 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			*presented_samples = 0;
 		}
 	}
+	bool must_change_recording = false;
+	bool old_record_sound = now_record_sound;
+	if(rate != old_rate) {
+		must_change_recording = true;
+		if(now_record_sound) {
+			// Close OLD file
+			stop_record_sound();
+		}
+	}
+	
 	m_sound_rate = rate;
 	m_sound_samples = samples;
 	m_elapsed_us_before_rendered = 0;
@@ -340,6 +336,13 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		m_now_mute = false;
 		//sound_drv->start_sink();
 		//mute_sound(); // Fill blank data a sample period.
+	}
+	// Split sound when changing rate.
+	if(must_change_recording) {
+		if(old_record_sound) {
+			// Close OLD file
+			start_record_sound();
+		}
 	}
 }
 
@@ -464,6 +467,8 @@ void OSD_BASE::do_update_sound_capture_devices_list()
 	#endif
 }
 
+// Maybe unused this function, but will use at feature
+// - 20240901 K.O
 void OSD_BASE::put_null_sound()
 {
 	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
@@ -474,9 +479,11 @@ void OSD_BASE::put_null_sound()
 		uint8_t* buf = new uint8_t[chunk_bytes];
 		if(buf != nullptr) {
 			memset(buf, 0x00, chunk_bytes);
-			sound_drv->update_sound((void*)buf, samples);
+			int64_t _result = sound_drv->update_sound((void*)buf, samples);
 			delete [] buf;
-			m_sink_empty = false;
+			__LIKELY_IF(_result > 0) {
+				m_sink_empty = false;
+			}
 		}
 	}
 }
@@ -484,6 +491,7 @@ void OSD_BASE::put_null_sound()
 void OSD_BASE::unmute_sound()
 {
 	if((m_now_mute.load()) && (m_sound_initialized.load())) {
+		// Resume timer.
 		if(!(m_sound_tick_timer.isValid())) {
 			m_sound_tick_timer.start();
 		}
@@ -494,6 +502,7 @@ void OSD_BASE::unmute_sound()
 void OSD_BASE::mute_sound()
 {
 	if(!(m_now_mute.load()) && (m_sound_initialized.load())) {
+		// Suspend timer.
 		if(m_sound_tick_timer.isValid()) {
 			m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
 			m_sound_tick_timer.invalidate();
@@ -525,27 +534,32 @@ void OSD_BASE::stop_sound()
 
 int OSD_BASE::get_sound_rate()
 {
-	#if 1
 	__LIKELY_IF(m_sound_rate > 0) {
 		return m_sound_rate;
 	}
 	return 0;
-	#else
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
-		return sound_drv->get_sample_rate();
-	}
-	return 0;
-	#endif
 }
 /* End Note: */
 
 
 void OSD_BASE::start_record_sound()
 {
+	__UNLIKELY_IF(!(m_sound_initialized.load())) {
+		return;
+	}
 
 	if(!now_record_sound) {
 		//LockVM();
+		__UNLIKELY_IF(rec_sound_fio != nullptr) {
+			if(rec_sound_fio->IsOpened()) { // Fail safe.
+				rec_sound_fio->Fclose();
+			}
+			delete rec_sound_fio;
+		}
+		rec_sound_fio = nullptr;
+		__UNLIKELY_IF(m_sound_rate <= 0) {
+			return; // Rate don't set.
+		}
 		QDateTime nowTime = QDateTime::currentDateTime();
 		QString tmps = QString::fromUtf8("Sound_Save_emu");
 		tmps = tmps + get_vm_config_name();
@@ -555,16 +569,18 @@ void OSD_BASE::start_record_sound()
 		strncpy((char *)sound_file_name, tmps.toLocal8Bit().constData(), sizeof(sound_file_name) - 1);
 		// create wave file
 		rec_sound_fio = new FILEIO();
-		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
-			// write dummy wave header
-			write_dummy_wav_header((void *)rec_sound_fio);
+		if(rec_sound_fio != nullptr) {
+			if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
+				// write dummy wave header
+				write_dummy_wav_header((void *)rec_sound_fio);
 
-			rec_sound_bytes = 0;
-			rec_sound_buffer_ptr = 0;
-			now_record_sound = true;
-		} else {
-			// failed to open the wave file
-			delete rec_sound_fio;
+				rec_sound_bytes = 0;
+				rec_sound_buffer_ptr = 0;
+				now_record_sound = true;
+			} else {
+				// failed to open the wave file
+				delete rec_sound_fio;
+			}
 		}
 		//UnlockVM();
 	}
@@ -572,38 +588,45 @@ void OSD_BASE::start_record_sound()
 
 void OSD_BASE::stop_record_sound()
 {
-	#if 0 /* Temporally Disable  Caoptuing Sound 20220921 K.O */
-		if(now_record_sound) {
-			//LockVM();
-		if(rec_sound_bytes == 0) {
-			rec_sound_fio->Fclose();
-			rec_sound_fio->RemoveFile(sound_file_name);
+	if(now_record_sound) {
+		int __rate = m_sound_rate;
+		if((rec_sound_bytes == 0) || (__rate <= 0)) {
+			if(rec_sound_fio != nullptr) {
+				if(rec_sound_fio->IsOpened()) {
+					rec_sound_fio->Fclose();
+					rec_sound_fio->RemoveFile(sound_file_name);
+				}
+			}
 		} else {
 			// update wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
-	#if 0
-			if(!set_wav_header(&wav_header, &wav_chunk, 2, snd_spec_presented.freq, 16,
-							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
-	#else
-			if(!set_wav_header(&wav_header, &wav_chunk, 2, (uint32_t)(m_audioOutputFormat.sampleRate()), 16,
-							 (size_t)(rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk)))) {
-	#endif
-				delete rec_sound_fio;
-				now_record_sound = false;
-				return;
+			size_t head_size = (size_t)rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk);
+			if(!set_wav_header(&wav_header, &wav_chunk, 2, (uint32_t)__rate, 16, head_size)) {
+				if(rec_sound_fio != nullptr) {
+					if(rec_sound_fio->IsOpened()) {
+						rec_sound_fio->Fclose();
+						rec_sound_fio->RemoveFile(sound_file_name);
+					}
+				}
+			} else {
+				if(rec_sound_fio != nullptr) {
+					if(rec_sound_fio->IsOpened()) {
+						rec_sound_fio->Fseek(0, FILEIO_SEEK_SET); // Start to head.
+						rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
+						rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+						rec_sound_fio->Fclose();
+					}
+				}
 			}
-			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
-			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
-			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
-			rec_sound_fio->Fclose();
 		}
-		delete rec_sound_fio;
+		if(rec_sound_fio != nullptr) {
+			delete rec_sound_fio;
+		}
+		rec_sound_fio = nullptr; // Must clear.
 		now_record_sound = false;
 		//UnlockVM();
 	}
-	#endif /* Temporally Disable  Caoptuing Sound 20220921 K.O */
-
 }
 
 void OSD_BASE::restart_record_sound()

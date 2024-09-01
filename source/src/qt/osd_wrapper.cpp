@@ -49,70 +49,6 @@
 #include "qt_gldraw.h"
 #include "csp_logger.h"
 
-bool OSD::get_use_socket(void)
-{
-#ifdef USE_SOCKET
-	return true;
-#else
-	return false;
-#endif
-}
-
-
-bool OSD::get_use_auto_key(void)
-{
-#ifdef USE_AUTO_KEY
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_dont_keeep_key_pressed(void)
-{
-#ifdef DONT_KEEEP_KEY_PRESSED
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_one_board_micro_computer(void)
-{
-#ifdef ONE_BOARD_MICRO_COMPUTER
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_use_screen_rotate(void)
-{
-#ifdef USE_SCREEN_ROTATE
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_use_movie_player(void)
-{
-#ifdef USE_MOVIE_PLAYER
-	return true;
-#else
-	return false;
-#endif
-}
-
-bool OSD::get_use_video_capture(void)
-{
-#ifdef USE_VIDEO_CAPTURE
-	return true;
-#else
-	return false;
-#endif
-}
-
 
 int OSD::get_vm_buttons_code(int num)
 {
@@ -136,12 +72,20 @@ QString OSD::get_vm_config_name(void)
 
 int OSD::get_screen_width(void)
 {
+#if !defined(SCREEN_WIDTH)
+	return OSD_BASE::get_screen_width();
+#else
 	return SCREEN_WIDTH;
+#endif
 }
 
 int OSD::get_screen_height(void)
 {
+#if !defined(SCREEN_HEIGHT)
+	return OSD_BASE::get_screen_height();
+#else
 	return SCREEN_HEIGHT;
+#endif
 }
 
 

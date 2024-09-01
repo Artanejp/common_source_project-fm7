@@ -245,8 +245,8 @@ protected:
 	// printer
 
 	// screen
-	void initialize_screen();
-	void release_screen();
+	virtual void initialize_screen();
+	virtual void release_screen();
 
 	virtual void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
@@ -358,13 +358,13 @@ protected:
 	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
 
-	virtual bool get_use_socket(void);
-	virtual bool get_use_auto_key(void);
-	virtual bool get_dont_keeep_key_pressed(void);
-	virtual bool get_one_board_micro_computer(void);
-	virtual bool get_use_screen_rotate(void);
-	virtual bool get_use_movie_player(void);
-	virtual bool get_use_video_capture(void);
+	bool get_use_socket(void);
+	bool get_use_auto_key(void);
+	bool get_dont_keeep_key_pressed(void);
+	bool get_one_board_micro_computer(void);
+	bool get_use_screen_rotate(void);
+	bool get_use_movie_player(void);
+	bool get_use_video_capture(void);
 	void vm_key_down(int code, bool flag);
 	void vm_key_up(int code);
 	void vm_reset(void);
@@ -372,7 +372,7 @@ protected:
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
-	virtual void update_input_mouse();
+	void update_input_mouse();
 
 	// Messaging.
 	virtual void __FASTCALL osdcall_message_str(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message);
@@ -405,8 +405,7 @@ public:
 
 	virtual void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	// sound
-	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
-
+	void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 	virtual void release();
 
 	void notify_power_off(); // For USE_NOTIFY_POWER_OFF .
@@ -472,9 +471,9 @@ public:
 	void close_printer_file();
 
 	// common screen
-	int get_window_mode_width(int mode);
-	int get_window_mode_height(int mode);
-	double get_window_mode_power(int mode);
+	virtual int get_window_mode_width(int mode);
+	virtual int get_window_mode_height(int mode);
+	virtual double get_window_mode_power(int mode);
 	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
 	void set_vm_screen_lines(int lines); // 20170118
@@ -541,7 +540,7 @@ public:
 	double get_movie_frame_rate();
 	virtual int get_movie_sound_rate();
 	void set_cur_movie_frame(int frame, bool relative);
-	uint32_t get_cur_movie_frame();
+	virtual uint32_t get_cur_movie_frame();
 	bool now_movie_play, now_movie_pause;
 	int get_cur_capture_dev_index();
 	int get_num_capture_devs();
@@ -640,7 +639,6 @@ public:
 	{
 		will_delete_vm = false;
 	}
-	virtual const _TCHAR *get_lib_common_vm_version();
 	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
 
@@ -648,6 +646,8 @@ public:
 	virtual void set_draw_thread(std::shared_ptr<DrawThreadClass> handler);
 	virtual QString get_vm_config_name(void);
 	virtual void reset_vm_node(void);
+	virtual const _TCHAR *get_lib_common_vm_version();
+
 	// Sync devices status beyond any threads by OSD.(i.e. joystick).
 	virtual void sync_some_devices(void);
 	

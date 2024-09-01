@@ -912,6 +912,12 @@ void OSD::set_features_cpu(void)
 void OSD::set_features_vm(void)
 {
 // Begin vm.h
+#ifdef USE_STATE
+	add_feature(_T("USE_STATE"), 1);
+#endif
+#ifdef FRAMES_PER_SEC
+	add_feature(_T("BASE_FRAMES_PER_SEC"), (double)FRAMES_PER_SEC);
+#endif
 #ifdef USE_CART
 	add_feature(_T("MAX_CART"), (int)USE_CART);
 	add_feature(_T("USE_CART"), (int)USE_CART);
@@ -983,15 +989,44 @@ void OSD::set_features_vm(void)
 #ifdef BASE_BUBBLE_NUM
 	add_feature(_T("BASE_BUBBLE_NUM"), (int)BASE_BUBBLE_NUM);
 #endif
+	
+#ifdef USE_SOCKET
+	add_feature(_T("USE_SOCKET"), 1);
+#endif	
 
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	add_feature(_T("ONE_BOARD_MICRO_COMPUTER"), 1);
+#endif	
+	
+#ifdef USE_AUTO_KEY
+	add_feature(_T("USE_AUTO_KEY"), 1);
+#endif	
 #ifdef KEY_KEEP_FRAMES
 	add_feature(_T("KEY_KEEP_FRAMES"), (int)KEY_KEEP_FRAMES);
 #endif
-// End vm.h
-
+#ifdef USE_MOVIE_PLAYER
+	add_feature(_T("USE_MOVIE_PLAYER"), 1);
+#endif
 #ifdef CPU_CLOCKS
 	add_feature(_T("CPU_CLOCKS"), (int64_t)CPU_CLOCKS);
 #endif
+#ifdef SCREEN_WIDTH
+	add_feature(_T("SCREEN_WIDTH"), (int)SCREEN_WIDTH);
+#endif
+#ifdef SCREEN_HEIGHT
+	add_feature(_T("SCREEN_HEIGHT"), (int)SCREEN_HEIGHT);
+#endif
+#ifdef SUPPORT_TV_RENDER
+	add_feature(_T("SUPPORT_TV_RENDER"), 1);
+#endif
+#ifdef USE_PRINTER
+	add_feature(_T("USE_PRINTER"), 1);
+	#ifdef USE_PRINTER_TYPE	
+	add_feature(_T("USE_PRINTER_TYPE"), (int)USE_PRINTER_TYPE);
+	#endif
+#endif	
+// End vm.h
+
 #ifdef APU_CLOCK
 	add_feature(_T("APU_CLOCK"), (int64_t)APU_CLOCK);
 #endif
@@ -1313,6 +1348,9 @@ void OSD::set_features_misc(void)
 	add_feature(_T("LOW_PASS_FILTER"), 1);
 #endif
 
+#ifdef USE_VIDEO_CAPTURE
+	add_feature(_T("USE_VIDEO_CAPTURE"), 1);
+#endif
 #ifdef SUPPORT_MAME_FM_DLL
 	add_feature(_T("SUPPORT_MAME_FM_DLL"), 1);
 #endif
@@ -1320,12 +1358,6 @@ void OSD::set_features_misc(void)
 	add_feature(_T("SUPPORT_WIN32_DLL"), 1);
 #endif
 
-#ifdef SCREEN_WIDTH
-	add_feature(_T("SCREEN_WIDTH"), (int)SCREEN_WIDTH);
-#endif
-#ifdef SCREEN_HEIGHT
-	add_feature(_T("SCREEN_HEIGHT"), (int)SCREEN_HEIGHT);
-#endif
 #ifdef CHARS_PER_LINE
 	add_feature(_T("CHARS_PER_LINE"), (int)CHARS_PER_LINE);
 #endif
@@ -1359,8 +1391,6 @@ void OSD::set_features(void)
 	set_features_vm();
 	set_features_misc();
 	set_features_debug();
-
-	__USE_AUTO_KEY = false;
 #ifdef USE_AUTO_KEY
 	__USE_AUTO_KEY = true;
 #endif
@@ -1385,7 +1415,6 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 		tmp_path = tmp_path + using_flags->get_proc_name();
 	}
 	tmp_path = tmp_path + QString::fromUtf8(delim);
-	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH - 1);
 
 	console_cmd_str.clear();
