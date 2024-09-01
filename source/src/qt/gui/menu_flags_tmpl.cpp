@@ -79,17 +79,11 @@ USING_FLAGS::USING_FLAGS(config_t *cfg, QSettings* set) :
 	use_led_devices = 0;
 	independent_caps_kana_led = false;
 
-	max_memcard = 0;
-	use_minimum_rendering = use_dig_resolution = false;
-	use_monitor_type = 0;
-	use_mouse = false;
 	use_movie_player = false;
+	use_video_capture = false;	
 	use_notify_power_off = false;
 
 	use_one_board_computer = false;
-
-	use_printer = false;
-	use_printer_type = 0;
 
 	use_serial = false;
 	use_serial_type = 0;
@@ -107,6 +101,7 @@ USING_FLAGS::USING_FLAGS(config_t *cfg, QSettings* set) :
 	use_auto_key = use_auto_key_us = use_auto_key_caps = false;
 	use_auto_key_no_caps = use_auto_key_release =
 	use_auto_key_shift = use_binary_file = false;
+	dont_keeep_key_pressed = false;
 
 	max_binary = 0;
 	base_binary_num = 0;
@@ -161,12 +156,11 @@ USING_FLAGS::USING_FLAGS(config_t *cfg, QSettings* set) :
 	use_minimum_rendering = use_dig_resolution = false;
 	use_monitor_type = 0;
 	use_mouse = false;
-	use_movie_player = false;
-	use_notify_power_off = false;
-
-	use_one_board_computer = false;
+	
 	use_printer = false;
 	use_printer_type = 0;
+	
+	use_socket = false;
 
 	use_qd = false;
 	max_qd = 0;

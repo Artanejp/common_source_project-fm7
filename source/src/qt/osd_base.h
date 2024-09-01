@@ -83,9 +83,7 @@ class CSP_logger;
 
 class QOpenGLContext;
 namespace SOUND_MODULE {
-	namespace OUTPUT {
-		class M_BASE;
-	}
+	class M_BASE;
 }
 
 QT_BEGIN_NAMESPACE
@@ -153,8 +151,6 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
-
-
 class SOUND_BUFFER_QT;
 
 class DLL_PREFIX OSD_BASE : public  QObject
@@ -162,14 +158,13 @@ class DLL_PREFIX OSD_BASE : public  QObject
 	Q_OBJECT
 private:
 	/* Note: Below are new sound driver. */
-	std::shared_ptr<SOUND_MODULE::OUTPUT::M_BASE> m_sound_driver;
-	int64_t elapsed_us_before_rendered;
-	// Count half
+	std::shared_ptr<SOUND_MODULE::M_BASE> m_sound_driver;
+	std::atomic<int64_t> m_elapsed_us_before_rendered;	// Count half
 	uint32_t     m_sound_period;
-	// Count factor; this multiplies by 65536;
-	uint32_t     m_sound_samples_count;
-	uint32_t     m_sound_samples_factor;
-
+	// Count factor; this multiplies by 2^32;
+	std::atomic<uint64_t>     m_sound_samples_count;
+	std::atomic<uint64_t>     m_sound_samples_factor;
+	std::atomic<int64_t>      m_sound_margin_usecs;
 protected:
 	EmuThreadClass						*parent_thread;
 	QThread								*m_sound_thread;
@@ -186,7 +181,7 @@ protected:
 	bool __USE_AUTO_KEY;
 
 	_TCHAR app_path[_MAX_PATH];
-	QElapsedTimer osd_timer;
+	QElapsedTimer m_sound_tick_timer;
 	std::atomic<bool> locked_vm;
 	std::atomic<bool> will_delete_vm;
 
@@ -250,8 +245,8 @@ protected:
 	// printer
 
 	// screen
-	void initialize_screen();
-	void release_screen();
+	virtual void initialize_screen();
+	virtual void release_screen();
 
 	virtual void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
@@ -289,31 +284,31 @@ protected:
 
 	// sound
 	void release_sound();
-	virtual void init_sound_device_list();
+	void init_sound_device_list();
 	bool __FASTCALL calcurate_sample_factor(int rate, int samples, const bool force);
+	void __FASTCALL sound_debug_log(const char *fmt, ...);
+	void put_null_sound();
 
 	int m_sound_rate, m_sound_samples;
-	bool sound_started, now_mute;
-	bool sound_first_half;
-	QStringList sound_device_list;
-
+	std::atomic<bool> m_sound_first_half;
+	QStringList sound_output_devices_list;
+	
+	std::atomic<bool> m_sink_empty;
+	std::atomic<bool> m_sink_started;
+	
 	_TCHAR sound_file_name[_MAX_PATH];
+	
 	FILEIO* rec_sound_fio;
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
 
-	int sound_buffer_size;
-	int sound_data_len;
-	int sound_data_pos;
-	int sound_write_pos;
-	bool sound_exit;
-	bool sound_debug;
-	bool sound_initialized;
-	uint8_t *sound_buf_ptr;
-	Uint8 snd_total_volume;
+	std::atomic<bool> m_now_mute;
+	std::atomic<bool> m_sound_exit;
+	std::atomic<bool> m_sound_debug;
+	std::atomic<bool> m_sound_initialized;
 
 	// sound capture
-	QStringList sound_capture_device_list;
+	QStringList sound_capture_devices_list;
 	bool sound_capturing_emu[MAX_CAPTURE_SOUNDS];
 	osd_snd_capture_desc_t  sound_capture_desc[MAX_CAPTURE_SOUNDS]; // To EMU:: and VM::
 	bool capturing_sound[MAX_SOUND_CAPTURE_DEVICES];
@@ -332,6 +327,10 @@ protected:
 
 	void enum_capture_devs();
 	bool connect_capture_dev(int index, bool pin);
+
+	std::atomic<bool> m_source_empty;
+	std::atomic<bool> m_source_started;
+	
 	int cur_capture_dev_index;
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
@@ -359,13 +358,13 @@ protected:
 	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
 
-	virtual bool get_use_socket(void);
-	virtual bool get_use_auto_key(void);
-	virtual bool get_dont_keeep_key_pressed(void);
-	virtual bool get_one_board_micro_computer(void);
-	virtual bool get_use_screen_rotate(void);
-	virtual bool get_use_movie_player(void);
-	virtual bool get_use_video_capture(void);
+	bool get_use_socket(void);
+	bool get_use_auto_key(void);
+	bool get_dont_keeep_key_pressed(void);
+	bool get_one_board_micro_computer(void);
+	bool get_use_screen_rotate(void);
+	bool get_use_movie_player(void);
+	bool get_use_video_capture(void);
 	void vm_key_down(int code, bool flag);
 	void vm_key_up(int code);
 	void vm_reset(void);
@@ -373,7 +372,7 @@ protected:
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
-	virtual void update_input_mouse();
+	void update_input_mouse();
 
 	// Messaging.
 	virtual void __FASTCALL osdcall_message_str(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, QString message);
@@ -406,8 +405,7 @@ public:
 
 	virtual void initialize(int rate, int samples, int* presented_rate, int* presented_samples);
 	// sound
-	virtual void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
-
+	void initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples);
 	virtual void release();
 
 	void notify_power_off(); // For USE_NOTIFY_POWER_OFF .
@@ -473,9 +471,9 @@ public:
 	void close_printer_file();
 
 	// common screen
-	int get_window_mode_width(int mode);
-	int get_window_mode_height(int mode);
-	double get_window_mode_power(int mode);
+	virtual int get_window_mode_width(int mode);
+	virtual int get_window_mode_height(int mode);
+	virtual double get_window_mode_power(int mode);
 	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
 	void set_vm_screen_lines(int lines); // 20170118
@@ -507,12 +505,16 @@ public:
 
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
-	QStringList  get_sound_device_list()
+	
+	QStringList  get_sound_output_devices_list()
 	{
-		return sound_device_list;
+		return sound_output_devices_list;
+	}
+	QStringList  get_sound_capture_devices_list()
+	{
+		return sound_capture_devices_list;
 	}
 
-	int get_sound_device_num();
 
 	bool now_record_sound;
 	int get_sound_rate();
@@ -538,7 +540,7 @@ public:
 	double get_movie_frame_rate();
 	virtual int get_movie_sound_rate();
 	void set_cur_movie_frame(int frame, bool relative);
-	uint32_t get_cur_movie_frame();
+	virtual uint32_t get_cur_movie_frame();
 	bool now_movie_play, now_movie_pause;
 	int get_cur_capture_dev_index();
 	int get_num_capture_devs();
@@ -637,7 +639,6 @@ public:
 	{
 		will_delete_vm = false;
 	}
-	virtual const _TCHAR *get_lib_common_vm_version();
 	const _TCHAR *get_lib_common_vm_git_version();
 	const _TCHAR *get_lib_osd_version();
 
@@ -645,6 +646,8 @@ public:
 	virtual void set_draw_thread(std::shared_ptr<DrawThreadClass> handler);
 	virtual QString get_vm_config_name(void);
 	virtual void reset_vm_node(void);
+	virtual const _TCHAR *get_lib_common_vm_version();
+
 	// Sync devices status beyond any threads by OSD.(i.e. joystick).
 	virtual void sync_some_devices(void);
 	
@@ -706,6 +709,8 @@ public:
 	// Messaging wrapper from EMU:: to OSD::
 	void __FASTCALL string_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t  message_type, _TCHAR* message);
 	void __FASTCALL int_message_from_emu(EMU_MEDIA_TYPE::type_t media_type, int drive, EMU_MESSAGE_TYPE::type_t message_type, int64_t data);
+	
+    // Tick around sound rendering
 
 public slots:
 	// common sound
@@ -716,6 +721,15 @@ public slots:
 	void start_record_sound();
 	void stop_record_sound();
 	void restart_record_sound();
+
+	// To throw GUI.
+	void do_update_sound_output_devices_list();
+	void do_update_sound_capture_devices_list();
+
+	// sound state machine.
+	void do_sink_empty();
+	void do_sink_started();
+	void do_sink_stopped();
 	
 	void enable_mouse();
 	void disable_mouse();
@@ -750,6 +764,9 @@ public slots:
 	void do_set_host_sound_output_device(QString device_name);
 	void do_update_master_volume(int level);
 
+	void do_restart_sound_timer();
+	void do_stop_sound_timer();
+	
 signals:
 	int sig_update_screen(void *, bool);
 	int sig_save_screen(const char *);
@@ -784,12 +801,17 @@ signals:
 	int sig_sound_unmute();
 	int sig_sound_start();
 	int sig_sound_stop();
+	int sig_sound_about_to_quit();
 	
 
-	int sig_update_sound_output_list();
-	int sig_clear_sound_output_list();
-	int sig_append_sound_output_list(QString);
+	int sig_update_sound_outputs_list();
+	int sig_clear_sound_outputs_list();
+	int sig_append_sound_outputs_list(QString);
 
+	int sig_update_sound_inputs_list();
+	int sig_clear_sound_inputs_list();
+	int sig_append_sound_inputs_list(QString);
+	
 	int sig_update_device_node_name(int id, const _TCHAR *name);
 	int sig_enable_mouse(void);
 	int sig_disable_mouse(void);

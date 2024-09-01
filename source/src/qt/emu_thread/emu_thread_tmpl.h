@@ -369,6 +369,7 @@ signals:
 	
 	int message_changed(QString);
 	int window_title_changed(QString);
+	
 	int sig_draw_thread(bool);
 	int sig_quit_draw_thread(void);
 	int sig_screen_aspect(int);
@@ -378,7 +379,10 @@ signals:
 	int sig_mouse_enable(bool);
 	int sig_update_recent_hard_disk(int);
 	int sig_sound_stop();
-
+	
+	int sig_stop_sound_timer();
+	int sig_restart_sound_timer();
+	
 	int sig_change_osd(int, int, QString);
 	int sig_change_access_lamp(int, int, QString);
 	int sig_change_virtual_media(int, int, QString);

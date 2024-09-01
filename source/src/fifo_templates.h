@@ -135,6 +135,35 @@ namespace FIFO_BASE {
 			return read_not_remove(offset, dummy);
 		}
 
+		virtual int seek(int _count, bool& success)
+		{
+			success = false;
+			__UNLIKELY_IF((m_buf == nullptr) || (m_bufSize == 0)) {
+				return 0;
+			}
+			if(_count > m_dataCount) {
+				_count = m_dataCount;
+			}
+			if(_count > (int)m_bufSize) {
+				_count = (int)m_bufSize;
+			}
+			__UNLIKELY_IF(_count <= 0) {
+				return 0;
+			}
+			// OK, 
+			unsigned int xptr = m_rptr;
+			m_rptr = (xptr + _count) % m_bufSize;
+			m_dataCount -= _count;
+			__UNLIKELY_IF(m_dataCount < 0) {
+				m_dataCount = 0;
+			}
+			__UNLIKELY_IF(m_dataCount > (int)m_bufSize) {
+				m_dataCount = (int)m_bufSize;
+			}
+			success = true;
+			return _count;
+		}
+			
 		virtual int read_to_buffer(T* dst, int _count, bool& success)
 		{
 			__UNLIKELY_IF((dst == nullptr) || (m_buf == nullptr) || (m_bufSize == 0)) {
@@ -403,6 +432,13 @@ namespace FIFO_BASE {
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
 			return UNLOCKED_FIFO<T>::read_not_remove(offset, success);
 		}
+		
+		virtual int seek(int _count, bool& success)
+		{
+			std::lock_guard<std::recursive_mutex> locker(m_locker);
+			return UNLOCKED_FIFO<T>::seek(_count, success);
+		}
+			
 		virtual int read_to_buffer(T* dst, int _count, bool& success)
 		{
 			std::lock_guard<std::recursive_mutex> locker(m_locker);
@@ -658,6 +694,11 @@ namespace FIFO_BASE {
 			return UNLOCKED_RINGBUFFER<T>::read_not_remove(offset, success);
 		}
 
+		virtual int seek(int _count, bool& success)
+		{
+			std::lock_guard<std::recursive_mutex> locker(m_locker);
+			return UNLOCKED_RINGBUFFER<T>::seek(_count, success);
+		}
 		virtual int read_to_buffer(T* dst, int _count, bool& success)
 		{
 			std::lock_guard<std::recursive_mutex> locker(m_locker);

@@ -78,23 +78,42 @@ bool SOUND_LOADER::open(int id, QString filename)
 		sound_rate = audio_stream->codec->sample_rate;
 	#endif
 	}
+	#ifdef AVCODEC_UPPER_V56
+	{
+		AVChannelLayout out_layout;
+		out_layout = AV_CHANNEL_LAYOUT_STEREO;
+		
+		if(swr_alloc_set_opts2(&swr_context,
+								&out_layout, AV_SAMPLE_FMT_S16, sound_rate,
+								&(audio_dec_ctx->ch_layout), audio_dec_ctx->sample_fmt, audio_dec_ctx->sample_rate,
+							   0, NULL) != 0) {
+			out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate resampler context\n");
+			goto _end;
+		}
+
+	}
+	#else
 	swr_context = swr_alloc();
 	if(swr_context == NULL) {
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Could not allocate resampler context\n");
 		goto _end;
 	}
+	
 	av_opt_set_int	   (swr_context, "in_channel_count",   audio_dec_ctx->channels,	   0);
+	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
 	av_opt_set_int	   (swr_context, "in_sample_rate",	   audio_dec_ctx->sample_rate,	0);
 	av_opt_set_sample_fmt(swr_context, "in_sample_fmt",	   audio_dec_ctx->sample_fmt, 0);
-	av_opt_set_int	   (swr_context, "out_channel_count",  2,	   0);
 	av_opt_set_int	   (swr_context, "out_sample_rate",	   sound_rate,	0);
 	av_opt_set_sample_fmt(swr_context, "out_sample_fmt",   AV_SAMPLE_FMT_S16,	 0);
-	
+
 	/* initialize the resampling context */
 	if ((ret = swr_init(swr_context)) < 0) {
 		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SOUND_LOADER, "Failed to initialize the resampling context\n");
 		goto _end;
 	}
+	
+	#endif
+	
 	
 	/* dump input information to stderr */
 	av_dump_format(fmt_ctx, 0, _filename.toLocal8Bit().constData(), 0);
@@ -143,7 +162,9 @@ void SOUND_LOADER::close(void)
 {
 #if defined(USE_LIBAV)
 	if(audio_dec_ctx != NULL) {
+		#ifndef AVCODEC_UPPER_V56
 		avcodec_close(audio_dec_ctx);
+		#endif
 		avcodec_free_context(&audio_dec_ctx);
 	}
 	avformat_close_input(&fmt_ctx);

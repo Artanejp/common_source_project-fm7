@@ -64,18 +64,38 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	is_glcontext_shared = false;
 	glContext = NULL;
 
+	memset(app_path, 0x00, sizeof(app_path));
+	
+	__USE_AUTO_KEY = false;
+	
 	m_sound_samples = -1;
 	m_sound_rate = -1;
 	m_fps = 0.0;
 	m_sound_samples_factor = 0;
 	m_sound_samples_count = 0;
-
+	m_elapsed_us_before_rendered = 0;
+	rec_sound_fio = nullptr; // Must clear.
+	memset(sound_file_name, 0x00, sizeof(sound_file_name));
+	
 	m_sound_driver.reset();
 	m_sound_thread = nullptr;
 	m_sound_period = 0;
+	m_sound_margin_usecs = 0;
+	
+	m_sink_empty = false;
+	m_sink_started = false;
+	m_source_empty = false;
+	m_source_started = false;
+	
+	m_sound_initialized = false;
+	m_sound_exit = false;
+	m_sound_debug = true; // ToDo
+	
 	m_draw_thread.reset();
-	sound_initialized = false;
-
+	
+	memset(video_file_name, 0x00, sizeof(video_file_name));
+	memset(prn_file_name, 0x00, sizeof(prn_file_name));
+	
 	connect(this, SIGNAL(sig_debug_log(int, int, QString)), p_logger.get(), SLOT(do_debug_log(int, int, QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_logger_reset()), p_logger.get(), SLOT(reset()), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_logger_set_device_name(int, QString)), p_logger.get(), SLOT(do_set_device_name(int, QString)), Qt::QueuedConnection);
@@ -232,36 +252,64 @@ _TCHAR* OSD_BASE::application_path()
 
 bool OSD_BASE::get_use_socket(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_socket();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_auto_key(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_auto_key();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_dont_keeep_key_pressed(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_dont_keeep_key_pressed();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_one_board_micro_computer(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_one_board_computer();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_screen_rotate(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_screen_rotate();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_movie_player(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_movie_player();
+	}
 	return false;
 }
 
 bool OSD_BASE::get_use_video_capture(void)
 {
+	std::shared_ptr<USING_FLAGS>p = using_flags;
+	__LIKELY_IF(p.get() != nullptr) {
+		return p->is_use_video_capture();
+	}
 	return false;
 }
 
@@ -594,6 +642,22 @@ void OSD_BASE::start_waiting_in_debugger()
 	// ToDo: Wait for rising up debugger window.
 	debug_mutex.lock();
 }
+
+// Elapsed Timer: This uses for sound, mainly.
+void OSD_BASE::do_restart_sound_timer()
+{
+	m_elapsed_us_before_rendered = 0; // OK?
+	m_sound_tick_timer.restart();
+}
+
+void OSD_BASE::do_stop_sound_timer()
+{
+	if(m_sound_tick_timer.isValid()) {
+		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+	}
+	m_sound_tick_timer.invalidate();
+}
+
 
 void OSD_BASE::finish_waiting_in_debugger()
 {
