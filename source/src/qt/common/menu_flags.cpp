@@ -294,11 +294,20 @@ USING_FLAGS_EXT::USING_FLAGS_EXT(config_t *cfg, QSettings* settings) : USING_FLA
 	use_monitor_type = USE_MONITOR_TYPE;
 #endif
 
+#if defined(USE_SOCKET)
+	use_socket = true;
+#endif
+#if defined(DONT_KEEEP_KEY_PRESSED)
+	dont_keeep_key_pressed = true;
+#endif
 #if defined(USE_MOUSE)
 	use_mouse = true;
 #endif
 #if defined(USE_MOVIE_PLAYER)
 	use_movie_player = true;
+#endif
+#if defined(USE_VIDEO_CAPTURE)
+	use_video_capture = false;	
 #endif
 #if defined(USE_NOTIFY_POWER_OFF)
 	use_notify_power_off = true;

@@ -46,6 +46,7 @@ protected:
 	bool use_auto_key_no_caps;
 	bool use_auto_key_release;
 	bool use_auto_key_shift;
+	bool dont_keeep_key_pressed;
 
 	bool use_binary_file;
 	int max_binary;
@@ -106,7 +107,6 @@ protected:
 	int max_laser_disc;
 	int base_ld_num;
 
-
 	bool use_key_locked;
 	bool independent_caps_kana_led;
 
@@ -122,7 +122,8 @@ protected:
 	bool use_mouse;
 
 	bool use_movie_player;
-
+	bool use_video_capture;
+	
 	bool use_notify_power_off;
 
 	bool use_one_board_computer;
@@ -132,6 +133,8 @@ protected:
 
 	bool use_serial;
 	int use_serial_type;
+
+	bool use_socket;
 
 	bool use_qd;
 	int max_qd;
@@ -242,6 +245,7 @@ public:
 	bool is_use_auto_key_no_caps() { return use_auto_key_no_caps; }
 	bool is_use_auto_key_release() { return use_auto_key_release; }
 	bool is_use_auto_key_shift() { return use_auto_key_shift; }
+	bool is_dont_keeep_key_pressed() { return dont_keeep_key_pressed; }
 
 	bool is_use_binary_file() { return use_binary_file; }
 	int get_max_binary() { return max_binary; }
@@ -328,6 +332,7 @@ public:
 	bool is_use_mouse() { return use_mouse; }
 
 	bool is_use_movie_player() { return use_movie_player; }
+	bool is_use_video_capture() { return use_video_capture; }
 
 	bool is_use_notify_power_off() { return use_notify_power_off; }
 
@@ -338,6 +343,8 @@ public:
 
 	bool is_use_serial() { return use_serial; }
 	int get_use_serial_type() { return use_serial_type; }
+
+	bool is_use_socket() { return use_socket; }
 
 	bool is_use_qd() { return use_qd; }
 	int get_max_qd() { return max_qd; }
