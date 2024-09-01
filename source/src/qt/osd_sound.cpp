@@ -145,13 +145,13 @@ void OSD_BASE::update_sound(int* extra_frames)
 		}
 //		}
 		// Restart Timer
-		m_elapsed_us_before_rendered = 0;
-		m_sound_tick_timer.restart();
 		int __extra_frames = 0;
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
 		__LIKELY_IF(extra_frames != NULL) {
 			*extra_frames = __extra_frames;
 		}
+		m_elapsed_us_before_rendered = 0;
+		m_sound_tick_timer.restart();
 		// Go to output sound.
 		int64_t tmp_frame_us = llrint(1.0e6 / vm_frame_rate());
 		margin_usecs = tmp_frame_us / 2; // OK?
