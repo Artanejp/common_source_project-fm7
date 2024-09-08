@@ -105,13 +105,14 @@ void OSD_BASE::update_sound(int* extra_frames)
 	if(m_sound_initialized.load()) {
 		// Get sound driver
 		bool prev_mute = m_now_mute.load();
-		if(!(m_sound_tick_timer.isValid())) {
-			m_sound_tick_timer.start();
-			return;
-		}
 		if(sound_drv->is_output_driver_stopped()) {
 			sound_drv->start_sink();
-			return;
+			//m_sound_tick_timer.restart();
+			//return;
+		}
+		if(!(m_sound_tick_timer.isValid())) {
+			m_sound_tick_timer.start();
+			//return;
 		}
 		unmute_sound();
 		bool first_half = m_sound_first_half.load();
@@ -127,21 +128,25 @@ void OSD_BASE::update_sound(int* extra_frames)
 		__UNLIKELY_IF(elapsed_us_before_rendered < 0) {
 			elapsed_us_before_rendered = 0;
 			m_elapsed_us_before_rendered = 0;
-		} /*else if(elapsed_us_before_rendered >= period_usecs) {
+		} else if(elapsed_us_before_rendered >= period_usecs) {
 			elapsed_us_before_rendered = period_usecs; // Margin?
 			m_elapsed_us_before_rendered = elapsed_us_before_rendered;
-			}*/
+		}
 
 		int64_t margin_usecs = m_sound_margin_usecs.load();
 		__UNLIKELY_IF(margin_usecs <= 2000) { // 
 			int64_t tmp_us = llrint(1.0e6 / vm_frame_rate());
-			margin_usecs = tmp_us / 4; // I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O	
+			 // I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
+			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			margin_usecs = (tmp_us * 2) / 3;
+			#else
+			margin_usecs = tmp_us / 4;
+			#endif
 			if(margin_usecs < 2000) {
 				margin_usecs = 2000;
 			}
 			m_sound_margin_usecs = margin_usecs;
 		}
-
 		const int64_t elapsed_usec = ((int64_t)m_sound_tick_timer.nsecsElapsed() / 1000) + elapsed_us_before_rendered; 
 		__LIKELY_IF((elapsed_usec < (period_usecs - margin_usecs)) && !(m_sink_empty.load())) {
 			return;
@@ -153,17 +158,18 @@ void OSD_BASE::update_sound(int* extra_frames)
 		}
 		// Go to output sound.
 		int64_t tmp_frame_us = llrint(1.0e6 / vm_frame_rate());
-		margin_usecs = tmp_frame_us / 4; // I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O	
+		// Restart Timer
+		m_elapsed_us_before_rendered = 0;
+		// I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		margin_usecs = (tmp_frame_us * 2) / 3;
+		#else
+		margin_usecs = tmp_frame_us / 4;
+		#endif
 		if(margin_usecs < 2000) {
 			margin_usecs = 2000;
 		}
 		m_sound_margin_usecs = margin_usecs;
-		// Restart Timer
-		//__LIKELY_IF(__extra_frames < 2) {
-			m_elapsed_us_before_rendered = 0;
-		//} else {
-		//	m_elapsed_us_before_rendered = (__extra_frames - 1) * tmp_frame_us;
-		//}
 		m_sound_tick_timer.restart();
 
 		if(sound_buffer == nullptr) {
@@ -296,10 +302,15 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 			// Re-use sound-thread even changing driver. 
 			connect(m_sound_thread, SIGNAL(finished()), m_sound_driver.get(), SLOT(deleteLater()));
 			if(!(m_sound_thread->isRunning())) {
-				// Thread priority makes higher to be safer (to reduce jitter)
-				// 240901 K.O
-				m_sound_thread->start(QThread::HighPriority); 
-				//m_sound_thread->start(QThread::TimeCriticalPriority); 
+				// Thread priority makes higher to be safer (to reduce jitter) for Qt5.x,
+				// but for Qt6.x, making lower is better result (；´Д｀)
+				// I don't know why...But I decide.
+				// - 240909 K.O
+				#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+				m_sound_thread->start(QThread::LowPriority);
+				#else
+				m_sound_thread->start(QThread::HighPriority);
+				#endif
 			}
 		}
 	}
