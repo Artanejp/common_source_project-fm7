@@ -22,8 +22,11 @@
 #include <QDateTime>
 
 //extern USING_FLAGS *using_flags;
-
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void GLDrawClass::enterEvent(QEnterEvent *event)
+#else
+void GLDrawClass::enterEvent(QEvent *event)
+#endif
 {
 	QOpenGLWidget::enterEvent(event);
 	this->grabKeyboard();
