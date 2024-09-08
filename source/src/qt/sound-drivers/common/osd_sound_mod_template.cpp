@@ -15,7 +15,8 @@
 namespace SOUND_MODULE {
 /* SOUND_MODULE */
 
-	M_BASE::M_BASE(OSD_BASE *parent,
+	M_BASE::M_BASE(QObject *parent,
+				   OSD_BASE *osd,
 				   QIODevice* sinkDeviceIO,
 				   QIODevice* sourceDeviceIO,
 				   size_t base_rate,
@@ -51,14 +52,14 @@ namespace SOUND_MODULE {
 	  m_mute(false),
 	  m_sink_external_fileio(false),
 	  m_source_external_fileio(false),
-	  m_classname("SOUND_MODULE::M_BASE")/*,
-	   QObject(qobject_cast<QObject*>(parent))*/
+	  m_classname("SOUND_MODULE::M_BASE"),
+	  QObject(parent)
 {
 
 	m_OSD = nullptr;
 	m_logger.reset();
 	m_using_flags.reset();
-	set_osd(parent);
+	set_osd(osd);
 
 	if(m_sink_channels.load() <= 1) m_sink_channels = 2;
 	recalc_samples(m_sink_rate.load(), m_sink_latency_ms.load(), true);
@@ -142,7 +143,7 @@ bool M_BASE::recalc_samples(size_t rate, size_t latency_ms, bool force)
 	uint64_t _samples =
 		(((uint64_t)rate) * ((uint64_t)latency_ms)) / 1000;
 	size_t _chunk_bytes = (size_t)(_samples * (uint64_t)(m_sink_wordsize.load()) * (uint64_t)(m_sink_channels.load()));
-	size_t _buffer_bytes = _chunk_bytes * 4;
+	size_t _buffer_bytes = _chunk_bytes * 2;
 
 	if((m_sink_rate.load() == rate) && (m_sink_latency_ms.load() == latency_ms) && !(force)) {
 		return false;
@@ -231,11 +232,6 @@ __FORMAT M_BASE::get_source_sound_format()
 {
 	return __FORMAT::Signed_Int;
 }
-
-
-
-
-
 
 bool M_BASE::update_latency(size_t latency_ms, bool force)
 {
@@ -614,7 +610,7 @@ void M_BASE::set_osd(OSD_BASE* p)
 		connect(this, SIGNAL(sig_sink_stopped()), p, SLOT(do_sink_stopped()), Qt::DirectConnection);
 		connect(this, SIGNAL(sig_sink_empty()), p, SLOT(do_sink_empty()), Qt::DirectConnection);
 		connect(this, SIGNAL(sig_output_devices_list_changed()), p, SLOT(do_update_sound_output_devices_list()), Qt::QueuedConnection);
-		connect(this, SIGNAL(sig_input_devices_list_changed()), p, SLOT(do_update_sound_input_devices_list()), Qt::QueuedConnection);
+		connect(this, SIGNAL(sig_input_devices_list_changed()), p, SLOT(do_update_sound_capture_devices_list()), Qt::QueuedConnection);
 	} else {
 		if(m_OSD != nullptr) {
 			disconnect(this, nullptr, m_OSD, nullptr);
@@ -713,7 +709,8 @@ int64_t M_BASE::get_sink_bytes_left()
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
 	QIODevice* q = m_sink_fileio;
 	if(q != nullptr) {
-		int64_t n =  (int64_t)(q->bytesAvailable());
+		//int64_t n =  (int64_t)(q->bytesAvailable());
+		int64_t n =  (int64_t)(q->bytesToWrite());
 		if(n < 0) n = 0;
 		return n;
 	}

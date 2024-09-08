@@ -119,7 +119,8 @@ protected:
 	config_t*					 get_config_ptr();
 
 public:
-	M_BASE(OSD_BASE *parent,
+	M_BASE(QObject *parent,
+		   OSD_BASE *osd,
 		   QIODevice* sinkDeviceIO = nullptr,
 		   QIODevice* sourceDeviceIO = nullptr,
 		   size_t base_rate = 48000,

@@ -19,7 +19,8 @@ namespace SOUND_MODULE {
 /* SOUND_MODULE */
 	
 M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
-		OSD_BASE *parent,
+		QObject *parent,
+		OSD_BASE *osd,
 		QIODevice* sinkDeviceIO,
 		QIODevice* sourceDeviceIO,
 		size_t base_rate,
@@ -30,6 +31,7 @@ M_QT_MULTIMEDIA::M_QT_MULTIMEDIA(
 		:
 	M_BASE(
 		parent,
+		osd,
 		sinkDeviceIO,
 		sourceDeviceIO,
 		base_rate,

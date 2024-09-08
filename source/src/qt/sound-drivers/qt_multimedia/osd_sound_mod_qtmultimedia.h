@@ -112,7 +112,8 @@ using DeviceInfoType  = QAudioDeviceInfo;
 	}
 public:
 	M_QT_MULTIMEDIA(
-		OSD_BASE *parent,
+		QObject  *parent,
+		OSD_BASE *osd,
 		QIODevice* sinkDeviceIO = nullptr,
 		QIODevice* sourceDeviceIO = nullptr,
 		size_t base_rate = 48000,
