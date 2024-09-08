@@ -176,8 +176,17 @@ QStringList Menu_MetaClass::insert_dir_history_by_filename(QStringList& l, QStri
 		tmplist.removeAll(dir.path());
 		tmplist.push_front(dir.path());
 		if(tmplist.size() > MAX_HISTORY) {
+			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			tmplist.resize(MAX_HISTORY);
 			tmplist.squeeze();
+			#else
+			// Quick hack for FTBFS. Thanks to https://itest.5ch.net/kizuna/test/read.cgi/i4004/1601147054/778 .
+			// 20240908 K.O
+			QVector<QString> _tv = QVector<QString>::fromList(tmplist);
+			_tv.resize(MAX_HISTORY);
+			_tv.squeeze();
+			tmplist = QStringList::fromVector(_tv);
+			#endif
 		}
 		l = tmplist;
 	}
