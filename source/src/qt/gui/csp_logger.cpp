@@ -122,7 +122,7 @@ CSP_Logger::CSP_Logger(QObject *parent, bool b_syslog, bool cons, const char *de
 	level_state_out_syslog = false;
 	level_state_out_console = false;
 
-	console_printer = new CSP_Log_ConsoleThread(this);
+	console_printer = new CSP_Log_ConsoleThread(nullptr);
 	if(console_printer != nullptr) {
 		console_printer->setObjectName(QString::fromUtf8("Console_Logger_To_Stdout"));
 		//console_printer->moveToThread(console_printer);
