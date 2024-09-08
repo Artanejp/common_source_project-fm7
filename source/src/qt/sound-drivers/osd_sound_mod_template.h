@@ -400,6 +400,7 @@ signals:
 	void sig_output_devices_list_changed();
 	void sig_input_devices_list_changed();
 
+	void sig_sink_interruput_accpted();
 	//void sig_sink_full();
 	void sig_sink_empty();
 	

@@ -187,7 +187,7 @@ bool M_QT_MULTIMEDIA::is_sink_io_device_exists()
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		bool _ba = !(drv->isNull());
 	#else
-		bool _ba = ((drv->error() != QAudio::UnderrunError) && (drv->error() != QAudio::NoError) && !(drv->isNull())) ? true : false;
+		bool _ba = ((drv->error() != QAudio::UnderrunError) && (drv->error() != QAudio::NoError)) ? true : false;
 	#endif
 		bool _bb = (m_sink_fileio != nullptr) ? true : false;
 		return ((_ba) && (_bb) && (b_sink_fileio));
@@ -544,7 +544,11 @@ bool M_QT_MULTIMEDIA::set_new_output_device(DeviceInfoType dest_device, QAudioFo
 		QAudioFormat fmt = m_audioOutputSink->format();
 		m_sink_channels = fmt.channelCount();
 		m_sink_rate = fmt.sampleRate();
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		m_sink_wordsize = (size_t)(fmt.bytesPerSample());
+		#else
+		m_sink_wordsize = (size_t)(fmt.sampleSize()) >> 3;
+		#endif
 
 		M_BASE::recalc_samples(m_sink_rate.load(), m_sink_latency_ms.load(), true);
 		if(m_sink_external_fileio.load()) {
