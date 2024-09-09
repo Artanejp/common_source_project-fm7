@@ -83,7 +83,7 @@ void EmuThreadClassBase::do_open_floppy_disk(int drv, QString path, int bank)
 
 	if((p->get_max_drive() > (drv + 1)) && ((drv & 1) == 0) /* EVEN DRIVE NUM */ &&
 	   ((bank & EMU_MEDIA_TYPE::MULTIPLE_SLOT_DETECT_MASK) == 0)) {
-		if(check_file_extension(file_path, ".d88") || /* check_file_extension(file_path, ".d8e") || */
+		if(check_file_extension(file_path, ".d88") || check_file_extension(file_path, ".d8e") || 
 		   check_file_extension(file_path, ".d77") || check_file_extension(file_path, ".1dd")) {
 			if((bank + 1) < get_d88_file_bank_num(drv)) {
 				//if(!(p_emu->is_floppy_disk_inserted(drv + 1))) {

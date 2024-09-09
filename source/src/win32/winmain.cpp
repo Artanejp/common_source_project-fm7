@@ -2805,7 +2805,7 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.d88;*.d8e;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d8e;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
 		NULL,
 		config.initial_floppy_disk_dir, _MAX_PATH
@@ -3168,6 +3168,7 @@ void open_any_file(const _TCHAR* path)
 #endif
 #if defined(USE_FLOPPY_DISK)
 	if(check_file_extension(path, _T(".d88")) || 
+	   check_file_extension(path, _T(".d8e")) || 
 	   check_file_extension(path, _T(".d77")) || 
 	   check_file_extension(path, _T(".1dd")) || 
 	   check_file_extension(path, _T(".td0")) || 

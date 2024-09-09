@@ -2914,7 +2914,7 @@ void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 	if(drv < USE_FLOPPY_DISK) {
 		d88_file[drv].bank_num = 0;
 		d88_file[drv].cur_bank = -1;
-		if(check_file_extension(file_path, _T(".d88")) || /*check_file_extension(file_path, _T(".d8e")) || */
+		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d8e")) ||
 		   check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
 			FILEIO *fio = new FILEIO();
 			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
