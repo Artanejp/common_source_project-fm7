@@ -51,7 +51,7 @@ private:
 	uint32_t intr_bit;
 
 	int tmp_datap;
-	void update_intr();
+	void update_intr() override;
 	void process_cmd();
 	void __FASTCALL set_ibf(bool val);
 	void __FASTCALL set_obf(bool val);

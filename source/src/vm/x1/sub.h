@@ -43,7 +43,7 @@ private:
 	DEVICE *d_cpu;
 	bool iei;
 	uint32_t intr_bit;
-	void update_intr();
+	void update_intr() override;
 	
 public:
 	SUB(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
