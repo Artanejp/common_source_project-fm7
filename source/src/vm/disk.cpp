@@ -812,7 +812,7 @@ void DISK::close()
 			uint8_t *pre_buffer = NULL, *post_buffer = NULL;
 			
 			// is this d88 format ?
-			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(file_path, _T(".d8e")) || 
+			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d8e")) || 
 			   check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
 				if(fio->Fopen(dest_path, FILEIO_READ_BINARY)) {
 					fio->Fseek(0, FILEIO_SEEK_END);
@@ -1737,7 +1737,7 @@ bool DISK::check_media_type()
 	file_size.d += (size); \
 }
 
-typedef struct {
+typedef struct  d88_hdr_t {
 	char title[17];
 	uint8_t rsrv[9];
 	uint8_t protect;
@@ -1769,7 +1769,7 @@ typedef struct {
 	uint8_t trkptr_[164][4];
 } d88_hdr_t;
 
-typedef struct {
+typedef struct  d88_sct_t {
 	uint8_t c, h, r, n;
 	uint16_t nsec()
 	{
@@ -2077,7 +2077,7 @@ static int td_decode(FILEIO* fio, uint8_t *buf, int len)
 	return count;
 }
 
-typedef struct {
+typedef struct td_hdr_t {
 	char sig[3];
 	uint8_t unknown;
 	uint8_t ver;
@@ -2093,7 +2093,7 @@ typedef struct {
 	uint8_t crc_[2];
 } td_hdr_t;
 
-typedef struct {
+typedef struct td_cmt_t {
 	uint16_t crc()
 	{
 		return crc_[0] | (crc_[1] << 8);
@@ -2108,12 +2108,12 @@ typedef struct {
 	uint8_t hms[3];
 } td_cmt_t;
 
-typedef struct {
+typedef struct td_trk_t {
 	uint8_t nsec, trk, head;
 	uint8_t crc;
 } td_trk_t;
 
-typedef struct {
+typedef struct td_sct_t {
 	uint8_t c, h, r, n;
 	uint8_t ctrl, crc;
 } td_sct_t;
@@ -2571,7 +2571,7 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 
 // nfd r0/r1 image decoder
 // from NFD r0形式ファイル構造仕様 2001/01/22 LED
-typedef struct {
+typedef struct NFD_SECT_ID {
     BYTE  C;                            // C （0xFFの時セクタ無し）
     BYTE  H;                            // H
     BYTE  R;                            // R
@@ -2586,7 +2586,7 @@ typedef struct {
     char Reserve1[5];                   // 予約
 }NFD_SECT_ID,*LP_NFD_SECT_ID;
 
-typedef struct {
+typedef struct NFD_FILE_HEAD {
     char  szFileID[15];                 // 識別ID "T98FDDIMAGE.R0"
     char  Reserve1[1];                  // 予約
     char  szComment[0x100];             // イメージコメント(ASCIIz)
@@ -2603,7 +2603,7 @@ typedef struct {
 }NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
 
 // from NFD r1形式ファイル構造仕様 2001/09/14 LED
-typedef struct {
+typedef struct NFD_FILE_HEAD1 {
     char  szFileID[15];                         /* 識別ID "T98FDDIMAGE.R1"  */
     char  Reserve1[1];                          /* 予約                     */
     char szComment[0x100];                      /* コメント                 */
@@ -2626,9 +2626,9 @@ typedef struct {
     }
     BYTE byAddInfo[4];
     char Reserv3[0x10-4];                       /* 予備                     */
-}NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
+} NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
 
-typedef struct {
+typedef struct NFD_TRACK_ID1 {
     WORD wSector()                              /* セクタID数               */
     {
       return bySector[0] | (bySector[1] << 8);
@@ -2642,7 +2642,7 @@ typedef struct {
     char Reserv1[0x10-4];                       /* 予備                     */
 }NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
 
-typedef struct {
+typedef struct NFD_SECT_ID1 {
     BYTE    C;                                  /* C                        */
     BYTE    H;                                  /* H                        */
     BYTE    R;                                  /* R                        */
@@ -2658,7 +2658,7 @@ typedef struct {
     char Reserv1[0x10-12];                      /* 予備                     */
 }NFD_SECT_ID1,*LP_NFD_SECT_ID1;
 
-typedef struct {
+typedef struct NFD_DIAG_ID1 {
     BYTE    Cmd;                                /* Command                  */
     BYTE    C;                                  /* C                        */
     BYTE    H;                                  /* H                        */

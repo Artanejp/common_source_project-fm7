@@ -7,6 +7,13 @@
 	#endif
 #endif
 
+#ifndef LONG_PTR
+	typedef intptr_t LONG_PTR;
+#endif	
+#ifndef ULONG_PTR
+	typedef uintptr_t ULONG_PTR;
+#endif	
+
 #ifndef SUPPORT_CPLUSPLUS_11
 	#ifndef int8_t
 		typedef signed char int8_t;
