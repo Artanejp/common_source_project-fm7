@@ -19,17 +19,17 @@
 namespace FP1100 {
 	
 #define SET_BANK(s, e, w, r) { \
-	int sb = (s) >> 7, eb = (e) >> 7; \
+		int sb = (s) >> 7, eb = (e) >> 7;	\
 	for(int i = sb; i <= eb; i++) { \
-		if((w) == wdmy) { \
+		if(((uintptr_t)(w)) == (uintptr_t)wdmy) {	\
 			wbank[i] = wdmy; \
 		} else { \
-			wbank[i] = (w) + 0x80 * (i - sb); \
+			wbank[i] = (uint8_t *)(((uintptr_t)(w)) + 0x80 * (i - sb));	\
 		} \
-		if((r) == rdmy) { \
+		if(((uintptr_t)(r)) == ((uintptr_t)rdmy)) {	\
 			rbank[i] = rdmy; \
 		} else { \
-			rbank[i] = (r) + 0x80 * (i - sb); \
+			rbank[i] = (uint8_t *)(((uintptr_t)(r)) + 0x80 * (i - sb));	\
 		} \
 	} \
 }
