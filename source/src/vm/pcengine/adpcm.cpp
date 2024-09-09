@@ -495,7 +495,7 @@ void ADPCM::do_vclk(bool flag)
 				msm_data = (msm_nibble != 0) ? (ram[msm_ptr & 0xffff] & 0x0f) : ((ram[msm_ptr & 0xffff] & 0xf0) >> 4);
 				d_msm->data_w(msm_data);
 				msm_nibble ^= 1;
-				if((msm_nibble == 0)) {
+				if(msm_nibble == 0) {
 					// Increment pointers.
 					// 20181213 K.O: Re-order sequence from Ootake v2.83.Thanks to developers of Ootake.
 					//if(need_wait) goto __skip0;
