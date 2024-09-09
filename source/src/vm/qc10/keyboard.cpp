@@ -73,7 +73,7 @@ void KEYBOARD::key_down(int code)
 			if(code == 0x72) code = 0x86;	// SHIFT + F3
 			if(code == 0x73) code = 0x87;	// SHIFT + F4
 		}
-		if(code = key_map[code]) {
+		if((code = key_map[code]) != 0) {
 			d_sio->write_signal(SIG_Z80SIO_RECV_CH0, code, 0xff);
 		}
 	}
