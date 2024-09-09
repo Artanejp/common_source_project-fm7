@@ -165,6 +165,8 @@ void DiskIO::CmdSetFileName()
 //		LOG1("Path=%s", filename);
 		IdlePhase();
 		break;
+	default:
+		break;
 	}
 }
 
@@ -211,6 +213,8 @@ void DiskIO::CmdReadFile()
 //		LOG0("success");
 		IdlePhase();
 		err = 0;
+		break;
+	default:
 		break;
 	}
 }
@@ -264,6 +268,8 @@ void DiskIO::CmdWriteFile()
 		else
 			ArgPhase(2);
 		break;
+	default:
+		break;
 	}
 }
 
@@ -287,6 +293,8 @@ void DiskIO::CmdWriteFlush()
 		}
 		IdlePhase();
 		break;
+	default:
+		break;
 	}
 }
 
@@ -303,6 +311,8 @@ void DiskIO::CmdGetError()
 		
 	case sendphase:
 		IdlePhase();
+		break;
+	default:
 		break;
 	}
 }
@@ -335,6 +345,8 @@ void DiskIO::write_io8(uint32_t addr, uint32_t data)
 	case 0xd1:
 		this->SetData(addr, data & 0xff);
 		break;
+	default:
+		break;
 	}
 }
 
@@ -345,6 +357,8 @@ uint32_t DiskIO::read_io8(uint32_t addr)
 		return this->GetStatus(addr) & 0xff;
 	case 0xd1:
 		return this->GetData(addr) & 0xff;
+	default:
+		break;
 	}
 	return 0xff;
 }

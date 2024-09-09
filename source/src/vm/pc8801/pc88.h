@@ -66,7 +66,7 @@ class SCSI_CDROM;
 #endif
 
 namespace PC88DEV {
-typedef struct {
+typedef struct pc88_crtc_t {
 	struct {
 		int rate, counter;
 		uint8_t cursor, attrib;
@@ -109,7 +109,7 @@ typedef struct {
 	void __FASTCALL set_attrib(uint8_t code);
 } pc88_crtc_t;
 
-typedef struct {
+typedef struct pc88_dmac_t {
 	struct {
 		pair32_t addr, count;
 		uint8_t mode;
@@ -447,7 +447,7 @@ public:
 	void notify_intr_ei() override;
 	void update_intr() override;
 	
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
 #ifdef PC8801SR_VARIANT
