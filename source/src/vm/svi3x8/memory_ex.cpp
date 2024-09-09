@@ -1134,7 +1134,7 @@ unsigned char svi_LoadDisk(unsigned char disk, char *filename)
 	{
 		strcpy(s,dskPath);
 		strcat(s,filename);
-		if (f=fopen(s,"rb"))
+		if ((f=fopen(s,"rb")) != NULL)
 		{
 			strcpy(filename,s);
 			fclose(f);
