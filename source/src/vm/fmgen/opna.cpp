@@ -1390,7 +1390,7 @@ OPNA::OPNA()
 {
 	for (int i=0; i<6; i++)
 	{
-		rhythm[i].sample = 0;
+		rhythm[i].sample = NULL;
 		rhythm[i].pos = 0;
 		rhythm[i].size = 0;
 		rhythm[i].volume_l = 0;
@@ -1410,8 +1410,11 @@ OPNA::OPNA()
 OPNA::~OPNA()
 {
 	delete[] adpcmbuf;
-	for (int i=0; i<6; i++)
-		delete[] rhythm[i].sample;
+	for (int i=0; i<6; i++) {
+		if(rhythm[i].sample != NULL) {
+			delete[] rhythm[i].sample;
+		}
+	}
 }
 
 
@@ -1546,10 +1549,11 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		if ((fsize >= 0x100000) || (EndianFromLittle_WORD(whdr.format_id) != 1) || (EndianFromLittle_WORD(whdr.channels) != 1))
 			break;
 		fsize = Max(fsize, (1<<31)/1024);
-
-		delete rhythm[i].sample;
+		__LIKELY_IF(rhythm[i].sample != NULL) {
+			delete[] rhythm[i].sample;
+		}
 		rhythm[i].sample = new int16[fsize];
-		if (!rhythm[i].sample)
+		if (rhythm[i].sample == NULL)
 			break;
 		for(int __iptr = 0; __iptr < fsize; __iptr++) {
 			union {
@@ -1574,8 +1578,10 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 //		printf("NG %d\n", i);
 		for (i=0; i<6; i++)
 		{
-			delete[] rhythm[i].sample;
-			rhythm[i].sample = 0;
+			if(rhythm[i].sample != NULL) {
+				delete[] rhythm[i].sample;
+			}
+			rhythm[i].sample = NULL;
 		}
 		return false;
 	}
@@ -1660,7 +1666,7 @@ void OPNA::SetReg(uint addr, uint data)
 //
 void OPNA::RhythmMix(Sample* buffer, uint count)
 {
-	if ((rhythmtvol_l < 128 || rhythmtvol_r < 128) && rhythm[0].sample && (rhythmkey & 0x3f))
+	if ((rhythmtvol_l < 128 || rhythmtvol_r < 128) && (rhythm[0].sample != NULL) && (rhythmkey & 0x3f))
 	{
 		Sample* limit = buffer + count * 2;
 		for (int i=0; i<6; i++)
