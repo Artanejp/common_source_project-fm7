@@ -109,6 +109,7 @@ public:
 		_HAS_YM_SERIES = false;
 		_SUPPORT_YM2203_PORT_A = _SUPPORT_YM2203_PORT_B = false;
 		is_ym2608 = false;
+		is_port_a_input = is_port_b_input = false;
 		for(int i = 0; i < 2; i++) {
 			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
@@ -184,6 +185,8 @@ public:
 	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void set_reg(uint32_t addr, uint32_t data); // for patch
 	bool is_ym2608;
+	bool is_port_a_input;
+	bool is_port_b_input;
 };
 
 #endif
