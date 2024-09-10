@@ -10,6 +10,9 @@
 
 	[ sasi pseudo bios ]
 */
+
+#include <memory>
+
 #include "../../common.h"
 #include "./sasi_bios.h"
 #include "./membus.h"
@@ -680,7 +683,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint32_t regs[], uint16_t sregs[], int
 			int64_t position = ((int64_t)npos) * ((int64_t)block_size);
 			//size = size * block_size;
 
-			uint8_t buffer[block_size];
+			std::unique_ptr<uint8_t[]> buffer(new uint8_t[block_size]);
 			int block = (int)npos;
 			while(size > 0) {
 				if(!(block++ < sectors)) {
@@ -690,7 +693,7 @@ void BIOS::sasi_command_read(uint32_t PC, uint32_t regs[], uint16_t sregs[], int
 					return;
 				}
 				// data transfer
-				if(harddisk->read_buffer((long)position, block_size, buffer)) {
+				if(harddisk->read_buffer((long)position, block_size, buffer.get())) {
 					position += block_size;
 					for(int i = 0; i < block_size; i++) {
 						d_mem->write_dma_data8(addr++, buffer[i]);
@@ -764,7 +767,7 @@ void BIOS::sasi_command_write(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 			//size = size * block_size;
 			int64_t position = ((int64_t)npos) * ((int64_t)block_size);
 
-			uint8_t buffer[block_size];
+			std::unique_ptr<uint8_t[]> buffer(new uint8_t[block_size]);
 			int block = (int)npos;
 			while(size > 0) {
 				if(!(block++ < sectors)) {
@@ -777,7 +780,7 @@ void BIOS::sasi_command_write(uint32_t PC, uint32_t regs[], uint16_t sregs[], in
 				for(int i = 0; i < block_size; i++) {
 					buffer[i] = d_mem->read_dma_data8(addr++);
 				}
-				if(harddisk->write_buffer((long)position, block_size, buffer)) {
+				if(harddisk->write_buffer((long)position, block_size, buffer.get())) {
 					position += block_size;
 					size -= block_size;
 				} else {
@@ -853,10 +856,10 @@ void BIOS::sasi_command_format(uint32_t PC, uint32_t regs[], uint16_t sregs[], i
 			}
 			int64_t position = ((int64_t)npos) * ((int64_t)block_size);
 
-			uint8_t work[block_size];
+			std::unique_ptr<uint8_t[]> work(new uint8_t[block_size]);
 			for(int i = 0; i < sectors; i++) {
-				memset(work, 0xe5, block_size);
-				if(harddisk->write_buffer((long)position, block_size, work)) {
+				memset(work.get(), 0xe5, block_size);
+				if(harddisk->write_buffer((long)position, block_size, work.get())) {
 					position += block_size;
 					// TBD: CLOCKS
 				} else {
