@@ -499,11 +499,10 @@ void OSD_BASE::put_null_sound()
 		//sound_drv->mute_sink();
 		size_t chunk_bytes = sound_drv->get_sink_chunk_bytes();
 		size_t samples = sound_drv->get_sink_sample_count();
-		uint8_t* buf = new uint8_t[chunk_bytes];
-		if(buf != nullptr) {
-			memset(buf, 0x00, chunk_bytes);
-			int64_t _result = sound_drv->update_sound((void*)buf, samples);
-			delete [] buf;
+		std::unique_ptr<uint8_t[]> buf(new uint8_t[chunk_bytes]);
+		if(buf.get() != nullptr) {
+			memset(buf.get(), 0x00, chunk_bytes);
+			int64_t _result = sound_drv->update_sound((void*)(buf.get()), samples);
 			__LIKELY_IF(_result > 0) {
 				m_sink_empty = false;
 			}
