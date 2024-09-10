@@ -11,6 +11,7 @@
  * BELOW INCLUDES ARE for run_cpu().
  * ToDo: Minimum include.
  */
+#include <memory>
 #include "event.h"
 #include "vm.h"
 
@@ -1017,8 +1018,8 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	if(sound_in_samples[bank] <= 0) return 0;
 	if(expect_channels <= 0) return 0;
 	if(dst == NULL) return 0;
-	int16_t* tmpbuf = new int16_t[sound_in_channels[bank] + 1];
-	if(tmpbuf == NULL) return 0;
+	std::unique_ptr<int16_t[]> tmpbuf(new int16_t[sound_in_channels[bank] + 1]);
+	if(tmpbuf.get() == NULL) return 0;
 	
 	int readptr = sound_in_writeptr[bank] - 1;
 	if(readptr < 0) {
@@ -1042,8 +1043,7 @@ int EVENT::get_sound_in_latest_data(int bank, int32_t* dst, int expect_channels)
 	}
 	sound_in_readptr[bank] = readptr;
 	sound_in_write_size[bank] = 0;
-	gave_samples = rechannel_sound_in_data(dst, tmpbuf, expect_channels, sound_in_channels[bank], 1);
-	delete [] tmpbuf;
+	gave_samples = rechannel_sound_in_data(dst, tmpbuf.get(), expect_channels, sound_in_channels[bank], 1);
 	return gave_samples;
 }
 
@@ -1067,32 +1067,31 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 	if(in_count >= sound_in_write_size[bank]) in_count = sound_in_write_size[bank];
 	if(in_count <= 0) return 0;
 
-	int16_t* tmpbuf_in = new int16_t[(in_count + 1) * sound_in_channels[bank]];
+	std::unique_ptr<int16_t[]> tmpbuf_in(new int16_t[(in_count + 1) * sound_in_channels[bank]]);
 	if(tmpbuf_in == NULL) {
 		return 0;
 	}
-	int32_t* tmpbuf = new int32_t[(in_count + 1) * expect_channels];
+	std::unique_ptr<int32_t[]> tmpbuf(new int32_t[(in_count + 1) * expect_channels]);
 	if(tmpbuf == NULL) {
-		delete [] tmpbuf_in;
 		return 0;
 	}
 	sound_in_readptr[bank] = readptr;
 	sound_in_write_size[bank] -= in_count;
 	if(sound_in_write_size[bank] <= 0) sound_in_write_size[bank] = 0;
 
-	gave_samples = rechannel_sound_in_data(tmpbuf, tmpbuf_in, expect_channels, sound_in_channels[bank], in_count);
+	gave_samples = rechannel_sound_in_data(tmpbuf.get(), tmpbuf_in.get(), expect_channels, sound_in_channels[bank], in_count);
 
 	// ToDo: UnLock Mutex
 	// Got to TMP Buffer
 	if(expect_rate == sound_in_rate[bank]) {
-		int32_t* p = tmpbuf;
+		int32_t* p = tmpbuf.get();
 		int32_t* q = dst;
 
 		for(int i = 0; i < (gave_samples * expect_channels); i++) {
 			q[i] = p[i];
 		}
 	} else if(expect_rate > sound_in_rate[bank]) {
-		int32_t* p = tmpbuf;
+		int32_t* p = tmpbuf.get();
 		int32_t* q = dst;
 		int32_t tval;
 		int s_div = expect_rate / sound_in_rate[bank];
@@ -1124,7 +1123,7 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 		gave_samples =  n_samples;
 	} else { // expect_rate < sound_in_rate[bank]
 		// ToDo: Interpollate
-		int32_t* p = tmpbuf;
+		int32_t* p = tmpbuf.get();
 		int32_t* q = dst;
 		int32_t tval;
 		int s_div = sound_in_rate[bank] / expect_rate;
@@ -1160,8 +1159,6 @@ int EVENT::get_sound_in_data(int bank, int32_t* dst, int expect_samples, int exp
 		}
 		gave_samples =  n_samples;
 	}
-	delete [] tmpbuf;
-	delete [] tmpbuf_in;
 	return gave_samples;
 }
 void EVENT::request_skip_frames()
