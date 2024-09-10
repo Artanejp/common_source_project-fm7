@@ -60,7 +60,6 @@ protected:
 
 	void __FASTCALL set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
-	double __FASTCALL get_seek_time(uint32_t lba);
 
 	int volume_m;
 	int volume_l, volume_r;
@@ -70,6 +69,11 @@ protected:
 	int __FASTCALL get_track_noop(uint32_t lba);
 	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
 	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
+	
+	// Backport from FM TOWNS.
+	// 20240910 K.O
+	uint32_t get_image_cur_position();
+	
 	bool __CDROM_DEBUG_LOG;
 public:
 	SCSI_CDROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : SCSI_DEV(parent_vm, parent_emu)
@@ -104,7 +108,7 @@ public:
 	
 	virtual uint32_t __FASTCALL read_signal(int id) override;
 	virtual void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
-	
+
 	virtual void __FASTCALL event_callback(int event_id, int err) override;
 	virtual void __FASTCALL mix(int32_t* buffer, int cnt) override;
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) override;
@@ -129,16 +133,23 @@ public:
 		}
 		return 0;
 	}
-	virtual int __FASTCALL get_command_length(int value) override;
-	virtual void start_command() override;
-	virtual bool read_buffer(int length) override;
-	virtual bool write_buffer(int length) override;
 
 	// unique functions
 	void set_context_done(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_done, device, id, mask);
 	}
+	double __FASTCALL get_seek_time(uint64_t new_position, uint64_t length) override;
+	double __FASTCALL get_seek_time(uint32_t lba)
+	{
+		return get_seek_time((uint64_t)lba, 1);
+	}
+	
+	virtual int __FASTCALL get_command_length(int value) override;
+	virtual void start_command() override;
+	virtual bool read_buffer(int length) override;
+	virtual bool write_buffer(int length) override;
+	
 	void open(const _TCHAR* file_path);
 	void close();
 	bool mounted();

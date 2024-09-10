@@ -400,42 +400,52 @@ int SCSI_CDROM::get_track(uint32_t lba)
 {
 	int track = 0;
 	track = get_track_noop(lba);
-	if(is_cue) {
-		get_track_by_track_num(track);
-	} else {
-		current_track = track;
-	}
+	get_track_by_track_num(track);
 	return track;
 }
 
-double SCSI_CDROM::get_seek_time(uint32_t lba)
+uint32_t SCSI_CDROM::get_image_cur_position()
 {
-	if(fio_img->IsOpened()) {
-		uint32_t cur_position = (uint32_t)fio_img->Ftell();
-		int distance;
-		if(is_cue) {
-			int track = 0;
-			for(int i = 0; i < track_num; i++) {
-				if(lba >= toc_table[i].index0) {
-					track = i;
-				} else {
-					break;
-				}
-			}
-			distance = abs((int)(lba * physical_block_size()) - (int)(cur_position + toc_table[current_track].lba_offset * physical_block_size()));
-			if(track != current_track) {
-				current_track = get_track(lba);
+	uint32_t frame = 0;
+	int track = current_track;
+	if(is_device_ready()) {
+		if(fio_img->IsOpened()) {
+			uint32_t cur_position = (uint32_t)(fio_img->Ftell());
+			frame = cur_position / physical_block_size();
+			if(is_cue) {
+				frame = frame + toc_table[track].lba_offset;
 			}
 		} else {
-			distance = abs((int)(lba * physical_block_size()) - (int)cur_position);
+			frame = 0;
 		}
-		double ratio = ((double)distance / 333000.0) / physical_block_size(); // 333000: sectors in media
-		return max(10, (int)(400000 * 2 * ratio));
-		//double ratio = (double)distance  / 150.0e3; // 150KB/sec sectors in media
-		//return max(10, (int)(400000 * 2 * ratio));
-	} else {
-		return 400000; // 400msec
 	}
+	return frame;
+}
+
+double SCSI_CDROM::get_seek_time(uint64_t new_position, uint64_t length)
+{
+	// Backport from FM TOWNS.
+	// 20240910 K.O
+	uint32_t lba = (uint32_t)new_position; // OK?
+	uint32_t cur_lba = get_image_cur_position();
+	int distance;
+	if((track_num <= 0) || !(mounted())) {
+		return 400000; // 400msec
+	}		
+
+	if(lba > max_logical_block) lba = max_logical_block;
+	if(lba > cur_lba) {
+		distance = lba - cur_lba;
+	} else {
+		distance = cur_lba - lba;
+	}
+	if((cur_lba < 150) && (lba < 150)) {
+		// Seek not effective.
+		distance = 0;
+	}
+	
+	double ratio = ((double)distance / 333000.0) / (double)physical_block_size(); // 333000: sectors in media
+	return std::max(10.0, 400000.0 * 2.0 * ratio);
 }
 
 uint32_t SCSI_CDROM::lba_to_msf(uint32_t lba)
@@ -904,26 +914,41 @@ void SCSI_CDROM::start_command()
 
 bool SCSI_CDROM::read_buffer(int length)
 {
-	if(!fio_img->IsOpened()) {
+	if(!(mounted()) || (track_num <= 0)) {
 		set_sense_code(SCSI_SENSE_NOTREADY);
 		return false;
 	}
-	uint32_t offset = (uint32_t)(position % 2352);
-
-	if(is_cue) {
-		// ToDo: Need seek wait.
-		out_debug_log(_T("Seek to LBA %d LENGTH=%d\n"), position / 2352, length);
-		if(fio_img->Fseek(((long)position - (long)(toc_table[current_track].lba_offset * 2352)), FILEIO_SEEK_SET) != 0) {
+	uint32_t offset = (uint32_t)(position % physical_block_size());
+	long relative_position = (long)position;
+	// ToDo: Mixed physical block size. Will re-implement.
+	if(is_cue) { // OK?
+		uint32_t target_lba = (uint32_t)(position / physical_block_size());
+		out_debug_log(_T("Seek to LBA %d LENGTH=%d\n"), target_lba, length);
+		int track_tmp = get_track_noop(target_lba);
+		if((track_tmp != current_track) || !(fio_img->IsOpened())) {
+			get_track_by_track_num(track_tmp);
+		}
+		if(!(fio_img->IsOpened())) {
+			set_sense_code(SCSI_SENSE_NOTREADY);
+			return false;
+		}
+		if(current_track == 0) {
 			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
 			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
 			return false;
 		}
-	} else {
-		if(fio_img->Fseek((long)position, FILEIO_SEEK_SET) != 0) {
+		relative_position = (long)position - (long)(toc_table[current_track].lba_offset * physical_block_size());
+		offset = (uint32_t)(relative_position % physical_block_size());
+		if(relative_position < 0) {
 			set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
 			out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
 			return false;
 		}
+	}
+	if(fio_img->Fseek(relative_position, FILEIO_SEEK_SET) != 0) {
+		set_sense_code(SCSI_SENSE_ILLGLBLKADDR); //SCSI_SENSE_SEEKERR
+		out_debug_log(_T("Error on reading (ILLGLBLKADDR) at line %d\n"), __LINE__);
+		return false;
 	}
 	while(length > 0) {
 		uint8_t tmp_buffer[2352];
