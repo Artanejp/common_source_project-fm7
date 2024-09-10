@@ -34,6 +34,7 @@ void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// ym2203 port-b
 	select = data & mask;
+	event_frame();
 }
 
 void JOYSTICK::event_frame()
@@ -42,7 +43,10 @@ void JOYSTICK::event_frame()
 		joy_status = emu->get_joy_buffer();
 		uint8_t _n = joy_status[(select & 0x40) >> 6];
 		emu->release_joy_buffer(joy_status);
+		
 		d_opn->write_signal(SIG_YM2203_PORT_A, ~_n, 0x3f);
+	} else {
+		d_opn->write_signal(SIG_YM2203_PORT_A, ~0, 0x3f);
 	}
 }
 
