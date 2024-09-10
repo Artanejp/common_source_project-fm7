@@ -131,10 +131,15 @@ void Ui_MainWindowBase::do_finish_d88_list(int drv, quint64 bank)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
+	quint64 __num = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
+	if(__num >= 64) return;
 	if(menu_fds[drv] != nullptr) {
-		menu_fds[drv]->do_update_inner_media(listD88[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+		menu_fds[drv]->do_update_inner_media(listD88[drv], __num);
 	}
-	QString int_name = listD88[drv].at(bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+	QString int_name = QString::fromUtf8("");
+	if((listD88[drv].size() > __num) && !(listD88[drv].isEmpty())) {
+		int_name = listD88[drv].at(__num);
+	}
 	if(driveData != nullptr) {
 		driveData->updateMediaFileName(CSP_DockDisks_Domain_FD, drv, int_name);
 	}

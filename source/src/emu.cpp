@@ -231,9 +231,13 @@ void EMU::osdcall_bubble_inserted(int drv, _TCHAR* filestr, int bank)
 			if(i >= 16) break;
 			EMU_MEDIA_TYPE::type_t submedia_type = EMU_MEDIA_TYPE::BUBBLE_CASETTE | i;
 			EMU_MESSAGE_TYPE::type_t submess = EMU_MESSAGE_TYPE::VIRT_MEDIA_UPDATE;
+			_TCHAR tmp_name[128] = {0};
 			if(strlen(b77_file[drv].bubble_name[i]) > 0) {
-				osdcall_string(submedia_type, drv, submess, b77_file[drv].bubble_name[i]);
+				my_tcscpy_s(tmp_name, 128, b77_file[drv].bubble_name[i]);
+			} else {
+				my_sprintf_s(tmp_name, 128, _T("*Slot %d*"), i + 1);
 			}
+			osdcall_string(submedia_type, drv, submess, tmp_name);
 		}
 		osdcall_int(media_type, drv, EMU_MESSAGE_TYPE::VIRT_MEDIA_FINISH, 0);
 	}
@@ -274,12 +278,16 @@ void EMU::osdcall_floppy_inserted(int drv, _TCHAR* filestr, int bank)
 				0);
 	if(d88_file[drv].bank_num > 0) {
 		for(uint64_t i = 0; i < d88_file[drv].bank_num; i++) {
-			if(i >= 16) break;
+			if(i >= 64) break;
 			EMU_MEDIA_TYPE::type_t submedia_type = EMU_MEDIA_TYPE::FLOPPY_DISK | i;
 			EMU_MESSAGE_TYPE::type_t submess = EMU_MESSAGE_TYPE::VIRT_MEDIA_UPDATE;
+			_TCHAR tmp_name[128] = {0};
 			if(strlen(d88_file[drv].disk_name[i]) > 0) {
-				osdcall_string(submedia_type, drv, submess, d88_file[drv].disk_name[i]);
-			}
+				my_tcscpy_s(tmp_name, 128, d88_file[drv].disk_name[i]);
+			} else {
+				my_sprintf_s(tmp_name, 128, _T("*Slot %d*"), i + 1);
+			}				
+			osdcall_string(submedia_type, drv, submess, tmp_name);
 		}
 		osdcall_int(media_type, drv, EMU_MESSAGE_TYPE::VIRT_MEDIA_FINISH, 0);
 	}

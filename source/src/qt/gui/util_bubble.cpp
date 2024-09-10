@@ -232,8 +232,19 @@ void Ui_MainWindowBase::do_finish_b77_list(int drv, quint64 bank)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	
+	quint64 __num = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
+	if(__num >= 16) return;
 	if(menu_bubbles[drv] != nullptr) {
-		menu_bubbles[drv]->do_update_inner_media(listB77[drv], bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK);
+		menu_bubbles[drv]->do_update_inner_media(listB77[drv], __num);
+	}
+	
+	QString int_name = QString::fromUtf8("");
+	if((listB77[drv].size() > __num) && !(listB77[drv].isEmpty())) {
+		int_name = listB77[drv].at(__num);
+	}
+	if(driveData != nullptr) {
+		driveData->updateMediaFileName(CSP_DockDisks_Domain_Bubble, drv, int_name);
 	}
 }
 //#endif
