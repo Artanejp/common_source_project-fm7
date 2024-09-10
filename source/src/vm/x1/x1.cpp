@@ -106,6 +106,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
 	io->space = 0x10000;
+	io->bus_width = 8;
+	
 	fdc = new MB8877(this, emu);
 	fdc->set_context_noise_seek(new NOISE(this, emu));
 	fdc->set_context_noise_head_down(new NOISE(this, emu));
@@ -220,7 +222,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
-
+	
 	drec->set_context_ear(pio, SIG_I8255_PORT_B, 0x02);
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
 	crtc->set_context_disp(display, SIG_DISPLAY_DISP, 1);
@@ -248,7 +250,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 //	sio->set_rx_clock(0, 9600 * 16);	// clock is from Z-80CTC ch1 (2MHz/13)
 //	sio->set_tx_clock(1, 4800 * 16);	// 4800 baud for mouse
 //	sio->set_rx_clock(1, 4800 * 16);	// clock is from Z-80CTC ch2 (2MHz/26)
-
+	
 	if(sound_type >= 1) {
 		ctc1->set_context_zc0(ctc1, SIG_Z80CTC_TRIG_3, 1);
 //		ctc1->set_constant_clock(1, CPU_CLOCKS >> 1);
@@ -274,7 +276,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	dma->set_context_memory(memory);
 	dma->set_context_io(iobus);
 #endif
-
+	
 #ifdef _X1TURBO_FEATURE
 	display->set_context_cpu(cpu);
 #endif
@@ -297,7 +299,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef _X1TURBO_FEATURE
 	sasi->set_context_dma(dma);
 #endif
-
+	
 	if(pseudo_sub_cpu) {
 		drec->set_context_remote(psub, SIG_PSUB_TAPE_REMOTE, 1);
 		drec->set_context_end(psub, SIG_PSUB_TAPE_END, 1);

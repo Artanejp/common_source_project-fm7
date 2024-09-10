@@ -50,70 +50,41 @@ static uint8_t tmp_buffer[DISK_BUFFER_SIZE];
 
 // Note: Should set full fields per definitions due to security reason. 20230118 K.O
 static const fd_format_t fd_formats_base[] = {
-	{ MEDIA_TYPE_2D,  35, 1, 16,  128,  FM, 	// 1S	70KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  35, 2, 16,  128,  FM, 	// 2S	140KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2DD, 77, 1, 26,  128,  FM, 	// 1S	250KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  40, 1,  8,  512, MFM, 	// 1D	160KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  40, 1,  9,  512, MFM,	 	// 1D	180KB
-							  0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  40, 1, 10,  512, MFM,		// 1D	200KB
-	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  35, 1, 16,  128,  FM },	// 1S	70KB
+	{ MEDIA_TYPE_2D,  35, 2, 16,  128,  FM },	// 2S	140KB
+	{ MEDIA_TYPE_2DD, 77, 1, 26,  128,  FM },	// 1S	250KB
+	{ MEDIA_TYPE_2D,  40, 1,  8,  512, MFM },	// 1D	160KB
+	{ MEDIA_TYPE_2D,  40, 1,  9,  512, MFM },	// 1D	180KB
+	{ MEDIA_TYPE_2D,  40, 1, 10,  512, MFM },	// 1D	200KB
 //#if defined(SUPPORT_MEDIA_TYPE_1DD)
-//	{ MEDIA_TYPE_2DD, 70, 1,  8,  512, MFM,		// 1DD	280KB
-//	                          0,    0,  FM },	
-//	{ MEDIA_TYPE_2DD, 70, 1,  9,  512, MFM,		// 1DD	315KB
-//	                          0,    0,  FM },	
-//	{ MEDIA_TYPE_2DD, 70, 1, 10,  512, MFM,		// 1DD	350KB
-//	                          0,    0,  FM },	
-//	{ MEDIA_TYPE_2DD, 80, 1,  8,  512, MFM,		// 1DD	320KB
-//	                          0,    0,  FM },	
-//	{ MEDIA_TYPE_2DD, 80, 1,  9,  512, MFM,		// 1DD	360KB
-//	                          0,    0,  FM },	
-//	{ MEDIA_TYPE_2DD, 80, 1, 10,  512, MFM,		// 1DD	400KB
-//	                          0,    0,  FM },	
+//	{ MEDIA_TYPE_2DD, 70, 1,  8,  512, MFM },	// 1DD	280KB
+//	{ MEDIA_TYPE_2DD, 70, 1,  9,  512, MFM },	// 1DD	315KB
+//	{ MEDIA_TYPE_2DD, 70, 1, 10,  512, MFM },	// 1DD	350KB
+//	{ MEDIA_TYPE_2DD, 80, 1,  8,  512, MFM },	// 1DD	320KB
+//	{ MEDIA_TYPE_2DD, 80, 1,  9,  512, MFM },	// 1DD	360KB
+//	{ MEDIA_TYPE_2DD, 80, 1, 10,  512, MFM },	// 1DD	400KB
 //#else
-	{ MEDIA_TYPE_2D,  35, 2,  8,  512, MFM,		// 2D	280KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  35, 2,  9,  512, MFM,		// 2D	315KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  35, 2, 10,  512, MFM,		// 2D	350KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  40, 2,  8,  512, MFM,		// 2D	320KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  40, 2,  9,  512, MFM,		// 2D	360KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2D,  40, 2, 10,  512, MFM,		// 2D	400KB
-	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2D,  35, 2,  8,  512, MFM },	// 2D	280KB
+	{ MEDIA_TYPE_2D,  35, 2,  9,  512, MFM },	// 2D	315KB
+	{ MEDIA_TYPE_2D,  35, 2, 10,  512, MFM },	// 2D	350KB
+	{ MEDIA_TYPE_2D,  40, 2,  8,  512, MFM },	// 2D	320KB
+	{ MEDIA_TYPE_2D,  40, 2,  9,  512, MFM },	// 2D	360KB
+	{ MEDIA_TYPE_2D,  40, 2, 10,  512, MFM },	// 2D	400KB
 //#endif
-	{ MEDIA_TYPE_2DD, 80, 2,  8,  512, MFM,		// 2DD	640KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2DD, 80, 2,  9,  512, MFM,		// 2DD	720KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2DD, 81, 2,  9,  512, MFM,		// 2DD	729KB, ASCII MSX
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2DD, 80, 2, 10,  512, MFM,		// 2DD	800KB
-	                          0,    0,  FM },	
+	{ MEDIA_TYPE_2DD, 80, 2,  8,  512, MFM },	// 2DD	640KB
+	{ MEDIA_TYPE_2DD, 80, 2,  9,  512, MFM },	// 2DD	720KB
+	{ MEDIA_TYPE_2DD, 81, 2,  9,  512, MFM },	// 2DD	729KB, ASCII MSX
+	{ MEDIA_TYPE_2DD, 80, 2, 10,  512, MFM },	// 2DD	800KB
 	{ MEDIA_TYPE_2HD, 77, 2, 26,  128,  FM,
 	                         26,  256, MFM },	// 2HD	998KB, SORD M68
-	{ MEDIA_TYPE_2HD, 77, 2, 26,  256, MFM,		// 2HD	1001KB, MITSUBISHI/IBM
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2HD, 80, 2, 15,  512, MFM,		// 2HC	1200KB, TOSHIBA/IBM
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_2HD, 77, 2,  8, 1024, MFM,		// 2HD	1232KB, NEC
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_144, 80, 2, 18,  512, MFM,		// 2HD	1440KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_144, 80, 2, 21,  512, MFM,		// 2HD	1680KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_144, 82, 2, 21,  512, MFM,		// 2HD	1722KB
-	                          0,    0,  FM },	
-	{ MEDIA_TYPE_144, 80, 2, 36,  512, MFM,		// 2ED	2880KB
-	                          0,    0,  FM },	
-	{ -1, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ MEDIA_TYPE_2HD, 77, 2, 26,  256, MFM },	// 2HD	1001KB, MITSUBISHI/IBM
+	{ MEDIA_TYPE_2HD, 80, 2, 15,  512, MFM },	// 2HC	1200KB, TOSHIBA/IBM
+	{ MEDIA_TYPE_2HD, 77, 2,  8, 1024, MFM },	// 2HD	1232KB, NEC
+	{ MEDIA_TYPE_144, 80, 2, 18,  512, MFM },	// 2HD	1440KB
+	{ MEDIA_TYPE_144, 80, 2, 21,  512, MFM },	// 2HD	1680KB
+	{ MEDIA_TYPE_144, 82, 2, 21,  512, MFM },	// 2HD	1722KB
+	{ MEDIA_TYPE_144, 80, 2, 36,  512, MFM },	// 2ED	2880KB
+	{ -1, 0, 0, 0, 0 },
 };
 
 #define IS_VALID_TRACK(offset) ((offset) >= 0x20 && (offset) < sizeof(buffer))
@@ -123,21 +94,23 @@ void DISK::setup_fd_formats(void)
 	fd_format_t nt;
 	bool checked = false;
 	memset(fd_formats, 0, sizeof(fd_formats));
-#if !defined(_ANY2D88)
+
 	osd = emu->get_osd();
+//#if !defined(_ANY2D88)
 	if(osd->check_feature(_T("_SC3000"))) {
 		checked = true;
 		type_sc3000 = true;
-		nt = { MEDIA_TYPE_2D,  40, 1, 16,  256, MFM, 0, 0, FM };	// 1D	160KB
+		nt = { MEDIA_TYPE_2D,  40, 1, 16,  256, MFM };	// 1D	160KB
 	} else if(osd->check_feature(_T("SMC70")) || osd->check_feature(_T("_SMC777"))) {
 		checked = true;
 		type_smc70 = true;
-		nt = { MEDIA_TYPE_2DD, 70, 1, 16,  256, MFM, 0, 0, FM };	// 1DD	280KB
+		nt = { MEDIA_TYPE_2DD, 70, 1, 16,  256, MFM };	// 1DD	280KB
 	} else if((osd->check_feature(_T("_X1_SERIES"))) || osd->check_feature(_T("_X1TWIN"))) {
 		checked = true;
 		type_x1 = true;
 		type_x1turbo = (osd->check_feature(_T("_X1TURBO_FEATURE"))) ? true : false;
-		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM, 0, 0, FM };	// 2D	320KB
+		nt = { MEDIA_TYPE_2D,  40, 2, 16,  256, MFM};	// 2D	320KB
+		printf("X1 SERIES\n");
 	} else if(osd->check_feature(_T("_M5"))) {
 		checked = true;
 		type_m5 = true;
@@ -146,11 +119,11 @@ void DISK::setup_fd_formats(void)
 			  osd->check_feature(_T("_MZ2200")) || osd->check_feature(_T("_MZ2500"))) {
 		checked = true;
 		type_mz80b = true;
-		nt = { MEDIA_TYPE_2DD, 80, 2, 16,  256, MFM, 0, 0, FM };	// 2DD	640KB
+		nt = { MEDIA_TYPE_2DD, 80, 2, 16,  256, MFM};	// 2DD	640KB
 	} else if (osd->check_feature(_T("_YIS"))) {
 		checked = true;
 		type_yis = true;
-		nt = { MEDIA_TYPE_2DD,  80, 1, 16,  256, MFM, 0, 0, FM };	// 1DD	320KB
+		nt = { MEDIA_TYPE_2DD,  80, 1, 16,  256, MFM};	// 1DD	320KB
 	}
 	if(osd->check_feature(_T("_FM7")) || osd->check_feature(_T("_FM8"))) {
 		checked = false;
@@ -173,12 +146,12 @@ void DISK::setup_fd_formats(void)
 	if(osd->check_feature(_T("SUPPORT_MEDIA_TYPE_1DD"))) {
 		type_1dd = true;
 	}
-	if(osd->check_feature(_T("_ANY2D88"))) {
-		type_any2d88 = true;
-	}
-#else // _ANY2D88
-	type_any2d88 = true;
-#endif
+//	if(osd->check_feature(_T("_ANY2D88"))) {
+//		type_any2d88 = true;
+//	}
+//#else // _ANY2D88
+//	type_any2d88 = true;
+//#endif
 	int _xpos = 0;
 	if(checked) {
 		fd_formats[0] = nt;

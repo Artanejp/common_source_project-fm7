@@ -59,7 +59,7 @@ typedef struct {
 
 class CSP_Logger;
 class FILEIO;
-class OSD;
+class OSD_BASE;
 class  DLL_PREFIX DISK
 {
 #ifndef _ANY2D88
@@ -71,7 +71,7 @@ private:
 	uint8_t buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
 	_TCHAR orig_path[_MAX_PATH];
 	_TCHAR dest_path[_MAX_PATH];
-	fd_format_t fd_formats[32];
+	fd_format_t fd_formats[64];
 
 	pair32_t file_size;
 	int file_bank;
