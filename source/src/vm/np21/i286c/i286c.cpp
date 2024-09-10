@@ -301,8 +301,9 @@ void CPUCALL i286c_intnum(UINT vect, REG16 IP) {
 		uint16_t sregs[4] = {CPU_ES, CPU_CS, CPU_SS, CPU_DS};
 		int32_t ZeroFlag = ((CPU_FLAG & Z_FLAG) ? 1 : 0);
 		int32_t CarryFlag = ((CPU_FLAG & C_FLAG) ? 1 : 0);
-		
-		if (device_bios->bios_int_i86(vect, regs, sregs, &ZeroFlag, &CarryFlag)) {
+		// Temporally call with NULL cycles and total_cycles.
+		// 20240910 K.O 
+		if (device_bios->bios_int_i86(vect, regs, sregs, &ZeroFlag, &CarryFlag, NULL, NULL)) {
 			CPU_AX = regs[0];
 			CPU_CX = regs[1];
 			CPU_DX = regs[2];
@@ -363,7 +364,9 @@ void CPUCALL i286c_interrupt(REG8 vect) {
 		int32_t ZeroFlag = ((CPU_FLAG & Z_FLAG) ? 1 : 0);
 		int32_t CarryFlag = ((CPU_FLAG & C_FLAG) ? 1 : 0);
 		
-		if (device_bios->bios_int_i86(vect, regs, sregs, &ZeroFlag, &CarryFlag)) {
+		// Temporally call with NULL cycles and total_cycles.
+		// 20240910 K.O 
+		if (device_bios->bios_int_i86(vect, regs, sregs, &ZeroFlag, &CarryFlag, NULL, NULL)) {
 			CPU_AX = regs[0];
 			CPU_CX = regs[1];
 			CPU_DX = regs[2];

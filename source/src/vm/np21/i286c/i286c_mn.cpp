@@ -1817,7 +1817,9 @@ I286FN _call_far(void) {					// 9A:	call far
 		int32_t ZeroFlag = ((CPU_FLAG & Z_FLAG) ? 1 : 0);
 		int32_t CarryFlag = ((CPU_FLAG & C_FLAG) ? 1 : 0);
 		
-		if (device_bios->bios_call_far_i86((newcs << 4) + newip, regs, sregs, &ZeroFlag, &CarryFlag)) {
+		// Temporally call with NULL cycles and total_cycles.
+		// 20240910 K.O 
+		if (device_bios->bios_call_far_i86((newcs << 4) + newip, regs, sregs, &ZeroFlag, &CarryFlag, NULL, NULL)) {
 			CPU_AX = regs[0];
 			CPU_CX = regs[1];
 			CPU_DX = regs[2];
