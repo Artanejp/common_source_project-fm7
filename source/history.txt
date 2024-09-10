@@ -1,3 +1,9 @@
+12/29/2022
+
+[PC9801/DISPLAY] fix renderer to consider timing of line counter controller
+[PC9801/DISPLAY] fix blink and reverse attributes
+
+
 12/24/2022
 
 [VM/YM2203] support to force port a/b into input mode
