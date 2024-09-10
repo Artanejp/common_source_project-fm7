@@ -17,7 +17,6 @@ FIFO::FIFO(int s, int empty_warn, int fill_warn)
 	size = s;
 	//buf = (int*)malloc(size * sizeof(int));
 	buf = new int[size];
-
 	cnt = rpt = wpt = 0;
 	empty_warn_val = empty_warn;
 	if(fill_warn <= 0) {
@@ -30,7 +29,9 @@ FIFO::FIFO(int s, int empty_warn, int fill_warn)
 void FIFO::release()
 {
 	//free(buf);
-	delete[] buf;
+	if(buf != NULL) {
+		delete[] buf;
+	}
 }
 
 void FIFO::clear()
@@ -42,6 +43,12 @@ void FIFO::clear()
 
 void FIFO::write(int val, bool *p_fill_warn)
 {
+	__UNLIKELY_IF(buf == NULL) {
+		__UNLIKELY_IF(p_fill_warn != NULL) {
+			*p_fill_warn = true;
+		}
+		return;
+	}
 	__LIKELY_IF(cnt < size) {
 		buf[wpt++] = val;
 		__UNLIKELY_IF(wpt >= size) {
@@ -62,6 +69,12 @@ void FIFO::write(int val, bool *p_fill_warn)
 int FIFO::read(bool *p_empty_warn)
 {
 	int val = 0;
+	__UNLIKELY_IF(buf == NULL) {
+		__UNLIKELY_IF(p_empty_warn != NULL) {
+			*p_empty_warn = true;
+		}
+		return val;
+	}
 	__LIKELY_IF(cnt > 0) {
 		val = buf[rpt++];
 		__UNLIKELY_IF(rpt >= size) {
@@ -87,6 +100,12 @@ int FIFO::read(bool *p_empty_warn)
 
 int FIFO::read_not_remove(int pt, bool *p_empty_warn)
 {
+	__UNLIKELY_IF(buf == NULL) {
+		__UNLIKELY_IF(p_empty_warn != NULL) {
+			*p_empty_warn = true;
+		}
+		return 0;
+	}
 	__UNLIKELY_IF(p_empty_warn != nullptr) {
 		*p_empty_warn = empty_warn_flag;
 	}
@@ -102,6 +121,12 @@ int FIFO::read_not_remove(int pt, bool *p_empty_warn)
 
 void FIFO::write_not_push(int pt, int d, bool *p_fill_warn)
 {
+	__UNLIKELY_IF(buf == NULL) {
+		__UNLIKELY_IF(p_fill_warn != NULL) {
+			*p_fill_warn = true;
+		}
+		return;
+	}
 	__UNLIKELY_IF(p_fill_warn != nullptr) {
 		*p_fill_warn = fill_warn_flag;
 	}
@@ -153,7 +178,9 @@ bool FIFO::process_state(void *f, bool loading)
 		return false;
 	}
 	state_fio->StateValue(size);
-	state_fio->StateArray(buf, size * sizeof(int), 1);
+	if(buf != NULL) {
+		state_fio->StateArray(buf, size * sizeof(int), 1);
+	}
 	state_fio->StateValue(cnt);
 	state_fio->StateValue(rpt);
 	state_fio->StateValue(wpt);
