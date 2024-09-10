@@ -310,10 +310,10 @@ void BIOS::event_frame()
 
 #define CALC_CYCLES(a,b,e)									  \
 	{														  \
-		if(a != NULL) {										  \
+		__LIKELY_IF(a != NULL) {							  \
 			*a -= e;										  \
 		}													  \
-		if(b != NULL) {										  \
+		__LIKELY_IF(b != NULL) {							  \
 			*b += (uint64_t)e;								  \
 		}													  \
 	}
