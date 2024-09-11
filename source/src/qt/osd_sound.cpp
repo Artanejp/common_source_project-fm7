@@ -107,12 +107,13 @@ void OSD_BASE::update_sound(int* extra_frames)
 		bool prev_mute = m_now_mute.load();
 		if(sound_drv->is_output_driver_stopped()) {
 			sound_drv->start_sink();
-			//m_sound_tick_timer.restart();
-			//return;
+			m_sound_tick_timer.restart();
+			m_elapsed_us_before_rendered = 0; // OK?
+			return;
 		}
 		if(!(m_sound_tick_timer.isValid())) {
 			m_sound_tick_timer.start();
-			//return;
+			return;
 		}
 		unmute_sound();
 		bool first_half = m_sound_first_half.load();
@@ -138,7 +139,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 			int64_t tmp_us = llrint(1.0e6 / vm_frame_rate());
 			 // I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
 			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-			margin_usecs = (tmp_us * 2) / 3;
+			margin_usecs = (tmp_us * 1) / 3;
 			#else
 			margin_usecs = tmp_us / 4;
 			#endif
@@ -148,9 +149,10 @@ void OSD_BASE::update_sound(int* extra_frames)
 			m_sound_margin_usecs = margin_usecs;
 		}
 		const int64_t elapsed_usec = ((int64_t)m_sound_tick_timer.nsecsElapsed() / 1000) + elapsed_us_before_rendered; 
-		__LIKELY_IF((elapsed_usec < (period_usecs - margin_usecs)) && !(m_sink_empty.load())) {
+		__LIKELY_IF((elapsed_usec < (period_usecs - margin_usecs)) /*&& !(m_sink_empty.load())*/) {
 			return;
 		}
+		//m_sound_tick_timer.restart();
 		int __extra_frames = 0;
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
 		__LIKELY_IF(extra_frames != NULL) {
@@ -162,7 +164,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 		m_elapsed_us_before_rendered = 0;
 		// I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
 		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		margin_usecs = (tmp_frame_us * 2) / 3;
+		margin_usecs = (tmp_frame_us * 1) / 3;
 		#else
 		margin_usecs = tmp_frame_us / 4;
 		#endif
@@ -356,7 +358,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	if((sound_drv.get() != nullptr) && (rate > 0) && (samples > 0)) {
 		m_sound_initialized = true;
 		m_now_mute = false;
-		sound_drv->start_sink();
+		//sound_drv->start_sink();
 		//mute_sound(); // Fill blank data a sample period.
 	}
 	// Split sound when changing rate.
