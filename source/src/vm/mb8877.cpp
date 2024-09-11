@@ -121,7 +121,7 @@ void MB8877::register_drq_event(int bytes)
 			break;
 		}
 	}
-	if(fdc_debug_log) this->out_debug_log("DRQ REG: %dbytes %d:%d -> %f\n", bytes, get_current_clock(), prev_drq_clock, usec);
+	//if(fdc_debug_log) this->out_debug_log("DRQ REG: %dbytes %d:%d -> %f\n", bytes, get_current_clock(), prev_drq_clock, usec);
 	cancel_my_event(EVENT_DRQ);
 	register_event(this, (EVENT_DRQ << 8) | (cmdtype & 0xff), usec, false, &register_id[EVENT_DRQ]);
 }
@@ -129,11 +129,15 @@ void MB8877::register_drq_event(int bytes)
 void MB8877::register_lost_event(int bytes)
 {
 	cancel_my_event(EVENT_LOST);
+	//out_debug_log(_T("Register LOST event after %f uSec (%d bytes)."), disk[drvreg]->get_usec_per_bytes(bytes), bytes);
 	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(bytes), false, &register_id[EVENT_LOST]);
 }
 
 bool MB8877::check_drive(void)
 {
+//	#if 0 /* Temporally disable this  - 20240911 K.O*/
+//	return true;
+//	#else
 	if(drvreg >= _max_drive) {
 		status = FDC_ST_NOTREADY;
 		//set_drq(false);
@@ -141,6 +145,7 @@ bool MB8877::check_drive(void)
 		return false;
 	}
 	return true;
+//	#endif
 }
 
 bool MB8877::check_drive2(void)
@@ -148,12 +153,14 @@ bool MB8877::check_drive2(void)
 	if(!check_drive()) {
 		return false;
 	}
+//	#if 0 /* Temporally disable this  - 20240911 K.O*/
 	if(!is_disk_inserted(drvreg & 0x7f)) {
 		status = FDC_ST_NOTREADY;
 		set_irq(true);
 		//set_drq(false);
 		return false;
 	}
+//	#endif
 	return true;
 }
 
@@ -369,18 +376,11 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 		ready = ((status & FDC_ST_DRQ) && !now_search);
 
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(type_fm7) {
-			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
-				if(!motor_on) ready = false;
-			}
-			if(!fdc[drvreg].head_load) ready = false;
-		} else 
-//#endif
-		{
+		if(!(type_fm7) || (disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)) {
 			if(!motor_on) ready = false;
 			if(!fdc[drvreg].head_load) ready = false;
 		}
-//		if(motor_on && (status & FDC_ST_DRQ) && !now_search) {
+		
 		if(ready) {
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
 				// write or multisector write
@@ -545,14 +545,9 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			// disk not inserted, motor stop
 			not_ready = !disk[drvreg]->inserted;
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-			if(type_fm7){
-				if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
-					if(!motor_on) not_ready = true;
-				}
-			} else
-//#endif
-			{
+			if(!(type_fm7) || (disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)) {
 				if(!motor_on) not_ready = true;
+				//if(!fdc[drvreg].head_load) ready = true;
 			}
 //			if(!disk[drvreg]->inserted || !motor_on) {
 			if(not_ready) {
@@ -656,14 +651,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 		// data reg
 		ready = ((status & FDC_ST_DRQ) && !now_search);
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(type_fm7) {
-			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS) {
-				if(!motor_on) ready = false;
-			}
-			if(!fdc[drvreg].head_load) ready = false;
-		} else
-//#endif
-		{
+		if(!(type_fm7) || (disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)) {
 			if(!motor_on) ready = false;
 			if(!fdc[drvreg].head_load) ready = false;
 		}
@@ -672,37 +660,41 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC) {
 				// read or multisector read
 				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
+					//#if 0 // Temporally Workaround
+					//datareg = disk[drvreg]->sector[fdc[drvreg].index];
+					//#else
 					uint8_t mask = (disk[drvreg]->unstable != NULL) ? disk[drvreg]->unstable[fdc[drvreg].index] : 0;
 					datareg = (disk[drvreg]->sector[fdc[drvreg].index] & ~mask) | (rand() & mask);
 					//fdc[drvreg].index++;
+					//#endif
 				}
 				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {  // Reading complete this sector.
 
 					if(disk[drvreg]->data_crc_error && !disk[drvreg]->ignore_crc()) {
 						// data crc error
-#if 0
 //#ifdef _FDC_DEBUG_LOG
 						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR (DATA CRC ERROR)\n"));
 //#endif
-						status |= FDC_ST_CRCERR;
-						status &= ~FDC_ST_BUSY;
-						cmdtype = 0;
-						set_irq(true);
-#else
+						//#if 0
+						//status |= FDC_ST_CRCERR;
+						//status &= ~FDC_ST_BUSY;
+						//cmdtype = 0;
+						//set_irq(true);
+						//#else
 						register_my_event_with_check(EVENT_CRC_ERROR, disk[drvreg]->get_usec_per_bytes(3));
-#endif
+						//#endif
 					} else if(cmdtype == FDC_CMD_RD_SEC) {
 						// single sector
-#if 0
-//#ifdef _FDC_DEBUG_LOG
 						if(fdc_debug_log) this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
+						//#if 0
+//#ifdef _FDC_DEBUG_LOG
 //#endif
-						status &= ~FDC_ST_BUSY;
-						cmdtype = 0;
-						set_irq(true);
-#else
+						//status &= ~FDC_ST_BUSY;
+						//cmdtype = 0;
+						//set_irq(true);
+						//#else
 						register_my_event_with_check(EVENT_END_READ_SECTOR, disk[drvreg]->get_usec_per_bytes(3));
-#endif
+						//#endif
 					} else {
 						// multisector
 //#ifdef _FDC_DEBUG_LOG
@@ -974,7 +966,7 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 			set_drq(true);
 			drive_sel = false;
-			if(fdc_debug_log) this->out_debug_log("DRQ ON@SEARCH: %d\n", prev_drq_clock);
+			//if(fdc_debug_log) this->out_debug_log("DRQ ON@SEARCH: %d\n", prev_drq_clock);
 //#ifdef _FDC_DEBUG_LOG
 			if(fdc_debug_log) this->out_debug_log(_T("FDC\tSEARCH OK\n"));
 //#endif
@@ -1055,13 +1047,14 @@ void MB8877::event_callback(int event_id, int err)
 						//cmdtype = 0;
 						//}
 				}
-			} else { // READ 
-				//if((status & FDC_ST_DRQ) != 0) {
-					status |= FDC_ST_LOSTDATA;
-					status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
-					set_irq(true);
-					set_drq(false);
-					//}
+			} else { // READ
+				// OK?
+				////if((status & FDC_ST_DRQ) != 0) {
+				status |= FDC_ST_LOSTDATA;
+				status &= (uint8_t)(~(FDC_ST_DRQ | FDC_ST_BUSY));
+				set_irq(true);
+				set_drq(false);
+				////}
 				read_io8(3);
 			}
 			status |= FDC_ST_LOSTDATA;
@@ -1160,8 +1153,9 @@ void MB8877::process_cmd()
 	if(fdc_debug_log) {
 		memset(tmps, 0x00, sizeof(tmps));
 		get_debug_regs_info(tmps, sizeof(tmps));
-		if(fdc_debug_log) this->out_debug_log(_T("%s"), tmps);
+		out_debug_log(_T("%s"), tmps);
 	}
+	//out_debug_log(_T("CMD %02X"), cmdreg);
 	switch(cmdreg & 0xf8) {
 	// type-1
 	case 0x00: case 0x08:
@@ -1381,6 +1375,7 @@ void MB8877::cmd_readdata(bool first_sector)
 	} else {
 		time = get_usec_to_start_trans(first_sector);
 	}
+	
 	register_my_event(EVENT_SEARCH, time);
 	cancel_my_event(EVENT_LOST);
 }
