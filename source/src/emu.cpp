@@ -407,9 +407,11 @@ bool EMU::is_frame_skippable()
 
 bool EMU::is_half_event()
 {
+	//#if !defined(_X1_SERIES) /* Use HALF Event */
 	__LIKELY_IF(vm != NULL) {
 		return vm->is_half_event();
 	}
+	//#endif
 	return false;
 }
 
@@ -496,9 +498,13 @@ int EMU::run()
 	if(extra_frames == 0) {
 		osd->lock_vm();
 		vm->run();
+		//#if !defined(_X1_SERIES) /* Use HALF Event */
 		if(!(is_half_event())) {
 			extra_frames = 1;
 		}
+		//#else
+		//extra_frames = 1;
+		//#endif
 		osd->unlock_vm();
 	}
 	osd->add_extra_frames(extra_frames);

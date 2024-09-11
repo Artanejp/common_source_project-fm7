@@ -148,7 +148,11 @@ void EmuThreadClass::doWork()
 				emit sig_restart_sound_timer();
 				current_time = get_current_tick_usec();
 				if(p_emu != nullptr) {
+					//#if !defined(_X1_SERIES) /* Use HALF Event */
 					half_count = p_emu->is_half_event();
+					//#else
+					//half_count = false;
+					//#endif
 				}
 			}
 		}
@@ -157,9 +161,9 @@ void EmuThreadClass::doWork()
 			break;
 		}
 
-		if(p_emu) {
+		__LIKELY_IF(p_emu) {
 			// drive machine
-			if(!(half_count)) { // Start of frame.
+			__LIKELY_IF(!(half_count)) { // Start of frame.
 				process_command_queue();
 				check_power_off();
 				check_scanline_params(false);
@@ -168,13 +172,17 @@ void EmuThreadClass::doWork()
 			process_key_input();
 			run_frames = p_emu->run();
 			total_frames += run_frames;
+			//#if !defined(_X1_SERIES) /* Use HALF Event */
 			half_count = p_emu->is_half_event();
+			//#else
+			//half_count = false;
+			//#endif
 			// After frame, delayed open
 			if(bRunThread.load() == false){
 				break;
 			}
 			
-			if(!(half_count)) { // End of a frame.
+			__LIKELY_IF(!(half_count)) { // End of a frame.
 				set_led();
 				sample_access_drv();
 				__LIKELY_IF(p_config != nullptr) {
@@ -199,7 +207,7 @@ void EmuThreadClass::doWork()
 				next_time += interval;
 			}
 
-			if(!(half_count)) { // End of a frame.
+			__LIKELY_IF(!(half_count)) { // End of a frame.
 				if(!(is_up_null) && (p_config != nullptr)) {
 					if((u_p->is_support_tv_render()) && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 						req_draw = true;

@@ -27,7 +27,17 @@
 qint64 EmuThreadClassBase::get_interval(void)
 {
 	qint64 interval = 0;
+//	std::shared_ptr<USING_FLAGS> p_flags = using_flags;
 	__LIKELY_IF(p_emu != nullptr) {
+		 /* Use HALF Event */
+//		__LIKELY_IF(p_flags.get() != nullptr) {
+//			__UNLIKELY_IF(p_flags->is_machine_x1_series()) {
+//				fps_accum += p_emu->get_frame_interval();
+//				interval = (fps_accum >> 10);
+//				fps_accum -= (interval << 10);
+//				return interval;
+//			}
+//		}
 		if(!(half_count)) {
 			fps_accum += p_emu->get_frame_interval();
 		}
@@ -47,12 +57,19 @@ void EmuThreadClassBase::reset_emulation_values()
 	update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	current_time = get_current_tick_usec();
 	
+ /* Use HALF Event */
+//	std::shared_ptr<USING_FLAGS> p_flags = using_flags;
+//	if(p_flags.get() != nullptr) {
+//		__UNLIKELY_IF(p_flags->is_machine_x1_series()) {
+//			half_count = false;
+//			return;
+//		}
+//	}
 	if(p_emu != nullptr) {
 		half_count = p_emu->is_half_event();
 	} else {
 		half_count = false;
 	}
-	
 }
 
 void EmuThreadClassBase::resetEmu()
