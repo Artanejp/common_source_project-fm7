@@ -641,12 +641,12 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 void DATAREC::close_tape()
 {
 	touch_sound();
-	set_remote(false);
-	if(register_id >= 0) {
-		cancel_event(this, register_id);
-		register_id = -1;
-	}
+//	if(register_id >= 0) {
+//		cancel_event(this, register_id);
+//		register_id = -1;
+//	}
 	close_file();
+	set_remote(false);
 
 	play = rec = is_wav = is_tap = is_t77 = false;
 	buffer_ptr = buffer_length = 0;
@@ -1179,7 +1179,7 @@ int DATAREC::load_tap_image()
 {
 	// get file size
 	play_fio->Fseek(0, FILEIO_SEEK_END);
-	//int file_size = play_fio->Ftell();
+	int file_size = play_fio->Ftell();
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
 
 	// check header
@@ -1196,7 +1196,10 @@ int DATAREC::load_tap_image()
 		}
 		// sample rate
 		play_fio->Fread(header, 4, 1);
-		sample_rate = header[0] | (header[1] << 8) | (header[2] << 16) | (header[3] << 24);
+		pair32_t rate_tmp;
+		rate_tmp.read_4bytes_le_from(header);
+		sample_rate = rate_tmp.d;
+		//sample_rate = header[0] | (header[1] << 8) | (header[2] << 16) | (header[3] << 24);
 		sample_usec = 1000000. / sample_rate;
 		// data length
 		play_fio->Fread(header, 4, 1);
@@ -1204,7 +1207,10 @@ int DATAREC::load_tap_image()
 		play_fio->Fread(header, 4, 1);
 	} else {
 		// sample rate
-		sample_rate = header[0] | (header[1] << 8) | (header[2] << 16) | (header[3] << 24);
+		pair32_t rate_tmp;
+		rate_tmp.read_4bytes_le_from(header);
+		sample_rate = rate_tmp.d;
+		//sample_rate = header[0] | (header[1] << 8) | (header[2] << 16) | (header[3] << 24);
 		sample_usec = 1000000. / sample_rate;
 	}
 
