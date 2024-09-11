@@ -96,7 +96,7 @@ void DISK::setup_fd_formats(void)
 	memset(fd_formats, 0, sizeof(fd_formats));
 
 	osd = emu->get_osd();
-//#if !defined(_ANY2D88)
+#if !defined(_ANY2D88)
 	if(osd->check_feature(_T("_SC3000"))) {
 		checked = true;
 		type_sc3000 = true;
@@ -146,12 +146,11 @@ void DISK::setup_fd_formats(void)
 	if(osd->check_feature(_T("SUPPORT_MEDIA_TYPE_1DD"))) {
 		type_1dd = true;
 	}
-//	if(osd->check_feature(_T("_ANY2D88"))) {
-//		type_any2d88 = true;
-//	}
-//#else // _ANY2D88
-//	type_any2d88 = true;
-//#endif
+	type_any2d88 = false;
+#else // _ANY2D88
+	type_1dd = false;
+	type_any2d88 = true;
+#endif
 	int _xpos = 0;
 	if(checked) {
 		fd_formats[0] = nt;
@@ -181,7 +180,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 	write_protected = false;
 	media_type = MEDIA_TYPE_UNK;
 	is_special_disk = 0;
-	is_d8e_image = is_solid_image = is_fdi_image = is_1dd_image = false;
+	is_d8e_image = is_1dd_image = is_solid_image = is_fdi_image = false;
 	trim_required = false;
 	track_mfm = drive_mfm;
 	
@@ -455,8 +454,10 @@ void DISK::open(const _TCHAR* file_path, int bank)
 								nside = 1;
 								ncyl *= 2;
 							}
-						} else if(type_any2d88) {
-//#elif defined(_ANY2D88)
+						}
+#if defined(_ANY2D88)						
+						else {
+
 							if(open_as_1dd && type == MEDIA_TYPE_2D && nside == 2 && p->mfm) {
 								type = MEDIA_TYPE_2DD;
 								nside = 1;
@@ -467,7 +468,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 								size = 256;
 							}
 						}
-//#endif
+#endif
 					try {
 //						if(solid_to_d88(fio, p->type, p->ncyl, p->nside, p->nsec, p->size, p->mfm)) {
 						if(solid_to_d88(fio, type, ncyl, nside, nsec, size, p->mfm, p->nsec2, p->size2, p->mfm2)) {
@@ -918,7 +919,7 @@ void DISK::close()
 	sector = unstable = NULL;
 }
 
-//#ifdef _ANY2D88
+#ifdef _ANY2D88
 void DISK::save_as_d88(const _TCHAR* file_path)
 {
 //#ifdef _ANY2D88
@@ -940,7 +941,7 @@ void DISK::save_as_d88(const _TCHAR* file_path)
 	}
 //#endif
 }
-//#endif
+#endif
 
 bool DISK::get_track(int trk, int side)
 {

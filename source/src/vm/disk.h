@@ -10,13 +10,13 @@
 #ifndef _DISK_H_
 #define _DISK_H_
 
-//#ifndef _ANY2D88
-//#include "vm.h"
-//#include "../emu.h"
+#ifndef _ANY2D88
+#include "./vm_template.h"
+#include "../emu_template.h"
 #include "../common.h"
-//#else
-//#include "../common.h"
-//#endif
+#else
+#include "../common.h"
+#endif
 
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
@@ -165,13 +165,13 @@ public:
 	}
 	~DISK()
 	{
-//#ifndef _ANY2D88
+#ifndef _ANY2D88
 		if(!type_any2d88) {
 			if(inserted) {
 				close();
 			}
 		}
-//#endif
+#endif
 	}
 	
 	void open(const _TCHAR* file_path, int bank);
@@ -247,7 +247,7 @@ public:
 	bool correct_timing()
 	{
 		if(type_any2d88) return false;
-//#ifndef _ANY2D88
+#ifndef _ANY2D88
 		if(type_fm7) {
 //#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 			if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) || (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) {
@@ -258,17 +258,16 @@ public:
 		if(drive_num < (int)array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
-//#endif
+#endif
 		return false;
 	}
 	bool ignore_crc()
 	{
-		if(type_any2d88) return false;
-//#ifndef _ANY2D88
+#ifndef _ANY2D88
 		if(drive_num < (int)array_length(config.ignore_disk_crc)) {
 			return config.ignore_disk_crc[drive_num];
 		}
-//#endif
+#endif
 		return false;
 	}
 	
