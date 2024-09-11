@@ -320,7 +320,7 @@ public:
 	{
 		return set_context_cpu(device, CPU_CLOCKS);
 	}
-	int set_context_cpu(DEVICE* device, uint32_t clocks = CPU_CLOCKS) override
+	int set_context_cpu(DEVICE* device, uint32_t clocks) override
 	{
 		assert(dcount_cpu < MAX_CPU);
 		if(dcount_cpu >= MAX_CPU) return -1;
