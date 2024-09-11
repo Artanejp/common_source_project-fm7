@@ -22,7 +22,7 @@ void IO::initialize()
 		wr_table = (wr_bank_t *)calloc(space, sizeof(wr_bank_t));
 		rd_table = (rd_bank_t *)calloc(space, sizeof(rd_bank_t));
 		// vm->dummy must be generated first !
-		for(int i = 0; i < space; i++) {
+		for(uint32_t i = 0; i < space; i++) {
 			wr_table[i].dev = rd_table[i].dev = vm->dummy;
 			wr_table[i].addr = rd_table[i].addr = i;
 		}
@@ -170,8 +170,8 @@ uint32_t IO::read_dma_io32w(uint32_t addr, int* wait)
 
 void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 {
-	const uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-	const uint32_t addr2 = haddr | wr_table[laddr].addr;
+	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+	uint32_t addr2 = haddr | wr_table[laddr].addr;
 	int wait_tmp = 0;
 
 	*wait = wr_table[laddr].wait;
@@ -201,8 +201,8 @@ void IO::write_port8(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 
 uint32_t IO::read_port8(uint32_t addr, bool is_dma, int *wait)
 {
-	const uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-	const uint32_t addr2 = haddr | rd_table[laddr].addr;
+	uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+	uint32_t addr2 = haddr | rd_table[laddr].addr;
 	uint32_t val;
 	int wait_tmp = 0;
 
@@ -237,8 +237,8 @@ uint32_t IO::read_port8(uint32_t addr, bool is_dma, int *wait)
 void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 {
 	if(bus_width >= 16 && !(addr & 1)) {
-		const uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-		const uint32_t addr2 = haddr | wr_table[laddr].addr;
+		uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+		uint32_t addr2 = haddr | wr_table[laddr].addr;
 		int wait_tmp = 0;
 
 		*wait = wr_table[laddr].wait;
@@ -268,7 +268,7 @@ void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 	} else {
 		int wait_l = 0, wait_h = 0;
 		write_port8(addr    , (data     ) & 0xff, is_dma, &wait_l);
-		write_port8(addr + 2, (data >> 8) & 0xff, is_dma, &wait_h);
+		write_port8(addr + 1, (data >> 8) & 0xff, is_dma, &wait_h);
 		*wait = wait_l + wait_h;
 	}
 }
@@ -276,8 +276,8 @@ void IO::write_port16(uint32_t addr, uint32_t data, bool is_dma, int *wait)
 uint32_t IO::read_port16(uint32_t addr, bool is_dma, int *wait)
 {
 	if(bus_width >= 16 && !(addr & 1)) {
-		const uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
-		const uint32_t addr2 = haddr | rd_table[laddr].addr;
+		uint32_t laddr = addr & IO_ADDR_MASK, haddr = addr & ~IO_ADDR_MASK;
+		uint32_t addr2 = haddr | rd_table[laddr].addr;
 		uint32_t val;
 		int wait_tmp = 0;
 
@@ -310,7 +310,7 @@ uint32_t IO::read_port16(uint32_t addr, bool is_dma, int *wait)
 		int wait_l = 0, wait_h = 0;
 		uint32_t val;
 		val  = read_port8(addr    , is_dma, &wait_l);
-		val |= read_port8(addr + 1, is_dma, &wait_h) << 16;
+		val |= read_port8(addr + 1, is_dma, &wait_h) << 8;
 		*wait = wait_l + wait_h;
 		return val;
 	}
