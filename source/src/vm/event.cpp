@@ -180,10 +180,12 @@ bool EVENT::drive()
 	
 	// Update cache from config.drive_vm_in_opecode .
 	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
+	 /* Use HALF Event */
+//	#if !defined(_X1_SERIES)
 	if(event_half) {
 		goto skip1;
 	}
-
+//	#endif
 	// raise pre frame events to update timing settings
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_pre_frame();
@@ -238,6 +240,8 @@ bool EVENT::drive()
 			update_event(-event_clocks_remain);
 		}
 	}
+	/* Use HALF Event */
+	//#if !defined(_X1_SERIES)
 skip1:
 	int _fclocks;
 	if(event_half) {
@@ -246,6 +250,9 @@ skip1:
 		_fclocks = frame_clocks / 2;
 	}
 	event_half = !(event_half);
+	//#else
+	//int _fclocks = frame_clocks;
+	//#endif
 	event_clocks_remain += _fclocks;
 	cpu_clocks_remain += _fclocks << power;
 
@@ -339,8 +346,13 @@ skip1:
 		flush_cache(d_cpu, sizeof(cpu_t) * dcount_cpu);
 		flush_cache(cpu_update_clocks, sizeof(uint32_t) * 6 * dcount_cpu);
 	}
-	flush_cache(event, sizeof(event_t) * MAX_EVENT); 
+	flush_cache(event, sizeof(event_t) * MAX_EVENT);
+	 /* Use HALF Event */
+	//#if !defined(_X1_SERIES)
 	return event_half;
+	//#else
+	//return false;
+	//#endif
 }
 
 void EVENT::update_event_in_opecode(int clock)
@@ -761,7 +773,12 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		drive();
+		 /* Use HALF Event */
+		//#if !defined(_X1_SERIES)
 		if(!(event_half)) frames++;
+		//#else
+		//frames++;
+		//#endif
 	}
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);

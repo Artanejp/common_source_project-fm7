@@ -316,6 +316,10 @@ public:
 		return next_frames_per_sec;
 	}
 	
+	int set_context_cpu(DEVICE* device) override
+	{
+		return set_context_cpu(device, CPU_CLOCKS);
+	}
 	int set_context_cpu(DEVICE* device, uint32_t clocks = CPU_CLOCKS) override
 	{
 		assert(dcount_cpu < MAX_CPU);

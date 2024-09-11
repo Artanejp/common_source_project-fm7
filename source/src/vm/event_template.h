@@ -69,9 +69,18 @@ public:
 	  @param clocks Basic clock Hz of this device.
 	  @return index number of regitered. -1 if failed to register.
 	*/
-	virtual int set_context_cpu(DEVICE* device, uint32_t clocks = 1000*1000)
+	virtual int set_context_cpu(DEVICE* device, uint32_t clocks)
 	{
 		return 0;
+	}
+	/*!
+	  @brief Register CPU to event manager (set DEFAULT value; CPU_CLOCKS defined by vm/foo/foo.h .)
+	  @param device Pointer of CPU DEVICE to register.
+	  @return index number of regitered. -1 if failed to register.
+	*/
+	virtual int set_context_cpu(DEVICE* device)
+	{
+		return set_context_cpu(device, 1000 * 1000);
 	}
 	/*!
 	  @brief Remove CPU from EVENT MANAGER.
