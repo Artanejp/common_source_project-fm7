@@ -52,7 +52,6 @@ protected:
 	bool has_pseudo_bios;
 	bool has_ldair_quirk;
 	bool has_single_mode_dma;
-	bool flags_initialized;
 
 	bool is_primary;
 
@@ -237,6 +236,8 @@ protected:
 		6, 0, 0, 0, 7, 0, 0, 2, 6, 0, 0, 0, 7, 0, 0, 2
 	};
 
+	bool flags_initialized;
+	
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */

@@ -2065,7 +2065,7 @@ void Z80::special_reset(int num)
 	ea = 0;
 
 	im = iff1 = iff2 = icr = 0;
-	after_halt = after_di = after_ei = false;
+	after_halt = /*after_di = */ after_ei = false;
 	after_ldair = false;
 	intr_req_bit = intr_pend_bit = 0;
 }
@@ -2416,82 +2416,76 @@ void Z80::run_one_opecode()
 
 void Z80::check_interrupt_standard()
 {
-	if(iff1) { // Standard Z80.
-		// interrupt
-		LEAVE_HALT();
+	// interrupt
+	LEAVE_HALT();
 
-		uint32_t vector = d_pic->get_intr_ack();
-		if(im == 0) {
-			// mode 0 (support NOP/JMP/CALL/RST only)
-			switch(vector & 0xff) {
-			case 0x00: break;				// NOP
-			case 0xc3: PCD = vector >> 8; break;		// JMP
-			case 0xcd: PUSH(pc); PCD = vector >> 8; break;	// CALL
-			case 0xc7: PUSH(pc); PCD = 0x0000; break;	// RST 00H
-			case 0xcf: PUSH(pc); PCD = 0x0008; break;	// RST 08H
-			case 0xd7: PUSH(pc); PCD = 0x0010; break;	// RST 10H
-			case 0xdf: PUSH(pc); PCD = 0x0018; break;	// RST 18H
-			case 0xe7: PUSH(pc); PCD = 0x0020; break;	// RST 20H
-			case 0xef: PUSH(pc); PCD = 0x0028; break;	// RST 28H
-			case 0xf7: PUSH(pc); PCD = 0x0030; break;	// RST 30H
-			case 0xff: PUSH(pc); PCD = 0x0038; break;	// RST 38H
-			}
-			icount -= cc_op[vector & 0xff] + cc_ex[0xff];
-		} else if(im == 1) {
-			// mode 1
-			PUSH(pc);
-			PCD = 0x0038;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-		} else {
-			// mode 2
-			PUSH(pc);
-			RM16((vector & 0xff) | (I << 8), &pc);
-			icount -= cc_op[0xcd] + cc_ex[0xff];
+	uint32_t vector = d_pic->get_intr_ack();
+	if(im == 0) {
+		// mode 0 (support NOP/JMP/CALL/RST only)
+		switch(vector & 0xff) {
+		case 0x00: break;				// NOP
+		case 0xc3: PCD = vector >> 8; break;		// JMP
+		case 0xcd: PUSH(pc); PCD = vector >> 8; break;	// CALL
+		case 0xc7: PUSH(pc); PCD = 0x0000; break;	// RST 00H
+		case 0xcf: PUSH(pc); PCD = 0x0008; break;	// RST 08H
+		case 0xd7: PUSH(pc); PCD = 0x0010; break;	// RST 10H
+		case 0xdf: PUSH(pc); PCD = 0x0018; break;	// RST 18H
+		case 0xe7: PUSH(pc); PCD = 0x0020; break;	// RST 20H
+		case 0xef: PUSH(pc); PCD = 0x0028; break;	// RST 28H
+		case 0xf7: PUSH(pc); PCD = 0x0030; break;	// RST 30H
+		case 0xff: PUSH(pc); PCD = 0x0038; break;	// RST 38H
 		}
-		iff1 = iff2 = 0;
-		intr_req_bit = 0;
-		WZ = PCD;
+		icount -= cc_op[vector & 0xff] + cc_ex[0xff];
+	} else if(im == 1) {
+		// mode 1
+		PUSH(pc);
+		PCD = 0x0038;
+		icount -= cc_op[0xff] + cc_ex[0xff];
 	} else {
-		intr_req_bit &= intr_pend_bit;
+		// mode 2
+		PUSH(pc);
+		RM16((vector & 0xff) | (I << 8), &pc);
+		icount -= cc_op[0xcd] + cc_ex[0xff];
 	}
+	iff1 = iff2 = 0;
+	intr_req_bit = 0;
+	WZ = PCD;
 }
 
 void Z80::check_interrupt_nsc800()
 {
-	if(iff1) { // NSC800
-		if((intr_req_bit & 8) && (icr & 8)) {
-			// RSTA
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = 0x003c;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~8;
-		} else if((intr_req_bit & 4) && (icr & 4)) {
-			// RSTB
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = 0x0034;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~4;
-		} else if((intr_req_bit & 2) && (icr & 2)) {
-			// RSTC
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = 0x002c;
-			icount -= cc_op[0xff] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~2;
-		} else if((intr_req_bit & 1) && (icr & 1)) {
-			// INTR
-			LEAVE_HALT();
-			PUSH(pc);
-			PCD = WZ = d_pic->get_intr_ack() & 0xffff;
-			icount -= cc_op[0xcd] + cc_ex[0xff];
-			iff1 = iff2 = 0;
-			intr_req_bit &= ~1;
-		}
+	if((intr_req_bit & 8) && (icr & 8)) {
+		// RSTA
+		LEAVE_HALT();
+		PUSH(pc);
+		PCD = WZ = 0x003c;
+		icount -= cc_op[0xff] + cc_ex[0xff];
+		iff1 = iff2 = 0;
+		intr_req_bit &= ~8;
+	} else if((intr_req_bit & 4) && (icr & 4)) {
+		// RSTB
+		LEAVE_HALT();
+		PUSH(pc);
+		PCD = WZ = 0x0034;
+		icount -= cc_op[0xff] + cc_ex[0xff];
+		iff1 = iff2 = 0;
+		intr_req_bit &= ~4;
+	} else if((intr_req_bit & 2) && (icr & 2)) {
+		// RSTC
+		LEAVE_HALT();
+		PUSH(pc);
+		PCD = WZ = 0x002c;
+		icount -= cc_op[0xff] + cc_ex[0xff];
+		iff1 = iff2 = 0;
+		intr_req_bit &= ~2;
+	} else if((intr_req_bit & 1) && (icr & 1)) {
+		// INTR
+		LEAVE_HALT();
+		PUSH(pc);
+		PCD = WZ = d_pic->get_intr_ack() & 0xffff;
+		icount -= cc_op[0xcd] + cc_ex[0xff];
+		iff1 = iff2 = 0;
+		intr_req_bit &= ~1;
 	}
 }
 
@@ -2500,7 +2494,7 @@ void Z80::check_interrupt()
 	// check interrupt
 	if(intr_req_bit) {
 		// Processing NMI is commonly both Z80 and NSC800 .
-		if(intr_req_bit & NMI_REQ_BIT) {
+		__UNLIKELY_IF(intr_req_bit & NMI_REQ_BIT) {
 			// nmi
 			LEAVE_HALT();
 			PUSH(pc);
@@ -2508,11 +2502,15 @@ void Z80::check_interrupt()
 			icount -= 11;
 			iff1 = 0;
 			intr_req_bit &= ~NMI_REQ_BIT;
-		} else if(has_nsc800) {
-			// Another processing is different both Z80 and NSC800 .
-			check_interrupt_nsc800();
-		} else {
-			check_interrupt_standard();
+		} else if(iff1) {
+			__UNLIKELY_IF(has_nsc800) {
+				// Another processing is different both Z80 and NSC800 .
+				check_interrupt_nsc800();
+			} else {
+				check_interrupt_standard();
+			}
+		} else __LIKELY_IF(!(has_nsc800)) {
+			intr_req_bit &= intr_pend_bit;
 		}
 	}
 }
