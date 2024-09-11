@@ -10,7 +10,7 @@
 	[ memory ]
 */
 
-#include "memory.h"
+#include "./memory.h"
 #ifdef _X1TURBO_FEATURE
 #include "../i8255.h"
 #else
@@ -29,6 +29,7 @@ namespace X1 {
 
 void MEMORY::initialize()
 {
+	DEVICE::initialize();
 	// init memory
 	memset(rom, 0xff, sizeof(rom));
 	memset(ram, 0, sizeof(ram));

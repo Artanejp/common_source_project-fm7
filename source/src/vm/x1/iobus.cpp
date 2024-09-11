@@ -273,7 +273,7 @@ uint32_t IOBUS::read_port8(uint32_t addr, bool is_dma, int* wait)
 #endif
 		return this->read_via_debugger_data8(vram_ofs_g + (addr & 0x3fff));
 	}
-	uint32_t val = is_dma ? d_io->read_dma_io8(addr) : d_io->read_io8(addr);;
+	uint32_t val = is_dma ? d_io->read_dma_io8(addr) : d_io->read_io8(addr);
 	if((addr & 0xff0f) == 0x1a01) {
 		// hack: cpu detects vblank
 		if((vdisp & 0x80) && !(val & 0x80)) {

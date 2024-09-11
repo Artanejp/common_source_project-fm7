@@ -31,6 +31,9 @@
 #define _X1TURBO_FEATURE
 #endif
 
+#if defined(_X1) || defined(_X1TURBO) || defined(_X1TURBOZ) || defined(_X1TWIN)
+#define _X1_SERIES
+#endif
 // device informations for virtual machine (x1)
 #define VDP_CLOCK		28636363
 //#ifdef _X1TURBO_FEATURE
