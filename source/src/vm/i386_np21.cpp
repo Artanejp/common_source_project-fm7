@@ -257,6 +257,7 @@ void I386::reset()
 	}
 	osd->set_vm_node(this_device_id, (char *)this_device_name);
 
+	i386cpuid.allow_movCS = 0;
 //	i386cpuid.fpu_type = FPU_TYPE_SOFTFLOAT;
 //	i386cpuid.fpu_type = FPU_TYPE_DOSBOX;
 	i386cpuid.fpu_type = FPU_TYPE_DOSBOX2;
