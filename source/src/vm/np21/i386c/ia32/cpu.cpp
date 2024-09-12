@@ -243,7 +243,7 @@ exec_1step(void)
 			case 0xe8: //CAll
 				{
 					descriptor_t *sdp = &CPU_CS_DESC;
-					uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
+					UINT32 new_addr = sdp->u.seg.segbase + CPU_EIP;
 					device_debugger->add_cpu_trace_call(old_addr, new_addr);
 				}
 				break;
@@ -453,18 +453,10 @@ exec_allstep(void)
 	UINT32 op;
 	void (*func)(void);
 #if defined(SUPPORT_ASYNC_CPU)
-	int firstflag = 1;
-	UINT timing;
-	UINT lcflag = 0;
-	SINT32 oldremclock = CPU_REMCLOCK;
-	static int remclock_mul = 1000;
-	int remclockb = 0;
-	int remclkcnt = 0x100;
+	int remclkcnt = INT_MAX;
 	static int latecount = 0;
 	static int latecount2 = 0;
-	static int hltflag = 0;
-	bool is_debugging = ((device_debugger != NULL) && (device_debugger->now_debugging)) ? true : false;
-	__exception_set = 0;
+	static unsigned int hltflag = 0;
 
 	if(latecount2==0){
 		if(latecount > 0){
@@ -475,7 +467,7 @@ exec_allstep(void)
 	}
 	latecount2 = (latecount2+1) & 0x1fff;
 #endif
-
+	
 	do {
 
 		CPU_PREV_EIP = CPU_EIP;
@@ -536,38 +528,6 @@ exec_allstep(void)
 			/* prefix */
 			if (insttable_info[op] & INST_PREFIX) {
 				(*insttable_1byte[0][op])();
-				check_exception(is_debugging);
-				switch(op) {
-				case 0x9a: //CAll
-				case 0xe8: //CAll
-					{
-						descriptor_t *sdp = &CPU_CS_DESC;
-						uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
-						device_debugger->add_cpu_trace_call(old_addr, new_addr);
-					}
-					break;
-				case 0xcc: // INTr
-				case 0xcd:
-				case 0xce:
-				case 0xf1:
-					{
-						// ToDo: Collect intr num.
-						descriptor_t *sdp = &CPU_CS_DESC;
-						uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
-						device_debugger->add_cpu_trace_call(old_addr, new_addr);
-					}
-					break;
-				case 0xc2: // RET far
-				case 0xc3:
-				case 0xca: // RET far
-				case 0xcb:
-				case 0xcf: // iRET
-					{
-						// ToDo: Collect intr num.
-						device_debugger->add_cpu_trace_return(old_addr);
-					}
-					break;
-				}
 				continue;
 			}
 			break;
@@ -575,7 +535,6 @@ exec_allstep(void)
 		if (prefix == MAX_PREFIX) {
 			EXCEPTION(UD_EXCEPTION, 0);
 		}
-		check_exception(is_debugging);
 
 	#if defined(IA32_INSTRUCTION_TRACE)
 		if (op == 0x0f) {
@@ -586,45 +545,13 @@ exec_allstep(void)
 		}
 		ctx_index = (ctx_index + 1) % NELEMENTS(ctx);
 	#endif
-
+	
 		/* normal / rep, but not use */
 		if (!(insttable_info[op] & INST_STRING) || !CPU_INST_REPUSE) {
 	#if defined(DEBUG)
 			cpu_debug_rep_cont = 0;
 	#endif
 			(*insttable_1byte[CPU_INST_OP32][op])();
-			check_exception(is_debugging);
-			switch(op) {
-			case 0x9a: //CAll
-			case 0xe8: //CAll
-				{
-					descriptor_t *sdp = &CPU_CS_DESC;
-					uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
-					device_debugger->add_cpu_trace_call(old_addr, new_addr);
-				}
-				break;
-			case 0xcc: // INTr
-			case 0xcd:
-			case 0xce:
-			case 0xf1:
-				{
-					// ToDo: Collect intr num.
-					descriptor_t *sdp = &CPU_CS_DESC;
-					uint32_t new_addr = sdp->u.seg.segbase + CPU_EIP;
-					device_debugger->add_cpu_trace_call(old_addr, new_addr);
-				}
-				break;
-			case 0xc2: // RET far
-			case 0xc3:
-			case 0xca: // RET far
-			case 0xcb:
-			case 0xcf: // iRET
-				{
-					// ToDo: Collect intr num.
-					device_debugger->add_cpu_trace_return(old_addr);
-				}
-				break;
-			}
 			goto cpucontinue; //continue;
 		}
 
@@ -641,18 +568,15 @@ exec_allstep(void)
 			if (CPU_CX != 0) {
 				if(CPU_CX==1){
 					(*func)();
-					check_exception(is_debugging);
 					--CPU_CX;
 				}else{
 					if (!(insttable_info[op] & REP_CHECKZF)) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(0);
-							check_exception(is_debugging);
 						}else{
 							/* rep */
 							for (;;) {
 								(*func)();
-								check_exception(is_debugging);
 								if (--CPU_CX == 0) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -663,21 +587,15 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
-								if(device_cpu->check_interrupts()) {
-									CPU_EIP = CPU_PREV_EIP;
-									break;
-								}
 							}
 						}
 					} else if (CPU_INST_REPUSE != 0xf2) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(1);
-							check_exception(is_debugging);
 						}else{
 							/* repe */
 							for (;;) {
 								(*func)();
-								check_exception(is_debugging);
 								if (--CPU_CX == 0 || CC_NZ) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -688,21 +606,15 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
-								if(device_cpu->check_interrupts()) {
-									CPU_EIP = CPU_PREV_EIP;
-									break;
-								}
 							}
 						}
 					} else {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(2);
-							check_exception(is_debugging);
 						}else{
 							/* repne */
 							for (;;) {
 								(*func)();
-								check_exception(is_debugging);
 								if (--CPU_CX == 0 || CC_Z) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -710,10 +622,6 @@ exec_allstep(void)
 									break;
 								}
 								if (CPU_REMCLOCK <= 0) {
-									CPU_EIP = CPU_PREV_EIP;
-									break;
-								}
-								if(device_cpu->check_interrupts()) {
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
@@ -726,18 +634,15 @@ exec_allstep(void)
 			if (CPU_ECX != 0) {
 				if(CPU_ECX==1){
 					(*func)();
-					check_exception(is_debugging);
 					--CPU_ECX;
 				}else{
 					if (!(insttable_info[op] & REP_CHECKZF)) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(0);
-							check_exception(is_debugging);
 						}else{
 							/* rep */
 							for (;;) {
 								(*func)();
-								check_exception(is_debugging);
 								if (--CPU_ECX == 0) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -748,21 +653,15 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
-								if(device_cpu->check_interrupts()) {
-									CPU_EIP = CPU_PREV_EIP;
-									break;
-								}
 							}
 						}
 					} else if (CPU_INST_REPUSE != 0xf2) {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(1);
-							check_exception(is_debugging);
 						}else{
 							/* repe */
 							for (;;) {
 								(*func)();
-								check_exception(is_debugging);
 								if (--CPU_ECX == 0 || CC_NZ) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -773,21 +672,15 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
-								if(device_cpu->check_interrupts()) {
-									CPU_EIP = CPU_PREV_EIP;
-									break;
-								}
 							}
 						}
 					} else {
 						if(insttable_1byte_repfunc[CPU_INST_OP32][op]){
 							(*insttable_1byte_repfunc[CPU_INST_OP32][op])(2);
-							check_exception(is_debugging);
 						}else{
 							/* repne */
 							for (;;) {
 								(*func)();
-								check_exception(is_debugging);
 								if (--CPU_ECX == 0 || CC_Z) {
 			#if defined(DEBUG)
 									cpu_debug_rep_cont = 0;
@@ -798,107 +691,117 @@ exec_allstep(void)
 									CPU_EIP = CPU_PREV_EIP;
 									break;
 								}
-								if(device_cpu->check_interrupts()) {
-									CPU_EIP = CPU_PREV_EIP;
-									break;
-								}
 							}
 						}
 					}
 				}
 			}
 		}
-cpucontinue:
-#if defined(SUPPORT_ASYNC_CPU)
-		// 非同期CPU処理
-		if(np2cfg.asynccpu){
-#define LATECOUNTER_THRESHOLD	6
-#define LATECOUNTER_THRESHOLDM	2
-			int realclock = 0;
-			if(CPU_STAT_HLT){
-				hltflag = pccore.multiple;
-			}
-			if(CPU_REMCLOCK >= 0 && !realclock && (remclkcnt > 0x7)){
-				remclkcnt = 0;
-				firstflag = 0;
-				timing = timing_getcount_baseclock();
-				if(timing!=0){
-					if(!asynccpu_fastflag && !asynccpu_lateflag){
-						if(remclock_mul < 100000) {
-							latecount++;
-							if(latecount > +LATECOUNTER_THRESHOLD){
-								if(pccore.multiple > 4){
-									UINT32 oldmultiple = pccore.multiple;
-									if(pccore.multiple > 40){
-										pccore.multiple-=3;
-									}else if(pccore.multiple > 20){
-										pccore.multiple-=2;
-									}else{
-										pccore.multiple-=1;
-									}
-									pccore.realclock = pccore.baseclock * pccore.multiple;
-									nevent_changeclock(oldmultiple, pccore.multiple);
-
-									sound_changeclock();
-									pcm86_changeclock();
-									beep_changeclock();
-									mpu98ii_changeclock();
-#if defined(SUPPORT_SMPU98)
-									smpu98_changeclock();
-#endif
-									keyboard_changeclock();
-									mouseif_changeclock();
-									gdc_updateclock();
-								}
-
-								latecount = 0;
-							}
-						}
-						asynccpu_lateflag = 1;
-						CPU_REMCLOCK = 0;
-						break;
-					}
-				}else{
-					if(!hltflag && !asynccpu_lateflag && g_nevent.item[NEVENT_FLAMES].proc==screendisp && g_nevent.item[NEVENT_FLAMES].clock <= CPU_BASECLOCK){
-						//CPU_CLOCKCNT += CPU_REMCLOCK;
-						//CPU_REMCLOCK = 10000;
-						//oldremclock = CPU_REMCLOCK;
-						if(!asynccpu_fastflag){
-							latecount--;
-							if(latecount < -LATECOUNTER_THRESHOLDM){
-								if(pccore.multiple < pccore.maxmultiple){
-									UINT32 oldmultiple = pccore.multiple;
-									pccore.multiple+=1;
-									pccore.realclock = pccore.baseclock * pccore.multiple;
-									nevent_changeclock(oldmultiple, pccore.multiple);
-
-									sound_changeclock();
-									pcm86_changeclock();
-									beep_changeclock();
-									mpu98ii_changeclock();
-#if defined(SUPPORT_SMPU98)
-									smpu98_changeclock();
-#endif
-									keyboard_changeclock();
-									mouseif_changeclock();
-									gdc_updateclock();
-								}
-								latecount = 0;
-							}
-							asynccpu_fastflag = 1;
-						}
-					}
-					firstflag = 1;
-				}
-			}
-			remclkcnt++;
-		}
-#else
-		;
-#endif
+cpucontinue:;
 
 	} while (CPU_REMCLOCK > 0);
+
 #if defined(SUPPORT_ASYNC_CPU)
+	// 非同期CPU処理
+	if(np2cfg.asynccpu && !cpu_nowait){
+#define LATECOUNTER_THRESHOLD	6
+#define LATECOUNTER_THRESHOLDM	2
+		if(CPU_STAT_HLT){
+			hltflag = pccore.multiple;
+		}
+		if (!asynccpu_fastflag && !asynccpu_lateflag) {
+			double timimg = np2cpu_lastTimingValue;
+			if (timimg > cpu_drawskip) {
+				latecount++;
+				if (latecount > +LATECOUNTER_THRESHOLD) {
+					if (pccore.multiple > 4) {
+						UINT32 oldmultiple = pccore.multiple;
+						if (pccore.multiple > 40) {
+							if (timimg > 2.0) {
+								pccore.multiple -= 10;
+							}
+							else if (timimg > 1.5) {
+								pccore.multiple -= 5;
+							}
+							else if (timimg > 1.2) {
+								pccore.multiple -= 3;
+							}
+							else {
+								pccore.multiple -= 1;
+							}
+						}
+						else if (pccore.multiple > 20) {
+							if (timimg > 2.0) {
+								pccore.multiple -= 6;
+							}
+							else if (timimg > 1.5) {
+								pccore.multiple -= 3;
+							}
+							else if (timimg > 1.2) {
+								pccore.multiple -= 2;
+							}
+							else {
+								pccore.multiple -= 1;
+							}
+						}
+						else {
+							pccore.multiple -= 1;
+						}
+						pccore.realclock = pccore.baseclock * pccore.multiple;
+						nevent_changeclock(oldmultiple, pccore.multiple);
+
+						sound_changeclock();
+						pcm86_changeclock(oldmultiple);
+						beep_changeclock();
+						mpu98ii_changeclock();
+#if defined(SUPPORT_SMPU98)
+						smpu98_changeclock();
+#endif
+						keyboard_changeclock();
+						mouseif_changeclock();
+						gdc_updateclock();
+					}
+
+					latecount = 0;
+				}
+				asynccpu_lateflag = 1;
+			}
+			else if(timimg < cpu_drawskip){
+				if (!hltflag && g_nevent.item[NEVENT_FLAMES].proc == screendisp && g_nevent.item[NEVENT_FLAMES].clock >= CPU_BASECLOCK) {
+					latecount--;
+					if (latecount < -LATECOUNTER_THRESHOLDM) {
+						if (pccore.multiple < pccore.maxmultiple) {
+							UINT32 oldmultiple = pccore.multiple;
+							if (timimg < 0.5) {
+								pccore.multiple += 3;
+							}
+							else if (timimg < 0.7) {
+								pccore.multiple += 2;
+							}
+							else {
+								pccore.multiple += 1;
+							}
+							pccore.realclock = pccore.baseclock * pccore.multiple;
+							nevent_changeclock(oldmultiple, pccore.multiple);
+
+							sound_changeclock();
+							pcm86_changeclock(oldmultiple);
+							beep_changeclock();
+							mpu98ii_changeclock();
+#if defined(SUPPORT_SMPU98)
+							smpu98_changeclock();
+#endif
+							keyboard_changeclock();
+							mouseif_changeclock();
+							gdc_updateclock();
+						}
+						latecount = 0;
+					}
+					asynccpu_fastflag = 1;
+				}
+			}
+		}
+	}
 	if(hltflag > 0) hltflag--;
 #endif
 }
