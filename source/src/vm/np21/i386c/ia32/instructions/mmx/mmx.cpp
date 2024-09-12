@@ -195,11 +195,11 @@ void MMX_PACKSSWB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcreg2buf[4];
+	__DECL_ALIGNED(8) MMXREG srcregbuf; // At leaset align to 64bit to use SIMD reg if available.
 	INT16 *srcreg1;
 	INT16 *srcreg2;
 	INT8 *dstreg;
-	INT8 dstregbuf[8];
+	__DECL_ALIGNED(16) INT16 dstregbuf[8]; // At leaset align to 64bit to use SIMD reg if available.
 	int i;
 	
 	MMX_check_NM_EXCEPTION();
@@ -215,43 +215,48 @@ void MMX_PACKSSWB(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
 		srcreg1 = (INT16*)(&(FPU_STAT.reg[idx]));
-		srcreg2 = (INT16*)(&srcreg2buf);
+		srcreg2 = srcregbuf.sw;
 		dstreg = (INT8*)(&(FPU_STAT.reg[idx]));
 	}
+	// ToDO: use clamp function optimized for SIMD.
+	__DECL_ALIGNED(16) INT16 srcbuf12[8];
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		if(srcreg1[i] > 127){
+		srcbuf12[i] = srcreg1[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		srcbuf12[i + 4] = srcreg2[i];
+	}
+	
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		if(srcbuf12[i] > 127){
 			dstregbuf[i] = 127;
-		}else if(srcreg1[i] < -128){
+		}else if(srcbuf12[i] < -128){
 			dstregbuf[i] = -128;
 		}else{
-			dstregbuf[i] = (INT8)(srcreg1[i]);
+			dstregbuf[i] = srcbuf12[i];
 		}
 	}
-	for(i=0;i<4;i++){
-		if(srcreg2[i] > 127){
-			dstregbuf[i+4] = 127;
-		}else if(srcreg2[i] < -128){
-			dstregbuf[i+4] = -128;
-		}else{
-			dstregbuf[i+4] = (INT8)(srcreg2[i]);
-		}
-	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		dstreg[i] = dstregbuf[i];
+		dstreg[i] = (INT8)(dstregbuf[i]);
 	}
 }
 void MMX_PACKSSDW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT32 srcreg2buf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf; // At leaset align to 64bit to use SIMD reg if available.
 	INT32 *srcreg1;
 	INT32 *srcreg2;
 	INT16 *dstreg;
-	INT16 dstregbuf[4];
+	__DECL_ALIGNED(16) INT32 dstregbuf[4]; // At leaset align to 128bit to use SIMD reg if available.
+	
 	int i;
 	
 	MMX_check_NM_EXCEPTION();
@@ -267,32 +272,36 @@ void MMX_PACKSSDW(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
 		srcreg1 = (INT32*)(&(FPU_STAT.reg[idx]));
-		srcreg2 = (INT32*)(&srcreg2buf);
+		srcreg2 = srcregbuf.sd;
 		dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
 	}
+	__DECL_ALIGNED(16) INT32 srcbuf12[4];
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<2;i++){
-		if(srcreg1[i] > 32767){
+		srcbuf12[i] = srcreg1[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<2;i++){
+		srcbuf12[i + 2] = srcreg2[i];
+	}
+	
+	// ToDO: use clamp function optimized for SIMD.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		if(srcbuf12[i] > 32767){
 			dstregbuf[i] = 32767;
-		}else if(srcreg1[i] < -32768){
+		}else if(srcbuf12[i] < -32768){
 			dstregbuf[i] = -32768;
 		}else{
-			dstregbuf[i] = (INT16)(srcreg1[i]);
+			dstregbuf[i] = srcbuf12[i];
 		}
 	}
-	for(i=0;i<2;i++){
-		if(srcreg2[i] > 32767){
-			dstregbuf[i+2] = 32767;
-		}else if(srcreg2[i] < -32768){
-			dstregbuf[i+2] = -32768;
-		}else{
-			dstregbuf[i+2] = (INT16)(srcreg2[i]);
-		}
-	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		dstreg[i] = dstregbuf[i];
+		dstreg[i] = (INT16)dstregbuf[i];
 	}
 }
 
@@ -300,11 +309,11 @@ void MMX_PACKUSWB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcreg2buf[4];
+	__DECL_ALIGNED(8) MMXREG srcregbuf; // At leaset align to 64bit to use SIMD reg if available.
 	INT16 *srcreg1;
 	INT16 *srcreg2;
 	UINT8 *dstreg;
-	UINT8 dstregbuf[8];
+	__DECL_ALIGNED(16) UINT16 dstregbuf[8]; // At leaset align to 64bit to use SIMD reg if available.
 	int i;
 	
 	MMX_check_NM_EXCEPTION();
@@ -320,32 +329,38 @@ void MMX_PACKUSWB(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
 		srcreg1 = (INT16*)(&(FPU_STAT.reg[idx]));
-		srcreg2 = (INT16*)(&srcreg2buf);
+		srcreg2 = srcregbuf.sw;
 		dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
 	}
+
+	__DECL_ALIGNED(16) INT16 srcbuf12[8];
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		if(srcreg1[i] > 255){
+		srcbuf12[i] = srcreg1[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		srcbuf12[i + 4] = srcreg2[i];
+	}
+	
+	// ToDO: use clamp function optimized for SIMD.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		if(srcreg12[i] > 255){
 			dstregbuf[i] = 255;
-		}else if(srcreg1[i] < 0){
+		}else if(srcreg12[i] < 0){
 			dstregbuf[i] = 0;
 		}else{
-			dstregbuf[i] = (UINT8)(srcreg1[i]);
+			dstregbuf[i] = (UINT16)srcreg12[i];
 		}
 	}
-	for(i=0;i<4;i++){
-		if(srcreg2[i] > 255){
-			dstregbuf[i+4] = 255;
-		}else if(srcreg2[i] < 0){
-			dstregbuf[i+4] = 0;
-		}else{
-			dstregbuf[i+4] = (UINT8)(srcreg2[i]);
-		}
-	}
+
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		dstreg[i] = dstregbuf[i];
+		dstreg[i] = (UINT8)dstregbuf[i];
 	}
 }
 
@@ -355,9 +370,10 @@ void MMX_PADDB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;  // At leaset align to 128bit to use SIMD reg if available.
 	UINT8 *srcreg;
 	UINT8 *dstreg;
+	__DECL_ALIGNED(16) UINT8 dstregbuf[8];  // At leaset align to 128bit to use SIMD reg if available.
 	int i;
 
 	MMX_check_NM_EXCEPTION();
@@ -368,24 +384,43 @@ void MMX_PADDB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		// Load src to cache.
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.b;
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
-	
+
+	// Load dst to cache.
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		dstreg[i] += srcreg[i];
+		dstregbuf[i] = dstreg[i];
 	}
+	// Add within cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		dstregbuf[i] += srcregbuf.b[i];
+	}
+	// Write back from cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		dstreg[i] = dstregbuf[i];
+	}
+	
 }
 void MMX_PADDW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf; // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) UINT16 dstregbuf[4] = {0}; // At leaset align to 128bit to use SIMD reg if available.
 	UINT16 *srcreg;
 	UINT16 *dstreg;
 	int i;
@@ -398,24 +433,41 @@ void MMX_PADDW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.w;
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
-	
+	// Load dst to cache.
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		dstreg[i] += srcreg[i];
+		dstregbuf[i] = dstreg[i];
+	}
+	
+	// Add within cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		dstregbuf[i] += srcregbuf.w[i];
+	}
+	// Write back from cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		dstreg[i] = dstregbuf[i];
 	}
 }
 void MMX_PADDD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(16) MMXREG srcregbuf; // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) UINT32 dstregbuf[2]; // At leaset align to 128bit to use SIMD reg if available.
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	int i;
@@ -428,17 +480,33 @@ void MMX_PADDD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
 	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<2;i++){
-		dstreg[i] += srcreg[i];
+		dstregbuf[i] = dstreg[i];
+	}
+	
+	// Add within cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<2;i++){
+		dstregbuf[i] += srcregbuf.d[i];
+	}
+	// Write back from cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<2;i++){
+		dstreg[i] = dstregbuf[i];
 	}
 }
 
@@ -446,7 +514,10 @@ void MMX_PADDSB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf; // At leaset align to 64bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT16 dstregbuf[8]; // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT16 dstregbuf2[8]; // At leaset align to 128bit to use SIMD reg if available.
+
 	INT8 *srcreg;
 	INT8 *dstreg;
 	int i;
@@ -459,31 +530,56 @@ void MMX_PADDSB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 8; i++) {
+			srcregbuf.sb[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (INT8*)(srcregbuf.sb);
 	}
 	dstreg = (INT8*)(&(FPU_STAT.reg[idx]));
-	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		INT16 cbuf = (INT16)dstreg[i] + (INT16)srcreg[i];
-		if(cbuf > 127){
-			dstreg[i] = 127;
-		}else if(cbuf < -128){
-			dstreg[i] = -128;
+		dstregbuf[i] = (INT16)(dstreg[i]);
+	}
+
+	__DECL_ALIGNED(16) INT16 cbuf[8];
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		cbuf[i] = (INT16)(srcregbuf.sb[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		cbuf[i] = dstregbuf[i] + cbuf[i];
+	}
+	
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		if(cbuf[i] > 127){
+			dstregbuf2[i] = 127;
+		}else if(cbuf[i] < -128){
+			dstregbuf2[i] = -128;
 		}else{
-			dstreg[i] = (INT8)cbuf;
+			dstregbuf2[i] = cbuf[i];
 		}
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		dst[i] = (INT8)dstregbuf2[i];
 	}
 }
 void MMX_PADDSW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) INT32 dstregbuf[4]; // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT32 dstregbuf2[4]; // At leaset align to 128bit to use SIMD reg if available.
+
 	INT16 *srcreg;
 	INT16 *dstreg;
 	int i;
@@ -496,32 +592,59 @@ void MMX_PADDSW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 4; i++) {
+			srcregbuf.sw[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (INT16*)(srcregbuf.w);
 	}
 	dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
-	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		INT32 cbuf = (INT32)dstreg[i] + (INT32)srcreg[i];
-		if(cbuf > 32767){
-			dstreg[i] = 32767;
-		}else if(cbuf < -32768){
-			dstreg[i] = -32768;
+		dstregbuf[i] = (INT32)(dstreg[i]);
+	}
+
+	__DECL_ALIGNED(16) INT32 cbuf[4];
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		cbuf[i] = (INT32)(srcregbuf.sw[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		cbuf[i] = dstregbuf[i] + cbuf[i];
+	}
+	
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		if(cbuf[i] > 32767){
+			dstregbuf2[i] = 32767;
+		}else if(cbuf[i] < -32768){
+			dstregbuf2[i] = -32768;
 		}else{
-			dstreg[i] = (INT16)cbuf;
+			dstregbuf2[i] = cbuf[i];
 		}
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		dstreg[i] = (INT16)dstregbuf2[i];
+	}
+	
 }
 
 void MMX_PADDUSB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) UINT16 dstbuf1[8];
+	__DECL_ALIGNED(16) UINT16 dstbuf2[8];
+	__DECL_ALIGNED(16) UINT16 cbuf[8];
+	
 	UINT8 *srcreg;
 	UINT8 *dstreg;
 	int i;
@@ -534,29 +657,54 @@ void MMX_PADDUSB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT8*)(srcregbuf.w);
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
+
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstbuf1[i] = (UINT16)(dstreg[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		cbuf[i] = (UINT16)(srcregbuf.b[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		cbuf[i] = dstbuf1[i] + cbuf[i];
+	}
 	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		UINT16 cbuf = (UINT16)dstreg[i] + (UINT16)srcreg[i];
-		if(cbuf > 255){
-			dstreg[i] = 255;
+		if(cbuf[i] > 255){
+			dstbuf2[i] = 255;
 		}else{
-			dstreg[i] = (UINT8)cbuf;
+			dstbuf2[i] = cbuf[i];
 		}
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dst[i] = (UINT8)(dstbuf2[i]);
 	}
 }
 void MMX_PADDUSW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) UINT32 dstbuf1[4];
+	__DECL_ALIGNED(16) UINT32 dstbuf2[4];
+	__DECL_ALIGNED(16) UINT32 cbuf[4];
+
 	UINT16 *srcreg;
 	UINT16 *dstreg;
 	int i;
@@ -569,15 +717,45 @@ void MMX_PADDUSW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.w;
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
 	
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstbuf1[i] = (UINT32)(dstreg[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		cbuf[i] = (UINT32)(srcregbuf.w[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		cbuf[i] = dstbuf1[i] + cbuf[i];
+	}
+	
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		if(cbuf[i] > 65535){
+			dstbuf2[i] = 65535;
+		}else{
+			dstbuf2[i] = cbuf[i];
+		}
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstreg[i] = (UINT16)(dstbuf2[i]);
+	}
+
 	for(i=0;i<4;i++){
 		UINT32 cbuf = (UINT32)dstreg[i] + (UINT32)srcreg[i];
 		if(cbuf > 65535){
@@ -594,7 +772,9 @@ void MMX_PAND(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT32 dstbuf[2];
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	
@@ -606,23 +786,37 @@ void MMX_PAND(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
-
-	dstreg[0] = dstreg[0] & srcreg[0];
-	dstreg[1] = dstreg[1] & srcreg[1];
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] &= srcregbuf.d[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstreg[i] = detbuf[i];
+	}
 }
 void MMX_PANDN(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT32 dstbuf[2];
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	
@@ -634,25 +828,44 @@ void MMX_PANDN(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
 
-	//dstreg[0] = ~(dstreg[0] & srcreg[0]);
-	//dstreg[1] = ~(dstreg[1] & srcreg[1]);
-	dstreg[0] = (~dstreg[0]) & srcreg[0];
-	dstreg[1] = (~dstreg[1]) & srcreg[1];
+	// DST = (NOT DST) AND SRC
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = ~dstbuf[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] &= srcregbuf.d[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstreg[i] = dstbuf[i];
+	}
 }
 void MMX_POR(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT32 dstbuf[2];
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	
@@ -664,23 +877,39 @@ void MMX_POR(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
 
-	dstreg[0] = dstreg[0] | srcreg[0];
-	dstreg[1] = dstreg[1] | srcreg[1];
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] |= srcregbuf.d[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstreg[i] = dstbuf[i];
+	}
 }
 void MMX_PXOR(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT32 dstbuf[2];
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	
@@ -692,17 +921,31 @@ void MMX_PXOR(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
 
-	dstreg[0] = dstreg[0] ^ srcreg[0];
-	dstreg[1] = dstreg[1] ^ srcreg[1];
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] ^= srcregbuf.d[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstreg[i] = dstbuf[i];
+	}
 }
 
 // *********** PCMPEQ
@@ -711,7 +954,10 @@ void MMX_PCMPEQB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT8 dstbuf[8];
+	__DECL_ALIGNED(8) UINT8 dstbuf2[8];
+
 	UINT8 *srcreg;
 	UINT8 *dstreg;
 	int i;
@@ -724,28 +970,40 @@ void MMX_PCMPEQB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.b;
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<8;i++){
-		if(dstreg[i] == srcreg[i]){
-			dstreg[i] = 0xff;
-		}else{
-			dstreg[i] = 0;
-		}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstbuf2[i] = (dstbuf[i] == srcregbuf.b[i]) ? 255 : 0;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstreg[i] = dstbuf2[i];
 	}
 }
+
 void MMX_PCMPEQW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT16 dstbuf[4];
+	__DECL_ALIGNED(8) UINT16 dstbuf2[4];
+
 	UINT16 *srcreg;
 	UINT16 *dstreg;
 	int i;
@@ -758,28 +1016,40 @@ void MMX_PCMPEQW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.w;
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
 	
-	for(i=0;i<4;i++){
-		if(dstreg[i] == srcreg[i]){
-			dstreg[i] = 0xffff;
-		}else{
-			dstreg[i] = 0;
-		}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstbuf2[i] = (dstbuf[i] == srcregbuf.w[i]) ? 0xffff : 0;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstreg[i] = dstbuf2[i];
 	}
 }
 void MMX_PCMPEQD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) UINT32 dstbuf[2];
+	__DECL_ALIGNED(8) UINT32 dstbuf2[2];
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	int i;
@@ -792,21 +1062,30 @@ void MMX_PCMPEQD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
 	
-	for(i=0;i<2;i++){
-		if(dstreg[i] == srcreg[i]){
-			dstreg[i] = 0xffffffff;
-		}else{
-			dstreg[i] = 0;
-		}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf2[i] = (dstbuf[i] == srcregbuf.d[i]) ? 0xffffffff : 0;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstreg[i] = dstbuf2[i];
 	}
 }
 
@@ -816,9 +1095,13 @@ void MMX_PCMPGTB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT8 srcregbuf[8];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) INT8 dstbuf[8];
+	__DECL_ALIGNED(8) UINT8 dstbuf2[8];
+
 	INT8 *srcreg;
 	INT8 *dstreg;
+	UINT8 *dstreg2;
 	int i;
 	
 	MMX_check_NM_EXCEPTION();
@@ -829,30 +1112,44 @@ void MMX_PCMPGTB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			srcregbuf.sb[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.sb;
 	}
 	dstreg = (INT8*)(&(FPU_STAT.reg[idx]));
+	dstreg2 = (UINT8*)dstreg;
 	
-	for(i=0;i<8;i++){
-		if(dstreg[i] > srcreg[i]){
-			dstreg[i] = 0xff;
-		}else{
-			dstreg[i] = 0;
-		}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstbuf2[i] = (dstbuf[i] > srcregbuf.sb[i]) ? 0xff : 0;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstreg2[i] = dstbuf2[i];
 	}
 }
 void MMX_PCMPGTW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcregbuf[4];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) INT16  dstbuf[4];
+	__DECL_ALIGNED(8) UINT16 dstbuf2[4];
+
 	INT16 *srcreg;
 	INT16 *dstreg;
+	UINT16 *dstreg2;
 	int i;
 	
 	MMX_check_NM_EXCEPTION();
@@ -863,28 +1160,42 @@ void MMX_PCMPGTW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<4; i++) {
+			srcregbuf.sw[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.sw;
 	}
 	dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
+	dstreg2 = (UINT16*)dstreg;
 	
-	for(i=0;i<4;i++){
-		if(dstreg[i] > srcreg[i]){
-			dstreg[i] = 0xffff;
-		}else{
-			dstreg[i] = 0;
-		}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstbuf[i] = dstreg[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstbuf2[i] = (dstbuf[i] > srcregbuf.sw[i]) ? 0xffff : 0;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstreg2[i] = dstbuf2[i];
 	}
 }
+
 void MMX_PCMPGTD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT32 srcregbuf[2];
+	__DECL_ALIGNED(8) MMXREG srcregbuf;
+	__DECL_ALIGNED(8) INT32  dstbuf[4];
+	__DECL_ALIGNED(8) UINT32 dstbuf2[4];
+
 	INT32 *srcreg;
 	INT32 *dstreg;
 	int i;
@@ -897,22 +1208,33 @@ void MMX_PCMPGTD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<2; i++) {
+			srcregbuf.sd[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.sd;
 	}
 	dstreg = (INT32*)(&(FPU_STAT.reg[idx]));
+	dstreg2 = (UINT16*)dstreg;
 	
-	for(i=0;i<2;i++){
-		if(dstreg[i] > srcreg[i]){
-			dstreg[i] = 0xffffffff;
-		}else{
-			dstreg[i] = 0;
-		}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf[i] = dstreg[i];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstbuf2[i] = (dstbuf[i] > srcregbuf.sd[i]) ? 0xffffffff : 0;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<2; i++) {
+		dstreg2[i] = dstbuf2[i];
+	}
+	
 }
 
 // *********** PMADDWD
@@ -920,11 +1242,16 @@ void MMX_PMADDWD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) INT32  srcbuf32[4];
+
 	INT16 *srcreg;
 	INT16 *dstreg;
+	__DECL_ALIGNED(16) INT32  dstbuf32[4];
+	
 	INT32 *dstreg32;
-	INT32 dstregbuf[2];
+	__DECL_ALIGNED(16) INT32 dstregbuf[2];
+	int i, j;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -934,20 +1261,44 @@ void MMX_PMADDWD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcbuf32[i] = (INT32)(srcreg[i]);
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg = (INT16*)(srcregbuf.sw);
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcbuf32[i] = (INT32)(srcreg[i]);
+		}
 	}
 	dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
 	dstreg32 = (INT32*)(&(FPU_STAT.reg[idx]));
 	
-	dstregbuf[0] = (INT32)srcreg[0] * (INT32)dstreg[0] + (INT32)srcreg[1] * (INT32)dstreg[1];
-	dstregbuf[1] = (INT32)srcreg[2] * (INT32)dstreg[2] + (INT32)srcreg[3] * (INT32)dstreg[3];
-	dstreg32[0] = dstregbuf[0];
-	dstreg32[1] = dstregbuf[1];
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] = (INT32)(dstreg[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] *= srcbuf32[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0, j = 0; i < 2; i++, j+=2) {
+		dstregbuf[i] = dstbuf32[j] + dstbuf32[j + 1];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 2; i++) {
+		dstreg32[i] = srcregbuf[i];
+	}
+//	dstregbuf[0] = (INT32)srcreg[0] * (INT32)dstreg[0] + (INT32)srcreg[1] * (INT32)dstreg[1];
+//	dstregbuf[1] = (INT32)srcreg[2] * (INT32)dstreg[2] + (INT32)srcreg[3] * (INT32)dstreg[3];
+//	dstreg32[0] = dstregbuf[0];
+//	dstreg32[1] = dstregbuf[1];
 }
 
 // *********** PMUL
@@ -955,7 +1306,10 @@ void MMX_PMULHW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) INT32 srcbuf32[4];
+	__DECL_ALIGNED(16) INT32 dstbuf32[4];
+
 	INT16 *srcreg;
 	INT16 *dstreg;
 	int i;
@@ -968,24 +1322,51 @@ void MMX_PMULHW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcbuf32[i] = (INT32)(srcreg[i]);
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg = srcregbuf.sw;
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcbuf32[i] = (INT32)(srcreg[i]);
+		}
 	}
 	dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<4;i++){
-		dstreg[i] = (INT16)((((INT32)srcreg[i] * (INT32)dstreg[i]) >> 16) & 0xffff);
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] = (INT32)(dstreg[i]);
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] *= srcbuf32[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] = (dstbuf32[i] >> 16) & 0xffff;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstreg[i] = (INT16)(dstbuf32[i]);
+	}
+//	for(i=0;i<4;i++){
+//		dstreg[i] = (INT16)((((INT32)srcreg[i] * (INT32)dstreg[i]) >> 16) & 0xffff);
+//	}
+
 }
 void MMX_PMULLW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) INT32 srcbuf32[4];
+	__DECL_ALIGNED(16) INT32 dstbuf32[4];
+
 	INT16 *srcreg;
 	INT16 *dstreg;
 	int i;
@@ -998,18 +1379,42 @@ void MMX_PMULLW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcbuf32[i] = (INT32)(srcreg[i]);
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg = srcregbuf.sw;
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcbuf32[i] = (INT32)(srcreg[i]);
+		}
 	}
 	dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<4;i++){
-		dstreg[i] = (INT16)((((INT32)srcreg[i] * (INT32)dstreg[i])) & 0xffff);
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] = (INT32)(dstreg[i]);
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] *= srcbuf32[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstbuf32[i] = dstbuf32[i] & 0xffff;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 4; i++) {
+		dstreg[i] = (INT16)(dstbuf32[i]);
+	}
+	
+//	for(i=0;i<4;i++){
+//		dstreg[i] = (INT16)((((INT32)srcreg[i] * (INT32)dstreg[i])) & 0xffff);
+//	}
 }
 
 // *********** PSLL
@@ -1411,7 +1816,9 @@ void MMX_PSUBB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) UINT8  dstregbuf[8];  // At leaset align to 128bit to use SIMD reg if available.
+	
 	UINT8 *srcreg;
 	UINT8 *dstreg;
 	int i;
@@ -1424,24 +1831,46 @@ void MMX_PSUBB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		// Load src to cache.
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.b;
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
-	
+	// Load dst to cache.
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		dstreg[i] -= srcreg[i];
+		dstregbuf[i] = dstreg[i];
 	}
+	// Sub within cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		dstregbuf[i] -= srcregbuf.b[i];
+	}
+	// Write back from cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		dstreg[i] = dstregbuf[i];
+	}
+	
+//	for(i=0;i<8;i++){
+//		dstreg[i] -= srcreg[i];
+//	}
 }
 void MMX_PSUBW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) UINT16 dstregbuf[4];  // At leaset align to 128bit to use SIMD reg if available.
+
 	UINT16 *srcreg;
 	UINT16 *dstreg;
 	int i;
@@ -1454,24 +1883,45 @@ void MMX_PSUBW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.w;
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
-	
+	// Load dst to cache.
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		dstreg[i] -= srcreg[i];
+		dstregbuf[i] = dstreg[i];
 	}
+	// Sub within cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		dstregbuf[i] -= srcregbuf.w[i];
+	}
+	// Write back from cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		dstreg[i] = dstregbuf[i];
+	}
+	
+//	for(i=0;i<4;i++){
+//		dstreg[i] -= srcreg[i];
+//	}
 }
 void MMX_PSUBD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) UINT32 dstregbuf[2];  // At leaset align to 128bit to use SIMD reg if available.
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	int i;
@@ -1484,25 +1934,47 @@ void MMX_PSUBD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = srcregbuf.d;
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
 	
+	// Load dst to cache.
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<2;i++){
-		dstreg[i] -= srcreg[i];
+		dstregbuf[i] = dstreg[i];
 	}
+	// Sub within cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<2;i++){
+		dstregbuf[i] -= srcregbuf.d[i];
+	}
+	// Write back from cache.
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<2;i++){
+		dstreg[i] = dstregbuf[i];
+	}
+//	for(i=0;i<2;i++){
+//		dstreg[i] -= srcreg[i];
+//	}
 }
 
 void MMX_PSUBSB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT16  dstregbuf[8];  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT16  dstregbuf2[8];  // At leaset align to 128bit to use SIMD reg if available.
+
 	INT8 *srcreg;
 	INT8 *dstreg;
 	int i;
@@ -1515,31 +1987,66 @@ void MMX_PSUBSB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 8; i++) {
+			srcregbuf.sb[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (INT8*)(srcregbuf.sb);
 	}
 	dstreg = (INT8*)(&(FPU_STAT.reg[idx]));
-	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		INT16 cbuf = (INT16)dstreg[i] - (INT16)srcreg[i];
-		if(cbuf > 127){
-			dstreg[i] = 127;
-		}else if(cbuf < -128){
-			dstreg[i] = -128;
+		dstregbuf[i] = (INT16)(dstreg[i]);
+	}
+
+	__DECL_ALIGNED(16) INT16 cbuf[8];
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		cbuf[i] = (INT16)(srcregbuf.sb[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		cbuf[i] = dstregbuf[i] - cbuf[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		if(cbuf[i] > 127){
+			dstregbuf2[i] = 127;
+		}else if(cbuf[i] < -128){
+			dstregbuf2[i] = -128;
 		}else{
-			dstreg[i] = (INT8)cbuf;
+			dstregbuf2[i] = cbuf[i];
 		}
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		dst[i] = (INT8)dstregbuf2[i];
+	}
+	
+//	for(i=0;i<8;i++){
+//		INT16 cbuf = (INT16)dstreg[i] - (INT16)srcreg[i];
+//		if(cbuf > 127){
+//			dstreg[i] = 127;
+//		}else if(cbuf < -128){
+//			dstreg[i] = -128;
+//		}else{
+//			dstreg[i] = (INT8)cbuf;
+//		}
+//	}
 }
 void MMX_PSUBSW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT32  dstregbuf[4];  // At leaset align to 128bit to use SIMD reg if available.
+	__DECL_ALIGNED(16) INT32  dstregbuf2[4];  // At leaset align to 128bit to use SIMD reg if available.
+
 	INT16 *srcreg;
 	INT16 *dstreg;
 	int i;
@@ -1552,32 +2059,68 @@ void MMX_PSUBSW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (INT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i < 4; i++) {
+			srcregbuf.sw[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (INT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (INT16*)(srcregbuf.sw);
 	}
 	dstreg = (INT16*)(&(FPU_STAT.reg[idx]));
-	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		INT32 cbuf = (INT32)dstreg[i] - (INT32)srcreg[i];
-		if(cbuf > 32767){
-			dstreg[i] = 32767;
-		}else if(cbuf < -32768){
-			dstreg[i] = -32768;
+		dstregbuf[i] = (INT32)(dstreg[i]);
+	}
+
+	__DECL_ALIGNED(16) INT32 cbuf[4];
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		cbuf[i] = (INT32)(srcregbuf.sw[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		cbuf[i] = dstregbuf[i] - cbuf[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		if(cbuf[i] > 127){
+			dstregbuf2[i] = 32767;
+		}else if(cbuf[i] < -32768){
+			dstregbuf2[i] = -32768;
 		}else{
-			dstreg[i] = (INT16)cbuf;
+			dstregbuf2[i] = cbuf[i];
 		}
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		dst[i] = (INT16)dstregbuf2[i];
+	}
+	
+//	for(i=0;i<4;i++){
+//		INT32 cbuf = (INT32)dstreg[i] - (INT32)srcreg[i];
+//		if(cbuf > 32767){
+//			dstreg[i] = 32767;
+//		}else if(cbuf < -32768){
+//			dstreg[i] = -32768;
+//		}else{
+//			dstreg[i] = (INT16)cbuf;
+//		}
+//	}
 }
 
 void MMX_PSUBUSB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) INT16  dstbuf1[8];
+	__DECL_ALIGNED(16) UINT8  dstbuf2[8];
+	__DECL_ALIGNED(16) INT16  cbuf[8];
+
 	UINT8 *srcreg;
 	UINT8 *dstreg;
 	int i;
@@ -1590,31 +2133,66 @@ void MMX_PSUBUSB(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT8*)(srcregbuf.b);
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<8;i++){
-		INT16 cbuf = (INT16)dstreg[i] - (INT16)srcreg[i];
-		if(cbuf > 255){
-			dstreg[i] = 255;
-		}else if(cbuf < 0){
-			dstreg[i] = 0;
-		}else{
-			dstreg[i] = (UINT8)cbuf;
+
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstbuf1[i] = (INT16)(dstreg[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		cbuf[i] = (INT16)(srcregbuf.b[i]);
+	}
+
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		cbuf[i] = dstbuf1[i] - cbuf[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		if(cbuf[i] > 255) {
+			dstbuf2[i] = 255;
+		} else if(cbuf[i] < 0) {
+			dstbuf2[i] = 0;
+		} else {
+			dstbuf2[i] = (UINT8)(cbuf[i]);
 		}
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		dstreg[i] = dstbuf2[i];
+	}
+//	for(i=0;i<8;i++){
+//		INT16 cbuf = (INT16)dstreg[i] - (INT16)srcreg[i];
+//		if(cbuf > 255){
+//			dstreg[i] = 255;
+//		}else if(cbuf < 0){
+//			dstreg[i] = 0;
+//		}else{
+//			dstreg[i] = (UINT8)cbuf;
+//		}
+//	}
 }
 void MMX_PSUBUSW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+	__DECL_ALIGNED(16) INT32  dstbuf1[4];
+	__DECL_ALIGNED(16) UINT16  dstbuf2[4];
+	__DECL_ALIGNED(16) INT32  cbuf[4];
+
 	UINT16 *srcreg;
 	UINT16 *dstreg;
 	int i;
@@ -1627,25 +2205,56 @@ void MMX_PSUBUSW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT8*)(srcregbuf.w);
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<4;i++){
-		INT32 cbuf = (INT32)dstreg[i] - (INT32)srcreg[i];
-		if(cbuf > 65535){
-			dstreg[i] = 65535;
-		}else if(cbuf < 0){
-			dstreg[i] = 0;
-		}else{
-			dstreg[i] = (UINT16)cbuf;
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstbuf1[i] = (INT32)(dstreg[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		cbuf[i] = (INT32)(srcregbuf.w[i]);
+	}
+
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		cbuf[i] = dstbuf1[i] - cbuf[i];
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		if(cbuf[i] > 65535) {
+			dstbuf2[i] = 65535;
+		} else if(cbuf[i] < 0) {
+			dstbuf2[i] = 0;
+		} else {
+			dstbuf2[i] = (UINT16)(cbuf[i]);
 		}
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		dstreg[i] = dstbuf2[i];
+	}
+	
+//	for(i=0;i<4;i++){
+//		INT32 cbuf = (INT32)dstreg[i] - (INT32)srcreg[i];
+//		if(cbuf > 65535){
+//			dstreg[i] = 65535;
+//		}else if(cbuf < 0){
+//			dstreg[i] = 0;
+//		}else{
+//			dstreg[i] = (UINT16)cbuf;
+//		}
+//	}
 }
 
 // *********** PUNPCK
@@ -1654,11 +2263,12 @@ void MMX_PUNPCKHBW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+
 	UINT8 *srcreg;
 	UINT8 *dstreg;
-	UINT8 dstregbuf[8];
-	int i;
+	__DECL_ALIGNED(16) UINT8 dstregbuf[8];
+	int i,j;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1668,19 +2278,32 @@ void MMX_PUNPCKHBW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT8*)(srcregbuf.b);
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<4;i++){
-		dstregbuf[i*2] = dstreg[i+4];
-		dstregbuf[i*2 + 1] = srcreg[i+4];
+	__DECL_VECTORIZED_LOOP
+	for(i = 0, j=4; i < 8; i+=2, j++) {
+		dstregbuf[i] = dstreg[j];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 1, j=0; i < 8; i+=2, j++) {
+		dstregbuf[i] = srcregbuf.b[j];
+	}
+	
+//	for(i=0;i<4;i++){
+//		dstregbuf[i*2] = dstreg[i+4];
+//		dstregbuf[i*2 + 1] = srcreg[i+4];
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1689,11 +2312,13 @@ void MMX_PUNPCKHWD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+
 	UINT16 *srcreg;
 	UINT16 *dstreg;
-	UINT16 dstregbuf[4];
-	int i;
+	__DECL_ALIGNED(16) UINT16 dstregbuf[4];
+
+	int i,j;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1703,19 +2328,32 @@ void MMX_PUNPCKHWD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT16*)(srcregbuf.w);
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
 	
-	for(i=0;i<2;i++){
-		dstregbuf[i*2] = dstreg[i+2];
-		dstregbuf[i*2 + 1] = srcreg[i+2];
+	__DECL_VECTORIZED_LOOP
+	for(i = 0, j=4; i < 4; i+=2, j++) {
+		dstregbuf[i] = dstreg[j];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 1, j=0; i < 4; i+=2, j++) {
+		dstregbuf[i] = srcregbuf.b[j];
+	}
+//	for(i=0;i<2;i++){
+//		dstregbuf[i*2] = dstreg[i+2];
+//		dstregbuf[i*2 + 1] = srcreg[i+2];
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1724,10 +2362,11 @@ void MMX_PUNPCKHDQ(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
-	UINT32 dstregbuf[2];
+	__DECL_ALIGNED(16) UINT32 dstregbuf[2];
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1737,29 +2376,43 @@ void MMX_PUNPCKHDQ(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		// OK?
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT32*)(srcregbuf.d);
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
-	
+
 	dstregbuf[0] = dstreg[1];
-	dstregbuf[1] = srcreg[1];
-	dstreg[0] = dstregbuf[0];
-	dstreg[1] = dstregbuf[1];
+	dstregbuf[1] = srcregbuf.d[1];
+	__DECL_VECTORIZED_LOOP
+	for(i = 0; i < 2; i++) {
+		dstreg[i] = dstregbuf[i];
+	}
+	
+//	dstregbuf[0] = dstreg[1];
+//	dstregbuf[1] = srcreg[1];
+//	dstreg[0] = dstregbuf[0];
+//	dstreg[1] = dstregbuf[1];
 }
 void MMX_PUNPCKLBW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT8 srcregbuf[8];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+
 	UINT8 *srcreg;
 	UINT8 *dstreg;
-	UINT8 dstregbuf[8];
-	int i;
+	__DECL_ALIGNED(16) UINT8 dstregbuf[8];
+
+	int i, j;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1769,19 +2422,32 @@ void MMX_PUNPCKLBW(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT8*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 8; i++) {
+			srcregbuf.b[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT8*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT8*)(srcregbuf.b);
 	}
 	dstreg = (UINT8*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<4;i++){
-		dstregbuf[i*2] = dstreg[i];
-		dstregbuf[i*2 + 1] = srcreg[i];
+	__DECL_VECTORIZED_LOOP
+	for(i = 0, j=0; i < 8; i+=2, j++) {
+		dstregbuf[i] = dstreg[j];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 1, j=0; i < 8; i+=2, j++) {
+		dstregbuf[i] = srcregbuf.b[j];
+	}
+	
+//	for(i=0;i<4;i++){
+//		dstregbuf[i*2] = dstreg[i];
+//		dstregbuf[i*2 + 1] = srcreg[i];
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1790,11 +2456,12 @@ void MMX_PUNPCKLWD(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 srcregbuf[4];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+
 	UINT16 *srcreg;
 	UINT16 *dstreg;
-	UINT16 dstregbuf[4];
-	int i;
+	__DECL_ALIGNED(16) UINT16 dstregbuf[4];
+	int i, j;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1804,19 +2471,32 @@ void MMX_PUNPCKLWD(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 4; i++) {
+			srcregbuf.w[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT16*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT8*)(srcregbuf.w);
 	}
 	dstreg = (UINT16*)(&(FPU_STAT.reg[idx]));
-	
-	for(i=0;i<2;i++){
-		dstregbuf[i*2] = dstreg[i];
-		dstregbuf[i*2 + 1] = srcreg[i];
+	__DECL_VECTORIZED_LOOP
+	for(i = 0, j=0; i < 4; i+=2, j++) {
+		dstregbuf[i] = dstreg[j];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i = 1, j=0; i < 4; i+=2, j++) {
+		dstregbuf[i] = srcregbuf.w[j];
+	}
+	
+//	for(i=0;i<2;i++){
+//		dstregbuf[i*2] = dstreg[i];
+//		dstregbuf[i*2 + 1] = srcreg[i];
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1825,10 +2505,13 @@ void MMX_PUNPCKLDQ(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT32 srcregbuf[2];
+	__DECL_ALIGNED(16) MMXREG srcregbuf;
+
 	UINT32 *srcreg;
 	UINT32 *dstreg;
-	UINT32 dstregbuf[2];
+	__DECL_ALIGNED(16) UINT32 dstregbuf[2];
+	int i;
+
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1838,19 +2521,31 @@ void MMX_PUNPCKLDQ(void)
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
 		srcreg = (UINT32*)(&(FPU_STAT.reg[sub]));
+		// OK?
+		__DECL_VECTORIZED_LOOP
+		for(i = 0; i < 2; i++) {
+			srcregbuf.d[i] = srcreg[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcregbuf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcregbuf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		srcreg = (UINT32*)(srcregbuf);
+		srcregbuf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcregbuf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		//srcreg = (UINT32*)(srcregbuf.d);
 	}
 	dstreg = (UINT32*)(&(FPU_STAT.reg[idx]));
-	
 	dstregbuf[0] = dstreg[0];
-	dstregbuf[1] = srcreg[0];
-	dstreg[0] = dstregbuf[0];
-	dstreg[1] = dstregbuf[1];
+	dstregbuf[1] = srcregbuf.d[0];
+
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<2;i++){
+		dstreg[i] = dstregbuf[i];
+	}
+	
+//	dstregbuf[0] = dstreg[0];
+//	dstregbuf[1] = srcreg[0];
+//	dstreg[0] = dstregbuf[0];
+//	dstreg[1] = dstregbuf[1];
 }
 
 #else

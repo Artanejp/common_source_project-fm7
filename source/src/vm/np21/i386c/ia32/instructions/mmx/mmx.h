@@ -26,6 +26,17 @@
 #ifndef	IA32_CPU_INSTRUCTION_MMX_MMX_H__
 #define	IA32_CPU_INSTRUCTION_MMX_MMX_H__
 
+typedef union {
+	UINT8  b[8];
+	UINT16 w[4];
+	UINT32 d[2];
+	UINT64 q[1];
+	INT8   sb[8];
+	INT16  sw[4];
+	INT32  sd[2];
+	INT64  sq[1];
+} MMXREG;
+
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
