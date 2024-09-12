@@ -467,7 +467,7 @@ typedef struct {
 	UINT8		int_regvalid[FPU_REG_NUM+1];
 #endif
 #ifdef USE_SSE
-	XMM_REG		xmm_reg[XMM_REG_NUM+1]; // xmm0 to xmm7
+	__DECL_ALIGNED(16) XMM_REG		xmm_reg[XMM_REG_NUM+1]; // xmm0 to xmm7
 #endif
 #ifdef USE_MMX
 	UINT8		mmxenable;
