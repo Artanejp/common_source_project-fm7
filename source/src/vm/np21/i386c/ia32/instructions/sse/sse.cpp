@@ -877,6 +877,8 @@ void SSE_MOVSSmem2xmm(void)
 	UINT idx, sub;
 	__DECL_ALIGNED(16) SSEREG data2buf;
 	float *data1, *data2;
+	int i;
+	
 	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++) {
 		data2buf.d[i]=0; // Clear temporally register.

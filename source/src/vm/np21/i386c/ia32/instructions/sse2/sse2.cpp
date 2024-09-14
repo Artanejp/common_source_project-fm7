@@ -898,7 +898,7 @@ void SSE2_MOVSDmem2xmm(void)
 		// Store DATA
 		__DECL_VECTORIZED_LOOP
 		for(int i=0; i<2; i++) {
-			data1[i] = data2.q[i];
+			data1[i] = data2buf.q[i];
 		}
 	}
 	//data1[0] = data2[0];

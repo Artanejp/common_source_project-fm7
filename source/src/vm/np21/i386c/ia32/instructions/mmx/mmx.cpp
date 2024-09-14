@@ -349,12 +349,12 @@ void MMX_PACKUSWB(void)
 	// ToDO: use clamp function optimized for SIMD.
 	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		if(srcreg12[i] > 255){
+		if(srcbuf12[i] > 255){
 			dstregbuf[i] = 255;
-		}else if(srcreg12[i] < 0){
+		}else if(srcbuf12[i] < 0){
 			dstregbuf[i] = 0;
 		}else{
-			dstregbuf[i] = (UINT16)srcreg12[i];
+			dstregbuf[i] = (UINT16)srcbuf12[i];
 		}
 	}
 
@@ -569,7 +569,7 @@ void MMX_PADDSB(void)
 	}
 	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		dst[i] = (INT8)dstregbuf2[i];
+		dstreg[i] = (INT8)dstregbuf2[i];
 	}
 }
 void MMX_PADDSW(void)
@@ -693,7 +693,7 @@ void MMX_PADDUSB(void)
 	}
 	__DECL_VECTORIZED_LOOP
 	for(i=0; i<8; i++) {
-		dst[i] = (UINT8)(dstbuf2[i]);
+		dstreg[i] = (UINT8)(dstbuf2[i]);
 	}
 }
 void MMX_PADDUSW(void)
@@ -755,15 +755,6 @@ void MMX_PADDUSW(void)
 	for(i=0; i<4; i++) {
 		dstreg[i] = (UINT16)(dstbuf2[i]);
 	}
-
-	for(i=0;i<4;i++){
-		UINT32 cbuf = (UINT32)dstreg[i] + (UINT32)srcreg[i];
-		if(cbuf > 65535){
-			dstreg[i] = 65535;
-		}else{
-			dstreg[i] = (UINT16)cbuf;
-		}
-	}
 }
 
 // *********** PAND/ANDN,OR,XOR
@@ -777,6 +768,7 @@ void MMX_PAND(void)
 
 	UINT32 *srcreg;
 	UINT32 *dstreg;
+	int i;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -808,7 +800,7 @@ void MMX_PAND(void)
 	}
 	__DECL_VECTORIZED_LOOP
 	for(i=0; i<2; i++) {
-		dstreg[i] = detbuf[i];
+		dstreg[i] = dstbuf[i];
 	}
 }
 void MMX_PANDN(void)
@@ -819,6 +811,7 @@ void MMX_PANDN(void)
 	__DECL_ALIGNED(8) UINT32 dstbuf[2];
 	UINT32 *srcreg;
 	UINT32 *dstreg;
+	int i;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -868,6 +861,7 @@ void MMX_POR(void)
 
 	UINT32 *srcreg;
 	UINT32 *dstreg;
+	int i;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -912,6 +906,7 @@ void MMX_PXOR(void)
 
 	UINT32 *srcreg;
 	UINT32 *dstreg;
+	int i;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
@@ -1198,6 +1193,7 @@ void MMX_PCMPGTD(void)
 
 	INT32 *srcreg;
 	INT32 *dstreg;
+	UINT32 *dstreg2;
 	int i;
 	
 	MMX_check_NM_EXCEPTION();
@@ -1220,7 +1216,7 @@ void MMX_PCMPGTD(void)
 		//srcreg = srcregbuf.sd;
 	}
 	dstreg = (INT32*)(&(FPU_STAT.reg[idx]));
-	dstreg2 = (UINT16*)dstreg;
+	dstreg2 = (UINT32*)dstreg;
 	
 	__DECL_VECTORIZED_LOOP
 	for(i=0; i<2; i++) {
@@ -1293,7 +1289,7 @@ void MMX_PMADDWD(void)
 	}
 	__DECL_VECTORIZED_LOOP
 	for(i = 0; i < 2; i++) {
-		dstreg32[i] = srcregbuf[i];
+		dstreg32[i] = dstregbuf[i];
 	}
 //	dstregbuf[0] = (INT32)srcreg[0] * (INT32)dstreg[0] + (INT32)srcreg[1] * (INT32)dstreg[1];
 //	dstregbuf[1] = (INT32)srcreg[2] * (INT32)dstreg[2] + (INT32)srcreg[3] * (INT32)dstreg[3];
@@ -2025,7 +2021,7 @@ void MMX_PSUBSB(void)
 	}
 	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		dst[i] = (INT8)dstregbuf2[i];
+		dstreg[i] = (INT8)dstregbuf2[i];
 	}
 	
 //	for(i=0;i<8;i++){
@@ -2097,7 +2093,7 @@ void MMX_PSUBSW(void)
 	}
 	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		dst[i] = (INT16)dstregbuf2[i];
+		dstreg[i] = (INT16)(dstregbuf2[i]);
 	}
 	
 //	for(i=0;i<4;i++){
@@ -2367,6 +2363,7 @@ void MMX_PUNPCKHDQ(void)
 	UINT32 *srcreg;
 	UINT32 *dstreg;
 	__DECL_ALIGNED(16) UINT32 dstregbuf[2];
+	int i;
 	
 	MMX_check_NM_EXCEPTION();
 	MMX_setTag();
