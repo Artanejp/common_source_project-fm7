@@ -870,7 +870,7 @@ void SSE2_MOVSDmem2xmm(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	double data2buf[2];
+	__DECL_ALIGNED(16) SSEREG data2buf;
 	double *data1, *data2;
 	
 	SSE2_check_NM_EXCEPTION();
@@ -882,14 +882,26 @@ void SSE2_MOVSDmem2xmm(void)
 	data1 = (double*)(&(FPU_STAT.xmm_reg[idx]));
 	if ((op) >= 0xc0) {
 		data2 = (double*)(&(FPU_STAT.xmm_reg[sub]));
+		// Q: not need to clear data1[1] - 20240914 K.O 
+		data1[0] = data2[0];
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT64*)(data2buf+ 0)) = cpu_vmemoryread_q(CPU_INST_SEGREG_INDEX, maddr+ 0);
-		data2 = data2buf;
-		*(UINT64*)(data1+1) = 0;
+		// Clear buffer
+		__DECL_VECTORIZED_LOOP
+		for(int i=0; i<2; i++) {
+			data2buf.q[i] = 0;
+		}
+		data2buf.q[0] = cpu_vmemoryread_q(CPU_INST_SEGREG_INDEX, maddr+ 0);
+		//data2 = data2buf.f64;
+		//*(UINT64*)(data1+1) = 0;
+		// Store DATA
+		__DECL_VECTORIZED_LOOP
+		for(int i=0; i<2; i++) {
+			data1[i] = data2.q[i];
+		}
 	}
-	data1[0] = data2[0];
+	//data1[0] = data2[0];
 	TRACEOUT(("SSE2_MOVSDmem2xmm"));
 }
 void SSE2_MOVSDxmm2mem(void)
@@ -1204,11 +1216,12 @@ void SSE2_PACKSSDW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT32 srcreg2buf[4];
+	__DECL_ALIGNED(16) SSEREG srcreg1buf;
+	__DECL_ALIGNED(16) SSEREG srcreg2buf;
 	INT32 *srcreg1;
 	INT32 *srcreg2;
 	INT16 *dstreg;
-	INT16 dstregbuf[8];
+	__DECL_ALIGNED(16) INT16 dstregbuf[8];
 	int i;
 	
 	SSE2_check_NM_EXCEPTION();
@@ -1221,33 +1234,65 @@ void SSE2_PACKSSDW(void)
 		srcreg1 = (INT32*)(&(FPU_STAT.xmm_reg[idx]));
 		srcreg2 = (INT32*)(&(FPU_STAT.xmm_reg[sub]));
 		dstreg = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<4; i++) {
+			srcreg2buf.sd[i] = srcreg2[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		srcreg2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcreg2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		srcreg2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
 		srcreg1 = (INT32*)(&(FPU_STAT.xmm_reg[idx]));
-		srcreg2 = (INT32*)(&srcreg2buf);
+		//srcreg2 = (INT32*)(srcreg2buf.d);
 		dstreg = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<4; i++) {
+		srcreg1buf.sd[i] = srcreg1[i];
+	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		if(srcreg1[i] > 32767){
+		if(srcreg1buf.sd[i] > 32767){
 			dstregbuf[i] = 32767;
-		}else if(srcreg1[i] < -32768){
+		}else if(srcreg1buf.sd[i] < -32768){
 			dstregbuf[i] = -32768;
 		}else{
-			dstregbuf[i] = (INT16)(srcreg1[i]);
+			dstregbuf[i] = (INT16)(srcreg1buf.sd[i]);
 		}
 	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		if(srcreg2[i] > 32767){
+		if(srcreg2buf.sd[i] > 32767){
 			dstregbuf[i+4] = 32767;
-		}else if(srcreg2[i] < -32768){
+		}else if(srcreg2buf.sd[i] < -32768){
 			dstregbuf[i+4] = -32768;
 		}else{
-			dstregbuf[i+4] = (INT16)(srcreg2[i]);
+			dstregbuf[i+4] = (INT16)(srcreg2buf.sd[i]);
 		}
 	}
+
+//	for(i=0;i<4;i++){
+//		if(srcreg1[i] > 32767){
+//			dstregbuf[i] = 32767;
+//		}else if(srcreg1[i] < -32768){
+//			dstregbuf[i] = -32768;
+//		}else{
+//			dstregbuf[i] = (INT16)(srcreg1[i]);
+//		}
+//	}
+//	for(i=0;i<4;i++){
+//		if(srcreg2[i] > 32767){
+//			dstregbuf[i+4] = 32767;
+//		}else if(srcreg2[i] < -32768){
+//			dstregbuf[i+4] = -32768;
+//		}else{
+//			dstregbuf[i+4] = (INT16)(srcreg2[i]);
+//		}
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1257,11 +1302,13 @@ void SSE2_PACKSSWB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcreg2buf[8];
+	__DECL_ALIGNED(16) SSEREG srcreg1buf;
+	__DECL_ALIGNED(16) SSEREG srcreg2buf;
+
 	INT16 *srcreg1;
 	INT16 *srcreg2;
 	INT8 *dstreg;
-	INT8 dstregbuf[16];
+	__DECL_ALIGNED(16) INT8 dstregbuf[16];
 	int i;
 	
 	SSE2_check_NM_EXCEPTION();
@@ -1274,33 +1321,65 @@ void SSE2_PACKSSWB(void)
 		srcreg1 = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
 		srcreg2 = (INT16*)(&(FPU_STAT.xmm_reg[sub]));
 		dstreg = (INT8*)(&(FPU_STAT.xmm_reg[idx]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			srcreg2buf.sw[i] = srcreg2[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		srcreg2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcreg2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		srcreg2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
 		srcreg1 = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
-		srcreg2 = (INT16*)(&srcreg2buf);
+		//srcreg2 = (INT16*)(srcreg2buf.w);
 		dstreg = (INT8*)(&(FPU_STAT.xmm_reg[idx]));
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		srcreg1buf.sw[i] = srcreg1[i];
+	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		if(srcreg1[i] > 127){
+		if(srcreg1buf.sw[i] > 127){
 			dstregbuf[i] = 127;
-		}else if(srcreg1[i] < -128){
+		}else if(srcreg1buf.sw[i] < -128){
 			dstregbuf[i] = -128;
 		}else{
-			dstregbuf[i] = (INT8)(srcreg1[i]);
+			dstregbuf[i] = (INT8)(srcreg1buf.sw[i]);
 		}
 	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		if(srcreg2[i] > 127){
+		if(srcreg2buf.sw[i] > 127){
 			dstregbuf[i+8] = 127;
-		}else if(srcreg2[i] < -128){
+		}else if(srcreg2buf.sw[i] < -128){
 			dstregbuf[i+8] = -128;
 		}else{
-			dstregbuf[i+8] = (INT8)(srcreg2[i]);
+			dstregbuf[i+8] = (INT8)(srcreg2buf.sw[i]);
 		}
 	}
+	
+//	for(i=0;i<8;i++){
+//		if(srcreg1[i] > 127){
+//			dstregbuf[i] = 127;
+//		}else if(srcreg1[i] < -128){
+//			dstregbuf[i] = -128;
+//		}else{
+//			dstregbuf[i] = (INT8)(srcreg1[i]);
+//		}
+//	}
+//	for(i=0;i<8;i++){
+//		if(srcreg2[i] > 127){
+//			dstregbuf[i+8] = 127;
+//		}else if(srcreg2[i] < -128){
+//			dstregbuf[i+8] = -128;
+//		}else{
+//			dstregbuf[i+8] = (INT8)(srcreg2[i]);
+//		}
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<16;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1310,11 +1389,13 @@ void SSE2_PACKUSWB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcreg2buf[8];
+	__DECL_ALIGNED(16) SSEREG srcreg1buf;
+	__DECL_ALIGNED(16) SSEREG srcreg2buf;
+
 	INT16 *srcreg1;
 	INT16 *srcreg2;
 	UINT8 *dstreg;
-	UINT8 dstregbuf[16];
+	__DECL_ALIGNED(16) UINT8 dstregbuf[16];
 	int i;
 	
 	SSE2_check_NM_EXCEPTION();
@@ -1327,33 +1408,63 @@ void SSE2_PACKUSWB(void)
 		srcreg1 = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
 		srcreg2 = (INT16*)(&(FPU_STAT.xmm_reg[sub]));
 		dstreg = (UINT8*)(&(FPU_STAT.xmm_reg[idx]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			srcreg2buf.sw[i] = srcreg2[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		srcreg2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcreg2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		srcreg2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
 		srcreg1 = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
-		srcreg2 = (INT16*)(&srcreg2buf);
+		//srcreg2 = (INT16*)(srcreg2buf.w);
 		dstreg = (UINT8*)(&(FPU_STAT.xmm_reg[idx]));
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		srcreg1buf.sw[i] = srcreg1[i];
+	}
 	for(i=0;i<8;i++){
-		if(srcreg1[i] > 255){
+		if(srcreg1buf.sw[i] > 255){
 			dstregbuf[i] = 255;
-		}else if(srcreg1[i] < 0){
+		}else if(srcreg1buf.sw[i] < 0){
 			dstregbuf[i] = 0;
 		}else{
-			dstregbuf[i] = (UINT8)(srcreg1[i]);
+			dstregbuf[i] = (UINT8)(srcreg1buf.sw[i]);
 		}
 	}
 	for(i=0;i<8;i++){
-		if(srcreg2[i] > 255){
+		if(srcreg2buf.sw[i] > 255){
 			dstregbuf[i+8] = 255;
-		}else if(srcreg2[i] < 0){
+		}else if(srcreg2buf.sw[i] < 0){
 			dstregbuf[i+8] = 0;
 		}else{
-			dstregbuf[i+8] = (UINT8)(srcreg2[i]);
+			dstregbuf[i+8] = (UINT8)(srcreg2buf.sw[i]);
 		}
 	}
+	
+//	for(i=0;i<8;i++){
+//		if(srcreg1[i] > 255){
+//			dstregbuf[i] = 255;
+//		}else if(srcreg1[i] < 0){
+//			dstregbuf[i] = 0;
+//		}else{
+//			dstregbuf[i] = (UINT8)(srcreg1[i]);
+//		}
+//	}
+//	for(i=0;i<8;i++){
+//		if(srcreg2[i] > 255){
+//			dstregbuf[i+8] = 255;
+//		}else if(srcreg2[i] < 0){
+//			dstregbuf[i+8] = 0;
+//		}else{
+//			dstregbuf[i+8] = (UINT8)(srcreg2[i]);
+//		}
+//	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<16;i++){
 		dstreg[i] = dstregbuf[i];
 	}
@@ -1793,7 +1904,10 @@ void SSE2_PMULHUW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 data2buf[8];
+	__DECL_ALIGNED(16) UINT32 d1[8];
+	__DECL_ALIGNED(16) UINT32 d2[8];
+	__DECL_ALIGNED(16) SSEREG data2buf;
+
 	UINT16 *data1, *data2;
 	int i;
 	
@@ -1804,27 +1918,56 @@ void SSE2_PMULHUW(void)
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
 	data1 = (UINT16*)(&(FPU_STAT.xmm_reg[idx]));
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		d1[i] = (UINT32)(data1[i]);
+	}
+	
 	if ((op) >= 0xc0) {
 		data2 = (UINT16*)(&(FPU_STAT.xmm_reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			d2[i] = (UINT32)(data2[i]);
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(data2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(data2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
+		//data2 = data2buf.w;
+		__DECL_VECTORIZED_LOOP
+		for(i=0;i<8;i++){
+			d2[i] = (UINT32)(data2buf.w[i]);
+		}
 	}
+	
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		data1[i] = (UINT16)((((UINT32)data2[i] * (UINT32)data1[i]) >> 16) & 0xffff);
+		d1[i] = (d2[i] * d1[i]) >> 16;
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		d1[i] &= 0xffff;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		data1[i] = (UINT16)(d1[i]);
+	}
+//	for(i=0;i<8;i++){
+//		data1[i] = (UINT16)((((UINT32)data2[i] * (UINT32)data1[i]) >> 16) & 0xffff);
+//	}
 	TRACEOUT(("SSE2_PMULHUW"));
 }
 void SSE2_PMULHW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	SINT16 data2buf[8];
+	__DECL_ALIGNED(16) SINT32 d1[8];
+	__DECL_ALIGNED(16) SINT32 d2[8];
+	__DECL_ALIGNED(16) SSEREG data2buf;
+
 	SINT16 *data1, *data2;
 	int i;
 	
@@ -1835,27 +1978,55 @@ void SSE2_PMULHW(void)
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
 	data1 = (SINT16*)(&(FPU_STAT.xmm_reg[idx]));
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		d1[i] = (SINT32)(data1[i]);
+	}
+	
 	if ((op) >= 0xc0) {
 		data2 = (SINT16*)(&(FPU_STAT.xmm_reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			d2[i] = (SINT32)(data2[i]);
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(data2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(data2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
+		//data2 = (SINT16*)(data2buf.w);
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			d2[i] = (SINT32)(data2buf.sw[i]);
+		}
 	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		data1[i] = (SINT16)((((SINT32)data2[i] * (SINT32)data1[i]) >> 16) & 0xffff);
+		d1[i] = (d2[i] * d1[i]) >> 16;
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		d1[i] &= 0xffff;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		data1[i] = (SINT16)(d1[i]);
+	}
+//	for(i=0;i<8;i++){
+//		data1[i] = (SINT16)((((SINT32)data2[i] * (SINT32)data1[i]) >> 16) & 0xffff);
+//	}
 	TRACEOUT(("SSE2_PMULHW"));
 }
 void SSE2_PMULLW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	SINT16 data2buf[8];
+	__DECL_ALIGNED(16) SINT32 d1[8];
+	__DECL_ALIGNED(16) SINT32 d2[8];
+	__DECL_ALIGNED(16) SSEREG data2buf;
+
 	SINT16 *data1, *data2;
 	int i;
 	
@@ -1866,20 +2037,45 @@ void SSE2_PMULLW(void)
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
 	data1 = (SINT16*)(&(FPU_STAT.xmm_reg[idx]));
+	__DECL_VECTORIZED_LOOP
+	for(i=0; i<8; i++) {
+		d1[i] = (SINT32)(data1[i]);
+	}
+	
 	if ((op) >= 0xc0) {
 		data2 = (SINT16*)(&(FPU_STAT.xmm_reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			d2[i] = (SINT32)(data2[i]);
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(data2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(data2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
+		//data2 = (SINT16*)(data2buf.w);
+		__DECL_VECTORIZED_LOOP
+		for(i=0; i<8; i++) {
+			d2[i] = (SINT32)(data2buf.sw[i]);
+		}
 	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<8;i++){
-		data1[i] = (SINT16)((((SINT32)data2[i] * (SINT32)data1[i])) & 0xffff);
+		d1[i] = d2[i] * d1[i];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		d1[i] &= 0xffff;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<8;i++){
+		data1[i] = (SINT16)(d1[i]);
+	}
+//	for(i=0;i<8;i++){
+//		data1[i] = (SINT16)((((SINT32)data2[i] * (SINT32)data1[i])) & 0xffff);
+//	}
 	TRACEOUT(("SSE2_PMULLW"));
 }
 void SSE2_PMULUDQmm(void)

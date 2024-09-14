@@ -26,6 +26,19 @@
 #ifndef	IA32_CPU_INSTRUCTION_SSE_SSE_H__
 #define	IA32_CPU_INSTRUCTION_SSE_SSE_H__
 
+typedef union {
+	UINT8  b[16];
+	INT8   sb[16];
+	UINT16 w[8];
+	INT16  sw[8];
+	UINT32 d[4];
+	INT32  sd[4];
+	UINT64 q[2];
+	INT64  sq[2];
+	float  f32[4];
+	double f64[2];
+} SSEREG;
+
 //#ifdef __cplusplus
 //extern "C" {
 //#endif

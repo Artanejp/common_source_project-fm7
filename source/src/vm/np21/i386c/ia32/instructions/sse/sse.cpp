@@ -112,12 +112,12 @@ float SSE_ROUND(float val){
 	switch(rndbit){
 	case 0:	
 		floorval = (float)floor(val);
-		if (val - floorval > 0.5){
+		if (val - floorval > 0.5f){
 			return (floorval + 1); // 切り上げ
-		}else if (val - floorval < 0.5){
+		}else if (val - floorval < 0.5f){
 			return (floorval); // 切り捨て
 		}else{
-			if(floor(floorval / 2) == floorval/2){
+			if(floor(floorval / 2.0f) == floorval/2.0f){
 				return (floorval); // 偶数
 			}else{
 				return (floorval+1); // 奇数
@@ -674,7 +674,7 @@ void SSE_MOVAPSmem2xmm(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	float data2buf[4];
+	__DECL_ALIGNED(16) SSEREG data2buf;
 	float *data1, *data2;
 	int i;
 	
@@ -687,17 +687,22 @@ void SSE_MOVAPSmem2xmm(void)
 	data1 = (float*)(&(FPU_STAT.xmm_reg[idx]));
 	if ((op) >= 0xc0) {
 		data2 = (float*)(&(FPU_STAT.xmm_reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0;i<4;i++) {
+			data2buf.f32[i] = data2[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+ 0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
-		*((UINT32*)(data2buf+ 1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 4);
-		*((UINT32*)(data2buf+ 2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 8);
-		*((UINT32*)(data2buf+ 3)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
+		//data2 = data2buf.f32;
 	}
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		data1[i] = data2[i];
+		data1[i] = data2buf.f32[i];
 	}
 }
 void SSE_MOVAPSxmm2mem(void)
@@ -737,7 +742,7 @@ void SSE_MOVHPSmem2xmm(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	float data2buf[4];
+	__DECL_ALIGNED(16) SSEREG data2buf;
 	float *data1, *data2;
 	int i;
 	
@@ -754,11 +759,12 @@ void SSE_MOVHPSmem2xmm(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+ 2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
-		*((UINT32*)(data2buf+ 3)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 4);
-		data2 = data2buf;
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 4);
+		//data2 = data2buf.f32;
+		__DECL_VECTORIZED_LOOP
 		for(i=2;i<4;i++){
-			data1[i] = data2[i];
+			data1[i] = data2buf.f32[i];
 		}
 	}
 }
@@ -793,7 +799,7 @@ void SSE_MOVLPSmem2xmm(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	float data2buf[4];
+	__DECL_ALIGNED(16) SSEREG data2buf;
 	float *data1, *data2;
 	int i;
 	
@@ -810,11 +816,12 @@ void SSE_MOVLPSmem2xmm(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+ 0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
-		*((UINT32*)(data2buf+ 1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 4);
-		data2 = data2buf;
-		for(i=0;i<2;i++){
-			data1[i] = data2[i];
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 4);
+		//data2 = data2buf.f32;
+		__DECL_VECTORIZED_LOOP
+		for(i=0;i<2 ;i++){
+			data1[i] = data2buf.f32[i];
 		}
 	}
 }
@@ -868,8 +875,12 @@ void SSE_MOVSSmem2xmm(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	float data2buf[4];
+	__DECL_ALIGNED(16) SSEREG data2buf;
 	float *data1, *data2;
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++) {
+		data2buf.d[i]=0; // Clear temporally register.
+	}
 	
 	SSE_check_NM_EXCEPTION();
 	SSE_setTag();
@@ -877,17 +888,24 @@ void SSE_MOVSSmem2xmm(void)
 	GET_PCBYTE((op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
+	
 	data1 = (float*)(&(FPU_STAT.xmm_reg[idx]));
 	if ((op) >= 0xc0) {
 		data2 = (float*)(&(FPU_STAT.xmm_reg[sub]));
+		data2buf.f32[0] = data2[0];
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+ 0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+ 0);
+		//data2 = data2buf.f32;
 	}
-	data1[0] = data2[0];
-	*(UINT32*)(data1+1) = *(UINT32*)(data1+2) = *(UINT32*)(data1+3) = 0;
+	// Store
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++) {
+		data1[i] = data2buf.f32[i];
+	}
+	//data1[0] = data2[0];
+	//*(UINT32*)(data1+1) = *(UINT32*)(data1+2) = *(UINT32*)(data1+3) = 0;
 }
 void SSE_MOVSSxmm2mem(void)
 {
@@ -1247,7 +1265,7 @@ void SSE_PMULHUW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 data2buf[4];
+	__DECL_ALIGNED(16) SSEREG data2buf;
 	UINT16 *data1, *data2;
 	int i;
 	
@@ -1260,16 +1278,44 @@ void SSE_PMULHUW(void)
 	data1 = (UINT16*)(&(FPU_STAT.reg[idx]));
 	if ((op) >= 0xc0) {
 		data2 = (UINT16*)(&(FPU_STAT.reg[sub]));
+		__DECL_VECTORIZED_LOOP
+		for(i=0;i<4;i++){
+			data2buf.w[i] = data2[i];
+		}
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
+		//data2 = data2buf.w;
 	}
+	// ToDo: When HOST is Big endian. 20240914 K.O
+	__DECL_ALIGNED(16) UINT32 d1[4];
+	__DECL_ALIGNED(16) UINT32 d2[4];
+	__DECL_VECTORIZED_LOOP
 	for(i=0;i<4;i++){
-		data1[i] = (UINT16)((((UINT32)data2[i] * (UINT32)data1[i]) >> 16) & 0xffff);
+		d1[i] = data1[i];
 	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		d1[i] >>= 16;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		d2[i] = (UINT32)(data2buf.w[i]);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		d1[i] = ((d1[i] * d2[i]) >> 16) & 0xffff;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(i=0;i<4;i++){
+		data1[i] = d1[i];
+	}
+//	for(i=0;i<4;i++){
+//		data1[i] = (UINT16)((((UINT32)data2[i] * (UINT32)data1[i]) >> 16) & 0xffff);
+//	}
+	
 }
 void SSE_PSADBW(void)
 {
