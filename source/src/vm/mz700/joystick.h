@@ -43,11 +43,11 @@ public:
 	~JOYSTICK() {}
 	
 	// common functions
-	virtual void initialize();
-	virtual void event_vline(int v, int clock);
-	virtual void __FASTCALL event_callback(int event_id, int err);
-	virtual uint32_t __FASTCALL read_io8(uint32_t addr);
-	virtual bool process_state(FILEIO* state_fio, bool loading);
+	virtual void initialize() override;
+	virtual void event_vline(int v, int clock) override;
+	virtual void __FASTCALL event_callback(int event_id, int err) override;
+	virtual uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	virtual bool process_state(FILEIO* state_fio, bool loading) override;
 };
 }
 

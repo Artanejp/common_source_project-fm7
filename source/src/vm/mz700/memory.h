@@ -128,22 +128,22 @@ public:
 	~MEMORY() {}
 
 	// common functions
-	void initialize();
-	void reset();
+	void initialize() override;
+	void reset() override;
 #if defined(_MZ800)
-	void update_config();
+	void update_config() override;
 #endif
-	void event_vline(int v, int clock);
-	void __FASTCALL event_callback(int event_id, int err);
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait);
-	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void event_vline(int v, int clock) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
+	void __FASTCALL write_data8w(uint32_t addr, uint32_t data, int* wait) override;
+	uint32_t __FASTCALL read_data8w(uint32_t addr, int* wait) override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 #if defined(_MZ800)
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 #endif
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
 	void set_context_cpu(DEVICE* device)
