@@ -1,3 +1,9 @@
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
+  cmake_minimum_required(VERSION 3.5)
+else()
+  cmake_minimum_required(VERSION 3.0)
+endif()
+
 message("* Note: Recommended default values are placed at source/sample-scripts/ , please use them.")
 message("* common/common")
 # Build Common Sourcecode Project, Agar.
@@ -5,11 +11,13 @@ message("* common/common")
 # This is part of , but license is apache 2.2,
 # this part was written only me.
 
-cmake_minimum_required (VERSION 3.0)
 cmake_policy(SET CMP0011 NEW)
-cmake_policy(SET CMP0043 OLD)
+#cmake_policy(SET CMP0043 OLD)
+#if(CMAKE_VERSION VERSION_LESS 3.5)
+#  cmake_policy(SET CMP0005 OLD)
+#endif()
 if(CMAKE_VERSION VERSION_GREATER 3.8)
-cmake_policy(SET CMP0069 NEW)
+  cmake_policy(SET CMP0069 NEW)
 endif()
 # Note: Belows are temporally disabled, not implemented older CMake.
 #project (CSP

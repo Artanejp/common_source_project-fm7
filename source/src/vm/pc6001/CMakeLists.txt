@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0)
-
 message("* vm/pc6001")
 
 set(BASIC_VM_FILES_PC6001

@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0)
-
 message("* vm/emujx")
 
 set(BASIC_VM_FILES 

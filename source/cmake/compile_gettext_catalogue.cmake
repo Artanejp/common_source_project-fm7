@@ -5,8 +5,6 @@
 ## requires find_package(Gettext) befor define this.
 ## License: Apache 2
 ##
-cmake_minimum_required (VERSION 3.0)
-
 function(compile_i18n_po_to_mo in target)
   if(GETTEXT_FOUND)
      add_custom_target(${target} ALL 

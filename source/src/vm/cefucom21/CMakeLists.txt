@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0)
-
 message("* vm/cefucom21")
 
 add_library(vm_emucefucom21

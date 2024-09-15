@@ -188,7 +188,7 @@ set(s_vm_common_vm_srcs
 )
 
 
-add_definitions(-D__LIBRARY_NAME=\"libCSPcommon_vm.${THIS_LIB_VERSION}\")
+add_compile_definitions(__LIBRARY_NAME=\"libCSPcommon_vm.${THIS_LIB_VERSION}\")
 
 if(WIN32)
 	include (GenerateExportHeader)

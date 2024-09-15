@@ -1,5 +1,5 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 11.4.2)
+SET(THIS_LIB_VERSION 11.4.3)
 
 set(s_qt_osd_headers
 	osd_base.h
@@ -33,7 +33,7 @@ SET(s_qt_osd_srcs
 	${s_qt_osd_headers_MOC}
 )
 
-add_definitions(-D__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
+add_compile_definitions(__LIBOSD_VERSION=\"libCSPosd.${THIS_LIB_VERSION}\")
 
 include (GenerateExportHeader)
 

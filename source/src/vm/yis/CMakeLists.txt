@@ -1,7 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
-
-message("* vm/emuyis")
-
+message("* vm/${EXE_NAME}")
 add_library(vm_emuyis
 	../m6502.cpp
 	../msm58321.cpp

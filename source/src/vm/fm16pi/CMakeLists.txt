@@ -1,7 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
-
-message("* vm/emufm16pi")
-
+message("* vm/${EXE_NAME}")
 set(BASIC_VM_FILES
 	../msm58321.cpp
 	

@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0)
-
 message("* vm/emumycomz80a")
 
 set(VM_MYCOMZ80A_LIB_SRCS

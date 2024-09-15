@@ -1,7 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
-
-message("* vm/emujr100")
-
+message("* vm/${EXE_NAME}")
 set(BASIC_VM_FILES
 	../sy6522.cpp
 	
@@ -9,4 +6,4 @@ set(BASIC_VM_FILES
 	jr100.cpp
 )
 	   
-add_library(vm_emujr100  ${BASIC_VM_FILES})
+add_library(vm_${EXE_NAME}  ${BASIC_VM_FILES})

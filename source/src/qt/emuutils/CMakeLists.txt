@@ -1,6 +1,6 @@
 message("* qt/emuutils")
 
-SET(THIS_LIB_VERSION 11.1.2)
+SET(THIS_LIB_VERSION 11.1.3)
 
 set(s_qt_emuutils_headers
 	../gui/csp_logger.h
@@ -17,7 +17,7 @@ set(s_qt_emuutils_srcs
 
 MAKE_WRAP_CPP(s_qt_emuutils_headers_MOC ${s_qt_emuutils_headers})
 
-add_definitions(-D__LIBEMU_UTIL_VERSION=\"libCSPemu_utils.${THIS_LIB_VERSION}\")
+add_compile_definitions(__LIBEMU_UTIL_VERSION=\"libCSPemu_utils.${THIS_LIB_VERSION}\")
 
 if(WIN32)
 	include (GenerateExportHeader)

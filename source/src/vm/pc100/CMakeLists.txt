@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0)
-
 message("* vm/emupc100")
 
 set(VM_emupc100_LIB_SRCS

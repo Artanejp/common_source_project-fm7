@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0)
-
 message("* vm/${EXE_NAME}")
 
 set(VM_J3100_LIB_SRCS

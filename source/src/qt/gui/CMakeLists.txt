@@ -1,6 +1,6 @@
 message("* qt/gui")
 
-set(THIS_LIB_VERSION 11.8.0)
+set(THIS_LIB_VERSION 11.8.1)
 
 set(s_qt_gui_headers
 	  qt_dialogs.h
@@ -150,7 +150,7 @@ set(s_qt_gui_srcs
 	  ../emu_thread/sequences.cpp
 	  ../emu_thread/emu_thread_slots.cpp
 )
-add_definitions(-D__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
+add_compile_definitions(__GUI_LIBRARY_NAME=\"libCSPgui.${THIS_LIB_VERSION}\")
 
 MAKE_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 if(CHECK_QT_6)

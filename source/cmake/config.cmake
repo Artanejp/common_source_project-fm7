@@ -49,9 +49,9 @@ if(NEED_REPLACE_LIBDIR)
 endif()
 
 if(USE_DEVICES_SHARED_LIB)
-  add_definitions(-DUSE_SHARED_DLL)
+  add_compile_definitions(USE_SHARED_DLL)
 elseif(WIN32)
-  add_definitions(-DUSE_SHARED_DLL)
+  add_compile_definitions(USE_SHARED_DLL)
 endif()
 
 set(USE_FMGEN ON)
@@ -62,7 +62,7 @@ set(WITH_JOYSTICK ON)
 include(detect_target_cpu)
 # set entry
 
-add_definitions(-D_CONFIGURE_WITH_CMAKE)
+add_compile_definitions(_CONFIGURE_WITH_CMAKE)
 #ccache
 find_program(USE_CCACHE ccache)
 if(USE_CCACHE)
@@ -101,7 +101,7 @@ if(CHECK_QT_6)
 	include_directories(${Qt6Network_INCLUDE_DIRS})
 	include_directories(${Qt6Multimedia_INCLUDE_DIRS})
 	include_directories(${Qt6Core5Compat_INCLUDE_DIRS})
-	add_definitions(-D_USE_QT6)
+	add_compile_definitions(_USE_QT6)
 else()
 # Qt5
 	set(WITH_QT_VERSION_MAJOR 5)
@@ -111,7 +111,7 @@ else()
 	include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 	include_directories(${Qt5Network_INCLUDE_DIRS})
 	include_directories(${Qt5Multimedia_INCLUDE_DIRS})
-	add_definitions(-D_USE_QT5)
+	add_compile_definitions(_USE_QT5)
 endif()
 
 #socket
@@ -145,19 +145,20 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 
 if(USE_OPENGL)
-	add_definitions(-D_USE_OPENGL -DUSE_OPENGL)
+  add_compile_definitions(_USE_OPENGL)
+  add_compile_definitions(USE_OPENGL)
 endif()
 
 if(USE_QT5_4_APIS)
-  add_definitions(-D_USE_QT_5_4)
+  add_compile_definitions(_USE_QT_5_4)
 else()
-  #add_definitions(-DQT_NO_VERSION_TAGGING)
+  #add_compile_definitions(QT_NO_VERSION_TAGGING)
 endif()
 
 if(USE_GCC_OLD_ABI)
-  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+  add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0)
 else()
-  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
+  add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 endif()
 
 SET(CMAKE_AUTOMOC OFF)
@@ -165,8 +166,8 @@ SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
-add_definitions(-D_USE_QT)
-add_definitions(-DUSE_QT)
+add_compile_definitions(_USE_QT)
+add_compile_definitions(USE_QT)
 
 # 20210914 K.O Start to migrate for Qt6.
 # See, https://doc.qt.io/qt-6/portingguide.html
@@ -180,11 +181,11 @@ else()
 endif()
 
 if(CHECK_QT_6)
-  add_definitions(-DQT_MAJOR_VERSION=${Qt6Widgets_VERSION_MAJOR})
-  add_definitions(-DQT_MINOR_VERSION=${Qt6Widgets_VERSION_MINOR})
+  add_compile_definitions(QT_MAJOR_VERSION=${Qt6Widgets_VERSION_MAJOR})
+  add_compile_definitions(QT_MINOR_VERSION=${Qt6Widgets_VERSION_MINOR})
 else()
-  add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
-  add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
+  add_compile_definitions(QT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
+  add_compile_definitions(QT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 endif()
 
 if(USE_OPENMP)
@@ -204,31 +205,31 @@ include(FindPkgConfig)
 find_package(Git)
 
 if(GIT_FOUND)
-	execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD OUTPUT_VARIABLE __tstr)
-	string(FIND ${__tstr} "fatal" __notfound)
-	string(REPLACE "\n" "" __tstr2 ${__tstr})
-	if(${__notfound} EQUAL -1)
-		   add_definitions(-D__GIT_REPO_VERSION=\"${__tstr2}\")
-	else()
-		   add_definitions(-U__GIT_REPO_VERSION)
-	endif()
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD OUTPUT_VARIABLE __tstr)
+  string(FIND ${__tstr} "fatal" __notfound)
+  string(REPLACE "\n" "" __tstr2 ${__tstr})
+  if(${__notfound} EQUAL -1)
+    add_compile_definitions(__GIT_REPO_VERSION=\"${__tstr2}\")
+  else()
+    remove_compile_definitions(__GIT_REPO_VERSION)
+  endif()
 endif()
 
 string(TIMESTAMP __build_date "%b %d,%Y %H:%M:%S UTC" UTC)
-add_definitions(-D__BUILD_DATE=\"${__build_date}\")
+add_compile_definitions(__BUILD_DATE=\"${__build_date}\")
 
 include(FindLibAV)
 if(LIBAV_FOUND)
-	add_definitions(-DUSE_LIBAV)
+	add_compile_definitions(USE_LIBAV)
 
 	if(USE_MOVIE_SAVER)
-		add_definitions(-DUSE_MOVIE_SAVER)
+		add_compile_definitions(USE_MOVIE_SAVER)
 	endif()
 	if(USE_MOVIE_LOADER)
-	add_definitions(-DUSE_MOVIE_LOADER)
+	add_compile_definitions(USE_MOVIE_LOADER)
 	endif()
-	add_definitions(-D__STDC_CONSTANT_MACROS)
-	add_definitions(-D__STDC_FORMAT_MACROS)
+	add_compile_definitions(__STDC_CONSTANT_MACROS)
+	add_compile_definitions(__STDC_FORMAT_MACROS)
 else()
 	set(USE_MOVIE_SAVER OFF)
 	set(USE_MOVIE_LOADER OFF)
@@ -243,7 +244,7 @@ if(USE_SDL2)
       include_directories(${SDL2_INCLUDE_DIRS})
    endif()
    set(SDL_LIBS ${SDL2_LIBRARIES})
-   add_definitions(-DUSE_SDL2)
+   add_compile_definitions(USE_SDL2)
 else()
    if(CMAKE_CROSSCOMPILING)
       include_directories(${SDL_INCLUDE_DIRS})
@@ -259,7 +260,7 @@ endif()
 
 include(FindZLIB)
 if(ZLIB_FOUND)
-	add_definitions(-DUSE_ZLIB)
+	add_compile_definitions(USE_ZLIB)
 	include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
@@ -283,7 +284,7 @@ if(LIB_RT_HAS_NANOSLEEP)
 endif(LIB_RT_HAS_NANOSLEEP)
 
 if(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
-  add_definitions(-DHAVE_NANOSLEEP)
+  add_compile_definitions(HAVE_NANOSLEEP)
 endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
 
 
@@ -460,7 +461,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 		${COMMON_DIRECTORY}/../osd.cpp
 		${COMMON_DIRECTORY}/../osd_wrapper.cpp
 	)
-	if(${USE_SOCKET_${EXE_NAME}})
+	if(USE_SOCKET_${EXE_NAME})
 			set(QT_COMMON_BASE
 				${QT_COMMON_BASE}
 				${s_qt_net_headers_MOC}
@@ -531,7 +532,7 @@ function(ADD_VM VM_NAME EXE_NAME VMDEF)
 			${ZLIB_LIBRARIES}
 		)
 	else()
-		add_definitions(-D_UNICODE)
+		add_compile_definitions(_UNICODE)
 		set(BUNDLE_LIBS
 			${OPENMP_LIBRARY}
 			${SDL_LIBS}
