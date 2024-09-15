@@ -13,6 +13,7 @@
 #include "common.h"
 #include "vm/vm_template.h"
 #include "fileio.h"
+
 #if defined(_USE_QT)
 #include "qt/gui/csp_logger.h"
 #endif
@@ -218,7 +219,7 @@ typedef struct {
 
 	uint32_t mouse_sensitivity; /*!< SENSITIVITY of MOUSE , Value * 2^12, limit is 2^16-1 */
 	// NOTE: Belows contain STAGED CONFIGURATION.
-#if defined(_USE_QT)
+	#if defined(_USE_QT)
 	bool use_separate_thread_draw;
 	bool use_opengl_scanline;
 	bool use_osd_virtual_media;
@@ -255,8 +256,7 @@ typedef struct {
 	int debugwindow_height;
 	int logwindow_width;
 	int logwindow_height;
-
-#endif
+	#endif
 
 	// sound
 	int sound_frequency;
@@ -264,24 +264,25 @@ typedef struct {
 	bool sound_strict_rendering;
 	_TCHAR sound_device_name[1024];
 
-#if defined(_USE_QT)
+	#if defined(_USE_QT)
 	int general_sound_level;
-#endif
+	#endif
+	
 	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
 	bool sound_noise_fdd;
-#endif
+	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_QUICK_DISK)
 		bool sound_noise_qd;
 	#endif
-#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
 	bool sound_noise_cmt;
 	bool sound_tape_signal;
 	bool sound_tape_voice;
-#endif
-#if defined(USE_SHARED_DLL) || defined(USE_SOUND_VOLUME)
+	#endif
+	#if defined(USE_SHARED_DLL) || defined(USE_SOUND_VOLUME)
 	int sound_volume_l[MAX_VOLUME_TMP];
 	int sound_volume_r[MAX_VOLUME_TMP];
-#endif
+	#endif
  	#if defined(USE_SHARED_DLL) || defined(_WIN32) && !defined(_USE_QT)
 		_TCHAR mame2151_dll_path[_MAX_PATH];
 		_TCHAR mame2608_dll_path[_MAX_PATH];
@@ -302,15 +303,15 @@ typedef struct {
 	#endif
 
 	// printer
-#if defined(USE_SHARED_DLL) || defined(USE_PRINTER)
+	#if defined(USE_SHARED_DLL) || defined(USE_PRINTER)
 	_TCHAR printer_dll_path[_MAX_PATH];
-#endif
+	#endif
 	// debug
 	bool special_debug_fdc;
 	bool print_statistics;
 
 	bool use_telnet;
-#if defined(_WIN32) && !defined(_USE_QT)
+	#if defined(_WIN32) && !defined(_USE_QT)
 	bool use_direct_input;
 	bool disable_dwm;
 
@@ -319,10 +320,8 @@ typedef struct {
 	bool wait_vsync;
 	bool use_dinput;
 	bool show_status_bar;
-#endif
-
-#ifdef _USE_QT
-
+	#endif
+	#ifdef _USE_QT
 	int video_width;
 	int video_height;
 	int video_codec_type;
@@ -356,12 +355,12 @@ typedef struct {
 	int rendering_type;
 
 	int virtual_media_position; // -1 = none, 1, 2, 3, 4 = LRUD
-#endif
+	#endif
 	// 20210728 K.O
 	// Belows are machine features config (without DIPSW. I.E. joystick ports
-#if defined(USE_SHARED_DLL) || defined(USE_MACHINE_FEATURES)
+	#if defined(USE_SHARED_DLL) || defined(USE_MACHINE_FEATURES)
 	uint32_t machine_features[32];
-#endif
+	#endif
 } config_t;
 
 extern config_t DLL_PREFIX_I config;

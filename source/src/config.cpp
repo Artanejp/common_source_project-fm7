@@ -671,7 +671,7 @@ void load_config(const _TCHAR *config_path)
 void save_config(const _TCHAR *config_path)
 {
 	int drv, i;
-#if !defined(_MSC_VER)
+	#if !defined(_MSC_VER)
 	{
 		FILEIO *pt = new FILEIO;
 		if(pt->Fopen(config_path, FILEIO_WRITE_ASCII) != true) {
@@ -681,8 +681,7 @@ void save_config(const _TCHAR *config_path)
 		pt->Fclose();
 		delete pt;
 	}
-
-#endif
+	#endif
 	// control
 	#ifdef USE_BOOT_MODE
 		MyWritePrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
