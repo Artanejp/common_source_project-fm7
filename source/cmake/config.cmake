@@ -48,15 +48,10 @@ if(NEED_REPLACE_LIBDIR)
 	message("* CHANGE LIB_CSP_INSTALL_DIR TO " ${LIBCSP_INSTALL_DIR})
 endif()
 
-
 if(USE_DEVICES_SHARED_LIB)
   add_definitions(-DUSE_SHARED_DLL)
-  add_definitions(-DUSE_SHARED_UI_DLL)
-  add_definitions(-DUSE_SHARED_DEVICES_DLL)
-  add_definitions(-DUSE_FIXED_CONFIG)
 elseif(WIN32)
   add_definitions(-DUSE_SHARED_DLL)
-  add_definitions(-DUSE_SHARED_UI_DLL)
 endif()
 
 set(USE_FMGEN ON)

@@ -14,12 +14,7 @@
 #include "vm/vm_template.h"
 #include "fileio.h"
 #if defined(_USE_QT)
-#define USE_FIXED_CONFIG 1
 #include "qt/gui/csp_logger.h"
-#else
-  #if defined(USE_SHARED_DLL)
-  #define USE_FIXED_CONFIG 1
-  #endif
 #endif
 
 enum {
@@ -73,7 +68,7 @@ enum {
 
 #define MAX_HISTORY	8
 
-#ifdef USE_FIXED_CONFIG
+#ifdef USE_SHARED_DLL
 	#define USE_CART_TMP		8
 	#define USE_FLOPPY_DISK_TMP	16
 	#define USE_QUICK_DISK_TMP	8
@@ -112,44 +107,44 @@ bool process_config_state(void *f, bool loading);
  */
 typedef struct {
 	// control
-	#if defined(USE_FIXED_CONFIG) || defined(USE_BOOT_MODE)
+	#if defined(USE_SHARED_DLL) || defined(USE_BOOT_MODE)
 		int boot_mode;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_CPU_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_CPU_TYPE)
 		int cpu_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_DIPSWITCH)
+	#if defined(USE_SHARED_DLL) || defined(USE_DIPSWITCH)
 		uint32_t dipswitch;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_DEVICE_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_DEVICE_TYPE)
 		int device_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_DRIVE_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_DRIVE_TYPE)
 		int drive_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_KEYBOARD_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_KEYBOARD_TYPE)
 		int keyboard_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_MOUSE_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_MOUSE_TYPE)
 		int mouse_type; /*!< Emulated type of mouse by VM */
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK_TYPE)
 		int joystick_type; /*!< Emulated type of joystick by VM */
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_SOUND_TYPE)
 		int sound_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_MONITOR_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_MONITOR_TYPE)
 		int monitor_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_SCANLINE)
+	#if defined(USE_SHARED_DLL) || defined(USE_SCANLINE)
 		bool scan_line;
 		bool scan_line_auto;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_PRINTER_TYPE)
 		int printer_type;
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_SERIAL_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_SERIAL_TYPE)
 		int serial_type;
 	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
@@ -212,12 +207,12 @@ typedef struct {
 	int window_mode;
 	int window_stretch_type;
 	int fullscreen_stretch_type;
-	//	#if defined(USE_FIXED_CONFIG) || defined(USE_SCREEN_ROTATE)
+	//	#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_ROTATE)
 		int rotate_type;
 	//	#endif
 
 	// filter
-	#if defined(USE_FIXED_CONFIG) || defined(USE_SCREEN_FILTER)
+	#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_FILTER)
 		int filter_type;
 	#endif
 
@@ -272,15 +267,18 @@ typedef struct {
 #if defined(_USE_QT)
 	int general_sound_level;
 #endif
-#if defined(USE_FIXED_CONFIG) || defined(USE_FLOPPY_DISK)
+	#if defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
 	bool sound_noise_fdd;
 #endif
-#if defined(USE_FIXED_CONFIG) || defined(USE_TAPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_QUICK_DISK)
+		bool sound_noise_qd;
+	#endif
+#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
 	bool sound_noise_cmt;
 	bool sound_tape_signal;
 	bool sound_tape_voice;
 #endif
-#if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_VOLUME)
+#if defined(USE_SHARED_DLL) || defined(USE_SOUND_VOLUME)
 	int sound_volume_l[MAX_VOLUME_TMP];
 	int sound_volume_r[MAX_VOLUME_TMP];
 #endif
@@ -289,7 +287,7 @@ typedef struct {
 		_TCHAR mame2608_dll_path[_MAX_PATH];
  	#endif
 	// input
-	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
+	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
 		int joy_buttons[4][16];
 		bool use_joy_to_key;
 		int joy_to_key_type; // Note: ADD "1235" as type 3.20181218 K.O
@@ -299,12 +297,12 @@ typedef struct {
 		int assigned_joystick_num[16];
 		bool emulated_joystick_dpad[4];
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_AUTO_KEY)
+	#if defined(USE_SHARED_DLL) || defined(USE_AUTO_KEY)
 		bool romaji_to_kana;
 	#endif
 
 	// printer
-#if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER)
+#if defined(USE_SHARED_DLL) || defined(USE_PRINTER)
 	_TCHAR printer_dll_path[_MAX_PATH];
 #endif
 	// debug
@@ -361,7 +359,7 @@ typedef struct {
 #endif
 	// 20210728 K.O
 	// Belows are machine features config (without DIPSW. I.E. joystick ports
-#if defined(USE_FIXED_CONFIG) || defined(USE_MACHINE_FEATURES)
+#if defined(USE_SHARED_DLL) || defined(USE_MACHINE_FEATURES)
 	uint32_t machine_features[32];
 #endif
 } config_t;

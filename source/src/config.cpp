@@ -137,9 +137,14 @@ void initialize_config()
 	#endif
 		config.sound_latency = 1;	// 100msec
 		config.sound_strict_rendering = true;
+		
 		my_stprintf_s(config.sound_device_name, 1024, _T("Default")); // Replace 20220719
+		
 	#ifdef USE_FLOPPY_DISK
 		config.sound_noise_fdd = true;
+	#endif
+	#ifdef USE_QUICK_DISK
+		config.sound_noise_qd = true;
 	#endif
 	#ifdef USE_TAPE
 		config.sound_noise_cmt = true;
@@ -432,10 +437,13 @@ void load_config(const _TCHAR *config_path)
 	config.sound_strict_rendering = MyGetPrivateProfileInt(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
 	MyGetPrivateProfileString(_T("Sound"), _T("DeviceName"), _T("Default"), config.sound_device_name, 1024, config_path);
 	#ifdef USE_FLOPPY_DISK
-		config.sound_noise_fdd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);;
+		config.sound_noise_fdd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);
+	#endif
+	#ifdef USE_QUICK_DISK
+		config.sound_noise_qd = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseQD"), config.sound_noise_qd, config_path);
 	#endif
 	#ifdef USE_TAPE
-		config.sound_noise_cmt = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);;
+		config.sound_noise_cmt = MyGetPrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
 		config.sound_tape_signal = MyGetPrivateProfileBool(_T("Sound"), _T("TapeSignal"), config.sound_tape_signal, config_path);
 		config.sound_tape_voice = MyGetPrivateProfileBool(_T("Sound"), _T("TapeVoice"), config.sound_tape_voice, config_path);
 	#endif
@@ -524,8 +532,8 @@ void load_config(const _TCHAR *config_path)
 		config.use_separate_thread_draw = MyGetPrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
 		config.use_osd_virtual_media = MyGetPrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path);
 		config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
-		config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
-		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
+		config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);
+		config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);
 		config.use_opengl_filters = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
 		config.opengl_filter_num = MyGetPrivateProfileInt(_T("Qt"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
 		config.render_platform = MyGetPrivateProfileInt(_T("Qt"), _T("RenderPlatform"), config.render_platform, config_path);
@@ -551,7 +559,7 @@ void load_config(const _TCHAR *config_path)
 		config.logwindow_width = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), 800, config_path);
 		config.logwindow_height = MyGetPrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), 500, config_path);
 		// Assigning joysticks.
-	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
+	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
@@ -652,9 +660,9 @@ void load_config(const _TCHAR *config_path)
 				flags <<= 1;
 			}
 		}
-		config.state_log_to_console = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);;
-		config.state_log_to_syslog = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);;
-		config.state_log_to_recording = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);;
+		config.state_log_to_console = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToConsole"), config.state_log_to_console, config_path);
+		config.state_log_to_syslog = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToSyslog"), config.state_log_to_syslog, config_path);
+		config.state_log_to_recording = MyGetPrivateProfileBool(_T("Qt"), _T("StateLogToRecording"), config.state_log_to_recording, config_path);
 
 		config.virtual_media_position = MyGetPrivateProfileInt(_T("Qt"), _T("UiVirtualMediaPosition"), config.virtual_media_position, config_path);
 	#endif
@@ -847,6 +855,9 @@ void save_config(const _TCHAR *config_path)
 	#ifdef USE_FLOPPY_DISK
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseFDD"), config.sound_noise_fdd, config_path);
 	#endif
+	#ifdef USE_QUICK_DISK
+		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseQD"), config.sound_noise_qd, config_path);
+	#endif
 	#ifdef USE_TAPE
 		MyWritePrivateProfileBool(_T("Sound"), _T("NoiseCMT"), config.sound_noise_cmt, config_path);
 		MyWritePrivateProfileBool(_T("Sound"), _T("TapeSignal"), config.sound_tape_signal, config_path);
@@ -918,8 +929,8 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
-		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
-		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
+		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);
+		MyWritePrivateProfileBool(_T("Qt"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderType"), config.rendering_type, config_path);
@@ -942,7 +953,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("LogWindowWidth"), config.logwindow_width, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("LogWindowHeight"), config.logwindow_height, config_path);
 
-	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK)
+	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
 		for(i = 0; i < 16; i++) {
 			_TCHAR name[256];
 			my_stprintf_s(name, 255, _T("AssignedJoystick%d"), i + 1);
@@ -1014,40 +1025,40 @@ bool process_config_state(void *f, bool loading)
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
-	#if defined(USE_FIXED_CONFIG) || defined(USE_BOOT_MODE)
+	#if defined(USE_SHARED_DLL) || defined(USE_BOOT_MODE)
 		state_fio->StateValue(config.boot_mode);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_CPU_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_CPU_TYPE)
 		state_fio->StateValue(config.cpu_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_DIPSWITCH)
+	#if defined(USE_SHARED_DLL) || defined(USE_DIPSWITCH)
 		state_fio->StateValue(config.dipswitch);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_DEVICE_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_DEVICE_TYPE)
 		state_fio->StateValue(config.device_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_DRIVE_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_DRIVE_TYPE)
 		state_fio->StateValue(config.drive_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_KEYBOARD_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_KEYBOARD_TYPE)
 		state_fio->StateValue(config.keyboard_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_MOUSE_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_MOUSE_TYPE)
 		state_fio->StateValue(config.mouse_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_JOYSTICK_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK_TYPE)
 		state_fio->StateValue(config.joystick_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_SOUND_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_SOUND_TYPE)
 		state_fio->StateValue(config.sound_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_MONITOR_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_MONITOR_TYPE)
 		state_fio->StateValue(config.monitor_type);
 	#endif
-	#if defined(USE_FIXED_CONFIG) || defined(USE_PRINTER_TYPE)
+	#if defined(USE_SHARED_DLL) || defined(USE_PRINTER_TYPE)
 		state_fio->StateValue(config.printer_type);
 	#endif
-	#if  defined(USE_FIXED_CONFIG) || defined(USE_SERIAL_TYPE)
+	#if  defined(USE_SHARED_DLL) || defined(USE_SERIAL_TYPE)
 		state_fio->StateValue(config.serial_type);
 	#endif
 	#if  defined(USE_SHARED_DLL) || defined(USE_FLOPPY_DISK)
@@ -1059,7 +1070,7 @@ bool process_config_state(void *f, bool loading)
 	state_fio->StateValue(config.sound_frequency);
 	state_fio->StateValue(config.sound_latency);
 
-	#if defined(USE_FIXED_CONFIG) || defined(USE_SCANLINE)
+	#if defined(USE_SHARED_DLL) || defined(USE_SCANLINE)
 	state_fio->StateValue(config.scan_line);
 	#endif
 	#if defined(USE_SHARED_DLL) || defined(USE_TAPE)
