@@ -29,8 +29,8 @@ public:
 	~CALENDAR() {}
 	
 	// common functions
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	
 	// unique function
 	void set_context_rtc(DEVICE* device)

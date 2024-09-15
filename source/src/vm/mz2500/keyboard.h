@@ -39,10 +39,10 @@ public:
 	~KEYBOARD() {}
 	
 	// common functions
-	void initialize();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_frame();
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_frame() override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique function
 	void set_context_pio_i(DEVICE* device)

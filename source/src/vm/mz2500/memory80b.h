@@ -90,17 +90,17 @@ public:
 	~MEMORY() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void special_reset(int num);
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait);
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_vline(int v, int clock);
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void reset() override;
+	void special_reset(int num) override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
+	uint32_t __FASTCALL fetch_op(uint32_t addr, int *wait) override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_vline(int v, int clock) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique function
 	void set_context_cpu(Z80* device)

@@ -29,9 +29,9 @@ public:
 	~MZ1E26() {}
 	
 	// common functions
-	void initialize();
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
+	void initialize() override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 };
 
 }

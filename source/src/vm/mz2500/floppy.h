@@ -37,12 +37,12 @@ public:
 	
 	// common functions
 #ifdef _MZ2500
-	void initialize();
+	void initialize() override;
 #endif
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 #ifdef _MZ2500
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 #endif
 	
 	// unique functions

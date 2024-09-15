@@ -304,16 +304,6 @@ VM::~VM()
 	}
 }
 
-DEVICE* VM::get_device(int id)
-{
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
-			return device;
-		}
-	}
-	return NULL;
-}
-
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------

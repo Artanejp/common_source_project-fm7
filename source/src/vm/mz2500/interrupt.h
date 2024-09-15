@@ -50,24 +50,24 @@ public:
 	~INTERRUPT() {}
 	
 	// common functions
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32_t bit)
+	void set_context_intr(DEVICE* device, uint32_t bit) override
 	{
 		d_cpu = device;
 		intr_bit = bit;
 	}
-	void set_context_child(DEVICE* device)
+	void set_context_child(DEVICE* device) override
 	{
 		d_child = device;
 	}
-	void __FASTCALL set_intr_iei(bool val);
-	uint32_t get_intr_ack();
-	void notify_intr_reti();
+	void __FASTCALL set_intr_iei(bool val) override;
+	uint32_t get_intr_ack() override;
+	void notify_intr_reti() override;
 };
 	
 }

@@ -64,11 +64,11 @@ public:
 	~CMT() {}
 
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void __FASTCALL event_callback(int event_id, int err);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void __FASTCALL event_callback(int event_id, int err) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique function
 	void set_context_pio(DEVICE* device)

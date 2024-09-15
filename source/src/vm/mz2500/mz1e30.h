@@ -40,15 +40,15 @@ public:
 	~MZ1E30() {}
 	
 	// common functions
-	void initialize();
-	void release();
-	void reset();
-	void __FASTCALL write_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_io8(uint32_t addr);
-	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t __FASTCALL read_dma_io8(uint32_t addr);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void initialize() override;
+	void release() override;
+	void reset() override;
+	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_io8(uint32_t addr) override;
+	void __FASTCALL write_dma_io8(uint32_t addr, uint32_t data) override;
+	uint32_t __FASTCALL read_dma_io8(uint32_t addr) override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique function
 	void set_context_host(DEVICE* device)
