@@ -58,7 +58,11 @@
 #define USE_SCREEN_FILTER
 #endif
 #define USE_SCANLINE
+#ifdef SUPPORT_QUICK_DISK
+#define USE_SOUND_VOLUME	5
+#else
 #define USE_SOUND_VOLUME	4
+#endif
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -72,6 +76,9 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"), _T("CMT (Signal)"), _T("Noise (FDD)"), _T("Noise (CMT)"),
+#ifdef SUPPORT_QUICK_DISK
+	_T("Noise (QD)"),
+#endif
 };
 #endif
 

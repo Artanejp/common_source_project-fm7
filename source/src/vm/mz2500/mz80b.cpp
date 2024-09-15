@@ -113,6 +113,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef SUPPORT_QUICK_DISK
 	sio = new Z80SIO(this, emu);
 	qd = new QUICKDISK(this, emu);
+	qd->set_context_noise_seek(new NOISE(this, emu));
 	sio->set_device_name(_T("Z80 SIO(QD)"));
 #endif
 
@@ -140,6 +141,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_play());
 	event->set_context_sound(drec->get_context_noise_stop());
 	event->set_context_sound(drec->get_context_noise_fast());
+#ifdef SUPPORT_QUICK_DISK
+	event->set_context_sound(qd->get_context_noise_seek());
+#endif
 
 	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);
@@ -403,6 +407,10 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		drec->get_context_noise_play()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_stop()->set_volume(0, decibel_l, decibel_r);
 		drec->get_context_noise_fast()->set_volume(0, decibel_l, decibel_r);
+#ifdef SUPPORT_QUICK_DISK
+	} else if(ch == 4) {
+		qd->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
+#endif
 	}
 }
 #endif
@@ -601,7 +609,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

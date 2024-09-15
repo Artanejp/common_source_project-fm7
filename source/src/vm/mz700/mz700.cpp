@@ -119,6 +119,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory = new MEMORY(this, emu);
 	ramfile = new RAMFILE(this, emu);
 	qd = new QUICKDISK(this, emu);
+	qd->set_context_noise_seek(new NOISE(this, emu));
 
 #if defined(_MZ800) || defined(_MZ1500)
 	and_snd = new AND(this, emu);
@@ -173,6 +174,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_seek());
 	event->set_context_sound(fdc->get_context_noise_head_down());
 	event->set_context_sound(fdc->get_context_noise_head_up());
+	event->set_context_sound(qd->get_context_noise_seek());
 
 	// VRAM/PCG wait
 	memory->set_context_cpu(cpu);
@@ -547,6 +549,8 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 		fdc->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_down()->set_volume(0, decibel_l, decibel_r);
 		fdc->get_context_noise_head_up()->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		qd->get_context_noise_seek()->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif
@@ -744,7 +748,7 @@ uint64_t VM::get_current_clock_uint64()
 		return event->get_current_clock_uint64();
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

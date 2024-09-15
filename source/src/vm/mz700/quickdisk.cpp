@@ -10,6 +10,7 @@
 */
 
 #include "quickdisk.h"
+#include "../noise.h"
 #include "../z80sio.h"
 
 #define MZT_HEADER_SIZE	128
@@ -43,6 +44,10 @@ namespace MZ700 {
 
 void QUICKDISK::initialize()
 {
+	d_noise_seek->set_device_name(_T("Noise Player (QD Seek)"));
+	d_noise_seek->load_wav_file(_T("QDSEEK.WAV"));
+	d_noise_seek->set_mute(!config.sound_noise_qd);
+	
 	insert = protect = false;
 	home = true;
 	first_data = send_break = true;
@@ -143,7 +148,10 @@ void QUICKDISK::write_signal(int id, uint32_t data, uint32_t mask)
 				REGISTER_END_EVENT();
 			} else {
 				// start motor and restore to home position
-				motor_on = true;
+				if(!motor_on) {
+					d_noise_seek->play();
+					motor_on = true;
+				}
 				REGISTER_RESTORE_EVENT();
 				CANCEL_END_EVENT();
 			}
@@ -227,6 +235,9 @@ void QUICKDISK::restore()
 	buffer_ptr = 0;
 	first_data = send_break = true;
 	
+	d_noise_seek->stop();
+	d_noise_seek->play();
+	
 	// start to send
 	send_data();
 }
@@ -306,7 +317,10 @@ void QUICKDISK::end_of_disk()
 	
 	// reached to end of disk
 	if(mton || !wrga) {
-		motor_on = false;
+		if(motor_on) {
+			d_noise_seek->stop();
+			motor_on = false;
+		}
 	} else {
 		REGISTER_RESTORE_EVENT();
 	}
@@ -821,6 +835,11 @@ void QUICKDISK::release_disk()
 		}
 		delete fio;
 	}
+}
+
+void QUICKDISK::update_config()
+{
+	d_noise_seek->set_mute(!config.sound_noise_qd);
 }
 
 #define STATE_VERSION	1
