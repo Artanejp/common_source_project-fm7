@@ -54,6 +54,12 @@ private:
 public:
 	CPUREG(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_cpu = NULL;
+#if defined(HAS_SUB_V30)
+		d_v30 = NULL;
+		d_pio = NULL;
+#endif
+		
 		initialize_output_signals(&outputs_nmi);
 		initialize_output_signals(&outputs_cputype);
 		set_device_name(_T("CPU I/O"));
