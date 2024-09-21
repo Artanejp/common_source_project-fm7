@@ -2297,28 +2297,48 @@ void EMU::recv_socket_data(int ch)
 // ----------------------------------------------------------------------------
 
 #ifdef USE_MIDI
-void EMU::send_to_midi(uint8_t data, int ch, double timestamp_usec)
+void EMU::send_to_midi(uint8_t data, int ch)
 {
-	osd->send_to_midi(data, ch, timestamp_usec);
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
+	osd->send_to_midi(data, ch, usec);
 }
 
-bool EMU::recv_from_midi(uint8_t *data, int ch, double timestamp_usec)
+bool EMU::recv_from_midi(uint8_t *data, int ch)
 {
-	return osd->recv_from_midi(data, ch, timestamp_usec);
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
+	return osd->recv_from_midi(data, ch, usec);
 }
 // ToDo: Will implement timeout function.
-bool EMU::send_to_midi_timeout(uint8_t data, int ch, uint64_t timeout_ms, double timestamp_usec)
+bool EMU::send_to_midi_timeout(uint8_t data, int ch, uint64_t timeout_ms)
 {
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
 	// ToDo: will implement handshake.
 	// Q: Need to check VM's timeout status?
-	return osd->send_to_midi_timeout(data, ch, timeout_ms, timestamp_usec);
+	return osd->send_to_midi_timeout(data, ch, timeout_ms, usec);
 }
 
-bool EMU::recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms, double timestamp_usec)
+bool EMU::recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms)
 {
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
 	// ToDo: will implement handshake.
 	// Q: Need to check VM's timeout status?
-	return osd->recv_from_midi_timeout(data, ch, timeout_ms, timestamp_usec);
+	return osd->recv_from_midi_timeout(data, ch, timeout_ms, usec);
 }
 
 //void EMU::notify_timeout_sending_to_midi(int ch)
@@ -2330,9 +2350,14 @@ bool EMU::recv_from_midi_timeout(uint8_t* data, int ch, uint64_t timeout_ms, dou
 //	vm->notify_timeout_receiving_from_midi(ch);
 //}
 
-void EMU::reset_to_midi(int ch, double timestamp_usec)
+void EMU::reset_to_midi(int ch)
 {
-	osd->reset_to_midi(ch, timestamp_usec);
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
+	osd->reset_to_midi(ch, usec);
 }
 
 void EMU::initialize_midi_device(bool handshake_from_midi, bool handshake_to_midi, int ch)
@@ -2340,24 +2365,44 @@ void EMU::initialize_midi_device(bool handshake_from_midi, bool handshake_to_mid
 	osd->initialize_midi_device(handshake_from_midi, handshake_to_midi, ch);
 }
 
-//void EMU::ready_receive_from_midi(int ch, double timestamp_usec)
+//void EMU::ready_receive_from_midi(int ch)
 //{
-//	vm->ready_receive_from_midi(ch, timestamp_usec);
+//	double usec = -1.0;
+//	VM_TEMPLATE* p_vm = get_vm();
+//	__LIKELY_IF(p_vm != NULL) {
+//		usec = p_vm->get_current_usec();
+//	}
+//	vm->ready_receive_from_midi(ch, usec);
 //}
 
-void EMU::ready_send_to_midi(int ch, double timestamp_usec)
+void EMU::ready_send_to_midi(int ch)
 {
-	osd->ready_send_to_midi(ch,timestamp_usec);
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
+	osd->ready_send_to_midi(ch, usec);
 }
 
-void EMU::request_stop_to_receive_from_midi(int ch, double timestamp_usec)
+void EMU::request_stop_to_receive_from_midi(int ch)
 {
-	osd->request_stop_to_receive_from_midi(ch, timestamp_usec);
+	double usec = -1.0;
+	VM_TEMPLATE* p_vm = get_vm();
+	__LIKELY_IF(p_vm != NULL) {
+		usec = p_vm->get_current_usec();
+	}
+	osd->request_stop_to_receive_from_midi(ch, usec);
 }
 
-//void EMU::request_stop_to_send_to_midi(int ch, double timestamp_usec)
+//void EMU::request_stop_to_send_to_midi(int ch)
 //{
-//	vm->request_stop_to_send_to_midi(ch, timestamp_usec);
+//	double usec = -1.0;
+//	VM_TEMPLATE* p_vm = get_vm();
+//	__LIKELY_IF(p_vm != NULL) {
+//		usec = p_vm->get_current_usec();
+//	}
+//	vm->request_stop_to_send_to_midi(ch, usec);
 //}
 
 
