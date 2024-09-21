@@ -109,26 +109,14 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	QImage *ip = NULL;
 	int w;
 	int h;
-	
-	if(img == NULL) {
-		w = using_flags->get_real_screen_width();
-		h = using_flags->get_real_screen_height();
-//		return NULL;
-	} else {
-		w = img->width();
-		h = img->height();
-	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "createMainTexture(): WxH: %dx%d\n",w, h);
-	if((w <= 0) || (h <= 0)) return NULL;
-	QImage *im = NULL;
-	if(img == NULL) {
-		im = new QImage(w, h, QImage::Format_RGBA8888);
-		ip = im;
-	} else {
-		ip = img;
+	__UNLIKELY_IF(img == NULL) {
+		return NULL;
 	}
 	//tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
-	
+
+	ip = img;
+	w = img->width();
+	h = img->height();
 	if(main_texture_buffer != 0) {
 		this->unmap_vram_texture();
 		main_texture_ready = false;
@@ -172,7 +160,7 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	if(map_vram_texture()) {
 		main_texture_ready = true;
 	}			
-	if(im != NULL) delete im;
+//	if(im != NULL) delete im;
 	return tx;
 }
 
@@ -823,7 +811,7 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 			// p == NULL
 			main_mutex->lock();
 			// Flush buffer range
-			extfunc->glFlushMappedNamedBufferRange(main_texture_buffer, 0, pixel_width *pixel_height * sizeof(scrntype_t));
+			extfunc->glFlushMappedNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t));
 			if(sync_fence != 0) {
 				extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 				extfunc->glDeleteSync(sync_fence);
@@ -1275,7 +1263,7 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f\n", w, h, iw, ih);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f (IMGPTR=%08x)\n", w, h, iw, ih, (uintptr_t)p);
 	if((p_wid != NULL) &&
 	   ((screen_texture_width != w) || (screen_texture_height != h)) &&
 	   (w > 0) && (h > 0)) {
@@ -1296,22 +1284,9 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 						 vertexTmpTexture, 4);
 			
 		}
-		/*if(((int)iw != pixel_width) || ((int)ih != pixel_height))*/ {
-			QImage im((int)screen_texture_width, (int)screen_texture_height, QImage::Format_RGBA8888);
-			if(p == NULL) {
-				p = &im;
-			}
-			if(uVramTextureID != NULL) {
-//				p_wid->makeCurrent();
-				uVramTextureID->destroy();
-				delete uVramTextureID;
-				uVramTextureID = createMainTexture(p);
-//				p_wid->doneCurrent();
-			} else {
-//				p_wid->makeCurrent();
-				uVramTextureID = createMainTexture(p);
-//				p_wid->doneCurrent();
-			}
+		if(p != NULL) {
+			if(uVramTextureID != NULL) delete uVramTextureID;
+			uVramTextureID = new QOpenGLTexture(*p);
 		}
 		vertexFormat[0].x = -1.0f;
 		vertexFormat[0].y = -1.0f;
@@ -1477,9 +1452,6 @@ bool GLDraw_4_5::map_vram_texture(void)
 	if(gl_minor_version < 4) {
 		return false;
 	}
-#if 0
-	return false;
-#else
 	// 20200812 K.O: MUST WAIT when changing texture feature.
 	extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 	extfunc->glDeleteSync(sync_fence);
@@ -1502,7 +1474,6 @@ bool GLDraw_4_5::map_vram_texture(void)
 	if(map_base_address == NULL) return false;
 	
 	return true;
-#endif
 }
 
 bool GLDraw_4_5::unmap_vram_texture(void)
