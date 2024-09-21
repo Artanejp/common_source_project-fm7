@@ -63,6 +63,11 @@ protected:
 public:
 	BIOS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_mem = NULL;
+		d_sasi = NULL;
+		d_cpu = NULL;
+		d_pic = NULL;
+		d_cpureg = NULL;
 		set_device_name(_T("SASI PSEUDO BIOS"));
 	}
 	~BIOS() {}

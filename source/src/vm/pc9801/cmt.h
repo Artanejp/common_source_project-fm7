@@ -40,6 +40,8 @@ private:
 public:
 	CMT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_sio = NULL;
+		fio = NULL;
 		set_device_name(_T("CMT I/F"));
 	}
 	~CMT() {}

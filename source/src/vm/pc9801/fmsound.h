@@ -63,7 +63,12 @@ public:
 	FMSOUND(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_pcm);
+		d_opn = NULL;
 #if defined(SUPPORT_PC98_OPNA)
+	#if defined(SUPPORT_PC98_86PCM)
+		d_pic = NULL;
+		pcm_fifo = NULL;
+	#endif
 		set_device_name(_T("PC-9801-86 (FM Sound)"));
 #else
 		set_device_name(_T("PC-9801-26 (FM Sound)"));

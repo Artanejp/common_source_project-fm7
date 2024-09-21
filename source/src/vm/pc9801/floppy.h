@@ -63,6 +63,17 @@ private:
 public:
 	FLOPPY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+#if defined(SUPPORT_2HD_FDD_IF)
+		d_fdc_2hd = NULL;
+#endif
+#if defined(SUPPORT_2DD_FDD_IF)
+		d_fdc_2dd = NULL;
+#endif
+#if defined(SUPPORT_2HD_2DD_FDD_IF)
+		d_fdc = NULL;
+#endif
+		d_dma = NULL;
+		d_pic = NULL;
 		set_device_name(_T("Floppy I/F"));
 	}
 	~FLOPPY() {}

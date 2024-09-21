@@ -147,6 +147,7 @@ private:
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
+		d_display = NULL;
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}

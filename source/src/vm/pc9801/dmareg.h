@@ -28,6 +28,7 @@ private:
 public:
 	DMAREG(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_dma = NULL;
 		set_device_name(_T("DMA I/O"));
 	}
 	~DMAREG() {}

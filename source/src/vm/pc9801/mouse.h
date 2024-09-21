@@ -43,6 +43,8 @@ private:
 public:
 	MOUSE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_pic = NULL;
+		d_pio = NULL;
 		set_device_name(_T("Mouse I/F"));
 	}
 	~MOUSE() {}

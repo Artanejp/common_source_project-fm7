@@ -63,9 +63,13 @@ public:
 		ack_status = prev_ack_status = false;
 		irq_status = drq_status = false;
 		set_device_name(_T("SASI I/F"));
+		d_host = NULL;
 		d_hdd = NULL;
 		d_dma = NULL;
 		d_pic = NULL;
+#if !defined(SUPPORT_HIRESO)
+		d_pio = NULL;
+#endif
 	}
 	~SASI() {}
 	

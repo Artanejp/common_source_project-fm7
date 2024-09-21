@@ -43,6 +43,7 @@ private:
 public:
 	SERIAL(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		d_pic = NULL;
 		set_device_name(_T("Serial I/F"));
 	}
 	~SERIAL() {}

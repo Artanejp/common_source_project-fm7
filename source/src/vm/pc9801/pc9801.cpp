@@ -574,6 +574,7 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 		cpureg->set_context_v30(v30);
 		cpureg->cpu_mode = (config.cpu_type == 2 || config.cpu_type == 3);
 	} else {
+		cpureg->set_context_v30(NULL);
 		cpureg->cpu_mode = 0;
 	}
 	cpureg->set_context_pio(pio_prn);
