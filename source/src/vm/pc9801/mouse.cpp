@@ -30,6 +30,7 @@ static const int freq_table[4] = {120, 60, 30, 15};
 void MOUSE::initialize()
 {
 //	status = emu->get_mouse_buffer();
+	status = NULL;
 	
 	ctrlreg = 0xff;
 	freq = cur_freq = 0;
@@ -91,17 +92,31 @@ void MOUSE::event_callback(int event_id, int err)
 void MOUSE::event_frame()
 {
 	status = emu->get_mouse_buffer();
-	dx += status[0];
-	if(dx > 64) {
-		dx = 64;
-	} else if(dx < -64) {
-		dx = -64;
+	int x = status[0];
+	int y = status[1];
+	
+	if(x > 32) {
+		x = 32;
+	} else if(x < -32) {
+		x = -32;
 	}
-	dy += status[1];
-	if(dy > 64) {
-		dy = 64;
-	} else if(dy < -64) {
-		dy = -64;
+	if(y > 32) {
+		y = 32;
+	} else if(y < -32) {
+		y = -32;
+	}
+	dx += x;
+	dy += y;
+	
+	if(dx > 127) {
+		dx = 127;
+	} else if(dx < -128) {
+		dx = -128;
+	}
+	if(dy > 127) {
+		dy = 127;
+	} else if(dy < -128) {
+		dy = -128;
 	}
 	emu->release_mouse_buffer(status);
 	update_mouse();
