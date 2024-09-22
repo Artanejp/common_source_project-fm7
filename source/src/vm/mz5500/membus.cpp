@@ -14,7 +14,7 @@ namespace MZ5500 {
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
-
+	
 	// init memory
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
@@ -27,7 +27,7 @@ void MEMBUS::initialize()
 #if defined(_MZ6500) || defined(_MZ6550)
 	memset(mz1r32, 0, sizeof(mz1r32));
 #endif
-
+	
 	// load rom images
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
@@ -49,7 +49,7 @@ void MEMBUS::initialize()
 	}
 #endif
 	delete fio;
-
+	
 	// set memory bank
 #if defined(_MZ6500) || defined(_MZ6550)
 	set_memory_rw(0x00000, 0x9ffff, ram);
@@ -177,11 +177,12 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 #endif
 	state_fio->StateValue(bank1);
 	state_fio->StateValue(bank2);
-
+	
 	// post process
 	if(loading) {
 		 update_bank();
 	}
 	return true;
 }
+
 }

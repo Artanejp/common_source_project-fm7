@@ -1,4 +1,3 @@
-
 /*
 	FUJITSU FMR-30 Emulator 'eFMR-30'
 
@@ -17,6 +16,7 @@
 #endif
 
 namespace FMR30 {
+	
 static const uint8_t bios1[] = {
 	0xFA,				// cli
 	0xDB,0xE3,			// fninit
@@ -55,7 +55,7 @@ void MEMBUS::initialize()
 	memset(kvram, 0, sizeof(kvram));
 	memset(ipl, 0xff, sizeof(ipl));
 	memset(kanji16, 0xff, sizeof(kanji16));
-
+	
 	// load rom image
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
@@ -65,7 +65,7 @@ void MEMBUS::initialize()
 		// load pseudo ipl
 		memcpy(ipl + 0xc000, bios1, sizeof(bios1));
 		memcpy(ipl + 0xfff0, bios2, sizeof(bios2));
-
+		
 		// ank8/16
 		if(fio->Fopen(create_local_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(ipl, 0x800, 1);
@@ -81,14 +81,14 @@ void MEMBUS::initialize()
 		fio->Fclose();
 	}
 	delete fio;
-
+	
 	// set memory
 	set_memory_rw(0x000000, sizeof(ram) - 1, ram);
 	set_memory_r (0x0f0000, 0x0fffff, ipl);
 #if defined(HAS_I286)
 	set_memory_r (0xff0000, 0xffffff, ipl);
 #endif
-
+	
 	// register event
 	register_frame_event(this);
 }
@@ -101,7 +101,7 @@ void MEMBUS::reset()
 	dcr1 = dcr2 = 0;
 	kj_l = kj_h = kj_ofs = kj_row = 0;
 	blinkcnt = 0;
-
+	
 	// reset memory
 	mcr1 = 2;
 	mcr2 = a20 = 0;
@@ -186,7 +186,7 @@ void MEMBUS::write_io8(uint32_t addr, uint32_t data)
 uint32_t MEMBUS::read_io8(uint32_t addr)
 {
 	uint32_t val = 0xff;
-
+	
 	switch(addr & 0xffff) {
 	case 0x1d:
 		return mcr1;
@@ -261,14 +261,14 @@ void MEMBUS::draw_screen()
 	if(dcr1 & 1) {
 		draw_cg();
 	}
-
+	
 	scrntype_t cd = RGB_COLOR(48, 56, 16);
 	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	for(int y = 0; y < 400; y++) {
 		scrntype_t* dest = emu->get_screen_buffer(y);
 		uint8_t* txt = screen_txt[y];
 		uint8_t* cg = screen_cg[y];
-
+		
 		for(int x = 0; x < 640; x++) {
 			dest[x] = (txt[x] || cg[x]) ? cd : cb;
 		}
@@ -279,14 +279,14 @@ void MEMBUS::draw_text40()
 {
 	uint8_t *ank8 = ipl;
 	uint8_t *ank16 = ipl + 0x800;
-
+	
 	int src = 0;//((lcdreg[12] << 9) | (lcdreg[13] << 1)) & 0xfff;
 	int caddr = (lcdreg[10] & 0x20) ? -1 : (((lcdreg[14] << 9) | (lcdreg[15] << 1)) & 0xfff);
 	int yofs = lcdreg[9] + 1;
 	int ymax = 400 / yofs;
 	int freq = (dcr1 >> 4) & 3;
 	bool blink = !((freq == 3) || (blinkcnt & (32 >> freq)));
-
+	
 	for(int y = 0; y < ymax; y++) {
 		for(int x = 0; x < 40; x++) {
 			bool cursor = (src == caddr);
@@ -300,7 +300,7 @@ void MEMBUS::draw_text40()
 			uint8_t col = attr & 0x27;
 			bool blnk = blink && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
-
+			
 			if(attr & 0x40) {
 				// kanji
 				int ofs;
@@ -311,7 +311,7 @@ void MEMBUS::draw_text40()
 				} else {
 					ofs = (((l - 0x00) & 0x1f) <<  5) | (((l - 0x20) & 0x20) <<  9) | (((l - 0x20) & 0x40) <<  7) | (((h - 0x00) & 0x07) << 10) | 0x38000;
 				}
-
+				
 				for(int l = 0; l < 16 && l < yofs; l++) {
 					uint8_t pat0 = kanji16[ofs + (l << 1) + 0];
 					uint8_t pat1 = kanji16[ofs + (l << 1) + 1];
@@ -322,7 +322,7 @@ void MEMBUS::draw_text40()
 						break;
 					}
 					uint8_t* d = &screen_txt[yy][x << 4];
-
+					
 					d[ 0] = d[ 1] = (pat0 & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat0 & 0x40) ? col : 0;
 					d[ 4] = d[ 5] = (pat0 & 0x20) ? col : 0;
@@ -351,7 +351,7 @@ void MEMBUS::draw_text40()
 						break;
 					}
 					uint8_t* d = &screen_txt[yy][x << 4];
-
+					
 					d[ 0] = d[ 1] = (pat & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat & 0x40) ? col : 0;
 					d[ 4] = d[ 5] = (pat & 0x20) ? col : 0;
@@ -377,14 +377,14 @@ void MEMBUS::draw_text80()
 {
 	uint8_t *ank8 = ipl;
 	uint8_t *ank16 = ipl + 0x800;
-
+	
 	int src = 0;//((lcdreg[12] << 9) | (lcdreg[13] << 1)) & 0xfff;
 	int caddr = (lcdreg[10] & 0x20) ? -1 : (((lcdreg[14] << 9) | (lcdreg[15] << 1)) & 0xfff);
 	int yofs = lcdreg[9] + 1;
 	int ymax = 400 / yofs;
 	int freq = (dcr1 >> 4) & 3;
 	bool blink = !((freq == 3) || (blinkcnt & (32 >> freq)));
-
+	
 	for(int y = 0; y < ymax; y++) {
 		for(int x = 0; x < 80; x++) {
 			bool cursor = (src == caddr);
@@ -398,7 +398,7 @@ void MEMBUS::draw_text80()
 			uint8_t col = attr & 0x27;
 			bool blnk = blink && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
-
+			
 			if(attr & 0x40) {
 				// kanji
 				int ofs;
@@ -409,7 +409,7 @@ void MEMBUS::draw_text80()
 				} else {
 					ofs = (((l - 0x00) & 0x1f) <<  5) | (((l - 0x20) & 0x20) <<  9) | (((l - 0x20) & 0x40) <<  7) | (((h - 0x00) & 0x07) << 10) | 0x38000;
 				}
-
+				
 				for(int l = 0; l < 16 && l < yofs; l++) {
 					uint8_t pat0 = kanji16[ofs + (l << 1) + 0];
 					uint8_t pat1 = kanji16[ofs + (l << 1) + 1];
@@ -420,7 +420,7 @@ void MEMBUS::draw_text80()
 						break;
 					}
 					uint8_t* d = &screen_txt[yy][x << 3];
-
+					
 					d[ 0] = (pat0 & 0x80) ? col : 0;
 					d[ 1] = (pat0 & 0x40) ? col : 0;
 					d[ 2] = (pat0 & 0x20) ? col : 0;
@@ -449,7 +449,7 @@ void MEMBUS::draw_text80()
 						break;
 					}
 					uint8_t* d = &screen_txt[yy][x << 3];
-
+					
 					d[0] = (pat & 0x80) ? col : 0;
 					d[1] = (pat & 0x40) ? col : 0;
 					d[2] = (pat & 0x20) ? col : 0;
@@ -475,12 +475,12 @@ void MEMBUS::draw_cg()
 {
 	uint8_t* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
 	int ptr = 0;
-
+	
 	for(int y = 0; y < 400; y++) {
 		for(int x = 0; x < 640; x += 8) {
 			uint8_t pat = plane[ptr++];
 			uint8_t* d = &screen_cg[y][x];
-
+			
 			d[0] = pat & 0x80;
 			d[1] = pat & 0x40;
 			d[2] = pat & 0x20;
@@ -519,7 +519,7 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(kj_ofs);
 	state_fio->StateValue(kj_row);
 	state_fio->StateValue(blinkcnt);
-
+	
 	// post process
 	if(loading) {
 		update_bank();

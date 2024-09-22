@@ -20,7 +20,7 @@ class MEMBUS : public MEMORY
 private:
 	DEVICE *d_cpu;
 	DEVICE *d_dma;
-
+	
 #ifdef _MZ6550
 	uint8_t ipl[0x8000];	// IPL 32KB
 #else
@@ -41,16 +41,16 @@ private:
 	uint8_t mz1r32[0x100000];	// MZ-1R32 512KB * 2
 #endif
 	uint8_t bank1, bank2;
-
+	
 	void update_bank();
-
+	
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}
-
+	
 	// common function
 	void initialize() override;
 	void reset() override;
@@ -58,7 +58,7 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
-
+	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{

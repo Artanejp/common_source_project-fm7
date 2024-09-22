@@ -23,7 +23,7 @@ class MEMBUS : public MEMORY
 {
 private:
 	DEVICE *d_cpu, *d_dma;
-
+	
 #if defined(HAS_I86)
 	uint8_t ram[0x100000];	// RAM 1MB
 #elif defined(HAS_I286)
@@ -32,31 +32,31 @@ private:
 	uint8_t vram[0x20000];	// VRAM 32KB * 4pl
 	uint8_t cvram[0x1000];
 	uint8_t kvram[0x1000];
-
+	
 	uint8_t ipl[0x10000];	// IPL 64KB
 	uint8_t kanji16[0x40000];	// KANJI(16x16) 256KB
-
+	
 	uint8_t mcr1, mcr2, a20;
 	uint8_t lcdadr, lcdreg[32];
 	uint16_t dcr1, dcr2;
 	int kj_h, kj_l, kj_ofs, kj_row;
-
+	
 	int blinkcnt;
 	uint8_t screen_txt[400][648];
 	uint8_t screen_cg[400][640];
-
+	
 	void update_bank();
 	void draw_text40();
 	void draw_text80();
 	void draw_cg();
-
+	
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}
-
+	
 	// common functions
 	void initialize() override;
 	void reset() override;
@@ -64,7 +64,7 @@ public:
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	void event_frame() override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
-
+	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
@@ -88,5 +88,6 @@ public:
 	}
 	void draw_screen();
 };
+
 }
 #endif

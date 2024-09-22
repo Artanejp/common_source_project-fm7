@@ -1380,25 +1380,34 @@ void UPD7220::draw_pset(int x, int y)
 	//if(addr >= vram_plane_size) return; // Dummy
 	addr = addr & vram_plane_addr_mask;
 	wrote_bytes++;
-	uint8_t cur = read_vram(addr);
-
+	
 	switch(mod) {
 	case 0: // replace
-		write_vram(addr, (cur & ~bit) | (dot ? bit : 0));
+		if(dot) {
+			write_vram(addr, read_vram(addr) | bit);
+		} else {
+			write_vram(addr, read_vram(addr) & ~bit);
+		}
 		break;
 	case 1: // complement
-		write_vram(addr, (cur & ~bit) | ((cur ^ (dot ? 0xff : 0)) & bit));
+		if(dot) {
+			write_vram(addr, read_vram(addr) ^ bit);
+		}
 		break;
 	case 2: // reset
-		write_vram(addr, cur & (dot ? ~bit : 0xff));
+		if(dot) {
+			write_vram(addr, read_vram(addr) & ~bit);
+		}
 		break;
 	case 3: // set
-		write_vram(addr, cur | (dot ? bit : 0));
+		if(dot) {
+			write_vram(addr, read_vram(addr) | bit);
+		}
 		break;
 	}
 }
 
-#define STATE_VERSION	5 /* Change mean of DY 20200808 K.O */
+#define STATE_VERSION	5 /* Change mean of BY 20200808 K.O */
 
 bool UPD7220::process_state(FILEIO* state_fio, bool loading)
 {

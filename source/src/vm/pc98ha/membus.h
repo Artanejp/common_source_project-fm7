@@ -20,10 +20,10 @@ class MEMBUS : public MEMORY
 {
 private:
 	uint8_t rdmy[0x10000];
-
+	
 	uint8_t ram[0xa0000];		// RAM 640KB
 	uint8_t vram[0x8000];		// VRAM 32KB
-
+	
 	uint8_t ipl[0x10000];		// IPL 64KB
 	uint8_t kanji[0x40000];		// Kanji ROM 256KB
 #ifdef _PC98HA
@@ -38,27 +38,27 @@ private:
 	uint8_t dic[0x80000];		// Dictionary ROM 512KB
 	uint8_t romdrv[0x80000];		// ROM Drive 512KB
 #endif
-
+	
 	uint32_t learn_crc32;
 #ifdef _PC98HA
 	uint32_t ramdrv_crc32;
 	uint32_t memcard_crc32;
 #endif
-
+	
 	void update_bank();
 	uint8_t learn_bank, dic_bank, kanji_bank, romdrv_bank;
 #ifdef _PC98HA
 	uint8_t ramdrv_bank, ramdrv_sel;
 	uint8_t ems_bank[4];
 #endif
-
+	
 public:
 	MEMBUS(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		set_device_name(_T("Memory Bus"));
 	}
 	~MEMBUS() {}
-
+	
 	// common functions
 	void initialize() override;
 	void release() override;
@@ -69,7 +69,7 @@ public:
 	void __FASTCALL write_io8(uint32_t addr, uint32_t data) override;
 	uint32_t __FASTCALL read_io8(uint32_t addr) override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
-
+	
 	// unique functions
 	uint8_t* get_vram()
 	{

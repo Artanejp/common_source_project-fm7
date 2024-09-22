@@ -14,7 +14,7 @@ namespace PC98HA {
 void MEMBUS::initialize()
 {
 	MEMORY::initialize();
-
+	
 	// init memory
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
@@ -32,7 +32,7 @@ void MEMBUS::initialize()
 	for(int i = 0; i < sizeof(rdmy); i++) {
 		rdmy[i] = ((i & 1) ? (i >> 8) : i) & 0xff;
 	}
-
+	
 	// load rom/ram images
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
@@ -66,7 +66,7 @@ void MEMBUS::initialize()
 	}
 #endif
 	delete fio;
-
+	
 	learn_crc32 = get_crc32(learn, sizeof(learn));
 #ifdef _PC98HA
 	ramdrv_crc32 = get_crc32(ramdrv, sizeof(ramdrv));
@@ -117,7 +117,7 @@ void MEMBUS::reset()
 void MEMBUS::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	MEMORY::write_data8w(addr, data, wait);
-
+	
 	// patch for pcmcia
 	if(ram[0x59e] == 0x3e) {
 		ram[0x59e] &= ~0x20;
@@ -207,7 +207,7 @@ void MEMBUS::update_bank()
 		set_memory_r(addr, addr + 0xffff, rdmy);
 	}
 	unset_memory_w(0x00000, 0xfffff);
-
+	
 	set_memory_rw(0x00000, 0x9ffff, ram);
 	set_memory_rw(0xa8000, 0xaffff, vram);
 #ifdef _PC98HA
@@ -243,7 +243,7 @@ void MEMBUS::draw_screen()
 	scrntype_t cd = RGB_COLOR(48, 56, 16);
 	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	int ptr = 0;
-
+	
 	for(int y = 0; y < 400; y++) {
 		scrntype_t* dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 640; x += 8) {
@@ -292,12 +292,12 @@ bool MEMBUS::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(ramdrv_sel);
 	state_fio->StateArray(ems_bank, sizeof(ems_bank), 1);
 #endif
-
+	
 	// post process
 	if(loading) {
 		update_bank();
 	}
 	return true;
 }
-
+	
 }

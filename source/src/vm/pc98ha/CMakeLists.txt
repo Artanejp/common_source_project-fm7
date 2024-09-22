@@ -2,12 +2,13 @@ message("* vm/${EXE_NAME}")
 
 set(BASIC_VM_FILES_PC98HA
 
-	bios.cpp
+	#bios.cpp
 	calendar.cpp
 	floppy.cpp
-	keyboard.cpp
+	../pc9801/keyboard.cpp
 	membus.cpp
 	note.cpp
+	../pc9801/serial.cpp
 
 	pc98ha.cpp
 )
