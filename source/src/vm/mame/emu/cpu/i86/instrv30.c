@@ -599,7 +599,7 @@ static void PREFIXV30(_0fpre)(i8086_state *cpustate)	/* Opcode 0x0f */
 	case 0x2B:							// 0F 2b c2 - ROR4 bx
 		ModRM = FETCH;
 		/*
-         * /* tmp = GetRMWord(ModRM);
+         * // tmp = GetRMWord(ModRM);
          * if (ModRM >= 0xc0)
          * {
          *     tmp=cpustate->regs.w[Mod_RM.RM.w[ModRM]];
@@ -704,10 +704,11 @@ static void PREFIXV30(_0fpre)(i8086_state *cpustate)	/* Opcode 0x0f */
 			ICOUNT = old - 33;
 		}
 
-		/* more to come
-         * bfl=tmp2 & 0xf;      /* bit field length
-         * bfs=tmp & 0xf;       /* bit field start (bit offset in DS:SI)
-         * cpustate->regs.b[AH] =0;     /* AH =0
+		/* more to come */
+		/*
+         * bfl=tmp2 & 0xf;      // bit field length
+         * bfs=tmp & 0xf;       // bit field start (bit offset in DS:SI)
+         * cpustate->regs.b[AH] =0;     // AH =0
          */
 
 		/* 2do: the rest is silence....yet
@@ -759,11 +760,11 @@ static void PREFIXV30(_0fpre)(i8086_state *cpustate)	/* Opcode 0x0f */
 			logerror("ModRM=%04x  Byte=%04x\n", EA, tmp);
 			ICOUNT = old - 33;
 		}
-		/* 2do: the rest is silence....yet
-        /*
-         * bfl=tmp2 & 0xf;      /* bit field length
-         * bfs=tmp & 0xf;       /* bit field start (bit offset in DS:SI)
-         * cpustate->regs.b[AH] =0;     /* AH =0
+		/* 2do: the rest is silence....yet */
+		/*
+         * bfl=tmp2 & 0xf;      // bit field length
+         * bfs=tmp & 0xf;       // bit field start (bit offset in DS:SI)
+         * cpustate->regs.b[AH] =0;     // AH =0
          */
 
 		/*
