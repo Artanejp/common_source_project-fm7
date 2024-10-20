@@ -163,11 +163,11 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	}
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu.get(), SLOT(do_reset()));
 
-	for(int i = 0 ; i < using_flags->get_use_special_reset_num() ; i++) {
-		if(actionSpecial_Reset[i] != nullptr) {
-			connect(actionSpecial_Reset[i], SIGNAL(triggered()), hRunEmu.get(), SLOT(do_special_reset()));
+	
+	for(auto _p = actionSpecial_Reset.begin(); _p != actionSpecial_Reset.end(); ++_p) {
+		if((*_p) != nullptr) {
+			connect((*_p), SIGNAL(triggered()), hRunEmu.get(), SLOT(do_special_reset()));
 		}
-		if(i >= 15) break;
 	}
 	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu.get(), SLOT(do_update_config()));
 	connect(this, SIGNAL(sig_emu_update_volume_level(int, int)), hRunEmu.get(), SLOT(do_update_volume_level(int, int)));
@@ -418,6 +418,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	hRunEmu->set_tape_play(false);
 #if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
 	connect(hRunEmu.get(), SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)), Qt::QueuedConnection);
+	connect(hRunEmu.get(), SIGNAL(sig_force_redraw_leds()), this, SLOT(do_force_redraw_leds()), Qt::QueuedConnection);
 #endif
 #ifdef USE_AUTO_KEY
 	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu.get(), SLOT(do_start_auto_key(QString)), Qt::QueuedConnection);
@@ -666,11 +667,16 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	// notify power off
 	std::shared_ptr<USING_FLAGS> upf = using_flags;
 	emit sig_notify_power_off();
-	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
-
-#if defined(USE_KEY_LOCKED) || defined(USE_LED_DEVICE)
-	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
-#endif
+	if(statusUpdateTimer != nullptr) {
+		statusUpdateTimer->stop();
+	}
+	if(upf.get() != nullptr) {
+		if((upf->get_use_led_devices() > 0) || (upf->get_use_key_locked())) {
+			if(ledUpdateTimer != nullptr) {
+				ledUpdateTimer->stop();
+			}
+		}
+	}
 	emit sig_quit_draw_thread();
 	emit sig_quit_joy_thread();
 	emit sig_quit_emu_thread();

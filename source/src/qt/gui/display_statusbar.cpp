@@ -40,7 +40,7 @@ int Ui_MainWindowBase::Calc_OSD_Wfactor()
 void Ui_MainWindowBase::initStatusBar(void)
 {
 	int i;
-	statusUpdateTimer = new QTimer;
+
 	messagesStatusBar = new QLabel;
 	//dummyStatusArea1 = new QWidget;
 	QSize size1, size2, size3;
@@ -57,18 +57,20 @@ void Ui_MainWindowBase::initStatusBar(void)
 	statusbar->addPermanentWidget(dummyStatusArea1, 1);
 	
 	//wfactor = Calc_OSD_Wfactor();
-	osd_led_data = 0x00000000;
 
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
+	
+	
+	statusUpdateTimer = new QTimer;
+	//connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(do_redraw_status_bar()));
+	//statusUpdateTimer->start(33);
+	
 	if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) {
 		int _leds = using_flags->get_use_led_devices();
 		if(_leds < 0) _leds = 0;
-		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
-		
-		for(i = 0; i < _leds ;i++) {
-			flags_led[i] = false;
-			flags_led_bak[i] = false;
+		if((using_flags->get_use_key_locked()) && (!(using_flags->get_independent_caps_kana_led()))) {
+			_leds += 2;
 		}
 		led_graphicsView = new QGraphicsView(dummyStatusArea2);
 	
@@ -91,24 +93,26 @@ void Ui_MainWindowBase::initStatusBar(void)
 								(float)dummyStatusArea2->height(),
 								pen, bbrush);
 			for(i = 0; i < _leds; i++) {
-				led_leds[i] = NULL;
 				pen.setColor(Qt::red);
 				led_leds[i] = led_gScene->addEllipse(start,
 													 (float)dummyStatusArea2->height() / 3.0f,
 													 bitwidth - 2.0f, bitwidth - 2.0f,
 													 pen, rbrush);
 				start = start + bitwidth * 1.5f;
+				if(led_leds[i] != nullptr) {
+					led_leds[i]->setVisible(false); // 20241021 Turn off at initialized.
+				}
 			}
 		}
 	}
 	statusbar->addPermanentWidget(dummyStatusArea2, 0);
 	//   statusbar->addWidget(dummyStatusArea2);
-	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_status_bar()));
-	statusUpdateTimer->start(33);
+	
 	if((using_flags->get_use_led_devices() > 0) || (using_flags->get_use_key_locked())) {
 		ledUpdateTimer = new QTimer;
-		connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_leds()));
-		statusUpdateTimer->start(5);
+		connect(ledUpdateTimer, SIGNAL(timeout()), this, SLOT(do_redraw_leds()));
+		redraw_leds(true); // Initialize LED status.
+		ledUpdateTimer->start(5);
 	}
 }
 
@@ -162,7 +166,9 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 		float start;
 		
 		if(_leds < 0) _leds = 0;
-		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
+		if((using_flags->get_use_key_locked()) && (!(using_flags->get_independent_caps_kana_led()))) {
+			_leds += 2;
+		}
 		bitwidth = (float)dummyStatusArea2->width() / ((float)_leds * 2.0);
 		start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 
@@ -174,7 +180,6 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 				    (float)dummyStatusArea2->height(),
 				    pen, bbrush);
 		for(i = 0; i < _leds; i++) {
-			led_leds[i] = NULL;
 			pen.setColor(Qt::red);
 			led_leds[i] = led_gScene->addEllipse(start,
 				  (float)dummyStatusArea2->height() / 3.0f,
@@ -182,7 +187,6 @@ void Ui_MainWindowBase::resize_statusbar(int w, int h)
 				   pen, rbrush);
 			start = start + bitwidth * 1.5f;
 		}
-		//redraw_leds();
 	}
 }
 
@@ -191,39 +195,51 @@ void Ui_MainWindowBase::do_recv_data_led(quint32 d)
 	osd_led_data = (uint32_t)d;
 }
 
-void Ui_MainWindowBase::redraw_leds(void)
+void Ui_MainWindowBase::redraw_leds(bool force)
 {
-		uint32_t drawflags;
-		int i;
-		int _leds = using_flags->get_use_led_devices();
-		float bitwidth;
-		float start;
+	uint32_t drawflags;
+	int i;
+	int _leds = using_flags->get_use_led_devices();
+	float bitwidth;
+	float start;
 		
-		if(_leds < 0) _leds = 0;
-		if((using_flags->get_use_key_locked()) && (!using_flags->get_independent_caps_kana_led())) _leds += 2;
-		bitwidth = (float)dummyStatusArea2->width() / ((float)_leds * 2.0);
-		start = -(float)dummyStatusArea2->width() + bitwidth * 4.0f;
-		drawflags = osd_led_data;
-		
-		for(i = 0; i < _leds; i++) {
-			flags_led[i] = ((drawflags & (1 << i)) != 0);
-			if(led_leds[i] != NULL) {
-				if(flags_led[i]) {
-					led_leds[i]->setVisible(true);
-				} else {
-					led_leds[i]->setVisible(false);
-				}
+	if(_leds < 0) _leds = 0;
+	if((using_flags->get_use_key_locked()) && (!(using_flags->get_independent_caps_kana_led()))) {
+		_leds += 2;
+	}
+	bitwidth = (float)dummyStatusArea2->width() / ((float)_leds * 2.0);
+	start = -(float)dummyStatusArea2->width() + bitwidth * 4.0f;
+	drawflags = osd_led_data.load();
+
+	bool __changed = false;
+	for(i = 0; i < _leds; i++) {
+		bool __f = ((drawflags & (1 << i)) != 0);
+		if((__f != flags_led[i].load()) || (force)) {
+			if(led_leds[i] != nullptr) {
+				led_leds[i]->setVisible(__f);
 			}
 			emit sig_led_update(QRectF(start,
-					   0.0f, bitwidth * 2.0f, bitwidth * 2.0f));
-			start = start + bitwidth * 1.5f;
+									   0.0f, bitwidth * 1.5f, bitwidth * 2.0f));
+			flags_led[i] = __f;
+			__changed = true;
 		}
-		led_graphicsView->setScene(led_gScene);
+		start = start + bitwidth * 1.5f;
+	}
+	led_graphicsView->setScene(led_gScene);
+}
+
+void Ui_MainWindowBase::do_redraw_leds(void)
+{
+	redraw_leds(false);
 }	
 
-void Ui_MainWindowBase::redraw_status_bar(void)
+void Ui_MainWindowBase::do_force_redraw_leds(void)
 {
-	int i;
+	redraw_leds(true);
+}	
+
+void Ui_MainWindowBase::do_redraw_status_bar(void)
+{
 }
 
 

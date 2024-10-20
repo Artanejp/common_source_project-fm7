@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QMainWindow>
 #include <QIcon>
+#include <QList>
 #include <QString>
 #include <QStringList>
 #include <QMap>
@@ -234,14 +235,17 @@ Q_DECLARE_METATYPE(CSP_Ui_MainWidgets::ScreenSize)
 	)																	\
 	{																	\
 		for(int _i = __start; _i < __end;  _i++) {						\
-			__action[_i] = new QAction(__parent);						\
-			__action[_i]->setCheckable(__checkable);					\
-			__action[_i]->setEnabled(__enabled);						\
-			__action[_i]->setData(QVariant(_i));						\
-			__menu->addAction(__action[_i]);							\
-			__action[_i]->setChecked(p_config->__cnf[_i][0]);			\
-			/*connect(__action[_i], __signal1, __action[_i], __slot1);*/ \
-			connect(__action[_i], __signal1, this, __slot1);			\
+			QAction *__tp = new QAction(__parent);						\
+			if(__tp != nullptr) {										\
+				__action.append(__tp);									\
+				__tp->setCheckable(__checkable);						\
+				__tp->setEnabled(__enabled);							\
+				__tp->setData(QVariant(_i));							\
+				__menu->addAction(__tp);								\
+				__tp->setChecked(p_config->__cnf[_i][0]);				\
+				/*connect(__action[_i], __signal1, __action[_i], __slot1);*/ \
+				connect(__tp, __signal1, __parent, __slot1);			\
+			}															\
 		}																\
 	}
 
@@ -371,9 +375,9 @@ private:
 	QAction *action_LogToSyslog;
 	QAction *action_LogToConsole;
 	QAction *action_LogRecord;
-	QAction *action_DevLogToSyslog[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	QAction *action_DevLogToConsole[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
-	QAction *action_DevLogRecord[CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1];
+	QList<QAction *>action_DevLogToSyslog;
+	QList<QAction *>action_DevLogToConsole;
+	QList<QAction *>action_DevLogRecord;
 	// Emulator
 	QAction *action_SetupMouse;
 	QAction *action_SetupJoystick;
@@ -407,12 +411,11 @@ private:
 	QAction *actionHelp_License_JP;
 
 	// Led: OSD.
-	bool flags_led[32];
-	bool flags_led_bak[32];
+	std::atomic<uint32_t> osd_led_data;
+	std::atomic<bool> flags_led[32];
+	QGraphicsEllipseItem *led_leds[32];
 	QGraphicsView *led_graphicsView;
 	QGraphicsScene *led_gScene;
-	QGraphicsEllipseItem *led_leds[32];
-	uint32_t osd_led_data;
 
 	// Inner functions
 
@@ -532,7 +535,7 @@ protected:
 	QActionGroup *actionGroup_BootMode;
 	QActionGroup *actionGroup_CpuType;
 	QAction *actionReset;
-	QAction *actionSpecial_Reset[16];
+	QList<QAction *> actionSpecial_Reset;
 	QAction *actionExit_Emulator;
 	QAction *actionCpuType[8];
 	QAction *actionBootMode[8];
@@ -694,6 +697,10 @@ protected:
 	void retranslateSoundMenu(void);
 	QMenu  *createMenuNode(QMenuBar *parent, QString objname = QString::fromUtf8(""));
 	QMenu  *createMenuNode(QMenu *parent, QString objname = QString::fromUtf8(""));
+
+	// Misc
+	void redraw_leds(bool force);
+
 public:
 	Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~Ui_MainWindowBase();
@@ -763,20 +770,24 @@ public:
 	// Basic slots
 public slots:
 	void delete_emu_thread(void);
+	virtual void delete_joy_thread(void);
+	
+	virtual void do_housekeeping(); // Maybe unused.
+	virtual void do_redraw_status_bar(void);
+	
 	void doChangeMessage_EmuThread(QString str);
 	void do_emu_update_config(void);
-	virtual void delete_joy_thread(void);
-	virtual void do_set_window_title(QString s);
-	virtual void redraw_status_bar(void);
-	virtual void redraw_leds(void);
-	virtual void do_housekeeping();
+	void do_set_window_title(QString s);
+	void do_redraw_leds(void);
+	void do_force_redraw_leds(void);
 	void do_recv_data_led(quint32 d);
+	
 
 	void do_update_volume(int level);
 	void do_set_screen_aspect(void);
 	void do_set_screen_size(void);
 	void do_set_screen_rotate(void);
-	void OnReset(void);
+	void do_on_reset(void);
 
 	virtual void do_set_mouse_enable(bool flag);
 	virtual void do_toggle_mouse(void);

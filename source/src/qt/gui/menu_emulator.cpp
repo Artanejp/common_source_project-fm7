@@ -336,11 +336,16 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 		SET_ACTION_SINGLE(action_Logging_FDC, true, true, (p_config->special_debug_fdc != 0));
 		connect(action_Logging_FDC, SIGNAL(toggled(bool)), this, SLOT(do_set_logging_fdc(bool)));
 	}
+	action_DevLogToSyslog.clear();
+	action_DevLogToConsole.clear();
+	action_DevLogRecord.clear();
+	
 #if !defined(Q_OS_WIN)
 	SET_ACTION_SINGLE(action_LogToSyslog, true, true, (p_config->log_to_syslog != 0));
 
 	menuDevLogToSyslog = new QMenu(this);
 	menuDevLogToSyslog->setToolTipsVisible(true);
+	
 	SET_ACTION_CONTROL_ARRAY(0, (CSP_LOG_TYPE_VM_DEVICE_END - CSP_LOG_TYPE_VM_DEVICE_0 + 1),
 							 this, 
 							 menuDevLogToSyslog, action_DevLogToSyslog, true, false,

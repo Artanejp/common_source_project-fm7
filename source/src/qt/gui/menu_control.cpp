@@ -162,17 +162,20 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 	actionReset = new QAction(this);
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
-		this, SLOT(OnReset())); // OK?
+		this, SLOT(do_on_reset())); // OK?
 
+	actionSpecial_Reset.clear();
 	if(using_flags->is_use_special_reset()) {
 		for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
 			QString tmps;
 			tmps.setNum(i);
 			tmps = QString::fromUtf8("actionSpecial_Reset") + tmps;
-			actionSpecial_Reset[i] = new QAction(this);
-			actionSpecial_Reset[i]->setObjectName(tmps);
-			actionSpecial_Reset[i]->setData(QVariant(i));
-			if(i >= 15) break;
+			QAction *__p = new QAction(this);
+			if(__p != nullptr) {
+				actionSpecial_Reset.append(__p);
+				__p->setObjectName(tmps);
+				__p->setData(QVariant(i));
+			}
 		}
 	}
 
@@ -288,9 +291,10 @@ void Ui_MainWindowBase::createContextMenu(void)
 {
 	addAction(actionReset);
 
-	for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
-		addAction(actionSpecial_Reset[i]);
-		if(i >= 15) break;
+	for(auto _p = actionSpecial_Reset.begin(); _p != actionSpecial_Reset.end(); ++_p) {
+		if((*_p) != nullptr) {
+			addAction((*_p));
+		}
 	}
 	addAction(menuCpu_Speed->menuAction());
 
@@ -312,10 +316,11 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 	actionReset->setToolTip(QApplication::translate("MenuControl", "Reset virtual machine.", 0));
 	actionReset->setIcon(ResetIcon);
 	if(using_flags->is_use_special_reset()) {
-		for(int i = 0; i < using_flags->get_use_special_reset_num(); i++) {
-			actionSpecial_Reset[i]->setText(QApplication::translate("MenuControl", SpecialResetTitle, 0));
-			actionSpecial_Reset[i]->setIcon(QIcon(":/icon_reset.png"));
-			if(i >= 15) break;
+		for(auto __p = actionSpecial_Reset.begin(); __p != actionSpecial_Reset.end(); ++__p) {
+			if((*__p) != nullptr) {
+				(*__p)->setText(QApplication::translate("MenuControl", SpecialResetTitle, 0));
+				(*__p)->setIcon(QIcon(":/icon_reset.png"));
+			}
 		}
 	}
 

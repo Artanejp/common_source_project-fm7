@@ -74,6 +74,14 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 	ledUpdateTimer = NULL;
 	houseKeepingTimer = NULL;
 	statusUpdateTimer = NULL;
+
+	// Move from initStatusbar() for sending signals before called initStatusbar() by another thread.
+	// - 20241021 K.O
+	osd_led_data = 0x00000000;
+	for(int i = 0; i < 32 ;i++) {
+		flags_led[i] = false;
+		led_leds[i] = nullptr;
+	}
 	
 	setupUi();
 	createContextMenu();
@@ -83,6 +91,7 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 	phys_key_name_map.clear();
 	hRunJoy = NULL;
 	about_to_close = false;
+	
 	connect(this, SIGNAL(sig_set_device_node_log(int, int, int, bool)),
 			csp_logger.get(), SLOT(set_device_node_log(int, int, int, bool)), Qt::QueuedConnection);
 	connect(this, SIGNAL(sig_set_device_node_log(int, int, bool*, int, int)),
@@ -202,30 +211,49 @@ void Ui_MainWindowBase::do_set_syslog(bool f)
 
 void Ui_MainWindowBase::do_update_device_node_name(int id, const _TCHAR *name)
 {
-	if(action_DevLogToConsole[id] == NULL) return;
 	if(!ui_retranslate_completed) return;
-	if(using_flags->get_vm_node_size() > id) {
-		action_DevLogToConsole[id]->setEnabled(true);
-		action_DevLogToConsole[id]->setVisible(true);
-#if !defined(Q_OS_WIN)
-		action_DevLogToSyslog[id]->setEnabled(true);
-		action_DevLogToSyslog[id]->setVisible(true);
-#endif
-	} else {
-		action_DevLogToConsole[id]->setEnabled(false);
-		action_DevLogToConsole[id]->setVisible(false);
-
-#if !defined(Q_OS_WIN)
-		action_DevLogToSyslog[id]->setEnabled(false);
-		action_DevLogToSyslog[id]->setVisible(false);
-#endif
+	bool _f = (using_flags->get_vm_node_size() > id) ? true : false;
+	QString s = QString::asprintf("#%02d: ", id);
+	if(name != nullptr) {
+		s = s + QString::fromUtf8(name);
 	}
-	char s[64] = {0};
-	snprintf(s, 60, "#%02d: %s", id, name);
-	action_DevLogToConsole[id]->setText(QString::fromUtf8(s));
-#if !defined(Q_OS_WIN)
-	action_DevLogToSyslog[id]->setText(QString::fromUtf8(s));
-#endif
+	for(auto p = action_DevLogToConsole.begin(); p != action_DevLogToConsole.end(); ++p) {
+		if((*p) != nullptr) {
+			int _num = (*p)->data().value<int>();
+			__UNLIKELY_IF(_num == id) {
+				(*p)->setEnabled(_f);
+				(*p)->setVisible(_f);
+				(*p)->setText(s);
+				break;
+			}
+		}
+	}
+	#if !defined(Q_OS_WIN)
+	for(auto p = action_DevLogToSyslog.begin(); p != action_DevLogToSyslog.end(); ++p) {
+		if((*p) != nullptr) {
+			int _num = (*p)->data().value<int>();
+			__UNLIKELY_IF(_num == id) {
+				(*p)->setEnabled(_f);
+				(*p)->setVisible(_f);
+				(*p)->setText(s);
+				break;
+			}
+		}
+	}
+	#endif	
+	#if 0
+	for(auto p = action_DevLogRecord.begin(); p != action_DevLogRecord.end(); ++p) {
+		if((*p) != nullptr) {
+			int _num = (*p)->data().value<int>();
+			__UNLIKELY_IF(_num == id) {
+				(*p)->setEnabled(_f);
+				(*p)->setVisible(_f);
+				(*p)->setText(s);
+				break;
+			}
+		}
+	}
+	#endif
 }
 
 
