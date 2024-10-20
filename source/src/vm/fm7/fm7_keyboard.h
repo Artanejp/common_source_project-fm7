@@ -126,6 +126,19 @@ private:
  public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu);
 	~KEYBOARD();
+	
+	void initialize(void) override;
+	void release(void) override;
+
+	void __FASTCALL event_callback(int event_id, int err) override;
+	void reset(void) override;
+	
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	uint32_t __FASTCALL read_signal(int id) override;
+
+	uint32_t __FASTCALL read_data8(uint32_t addr) override;
+	void __FASTCALL write_data8(uint32_t addr, uint32_t data) override;
+	bool process_state(FILEIO *state_fio, bool loading) override;
    
 	void key_up(uint32_t vk);
 	void key_down(uint32_t vk);
@@ -144,15 +157,6 @@ private:
 	uint32_t get_scancode_by_vk(uint32_t vk);
 	uint32_t get_vk_by_scancode(uint32_t scancode);
 #endif
-	void __FASTCALL event_callback(int event_id, int err);
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t __FASTCALL read_signal(int id);
-
-	uint32_t __FASTCALL read_data8(uint32_t addr);
-	void __FASTCALL write_data8(uint32_t addr, uint32_t data);
-	void reset(void);
-	void release(void);
-	bool process_state(FILEIO *state_fio, bool loading);
 	void set_context_rxrdy(DEVICE *p, int id, uint32_t mask) {
 #if defined(_FM77AV_VARIANTS)  
 		register_output_signal(&rxrdy, p, id, mask);

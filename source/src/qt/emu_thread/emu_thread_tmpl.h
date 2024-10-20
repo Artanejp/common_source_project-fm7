@@ -91,7 +91,7 @@ protected:
 	bool prevRecordReq;
 	
 	double nr_fps;
-	uint32_t led_data_old;
+	std::atomic<uint32_t> led_data_old;
 	int turn_count;
 	bool req_draw;
 	bool vert_line_bak;
@@ -394,6 +394,8 @@ signals:
 	int sig_set_grid_vertical(int, bool);
 	int sig_set_grid_horizonal(int, bool);
 	int sig_send_data_led(quint32);
+	int sig_force_redraw_leds();
+	
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
 	int sig_resize_osd(int);

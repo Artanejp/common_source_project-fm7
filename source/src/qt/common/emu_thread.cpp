@@ -121,6 +121,8 @@ void EmuThreadClass::doWork()
 	thread_id = currentThreadId();
 	
 	is_up_null = (u_p.get() == nullptr);
+	QElapsedTimer led_timer;
+	
 	do {
 		if((MainWindow == NULL) || (bBlockTask.load()) || (is_up_null)) {
 			if(bRunThread.load() == false){
@@ -140,7 +142,7 @@ void EmuThreadClass::doWork()
 			if(initialize_messages()) {
 				if(!(is_up_null)) {
 					if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) {
-						emit sig_send_data_led((quint32)led_data_old);
+						emit sig_force_redraw_leds();
 					}
 				}
 				first = false;
@@ -155,6 +157,7 @@ void EmuThreadClass::doWork()
 					//#endif
 				}
 			}
+			led_timer.start();
 		}
 		interval = 0;
 		if(bRunThread.load() == false){
@@ -181,9 +184,10 @@ void EmuThreadClass::doWork()
 			if(bRunThread.load() == false){
 				break;
 			}
+			set_led();
 			
 			__LIKELY_IF(!(half_count)) { // End of a frame.
-				set_led();
+//				set_led();
 				sample_access_drv();
 				__LIKELY_IF(p_config != nullptr) {
 					full_speed = p_config->full_speed;
@@ -230,6 +234,13 @@ void EmuThreadClass::doWork()
 				p_emu->request_update_screen();
 				//}
 				emit sig_draw_thread(req_draw); // Call offloading thread.
+				if(led_timer.hasExpired(100)) { // Update at least 100mSec.
+					if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) {
+						emit sig_force_redraw_leds();
+					}
+					led_timer.restart();
+				}
+				
 				if(req_draw) {
 					yieldCurrentThread(); // Yield current thread;
 				}

@@ -1260,10 +1260,14 @@ KEYBOARD::KEYBOARD(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(pa
 	initialize_output_signals(&break_line);
 	initialize_output_signals(&int_line);
 	
-	ins_led_status = false;
+	set_device_name(_T("KEYBOARD SUBSYSTEM"));
+}
+
+void KEYBOARD::initialize(void)
+{
 	kana_led_status = false;
 	caps_led_status = false;
-	set_device_name(_T("KEYBOARD SUBSYSTEM"));
+	ins_led_status = false;
 }
 
 void KEYBOARD::release(void)

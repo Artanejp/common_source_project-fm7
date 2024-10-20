@@ -225,20 +225,24 @@ int EmuThreadClassBase::process_command_queue()
 	
 	virtualMediaList.clear();
 	bool req_sound_restart = false;
+	bool req_redraw_leds = false;
 	if(bLoadStateReq.load() != false) {
 		loadState();
 		bLoadStateReq = false;
-		req_sound_restart = true;
+		req_sound_restart = true;	
+		req_redraw_leds = true;
 	}
 	if(bResetReq.load() != false) {
 		resetEmu();
 		bResetReq = false;
 		req_sound_restart = true;
+		req_redraw_leds = true;
 	}
 	if(bSpecialResetReq.load() != false) {
 		specialResetEmu(specialResetNum);
 		bSpecialResetReq = false;
 		req_sound_restart = true;
+		req_redraw_leds = true;
 	}
 	if(req_sound_restart) {
 		emit sig_restart_sound_timer();
@@ -258,6 +262,7 @@ int EmuThreadClassBase::process_command_queue()
 	if(bUpdateConfigReq != false) {
 		p_emu->update_config();
 		bUpdateConfigReq = false;
+		req_redraw_leds = true;
 	}
 	if(bStartRecordMovieReq.load() != false) {
 		int rfps = record_fps.load();
@@ -278,6 +283,11 @@ int EmuThreadClassBase::process_command_queue()
 				p_emu->set_sound_device_volume(ii, p_config->sound_volume_l[ii], p_config->sound_volume_r[ii]);
 				bUpdateVolumeReq[ii] = false;
 			}
+		}
+	}
+	if(req_redraw_leds) {
+		if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) {
+			emit sig_force_redraw_leds();
 		}
 	}
 	return count;
@@ -316,7 +326,7 @@ bool EmuThreadClassBase::set_led()
 	} else {
 		req_draw = true;
 	}
-	if((_key_lock) && (_ind_caps_kana)) {
+	if((_key_lock) && !(_ind_caps_kana)) {
 		led_data |= ((p_emu->get_caps_locked()) ? 0x01 : 0x00);
 		led_data |= ((p_emu->get_kana_locked()) ? 0x02 : 0x00);
 		if(_led_shift > 0) {
@@ -326,11 +336,9 @@ bool EmuThreadClassBase::set_led()
 	led_data |= p_emu->get_led_status();
 
 	if((_led_shift > 0) || (_key_lock)) {
-		if(led_data != led_data_old) {
-			emit sig_send_data_led((quint32)led_data);
-			led_data_old = led_data;
-			return true;
-		}
+		emit sig_send_data_led((quint32)led_data);
+		led_data_old = led_data;
+		return true;
 	}
 	return false;
 }
