@@ -109,20 +109,23 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	QImage *ip = NULL;
 	int w;
 	int h;
+	bool use_dummy = false;
 	__UNLIKELY_IF(img == NULL) {
-		return NULL;
+		w = using_flags->get_screen_width();
+		h = using_flags->get_screen_width();
+		ip = new QImage(w, h, QImage::Format_RGBA8888);
+		use_dummy = true;
+	} else {
+		ip = img;
+		w = img->width();
+		h = img->height();
 	}
-	//tx->setFormat(QOpenGLTexture::RGBA8_UNorm);
-
-	ip = img;
-	w = img->width();
-	h = img->height();
 	if(main_texture_buffer != 0) {
 		this->unmap_vram_texture();
-		main_texture_ready = false;
 	}
+	QMutexLocker Locker_S(main_mutex);
+	main_texture_ready = false;
 	{
-		QMutexLocker Locker_S(main_mutex);
 		if(sync_fence != 0) {
 			extfunc->glClientWaitSync(sync_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 			extfunc->glDeleteSync(sync_fence);
@@ -160,7 +163,9 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 	if(map_vram_texture()) {
 		main_texture_ready = true;
 	}			
-//	if(im != NULL) delete im;
+	if((use_dummy) && (ip != nullptr)) {
+		delete ip;
+	}
 	return tx;
 }
 
@@ -1263,7 +1268,7 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f (IMGPTR=%08x)\n", w, h, iw, ih, (uintptr_t)p);
+	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %dx%d (IMGPTR=%08x)\n", w, h, (int)iw, (int)ih, (uintptr_t)p);
 	if((p_wid != NULL) &&
 	   ((screen_texture_width != w) || (screen_texture_height != h)) &&
 	   (w > 0) && (h > 0)) {
@@ -1285,8 +1290,12 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 			
 		}
 		if(p != NULL) {
-			if(uVramTextureID != NULL) delete uVramTextureID;
-			uVramTextureID = new QOpenGLTexture(*p);
+			if((p->width() > pixel_width) || (p->height() > pixel_height)) {
+				if(uVramTextureID != NULL) {
+					delete uVramTextureID;
+					uVramTextureID = createMainTexture(p);
+				}
+			}
 		}
 		vertexFormat[0].x = -1.0f;
 		vertexFormat[0].y = -1.0f;
@@ -1442,9 +1451,6 @@ bool GLDraw_4_5::map_vram_texture(void)
 	if(main_texture_buffer == 0) {
 		return false;
 	}
-//	if(!(main_texture_ready)) {
-//		return false;
-//	}
 
 	if(gl_major_version < 4) {
 		return false;
