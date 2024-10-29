@@ -550,7 +550,6 @@ protected:
 	QAction *actionMouseEnable;
 	QAction *actionHelp_AboutQt;
 	QAction *action_ResetFixedCpu;
-	QAction *action_SetFixedCpu[128];
 
 	QAction *action_RAMSize;
 	// Screen

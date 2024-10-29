@@ -35,6 +35,7 @@
 #include "config.h"
 #include <memory>
 #include <atomic>
+#include <utility>
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -67,6 +68,13 @@ typedef struct {
 	bool repeat;
 } key_queue_t;
 
+typedef enum emu_cpu_affinity_cmd_t{
+	CPU_SET_ALL = 0,
+	CPU_SET_BIT,
+	CPU_CLEAR_BIT,
+	CPU_SET_FIXED
+} emu_cpu_affinity_cmd_t;
+
 class QTimer;
 
 class DLL_PREFIX EmuThreadClassBase : public QThread {
@@ -86,7 +94,7 @@ protected:
 	bool mouse_flag;
 	int mouse_x;
 	int mouse_y;
-	int queue_fixed_cpu;
+	std::list<std::pair<enum emu_cpu_affinity_cmd_t, unsigned int>> queue_cpu_affinities;
 	
 	bool prevRecordReq;
 	
@@ -293,7 +301,12 @@ public slots:
 	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
 	void do_key_up(uint32_t vk, uint32_t mod);
 	void do_print_framerate(int frames);
-	void do_set_emu_thread_to_fixed_cpu(int cpunum);
+	
+	void do_set_emu_thread_to_fixed_cpu(int cpunum); // Positive: Assign to cpunum as single thread, Nagative: Assign to all CPUs as multi thread (EMU).
+	void do_append_cpu_to_emu_thread(unsigned int cpunum); // Append CPU #cpunum
+	void do_remove_cpu_to_emu_thread(unsigned int cpunum); // Remove CPU #cpunum , excepts assigned only one CPU.
+	void do_apply_cpu_affinities_to_emu_thread();
+	
 	void do_block();
 	void do_unblock();
 

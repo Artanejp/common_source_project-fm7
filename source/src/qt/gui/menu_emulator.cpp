@@ -379,18 +379,15 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 #endif
 	menu_SetFixedCpu = NULL;
 	action_ResetFixedCpu = NULL;
-	for(i = 0; i < 128; i++) {
-		action_SetFixedCpu[i] = NULL;
-	}
+	
 	if(cpus > 0) {
 		menu_SetFixedCpu = new QMenu(this);
 		menu_SetFixedCpu->setToolTipsVisible(true);
 		actionGroup_SetFixedCpu = new QActionGroup(this);
 		actionGroup_SetFixedCpu->setExclusive(true);
-		if(cpus >= 128) cpus = 128;
-
+		
 		action_ResetFixedCpu = new QAction(this);
-		action_ResetFixedCpu->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
+		action_ResetFixedCpu->setObjectName(QString::fromUtf8("action_ResetFixedCpu", -1));
 		action_ResetFixedCpu->setCheckable(true);
 		action_ResetFixedCpu->setData(QVariant((int)-1));
 		actionGroup_SetFixedCpu->addAction(action_ResetFixedCpu);
@@ -398,12 +395,12 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 		for(i = 0; i < cpus; i++) {
 			tmps = QString::number(i);
-			action_SetFixedCpu[i] = new QAction(this);
-			action_SetFixedCpu[i]->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
-			action_SetFixedCpu[i]->setCheckable(true);
-			action_SetFixedCpu[i]->setData(QVariant(i));
-			actionGroup_SetFixedCpu->addAction(action_SetFixedCpu[i]);
-			menu_SetFixedCpu->addAction(action_SetFixedCpu[i]);
+			QACtion *_tmpp = new QAction(this);
+			_tmpp->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
+			_tmpp->setCheckable(true);
+			_tmpp->setData(QVariant(i));
+			actionGroup_SetFixedCpu->addAction(_tmpp);
+			menu_SetFixedCpu->addAction(_tmpp);
 		}
 	}
 	menu_SetRenderPlatform = new QMenu(this);
@@ -607,16 +604,21 @@ void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 	if(menu_SetFixedCpu != NULL) {
 		menu_SetFixedCpu->setTitle(QApplication::translate("MenuEmulator", "Occupy Fixed CPU", 0));
 
-		if(action_ResetFixedCpu != NULL) {
-			action_ResetFixedCpu->setText(QApplication::translate("MenuEmulator", "Using all CPU", 0));
-			action_ResetFixedCpu->setToolTip(QApplication::translate("MenuEmulator", "Using all CPU to emulation.\nReset cpu usings.", 0));
-		}
-		for(int ii = 0; ii < 128; ii++) {
-			if(action_SetFixedCpu[ii] != NULL) {
-				QString numname = QString::number(ii);
-				QString numtip = QApplication::translate("MenuEmulator", "Set Fixed logical CPU #%1 to be occupied by emulation thread.\nMay useful for heavy VM (i.e. using i386 CPU).\nStill implement LINUX host only, not another operating systems.", 0).arg(numname);
-				action_SetFixedCpu[ii]->setText(QString::fromUtf8("CPU #") + numname);
-				action_SetFixedCpu[ii]->setToolTip(numtip);
+		if(actionGroup_SetFixedCpu != nullptr) {
+			QList<QAction*> _tmp_act_cpu = actionGroup_SetFixedCpu->actions();
+			for(auto _p = _tmp_act_cpu.begin(); _p != _tmp_act_cpu.end(); ++_p) {
+				if(((*_p) == action_ResetFixedCpu) && (action_ResetFixedCpu != nullptr)) {
+					(*_p)->setText(QApplication::translate("MenuEmulator", "Using all CPU", 0));
+					(*_p)->setToolTip(QApplication::translate("MenuEmulator", "Using all CPU to emulation.\nReset cpu usings.", 0));
+				} else if((*_p) != nullptr) {
+					int _num = (*_p)->data().value<int>();
+					if(_num >= 0) {
+						QString numname = QString::number(_num);
+						QString numtip = QApplication::translate("MenuEmulator", "Set Fixed logical CPU #%1 to be occupied by emulation thread.\nMay useful for heavy VM (i.e. using i386 CPU).\nStill implement LINUX host only, not another operating systems.", 0).arg(numname);
+						(*_p)->setText(QString::fromUtf8("CPU #") + numname);
+						(*_p)->setToolTip(numtip);
+					}
+				}
 			}
 		}
 	}

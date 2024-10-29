@@ -134,9 +134,8 @@ void EmuThreadClass::doWork()
 			msleep(10);
 			continue;
 		}
-		if(queue_fixed_cpu >= 0) {
-			do_set_emu_thread_to_fixed_cpu(queue_fixed_cpu);
-			queue_fixed_cpu = -1;
+		if(!(queue_cpu_affinities.empty())) {
+			do_apply_cpu_affinities_for_emu_thread();
 		}
 		if(first) {
 			if(initialize_messages()) {

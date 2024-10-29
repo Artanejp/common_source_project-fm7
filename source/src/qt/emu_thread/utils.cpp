@@ -69,28 +69,129 @@ void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu_from_action(void)
 
 void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu(int cpunum)
 {
-#if defined(Q_OS_LINUX)
 	if(thread_id == (Qt::HANDLE)nullptr) {
-		queue_fixed_cpu = cpunum;
+		return;
+	}
+#if defined(Q_OS_LINUX)
+	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	__UNLIKELY_IF(cpus <= 0) {
+		return;
+	}
+	__UNLIKELY_IF(cpus <= cpunum) {
+		return;
+	}
+	cpu_set_t *mask;
+	mask = CPU_ALLOC(cpus);
+	size_t bytes = CPU_ALLOC_SIZE(cpus);
+	CPU_ZERO_S(bytes, mask);
+	
+	if(cpunum < 0) {
+		for(int i = 0; i < cpus; i++) {
+			CPU_SET_S(i, bytes , mask);
+		}
+	} else {
+		CPU_SET_S(i, bytes , mask);
+	}
+	pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
+	CPU_FREE(mask);
+#endif
+}
+
+void EmuThreadClassBase::do_append_cpu_to_emu_thread(unsigned int cpunum)
+{
+	if(thread_id == (Qt::HANDLE)nullptr) {
+		return;
+	}
+#if defined(Q_OS_LINUX)
+	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	
+	__UNLIKELY_IF(cpus <= 0) {
+		return;
+	}
+	__UNLIKELY_IF(cpunum > INT_MAX) {
+		return;
+	}
+	__UNLIKELY_IF(((unsigned int)cpus) <= cpunum) {
+		return;
+	}
+	cpu_set_t *mask;
+	mask = CPU_ALLOC(cpus);
+	size_t bytes = CPU_ALLOC_SIZE(cpus);
+	
+	pthread_getaffinity_np(*((pthread_t*)thread_id), bytes, mask);
+	if(CPU_ISSET_S(cpunum, bytes, mask) == 0) {
+		CPU_SET_S(cpunum, bytes, mask);
+		pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
+	}
+	CPU_FREE(mask);
+#endif
+}
+
+void EmuThreadClassBase::do_remove_cpu_to_emu_thread(unsigned int cpunum)
+{
+	if(thread_id == (Qt::HANDLE)nullptr) {
+		return;
+	}
+#if defined(Q_OS_LINUX)
+	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	__UNLIKELY_IF(cpus <= 0) {
+		return;
+	}
+	__UNLIKELY_IF(cpunum > INT_MAX) {
+		return;
+	}
+	__UNLIKELY_IF(((unsigned int)cpus) <= cpunum) {
+		return;
+	}
+	cpu_set_t *mask;
+	mask = CPU_ALLOC(cpus);
+	size_t bytes = CPU_ALLOC_SIZE(cpus);
+	
+	pthread_getaffinity_np(*((pthread_t*)thread_id), bytes, mask);
+	if(CPU_COUNT(mask) <= 1) {
+		// At least one CPU. 
+		CPU_FREE(mask);
 		return;
 	}
 
-	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-	cpu_set_t *mask;
-	mask = CPU_ALLOC(cpus);
-	CPU_ZERO_S(CPU_ALLOC_SIZE(cpus), mask);
-	if((cpunum < 0) || (cpunum >= cpus)) {
-		for(int i = 0; i < cpus; i++ ) {
-			CPU_SET(i, mask);
-		}
-	} else {
-		CPU_SET(cpunum, mask);
+	if(CPU_ISSET_S(cpunum, bytes, mask) != 0) {
+		CPU_CLR_S(cpunum, bytes, mask);
+		pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
 	}
-//	sched_setaffinity((pid_t)thread_id, CPU_ALLOC_SIZE(cpus), (const cpu_set_t*)mask);
-	pthread_setaffinity_np(*((pthread_t*)thread_id), CPU_ALLOC_SIZE(cpus),(const cpu_set_t *)mask);
 	CPU_FREE(mask);
-#else
-	return;
 #endif
-	return;
+}
+
+void EmuThreadClassBase::do_apply_cpu_affinities_to_emu_thread()
+{
+	if(queue_cpu_affinities.empty()) {
+		return;
+	}
+	if(thread_id == (Qt::HANDLE)nullptr) {
+		return;
+	}
+	
+#if defined(Q_OS_LINUX)
+	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	if(cpus <= 0) {
+		queue_cpu_affinities.clear();
+		return;
+	}
+#endif
+	// ToDo: Set one operation.
+	for(auto p = queue_cpu_affinities.begin(); p != queue_cpu_affinities.end(); ++p) {
+		__UNLIKELY_IF((*p).first == CPU_SET_ALL) {
+			do_set_emu_thread_to_fixed_cpu(INT_MIN);
+		} else if((*p).first == CPU_SET_BIT) {
+			do_append_cpu_to_emu_thread((*p).second);
+		} else if((*p).first == CPU_CLEAR_BIT) {
+			do_remove_cpu_to_emu_thread((*p).second);
+		} else if((*p).first == CPU_SET_FIXED) {
+			if((*p).second <= ((unsigned int)INT_MAX)) {
+				do_set_emu_thread_to_fixed_cpu((int)((*p).second));
+			}
+		}
+	}
+	queue_cpu_affinities.clear();
+
 }

@@ -57,7 +57,7 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 
 	bRunThread = true;
 
-	queue_fixed_cpu = -1;
+	queue_cpu_affinities.clear();
 	prev_skip = false;
 	update_fps_time = 0;
 

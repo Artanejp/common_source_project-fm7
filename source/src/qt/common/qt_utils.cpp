@@ -151,15 +151,12 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)),hRunEmu.get(), SLOT(do_key_up(uint32_t, uint32_t)));
 	connect(this, SIGNAL(sig_quit_widgets()), glv, SLOT(do_stop_run_vm()));
 
-	if(action_ResetFixedCpu != nullptr) {
-		connect(action_ResetFixedCpu, SIGNAL(triggered()),
-				hRunEmu.get(), SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
-
-	}
-	for(int i = 0 ; i < 128 ; i++) {
-		if(action_SetFixedCpu[i] == nullptr) break;
-		connect(action_SetFixedCpu[i], SIGNAL(triggered()),
-				hRunEmu.get(), SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
+	if(actionGroup_SetFixedCpu != nullptr) {
+		QList<QAction*> _setFixedCpu = actionGroup_SetFixedCpu->actions();
+		for(auto _p = _setFixedCpu.begin(); _p != _setFixedCpu.end(); ++_p) {
+			connect((*_p), SIGNAL(triggered()),
+					hRunEmu.get(), SLOT(do_set_emu_thread_to_fixed_cpu_from_action()));
+		}
 	}
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu.get(), SLOT(do_reset()));
 
