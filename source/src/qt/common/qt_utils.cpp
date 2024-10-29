@@ -24,6 +24,7 @@
 #include <QProcessEnvironment>
 #include <QCommandLineParser>
 #include <QSettings>
+#include <QActionGroup>
 
 #include "common.h"
 #include "fileio.h"

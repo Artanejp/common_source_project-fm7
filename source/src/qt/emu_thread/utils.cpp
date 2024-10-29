@@ -90,7 +90,7 @@ void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu(int cpunum)
 			CPU_SET_S(i, bytes , mask);
 		}
 	} else {
-		CPU_SET_S(i, bytes , mask);
+		CPU_SET_S(cpunum, bytes , mask);
 	}
 	pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
 	CPU_FREE(mask);

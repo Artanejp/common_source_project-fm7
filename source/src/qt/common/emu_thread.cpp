@@ -135,7 +135,7 @@ void EmuThreadClass::doWork()
 			continue;
 		}
 		if(!(queue_cpu_affinities.empty())) {
-			do_apply_cpu_affinities_for_emu_thread();
+			do_apply_cpu_affinities_to_emu_thread();
 		}
 		if(first) {
 			if(initialize_messages()) {

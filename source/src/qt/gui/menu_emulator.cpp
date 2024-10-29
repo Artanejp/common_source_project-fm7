@@ -395,7 +395,7 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 
 		for(i = 0; i < cpus; i++) {
 			tmps = QString::number(i);
-			QACtion *_tmpp = new QAction(this);
+			QAction *_tmpp = new QAction(this);
 			_tmpp->setObjectName(QString::fromUtf8("action_SetFixedCpu", -1) + tmps);
 			_tmpp->setCheckable(true);
 			_tmpp->setData(QVariant(i));
