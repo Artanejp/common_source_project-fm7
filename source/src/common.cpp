@@ -824,11 +824,21 @@ __DECL_VECTORIZED_LOOP
 		offset[i] = src->voffset[i];
 	}
 	__UNLIKELY_IF(src->palette == NULL) {
+		// Note: Workaround for "warning: loop not distributed: failed explicitly specified loop distribution [-Wpass-failed]" with CLANG. 20241030 K.O
+//__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
+			scrntype_t _rr = (i & 2) | (i & 8);
+			scrntype_t _rg = (i & 4) | (i & 8);
+			scrntype_t _rb = (i & 1) | (i & 8);
+			palette[i] = RGBA_COLOR(_rr, _rg, _rb, 0x0f);
+		}
 __DECL_VECTORIZED_LOOP
 		for(int i = 0; i < 16; i++) {
-			palette[i] = RGB_COLOR((((i & 2) + (i & 8)) << 4) | 0x0f,
-										 (((i & 4) + (i & 8)) << 4) | 0x0f,
-										 (((i & 1) + (i & 8)) << 4) | 0x0f);
+			palette[i] <<= 4;
+		}
+__DECL_VECTORIZED_LOOP
+		for(int i = 0; i < 16; i++) {
+			palette[i] |= RGBA_COLOR(0x0f, 0x0f, 0x0f, 0x0f);
 		}
 	} else {
 __DECL_VECTORIZED_LOOP
