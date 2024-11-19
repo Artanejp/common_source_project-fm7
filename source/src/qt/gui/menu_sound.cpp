@@ -57,31 +57,99 @@ void Ui_MainWindowBase::do_append_sound_outputs_list(QString _name)
 
 void Ui_MainWindowBase::do_update_sound_outputs_list(void)
 {
-	if((p_config == nullptr) || (using_flags == nullptr)) return;
+	if((p_config == nullptr) || (using_flags.get() == nullptr)) return;
+	if(actionGroup_Sound_HostDevice == nullptr) return;
+	
 	int _match = -1;
+	std::shared_ptr<USING_FLAGS> up = using_flags;
+	bool is_match = false;
+	// Check Compare list
+	QStringList _l =  up->get_osd()->get_sound_output_devices_list();
+	QList<QAction *> _lx = actionGroup_Sound_HostDevice->actions();
+	int xs = _lx.count();
+	
 	QString matched_devname = QString::fromUtf8("Default");
-
-	do_clear_sound_outputs_list();
-
-	do_append_sound_outputs_list(QString::fromUtf8("Default"));
-
-	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
-	int i = 0;
-	if(using_flags->get_osd() != nullptr) {
-		QStringList _l =  using_flags->get_osd()->get_sound_output_devices_list();
-		for(auto p = _l.begin(); p != _l.end(); ++p) {
-			do_append_sound_outputs_list((*p));
-			if((*p) == _setname) {
-				_match = i + 1;
-				matched_devname = (*p);
+	if(_lx.isEmpty()) {
+		do_append_sound_outputs_list(QString::fromUtf8("Default"));
+		// Reload Action List
+		_lx = actionGroup_Sound_HostDevice->actions();
+		xs = _lx.count();
+	}
+	
+	if(_l.isEmpty()) {
+		for(auto xp = _lx.begin(); xp != _lx.end(); ++_lx) {
+			if((*xp) != nullptr) {
+				(*xp)->setVisible(false);
+				(*xp)->setEnabled(false);
+				p->setText(QString::fromUtf8(""));
+				QVariant v = QVariant(QString::fromUtf8(""));
+				p->setData(v);
 			}
-			i++;
 		}
-		if(_match > 0) {
-			action_HostSoundDevice[_match]->setChecked(true);
-		} else {
-			action_HostSoundDevice[0]->setChecked(true);
+		do_set_host_sound_name(0, QString::fromUtf8("Default"));
+		QAction* p = _lx.at(0);
+		if(p != nullptr) {
+			p->setVisible(true);
+			p->setEnabled(false);
 		}
+	} else {
+		do_set_host_sound_name(0, QString::fromUtf8("Default"));
+		for(int ip = 1; ip < xs; ip++) {
+			if(_l.count() < ((size_t)ip - 1)) {
+				// Update name
+				do_set_host_sound_name(ip, _l.at(ip - 1));
+			}
+		}
+		if(xs < (_l.count() + 1)) {
+			for(int ip = xs; ip < (_l.count() + 1); ip++) {
+				do_append_sound_outputs_list(_l.at(ip - 1));
+			}
+		} else if(xs > (_l.count() + 1)) {
+			for(int ip = (_l.count() + 1); ip < xs; ip++) {
+				QAction* p = _lx.at(ip);
+				if(p != nullptr) {
+					p->setVisible(false);
+					p->setEnabled(false);
+					p->setText(QString::fromUtf8(""));
+					QVariant v = QVariant(QString::fromUtf8(""));
+					p->setData(v);
+				}
+			}
+		} else { // Same Size, All enable
+			for(auto xp = _lx.begin(); xp != _lx.end(); ++xp) {
+				if((*xp) != nullptr) {
+					QVariant v = (*xp)->data();
+					QString s = v.toString();
+					if(s.isEmpty()) {
+						xp->setVisible(false);
+						xp->setEnabled(false);
+					} else {
+						xp->setVisible(true);
+						xp->setEnabled(true);
+					}
+				}
+			}
+		}
+	}
+	
+	QString _setname = QString::fromLocal8Bit(p_config->sound_device_name);
+	for(auto xp = _lx.begin(); xp != _lx.end(); ++xp) {
+		if((*xp) != nullptr) {
+			QVariant v = (*xp)->data();
+			QString s = v.toString();
+			if(!((*xp)->text().isEmpty())) {
+				_match++;
+				if(_setname == s) {
+					matched_devname = _setname;
+					break;
+				}
+			}
+		}
+	}
+	if((_match > 0) && (action_HostSoundDevice.count() > _match)) {
+		action_HostSoundDevice[_match]->setChecked(true);
+	} else if(!(action_HostSoundDevice.isEmpty())) {
+		action_HostSoundDevice[0]->setChecked(true);
 	}
 	emit sig_osd_sound_output_device(matched_devname);
 }
