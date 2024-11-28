@@ -58,32 +58,32 @@ void Ui_MainWindowBase::do_append_sound_outputs_list(QString _name)
 void Ui_MainWindowBase::do_update_sound_outputs_list(void)
 {
 	if((p_config == nullptr) || (using_flags.get() == nullptr)) return;
-	if(actionGroup_Sound_HostDevice == nullptr) return;
+	if(actionGroup_Sound_HostDevices == nullptr) return;
 	
 	int _match = -1;
 	std::shared_ptr<USING_FLAGS> up = using_flags;
 	bool is_match = false;
 	// Check Compare list
 	QStringList _l =  up->get_osd()->get_sound_output_devices_list();
-	QList<QAction *> _lx = actionGroup_Sound_HostDevice->actions();
+	QList<QAction *> _lx = actionGroup_Sound_HostDevices->actions();
 	int xs = _lx.count();
 	
 	QString matched_devname = QString::fromUtf8("Default");
 	if(_lx.isEmpty()) {
 		do_append_sound_outputs_list(QString::fromUtf8("Default"));
 		// Reload Action List
-		_lx = actionGroup_Sound_HostDevice->actions();
+		_lx = actionGroup_Sound_HostDevices->actions();
 		xs = _lx.count();
 	}
 	
 	if(_l.isEmpty()) {
-		for(auto xp = _lx.begin(); xp != _lx.end(); ++_lx) {
+		for(auto xp = _lx.begin(); xp != _lx.end(); ++xp) {
 			if((*xp) != nullptr) {
 				(*xp)->setVisible(false);
 				(*xp)->setEnabled(false);
-				p->setText(QString::fromUtf8(""));
+				(*xp)->setText(QString::fromUtf8(""));
 				QVariant v = QVariant(QString::fromUtf8(""));
-				p->setData(v);
+				(*xp)->setData(v);
 			}
 		}
 		do_set_host_sound_name(0, QString::fromUtf8("Default"));
@@ -121,11 +121,11 @@ void Ui_MainWindowBase::do_update_sound_outputs_list(void)
 					QVariant v = (*xp)->data();
 					QString s = v.toString();
 					if(s.isEmpty()) {
-						xp->setVisible(false);
-						xp->setEnabled(false);
+						(*xp)->setVisible(false);
+						(*xp)->setEnabled(false);
 					} else {
-						xp->setVisible(true);
-						xp->setEnabled(true);
+						(*xp)->setVisible(true);
+						(*xp)->setEnabled(true);
 					}
 				}
 			}
