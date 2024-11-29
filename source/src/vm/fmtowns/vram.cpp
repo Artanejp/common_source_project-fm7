@@ -364,51 +364,6 @@ uint32_t TOWNS_VRAM::read_io16(uint32_t address)
 }
 
 
-bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, uint8_t *buf, int words)
-{
-//		uint32_t offset2 = calc_std_address_offset(offset);
-	const uint32_t offset2 = offset & TOWNS_VRAM_ADDR_MASK;
-//		if(words > 16) return false;
-	__UNLIKELY_IF(words <= 0) return false;
-	uint8_t* p = &(vram[offset2]);
-
-	lock();
-	__LIKELY_IF((offset2 + (words << 1)) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
-		memcpy(p, buf, words << 1);
-	} else {
-		int nb = (TOWNS_VRAM_ADDR_MASK + 1) - offset2;
-		memcpy(p, buf, nb);
-		int nnb = (words << 1) - nb;
-		__LIKELY_IF(nnb > 0) {
-			memcpy(vram, &(buf[nb]), nnb);
-		}
-	}
-	unlock();
-	return true;
-}
-
-bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, uint8_t *buf, int words)
-{
-	//uint32_t offset2 = calc_std_address_offset(offset);
-	const uint32_t offset2 = offset & TOWNS_VRAM_ADDR_MASK;
-//		if(words > 16) return false;
-	__UNLIKELY_IF(words <= 0) return false;
-
-	lock();
-	uint8_t* p = &(vram[offset2]);
-	__LIKELY_IF((offset2 + (words << 1)) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
-		memcpy(buf, p, words << 1);
-	} else {
-		uint32_t nb = (TOWNS_VRAM_ADDR_MASK + 1) - offset2;
-		memcpy(buf, p, nb);
-		int nnb = (words << 1) - nb;
-		__LIKELY_IF(nnb > 0) {
-			memcpy(&(buf[nb]), vram, nnb);
-		}
-	}
-	unlock();
-	return true;
-}
 
 #define STATE_VERSION	3
 

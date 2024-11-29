@@ -239,14 +239,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	if((ry >= 256) && ((ry + hh) < 512)) return;
 	__DECL_ALIGNED(32) uint16_t tbuf[16][16] = {0};
 	__DECL_ALIGNED(32) uint16_t sbuf[16][16] = {0};
-	__DECL_ALIGNED(16) union {
-		pair16_t pw[16];
-		uint8_t b[32];
-	} lbuf;
-	__DECL_ALIGNED(16) union {
-		pair16_t pw[16];
-		uint8_t  b[32];
-	} mbuf;
 	__DECL_ALIGNED(16) uint16_t pixel_h[8];
 	__DECL_ALIGNED(16) uint16_t pixel_l[8];
 	__DECL_ALIGNED(16) uint16_t color_table[16] = {0};
@@ -414,6 +406,12 @@ __DECL_VECTORIZED_LOOP
 	__UNLIKELY_IF(d_vram == NULL) return; // Skip if VRAM not exists.
 	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
 	uint32_t vpaddr = ((rx + (ry * 256)) << 1) & 0x1ffff;
+	
+	csp_vector8<uint16_t> source[2];
+	csp_vector8<uint16_t> lbuf[2];
+	csp_vector8<uint16_t> mbuf[2];
+	csp_vector8<uint16_t> mbuf2[2];
+	csp_vector8<uint16_t> mbuf3[2];
 	if(!(is_halfx) && !(is_halfy)) { // not halfed
 		int __xstart = rx;
 		int __xend = 16;
@@ -427,43 +425,48 @@ __DECL_VECTORIZED_LOOP
 		} else if(rx > (256 - __xend)) {
 			__xend = 256 - rx;
 		}
-		if(__xend <= 0) return;
+		__UNLIKELY_IF(__xend <= 0) return;
+		__UNLIKELY_IF(__xend > 16) {
+			__xend = 16;
+		}
 		for(int yy = 0; yy < 16;  yy++) {
 			int yoff = (yy + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
-
-				__DECL_ALIGNED(32) uint8_t source[32] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
-__DECL_VECTORIZED_LOOP
+				for(int rx = 0; rx < 2; rx++) {
+					lbuf[rx].clear();
+				}
 				for(int xx = 0, xx2 = __xstart2; xx < __xend; xx++, xx2++) {
-					lbuf.pw[xx].w = sbuf[yy][xx2];
+					lbuf[xx >> 3][xx & 7] = sbuf[yy][xx2];
 				}
-				__DECL_ALIGNED(16) uint16_t mbuf2[16] = {0};
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					mbuf2[xx] = (lbuf.pw[xx].w  >> 15);  // All values are either 1 or 0.
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf2[rx] = lbuf[rx];
 				}
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					mbuf2[xx] = mbuf2[xx] * 0xffff;
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf2[rx] >>= 15;
 				}
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					mbuf.pw[xx].w = mbuf2[xx];
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf2[rx] *= 0xffff;
 				}
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-//					lbuf.pw[xx].w &= 0x7fff;
-					lbuf.pw[xx].w &= (~(mbuf2[xx]) & 0x7fff); // OK?
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf[rx] = mbuf2[rx];
 				}
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 32; xx++) {
-					source[xx] &= mbuf.b[xx];
+				
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf3[rx] = ~mbuf2[rx];
 				}
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 32; xx++) {
-					source[xx] |= lbuf.b[xx];
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf3[rx] &= 0x7fff;
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					lbuf[rx] &= mbuf3[rx];
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					source[rx] &= mbuf[rx];
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					source[xx] |= lbuf[rx];
 				}
 				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
@@ -482,25 +485,51 @@ __DECL_VECTORIZED_LOOP
 		} else if(rx > (256 - __xend)) {
 			__xend = 256 - rx;
 		}
-		if(__xend <= 0) return;
-
+		__UNLIKELY_IF(__xend <= 0) return;
+		__UNLIKELY_IF(__xend > 8) {
+			__xend = 8;
+		}
 		for(int yy = 0; yy < 16;  yy++) {
 			int yoff = (yy + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
-				__DECL_ALIGNED(16) uint8_t source[16] = {0};
 				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					lbuf.pw[xx].w = 0x0;
-					mbuf.pw[xx].w = 0;
+				for(int rx = 0; rx < 2; rx++) {
+					lbuf[rx].clear();
 				}
-				__DECL_ALIGNED(16) uint16_t sbuf2[16] = {0};
-				__DECL_ALIGNED(16) uint16_t sbuf3[16];
-__DECL_VECTORIZED_LOOP
-				for(int xx = 0, xx2 = __xstart2; xx < __xend; xx++, xx2++) {
-					sbuf2[xx] = sbuf[yy][xx2];
+				for(int xx = 0, xx2 = __xstart2, xx3 = 0; xx < __xend; xx += 2, xx2 += 2, xx3++) {
+					lbuf[0][xx3] = sbuf[yy][xx2];
 				}
+				for(int xx = 0, xx2 = __xstart2 + 1, xx3 = 0; xx < __xend; xx += 2, xx2 += 2, xx3++) {
+					lbuf[1][xx3] = sbuf[yy][xx2];
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf3[rx] = lbuf[rx];
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf3[rx] &= 0x8000;
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf3[rx] >>= 15;
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf3[rx] *= 0xffff;
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf4[rx] = mbuf3[rx];
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					~mbuf4[rx];
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf2[rx] &= 0x7fff;
+				}
+				for(int rx = 0; rx < 2; rx++) {
+					mbuf2[rx] &= mbuf4[rx];
+				}
+				mbuf3[0] |= mbuf3[1];
+
+					
 __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 16; xx++) {
 					sbuf3[xx] = sbuf2[xx] & 0x8000;
@@ -556,14 +585,14 @@ __DECL_VECTORIZED_LOOP
 //					lbuf.pw[xx].w &= ~(mbuf.pw[xx].w);
 				}
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					source[xx] &= mbuf.b[xx];
+				for(int xx = 0; xx < 8; xx++) {
+					source[xx] &= mbuf.pw[xx].w;
 				}
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					source[xx] |= lbuf.b[xx];
+				for(int xx = 0; xx < 8; xx++) {
+					source[xx] |= lbuf.pw[xx].w;
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
+				d_vram->set_buffer_to_vram(vpaddr + noffset,  (uint8_t*)(&(source[0])), __xend);
 			}
 		}
 	} else if(is_halfy) { // halfy only
@@ -579,15 +608,18 @@ __DECL_VECTORIZED_LOOP
 		} else if(rx > (256 - __xend)) {
 			__xend = 256 - rx;
 		}
-		if(__xend <= 0) return;
+		__UNLIKELY_IF(__xend <= 0) return;
+		__UNLIKELY_IF(__xend > 16) {
+			__xend = 16;
+		}
 
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 			int yoff = ((yy >> 1) + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
-				__DECL_ALIGNED(32) uint8_t source[32] = {0};
+				__DECL_ALIGNED(32) uint16_t source[16] = {0};
 
-				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
+				d_vram->get_vram_to_buffer(vpaddr + noffset, (uint8_t*)(&(source[0])), __xend);
 __DECL_VECTORIZED_LOOP
 				for(int xx = 0; xx < 16; xx++) {
 					lbuf.pw[xx].w = 0x0;
@@ -642,14 +674,14 @@ __DECL_VECTORIZED_LOOP
 					lbuf.pw[xx].w &= (~mbuf2[xx] & 0x7fff);
 				}
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 32; xx++) {
-					source[xx] &= mbuf.b[xx];
+				for(int xx = 0; xx < 16; xx++) {
+					source[xx] &= mbuf.pw[xx].w;
 				}
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 32; xx++) {
-					source[xx] |= lbuf.b[xx];
+				for(int xx = 0; xx < 16; xx++) {
+					source[xx] |= lbuf.pw[xx].w;
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
+				d_vram->set_buffer_to_vram(vpaddr + noffset, (uint8_t*)(&(source[0])), __xend);
 			}
 		}
 	} else { //halfx &&halfy
@@ -665,15 +697,19 @@ __DECL_VECTORIZED_LOOP
 		} else if(rx > (256 - __xend)) {
 			__xend = 256 - rx;
 		}
-		if(__xend <= 0) return;
+		__UNLIKELY_IF(__xend <= 0) return;
+		__UNLIKELY_IF(__xend > 8) {
+			__xend = 8;
+		}
 
 		for(int yy = (__ystart << 1); yy < (__yend << 1);  yy += 2) {
 			int yoff = ((yy >> 1) + ry) & 0x1ff;
 			if(yoff < 256) {
 				vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
-				__DECL_ALIGNED(16) uint8_t source[16] = {0};
+				csp_vector8<uint16_t> source;
 
-				d_vram->get_vram_to_buffer(vpaddr + noffset, source, __xend);
+				d_vram->get_vram_to_buffer(vpaddr + noffset,  source, __xend);
+				csp_
 				__DECL_ALIGNED(32) uint16_t sbuf2[32] = {0};
 				__DECL_ALIGNED(32) uint16_t sbuf3[32];
 				__DECL_ALIGNED(16) uint16_t lbuf4[16];
@@ -740,14 +776,14 @@ __DECL_VECTORIZED_LOOP
 					lbuf.pw[xx].w &= (~mbuf2[xx] & 0x7fff);
 				}
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					source[xx] &= mbuf.b[xx];
+				for(int xx = 0; xx < 8; xx++) {
+					source[xx] &= mbuf.pw[xx].w;
 				}
 __DECL_VECTORIZED_LOOP
-				for(int xx = 0; xx < 16; xx++) {
-					source[xx] |= lbuf.b[xx];
+				for(int xx = 0; xx < 8; xx++) {
+					source[xx] |= lbuf.pw[xx].w;
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
+				d_vram->set_buffer_to_vram(vpaddr + noffset,  (uint8_t*)(&(source[0])), __xend);
 			}
 		}
 	}
