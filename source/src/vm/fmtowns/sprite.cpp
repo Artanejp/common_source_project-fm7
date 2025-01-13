@@ -458,7 +458,7 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi[rx] &= mask_transparent;
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent):
+					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent);
 				}
 				for(int rx = 0; rx < 2; rx++) {
 					maskbuf_posi[rx].set_cond(is_transparent[rx], 0x0000, 0xffff);
@@ -480,7 +480,7 @@ __DECL_VECTORIZED_LOOP
 					source[rx] &= maskbuf_nega[rx];
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					source[xx] |= color_values[rx];
+					source[rx] |= color_values[rx];
 				}
 				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
@@ -522,11 +522,9 @@ __DECL_VECTORIZED_LOOP
 						lbuf[1][xx2] = sbuf[yy][xx + 1];
 					}
 				} else {
-					__DECL_VECTORIZED_LOOP	
 					for(int xx = __xstart2, xx2 = 0; xx < __xend; xx += 2, xx2++) {
 						lbuf[0][xx2] = sbuf[yy][xx];
 					}
-					__DECL_VECTORIZED_LOOP	
 					for(int xx = (__xstart2 + 1), xx2 = 1; xx < __xend; xx += 2, xx2++) {
 						lbuf[1][xx2] = sbuf[yy][xx];
 					}
@@ -539,7 +537,7 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi[rx] &= mask_transparent;
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent):
+					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent);
 				}
 				for(int rx = 0; rx < 2; rx++) {
 					maskbuf_posi[rx].set_cond(is_transparent[rx], 0x0000, 0xffff);
@@ -638,7 +636,7 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi[rx] &= mask_transparent;
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent):
+					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent);
 				}
 				for(int rx = 0; rx < 2; rx++) {
 					maskbuf_posi[rx].set_cond(is_transparent[rx], 0x0000, 0xffff);
@@ -661,7 +659,7 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi2[rx] &= mask_transparent;
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					maskbuf_posi2[rx].equals(is_transparent2[rx], mask_transparent):
+					maskbuf_posi2[rx].equals(is_transparent2[rx], mask_transparent);
 				}
 				for(int rx = 0; rx < 2; rx++) {
 					maskbuf_posi2[rx].set_cond(is_transparent2[rx], 0x0000, 0xffff);
@@ -684,8 +682,8 @@ __DECL_VECTORIZED_LOOP
 				}
 				__DECL_VECTORIZED_LOOP
 				for(int __xx = 0; __xx < 8; __xx++) {
-					zoomed_values[0][__xx] = (color_values[0][__xx] != 0) ? color_values[0][_xx] : color_values2[0][_xx];
-					zoomed_values[1][__xx] = (color_values[1][__xx] != 0) ? color_values[1][_xx] : color_values2[1][_xx];
+					zoomed_values[0][__xx] = (color_values[0][__xx] != 0) ? color_values[0][__xx] : color_values2[0][__xx];
+					zoomed_values[1][__xx] = (color_values[1][__xx] != 0) ? color_values[1][__xx] : color_values2[1][__xx];
 				}			
 				for(int rx = 0; rx < 2 ; rx++) {
 					zoomed_values[rx] &= zoomed_mask_posi[rx];
@@ -696,7 +694,7 @@ __DECL_VECTORIZED_LOOP
 				for(int rx = 0; rx < 2 ; rx++) {
 					source[rx] |= zoomed_values[rx];
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source[0], __xend);
+				d_vram->set_buffer_to_vram(vpaddr + noffset, source, __xend);
 			}
 		}
 	} else { //halfx &&halfy
@@ -705,9 +703,9 @@ __DECL_VECTORIZED_LOOP
 		int __ystart = 0;
 		int __yend = 8;
 		int __xstart2 = 0;
-		csp_vector8<uint16_t> zoomed_mask_posi;
-		csp_vector8<uint16_t> zoomed_mask_nega;
-		csp_vector8<uint16_t> zoomed_value;
+		csp_vector8<uint16_t> zoomed_mask_posi[2];
+		csp_vector8<uint16_t> zoomed_mask_nega[2];
+		csp_vector8<uint16_t> zoomed_values[2];
 		// For second line.
 		csp_vector8<uint16_t> lbuf2[2];				// Holizonal line buffer
 		csp_vector8<uint16_t> color_values2[2];		// Pixel color values
@@ -764,7 +762,7 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi[rx] &= mask_transparent;
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent):
+					maskbuf_posi[rx].equals(is_transparent[rx], mask_transparent);
 				}
 				for(int rx = 0; rx < 2; rx++) {
 					maskbuf_posi[rx].set_cond(is_transparent[rx], 0x0000, 0xffff);
@@ -787,7 +785,7 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi2[rx] &= mask_transparent;
 				}
 				for(int rx = 0; rx < 2; rx++) {
-					maskbuf_posi2[rx].equals(is_transparent2[rx], mask_transparent):
+					maskbuf_posi2[rx].equals(is_transparent2[rx], mask_transparent);
 				}
 				for(int rx = 0; rx < 2; rx++) {
 					maskbuf_posi2[rx].set_cond(is_transparent2[rx], 0x0000, 0xffff);
@@ -810,8 +808,8 @@ __DECL_VECTORIZED_LOOP
 				
 				__DECL_VECTORIZED_LOOP
 				for(int __xx = 0; __xx < 8; __xx++) {
-					zoomed_values[0][__xx] = (color_values[0][__xx] != 0) ? color_values[0][_xx] : color_values2[0][_xx];
-					zoomed_values[1][__xx] = (color_values[1][__xx] != 0) ? color_values[1][_xx] : color_values2[1][_xx];
+					zoomed_values[0][__xx] = (color_values[0][__xx] != 0) ? color_values[0][__xx] : color_values2[0][__xx];
+					zoomed_values[1][__xx] = (color_values[1][__xx] != 0) ? color_values[1][__xx] : color_values2[1][__xx];
 				}			
 				for(int rx = 0; rx < 2 ; rx++) {
 					zoomed_values[rx] &= zoomed_mask_posi[rx];
@@ -821,21 +819,24 @@ __DECL_VECTORIZED_LOOP
 				csp_vector8<uint16_t> x_zoomed_mask_nega;
 				csp_vector8<uint16_t> x_zoomed_values;
 				for(int xx = 0; xx < 16; xx += 2) {
-					x_zoomed_mask_posi = zoomed_values[xx >> 3][xx & 7];
-					x_zoomed_mask_posi |= zoomed_values[xx >> 3][(xx + 1) & 7];
+					x_zoomed_mask_posi[xx >> 1] = zoomed_mask_posi[xx >> 3][xx & 7];
+					x_zoomed_mask_posi[xx >> 1] |= zoomed_mask_posi[xx >> 3][(xx + 1) & 7];
 				}
 				x_zoomed_mask_nega = ~x_zoomed_mask_posi;
 				x_zoomed_values.clear();
 				// ToDo: Optimize
-				for(int xx = 0; xx < 8; xx++) {
-					__LIKELY_IF(color_values[xx >> 2][xx << 1] != 0) {
-						x_zoomed_values[xx] = color_values[xx >> 2][xx << 1];
-					} else if(color_values[xx >> 2][(xx << 1) + 1] != 0) {
-						x_zoomed_values[xx] = color_values[xx >> 2][(xx << 1) + 1];
-					} else if(color_values2[xx >> 2][xx << 1] != 0) {
-						x_zoomed_values[xx] = color_values2[xx >> 2][xx << 1];
-					} else if(color_values2[xx >> 2][(xx << 1) + 1] != 0) {
-						x_zoomed_values[xx] = color_values2[xx >> 2][(xx << 1) + 1];
+				for(int xx = 0, xx2 = 0; xx2 < 8; xx++, xx2 += 2) {
+					__LIKELY_IF(zoomed_values[0][xx2] != 0) {
+						x_zoomed_values[xx] = zoomed_values[0][xx2];
+					} else if(zoomed_values[0][xx2 + 1] != 0) {
+						x_zoomed_values[xx] = zoomed_values[0][xx2 + 1];
+					}
+				}
+				for(int xx = 4, xx2 = 0; xx2 < 8; xx++, xx2 += 2) {
+					__LIKELY_IF(zoomed_values[1][xx2] != 0) {
+						x_zoomed_values[xx] = zoomed_values[1][xx2];
+					} else if(zoomed_values[1][xx2 + 1] != 0) {
+						x_zoomed_values[xx] = zoomed_values[1][xx2 + 1];
 					}
 				}
 				x_zoomed_values &= x_zoomed_mask_posi;

@@ -13,6 +13,7 @@
 
 #include "device.h"
 #include "../../common.h"
+#include "../../types/simd.h"
 #include "towns_common.h"
 
 #include <mutex>
@@ -257,8 +258,8 @@ public:
 	}
 
 	
-	virtual inline bool __FASTCALL set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t>buf, const int words);
-	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t>buf, const int words);
+	virtual inline bool __FASTCALL set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t>buf[], const int words);
+	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t>buf[], const int words);
 	virtual inline uint32_t __FASTCALL get_vram_size()
 	{
 		return TOWNS_VRAM_ADDR_MASK + 1; // ToDo
@@ -340,7 +341,7 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 	} else {
 		int bwords = words;
 		int nb = (TOWNS_VRAM_ADDR_MASK + 1) - offset2;
-		int nnb = words << 1;
+		//int nnb = words << 1;
 		uint16_t* p2 = (uint16_t*)p;
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf[16] = {0};
 		__LIKELY_IF(nb > 0) {
@@ -427,7 +428,7 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 	} else {
 		int bwords = words;
 		int nb = (TOWNS_VRAM_ADDR_MASK + 1) - offset2;
-		int nnb = words << 1;
+		//int nnb = words << 1;
 		uint16_t* p2 = (uint16_t*)p;
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf[16] = {0};
 		__LIKELY_IF(nb > 0) {
