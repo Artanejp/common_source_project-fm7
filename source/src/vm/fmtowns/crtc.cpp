@@ -1639,8 +1639,8 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 						mask_front1.load_aligned(&(abuffer0[xx + 8]));
 						mask_back0 = mask_front0;
 						mask_back1 = mask_front1;
-						mask_back0.negate();
-						mask_back1.negate();
+						mask_back0.bitwise_not();
+						mask_back1.bitwise_not();
 						pix00 &= mask_front0;
 						pix01 &= mask_front1;
 						pix10 &= mask_back0;
@@ -1674,8 +1674,8 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 						mask_front1.load_aligned(&(alpha_cache[xx + 8]));
 						mask_back0 = mask_front0;
 						mask_back1 = mask_front1;
-						mask_back0.negate();
-						mask_back1.negate();
+						mask_back0.bitwise_not();
+						mask_back1.bitwise_not();
 						pix00 &= mask_front0;
 						pix01 &= mask_front1;
 						pix10 &= mask_back0;
