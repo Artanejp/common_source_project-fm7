@@ -862,7 +862,7 @@ public:
 		shuffle(_p);
 	}
 
-	constexpr T operator[](const size_t& __n)
+	inline T& operator[](size_t __n)
 	{
 		return m_data[__n];
 	}
