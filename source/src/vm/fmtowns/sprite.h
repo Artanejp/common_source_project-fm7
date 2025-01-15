@@ -29,6 +29,7 @@ class DEBUGGER;
 namespace FMTOWNS {
 class TOWNS_SPRITE : public DEVICE
 {
+
 protected:
 	TOWNS_VRAM *d_vram;
 	FONT_ROMS  *d_font;
@@ -83,6 +84,8 @@ protected:
 		}
 		return 57.0;
 	}
+private:
+	inline void shift_vector_data(size_t _xstart, size_t _xend, size_t _xshift, csp_vector8<uint16_t> _lbuf[]);
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -177,4 +180,72 @@ public:
 		d_debugger = p;
 	}
 };
+
+inline void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshift, csp_vector8<uint16_t> _lbuf[])
+{
+	__UNLIKELY_IF((_xshift < 0) || (_xshift > 1)) {
+		return; // NOP
+	}
+	size_t __lstart = _xstart << _xshift;
+	size_t __lend = _xend << _xshift;
+	size_t __lwidth = __lend - __lstart;
+	csp_vector8<uint16_t> mask_transparent(0x8000);
+	__UNLIKELY_IF(__lwidth > 16) {
+		__lwidth = 16;
+	}
+	__UNLIKELY_IF(__lstart >= 16) {
+		return; // NOP
+	}
+	__UNLIKELY_IF(__lend >= 16) {
+		__lend = 16;
+	}
+	__LIKELY_IF((__lstart >= 0) && (__lend >= 0) && (__lwidth > 0)) {
+		__LIKELY_IF(__lwidth > 0) {
+			if(__lstart > 0) {
+				// Shift data.
+				if(__lstart >= 8) {
+					_lbuf[0] = mask_transparent;
+					for(size_t xs = (__lstart - 8), xt = 0 ; xs < (__lend - 8) ; xs++, xt++) {
+						_lbuf[0].set(xt, _lbuf[1].at(xs));
+					}
+					_lbuf[1] = mask_transparent;
+				} else {
+					// __lstart < 8
+					// Set within _lbuf[0]
+					size_t __lend2 = (__lend >= 8) ? 8 : __lend;  
+					for(size_t xs = __lstart, xt = 0 ; xs < __lend2 ; xs++, xt++) {
+						_lbuf[0].set(xt, _lbuf[0].at(xs));
+					}
+					// shift _lbuf[1]
+					if(__lend > 8) {
+						size_t __lend3 = __lend - 8;
+						for(size_t xs = 0, xt = (8 - __lstart); xs < __lend3; xs++, xt++) {
+							_lbuf[0].set(xt, _lbuf[1].at(xs));
+						}
+						for(size_t xt = __lend3; xt < 8; xt++) {
+							_lbuf[1].set(xt, 0x8000);
+						}
+					} else {
+						for(size_t xt = __lend2; xt < 8; xt++) {
+							_lbuf[0].set(xt, 0x8000);
+						}
+						_lbuf[1] = mask_transparent;
+					}
+				}
+			} else if(__lend < 16) { // __lstart == 0 and less width.
+				if(__lend < 8) {
+					for(size_t xt = __lend; xt < 8; xt++) {
+						_lbuf[0].set(xt, 0x8000);
+					}
+					_lbuf[1] = mask_transparent;
+				} else {
+					for(size_t xt = (__lend - 8) ; xt < 8; xt++) {
+						_lbuf[1].set(xt, 0x8000);
+					}
+				}
+			}
+		}
+	}
+}
+
 }
