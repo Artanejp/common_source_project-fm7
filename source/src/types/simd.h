@@ -1150,7 +1150,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool>& operator==(csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	constexpr csp_vector8<bool> operator==(csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.equals(__ret, __b);
@@ -1158,7 +1158,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool>& operator==(csp_vector8<T>& __a, const T __b)
+	constexpr csp_vector8<bool> operator==(csp_vector8<T>& __a, const T __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.equals(__ret, __b);
@@ -1166,7 +1166,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool>& operator!=(csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	constexpr csp_vector8<bool> operator!=(csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.not_equals(__ret, __b);
@@ -1174,7 +1174,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool>& operator!=(csp_vector8<bool>& __a, const T __b)
+	constexpr csp_vector8<bool> operator!=(csp_vector8<bool>& __a, const T __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.not_equals(__ret, __b);
