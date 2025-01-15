@@ -322,7 +322,7 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 	lock();
 	__LIKELY_IF((offset2 + (words << 1)) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
 		// words are aligned to 8
-		int nwords = words >> 4; // 8bit -> 16bit
+		int nwords = words >> 3; // 8bit -> 16bit
 		uint16_t* p2 = (uint16_t*)p;
 		for(int xp = 0; xp < nwords; xp++) {
 			buf[xp].store(p2);
@@ -330,11 +330,11 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 			wp++;
 		}
 		
-		__UNLIKELY_IF((words & 0x0f) != 0) {
+		__UNLIKELY_IF((words & 0x07) != 0) {
 			__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf[16];
 			buf[wp].store((uint16_t *)tmpbuf);
 			uint8_t* p3 = (uint8_t*)p2;
-			for(int xx = 0; xx < (words & 0x0f); xx++) {
+			for(int xx = 0; xx < (words & 0x07); xx++) {
 				p3[xx] = tmpbuf[xx];
 			}
 		}
@@ -345,16 +345,16 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 		uint16_t* p2 = (uint16_t*)p;
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf[16] = {0};
 		__LIKELY_IF(nb > 0) {
-			int nwords = nb >> 4; // 8bit -> 16bit
+			int nwords = nb >> 3; // 8bit -> 16bit
 			for(int xp = 0; xp < nwords; xp++) {
 				buf[xp].store(p2);
 				p2 += 8;
 				wp++;
 			}
-			__UNLIKELY_IF((nb & 0x0f) != 0) {
+			__UNLIKELY_IF((nb & 0x07) != 0) {
 				buf[wp].store((uint16_t *)tmpbuf);
 				uint8_t* p3 = (uint8_t*)p2;
-				for(int xx = 0; xx < (nb & 0x0f); xx++) {
+				for(int xx = 0; xx < (nb & 0x07); xx++) {
 					p3[xx] = tmpbuf[xx];
 				}
 			}
@@ -377,16 +377,16 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 				wp++;
 			}
 			__LIKELY_IF((nnb > 0) && ((wp << 3) < words)) {
-				int nwords = nnb >> 4; // 8bit -> 16bit
+				int nwords = nnb >> 3; // 8bit -> 16bit
 				for(int xp = 0; xp < nwords; xp++) {
 					buf[wp].store(p2);
 					p2 += 8;
 					wp++;
 				}
-				__UNLIKELY_IF(((nnb & 0x0f) != 0)  && ((wp << 3) < words)) {
+				__UNLIKELY_IF(((nnb & 0x07) != 0)  && ((wp << 3) < words)) {
 					buf[wp].store((uint16_t *)tmpbuf);
 					uint8_t* p3 = (uint8_t*)p2;
-					for(int xx = 0; xx < (nnb & 0x0f); xx++) {
+					for(int xx = 0; xx < (nnb & 0x07); xx++) {
 						p3[xx] = tmpbuf[xx];
 					}
 				}
@@ -409,7 +409,7 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 	lock();
 	__LIKELY_IF((offset2 + (words << 1)) <= (TOWNS_VRAM_ADDR_MASK + 1)) {
 		// words are aligned to 8
-		int nwords = words >> 4; // 8bit -> 16bit
+		int nwords = words >> 3; // 8bit -> 16bit
 		uint16_t* p2 = (uint16_t*)p;
 		for(int xp = 0; xp < nwords; xp++) {
 			buf[xp].load(p2);
@@ -417,10 +417,10 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 			wp++;
 		}
 		
-		__UNLIKELY_IF((words & 0x0f) != 0) {
+		__UNLIKELY_IF((words & 0x07) != 0) {
 			__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf[16];
 			uint8_t* p3 = (uint8_t*)p2;
-			for(int xx = 0; xx < (words & 0x0f); xx++) {
+			for(int xx = 0; xx < (words & 0x07); xx++) {
 				tmpbuf[xx] = p3[xx];
 			}
 			buf[wp].load((uint16_t *)tmpbuf);
@@ -432,15 +432,15 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 		uint16_t* p2 = (uint16_t*)p;
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf[16] = {0};
 		__LIKELY_IF(nb > 0) {
-			int nwords = nb >> 4; // 8bit -> 16bit
+			int nwords = nb >> 3; // 8bit -> 16bit
 			for(int xp = 0; xp < nwords; xp++) {
 				buf[xp].load(p2);
 				p2 += 8;
 				wp++;
 			}
-			__UNLIKELY_IF((nb & 0x0f) != 0) {
+			__UNLIKELY_IF((nb & 0x07) != 0) {
 				uint8_t* p3 = (uint8_t*)p2;
-				for(int xx = 0; xx < (nb & 0x0f); xx++) {
+				for(int xx = 0; xx < (nb & 0x07); xx++) {
 					tmpbuf[xx] = p3[xx];
 				}
 				buf[wp].load((uint16_t *)tmpbuf);
@@ -451,11 +451,11 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 		int nnb = words - nb;
 		__LIKELY_IF(nnb > 0) {
 			uint16_t* p2 = (uint16_t*)vram;
-			__UNLIKELY_IF((nb & 0x0f) != 0) {
+			__UNLIKELY_IF((nb & 0x07) != 0) {
 				uint8_t* p3 = (uint8_t*)p2;
 				int ofb = 0;
-				int limb = (nnb > 16) ? 16 : nnb;
-				for(int xx = (nb & 0x0f), x1 = 0; xx < limb; xx++, x1++) {
+				int limb = (nnb > 8) ? 8 : nnb;
+				for(int xx = (nb & 0x07), x1 = 0; xx < limb; xx++, x1++) {
 					tmpbuf[xx] = p3[x1];
 					ofb++;
 					nnb--;
@@ -465,16 +465,16 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 				wp++;
 			}
 			__LIKELY_IF((nnb > 0) && ((wp << 3) < words)) {
-				int nwords = nnb >> 4; // 8bit -> 16bit
+				int nwords = nnb >> 3; // 8bit -> 16bit
 				for(int xp = 0; xp < nwords; xp++) {
 					buf[wp].load(p2);
 					p2 += 8;
 					wp++;
 				}
-				__UNLIKELY_IF(((nnb & 0x0f) != 0)  && ((wp << 3) < words)) {
+				__UNLIKELY_IF(((nnb & 0x07) != 0)  && ((wp << 3) < words)) {
 					uint8_t* p3 = (uint8_t*)p2;
 					__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint8_t tmpbuf2[16] = {0};
-					for(int xx = 0; xx < (nnb & 0x0f); xx++) {
+					for(int xx = 0; xx < (nnb & 0x07); xx++) {
 						tmpbuf2[xx] = p3[xx];
 					}
 					buf[wp].load((uint16_t *)tmpbuf2);
