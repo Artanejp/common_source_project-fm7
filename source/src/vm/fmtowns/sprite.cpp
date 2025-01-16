@@ -246,14 +246,14 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		if((rx + __max_width) >= 512) {
 			__xstart = 0;
 			__xstart2 = (rx + __max_width) - 512;
-			__xend = __max_width - __xstart2;
+			//__xend = __max_width - __xstart2;
 		} else {
 			return;
 		}
 	} else { // rx < 256
 		if((rx + __max_width) >= 256) {
 			__xstart2 = 0;
-			__xend = (rx + __max_width) - 256;
+			__xend = 256 - rx;
 		}
 	}
 	__UNLIKELY_IF((__xstart2 >= __max_width) || (__xend > __max_width) ||
