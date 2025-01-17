@@ -245,7 +245,7 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	__UNLIKELY_IF(rx >= 256) { // Hidden
 		if((rx + __max_width) >= 512) {
 			__xstart = 0;
-			__xstart2 = (rx + __max_width) - 512;
+			__xstart2 = 512 - rx;
 			//__xend = __max_width - __xstart2;
 		} else {
 			return;
