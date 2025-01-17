@@ -201,7 +201,63 @@ uint32_t TOWNS_SPRITE::get_font_address(uint32_t c, uint8_t &attr)
 	}
 	return romaddr;
 }
+
+#if !defined(__MINIMUM_ALIGN_LENGTH)
+#define __M__MINIMUM_ALIGN_LENGTH 16 /* OK? */
+#else
+#define __M__MINIMUM_ALIGN_LENGTH __MINIMUM_ALIGN_LENGTH
+#endif
+
+void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshift, csp_vector8<uint16_t> _lbuf[])
+{
+	__UNLIKELY_IF((_xshift < 0) || (_xshift > 1)) {
+		return; // NOP
+	}
+	size_t __lstart = _xstart << _xshift;
+	size_t __lend = _xend << _xshift;
+	size_t __lwidth;
+	csp_vector8<uint16_t> mask_transparent(0x8000);
+	__UNLIKELY_IF((__lstart >= 16) || (__lstart < 0) || (__lend < 0)) {
+		return; // NOP
+	}
+	__UNLIKELY_IF(__lend >= 16) {
+		__lend = 16;
+	}
+	__lwidth = __lend - __lstart;
+	__UNLIKELY_IF(__lwidth <= 0) {
+		return;
+	}
+	__UNLIKELY_IF(__lwidth > 16) {
+		__lwidth = 16;
+	}
 	
+	if(__lstart > 0) {
+		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint16_t tmpbuf1[16];
+		_lbuf[0].store_aligned(&(tmpbuf1[0]));
+		_lbuf[1].store_aligned(&(tmpbuf1[8]));
+		for(size_t xs = __lstart, xt = 0; xs < __lend; xs++, xt++) {
+			tmpbuf1[xt] = tmpbuf1[xs];
+		}
+		_lbuf[0].load_aligned(&(tmpbuf1[0]));
+		_lbuf[1].load_aligned(&(tmpbuf1[8]));
+	}
+	// __lstart == 0
+	if(__lwidth < 16) {
+		if(__lwidth < 8) {
+			for(size_t xt = __lwidth; xt < 8; xt++) {
+				_lbuf[0].set(xt, 0x8000);
+			}
+			_lbuf[1] = mask_transparent;
+		} else {
+			for(size_t xt = (__lwidth - 8); xt < 8; xt++) {
+				_lbuf[1].set(xt, 0x8000);
+			}	
+		}
+	}
+	return;
+}
+#undef __M__MINIMUM_ALIGN_LENGTH
+
 // Still don't use cache.
 void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t color)
 {

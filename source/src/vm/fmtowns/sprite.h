@@ -68,6 +68,8 @@ protected:
 	
 	int event_busy;
 
+	virtual void __FASTCALL shift_vector_data(size_t _xstart, size_t _xend,
+									  size_t _xshift, csp_vector8<uint16_t> _lbuf[]);
 	virtual void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
 	virtual void render_part();
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
@@ -84,8 +86,8 @@ protected:
 		}
 		return 57.0;
 	}
-private:
-	inline void shift_vector_data(size_t _xstart, size_t _xend, size_t _xshift, csp_vector8<uint16_t> _lbuf[]);
+
+
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -181,77 +183,5 @@ public:
 	}
 };
 
-inline void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshift, csp_vector8<uint16_t> _lbuf[])
-{
-	__UNLIKELY_IF((_xshift < 0) || (_xshift > 1)) {
-		return; // NOP
-	}
-	size_t __lstart = _xstart << _xshift;
-	size_t __lend = _xend << _xshift;
-	size_t __lwidth;
-	csp_vector8<uint16_t> mask_transparent(0x8000);
-	__UNLIKELY_IF((__lstart >= 16) || (__lstart < 0) || (__lend < 0)) {
-		return; // NOP
-	}
-	__UNLIKELY_IF(__lend >= 16) {
-		__lend = 16;
-	}
-	__lwidth = __lend - __lstart;
-	__UNLIKELY_IF(__lwidth <= 0) {
-		return;
-	}
-	__UNLIKELY_IF(__lwidth > 16) {
-		__lwidth = 16;
-	}
-	__UNLIKELY_IF(__lstart > 0) {
-		// Shift
-		if(__lstart < 8) {
-			size_t __lend2 = (__lend >= 8) ? 8 : __lend; 
-			if(__lend2 < 8) {
-				for(size_t xs = 0, xt = __lstart; xt < __lend2; xs++, xt++) {
-					_lbuf[0].set(xs, _lbuf[0].at(xt));
-				}
-				for(size_t xs = __lend2; xs < 8; xs++) {
-					_lbuf[0].set(xs, 0x8000); // transparent
-				}
-				_lbuf[1] = mask_transparent;
-			} else {
-				// Move _lbuf[1] to _lbuf[0].
-				for(size_t xs = 8 - __lstart, xt = 0; xs < 8; xs++, xt++) {
-					_lbuf[0].set(xs, _lbuf[1].at(xt));
-				}
-				// Move _lbuf[1]
-				for(size_t xs = 0, xt = __lstart; xt < (__lend - 8) ; xs++, xt++) {
-					_lbuf[1].set(xs, _lbuf[1].at(xt));
-				}
-				// Make transparent
-				for(size_t xs = (__lend - 8); xs < 8; xs++) {
-					_lbuf[1].set(xs, 0x8000);
-				}
-			}
-		} else { // __lstart >= 8
-			for(size_t xs = 0, xt = __lstart - 8; xt < (__lend - 8); xs++, xt++) {
-				_lbuf[0].set(xs, _lbuf[1].at(xt));
-			}
-			for(size_t xs = __lend - 8; xs < 8; xs++) {
-				_lbuf[0].set(xs, 0x8000);
-			}
-			_lbuf[1] = mask_transparent;
-		}
-		return;
-	}
-	// __lstart == 0
-	if(__lwidth < 8) { // Limit
-		for(size_t xs = __lwidth; xs < 8; xs++) {
-			_lbuf[0].set(xs, 0x8000);
-		}
-		_lbuf[1] = mask_transparent;
-	} else if(__lwidth < 16) { // Limit
-		for(size_t xs = (__lwidth - 8); xs < 8; xs++) {
-			_lbuf[1].set(xs, 0x8000);
-		}
-	}
-	return;
-}
 
 }
