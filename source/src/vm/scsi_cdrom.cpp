@@ -1159,7 +1159,7 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 					strncpy((char *)(track_data_path[_nr_num - 1]), image_tmp_data_path.c_str(), _MAX_PATH);
 					
 					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
-					_arg3.substr(0, _arg3_ptr_s);
+					_arg3 = _arg3.substr(0, _arg3_ptr_s);
 					
 					std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
 								   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
@@ -1195,7 +1195,7 @@ bool SCSI_CDROM::open_cue_file(const _TCHAR* file_path)
 
 					_arg3 = _arg3.substr(_arg3_ptr);
 					_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
-					_arg3.substr(0, _arg3_ptr_s);
+					_arg3 = _arg3.substr(0, _arg3_ptr_s);
 					int index_type = atoi(_arg2.c_str());
 
 					switch(index_type) {
