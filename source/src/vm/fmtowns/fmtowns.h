@@ -12,9 +12,6 @@
 #undef WITH_I486DX
 #undef WITH_I486SX
 #undef WITH_PENTIUM
-#undef TYPE_TOWNS_X0
-#undef TYPE_TOWNS2_UX
-#undef TYPE_TOWNS2_CX
 
 
 #define HAS_MB89311
@@ -29,6 +26,7 @@
 #undef HAS_MB89311
 #define USE_VARIABLE_MEMORY 6
 #define MIN_RAM_SIZE 1
+#define _FMTOWNS1_1ST_GEN
 
 #elif defined(_FMTOWNS_2)
 #define DEVICE_NAME		"FUJITSU FM-Towns Model 2"
@@ -38,6 +36,7 @@
 #undef HAS_MB89311
 #define USE_VARIABLE_MEMORY 6
 #define MIN_RAM_SIZE 1
+#define _FMTOWNS1_1ST_GEN
 
 #elif defined(_FMTOWNS_2F)
 #define DEVICE_NAME		"FUJITSU FM-Towns 2F"
@@ -62,7 +61,6 @@
 #define CONFIG_NAME		"fmtowns20F"
 #define MAX_DRIVE       2
 #undef  _HAS_HDD
-#define TYPE_TOWNS_X0   1
 #define _FMTOWNS1_3RD_GEN
 #define USE_VARIABLE_MEMORY 8
 #define MIN_RAM_SIZE 2
@@ -72,7 +70,6 @@
 #define CONFIG_NAME		"fmtowns20H"
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
-#define TYPE_TOWNS_X0   1
 #define _FMTOWNS1_3RD_GEN
 #define USE_VARIABLE_MEMORY 8
 #define MIN_RAM_SIZE 2
@@ -83,7 +80,6 @@
 #define MAX_DRIVE       2
 #undef  _HAS_HDD
 #define WITH_386SX      1
-#define TYPE_TOWNS2_UX  1
 #define _FMTOWNS_UX_VARIANTS
 #define USE_VARIABLE_MEMORY 9
 #define MIN_RAM_SIZE 2
@@ -94,7 +90,6 @@
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
 #define WITH_386SX      1
-#define TYPE_TOWNS2_UX  1
 #define _FMTOWNS_UX_VARIANTS
 #define USE_VARIABLE_MEMORY 9
 #define MIN_RAM_SIZE 2
@@ -104,7 +99,6 @@
 #define CONFIG_NAME		"fmtowns2CX20"
 #define MAX_DRIVE       2
 #undef _HAS_HDD
-#define TYPE_TOWNS2_CX  1
 #define _FMTOWNS2_CX_VARIANTS
 #define USE_VARIABLE_MEMORY 15
 #define MIN_RAM_SIZE 2
@@ -114,7 +108,6 @@
 #define CONFIG_NAME		"fmtowns2CX40"
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
-#define TYPE_TOWNS2_CX  1
 #define _FMTOWNS2_CX_VARIANTS
 #define USE_VARIABLE_MEMORY 15
 #define MIN_RAM_SIZE 2
@@ -124,7 +117,6 @@
 #define CONFIG_NAME		"fmtowns2CX100"
 #define MAX_DRIVE       2
 #define _HAS_HDD        4
-#define TYPE_TOWNS2_CX  1
 #define USE_VARIABLE_MEMORY 15
 #define MIN_RAM_SIZE 2
 #define _FMTOWNS2_CX_VARIANTS
@@ -286,7 +278,19 @@
 #define USE_CART				2
 #define USE_SPECIAL_RESET		12 /* 'CD' 'F0' - 'F3' 'H0' - 'H4' 'ICM' 'DEBUG' */
 #define USE_FLOPPY_TYPE_BIT		0x0003 /* 5.0, 5.0, 3.5, 3.5 */
-#define USE_MACHINE_FEATURES	2
+/* USE_MACHINE_FEATURES : Mean of values are written in towns_common.h . */
+#if defined(_FMTOWNS1_1ST_GEN) || defined(_FMTOWNS1_2ND_GEN) ||	defined(_FMTOWNS1_3RD_GEN) || \
+	defined(_FMTOWNS_UX_VARIANTS) || defined(_FMTOWNS2_CX_VARIANTS)
+#define USE_MACHINE_FEATURES	8 /* Don't has clock settings. */
+#elif defined(WITH_I486SX) 
+#define  USE_MACHINE_FEATURES	11 /* Has clock settings and force to use 386SX. */
+#elif defined(WITH_I486DX) || defined(WITH_PENTIUM)
+#define  USE_MACHINE_FEATURES	12 /* Has clock settings and force to use 386DX. */
+#else 
+/* After UG/HR */
+#define USE_MACHINE_FEATURES	10 /* Has clock settings. */
+#endif
+
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5

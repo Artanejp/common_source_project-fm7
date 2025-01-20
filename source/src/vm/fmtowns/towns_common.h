@@ -34,12 +34,15 @@
 */
 #define TOWNS_MACHINE_JOYPORT1		0	/**< CONFIG for JOYPORT #1 */
 #define TOWNS_MACHINE_JOYPORT2		1	/**< CONFIG for JOYPORT #2 */
-#define TOWNS_MACHINE_WITH_386SX	2	/**< CONFIG for force to use I386SX for any VMs. */
-#define TOWNS_MACHINE_MIDI			3	/**< CONFIG for use type of MIDI. */
-#define TOWNS_MACHINE_SIO0			4	/**< CONFIG for use type of SIO #0. */
-#define TOWNS_MACHINE_SIO1			5	/**< CONFIG for use type of SIO #1. */
-#define TOWNS_MACHINE_SIO2			6	/**< CONFIG for use type of SIO #2. */
-#define TOWNS_MACHINE_SIO3			7	/**< CONFIG for use type of SIO #3. */
-#define TOWNS_MACHINE_LPT0_OUT		8	/**< CONFIG for use type of phisical output of Printer #0. */
-#define TOWNS_MACHINE_LPT1_OUT		9	/**< CONFIG for use type of phisical output of Printer #1. */
+#define TOWNS_MACHINE_MIDI			2	/**< CONFIG for use type of MIDI. */
+#define TOWNS_MACHINE_SIO0			3	/**< CONFIG for use type of SIO #0. */
+#define TOWNS_MACHINE_SIO1			4	/**< CONFIG for use type of SIO #1. */
+#define TOWNS_MACHINE_SIO2			5	/**< CONFIG for use type of SIO #2. */
+#define TOWNS_MACHINE_SIO3			6	/**< CONFIG for use type of SIO #3. */
+#define TOWNS_MACHINE_LPT0_OUT		7	/**< CONFIG for use type of phisical output of Printer #0. */
+#define TOWNS_MACHINE_LPT1_OUT		8	/**< CONFIG for use type of phisical output of Printer #1. */
+#define TOWNS_MACHINE_FASTER_CLOCK	9	/**< CONFIG for clock setting : force to set 16MHz or another. */
+#define TOWNS_MACHINE_SET_MAX_CLOCK	10	/**< CONFIG for setting maximum clock (< VM's own limit) */
+#define TOWNS_MACHINE_WITH_I386		11	/**< CONFIG for force to use i386SX / i386DX for any VMs. */
+/* ToDo: With / Without FPU - 20250121 K.O */
 

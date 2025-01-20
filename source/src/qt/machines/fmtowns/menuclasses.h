@@ -16,6 +16,15 @@ class META_MainWindow : public Ui_MainWindow {
 protected:
 	QActionGroup *actionGroup_JOYPortType[2];
 	QAction *actionJOYPORT_TYPE[2][8];
+	QActionGroup *actionGroup_SIOPortType[4];
+	QAction *actionSIOPORT_TYPE[2][8];
+	QActionGroup *actionGroup_LPTPortType[2];
+	QAction *actionLPTPORT_TYPE[2][8];
+	QActionGroup *actionGroup_ForceTo16MHz;
+	QAction *actionForceTo16MHz[3];
+	QAction *actionSetMaximumClock; // Will change
+	QAction *actionForceToUseI386[2];
+	
 public:
 	META_MainWindow(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger, QWidget *parent = 0);
 	~META_MainWindow();

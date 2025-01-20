@@ -34,7 +34,8 @@ void TOWNS_MEMORY::initialize()
 	extra_nmi_val = false;
 	poff_status = false;
 	reset_happened = false;
-
+	tmp_maximum_clock = 16 * 1000 * 1000;
+	
 	vram_wait_val = 6;
 	mem_wait_val = 3;
 //	if((cpu_id == 0x01) || (cpu_id == 0x03)) {
@@ -331,8 +332,9 @@ void  __FASTCALL TOWNS_MEMORY::set_dma_wait_w(uint32_t start, uint32_t end, int 
 bool TOWNS_MEMORY::set_cpu_clock_by_wait()
 {
 	uint32_t cpu_bak = cpu_clock_val;
+	
 	cpu_clock_val = (is_faster_wait()) ?
-		get_cpu_clocks(d_cpu) : (16 * 1000 * 1000);
+		tmp_maximum_clock : (16 * 1000 * 1000);
 	return ((cpu_clock_val != cpu_bak) ? true : false);
 }
 void TOWNS_MEMORY::set_wait_values()
@@ -364,7 +366,8 @@ void TOWNS_MEMORY::reset()
 	// ToDo
 	update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
 	is_compatible = true;
-
+	set_tmp_maximum_clock(); // Update maximum clock (force)
+	
 	//<! @note From technical book Page 115, Figure I-3-34,
 	//<! 「シャットダウンリセット、ソフトウェアリセットともにCPUとNDPにのみリセットがかかる」
 	reset_happened = false;
@@ -697,6 +700,7 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		break;
 	case 0x05ed:
 		if(machine_id >= 0x0700) { // 05ed
+			// ToDo: Effective of tmp_maximum_clock. 20250121 K.O
 			uint32_t clk = get_cpu_clocks(d_cpu);
 			clk = clk / (1000 * 1000);
 			__UNLIKELY_IF(clk < 16) clk = 16;
@@ -1372,7 +1376,53 @@ void TOWNS_MEMORY::set_intr_line(bool line, bool pending, uint32_t bit)
 
 // ToDo: DMA
 
-#define STATE_VERSION	8
+void TOWNS_MEMORY::set_tmp_maximum_clock()
+{
+	__UNLIKELY_IF((d_cpu == NULL) || (machine_id < 0x0600)) {
+		tmp_maximum_clock = 16 * 1000 * 1000;
+		return;
+	}
+	uint32_t __clk = get_cpu_clocks(d_cpu);
+	__LIKELY_IF(__clk > (16 * 1000 * 1000)) {
+		switch(config.machine_features[TOWNS_MACHINE_FASTER_CLOCK]) {
+		case 1:
+			tmp_maximum_clock = __clk;
+			break;
+		case 2:
+			if(config.machine_features[TOWNS_MACHINE_SET_MAX_CLOCK] != 0) {
+				tmp_maximum_clock = config.machine_features[TOWNS_MACHINE_SET_MAX_CLOCK];
+			} else {
+				tmp_maximum_clock = __clk;
+			}
+			break;
+		default:
+			tmp_maximum_clock = 16 * 1000 * 1000;
+			break;
+		}
+		__UNLIKELY_IF(tmp_maximum_clock < (16 * 1000 * 1000)) {
+			tmp_maximum_clock = 16 * 1000 * 1000;
+		}
+		__UNLIKELY_IF(tmp_maximum_clock > __clk) {
+			tmp_maximum_clock = __clk;
+		}
+	} else {
+		tmp_maximum_clock = __clk;
+	}
+}
+
+void TOWNS_MEMORY::update_config(void)
+{
+	uint32_t tmp_maximum_clock_bak = tmp_maximum_clock;
+
+	set_tmp_maximum_clock();
+	if(tmp_maximum_clock_bak != tmp_maximum_clock) {
+		out_debug_log(_T("update_config() : Set maximum clock from %dMHz to %dMHz"), tmp_maximum_clock_bak / (1000 * 1000) , tmp_maximum_clock / (1000 * 1000));
+		set_cpu_clock_by_wait();
+		set_wait_values();
+	}
+}
+
+#define STATE_VERSION	9
 
 bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1412,7 +1462,8 @@ bool TOWNS_MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(mem_wait_val);
 	state_fio->StateValue(vram_size);
 	state_fio->StateValue(cpu_clock_val);
-
+	state_fio->StateValue(tmp_maximum_clock);
+		
 	if(loading) {
 		update_machine_features(); // Update MISC3, MISC4 by MACHINE ID.
 

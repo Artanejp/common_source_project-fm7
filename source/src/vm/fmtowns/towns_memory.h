@@ -118,7 +118,9 @@ protected:
 	uint32_t cpu_clock_val;
 	uint32_t vram_wait_val;
 	uint32_t mem_wait_val;
-
+	
+	uint32_t tmp_maximum_clock;
+	
 	uint8_t wait_register_older;  // 05E0h
 	uint8_t wait_register_ram;    // 05E2h
 	uint8_t wait_register_vram;   // 05E6h
@@ -148,6 +150,8 @@ protected:
 	virtual void __FASTCALL config_dictionary(const bool vrambank, const bool dictbank, const bool force);
 
 	virtual bool set_cpu_clock_by_wait();
+	virtual void set_tmp_maximum_clock();
+
 	virtual void     __FASTCALL write_fmr_ports8(uint32_t addr, uint32_t data);
 	virtual uint8_t  __FASTCALL read_fmr_ports8(uint32_t addr);
 	virtual void     __FASTCALL write_sys_ports8(uint32_t addr, uint32_t data);
@@ -638,6 +642,7 @@ public:
 	
 	virtual void __FASTCALL set_intr_line(bool line, bool pending, uint32_t bit) override;
 
+	virtual void update_config(void) override;
 	bool process_state(FILEIO* state_fio, bool loading) override;
 
 	// unique functions
