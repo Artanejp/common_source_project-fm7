@@ -76,7 +76,9 @@
 #include "./iccard.h"
 
 #include "./planevram.h"
-
+#if defined(HAS_20PIX_FONTS)
+#include "./fontrom_20pix.h"
+#endif
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -107,7 +109,9 @@ using FMTOWNS::TOWNS_MEMORY;
 using FMTOWNS::TOWNS_SPRITE;
 using FMTOWNS::TOWNS_VRAM;
 using FMTOWNS::PLANEVRAM;
-
+#if defined(HAS_20PIX_FONTS)
+using FMTOWNS::FONT_ROM_20PIX;
+#endif
 
 VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 {
@@ -439,7 +443,9 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	memory->set_context_cmos(cmos);
 	memory->set_context_font_rom(fontrom);
 	memory->set_context_timer(timer);
-
+#if defined(HAS_20PIX_FONTS)
+	memory->set_context_font_20pix_rom(fontrom_20pix);
+#endif
 	memory->set_context_sprite(sprite);
 	memory->set_context_pcm(rf5c68);
 	memory->set_context_iccard(iccard1, 0);
@@ -845,12 +851,6 @@ void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)
 		floppy->set_cpu_id(cpu_id);
 		floppy->set_machine_id(machine_id);
 	}
-#if defined(HAS_20PIX_FONTS)
-	if(fontrom_20pix != nullptr) {
-		fontrom_20pix->set_cpu_id(cpu_id);
-		fontrom_20pix->set_machine_id(machine_id);
-	}
-#endif
 	if(vram != nullptr) {
 		vram->set_cpu_id(cpu_id);
 		vram->set_machine_id(machine_id);
@@ -1319,7 +1319,7 @@ uint64_t VM::get_current_clock_uint64()
 	return VM_TEMPLATE::get_current_clock_uint64();
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {

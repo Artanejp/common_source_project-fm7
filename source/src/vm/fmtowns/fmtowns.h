@@ -255,6 +255,11 @@
 #define WINDOW_WIDTH_ASPECT	    1024
 #define WINDOW_HEIGHT_ASPECT    768
 
+#if defined(_FMTOWNS_HR_VARIANTS) || defined(_FMTOWNS_MA_VARIANTS) || defined(_FM_VTOWNS_VARIANTS)
+// ToDo: Implement High resolution. 20250121 K.O
+#define HAS_20PIX_FONTS
+#endif
+
 #if defined(_HAS_HDD)
 #define MAX_SCSI		8
 #define USE_HARD_DISK   _HAS_HDD
