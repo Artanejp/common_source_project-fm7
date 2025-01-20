@@ -34,15 +34,18 @@ void FONT_ROMS::reset()
 
 uint32_t FONT_ROMS::read_memory_mapped_io8(uint32_t addr)
 {
-	__LIKELY_IF((addr & 0xfffc0000) == 0xc2100000) { // 0xc2100000 - c213ffff
+	__LIKELY_IF(addr < 0x00040000) { // 0xc2100000 - c213ffff
 		return font_kanji16[addr & 0x3ffff];
 	}
-	__LIKELY_IF((addr & 0xffffc000) == 0x000c8000) {
-		if((addr & 0xfffff800) == 0x000ca000) { // 000ca000 - 000ca7ff
-			return font_kanji16[0x3d000 + (addr & 0x7ff)];
-		} else if((addr & 0xfffff000) == 0x000cb000) { // 000cb000 - 000cbfff
-			return font_kanji16[0x3d800 + (addr & 0xfff)];
-		}
+	switch(addr & 0xfffff000) {
+	case 0x000ca000: // 000ca000 - 000ca7ff
+		return font_kanji16[0x3d000 + (addr & 0x7ff)];
+		break;
+	case 0x000cb000: // 000cb000 - 000cbfff
+		return font_kanji16[0x3d800 + (addr & 0xfff)];
+		break;
+	default:
+		break;
 	}
 	return 0xff;
 }

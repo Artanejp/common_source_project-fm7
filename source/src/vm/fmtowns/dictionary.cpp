@@ -49,12 +49,13 @@ uint32_t DICTIONARY::read_memory_mapped_io8w(uint32_t addr, int* wait)
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // ToDo
 	}
-	// 0xd0000 - 0xdffff : primary  is VRAM, secondary is DICTIONARY.
-	__LIKELY_IF((addr < 0x000d8000) && (addr >= 0x000d0000)) {
-		return dict_rom[(((uint32_t)dict_bank) << 15) | (addr & 0x7fff)];
-	}
-	__LIKELY_IF((addr >= 0xc2080000) && (addr < 0xc2100000)) {
+
+	__LIKELY_IF(addr < 0x00080000) {
 		return dict_rom[addr & 0x7ffff];
+	}
+	// 0xd0000 - 0xdffff : primary  is VRAM, secondary is DICTIONARY.
+	if((addr < 0x000d8000) && (addr >= 0x000d0000)) {
+		return dict_rom[(((uint32_t)dict_bank) << 15) | (addr & 0x7fff)];
 	}
 	return 0xff;
 }

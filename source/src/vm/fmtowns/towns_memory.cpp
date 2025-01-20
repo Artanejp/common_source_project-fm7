@@ -52,7 +52,7 @@ void TOWNS_MEMORY::initialize()
 	extram_size = extram_size & 0x3ff00000;
 	set_extra_ram_size(extram_size >> 20); // Check extra ram size.
 
-	unset_range_rw(0x00000000, 0xffffffff);
+	unset_range_rw(0x00000000, UINT32_MAX);
 
 	reset_wait_values();
 
@@ -78,11 +78,11 @@ void TOWNS_MEMORY::initialize()
 	set_region_device_rw(0x81000000, 0x8101ffff, d_sprite, 0);
 	set_region_device_rw(0xc0000000, 0xc0ffffff, d_iccard[0], 0);
 	set_region_device_rw(0xc1000000, 0xc1ffffff, d_iccard[1], 0);
-//	set_wait_rw(0x00000000, 0xffffffff,  vram_wait_val);
+//	set_wait_rw(0x00000000, UINT32_MAX,  vram_wait_val);
 
 	set_region_device_r (0xc2000000, 0xc207ffff, d_msdos, 0);
-	set_region_device_r (0xc2080000, 0xc20fffff, d_dictionary, NOT_NEED_TO_OFFSET);
-	set_region_device_r (0xc2100000, 0xc213ffff, d_font, NOT_NEED_TO_OFFSET);
+	set_region_device_r (0xc2080000, 0xc20fffff, d_dictionary, 0);
+	set_region_device_r (0xc2100000, 0xc213ffff, d_font, 0);
 	// REAL IS C2140000h - C2141FFFh, but grain may be 8000h bytes.
 	set_region_device_rw(0xc2140000, 0xc2147fff, d_cmos, 0);
 	if(d_font_20pix != NULL) {
@@ -90,7 +90,7 @@ void TOWNS_MEMORY::initialize()
 	}
 	// REAL IS C2200000h - C2200FFFh, but grain may be 8000h bytes.
 	set_region_device_rw(0xc2200000, 0xc2200000 + memory_map_grain() - 1, d_pcm, 0);
-	set_region_device_r (0xfffc0000, 0xffffffff, d_sysrom, 0);
+	set_region_device_r (0xfffc0000, 0xffffffff, d_sysrom, 0); // UINT32_MAX
 	// Another devices are blank
 
 	// load rom image
@@ -177,7 +177,7 @@ void TOWNS_MEMORY::config_page_f8(const bool sysrombank, const bool force)
 void TOWNS_MEMORY::set_memory_devices_map_values(uint32_t start, uint32_t end, memory_device_map_t* dataptr, uint8_t* baseptr, DEVICE* device, uint32_t base_offset)
 {
 	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
+	uint64_t _end =   (end == UINT32_MAX) ? 0x100000000 : (uint64_t)(end + 1);
 	__UNLIKELY_IF(dataptr == NULL) return;
 
 	_start &= ~(memory_map_mask());
@@ -185,7 +185,7 @@ void TOWNS_MEMORY::set_memory_devices_map_values(uint32_t start, uint32_t end, m
 
 	uint64_t mapptr = (uint32_t)(_start >> memory_map_shift());
 	const uint64_t _incval = memory_map_grain();
-	uint32_t realoffset = (base_offset == UINT32_MAX) ? 0 : base_offset;
+	uint32_t realoffset = (base_offset == NOT_NEED_TO_OFFSET) ? 0 : base_offset;
 
 	for(uint64_t addr = _start; addr < _end; addr += _incval) {
 		__UNLIKELY_IF(mapptr >= memory_map_size()) break; // Safety
@@ -196,8 +196,8 @@ void TOWNS_MEMORY::set_memory_devices_map_values(uint32_t start, uint32_t end, m
 			dataptr[mapptr].mem_ptr = baseptr;
 			dataptr[mapptr].device_ptr = NULL;
 		}
-		if(base_offset == UINT32_MAX) {
-			dataptr[mapptr].base_offset = UINT32_MAX;
+		if(base_offset == NOT_NEED_TO_OFFSET) {
+			dataptr[mapptr].base_offset = NOT_NEED_TO_OFFSET;
 		} else {
 			dataptr[mapptr].base_offset = realoffset;
 		}
@@ -209,7 +209,7 @@ void TOWNS_MEMORY::set_memory_devices_map_values(uint32_t start, uint32_t end, m
 void TOWNS_MEMORY::set_memory_devices_map_wait(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait)
 {
 	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
+	uint64_t _end =   (end == UINT32_MAX) ? 0x100000000 : (uint64_t)(end + 1);
 	__UNLIKELY_IF(dataptr == NULL) return;
 
 	_start &= ~(memory_map_mask());
@@ -228,7 +228,7 @@ void TOWNS_MEMORY::set_memory_devices_map_wait(uint32_t start, uint32_t end, mem
 void TOWNS_MEMORY::unset_memory_devices_map(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait)
 {
 	uint64_t _start = (uint64_t)start;
-	uint64_t _end =   (end == 0xffffffff) ? 0x100000000 : (uint64_t)(end + 1);
+	uint64_t _end =   (end == UINT32_MAX) ? 0x100000000 : (uint64_t)(end + 1);
 	__UNLIKELY_IF(dataptr == NULL) return;
 
 	_start &= ~(memory_map_mask());
@@ -241,7 +241,7 @@ void TOWNS_MEMORY::unset_memory_devices_map(uint32_t start, uint32_t end, memory
 		dataptr[mapptr].mem_ptr = NULL;
 		dataptr[mapptr].device_ptr = NULL;
 		dataptr[mapptr].waitval = wait;
-		dataptr[mapptr].base_offset = UINT32_MAX;
+		dataptr[mapptr].base_offset = NOT_NEED_TO_OFFSET;
 		mapptr++;
 	}
 
@@ -519,7 +519,7 @@ uint8_t TOWNS_MEMORY::read_fmr_ports8(uint32_t addr)
 		case 0xcff9d:
 		case 0xcff9e:
 			__LIKELY_IF(d_font != NULL) {
-				val = d_font->read_io8(addr & 0xffff);
+				val = d_font->read_io8(addr& 0xffff);
 			}
 			return val;
 			break;
