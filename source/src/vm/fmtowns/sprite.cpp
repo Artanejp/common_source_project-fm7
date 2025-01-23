@@ -13,8 +13,9 @@
 #include "./crtc.h"
 #include "./fontroms.h"
 
-#define EVENT_RENDER	1
-#define EVENT_BUSY_OFF	2
+#define EVENT_RENDER				1
+#define EVENT_BUSY_OFF				2
+#define EVENT_CLEAR_VRAM_COMPLETED	3
 
 namespace FMTOWNS {
 
@@ -25,7 +26,7 @@ void TOWNS_SPRITE::initialize(void)
 	reg_voffset = 0x0000; // REG#02, #03
 	reg_hoffset = 0x0000; // REG#04, #05
 	reg_index = 0x0000;
-	frame_out = false;
+	frame_out = true;
 	disp_page1 = false;
 	draw_page1 = true;
 	
@@ -35,7 +36,7 @@ void TOWNS_SPRITE::initialize(void)
 
 	max_sprite_per_frame = 224;
 	event_busy = -1;
-	page_changed = true;
+	reg06_wrote = false;
 
 	is_older_sprite = true;
 
@@ -51,10 +52,11 @@ void TOWNS_SPRITE::reset()
 	reg_index = 0x0000;
 	disp_page1 = false;
 	draw_page1 = true;
+	reg06_wrote = false;
 	reg_spen = false;
 	reg_addr = 0;
 	render_num = 0;
-	frame_out = false;
+	frame_out = true;
 
 	sprite_enabled = false;
 
@@ -63,7 +65,7 @@ void TOWNS_SPRITE::reset()
 	tvram_enabled_bak = false;
 
 	sprite_busy = false;
-	page_changed = true;
+	reg06_wrote = false;
 
 	memset(reg_data, 0x00, sizeof(reg_data)); // OK?
 	is_older_sprite = true;
@@ -256,6 +258,26 @@ void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshif
 	}
 	return;
 }
+
+void TOWNS_SPRITE::load_16words_from_pattern_ram(uint32_t offset, csp_vector8<uint16_t> dst[])
+{
+	uint32_t raddr = offset & 0x1ffff;
+	__LIKELY_IF(raddr < (0x20000 - (16 * sizeof(uint16_t)))) {
+		dst[0].load_from_le(&(pattern_ram[raddr + 0]));
+		dst[1].load_from_le(&(pattern_ram[raddr + 16]));
+	} else {
+		for(size_t rx = 0; rx < 2; rx++) {
+			pair16_t _tmp;
+			for(size_t xx = 0; xx < 8; xx++) {
+				_tmp.b.l = pattern_ram[raddr];
+				raddr = (raddr + 1) & 0x1ffff;
+				_tmp.b.h = pattern_ram[raddr];
+				raddr = (raddr + 1) & 0x1ffff;
+				dst[rx][xx] = _tmp.w;
+			}
+		}
+	}
+}
 #undef __M__MINIMUM_ALIGN_LENGTH
 
 // Still don't use cache.
@@ -324,44 +346,33 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	__DECL_ALIGNED(16) uint16_t color_table[16] = {0};
 	
 	if(is_32768) {
-		__DECL_ALIGNED(16) union {
-			pair16_t pw[16];
-			uint8_t b[32];
-		} nnw;
+		csp_vector8<uint16_t> nnw[2];
 		for(int yy = 0; yy < 16; yy++) {
 			uint32_t addr = (yy << 5) + ram_offset;
-
+			load_16words_from_pattern_ram((uint32_t)addr, nnw);
 			// P1 get data
-//__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 32; xx++) {
-				nnw.b[xx] = pattern_ram[(addr + xx) & 0x1ffff];
-			}
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-				tbuf[yy][xx] = nnw.pw[xx].w;
-			}
+			nnw[0].store_aligned(&(tbuf[yy][0]));
+			nnw[1].store_aligned(&(tbuf[yy][8]));
 		}
 	} else {
-		__DECL_ALIGNED(16) union {
-			pair16_t pw[16];
-			uint8_t b[32];
-		} nnw;
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 32; i++) {
-			nnw.b[i] = pattern_ram[(color_offset + i) & 0x1ffff];
-//			color_offset += 2;
-		}
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 16; i++) {
-			color_table[i] = nnw.pw[i].w;
-		}
-		color_table[0] = 0x8000; // Clear color
+		csp_vector8<uint16_t> nnw[2];
+		load_16words_from_pattern_ram((uint32_t)color_offset, nnw);
+		csp_vector8<uint16_t> tmpmask(0x7fff);
+		nnw[0] &= tmpmask;
+		nnw[1] &= tmpmask;
+
+		nnw[0].store_aligned(&(color_table[0]));
+		nnw[1].store_aligned(&(color_table[8]));
+		// Color[0] must be transparent.
+		// (Related by page 127 of technical manual.)
+		// 20250123 K.O
+		color_table[0] = 0x8000; 
 		for(int yy = 0; yy < 16; yy++) {
 			uint32_t addr = (yy << 3) + ram_offset;
 			uint8_t nnh, nnl;
 			__DECL_ALIGNED(8) uint8_t nnb[8];
 __DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx != 8; xx++) {
+			for(int xx = 0; xx < 8; xx++) {
 				nnb[xx] = pattern_ram[(addr + xx) & 0x1ffff];
 			}
 
@@ -513,7 +524,11 @@ __DECL_VECTORIZED_LOOP
 
 	for(int yy = 0, yy2 = 0; yy < 16;  yy += __ystep, yy2++) {
 		int yoff = (yy2 + ry) & 0x1ff;
-		if(yoff < 256) {
+
+		// From TownsSprite::Render(), sprite.cpp, Tsugaru (from FM-Towns Technical manual):
+		// [2] pp.368 (Sprite BIOS AH=00H) tells, the top 2-lines of the VRAM page are VRAM-clear data.
+		//     So, apparently it is possible to clear the sprite page with non-0x8000 values.
+		if((yoff < 256) && (yoff >= 2)) { // From Tsugaru.
 			// Get From source VRAM
 			vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 			if(is_halfx) {
@@ -725,6 +740,7 @@ void TOWNS_SPRITE::write_reg(uint32_t addr, uint32_t data)
 		break;
 	case 6:
 		reg_data[6] = reg_data[6] & 0x88; // From Tsugaru
+		reg06_wrote = true;
 		break;
 	default:
 		break;
@@ -980,6 +996,27 @@ void TOWNS_SPRITE::event_callback(int id, int err)
 		render_num = 0;
 		event_busy = -1;
 		break;
+	case EVENT_CLEAR_VRAM_COMPLETED:
+		#if 0
+		if(sprite_enabled) {
+			uint16_t lot = reg_index & 0x3ff;
+			render_num = 1024 - lot;
+			sprite_usec = get_sprite_usec();
+			//if(render_num > max_sprite_per_frame) {
+			//	render_num = max_sprite_per_frame;
+			//}
+			sprite_busy = true;
+			__LIKELY_IF(render_num > 0) {
+				event_callback(EVENT_RENDER, 0);
+			}
+			if(render_num > 0) {
+				register_event(this, EVENT_RENDER, sprite_usec, true, &event_busy);
+			} else {
+				sprite_busy = false;
+			}
+		}
+		#endif
+		break;
 	default:
 		break;
 	}
@@ -990,49 +1027,63 @@ void TOWNS_SPRITE::check_and_clear_vram()
 	if((sprite_enabled) && (render_num <= 0)) {
 		uint16_t lot = reg_index & 0x3ff;
 		render_num = 1024 - lot;
-		if(render_num > max_sprite_per_frame) {
-			render_num = max_sprite_per_frame;
-		}
-		sprite_usec = get_sprite_usec(render_num);
-		__LIKELY_IF(render_num <= 1024) {
-			draw_page1 = disp_page1;
+		//if(render_num > max_sprite_per_frame) {
+		//	render_num = max_sprite_per_frame;
+		//}
+		if(reg06_wrote) {
+			// Manually set reg06.
+			disp_page1 = ((reg_data[6] & 0x80) != 0) ? true : false;
+			reg06_wrote = false;
+		} else {
 			disp_page1 = !(disp_page1);
-		}		
+		}
+		draw_page1 = !(disp_page1);
 		uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
+
+		//clear_event(this, event_busy);
+		//register_event(this, EVENT_CLEAR_VRAM_COMPLETED, 32.0, false, &event_busy);
 		__LIKELY_IF(d_vram != NULL){
-			__LIKELY_IF(render_num <= 1024) {
-				d_vram->lock();
-				pair16_t *p = (pair16_t*)(d_vram->get_vram_address(noffset));
-				__LIKELY_IF(p != NULL) {
-					for(int x = 0; x < 0x10000; x++) {
-						p[x].w = 0x8000; //
+			__DECL_ALIGNED(16) uint8_t headbuf[256 * 2 * 2];			   
+			d_vram->lock();
+			uint8_t *p = d_vram->get_vram_address(noffset);
+			__LIKELY_IF(p != NULL) {
+
+				// From TownsSprite::Render(), sprite.cpp, Tsugaru (from FM-Towns Technical manual):
+				// [2] pp.368 (Sprite BIOS AH=00H) tells, the top 2-lines of the VRAM page are VRAM-clear data.
+				//     So, apparently it is possible to clear the sprite page with non-0x8000 values.
+				// 1st. get 2lines of head.
+				for(int xx = 0; xx < (256 * 2 * 2); xx++) {
+					headbuf[xx] = p[xx];
+				}
+				// 2nd. Fill buffer
+				for(int yy = 2; yy < (256 - 2); yy += 2) {
+					uint8_t *pp = d_vram->get_vram_address(noffset + (yy * 256 * 2));
+					__LIKELY_IF(pp != NULL) {
+						for(int xx = 0; xx < (256 * 2 * 2); xx++) {
+							pp[xx] = headbuf[xx];
+						}
 					}
 				}
-				d_vram->unlock();
 			}
-			page_changed = false;
+			d_vram->unlock();
 		}
 	}
 }
 void TOWNS_SPRITE::event_frame()
 {
-	clear_event(this, event_busy);
-	sprite_busy = false;
 	frame_out = true;
 
-	if(sprite_enabled != reg_spen) {
-		if(reg_spen) {
-			render_num = 0;
-		}
+	if(!(reg_spen)) {
+		sprite_enabled = false;
+		return;
 	}
-	sprite_enabled = reg_spen;
+	sprite_enabled = true;
 	check_and_clear_vram();
 }
 
 void TOWNS_SPRITE::event_pre_frame()
 {
 	clear_event(this, event_busy);
-
 	sprite_busy = false;
 }
 
@@ -1052,23 +1103,16 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 		tvram_enabled = ((data & mask) != 0);
 		tvram_enabled_bak = tvram_enabled;
 		break;
-	case SIG_TOWNS_SPRITE_HOOK_VLINE:
-		if(sprite_enabled) {
-			if(data < 1024) {
-				frame_out = false;
-				if(render_num > 0) {
-					sprite_busy = true;
-					event_callback(EVENT_RENDER, (int)data);
-				} else {
-					event_callback(EVENT_BUSY_OFF, (int)data);
-				}
-			}
-		}
-		break;
 	case SIG_TOWNS_SPRITE_VSYNC: //
-		if((sprite_enabled) && (frame_out)) { // AT FIRST VSYNC.
+		// Same value.
+		if((sprite_enabled) && (frame_out)) {
 			frame_out = false;
-			if(render_num > 0) {
+			__LIKELY_IF(render_num > 0) {
+				sprite_busy = true;
+				sprite_usec = get_sprite_usec(render_num);
+				//if(render_num > max_sprite_per_frame) {
+				//	render_num = max_sprite_per_frame;
+				//}
 				sprite_busy = true;
 				event_callback(EVENT_RENDER, 0);
 				clear_event(this, event_busy);
@@ -1143,7 +1187,7 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	return 0;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1157,6 +1201,7 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(reg_addr);
 	state_fio->StateValue(reg_ctrl);
 	state_fio->StateArray(reg_data, sizeof(reg_data), 1);
+	state_fio->StateValue(reg06_wrote);
 	// RAMs
 	state_fio->StateArray(pattern_ram, sizeof(pattern_ram), 1);
 
@@ -1170,7 +1215,6 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(frame_out);
 	state_fio->StateValue(sprite_busy);
 	state_fio->StateValue(sprite_enabled);
-	state_fio->StateValue(page_changed);
 
 	state_fio->StateValue(render_num);
 

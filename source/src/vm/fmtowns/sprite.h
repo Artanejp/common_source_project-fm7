@@ -3,7 +3,6 @@
 
 #include "../device.h"
 
-#define SIG_TOWNS_SPRITE_HOOK_VLINE     256
 #define SIG_TOWNS_SPRITE_SET_LINES      257
 #define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
 #define SIG_TOWNS_SPRITE_ANKCG          259
@@ -54,7 +53,7 @@ protected:
 	bool frame_out;
 	bool sprite_enabled;
 	bool sprite_busy;
-	bool page_changed;
+	bool reg06_wrote;
 
 	int render_num;
 	int max_sprite_per_frame;
@@ -79,6 +78,7 @@ protected:
 	virtual void render_text();
 	virtual inline double get_sprite_usec(int num)
 	{
+		// From Tsugaru.
 		__LIKELY_IF(!(is_older_sprite)) {
 			int num_limit = max(1024, num);
 			num_limit = min(224, num_limit);
@@ -86,7 +86,12 @@ protected:
 		}
 		return 57.0;
 	}
-
+	virtual inline double get_vram_clear_usec()
+	{
+		// From Tsugaru.
+		return 32.0;
+	}
+	virtual void load_16words_from_pattern_ram(uint32_t offset, csp_vector8<uint16_t> dst[]);
 
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
