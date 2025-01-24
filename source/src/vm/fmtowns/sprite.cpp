@@ -262,10 +262,10 @@ void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshif
 void TOWNS_SPRITE::load_16words_from_pattern_ram(uint32_t offset, csp_vector8<uint16_t> dst[])
 {
 	uint32_t raddr = offset & 0x1ffff;
-	__LIKELY_IF(raddr < (0x20000 - (16 * sizeof(uint16_t)))) {
-		dst[0].load_from_le(&(pattern_ram[raddr + 0]));
-		dst[1].load_from_le(&(pattern_ram[raddr + 16]));
-	} else {
+//	__LIKELY_IF(raddr < (0x20000 - (16 * sizeof(uint16_t)))) {
+//		dst[0].load_from_le(&(pattern_ram[raddr + 0]));
+//		dst[1].load_from_le(&(pattern_ram[raddr + 16]));
+//	} else {
 		for(size_t rx = 0; rx < 2; rx++) {
 			pair16_t _tmp;
 			for(size_t xx = 0; xx < 8; xx++) {
@@ -276,7 +276,7 @@ void TOWNS_SPRITE::load_16words_from_pattern_ram(uint32_t offset, csp_vector8<ui
 				dst[rx][xx] = _tmp.w;
 			}
 		}
-	}
+//	}
 }
 #undef __M__MINIMUM_ALIGN_LENGTH
 
@@ -534,7 +534,27 @@ __DECL_VECTORIZED_LOOP
 			if(is_halfx) {
 				source[1].clear();
 			}
-			d_vram->get_vram_to_buffer(vpaddr + noffset, source, (is_halfx) ? 8 : 16);
+			int _gwords = (is_halfx) ? 8 : 16;
+			if((vpaddr + (_gwords << 1)) > 0x20000) {
+				__UNLIKELY_IF(vpaddr >= 0x1ffff) {
+					break;
+				}
+				_gwords = 0x20000 - ((int)vpaddr);
+				_gwords >>= 1;
+				if(is_halfx) {
+					__UNLIKELY_IF(_gwords > 8) {
+						_gwords = 8;
+					}
+				} else {
+					__UNLIKELY_IF(_gwords > 16) {
+						_gwords = 16;
+					}
+				}
+				__UNLIKELY_IF(_gwords <= 0) {
+					break;
+				}
+			}
+			d_vram->get_vram_to_buffer(vpaddr + noffset, source, _gwords);
 			// Get first line of SPRITE.
 			for(int rx1 = 0; rx1 < 2; rx1++) {
 				lbuf[rx1] = mask_transparent;
@@ -630,7 +650,12 @@ __DECL_VECTORIZED_LOOP
 				for(int rx1 = 0; rx1 < 2; rx1++) {
 					source[rx1] |= color_values[rx1];
 				}
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 16);
+				__UNLIKELY_IF(_gwords > 16) {
+					_gwords = 16;
+				}
+				__LIKELY_IF(_gwords > 0) {
+					d_vram->set_buffer_to_vram(vpaddr + noffset, source, _gwords);
+				}
 			} else { // Halfx
 				// Make Mask
 				zoomed_mask_posi.clear();
@@ -664,8 +689,12 @@ __DECL_VECTORIZED_LOOP
 				zoomed_mask_nega = ~zoomed_mask_posi;
 				source[0] &= zoomed_mask_nega;
 				source[0] |= zoomed_value;
-				
-				d_vram->set_buffer_to_vram(vpaddr + noffset, source, 8);
+				__UNLIKELY_IF(_gwords > 8) {
+					_gwords = 8;
+				}
+				__LIKELY_IF(_gwords > 0) {
+					d_vram->set_buffer_to_vram(vpaddr + noffset, source, _gwords);
+				}
 			}
 		}
 	}
