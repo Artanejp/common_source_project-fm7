@@ -31,6 +31,10 @@ int Ui_MainWindowBase::set_recent_hard_disk(int drv, int num)
 
 void Ui_MainWindowBase::do_ui_eject_hard_disk(int drv)
 {
+	if(drv < 0) return;
+	if(menu_hdds.size() <= drv) return;
+	//if(menu_hdds[drv] == nullptr) return;
+	
 	if(menu_hdds[drv] != nullptr) {
 		menu_hdds[drv]->do_clear_inner_media();
 	}
@@ -51,6 +55,8 @@ void Ui_MainWindowBase::do_ui_hard_disk_insert_history(int drv, QString fname)
 	if(!(p->is_use_hdd())) return;
 	if(p->get_max_hdd() <= drv) return;
 	if(fname.length() <= 0) return;
+	if(menu_hdds.size() <= drv) return;
+	//if(menu_hdds[drv] == nullptr) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 

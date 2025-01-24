@@ -30,6 +30,7 @@ int Ui_MainWindowBase::do_emu_write_protect_floppy_disk(int drv, bool flag)
 
 void Ui_MainWindowBase::do_ui_eject_floppy_disk(int drv)
 {
+	if(menu_fds.size() <= drv) return;
 	if(menu_fds[drv] != nullptr) {
 		menu_fds[drv]->do_clear_inner_media();
 	}
@@ -56,16 +57,25 @@ void Ui_MainWindowBase::CreateFloppyMenu(int drv, int drv_base)
 		if(p_config == nullptr) return;
 		if(p.get() == nullptr) return;
 
-		menu_fds[drv] = new Menu_FDClass(menubar, QString::fromUtf8("Floppy"), p, this, drv, drv_base);
-		menu_fds[drv]->create_pulldown_menu();
+		menu_fds.append(new Menu_FDClass(menubar, QString::fromUtf8("Floppy"), p, this, drv, drv_base));
+		int _drv = menu_fds.size() - 1;
+		if(_drv < 0) return;
+		if(menu_fds[_drv] == nullptr) return;
+		if(_drv != drv) {
+			delete menu_fds[_drv];
+			menu_fds.removeAt(_drv);
+			return;
+		}
+		
+		menu_fds[_drv]->create_pulldown_menu();
 
-		menu_fds[drv]->do_clear_inner_media();
-		menu_fds[drv]->do_add_media_extension(ext, desc1);
+		menu_fds[_drv]->do_clear_inner_media();
+		menu_fds[_drv]->do_add_media_extension(ext, desc1);
 
-		SETUP_HISTORY(p_config->recent_floppy_disk_path[drv], listFDs[drv]);
-		menu_fds[drv]->do_update_histories(listFDs[drv]);
-		menu_fds[drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
-		listD88[drv].clear();
+		SETUP_HISTORY(p_config->recent_floppy_disk_path[_drv], listFDs[_drv]);
+		menu_fds[_drv]->do_update_histories(listFDs[_drv]);
+		menu_fds[_drv]->do_set_initialize_directory(p_config->initial_floppy_disk_dir);
+		listD88[_drv].clear();
 	}
 }
 
@@ -95,6 +105,9 @@ void Ui_MainWindowBase::retranslateFloppyMenu(int drv, int basedrv, QString spec
 	if(p.get() == nullptr) return;
 
 	if((drv < 0) || (drv >= p->get_max_drive())) return;
+	if(menu_fds.size() <= drv) return;
+	if(menu_fds[drv] == nullptr) return;
+	
 	menu_fds[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 	menu_fds[drv]->retranslateUi();
 }
@@ -115,6 +128,9 @@ void Ui_MainWindowBase::do_update_floppy_history(int drive, QStringList lst)
 	if(p.get() == nullptr) return;
 
 	if((drive < 0) || (drive >= p->get_max_drive())) return;
+	if(menu_fds.size() <= drive) return;
+	if(menu_fds[drive] == nullptr) return;
+	
 	if(menu_fds[drive] != nullptr) {
 		menu_fds[drive]->do_update_histories(lst);
 	}

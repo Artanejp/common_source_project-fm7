@@ -29,6 +29,8 @@ int Ui_MainWindowBase::do_emu_write_protect_quick_disk(int drv, bool flag)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return -1;
 	if((drv < 0) || (drv >= p->get_max_qd())) return -1;
+	if(menu_QDs.size() <= drv) return -1;
+	if(menu_QDs[drv] == nullptr) return -1;
 
 	emit sig_write_protect_quick_disk(drv, flag);
 	return 0;
@@ -41,6 +43,7 @@ void Ui_MainWindowBase::do_ui_quick_disk_write_protect(int drive, quint64 flag)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_qd()) || (p->get_max_qd() <= drive)) return;
+	if(menu_QDs.size() <= drive) return;
 	if(menu_QDs[drive] == nullptr) return;
 
 	if((flag & EMU_MESSAGE_TYPE::WRITE_PROTECT) != 0) {
@@ -75,6 +78,8 @@ void Ui_MainWindowBase::do_ui_quick_disk_insert_history(int drv, QString fname)
 	if(p.get() == nullptr) return;
 	if(fname.length() <= 0) return;
 	if(p->get_max_qd() <= drv) return;
+	if(menu_QDs.size() <= drv) return;
+	//if(menu_QDs[drv] == nullptr) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
@@ -124,6 +129,9 @@ void Ui_MainWindowBase::do_eject_quick_disk(int drv)
 
 void Ui_MainWindowBase::do_ui_eject_quick_disk(int drv)
 {
+	if(menu_QDs.size() <= drv) return;
+	//if(menu_QDs[drv] == nullptr) return;
+	
 	if(menu_QDs[drv] != nullptr) {
 		menu_QDs[drv]->do_clear_inner_media();
 	}
@@ -143,7 +151,16 @@ void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 		if(p_config == nullptr) return;
 		if(p.get() == nullptr) return;
 
-		menu_QDs[drv] = new Menu_QDClass(menubar, QString::fromUtf8("QD"), p, this, drv);
+		menu_QDs.append(new Menu_QDClass(menubar, QString::fromUtf8("QD"), p, this, drv));
+		int _drv = menu_QDs.size() - 1;
+		if(_drv < 0) return;
+		if(menu_QDs[_drv] == nullptr) return;
+		if(_drv != drv) {
+			delete menu_QDs[_drv];
+			menu_QDs.removeAt(_drv);
+			return;
+		}
+		
 		menu_QDs[drv]->create_pulldown_menu();
 
 		menu_QDs[drv]->do_clear_inner_media();
@@ -163,6 +180,9 @@ void Ui_MainWindowBase::retranslateQuickDiskMenu(int drv, int basedrv)
 	if(p.get() == nullptr) return;
 
 	if((drv < 0) || (drv >= p->get_max_qd())) return;
+	if(menu_QDs.size() <= drv) return;
+	if(menu_QDs[drv] == nullptr) return;
+	
 	QString drive_name = (QApplication::translate("MenuMedia", "Quick Disk ", 0));
 	drive_name += QString::number(basedrv);
 
@@ -186,6 +206,9 @@ void Ui_MainWindowBase::do_update_quick_disk_history(int drive, QStringList lst)
 	if(p.get() == nullptr) return;
 
 	if((drive < 0) || (drive >= p->get_max_qd())) return;
+	if(menu_QDs.size() <= drive) return;
+	//if(menu_QDs[drive] == nullptr) return;
+	
 	if(menu_QDs[drive] != nullptr) {
 		menu_QDs[drive]->do_update_histories(lst);
 	}

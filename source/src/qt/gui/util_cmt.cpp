@@ -26,7 +26,16 @@ void Ui_MainWindowBase::CreateCMTMenu(int drive, int base_drv)
 	if(up.get() == nullptr) return;
 
 	listCMT[drive].clear();
-	menu_CMT[drive] = new Menu_CMTClass(menubar, QString::fromUtf8("CMT"), using_flags, this, drive, base_drv);
+	menu_CMT.append(new Menu_CMTClass(menubar, QString::fromUtf8("CMT"), using_flags, this, drive, base_drv));
+	int _drv = menu_CMT.size() - 1;
+	if(_drv < 0) return;
+	if(menu_CMT[_drv] == nullptr) return;
+	if(_drv != drive) {
+		delete menu_CMT[_drv];
+		menu_CMT.removeAt(_drv);
+		return;
+	}
+	
 	menu_CMT[drive]->setObjectName(QString::fromUtf8("menuCMT", -1));
 
 	menu_CMT[drive]->create_pulldown_menu();
@@ -86,6 +95,8 @@ int Ui_MainWindowBase::set_recent_cmt(int drv, int num)
 	if(p->get_max_tape() <= drv) return -1;
 	if(drv < 0) return -1;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
+	if(menu_CMT.size() <= drv) return -1;
+	if(menu_CMT[drv] == nullptr) return -1;
 
 	s_path = QString::fromLocal8Bit(p_config->recent_tape_path[drv][num]);
 	if(!(s_path.isEmpty())) {
@@ -131,6 +142,7 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 	if(p->get_max_tape() <= drive) return;
 	if(drive < 0) return;
 
+	if(menu_CMT.size() <= drive) return;
 	if(menu_CMT[drive] == nullptr) return;
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 	my_strncpy_s(path_shadow, _MAX_PATH , path.toLocal8Bit().constData(), _TRUNCATE);
@@ -159,6 +171,7 @@ void Ui_MainWindowBase::do_ui_tape_play_insert_history(int drv, QString fname)
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), _MAX_PATH - 1);
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;
+	if(menu_CMT.size() <= drv) return;
 
 	UPDATE_HISTORY(fname, p_config->recent_tape_path[drv], listCMT[drv]);
 	strcpy(p_config->initial_tape_dir, 	get_parent_dir((const _TCHAR *)path_shadow));
@@ -188,6 +201,7 @@ void Ui_MainWindowBase::do_ui_write_protect_tape(int drive, quint64 flag)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_tape()) || (p->get_max_tape() <= drive)) return;
+	if(menu_CMT.size() <= drive) return;
 	if(menu_CMT[drive] == nullptr) return;
 
 	if((flag & EMU_MESSAGE_TYPE::WRITE_PROTECT) != 0) {
@@ -202,6 +216,7 @@ void Ui_MainWindowBase::do_ui_eject_tape(int drive)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_tape()) || (p->get_max_tape() <= drive)) return;
+	if(menu_CMT.size() <= drive) return;
 	if(menu_CMT[drive] != nullptr) return;
 
 	menu_CMT[drive]->do_clear_inner_media();
@@ -214,6 +229,9 @@ void Ui_MainWindowBase::retranslateCMTMenu(int drive)
 {
 	std::shared_ptr<USING_FLAGS>up = using_flags;
 	if(up.get() == nullptr) return;
+	if(menu_CMT.size() <= drive) return;
+	if(menu_CMT[drive] == nullptr) return;
+	
 	if(up->is_use_tape() && (up->get_max_tape() > drive)) {
 		menu_CMT[drive]->retranslateUi();
 	}

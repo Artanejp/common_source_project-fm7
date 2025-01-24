@@ -24,7 +24,16 @@ void Ui_MainWindowBase::CreateHardDiskMenu(int drv, int drv_base)
 	{
 		QString ext = "*.thd *.nhd *.hdi *.hdd *.h[0-9]";
 		QString desc1 = "Hard Disk Drive";
-		menu_hdds[drv] = new Menu_HDDClass(menubar, QString::fromUtf8("HDD"), using_flags, this, drv, drv_base);
+		menu_hdds.append(new Menu_HDDClass(menubar, QString::fromUtf8("HDD"), using_flags, this, drv, drv_base));
+		int _drv = menu_hdds.size() - 1;
+		if(_drv < 0) return;
+		if(menu_hdds[_drv] == nullptr) return;
+		if(_drv != drv) {
+			delete menu_hdds[_drv];
+			menu_hdds.removeAt(_drv);
+			return;
+		}
+		
 		menu_hdds[drv]->create_pulldown_menu();
 
 		menu_hdds[drv]->do_clear_inner_media();
@@ -61,6 +70,9 @@ void Ui_MainWindowBase::retranslateHardDiskMenu(int drv, int basedrv, QString sp
 	if(p.get() == nullptr) return;
 
 	if((drv < 0) || (drv >= p->get_max_hdd())) return;
+	if(menu_hdds.size() <= drv) return;
+	if(menu_hdds[drv] == nullptr) return;
+	
 	menu_hdds[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
 	menu_hdds[drv]->retranslateUi();
 }

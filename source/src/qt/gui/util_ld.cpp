@@ -19,7 +19,16 @@ void Ui_MainWindowBase::CreateLaserdiscMenu(int drv, int drv_base)
 	QString ext_play, desc_play;
 
 	listLaserdisc[drv].clear();
-	menu_Laserdisc[drv] = new Menu_LaserdiscClass(menubar, "Laserdisc", using_flags, this, drv, drv_base);
+	menu_Laserdisc.append(new Menu_LaserdiscClass(menubar, "Laserdisc", using_flags, this, drv, drv_base));
+	int _drv = menu_Laserdisc.size() - 1;
+	if(_drv < 0) return;
+	if(menu_Laserdisc[_drv] == nullptr) return;
+	if(_drv != drv) {
+		delete menu_Laserdisc[_drv];
+		menu_Laserdisc.removeAt(_drv);
+		return;
+	}
+	
 	menu_Laserdisc[drv]->setObjectName(QString::fromUtf8("menuLaserdisc", -1));
 
 	menu_Laserdisc[drv]->create_pulldown_menu();
@@ -32,8 +41,6 @@ void Ui_MainWindowBase::CreateLaserdiscMenu(int drv, int drv_base)
 	SETUP_HISTORY(p_config->recent_laser_disc_path[drv], listLaserdisc[drv]);
 	menu_Laserdisc[drv]->do_update_histories(listLaserdisc[drv]);
 	menu_Laserdisc[drv]->do_set_initialize_directory(p_config->initial_laser_disc_dir);
-
-
 }
 
 void Ui_MainWindowBase::CreateLaserdiscPulldownMenu(void)
@@ -72,6 +79,9 @@ void Ui_MainWindowBase::do_ui_eject_laser_disc(int drv)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(p->get_max_ld() <= drv) return;
+	if(menu_Laserdisc.size() <= drv) return;
+	//if(menu_Laserdisc[drv] == nullptr) return;
+	
 	if(menu_Laserdisc[drv] != nullptr) {
 		menu_Laserdisc[drv]->do_clear_inner_media();
 	}
@@ -88,6 +98,8 @@ void Ui_MainWindowBase::do_ui_laser_disc_insert_history(int drv, QString fname)
 	if(fname.length() <= 0) return;
 
 	if(using_flags->get_max_ld() <= drv) return;
+	if(menu_Laserdisc.size() <= drv) return;
+	if(menu_Laserdisc[drv] == nullptr) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
@@ -136,6 +148,7 @@ void Ui_MainWindowBase::retranslateLaserdiscMenu(void)
 
 	if(p->is_use_laser_disc()) {
 		for(int drv = 0; drv < p->get_max_ld(); drv++) {
+			if(menu_Laserdisc.size() <= drv) break;
 			if(menu_Laserdisc[drv] != nullptr) {
 				menu_Laserdisc[drv]->retranslateUi();
 			}
@@ -154,6 +167,8 @@ void Ui_MainWindowBase::do_update_laser_disc_history(int drive, QStringList lst)
 	if(p.get() == nullptr) return;
 
 	if((drive < 0) || (drive >= p->get_max_ld())) return;
+	if(menu_Laserdisc.size() <= drive) return;
+	//if(menu_Laserdisc[drv] == nullptr) return;
 	if(menu_Laserdisc[drive] != nullptr) {
 		menu_Laserdisc[drive]->do_update_histories(lst);
 	}

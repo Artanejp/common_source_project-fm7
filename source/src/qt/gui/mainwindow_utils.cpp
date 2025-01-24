@@ -455,7 +455,6 @@ void Ui_MainWindowBase::ConfigJoystickType(void)
 void Ui_MainWindowBase::ConfigMachineFeatures(void)
 {
 	for(int i = 0; i < using_flags->get_use_machine_features(); i++) {
-
 		menuMachineFeatures[i] = new QMenu(menuMachine);
 		menuMachineFeatures[i]->setObjectName(QString::fromUtf8("menuMachineFeatures"));
 		menuMachine->addAction(menuMachineFeatures[i]->menuAction());

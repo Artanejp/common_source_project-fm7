@@ -30,6 +30,9 @@ int Ui_MainWindowBase::set_recent_binary_load(void)
 	int num = tmp.index;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
+	if(drv < 0) return -1;
+	if(menu_BINs.size() <= drv) return -1;
+	if(menu_BINs[drv] == nullptr) return -1;
 	
 	s_path = QString::fromLocal8Bit(p_config->recent_binary_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX - 1);
@@ -57,6 +60,9 @@ int Ui_MainWindowBase::set_recent_binary_save(void)
 	int num = tmp.index;
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
+	if(drv < 0) return -1;
+	if(menu_BINs.size() <= drv) return -1;
+	if(menu_BINs[drv] == nullptr) return -1;
 	
 	s_path = QString::fromLocal8Bit(p_config->recent_binary_path[drv][num]);
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
@@ -82,7 +88,10 @@ void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 	char path_shadow[PATH_MAX];
 
 	if(fname.length() <= 0) return;
-	drv = drv & 7;
+	if(drv < 0) return;
+	if(menu_BINs.size() <= drv) return;
+	if(menu_BINs[drv] == nullptr) return;
+
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drv], listBINs[drv]);
@@ -97,9 +106,13 @@ void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 void Ui_MainWindowBase::_open_binary_save(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
-
-	if(fname.length() <= 0) return;
 	drv = drv & 7;
+	
+	if(fname.length() <= 0) return;
+	if(drv < 0) return;
+	if(menu_BINs.size() <= drv) return;
+	if(menu_BINs[drv] == nullptr) return;
+
 	memset(path_shadow, 0x00, PATH_MAX * sizeof(char));
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX - 1);
 	UPDATE_HISTORY(path_shadow, p_config->recent_binary_path[drv], listBINs[drv]);
@@ -126,21 +139,30 @@ void Ui_MainWindowBase::CreateBinaryMenu(int drv, int drv_base)
 	} else {
 		desc1 = "Memory Dump";
 	}
-	menu_BINs[drv] = new Menu_BinaryClass(menubar, QString::fromUtf8("Binary"), using_flags, this, drv, drv_base);
-	menu_BINs[drv]->create_pulldown_menu();
+	menu_BINs.append(new Menu_BinaryClass(menubar, QString::fromUtf8("Binary"), using_flags, this, drv, drv_base));
+	int _drv = menu_BINs.size() - 1;
+	if(_drv < 0) return;
+	if(menu_BINs[_drv] == nullptr) return;
+	if(_drv != drv) {
+		delete menu_BINs[_drv];
+		menu_BINs.removeAt(_drv);
+		return;
+	}
 	
-	menu_BINs[drv]->do_clear_inner_media();
-	menu_BINs[drv]->do_add_media_extension(ext, desc1);
-	SETUP_HISTORY(p_config->recent_binary_path[drv], listBINs[drv]);
-	menu_BINs[drv]->do_update_histories(listBINs[drv]);
-	menu_BINs[drv]->do_set_initialize_directory(p_config->initial_binary_dir);
-	listBINs[drv].clear();
+	menu_BINs[_drv]->create_pulldown_menu();
+	
+	menu_BINs[_drv]->do_clear_inner_media();
+	menu_BINs[_drv]->do_add_media_extension(ext, desc1);
+	SETUP_HISTORY(p_config->recent_binary_path[_drv], listBINs[_drv]);
+	menu_BINs[_drv]->do_update_histories(listBINs[_drv]);
+	menu_BINs[_drv]->do_set_initialize_directory(p_config->initial_binary_dir);
+	listBINs[_drv].clear();
 
 	QString name = QString::fromUtf8("Binary");
 	QString tmpv;
 	tmpv.setNum(drv_base);
 	name.append(tmpv);
-	menu_BINs[drv]->setTitle(name);
+	menu_BINs[_drv]->setTitle(name);
 }
 
 void Ui_MainWindowBase::CreateBinaryPulldownMenu(int drv)
@@ -158,6 +180,9 @@ void Ui_MainWindowBase::retranslateBinaryMenu(int drv, int basedrv)
   drive_name += QString::number(basedrv);
   
   if((drv < 0) || (drv >= 8)) return;
+  if(menu_BINs.size() <= drv) return;
+  if(menu_BINs[drv] == nullptr) return;
+  
   menu_BINs[drv]->setTitle(QApplication::translate("MenuMedia", drive_name.toUtf8().constData() , 0));
   menu_BINs[drv]->retranslateUi();
 }

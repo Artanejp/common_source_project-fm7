@@ -75,6 +75,257 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 	houseKeepingTimer = NULL;
 	statusUpdateTimer = NULL;
 
+	// Initialize Variables. 20250124 K.O
+	// File
+	actionGroup_CpuSpeed = nullptr;
+	actionSpeed_x1 = nullptr;
+	actionSpeed_x2 = nullptr;
+	actionSpeed_x4 = nullptr;
+	actionSpeed_x8 = nullptr;
+	actionSpeed_x16 = nullptr;
+	actionSpeed_FULL = nullptr;
+	actionPaste_from_Clipboard = nullptr;
+	actionStop_Pasting = nullptr;
+	menuSave_State = nullptr;
+	menuLoad_State = nullptr;
+
+	// Screen
+	actionGroup_Stretch = nullptr;
+	actionGroup_SetRenderPlatform = nullptr;
+	actionGroup_RotateType = nullptr;
+	action_ScreenSeparateThread = nullptr;
+	action_ScreenUseOSD = nullptr;
+	actionZoom = nullptr;
+	actionDisplay_Mode = nullptr;
+	actionScanLine = nullptr;
+	actionScanLine_Auto = nullptr;
+	actionGLScanLineHoriz = nullptr;
+	actionGLScanLineVert = nullptr;
+
+	for(int i = 0; i < 4; i++) {
+		actionRotate[i] = nullptr;
+	}
+	actionCRT_Filter = nullptr;
+	actionOpenGL_Filter = nullptr;
+	actionDot_by_Dot = nullptr;
+	actionReferToX_Display = nullptr;
+	actionReferToY_Display = nullptr;
+	actionFill_Display = nullptr;
+
+	actionGroup_ScreenSize = nullptr;
+	actionGroup_RenderMode = nullptr;
+
+	// Sound
+	actionGroup_Sound_Freq = nullptr;
+	actionGroup_Sound_Latency = nullptr;
+	actionGroup_Sound_HostDevices = nullptr;
+	
+	//QAction *actionSoundCMT;
+	action_VolumeDialog = nullptr;
+	actionSoundTapeSignal = nullptr;
+	actionSoundTapeVoice = nullptr;
+	actionSoundStrictRendering = nullptr;
+	action_SoundFilesFDD = nullptr;
+	action_SoundFilesRelay = nullptr;
+
+	//menuLogToConsole = nullptr;
+	//menuLogToSyslog = nullptr;
+	menuDevLogToConsole = nullptr;
+	menuDevLogToSyslog = nullptr;
+	menu_SetRenderPlatform = nullptr;
+	
+	// Misc
+	menu_DispVirtualMedias = nullptr;
+	actionGroup_DispVirtualMedias  = nullptr;
+
+	for(int i = 0; i < 5; i++) {
+		action_DispVirtualMedias[i]  = nullptr;
+	}
+	action_FocusWithClick = nullptr;
+	action_UseRomaKana = nullptr;
+	action_DriveInOpCode = nullptr;
+	action_NumPadEnterAsFullkey = nullptr;
+	action_UseJoykey = nullptr;
+	action_Logging_FDC = nullptr;
+	action_LogToSyslog = nullptr;
+	action_LogToConsole = nullptr;
+	action_LogRecord = nullptr;
+
+	// Emulator
+	action_SetupMouse = nullptr;
+	action_SetupJoystick = nullptr;
+	action_SetupJoykey = nullptr;
+	action_SetupKeyboard = nullptr;
+	action_LogView = nullptr;
+	action_PrintCpuStatistics = nullptr;
+
+	menu_EmulateCursorAs = nullptr;
+	actionGroup_EmulateCursorAs = nullptr;
+	for(int i = 0; i < 4; i++) {
+		action_EmulateCursorAs[i] = nullptr;
+	}
+
+	// Help
+	actionHelp_README_BIOS = nullptr;
+	actionHelp_README = nullptr;
+	actionHelp_README_QT = nullptr;
+	actionHelp_README_MR_TANAM = nullptr;
+	actionHelp_README_MR_GORRY = nullptr;
+	actionHelp_README_MR_MEISTER = nullptr;
+	actionHelp_README_Artane = nullptr;
+	actionHelp_README_Umaiboux = nullptr;
+	actionHelp_README_FAQ = nullptr;
+	actionHelp_README_FAQ_JP = nullptr;
+	actionHelp_README_FM7 = nullptr;
+	actionHelp_README_FM7_JP = nullptr;
+	actionHelp_History = nullptr;
+	actionHelp_History_Relnote = nullptr;
+	actionHelp_History_ChangeLog = nullptr;
+	actionHelp_History_MR_TANAM = nullptr;
+	actionHelp_License = nullptr;
+	actionHelp_License_JP = nullptr;
+
+		// Some Functions
+	actionGroup_BootMode = nullptr;
+	actionGroup_CpuType = nullptr;
+	actionReset = nullptr;
+	
+	actionExit_Emulator = nullptr;
+	for(int i = 0; i < 8; i++) {
+		actionCpuType[i] = nullptr;
+		actionBootMode[i] = nullptr;
+	}
+	for(int i = 0; i < _MAX_DEBUGGER; i++) {
+		actionDebugger[i] = nullptr;
+	}
+	
+	for(int i = 0; i < 10; i++) {
+		actionSave_State[i] = nullptr;
+		actionLoad_State[i] = nullptr;
+	}
+	//actionClose_Debuggers;
+	for(int i = 0; i < 32; i++) {
+		actionScreenSize[i] = nullptr;
+	}
+	actionAbout = nullptr;
+	actionMouseEnable = nullptr;
+	actionHelp_AboutQt = nullptr;
+	action_ResetFixedCpu = nullptr;
+
+	action_RAMSize = nullptr;
+	// Screen
+	actionCapture_Screen = nullptr;
+	for(int i = 0; i < 8; i++) {
+		action_SetRenderMode[i] = nullptr;
+	}
+	// Sound
+	for(int i = 0; i < 8; i++) {
+		action_Freq[i] = nullptr;
+	}
+	for(int i = 0; i < 6; i++) {
+		action_Latency[i] = nullptr;
+	}
+	actionStart_Record = nullptr;
+	actionStop_Record = nullptr;
+
+	// Emulator
+	actionGroup_DeviceType = nullptr;
+	actionGroup_KeyboardType = nullptr;
+	actionGroup_JoystickType = nullptr;
+	actionGroup_MouseType = nullptr;
+	actionGroup_DriveType = nullptr;
+	actionGroup_SoundDevice = nullptr;
+	actionGroup_PrintDevice = nullptr;
+	actionGroup_SerialDevice = nullptr;
+	actionGroup_SetFixedCpu = nullptr;
+	menuDeviceType = nullptr;
+	menuKeyboardType = nullptr;
+	menuJoystickType = nullptr;
+	menuMouseType = nullptr;
+	menuDriveType = nullptr;
+	menuSoundDevice = nullptr;
+	menuPrintDevice = nullptr;
+	menuSerialDevice = nullptr;
+	menu_SetFixedCpu = nullptr;
+
+	for(int i = 0; i < 16; i++) {
+		actionDeviceType[i] = nullptr;
+		actionKeyboardType[i] = nullptr;
+		actionJoystickType[i] = nullptr;
+	}
+	
+	for(int i = 0; i < 8; i++) {
+		actionMouseType[i] = nullptr;
+		actionDriveType[i] = nullptr;
+	}
+	for(int i = 0; i < 32; i++) {
+		actionSoundDevice[i] = nullptr; //
+	}
+	for(int i = 0; i < 16; i++) {
+		actionPrintDevice[i] = nullptr;
+		actionSerialDevice[i] = nullptr;
+	}
+	
+	for(int i = 0; i < MAX_RENDER_PLATFORMS; i++) {
+		action_SetRenderPlatform[i] = nullptr;
+	}
+
+	actionStart_Record_Movie = nullptr;
+	actionStop_Record_Movie = nullptr;
+	action_SetupMovie = nullptr; // 15, 24, 30, 60
+
+	menuMonitorType = nullptr;
+	actionGroup_MonitorType = nullptr;
+	for(int i = 0; i < 16; i++) {
+		actionMonitorType[i] = nullptr;
+	}
+	// Menus
+	menuControl = nullptr;
+	menuState = nullptr;
+	menuCopy_Paste = nullptr;
+	menuCpu_Speed = nullptr;
+	menuDebugger = nullptr;
+	menuScreen = nullptr;
+	menuStretch_Mode = nullptr;
+	menuScreenSize = nullptr;
+	menuScreen_Render = nullptr;
+	menuScreen_Rotate = nullptr;
+
+	menuCpuType = nullptr;
+	menuBootMode = nullptr;
+	menuSound = nullptr;
+	menuOutput_Frequency = nullptr;
+	menuSound_Latency = nullptr;
+	menuSound_HostDevices = nullptr;
+	menuMachine = nullptr;
+	menuRecord = nullptr;
+	menuRecord_sound = nullptr;
+	menuRecord_as_movie = nullptr;
+	menuEmulator = nullptr;
+	menuHELP = nullptr;
+	menuHelp_Readme = nullptr;
+	menuHelp_Histories = nullptr;
+
+	for(int i = 0; i < 32; i++) {
+		menuMachineFeatures[i] = nullptr;
+	}
+	// Status Bar
+	dummyStatusArea1 = nullptr;
+	messagesStatusBar = nullptr;
+	dummyStatusArea2 = nullptr;
+
+	cdrom_StatusBar = nullptr;
+
+	laserdisc_StatusBar = nullptr;
+	for(int i = 0; i < 8; i++) {
+		bubble_StatusBar[i] = nullptr;
+	}
+	
+	bitmapImage = nullptr;
+	ClipBoard = nullptr;
+	// END Initialize Variables. 20250124 K.O
+
+	
 	// Move from initStatusbar() for sending signals before called initStatusbar() by another thread.
 	// - 20241021 K.O
 	osd_led_data = 0x00000000;
@@ -108,6 +359,70 @@ Ui_MainWindowBase::~Ui_MainWindowBase()
 	graphicsView->releaseKeyboard();
 	if(ledUpdateTimer != NULL) delete ledUpdateTimer;
 	if(driveData != NULL) delete driveData;
+	for(auto p = menu_fds.begin(); p != menu_fds.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_QDs.begin(); p != menu_QDs.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_CMT.begin(); p != menu_CMT.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_hdds.begin(); p != menu_hdds.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_CDROM.begin(); p != menu_CDROM.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_Laserdisc.begin(); p != menu_Laserdisc.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_Cart.begin(); p != menu_Cart.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_BINs.begin(); p != menu_BINs.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	for(auto p = menu_bubbles.begin(); p != menu_bubbles.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	#if !defined(Q_OS_WIN)
+	for(auto p = action_DevLogToSyslog.begin(); p != action_DevLogToSyslog.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	#endif
+	for(auto p = action_DevLogToConsole.begin(); p != action_DevLogToConsole.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	#if 0
+	for(auto p = action_DevLogRecord.begin(); p != action_DevLogRecord.end(); ++p) {
+		if((*p) != nullptr) {
+			delete (*p);
+		}
+	}
+	#endif
 }
 
 QMenu  *Ui_MainWindowBase::createMenuNode(QMenuBar *parent, QString objname)

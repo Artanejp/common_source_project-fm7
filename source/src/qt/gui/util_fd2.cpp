@@ -21,7 +21,8 @@ void Ui_MainWindowBase::do_ui_write_protect_floppy_disk(int drive, quint64 flag)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drive)) return;
-	if(menu_fds[drive] != nullptr) return;
+	if(menu_fds.size() <= drive) return;
+	if(menu_fds[drive] == nullptr) return;
 
 	if((flag & EMU_MESSAGE_TYPE::WRITE_PROTECT) != 0) {
 		menu_fds[drive]->do_set_write_protect(true);
@@ -54,6 +55,8 @@ void Ui_MainWindowBase::do_ui_floppy_insert_history(int drv, QString fname, quin
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
 	if(fname.length() <= 0) return;
+	if(menu_fds.size() <= drv) return;
+	if(menu_fds[drv] == nullptr) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
@@ -107,6 +110,9 @@ void Ui_MainWindowBase::do_clear_d88_list(int drv)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
+	if(menu_fds.size() <= drv) return;
+	//if(menu_fds[drv] == nullptr) return;
+	
 	listD88[drv].clear();
 	if(menu_fds[drv] != nullptr) {
 		menu_fds[drv]->do_update_inner_media(listD88[drv], 0);
@@ -133,6 +139,9 @@ void Ui_MainWindowBase::do_finish_d88_list(int drv, quint64 bank)
 	if(!(p->is_use_fd()) || (p->get_max_drive() <= drv) || (drv < 0)) return;
 	quint64 __num = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
 	if(__num >= 64) return;
+	if(menu_fds.size() <= drv) return;
+	//if(menu_fds[drv] == nullptr) return;
+	
 	if(menu_fds[drv] != nullptr) {
 		menu_fds[drv]->do_update_inner_media(listD88[drv], __num);
 	}

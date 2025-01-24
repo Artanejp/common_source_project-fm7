@@ -218,6 +218,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	
 	drvs = USE_FLOPPY_DISK;
 	for(int ii = 0; ii < drvs; ii++) {
+		if(menu_fds.size() <= ii) break;
 		if(menu_fds[ii] != nullptr) {
 			menu_fds[ii]->connect_via_emu_thread(hRunEmu.get());
 			connect(menu_fds[ii], SIGNAL(sig_set_inner_slot(int, int)),
@@ -229,6 +230,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_HARD_DISK)
 	for(int ii = 0; ii < USE_HARD_DISK; ii++) {
 		if(ii >= USE_HARD_DISK_TMP) break;
+		if(menu_hdds.size() <= ii) break;
 		Menu_HDDClass *mp = menu_hdds[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
@@ -252,6 +254,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_TAPE)
 	for(int ii = 0; ii < USE_TAPE; ii++) {
 		if(ii >= USE_TAPE_TMP) break;
+		if(menu_CMT.size() <= ii) break;
 		Menu_CMTClass *mp = menu_CMT[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
@@ -276,6 +279,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_QUICK_DISK)
 	for(int ii = 0; ii < USE_QUICK_DISK; ii++) {
 		if(ii >= USE_QUICK_DISK) break;
+		if(menu_QDs.size() <= ii) break;
 		Menu_QDClass *mp = menu_QDs[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
@@ -306,6 +310,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_CART)
 	for(int ii = 0; ii < USE_CART; ii++) {
 		if(ii >= USE_CART_TMP) break;
+		if(menu_Cart.size() <= ii) break;
 		Menu_CartClass *mp = menu_Cart[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
@@ -323,7 +328,8 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #endif
 #if defined(USE_COMPACT_DISC)
 	for(int ii = 0; ii < USE_COMPACT_DISC; ii++) {
-		if(ii >= USE_COMPACT_DISC_TMP) break;
+		if(ii >= USE_COMPACT_DISC_TMP) break;	
+		if(menu_CDROM.size() <= ii) break;
 		Menu_CompactDiscClass *mp = menu_CDROM[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
@@ -346,6 +352,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_LASER_DISC)
 	for(int ii = 0; ii < USE_LASER_DISC; ii++) {
 		if(ii >= USE_LASER_DISC_TMP) break;
+		if(menu_LaserDisc.size() <= ii) break;
 		Menu_LaserdiscClass *mp = menu_Laserdisc[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
@@ -374,6 +381,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_BUBBLE)
 	for(int ii = 0; ii < USE_BUBBLE; ii++) {
 		if(ii >= USE_BUBBLE_TMP) break;
+		if(menu_bubbles.size() <= ii) break;
 		Menu_BubbleClass *mp = menu_bubbles[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());

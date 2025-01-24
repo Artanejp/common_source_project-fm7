@@ -130,14 +130,23 @@ void Ui_MainWindowBase::CreateCartMenu(int drv, int drv_base)
 		desc = "Game Cartridge";
 	}
 
-	menu_Cart[drv] = new Menu_CartClass(menubar, QString::fromUtf8("Cart"), using_flags, this, drv, drv_base);
-	menu_Cart[drv]->create_pulldown_menu();
+	menu_Cart.append(new Menu_CartClass(menubar, QString::fromUtf8("Cart"), using_flags, this, drv, drv_base));
+	int _drv = menu_Cart.size() - 1;
+	if(_drv < 0) return;
+	if(menu_Cart[_drv] == nullptr) return;
+	if(_drv != drv) {
+		delete menu_Cart[_drv];
+		menu_Cart.removeAt(_drv);
+		return;
+	}
+	
+	menu_Cart[_drv]->create_pulldown_menu();
 
-	menu_Cart[drv]->do_clear_inner_media();
-	menu_Cart[drv]->do_add_media_extension(ext, desc);
-	SETUP_HISTORY(p_config->recent_cart_path[drv], listCARTs[drv]);
-	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
-	menu_Cart[drv]->do_set_initialize_directory(p_config->initial_cart_dir);
+	menu_Cart[_drv]->do_clear_inner_media();
+	menu_Cart[_drv]->do_add_media_extension(ext, desc);
+	SETUP_HISTORY(p_config->recent_cart_path[_drv], listCARTs[_drv]);
+	menu_Cart[_drv]->do_update_histories(listCARTs[_drv]);
+	menu_Cart[_drv]->do_set_initialize_directory(p_config->initial_cart_dir);
 
 	QString name = QString::fromUtf8("Cart");
 	QString tmpv;

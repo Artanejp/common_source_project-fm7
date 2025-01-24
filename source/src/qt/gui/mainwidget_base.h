@@ -629,15 +629,15 @@ protected:
 
 	QMenu *menuMachineFeatures[32];
 
-	Menu_FDClass *menu_fds[16];
-	Menu_QDClass *menu_QDs[8];
-	Menu_CMTClass *menu_CMT[8];
-	Menu_HDDClass *menu_hdds[16];
-	Menu_CompactDiscClass *menu_CDROM[8];
-	Menu_LaserdiscClass *menu_Laserdisc[8];
-	Menu_CartClass *menu_Cart[8];
-	Menu_BinaryClass *menu_BINs[8];
-	Menu_BubbleClass *menu_bubbles[8];
+	QList<Menu_FDClass *> menu_fds;
+	QList<Menu_QDClass *> menu_QDs;
+	QList<Menu_CMTClass *> menu_CMT;
+	QList<Menu_HDDClass *> menu_hdds;
+	QList<Menu_CompactDiscClass *> menu_CDROM;
+	QList<Menu_LaserdiscClass *> menu_Laserdisc;
+	QList<Menu_CartClass *> menu_Cart;
+	QList<Menu_BinaryClass *> menu_BINs;
+	QList<Menu_BubbleClass *> menu_bubbles;
 	// Status Bar
 	QWidget *dummyStatusArea1;
 	QLabel *messagesStatusBar;

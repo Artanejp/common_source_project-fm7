@@ -20,8 +20,17 @@ void Ui_MainWindowBase::CreateCDROMMenu(int drv, int drv_base)
 {
 	QString ext_play, desc_play;
 
+	menu_CDROM.append(new Menu_CompactDiscClass(menubar, "CDROM", using_flags, this, drv, drv_base));
+	
+	int _drv = menu_CDROM.size() - 1;
+	if(_drv < 0) return;
+	if(menu_CDROM[_drv] == nullptr) return;
+	if(_drv != drv) {
+		delete menu_CDROM[_drv];
+		menu_CDROM.removeAt(_drv);
+		return;
+	}
 	listCDROM[drv].clear();
-	menu_CDROM[drv] = new Menu_CompactDiscClass(menubar, "CDROM", using_flags, this, drv, drv_base);
 	menu_CDROM[drv]->setObjectName(QString::fromUtf8("menuCDROM", -1));
 
 	menu_CDROM[drv]->create_pulldown_menu();
@@ -73,6 +82,8 @@ void Ui_MainWindowBase::do_ui_eject_compact_disc(int drv)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(p->get_max_cd() <= drv) return;
+	if(menu_CDROM.size() <= drv) return;
+	
 	if(menu_CDROM[drv] != nullptr) {
 		menu_CDROM[drv]->do_clear_inner_media();
 	}
@@ -89,6 +100,8 @@ void Ui_MainWindowBase::do_ui_compact_disc_insert_history(int drv, QString fname
 	if(fname.length() <= 0) return;
 
 	if(p->get_max_cd() <= drv) return;
+	if(menu_CDROM.size() <= drv) return;
+	if(menu_CDROM[drv] == nullptr) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
@@ -130,7 +143,10 @@ void Ui_MainWindowBase::retranslateCDROMMenu(void)
 {
 	if(using_flags->is_use_compact_disc()) {
 		for(int drv = 0; drv < using_flags->get_max_cd(); drv++) {
-			menu_CDROM[drv]->retranslateUi();
+			if(menu_CDROM.size() <= drv) break;
+			if(menu_CDROM[drv] != nullptr) {
+				menu_CDROM[drv]->retranslateUi();
+			}
 		}
 	}
 }
@@ -160,6 +176,7 @@ void Ui_MainWindowBase::do_update_compact_disc_history(int drive, QStringList ls
 	if(p.get() == nullptr) return;
 
 	if((drive < 0) || (drive >= p->get_max_cd())) return;
+	if(menu_CDROM.size() <= drive) return;
 	if(menu_CDROM[drive] != nullptr) {
 		menu_CDROM[drive]->do_update_histories(lst);
 	}

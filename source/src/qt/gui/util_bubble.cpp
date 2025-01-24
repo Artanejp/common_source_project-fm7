@@ -32,22 +32,31 @@ void Ui_MainWindowBase::CreateBubbleMenu(int drv, int drv_base)
 	{
 		QString ext = "*.b77 *.bbl";
 		QString desc1 = "Bubble Casette";
-		menu_bubbles[drv] = new Menu_BubbleClass(menubar, QString::fromUtf8("Obj_Bubble"), using_flags, this, drv);
-		menu_bubbles[drv]->create_pulldown_menu();
+		menu_bubbles.append(new Menu_BubbleClass(menubar, QString::fromUtf8("Obj_Bubble"), using_flags, this, drv));
+		int _drv = menu_bubbles.size() - 1;
+		if(_drv < 0) return;
+		if(menu_bubbles[_drv] == nullptr) return;
+		if(_drv != drv) {
+			delete menu_bubbles[_drv];
+			menu_bubbles.removeAt(_drv);
+			return;
+		}
 
-		menu_bubbles[drv]->do_clear_inner_media();
-		menu_bubbles[drv]->do_add_media_extension(ext, desc1);
-		SETUP_HISTORY(p_config->recent_bubble_casette_path[drv], listBubbles[drv]);
+		menu_bubbles[_drv]->create_pulldown_menu();
 
-		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
-		menu_bubbles[drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
-		listB77[drv].clear();
+		menu_bubbles[_drv]->do_clear_inner_media();
+		menu_bubbles[_drv]->do_add_media_extension(ext, desc1);
+		SETUP_HISTORY(p_config->recent_bubble_casette_path[_drv], listBubbles[_drv]);
+
+		menu_bubbles[_drv]->do_update_histories(listBubbles[_drv]);
+		menu_bubbles[_drv]->do_set_initialize_directory(p_config->initial_bubble_casette_dir);
+		listB77[_drv].clear();
 
 		QString name = QString::fromUtf8("BUBBLE");
 		QString tmpv;
 		tmpv.setNum(drv_base);
 		name.append(tmpv);
-		menu_bubbles[drv]->setTitle(name);
+		menu_bubbles[_drv]->setTitle(name);
 	}
 }
 
@@ -66,6 +75,7 @@ void Ui_MainWindowBase::retranslateBubbleMenu(int drv, int basedrv)
 	if(p_config == nullptr) return;
 	if(!(up->is_use_bubble())) return;
 	if((up->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles.size() <= drv) return;
 	if(menu_bubbles[drv] == nullptr) return;
 
 	QString drive_name = (QApplication::translate("MainWindow", "Bubble ", 0));
@@ -93,6 +103,8 @@ int Ui_MainWindowBase::set_recent_bubble(int drv, int num)
 	if(p_config == nullptr) return -1;
 	if(!(p->is_use_bubble())) return -1;
 	if((p->get_max_bubble() <= drv) || (drv < 0)) return -1;
+	if(menu_bubbles.size() <= drv) return -1;
+	if(menu_bubbles[drv] == nullptr) return -1;
 
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(p_config->recent_bubble_casette_path[drv][num]);
@@ -111,6 +123,8 @@ void Ui_MainWindowBase::_open_bubble(int drv, const QString fname)
 	if(fname.length() <= 0) return;
 	if(!(p->is_use_bubble())) return;
 	if((p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles.size() <= drv) return;
+	if(menu_bubbles[drv] == nullptr) return;
 
 	const _TCHAR *fnamep = (const _TCHAR*)(fname.toLocal8Bit().constData());
 	if(fnamep == nullptr) return;
@@ -129,6 +143,9 @@ void Ui_MainWindowBase::do_ui_bubble_insert_history(int drv, QString fname, quin
 	if(fname.length() <= 0) return;
 	if(p_config == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(drv < 0) return;
+	if(menu_bubbles.size() <= drv) return;
+	if(menu_bubbles[drv] == nullptr) return;
 
 	_TCHAR path_shadow[_MAX_PATH] = {0};
 
@@ -167,6 +184,8 @@ void Ui_MainWindowBase::do_ui_eject_bubble_casette(int drv)
 	std::shared_ptr<USING_FLAGS>p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles.size() <= drv) return;
+	//if(menu_bubbles[drv] == nullptr) return;
 
 	listB77[drv].clear();
 	if(menu_bubbles[drv] != nullptr) {
@@ -196,6 +215,8 @@ void Ui_MainWindowBase::do_update_bubble_history(int drive, QStringList lst)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drive) || (drive < 0)) return;
+	if(menu_bubbles.size() <= drive) return;
+	//if(menu_bubbles[drive] == nullptr) return;
 
 	if(menu_bubbles[drive] != nullptr) {
 		menu_bubbles[drive]->do_update_histories(lst);
@@ -208,6 +229,9 @@ void Ui_MainWindowBase::do_clear_b77_list(int drv)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles.size() <= drv) return;
+	//if(menu_bubbles[drv] == nullptr) return;
+	
 	listB77[drv].clear();
 	if(menu_bubbles[drv] != nullptr) {
 		menu_bubbles[drv]->do_update_inner_media(listB77[drv], 0);
@@ -219,6 +243,9 @@ void Ui_MainWindowBase::do_insert_b77_list(int drv, QString name, quint64 _slot)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles.size() <= drv) return;
+	//if(menu_bubbles[drv] == nullptr) return;
+	
 	if(_slot > 64) return;
 	QString _s = name;
 	if(_s.isEmpty()) {
@@ -232,6 +259,8 @@ void Ui_MainWindowBase::do_finish_b77_list(int drv, quint64 bank)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble()) || (p->get_max_bubble() <= drv) || (drv < 0)) return;
+	if(menu_bubbles.size() <= drv) return;
+//	if(menu_bubbles[drv] == nullptr) return;
 	
 	quint64 __num = bank & EMU_MEDIA_TYPE::EMU_SLOT_MASK;
 	if(__num >= 16) return;
