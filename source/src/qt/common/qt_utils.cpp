@@ -352,7 +352,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 #if defined(USE_LASER_DISC)
 	for(int ii = 0; ii < USE_LASER_DISC; ii++) {
 		if(ii >= USE_LASER_DISC_TMP) break;
-		if(menu_LaserDisc.size() <= ii) break;
+		if(menu_Laserdisc.size() <= ii) break;
 		Menu_LaserdiscClass *mp = menu_Laserdisc[ii];
 		if(mp != nullptr) {
 			mp->connect_via_emu_thread(hRunEmu.get());
