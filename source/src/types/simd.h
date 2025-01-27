@@ -873,11 +873,27 @@ public:
 		__b.store_aligned(m_data);
 		return *this;
 	}
+	constexpr csp_vector8<T>& operator+=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] + __n;
+		}
+		return *this;
+	}
 	constexpr csp_vector8<T>& operator+=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] += __b.at(i);
+		}
+		return *this;
+	}
+	constexpr csp_vector8<T>& operator-=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] - __n;
 		}
 		return *this;
 	}
@@ -889,11 +905,27 @@ public:
 		}
 		return *this;
 	}
+	constexpr csp_vector8<T>& operator/=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] / __n;
+		}
+		return *this;
+	}
 	constexpr csp_vector8<T>& operator/=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] /= __b.at(i);
+		}
+		return *this;
+	}
+	constexpr csp_vector8<T>& operator*=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] * __n;
 		}
 		return *this;
 	}
@@ -913,6 +945,14 @@ public:
 		}
 		return *this;
 	}
+	constexpr csp_vector8<T>& operator&=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] & __n;
+		}
+		return *this;
+	}
 	constexpr csp_vector8<T>& operator|=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
@@ -921,11 +961,27 @@ public:
 		}
 		return *this;
 	}
+	constexpr csp_vector8<T>& operator|=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] | __n;
+		}
+		return *this;
+	}
 	constexpr csp_vector8<T>& operator^=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] ^= __b.at(i);
+		}
+		return *this;
+	}
+	constexpr csp_vector8<T>& operator^=(const T __n)
+	{
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			m_data[i] = m_data[i] ^ __n;
 		}
 		return *this;
 	}
