@@ -78,7 +78,7 @@ void TOWNS_SPRITE::reset()
 
 void TOWNS_SPRITE::render_text()
 {
-	int c = 0;
+	uint16_t c = 0;
 	uint32_t plane_offset = 0x40000;
 	uint32_t linesize = 0x80 * 4;
 	__LIKELY_IF(d_crtc !=NULL) {
@@ -152,26 +152,25 @@ void TOWNS_SPRITE::render_text()
 
 // From MAME 0.216
 // ToDo: Will refine.
-uint32_t TOWNS_SPRITE::get_font_address(uint32_t c, uint8_t &attr)
+uint32_t TOWNS_SPRITE::get_font_address(const uint16_t c, uint8_t &attr)
 {
 	static const uint32_t addr_base_jis = 0x00000;
 	static const uint32_t addr_base_ank = 0x3d800;
 	uint32_t romaddr = 0;
-	uint8_t *tvram_snapshot = &(pattern_ram[0x0000]);
-	
-	attr = tvram_snapshot[c + 1];
+	uint8_t *tvram_snapshot = &(pattern_ram[c & 0xfff]);
+	attr = tvram_snapshot[1];
 	switch(attr & 0xc0) {
 	case 0x00:
 		{
-			uint8_t ank = tvram_snapshot[c];
+			uint8_t ank = tvram_snapshot[0];
 			romaddr = addr_base_ank + (ank * 16);
 		}
 		break;
 	case 0x40:
 		{ // KANJI LEFT
 			pair32_t jis;
-			jis.b.h = tvram_snapshot[c + 0x2000]; // CA000-CAFFF
-			jis.b.l = tvram_snapshot[c + 0x2001]; // CA000-CAFFF
+			jis.b.h = tvram_snapshot[0x2000]; // CA000-CAFFF
+			jis.b.l = tvram_snapshot[0x2001]; // CA000-CAFFF
 			if(jis.b.h < 0x30) {
 				romaddr =
 					(((uint32_t)(jis.b.l & 0x1f)) << 4) |
@@ -259,25 +258,6 @@ void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshif
 	return;
 }
 
-void TOWNS_SPRITE::load_16words_from_pattern_ram(uint32_t offset, csp_vector8<uint16_t> dst[])
-{
-	uint32_t raddr = offset & 0x1ffff;
-//	__LIKELY_IF(raddr < (0x20000 - (16 * sizeof(uint16_t)))) {
-//		dst[0].load_from_le(&(pattern_ram[raddr + 0]));
-//		dst[1].load_from_le(&(pattern_ram[raddr + 16]));
-//	} else {
-		for(size_t rx = 0; rx < 2; rx++) {
-			pair16_t _tmp;
-			for(size_t xx = 0; xx < 8; xx++) {
-				_tmp.b.l = pattern_ram[raddr];
-				raddr = (raddr + 1) & 0x1ffff;
-				_tmp.b.h = pattern_ram[raddr];
-				raddr = (raddr + 1) & 0x1ffff;
-				dst[rx][xx] = _tmp.w;
-			}
-		}
-//	}
-}
 #undef __M__MINIMUM_ALIGN_LENGTH
 
 // Still don't use cache.
@@ -293,7 +273,6 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	// ToDo: SPYS
 	if((color & 0x2000) != 0) return; // DISP
 //	out_debug_log(_T("RENDER #%d"), render_num);
-	uint32_t color_offset = (((uint32_t)(color & 0xfff)) << 5) & 0x1ffff; // COL11 - COL0
 
 	int xoffset = 0;
 	int yoffset = 0;
@@ -304,8 +283,10 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	uint8_t rot = attr >> 12;
 	bool is_halfy = ((attr & 0x0800) != 0);
 	bool is_halfx = ((attr & 0x0400) != 0); // SUX
+
+	uint32_t color_offset = (uint32_t)(color & 0xfff); // COL11 - COL0
 	// From MAME 0.209, mame/drivers/video/fmtowns.cpp
-	uint32_t ram_offset =  (((uint32_t)(attr & 0x3ff)) << 7) & 0x1ffff; // PAT9 - PAT0
+	uint32_t ram_offset =  ((uint32_t)(attr & 0x3ff)) << 2; // PAT9 - PAT0
 
 	int rx = (x + xoffset) & 0x1ff;
 	int ry = (y + yoffset) & 0x1ff;
@@ -348,15 +329,15 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	if(is_32768) {
 		csp_vector8<uint16_t> nnw[2];
 		for(int yy = 0; yy < 16; yy++) {
-			uint32_t addr = (yy << 5) + ram_offset;
-			load_16words_from_pattern_ram((uint32_t)addr, nnw);
+			//uint32_t addr = (yy << 5) + ram_offset;
+			load_16words_from_pattern_ram(ram_offset, (uint32_t)yy, nnw);
 			// P1 get data
 			nnw[0].store_aligned(&(tbuf[yy][0]));
 			nnw[1].store_aligned(&(tbuf[yy][8]));
 		}
 	} else {
 		csp_vector8<uint16_t> nnw[2];
-		load_16words_from_pattern_ram((uint32_t)color_offset, nnw);
+		load_16words_from_pattern_ram((uint32_t)color_offset, 0, nnw);
 		csp_vector8<uint16_t> tmpmask(0x7fff);
 		nnw[0] &= tmpmask;
 		nnw[1] &= tmpmask;
@@ -368,25 +349,27 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		// 20250123 K.O
 		color_table[0] = 0x8000; 
 		for(int yy = 0; yy < 16; yy++) {
-			uint32_t addr = (yy << 3) + ram_offset;
-			uint8_t nnh, nnl;
-			__DECL_ALIGNED(8) uint8_t nnb[8];
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 8; xx++) {
-				nnb[xx] = pattern_ram[(addr + xx) & 0x1ffff];
-			}
-
-__DECL_VECTORIZED_LOOP
+			csp_vector8<uint8_t> nnl;
+			csp_vector8<uint8_t> nnh;
+			//csp_vector8<uint8_t> upper_mask(0x0f);
+			
+			load_8bytes_from_pattern_ram(ram_offset, (uint32_t)yy, nnl);
+			nnh = nnl;
+			//nnh &= upper_mask;
+			nnh &= 0x0f;
+			nnl >>= 4;
+			//nnl &= upper_mask;
+			nnl &= 0x0f;
+			// Lookup
+		__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 8; xx++ ) {
-				nnh = nnb[xx] & 0x0f;
-				pixel_h[xx] = color_table[nnh];
+				pixel_h[xx] = color_table[nnh[xx]];
 			}
-__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 8; xx++ ) {
-				nnl = nnb[xx] >> 4;
-				pixel_l[xx] = color_table[nnl];
+				pixel_l[xx] = color_table[nnl[xx]];
 			}
-__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx += 2 ) {
 				tbuf[yy][xx    ] = pixel_h[xx >> 1];
 				tbuf[yy][xx + 1] = pixel_l[xx >> 1];
@@ -582,7 +565,8 @@ __DECL_VECTORIZED_LOOP
 				maskbuf_posi[rx1] = lbuf[rx1];
 			}
 			for(int rx1 = 0; rx1 < 2; rx1++) {
-				maskbuf_posi[rx1] &= mask_transparent;
+				//maskbuf_posi[rx1] &= mask_transparent;
+				maskbuf_posi[rx1] &= 0x8000;
 			}
 			for(int rx1 = 0; rx1 < 2; rx1++) {
 				maskbuf_posi[rx1].not_equals(is_transparent[rx1], 0x0000);
@@ -594,7 +578,8 @@ __DECL_VECTORIZED_LOOP
 				color_values[rx1] = lbuf[rx1];
 			}
 			for(int rx1 = 0; rx1 < 2; rx1++) {
-				color_values[rx1] &= mask_value;
+				//color_values[rx1] &= mask_value;
+				color_values[rx1] &= 0x7fff;
 			}
 			for(int rx1 = 0; rx1 < 2; rx1++) {
 				color_values[rx1] &= maskbuf_posi[rx1];
@@ -605,7 +590,8 @@ __DECL_VECTORIZED_LOOP
 					maskbuf_posi2[rx1] = lbuf2[rx1];
 				}
 				for(int rx1 = 0; rx1 < 2; rx1++) {
-					maskbuf_posi2[rx1] &= mask_transparent;
+					//maskbuf_posi2[rx1] &= mask_transparent;
+					maskbuf_posi2[rx1] &= 0x8000;
 				}
 				for(int rx1 = 0; rx1 < 2; rx1++) {
 					maskbuf_posi2[rx1].not_equals(is_transparent2[rx1], 0x0000);
@@ -620,7 +606,8 @@ __DECL_VECTORIZED_LOOP
 					color_values2[rx1] = lbuf2[rx1];
 				}
 				for(int rx1 = 0; rx1 < 2; rx1++) {
-					color_values2[rx1] &= mask_value;
+					//color_values2[rx1] &= mask_value;
+					color_values2[rx1] &= 0x7fff;
 				}
 				for(int rx1 = 0; rx1 < 2; rx1++) {
 					color_values2[rx1] &= maskbuf_posi2[rx1];
@@ -1068,9 +1055,6 @@ void TOWNS_SPRITE::check_and_clear_vram()
 		}
 		draw_page1 = !(disp_page1);
 		uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
-
-		//clear_event(this, event_busy);
-		//register_event(this, EVENT_CLEAR_VRAM_COMPLETED, 32.0, false, &event_busy);
 		__LIKELY_IF(d_vram != NULL){
 			__DECL_ALIGNED(16) uint8_t headbuf[256 * 2 * 2];			   
 			d_vram->lock();
@@ -1100,7 +1084,7 @@ void TOWNS_SPRITE::check_and_clear_vram()
 }
 void TOWNS_SPRITE::event_frame()
 {
-	frame_out = true;
+//	frame_out = true;
 
 	if(!(reg_spen)) {
 		sprite_enabled = false;
@@ -1112,8 +1096,14 @@ void TOWNS_SPRITE::event_frame()
 
 void TOWNS_SPRITE::event_pre_frame()
 {
+	// Note:
+	// By After Burner II (and others),
+	// Assume sprite is stopping at VBLANK (??).
+	// So, below tricky logic seems to be implemented.
+	// - 20250128 K.O
 	clear_event(this, event_busy);
 	sprite_busy = false;
+	frame_out = true;
 }
 
 
@@ -1137,12 +1127,12 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 		if((sprite_enabled) && (frame_out)) {
 			frame_out = false;
 			__LIKELY_IF(render_num > 0) {
+				// Note: Sprite don't limit by VSYNC timing,
+				// If sprites are too many to render within a frame,
+				// (maybe stopping at VBLANK) and continueing at next frame.
+				// - 20250128 K.O
 				sprite_busy = true;
 				sprite_usec = get_sprite_usec(render_num);
-				//if(render_num > max_sprite_per_frame) {
-				//	render_num = max_sprite_per_frame;
-				//}
-				sprite_busy = true;
 				event_callback(EVENT_RENDER, 0);
 				clear_event(this, event_busy);
 				if(render_num > 0) {
@@ -1183,9 +1173,9 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 		break;
 	case SIG_TOWNS_SPRITE_BANK:
 		__LIKELY_IF(sprite_enabled) {
-			return (draw_page1) ? 0xffffffff : 0;
+			return (draw_page1) ? 0xffffffff : 0; // Not drawn page == Displaying page
 		} else {
-			return ((reg_data[6] & 0x80) != 0) ? 0xffffffff : 0;
+			return ((reg_data[6] & 0x80) != 0) ? 0xffffffff : 0; // Value of DP1
 		}
 		break;
 	case SIG_TOWNS_SPRITE_FRAME_IN:

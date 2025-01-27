@@ -42,8 +42,7 @@ protected:
 
 	bool reg_spen;
 	uint16_t reg_index;
-	uint8_t pattern_ram[0x20000];
-//	uint8_t ram[0x3000];
+	__DECL_ALIGNED(32) uint8_t pattern_ram[0x20000];
 
 	uint16_t reg_voffset;
 	uint16_t reg_hoffset;
@@ -74,9 +73,9 @@ protected:
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
 	virtual uint8_t __FASTCALL read_reg(uint32_t addr);
 	void check_and_clear_vram();
-	virtual uint32_t __FASTCALL get_font_address(uint32_t c, uint8_t &attr);
+	virtual uint32_t __FASTCALL get_font_address(const uint16_t c, uint8_t &attr);
 	virtual void render_text();
-	virtual inline double get_sprite_usec(int num)
+	virtual inline double get_sprite_usec(const int num) const
 	{
 		// From Tsugaru.
 		__LIKELY_IF(!(is_older_sprite)) {
@@ -86,13 +85,45 @@ protected:
 		}
 		return 57.0;
 	}
-	virtual inline double get_vram_clear_usec()
+	virtual inline double get_vram_clear_usec() const
 	{
 		// From Tsugaru.
 		return 32.0;
 	}
-	virtual void load_16words_from_pattern_ram(uint32_t offset, csp_vector8<uint16_t> dst[]);
-
+	inline void __FASTCALL load_16words_from_pattern_ram(uint32_t bank, uint32_t yoffset, csp_vector8<uint16_t> dst[])
+	{
+		uint32_t addr = (((yoffset + bank) & 0x0fff) << 5) & 0x1ffe0;
+		__LIKELY_IF(addr <= ((0x1ffff + 1) - (sizeof(uint16_t) * 16))) {
+			for(int i = 0; i < 2; i++) {
+				dst[i].load_from_le(&(pattern_ram[addr]));
+				addr += (sizeof(uint16_t) * 8);
+			}
+		} else {
+			for(int i = 0; i < 2; i++) {
+				for(int j = 0; j < 8; j++) {
+					pair16_t tmp;
+					tmp.b.l = pattern_ram[addr];
+					addr = (addr + 1) & 0x1ffff;
+					tmp.b.h = pattern_ram[addr];
+					addr = (addr + 1) & 0x1ffff;
+					dst[i][j] = tmp.w;
+				}
+			}
+		}
+	}
+	
+	inline void __FASTCALL load_8bytes_from_pattern_ram(uint32_t bank, uint32_t yoffset, csp_vector8<uint8_t>& dst)
+	{
+		uint32_t addr = ((bank << 5) + (yoffset << 3)) & 0x1fff8;
+		__LIKELY_IF(addr <= ((0x1ffff + 1) - 8)) {
+			dst.load(&(pattern_ram[addr]));
+		} else {
+			for(int i = 0; i < 8; i++) {
+				dst[i] = pattern_ram[addr];
+				addr = (addr + 1) & 0x1ffff;
+			}
+		}
+	}
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
