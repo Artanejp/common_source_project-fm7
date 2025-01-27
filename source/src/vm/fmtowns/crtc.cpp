@@ -240,7 +240,21 @@ void TOWNS_CRTC::set_vsync(bool val)
 			//! - Below is from Tsugaru, commit 1a442831 .
 			//! - I wonder sprite offset effects every display mode at page1.
 			//! - -- 20230715 K.O
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
+			#if 1
+			int trans = render_linebuf.load() & display_linebuf_mask;
+			bool is_single_tmp = is_single_layer[trans];
+			if((real_display_mode[1] == DISPMODE_32768) && !(is_single_tmp) && (line_offset[1] == 128)) {
+				d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
+			}
+			#endif
+			#if 0
+			else if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 80)*/) {
+				// OK?
+				d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
+
+			}
+			#endif
+				
 		}
 	}
 }
@@ -2130,30 +2144,6 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 				to_disp = false;
 				break;
 			}
-			#if 0
-			if((line > 0)) {
-				int prev_mode = linebuffers[trans][line - 1].mode[l] & ~(DISPMODE_DUP);
-				int prev_line = linebuffers[trans][line - 1].prev_y[l];
-				int cur_mode = linebuffers[trans][line].mode[l] & ~(DISPMODE_DUP);
-				if((cur_mode != DISPMODE_NONE) && (cur_mode == prev_mode) && (to_disp)) {
-					if((zoom_count_vert[l] < zoom_factor_vert[l])) {
-						// Skip lines.
-						linebuffers[trans][line].mode[l] = cur_mode | DISPMODE_DUP;
-						__LIKELY_IF(prev_line >= 0) {
-							linebuffers[trans][line].prev_y[l] = prev_line;
-						}
-						if(zoom_count_vert[l] > 0) {
-							zoom_count_vert[l]--;
-						}
-						if(zoom_count_vert[l] <= 0) {
-							zoom_count_vert[l] = zoom_factor_vert[l];
-							head_address[l] += lo;
-						}
-						return;
-					}
-				}
-			}
-			#endif
 			if(to_disp) {
 				uint32_t offset = __vstart_addr; // ToDo: Larger VRAM
 				uint32_t head_tmp = head_address[l];
@@ -2297,8 +2287,8 @@ void TOWNS_CRTC::event_pre_frame()
 		hdisp[i] = false;
 		frame_in[i] = false;
 		head_address[i] = 0;
-		update_vstart(i);	
-		update_line_offset(i);
+//		update_vstart(i);	
+//		update_line_offset(i);
 	}
 	display_linebuf = render_linebuf.load();
 	__LIKELY_IF(display_enabled) {
@@ -2391,6 +2381,17 @@ void TOWNS_CRTC::event_frame()
 	}
 	// Rendering TEXT.
 	sprite_offset = get_sprite_offset();
+#if 1
+	__LIKELY_IF(d_sprite != NULL) {
+		int trans = render_linebuf.load() & display_linebuf_mask;
+		bool is_single_tmp = is_single_layer[trans];
+		if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 80)*/) {
+			// OK?
+			d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
+			
+		}
+	}
+#endif
 }
 
 void TOWNS_CRTC::event_vline(int v, int clock)
@@ -2452,13 +2453,20 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 				update_vstart(i);
 				update_line_offset(i);
 				// Need to update on vert offset
-				recalc_hdisp_from_crtc_params(i, horiz_start_us[i], horiz_end_us[i]);
-				__LIKELY_IF(d_sprite != NULL) {
-					if((i == 0) && !(is_single_tmp)) {
-						// Text rendering starts related by LO0. 20240314 K.O
+				//recalc_hdisp_from_crtc_params(i, horiz_start_us[i], horiz_end_us[i]);
+				
+				#if 0
+				if((d_sprite != NULL) && (i == 1)) {
+					if((real_display_mode[1] == DISPMODE_32768) && !(is_single_tmp) && (line_offset[1] == 128)) {
+						d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
+					} else
+					if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 80)*/) {
+						// OK?
 						d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
+						
 					}
 				}
+				#endif
 			}
 		}
 		// Check frame_in[layer]
