@@ -105,6 +105,7 @@ void GLDraw_4_5::drawPolygon(int vertex_loc, uintptr_t p)
 
 QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 {
+//	QMutexLocker Locker_S(main_mutex);
 	QOpenGLTexture *tx;
 	QImage *ip = NULL;
 	int w;
@@ -120,10 +121,7 @@ QOpenGLTexture *GLDraw_4_5::createMainTexture(QImage *img)
 		w = img->width();
 		h = img->height();
 	}
-	if(main_texture_buffer != 0) {
-		this->unmap_vram_texture();
-	}
-	QMutexLocker Locker_S(main_mutex);
+
 	main_texture_ready = false;
 	{
 		if(sync_fence != 0) {
@@ -770,10 +768,10 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 {
 	// set vertex
 	redraw_required = true;
-	//if(p == NULL) return;
 	//redraw_required = true;
 	imgptr = p;
 	if(uVramTextureID == NULL) {
+		unmap_vram_texture();
 		uVramTextureID = createMainTexture(p);
 	} else 
 	{
@@ -814,7 +812,7 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 			}
 		} else {
 			// p == NULL
-			main_mutex->lock();
+			//main_mutex->lock();
 			// Flush buffer range
 			extfunc->glFlushMappedNamedBufferRange(main_texture_buffer, 0, pixel_width * pixel_height * sizeof(scrntype_t));
 			if(sync_fence != 0) {
@@ -829,7 +827,7 @@ void GLDraw_4_5::uploadMainTexture(QImage *p, bool use_chromakey, bool was_mappe
 			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pixel_width, pixel_height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 			extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-			main_mutex->unlock();
+			//main_mutex->unlock();
 		}
 	}
 #if 1
@@ -1291,10 +1289,13 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		}
 		if(p != NULL) {
 			if((p->width() > pixel_width) || (p->height() > pixel_height)) {
+				unmap_vram_texture();
 				if(uVramTextureID != NULL) {
+					QMutexLocker Locker_S(main_mutex);
 					delete uVramTextureID;
-					uVramTextureID = createMainTexture(p);
+					uVramTextureID = NULL;
 				}
+				uVramTextureID = createMainTexture(p);
 			}
 		}
 		vertexFormat[0].x = -1.0f;
@@ -1375,6 +1376,8 @@ bool GLDraw_4_5::copy_screen_buffer(scrntype_t *target, int w, int h, int stride
 	if(stride <= 0) return false;
 	if(target == NULL) return false;
 	if((w <= 0) || (h <= 0)) return false;
+	
+	QMutexLocker Locker_S(main_mutex);	
 	if(w >= pixel_width) w = pixel_width;
 	if(h >= pixel_height) h = pixel_height;
 	if(stride >= pixel_width) stride = pixel_width;
@@ -1383,7 +1386,6 @@ bool GLDraw_4_5::copy_screen_buffer(scrntype_t *target, int w, int h, int stride
 //	if((map_base_address == NULL) || !(main_texture_ready)) {
 //		return false;
 //	}
-	QMutexLocker Locker_S(main_mutex);	
 	extfunc->glBindBuffer(GL_PIXEL_PACK_BUFFER, main_read_texture_buffer);
 	extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID->textureId());
 	extfunc->glActiveTexture(GL_TEXTURE0);
