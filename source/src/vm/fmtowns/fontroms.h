@@ -52,10 +52,10 @@ public:
 	bool process_state(FILEIO *state_fio, bool loading) override;
 
 	// unique functions
-	constexpr uint8_t __FASTCALL read_direct_data8(uint32_t addr);
+	_CONSTEXPR_FUNC uint8_t __FASTCALL read_direct_data8(uint32_t addr);
 };
 
-constexpr uint8_t __FASTCALL FONT_ROMS::read_direct_data8(uint32_t addr)
+_CONSTEXPR_FUNC uint8_t __FASTCALL FONT_ROMS::read_direct_data8(uint32_t addr)
 {
 	return font_kanji16[addr & 0x3ffff];
 }

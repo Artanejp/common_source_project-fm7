@@ -12,7 +12,8 @@
 namespace FMTOWNS {
 	// Constants.
 	enum {
-		CRTC_BUFFER_NUM = 4,
+		//CRTC_BUFFER_NUM = 4,
+		CRTC_BUFFER_NUM = 2,
 	};
 	enum {
 		NOT_LOOP = 0,

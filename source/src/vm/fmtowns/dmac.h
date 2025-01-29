@@ -58,7 +58,7 @@ protected:
 		uint8_t val2 = ~val;
 		write_signals(&outputs_mask_reg, val2);
 	}
-	constexpr bool check_address_16bit_bus_changed(int ch)
+	_CONSTEXPR_FUNC bool check_address_16bit_bus_changed(int ch)
 	{
 		bool __is_align_bak = address_aligns_16bit[ch];
 		address_aligns_16bit[ch] = ((dma[ch].areg & 0x00000001) == 0);
@@ -68,7 +68,7 @@ protected:
 		}
 		return false;
 	}
-	constexpr void __FASTCALL set_ube_line(int ch)
+	_CONSTEXPR_FUNC void __FASTCALL set_ube_line(int ch)
 	{
 		write_signals(&(outputs_ack[ch]), (is_16bit[ch]) ? 0xffffffff : 0);
 	}
@@ -94,7 +94,7 @@ protected:
 									&& (address_aligns_16bit[selch]));
 		is_16bit[ch] = (is_16bit_transfer[ch] || force_16bit_transfer[ch]);
 	}
-	constexpr void do_end_sequence(int c, bool is_send_tc)
+	_CONSTEXPR_FUNC void do_end_sequence(int c, bool is_send_tc)
 	{
 		c = c & 3;
 		const uint8_t bit = 1 << c;

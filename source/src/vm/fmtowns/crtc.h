@@ -419,7 +419,7 @@ protected:
 		}
 		horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
 	}
-	constexpr bool is_single_mode_for_standard(const uint8_t control_reg_val)
+	_CONSTEXPR_FUNC bool is_single_mode_for_standard(const uint8_t control_reg_val)
 	{
 		return (((control_reg_val & 0x10) == 0) ? true : false);
 	}
@@ -441,7 +441,7 @@ protected:
 			layer1 = modes_by_CR0_multi[display_mode[1] & 3];
 		}
 	}
-	constexpr bool layer_is_interlaced(int layer)
+	_CONSTEXPR_FUNC bool layer_is_interlaced(int layer)
 	{
 		bool _b = (frame_offset[layer & 1] == 0) ? true : false;
 		return _b;

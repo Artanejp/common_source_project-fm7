@@ -39,7 +39,7 @@ void TOWNS_CRTC::initialize()
 	for(int i = 0; i < 2; i++) {
 		event_hdisp[i] = -1;
 	}
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < FMTOWNS::CRTC_BUFFER_NUM; i++) {
 		for(int l = 0; l < TOWNS_CRTC_MAX_LINES; l++) {
 			memset(&(linebuffers[i][l]), 0x00, sizeof(linebuffer_t));
 		}
@@ -52,7 +52,7 @@ void TOWNS_CRTC::initialize()
 	video_out_regs[FMTOWNS::VOUTREG_PRIO] = 0x00;
 	video_out_regs[FMTOWNS::VOUTREG_2] = 0x00;
 	video_out_regs[FMTOWNS::VOUTREG_3] = 0x00;
-	for(int i = 0; i <= display_linebuf_mask; i++) {
+	for(int i = 0; i < FMTOWNS::CRTC_BUFFER_NUM; i++) {
 		is_single_layer[i] = false;
 	}
 }
@@ -128,7 +128,7 @@ void TOWNS_CRTC::reset()
 	for(int i = 0; i < 2; i++) {
 		frame_offset[i] = 0;
 		line_offset[i] = 80;
-		for(int t = 0; t < 4; t++) {
+		for(int t = 0; t < FMTOWNS::CRTC_BUFFER_NUM; t++) {
 			is_interlaced[t][i] = false;
 		}
 	}
@@ -148,7 +148,7 @@ void TOWNS_CRTC::reset()
 
 	begin_of_display();
 	
-	for(int i = 0; i <= display_linebuf_mask; i++) {
+	for(int i = 0; i < FMTOWNS::CRTC_BUFFER_NUM; i++) {
 		hst[i] = pixels_per_line;
 		vst[i] = max_lines;
 		is_single_layer[i] = is_single_layer[0];
@@ -1951,7 +1951,7 @@ void TOWNS_CRTC::clear_line(const int trans, int layer, const int y)
 	} n;
 
 	uint16_t *p = (uint16_t*)(&(linebuffers[trans][y].pixels_layer[layer][0]));
-	uint16_t *q = ___assume_aligned(p, 16);
+	uint16_t *q = (uint16_t*)(___assume_aligned(p, 16));
 	if((linebuffers[trans][y].mode[layer] & ~(DISPMODE_DUP)) == DISPMODE_32768) {
 		n.b[0] = 0x00;
 		n.b[1] = 0x80;
@@ -1975,7 +1975,7 @@ void TOWNS_CRTC::pre_transfer_line(int layer, int line)
 
 	prio = video_out_regs[FMTOWNS::VOUTREG_PRIO];
 	__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 4; i += 2) {
+	for(int i = 0; i < FMTOWNS::CRTC_BUFFER_NUM; i += 2) {
 		linebuffers[trans][line].mode[i + layer] = DISPMODE_NONE;
 		linebuffers[trans][line].pixels[i + layer] = 0;
 		linebuffers[trans][line].is_hloop[i + layer] = NOT_LOOP;
@@ -3017,7 +3017,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 			calc_apalette256(i);
 		}
 		display_linebuf = 0;
-		for(int i = 0; i <= display_linebuf_mask; i++) {
+		for(int i = 0; i < FMTOWNS::CRTC_BUFFER_NUM; i++) {
 			if(i != 0) {
 				memcpy(&(linebuffers[i][0]), &(linebuffers[0][0]), sizeof(linebuffer_t) * TOWNS_CRTC_MAX_LINES);
 			}
@@ -3041,7 +3041,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 		make_crtout_from_fda0h(crtout_reg);
 		make_crtout_from_044a(video_out_regs[FMTOWNS::VOUTREG_CTRL]);
 		
-		for(int i = 0; i <= display_linebuf_mask; i++) {
+		for(int i = 0; i < FMTOWNS::CRTC_BUFFER_NUM; i++) {
 			hst[i] = pixels_per_line;
 			vst[i] = max_lines;
 			is_single_layer[i] = is_single_layer_tmp;

@@ -161,7 +161,7 @@ protected:
 	void __FASTCALL set_memory_devices_map_wait(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
 	void __FASTCALL unset_memory_devices_map(uint32_t start, uint32_t end, memory_device_map_t* dataptr, int wait = WAITVAL_RAM);
 
-	constexpr uint32_t read_beyond_boundary_data16(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, int* wait)
+	_CONSTEXPR_FUNC uint32_t read_beyond_boundary_data16(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, int* wait)
 	{
 		pair16_t w;
 		int waitvals[2] = {0};
@@ -178,7 +178,7 @@ protected:
 		}
 		return (uint32_t)(w.w);
 	}
-	constexpr uint32_t read_beyond_boundary_data32(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, int* wait)
+	_CONSTEXPR_FUNC uint32_t read_beyond_boundary_data32(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, int* wait)
 	{
 		pair32_t d;
 		pair16_t w;
@@ -225,7 +225,7 @@ protected:
 		return d.d;
 	}
 
-	constexpr void write_beyond_boundary_data16(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, uint32_t data, int* wait)
+	_CONSTEXPR_FUNC void write_beyond_boundary_data16(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, uint32_t data, int* wait)
 	{
 		pair16_t w;
 		w.w = data;
@@ -242,7 +242,7 @@ protected:
 			//*wait = waitvals[0] + waitvals[1];
 		}
 	}
-	constexpr void write_beyond_boundary_data32(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, uint32_t data, int* wait)
+	_CONSTEXPR_FUNC void write_beyond_boundary_data32(memory_device_map_t *_map, const uint32_t addr, const uint32_t offset, const uint32_t mapptr, const bool is_dma, uint32_t data, int* wait)
 	{
 		pair32_t d;
 		pair16_t w;
@@ -288,7 +288,7 @@ protected:
 		}
 	}
 
-	constexpr bool check_device_boundary(memory_device_map_t *_map, uint32_t offset, uint32_t mapptr, const uint8_t bytewidth)
+	_CONSTEXPR_FUNC bool check_device_boundary(memory_device_map_t *_map, uint32_t offset, uint32_t mapptr, const uint8_t bytewidth)
 	{
 		__UNLIKELY_IF((offset + bytewidth) > memory_map_grain()) {
 			__LIKELY_IF(mapptr < memory_map_size()) {
@@ -302,7 +302,7 @@ protected:
 		}
 		return false;
 	}
-	constexpr uint32_t read_8bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
+	_CONSTEXPR_FUNC uint32_t read_8bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
 	{
 		uint8_t val = 0xff;
 		int waitval;
@@ -336,7 +336,7 @@ protected:
 		}
 		return val;
 	}
-	constexpr uint32_t read_16bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
+	_CONSTEXPR_FUNC uint32_t read_16bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
 	{
 		uint16_t val = 0xffff;
 		int waitval;
@@ -377,7 +377,7 @@ protected:
 		}
 		return val;
 	}
-	constexpr uint32_t read_32bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
+	_CONSTEXPR_FUNC uint32_t read_32bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, int* wait)
 	{
 		uint32_t val = 0xffffffff;
 		uint32_t base = _map[mapptr].base_offset;
@@ -417,7 +417,7 @@ protected:
 		}
 		return val;
 	}
-	constexpr void write_8bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
+	_CONSTEXPR_FUNC void write_8bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
 	{
 		int waitval;
 		uint32_t base = _map[mapptr].base_offset;
@@ -450,7 +450,7 @@ protected:
 		}
 	}
 
-	constexpr void write_16bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
+	_CONSTEXPR_FUNC void write_16bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
 	{
 		int waitval;
 		uint32_t base = _map[mapptr].base_offset;
@@ -489,7 +489,8 @@ protected:
 			//}
 		}
 	}
-	constexpr void write_32bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
+	
+	_CONSTEXPR_FUNC void write_32bit_data(memory_device_map_t *_map, uint32_t mapptr, uint32_t addr, uint32_t offset, const bool is_dma, uint32_t data, int* wait)
 	{
 		uint32_t base = _map[mapptr].base_offset;
 		__LIKELY_IF(_map[mapptr].mem_ptr != NULL) {
@@ -541,8 +542,8 @@ protected:
 	*/
 	inline const uint64_t memory_map_size()  { return TOWNS_MEMORY_MAP_SIZE; }
 	inline const uint64_t memory_map_shift() { return TOWNS_MEMORY_MAP_SHIFT; }
-	constexpr uint64_t memory_map_mask() { return ((1 << TOWNS_MEMORY_MAP_SHIFT) - 1); }
-	constexpr uint64_t memory_map_grain() { return (1 << TOWNS_MEMORY_MAP_SHIFT); }
+	inline const uint64_t memory_map_mask() { return ((1 << TOWNS_MEMORY_MAP_SHIFT) - 1); }
+	inline const uint64_t memory_map_grain() { return (1 << TOWNS_MEMORY_MAP_SHIFT); }
 
 public:
 	TOWNS_MEMORY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu) {

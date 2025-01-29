@@ -78,14 +78,14 @@ protected:
 	uint8_t cpu_id;
 	uint16_t machine_id;
 
-	constexpr uint32_t calc_std_address_offset(uint32_t addr)
+    inline uint32_t calc_std_address_offset(uint32_t addr)
 	{
 		// 0x80100000 : Single
 		// 0x80000000 : Double
 		return ((addr & (1 << (TOWNS_VRAM_ADDR_SHIFT + 1))) != 0) ?
 			calc_single_page_address(addr) : calc_double_page_address(addr);
 	}
-	constexpr uint32_t calc_single_page_address(uint32_t addr)
+	_CONSTEXPR_FUNC uint32_t calc_single_page_address(uint32_t addr)
 	{
 		// 0x80100000 : Single
 		// 0x80000000 : Double
@@ -93,7 +93,7 @@ protected:
 				 ((addr & 0x00000004) << (TOWNS_VRAM_ADDR_SHIFT - 3))
 				 | ((addr & (TOWNS_VRAM_ADDR_MASK & ~(7))) >> 1));
 	}
-	constexpr uint32_t calc_double_page_address(uint32_t addr)
+	_CONSTEXPR_FUNC uint32_t calc_double_page_address(uint32_t addr)
 	{
 		// 0x80000000 : Double
 		return addr & TOWNS_VRAM_ADDR_MASK;

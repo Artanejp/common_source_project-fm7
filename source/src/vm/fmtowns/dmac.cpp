@@ -668,7 +668,7 @@ void TOWNS_DMAC::do_dma()
 		do_dma_internal();
 	}
 	__UNLIKELY_IF(_SINGLE_MODE_DMA) {
-		__LIKELY_IF(d_dma) {
+		__LIKELY_IF(d_dma != NULL) {
 			d_dma->do_dma();
 		}
 	}
