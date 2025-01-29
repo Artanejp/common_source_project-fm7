@@ -23,26 +23,51 @@
 #define __M__MINIMUM_ALIGN_LENGTH __MINIMUM_ALIGN_LENGTH
 #endif
 
+#undef  __LOOP_LOAD8
+#undef  __LOOP_LOAD8_UNALIGNED
+#undef  __LOOP_FILL8
+#undef  __LOOP_FILL8_UNALIGNED
+
+#define __LOOP_LOAD8(foo, bar) {		\
+		__DECL_VECTORIZED_LOOP			\
+		for(size_t i = 0; i < 8; i++) { \
+			foo[i] = bar[i];			\
+		}								\
+	}
+
+#define __LOOP_LOAD8_UNALIGNED(foo, bar) {		\
+		for(size_t i = 0; i < 8; i++) {			\
+			foo[i] = bar[i];					\
+		}										\
+	}
+
+#define __LOOP_FILL8(foo, bar) { \
+		__DECL_VECTORIZED_LOOP			\
+			for(size_t i = 0; i < 8; i++) { \
+				foo[i] = bar;				\
+			}								\
+		}
+
+#define __LOOP_FILL8_UNALIGNED(foo, bar) { \
+		for(size_t i = 0; i < 8; i++) {			   \
+			foo[i] = bar;						   \
+		}										   \
+	}											   
+
 template<class T>
 	class csp_vector8
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T m_data[8];
 public:
-	/*constexpr csp_vector8(const csp_vector8<T>& __a)
+	//csp_vector8(const csp_vector8<T>& __a)
+	//{
+	//	__LOOP_LOAD8(m_data, __a);
+	//}
+	csp_vector8(csp_vector8<T>& __a)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = __a.at(i);
-		}
-		}*/
-	constexpr csp_vector8(csp_vector8<T>& __a)
-	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = __a.at(i);
-		}
+		__LOOP_LOAD8(m_data, __a);
 	}
-	constexpr csp_vector8(const T* p)
+	csp_vector8(const T* p)
 	{
 		__LIKELY_IF(p != nullptr) {
 			load(p);
@@ -50,35 +75,32 @@ public:
 			clear();
 		}
 	}
-	constexpr csp_vector8(const T n)
+	csp_vector8(const T n)
 	{
-		fill(n);
+		__LOOP_FILL8(m_data, n);
 	}
-	constexpr csp_vector8()
+	csp_vector8()
 	{
-		clear();
+		__LOOP_FILL8(m_data, (T)0);
 	}
-	constexpr ~csp_vector8() {}
+	~csp_vector8() {}
 
-	constexpr T at(size_t n)
+	_CONSTEXPR_FUNC T at(size_t n)
 	{
 		return m_data[n];
 	}
 	// Pointer may be unaligned, or aligned.
-	constexpr void load(T* p)
+	_CONSTEXPR_FUNC void load(T* p)
 	{
-		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = p[i];
-		}
+		__LOOP_LOAD8_UNALIGNED(m_data, p);
 	}
 
 	
-	constexpr csp_vector8<T>& exchange_endian()
+	_CONSTEXPR_FUNC csp_vector8<T>& exchange_endian()
 	{
-		constexpr size_t __size = sizeof(T);
-		if(__size <= 1) return *this;
+		_CONSTEXPR_IF(sizeof(T) <= 1) return *this;
 
-		if(__size == 2) {
+		_CONSTEXPR_IF(sizeof(T) == 2) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t i = 0; i < 8; i++) {
 				uint16_t n = (uint16_t)(m_data[i]);
@@ -86,7 +108,7 @@ public:
 			}
 			return *this;
 		}
-		if(__size == 4) {
+		_CONSTEXPR_IF(sizeof(T) == 4) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t i = 0; i < 8; i++) {
 				uint32_t n = (uint32_t)(m_data[i]);
@@ -94,7 +116,7 @@ public:
 			}
 			return *this;
 		}
-		if(__size == 8) {
+		_CONSTEXPR_IF(sizeof(T) == 8) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t i = 0; i < 8; i++) {
 				uint64_t n = (uint64_t)(m_data[i]);
@@ -103,7 +125,7 @@ public:
 			return *this;
 		}
 		#if defined(__HAS_BUILTIN_BSWAP128_X)
-		if(__size == 16) {
+		_CONSTEXPR_IF(sizeof(T) == 16) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t i = 0; i < 8; i++) {
 				__uint128_t n = (__uint128_t)(m_data[i]);
@@ -121,12 +143,12 @@ public:
 		}
 		return *this;
 	}		
-	constexpr void load_with_swapping_endian(uint8_t* p)
+	_CONSTEXPR_FUNC void load_with_swapping_endian(uint8_t* p)
 	{
 		load((T*)p);
 		exchange_endian();
 	}
-	constexpr void store_with_swapping_endian(uint8_t* p)
+	_CONSTEXPR_FUNC void store_with_swapping_endian(uint8_t* p)
 	{
 		// Otherwise...
 		csp_vector8<T> pp;
@@ -134,7 +156,7 @@ public:
 		pp.exchange_endian();
 		pp.store((T*)p);
 	}
-	constexpr void load_from_le(uint8_t* p)
+	_CONSTEXPR_FUNC void load_from_le(uint8_t* p)
 	{
 		#if defined(__LITTLE_ENDIAN__)
 		load((T*)p);
@@ -142,7 +164,7 @@ public:
 		load_with_swapping_endian(p);
 		#endif
 	}
-	constexpr void load_from_be(uint8_t* p)
+	_CONSTEXPR_FUNC void load_from_be(uint8_t* p)
 	{
 		#if defined(__LITTLE_ENDIAN__)
 		load_with_swapping_endian(p);
@@ -150,7 +172,7 @@ public:
 		load((T*)p);
 		#endif
 	}
-	constexpr void store_to_le(uint8_t* p)
+	_CONSTEXPR_FUNC void store_to_le(uint8_t* p)
 	{
 		#if defined(__LITTLE_ENDIAN__)
 		store((T*)p);
@@ -158,7 +180,7 @@ public:
 		store_with_swapping_endian(p);
 		#endif
 	}
-	constexpr void store_to_be(uint8_t* p)
+	_CONSTEXPR_FUNC void store_to_be(uint8_t* p)
 	{
 		#if defined(__LITTLE_ENDIAN__)
 		store_with_swapping_endian(p);
@@ -166,21 +188,21 @@ public:
 		store((T*)p);
 		#endif
 	}
-	constexpr  void load_limited(T* p, const size_t _limit)
+	_CONSTEXPR_FUNC  void load_limited(T* p, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = 0; i < _limit2; i++) {
 			m_data[i] = p[i];
 		}
 	}
-	constexpr  void load_offset(T* p, const size_t offset, const size_t _limit = 8)
+	_CONSTEXPR_FUNC  void load_offset(T* p, const size_t offset, const size_t _limit = 8)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j++) {
 			m_data[i] = p[j];
 		}
 	}
-	constexpr T *load2(T* p)
+	_CONSTEXPR_FUNC T *load2(T* p)
 	{
 		size_t j = 0;
 		__DECL_VECTORIZED_LOOP
@@ -190,7 +212,7 @@ public:
 		}
 		return &(p[4]);
 	}
-	constexpr void load4(T* p)
+	_CONSTEXPR_FUNC void load4(T* p)
 	{
 		size_t j = 0;
 		__DECL_VECTORIZED_LOOP
@@ -203,14 +225,14 @@ public:
 		return &(p[2]);
 	}
 	template <class T2>
-		constexpr void load(T2* p)
+		_CONSTEXPR_FUNC void load(T2* p)
 	{
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] = (T)(p[i]);
 		}
 	}
 	template <typename T2>
-		constexpr  void load_limited(T2* p, const size_t _limit)
+		_CONSTEXPR_FUNC  void load_limited(T2* p, const size_t _limit)
 	{
 
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
@@ -219,7 +241,7 @@ public:
 		}
 	}
 	template <typename T2>
-		constexpr  void load_offset(T2* p, const size_t offset, const size_t _limit = 8)
+		_CONSTEXPR_FUNC  void load_offset(T2* p, const size_t offset, const size_t _limit = 8)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j++) {
@@ -227,7 +249,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void load2(T2* p)
+		_CONSTEXPR_FUNC void load2(T2* p)
 	{
 		for(size_t i0 = 0, i1 = 1, k = 0; k < 4; i0 += 2, i1 += 2, k++) {
 			m_data[i0] = (T)(p[k]);
@@ -235,7 +257,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void load4(T2* p)
+		_CONSTEXPR_FUNC void load4(T2* p)
 	{
 		for(size_t i0 = 0, i1 = 1, i2 = 2, i3 = 3, k = 0; k < 2; i0 += 4, i1 += 4, i2 += 4, i3 += 4, k++) {
 			m_data[i0] = (T)(p[k]);
@@ -245,21 +267,19 @@ public:
 		}
 	}
 	// Pointer may be unaligned, or aligned.
-	constexpr void store(T* p)
+	_CONSTEXPR_FUNC void store(T* p)
 	{
-		for(size_t i = 0; i < 8; i++) {
-			p[i] = m_data[i];
-		}
+		__LOOP_LOAD8(p, m_data);
 	}
 
-	constexpr void store_limited(T* p, const size_t _limit)
+	_CONSTEXPR_FUNC void store_limited(T* p, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = 0; i < _limit2; i++) {
 			p[i] = m_data[i];
 		}
 	}
-	constexpr void store_offset(T* p, const size_t offset, const size_t _limit = 8)
+	_CONSTEXPR_FUNC void store_offset(T* p, const size_t offset, const size_t _limit = 8)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j++) {
@@ -267,28 +287,28 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store(T2* p)
+		_CONSTEXPR_FUNC void store(T2* p)
 	{
 		for(size_t i = 0; i < 8; i++) {
 			p[i] = (T2)(m_data[i]);
 		}
 	}
 	template <class T2>
-		constexpr void store_limited(T2* p, size_t _limit)
+		_CONSTEXPR_FUNC void store_limited(T2* p, size_t _limit)
 	{
 		for(size_t i = 0; (i < 8) && (i < _limit); i++) {
 			p[i] = (T2)(m_data[i]);
 		}
 	}
 	template <class T2>
-		constexpr void store_offset(T2* p, const size_t offset, const size_t _limit = 8)
+		_CONSTEXPR_FUNC void store_offset(T2* p, const size_t offset, const size_t _limit = 8)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j++) {
 			p[i] = (T2)(m_data[j]);
 		}
 	}
-	constexpr void store2(T* p)
+	_CONSTEXPR_FUNC void store2(T* p)
 	{
 		csp_vector8<T> tmpval[2];
 		for(size_t k = 0; k < 2; k++) {
@@ -303,7 +323,7 @@ public:
 			tmpval[k].store(&(p[k * 8]));
 		}
 	}
-	constexpr void store2_limited(T* p, const size_t _limit)
+	_CONSTEXPR_FUNC void store2_limited(T* p, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = 0, j = 0; i < _limit2; i++, j += 2) {
@@ -312,7 +332,7 @@ public:
 			p[j + 1] = tmpval;
 		}
 	}
-	constexpr void store2_offset(T* p, const size_t offset, const size_t _limit)
+	_CONSTEXPR_FUNC void store2_offset(T* p, const size_t offset, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j += 2) {
@@ -322,7 +342,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store2(T2* p)
+		_CONSTEXPR_FUNC void store2(T2* p)
 	{
 		for(size_t i = 0, j = 0; i < 8; i++, j += 2) {
 			T2 tmpval = (T2)(m_data[i]);
@@ -331,7 +351,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store2_limited(T2* p, const size_t _limit)
+		_CONSTEXPR_FUNC void store2_limited(T2* p, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = 0, j = 0; i < _limit2; i++, j += 2) {
@@ -341,7 +361,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store2_offset(T2* p, const size_t offset, const size_t _limit)
+		_CONSTEXPR_FUNC void store2_offset(T2* p, const size_t offset, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j += 2) {
@@ -350,7 +370,7 @@ public:
 			p[j + 1] = tmpval;
 		}
 	}
-	constexpr void store4(T* p)
+	_CONSTEXPR_FUNC void store4(T* p)
 	{
 		csp_vector8<T> tmpval[4];
 		for(size_t k = 0; k < 4; k++) {
@@ -367,7 +387,7 @@ public:
 			tmpval[k].store(&(p[k * 8]));
 		}
 	}
-	constexpr void store4_limited(T* p, const size_t _limit)
+	_CONSTEXPR_FUNC void store4_limited(T* p, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = 0, j = 0; i < _limit2; i++, j += 4) {
@@ -378,7 +398,7 @@ public:
 			p[j + 3] = tmp;
 		}
 	}
-	constexpr void store4_offset(T* p, const size_t offset, const size_t _limit)
+	_CONSTEXPR_FUNC void store4_offset(T* p, const size_t offset, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j += 4) {
@@ -390,7 +410,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store4(T2* p)
+		_CONSTEXPR_FUNC void store4(T2* p)
 	{
 		for(size_t i = 0, j = 0; i < 8; i++, j += 4) {
 			T2 tmpval = (T2)(m_data[i]);
@@ -401,7 +421,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store4_limited(T2* p, size_t _limit)
+		_CONSTEXPR_FUNC void store4_limited(T2* p, size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = 0, j = 0; i < _limit2; i++, j += 4) {
@@ -413,7 +433,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store4_offset(T2* p, const size_t offset, const size_t _limit)
+		_CONSTEXPR_FUNC void store4_offset(T2* p, const size_t offset, const size_t _limit)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		for(size_t i = offset, j = 0; i < _limit2; i++, j += 4) {
@@ -424,7 +444,7 @@ public:
 			p[j + 3] = tmpval;
 		}
 	}
-	constexpr void store_n(const T* p, const size_t _mag)
+	_CONSTEXPR_FUNC void store_n(const T* p, const size_t _mag)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -434,7 +454,7 @@ public:
 			}
 		}
 	}
-	constexpr void store_n_limited(const T* p, const size_t _mag, const size_t _limit = 8)
+	_CONSTEXPR_FUNC void store_n_limited(const T* p, const size_t _mag, const size_t _limit = 8)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		__DECL_VECTORIZED_LOOP
@@ -445,7 +465,7 @@ public:
 			}
 		}
 	}
-	constexpr void store_n_limited(const T* p, const size_t _mag, const size_t offset, const size_t _limit = 8)
+	_CONSTEXPR_FUNC void store_n_limited(const T* p, const size_t _mag, const size_t offset, const size_t _limit = 8)
 	{
 		const size_t _limit2 = (_limit >= 8) ? 8 : _limit;
 		__DECL_VECTORIZED_LOOP
@@ -457,7 +477,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store_n(T2* p, const size_t _mag)
+		_CONSTEXPR_FUNC void store_n(T2* p, const size_t _mag)
 	{
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T2 _tmp[8];
 		__DECL_VECTORIZED_LOOP
@@ -471,7 +491,7 @@ public:
 		}
 	}
 	template <class T2>
-		constexpr void store_n_limited(T2* p, const size_t _mag, const size_t _limit)
+		_CONSTEXPR_FUNC void store_n_limited(T2* p, const size_t _mag, const size_t _limit)
 	{
 		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) T2 _tmp[8];
 		__DECL_VECTORIZED_LOOP
@@ -487,16 +507,13 @@ public:
 	// Pointer must be aligned minimum of 16 bytes.
 	void load_aligned(T* p)
 	{
-		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = q[i];
-		}
+		T* q = (T*)(___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH));
+		__LOOP_LOAD8(m_data, q);
 	}
 	template <class T2>
 		void load_aligned(T2* p)
 	{
-		T2* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
+		T2* q = (T2*)(___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH));
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] = (T)(q[i]);
@@ -506,22 +523,19 @@ public:
 	// Pointer must be aligned minimum of 16 bytes.
 	inline void store_aligned(T* p) const
 	{
-		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			q[i] = m_data[i];
-		}
+		T* q = (T*)(___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH));
+		__LOOP_LOAD8(q, m_data);
 	}
 	template <class T2>
 		inline void store_aligned(T2* p) const
 	{
-		T2* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
+		T2* q = (T2*)(___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH));
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			q[i] = (T2)(m_data[i]);
 		}
 	}
-	constexpr void store2_aligned(T* p)
+	_CONSTEXPR_FUNC void store2_aligned(T* p)
 	{
 		csp_vector8<T> tmpval[2];
 		for(size_t k = 0; k < 2; k++) {
@@ -531,13 +545,13 @@ public:
 				tmpval[k].set(j + 1, m_data[i]);
 			}
 		}
-		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
+		T* q = (T*)(___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH));
 		__DECL_VECTORIZED_LOOP
 		for(size_t k = 0; k < 2; k++) {
 			tmpval[k].store_aligned(&(q[k * 8]));
 		}
 	}
-	constexpr void store4_aligned(T* p)
+	_CONSTEXPR_FUNC void store4_aligned(T* p)
 	{
 		csp_vector8<T> tmpval[4];
 		for(size_t k = 0; k < 4; k++) {
@@ -549,34 +563,34 @@ public:
 				tmpval[k].set(j + 3, m_data[i]);
 			}
 		}
-		T* q = ___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH);
+		T* q = (T*)(___assume_aligned(p, __M__MINIMUM_ALIGN_LENGTH));
 		__DECL_VECTORIZED_LOOP
 		for(size_t k = 0; k < 4; k++) {
 			tmpval[k].store_aligned(&(q[k * 8]));
 		}
 	}
 	
-	constexpr void get(const csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC void get(const csp_vector8<T>& __b)
 	{
 		__b.store_aligned(m_data);
 	}
 
 	template <class T2>
-		constexpr void get(csp_vector8<T2>& __b)
+		_CONSTEXPR_FUNC void get(csp_vector8<T2>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = __b.at(i);
+			m_data[i] = (T)(__b[i]);
 		}
 	}
 
-	constexpr void put(const csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC void put(const csp_vector8<T>& __b)
 	{
 		__b.load_aligned(m_data);
 	}
 
 	template <class T2>
-		constexpr void put(csp_vector8<T2>& __b)
+		_CONSTEXPR_FUNC void put(csp_vector8<T2>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -586,18 +600,12 @@ public:
 	
 	inline void clear()
 	{
-	__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			m_data[i] = (T)0;
-		}
+		__LOOP_FILL8(m_data, 0);
 	}
 
 	inline void fill(T __val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t __n = 0; __n < 8; __n++) {
-			m_data[__n] = __val;
-		}
+		__LOOP_FILL8(m_data, __val);
 	}
 	inline void set(size_t __n, T __val)
 	{
@@ -609,11 +617,11 @@ public:
 	}
 	
 	
-	constexpr void lshift(const size_t pos, const size_t val)
+	_CONSTEXPR_FUNC void lshift(const size_t pos, const size_t val)
 	{
 		m_data[pos] <<= val;
 	}
-	constexpr void lshift(const size_t val)
+	_CONSTEXPR_FUNC void lshift(const size_t val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -621,11 +629,11 @@ public:
 		}
 	}
 	
-	constexpr void rshift(const size_t pos, const size_t val)
+	_CONSTEXPR_FUNC void rshift(const size_t pos, const size_t val)
 	{
 		m_data[pos] >>= val;
 	}
-	constexpr csp_vector8<T>& rshift(const size_t val)
+	_CONSTEXPR_FUNC csp_vector8<T>& rshift(const size_t val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -635,11 +643,11 @@ public:
 	}
 
 	template <class T2>
-		constexpr csp_vector8<T>& shift(const T2 val)
+		_CONSTEXPR_FUNC csp_vector8<T>& shift(const T2 val)
 	{
-		constexpr bool _signed = std::is_signed<T2>().value;
-		if(_signed) {
-			constexpr ssize_t __shift = (ssize_t)val;
+		constexpr bool __is_signed = std::is_signed<T2>().value;
+		if(__is_signed) {
+			const ssize_t __shift = (ssize_t)val;
 			if(__shift < 0) {
 				const size_t __shift2 = ((const size_t)(-__shift)) % ((sizeof(T) * 8) - 1);
 				rshift(__shift2);
@@ -655,11 +663,11 @@ public:
 	}
 
 	template <class T2>
-		constexpr void shift(size_t pos, const T2 val)
+		_CONSTEXPR_FUNC void shift(size_t pos, const T2 val)
 	{
 		constexpr bool _signed = std::is_signed<T2>().value;
-		if(_signed) {
-			constexpr ssize_t __shift = (ssize_t)val;
+	    if(_signed) {
+			const ssize_t __shift = (ssize_t)val;
 			if(__shift < 0) {
 				const size_t __shift2 = ((const size_t)(-__shift)) % ((sizeof(T) * 8) - 1);
 				rshift(pos, __shift2);
@@ -673,7 +681,7 @@ public:
 		}
 	}
 	
-	constexpr void shift(size_t pos, const ssize_t val)
+	_CONSTEXPR_FUNC void shift(size_t pos, const ssize_t val)
 	{
 		if(val < 0) {
 			rshift(pos, (-val) % ((sizeof(T) * 8) - 1));
@@ -681,11 +689,11 @@ public:
 			lshift(pos, val % ((sizeof(T) * 8) - 1));
 		}
 	}
-	constexpr void shift(size_t pos, const size_t val)
+	_CONSTEXPR_FUNC void shift(size_t pos, const size_t val)
 	{
 		lshift(pos, val % (sizeof(T) * 8));
 	}
-	constexpr csp_vector8<T>&  shift(csp_vector8<ssize_t>& val)
+	_CONSTEXPR_FUNC csp_vector8<T>&  shift(csp_vector8<ssize_t>& val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -694,7 +702,7 @@ public:
 		return *this;
 	}
 	
-	constexpr csp_vector8<T>& clamp_upper(const T upper_val)
+	_CONSTEXPR_FUNC csp_vector8<T>& clamp_upper(const T upper_val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -702,7 +710,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& clamp_lower(const T lower_val)
+	_CONSTEXPR_FUNC csp_vector8<T>& clamp_lower(const T lower_val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -710,7 +718,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& clamp(const T upper_val, const T lower_val)
+	_CONSTEXPR_FUNC csp_vector8<T>& clamp(const T upper_val, const T lower_val)
 	{
 		T upper = upper_val;
 		T lower = lower_val;
@@ -726,7 +734,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& bitwise_not()
+	_CONSTEXPR_FUNC csp_vector8<T>& bitwise_not()
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -734,7 +742,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& bitwise_not(const csp_vector8<T> __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& bitwise_not(const csp_vector8<T> __b)
 	{
 		__b.store_aligned(m_data);
 		__DECL_VECTORIZED_LOOP
@@ -744,7 +752,7 @@ public:
 		return *this;
 	}
 	template <typename T2>
-		constexpr csp_vector8<T>& lookup(csp_vector8<T2>& __list, T* __table, const size_t count = 8)
+		_CONSTEXPR_FUNC csp_vector8<T>& lookup(csp_vector8<T2>& __list, T* __table, const size_t count = 8)
 	{
 		csp_vector8<T2> rlist(__list);
 		size_t _count = ((count > 8) || (count == 0)) ? 8 : count;
@@ -759,7 +767,7 @@ public:
 		return *this;
 	}
 	template <typename T2>
-		constexpr csp_vector8<T>& lookup(csp_vector8<T2>& __list, T2 _limit, T* __table, const size_t count = 8)
+		_CONSTEXPR_FUNC csp_vector8<T>& lookup(csp_vector8<T2>& __list, T2 _limit, T* __table, const size_t count = 8)
 	{
 		csp_vector8<T2> rlist(__list);
 		constexpr bool _is_signed = std::is_signed<T2>().value;
@@ -775,10 +783,10 @@ public:
 		return *this;
 	}
 	template <typename T2>
-		constexpr csp_vector8<T>& lookup(csp_vector8<T2>& __list, const T2 _min, const T2 _max, T* __table, const size_t count = 8)
+		_CONSTEXPR_FUNC csp_vector8<T>& lookup(csp_vector8<T2>& __list, const T2 _min, const T2 _max, T* __table, const size_t count = 8)
 	{
 		csp_vector8<T2> rlist(__list);
-		size_t _count = ((count > 8) || (count == 0)) ? 8 : count;
+		const size_t _count = ((count > 8) || (count == 0)) ? 8 : count;
 		T2 _min2 = _min;
 		T2 _max2 = _max;
 		if(_min > _max) std::swap(_min2, _max2);
@@ -791,15 +799,15 @@ public:
 		return *this;
 	}
 
-	constexpr csp_vector8<T>& set_cond(csp_vector8<bool>& __flags, const T __true_val, const T __false_val)
+	_CONSTEXPR_FUNC csp_vector8<T>& set_cond(csp_vector8<bool>& __flags, const T __true_val, const T __false_val)
 	{
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] = (__flags.at(i)) ? __true_val : __false_val;
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& set_if_true(csp_vector8<bool>& __flags, const T __val)
+	_CONSTEXPR_FUNC csp_vector8<T>& set_if_true(csp_vector8<bool>& __flags, const T __val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -807,7 +815,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& set_if_false(csp_vector8<bool>& __flags, const T __val)
+	_CONSTEXPR_FUNC csp_vector8<T>& set_if_false(csp_vector8<bool>& __flags, const T __val)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -868,12 +876,18 @@ public:
 	{
 		return m_data[__n];
 	}
-	constexpr csp_vector8<T>& operator=(const csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator=(const csp_vector8<T>& __b)
 	{
 		__b.store_aligned(m_data);
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator+=(const T __n)
+	template <typename T2>
+		_CONSTEXPR_FUNC csp_vector8<T>& operator=(const csp_vector8<T2>& __b)
+	{
+		__b.store_aligned(m_data);
+		return *this;
+	}
+	_CONSTEXPR_FUNC csp_vector8<T>& operator+=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -881,7 +895,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator+=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator+=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -889,7 +903,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator-=(const T __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator-=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -897,7 +911,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator-=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator-=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -905,7 +919,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator/=(const T __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator/=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -913,7 +927,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator/=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator/=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -921,7 +935,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator*=(const T __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator*=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -929,15 +943,15 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator*=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator*=(csp_vector8<T>& __b)
 	{
-	__DECL_VECTORIZED_LOOP
+		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			m_data[i] *= __b.at(i);
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator&=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator&=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -945,7 +959,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator&=(const T __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator&=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -953,7 +967,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator|=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator|=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -961,7 +975,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator|=(const T __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator|=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -969,7 +983,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator^=(csp_vector8<T>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator^=(csp_vector8<T>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -977,7 +991,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator^=(const T __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator^=(const T __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -985,7 +999,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator<<=(const size_t __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator<<=(const size_t __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -993,7 +1007,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator>>=(const size_t __n)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator>>=(const size_t __n)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -1001,7 +1015,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator>>=(csp_vector8<size_t>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator>>=(csp_vector8<size_t>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -1009,7 +1023,7 @@ public:
 		}
 		return *this;
 	}
-	constexpr csp_vector8<T>& operator<<=(csp_vector8<size_t>& __b)
+	_CONSTEXPR_FUNC csp_vector8<T>& operator<<=(csp_vector8<size_t>& __b)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -1018,7 +1032,7 @@ public:
 		return *this;
 	}
 
-	constexpr bool operator==(csp_vector8<T>& __a)
+	_CONSTEXPR_FUNC bool operator==(csp_vector8<T>& __a)
 	{
 		bool __f = true;
 		__DECL_VECTORIZED_LOOP
@@ -1027,7 +1041,7 @@ public:
 		}
 		return __f;
 	}
-	constexpr bool operator==(const T __a)
+	_CONSTEXPR_FUNC bool operator==(const T __a)
 	{
 		bool __f = true;
 		__DECL_VECTORIZED_LOOP
@@ -1036,7 +1050,7 @@ public:
 		}
 		return __f;
 	}
-	constexpr bool operator!=(csp_vector8<T>& __a)
+	_CONSTEXPR_FUNC bool operator!=(csp_vector8<T>& __a)
 	{
 		bool __f = true;
 		__DECL_VECTORIZED_LOOP
@@ -1045,7 +1059,7 @@ public:
 		}
 		return __f;
 	}
-	constexpr bool operator!=(const T __a)
+	_CONSTEXPR_FUNC bool operator!=(const T __a)
 	{
 		bool __f = true;
 		__DECL_VECTORIZED_LOOP
@@ -1055,14 +1069,14 @@ public:
 		return __f;
 	}
 
-	constexpr void equals(csp_vector8<bool>& __ret, csp_vector8<T>& __a)
+	_CONSTEXPR_FUNC void equals(csp_vector8<bool>& __ret, csp_vector8<T>& __a)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			__ret.set(i, (__a.at(i) == m_data[i]));
 		}
 	}
-	constexpr void equals(csp_vector8<bool>& __ret, T __a)
+	_CONSTEXPR_FUNC void equals(csp_vector8<bool>& __ret, T __a)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -1071,21 +1085,21 @@ public:
 	}
 
 	
-	constexpr void not_equals(csp_vector8<bool>& __ret, csp_vector8<T>& __a)
+	_CONSTEXPR_FUNC void not_equals(csp_vector8<bool>& __ret, csp_vector8<T>& __a)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			__ret.set(i, (__a.at(i) != m_data[i]));
 		}
 	}
-	constexpr void not_equals(csp_vector8<bool>& __ret, T __a)
+	_CONSTEXPR_FUNC void not_equals(csp_vector8<bool>& __ret, T __a)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
 			__ret.set(i, (m_data[i] != __a));
 		}
 	}
-	constexpr void check_bits(csp_vector8<bool>& __ret, const T& _bitmask)
+	_CONSTEXPR_FUNC void check_bits(csp_vector8<bool>& __ret, const T& _bitmask)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -1093,7 +1107,7 @@ public:
 		}
 	}
 	// Maybe faster than check_bits().
-	constexpr void check_any_bits(csp_vector8<bool>& __ret, const T& _bitmask)
+	_CONSTEXPR_FUNC void check_any_bits(csp_vector8<bool>& __ret, const T& _bitmask)
 	{
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
@@ -1105,7 +1119,7 @@ public:
 
 
 template <class T>
-	constexpr csp_vector8<T>& operator+(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator+(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret += __b;
@@ -1125,7 +1139,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator-(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator-(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret -= __b;
@@ -1133,7 +1147,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator*(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator*(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret *= __b;
@@ -1141,7 +1155,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator/(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator/(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret /= __b;
@@ -1149,7 +1163,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator&(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator&(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret &= __b;
@@ -1158,14 +1172,14 @@ template <class T>
 
 
 template <class T>
-	constexpr csp_vector8<T>& operator|(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator|(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret |= __b;
 	return __ret;
 }
 template <class T>
-	constexpr csp_vector8<T>& operator^(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<T>& operator^(const csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret ^= __b;
@@ -1173,7 +1187,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator<<(const csp_vector8<T>& __a, const size_t& __shift)
+	 inline csp_vector8<T>& operator<<(const csp_vector8<T>& __a, const size_t& __shift)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret <<= __shift;
@@ -1181,7 +1195,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator>>(const csp_vector8<T>& __a, const size_t& __shift)
+	 inline csp_vector8<T>& operator>>(const csp_vector8<T>& __a, const size_t& __shift)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret >>= __shift;
@@ -1190,7 +1204,7 @@ template <class T>
 
 
 template <class T>
-	constexpr csp_vector8<T>& operator<<(const csp_vector8<T>& __a, csp_vector8<size_t>& __shift)
+	 inline csp_vector8<T>& operator<<(const csp_vector8<T>& __a, csp_vector8<size_t>& __shift)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret <<= __shift;
@@ -1198,7 +1212,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<T>& operator>>(const csp_vector8<T>& __a, csp_vector8<size_t>& __shift)
+	 inline csp_vector8<T>& operator>>(const csp_vector8<T>& __a, csp_vector8<size_t>& __shift)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<T> __ret(__a);
 	__ret >>= __shift;
@@ -1206,7 +1220,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool> operator==(csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<bool> operator==(csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.equals(__ret, __b);
@@ -1214,7 +1228,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool> operator==(csp_vector8<T>& __a, const T __b)
+	 inline csp_vector8<bool> operator==(csp_vector8<T>& __a, const T __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.equals(__ret, __b);
@@ -1222,7 +1236,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool> operator!=(csp_vector8<T>& __a, const csp_vector8<T>& __b)
+	 inline csp_vector8<bool> operator!=(csp_vector8<T>& __a, const csp_vector8<T>& __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.not_equals(__ret, __b);
@@ -1230,7 +1244,7 @@ template <class T>
 }
 
 template <class T>
-	constexpr csp_vector8<bool> operator!=(csp_vector8<bool>& __a, const T __b)
+	 inline csp_vector8<bool> operator!=(csp_vector8<bool>& __a, const T __b)
 {
 	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) csp_vector8<bool> __ret;
 	__a.not_equals(__ret, __b);
@@ -1239,24 +1253,36 @@ template <class T>
 
 
 template <class T>
-	void make_rgba_vec8(csp_vector8<scrntype_t>& dst, csp_vector8<T> r ,csp_vector8<T> g , csp_vector8<T> b, csp_vector8<T> a)
+	inline void make_rgba_vec8(csp_vector8<scrntype_t>& dst, csp_vector8<T> r ,csp_vector8<T> g , csp_vector8<T> b, csp_vector8<T> a)
 {
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t r_data[8];
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t g_data[8];
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t b_data[8];
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t tmpdata[8];
-	r.store_aligned(r_data);
-	g.store_aligned(g_data);
-	b.store_aligned(b_data);
-
+	// Caution: r, g, b, a assumes 8bit value.
+	csp_vector8<scrntype_t> r_data;
+	csp_vector8<scrntype_t> g_data;
+	csp_vector8<scrntype_t> b_data;
+	csp_vector8<scrntype_t> a_data;
+	r_data = r;
+	g_data = g;
+	b_data = b;
+	a_data = a;
+	
 	#if defined(_RGB555) || defined(_RGB565)
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
-		dst.set(i, RGBA_COLOR(r_data[i], g_data[i], b_data[i], 255));
+		a_data[i] = (a_data[i] == (T)0) ? 0 : (a_data[i] + (T)1);
+	}
+	// Apply alpha value.
+	const size_t __shiftval = 8;
+	r_data *= a_data;
+	g_data *= a_data;
+	b_data *= a_data;
+	r_data >>= __shiftval;
+	g_data >>= __shiftval;
+	b_data >>= __shiftval;
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		dst.set(i, RGB_COLOR(r_data[i], g_data[i], b_data[i]));
 	}
 	#else /* RGBA32 */
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t a_data[8];
-	a.store_aligned(a_data);
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
 		dst.set(i, RGBA_COLOR(r_data[i], g_data[i], b_data[i], a_data[i]));
@@ -1266,23 +1292,33 @@ template <class T>
 }
 
 template <class T>
-	void make_rgb_vec8(csp_vector8<scrntype_t>& dst, csp_vector8<T> r ,csp_vector8<T> g , csp_vector8<T> b)
+	inline void make_rgb_vec8(csp_vector8<scrntype_t>& dst, csp_vector8<T> r ,csp_vector8<T> g , csp_vector8<T> b)
 {
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t r_data[8];
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t g_data[8];
-	__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) scrntype_t b_data[8];
-
-	r.store_aligned(r_data);
-	g.store_aligned(g_data);
-	b.store_aligned(b_data);
-
+	// Caution: r, g, b, a assumes 8bit value.
+	csp_vector8<scrntype_t> r_data;
+	csp_vector8<scrntype_t> g_data;
+	csp_vector8<scrntype_t> b_data;
+	r_data = r;
+	g_data = g;
+	b_data = b;
+	#if defined(_RGB555) || defined(_RGB565)
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		dst.set(i, RGB_COLOR(r_data[i], g_data[i], b_data[i]));
+	}
+	#else /* _RGBA8888 */
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
 		dst.set(i, RGBA_COLOR(r_data[i], g_data[i], b_data[i], 255));
 	}
+	#endif
 
 }
 
 // Please include type specified (and MPU specified) templates.
 
+#undef  __LOOP_LOAD8
+#undef  __LOOP_LOAD8_UNALIGNED
+#undef  __LOOP_FILL8
+#undef  __LOOP_FILL8_UNALIGNED
 #undef __M__MINIMUM_ALIGN_LENGTH
