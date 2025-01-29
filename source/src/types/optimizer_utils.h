@@ -56,6 +56,64 @@
 	#endif
 #endif
 
+// Declare wrapper for constexpr, consteval, inline and virtual.
+// 20250129 K.O
+#undef _VIRTUAL_CONSTEXPR_FUNC
+#undef _CONSTEXPR_FUNC
+#undef _CONSTEXPR_FUNC_INHERITS
+#undef _CONSTEVAL_FUNC
+	
+#undef _CONSTEXPR_IF
+
+#undef _CONSTEXPR_VAR
+#undef _ENABLE_CONSTEXPR_FLEXIBLE_LENGTH_VAR
+	
+// Default Definitions around constexpr.
+// See https://cpprefjp.github.io/lang/ .
+// Note Using constexpr variable is limited by default (after C++11 , before C++20).
+#define _VIRTUAL_CONSTEXPR_FUNC		virtual inline
+#define _CONSTEXPR_FUNC				inline
+#define _CONSTEXPR_FUNC_INHERITS	inline
+#define _CONSTEVAL_FUNC				inline	
+#define _CONSTEXPR_VAR
+
+#define _CONSTEXPR_IF(foo)		if(foo)
+
+#define _ENABLE_CONSTEXPR_FLEXIBLE_LENGTH_VAR 0	
+
+#if defined(__cplusplus) && (__cplusplus >= 201103L)
+	#if  (__cplusplus >= 201402L)
+		// C++14 or later : Available to use if() and looping inside of constexpr function.
+		//                  See [N3652] .
+		#undef  _CONSTEXPR_FUNC	
+		#define _CONSTEXPR_FUNC constexpr
+	#endif	
+	#if (__cplusplus >= 201703L)
+		// C++17 or later : Available to use if constexpr(cond)
+		//                  See [P0292R2] . 
+		#undef  _CONSTEXPR_IF
+		#define _CONSTEXPR_IF(foo) if constexpr(foo)
+	#endif
+	#if (__cplusplus >= 202002L)
+		// C++20 or later.
+		#undef _ENABLE_CONSTEXPR_FLEXIBLE_LENGTH_VAR 
+		#undef _VIRTUAL_CONSTEXPR_FUNC
+		#undef _CONSTEXPR_FUNC_INHERITS	
+		#undef _CONSTEXPR_VAR
+		#undef _CONSTEVAL_FUNC
+		#define _ENABLE_CONSTEXPR_FLEXIBLE_LENGTH_VAR 1
+		// Available to inhelit function foo() as constexpr.
+		// See [P1064R0] .
+		#define _VIRTUAL_CONSTEXPR virtual constexpr
+		#define _CONSTEXPR_FUNC_INHERITS constexpr
+		// Available to use constexpr variable for lots of situations.
+		// See [P0784R7] and others.
+		#define _CONSTEXPR_VAR  constexpr
+		// Available to use consteval functions to return constant value.
+		// See [P1073R3] and others.
+		#define _CONSTEVAL_FUNC consteval
+	#endif
+#endif
 // hint for branch-optimize. 20210720 K.O
 // Usage:
 // __LIKELY_IF(expr) : Mostly (expr) will be effected.
