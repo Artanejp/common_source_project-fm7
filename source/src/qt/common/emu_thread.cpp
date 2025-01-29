@@ -163,7 +163,7 @@ void EmuThreadClass::doWork()
 			break;
 		}
 
-		__LIKELY_IF(p_emu) {
+		__LIKELY_IF(p_emu != NULL) {
 			// drive machine
 			__LIKELY_IF(!(half_count)) { // Start of frame.
 				process_command_queue();
