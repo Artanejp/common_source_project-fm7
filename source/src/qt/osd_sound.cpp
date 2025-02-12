@@ -92,6 +92,46 @@ void OSD_BASE::sound_debug_log(const char *fmt, ...)
 	}
 }
 
+void OSD_BASE::reset_sound()
+{
+	if(m_sound_exit.load()) {
+		return;
+	}
+	bool need_reset_timer = false;
+	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
+	if(m_sound_driver.get() != nullptr) {
+		if(m_sound_initialized.load()) {
+			if(!(sound_drv->is_output_driver_stopped())) {
+				sound_drv->discard_sink();
+			} else {
+				sound_drv->start_sink();
+			}
+			need_reset_timer = true;
+		}
+	}
+	if(need_reset_timer) {
+		m_sound_tick_timer.invalidate();
+		m_sound_tick_timer.start();  // Reset Timer.
+		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+	}
+}
+
+int64_t OSD_BASE::update_margin_usecs()
+{
+	int64_t tmp_us = llrint(1.0e6 / vm_frame_rate());
+	int64_t margin_usecs = 0;
+	// I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	margin_usecs = (tmp_us * 1) / 2;
+	#else
+	margin_usecs = tmp_us / 4;
+	#endif
+	if(margin_usecs <= 3000) {
+		margin_usecs = 3000;
+	}
+	return margin_usecs;
+}
+
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	__LIKELY_IF(extra_frames != nullptr) {
@@ -101,55 +141,48 @@ void OSD_BASE::update_sound(int* extra_frames)
 		return;
 	}
 
+	// ToDo: Count by frame(s).
 	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(m_sound_initialized.load()) {
+	if((m_sound_initialized.load()) && (sound_drv.get() != nullptr)) {
 		// Get sound driver
 		bool prev_mute = m_now_mute.load();
+		__UNLIKELY_IF((m_sound_rate <= 0) || (m_sound_samples <= 0)) {
+			return; 
+		}
 		if(sound_drv->is_output_driver_stopped()) {
 			sound_drv->start_sink();
-			m_sound_tick_timer.restart();
-			m_elapsed_us_before_rendered = 0; // OK?
-			return;
 		}
 		if(!(m_sound_tick_timer.isValid())) {
-			m_sound_tick_timer.start();
-			return;
+			m_sound_tick_timer.restart();
+			m_elapsed_us_before_rendered = m_sound_tick_timer.nsecsElapsed(); // OK?
+			if(!(m_sink_empty.load())) {
+				return;
+			}
 		}
 		unmute_sound();
 		bool first_half = m_sound_first_half.load();
 
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
-		__UNLIKELY_IF((m_sound_rate <= 0) || (m_sound_samples <= 0)) {
-			return; 
-		}
 		int64_t elapsed_us_before_rendered = m_elapsed_us_before_rendered.load();
 		const int64_t period_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
 		
 		__UNLIKELY_IF(elapsed_us_before_rendered < 0) {
-			elapsed_us_before_rendered = 0;
-			m_elapsed_us_before_rendered = 0;
-		} else if(elapsed_us_before_rendered >= period_usecs) {
-			elapsed_us_before_rendered = period_usecs; // Margin?
+			elapsed_us_before_rendered = m_sound_tick_timer.nsecsElapsed();
 			m_elapsed_us_before_rendered = elapsed_us_before_rendered;
 		}
 
 		int64_t margin_usecs = m_sound_margin_usecs.load();
-		__UNLIKELY_IF(margin_usecs <= 2000) { // 
-			int64_t tmp_us = llrint(1.0e6 / vm_frame_rate());
-			 // I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
-			#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-			margin_usecs = (tmp_us * 1) / 3;
-			#else
-			margin_usecs = tmp_us / 4;
-			#endif
-			if(margin_usecs < 2000) {
-				margin_usecs = 2000;
-			}
+		__UNLIKELY_IF(margin_usecs <= 3000) { //
+			margin_usecs = update_margin_usecs();
 			m_sound_margin_usecs = margin_usecs;
 		}
-		const int64_t elapsed_usec = ((int64_t)m_sound_tick_timer.nsecsElapsed() / 1000) + elapsed_us_before_rendered; 
-		__LIKELY_IF((elapsed_usec < (period_usecs - margin_usecs)) /*&& !(m_sink_empty.load())*/) {
+		int64_t elapsed_usec = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+
+		if(m_sink_empty.load()) {
+			margin_usecs *= 2;
+		}
+		if((elapsed_usec + margin_usecs) < (period_usecs + elapsed_us_before_rendered)) {
 			return;
 		}
 		//m_sound_tick_timer.restart();
@@ -159,21 +192,12 @@ void OSD_BASE::update_sound(int* extra_frames)
 			*extra_frames = __extra_frames;
 		}
 		// Go to output sound.
-		int64_t tmp_frame_us = llrint(1.0e6 / vm_frame_rate());
 		// Restart Timer
-		m_elapsed_us_before_rendered = 0;
-		// I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		margin_usecs = (tmp_frame_us * 1) / 3;
-		#else
-		margin_usecs = tmp_frame_us / 4;
-		#endif
-		if(margin_usecs < 2000) {
-			margin_usecs = 2000;
-		}
+		//m_elapsed_us_before_rendered = elapsed_usec;
+		margin_usecs = update_margin_usecs();
 		m_sound_margin_usecs = margin_usecs;
 		m_sound_tick_timer.restart();
-
+		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
 		if(sound_buffer == nullptr) {
 			return;
 		}
@@ -211,11 +235,6 @@ void OSD_BASE::update_sound(int* extra_frames)
 			if(_result > 0) {
 				m_sink_empty = false;
 			}
-//			debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_SOUND,
-//					  _T("Push sound %d samples -> %ld\n"), m_sound_samples, _result);
-			//if(_result > 0) {
-				//printf("%d %ld\n", m_sound_period, _result);
-			//}
 		}
 		m_sound_first_half = !(first_half);
 	}
@@ -358,8 +377,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 	if((sound_drv.get() != nullptr) && (rate > 0) && (samples > 0)) {
 		m_sound_initialized = true;
 		m_now_mute = false;
-		//sound_drv->start_sink();
-		//mute_sound(); // Fill blank data a sample period.
+		sound_drv->stop_sink();
+		m_elapsed_us_before_rendered = 0;
+		m_sound_tick_timer.invalidate(); // Don't use timer.
 	}
 	// Split sound when changing rate.
 	if(must_change_recording) {
@@ -382,8 +402,12 @@ void OSD_BASE::release_sound()
 	m_source_started = false;
 	m_source_empty = false; // OK?
 
-	m_sound_period = 0;
-
+	{
+		std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
+		if(sound_drv.get() != nullptr) {
+			sound_drv->stop_sink();
+		}
+	}
 	if(m_sound_thread != nullptr) {
 		if(m_sound_thread->isRunning()) {
 			m_sound_thread->quit();
@@ -393,9 +417,9 @@ void OSD_BASE::release_sound()
 		m_sound_thread = nullptr;
 	}
 	
-	while(m_sound_driver.use_count() > 0) {
-		QThread::msleep(10);
-	}
+//	while(m_sound_driver.use_count() > 0) {
+//		QThread::msleep(10);
+//	}
 	m_sound_driver.reset();
 }
 
@@ -528,7 +552,7 @@ void OSD_BASE::mute_sound()
 	if(!(m_now_mute.load()) && (m_sound_initialized.load())) {
 		// Suspend timer.
 		if(m_sound_tick_timer.isValid()) {
-			m_elapsed_us_before_rendered += ((int64_t)m_sound_tick_timer.nsecsElapsed() / 1000);
+			m_elapsed_us_before_rendered = 0;
 			m_sound_tick_timer.invalidate();
 		}
 		//put_null_sound();
@@ -545,7 +569,6 @@ void OSD_BASE::stop_sound()
 		sound_drv->stop_sink();
 	}
 	m_elapsed_us_before_rendered = 0;
-	m_sound_period = 0;
 	m_sound_tick_timer.invalidate(); // Don't use timer.
 	m_sound_initialized = false;
 }
