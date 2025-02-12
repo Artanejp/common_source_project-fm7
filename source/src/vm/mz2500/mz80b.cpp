@@ -311,9 +311,7 @@ VM::~VM()
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 }
 
 void VM::special_reset(int num)
@@ -330,6 +328,13 @@ void VM::special_reset(int num)
 	pic_16->reset();
 	mz1m01->reset();
 #endif
+	// ToDo: Need to reset OSD Sound driver?
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 // ----------------------------------------------------------------------------

@@ -158,6 +158,8 @@ protected:
 	std::atomic<bool> state_power_off;
 
 	bool half_count;
+	bool driven_by_half_of_frame;
+	
 	bool full_speed;
 	int64_t fps_accum;
 	

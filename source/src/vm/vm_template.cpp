@@ -27,10 +27,17 @@ void VM_TEMPLATE::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	if(emu != NULL) {
+		OSD_BASE* p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 void VM_TEMPLATE::special_reset(int num)
 {
+	reset();
 }
 
 // ----------------------------------------------------------------------------
@@ -49,6 +56,14 @@ bool VM_TEMPLATE::is_half_event()
 {
 	__LIKELY_IF(event != nullptr) {
 		return event->is_half_event();
+	}
+	return false;
+}
+
+bool VM_TEMPLATE::is_driven_by_half_of_frame()
+{
+	__LIKELY_IF(event != nullptr) {
+		return event->is_driven_by_half();
 	}
 	return false;
 }
@@ -91,6 +106,14 @@ void VM_TEMPLATE::release_devices()
 
 void VM_TEMPLATE::update_dipswitch()
 {
+}
+
+int64_t VM_TEMPLATE::get_next_period_nsec()
+{
+	__LIKELY_IF(event != nullptr) {
+		return event->get_next_period_nsec();
+	}
+	return 1000; // 1.0uSec (temporally).
 }
 
 // debugger

@@ -49,7 +49,6 @@ private:
 	int dcount_cpu;	//! Numbers of Target CPUs.
 
 
-	int frame_clocks;
 	int vclocks[MAX_LINES];
 	int power;
 	int event_clocks_remain;
@@ -139,7 +138,7 @@ public:
 		first_fire_event = NULL;
 
 		event_clocks = 0;
-
+		
 		// force update timing in the first frame
 		frames_per_sec = 0.0;
 		lines_per_frame = 0;

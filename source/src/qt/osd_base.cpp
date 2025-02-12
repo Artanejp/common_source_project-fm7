@@ -79,7 +79,6 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	
 	m_sound_driver.reset();
 	m_sound_thread = nullptr;
-	m_sound_period = 0;
 	m_sound_margin_usecs = 0;
 	
 	m_sink_empty = false;

@@ -295,9 +295,7 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// set busreq of sub cpu
 	subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -317,6 +315,14 @@ void VM::special_reset(int num)
 	// halt key is pressed (mz3500sm p.80)
 	halt = 8;
 	ls244->write_signal(SIG_LS244_INPUT, 0x00, 0x80);
+	
+	// ToDo: Need to reset OSD Sound driver?
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 bool VM::run()

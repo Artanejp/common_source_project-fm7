@@ -286,10 +286,8 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-
+	VM_TEMPLATE::reset();
+	
 	// initial device settings
 	pio->write_signal(SIG_I8255_PORT_B, 0x3f, 0xff);	// printer disconnected
 	pio->write_signal(SIG_I8255_PORT_C, 0x0c, 0x0f);

@@ -194,11 +194,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #endif
 	initialize_devices();
 
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-//		if(device->this_device_id != event->this_device_id) {
-			device->reset();
-//		}
-	}
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
@@ -238,6 +233,12 @@ void VM::reset()
 	event->reset();
 	memory->reset();
 	iotrap->do_reset();
+	if(emu != NULL) {
+		OSD_BASE* p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 
 	// set initial port status
 #ifdef _LCD

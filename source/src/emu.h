@@ -121,9 +121,13 @@ public:
 	
 	// drive machine
 	double get_frame_rate() override;
+	int64_t get_next_period_nsec() override;
+	
 	int64_t get_frame_interval() override;
 	bool is_frame_skippable() override;
 	bool is_half_event() override;
+	bool is_driven_by_half_of_frame() override;
+
 	const bool is_use_state() override;
 	void request_update_screen() override;
 	

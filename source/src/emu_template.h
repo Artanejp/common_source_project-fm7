@@ -202,13 +202,17 @@ public:
 	virtual int get_host_cpus() { return 1; }
 #endif
 	virtual double get_frame_rate() { return 59.94; }
+	virtual int64_t get_next_period_nsec() { return 1000 * 1000; }
+
 	//<! @note: Return by uSec 20240216 K.O.
 	virtual int64_t get_frame_interval() { return 1000; }
 	virtual bool is_frame_skippable() { return false; }
 	virtual bool is_half_event() { return false; }
+	virtual bool is_driven_by_half_of_frame() { return false; }
+	
 	virtual const bool is_use_state() { return false; }
 	virtual void request_update_screen() {}
-	virtual int run() { return 1; }
+	virtual int run() { return (is_half_event()) ? 0 : 1; }
 
 	virtual void reset() {}
 	virtual void special_reset(int num) {}

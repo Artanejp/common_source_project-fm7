@@ -353,9 +353,8 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+	
 	if(support_pc80s31k) {
 		pio_fdd->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 		pio_pc80s31k->write_signal(SIG_I8255_PORT_C, 0, 0xff);

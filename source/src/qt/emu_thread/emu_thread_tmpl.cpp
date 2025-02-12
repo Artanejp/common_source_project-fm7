@@ -194,7 +194,8 @@ void EmuThreadClassBase::initialize_variables()
 	}
 
 	full_speed = config.full_speed;
-	half_count = false;	
+	half_count = false;
+	driven_by_half_of_frame = false;
 }
 
 bool EmuThreadClassBase::initialize_messages()

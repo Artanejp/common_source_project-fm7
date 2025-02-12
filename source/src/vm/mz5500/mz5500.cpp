@@ -311,9 +311,7 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 	not_busy->write_signal(SIG_NOT_INPUT, 0, 0);		// busy = low
 	pio->write_signal(SIG_I8255_PORT_B, 0x03, 0x07);	// busy = ~(low), pe = ~(low), pdtr = ~(high)
 	pio->write_signal(SIG_I8255_PORT_C, 0x40, 0x40);	// ack = high
@@ -324,6 +322,13 @@ void VM::special_reset(int num)
 	// nmi
 	cpu->write_signal(SIG_CPU_NMI, 1, 1);
 	sysport->nmi_reset();
+	// ToDo: Need to reset OSD Sound driver?
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 

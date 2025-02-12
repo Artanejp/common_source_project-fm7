@@ -642,12 +642,7 @@ VM::~VM()
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// initial device settings
 #ifdef SUPPORT_PC88_OPN1
@@ -669,12 +664,20 @@ bool VM::run()
 	return false;
 }
 
+int64_t VM::get_next_period_nsec()
+{
+	__LIKELY_IF(pc88event != NULL) {
+		return pc88event->get_next_period_nsec();
+	}
+	return VM_TEMPLATE::get_next_period_nsec();
+}
+
 double VM::get_frame_rate()
 {
 	__LIKELY_IF(pc88event != NULL) {
 		return pc88event->get_frame_rate();
 	}
-	return 0.0;
+	return FRAMES_PER_SEC;
 }
 
 // ----------------------------------------------------------------------------

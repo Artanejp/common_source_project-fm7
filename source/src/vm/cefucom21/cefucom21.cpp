@@ -252,9 +252,8 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+	
 	mcu_vdp->write_signal(SIG_MC6847_GM,  6, 7);
 	mcu_vdp->write_signal(SIG_MC6847_CSS, 0, 0);
 	mcu_vdp->write_signal(SIG_MC6847_AG,  0, 0);

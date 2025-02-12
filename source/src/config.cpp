@@ -190,6 +190,10 @@ void initialize_config()
 
 	// qt
 	#ifdef _USE_QT
+		// Around Schedular.
+		config.driven_by_half_of_frame = false;
+
+		// Around drawing.
 		config.use_separate_thread_draw = true;
 		config.use_osd_virtual_media = true;
 		config.render_platform = CONFIG_RENDER_PLATFORM_OPENGL_ES;
@@ -529,6 +533,8 @@ void load_config(const _TCHAR *config_path)
 
 	// qt
 	#ifdef _USE_QT
+		config.driven_by_half_of_frame = MyGetPrivateProfileBool(_T("Qt"), _T("DriveByHalfOfFrame"), config.driven_by_half_of_frame, config_path);
+
 		config.use_separate_thread_draw = MyGetPrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
 		config.use_osd_virtual_media = MyGetPrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path);
 		config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
@@ -925,6 +931,7 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileBool(_T("Win32"), _T("ShowStatusBar"), config.show_status_bar, config_path);
 	#endif
 	#ifdef _USE_QT
+		MyWritePrivateProfileBool(_T("Qt"), _T("DriveByHalfOfFrame"), config.driven_by_half_of_frame, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseSeparateThreadDraw"), config.use_separate_thread_draw, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOSDVirtualMedia"), config.use_osd_virtual_media, config_path);
 		MyWritePrivateProfileBool(_T("Qt"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);

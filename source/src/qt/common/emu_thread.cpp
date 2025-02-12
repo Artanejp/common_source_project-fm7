@@ -122,7 +122,8 @@ void EmuThreadClass::doWork()
 	
 	is_up_null = (u_p.get() == nullptr);
 	QElapsedTimer led_timer;
-	
+	next_time = 0;
+
 	do {
 		if((MainWindow == NULL) || (bBlockTask.load()) || (is_up_null)) {
 			if(bRunThread.load() == false){
@@ -132,6 +133,7 @@ void EmuThreadClass::doWork()
 			//return;
 			//do_print_framerate(0);
 			msleep(10);
+			next_time = 0;
 			continue;
 		}
 		if(!(queue_cpu_affinities.empty())) {
@@ -148,15 +150,11 @@ void EmuThreadClass::doWork()
 				nr_fps = get_emu_frame_rate();
 				emit sig_restart_sound_timer();
 				current_time = get_current_tick_usec();
-				if(p_emu != nullptr) {
-					//#if !defined(_X1_SERIES) /* Use HALF Event */
-					half_count = p_emu->is_half_event();
-					//#else
-					//half_count = false;
-					//#endif
-				}
+				half_count = false;
+				driven_by_half_of_frame = false;
 			}
 			led_timer.start();
+			next_time = 0;
 		}
 		interval = 0;
 		if(bRunThread.load() == false){
@@ -165,7 +163,8 @@ void EmuThreadClass::doWork()
 
 		__LIKELY_IF(p_emu != NULL) {
 			// drive machine
-			__LIKELY_IF(!(half_count)) { // Start of frame.
+			__LIKELY_IF(!(half_count) || !(driven_by_half_of_frame)) { // Start of frame.
+				now_skip = (((full_speed) || p_emu->is_frame_skippable()) && !(p_emu->is_video_recording())) ? true : false;
 				process_command_queue();
 				check_power_off();
 				check_scanline_params(false);
@@ -173,12 +172,25 @@ void EmuThreadClass::doWork()
 			
 			process_key_input();
 			run_frames = p_emu->run();
-			total_frames += run_frames;
-			//#if !defined(_X1_SERIES) /* Use HALF Event */
 			half_count = p_emu->is_half_event();
-			//#else
-			//half_count = false;
-			//#endif
+			driven_by_half_of_frame = p_emu->is_driven_by_half_of_frame();
+			if((driven_by_half_of_frame) || !(half_count)) {
+				if(run_frames <= 0) {
+					run_frames = 1;
+				}
+			} else {
+				if(run_frames < 0) {
+					run_frames = 0;
+				}
+			}
+			
+			if(run_frames > 0) {
+				total_frames += run_frames;
+			}
+			
+			__UNLIKELY_IF(((prev_skip) && !(now_skip)) || (next_time <= 0))  {
+				next_time = get_current_tick_usec();
+			}
 			// After frame, delayed open
 			if(bRunThread.load() == false){
 				break;
@@ -191,10 +203,6 @@ void EmuThreadClass::doWork()
 				__LIKELY_IF(p_config != nullptr) {
 					full_speed = p_config->full_speed;
 				}
-				now_skip = (((full_speed) || p_emu->is_frame_skippable()) && !(p_emu->is_video_recording())) ? true : false;
-				__UNLIKELY_IF((prev_skip) && !(now_skip)) {
-					next_time = get_current_tick_usec();
-				}
 				
 				double nd;
 				nd = get_emu_frame_rate();
@@ -202,21 +210,17 @@ void EmuThreadClass::doWork()
 				nr_fps = nd;
 				prev_skip = now_skip;
 			}
-			__UNLIKELY_IF(next_time <= 0) {
-				next_time = get_current_tick_usec();
-			}
 			if(!(now_skip)) {
 				interval = get_interval();
 				next_time += interval;
 			}
-
 			__LIKELY_IF(!(half_count)) { // End of a frame.
 				if(!(is_up_null) && (p_config != nullptr)) {
 					if((u_p->is_support_tv_render()) && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 						req_draw = true;
 					}
 				}
-				if(!req_draw) {
+				if(!(req_draw)) {
 					if(next_time <= get_current_tick_usec()) { // Even draw
 						if(++skip_frames > MAX_SKIP_FRAMES) {
 							req_draw = true;

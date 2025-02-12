@@ -223,9 +223,7 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// initial device settings
 	pio->write_signal(SIG_I8255_PORT_C, 0x02, 0x02);	// PC1=1: Modem card is not installed

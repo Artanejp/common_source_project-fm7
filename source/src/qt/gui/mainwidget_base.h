@@ -368,6 +368,7 @@ private:
 	QAction *action_DispVirtualMedias[5];
 	QAction *action_FocusWithClick;
 	QAction *action_UseRomaKana;
+	QAction *action_DrivenByHalfOfFrame;
 	QAction *action_DriveInOpCode;
 	QAction *action_NumPadEnterAsFullkey;
 	QAction *action_UseJoykey;
@@ -817,6 +818,8 @@ public slots:
 	}
 	virtual void on_actionExit_triggered();
 	void do_emu_full_speed(bool f);
+	void do_set_driven_by_half_of_frame(bool flag);
+
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
 

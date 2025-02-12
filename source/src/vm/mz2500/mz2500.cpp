@@ -308,9 +308,7 @@ VM::~VM()
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// set initial port status
 	uint8_t port_b = 0x37;
@@ -333,6 +331,14 @@ void VM::special_reset(int num)
 //	}
 	memory->special_reset(num);
 	cpu->special_reset(num);
+
+	// ToDo: Need to reset OSD Sound driver?
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 double VM::get_frame_rate()

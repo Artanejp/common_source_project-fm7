@@ -26,25 +26,24 @@
 
 qint64 EmuThreadClassBase::get_interval(void)
 {
-	qint64 interval = 0;
+	qint64 _interval = (qint64)(1.0e6 / 59.94);
+	qint64 _nsec;
 //	std::shared_ptr<USING_FLAGS> p_flags = using_flags;
 	__LIKELY_IF(p_emu != nullptr) {
-		 /* Use HALF Event */
-//		__LIKELY_IF(p_flags.get() != nullptr) {
-//			__UNLIKELY_IF(p_flags->is_machine_x1_series()) {
-//				fps_accum += p_emu->get_frame_interval();
-//				interval = (fps_accum >> 10);
-//				fps_accum -= (interval << 10);
-//				return interval;
-//			}
-//		}
-		if(!(half_count)) {
-			fps_accum += p_emu->get_frame_interval();
+		_nsec = p_emu->get_next_period_nsec();
+		__UNLIKELY_IF(_nsec >= (2000 * 1000 * 1000)) { // Maximum 2 Sec.
+			_nsec = 2000 * 1000 * 1000;
+		} else if(_nsec < (1000 * 100)) { // Minimum 100uS (!)
+			_nsec = 1000 * 100; 
 		}
-		interval = (fps_accum >> 10) / 2;
-		fps_accum -= (interval << 10);
+		qint64 _usec = (qint64)((((double)_nsec) / 1000.0) + 0.5); // nSec -> uSec .
+		_usec <<= 10;
+		fps_accum += _usec;
+		_interval = fps_accum >> 10;
+		fps_accum -= (_interval << 10);
 	}
-	return interval;
+
+	return _interval;
 }
 
 void EmuThreadClassBase::reset_emulation_values()
@@ -52,23 +51,19 @@ void EmuThreadClassBase::reset_emulation_values()
 	nr_fps = get_emu_frame_rate();
 	emit sig_set_draw_fps(nr_fps);
 	req_draw = true;
-	next_time = 0;
+
+	int64_t _interval = get_interval();
+	__UNLIKELY_IF((_interval < 0) || (now_skip)) {
+		_interval = 0;
+	}
 	tick_timer.restart();
 	update_fps_time = get_current_tick_usec() + (1000 * 1000);
 	current_time = get_current_tick_usec();
+	next_time = current_time + _interval;
 	
- /* Use HALF Event */
-//	std::shared_ptr<USING_FLAGS> p_flags = using_flags;
-//	if(p_flags.get() != nullptr) {
-//		__UNLIKELY_IF(p_flags->is_machine_x1_series()) {
-//			half_count = false;
-//			return;
-//		}
-//	}
-	if(p_emu != nullptr) {
+	if(p_emu != NULL) {
 		half_count = p_emu->is_half_event();
-	} else {
-		half_count = false;
+		driven_by_half_of_frame = p_emu->is_driven_by_half_of_frame();
 	}
 }
 

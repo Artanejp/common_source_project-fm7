@@ -124,9 +124,8 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+
 	pio->write_signal(SIG_I8155_PORT_A, 0xff, 0x80); // PA7=1
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
@@ -135,6 +134,13 @@ void VM::reset()
 void VM::special_reset(int num)
 {
 	cpu->reset();
+	// ToDo: Need to reset OSD Sound driver?
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 

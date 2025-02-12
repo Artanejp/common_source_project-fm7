@@ -12,16 +12,20 @@
 #pragma once
 #include "./vm_template.h"
 #include "./device.h"
+#include <memory>
 
 class EVENT_TEMPLATE : public DEVICE
 {
 protected:
-	bool event_half;	//! Display second half of frame.
-	
+	std::atomic<bool>    event_half;	//! Display second half of frame.
+	std::atomic<bool>    driven_by_half;
+	std::atomic<int64_t> frame_clocks;
 public:
 	EVENT_TEMPLATE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		event_half = false;
+		driven_by_half = false;
+		frame_clocks = 1000 * 1000; // 1MHz?
 	}
 	~EVENT_TEMPLATE() {}
 	// unique functions
@@ -33,17 +37,87 @@ public:
 	 */
 	virtual bool drive()
 	{
-		event_half = !(event_half);
-		return event_half;
+		if(driven_by_half.load()) {
+			event_half = !(event_half.load());
+		} else {
+			event_half = false;
+		}
+		return event_half.load();
 	}
 	/*!
 	 * @brief Checf whether a half of frame.
 	 * @return true  : half of frame
 	 *		   false : End (or begin) of frame. 
 	 */
-	virtual bool is_half_event()
+	bool is_half_event()
 	{
-		return event_half;
+		if(!(driven_by_half.load())) {
+			return false;
+		} else {
+			return event_half.load();
+		}
+	}
+	/*!
+	 * @brief Check driven by a frame or harf of frame.
+	 * @return true  : driven by half of a (0.5) frame.
+	 *		   false : driven by a (1) frane.
+	 */
+	bool is_driven_by_half()
+	{
+		return driven_by_half.load();
+	}
+	
+	/*!
+	 * @brief Get next period by clocks.
+	 * @return next period.
+	 */
+	inline int64_t get_next_period_clocks()
+	{
+		int64_t _fclocks;
+		int64_t _clk = frame_clocks.load();
+		if(driven_by_half.load()) {
+			if(event_half.load()) {
+				_fclocks = _clk - (_clk / 2);
+			} else {
+				_fclocks = _clk / 2;
+			}
+		} else {
+			_fclocks = _clk;
+		}
+		__UNLIKELY_IF(_fclocks < 0) {
+			_fclocks = 0;
+		}
+		__UNLIKELY_IF(_fclocks >= (INT32_MAX >> 5)) {
+			_fclocks = (INT32_MAX >> 5) - 1;
+		}
+		return _fclocks;
+	}
+	/*!
+	 * @brief Get next period by nanosecond..
+	 * @return next period.
+	 */
+	inline int64_t get_next_period_nsec()
+	{
+		double _fps = get_frame_rate();
+		__UNLIKELY_IF(_fps < 1.0) {
+			_fps = 1.0;
+		}
+		double _nsec = (1.0e9 / _fps) ;
+		if(driven_by_half.load()) {
+			if(event_half.load()) {
+				_nsec = _nsec - (_nsec / 2.0);
+			} else {
+				_nsec = _nsec / 2.0;
+			}
+		}
+		
+		__UNLIKELY_IF(_nsec < 1.0) {
+			_nsec = 1.0;
+		}
+		__UNLIKELY_IF(_nsec >= 2.0e9) {
+			_nsec = 2.0e9 - 1;
+		}
+		return llrint(_nsec);
 	}
 	/*!
 	  @brief Get frame rate of next frame period.

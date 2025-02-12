@@ -771,6 +771,13 @@ void VM::special_reset(int num)
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	keyboard->write_signal(SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0xffffffff, 0xffffffff);
 	event->register_event(mainio, EVENT_UP_BREAK, 1000.0 * 1000.0, false, nullptr);
+	
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 

@@ -283,9 +283,7 @@ void VM::reset()
 		device->reset();
 	}
 	// temporary fix...
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// set devices
 	sio_kb->write_signal(SIG_I8251_DSR, 1, 1);

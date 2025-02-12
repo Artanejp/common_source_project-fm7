@@ -272,9 +272,7 @@ void VM::reset()
 #endif
 
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// init 8255 on TK-80
 	pio_t->write_io8(0xfb, 0x92);

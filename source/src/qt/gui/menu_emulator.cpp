@@ -279,9 +279,13 @@ void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 	connect(action_DispVirtualMedias[1], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_upper()));
 	connect(action_DispVirtualMedias[2], SIGNAL(triggered()), this, SLOT(do_set_visible_virtual_media_lower()));
 
+	SET_ACTION_SINGLE_CONNECT(action_DrivenByHalfOfFrame, true, true, (p_config->driven_by_half_of_frame), SIGNAL(toggled(bool)), SLOT(do_set_driven_by_half_of_frame(bool)));
+
 	SET_ACTION_SINGLE_CONNECT(action_DriveInOpCode, true, true, (p_config->drive_vm_in_opecode), SIGNAL(toggled(bool)), SLOT(do_set_drive_vm_in_opecode(bool)));
 	action_DriveInOpCode->setVisible(false);
 
+
+	
 	if(using_flags->is_use_joystick()) {
 		SET_ACTION_SINGLE(action_UseJoykey, true, true, (p_config->use_joy_to_key));
 		connect(action_UseJoykey, SIGNAL(toggled(bool)), this, SLOT(do_set_joy_to_key(bool)));
@@ -476,6 +480,8 @@ void Ui_MainWindowBase::CreateEmulatorMenu(void)
 	menuEmulator->addAction(menu_DispVirtualMedias->menuAction());
 	menuEmulator->addSeparator();
 	menuEmulator->addAction(actionSpeed_FULL);
+	menuEmulator->addAction(action_DrivenByHalfOfFrame);
+	menuEmulator->addSeparator();
 	menuEmulator->addAction(action_DriveInOpCode);
 	menuEmulator->addSeparator();
 	if(menu_SetFixedCpu != nullptr) {
@@ -538,6 +544,11 @@ void Ui_MainWindowBase::retranslateOpMenuZ80(bool _visible)
 
 void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
+
+	if(action_DrivenByHalfOfFrame != nullptr) {
+		action_DrivenByHalfOfFrame->setText(QApplication::translate("MenuEmulator", "Drive by a half of frame.", 0));
+		action_DrivenByHalfOfFrame->setToolTip(QApplication::translate("MenuEmulator", "Emulate by a half of frame.\nThis aids to more accurate emulation, but eats a lot of host cpu usage.", 0));
+	}
 	if(using_flags->is_use_mouse()) {
 		action_SetupMouse->setText(QApplication::translate("MenuEmulator", "Configure Mouse", 0));
 		action_SetupMouse->setToolTip(QApplication::translate("MenuEmulator", "Setup mouse sensitivity.", 0));

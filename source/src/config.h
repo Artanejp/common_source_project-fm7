@@ -220,6 +220,10 @@ typedef struct {
 	uint32_t mouse_sensitivity; /*!< SENSITIVITY of MOUSE , Value * 2^12, limit is 2^16-1 */
 	// NOTE: Belows contain STAGED CONFIGURATION.
 	#if defined(_USE_QT)
+	// Around Scheduler.
+	bool driven_by_half_of_frame;
+
+	// Around Scheduler.
 	bool use_separate_thread_draw;
 	bool use_opengl_scanline;
 	bool use_osd_virtual_media;

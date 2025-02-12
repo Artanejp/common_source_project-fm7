@@ -1420,6 +1420,14 @@ void Ui_MainWindowBase::do_set_drive_vm_in_opecode(bool flag)
 	emit sig_emu_update_config();
 }
 
+void Ui_MainWindowBase::do_set_driven_by_half_of_frame(bool flag)
+{
+	if(p_config == nullptr) return;
+	// Not need to update_config(), because update by EVENT:: .
+	p_config->driven_by_half_of_frame = flag;
+}
+
+
 void Ui_MainWindowBase::do_select_fixed_cpu(int num)
 {
 	emit sig_emu_thread_to_fixed_cpu(num);

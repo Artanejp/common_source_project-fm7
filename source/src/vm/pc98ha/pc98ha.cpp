@@ -294,9 +294,7 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// initial device settings
 	pio_sys->write_signal(SIG_I8255_PORT_A, 0xe3, 0xff);

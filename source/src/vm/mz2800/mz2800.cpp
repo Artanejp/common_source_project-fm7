@@ -311,9 +311,7 @@ void VM::reset()
 		device->reset();
 	}
 	// temporary fix...
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// set initial port status
 	pio0->write_signal(SIG_I8255_PORT_B, 0x7c, 0xff);

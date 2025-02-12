@@ -543,14 +543,18 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 
 	// hack to force reset iei/oei
 #if 1
 	for(DEVICE* device = cpu; device; device = device->get_context_child()) {
 		device->reset();
+	}
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
 	}
 #else
 	cpu->get_context_child()->notify_intr_reti();
@@ -565,6 +569,14 @@ void VM::special_reset(int num)
 {
 	// nmi reset
 	cpu->write_signal(SIG_CPU_NMI, 1, 1);
+	
+	// ToDo: Need to reset OSD Sound driver?
+	if(emu != NULL) {
+		OSD_BASE *p = emu->get_osd();
+		if(p != NULL) {
+			p->reset_sound();
+		}
+	}
 }
 
 bool VM::run()
@@ -581,6 +593,21 @@ bool VM::run()
 	}
 #endif
 	return _b;
+}
+
+int64_t VM::get_next_period_nsec()
+{
+#ifdef _X1TWIN
+	__LIKELY_IF(pceevent != NULL) {
+		if(pce->is_cart_inserted()) {
+			return pceevent->get_next_period_nsec();
+		}
+	}
+#endif
+	__LIKELY_IF(event != NULL) {
+		return event->get_next_period_nsec();
+	}
+	return VM_TEMPLATE::get_next_period_nsec();
 }
 
 double VM::get_frame_rate()

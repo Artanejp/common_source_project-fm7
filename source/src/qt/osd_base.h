@@ -160,7 +160,6 @@ private:
 	/* Note: Below are new sound driver. */
 	std::shared_ptr<SOUND_MODULE::M_BASE> m_sound_driver;
 	std::atomic<int64_t> m_elapsed_us_before_rendered;	// Count half
-	uint32_t     m_sound_period;
 	// Count factor; this multiplies by 2^32;
 	std::atomic<uint64_t>     m_sound_samples_count;
 	std::atomic<uint64_t>     m_sound_samples_factor;
@@ -515,6 +514,7 @@ public:
 		return sound_capture_devices_list;
 	}
 
+	int64_t update_margin_usecs();
 
 	bool now_record_sound;
 	int get_sound_rate();
@@ -715,6 +715,7 @@ public:
 public slots:
 	// common sound
 	void update_sound(int* extra_frames);
+	void reset_sound();
 	void mute_sound();
 	void unmute_sound();
 	void stop_sound();

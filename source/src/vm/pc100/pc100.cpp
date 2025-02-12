@@ -211,9 +211,8 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+	
 	for(int i = 0; i < 4; i++) {
 		if(config.drive_type) {
 			fdc->set_drive_type(i, DRIVE_TYPE_2DD);

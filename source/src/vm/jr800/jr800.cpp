@@ -124,9 +124,7 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 	cpu->write_signal(SIG_MC6801_PORT_1, 0x00, 0xff);
 	cpu->write_signal(SIG_MC6801_PORT_2, 0x00, 0xff);
 	cpu->write_signal(SIG_MC6801_PORT_3, 0x00, 0xff);

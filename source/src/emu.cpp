@@ -372,6 +372,13 @@ int EMU::get_host_cpus()
 // ----------------------------------------------------------------------------
 // drive machine
 // ----------------------------------------------------------------------------
+int64_t EMU::get_next_period_nsec()
+{
+	__LIKELY_IF(vm != NULL) {
+		return vm->get_next_period_nsec();
+	}
+	return 1000 * 1000; // Dummy. 1mSec.
+}
 
 double EMU::get_frame_rate()
 {
@@ -415,6 +422,16 @@ bool EMU::is_half_event()
 	return false;
 }
 
+bool EMU::is_driven_by_half_of_frame()
+{
+	//#if !defined(_X1_SERIES) /* Use HALF Event */
+	__LIKELY_IF(vm != NULL) {
+		return vm->is_driven_by_half_of_frame();
+	}
+	//#endif
+	return false;
+}
+
 void EMU::request_update_screen()
 {
 	__LIKELY_IF(vm != NULL) {
@@ -436,7 +453,7 @@ const bool EMU::is_use_state()
 int EMU::run()
 {
 	__UNLIKELY_IF(vm == NULL) {
-		return 1; // Dummy.
+		return (is_half_event()) ? 0 : 1; // Dummy.
 	}
 
 #if defined(USE_DEBUGGER) && defined(USE_STATE)
@@ -462,9 +479,11 @@ int EMU::run()
 				debugger_target_id = vm->get_cpu(debugger_cpu_index)->this_device_id;
 			}
 			DEBUGGER *cpu_debugger = (DEBUGGER *)vm->get_cpu(debugger_cpu_index)->get_debugger();
-			cpu_debugger->now_going = false;
-			cpu_debugger->now_debugging = true;
-			debugger_thread_param.vm = vm;
+			__LIKELY_IF(cpu_debugger != NULL) {
+				cpu_debugger->now_going = false;
+				cpu_debugger->now_debugging = true;
+				debugger_thread_param.vm = vm;
+			}
 		} else {
 			close_debugger(debugger_cpu_index);
 		}
@@ -492,22 +511,19 @@ int EMU::run()
 
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
-
-	osd->update_sound(&extra_frames);
+	bool is_half;
+	bool is_driven_by_half = is_driven_by_half_of_frame();
 	// drive virtual machine
-	if(extra_frames == 0) {
-		osd->lock_vm();
-		vm->run();
-		//#if !defined(_X1_SERIES) /* Use HALF Event */
-		if(!(is_half_event())) {
+	osd->lock_vm();
+	is_half = vm->run();
+	if(!(is_half) || !(is_driven_by_half)) {
+		osd->update_sound(&extra_frames);
+		if(extra_frames <= 0) {
 			extra_frames = 1;
 		}
-		//#else
-		//extra_frames = 1;
-		//#endif
-		osd->unlock_vm();
+		osd->add_extra_frames(extra_frames);
 	}
-	osd->add_extra_frames(extra_frames);
+	osd->unlock_vm();
 	return extra_frames;
 }
 

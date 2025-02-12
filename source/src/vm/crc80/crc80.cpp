@@ -145,9 +145,8 @@ DEVICE* VM::get_device(int id)
 void VM::reset()
 {
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+	
 	pio->write_signal(SIG_Z80PIO_PORT_A, 0xff, 0xff);
 	pio->write_signal(SIG_Z80PIO_PORT_B, (config.dipswitch & 2) ? 0 : 0xff, 0x10);
 }

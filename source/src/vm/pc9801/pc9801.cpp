@@ -1835,13 +1835,10 @@ void VM::reset()
 //	io->set_iovalue_single_r(0x0431, 0x04);
 #endif
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
+	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	VM_TEMPLATE::reset();
 #endif
 	set_cpu_clock_with_switch(config.cpu_type);
 
@@ -1868,6 +1865,19 @@ bool VM::run()
 	}
 	return false;
 }
+
+int64_t VM::get_next_period_nsec()
+{
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	__UNLIKELY_IF(config.boot_mode != 0) {
+		__LIKELY_IF(pc88event != NULL) {
+			return pc88event->get_next_period_nsec();
+		}
+	} else
+#endif
+	return VM_TEMPLATE::get_next_period_nsec();
+}
+
 
 double VM::get_frame_rate()
 {

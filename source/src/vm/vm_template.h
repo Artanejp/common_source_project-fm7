@@ -42,9 +42,13 @@ public:
 	virtual void special_reset(int num);
 	virtual bool run();
 	virtual bool is_half_event();
+	virtual bool is_driven_by_half_of_frame();
+
 	virtual void notify_power_off();
 	
 	virtual double get_frame_rate();
+	virtual int64_t get_next_period_nsec();
+
 	virtual void get_screen_resolution(int *w, int *h);
 
 	virtual void set_cpu_clock(DEVICE *cpu, uint32_t clocks);

@@ -707,6 +707,7 @@ public:
 	void reset() override;
 	bool run() override;
 	double get_frame_rate() override;
+	int64_t get_next_period_nsec() override;
 
 #ifdef USE_DEBUGGER
 	// debugger

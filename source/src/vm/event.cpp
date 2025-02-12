@@ -27,6 +27,7 @@ void EVENT::initialize()
 	}
 	power = config.cpu_power;
 	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
+	driven_by_half = config.driven_by_half_of_frame;
 
 	// initialize sound buffer
 	sound_buffer = NULL;
@@ -166,6 +167,8 @@ void EVENT::reset()
 		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	}
 //	buffer_ptr = 0;
+	// Update driven_by_half flag at reset/special_reset.
+	driven_by_half = config.driven_by_half_of_frame;
 	event_half = false;
 #ifdef _DEBUG_LOG
 	initialize_done = true;
@@ -174,7 +177,6 @@ void EVENT::reset()
 
 bool EVENT::drive()
 {
-
 	// Prefetch event table at first.
 	make_prefetch_volatile(event, sizeof(event_t) * MAX_EVENT); 
 	
@@ -182,9 +184,11 @@ bool EVENT::drive()
 	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
 	 /* Use HALF Event */
 //	#if !defined(_X1_SERIES)
-	if(event_half) {
+	if((event_half.load()) && (driven_by_half.load())) {
 		goto skip1;
 	}
+	// Update driven_by_half_flag.
+	driven_by_half = config.driven_by_half_of_frame;
 //	#endif
 	// raise pre frame events to update timing settings
 	for(int i = 0; i < frame_event_count; i++) {
@@ -197,12 +201,12 @@ bool EVENT::drive()
 		lines_per_frame = next_lines_per_frame;
 
 		frame_clocks = (int)((double)d_cpu[0].cpu_clocks / frames_per_sec + 0.5);
-		int remain = frame_clocks;
+		int remain = frame_clocks.load();
 
 		for(int i = 0; i < lines_per_frame; i++) {
 			//assert(i < MAX_LINES);
 			__UNLIKELY_IF(i >= MAX_LINES) break;
-			vclocks[i] = (int)(frame_clocks / lines_per_frame);
+			vclocks[i] = (int)(frame_clocks.load() / lines_per_frame);
 			remain -= vclocks[i];
 		}
 		for(int i = 0; i < remain; i++) {
@@ -243,16 +247,12 @@ bool EVENT::drive()
 	/* Use HALF Event */
 	//#if !defined(_X1_SERIES)
 skip1:
-	int _fclocks;
-	if(event_half) {
-		_fclocks = frame_clocks - (frame_clocks / 2);
+	int64_t _fclocks = get_next_period_clocks();
+	if(driven_by_half.load()) {
+		event_half = !(event_half.load());
 	} else {
-		_fclocks = frame_clocks / 2;
+		event_half = false;
 	}
-	event_half = !(event_half);
-	//#else
-	//int _fclocks = frame_clocks;
-	//#endif
 	event_clocks_remain += _fclocks;
 	cpu_clocks_remain += _fclocks << power;
 
@@ -349,10 +349,11 @@ skip1:
 	flush_cache(event, sizeof(event_t) * MAX_EVENT);
 	 /* Use HALF Event */
 	//#if !defined(_X1_SERIES)
-	return event_half;
-	//#else
-	//return false;
-	//#endif
+	if(driven_by_half.load()) {
+		return event_half.load();
+	} else {
+		return false; // Drive a frame
+	}
 }
 
 void EVENT::update_event_in_opecode(int clock)
@@ -772,13 +773,8 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
-		drive();
 		 /* Use HALF Event */
-		//#if !defined(_X1_SERIES)
-		if(!(event_half)) frames++;
-		//#else
-		//frames++;
-		//#endif
+		if(!(drive())) frames++;
 	}
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
@@ -1211,7 +1207,7 @@ void EVENT::update_config()
 }
 
 // Revert clock ratio to 1024 (2^10).STATE_VERSION to 4; 20191013 K.O
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 bool EVENT::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1229,7 +1225,11 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 		state_fio->StateValue(d_cpu[i].update_clocks);
 		state_fio->StateValue(d_cpu[i].accum_clocks);
 	}
-	state_fio->StateValue(frame_clocks);
+	int _fclocks = frame_clocks.load();
+	state_fio->StateValue(_fclocks);
+	if(loading) {
+		frame_clocks = _fclocks;
+	}
 	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
 	state_fio->StateValue(event_clocks_remain);
 	state_fio->StateValue(cpu_clocks_remain);
@@ -1269,10 +1269,17 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(next_lines_per_frame);
 	state_fio->StateArray(dev_need_mix, sizeof(dev_need_mix), 1);
 	state_fio->StateValue(need_mix);
-	state_fio->StateValue(event_half);
 
+	bool b_event_half = event_half.load();
+	bool b_driven_by_half = driven_by_half.load();
+	state_fio->StateValue(b_event_half);
+	state_fio->StateValue(b_driven_by_half);
+	
  	// post process
 	if(loading) {
+		event_half = b_event_half;
+		driven_by_half = b_driven_by_half;
+		
 		cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
 		if(sound_buffer) {
 			memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
