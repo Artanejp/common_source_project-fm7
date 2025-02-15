@@ -224,6 +224,7 @@ void M_QT_MULTIMEDIA::sink_state_changed(QAudio::State newState)
 		__debug_log_func(_T("AUDIO:ACTIVE"));
 		break;
 	case QAudio::IdleState:
+		__debug_log_func(_T("AUDIO:IDLE"));
 		emit sig_sink_empty(); // Notify to buffer empty.
 		break;
 	case QAudio::StoppedState:

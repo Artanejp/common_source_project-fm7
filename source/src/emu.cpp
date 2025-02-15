@@ -519,9 +519,10 @@ int EMU::run()
 	if(!(is_half) || !(is_driven_by_half)) {
 		osd->update_sound(&extra_frames);
 		if(extra_frames <= 0) {
-			extra_frames = 1;
+			extra_frames = 0;
+		} else {
+			osd->add_extra_frames(extra_frames);
 		}
-		osd->add_extra_frames(extra_frames);
 	}
 	osd->unlock_vm();
 	return extra_frames;

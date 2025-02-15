@@ -74,9 +74,14 @@ bool SOUND_BUFFER_QT::isSequential() const
 
 qint64 SOUND_BUFFER_QT::size() const
 {
+//	std::shared_ptr<BUFFER_TYPE> p = m_buffer;
+	// Unbuffered.
 	__LIKELY_IF(isSequential()) {
 		return bytesAvailable();
 	}
+//	if(p) {
+//		return (qint64)(p->fifo_size());
+//	}
 	return 0;
 }
 

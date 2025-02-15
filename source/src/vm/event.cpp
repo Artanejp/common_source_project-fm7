@@ -770,7 +770,6 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 		return sound_buffer;
 	}
 	int frames = 0;
-
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		 /* Use HALF Event */

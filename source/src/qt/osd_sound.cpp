@@ -56,14 +56,6 @@
 
 void OSD_BASE::do_sink_empty()
 {
-//	if((m_now_mute.load()) && (m_sound_initialized)) {
-		// Continue to mute.
-		//if(m_sound_tick_timer.isValid()) {
-			//m_elapsed_us_before_rendered = 0;
-			//m_sound_tick_timer.restart();
-		//}
-		//put_null_sound();
-//	}
 	m_sink_empty = true;
 }
 
@@ -101,37 +93,62 @@ void OSD_BASE::reset_sound()
 	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
 	if(m_sound_driver.get() != nullptr) {
 		if(m_sound_initialized.load()) {
-			if(!(sound_drv->is_output_driver_stopped())) {
-				sound_drv->discard_sink();
-			} else {
-				sound_drv->start_sink();
-			}
+			sound_drv->stop_sink();
+			//sound_drv->start_sink();
+			sound_drv->discard_sink();
+			//sound_drv->start_sink();
+
 			need_reset_timer = true;
 		}
 	}
 	if(need_reset_timer) {
-		m_sound_tick_timer.invalidate();
-		m_sound_tick_timer.start();  // Reset Timer.
-		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+		reinit_sound_tick_timer();
+		update_margin_usecs(0, 0.0);
+		mute_sound();
+		//m_elapsed_us_before_rendered = 0;
+		//m_sound_tick_timer.invalidate(); // OK?
 	}
 }
 
-int64_t OSD_BASE::update_margin_usecs()
+int64_t OSD_BASE::update_margin_usecs(int extra_frames, double tmp_frame_rate)
 {
-	int64_t tmp_us = llrint(1.0e6 / vm_frame_rate());
+	__UNLIKELY_IF(tmp_frame_rate <= 0.0) {
+		tmp_frame_rate = vm_frame_rate();
+	}
+	int64_t tmp_us = llrint(1.0e6 / tmp_frame_rate);
 	int64_t margin_usecs = 0;
 	// I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	margin_usecs = (tmp_us * 1) / 2;
+	margin_usecs = (tmp_us * 50) / 100; // 50%
 	#else
-	margin_usecs = tmp_us / 4;
+	margin_usecs = tmp_us / 6;
 	#endif
-	if(margin_usecs <= 3000) {
-		margin_usecs = 3000;
+	__UNLIKELY_IF(extra_frames > 1) {
+		margin_usecs += (tmp_us * ((int64_t)(extra_frames - 1)));
 	}
+	if(margin_usecs <= 1000) {
+		margin_usecs = 1000;
+	}
+	m_sound_margin_usecs = margin_usecs;
 	return margin_usecs;
 }
 
+int64_t OSD_BASE::reinit_sound_tick_timer()
+{
+	m_sound_tick_timer.restart();
+	m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+	return m_elapsed_us_before_rendered.load();
+}
+
+int64_t OSD_BASE::load_sound_tick_timer_us()
+{
+	__UNLIKELY_IF(!(m_sound_tick_timer.isValid())) {
+		return 0;
+	}
+	int64_t t = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+	return t;
+}
+	
 void OSD_BASE::update_sound(int* extra_frames)
 {
 	__LIKELY_IF(extra_frames != nullptr) {
@@ -143,64 +160,54 @@ void OSD_BASE::update_sound(int* extra_frames)
 
 	// ToDo: Count by frame(s).
 	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if((m_sound_initialized.load()) && (sound_drv.get() != nullptr)) {
+	if((m_sound_initialized.load()) /*&& (sound_drv.get() != nullptr)*/) {
 		// Get sound driver
 		bool prev_mute = m_now_mute.load();
 		__UNLIKELY_IF((m_sound_rate <= 0) || (m_sound_samples <= 0)) {
 			return; 
 		}
-		if(sound_drv->is_output_driver_stopped()) {
-			sound_drv->start_sink();
-		}
-		if(!(m_sound_tick_timer.isValid())) {
-			m_sound_tick_timer.restart();
-			m_elapsed_us_before_rendered = m_sound_tick_timer.nsecsElapsed(); // OK?
-			if(!(m_sink_empty.load())) {
-				return;
-			}
-		}
 		unmute_sound();
+		int64_t elapsed_usec = load_sound_tick_timer_us();
 		bool first_half = m_sound_first_half.load();
-
+	
 		// Check enough to render accumlated
 		// source (= by VM) rendering data.
-		int64_t elapsed_us_before_rendered = m_elapsed_us_before_rendered.load();
 		const int64_t period_usecs = (((int64_t)m_sound_samples) * 1000 * 1000) / ((int64_t)m_sound_rate);
 		
-		__UNLIKELY_IF(elapsed_us_before_rendered < 0) {
-			elapsed_us_before_rendered = m_sound_tick_timer.nsecsElapsed();
-			m_elapsed_us_before_rendered = elapsed_us_before_rendered;
-		}
-
+		int64_t elapsed_us_before_rendered = m_elapsed_us_before_rendered.load();
 		int64_t margin_usecs = m_sound_margin_usecs.load();
-		__UNLIKELY_IF(margin_usecs <= 3000) { //
-			margin_usecs = update_margin_usecs();
-			m_sound_margin_usecs = margin_usecs;
+		__UNLIKELY_IF(margin_usecs <= 1000) { //
+			margin_usecs = 1000; // OK?
 		}
-		int64_t elapsed_usec = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
-
+		__UNLIKELY_IF(elapsed_us_before_rendered < 0) {
+			elapsed_us_before_rendered = 0;
+		}
 		if(m_sink_empty.load()) {
 			margin_usecs *= 2;
 		}
-		if((elapsed_usec + margin_usecs) < (period_usecs + elapsed_us_before_rendered)) {
+		// Compare by 500uSec.
+		int64_t _now_usec = (elapsed_usec + margin_usecs) / 500;
+		int64_t _prev_usec = (period_usecs  + elapsed_us_before_rendered) / 500;
+		if(_now_usec < _prev_usec) {
 			return;
 		}
-		//m_sound_tick_timer.restart();
+		m_elapsed_us_before_rendered = load_sound_tick_timer_us();
 		int __extra_frames = 0;
+		double tmp_frame_rate = vm_frame_rate();
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
+		if(__extra_frames <= 0) {
+			__extra_frames = 1;
+		}
 		__LIKELY_IF(extra_frames != NULL) {
 			*extra_frames = __extra_frames;
 		}
 		// Go to output sound.
-		// Restart Timer
-		//m_elapsed_us_before_rendered = elapsed_usec;
-		margin_usecs = update_margin_usecs();
-		m_sound_margin_usecs = margin_usecs;
-		m_sound_tick_timer.restart();
-		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
+		update_margin_usecs(__extra_frames, tmp_frame_rate);
+		//margin_usecs = update_margin_usecs(0, 0.0);
 		if(sound_buffer == nullptr) {
 			return;
 		}
+		//sound_debug_log(_T("Render %d Samples , Extra frames = %d"), m_sound_samples, __extra_frames);
 		if(now_record_sound || now_record_video) {
 			if(m_sound_samples > rec_sound_buffer_ptr) {
 				int samples = m_sound_samples - rec_sound_buffer_ptr;
@@ -228,9 +235,13 @@ void OSD_BASE::update_sound(int* extra_frames)
 			}
 		}
 		// ToDo: Convert sound format.
+
 		if(sound_drv.get() != nullptr) {
 			int64_t _result = 0;
 			int _samples = m_sound_samples;
+			if(sound_drv->is_output_driver_stopped()) {
+				sound_drv->start_sink();
+			}
 			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
 			if(_result > 0) {
 				m_sink_empty = false;
@@ -315,8 +326,6 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		if(m_sound_driver.get() != nullptr) {
 			m_sound_driver->initialize_driver(this);
 			connect(this, SIGNAL(sig_set_sound_output_device(QString)), m_sound_driver.get(), SLOT(do_set_output_by_name(QString)));
-			m_sound_margin_usecs = llrint(1.0e6 / (vm_frame_rate() * 2.0)); // Margine is 0.5 frame.
-		
 			init_sound_device_list();
 		}
 		if((m_sound_thread != nullptr) && (m_sound_driver.get() != nullptr)) {
@@ -328,6 +337,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				// I don't know why...But I decide.
 				// - 240909 K.O
 				#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+				//m_sound_thread->start(QThread::NormalPriority);
 				m_sound_thread->start(QThread::LowPriority);
 				#else
 				m_sound_thread->start(QThread::HighPriority);
@@ -378,8 +388,10 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		m_sound_initialized = true;
 		m_now_mute = false;
 		sound_drv->stop_sink();
-		m_elapsed_us_before_rendered = 0;
-		m_sound_tick_timer.invalidate(); // Don't use timer.
+		//sound_drv->start_sink();
+		reinit_sound_tick_timer();
+		update_margin_usecs(0, 0.0);
+		mute_sound();
 	}
 	// Split sound when changing rate.
 	if(must_change_recording) {
@@ -552,7 +564,7 @@ void OSD_BASE::mute_sound()
 	if(!(m_now_mute.load()) && (m_sound_initialized.load())) {
 		// Suspend timer.
 		if(m_sound_tick_timer.isValid()) {
-			m_elapsed_us_before_rendered = 0;
+			m_elapsed_us_before_rendered = load_sound_tick_timer_us();
 			m_sound_tick_timer.invalidate();
 		}
 		//put_null_sound();
@@ -569,6 +581,7 @@ void OSD_BASE::stop_sound()
 		sound_drv->stop_sink();
 	}
 	m_elapsed_us_before_rendered = 0;
+	m_sound_margin_usecs = 0;
 	m_sound_tick_timer.invalidate(); // Don't use timer.
 	m_sound_initialized = false;
 }

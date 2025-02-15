@@ -514,7 +514,9 @@ public:
 		return sound_capture_devices_list;
 	}
 
-	int64_t update_margin_usecs();
+	virtual int64_t __FASTCALL update_margin_usecs(int extra_frames, double tmp_frame_rate);
+	int64_t load_sound_tick_timer_us();
+	int64_t reinit_sound_tick_timer();
 
 	bool now_record_sound;
 	int get_sound_rate();
