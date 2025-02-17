@@ -119,13 +119,13 @@ int64_t OSD_BASE::update_margin_usecs(int extra_frames, double tmp_frame_rate)
 	int64_t margin_usecs = 0;
 	// I'm not convinced, but make Okay temporally (；´Д｀) - 20240909 K.O
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	margin_usecs = (tmp_us * 50) / 100; // 50%
+	margin_usecs = (tmp_us * 80) / 100; // 80%
 	#else
 	margin_usecs = tmp_us / 6;
 	#endif
-	__UNLIKELY_IF(extra_frames > 1) {
-		margin_usecs += (tmp_us * ((int64_t)(extra_frames - 1)));
-	}
+//	__UNLIKELY_IF(extra_frames > 1) {
+//		margin_usecs += (tmp_us * ((int64_t)(extra_frames - 1)));
+//	}
 	if(margin_usecs <= 1000) {
 		margin_usecs = 1000;
 	}
@@ -193,16 +193,17 @@ void OSD_BASE::update_sound(int* extra_frames)
 		}
 		m_elapsed_us_before_rendered = load_sound_tick_timer_us();
 		int __extra_frames = 0;
-		double tmp_frame_rate = vm_frame_rate();
+		//double tmp_frame_rate = vm_frame_rate();
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
-		if(__extra_frames <= 0) {
-			__extra_frames = 1;
-		}
+		//if(__extra_frames <= 0) {
+		//	__extra_frames = 1;
+		//}
 		__LIKELY_IF(extra_frames != NULL) {
 			*extra_frames = __extra_frames;
 		}
 		// Go to output sound.
-		update_margin_usecs(__extra_frames, tmp_frame_rate);
+		//m_elapsed_us_before_rendered = load_sound_tick_timer_us();
+		update_margin_usecs(__extra_frames, 0.0);
 		//margin_usecs = update_margin_usecs(0, 0.0);
 		if(sound_buffer == nullptr) {
 			return;
@@ -337,8 +338,8 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				// I don't know why...But I decide.
 				// - 240909 K.O
 				#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				//m_sound_thread->start(QThread::NormalPriority);
-				m_sound_thread->start(QThread::LowPriority);
+				m_sound_thread->start(QThread::HighPriority);
+				//m_sound_thread->start(QThread::LowPriority);
 				#else
 				m_sound_thread->start(QThread::HighPriority);
 				#endif
