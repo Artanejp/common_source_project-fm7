@@ -135,8 +135,11 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path)
 				line_buf.clear();
 				for(int i = 0; i < 100; i++) {
 					memset(&(track_data_path[i][0]), 0x00, _MAX_PATH * sizeof(_TCHAR));
+					memset(&(track_data_type[i][0]), 0x00, 256 * sizeof(_TCHAR));
 					with_filename[i] = false;
 				}
+				// ToDo: Will implement copying data_path and data_type.
+				// - 20250218 K.O
 				for(int i = 0; i <= 100; i++) {
 					toc_table[i].type = MODE1_2352;
 					toc_table[i].index0 = 0;

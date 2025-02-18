@@ -26,6 +26,7 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 	get_long_full_path_name(file_path, full_path_iso, sizeof(full_path_iso));
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_iso);
 	memset(track_data_path[0], 0x00, _MAX_PATH * sizeof(_TCHAR));
+	memset(track_data_type[0], 0x00, 256 * sizeof(_TCHAR));
 
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) { //
 		uint64_t total_size = (uint64_t)fio->FileLength();
@@ -59,6 +60,7 @@ bool TOWNS_CDROM::open_iso_file(const _TCHAR* file_path)
 			toc_table[2].logical_size = 0;
 			with_filename[1] = true;
 			strncpy(track_data_path[0], full_path_iso, _MAX_PATH - 1);
+			strncpy(track_data_type[0], _T("BINARY"), 256 - 1); // OK? Is this ISO?
 		} else {
 			track_num = 0;
 			max_logical_block = 0;

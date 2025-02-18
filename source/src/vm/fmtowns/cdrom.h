@@ -10,6 +10,7 @@
 
 #include "../../common.h"
 #include "../device.h"
+#include <regex>
 
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
@@ -218,9 +219,12 @@ protected:
 		int physical_size;
 		int logical_size;
 	} toc_table[108];
+	
 	_TCHAR track_data_path[101][_MAX_PATH];
-	_TCHAR img_file_path_bak[_MAX_PATH];
+	_TCHAR track_data_type[101][256];
 	bool with_filename[101];
+	
+	_TCHAR img_file_path_bak[_MAX_PATH];
 
 	uint32_t cdda_start_frame;
 	uint32_t cdda_end_frame;
@@ -383,9 +387,10 @@ protected:
 	void __FASTCALL make_bitslice_subc_q(uint8_t *data, int bitwidth);
 	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
 
+	// ToDo: Will implement Image type (WAV, MP3 etc...)
 	bool open_cue_file(const _TCHAR* file_path);
-	bool parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath);
-	void parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath);
+	bool parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath, std::string& imgtype);
+	void parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath, std::string imgtype);
 	int parse_cue_index(std::string &_arg2, int nr_current_track);
 
 	virtual bool open_iso_file(const _TCHAR* file_path);
@@ -692,6 +697,7 @@ public:
 	{
 		d_cpu = d;
 	}
+
 };
 
 

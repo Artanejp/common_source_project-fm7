@@ -179,6 +179,7 @@ void TOWNS_CDROM::initialize()
 	transfer_speed = 1;
 	for(int i = 0; i < 99; i++) {
 		memset(track_data_path[i], 0x00, _MAX_PATH * sizeof(_TCHAR));
+		memset(track_data_type[i], 0x00, 256 * sizeof(_TCHAR));
 	}
 	/*!
 	  @note values related muting/voluming are set by electric volume,
@@ -2611,6 +2612,7 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 	}
 	if(is_cue) {
 		// ToDo: Apply audio with some codecs.
+		// Use track_data_type[tnum] - 20250218 K.O .
 		if((current_track != track) || !(fio_img->IsOpened())){
 			if(fio_img->IsOpened()) {
 				fio_img->Fclose();

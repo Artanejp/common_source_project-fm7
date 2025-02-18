@@ -10,6 +10,7 @@
 #include "../cdrom.h"
 #include "../../../fileio.h"
 
+#include <map>
 
 namespace FMTOWNS {
 
@@ -21,15 +22,12 @@ enum {
 	CUE_INDEX,
 	CUE_PREGAP,
 };
-#include <string>
-#include <map>
-
 
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
-	std::string line_buf_shadow;
 	std::string image_tmp_data_path;
+	std::string image_tmp_data_type;
 
 	_TCHAR full_path_cue[_MAX_PATH];
 	size_t ptr;
@@ -41,20 +39,11 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 
 	memset(full_path_cue, 0x00, sizeof(full_path_cue));
 	image_tmp_data_path.clear();
+	image_tmp_data_type.clear();
 
 	get_long_full_path_name(file_path, full_path_cue, sizeof(full_path_cue));
 
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_cue);
-
-	size_t _arg1_ptr;
-	size_t _arg2_ptr;
-	size_t _arg2_ptr_s;
-	size_t _arg3_ptr;
-	size_t _arg3_ptr_s;
-
-	std::string _arg1;
-	std::string _arg2;
-	std::string _arg3;
 
 	std::map<std::string, int> cue_enum;
 
@@ -67,9 +56,9 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 
 
 	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
-		line_buf.clear();
 		for(int i = 0; i < 100; i++) {
 			memset(&(track_data_path[i][0]), 0x00, _MAX_PATH * sizeof(_TCHAR));
+			memset(&(track_data_type[i][0]), 0x00, 256 * sizeof(_TCHAR));
 			with_filename[i] = false;
 		}
 		int _c;
@@ -88,69 +77,85 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			} while(1);
 			if(_c == EOF) is_eof = true;
 			slen = (int)line_buf.length();
-			if(slen <= 0) goto _n_continue;
-			// Trim head of Space or TAB
-			ptr = 0;
-			sptr = 0;
-			// Tokenize
-			_arg1.clear();
-			_arg2.clear();
-			_arg3.clear();
-
-			ptr = line_buf.find_first_not_of((const char*)" \t");
-			if(ptr == std::string::npos) {
-				goto _n_continue;
-			}
-			// Token1
-			line_buf_shadow = line_buf.substr(ptr);
-
-			_arg1_ptr = line_buf_shadow.find_first_of((const char *)" \t");
-			_arg1 = line_buf_shadow.substr(0, _arg1_ptr);
-			_arg2 = line_buf_shadow.substr(_arg1_ptr);
-			std::transform(_arg1.begin(), _arg1.end(), _arg1.begin(),
-						   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
-
-			_arg2_ptr = _arg2.find_first_not_of((const char *)" \t");
-
-			if(_arg2_ptr != std::string::npos) {
-				_arg2 = _arg2.substr(_arg2_ptr);
-			}
-			int typeval;
-			try {
-				typeval = cue_enum.at(_arg1);
-			} catch (std::out_of_range &e) {
-				typeval = CUE_NONE;
-			}
-			switch(typeval) {
-			case CUE_REM:
-				break;
-			case CUE_FILE:
-				{
-					if(!(parse_cue_file_args(_arg2, parent_dir, image_tmp_data_path))) break;
-					with_filename[nr_current_track + 1] = true;
+			if(slen > 0) {
+				const std::regex _ts1("^[ \t]*");
+				const std::regex _ts2("[ \t\n\r]+$");
+				const std::regex _ts3("[ \t\n\r]+");									  
+				std::smatch _sm1;
+				std::string line1;
+				// Split header.
+				if(std::regex_search(line_buf, _sm1, _ts1)) {
+					line1 = _sm1.suffix();
+				} else {
+					line1 = line_buf;
 				}
-				break;
-			case CUE_TRACK:
-				{
-					parse_cue_track(_arg2, nr_current_track, image_tmp_data_path);
+				// Split footer.
+				std::string argstr;	
+				std::smatch _sm2;
+				if(std::regex_search(line1, _sm2, _ts2)) {
+					argstr = _sm2.prefix();
+				} else {
+					argstr = line1;
 				}
-				break;
-			case CUE_INDEX:
-				parse_cue_index(_arg2, nr_current_track);
-				break;
-			case CUE_PREGAP:
-				if((nr_current_track > 0) && (nr_current_track < 100)) {
-					_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-					_arg2 = _arg2.substr(0, _arg2_ptr_s - 1);
-
-					toc_table[nr_current_track].pregap = get_frames_from_msf(_arg2.c_str());
+				std::string cmdstr;
+				std::smatch _sm3;
+				if(std::regex_search(argstr, _sm3, _ts3)) {
+					cmdstr = _sm3.prefix();
+					argstr = _sm3.suffix();
+					std::smatch _sm4;
+					if(std::regex_search(argstr, _sm4, _ts1)) {
+						argstr = _sm4.suffix();
+					}
+				} else {
+					cmdstr = argstr;
+					argstr = std::string("");
 				}
-				break;
+				std::transform(cmdstr.begin(), cmdstr.end(), cmdstr.begin(),
+							   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
+				//out_debug_log(_T("%s : %s : %s"), line1.c_str(), cmdstr.c_str(), argstr.c_str());
+				int typeval;
+				try {
+					typeval = cue_enum.at(cmdstr);
+				} catch (std::out_of_range &e) {
+					typeval = CUE_NONE;
+				}
+				switch(typeval) {
+				case CUE_REM:
+					//out_debug_log(_T("TRACK#%02d REM:%s\n"),  nr_current_track, line_buf.c_str());
+					break;
+				case CUE_FILE:
+					if(!(argstr.empty())) {
+						std::string _fname = argstr;
+						if(parse_cue_file_args(_fname, parent_dir, image_tmp_data_path, image_tmp_data_type)) {
+							with_filename[nr_current_track + 1] = true;
+						}
+						//out_debug_log(_T("TRACK#%02d FILE:%s\n"),  nr_current_track, _fname.c_str());
+					}
+					break;
+				case CUE_INDEX:					
+					if(!(argstr.empty())) {
+						parse_cue_index(argstr, nr_current_track);
+					}
+					//out_debug_log(_T("TRACK#%02d INDEX:%s\n"),  nr_current_track, argstr.c_str());
+					break;
+				case CUE_TRACK:					
+					if(!(argstr.empty())) {
+						parse_cue_track(argstr, nr_current_track, image_tmp_data_path, image_tmp_data_type);
+					}
+					//out_debug_log(_T("TRACK#%02d TRACK:%s\n"),  nr_current_track, argstr.c_str());
+					break;
+				case CUE_PREGAP:
+					if((nr_current_track > 0) && (nr_current_track < 100) && !(argstr.empty())) {
+						toc_table[nr_current_track].pregap = get_frames_from_msf(argstr.c_str());
+					}
+					//out_debug_log(_T("TRACK#%02d PREGAP:%s\n"),  nr_current_track, argstr.c_str());
+					break;
+				default:
+					//out_debug_log(_T("TRACK#%02d ???:%s\n"),  nr_current_track, line_buf.c_str());
+					break;
+				}
 			}
-		_n_continue:
 			if(is_eof) break;
-			line_buf.clear();
-			continue;
 		}
 		// Finish
 		max_logical_block = 0;
@@ -207,10 +212,11 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				toc_table[i].index0 += toc_table[i].lba_offset;
 				toc_table[i].index1 += toc_table[i].lba_offset;
 #if 1
-				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d PATH=%s\n"),
-									i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
-									toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
-									toc_table[i].lba_size, toc_table[i].lba_offset, track_data_path[i - 1]);
+				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d TYPE=\"%s\" PATH=\"%s\"\n"),
+							  i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
+							  toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
+							  toc_table[i].lba_size, toc_table[i].lba_offset,
+							  track_data_type[i - 1], track_data_path[i - 1]);
 #endif
 			}
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
@@ -230,30 +236,62 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	return is_cue;
 }
 
-bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath)
+// ToDo: Implement Image type.	
+bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath, std::string& imgtype)
 {
 	size_t _arg2_ptr;
 	size_t _arg3_ptr;
 	std::string _arg3;
-
+	std::string _arg4;
 	_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
 	if(_arg2_ptr == std::string::npos) return false;
 
 	_arg2 = _arg2.substr(_arg2_ptr);
 	_arg3_ptr = _arg2.find_first_of((const char *)"\"");
 	if(_arg3_ptr == std::string::npos) return false;
-	_arg2 = _arg2.substr(0, _arg3_ptr);
 
+	try {
+		_arg3 = _arg2.substr(0, _arg3_ptr);
+	} catch (std::out_of_range &e) {
+		return false;
+	} 
 	imgpath.clear();
 	imgpath = std::string(parent_dir);
-	imgpath.append(_arg2);
+	imgpath.append(_arg3);
 
+	try {
+		_arg4 = _arg2.substr(_arg3_ptr + 1);
+	} catch (std::out_of_range &e) {
+		if(imgtype.empty()) {
+			_arg4 = std::string("BINARY");
+		} else {
+			_arg4 = imgtype;
+		}
+	}
+	const std::regex _ts1("^[ \t]*");
+	const std::regex _ts2("[ \t\n\r]+$");
+	std::smatch _sm1, _sm2;
+	if(_arg4.empty()) {
+		return true; // OK?
+	}
+	// Split header.
+	if(std::regex_search(_arg4, _sm1, _ts1)) {
+		_arg4 = _sm1.suffix();
+	}
+	// Split Footer
+	if(std::regex_search(_arg4, _sm2, _ts2)) {
+		_arg4 = _sm2.prefix();
+	}
+	if(!(_arg4.empty())) {
+		imgtype = _arg4;
+	}
 //	cdrom_debug_log(_T("**FILE %s\n"), imgpath.c_str());
 
 	return true;
 }
 
-void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath)
+// ToDo: Implement Image type.	
+void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath, std::string imgtype)
 {
 	size_t _arg2_ptr_s;
 	size_t _arg2_ptr;
@@ -283,9 +321,10 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 
 		memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
 		strncpy((char *)(track_data_path[_nr_num - 1]), imgpath.c_str(), _MAX_PATH - 1);
-//		image_tmp_data_path.clear();
-//		with_filename[_nr_num - 1] = have_filename;
-//		have_filename = false;
+		
+		memset(track_data_type[_nr_num - 1], 0x00, sizeof(_TCHAR) * 256);
+		strncpy((char *)(track_data_type[_nr_num - 1]), imgtype.c_str(), 256 - 1);
+		
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
 		_arg4 = _arg3.substr(0, _arg3_ptr_s);
 
@@ -351,31 +390,44 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track)
 {
 	int index = -1;
+	const std::regex _ts1("^[ \t]*");
+	const std::regex _ts2("[ \t\n\r]+$");
+	const std::regex _ts3("[ \t\n\r]+");									  
+	
 	std::string _arg3;
 	std::string _arg4;
-	size_t _arg2_ptr_s;
-	size_t _arg3_ptr_s;
-	size_t _arg3_ptr;
+	std::smatch _sm3a, _sm3b, _sm4, _sm5;
+	
 	if((nr_current_track > 0) && (nr_current_track < 100)) {
-		_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
-		if(_arg2_ptr_s == std::string::npos) return -1;;
-
-		_arg3 = _arg2.substr(_arg2_ptr_s);
-		_arg2 = _arg2.substr(0, _arg2_ptr_s);
-		_arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
-		if(_arg3_ptr == std::string::npos) return -1;
-
-		_arg3 = _arg3.substr(_arg3_ptr);
-		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t");
-		_arg4 = _arg3.substr(0, _arg3_ptr_s);
-		index = atoi(_arg2.c_str());
+		// Split header.
+		if(std::regex_search(_arg2, _sm3a, _ts1)) {
+			_arg3 = _sm3a.suffix();
+		} else {
+			return -1;
+		}
+		// Split footer.
+		if(std::regex_search(_arg3, _sm3b, _ts2)) {
+			_arg3 = _sm3b.suffix();
+		}
+		// Get 1st ARG: INDEX NUM .
+		// Get 2nd ARG: MSF .
+		if(std::regex_search(_arg3, _sm4, _ts3)) {
+			_arg3 = _sm4.prefix();
+			_arg4 = _sm4.suffix();
+			if(std::regex_search(_arg3, _sm5, _ts1)) {
+				_arg3 = _sm5.suffix();
+			}
+		} else {
+			return -1;
+		}
+		index = atoi(_arg3.c_str());
 
 		switch(index) {
 		case 0:
-			toc_table[nr_current_track].index0 = get_frames_from_msf(_arg3.c_str());
+			toc_table[nr_current_track].index0 = get_frames_from_msf(_arg4.c_str());
 			break;
 		case 1:
-			toc_table[nr_current_track].index1 = get_frames_from_msf(_arg3.c_str());
+			toc_table[nr_current_track].index1 = get_frames_from_msf(_arg4.c_str());
 			break;
 		default:
 			index = -1;
