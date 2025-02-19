@@ -144,6 +144,19 @@ typedef enum {
 	MODE_NONE
 } CDROM_MODE_t;
 
+typedef struct CDROM_TOC_TABLE_t {
+	CDROM_MODE_t type;
+	int32_t index0, index1, pregap;
+	uint32_t lba_offset;
+	uint32_t lba_size;
+	bool is_audio;
+	int physical_size;
+	int logical_size;
+	bool with_filename;
+	std::string track_data_path;
+	std::string track_data_type;
+} CDROM_TOC_TABLE_t;
+	
 /*!<
   @note Commnds and status of CD controller (CDC) has moved to
         cdrom/cdc_commands.h .

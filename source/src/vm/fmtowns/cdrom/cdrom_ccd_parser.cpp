@@ -11,6 +11,7 @@
 #include "../../../fileio.h"
 
 #include <string>
+#include <regexp>
 #include <map>
 
 namespace FMTOWNS {
