@@ -177,9 +177,9 @@ void TOWNS_CDROM::initialize()
 	data_in = false;
 
 	transfer_speed = 1;
-	for(int i = 0; i < 99; i++) {
-		memset(track_data_path[i], 0x00, _MAX_PATH * sizeof(_TCHAR));
-		memset(track_data_type[i], 0x00, 256 * sizeof(_TCHAR));
+	for(int i = 0; i < 101; i++) {
+		initialize_toc_table(&(toc_table[i]));
+		initialize_toc_table(&(toc_table_tmp[i]));
 	}
 	/*!
 	  @note values related muting/voluming are set by electric volume,
@@ -219,6 +219,43 @@ void TOWNS_CDROM::release()
 	}
 
 }
+
+void TOWNS_CDROM::initialize_toc_table(CDROM_TOC_TABLE_t *p)
+{
+	if(p == NULL) return;
+	p->type = MODE_NONE;
+	p->index0 = 0;
+	p->index1 = 0;
+	p->pregap = 0;
+	p->lba_size = 0;
+	//p->lba_offset = 0;
+	p->is_audio = false;
+	p->physical_size = 2352;
+	p->logical_size  = 2048;
+	p->bytes_offset = 0;
+	p->track_data_path.clear();
+	p->track_data_type.clear();
+}
+
+void TOWNS_CDROM::copy_toc_table_to_main(CDROM_TOC_TABLE_t *p, int trk)
+{
+	if(p == NULL) return;
+	if((trk < 0) || (trk >= 100)) return;
+	
+	toc_table[trk].type   = p->type;
+	toc_table[trk].index0 = p->index0;
+	toc_table[trk].index1 = p->index1;
+	toc_table[trk].pregap = p->pregap;
+	toc_table[trk].lba_size = p->lba_size;
+	//toc_table[trk].lba_offset = p->lba_offset;
+	toc_table[trk].is_audio = p->is_audio;
+	toc_table[trk].physical_size = p->physical_size;
+	toc_table[trk].logical_size  = p->logical_size;
+	toc_table[trk].bytes_offset  = p->bytes_offset;
+	toc_table[trk].track_data_path = p->track_data_path;
+	toc_table[trk].track_data_type = p->track_data_type;
+}
+
 
 void TOWNS_CDROM::reset()
 {
@@ -1824,40 +1861,18 @@ const int TOWNS_CDROM::real_physical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-
-	switch(toc_table[current_track].type) {
-	case MODE_AUDIO:
-		return 2352;
-	case MODE1_2048:
+	if((is_iso) && (toc_table[current_track].type == MODE1_2352)) {
 		return 2048;
-	case MODE1_2352:
-		return (is_iso) ? 2048 : 2352;
-	case MODE2_2352:
-	case CDI_2352:
-		//return (is_iso) ? 2336 : 2352;
-		return 2352;
-	case MODE2_2336:
-	case CDI_2336:
-		return 2336;
-	case CD_G:
-		return 2448;
-	default:
-		break;
 	}
-	// OK?
-	return 2352;
+	return get_sector_size_from_mode(toc_table[current_track].type);
 }
 
 const int TOWNS_CDROM::physical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-
-	switch(toc_table[current_track].type) {
-	case CD_G:
+	if(toc_table[current_track].type == CD_G) {
 		return 2448;
-	default:
-		break;
 	}
 	// OK?
 	return 2352;
@@ -1868,24 +1883,7 @@ const int TOWNS_CDROM::logical_block_size()
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
 	if(is_iso) return 2048;
-	switch(toc_table[current_track].type) {
-	case MODE_AUDIO:
-		return 2352;
-	case MODE1_2048:
-	case MODE1_2352:
-		return 2048;
-	case MODE2_2336:
-	case MODE2_2352:
-	case CDI_2336:
-	case CDI_2352:
-		return 2336;
-	case CD_G:
-		return 2448;
-	default:
-		break;
-	}
-	// OK?
-	return 2048;
+	return get_logical_size_from_mode(toc_table[current_track].type);
 }
 
 bool TOWNS_CDROM::start_to_play_cdda()
@@ -2068,6 +2066,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				cdda_playing_frame = cdda_start_frame;
 				read_sector = cdda_playing_frame;
 				current_track = track;
+				// ToDo: Re Seek.
 				seek_relative_frame_in_image(cdda_playing_frame);
 				cdda_stopped = false;
 				data_in = false;
@@ -2603,6 +2602,53 @@ bool TOWNS_CDROM::is_device_ready()
 
 void TOWNS_CDROM::get_track_by_track_num(int track)
 {
+	#if 1
+	if((track <= 0) || (track >= track_num) || (track >= 100)) {
+		if(fio_img != NULL) {
+			if(fio_img->IsOpened()) {
+				fio_img->Fclose();
+			}
+		}
+		if(track <= 0) {
+			current_track = 0;
+		} else {
+			//current_track = min(track_num , 99); // OK?
+			current_track = 0; // OK?
+		}
+		return;
+	}
+	if(fio_img != NULL) {
+		// ToDo: Apply audio with some codecs.
+		// Use track_data_type[tnum] - 20250218 K.O .
+		if(current_track != track) {
+			// Check name
+			if(toc_table_tmp[current_track].track_data_path.compare(toc_table_tmp[track].track_data_path) != 0) {
+				if(fio_img->IsOpened()) {
+					fio_img->Fclose();
+				}
+			}
+		}
+		if(!(fio_img->IsOpened()) && !(toc_table_tmp[track].track_data_path.empty())) {
+			if(!(fio_img->Fopen((_TCHAR *)(toc_table_tmp[track].track_data_path.c_str()),  FILEIO_READ_BINARY))) {
+				current_track = 0;
+				return;
+			}
+		}
+	   
+		cdrom_debug_log(_T("LOAD TRK #%02d from %s\n"), track, toc_table[track].track_data_path.c_str());
+		if(fio_img->IsOpened()) {
+			// Seek
+			if(fio_img->Fseek((long)(toc_table[track].bytes_offset), FILEIO_SEEK_SET) != 0) {
+				// Make Seek Error.
+				cdrom_debug_log(_T("Seek error at TRK#%02d"), track);
+				// ToDo
+				return;
+			}
+			return;
+		}
+		// ToDo: Not Opened.
+	}
+	#else
 	if((track <= 0) || (track >= track_num)) {
 		if(is_cue) {
 			if(fio_img->IsOpened()) fio_img->Fclose();
@@ -2630,6 +2676,7 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 		}
 	}
 	current_track = track;
+	#endif
 }
 
 // Detect only track num.
@@ -2689,11 +2736,15 @@ uint32_t TOWNS_CDROM::get_image_cur_position()
 	int track = current_track;
 	if(is_device_ready()) {
 		if(fio_img->IsOpened()) {
-			uint32_t cur_position = (uint32_t)(fio_img->Ftell());
-			frame = cur_position / real_physical_block_size();
-			if(is_cue) {
-				frame = frame + toc_table[track].lba_offset;
+			uint64_t cur_position = (uint64_t)(fio_img->Ftell());
+			if(toc_table[track].bytes_offset > 0) {
+				if(cur_position >= toc_table[track].bytes_offset) {
+					cur_position -= toc_table[track].bytes_offset;
+				} else {
+					cur_position = 0;
+				}
 			}
+			frame = cur_position / real_physical_block_size();
 		} else {
 			frame = 0;
 		}
@@ -2764,6 +2815,19 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 {
 	int phys_size = real_physical_block_size();
+	#if 1
+	if((toc_table[current_track].index1 <= frame_no) && (toc_table[current_track + 1].index0 > frame_no)) {
+		if(fio_img->IsOpened()) {
+			uint64_t _pos = toc_table[current_track].bytes_offset;
+			uint64_t rel_sec = frame_no - toc_table[current_track].index1;
+			_pos += (rel_sec * phys_size);
+			if(fio_img->Fseek((long)_pos, FILEIO_SEEK_SET)) {
+				return true;
+			}
+		}
+	}
+	return false; // Within Track?
+	#else
 	if((frame_no >= toc_table[current_track].lba_offset) && (phys_size > 0)) {
 		if(fio_img->IsOpened()) {
 			if(fio_img->Fseek(
@@ -2774,6 +2838,7 @@ bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 			return true;
 		}
 	}
+	#endif
 	return false;
 }
 

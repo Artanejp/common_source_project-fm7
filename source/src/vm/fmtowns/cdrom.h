@@ -141,18 +141,18 @@ typedef enum {
 	MODE2_2352,
 	CDI_2336,
 	CDI_2352,
+	MODE1_ISO,
 	MODE_NONE
 } CDROM_MODE_t;
 
 typedef struct CDROM_TOC_TABLE_t {
 	CDROM_MODE_t type;
-	int32_t index0, index1, pregap;
-	uint32_t lba_offset;
+	int64_t index0, index1, pregap;
 	uint32_t lba_size;
 	bool is_audio;
 	int physical_size;
 	int logical_size;
-	bool with_filename;
+	uint64_t bytes_offset;
 	std::string track_data_path;
 	std::string track_data_type;
 } CDROM_TOC_TABLE_t;
@@ -331,6 +331,7 @@ protected:
 	bool cdrom_prefetch;
 
 	int extra_status;
+	
 	void play_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
 	void stop_cdda_from_cmd();
@@ -340,6 +341,51 @@ protected:
 	bool is_device_ready();
 	void reset_device();
 
+	// ToDo: RAW.
+	virtual int64_t get_logical_size_from_mode(enum CDROM_MODE_t type)
+	{
+		switch(type) {
+		case MODE_AUDIO:
+			return 2352;
+			break;
+		case MODE2_2352:
+		case MODE2_2336:
+		case CDI_2352:
+		case CDI_2336:
+			return 2336;
+			break;
+		case CD_G:
+			return 2448; // OK?
+			break;
+		case MODE1_2352:
+		case MODE1_2048:
+		case MODE1_ISO:
+			return 2048;
+		default:
+			return 2048;
+			break;
+		}
+	}
+	virtual int64_t get_sector_size_from_mode(enum CDROM_MODE_t type)
+	{
+		switch(type) {
+		case MODE_AUDIO:
+		case MODE1_2352:
+		case MODE2_2352:
+		case CDI_2352:
+			return 2352;
+			break;
+		case CD_G:
+			return 2448;
+			break;
+		case MODE1_2048:
+		case MODE1_ISO:
+			return 2048;
+		default:
+			return -1;
+			break;
+		}
+	}
 	virtual void read_a_cdda_sample();
 
 	void send_mcu_ready();

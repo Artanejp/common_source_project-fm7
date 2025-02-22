@@ -23,6 +23,61 @@ enum {
 	CUE_PREGAP,
 };
 
+bool TOWNS_CDROM::check_toc_and_open_image_file(int trk, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string &recent_path)
+{
+	is_image_changed = false;
+	if((trk <= 0) || (trk > 100)) return false;
+	if(fio_img == NULL) return false;
+	
+	CDROM_TOC_TABLE_t *pt = &(toc_table_tmp[trk]);
+	if(pt == NULL) return false;
+
+	bool need_to_reopen = false;
+	if(recent_path.empty()) need_to_reopen = true;
+	if(recent_path.compare(pt->track_data_path) != 0) need_to_reopen |= true;
+	
+	if(need_to_reopen) {
+		if(pt->track_data_path.empty()) return false;
+		if(!(FILEIO::IsFileExisting((_TCHAR *)(pt->track_data_path.c_str())))) return false;
+		// Ok, Try to Open File.
+		FILEIO tmp_fio;
+		if(!(tmp_fio.Fopen((_TCHAR *)(pt->track_data_path.c_str()), FILEIO_READ_BINARY))) {
+			return false;
+		}
+		size_t tmp_len = tmp_fio.FileLength();
+		if(tmp_len <= 0) {
+			return false;
+		}
+		// OK, Open new file.
+		tmp_fio.Fclose();
+		
+		if(fio_img->IsOpened()) {
+			fio_img->Fclose();
+		}
+		if(!(fio_img->Fopen((_TCHAR *)(pt->track_data_path.c_str()), FILEIO_READ_BINARY))) {
+			return false;
+		}
+		// OK!
+		fio_img->Fseek(0, FILEIO_SEEK_SET);
+		
+		tmp_len = fio_img->FileLength();
+		if(tmp_len <= 0) {
+			return false;
+		}
+		image_length = (uint64_t)tmp_len;
+		is_image_changed = true;
+		
+		image_offset = 0;
+		recent_path = pt->track_data_path;
+		return true;
+	}
+	if(!(fio_img->IsOpened())) {
+		return false;
+	}
+	return true;
+}
+
+	
 bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 {
 	std::string line_buf;
@@ -56,10 +111,8 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 
 
 	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
-		for(int i = 0; i < 100; i++) {
-			memset(&(track_data_path[i][0]), 0x00, _MAX_PATH * sizeof(_TCHAR));
-			memset(&(track_data_type[i][0]), 0x00, 256 * sizeof(_TCHAR));
-			with_filename[i] = false;
+		for(int i = 0; i < 101; i++) {
+			initialize_toc_table(&(toc_table_tmp[i]));
 		}
 		int _c;
 		bool is_eof = false;
@@ -127,12 +180,23 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					if(!(argstr.empty())) {
 						std::string _fname = argstr;
 						if(parse_cue_file_args(_fname, parent_dir, image_tmp_data_path, image_tmp_data_type)) {
-							with_filename[nr_current_track + 1] = true;
+							
 						}
 						//out_debug_log(_T("TRACK#%02d FILE:%s\n"),  nr_current_track, _fname.c_str());
 					}
 					break;
-				case CUE_INDEX:					
+				case CUE_INDEX:
+					// By https://totalsonic.net/cuesheetsyntax.htm :
+					// " All index numbers must be between 0 and 99 inclusive.
+					//   The first index must be 0 or 1 with
+					//   all other indexes being sequential to the first one.
+					//   The first index of a file must start at 00:00:00.
+					//   INDEX 0 Specifies the starting time of the track “pregap”.
+					//   INDEX 1 Specifies the starting time of the track data.
+					//           This is the only index that is stored in the disc’s
+					//           table-of-contents.
+					//   INDEX > 1 Specifies a subindex within a track. "
+					// - 20250223 K.O
 					if(!(argstr.empty())) {
 						parse_cue_index(argstr, nr_current_track);
 					}
@@ -161,12 +225,201 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		max_logical_block = 0;
 		uint32_t pt_lba_ptr = 0;
 		if(track_num > 0) {
-			toc_table[0].lba_offset = 0;
+			//toc_table[0].lba_offset = 0;
 			toc_table[0].lba_size = 0;
 			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
 			// P1: Calc
 			int _n = 0;
 			int vnptr = 0;
+			#if 1
+			if(fio_img->IsOpened()) { // OK?
+				fio_img->Fclose();
+			}
+			bool is_valid_image = ((track_num > 1) && (track_num <= 100)) ? true : false;
+			for(int i = 1; (i < track_num) && (i < 100) ; i++) {
+				CDROM_TOC_TABLE_t *pt = &(toc_table_tmp[i]);
+				if(pt == NULL) {
+					is_valid_image = false;
+					break; // NG.
+				}
+				
+				int tmp_index0 = pt->index0;
+				int tmp_index1 = pt->index1;
+				int tmp_pregap = pt->pregap;
+				// From https://totalsonic.net/cuesheetsyntax.htm :
+				// PREGAP [mm:ss:ff]
+				// Parameters: mm:ss:ff – Specifies the pregap length
+				//             in minutes, seconds, and frames.
+				// Example: PREGAP 00:02:00
+				// Rules: The PREGAP command must appear after a TRACK command,
+				// but before any INDEX commands.
+				// Only one PREGAP command is allowed per track.
+				// - 20250223 K.O
+				// So, I decide below rule:
+				const int tmp_2sec = get_frames_from_msf(_T("00:02:00"));
+				if(tmp_index0 < 0) {
+					tmp_index0 = 0;
+				}
+				if(tmp_index1 < 0) {
+					tmp_index1 = 0;
+				}
+				if(tmp_pregap <= 0) {
+					tmp_pregap = tmp_2sec;
+					if((tmp_index1 > tmp_index0) && (tmp_index0 > 0)) {
+						tmp_pregap = tmp_index1 - tmp_index0;
+					}
+				}
+				// ToDo: if pregap < 2Sec.
+				if(tmp_index1 == 0) {
+					tmp_index1 = tmp_index0 + tmp_pregap;
+				} else if(tmp_index0 == 0) { // Maybe tmp_index1 != 0
+					tmp_index0 = tmp_index1 - tmp_pregap;
+					if(tmp_index0 < 0) {
+						tmp_index0 = 0;
+					}
+				}
+			}
+			// Pass2
+			if(is_valid_image) {
+				std::string __recent_image_name;
+				__recent_image_name.clear();
+
+				uint64_t __offset_bytes = 0;
+				uint64_t __image_size   = 0;
+				bool is_image_changed = false;
+				uint32_t lba_begin = 0;
+				uint64_t base_sectors = 0;
+				uint64_t total_bytes = 0;
+				uint64_t total_sectors = 0;
+				int latest_changed = 1;
+				is_valid_image = false;
+				for(int i = 1; (i < track_num) && (i < 100) ; i++) {
+					uint64_t old_image_size = __image_size;
+					uint64_t old_offset = __offset_bytes;
+					if(!(check_toc_and_open_image_file(i, __image_size, __offset_bytes, is_image_changed, __recent_image_name))) {
+						is_valid_image = false;
+						break;
+					}
+					int64_t tmp_sector_size = get_sector_size_from_mode(toc_table_tmp[i].type);					if(tmp_sector_size <= 0) {
+						is_valid_image = false;
+						break;
+					}
+					toc_table_tmp[i].physical_size = tmp_sector_size;
+					toc_table_tmp[i].logical_size = get_logical_size_from_mode(toc_table_tmp[i].type);
+
+					if(i == 1) {
+						toc_table_tmp[i].lba_size = (__image_size - __offset_bytes) / tmp_sector_size; // TMP
+						toc_table_tmp[i].bytes_offset = 0;
+						total_bytes = __image_size;
+					} else {
+						int64_t old_sector_size = toc_table_tmp[i - 1].physical_size;
+						if(old_sector_size <= 0) {
+							is_valid_image = false;
+							break;
+						}
+						if(is_image_changed) {
+							uint64_t __sectors = 0;
+							// Trim index0 and index1
+							for(int j = latest_changed; j < i; j++) {
+								//toc_table_tmp[j].lba_offset = base_sectors;
+								toc_table_tmp[j].index0 += base_sectors;
+								toc_table_tmp[j].index1 += base_sectors;
+							}
+							latest_changed = i;
+							if(old_image_size > old_offset) {
+								__sectors = (old_image_size - old_offset) / old_sector_size;
+								toc_table_tmp[i - 1].lba_size = __sectors;
+								toc_table_tmp[i].bytes_offset = 0;
+								total_sectors += __sectors;
+								base_sectors = toral_sectors;
+							} else {
+								is_valid_image = false;
+								break;
+							}
+							total_bytes += image_size;
+						} else { // Continue
+							uint64_t old_index0 = toc_table_tmp[i - 1].index0;
+							uint64_t old_index1 = toc_table_tmp[i - 1].index1;
+							uint64_t new_index0 = toc_table_tmp[i].index0;
+							uint64_t new_index1 = toc_table_tmp[i].index1;
+							if((new_index0 <= old_index0) || (new_index1 <= old_index1)) {
+								is_valid_image = false;
+								break;
+							}
+							uint64_t __size = new_index0 - old_index0;
+							if(__image_size <= (__size + __offset_bytes)) {
+								// Eject?
+								is_valid_image = false;
+								break;
+							}
+							uint64_t __sectors = __size / tmp_sector_size;
+							if(__sectors == 0) {
+								// Eject?
+								is_valid_image = false;
+								break;
+							}
+							__offset_bytes += __size;
+							toc_table_tmp[i].bytes_offset = __offset_bytes;
+							toc_table_tmp[i - 1].lba_size = __sectors;
+							total_sectors += __sectors;
+						}
+					}
+				}
+				if(is_valid_image) {
+					// Trim remain INDEX 00 and INDEX 01 .
+					if((latest_changed < track_num) && (latest_changed > 1)) {
+						for(int j = latest_changed; j < track_num; j++) {
+							//toc_table_tmp[j].lba_offset = base_sectors;
+							toc_table_tmp[j].index0 += base_sectors;
+							toc_table_tmp[j].index1 += base_sectors;
+						}
+					}
+					// TRIM TRACK 00 .
+					toc_table_tmp[0].index0       = 0;
+					toc_table_tmp[0].index1       = 0;
+					toc_table_tmp[0].pregap       = 0;
+					toc_table_tmp[0].lba_size     = 0;
+					toc_table_tmp[0].physical_size = 2352;
+					toc_table_tmp[0].logical_size = 2048;
+					toc_table_tmp[0].bytes_offset = 0;
+
+					// TRIM TRACN [track_num]
+					toc_table_tmp[track_num].index0       = total_sectors;
+					toc_table_tmp[track_num].index1		  = total_sectors;
+					toc_table_tmp[track_num].pregap       = get_frames_from_msf(_T("00:02:00"));
+					toc_table_tmp[track_num].lba_size     = 0;
+					toc_table_tmp[track_num].bytes_offset = total_bytes;
+					toc_table_tmp[track_num].physical_size = 2352;
+					toc_table_tmp[track_num].logical_size = 2048;
+
+					if(toc_table_tmp[track_num - 1].lba_size == 0) {
+						uint64_t __pos = toc_table_tmp[track_num - 1].bytes_offset;
+						if(__pos < __image_size) {
+							int64_t old_sector_size = get_sector_size_from_mode(toc_table_tmp[track_num - 1].type);
+							if(old_sector_size <= 0) {
+								is_valid_image = false;
+							} else {
+								toc_table_tmp[track_num - 1].lba_size = (__image_size - __pos) / old_sector_size;
+								if(toc_table_tmp[track_num - 1].lba_size == 0) {
+									is_valid_image = false;
+								}
+							}
+							
+						} else {
+							is_valid_inage = false;
+						}
+					}
+					if(is_valid_image) {
+						// ToDo : Copy toc_table.
+						for(int i = 0; i <= 100; i++) {
+							copy_toc_table_to_main(&(toc_table_tmp[i]), i);
+						}
+
+					}
+				}
+			}
+					
+			#else
 			for(int i = 1; i < track_num; i++) {
 
 				if(fio_img->IsOpened()) {
@@ -189,7 +442,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					}
 					toc_table[i].lba_size = _n;
 				}
-				toc_table[i].lba_offset = max_logical_block - _n;
+				//toc_table[i].lba_offset = max_logical_block - _n;
 				if(!(with_filename[i + 1]) && (toc_table[i + 1].index1 > toc_table[i].index1)) {
 					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index0;
 				}
@@ -225,7 +478,10 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
 			toc_table[track_num].lba_offset = max_logical_block;
 			toc_table[track_num].lba_size = 0;
+			#endif
+			#endif
 		}
+
 		fio->Fclose();
 	}
 	delete fio;
@@ -319,11 +575,11 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 		nr_current_track = _nr_num;
 		_arg3 = _arg3.substr(_arg3_ptr);
 
-		memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
-		strncpy((char *)(track_data_path[_nr_num - 1]), imgpath.c_str(), _MAX_PATH - 1);
+		//memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
+		//strncpy((char *)(track_data_path[_nr_num - 1]), imgpath.c_str(), _MAX_PATH - 1);
 		
-		memset(track_data_type[_nr_num - 1], 0x00, sizeof(_TCHAR) * 256);
-		strncpy((char *)(track_data_type[_nr_num - 1]), imgtype.c_str(), 256 - 1);
+		//memset(track_data_type[_nr_num - 1], 0x00, sizeof(_TCHAR) * 256);
+		//strncpy((char *)(track_data_type[_nr_num - 1]), imgtype.c_str(), 256 - 1);
 		
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
 		_arg4 = _arg3.substr(0, _arg3_ptr_s);
@@ -331,53 +587,32 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, int& nr_current_track, std
 		std::transform(_arg3.begin(), _arg3.end(), _arg3.begin(),
 					   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
 
-		toc_table[nr_current_track].is_audio = false;
-		toc_table[nr_current_track].index0 = 0;
-		toc_table[nr_current_track].index1 = 0;
-		toc_table[nr_current_track].pregap = 0;
-		toc_table[nr_current_track].physical_size = 2352;
-		toc_table[nr_current_track].logical_size = 2048;
+		toc_table_tmp[nr_current_track].type = MODE_NONE;
+		toc_table_tmp[nr_current_track].is_audio = false;
+		toc_table_tmp[nr_current_track].index0 = 0;
+		toc_table_tmp[nr_current_track].index1 = 0;
+		toc_table_tmp[nr_current_track].pregap = 0;
+		toc_table_tmp[nr_current_track].physical_size = 2352;
+		toc_table_tmp[nr_current_track].logical_size = 2048;
+		toc_table_tmp[nr_current_track].track_data_path = imgpath;
+		toc_table_tmp[nr_current_track].track_data_type = imgtype;
 		CDROM_MODE_t track_type;
 		try {
 			track_type = cue_type.at(_arg3);
 		} catch (std::out_of_range &e) {
 			track_type = MODE_NONE;
 		}
-		toc_table[nr_current_track].type = track_type;
-
-		switch(track_type) {
-		case MODE_AUDIO:
-			toc_table[nr_current_track].is_audio = true;
-			toc_table[nr_current_track].logical_size = 2352;
-			break;
-		case MODE1_2048:
-			toc_table[nr_current_track].logical_size = 2048;
-			toc_table[nr_current_track].physical_size = 2048;
-			break;
-		case MODE1_2352:
-			toc_table[nr_current_track].logical_size = 2048;
-			break;
-		case MODE2_2336:
-			toc_table[nr_current_track].logical_size = 2336;
-			toc_table[nr_current_track].physical_size = 2336;
-			break;
-		case MODE2_2352:
-			toc_table[nr_current_track].logical_size = 2336;
-			break;
-		case CDI_2336:
-			toc_table[nr_current_track].logical_size = 2336;
-			toc_table[nr_current_track].physical_size = 2336;
-			break;
-		case CDI_2352:
-			toc_table[nr_current_track].logical_size = 2336;
-			break;
-		case CD_G:
-			toc_table[nr_current_track].logical_size = 2448;
-			toc_table[nr_current_track].physical_size = 2448;
-			break;
-			// ToDo: Set data size.
-		default:
-			break;
+		int64_t phys_size = get_sector_size_from_mode(track_type);
+		if(phys_size > 0) {
+			toc_table_tmp[nr_current_track].type = track_type;
+			toc_table_tmp[nr_current_track].physical_size = phys_size;
+			toc_table_tmp[nr_current_track].logiacal_size = get_logical_size_from_mode(track_type);
+			if(track_type == MODE_AUDIO) {
+				toc_table_tmp[nr_current_track].is_audio = true;
+			}
+		} else {
+			toc_table_tmp[nr_current_track].track_data_path.clear();
+			toc_table_tmp[nr_current_track].track_data_type.clear();
 		}
 		if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
 	} else {
