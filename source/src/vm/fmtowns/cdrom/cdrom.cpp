@@ -177,6 +177,8 @@ void TOWNS_CDROM::initialize()
 	transfer_speed = 1;
 	for(int i = 0; i < 101; i++) {
 		initialize_toc_table(&(toc_table[i]));
+		track_data_path[i].clear();
+		track_data_type[i].clear();
 	}
 	/*!
 	  @note values related muting/voluming are set by electric volume,
@@ -230,11 +232,9 @@ void TOWNS_CDROM::initialize_toc_table(CDROM_TOC_TABLE_t *p)
 	p->physical_size = 2352;
 	p->logical_size  = 2048;
 	p->bytes_offset = 0;
-	p->track_data_path.clear();
-	p->track_data_type.clear();
 }
 
-void TOWNS_CDROM::copy_toc_table_to_main(CDROM_TOC_TABLE_t *p, int trk)
+void TOWNS_CDROM::copy_toc_table_to_main(int trk, CDROM_TOC_TABLE_t *p, std::string data_path, std::string data_type)
 {
 	if(p == NULL) return;
 	if((trk < 0) || (trk >= 100)) return;
@@ -249,8 +249,9 @@ void TOWNS_CDROM::copy_toc_table_to_main(CDROM_TOC_TABLE_t *p, int trk)
 	toc_table[trk].physical_size = p->physical_size;
 	toc_table[trk].logical_size  = p->logical_size;
 	toc_table[trk].bytes_offset  = p->bytes_offset;
-	toc_table[trk].track_data_path = p->track_data_path;
-	toc_table[trk].track_data_type = p->track_data_type;
+	track_data_path[trk] = data_path;
+	track_data_type[trk] = data_type;
+
 }
 
 
@@ -2293,6 +2294,15 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 	uint8_t* datap;
 
 	transferred_bytes = 0;
+	int _trk = check_cdda_track_boundary(read_sector);
+	bool is_iso = false;
+	switch(toc_table[_trk].type) {
+	case MODE1_ISO:
+		is_iso = true;
+		break;
+	default:
+		break;
+	}
 
 	switch(read_mode) {
 	case READ_MODE1:
@@ -2326,7 +2336,7 @@ int TOWNS_CDROM::read_sectors_image(int sectors, uint32_t& transferred_bytes)
 		if(buffer_left() < _transfer_size) {
 			break;
 		}
-		int _trk = check_cdda_track_boundary(read_sector);
+		_trk = check_cdda_track_boundary(read_sector);
 		if((_trk <= 0) || (_trk >= track_num)) { // END
 			status_illegal_lba(0, 0x00, 0x00, 0x00);
 			return seccount;
@@ -2615,20 +2625,20 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 		// Use track_data_type[tnum] - 20250218 K.O .
 		if(current_track != track) {
 			// Check name
-			if(toc_table[current_track].track_data_path.compare(toc_table[track].track_data_path) != 0) {
+			if(track_data_path[current_track].compare(track_data_path[track]) != 0) {
 				if(fio_img->IsOpened()) {
 					fio_img->Fclose();
 				}
 			}
 		}
-		if(!(fio_img->IsOpened()) && !(toc_table[track].track_data_path.empty())) {
-			if(!(fio_img->Fopen((_TCHAR *)(toc_table[track].track_data_path.c_str()),  FILEIO_READ_BINARY))) {
+		if(!(fio_img->IsOpened()) && !(track_data_path[track].empty())) {
+			if(!(fio_img->Fopen((_TCHAR *)(track_data_path[track].c_str()),  FILEIO_READ_BINARY))) {
 				current_track = 0;
 				return;
 			}
 		}
 	   
-		cdrom_debug_log(_T("LOAD TRK #%02d from %s\n"), track, toc_table[track].track_data_path.c_str());
+		cdrom_debug_log(_T("LOAD TRK #%02d from %s\n"), track, track_data_path[track].c_str());
 		if(fio_img->IsOpened()) {
 			// Seek
 			if(fio_img->Fseek((long)(toc_table[track].bytes_offset), FILEIO_SEEK_SET) != 0) {
@@ -2887,9 +2897,9 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 	{
 		int track;
 		track = get_track_noop(start_tmp);
-		if(start_tmp >= toc_table[track].pregap) {
-			start_tmp -= toc_table[track].pregap;
-		}
+		//if(start_tmp >= toc_table[track].pregap) {
+		//	start_tmp -= toc_table[track].pregap;
+		//}
 		if(start_tmp < toc_table[track].index1) {
 			start_tmp = toc_table[track].index1; // don't play pregap
 		} else if(start_tmp >= max_logical_block) {
@@ -3137,17 +3147,23 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 		current_track = 0;
 		if(open_cue_file(file_path)) {
 			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
+		} else {
+			return;
 		}
 	} else if(check_file_extension(file_path, _T(".iso"))) {
 		//is_cue = false;
 		current_track = 0;
 		if(open_iso_file(file_path)) {
 			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
+		} else {
+			return;
 		}
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
 		if(open_ccd_file(file_path)) {
 			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
+		} else {
+			return;
 		}
 	}
 	if(mounted()) {
@@ -3528,8 +3544,8 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		pregap = toc_table[current_track].pregap;
 		lba_size = toc_table[current_track].lba_size;
 		bytes_offset = toc_table[current_track].bytes_offset;
-		tmp_path_name = toc_table[current_track].track_data_path;
-		tmp_data_type = toc_table[current_track].track_data_type;
+		tmp_path_name = track_data_path[current_track];
+		tmp_data_type = track_data_type[current_track];
 	}
 	_TCHAR moreinfo[512] = {0};
 	if(is_audio) {
@@ -3735,7 +3751,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 		if(fio_img->IsOpened()) {
 			close_from_cmd();
 		}
-		bool is_cue_bak = is_cue;
 		int track_num_bak = track_num;
 		if(strlen(img_file_path_bak) > 0) {
 			open_from_cmd(img_file_path_bak);

@@ -23,24 +23,23 @@ enum {
 	CUE_PREGAP,
 };
 
-bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string &recent_path)
+	bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path)
 {
+	if(pt == NULL) return false;
 	is_image_changed = false;
 	bool is_valid_image = false;
 	
-	CDROM_TOC_TABLE_t *pt = &(toc_table_tmp[trk]);
-	if(pt == NULL) return false;
 
 	bool need_to_reopen = false;
 	if(recent_path.empty()) need_to_reopen = true;
-	if(recent_path.compare(pt->track_data_path) != 0) need_to_reopen |= true;
+	if(recent_path.compare(current_data_path) != 0) need_to_reopen |= true;
 	
 	if(need_to_reopen) {
-		if(pt->track_data_path.empty()) return false;
-		if(!(FILEIO::IsFileExisting((_TCHAR *)(pt->track_data_path.c_str())))) return false;
+		if(current_data_path.empty()) return false;
+		if(!(FILEIO::IsFileExisting((_TCHAR *)(current_data_path.c_str())))) return false;
 		// Ok, Try to Open File.
 		FILEIO tmp_fio;
-		if(!(tmp_fio.Fopen((_TCHAR *)(pt->track_data_path.c_str()), FILEIO_READ_BINARY))) {
+		if(!(tmp_fio.Fopen((_TCHAR *)(current_data_path.c_str()), FILEIO_READ_BINARY))) {
 			return false;
 		}
 		size_t tmp_len = tmp_fio.FileLength();
@@ -53,7 +52,7 @@ bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t&
 		if(fio_img->IsOpened()) {
 			fio_img->Fclose();
 		}
-		if(!(fio_img->Fopen((_TCHAR *)(pt->track_data_path.c_str()), FILEIO_READ_BINARY))) {
+		if(!(fio_img->Fopen((_TCHAR *)(current_data_path.c_str()), FILEIO_READ_BINARY))) {
 			return false;
 		}
 		// OK!
@@ -67,7 +66,7 @@ bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t&
 		is_image_changed = true;
 		
 		image_offset = 0;
-		recent_path = pt->track_data_path;
+		recent_path = current_data_path;
 		return true;
 	}
 	if(!(fio_img->IsOpened())) {
@@ -88,17 +87,19 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	int line_count = 0;
 	int slen;
 	int nr_current_track = 0;
+	bool is_valid_image = false;
 	FILEIO* fio = new FILEIO();
 	if(fio == NULL) return false;
 
 	memset(full_path_cue, 0x00, sizeof(full_path_cue));
-	image_tmp_data_path.clear();
-	image_tmp_data_type.clear();
 
 	get_long_full_path_name(file_path, full_path_cue, sizeof(full_path_cue));
 
 	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_cue);
 
+	std::string tmp_track_data_path[101];
+	std::string tmp_track_data_type[101];
+	
 	std::map<std::string, int> cue_enum;
 
 	// Initialize
@@ -113,7 +114,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		initialize_toc_table(&(toc_table_tmp[i]));
 	}
 	
-	if(fio->Fopen(file_path, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
+	if(fio->Fopen(full_path_cue, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
 		int _c;
 		bool is_eof = false;
 		int sptr = 0;
@@ -181,6 +182,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 						std::string _fname = argstr;
 						if(parse_cue_file_args(_fname, parent_dir, image_tmp_data_path, image_tmp_data_type)) {
 							
+							
 						}
 						//out_debug_log(_T("TRACK#%02d FILE:%s\n"),  nr_current_track, _fname.c_str());
 					}
@@ -211,19 +213,22 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 							break;
 						}
 					}
-					//out_debug_log(_T("TRACK#%02d INDEX:%s\n"),  nr_current_track, argstr.c_str());
+					out_debug_log(_T("TRACK#%02d INDEX:%s\n"),  nr_current_track, argstr.c_str());
 					break;
 				case CUE_TRACK:					
 					if(!(argstr.empty())) {
-						parse_cue_track(argstr, toc_table_tmp, nr_current_track, image_tmp_data_path, image_tmp_data_type);
+						if(parse_cue_track(argstr, &(toc_table_tmp[0]), nr_current_track)) {
+							tmp_track_data_path[nr_current_track] = image_tmp_data_path;
+							tmp_track_data_type[nr_current_track] = image_tmp_data_type;
+						}
 					}
-					//out_debug_log(_T("TRACK#%02d TRACK:%s\n"),  nr_current_track, argstr.c_str());
+					out_debug_log(_T("TRACK#%02d TRACK:%s\n"),  nr_current_track, argstr.c_str());
 					break;
 				case CUE_PREGAP:
 					if((nr_current_track > 0) && (nr_current_track < 100) && !(argstr.empty())) {
 						toc_table_tmp[nr_current_track].pregap = get_frames_from_msf(argstr.c_str());
 					}
-					//out_debug_log(_T("TRACK#%02d PREGAP:%s\n"),  nr_current_track, argstr.c_str());
+					out_debug_log(_T("TRACK#%02d PREGAP:%s\n"),  nr_current_track, argstr.c_str());
 					break;
 				default:
 					//out_debug_log(_T("TRACK#%02d ???:%s\n"),  nr_current_track, line_buf.c_str());
@@ -278,20 +283,22 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					}
 				}
 				// ToDo: if pregap < 2Sec.
-				if(tmp_index1 == 0) {
+				if((tmp_index1 == 0) /*&& (tmp_index0 > 0) */) {
 					tmp_index1 = tmp_index0 + tmp_pregap;
-				} else if(tmp_index0 == 0) { // Maybe tmp_index1 != 0
+				}
+				if(tmp_index0 == 0) { // Maybe tmp_index1 != 0
 					tmp_index0 = tmp_index1 - tmp_pregap;
 					if(tmp_index0 < 0) {
 						tmp_index0 = 0;
 					}
 				}
+				pt->index0 = tmp_index0;
+				pt->index1 = tmp_index1;
+				pt->pregap = tmp_pregap;
+				
 			}
 			// Pass2
 			if(is_valid_image) {
-				std::string __recent_image_name;
-				__recent_image_name.clear();
-
 				uint64_t __offset_bytes = 0;
 				uint64_t __image_size   = 0;
 				bool is_image_changed = false;
@@ -300,15 +307,21 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				uint64_t total_bytes = 0;
 				uint64_t total_sectors = 0;
 				int latest_changed = 1;
-				is_valid_image = false;
+				std::string __recent_path;
+				
+				is_valid_image = true;
+				// 1St. Trim index0, index1, pregap.
+				
 				for(int i = 1; (i < track_num) && (i < 100) ; i++) {
 					uint64_t old_image_size = __image_size;
 					uint64_t old_offset = __offset_bytes;
-					if(!(check_toc_and_open_image_file(i, __image_size, __offset_bytes, is_image_changed, __recent_image_name))) {
+					if(!(check_toc_and_open_image_file(&(toc_table_tmp[i]), __image_size, __offset_bytes, is_image_changed, __recent_path, tmp_track_data_path[i]))) {
+						tmp_track_data_path[i].clear();
 						is_valid_image = false;
 						break;
 					}
-					int64_t tmp_sector_size = get_sector_size_from_mode(toc_table_tmp[i].type);					if(tmp_sector_size <= 0) {
+					int64_t tmp_sector_size = get_sector_size_from_mode(toc_table_tmp[i].type);
+					if(tmp_sector_size <= 0) {
 						is_valid_image = false;
 						break;
 					}
@@ -316,24 +329,25 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					toc_table_tmp[i].logical_size = get_logical_size_from_mode(toc_table_tmp[i].type);
 
 					if(i == 1) {
-						toc_table_tmp[i].lba_size = (__image_size - __offset_bytes) / tmp_sector_size; // TMP
-						toc_table_tmp[i].bytes_offset = 0;
+//						toc_table_tmp[i].lba_size = (__image_size - __offset_bytes) / tmp_sector_size; // TMP
+//						toc_table_tmp[i].bytes_offset = 0;
 					} else {
 						int64_t old_sector_size = toc_table_tmp[i - 1].physical_size;
-						if(old_sector_size <= 0) {
+						if(old_sector_size < 0) {
 							is_valid_image = false;
 							break;
 						}
 						uint64_t __sectors = 0;
 						if(is_image_changed) {
 							// Trim index0 and index1
+							base_sectors = total_sectors;
 							for(int j = latest_changed; j < i; j++) {
 								//toc_table_tmp[j].lba_offset = base_sectors;
 								toc_table_tmp[j].index0 += base_sectors;
 								toc_table_tmp[j].index1 += base_sectors;
 							}
 							latest_changed = i;
-							if(old_image_size > old_offset) {
+							if(old_image_size >= old_offset) {
 								__sectors = (old_image_size - old_offset) / old_sector_size;
 								toc_table_tmp[i - 1].lba_size = __sectors;
 								toc_table_tmp[i].bytes_offset = 0;
@@ -347,24 +361,24 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 							uint64_t old_index1 = toc_table_tmp[i - 1].index1;
 							uint64_t new_index0 = toc_table_tmp[i].index0;
 							uint64_t new_index1 = toc_table_tmp[i].index1;
-							if((new_index0 <= old_index0) || (new_index1 <= old_index1)) {
-								is_valid_image = false;
-								break;
+							if((new_index0 >= old_index0) && (new_index1 >= old_index1)) {
+								__sectors = new_index0 - old_index0;
+								uint64_t __size = __sectors * tmp_sector_size;
+								//if(__sectors == 0) {
+									// Eject?
+								//	is_valid_image = false;
+								//	break;
+								//}
+								//if(__image_size < (__size + __offset_bytes)) {
+									// Eject?
+								//	is_valid_image = false;
+								//	break;
+								//}
+								__offset_bytes += __size;
+								toc_table_tmp[i].bytes_offset = __offset_bytes;
+							} else {
+								__sectors = 0;
 							}
-							uint64_t __size = new_index0 - old_index0;
-							if(__image_size <= (__size + __offset_bytes)) {
-								// Eject?
-								is_valid_image = false;
-								break;
-							}
-							uint64_t __sectors = __size / tmp_sector_size;
-							if(__sectors == 0) {
-								// Eject?
-								is_valid_image = false;
-								break;
-							}
-							__offset_bytes += __size;
-							toc_table_tmp[i].bytes_offset = __offset_bytes;
 						}
 						toc_table_tmp[i - 1].lba_size = __sectors;
 						total_sectors += __sectors;
@@ -387,15 +401,17 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					toc_table_tmp[0].physical_size = 2352;
 					toc_table_tmp[0].logical_size = 2048;
 					toc_table_tmp[0].bytes_offset = 0;
-
+					tmp_track_data_path[0] = std::string("");
+					tmp_track_data_type[0] = std::string("");
+				
 					// TRIM TRACN [track_num]
 					if((__image_size > 0) && (toc_table_tmp[track_num - 1].physical_size > 0)) {
 						if(__image_size > toc_table[track_num - 1].bytes_offset) {
-							uint64_t __last_sectors = (__image_size - toc_table[track_num - 1]) / toc_table_tmp[track_num - 1].physical_size;
-							toc_table_tmp[track_num].lba_size = __last_sectors;
+							uint64_t __last_sectors = (__image_size - toc_table[track_num - 1].bytes_offset) / toc_table_tmp[track_num - 1].physical_size;
+							toc_table_tmp[track_num - 1].lba_size = __last_sectors;
 							total_sectors += __last_sectors;
 						} else {
-							is_valid_image = false;
+							//	is_valid_image = false;
 						}
 					}
 					toc_table_tmp[track_num].index0       = total_sectors;
@@ -405,11 +421,13 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					toc_table_tmp[track_num].bytes_offset = total_bytes;
 					toc_table_tmp[track_num].physical_size = 2352;
 					toc_table_tmp[track_num].logical_size = 2048;
+					tmp_track_data_path[track_num] = std::string("");
+					tmp_track_data_type[track_num] = std::string("");
 
 					if(is_valid_image) {
 						// ToDo : Copy toc_table.
 						for(int i = 0; i <= 100; i++) {
-							copy_toc_table_to_main(&(toc_table_tmp[i]), i);
+							copy_toc_table_to_main(i, &(toc_table_tmp[i]), tmp_track_data_path[i], tmp_track_data_type[i]);
 						}
 						
 						if(fio_img->IsOpened()) { // OK?
@@ -417,8 +435,8 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 						}
 						max_logical_block = 0;
 						is_valid_image = false;
-						if(!(toc_table[1].track_data_path.empty())) {
-							if(fio_img->Fopen(toc_table[1].track_data_path.c_str(), FILEIO_MODE_BINARY)) {
+						if(!(tmp_track_data_path[1].empty())) {
+							if(fio_img->Fopen(tmp_track_data_path[1].c_str(), FILEIO_READ_BINARY)) {
 								if(fio_img->Fseek((long)(toc_table[1].bytes_offset), FILEIO_SEEK_SET) == 0) {
 									max_logical_block = total_sectors;
 									is_valid_image = true;
@@ -476,10 +494,10 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				//toc_table[i].index1 += toc_table[i].lba_offset;
 				#if 1
 				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d BYTES_OFFSET=%d TYPE=\"%s\" PATH=\"%s\"\n"),
-							  i, (toc_table[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
-							  toc_table[i].pregap, toc_table[i].index0, toc_table[i].index1,
-							  toc_table[i].lba_size, toc_table[i].bytes_offset,
-							  toc_table[i].track_data_type.c_str(), toc_table[i].track_data_path.c_str());
+							  i, (toc_table_tmp[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
+							  toc_table_tmp[i].pregap, toc_table_tmp[i].index0, toc_table_tmp[i].index1,
+							  toc_table_tmp[i].lba_size, toc_table_tmp[i].bytes_offset,
+							  tmp_track_data_type[i].c_str(), tmp_track_data_path[i].c_str());
 				#endif
 			}
 			#if 0
@@ -519,7 +537,6 @@ bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_d
 	} catch (std::out_of_range &e) {
 		return false;
 	} 
-	imgpath.clear();
 	imgpath = std::string(parent_dir);
 	imgpath.append(_arg3);
 
@@ -555,8 +572,9 @@ bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_d
 }
 
 // ToDo: Implement Image type.	
-void TOWNS_CDROM::parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t& toc_table_tmp[], int& nr_current_track, std::string imgpath, std::string imgtype)
+bool TOWNS_CDROM::parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t* toc_table_tmp, int& nr_current_track)
 {
+	if(toc_table_tmp == NULL) return false;
 	size_t _arg2_ptr_s;
 	size_t _arg2_ptr;
 	_arg2_ptr_s = _arg2.find_first_of((const char *)" \t");
@@ -567,7 +585,8 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t& toc_tab
 	size_t _arg3_ptr = _arg3.find_first_not_of((const char *)" \t");
 	size_t _arg3_ptr_s;
 	int _nr_num = atoi(_arg2.c_str());
-
+	bool result = false;
+	
 	// Set image file
 	if((_nr_num > 0) && (_nr_num < 100) && (_arg3_ptr != std::string::npos)) {
 		std::map<std::string, CDROM_MODE_t> cue_type;
@@ -583,11 +602,6 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t& toc_tab
 		nr_current_track = _nr_num;
 		_arg3 = _arg3.substr(_arg3_ptr);
 
-		//memset(track_data_path[_nr_num - 1], 0x00, sizeof(_TCHAR) * _MAX_PATH);
-		//strncpy((char *)(track_data_path[_nr_num - 1]), imgpath.c_str(), _MAX_PATH - 1);
-		
-		//memset(track_data_type[_nr_num - 1], 0x00, sizeof(_TCHAR) * 256);
-		//strncpy((char *)(track_data_type[_nr_num - 1]), imgtype.c_str(), 256 - 1);
 		
 		_arg3_ptr_s = _arg3.find_first_of((const char *)" \t\n");
 		_arg4 = _arg3.substr(0, _arg3_ptr_s);
@@ -602,8 +616,6 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t& toc_tab
 		toc_table_tmp[nr_current_track].pregap = 0;
 		toc_table_tmp[nr_current_track].physical_size = 2352;
 		toc_table_tmp[nr_current_track].logical_size = 2048;
-		toc_table_tmp[nr_current_track].track_data_path = imgpath;
-		toc_table_tmp[nr_current_track].track_data_type = imgtype;
 		CDROM_MODE_t track_type;
 		try {
 			track_type = cue_type.at(_arg3);
@@ -614,20 +626,18 @@ void TOWNS_CDROM::parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t& toc_tab
 		if(phys_size > 0) {
 			toc_table_tmp[nr_current_track].type = track_type;
 			toc_table_tmp[nr_current_track].physical_size = phys_size;
-			toc_table_tmp[nr_current_track].logiacal_size = get_logical_size_from_mode(track_type);
+			toc_table_tmp[nr_current_track].logical_size = get_logical_size_from_mode(track_type);
 			if(track_type == MODE_AUDIO) {
 				toc_table_tmp[nr_current_track].is_audio = true;
 			}
-		} else {
-			toc_table_tmp[nr_current_track].track_data_path.clear();
-			toc_table_tmp[nr_current_track].track_data_type.clear();
+			result = true;
 		}
 		if(track_num < (_nr_num + 1)) track_num = _nr_num + 1;
 	} else {
 		// ToDo: 20181118 K.Ohta
 		nr_current_track = 0;
 	}
-
+	return result;
 }
 
 int TOWNS_CDROM::parse_cue_index(std::string &_arg2, int nr_current_track, int& value)

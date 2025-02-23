@@ -11,7 +11,7 @@
 #include "../../../fileio.h"
 
 #include <string>
-#include <regexp>
+#include <regex>
 #include <map>
 
 namespace FMTOWNS {
@@ -70,10 +70,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 	_TCHAR full_path_ccd[_MAX_PATH] = {0};
 	_TCHAR full_path_img[_MAX_PATH + 1] = {0};
 	
-	
 	get_long_full_path_name(file_path, full_path_ccd, sizeof(full_path_ccd));
-	
-
 	if(!FILEIO::IsFileExisting(full_path_ccd)) {
 		return false;
 	}
@@ -103,6 +100,8 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 	std::string tmp_img_path = std::string(full_path_img);
 
 	CDROM_TOC_TABLE_t toc_table_tmp[101];
+	std::string tmp_track_data_path[101];	
+	std::string tmp_track_data_type[101];	
 	for(int i = 0; i < 101; i++) {
 		initialize_toc_table(&(toc_table_tmp[i]));
 	}
@@ -319,15 +318,17 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 										toc_table_tmp[_track].type = MODE_AUDIO;
 										toc_table_tmp[_track].is_audio = true;
 										toc_table_tmp[_track].logical_size = 2352;
-										toc_table_tmp[_track].track_data_path = tmp_img_path;
-										toc_table_tmp[_track].track_data_type = std::string(_T("BINARY"));
+										toc_table_tmp[_track].physical_size = 2352;
+										tmp_track_data_path[_track] = tmp_img_path;
+										tmp_track_data_type[_track] = std::string(_T("BINARY"));
 										break;
 									case 4: // DATA
 										toc_table_tmp[_track].type = MODE1_2352;
 										toc_table_tmp[_track].is_audio = false;
 										toc_table_tmp[_track].logical_size = 2048;
-										toc_table_tmp[_track].track_data_path = tmp_img_path;
-										toc_table_tmp[_track].track_data_type = std::string(_T("BINARY"));
+										toc_table_tmp[_track].physical_size = 2352;
+										tmp_track_data_path[_track] = tmp_img_path;
+										tmp_track_data_type[_track] = std::string(_T("BINARY"));
 										break;
 										// ToDo: another types.
 									}
@@ -387,16 +388,17 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 										toc_table_tmp[_track].type = MODE1_2352;
 										toc_table_tmp[_track].is_audio = false;
 										toc_table_tmp[_track].logical_size = 2048;
-										toc_table_tmp[_track].track_data_path = tmp_img_path;
-										toc_table_tmp[_track].track_data_type = std::string(_T("BINARY"));
+										toc_table_tmp[_track].physical_size = 2352;
+										tmp_track_data_path[_track] = tmp_img_path;
+										tmp_track_data_type[_track] = std::string(_T("BINARY"));
 										break;
 									case 0: // Audio
 										toc_table_tmp[_track].type = MODE_AUDIO;
 										toc_table_tmp[_track].is_audio = true;
 										toc_table_tmp[_track].logical_size = 2352;
-										toc_table_tmp[_track].logical_size = 2352;
-										toc_table_tmp[_track].track_data_path = tmp_img_path;
-										toc_table_tmp[_track].track_data_type = std::string(_T("BINARY"));
+										toc_table_tmp[_track].physical_size = 2352;
+										tmp_track_data_path[_track] = tmp_img_path;
+										tmp_track_data_type[_track] = std::string(_T("BINARY"));
 										break;
 									default:
 										break;
@@ -413,7 +415,7 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 					}
 				_n_continue:
 					if(is_eof) {
-						toc_table_tmp[0].lba_offset = 0;
+						toc_table_tmp[0].bytes_offset = 0;
 						toc_table_tmp[0].lba_size = 0;
 						toc_table_tmp[0].index0 = toc_table_tmp[0].index1 = toc_table_tmp[0].pregap = 0;
 						// P1: Calc
@@ -421,8 +423,8 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 						int vnptr = 0;
 //						max_logical_block = toc_table_tmp[track_num - 1].index1; // PLBA
 						toc_table_tmp[track_num].index0 = toc_table_tmp[track_num].index1 = max_logical_block;
-						toc_table_tmp[track_num].lba_offset = max_logical_block;
 						toc_table_tmp[track_num].lba_size = 0;
+						uint64_t bytes_offset = 0;
 						for(int i = 1; i < track_num; i++) {
 							if(toc_table_tmp[i].index0 == 0) {
 								toc_table_tmp[i].index0 = toc_table_tmp[i].index1;
@@ -439,10 +441,11 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 							if(toc_table_tmp[i].index0 <= 0) {
 								toc_table_tmp[i].index0 = 0;
 							}
-							toc_table_tmp[i].lba_offset = 0;
+							toc_table_tmp[i].bytes_offset = bytes_offset;
 							toc_table_tmp[i].lba_size = toc_table_tmp[i + 1].index0 - toc_table_tmp[i].index0;
+							bytes_offset += (toc_table_tmp[i].lba_size * toc_table_tmp[i].physical_size);
 						}
-
+						toc_table_tmp[track_num].bytes_offset = bytes_offset;
 //						if((track_num == 2) && (max_logical_block > 0)) {
 //							toc_table_tmp[track_num - 1].lba_size -= 1;
 //							max_logical_block--;
@@ -454,11 +457,11 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 //							toc_table_tmp[i].index0 += toc_table_tmp[i].lba_offset;
 //							toc_table_tmp[i].index1 += toc_table_tmp[i].lba_offset;
 
-							out_debug_log(_T("TRACK#%d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d LBA_OFFSET=%d"),
+							out_debug_log(_T("TRACK#%d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d BYTES_OFFSET=%d"),
 
 										  i, ((toc_table_tmp[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352")),
 										  toc_table_tmp[i].pregap, toc_table_tmp[i].index0, toc_table_tmp[i].index1,
-										  toc_table_tmp[i].lba_size, toc_table_tmp[i].lba_offset);
+										  toc_table_tmp[i].lba_size, toc_table_tmp[i].bytes_offset);
 							//#endif
 						}
 #endif
@@ -467,9 +470,14 @@ bool TOWNS_CDROM::open_ccd_file(const _TCHAR* file_path)
 					}
 				}
 				fio->Fclose();
+				for(int i = 0; i <= 100; i++) {
+					copy_toc_table_to_main(i, &(toc_table_tmp[i]), tmp_track_data_path[i], tmp_track_data_type[i]);
+				}
+				delete fio;
+				return true;
 			}
 			delete fio;
-			return true;
+			return false;
 		} else {
 			fio_img->Fclose();
 			return false;

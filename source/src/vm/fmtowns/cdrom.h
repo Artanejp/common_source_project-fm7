@@ -153,8 +153,6 @@ typedef struct CDROM_TOC_TABLE_t {
 	int physical_size;
 	int logical_size;
 	uint64_t bytes_offset;
-	std::string track_data_path;
-	std::string track_data_type;
 } CDROM_TOC_TABLE_t;
 	
 /*!<
@@ -222,6 +220,8 @@ protected:
 	int stat_track;
 
 	CDROM_TOC_TABLE_t toc_table[101];
+	std::string track_data_path[101];
+	std::string track_data_type[101];
 	
 	_TCHAR img_file_path_bak[_MAX_PATH];
 
@@ -328,7 +328,7 @@ protected:
 	void reset_device();
 
 	// ToDo: RAW.
-	virtual int64_t get_logical_size_from_mode(enum CDROM_MODE_t type)
+	virtual int64_t get_logical_size_from_mode(CDROM_MODE_t type)
 	{
 		switch(type) {
 		case MODE_AUDIO:
@@ -352,7 +352,7 @@ protected:
 			break;
 		}
 	}
-	virtual int64_t get_sector_size_from_mode(enum CDROM_MODE_t type)
+	virtual int64_t get_sector_size_from_mode(CDROM_MODE_t type)
 	{
 		switch(type) {
 		case MODE_AUDIO:
@@ -433,13 +433,20 @@ protected:
 	uint16_t __FASTCALL calc_subc_crc16(uint8_t *databuf, int bytes, uint16_t initval);
 
 	// ToDo: Will implement Image type (WAV, MP3 etc...)
+	void initialize_toc_table(CDROM_TOC_TABLE_t *p);
+	void copy_toc_table_to_main(int trk, CDROM_TOC_TABLE_t *p, std::string data_path, std::string data_type);
+
+	// cdrom/cdrom_cue_parser.cpp
 	bool open_cue_file(const _TCHAR* file_path);
 	bool parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath, std::string& imgtype);
-	void parse_cue_track(std::string &_arg2, int& nr_current_track, std::string imgpath, std::string imgtype);
-	int parse_cue_index(std::string &_arg2, int nr_current_track);
+	bool parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t* toc_table_tmp, int& nr_current_track);
+	int parse_cue_index(std::string &_arg2, int nr_current_track, int& value);
+
+	virtual bool check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path);
+
 
 	virtual bool open_iso_file(const _TCHAR* file_path);
-	virtual bool open_ccd_file(const _TCHAR* file_path, _TCHAR* img_file_path);
+	virtual bool open_ccd_file(const _TCHAR* file_path);
 
 	virtual uint8_t read_subq();
 	virtual uint8_t get_subq_status();
