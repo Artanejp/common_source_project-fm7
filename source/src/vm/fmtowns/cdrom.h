@@ -221,21 +221,7 @@ protected:
 
 	int stat_track;
 
-	bool is_cue;
-	bool is_iso;
-	struct {
-		CDROM_MODE_t type;
-		int32_t index0, index1, pregap;
-		uint32_t lba_offset;
-		uint32_t lba_size;
-		bool is_audio;
-		int physical_size;
-		int logical_size;
-	} toc_table[108];
-	
-	_TCHAR track_data_path[101][_MAX_PATH];
-	_TCHAR track_data_type[101][256];
-	bool with_filename[101];
+	CDROM_TOC_TABLE_t toc_table[101];
 	
 	_TCHAR img_file_path_bak[_MAX_PATH];
 

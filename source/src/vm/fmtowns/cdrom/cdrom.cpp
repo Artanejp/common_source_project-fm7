@@ -170,8 +170,6 @@ void TOWNS_CDROM::initialize()
 	readptr = 0;
 
 	cdda_status = CDDA_OFF;
-	is_cue = false;
-	is_iso = false;
 	current_track = 0;
 	read_sector = 0;
 	data_in = false;
@@ -179,7 +177,6 @@ void TOWNS_CDROM::initialize()
 	transfer_speed = 1;
 	for(int i = 0; i < 101; i++) {
 		initialize_toc_table(&(toc_table[i]));
-		initialize_toc_table(&(toc_table_tmp[i]));
 	}
 	/*!
 	  @note values related muting/voluming are set by electric volume,
@@ -1861,9 +1858,6 @@ const int TOWNS_CDROM::real_physical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-	if((is_iso) && (toc_table[current_track].type == MODE1_2352)) {
-		return 2048;
-	}
 	return get_sector_size_from_mode(toc_table[current_track].type);
 }
 
@@ -1882,7 +1876,6 @@ const int TOWNS_CDROM::logical_block_size()
 {
 	if(current_track <= 0) return 2352; // PAD
 	if(!mounted()) return 2352; // PAD
-	if(is_iso) return 2048;
 	return get_logical_size_from_mode(toc_table[current_track].type);
 }
 
@@ -2622,14 +2615,14 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 		// Use track_data_type[tnum] - 20250218 K.O .
 		if(current_track != track) {
 			// Check name
-			if(toc_table_tmp[current_track].track_data_path.compare(toc_table_tmp[track].track_data_path) != 0) {
+			if(toc_table[current_track].track_data_path.compare(toc_table[track].track_data_path) != 0) {
 				if(fio_img->IsOpened()) {
 					fio_img->Fclose();
 				}
 			}
 		}
-		if(!(fio_img->IsOpened()) && !(toc_table_tmp[track].track_data_path.empty())) {
-			if(!(fio_img->Fopen((_TCHAR *)(toc_table_tmp[track].track_data_path.c_str()),  FILEIO_READ_BINARY))) {
+		if(!(fio_img->IsOpened()) && !(toc_table[track].track_data_path.empty())) {
+			if(!(fio_img->Fopen((_TCHAR *)(toc_table[track].track_data_path.c_str()),  FILEIO_READ_BINARY))) {
 				current_track = 0;
 				return;
 			}
@@ -2642,9 +2635,12 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 				// Make Seek Error.
 				cdrom_debug_log(_T("Seek error at TRK#%02d"), track);
 				// ToDo
+				current_track = 0;
+				fio_img->Fclose();
 				return;
 			}
-			return;
+		} else {
+			current_track = 0;
 		}
 		// ToDo: Not Opened.
 	}
@@ -2675,8 +2671,8 @@ void TOWNS_CDROM::get_track_by_track_num(int track)
 			}
 		}
 	}
-	current_track = track;
 	#endif
+	current_track = track;
 }
 
 // Detect only track num.
@@ -2816,10 +2812,15 @@ bool TOWNS_CDROM::seek_relative_frame_in_image(uint32_t frame_no)
 {
 	int phys_size = real_physical_block_size();
 	#if 1
-	if((toc_table[current_track].index1 <= frame_no) && (toc_table[current_track + 1].index0 > frame_no)) {
+	if((toc_table[current_track].index0 <= frame_no) && (toc_table[current_track + 1].index0 > frame_no)) {
 		if(fio_img->IsOpened()) {
 			uint64_t _pos = toc_table[current_track].bytes_offset;
-			uint64_t rel_sec = frame_no - toc_table[current_track].index1;
+			uint64_t rel_sec;
+			if(frame_no >= toc_table[current_track].index1) {
+				rel_sec = frame_no - toc_table[current_track].index1;
+			} else {
+				rel_sec = 0; // OK?
+			}
 			_pos += (rel_sec * phys_size);
 			if(fio_img->Fseek((long)_pos, FILEIO_SEEK_SET)) {
 				return true;
@@ -3128,35 +3129,25 @@ void TOWNS_CDROM::open(const _TCHAR* file_path)
 
 void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 {
-	_TCHAR img_file_path[_MAX_PATH] = {0};
-	memset(img_file_path_bak, 0x00, sizeof(img_file_path_bak));
-
 	close_from_cmd();
 	access = false;
 
 	if(check_file_extension(file_path, _T(".cue"))) {
-		is_cue = false;
+		//is_cue = false;
 		current_track = 0;
 		if(open_cue_file(file_path)) {
 			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
 		}
 	} else if(check_file_extension(file_path, _T(".iso"))) {
-		is_cue = false;
+		//is_cue = false;
 		current_track = 0;
 		if(open_iso_file(file_path)) {
-			strncpy(img_file_path, file_path, _MAX_PATH - 1);
 			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
-		}
-		if(fio_img->Fopen(img_file_path, FILEIO_READ_BINARY)) {
-			is_cue = false;
-			current_track = 0;
-			is_iso = true;
 		}
 	} else if(check_file_extension(file_path, _T(".ccd"))) {
 		// get image file name
-		if(open_ccd_file(file_path, img_file_path)) {
-			strncpy(img_file_path_bak, img_file_path, _MAX_PATH - 1);
-//			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
+		if(open_ccd_file(file_path)) {
+			strncpy(img_file_path_bak, file_path, _MAX_PATH - 1);
 		}
 	}
 	if(mounted()) {
@@ -3194,8 +3185,6 @@ void TOWNS_CDROM::close_from_cmd()
 	if(fio_img->IsOpened()) {
 		fio_img->Fclose();
 	}
-	is_cue = false;
-	is_iso = false;
 	memset(toc_table, 0, sizeof(toc_table));
 	memset(img_file_path_bak, 0x00, sizeof(img_file_path_bak));
 
@@ -3245,13 +3234,10 @@ void TOWNS_CDROM::close_from_cmd()
 
 bool TOWNS_CDROM::mounted()
 {
-	__LIKELY_IF((is_cue) || (fio_img->IsOpened())) {
-		__UNLIKELY_IF(track_num <= 0) {
-			return false;
-		}
-		return true;
+	__UNLIKELY_IF((track_num <= 0) || (track_num > 100)) {
+		return false;
 	}
-	return false;
+	return true;
 }
 
 bool TOWNS_CDROM::accessed()
@@ -3531,15 +3517,19 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	uint32_t index0 = 0;
 	uint32_t index1 = 0;
 	uint32_t lba_size = 0;
-	uint32_t lba_offset = 0;
+	uint64_t bytes_offset = 0;
 	uint32_t pregap = 150;
+	std::string tmp_path_name;
+	std::string tmp_data_type;
 	if(in_track) {
 		is_audio = toc_table[current_track].is_audio;
 		index0 = toc_table[current_track].index0;
 		index1 = toc_table[current_track].index1;
 		pregap = toc_table[current_track].pregap;
 		lba_size = toc_table[current_track].lba_size;
-		lba_offset = toc_table[current_track].lba_offset;
+		bytes_offset = toc_table[current_track].bytes_offset;
+		tmp_path_name = toc_table[current_track].track_data_path;
+		tmp_data_type = toc_table[current_track].track_data_type;
 	}
 	_TCHAR moreinfo[512] = {0};
 	if(is_audio) {
@@ -3565,8 +3555,9 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_stprintf_s(buffer, buffer_len,
 				  _T("\n%s")
 				  _T("MCU INT=%s DMA INT=%s TRANSFER PHASE:%s %s HAS_STATUS=%s MCU=%s\n")
-				  _T("TRACK=%d INDEX0=%d INDEX1=%d PREGAP=%d LBA_OFFSET=%d LBA_SIZE=%d\n")
+				  _T("TRACK=%d INDEX0=%d INDEX1=%d PREGAP=%d LBA_SIZE=%d\n")
 				  _T("LBA=%d SECTORS COUNT=%d DATA QUEUE=%d\n")
+				  _T("DATA PATH=\"%s\" TYPE=%s BYTES_OFFSET=%lld\n")
 				  _T("CMD=%02X(%s)          PARAM=%s\n")
 				  _T("PREV_COMMAND=%02X(%s) PARAM=%s\n")
 				  _T("EXTRA STATUS=%d STATUS COUNT=%d QUEUE_VALUE=%s\n")
@@ -3576,8 +3567,9 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 				  , (pio_transfer_phase) ? _T("PIO") : _T("   ")
 				  , (dma_transfer_phase) ? _T("DMA") : _T("   ")
 				  , (has_status) ? _T("ON ") : _T("OFF"), (mcu_ready) ? _T("ON ") : _T("OFF")
-				  , current_track, index0, index1, pregap, lba_size, lba_offset
+				  , current_track, index0, index1, pregap, lba_size
 				  , read_sector, sectors_count, datacount
+				  , tmp_path_name.c_str(), tmp_data_type.c_str(), bytes_offset
 				  , latest_command, cmdname, s_param
 				  , prev_command, prev_cmdname, s_prev_param
 				  , extra_status, status_queue->count(), stat
@@ -3590,7 +3582,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	66
+#define STATE_VERSION	67
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3698,7 +3690,6 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(mix_loop_num);
 
 	state_fio->StateArray(img_file_path_bak, sizeof(img_file_path_bak), 1);
-	state_fio->StateValue(is_cue);
 	state_fio->StateValue(current_track);
 	state_fio->StateValue(track_num);
 	state_fio->StateValue(status_seek);
@@ -3749,7 +3740,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 		if(strlen(img_file_path_bak) > 0) {
 			open_from_cmd(img_file_path_bak);
 		}
-		if((is_cue_bak == is_cue) && (track_num_bak == track_num)) {
+		if((track_num_bak == track_num)) {
 			if((current_track > 0) && (current_track < 100)) {
 				get_track_by_track_num(current_track); // Re-Play
 			}
