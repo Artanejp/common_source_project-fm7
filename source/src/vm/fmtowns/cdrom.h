@@ -328,6 +328,13 @@ protected:
 	void reset_device();
 
 	// ToDo: RAW.
+	inline bool check_invalid_track(const int _trk)
+	{
+		if((_trk <= 0) || (_trk >= track_num) || (_trk >= 100)) {
+			return true;
+		}
+		return false;
+	}
 	virtual int64_t get_logical_size_from_mode(CDROM_MODE_t type)
 	{
 		switch(type) {
@@ -382,9 +389,16 @@ protected:
 
 	virtual int __FASTCALL check_cdda_track_boundary(uint32_t frame_no);
 	virtual bool seek_relative_frame_in_image(uint32_t frame_no);
-    virtual int prefetch_audio_sectors(int sectors);
+    virtual int prefetch_audio_sectors();
 	virtual void read_cdrom();
 	int read_sectors_image(int sectors, uint32_t& transferred_bytes);
+
+	// Create Fake header (SYNC, MSF etc).
+	size_t __FASTCALL make_fake_header(uint32_t lba, uint8_t sector_type, size_t fake_header_size);
+
+	// Create Fake footer (maybe only for MODE1). This still be imcompleted.
+	size_t __FASTCALL make_fake_footer(uint32_t prev_wptr, uint8_t sector_type, size_t fake_footer_size);
+	// Read real sector data.
 	virtual int __FASTCALL read_sector_data(FILEIO* src, const size_t __logical_size, size_t _offset, size_t footer_size);
 
 	virtual void execute_command(uint8_t command);
