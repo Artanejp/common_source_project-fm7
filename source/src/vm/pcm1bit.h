@@ -42,33 +42,37 @@ private:
 	float lpf_ialpha;
 	
 	int sample_rate;
+	
 	void calc_low_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val);
 	void calc_high_pass_filter(int32_t* dst, int32_t* src, int samples, int is_set_val);
+	void update_realtime_render();
 	
 public:
 	PCM1BIT(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		volume_l = volume_r = 1024;
-		set_device_name(_T("1BIT PCM SOUND"));
+		set_device_name(_T("1-BIT PCM SOUND"));
 	}
 	~PCM1BIT() {}
 	
 	// common functions
-	void initialize();
-	void reset();
-	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask);
-	void event_frame();
-	void __FASTCALL mix(int32_t* buffer, int cnt);
-	void set_volume(int ch, int decibel_l, int decibel_r);
-	void set_high_pass_filter_freq(int freq, double quality = 1.0);
-	void set_low_pass_filter_freq(int freq, double quality = 1.0);
-	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	bool is_debugger_available()
+	void initialize() override;
+	void reset() override;
+	void __FASTCALL write_signal(int id, uint32_t data, uint32_t mask) override;
+	void event_frame() override;
+	void __FASTCALL mix(int32_t* buffer, int cnt) override;
+	void set_volume(int ch, int decibel_l, int decibel_r) override;
+	void set_high_pass_filter_freq(int freq, double quality = 1.0) override;
+	void set_low_pass_filter_freq(int freq, double quality = 1.0) override;
+	
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) override;
+	
+	bool is_debugger_available() override
 	{
 		return true;
 	}
 	
-	bool process_state(FILEIO* state_fio, bool loading);
+	bool process_state(FILEIO* state_fio, bool loading) override;
 	
 	// unique function
 	void initialize_sound(int rate, int volume);

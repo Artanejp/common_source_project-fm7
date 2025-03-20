@@ -8,6 +8,8 @@
 */
 #include "pcm1bit.h"
 #include "../types/util_sound.h"
+#include <memory>
+
 #if defined(_WIN32)
 	#define _USE_MATH_DEFINES
 	#include <math.h>
@@ -25,14 +27,17 @@ void PCM1BIT::initialize()
 	realtime = false;
 	changed = 0;
 	last_vol_l = last_vol_r = 0;
+	
 	hpf_freq = 1;
 	lpf_freq = 48000;
 	use_hpf = false;
 	use_lpf = false;
-	register_frame_event(this);
 	before_on = false;
 	before_filter_l = (float)0.0f;
 	before_filter_r = (float)0.0f;
+	
+	register_frame_event(this);
+	
 }
 
 void PCM1BIT::reset()
@@ -56,39 +61,44 @@ void PCM1BIT::write_signal(int id, uint32_t data, uint32_t mask)
 				negative_clocks += get_passed_clock(prev_clock);
 			}
 			prev_clock = get_current_clock();
-			// mute if signal is not changed in 2 frames
 			changed = 2;
+			update_realtime_render();
 			signal = next;
 		}
 	} else if(id == SIG_PCM1BIT_ON) {
 		touch_sound();
 		on = ((data & mask) != 0);
-		set_realtime_render(this, on & !mute);
+		update_realtime_render();
 	} else if(id == SIG_PCM1BIT_MUTE) {
 		touch_sound();
 		mute = ((data & mask) != 0);
-		set_realtime_render(this, on & !mute);
+		update_realtime_render();
 	}
 }
 
 void PCM1BIT::event_frame()
 {
-	if(changed) {
-		changed--;
+	if((changed > 0) && (--changed == 0)) {
+		update_realtime_render();
+	}
+}
+
+void PCM1BIT::update_realtime_render()
+{
+	bool value = (on && !(mute) && (changed != 0));
+	if(realtime != value) {
+		set_realtime_render(this, value);
+		realtime = value;
 	}
 }
 
 void PCM1BIT::mix(int32_t* buffer, int cnt)
 {
-	int32_t *p = (int32_t*)malloc(sizeof(int32_t) * cnt * 2);
-	if(p == NULL) {
+	if(buffer == NULL) {
 		return;
 	}
-	int32_t *p_h = NULL;
-	int32_t *p_l = NULL;
-	
-	int32_t* pp = p;
-	if(on && !mute && changed) {
+
+	if(on && !mute && (changed != 0)) {
 		if(!(before_on)) {
 			before_filter_l = (float)last_vol_l;
 			before_filter_r = (float)last_vol_r;
@@ -108,31 +118,50 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 		int sval = 0;;
 		last_vol_l = apply_volume(sample, volume_l);
 		last_vol_r = apply_volume(sample, volume_r);
-		for(int i = 0; i < cnt; i++) {
-			p[nptr + 0] = last_vol_l; // L
-			p[nptr + 1] = last_vol_r; // R
-			nptr += 2;
-		}
-		if(use_lpf) {
-			p_l = (int32_t*)malloc(sizeof(int32_t) * cnt * 2);
-			__LIKELY_IF(p_l != NULL) {
-				this->calc_low_pass_filter(p_l, pp, cnt, (use_hpf) ? false : true);
-				pp = p_l;
+		if((use_lpf) || (use_hpf)) {
+			std::unique_ptr<int32_t[]> p(new int32_t[cnt * 2]);
+			std::unique_ptr<int32_t[]> p_h(new int32_t[cnt * 2]);
+			std::unique_ptr<int32_t[]> p_l(new int32_t[cnt * 2]);
+			int32_t* pp = p.get();
+			__LIKELY_IF(pp != NULL) {
+				for(int i = 0; i < cnt; i++) {
+					pp[nptr + 0] = last_vol_l; // L
+					pp[nptr + 1] = last_vol_r; // R
+					nptr += 2;
+				}
+				if(use_lpf) {
+					__LIKELY_IF(p_l.get() != NULL) {
+						calc_low_pass_filter(p_l.get(), pp, cnt, (use_hpf) ? false : true);
+						pp = p_l.get();
+					}
+				}
+				if(use_hpf) {
+					__LIKELY_IF(p_h.get() != NULL) {
+						calc_high_pass_filter(p_h.get(), pp, cnt, true);
+						pp = p_h.get();
+					}
+				}
 			}
-		}
-		if(use_hpf) {
-			p_h = (int32_t*)malloc(sizeof(int32_t) * cnt * 2);
-			__LIKELY_IF(p_h != NULL) {
-				this->calc_high_pass_filter(p_h, pp, cnt, true);
-				pp = p_h;
+			__LIKELY_IF(pp != NULL) {
+				for(int i = 0; i < (cnt * 2); i++) {
+					buffer[i] = buffer[i] + pp[i];
+				}
+			}
+		} else {
+			int32_t* pp = buffer;
+			for(int i = 0; i < cnt; i++) {
+				pp[nptr + 0] += last_vol_l; // L
+				pp[nptr + 1] += last_vol_r; // R
+				nptr += 2;
 			}
 		}
 	} else {
 		// suppress petite noise when go to mute
 		int nptr = 0;
+		int32_t* pp = buffer;
 		for(int i = 0; i < cnt; i++) {
-			p[nptr + 0] = last_vol_l; // L
-			p[nptr + 1] = last_vol_r; // R
+			pp[nptr + 0] += last_vol_l; // L
+			pp[nptr + 1] += last_vol_r; // R
 			nptr += 2;
 			
 			if(last_vol_l > 0) {
@@ -147,20 +176,6 @@ void PCM1BIT::mix(int32_t* buffer, int cnt)
 			}
 		}
 		before_on = false;
-	}
-	for(int i = 0; i < (cnt * 2); i++) {
-		buffer[i] = buffer[i] + pp[i];
-//		if(buffer[i] >  32767) buffer[i] = 32767;
-//		if(buffer[i] < -32768) buffer[i] = -32768;
-	}
-	__LIKELY_IF(p != NULL) {
-		free(p);
-	}
-	__LIKELY_IF(p_h != NULL) {
-		free(p_h);
-	}
-	__LIKELY_IF(p_l != NULL) {
-		free(p_l);
 	}
 	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;

@@ -191,7 +191,7 @@ void FM8_MAINIO::reset_sound(void)
 # else	
 	psg->write_signal(SIG_YM2203_MUTE, !connect_psg ? 0xffffffff : 0x00000000, 0xffffffff);
 # endif
-	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
+	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x00, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
 
 }

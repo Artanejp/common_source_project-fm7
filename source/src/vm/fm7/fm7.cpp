@@ -898,9 +898,9 @@ void VM::initialize_sound(int rate, int samples)
 	# endif
 #endif
 	if(pcm1bit != nullptr) {
-		pcm1bit->initialize_sound(rate, 8000);
-		pcm1bit->set_high_pass_filter_freq(10);
-		pcm1bit->set_low_pass_filter_freq(1500);
+		pcm1bit->initialize_sound(4800, 2048); // 1200Hz * 4.
+		pcm1bit->set_high_pass_filter_freq(24);
+		pcm1bit->set_low_pass_filter_freq(2400);
 	}
 	//drec->initialize_sound(rate, 0);
 }
