@@ -243,6 +243,9 @@ public:
 	virtual int64_t get_sink_bytes_size();
 	virtual int64_t get_source_bytes_size();
 
+	int64_t get_sink_write_ptr();
+	int64_t get_source_read_ptr();
+	
 	virtual M_BASE* get_real_driver()
 	{
 		return dynamic_cast<SOUND_MODULE::M_BASE*>(this);
@@ -289,10 +292,6 @@ public slots:
 	virtual void release_sound();
 
 	virtual void reset_to_defalut() {}
-	virtual bool is_running_sound()
-	{
-		return true;
-	}
 	bool update_rate(size_t rate)
 	{
 		return reconfig_sound(rate, m_sink_channels.load());

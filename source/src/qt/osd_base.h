@@ -159,11 +159,10 @@ class DLL_PREFIX OSD_BASE : public  QObject
 private:
 	/* Note: Below are new sound driver. */
 	std::shared_ptr<SOUND_MODULE::M_BASE> m_sound_driver;
-	std::atomic<int64_t> m_elapsed_us_before_rendered;	// Count half
 	// Count factor; this multiplies by 2^32;
 	std::atomic<uint64_t>     m_sound_samples_count;
 	std::atomic<uint64_t>     m_sound_samples_factor;
-	std::atomic<int64_t>      m_sound_margin_usecs;
+
 protected:
 	EmuThreadClass						*parent_thread;
 	QThread								*m_sound_thread;
@@ -180,7 +179,7 @@ protected:
 	bool __USE_AUTO_KEY;
 
 	_TCHAR app_path[_MAX_PATH];
-	QElapsedTimer m_sound_tick_timer;
+
 	std::atomic<bool> locked_vm;
 	std::atomic<bool> will_delete_vm;
 
@@ -513,10 +512,6 @@ public:
 	{
 		return sound_capture_devices_list;
 	}
-
-	virtual int64_t __FASTCALL update_margin_usecs(int extra_frames, double tmp_frame_rate);
-	int64_t load_sound_tick_timer_us();
-	int64_t reinit_sound_tick_timer();
 
 	bool now_record_sound;
 	int get_sound_rate();

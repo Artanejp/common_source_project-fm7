@@ -73,13 +73,11 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	m_fps = 0.0;
 	m_sound_samples_factor = 0;
 	m_sound_samples_count = 0;
-	m_elapsed_us_before_rendered = 0;
 	rec_sound_fio = nullptr; // Must clear.
 	memset(sound_file_name, 0x00, sizeof(sound_file_name));
 	
 	m_sound_driver.reset();
 	m_sound_thread = nullptr;
-	m_sound_margin_usecs = 0;
 	
 	m_sink_empty = false;
 	m_sink_started = false;
@@ -645,16 +643,10 @@ void OSD_BASE::start_waiting_in_debugger()
 // Elapsed Timer: This uses for sound, mainly.
 void OSD_BASE::do_restart_sound_timer()
 {
-	m_elapsed_us_before_rendered = 0; // OK?
-	m_sound_tick_timer.restart();
 }
 
 void OSD_BASE::do_stop_sound_timer()
 {
-	if(m_sound_tick_timer.isValid()) {
-		m_elapsed_us_before_rendered = (int64_t)m_sound_tick_timer.nsecsElapsed() / 1000;
-	}
-	m_sound_tick_timer.invalidate();
 }
 
 

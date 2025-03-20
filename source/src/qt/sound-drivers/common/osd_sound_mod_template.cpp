@@ -769,5 +769,41 @@ size_t M_BASE::get_source_buffer_bytes()
 	return m_source_buffer_bytes.load();
 }
 
+int64_t M_BASE::get_sink_write_ptr()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	//int64_t _size = get_sink_bytes_size();
+	int64_t _left = get_sink_bytes_left();
+	int64_t _word_size = (int64_t)(m_sink_wordsize.load());
+	int64_t _channels = (int64_t)(m_sink_channels.load());
+	__UNLIKELY_IF((_channels <= 0) || (_word_size <= 0)) {
+		return 0;
+	}
+	//int64_t _ptr = _size - _left;
+	int64_t _ptr = _left;
+	__UNLIKELY_IF(_ptr < 0) {
+		return 0;
+	}
+	return _ptr / (_word_size * _channels);
+}
+
+int64_t M_BASE::get_source_read_ptr()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	//int64_t _size = get_source_bytes_size();
+	int64_t _left = get_source_bytes_left();
+	int64_t _word_size = (int64_t)(m_source_wordsize.load());
+	int64_t _channels = (int64_t)(m_source_channels.load());
+	__UNLIKELY_IF((_channels <= 0) || (_word_size <= 0)) {
+		return 0;
+	}
+	//int64_t _ptr = _size - _left;
+	int64_t _ptr = _left;
+	__UNLIKELY_IF(_ptr < 0) {
+		return 0;
+	}
+	return _ptr / (_word_size * _channels);
+}
+
 /* SOUND_MODULE */
 }
