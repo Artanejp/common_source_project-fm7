@@ -1912,6 +1912,8 @@ bool TOWNS_CDROM::start_to_play_cdda()
 	seek_relative_frame_in_image(cdda_playing_frame);
 	set_cdda_status(CDDA_PLAYING);
 	remain_sectors_in_buffer = prefetch_audio_sectors();
+	touch_sound();
+	set_realtime_render(true);
 	if(remain_sectors_in_buffer < 1) {
 		set_cdda_status(CDDA_OFF);
 		return false; // READ ERROR
@@ -2079,7 +2081,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				if(remain_sectors_in_buffer >= 1) {
 					set_subq(cdda_playing_frame);
 					touch_sound();
-					set_realtime_render(this, true);
+					set_realtime_render(true);
 					const _TCHAR *pp = get_cdda_status_name(cdda_status);
 					cdrom_debug_log(_T("REPEAT CDDA from %s.\n"), pp);
 					return;
@@ -2718,7 +2720,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
 			}
 			touch_sound();
-			set_realtime_render(this, true);
+			set_realtime_render(true);
 			const _TCHAR *pp = get_cdda_status_name(cdda_status);
 			cdrom_debug_log(_T("Play CDDA from %s.\n"), pp);
 		}
@@ -2750,11 +2752,11 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				get_track_by_track_num(0);
 				#endif
 				cdda_stopped = true;
+				set_realtime_render(false);
 			} /*else if(status == CDDA_ENDED) {
 				cdda_stopped = true;
 			}*/
 			touch_sound();
-			set_realtime_render(this, false);
 			const _TCHAR *sp = get_cdda_status_name(status);
 			const _TCHAR *pp = get_cdda_status_name(cdda_status);
 			cdrom_debug_log(_T("Change CDDA status: %s->%s"), pp, sp);
@@ -3353,7 +3355,7 @@ void TOWNS_CDROM::close_from_cmd()
 	cdda_status = CDDA_OFF;
 
 	touch_sound();
-	set_realtime_render(this, false);
+	set_realtime_render(false);
 
 	if(_b) {
 		if(command_execute_phase) {

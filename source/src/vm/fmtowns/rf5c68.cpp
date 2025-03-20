@@ -72,6 +72,7 @@ void RF5C68::reset()
 	clear_buffer();
 	set_mix_factor();
 	touch_sound();
+	set_realtime_render(false);
 	force_touch_count = 0;
 
 	start_dac_clock();
@@ -150,7 +151,7 @@ uint32_t RF5C68::read_signal(int ch)
 
 void RF5C68::do_dac_period()
 {
-	int32_t lr[2] = {lastsample_l, lastsample_r};
+	int32_t lr[2] = {lastsample_l.load(), lastsample_r.load()};
 	bool _is_touch = false;
 	force_touch_count++;
 	if(dac_on) {
@@ -224,10 +225,13 @@ void RF5C68::do_dac_period()
 		//	lr[i] >>= 2;
 		//}
 		// Re-Init sample buffer
-		_is_touch = ((lastsample_l.load() != lr[0]) || (lastsample_r.load() != lr[1])) ? true : false;
-		lastsample_l = lr[0];
-		lastsample_r = lr[1];
+	} else {
+		lr[0] = lr[1] = 0;
 	}
+	_is_touch = ((lastsample_l.load() != lr[0]) || (lastsample_r.load() != lr[1])) ? true : false;
+	lastsample_l = lr[0];
+	lastsample_r = lr[1];
+
 	__UNLIKELY_IF((_is_touch) || (force_touch_count >= 8)) {
 		touch_sound();
 		force_touch_count = 0;
@@ -256,6 +260,7 @@ void RF5C68::write_signal(int ch, uint32_t data, uint32_t mask)
 			if(mute_bak != mute_new) {
 				touch_sound();
 				force_touch_count = 0;
+				set_realtime_render(!(mute_new));
 			}
 			is_mute = mute_new;
 		}
@@ -334,6 +339,7 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 			__UNLIKELY_IF(dac_on_bak != dac_on) {
 				touch_sound();
 				force_touch_count = 0;
+				
 			}
 			if((data & 0x40) != 0) { // CB2-0
 				dac_ch = data & 0x07;
@@ -349,19 +355,23 @@ void RF5C68::write_io8(uint32_t addr, uint32_t data)
 	case 0x08: // ON/OFF per CH
 		{
 			uint32_t mask = 0x01;
+			__DECL_ALIGNED(8) bool prev_onoff[8];
 			for(int i = 0; i < 8; i++) {
-				bool onoff = dac_onoff[i];
+				prev_onoff[i] = dac_onoff[i];
+			}
+			for(int i = 0; i < 8; i++) {
 				if((mask & data) == 0) {
 					dac_onoff[i] = true;
 				} else {
 					dac_onoff[i] = false;
 				}
-				if((!(onoff) && (dac_onoff[i])) || (dac_force_load[i])) { // Force reload
+				if((!(prev_onoff[i]) && (dac_onoff[i])) || (dac_force_load[i])) { // Force reload
 					dac_addr[i] = (uint32_t)(dac_addr_st[i].w.l) << 11;
 					dac_force_load[i] = false;
 				}
 				mask <<= 1;
 			}
+			touch_sound();
 		}
 //		out_debug_log(_T("DAC REG 08 (DAC/ONOFF) RAW=%02X"),
 //					   data);
@@ -468,6 +478,7 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 		int64_t lval, rval;
 		// ToDo: mix_freq <= dac_freq ; mix_factor >= 4096.
 		int mix_factor_bak = mix_factor.load();
+		bool __muted = is_mute.load();
 		for(int sptr = 0; sptr < cnt; sptr++) {
 			//ToDo : Downsampling and interpolate.
 			{
@@ -483,13 +494,13 @@ void RF5C68::mix(int32_t* buffer, int cnt)
 					mix_count -= (__n << 12);
 				}
 				mix_count += mix_factor;
-				__LIKELY_IF((is_initialized.load()) && !(is_mute.load())) {
-					if(is_interpolate.load()) {
-						diff_l = ((diff_l << 16) * mix_count_bak) / ((__n + 1) << 12);
-						diff_r = ((diff_r << 16) * mix_count_bak) / ((__n + 1) << 12);
-						lval += (diff_l >> 16);
-						rval += (diff_r >> 16);
-					}
+				if(is_interpolate.load()) {
+					diff_l = ((diff_l << 16) * mix_count_bak) / ((__n + 1) << 12);
+					diff_r = ((diff_r << 16) * mix_count_bak) / ((__n + 1) << 12);
+					lval += (diff_l >> 16);
+					rval += (diff_r >> 16);
+				}
+				if(!(__muted)) {
 					int32_t true_lval = apply_volume((int32_t)lval, volume_l.load());
 					int32_t true_rval = apply_volume((int32_t)rval, volume_r.load());
 					bp[0] += true_lval;
