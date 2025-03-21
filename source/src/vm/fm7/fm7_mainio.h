@@ -411,7 +411,6 @@ class FM7_MAINIO : public DEVICE {
 	
 	/* Event Handlers */
 	void event_beep_off(void);
-	void event_beep_cycle(void);
 	/* Devices */
 
 	YM2203* opn[3]; // 0=OPN 1=WHG 2=THG
