@@ -25,7 +25,6 @@
 #include "../mb8877.h"
 #include "../noise.h"
 
-#include "../pcm1bit.h"
 #include "../ym2203.h"
 #include "../ay_3_891x.h"
 #include "../and.h"
@@ -34,8 +33,9 @@
 
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
-#include "../beep.h"
 #endif
+#include "../beep.h"
+
 #if defined(HAS_DMA)
 #include "hd6844.h"
 #endif
@@ -202,9 +202,10 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	drec->set_context_noise_play(new NOISE(this, emu));
 	drec->set_context_noise_stop(new NOISE(this, emu));
 	drec->set_context_noise_fast(new NOISE(this, emu));
-	pcm1bit = new PCM1BIT(this, emu);
+
+	main_beep = new BEEP(this, emu);
 #ifdef USE_DEBUGGER
-//	pcm1bit->set_context_debugger(new DEBUGGER(this, emu));
+//	main_beep->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 
 	connect_320kfdc = connect_1Mfdc = false;
@@ -344,7 +345,12 @@ VM::VM(EMU_TEMPLATE* parent_emu): VM_TEMPLATE(parent_emu)
 	#if !defined(_FM77AV_VARIANTS)
 	psg->set_device_name(_T("AY-3-8910 PSG"));
 	#endif
-	pcm1bit->set_device_name(_T("BEEP"));
+
+	#if defined(_FM77AV_VARIANTS)
+	main_beep->set_device_name(_T("MAIN BEEP"));
+	#else
+	main_beep->set_device_name(_T("BEEP"));
+	#endif
 	printer->set_device_name(_T("PRINTER I/F"));
 	#if defined(_FM77AV_VARIANTS)
 	keyboard_beep->set_device_name(_T("BEEP(KEYBOARD)"));
@@ -456,7 +462,7 @@ void VM::connect_bus(void)
 		}
 	}
 #endif
-	event->set_context_sound(pcm1bit);
+	event->set_context_sound(main_beep);
 #if defined(_FM8)
 	event->set_context_sound(psg);
 	if(drec != nullptr) event->set_context_sound(drec);
@@ -626,7 +632,7 @@ void VM::connect_bus(void)
 	}
 #endif	
 	// SOUND
-	mainio->set_context_beep(pcm1bit);
+	mainio->set_context_beep(main_beep);
 #if defined(_FM8)	
 	mainio->set_context_psg(psg);
 #else
@@ -897,10 +903,8 @@ void VM::initialize_sound(int rate, int samples)
 	}
 	# endif
 #endif
-	if(pcm1bit != nullptr) {
-		pcm1bit->initialize_sound(4800, 2048); // 1200Hz * 4.
-		pcm1bit->set_high_pass_filter_freq(24);
-		pcm1bit->set_low_pass_filter_freq(2400);
+	if(main_beep != nullptr) {
+		main_beep->initialize_sound(rate, 1200.0, 2048);
 	}
 	//drec->initialize_sound(rate, 0);
 }
@@ -962,8 +966,8 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else
 #endif	
 	if(ch-- == 0) {
-		if(pcm1bit != nullptr) {
-			pcm1bit->set_volume(0, decibel_l, decibel_r);
+		if(main_beep != nullptr) {
+			main_beep->set_volume(0, decibel_l, decibel_r);
 		}
 	} else if(ch-- == 0) {
 		if(drec != nullptr) {
@@ -1350,8 +1354,11 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 }
 #endif
 
-#define STATE_VERSION	12
-
+#if 1
+#define STATE_VERSION	13
+#else
+//#define STATE_VERSION	12
+#endif
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!(VM_TEMPLATE::process_state_core(state_fio, loading, STATE_VERSION))) {

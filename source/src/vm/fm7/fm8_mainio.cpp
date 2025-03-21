@@ -22,7 +22,7 @@
 #endif
 #include "../ym2203.h"
 #include "../ay_3_891x.h"
-#include "../pcm1bit.h"
+#include "../beep.h"
 
 #include "./fm7_mainmem.h"
 #include "./bubblecasette.h"
@@ -191,8 +191,8 @@ void FM8_MAINIO::reset_sound(void)
 # else	
 	psg->write_signal(SIG_YM2203_MUTE, !connect_psg ? 0xffffffff : 0x00000000, 0xffffffff);
 # endif
-	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x00, 0x01);
-	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
+	d_beep->write_signal(SIG_BEEP_MUTE, 0x00, 0x01);
+	d_beep->write_signal(SIG_BEEP_ON, 0x00, 0x80);
 
 }
 

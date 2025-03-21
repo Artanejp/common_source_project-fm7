@@ -17,19 +17,21 @@
 
 #include "../device.h"
 
+class AND;
+class BEEP;
 class DATAREC;
+class I8251;
+class MB8877;
 class MC6809;
 class Z80;
 class YM2203;
 #if defined(USE_AY_3_8910_AS_PSG) && !defined(_FM77AV_VARIANTS)
 class AY_3_891X;
 #endif
-class MB8877;
-class I8251;
-class AND;
 #if defined(HAS_DMA)
 class HD6844;
 #endif
+
 
 namespace FM7 {
 	class JOYSTICK;
@@ -46,9 +48,7 @@ namespace FM7 {
 class FM7_MAINIO : public DEVICE {
  protected:
 	bool opn_psg_77av;
-	bool beep_flag;
-	bool beep_snd;
-	int event_beep;  
+
 	int event_beep_oneshot;  
 	int event_timerirq;  
 	int event_fdc_motor;
@@ -424,7 +424,7 @@ class FM7_MAINIO : public DEVICE {
 #endif
 
 	DATAREC* drec;
-	PCM1BIT* pcm1bit;
+	BEEP*    d_beep;
 	JOYSTICK* joystick;
 	
 	I8251 *uart[3];
@@ -542,8 +542,7 @@ public:
 	}
 	void set_context_beep(DEVICE *p)
 	{
-		pcm1bit = (PCM1BIT *)p;
-		//beep = p;
+		d_beep = (BEEP *)p;
 	}
 	void set_context_datarec(DATAREC *p)
 	{

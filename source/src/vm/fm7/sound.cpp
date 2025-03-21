@@ -9,7 +9,7 @@
  *
  */
 
-#include "../pcm1bit.h"
+#include "../beep.h"
 #include "../datarec.h"
 #include "../ym2203.h"
 #include "fm7_mainio.h"
@@ -101,8 +101,9 @@ void FM7_MAINIO::reset_sound(void)
 	   		connect_opn = true;
 	   		break;
 	}
-	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x00, 0x01);
-	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
+
+	d_beep->write_signal(SIG_BEEP_MUTE, 0x00, 0x01);
+	d_beep->write_signal(SIG_BEEP_ON, 0x00, 0x80);
 	
 	opn[0]->write_signal(SIG_YM2203_MUTE, !connect_opn ? 0xffffffff : 0x00000000, 0xffffffff);
 	opn[1]->write_signal(SIG_YM2203_MUTE, !connect_whg ? 0xffffffff : 0x00000000, 0xffffffff);
@@ -387,53 +388,33 @@ uint8_t FM7_MAINIO::get_extirq_thg(void)
 
 void FM7_MAINIO::set_beep(uint32_t data) // fd03
 {
-	bool prev_snd = beep_snd;
-	
-//	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0x01);
-
-//	if(prev_snd != beep_snd) {
-//	pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, (beep_snd) ? 0x01 : 0x00, 0x01);
-//	pcm1bit->write_signal(SIG_PCM1BIT_ON, (beep_flag) ? 0x01 : 0x00, 0x01);
-//	}
-	if((data & 0x40) != 0) {
-		// BEEP ON, after 205ms, BEEP OFF.  
-		set_beep_oneshot();
+	d_beep->write_signal(SIG_BEEP_MUTE, ~data, 0x01);
+	if((data & 0x40) == 0) {
+		d_beep->write_signal(SIG_BEEP_ON, data, 0x80);
 	} else {
-		beep_snd = ((data & 0x01) != 0) ? true : false;
-		beep_flag = ((data & 0x80) != 0) ? true : false;
-		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, (beep_snd) ? 0x01 : 0x00, 0x01);
-		pcm1bit->write_signal(SIG_PCM1BIT_ON, (beep_flag) ? 0x80 : 0x00, 0x80);
+		set_beep_oneshot();
 	}
 }
 
 // SIGNAL / FM7_MAINIO_BEEP
 void FM7_MAINIO::set_beep_oneshot(void) // SUB:D4xx
 {
-	beep_snd = false;
-	beep_flag = true;
-	pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
-	pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 0, 1);
-	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
-	register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, &event_beep_oneshot); // NEXT CYCLE
+
+	d_beep->write_signal(SIG_BEEP_ON, 0xff, 0x80);
+	
+	//if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot); // OK?
+	if(event_beep_oneshot < 0) {
+		register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, &event_beep_oneshot); // NEXT CYCLE
+	}
 }
 
 // EVENT_BEEP_OFF
 void FM7_MAINIO::event_beep_off(void)
 {
-	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
-	beep_flag = false;
-	beep_snd = false;
+	d_beep->write_signal(SIG_BEEP_ON, 0x00, 0x80);
 	event_beep_oneshot = -1;
 }
 
-// EVENT_BEEP_CYCLE
-void FM7_MAINIO::event_beep_cycle(void)
-{
-	beep_snd = !beep_snd;
-	if(beep_flag) {
-		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, beep_snd ? 1 : 0, 1);
-	}
-}
 
 bool FM7_MAINIO::load_state_opn(FILEIO *state_fio, bool loading)
 {

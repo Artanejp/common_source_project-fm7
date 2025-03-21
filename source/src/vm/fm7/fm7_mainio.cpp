@@ -20,6 +20,7 @@
 # if defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV20EX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 #include "../and.h"
 #endif
+#include "../beep.h"
 
 #include "fm7_mainio.h"
 #include "./fm7_mainmem.h"
@@ -54,7 +55,7 @@ FM7_MAINIO::FM7_MAINIO(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVIC
 #endif
 
 	drec = NULL;
-	pcm1bit = NULL;
+	d_beep = NULL;
 	joystick = NULL;
 	fdc = NULL;
 # if defined(HAS_2HD)
@@ -171,7 +172,6 @@ FM7_MAINIO::~FM7_MAINIO()
 
 void FM7_MAINIO::initialize()
 {
-	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
@@ -207,13 +207,13 @@ void FM7_MAINIO::initialize()
 
 void FM7_MAINIO::reset()
 {
-	if(event_beep >= 0) cancel_event(this, event_beep);
-	event_beep = -1;
+
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
 	event_beep_oneshot = -1;
-	beep_snd = true;
-	beep_flag = false;
-	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+	
+	d_beep->write_signal(SIG_BEEP_ON, 0, 0x80);
+	d_beep->write_signal(SIG_BEEP_MUTE, 0, 0x01);
+
 	// Sound
 #if defined(HAS_2HD)
 	drqstat_fdc_2hd = false;
@@ -1892,9 +1892,6 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 	case EVENT_BEEP_OFF:
 		event_beep_off();
 		break;
-	case EVENT_BEEP_CYCLE:
-		event_beep_cycle();
-		break;
 	case EVENT_UP_BREAK:
 		call_write_signal(keyboard, SIG_FM7KEY_OVERRIDE_PRESS_BREAK, 0, 0xffffffff);
 		set_break_key(false);
@@ -1954,7 +1951,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 }
 
 
-#define STATE_VERSION 17
+#define STATE_VERSION 18
 
 bool FM7_MAINIO::process_state(FILEIO *state_fio, bool loading)
 {
@@ -1970,8 +1967,6 @@ bool FM7_MAINIO::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(clock_fast);
 	state_fio->StateValue(lpt_strobe);
 	state_fio->StateValue(lpt_slctin);
-	state_fio->StateValue(beep_flag);
-	state_fio->StateValue(beep_snd);
  	
 	// FD01
 	state_fio->StateValue(lpt_outdata);
@@ -2055,7 +2050,6 @@ bool FM7_MAINIO::process_state(FILEIO *state_fio, bool loading)
 	state_fio->StateValue(sub_monitor_type);
 #endif	
 	{ // V2
-		state_fio->StateValue(event_beep);
 		state_fio->StateValue(event_beep_oneshot);
 		state_fio->StateValue(event_timerirq);
  	}		
