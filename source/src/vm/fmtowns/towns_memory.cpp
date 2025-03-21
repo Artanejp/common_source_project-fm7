@@ -694,7 +694,7 @@ uint8_t TOWNS_MEMORY::read_sys_ports8(uint32_t addr)
 		break;
 	case 0x05ec:
 		// 05ec, 05ed
-		if(machine_id >= 0x0200) { // 05ec
+		if(machine_id >= 0x0500) { // Towns2CX:
 			val = ((is_faster_wait()) ? 0x01 : 0x00);
 		}
 		break;
@@ -891,13 +891,14 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 		if(machine_id < 0x0200) { // Towns 1/2
 			uint8_t nval_bak = wait_register_older & 0x07;
 			uint8_t nval = data & 0x07;
-			if(nval < 1) nval = 1;
-			mem_wait_val = nval;
-			vram_wait_val = nval + 3; // OK?
-			if(vram_wait_val > 6) {
-				vram_wait_val = 6;
+			if(nval < 2) {
+				nval = 2; // Lower limit to 2.
+			} else if(nval > 5) {
+				nval = 5; // Higher limit to 5.
 			}
-			wait_register_older = (data & 0xf8) | nval;
+			mem_wait_val = nval;
+			vram_wait_val = 6;
+			wait_register_older = nval;
 			cpu_clock_val = 16 * 1000 * 1000;
 			if(nval_bak != nval) {
 				set_cpu_clock_by_wait();
@@ -914,9 +915,9 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 				if(machine_id <= 0x0200) { // Towns 1H/2F.
 					if(nval < 1) nval = 1;
 				}
-				if(nval > 6) nval = 6;
+				if(nval > 5) nval = 5;
 				mem_wait_val = nval;
-				wait_register_ram = (data & 0xf8) | nval;
+				wait_register_ram = nval;
 			} else {
 				mem_wait_val = 3;
 				vram_wait_val = 6;
@@ -939,10 +940,10 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 				}
 				if(nval > 6) nval = 6;
 				vram_wait_val = nval;
-				wait_register_vram = (data & 0xf8) | nval;
+				wait_register_vram = nval;
 			} else {
 				mem_wait_val = 3;
-				vram_wait_val = 3;
+				vram_wait_val = 6;
 				wait_register_vram = data;
 			}
 			if((vram_bak != vram_wait_val) || (mem_bak != mem_wait_val)) {
@@ -958,8 +959,8 @@ void TOWNS_MEMORY::write_sys_ports8(uint32_t addr, uint32_t data)
 			uint8_t vram_bak = vram_wait_val;
 			vram_wait_val = ((data & 0x01) != 0) ? 0 : 6;
 			mem_wait_val = ((data & 0x01) != 0) ? 0 : 3;
-			wait_register_ram = mem_wait_val;
-			wait_register_vram = vram_wait_val;
+			//wait_register_ram = mem_wait_val;
+			//wait_register_vram = vram_wait_val;
 			if((mem_bak != mem_wait_val) || (vram_bak != vram_wait_val)) {
 				set_cpu_clock_by_wait();
 				set_wait_values();

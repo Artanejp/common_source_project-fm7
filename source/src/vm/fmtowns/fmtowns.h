@@ -281,7 +281,7 @@
 /* USE_MACHINE_FEATURES : Mean of values are written in towns_common.h . */
 #if defined(_FMTOWNS1_1ST_GEN) || defined(_FMTOWNS1_2ND_GEN) ||	defined(_FMTOWNS1_3RD_GEN) || \
 	defined(_FMTOWNS_UX_VARIANTS) || defined(_FMTOWNS2_CX_VARIANTS)
-#define USE_MACHINE_FEATURES	8 /* Don't has clock settings. */
+#define USE_MACHINE_FEATURES	9 /* Don't has clock settings. */
 #elif defined(WITH_I486SX) 
 #define  USE_MACHINE_FEATURES	11 /* Has clock settings and force to use 386SX. */
 #elif defined(WITH_I486DX) || defined(WITH_PENTIUM)
