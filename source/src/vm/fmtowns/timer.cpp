@@ -86,8 +86,8 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 			tmout0 = false;
 		}
 		intr_reg = data;
-		update_beep(((data & 0x04) != 0) ? true : false, beepon_cff98h, false);
 		update_intr();
+		update_beep(((data & 0x04) != 0) ? true : false, beepon_cff98h, false);
 		break;
 	case 0x0068: // Interval control
 		if(machine_id >= 0x0300) { // After UX*/10F/20F/40H/80H
@@ -138,12 +138,9 @@ void TIMER::write_io8(uint32_t addr, uint32_t data)
 
 void TIMER::update_beep(bool on_60h, bool on_cff98h, bool force)
 {
-	__UNLIKELY_IF(d_pcm == NULL) return;
-	if((on_cff98h == beepon_cff98h) && (on_60h == beepon_60h) && !(force)) {
-		return;
-	}
 	beepon_60h = on_60h;
 	beepon_cff98h = on_cff98h;
+	__UNLIKELY_IF(d_pcm == NULL) return;
 	if((beepon_60h) || (beepon_cff98h)) {
 		d_pcm->write_signal(SIG_PCM1BIT_ON, 1, 1);
 	} else {
