@@ -82,10 +82,14 @@ void META_MainWindow::retranslateUi(void)
 		menuMachineFeatures[TOWNS_MACHINE_MIDI]->setTitle(QApplication::translate("Machine", "MIDI", 0));
 	}
 	for(int i = TOWNS_MACHINE_SIO0; i <= TOWNS_MACHINE_SIO3; i++) {
-		menuMachineFeatures[i]->setTitle(QApplication::translate("Machine", "SIO%1", 0).arg(i - TOWNS_MACHINE_SIO0));
+		if(menuMachineFeatures[i] != nullptr) { 
+			menuMachineFeatures[i]->setTitle(QApplication::translate("Machine", "SIO%1", 0).arg(i - TOWNS_MACHINE_SIO0));
+		}
 	}
 	for(int i = TOWNS_MACHINE_LPT0_OUT; i <= TOWNS_MACHINE_LPT1_OUT; i++) {
-		menuMachineFeatures[i]->setTitle(QApplication::translate("Machine", "LPT%1", 0).arg(i - TOWNS_MACHINE_LPT0_OUT));
+		if(menuMachineFeatures[i] != nullptr) { 
+			menuMachineFeatures[i]->setTitle(QApplication::translate("Machine", "LPT%1", 0).arg(i - TOWNS_MACHINE_LPT0_OUT));
+		}
 	}
 	#if USE_MACHINE_FEATURES >= TOWNS_MACHINE_FASTER_CLOCK
 	/* Has clock settings */
