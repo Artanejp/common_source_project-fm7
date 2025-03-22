@@ -443,7 +443,7 @@ protected:
 	}
 	_CONSTEXPR_FUNC bool layer_is_interlaced(int layer)
 	{
-		bool _b = (frame_offset[layer & 1] == 0) ? true : false;
+		bool _b = (frame_offset[layer & 1] != 0) ? true : false;
 		return _b;
 	}
 	
