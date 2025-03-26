@@ -298,14 +298,13 @@ protected:
 	virtual void __FASTCALL update_regs_v(const int layer);
 	virtual void calc_pixels_lines();
 
-	void reset_paletts();
-
 	void reset_vsync();
 	void __FASTCALL set_vsync(bool val);
-	virtual void force_recalc_crtc_param(void);
+	
 	virtual bool calc_screen_parameters(void);
 	void __FASTCALL calc_zoom_regs(uint16_t val);
 	virtual void set_crtc_parameters_from_regs();
+	
 	virtual void __FASTCALL calc_width(const bool is_single, int64_t& hwidth_p);
 	virtual void __FASTCALL recalc_width_by_clock(const uint32_t magx, int64_t& width);
 	virtual void __FASTCALL recalc_offset_by_clock(const uint32_t magx, int& hoffset_p, int64_t& hbitshift_p);
@@ -315,9 +314,14 @@ protected:
 	virtual void __FASTCALL notify_mode_changed(int layer, uint8_t mode);
 	virtual void __FASTCALL recalc_hdisp_from_crtc_params(int layer, double& start_us, double& end_us);
 	void __FASTCALL set_crtc_clock(uint16_t val, bool force);
-	virtual void __FASTCALL update_crtc_reg(uint8_t ch, uint32_t data);
 	
-	uint16_t read_reg30();
+	virtual uint16_t read_reg30();
+	virtual void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only);
+	
+	virtual void update_horiz_khz();
+	virtual void __FASTCALL update_crtc_reg(uint8_t ch, uint32_t data);
+	virtual void force_recalc_crtc_param(void);
+	
 	inline void make_crtout_from_fda0h(uint8_t data)
 	{
 		crtout_fmr[0] = ((data & 0x0c) != 0) ? true : false;
@@ -351,38 +355,18 @@ protected:
 		priority_cache[num] = video_out_regs[FMTOWNS::VOUTREG_PRIO];
 		control_cache[num] = video_out_regs[FMTOWNS::VOUTREG_CTRL];
 	}
-	inline void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only)
+	inline void update_vstart(const int layer)
 	{
-		if(!(calc_only)) {
-			if((cr0 & 0x8000) != 0) {
-			// START BIT
-				restart_display();
-			} else {
-				stop_display();
-			}
-		}
-		if((cr0 & 0x4000) == 0) {
-			// ESYN BIT
-			// EXTERNAL SYNC OFF
-		} else {
-			// EXTERNAL SYNC ON
-		}
-		impose_mode[1]  = ((cr0 & 0x0080) == 0);
-		impose_mode[0]  = ((cr0 & 0x0040) == 0);
-		carry_enable[1] = ((cr0 & 0x0020) != 0);
-		carry_enable[0] = ((cr0 & 0x0010) != 0);
-
-		uint8_t dmode[2];
-		dmode[0] = cr0 & 0x03;
-		dmode[1] = (cr0 & 0x0c) >> 2;
-		for(int i = 0; i < 2; i++) {
-			__UNLIKELY_IF(dmode[i] != display_mode[i]) {
-				notify_mode_changed(i, dmode[i]);
-			}
-		}
+		vstart_addr[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
+	}
+	
+	inline void update_line_offset(const int layer)
+	{
+		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
 	}
 	
 	// Palettes
+	virtual void reset_paletts();
 	virtual void __FASTCALL calc_apalette16(int layer, int index);
 	virtual void __FASTCALL calc_apalette256(int index);
 
@@ -400,26 +384,7 @@ protected:
 	uint32_t get_sprite_offset();
 	
 	virtual void begin_of_display();
-	inline void update_vstart(const int layer)
-	{
-		vstart_addr[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_FA0]  & 0xffff;
-	}
-	
-	inline void update_line_offset(const int layer)
-	{
-		line_offset[layer]  = regs[(layer * 4) + TOWNS_CRTC_REG_LO0]  & 0xffff;
-	}
-	
-	virtual void update_horiz_khz()
-	{
-		double horiz_us_tmp;
-		__LIKELY_IF(hst_reg != 0) {
-			horiz_us_tmp = crtc_clock * (double)hst_reg;
-		} else {
-			horiz_us_tmp = crtc_clock;
-		}
-		horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
-	}
+		
 	_CONSTEXPR_FUNC bool is_single_mode_for_standard(const uint8_t control_reg_val)
 	{
 		return (((control_reg_val & 0x10) == 0) ? true : false);

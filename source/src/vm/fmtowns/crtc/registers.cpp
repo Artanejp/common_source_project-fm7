@@ -15,6 +15,140 @@
 
 namespace FMTOWNS {
 
+void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
+{
+	ch = ch & 0x1f;
+	uint16_t reg_bak = regs[ch];
+	regs[ch] = (uint16_t)data;
+	switch(ch) {
+	case TOWNS_CRTC_REG_HSW1:
+	case TOWNS_CRTC_REG_HSW2:
+	case TOWNS_CRTC_REG_HST:
+	case TOWNS_CRTC_REG_VST1:
+	case TOWNS_CRTC_REG_VST2:
+	case TOWNS_CRTC_REG_EET:
+	case TOWNS_CRTC_REG_VST:
+		break;
+	case TOWNS_CRTC_REG_HDS0:
+	case TOWNS_CRTC_REG_HDE0:
+	case TOWNS_CRTC_REG_HDS1:
+	case TOWNS_CRTC_REG_HDE1:
+	case TOWNS_CRTC_REG_VDS0:
+	case TOWNS_CRTC_REG_VDE0:
+	case TOWNS_CRTC_REG_VDS1:
+	case TOWNS_CRTC_REG_VDE1:
+	break;
+	case TOWNS_CRTC_REG_FA0:
+		#if 0
+		out_debug_log(_T("FA0 changed to 0x%04x; V=%d VST1=%d VST2=%d\n    VSYNC=%s HSYNC=%s HDISP0=%s FRAME IN=%s"),
+					  data,
+					  get_cur_vline(),
+					  vst1,
+					  vst2,
+					  (vsync) ? _T("ON ") : _T("OFF"),
+					  (hsync) ? _T("ON ") : _T("OFF"),
+					  (hdisp[0]) ? _T("ON ") : _T("OFF"),
+					  (frame_in[0]) ? _T("ON ") : _T("OFF")
+			);
+		out_debug_log(_T("    HDS0=%04x HAJ0=%04x HDE0=%04x"),
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDS0],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HAJ0],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDE0]);
+		update_vstart(0);
+		#endif
+		break;
+	case TOWNS_CRTC_REG_FA1:
+		#if 0
+		out_debug_log(_T("FA1 changed to 0x%04x; V=%d VST1=%d VST2=%d\n    VSYNC=%s HSYNC=%s HDISP1=%s FRAME IN=%s"),
+					  data,
+					  get_cur_vline(),
+					  vst1,
+					  vst2,
+					  (vsync) ? _T("ON ") : _T("OFF"),
+					  (hsync) ? _T("ON ") : _T("OFF"),
+					  (hdisp[1]) ? _T("ON ") : _T("OFF"),
+					  (frame_in[1]) ? _T("ON ") : _T("OFF")
+			);
+		out_debug_log(_T("    HDS1=%04x HAJ1=%04x HDE1=%04x"),
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDS1],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HAJ1],
+					  regs[FMTOWNS::TOWNS_CRTC_REG_HDE1]);
+		update_vstart(1);
+		#endif
+		break;
+	case TOWNS_CRTC_REG_HAJ0:
+	case TOWNS_CRTC_REG_FO0:
+		break;
+	case TOWNS_CRTC_REG_LO0:
+		//update_line_offset(0);
+		break;
+	case TOWNS_CRTC_REG_HAJ1:
+	case TOWNS_CRTC_REG_FO1:
+		break;
+	case TOWNS_CRTC_REG_LO1:
+		//update_line_offset(1);
+		break;
+	break;
+	case TOWNS_CRTC_REG_EHAJ:
+		// ToDo
+		break;
+	case TOWNS_CRTC_REG_EVAJ:
+		// ToDo
+		break;
+	case TOWNS_CRTC_REG_ZOOM:
+		break;
+	case TOWNS_CRTC_REG_DISPMODE: // CR0
+		break;
+	case TOWNS_CRTC_REG_CLK: // CR1
+		set_crtc_clock((uint16_t)data, false);
+		break;
+	case TOWNS_CRTC_REG_DUMMY: // RESERVED(REG#30)
+		// ToDo
+		break;
+	case TOWNS_CRTC_REG_CTRL: // CR2
+		// ToDo: External Trigger.
+		break;
+	default:
+		// ToDo
+		break;
+	}
+}
+	
+void TOWNS_CRTC::set_crtc_parameters_from_regs()
+{
+	int trans = render_linebuf.load() & display_linebuf_mask;
+	calc_screen_parameters();  // Re-Calculate general display parameters.
+	update_horiz_khz();
+	
+	copy_regs_v(); // Calculate display parameters per layer.
+	copy_regs_h(); // Calculate display parameters per layer.
+	
+	force_recalc_crtc_param(); // Calculate parameter around HSYNC.
+	
+	vst1_count = vst1 << 1;
+	vst2_count = vst2 << 1;
+
+	__UNLIKELY_IF(vst1_count >= vst2_count) {
+		vst2_count = vst1_count + 1;
+	}
+	calc_pixels_lines(); 
+
+	lines_per_frame = vst_reg;
+
+	eet_count = eet;
+	horiz_us = horiz_us_next;
+	
+	double horiz_ref = horiz_us;
+
+	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
+	if(frame_us <= 0.0) {
+		frame_us = 1.0e6 / FRAMES_PER_SEC;
+	}
+
+	set_frames_per_sec(1.0e6 / frame_us);
+	set_lines_per_frame(lines_per_frame);
+}
+	
 // CRTC register #29
 void TOWNS_CRTC::set_crtc_clock(uint16_t val, bool force)
 {
@@ -29,6 +163,35 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val, bool force)
 	if((crtc_clock != clock_bak) || (force)) {
 		force_recalc_crtc_param();
 	}
+}
+
+uint16_t TOWNS_CRTC::read_reg30()
+{
+	//uint16_t data = 0x00f0;
+	uint16_t data = 0x0000;
+	#if 0 /* Why is this... Ported from Tsugaru (；´Д｀) */
+	data |= (!(vsync)          ?  0x8000 : 0);
+	data |= (!(vsync)          ?  0x4000 : 0);
+	data |= (!(hsync)          ?  0x2000 : 0);
+	data |= (!(hsync)          ?  0x1000 : 0);
+	data |= ((false)           ?  0x0800 : 0);
+	#else
+	data |= ((frame_in[1])     ?  0x8000 : 0);
+	data |= ((frame_in[0])     ?  0x4000 : 0);
+	data |= ((hdisp[1])        ?  0x2000 : 0);
+	data |= ((hdisp[0])        ?  0x1000 : 0);
+	data |= ((interlace_field) ?  0x0800 : 0);
+	#endif
+	data |= ((vsync)           ?  0x0400 : 0);
+	data |= ((hsync)           ?  0x0200 : 0);
+	//data |= ((video_in)     ? 0x0100 : 0);
+	//data |= ((half_tone)    ? 0x0008 : 0);
+	//data |= ((sync_enable)  ? 0x0004 : 0);
+	//data |= ((vcard_enable) ? 0x0002 : 0);
+	//data |= ((sub_carry)    ? 0x0001 : 0);
+	data = (data & 0xff00 ) | (regs[TOWNS_CRTC_REG_DUMMY] & 0x00ff);
+
+	return data;
 }
 	
 void TOWNS_CRTC::copy_regs_v()
@@ -154,6 +317,18 @@ void TOWNS_CRTC::update_regs_h(const int layer)
 	hoffset_val[layer]  = hoff_tmp;
 }
 
+
+void TOWNS_CRTC::update_horiz_khz()
+{
+	double horiz_us_tmp;
+	__LIKELY_IF(hst_reg != 0) {
+		horiz_us_tmp = crtc_clock * (double)hst_reg;
+	} else {
+		horiz_us_tmp = crtc_clock;
+	}
+	horiz_khz = std::lrint(1.0e3 / horiz_us_tmp);
+}
+
 void TOWNS_CRTC::recalc_offset_by_clock(const uint32_t magx, int& hoffset_p, int64_t& hbitshift_p)
 {
 	uint32_t magxx = magx;
@@ -268,6 +443,55 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	}
 
 	req_recalc = false;
+}
+
+void TOWNS_CRTC::recalc_cr0(uint16_t cr0, bool calc_only)
+{
+	if(!(calc_only)) {
+		if((cr0 & 0x8000) != 0) {
+			// START BIT
+			restart_display();
+		} else {
+			stop_display();
+		}
+	}
+	if((cr0 & 0x4000) == 0) {
+		// ESYN BIT
+		// EXTERNAL SYNC OFF
+	} else {
+		// EXTERNAL SYNC ON
+	}
+	impose_mode[1]  = ((cr0 & 0x0080) == 0);
+	impose_mode[0]  = ((cr0 & 0x0040) == 0);
+	carry_enable[1] = ((cr0 & 0x0020) != 0);
+	carry_enable[0] = ((cr0 & 0x0010) != 0);
+
+	uint8_t dmode[2];
+	dmode[0] = cr0 & 0x03;
+	dmode[1] = (cr0 & 0x0c) >> 2;
+	for(int i = 0; i < 2; i++) {
+		__UNLIKELY_IF(dmode[i] != display_mode[i]) {
+			notify_mode_changed(i, dmode[i]);
+		}
+	}
+}
+
+void TOWNS_CRTC::restart_display()
+{
+	// ToDo
+	display_enabled_pre = true;
+}
+
+void TOWNS_CRTC::stop_display()
+{
+	// ToDo
+	display_enabled_pre = false;
+}
+
+void TOWNS_CRTC::notify_mode_changed(int layer, uint8_t mode)
+{
+	mode_changed[layer] = true;
+	display_mode[layer] = mode;
 }
 
 }
