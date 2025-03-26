@@ -56,13 +56,29 @@ fi
 #	DLL_LDOPTS+=(-flto=jobserver)
 #	EXE_LDOPTS+=(-flto=jobserver)
 #fi
+if [ __x__${DEBUG_COMPRESSOR} != __x__ ] ; then
+    #if [ __x__${DEBUG_COMPRESS_LEVEL} != __x__ ] ; then
+    #   DEBUG_COMPRESS_LINKER="--compress-debug-sections=${DEBUG_COMPRESSOR}:${DEBUG_COMPRESS_LEVEL}"
+    #else
+       DEBUG_COMPRESS_LINKER="--compress-debug-sections=${DEBUG_COMPRESSOR}"
+    #fi
+    DEBUG_COMPRESS_G="-gz=${DEBUG_COMPRESSOR}"
+else
+    #if [ __x__${DEBUG_COMPRESS_LEVEL} != __x__ ] ; then
+    #   DEBUG_COMPRESS_LINKER="--compress-debug-sections=zlib:${DEBUG_COMPRESS_LEVEL}"
+    #else
+       DEBUG_COMPRESS_LINKER="--compress-debug-sections=zlib"
+    #fi    
+    DEBUG_COMPRESS_G="-gz"
+fi
+
 if [ __x__"${BUILD_TYPE}" != __x__Release ] ; then
 	DEBUGFLAGS+=(-gdwarf)
-	DEBUGFLAGS+=(-gz)
-	DLL_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
-	EXE_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+	DEBUGFLAGS+=(${DEBUG_COMPRESS_G})
+	DLL_LDOPTS+=(-Wl,${DEBUG_COMPRESS_LINKER})
+	EXE_LDOPTS+=(-Wl,${DEBUG_COMPRESS_LINKER})
 	if [ $C_MAJOR_VERSION -le 11 ] ; then
-		COPTS+=(-Wa,--compress-debug-sections=zlib)
+		COPTS+=(-Wa,${DEBUG_COMPRESS_LINKER})
 	fi
 else
 	DLL_LDOPTS+=(-s)

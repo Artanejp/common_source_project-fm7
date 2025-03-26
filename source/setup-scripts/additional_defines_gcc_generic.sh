@@ -29,15 +29,26 @@ fi
 
 BASICOPTS+=(${OPTIMIZE_LEVEL})
 
+if [ __x__${DEBUG_COMPRESSOR} != __x__ ] ; then
+    #if [ __x__${DEBUG_COMPRESS_LEVEL} != __x__ ] ; then
+    #   DEBUG_COMPRESS_LINKER="--compress-debug-sections=${DEBUG_COMPRESSOR}:${DEBUG_COMPRESS_LEVEL}"
+    #else
+       DEBUG_COMPRESS_LINKER="--compress-debug-sections=${DEBUG_COMPRESSOR}"
+    #fi
+       DEBUG_COMPRESS_G="-gz=${DEBUG_COMPRESSOR}"
+else
+       DEBUG_COMPRESS_LINKER="--compress-debug-sections=zlib"
+       DEBUG_COMPRESS_G="-gz"
+fi
 if [ __x__"${BUILD_TYPE}" != __x__Release ] ; then
 	
 	if [ $C_MAJOR_VERSION -lt 8 ] ; then
 		DEBUGFLAGS+=(-g2)
 	else
 		DEBUGFLAGS+=(-ggdb)
-		DEBUGFLAGS+=(-gz)
+		DEBUGFLAGS+=(${DEBUG_COMPRESS_G})
 		if [ $C_MAJOR_VERSION -ge 12 ] ; then
-			COPTS+=(-Wa,--compress-debug-sections=zlib)
+			COPTS+=(-Wa,${DEBUG_COMPRESS_LINKER})
 			DEBUGFLAGS+=(-fmerge-debug-strings)
 			DEBUGFLAGS+=(-feliminate-unused-debug-symbols)
 			DEBUGFLAGS+=(-feliminate-unused-debug-types)
@@ -71,12 +82,12 @@ case ${BUILD_TYPE} in
 			EXE_LDOPTS+=(-g2)
 		else
 			DLL_LDOPTS+=(-ggdb)
-			DLL_LDOPTS+=(-gz)
-			DLL_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+			DLL_LDOPTS+=(${DEBUG_COMPRESS_G})
+			DLL_LDOPTS+=(-Wl,${DEBUG_COMPRESS_LINKER})
 
 			EXE_LDOPTS+=(-ggdb)
-			EXE_LDOPTS+=(-gz)
-			EXE_LDOPTS+=(-Wl,--compress-debug-sections=zlib)
+			EXE_LDOPTS+=(${DEBUG_COMPRESS_G})
+			EXE_LDOPTS+=(-Wl,${DEBUG_COMPRESS_LINKER})
 		fi
 		;;
 	Release | * )
