@@ -42,6 +42,10 @@ set(VM_FMTOWNS_DEV_SRCS
 	cdrom/cdrom_ccd_parser.cpp
 	cdrom/cdrom_iso_parser.cpp
 
+	crtc/renderer.cpp
+	crtc/transfer_lines.cpp
+	crtc/registers.cpp
+
 	../scsi_host.cpp
 	../msm58321.cpp
 	./mb87078.cpp

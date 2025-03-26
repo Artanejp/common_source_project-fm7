@@ -2,6 +2,11 @@
 #ifndef _TOWNS_CRTC_UTILS_H_ /* And this must be included at once. */
 #define _TOWNS_CRTC_UTILS_H_ 
 
+#include "../../../common.h"
+#include "../../../types/simd.h"
+
+namespace FMTOWNS {
+
 inline void TOWNS_CRTC::simd_fill(scrntype_t* dst, csp_vector8<scrntype_t> data, size_t words)
 {
 	const uintptr_t pdst = (uintptr_t)dst;
@@ -296,6 +301,7 @@ inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, csp_vector8<scrn
 	}
 	return pixels_count;
 }
-	
+
+}
 #endif /* _TOWNS_CRTC_UTILS_H_ */
 #endif /* _TOWNS_CRTC_H_ */

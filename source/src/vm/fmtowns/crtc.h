@@ -16,7 +16,8 @@
 #include "device.h"
 #include "towns_common.h"
 #include "types/simd.h"
-#include "./crtc_types.h"
+#include "./crtc/crtc_types.h"
+
 
 /*
  * I/O Address :
@@ -113,7 +114,7 @@ class DEBUGGER;
 namespace FMTOWNS {
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
-class FONT_ROMS;
+
 class TOWNS_CRTC : public DEVICE
 {
 protected:

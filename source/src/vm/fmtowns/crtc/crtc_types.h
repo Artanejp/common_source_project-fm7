@@ -9,6 +9,8 @@
 */
 #pragma once
 
+#include "../../../common.h"
+
 namespace FMTOWNS {
 	// Constants.
 	enum {
