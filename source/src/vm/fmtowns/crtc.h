@@ -286,8 +286,9 @@ protected:
 
 	// Render buffer
 	// ToDo: faster alpha blending.
-	bool this_layer_is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2];	__DECL_ALIGNED(16) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	bool this_layer_is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2];
 	
+	__DECL_ALIGNED(16) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
