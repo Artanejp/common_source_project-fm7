@@ -143,8 +143,8 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 					}
 				}
 
-				__UNLIKELY_IF(is_interlaced[trans][l]) {
-					if(interlace_field) {
+				__UNLIKELY_IF(is_interlaced[l]) {
+					if(odd_field) { // odd field
 						offset = offset + (frame_offset_bak[l] << address_shift);
 					}
 				}

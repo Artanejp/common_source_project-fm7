@@ -171,7 +171,8 @@ protected:
 	double vert_us; // (VST +1) * horiz_us / 2.0
 	double vert_sync_end_us; // VST2 * horiz_us / 2.0
 	double frame_us;
-	
+
+	bool is_interlaced[2]; 
 	uint16_t vst1_count; // VST1 * horiz_us / 2.0
 	uint16_t vst2_count;
 	uint16_t eet_count;
@@ -257,7 +258,7 @@ protected:
 	// Register 00 : Display mode.
 	// Register 11: Priority mode.
 	bool video_brightness; // false = high.
-	bool is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2]; // cache values of layuer_is_interlaced().
+
 	// Others.
 	// VRAM CONTROL REGISTER.
 	uint8_t voutreg_num;       // I/O 0448h
@@ -279,12 +280,14 @@ protected:
 	std::atomic<int> display_remain;
 	
 	const int display_linebuf_mask = FMTOWNS::CRTC_BUFFER_NUM - 1;
+	bool odd_field;
 
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[FMTOWNS::CRTC_BUFFER_NUM][TOWNS_CRTC_MAX_LINES];
 
 	// Render buffer
 	// ToDo: faster alpha blending.
-	__DECL_ALIGNED(16) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	bool this_layer_is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2];	__DECL_ALIGNED(16) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+	
 	__DECL_ALIGNED(16) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
 	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
@@ -393,7 +396,7 @@ protected:
 	{
 		//const uint8_t _mode0 = voutreg_ctrl & 0x03;
 		//const uint8_t _mode1 = (voutreg_ctrl & 0x0c) >> 2;
-		uint8_t _ctrl = control_cache[render_linebuf & display_linebuf_mask];
+		uint8_t _ctrl = control_cache[render_linebuf.load() & display_linebuf_mask];
 		is_single = is_single_mode_for_standard(_ctrl);
 		static const int modes_by_voutreg_ctrl[4] = { DISPMODE_NONE, DISPMODE_16, DISPMODE_256, DISPMODE_32768 };
 		static const int modes_by_CR0_single[4] = { DISPMODE_NONE, DISPMODE_NONE, DISPMODE_32768, DISPMODE_256 };

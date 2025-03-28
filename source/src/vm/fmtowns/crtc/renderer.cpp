@@ -33,15 +33,11 @@ inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 void TOWNS_CRTC::draw_screen()
 {
 	int trans = display_linebuf.load() & display_linebuf_mask;
-/*	display_remain--;
-	if(display_remain.load() >= 0) {
-		display_linebuf = (display_linebuf.load() + 1) & display_linebuf_mask;
-	} else {
-		display_remain = 0;
-	}
-*/
+	
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	__UNLIKELY_IF(d_vram == nullptr) {
+		display_linebuf++;
+		display_linebuf &= display_linebuf_mask;
 		return;
 	}
 	int lines = vst[trans];
@@ -185,6 +181,8 @@ void TOWNS_CRTC::draw_screen()
 
 
 	}
+	display_linebuf++;
+	display_linebuf &= display_linebuf_mask;
 	return;
 }
 

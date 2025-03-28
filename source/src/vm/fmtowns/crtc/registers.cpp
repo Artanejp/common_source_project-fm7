@@ -116,7 +116,6 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 	
 void TOWNS_CRTC::set_crtc_parameters_from_regs()
 {
-	int trans = render_linebuf.load() & display_linebuf_mask;
 	calc_screen_parameters();  // Re-Calculate general display parameters.
 	update_horiz_khz();
 	
@@ -169,26 +168,28 @@ uint16_t TOWNS_CRTC::read_reg30()
 {
 	//uint16_t data = 0x00f0;
 	uint16_t data = 0x0000;
+	bool is_interlaced_mode = ((is_interlaced[0]) || (is_interlaced[0])) ? true : false;
+	is_interlaced_mode &= odd_field;
 	#if 0 /* Why is this... Ported from Tsugaru (；´Д｀) */
-	data |= (!(vsync)          ?  0x8000 : 0);
-	data |= (!(vsync)          ?  0x4000 : 0);
-	data |= (!(hsync)          ?  0x2000 : 0);
-	data |= (!(hsync)          ?  0x1000 : 0);
-	data |= ((false)           ?  0x0800 : 0);
+	data |= (!(vsync)             ?  0x8000 : 0);
+	data |= (!(vsync)             ?  0x4000 : 0);
+	data |= (!(hsync)             ?  0x2000 : 0);
+	data |= (!(hsync)             ?  0x1000 : 0);
+	data |= ((false)              ?  0x0800 : 0);
 	#else
-	data |= ((frame_in[1])     ?  0x8000 : 0);
-	data |= ((frame_in[0])     ?  0x4000 : 0);
-	data |= ((hdisp[1])        ?  0x2000 : 0);
-	data |= ((hdisp[0])        ?  0x1000 : 0);
-	data |= ((interlace_field) ?  0x0800 : 0);
+	data |= ((frame_in[1])        ?  0x8000 : 0);
+	data |= ((frame_in[0])        ?  0x4000 : 0);
+	data |= ((hdisp[1])           ?  0x2000 : 0);
+	data |= ((hdisp[0])           ?  0x1000 : 0);
+	data |= ((is_interlaced_mode) ?  0x0800 : 0);
 	#endif
-	data |= ((vsync)           ?  0x0400 : 0);
-	data |= ((hsync)           ?  0x0200 : 0);
-	//data |= ((video_in)     ? 0x0100 : 0);
-	//data |= ((half_tone)    ? 0x0008 : 0);
-	//data |= ((sync_enable)  ? 0x0004 : 0);
-	//data |= ((vcard_enable) ? 0x0002 : 0);
-	//data |= ((sub_carry)    ? 0x0001 : 0);
+	data |= ((vsync)              ?  0x0400 : 0);
+	data |= ((hsync)              ?  0x0200 : 0);
+	//data |= ((video_in)           ? 0x0100 : 0);
+	//data |= ((half_tone)          ? 0x0008 : 0);
+	//data |= ((sync_enable)        ? 0x0004 : 0);
+	//data |= ((vcard_enable)       ? 0x0002 : 0);
+	//data |= ((sub_carry)          ? 0x0001 : 0);
 	data = (data & 0xff00 ) | (regs[TOWNS_CRTC_REG_DUMMY] & 0x00ff);
 
 	return data;
