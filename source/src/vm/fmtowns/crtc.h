@@ -187,7 +187,6 @@ protected:
 
 	double horiz_start_us_next[2];
 	double horiz_end_us_next[2];
-	bool req_recalc;
 	// End
 
 	double frames_per_sec;
@@ -281,6 +280,7 @@ protected:
 	
 	const int display_linebuf_mask = FMTOWNS::CRTC_BUFFER_NUM - 1;
 	bool odd_field;
+	bool req_update_cr1;
 
 	__DECL_ALIGNED(32) linebuffer_t linebuffers[FMTOWNS::CRTC_BUFFER_NUM][TOWNS_CRTC_MAX_LINES];
 
@@ -317,7 +317,7 @@ protected:
 	virtual void stop_display();
 	virtual void __FASTCALL notify_mode_changed(int layer, uint8_t mode);
 	virtual void __FASTCALL recalc_hdisp_from_crtc_params(int layer, double& start_us, double& end_us);
-	void __FASTCALL set_crtc_clock(uint16_t val, bool force);
+	void __FASTCALL set_crtc_clock(bool force);
 	
 	virtual uint16_t read_reg30();
 	virtual void __FASTCALL recalc_cr0(uint16_t cr0, bool calc_only);

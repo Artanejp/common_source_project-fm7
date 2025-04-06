@@ -100,7 +100,7 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 	case TOWNS_CRTC_REG_DISPMODE: // CR0
 		break;
 	case TOWNS_CRTC_REG_CLK: // CR1
-		set_crtc_clock((uint16_t)data, false);
+		req_update_cr1 = true;
 		break;
 	case TOWNS_CRTC_REG_DUMMY: // RESERVED(REG#30)
 		// ToDo
@@ -117,7 +117,11 @@ void TOWNS_CRTC::update_crtc_reg(uint8_t ch, uint32_t data)
 void TOWNS_CRTC::set_crtc_parameters_from_regs()
 {
 	calc_screen_parameters();  // Re-Calculate general display parameters.
-	update_horiz_khz();
+	if(req_update_cr1) {
+		set_crtc_clock(false);
+	} else {
+		update_horiz_khz();
+	}
 	
 	copy_regs_v(); // Calculate display parameters per layer.
 	copy_regs_h(); // Calculate display parameters per layer.
@@ -149,8 +153,9 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 }
 	
 // CRTC register #29
-void TOWNS_CRTC::set_crtc_clock(uint16_t val, bool force)
+void TOWNS_CRTC::set_crtc_clock(bool force)
 {
+	uint16_t val = regs[TOWNS_CRTC_REG_CLK];
 	scsel = (val & 0x0c) >> 2;
 	clksel = val & 0x03;
 	double clock_bak = crtc_clock;
@@ -162,14 +167,14 @@ void TOWNS_CRTC::set_crtc_clock(uint16_t val, bool force)
 	if((crtc_clock != clock_bak) || (force)) {
 		force_recalc_crtc_param();
 	}
+	req_update_cr1 = false;
 }
 
 uint16_t TOWNS_CRTC::read_reg30()
 {
 	//uint16_t data = 0x00f0;
 	uint16_t data = 0x0000;
-	bool is_interlaced_mode = ((is_interlaced[0]) || (is_interlaced[0])) ? true : false;
-	is_interlaced_mode &= odd_field;
+
 	#if 0 /* Why is this... Ported from Tsugaru (；´Д｀) */
 	data |= (!(vsync)             ?  0x8000 : 0);
 	data |= (!(vsync)             ?  0x4000 : 0);
@@ -181,7 +186,7 @@ uint16_t TOWNS_CRTC::read_reg30()
 	data |= ((frame_in[0])        ?  0x4000 : 0);
 	data |= ((hdisp[1])           ?  0x2000 : 0);
 	data |= ((hdisp[0])           ?  0x1000 : 0);
-	data |= ((is_interlaced_mode) ?  0x0800 : 0);
+	data |= ((odd_field)          ?  0x0800 : 0);
 	#endif
 	data |= ((vsync)              ?  0x0400 : 0);
 	data |= ((hsync)              ?  0x0200 : 0);
@@ -442,8 +447,6 @@ void TOWNS_CRTC::force_recalc_crtc_param(void)
 	for(int layer = 0; layer < 2; layer++) {
 		recalc_hdisp_from_crtc_params(layer, horiz_start_us_next[layer], horiz_end_us_next[layer]);
 	}
-
-	req_recalc = false;
 }
 
 void TOWNS_CRTC::recalc_cr0(uint16_t cr0, bool calc_only)
