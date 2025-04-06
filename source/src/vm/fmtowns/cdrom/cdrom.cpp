@@ -568,10 +568,12 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 bool TOWNS_CDROM::status_media_changed_or_not_ready(const bool force_interrupt)
 {
 	if(status_not_ready(force_interrupt)) {
+		set_cdda_status(CDDA_OFF);
 		media_changed = false;
 		return true;
 	}
 	if(status_media_changed(force_interrupt)) {
+		set_cdda_status(CDDA_OFF);
 		return true;
 	}
 	return false;
@@ -2753,6 +2755,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				#endif
 				cdda_stopped = true;
 				set_realtime_render(false);
+			} if(status == CDDA_PAUSED) {
+				set_realtime_render(false);
 			} /*else if(status == CDDA_ENDED) {
 				cdda_stopped = true;
 			}*/
@@ -2918,8 +2922,10 @@ void TOWNS_CDROM::pause_cdda_from_cmd()
 	 */
 	set_subq(cdda_playing_frame); // First
 	req_off_execute_phase = true;
-	status_accept(1, 0x00, 0x00, true, true);
-	mcu_ready = true;
+
+	//set_status_cddareply(false, 1, 0x00, 0x00);
+	status_accept(1, 0x00, 0x00, false, false);
+//	mcu_ready = true;
 }
 
 void TOWNS_CDROM::unpause_cdda_from_cmd()
@@ -2934,8 +2940,9 @@ void TOWNS_CDROM::unpause_cdda_from_cmd()
 	 */
 	req_off_execute_phase = true;
 	set_subq(cdda_playing_frame); // First
-	status_accept(1, 0x00, 0x00, true, true);
-	mcu_ready = true;
+	//set_status_cddareply(false, 1, 0x00, 0x00);
+	status_accept(1, 0x00, 0x00, false, false);
+//	mcu_ready = true;
 }
 
 void TOWNS_CDROM::stop_cdda_from_cmd()
