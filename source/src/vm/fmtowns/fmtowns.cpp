@@ -521,6 +521,10 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
+	// After TOWNS2 HG/UG.
+	if(machine_id >= 0x0600) {
+		crtc->set_context_is_compat_mode(memory, SIG_MEMORY_MMIO_COMPAT, 0xffffffff);
+	}
 	// Interrupts
 	// IRQ0  : TIMER
 	// IRQ1  : KEYBOARD
@@ -545,7 +549,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	cdrom->set_context_mpuint_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 0xffffffff);
 	crtc->set_context_vsync(pic, SIG_I8259_CHIP1 | SIG_I8259_IR3, 0xffffffff);
 	//crtc->set_context_vsync(sprite, SIG_TOWNS_SPRITE_VSYNC, 0xffffffff);
-
 	adpcm->set_context_intr_line(pic, SIG_I8259_CHIP1 | SIG_I8259_IR5, 0xffffffff);
 
 	// DMA0  : FDC/DRQ

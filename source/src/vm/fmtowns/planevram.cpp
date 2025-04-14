@@ -16,7 +16,7 @@ void PLANEVRAM::initialize()
 
 void PLANEVRAM::reset()
 {
-	mix_reg = 0xff;
+	mix_reg = 0x28;
 	r50_readplane = 0x0; // OK?
 	r50_ramsel = 0xf; // OK?
 	r50_gvramsel = 0x00000000; // OK?
@@ -26,7 +26,7 @@ void PLANEVRAM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xff80:
-		mix_reg = data | (~(0x28)); // 20231008 K.O related from manual.
+		mix_reg = data & 0x28; // 20231008 K.O related from manual.
 		break;
 	case 0xff81:
 //		out_debug_log(_T("0xCFF81=%02X"), data & 0xff);
@@ -59,7 +59,7 @@ uint32_t PLANEVRAM::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0xff80:
-		return mix_reg;
+		return mix_reg & 0x28;
 		break;
 	case 0xff81:
 		return ((r50_readplane << 6) | r50_ramsel);

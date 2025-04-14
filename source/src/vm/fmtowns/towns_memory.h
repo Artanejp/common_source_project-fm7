@@ -17,6 +17,7 @@
 
 #define SIG_FMTOWNS_MACHINE_ID	1
 #define SIG_MEMORY_EXTNMI       2
+#define SIG_MEMORY_MMIO_COMPAT  3
 
 // MAP:
 // 00000000 - 000fffff : SYSTEM RAM PAGE 0 (Similar to FMR-50).
@@ -99,8 +100,6 @@ protected:
 	memory_device_map_t dma_read_map[TOWNS_MEMORY_MAP_SIZE];
 	memory_device_map_t dma_write_map[TOWNS_MEMORY_MAP_SIZE];
 
- 	outputs_t outputs_ram_wait;
-	outputs_t outputs_rom_wait;
 
 	bool bankc0_vram;
 	bool ankcg_enabled;
@@ -571,8 +570,6 @@ public:
 		d_font_20pix = NULL;
 		initialized = false;
 
-		initialize_output_signals(&outputs_ram_wait);
-		initialize_output_signals(&outputs_rom_wait);
 		// Note: machine id must set before initialize() from set_context_machine_id() by VM::VM().
 		// machine_id = 0x0100;   // FM-Towns 1,2
 		// machine_id = 0x0200 // FM-Towns  1F/2F/1H/2H

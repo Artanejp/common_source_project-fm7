@@ -946,7 +946,7 @@ bool TOWNS_SPRITE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	my_tcscat_s(regstr, 1024, sstr);
 
 	memset(sstr, 0x00, sizeof(sstr));
-	my_stprintf_s(sstr, 127, _T("SPRITE:%s LOT=%d NUM=%d\nHOFFSET=%d VOFFSET=%d DISP_PAGE=%s\n")
+	my_stprintf_s(sstr, 127, _T("SPRITE:%s LOT=%d NUM=%d\nHOFFSET=%d VOFFSET=%d DISP_PAGE=%d\n")
 				  , (reg_spen) ? _T("ENABLED ") : _T("DISABLED")
 				  , ((reg_index & 0x3ff) == 0) ? 1024 : (reg_index & 0x3ff)
 				  , render_num

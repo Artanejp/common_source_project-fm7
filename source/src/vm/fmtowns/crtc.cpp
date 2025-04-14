@@ -62,6 +62,10 @@ void TOWNS_CRTC::reset()
 	hstart_position = 0;
 	write_signals(&outputs_int_vsync, 0);
 	
+	is_compatible = true;
+	write_signals(&outputs_is_compat_mode, 0xffffffff);
+
+
 	fo1_offset_value = 0;
 	// 20230717 K.O
 	// From Tsugaru,
@@ -78,7 +82,6 @@ void TOWNS_CRTC::reset()
 	sprite_offset = 0x00000;
 	// initial settings for 1st frame
 	req_update_cr1 = true;
-	is_compatible = true;
 
 	line_count[0] = line_count[1] = 0;
 	vert_line_count = -1;
@@ -86,7 +89,8 @@ void TOWNS_CRTC::reset()
 	render_linebuf = 0;
 
 	r50_planemask = 0x0f;
-	r50_pagesel = 0;
+	r50_pagesel_bak = 0;
+	r50_pagesel = r50_pagesel_bak;
 	crtout_reg = 0x0f;
 
 	//int dummy_mode0, dummy_mode1;
@@ -164,21 +168,20 @@ void TOWNS_CRTC::reset()
 // Palette.
 void TOWNS_CRTC::reset_vsync()
 {
-	if(vsync) {
-		vsync = false;
-		write_signals(&outputs_int_vsync, 0);
-	}
+	write_signals(&outputs_int_vsync, 0);
 }
 
 void TOWNS_CRTC::set_vsync(bool val)
 {
 	bool vsync_bak = vsync;
 	vsync = val;
-	if(vsync_bak != val) {
-		write_signals(&outputs_int_vsync, (val) ? 0x00000000 : 0xffffffff);
+	if(vsync_bak == val) {
+		return;
 	}
-	if(!(val)) {
-		sprite_offset = get_sprite_offset();
+
+	write_signals(&outputs_int_vsync, (val) ? 0xffffffff : 0);
+
+	if(!(val)) { // When VST2
 		// Start sprite tranferring when VSYNC has asserted.
 		// This is temporally working, not finally.
 		// - 2024314 K.O
@@ -188,6 +191,7 @@ void TOWNS_CRTC::set_vsync(bool val)
 			//! - I wonder sprite offset effects every display mode at page1.
 			//! - -- 20230715 K.O
 			#if 1
+			sprite_offset = get_sprite_offset();
 			int trans = render_linebuf.load() & display_linebuf_mask;
 			bool is_single_tmp = is_single_layer[trans];
 			if((real_display_mode[1] == DISPMODE_32768) && !(is_single_tmp) && (line_offset[1] == 128)) {
@@ -433,6 +437,13 @@ void TOWNS_CRTC::write_io8(uint32_t addr, uint32_t data)
 		crtout_reg = data & 0x0f;
 		make_crtout_from_fda0h(crtout_reg);
 		break;
+	case 0xfda4:
+		if(machine_id >= 0x0600) { // After HG/UG
+			is_compatible = ((data & 0x01) == 0) ? true : false;
+			write_signals(&outputs_is_compat_mode, (is_compatible) ? 0xffffffff : 0);
+		}
+		break;
+
 	}
 }
 
@@ -574,8 +585,15 @@ uint32_t TOWNS_CRTC::read_io8(uint32_t addr)
 		}
 		break;
 	case 0xfda2:
-		if((machine_id >= 0x0700) && !(is_compatible)) { // After UG
+		if((machine_id >= 0x0600) && !(is_compatible)) { // After HG/UG
 			return (crtout_reg & 0x0f);
+		} else {
+			return 0x00;
+		}
+		break;
+	case 0xfda4:
+		if(machine_id >= 0x0600) {
+			return ((is_compatible) ? 0x00 : 0x01);
 		} else {
 			return 0x00;
 		}
@@ -723,6 +741,7 @@ void TOWNS_CRTC::event_pre_frame()
 	// Reset VSYNC
 	vert_line_count = -1;
 	hsync = false;
+	vsync = false;
 	reset_vsync(); // Force interrupt off.
 }
 
@@ -764,9 +783,11 @@ void TOWNS_CRTC::event_frame()
 	for(int layer = 0; layer < 2; layer++) {
 		clear_event(this, event_hdisp[layer]);
 	}
+	
+#if 0
 	// Rendering TEXT.
 	sprite_offset = get_sprite_offset();
-#if 1
+	r50_pagesel = r50_pagesel_bak;
 	__LIKELY_IF(d_sprite != NULL) {
 		int trans = render_linebuf.load() & display_linebuf_mask;
 		bool is_single_tmp = is_single_layer[trans];
@@ -810,11 +831,11 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 	} else {
 		usec = horiz_width_posi_us;
 		__UNLIKELY_IF(v == vst2_count) {
-			set_vsync(false);
 			for(int i = 0; i < 2; i++) {
 				// Need to update on vert offset
 				update_regs_v(i);
 			}
+			set_vsync(false);
 		}
 		// Make frame_in[layer]
 		bool fin_bak[2] = {false};
@@ -841,12 +862,16 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 				// Need to update on vert offset
 				//recalc_hdisp_from_crtc_params(i, horiz_start_us[i], horiz_end_us[i]);
 				
-				#if 0
-				if((d_sprite != NULL) && (i == 1)) {
-					if((real_display_mode[1] == DISPMODE_32768) && !(is_single_tmp) && (line_offset[1] == 128)) {
+				#if 1
+				if((d_sprite != NULL) && (i == 1) && !(is_single_tmp)) {
+					sprite_offset = get_sprite_offset();
+					r50_pagesel = r50_pagesel_bak;
+					#if 0
+					if((real_display_mode[1] == DISPMODE_32768) && (line_offset[1] == 128)) {
 						d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
 					} else
-					if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 80)*/) {
+					#endif
+					if(real_display_mode[1] == DISPMODE_16) {
 						// OK?
 						d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
 						
@@ -865,12 +890,10 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 				frame_in[0] = false;
 				frame_in[1] = false;
 				display_linebuf = render_linebuf.load();
-				reset_vsync(); // Auto interrupt off.
 			}
 		} else if((fin_bak[0]) || (fin_bak[1])) {
 			// Last of line
 			display_linebuf = render_linebuf.load();
-			reset_vsync(); // Auto interrupt off.
 		}
 	}
 	clear_event(this, event_hsync);
@@ -1088,7 +1111,7 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 		d = 0x40;
 		d = d | ((r50_planemask & 0x08) << 2);
 		d = d | (r50_planemask & 0x07);
-		d = d | (r50_pagesel << 4);
+		d = d | (r50_pagesel_bak << 4);
 		return d;
 		break;
 	case SIG_TOWNS_CRTC_MMIO_CFF86H:
@@ -1105,6 +1128,9 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 	case SIG_TOWNS_CRTC_R50_PAGESEL:
 		return ((r50_pagesel != 0) ? 0xffffffff : 0);
 		break;
+	case SIG_TOWNS_CRTC_CRTC_OFF:
+		return ((display_enabled) ? 0 : 0xffffffff);
+		break;
 	default:
 		break;
 	}
@@ -1113,14 +1139,23 @@ uint32_t TOWNS_CRTC::read_signal(int ch)
 
 void TOWNS_CRTC::write_signal(int ch, uint32_t data, uint32_t mask)
 {
-	if(ch == SIG_TOWNS_CRTC_MMIO_CFF82H) {
+	switch(ch) {
+	case SIG_TOWNS_CRTC_CRTC_OFF:
+		display_enabled = ((data & mask) == 0) ? true : false;
+		break;
+	case SIG_TOWNS_CRTC_MMIO_CFF82H:
 //		out_debug_log(_T("CF882H=%02X"), data & 0xff);
 		r50_planemask = ((data & 0x20) >> 2) | (data & 0x07);
-		r50_pagesel = ((data & 0x10) != 0) ? 1 : 0;
-	} else if(ch == SIG_TOWNS_CRTC_COMPATIBLE_MMIO) {
+		r50_pagesel_bak = ((data & 0x10) != 0) ? 1 : 0;
+		break;
+	case SIG_TOWNS_CRTC_COMPATIBLE_MMIO:
 		is_compatible = ((data & mask) != 0) ? true : false;
-	} else if(ch == SIG_TOWNS_CRTC_ADD_VAL_FO1) {
+		break;
+	case SIG_TOWNS_CRTC_ADD_VAL_FO1:
 		fo1_offset_value = data & 0xffff;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -1210,12 +1245,12 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	_TCHAR regstr2[1024] = {0};
 	my_stprintf_s(regstr2, sizeof(regstr2) / sizeof(_TCHAR),
 				  _T("SPRITE OFFSET(PAGE1): %06X\n")
-				  _T("R50:    PAGESEL=%d  PLANEMASK=%01X DPALETTE CHANGED=%s\n")
+				  _T("R50:    PAGESEL/BACKUP=%d/%d  PLANEMASK=%01X DPALETTE CHANGED=%s\n")
 				  _T("CRT:    OUT0(FMR, TOWNS) = %s, %s OUT1(FMR, TOWNS) = %s, %s\n")
 				  _T("OUTREG: CTRL=%02X PRIO=%02X\n")
 				  _T("CRTC CH=%d\n")
 				  , sprite_offset
-				  , r50_pagesel, r50_planemask, (dpalette_changed) ? _T("YES") : _T("NO ")
+				  , r50_pagesel, r50_pagesel_bak, r50_planemask, (dpalette_changed) ? _T("YES") : _T("NO ")
 				  , (crtout_fmr[0]) ? _T("ON ") : _T("OFF"), (crtout_towns[0]) ? _T("ON ") : _T("OFF")
 				  , (crtout_fmr[1]) ? _T("ON ") : _T("OFF"), (crtout_towns[1]) ? _T("ON ") : _T("OFF")
 				  , video_out_regs[FMTOWNS::VOUTREG_CTRL], video_out_regs[FMTOWNS::VOUTREG_PRIO]
@@ -1247,7 +1282,7 @@ bool TOWNS_CRTC::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	return true;
 }
 
-#define STATE_VERSION	19
+#define STATE_VERSION	20
 
 bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1316,6 +1351,7 @@ bool TOWNS_CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(fo1_offset_value);
 	
 	state_fio->StateValue(r50_planemask);
+	state_fio->StateValue(r50_pagesel_bak);
 	state_fio->StateValue(r50_pagesel);
 	state_fio->StateArray(dpalette_regs, sizeof(dpalette_regs), 1);
 	state_fio->StateValue(dpalette_changed);

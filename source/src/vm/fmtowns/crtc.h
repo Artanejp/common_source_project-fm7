@@ -107,6 +107,7 @@
 #define SIG_TOWNS_CRTC_R50_PAGESEL		14
 #define SIG_TOWNS_CRTC_REG_LO0			16
 #define SIG_TOWNS_CRTC_REG_LO1			17
+#define SIG_TOWNS_CRTC_CRTC_OFF			18
 #define SIG_TOWNS_CRTC_REGISTER_VALUE	32
 
 class DEBUGGER;
@@ -121,11 +122,14 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 
+
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	bool is_compatible;
 	// output signals
 	outputs_t outputs_int_vsync;  // Connect to int 11.
+	outputs_t outputs_is_compat_mode;
+	
 	uint16_t regs[32];      // I/O 0442H, 0443H
 	bool regs_written[32];
 
@@ -250,6 +254,7 @@ protected:
 	// FM-R50 emulation
 	uint8_t r50_planemask; // MMIO 000CF882h : BIT 5(C0) and BIT2 to 0
 	uint8_t r50_pagesel;   // MMIO 000CF882h : BIT 4
+	uint8_t r50_pagesel_bak;   // MMIO 000CF882h : BIT 4 (Backup)
 	uint8_t dpalette_regs[8]; // I/O FD98H - FD9FH
 	bool dpalette_changed;
 
@@ -444,6 +449,7 @@ public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_int_vsync);
+		initialize_output_signals(&outputs_is_compat_mode);
 		d_sprite = NULL;
 		d_vram = NULL;
 		set_device_name(_T("FM-Towns CRTC"));
@@ -519,6 +525,10 @@ public:
 	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_int_vsync, device, id, mask);
+	}
+	void set_context_is_compat_mode(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_is_compat_mode, device, id, mask);
 	}
 	uint16_t* get_regs_ptr()
 	{
