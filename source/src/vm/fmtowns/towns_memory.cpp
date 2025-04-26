@@ -1003,7 +1003,7 @@ uint32_t TOWNS_MEMORY::read_data16w(uint32_t addr, int* wait)
 	uint16_t val;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__UNLIKELY_IF(check_device_boundary(membus_read_map, mapptr, offset, 2)) {
+	__UNLIKELY_IF(check_device_boundary(membus_read_map, offset, mapptr, 2)) {
 		val = read_beyond_boundary_data16(membus_read_map, addr, offset, mapptr, false, wait);
 	} else {
 		val = read_16bit_data(membus_read_map, mapptr, addr, offset, false, wait);
@@ -1016,7 +1016,7 @@ uint32_t TOWNS_MEMORY::read_data32w(uint32_t addr, int* wait)
 	uint32_t val;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__UNLIKELY_IF(check_device_boundary(membus_read_map, mapptr, offset, 4)) {
+	__UNLIKELY_IF(check_device_boundary(membus_read_map, offset, mapptr, 4)) {
 		val =  read_beyond_boundary_data32(membus_read_map, addr, offset, mapptr,false,  wait);
 	} else {
 		val = read_32bit_data(membus_read_map, mapptr, addr, offset, false, wait);
@@ -1045,7 +1045,7 @@ uint32_t TOWNS_MEMORY::read_dma_data16w(uint32_t addr, int* wait)
 	uint32_t offset = addr & memory_map_mask();
 	uint16_t val;
 	int waitval;
-	__UNLIKELY_IF(check_device_boundary(dma_read_map, mapptr, offset, 2)) {
+	__UNLIKELY_IF(check_device_boundary(dma_read_map, offset, mapptr, 2)) {
 		val = read_beyond_boundary_data16(dma_read_map, addr, offset, mapptr, true, &waitval);
 	} else {
 		val = read_16bit_data(dma_read_map, mapptr, addr, offset, true, &waitval);
@@ -1064,7 +1064,7 @@ uint32_t TOWNS_MEMORY::read_dma_data32w(uint32_t addr, int* wait)
 	int waitval;
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__UNLIKELY_IF(check_device_boundary(dma_read_map, mapptr, offset, 4)) {
+	__UNLIKELY_IF(check_device_boundary(dma_read_map, offset, mapptr, 4)) {
 		val =  read_beyond_boundary_data32(dma_read_map, addr, offset, mapptr, true, &waitval);
 	} else {
 		val = read_32bit_data(dma_read_map, mapptr, addr, offset, true, &waitval);
@@ -1089,7 +1089,7 @@ void TOWNS_MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__UNLIKELY_IF(check_device_boundary(membus_write_map, mapptr, offset, 2)) {
+	__UNLIKELY_IF(check_device_boundary(membus_write_map, offset, mapptr, 2)) {
 		write_beyond_boundary_data16(membus_write_map, addr, offset, mapptr, false, data, wait);
 	} else {
 		write_16bit_data(membus_write_map, mapptr, addr, offset, false, data, wait);
@@ -1101,7 +1101,7 @@ void TOWNS_MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
-	__UNLIKELY_IF(check_device_boundary(membus_write_map, mapptr, offset, 4)) {
+	__UNLIKELY_IF(check_device_boundary(membus_write_map, offset, mapptr, 4)) {
 		write_beyond_boundary_data32(membus_write_map, addr, offset, mapptr, false, data, wait);
 	} else {
 		write_32bit_data(membus_write_map, mapptr, addr, offset, false, data, wait);
@@ -1125,7 +1125,7 @@ void TOWNS_MEMORY::write_dma_data16w(uint32_t addr, uint32_t data, int* wait)
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
 	int waitval;
-	__UNLIKELY_IF(check_device_boundary(dma_write_map, mapptr, offset, 2)) {
+	__UNLIKELY_IF(check_device_boundary(dma_write_map, offset, mapptr, 2)) {
 		write_beyond_boundary_data16(dma_write_map, addr, offset, mapptr, true, data, &waitval);
 	} else {
 		write_16bit_data(dma_write_map, mapptr, addr, offset, true, data, &waitval);
@@ -1142,7 +1142,7 @@ void TOWNS_MEMORY::write_dma_data32w(uint32_t addr, uint32_t data, int* wait)
 	uint32_t mapptr = (uint32_t)(((uint64_t)addr) >> memory_map_shift());
 	uint32_t offset = addr & memory_map_mask();
 	int waitval;
-	__UNLIKELY_IF(check_device_boundary(dma_write_map, mapptr, offset, 4)) {
+	__UNLIKELY_IF(check_device_boundary(dma_write_map, offset, mapptr, 4)) {
 		write_beyond_boundary_data32(dma_write_map, addr, offset, mapptr, true, data, &waitval);
 	} else {
 		write_32bit_data(dma_write_map, mapptr, addr, offset, true, data, &waitval);
@@ -1163,12 +1163,12 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8w(uint32_t addr, int* wait)
 	switch(addr & 0xfffff000) {
 	case 0x000c8000: // TEXT VRAM(ANK)
 		__LIKELY_IF(d_sprite != NULL) {
-			return d_sprite->read_memory_mapped_io8w(addr - 0xc8000, &dummywait);
+			return d_sprite->read_memory_mapped_io8w(addr, &dummywait);
 		}
 		break;
 	case 0x000c9000: // TEXT VRAM(RESERVED)
 		__LIKELY_IF(!(ankcg_enabled) && (d_sprite != NULL)) {
-			return d_sprite->read_memory_mapped_io8w(addr - 0xc8000,  &dummywait);
+			return d_sprite->read_memory_mapped_io8w(addr,  &dummywait);
 		}
 		break;
 	case 0x000ca000: // FONT / TEXT VRAM(KANJI)
@@ -1179,7 +1179,7 @@ uint32_t TOWNS_MEMORY::read_memory_mapped_io8w(uint32_t addr, int* wait)
 			}
 		} else {
 			__LIKELY_IF(d_sprite != NULL) {
-				return d_sprite->read_memory_mapped_io8w(addr - 0xc8000,  &dummywait);
+				return d_sprite->read_memory_mapped_io8w(addr,  &dummywait);
 			}
 		}
 		break;
@@ -1240,8 +1240,7 @@ void TOWNS_MEMORY::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* w
 	case 0x000c9000: //
 	case 0x000ca000:
 		__LIKELY_IF(d_sprite != NULL) {
-			d_sprite->write_memory_mapped_io8w(addr - 0xc8000, data,  &dummywait);
-			d_sprite->write_signal(SIG_TOWNS_SPRITE_TVRAM_ENABLED, 0xffffffff, 0xffffffff);
+			d_sprite->write_memory_mapped_io8w(addr, data,  &dummywait);
 		}
 		break;
 	case 0x000cf000:
@@ -1271,7 +1270,7 @@ void TOWNS_MEMORY::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* 
 	w.w = data;
 	write_memory_mapped_io8w(addr    , w.b.l, &wait1);
 	write_memory_mapped_io8w(addr + 1, w.b.h, &wait2);
-	__LIKELY_IF(wait != NULL) {
+	__LIKELY_IF(wait != NULL) { // ToDo
 		*wait = wait1 + wait2;
 	}
 }
@@ -1283,9 +1282,9 @@ void TOWNS_MEMORY::write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* 
 	d.d = data;
 	write_memory_mapped_io8w(addr    , d.b.l,  &wait1);
 	write_memory_mapped_io8w(addr + 1, d.b.h,  &wait2);
-	write_memory_mapped_io8w(addr + 1, d.b.h2, &wait3);
-	write_memory_mapped_io8w(addr + 1, d.b.h3, &wait4);
-	__LIKELY_IF(wait != NULL) {
+	write_memory_mapped_io8w(addr + 2, d.b.h2, &wait3);
+	write_memory_mapped_io8w(addr + 3, d.b.h3, &wait4);
+	__LIKELY_IF(wait != NULL) { // ToDo
 		*wait = wait1 + wait2 + wait3 + wait4;
 	}
 }
