@@ -4,7 +4,7 @@
 #include "../device.h"
 
 #define SIG_TOWNS_SPRITE_SET_LINES      257
-#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
+//#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
 #define SIG_TOWNS_SPRITE_ANKCG          259
 
 #define SIG_TOWNS_SPRITE_ENABLED        262
@@ -58,7 +58,7 @@ protected:
 	int max_sprite_per_frame;
 
 	bool tvram_enabled;
-	bool tvram_enabled_bak;
+	bool need_render_text;
 
 	bool ankcg_enabled;
 	bool is_older_sprite;
@@ -89,6 +89,27 @@ protected:
 	{
 		// From Tsugaru.
 		return 32.0;
+	}
+	_CONSTEXPR_FUNC void morph_address(uint32_t& addr, const bool is_write)
+	{
+		if(is_write) {
+			__UNLIKELY_IF((addr >= 0xc8000) && (addr < 0xcb000)) {
+				tvram_enabled = true;
+				need_render_text = true;
+			}
+		}
+		__UNLIKELY_IF((addr >= 0xc8000) && (addr < 0xcb000)) {
+			addr -= 0xc8000;
+		} else {
+			addr &= 0x1ffff;
+		}
+	}
+	
+	inline uint32_t get_tvram_enabled(const uint32_t val_enabled)
+	{
+		const uint32_t v = (tvram_enabled) ? val_enabled : 0;
+		tvram_enabled = false;
+		return v;
 	}
 	inline void __FASTCALL load_16words_from_pattern_ram(uint32_t bank, uint32_t yoffset, csp_vector8<uint16_t> dst[])
 	{
@@ -187,10 +208,8 @@ public:
 		}
 		if(addr < 0x1000) {
 			tvram_enabled = true;
-			tvram_enabled_bak = true;
 		} else if((addr >= 0x2000) && (addr < 0x3000)) {
 			tvram_enabled = true;
-			tvram_enabled_bak = true;
 		}
 		pattern_ram[addr] = (uint8_t)data;
 	}

@@ -45,7 +45,8 @@ void TOWNS_SPRITE::initialize(void)
 
 void TOWNS_SPRITE::reset()
 {
-	// Clear RAMs?
+	// Clear RAMs? -> Yes
+	memset(pattern_ram, 0x00, sizeof(pattern_ram));
 	reg_ctrl = 0x0000; // REG#00, #01
 	reg_voffset = 0x0000; // REG#02, #03
 	reg_hoffset = 0x0000; // REG#04, #05
@@ -62,7 +63,7 @@ void TOWNS_SPRITE::reset()
 
 	max_sprite_per_frame = 224;
 	tvram_enabled = false;
-	tvram_enabled_bak = false;
+	need_render_text = false;
 
 	sprite_busy = false;
 	reg06_wrote = false;
@@ -81,12 +82,12 @@ void TOWNS_SPRITE::render_text()
 	uint16_t c = 0;
 	uint32_t plane_offset = 0x40000;
 	uint32_t linesize = 0x80 * 4;
-	__LIKELY_IF(d_crtc !=NULL) {
-		if(d_crtc->read_signal(SIG_TOWNS_CRTC_R50_PAGESEL) != 0) {
-			plane_offset += 0x20000;
-		}
-		linesize = d_crtc->read_signal(SIG_TOWNS_CRTC_REG_LO1) * 4;
-	}
+	//__LIKELY_IF(d_crtc !=NULL) {
+	//	if(d_crtc->read_signal(SIG_TOWNS_CRTC_R50_PAGESEL) != 0) {
+	//		plane_offset += 0x20000;
+	//	}
+	//	linesize = d_crtc->read_signal(SIG_TOWNS_CRTC_REG_LO1) * 4;
+	//}
 	for(int y = 0; y < 25; y++) {
 		uint32_t addr_of = y * (linesize * 16);
 		if(c >= 0x1000) break;
@@ -775,8 +776,7 @@ uint32_t TOWNS_SPRITE::read_io8(uint32_t addr)
 		break;
 	case 0x05c8:
 	case 8: // ALIAS of 05C8h
-		val = (tvram_enabled) ? 0x80 : 0;
-		tvram_enabled = false;
+		val = get_tvram_enabled(0x80);
 		break;
 	default:
 		break;
@@ -830,7 +830,8 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io8w(uint32_t addr, int* wait)
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // ToDo
 	}
-	return pattern_ram[addr & 0x1ffff];
+	morph_address(addr, false);
+	return pattern_ram[addr];
 }
 
 uint32_t TOWNS_SPRITE::read_memory_mapped_io16w(uint32_t addr, int* wait)
@@ -839,7 +840,8 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io16w(uint32_t addr, int* wait)
 		*wait = 0; // ToDo
 	}
 	pair16_t n;
-	addr = addr & 0x1ffff;
+	morph_address(addr, false);
+
 	__UNLIKELY_IF(addr == 0x1ffff) {
 		n.b.h = 0xff;
 		n.b.l = pattern_ram[0x1ffff];
@@ -855,7 +857,8 @@ uint32_t TOWNS_SPRITE::read_memory_mapped_io32w(uint32_t addr, int* wait)
 		*wait = 0; // ToDo
 	}
 	pair32_t d;
-	addr = addr & 0x1ffff;
+	morph_address(addr, false);
+
 	__UNLIKELY_IF(addr > 0x1fffc) {
 		d.d = 0xffffffff;
 		switch(addr) {
@@ -885,7 +888,7 @@ void TOWNS_SPRITE::write_memory_mapped_io8w(uint32_t addr, uint32_t data, int* w
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // ToDo
 	}
-	addr = addr & 0x1ffff;
+	morph_address(addr, true);
 	pattern_ram[addr] = data;
 	return;
 }
@@ -895,7 +898,8 @@ void TOWNS_SPRITE::write_memory_mapped_io16w(uint32_t addr, uint32_t data, int* 
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // ToDo
 	}
-	addr = addr & 0x1ffff;
+	morph_address(addr, true);
+
 	pair16_t n;
 	n.w = data;
 	__UNLIKELY_IF(addr == 0x1ffff) {
@@ -911,7 +915,8 @@ void TOWNS_SPRITE::write_memory_mapped_io32w(uint32_t addr, uint32_t data, int* 
 	__LIKELY_IF(wait != NULL) {
 		*wait = 0; // ToDo
 	}
-	addr = addr & 0x1ffff;
+	morph_address(addr, true);
+
 	pair32_t d;
 	d.d = data;
 	__UNLIKELY_IF(addr > 0x1fffc) {
@@ -942,7 +947,7 @@ bool TOWNS_SPRITE::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	_TCHAR regstr[1024] = {0};
 	_TCHAR sstr[128] = {0};
-	my_stprintf_s(sstr, 127, _T("TEXT VRAM:%s \n\n"), ((tvram_enabled) || (tvram_enabled_bak)) ? _T("WROTE") : _T("NOT WROTE"));
+	my_stprintf_s(sstr, 127, _T("TEXT VRAM:%s \n\n"), (tvram_enabled) ? _T("WROTE") : _T("NOT WROTE"));
 	my_tcscat_s(regstr, 1024, sstr);
 
 	memset(sstr, 0x00, sizeof(sstr));
@@ -1113,14 +1118,10 @@ void TOWNS_SPRITE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_TOWNS_SPRITE_TEXT_RENDER:
-		if(tvram_enabled_bak) {
+		if(need_render_text) {
+			need_render_text = false;
 			render_text();
-			tvram_enabled_bak = false;
 		}
-		break;
-	case SIG_TOWNS_SPRITE_TVRAM_ENABLED: // Wrote to C8000h - CAFFFh.
-		tvram_enabled = ((data & mask) != 0);
-		tvram_enabled_bak = tvram_enabled;
 		break;
 	case SIG_TOWNS_SPRITE_VSYNC: //
 		// Same value.
@@ -1166,9 +1167,6 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 		return (sprite_busy) ? 0xffffffff : 0;
 		break;
 	case SIG_TOWNS_SPRITE_DISP_PAGE1:
-		if(tvram_enabled_bak) {
-			return 0;
-		}
 		return (disp_page1) ? 0xffffffff : 0;
 		break;
 	case SIG_TOWNS_SPRITE_BANK:
@@ -1180,13 +1178,6 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 		break;
 	case SIG_TOWNS_SPRITE_FRAME_IN:
 		return (frame_out) ? 0x00000000 : 0xffffffff;
-		break;
-	case SIG_TOWNS_SPRITE_TVRAM_ENABLED:
-		{
-			uint32_t v = ((tvram_enabled_bak) ? 0xffffffff : 0);
-			tvram_enabled_bak = false;
-			return v;
-		}
 		break;
 	case SIG_TOWNS_SPRITE_MAX_NUMBERS:
 		__LIKELY_IF(max_sprite_per_frame > 0) {
@@ -1206,7 +1197,7 @@ uint32_t TOWNS_SPRITE::read_signal(int id)
 	return 0;
 }
 
-#define STATE_VERSION	7
+#define STATE_VERSION	8
 
 bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 {
@@ -1239,7 +1230,7 @@ bool TOWNS_SPRITE::process_state(FILEIO* state_fio, bool loading)
 
 	state_fio->StateValue(max_sprite_per_frame);
 	state_fio->StateValue(tvram_enabled);
-	state_fio->StateValue(tvram_enabled_bak);
+	state_fio->StateValue(need_render_text);
 	state_fio->StateValue(is_older_sprite);
 	state_fio->StateValue(sprite_usec);
 
