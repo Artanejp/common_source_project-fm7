@@ -199,7 +199,7 @@ void TOWNS_CRTC::set_vsync(bool val)
 			}
 			#endif
 			#if 0
-			else if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 80)*/) {
+			else if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 128)*/) {
 				// OK?
 				d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
 
@@ -791,7 +791,7 @@ void TOWNS_CRTC::event_frame()
 	__LIKELY_IF(d_sprite != NULL) {
 		int trans = render_linebuf.load() & display_linebuf_mask;
 		bool is_single_tmp = is_single_layer[trans];
-		if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 80)*/) {
+		if((real_display_mode[1] == DISPMODE_16) && !(is_single_tmp) /*&& (line_offset[1] == 128)*/) {
 			// OK?
 			d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
 			
@@ -871,10 +871,9 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 						d_sprite->write_signal(SIG_TOWNS_SPRITE_VSYNC, 0xffffffff, 0xffffffff);
 					} else
 					#endif
-					if(real_display_mode[1] == DISPMODE_16) {
+					if((real_display_mode[1] == DISPMODE_16)  && ((line_offset[1] == 128) || (line_offset[1] == 256))){
 						// OK?
 						d_sprite->write_signal(SIG_TOWNS_SPRITE_TEXT_RENDER, 0xffffffff, 0xffffffff);
-						
 					}
 				}
 				#endif
