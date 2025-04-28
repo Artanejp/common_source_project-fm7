@@ -22,11 +22,12 @@
 //#include <iostream>
 //#include <utility>
 
-// SAME AS SCSI_CDROM::
+// SAME AS SCSI_CDROM:: , But add status porting from Tsugaru.
 #define CDDA_OFF		0
 #define CDDA_PLAYING	1
 #define CDDA_PAUSED		2
 #define CDDA_ENDED		3
+#define CDDA_STOPPING	4
 
 // 0-99 is reserved for SCSI_DEV class
 #define EVENT_CDDA							100
@@ -52,6 +53,7 @@
 #define EVENT_CDDA_PLAY_STATUS				118
 #define EVENT_CDDA_REPEAT					119
 #define EVENT_READ_PRE_SEEK					120
+#define EVENT_CDDA_END_OF_TRACK				121
 
 #define EVENT_DELAY_COMMAND					128
 #define EVENT_DELAY_READY_FORCEINT			129
@@ -732,7 +734,7 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 		playcode = ACCEPT_CDDA_PAUSED;
 		break;
 	case CDDA_ENDED:
-		playcode = ACCEPT_WAIT;
+		//playcode = ACCEPT_WAIT;
 		//set_cdda_status(CDDA_OFF);
 		break;
 	default:
@@ -1003,7 +1005,12 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		}
 		break;
 	case COMMAND_SET_STATE: // 80h
-		set_state_cmd(true);
+		set_state_cmd(false);
+		if(!(req_status)) {
+			command_execute_phase = false;
+			req_off_execute_phase = false;
+			send_mcu_ready();
+		}
 		break;
 	case COMMAND_SET_CDDASET: // 81h
 		cdrom_debug_log(_T("%s(%02X)"), get_command_name_from_command(command), command);
@@ -1442,61 +1449,82 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 		case COMMAND_PLAY_TRACK:
 			/// @note RANCEIII (and maybe others) need reply to accept cdda_play_command.
 			/// @note 20201110 K.O
-			//if(cdda_status != CDDA_PLAYING) {
+			if(cdda_status == CDDA_PLAYING) {
 				__s1 = STATUS_PLAY_DONE;
-				need_check_status = false;
-			//}
+				//prev_command = latest_command;
+			} else if((cdda_status == CDDA_STOPPING) || (cdda_status == CDDA_ENDED)) {
+				__s1 = STATUS_STOP_DONE;
+				prev_command = latest_command;
+			}
+			need_check_status = false;
 			__s2 = ACCEPT_CDDA_PLAYING;
 			break;
 		case COMMAND_PAUSE_CDDA:
+			if((cdda_status == CDDA_PAUSED) && (cdda_stopped)) {
+				__s1 = STATUS_PAUSE_DONE;
+				prev_command = latest_command;
+			}
 			__s2 = ACCEPT_CDDA_PAUSED;
 			need_check_status = false;
 			break;
 		case COMMAND_RESUME_CDDA:
-			if(cdda_status != CDDA_PLAYING) {
-				__s2 = ACCEPT_CDDA_PLAYING;
-				need_check_status = false;
+			if(cdda_status == CDDA_PLAYING) {
+				__s1 = STATUS_RESUME_DONE;
+				prev_command = latest_command;
 			}
+			__s2 = ACCEPT_CDDA_PLAYING;
+			need_check_status = false;
 			break;
 		case COMMAND_STOP_CDDA:
 			// @note In SUPER REAL MAHJONG PIV, maybe check below.
 			// @note 20201110 K.O
-			if((cdda_status != CDDA_ENDED) && (cdda_status != CDDA_OFF)) {
+			if(cdda_status == CDDA_ENDED) {
+				__s1 = STATUS_STOP_DONE;
 				__s2 = ACCEPT_WAIT; // OK?
 				need_check_status = false;
-			} else {
-				__s2 = ACCEPT_CDDA_PAUSED;
+				prev_command = latest_command;
+			} else if(cdda_status == CDDA_STOPPING) {
+				__s2 = ACCEPT_WAIT; // OK?
+				need_check_status = false;
+			} else if(cdda_status == CDDA_OFF) {
+				prev_command = latest_command;
 			}
 			break;
 		default:
 			// @note In SUPER REAL MAHJONG PIV, maybe check below.
 			// @note 20201110 K.O
-			if(cdda_status == CDDA_PLAYING) {
-				//__s1 = STATUS_PLAY_DONE;
+			//if((latest_command & 0x9f) != COMMAND_SET_STATE) { 
+				prev_command = latest_command;
+			//}
+			switch(cdda_status) {
+			case CDDA_PLAYING:
 				__s2 = ACCEPT_CDDA_PLAYING;
 				need_check_status = false;
-			} else if(exec_params[0] == 0x04) {
-				__s2 = ACCEPT_04H_FOR_CMD_A0H;
+				break;
+			case CDDA_PAUSED:
+				__s2 = ACCEPT_CDDA_PAUSED;
 				need_check_status = false;
-			} else if(exec_params[0] == 0x08) {
-				__s2 = ACCEPT_08H_FOR_CMD_A0H;
+				break;
+			case CDDA_STOPPING:
+				__s2 = ACCEPT_WAIT;
 				need_check_status = false;
+				break;
+			default:
+				if(exec_params[0] == 0x04) {
+					__s2 = ACCEPT_04H_FOR_CMD_A0H;
+					need_check_status = false;
+				} else if(exec_params[0] == 0x08) {
+					__s2 = ACCEPT_08H_FOR_CMD_A0H;
+					need_check_status = false;
+				}
+				break;
 			}
 			break;
 		}
-		if((status_seek) && (need_check_status)) {
-			//__s2 = ACCEPT_WAIT;
+		if(!(status_seek) && (need_check_status)) {
 			__s2 = (toc_table[current_track].is_audio) ? ACCEPT_WAIT :  ACCEPT_DATA_TRACK;
 		}
 		req_off_execute_phase = true;
-		if(!(is_delay)) {
-			set_status_immediate(req_status, false, _extra_status, __s1, __s2, 0x00, 0x00);
-		} else {
-			set_status(req_status, _extra_status, __s1, __s2, 0x00, 0x00, false);
-		}
-		//if(!(need_check_status)) {
-			//	return; // OK?
-		//}
 		if(cdda_status == CDDA_ENDED) {
 			// From Tsugaru 95afde8c :
 			// 2020/07/30
@@ -1513,10 +1541,20 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 			// 07 00 00 00 status after CDDA is done, but I cannot find it
 			//
 			// Maybe subsequent to CDDA Stop command?
-
-			// PushStatusCDDAPlayEnded();
+			//if(need_check_status) {
+			//	__s1 = STATUS_PLAY_DONE;
+				//__s2 = ACCEPT_NOERROR;
+			//}
 			set_cdda_status(CDDA_OFF);
 		}
+		if(!(is_delay)) {
+			set_status_immediate(req_status, false, _extra_status, __s1, __s2, 0x00, 0x00);
+		} else {
+			set_status(req_status, _extra_status, __s1, __s2, 0x00, 0x00, false);
+		}
+		//if(!(need_check_status)) {
+			//	return; // OK?
+		//}
 	}
 }
 
@@ -1933,9 +1971,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		clear_event(this, event_execute);
 		// Backup previous command.
-		prev_command = latest_command;
-		for(int i = 0; i < 8; i++) {
-			prev_params[i] = exec_params[i];
+		if(((prev_command & 0x9f) != COMMAND_SET_STATE) || ((latest_command & 0x9f) != COMMAND_SET_STATE)) {
+			prev_command = latest_command;
+			for(int i = 0; i < 8; i++) {
+				prev_params[i] = exec_params[i];
+			}
 		}
 		command_execute_phase = true;
 		req_off_execute_phase = false;
@@ -2112,6 +2152,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_cdda_delay_stop = -1;
 		data_in = false;
 		stop_cdda_from_cmd();
+		break;
+	case EVENT_CDDA_END_OF_TRACK:
+		event_cdda_delay_stop = -1;
+		data_in = false;
+		set_cdda_status(CDDA_ENDED);
 		break;
 	case EVENT_RESTORE: // Restore to LBA 0.
 		// Seek0
@@ -2573,10 +2618,6 @@ void TOWNS_CDROM::read_a_cdda_sample()
 {
 	__UNLIKELY_IF(event_cdda_delay_play > -1) {
 		// Post process
-		if(((cdda_buffer_ptr % 2352) == 0) && ((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED))) {
-			//set_subq(cdda_start_frame);
-//			return; // WAIT for SEEK COMPLETED
-		}
 		return; // WAIT for SEEK COMPLETED
 	}
 	// read 16bit 2ch samples in the cd-da buffer, called 44100 times/sec
@@ -2592,8 +2633,18 @@ void TOWNS_CDROM::read_a_cdda_sample()
 		return;
 	}
 	bool force_seek = false;
+	
+	// one frame finished
 	__UNLIKELY_IF((cdda_buffer_ptr % 2352) == 0) {
-		// one frame finished
+		if(cdda_status != CDDA_PLAYING) {
+			// On Pausing:
+			cdda_buffer_ptr = 0;
+			set_realtime_render(false);
+			cdda_stopped = true;
+			clear_event(this, event_cdda);
+			return;
+		}
+
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
 
@@ -2604,14 +2655,14 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				force_seek = true;
 			} else if(cdda_repeat_count == 0) {
 				status_seek = false;
-				set_cdda_status(CDDA_ENDED);
+				set_cdda_status(CDDA_STOPPING);
 				access = false;
 				return;
 			} else {
 				force_seek = true;
 				cdda_repeat_count--;
 				if(cdda_repeat_count == 0) {
-					set_cdda_status(CDDA_ENDED);
+					set_cdda_status(CDDA_STOPPING);
 					access = false;
 					status_seek = false;
 					return;
@@ -2691,7 +2742,9 @@ int TOWNS_CDROM::prefetch_audio_sectors()
 
 void TOWNS_CDROM::set_cdda_status(uint8_t status)
 {
-	if(status == CDDA_PLAYING) {
+
+	switch(status) {
+	case CDDA_PLAYING:
 		if(cdda_status != CDDA_PLAYING) {
 			//// Notify to release bus.
 			write_mcuint_signals(false);
@@ -2715,56 +2768,61 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 				}
 				cdda_buffer_ptr = 0;
 				access = false;
-			}else {
+			} else {
 				cdda_stopped = false;
 			}
-			if(event_cdda < 0) {
+			if((event_cdda < 0) && !(cdda_stopped)) {
 				register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
 			}
 			touch_sound();
 			set_realtime_render(true);
-			const _TCHAR *pp = get_cdda_status_name(cdda_status);
-			cdrom_debug_log(_T("Play CDDA from %s.\n"), pp);
 		}
-	} else {
-		//clear_event(this, event_cdda);
-//		if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_ENDED)) {
+		break;
+	case CDDA_STOPPING: // Stop by reaching to the end of track.
+		if((event_cdda_delay_stop < 0) && (cdda_status != CDDA_OFF) && (cdda_status != CDDA_STOPPING) && (cdda_status != CDDA_ENDED)) {
+			if((latest_command & 0x9f) == COMMAND_PLAY_TRACK) { // Workaround
+				prev_command = latest_command;
+			}
+			register_event(this, EVENT_CDDA_END_OF_TRACK, 1.0e6 / 75.0, false, &event_cdda_delay_stop);
+		}
+		break;
+	case CDDA_PAUSED:
+		// Suspend
+		touch_sound();
+		break;
+	case CDDA_ENDED:
+		clear_event(this, event_cdda);
+		cdda_stopped = true;
+		break;
+	case CDDA_OFF:
 		clear_event(this, event_cdda);
 		if(cdda_status != status) {
-			// Notify to release bus.
 			write_mcuint_signals(false);
-			if(status == CDDA_OFF) {
-				reset_buffer();
-				data_in = false;
-				cdda_buffer_ptr = 0;
-				cdda_repeat_count = -1; // OK?
-				#if 1
-				current_track = get_track(0);
-				if(!(check_invalid_track(current_track))) {
-					read_sector = toc_table[current_track].index1;
-				} else {
-					read_sector = 0;
-				}
-				cdda_start_frame = read_sector;
-				cdda_playing_frame = read_sector;
-				cdda_end_frame = toc_table[current_track + 1].index0 - 1; // ToDo.
-				seek_relative_frame_in_image(read_sector); // OK?
-				#else
+			reset_buffer();
+			data_in = false;
+			cdda_buffer_ptr = 0;
+			cdda_repeat_count = -1; // OK?
+			current_track = get_track(0);
+			if(!(check_invalid_track(current_track))) {
+				read_sector = toc_table[current_track].index1;
+			} else {
 				read_sector = 0;
-				get_track_by_track_num(0);
-				#endif
-				cdda_stopped = true;
-				set_realtime_render(false);
-			} if(status == CDDA_PAUSED) {
-				set_realtime_render(false);
-			} /*else if(status == CDDA_ENDED) {
-				cdda_stopped = true;
-			}*/
-			touch_sound();
-			const _TCHAR *sp = get_cdda_status_name(status);
-			const _TCHAR *pp = get_cdda_status_name(cdda_status);
-			cdrom_debug_log(_T("Change CDDA status: %s->%s"), pp, sp);
+			}
+			cdda_start_frame = read_sector;
+			cdda_playing_frame = read_sector;
+			cdda_end_frame = toc_table[current_track + 1].index0 - 1; // ToDo.
+			seek_relative_frame_in_image(read_sector); // OK?
+			cdda_stopped = true;
+			set_realtime_render(false);
 		}
+		break;
+	default:
+		break;
+	}
+	if(status != cdda_status) {
+		const _TCHAR *sp = get_cdda_status_name(status);
+		const _TCHAR *pp = get_cdda_status_name(cdda_status);
+		cdrom_debug_log(_T("Change CDDA status: %s->%s"), pp, sp);
 	}
 	cdda_status = status;
 }
@@ -2953,14 +3011,8 @@ void TOWNS_CDROM::stop_cdda_from_cmd()
 	/// @note Even make additional status even stop.Workaround for RANCEIII.
 	/// @note - 20201110 K.O
 	set_subq(cdda_playing_frame); // First
-	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
-		set_cdda_status(CDDA_ENDED);
-	} else if(cdda_status == CDDA_ENDED) {
-		set_cdda_status(CDDA_OFF);
-	}
-	req_off_execute_phase = true;
-	status_accept(1, 0x00, 0x00, true, true);
-	mcu_ready = true;
+	set_cdda_status(CDDA_ENDED);
+	status_accept(1, 0x00, 0x00, false, true);
 	return;
 }
 
@@ -3394,7 +3446,7 @@ bool TOWNS_CDROM::accessed()
 
 void TOWNS_CDROM::mix(int32_t* buffer, int cnt)
 {
-	if(cdda_status == CDDA_PLAYING) {
+	if(!(cdda_stopped)) {
 		if(mix_loop_num != 0) {
 			int tmp_l = 0, tmp_r = 0;
 			for(int i = 0; i < mix_loop_num; i++) {
@@ -3872,6 +3924,7 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	// ToDo: Re-Open Image.20181118 K.O
  	// post process
 	if(loading) {
+		int track_num_bak = track_num;
 		if(status_queue != NULL) {
 			has_status = (status_queue->empty()) ? false : true;
 		} else {
@@ -3880,11 +3933,10 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 		if(fio_img->IsOpened()) {
 			close_from_cmd();
 		}
-		int track_num_bak = track_num;
 		if(strlen(img_file_path_bak) > 0) {
 			open_from_cmd(img_file_path_bak);
 		}
-		if((track_num_bak == track_num)) {
+		if(track_num_bak == track_num) {
 			if((current_track > 0) && (current_track < 100)) {
 				get_track_by_track_num(current_track); // Re-Play
 			}
