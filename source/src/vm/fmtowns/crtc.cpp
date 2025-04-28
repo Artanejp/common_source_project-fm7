@@ -690,18 +690,18 @@ void TOWNS_CRTC::event_pre_frame()
 		head_address[i] = 0;
 	}
 	// Need Lock?
-	__LIKELY_IF(osd != NULL) {
-		osd->lock_vm();
-	}
+	//__LIKELY_IF(osd != NULL) {
+	//	osd->lock_vm();
+	//}
 	render_linebuf++;
 	render_linebuf &= display_linebuf_mask;
 	display_remain++;
 	if(display_remain.load() > display_linebuf_mask) {
 		display_remain = display_linebuf_mask;
 	}
-	__LIKELY_IF(osd != NULL) {
-		osd->unlock_vm();
-	}
+	//__LIKELY_IF(osd != NULL) {
+	//	osd->unlock_vm();
+	//}
 
 	/*!<
 	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).

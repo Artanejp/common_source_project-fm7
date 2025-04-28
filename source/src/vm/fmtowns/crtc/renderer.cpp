@@ -35,11 +35,8 @@ void TOWNS_CRTC::draw_screen()
 	int trans = display_linebuf.load() & display_linebuf_mask;
 	
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
-	// Need Lock?
+	// Don't need Locking because Already locking from OSD::doDraw() .
 	__UNLIKELY_IF(d_vram == nullptr) {
-		__LIKELY_IF(osd != NULL) {
-			osd->lock_vm();
-		}
 		display_remain--;
 		if(display_remain.load() <= 0) {
 			display_remain = 0;
@@ -47,9 +44,6 @@ void TOWNS_CRTC::draw_screen()
 			display_linebuf++;
 		}
 		display_linebuf &= display_linebuf_mask;
-		__LIKELY_IF(osd != NULL) {
-			osd->unlock_vm();
-		}
 		return;
 	}
 	int lines = vst[trans];
@@ -195,18 +189,13 @@ void TOWNS_CRTC::draw_screen()
 	}
 
 	// Need Lock?
-	__LIKELY_IF(osd != NULL) {
-		osd->lock_vm();
-	}
+	// Don't need Locking because Already locking from OSD::doDraw() .
 	display_remain--;
 	if(display_remain.load() <= 0) {
 		display_remain = 0;
 	} else {
 		display_linebuf++;
 		display_linebuf &= display_linebuf_mask;
-	}
-	__LIKELY_IF(osd != NULL) {
-		osd->unlock_vm();
 	}
 	return;
 }
