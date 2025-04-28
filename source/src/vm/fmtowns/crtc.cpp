@@ -161,6 +161,7 @@ void TOWNS_CRTC::reset()
 	for(int i = 0; i < 2; i++) {
 		frame_offset_bak[i] = frame_offset[i];
 	}
+	lines_per_frame = get_lines_per_frame();
 
 }
 
@@ -688,11 +689,19 @@ void TOWNS_CRTC::event_pre_frame()
 		frame_in[i] = false;
 		head_address[i] = 0;
 	}
-//	display_linebuf = render_linebuf.load();
-//	__LIKELY_IF(display_enabled) {
-		render_linebuf++;
-		render_linebuf &= display_linebuf_mask;
-//	}
+	// Need Lock?
+	__LIKELY_IF(osd != NULL) {
+		osd->lock_vm();
+	}
+	render_linebuf++;
+	render_linebuf &= display_linebuf_mask;
+	display_remain++;
+	if(display_remain.load() > display_linebuf_mask) {
+		display_remain = display_linebuf_mask;
+	}
+	__LIKELY_IF(osd != NULL) {
+		osd->unlock_vm();
+	}
 
 	/*!<
 	 @note 20231230 K.O -- Belows are written in Japanese (mey be or not be temporally).
@@ -754,24 +763,13 @@ uint32_t TOWNS_CRTC::get_sprite_offset()
 }
 void TOWNS_CRTC::event_frame()
 {
-//	display_enabled = display_enabled_pre;
-//	__LIKELY_IF(display_enabled) {
-//		render_linebuf++;
-//		render_linebuf &= display_linebuf_mask;
-//	}
-//	begin_of_display();
+	// Update lines_per_frame is here.
+	lines_per_frame = get_lines_per_frame();
 	
 	odd_field = ((render_linebuf.load() & 1) != 0) ? true : false;
 	// Clear all frame buffer (of this) every turn.20230716 K.O
 	horiz_width_posi_us = horiz_width_posi_us_next;
 	horiz_width_nega_us = horiz_width_nega_us_next;
-	
-/*	display_remain++;
-	if(display_remain.load() > display_linebuf_mask) {
-	display_remain = display_linebuf_mask;
-	display_linebuf = (render_linebuf.load() - display_linebuf_mask) & display_linebuf_mask;
-	}
-*/
 
 	__LIKELY_IF(vst1_count >= vst2_count) {
 		hsync = true;
@@ -808,7 +806,6 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		}
 		hsync = false;
 		reset_vsync();
-		display_linebuf = render_linebuf.load();
 		return;
 	}
 	clear_event(this, event_hsync);
@@ -888,17 +885,16 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 				hsync = false;
 				frame_in[0] = false;
 				frame_in[1] = false;
-				display_linebuf = render_linebuf.load();
 			}
 		} else if((fin_bak[0]) || (fin_bak[1])) {
 			// Last of line
-			display_linebuf = render_linebuf.load();
 		}
 	}
 	clear_event(this, event_hsync);
 	__UNLIKELY_IF(usec > horiz_us) {
 		usec = horiz_us - 0.01; // Insert previous of Hstart. 
 	}
+	
 	if((v < lines_per_frame) && (usec > 0.0) && (hsync)) {
 		register_event(this, EVENT_HSYNC_OFF, usec, false, &event_hsync);
 	} else {

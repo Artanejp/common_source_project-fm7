@@ -136,20 +136,20 @@ void TOWNS_CRTC::set_crtc_parameters_from_regs()
 	}
 	calc_pixels_lines(); 
 
-	lines_per_frame = vst_reg;
+	int _lines = vst_reg;
 
 	eet_count = eet;
 	horiz_us = horiz_us_next;
 	
 	double horiz_ref = horiz_us;
 
-	frame_us = ((double)lines_per_frame) * horiz_ref; // VST
+	frame_us = ((double)_lines) * horiz_ref; // VST
 	if(frame_us <= 0.0) {
 		frame_us = 1.0e6 / FRAMES_PER_SEC;
 	}
 
 	set_frames_per_sec(1.0e6 / frame_us);
-	set_lines_per_frame(lines_per_frame);
+	set_lines_per_frame(_lines);
 }
 	
 // CRTC register #29

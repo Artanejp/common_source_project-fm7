@@ -180,7 +180,6 @@ protected:
 	uint16_t vst1_count; // VST1 * horiz_us / 2.0
 	uint16_t vst2_count;
 	uint16_t eet_count;
-	uint16_t lines_per_frame_current;
 	int hst[FMTOWNS::CRTC_BUFFER_NUM], vst[FMTOWNS::CRTC_BUFFER_NUM];
 
 	double horiz_us_next; // (HST + 1) * clock
