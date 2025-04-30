@@ -414,19 +414,20 @@ protected:
 	void __FASTCALL status_read_done(const bool force_interrupt);
 	void __FASTCALL status_data_ready(const bool force_interrupt);
 
-	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
-	void set_status(const bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool force_interrupt);
-	void set_status_read_done(bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL end_of_command(const bool send_ready, const bool send_interrupt);
+	
+	void __FASTCALL set_status(const bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool force_interrupt);
 	void __FASTCALL set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-
-	virtual void set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool is_immediate, const bool force_interrupt);
+	
+	void __FASTCALL set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool is_immediate, const bool force_interrupt);
 	void  __FASTCALL set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void  __FASTCALL set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
 
-	virtual void __FASTCALL status_accept2(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
-	virtual void __FASTCALL status_accept3(int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_accept2(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_accept3(int extra, uint8_t s2, uint8_t s3);
 
+	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 
 	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
