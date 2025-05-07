@@ -54,6 +54,7 @@
 #define EVENT_CDDA_REPEAT					119
 #define EVENT_READ_PRE_SEEK					120
 #define EVENT_CDDA_END_OF_TRACK				121
+#define EVENT_CDDA_OFF						122
 
 #define EVENT_DELAY_COMMAND					128
 #define EVENT_DELAY_READY_FORCEINT			129
@@ -726,7 +727,7 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 	// 0Dh : After STOPPING CD-DA.Will clear.
 	// 01h and 09h maybe incorrect.
 
-	uint8_t playcode = (toc_table[current_track].is_audio) ? ACCEPT_NOERROR :  ACCEPT_DATA_TRACK; // OK?
+	uint8_t playcode = ACCEPT_NOERROR; // OK?
 	switch(cdda_status) {
 	case CDDA_PLAYING:
 		playcode = ACCEPT_CDDA_PLAYING;
@@ -738,13 +739,10 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 		playcode = ACCEPT_WAIT;
 		break;
 	case CDDA_ENDED:
-		//playcode = ACCEPT_WAIT;
-		//set_cdda_status(CDDA_OFF);
+		playcode = ACCEPT_WAIT;
+		set_cdda_status(CDDA_OFF);
 		break;
 	default:
-		/*if(!(cdda_stopped) && (toc_table[current_track].is_audio)) {
-			playcode = ACCEPT_WAIT;
-		}*/
 		break;
 	}
 
@@ -995,6 +993,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		// ToDo: Some softwares check via this command, strongly to be fixed.
 		// -- 20220125 K.O
 		// Note: This command don't care req_status. - 20250430 K.O
+		cdrom_debug_log(_T("CMD READ CDDA STATE(%02X)"), command);
 		memcpy(subq_snapshot, subq_bytes, sizeof(subq_snapshot));
 		set_status(true, 1, STATUS_ACCEPT, ACCEPT_NOERROR, 0x00, 0x00, false);
 		break;
@@ -1008,7 +1007,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		}
 		break;
 	case COMMAND_SET_STATE: // 80h
-		set_state_cmd(false);
+		set_state_cmd(true);
 		break;
 	case COMMAND_SET_CDDASET: // 81h
 		cdrom_debug_log(_T("%s(%02X)"), get_command_name_from_command(command), command);
@@ -1396,102 +1395,93 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 					exec_params[6],
 					exec_params[7]
 		);
+	uint8_t __s1 = STATUS_ACCEPT;
+	uint8_t __s2 = ACCEPT_DATA_TRACK;
+	switch(cdda_status) {
+	case CDDA_PLAYING:
+		if(toc_table[current_track].is_audio) {
+			__s2 = ACCEPT_CDDA_PLAYING;
+		}
+		break;
+	case CDDA_PAUSED:
+		if(toc_table[current_track].is_audio) {
+			__s2 = ACCEPT_CDDA_PAUSED;
+		}
+		break;
+	default:
+		//if(exec_params[0] == 0x04) {
+		//	__s2 = ACCEPT_04H_FOR_CMD_A0H;
+		//} else if(exec_params[0] == 0x08) {
+		//	__s2 = ACCEPT_08H_FOR_CMD_A0H;
+		//}
+		break;
+	}
+	switch(prev_command & 0x9f) {
+	case COMMAND_PLAY_TRACK:
+		/// @note RANCEIII (and maybe others) need reply to accept cdda_play_command.
+		/// @note 20201110 K.O
+		if(cdda_status == CDDA_PLAYING) {
+			__s1 = STATUS_PLAY_DONE;
+			prev_command = latest_command;
+		}
+		/*if(cdda_status == CDDA_ENDED) {
+			__s2 = ACCEPT_NOERROR; // OK?
+			prev_command = latest_command;
+		}*/
+		break;
+	case COMMAND_PAUSE_CDDA:
+		if((cdda_status == CDDA_PAUSED) && (cdda_stopped)) {
+			__s1 = STATUS_PAUSE_DONE;
+			prev_command = latest_command;
+		}
+		break;
+	case COMMAND_RESUME_CDDA:
+		if(cdda_status == CDDA_PLAYING) {
+			__s1 = STATUS_RESUME_DONE;
+			prev_command = latest_command;
+		}
+		break;
+	case COMMAND_STOP_CDDA:
+		// @note In SUPER REAL MAHJONG PIV, maybe check below.
+		// @note 20201110 K.O
+		if(cdda_status == CDDA_ENDED) {
+			__s2 = ACCEPT_WAIT; // OK?
+		} else if(cdda_status == CDDA_OFF) {
+			__s1 = STATUS_STOP_DONE; // OK?
+			//__s2 = ACCEPT_WAIT; // OK?
+			prev_command = latest_command;
+		}
+		break;
+	default:
+		// @note In SUPER REAL MAHJONG PIV, maybe check below.
+		// @note 20201110 K.O
+		//if((latest_command & 0x9f) != COMMAND_SET_STATE) { 
+		//}
+		break;
+	}
+	if(cdda_status == CDDA_ENDED) {
+		// From Tsugaru 95afde8c :
+		// 2020/07/30
+		// Vain Dream crashes when CD BIOS Call AX=53C0H returns an error because the BIOS is expecting
+		// status 00 00 00 00, but this PushStatusCDDAPlayEnded() pushes 07 00 00 00.
+		// The retry code jumps to 4600:0084
+		//     4600:0084 1E                        PUSH    DS
+		//     4600:0085 8CC8                      MOV     AX,CS
+		// However, it should really jump to 4600:0085.  By jumping to 4600:0084, PUSH DS moves SP
+		// by two bytes, and the subsequent RETF fails to return to the correct address.
+		//
+		// Vain Dream runs by commenting out PushStatusCDDAPlayEnded() below.  But,
+		// in the past I saw something (presumably one version of CD-ROM BIOS) was expecting
+		// 07 00 00 00 status after CDDA is done, but I cannot find it
+		//
+		// Maybe subsequent to CDDA Stop command?
+		set_cdda_status(CDDA_OFF);
+	}
 	if(req_status) {
 		// ToDo: Check Seeking.
 		clear_status_queue(true);
 		if(status_media_changed_or_not_ready(false)) {
 			return;
-		}
-		uint8_t __s1 = STATUS_ACCEPT;
-		uint8_t __s2 = ACCEPT_DATA_TRACK;  // Same as ACCEPT_CDDA_PAUSED .
-		switch(cdda_status) {
-		case CDDA_PLAYING:
-			if(toc_table[current_track].is_audio) {
-				__s2 = ACCEPT_CDDA_PLAYING;
-			}
-			break;
-		case CDDA_STOPPING:
-			if(toc_table[current_track].is_audio) {
-				__s2 = ACCEPT_WAIT;
-			}
-			break;
-		default:
-			if(exec_params[0] == 0x04) {
-				__s2 = ACCEPT_04H_FOR_CMD_A0H;
-			} else if(exec_params[0] == 0x08) {
-				__s2 = ACCEPT_08H_FOR_CMD_A0H;
-			}
-			break;
-		}
-		switch(prev_command & 0x9f) {
-		case COMMAND_PLAY_TRACK:
-			/// @note RANCEIII (and maybe others) need reply to accept cdda_play_command.
-			/// @note 20201110 K.O
-			if(cdda_status == CDDA_PLAYING) {
-				__s1 = STATUS_PLAY_DONE;
-				//prev_command = latest_command;
-			} else if((cdda_status == CDDA_STOPPING) || (cdda_status == CDDA_ENDED)) {
-				__s1 = STATUS_PLAY_DONE; // OK?
-				//__s1 = STATUS_STOP_DONE;
-				//prev_command = latest_command;
-			} else /*if(cdda_status == CDDA_OFF) */ {
-				prev_command = latest_command;
-			}
-			break;
-		case COMMAND_PAUSE_CDDA:
-			if((cdda_status == CDDA_PAUSED) && (cdda_stopped)) {
-				__s1 = STATUS_PAUSE_DONE;
-				prev_command = latest_command;
-			} else if(cdda_status == CDDA_OFF) {
-				prev_command = latest_command;
-			}
-			break;
-		case COMMAND_RESUME_CDDA:
-			if(cdda_status == CDDA_PLAYING) {
-				__s1 = STATUS_RESUME_DONE;
-				prev_command = latest_command;
-			} else if(cdda_status == CDDA_OFF) {
-				prev_command = latest_command;
-			}
-			break;
-		case COMMAND_STOP_CDDA:
-			// @note In SUPER REAL MAHJONG PIV, maybe check below.
-			// @note 20201110 K.O
-			if(cdda_status == CDDA_ENDED) {
-				__s1 = STATUS_STOP_DONE;
-				//__s2 = ACCEPT_WAIT; // OK?
-				prev_command = latest_command;
-			} else if(cdda_status == CDDA_OFF) {
-				__s1 = STATUS_STOP_DONE; // OK?
-				//__s2 = ACCEPT_WAIT; // OK?
-				prev_command = latest_command;
-			}
-			break;
-		default:
-			// @note In SUPER REAL MAHJONG PIV, maybe check below.
-			// @note 20201110 K.O
-			//if((latest_command & 0x9f) != COMMAND_SET_STATE) { 
-			prev_command = latest_command;
-			//}
-			break;
-		}
-		if(cdda_status == CDDA_ENDED) {
-			// From Tsugaru 95afde8c :
-			// 2020/07/30
-			// Vain Dream crashes when CD BIOS Call AX=53C0H returns an error because the BIOS is expecting
-			// status 00 00 00 00, but this PushStatusCDDAPlayEnded() pushes 07 00 00 00.
-			// The retry code jumps to 4600:0084
-			//     4600:0084 1E                        PUSH    DS
-			//     4600:0085 8CC8                      MOV     AX,CS
-			// However, it should really jump to 4600:0085.  By jumping to 4600:0084, PUSH DS moves SP
-			// by two bytes, and the subsequent RETF fails to return to the correct address.
-			//
-			// Vain Dream runs by commenting out PushStatusCDDAPlayEnded() below.  But,
-			// in the past I saw something (presumably one version of CD-ROM BIOS) was expecting
-			// 07 00 00 00 status after CDDA is done, but I cannot find it
-			//
-			// Maybe subsequent to CDDA Stop command?
-			set_cdda_status(CDDA_OFF);
 		}
 		if(!(is_delay)) {
 			set_status_immediate(true, false, 0, __s1, __s2, 0x00, 0x00);
@@ -1878,11 +1868,11 @@ bool TOWNS_CDROM::start_to_play_cdda()
 	remain_sectors_in_buffer = prefetch_audio_sectors();
 	touch_sound();
 	set_realtime_render(true);
+	set_subq(cdda_playing_frame);
 	if(remain_sectors_in_buffer < 1) {
 		set_cdda_status(CDDA_OFF);
 		return false; // READ ERROR
 	}
-	set_subq(cdda_playing_frame);
 	return true;
 }
 
@@ -1895,7 +1885,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		}
 		clear_event(this, event_execute);
 		// Backup previous command.
-		if(((prev_command & 0x9f) != COMMAND_SET_STATE) || ((latest_command & 0x9f) != COMMAND_SET_STATE)) {
+		if(((latest_command & 0x9f) != COMMAND_SET_STATE) && ((latest_command & 0x9f) != COMMAND_READ_CDDA_STATE)) {
 			prev_command = latest_command;
 			for(int i = 0; i < 8; i++) {
 				prev_params[i] = exec_params[i];
@@ -2031,9 +2021,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 				if(event_cdda < 0) {
 					register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
 				}
+				set_subq(cdda_playing_frame);
 				remain_sectors_in_buffer = prefetch_audio_sectors();
 				if(remain_sectors_in_buffer >= 1) {
-					set_subq(cdda_playing_frame);
 					touch_sound();
 					set_realtime_render(true);
 					const _TCHAR *pp = get_cdda_status_name(cdda_status);
@@ -2069,6 +2059,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_cdda_delay_stop = -1;
 		data_in = false;
 		set_cdda_status(CDDA_ENDED);
+		break;
+	case EVENT_CDDA_OFF:
+		event_cdda_delay_stop = -1;
+		data_in = false;
+		set_cdda_status(CDDA_OFF);
 		break;
 	case EVENT_RESTORE: // Restore to LBA 0.
 		// Seek0
@@ -2546,6 +2541,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 	__UNLIKELY_IF((cdda_buffer_ptr % 2352) == 0) {
 		if(cdda_status != CDDA_PLAYING) {
 			// On Pausing:
+			set_subq(cdda_playing_frame);
 			cdda_buffer_ptr = 0;
 			set_realtime_render(false);
 			cdda_stopped = true;
@@ -2555,6 +2551,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 
 		cdda_playing_frame++;
 		cdda_buffer_ptr = 0;
+		set_subq(cdda_playing_frame);
 
 		__UNLIKELY_IF(cdda_playing_frame > cdda_end_frame) {
 			clear_event(this, event_cdda);
@@ -2563,8 +2560,8 @@ void TOWNS_CDROM::read_a_cdda_sample()
 				force_seek = true;
 			} else if(cdda_repeat_count == 0) {
 				status_seek = false;
-				set_cdda_status(CDDA_STOPPING);
 				access = false;
+				set_cdda_status(CDDA_STOPPING);
 				return;
 			} else {
 				force_seek = true;
@@ -2589,7 +2586,6 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			remain_sectors_in_buffer = prefetch_audio_sectors();
 			// ToDo: When seek error.
 		}
-		set_subq(cdda_playing_frame);
 		// ToDo: Error handling in data by remain_sectors_in_buffer .
 	}
 }
@@ -2656,7 +2652,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		if(cdda_status != CDDA_PLAYING) {
 			//// Notify to release bus.
 			write_mcuint_signals(false);
-			if((cdda_status == CDDA_OFF) || (cdda_status == CDDA_ENDED)) {
+			if(cdda_status != CDDA_PAUSED) {
+				clear_event(this, event_cdda_delay_stop);
 				//get_track_by_track_num(current_track); // Re-Play
 				int track = get_track(cdda_start_frame);
 				if(!(check_invalid_track(track))) {
@@ -2687,10 +2684,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		}
 		break;
 	case CDDA_STOPPING: // Stop by reaching to the end of track.
-		if((event_cdda_delay_stop < 0) && (cdda_status != CDDA_OFF) && (cdda_status != CDDA_STOPPING) && (cdda_status != CDDA_ENDED)) {
-			if((latest_command & 0x9f) == COMMAND_PLAY_TRACK) { // Workaround
-				prev_command = latest_command;
-			}
+		if((cdda_status != CDDA_STOPPING) /* && (cdda_status != CDDA_ENDED) */) {
+			clear_event(this, event_cdda_delay_stop);
 			register_event(this, EVENT_CDDA_END_OF_TRACK, 1.0e6 / 75.0, false, &event_cdda_delay_stop);
 		}
 		break;
@@ -2701,25 +2696,30 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 	case CDDA_ENDED:
 		clear_event(this, event_cdda);
 		cdda_stopped = true;
+		if((cdda_status != CDDA_ENDED) && (cdda_status != CDDA_OFF)) {
+			clear_event(this, event_cdda_delay_stop);
+			register_event(this, EVENT_CDDA_OFF, 1.0e6 / 75.0, false, &event_cdda_delay_stop);
+		}
 		break;
 	case CDDA_OFF:
 		clear_event(this, event_cdda);
+		clear_event(this, event_cdda_delay_stop);
 		if(cdda_status != status) {
-			write_mcuint_signals(false);
+			//write_mcuint_signals(false);
 			reset_buffer();
 			data_in = false;
 			cdda_buffer_ptr = 0;
 			cdda_repeat_count = -1; // OK?
-			current_track = get_track(0);
-			if(!(check_invalid_track(current_track))) {
-				read_sector = toc_table[current_track].index1;
-			} else {
-				read_sector = 0;
-			}
-			cdda_start_frame = read_sector;
-			cdda_playing_frame = read_sector;
-			cdda_end_frame = toc_table[current_track + 1].index0 - 1; // ToDo.
-			seek_relative_frame_in_image(read_sector); // OK?
+			//current_track = get_track(0);
+			//if(!(check_invalid_track(current_track))) {
+			//	read_sector = toc_table[current_track].index1;
+			//} else {
+			//	read_sector = 0;
+			//}
+			//cdda_start_frame = read_sector;
+			//cdda_playing_frame = read_sector;
+			//cdda_end_frame = toc_table[current_track + 1].index0 - 1; // ToDo.
+			//seek_relative_frame_in_image(read_sector); // OK?
 			cdda_stopped = true;
 			set_realtime_render(false);
 		}
@@ -3084,7 +3084,8 @@ void TOWNS_CDROM::set_subq(uint32_t lba)
 		uint32_t msf_rel;
 		// ToDo: Process when Foo.sub (for Foo.cue or Foo.ccd), this may be sub-channel data.
 		if(toc_table[track].is_audio) { // OK? (or force ERROR) 20181120 K.O
-			frame = ((cdda_status == CDDA_OFF) || (cdda_status == CDDA_ENDED)) ? toc_table[track].index0 : lba;
+			//frame = ((cdda_status == CDDA_OFF) || (cdda_status == CDDA_ENDED)) ? toc_table[track].index0 : lba;
+			frame = lba;
 		} else { // Data
 			frame = lba;
 		}
@@ -3543,14 +3544,6 @@ void TOWNS_CDROM::write_io8(uint32_t addr, uint32_t data)
 	}
 	if((command_received) && (param_queue->full()) && (((addr & 0x0f) == 0x04) || ((addr & 0x0f) == 0x02)) && (event_execute < 0) && (mcu_ready))  {
 		command_received = false;
-		#if 0
-		for(int i = 0; i < 8; i++) {
-			exec_params[i] = param_queue->read();
-		}
-		param_queue->clear();
-		#endif
-		//prev_command = latest_command;
-		//execute_command(reserved_command);
 		// From Tsugaru 2023-08-21
 		mcu_ready = false;
 		register_event(this, EVENT_DELAY_COMMAND, 50.0, true, &event_execute);
