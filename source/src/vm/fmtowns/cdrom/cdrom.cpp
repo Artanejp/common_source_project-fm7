@@ -426,12 +426,10 @@ void TOWNS_CDROM::do_drq()
 {
 	// Note: EMULATE NONE BUFFER. 20230531 K.O
 	if(data_in) {
-		__LIKELY_IF(datacount != 0) {
+		__LIKELY_IF(datacount > 0) {
 			write_signals(&outputs_drq, 0xffffffff);
 		} else {
-			//if(sectors_count <= 0) {
-				dma_transfer_epilogue();  // Remove Duplicate calling.
-			//}
+			dma_transfer_epilogue();  // Remove Duplicate calling.
 		}
 	}
 }
@@ -550,10 +548,9 @@ void TOWNS_CDROM::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_TOWNS_CDROM_DMAINT:
 		if((data & mask) != 0) {
 			// This seems to be aborting to transfer?
-			//if(!(databuffer->empty()) && (dma_transfer)) {
-			//	stop_drq();
-			//}
-			dma_transfer_epilogue();
+			if(dma_transfer) {
+				dma_transfer_epilogue();
+			}
 			// ToDo: Abort Sequence.
 		}
 		break;
@@ -825,19 +822,22 @@ void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s
 
 const _TCHAR* TOWNS_CDROM::get_cdda_status_name(int _status)
 {
-	const _TCHAR *playstatus = _T("UNKNOWN");
+	const _TCHAR *playstatus = _T("UNKNOWN ");
 	switch(_status) {
 	case CDDA_OFF:
-		playstatus = _T("OFF    ");
+		playstatus = _T("OFF     ");
 		break;
 	case CDDA_PLAYING:
-		playstatus = _T("PLAY   ");
+		playstatus = _T("PLAY    ");
 		break;
 	case CDDA_PAUSED:
-		playstatus = _T("PAUSE  ");
+		playstatus = _T("PAUSE   ");
 		break;
 	case CDDA_ENDED:
-		playstatus = _T("ENDED  ");
+		playstatus = _T("ENDED   ");
+		break;
+	case CDDA_STOPPING:
+		playstatus = _T("STOPPING");
 		break;
 	}
 	return playstatus;
@@ -845,7 +845,7 @@ const _TCHAR* TOWNS_CDROM::get_cdda_status_name(int _status)
 
 const _TCHAR* TOWNS_CDROM::get_command_name_from_command(uint8_t cmd)
 {
-	const _TCHAR *cmdname = _T("UNKNOWN");
+	const _TCHAR *cmdname = _T("UNKNOWN COMMAND");
 	switch(cmd & 0x9f) {
 	case COMMAND_SEEK: // 00h
 		cmdname = _T("CDROM SEEK/RESTORE");
@@ -883,8 +883,14 @@ const _TCHAR* TOWNS_CDROM::get_command_name_from_command(uint8_t cmd)
 	case COMMAND_PAUSE_CDDA: // 85h
 		cmdname = _T("CDROM PAUSE CDDA");
 		break;
+	case COMMAND_86h:
+		cmdname = _T("CDROM UNKNOWN CMD 86h");
+		break;
 	case COMMAND_RESUME_CDDA: // 87h
 		cmdname = _T("CDROM RESUME CDDA");
+		break;
+	case COMMAND_9Fh:
+		cmdname = _T("CDROM UNKNOWN CMD 9Fh");
 		break;
 	}
 	return cmdname;
@@ -942,7 +948,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			double usec = 50.0e3; // From Tsugaru.
 			stop_time_out();
 			//double usec = get_seek_time(0); // At first, seek to track 0.
-			//if(usec < 1.0e3) usec = 1.0e3;
+			//if(usec < 50.0e3) usec = 50.0e3;
 
 			// 20200626 K.O
 			// At first, SEEK to LBA0.
@@ -950,7 +956,6 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			// Then, If set status to queue if (CMD & 20h) == 20h.
 			// Last, *FORCE TO MAKE* interrupt even (CMD & 20h) != 20h..
 			// See event_callback(EVENT_RESTORE, foo).
-			//req_status = true;
 			status_seek = true;
 			force_register_event(this,
 						   EVENT_RESTORE,
@@ -1111,28 +1116,27 @@ void TOWNS_CDROM::dma_transfer_epilogue()
 	//dma_transfer = false;
 	//pio_transfer = false;
 	write_signals(&outputs_drq, 0x00000000); // CLEAR DRQ
-	clear_event(this, event_next_sector);
-
+	
 	if(sectors_count <= 0) {
-		dma_transfer = false;
-		pio_transfer = false;
-		status_seek = false;
+		clear_event(this, event_next_sector);
+		set_delay_ready_eot(false);
 		cdrom_debug_log(_T("DMA: EOT by READ COMPLETED"));
-		write_signals(&outputs_eot, 0xffffffff);
-		status_read_done(false);
-		set_dma_intr(true);
 	} else {
 		// Call to read next sector.
-		#if 1
-		//status_seek = true;  // OK?
 		status_seek = false;  // OK?
-		register_event(this, EVENT_NEXT_SECTOR,
-					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
-					   1.0,
-					   false,
-					   &event_next_sector);
-		#endif
-		set_dma_intr(true);
+		if(datacount <= 0) {
+			clear_event(this, event_next_sector);
+		}
+		if(event_next_sector < 0) {
+			register_event(this, EVENT_NEXT_SECTOR,
+						   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
+						   1.0,
+						   false,
+						   &event_next_sector);
+		}
+	}
+	if(dma_transfer) {
+		set_dma_intr(true);	
 	}
 }
 
@@ -1151,28 +1155,22 @@ void TOWNS_CDROM::pio_transfer_epilogue()
 	//dma_transfer = false;
 	//pio_transfer = false;
 	write_signals(&outputs_drq, 0x00000000); // CLEAR DRQ
-
 	if(sectors_count <= 0) {
-		status_seek = false;
-		dma_transfer = false;
-		pio_transfer = false;
 		clear_event(this, event_next_sector);
 		cdrom_debug_log(_T("PIO: EOT by READ COMPLETED"));
-		//write_signals(&outputs_eot, 0xffffffff);
-		status_read_done(false);
+		set_delay_ready_eot(false);
 	} else {
 		// Call to read next sector.
-		#if 1
 		//status_seek = true;  // OK?
 		status_seek = false;  // OK?
-		register_event(this, EVENT_NEXT_SECTOR,
+		if(event_next_sector < 0) {
+			register_event(this, EVENT_NEXT_SECTOR,
 					   (1.0e6 / ((double)transfer_speed * 150.0e3)) *
 					   1.0,
 					   false,
 					   &event_next_sector);
-		#endif
+		}
 	}
-//	set_dma_intr(true);
 }
 
 uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
@@ -1183,7 +1181,7 @@ uint32_t TOWNS_CDROM::read_dma_io8w(uint32_t addr, int *wait)
 	__UNLIKELY_IF(!(data_in)) {
 		return 0x00;
 	}
-	bool is_empty = (datacount == 0) ? true : false;
+	bool is_empty = (datacount <= 0) ? true : false;
 	__UNLIKELY_IF(is_empty) {
 		data_reg.b.h = data_reg.b.l;
 		data_reg.b.l = 0x00;
@@ -1517,18 +1515,14 @@ void TOWNS_CDROM::set_extra_status()
 		if(extra_status > 0) {
 			set_extra_status_values(STATUS_SEEK_COMPLETED, 0x00, 0x00, 0x00, false, false);
 			extra_status = 0;
-			end_of_command(true, stat_reply_intr);
 		}
+		end_of_command(false, stat_reply_intr);
 		break;
 	case COMMAND_READ_MODE1:
 	case COMMAND_READ_MODE2:
 	case COMMAND_READ_RAW:
-		//if(extra_status == 2) {
-		//	status_data_ready(false);
-		//}
-		req_off_execute_phase = false;
-		command_execute_phase = false;
 		extra_status = 0;
+		end_of_command(true, stat_reply_intr);
 		break;
 	case COMMAND_PLAY_TRACK: // PLAY CDDA
 		// From MAME 0.254. 20230530 K.O
@@ -1537,9 +1531,8 @@ void TOWNS_CDROM::set_extra_status()
 		} else {
 			set_extra_status_values(STATUS_ACCEPT, 0, ACCEPT_CDDA_PLAYING, 0, false, false); // OK?
 		}
-		req_off_execute_phase = false;
-		command_execute_phase = false;
 		extra_status = 0;
+		end_of_command(true, stat_reply_intr);
 		break;
 	case COMMAND_READ_TOC: // 0x05
 			switch(extra_status) {
@@ -1578,7 +1571,7 @@ void TOWNS_CDROM::set_extra_status()
 					set_status_extra_toc_data(msf.b.h2, msf.b.h, msf.b.l); // OK?
 					if((track_num <= 0) || (stat_track >= track_num)) { // OK?
 						extra_status = 0; // It's end.
-						end_of_command(false, false); // OK?
+						end_of_command(true, false); // OK?
 					}
 				}
 				break;
@@ -1605,9 +1598,11 @@ void TOWNS_CDROM::set_extra_status()
 			// Absolute F
 			extra_status = 0;
 			set_extra_status_values(STATUS_SUBQ_READ4, 0x00, subq_snapshot[5], 0x00, false, false);
+			end_of_command(true, false); // OK?
 			break;
 		default:
 			extra_status = 0;
+			end_of_command(true, false);
 			break;
 		}
 		break;
@@ -1621,13 +1616,11 @@ void TOWNS_CDROM::set_extra_status()
 		case 2:
 			set_extra_status_values(0x00, ACCEPT_WAIT, 0x00, 0x00, false, false);
 			extra_status = 0;
-			req_off_execute_phase = false;
-			command_execute_phase = false;
+			end_of_command(true, false); // OK?
 			break;
 		default:
 			extra_status = 0;
-			req_off_execute_phase = false;
-			command_execute_phase = false;
+			end_of_command(true, false); // OK?
 			break;
 		}
 		break;
@@ -1636,21 +1629,18 @@ void TOWNS_CDROM::set_extra_status()
 			set_extra_status_values(STATUS_PAUSE_DONE, 0x00, 0x00, 0x00, false, false);
 		}
 		extra_status = 0;
-		req_off_execute_phase = false;
-		command_execute_phase = false;
+		end_of_command(true, false); // OK?
 		break;
 	case COMMAND_RESUME_CDDA:
 		if(extra_status == 1) {
 			set_extra_status_values(STATUS_RESUME_DONE, 0, 0x00, 0x00, false, false); // From Tsugaru
 		}
+		end_of_command(true, false); // OK?
 		extra_status = 0;
-		req_off_execute_phase = false;
-		command_execute_phase = false;
 		break;
 	default:
 		extra_status = 0;
-		req_off_execute_phase = false;
-		command_execute_phase = false;
+		end_of_command(true, false); // OK?
 		break;
 	}
 }
@@ -1923,7 +1913,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_DELAY_INTERRUPT_OFF: // DELAY INTERRUPT OFF
 		event_delay_interrupt = -1;
 		mcu_ready = true;
-		set_mcu_intr(false);
+		write_mcuint_signals(false);
 		break;
 	case EVENT_DELAY_READY: // CALL READY TO ACCEPT COMMAND WITH STATUS
 		event_delay_ready = -1;
@@ -1978,19 +1968,11 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_READY_EOT:  // CALL END-OF-TRANSFER FROM CDC.
 		event_delay_ready = -1;
 		stop_time_out();
-		mcu_ready = true;
-		media_changed = false;
-		media_ejected = false;
-		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		command_execute_phase = false;
-		req_off_execute_phase = false;
-		//}
-		if(req_status) {
-			mcu_intr = true;
-			if(stat_reply_intr) {
-				set_mcu_intr(true);
-			}
-		}
+		dma_transfer = false;
+		pio_transfer = false;
+		status_seek = false;
+		write_signals(&outputs_eot, 0xffffffff);
+		status_read_done(false);
 		break;
 	case EVENT_READY_EOT_FORCEINT:  // CALL END-OF-TRANSFER FROM CDC.
 		event_delay_ready = -1;
@@ -1999,22 +1981,13 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		media_changed = false;
 		media_ejected = false;
 		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		command_execute_phase = false;
-		req_off_execute_phase = false;
-		//}
-		if(req_status) {
-			mcu_intr = true;
-			set_mcu_intr(true);
-		}
+		write_signals(&outputs_eot, 0xffffffff);
+		status_read_done(true);
 		break;
 	case EVENT_DELAY_EOT_PIO:
 		event_delay_ready = -1;
 		media_changed = false;
 		media_ejected = false;
-		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		command_execute_phase = false;
-		req_off_execute_phase = false;
-		//}
 		pio_transfer_epilogue();
 		break;
 	case EVENT_CDDA_DELAY_PLAY: // DELAY STARTING TO PLAY CDDA
@@ -2100,9 +2073,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 	case EVENT_RESTORE: // Restore to LBA 0.
 		// Seek0
 		event_seek = -1;
-		// 20231001 Backport from Tsugaru.
-		//mcu_ready = true;
-		//status_accept(0, 0, 0, true, true); // Say reply.
 		stop_time_out();
 		status_seek = true;
 		{
@@ -2129,7 +2099,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		set_subq(next_seek_lba);
 		stop_time_out();
 		cdrom_debug_log(_T("SEEK COMPLETED to SECTOR %d"), next_seek_lba);
-		status_accept(1, 0x00, 0x00, false, true);
+		req_off_execute_phase = true;
+		set_status(req_status, 1, STATUS_ACCEPT, 0x00, 0x00, 0x00, true);
+		mcu_ready = true;
 		break;
 	case EVENT_TIMEOUT:  // CDC TIMEOUT (mostly READ BUFFER OVERRUN)
 		event_time_out = -1;
@@ -2145,7 +2117,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		status_seek = true;
 		if((sectors_count > 0) && (current_track > 0) && (current_track < track_num)) {
 			// OK, NEXT
-			//event_callback(EVENT_READY_TO_READ, 1);
 			event_callback(EVENT_NEXT_SECTOR, 1);
 		} else {
 			status_illegal_lba(0, ABEND_PARAMETER_ERROR, 0, 0); // OK?
@@ -2186,7 +2157,6 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 			// ToDo: Multi Sector.
 			_stat = get_sectors(1);
 			if(_stat) {
-				sectors_count--;
 				//set_subq(read_sector);
 				int physical_size = physical_block_size();
 				register_event(this, EVENT_READY_TO_READ,
@@ -2205,6 +2175,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		// Workaround for dma_interrupt hasn't cleared.
 		// This is from Tsugaru, commit 95afde8c, "Support CD-ROM CPU Data Transfer." .
 		status_data_ready(false);
+		sectors_count--;
 		start_time_out();
 		break;
 	case EVENT_DRQ_PERIOD:

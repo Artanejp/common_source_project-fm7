@@ -549,7 +549,7 @@ protected:
 			val = 0x00;
 			return false;
 		}
-		__UNLIKELY_IF(datacount == 0) {
+		__UNLIKELY_IF(datacount <= 0) {
 			val = 0x00;
 			return false;
 		}
