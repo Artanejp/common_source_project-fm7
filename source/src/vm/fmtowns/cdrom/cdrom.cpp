@@ -1876,6 +1876,9 @@ bool TOWNS_CDROM::start_to_play_cdda()
 	return true;
 }
 
+/* Event processing functions (mainly inline or constexpr) . */
+#include "./cdrom/event_callbacks.hpp"
+
 void TOWNS_CDROM::event_callback(int event_id, int err)
 {
 	switch (event_id) {
@@ -1896,89 +1899,31 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		execute_command(reserved_command);
 		break;
 	case EVENT_DELAY_INTERRUPT_ON: // DELAY INTERRUPT ON
-		event_delay_interrupt = -1;
-		mcu_ready = true;
-		set_mcu_intr(true);
+		event_callback_delay_interrupt(true, true);
 		break;
 	case EVENT_DELAY_INTERRUPT_OFF: // DELAY INTERRUPT OFF
-		event_delay_interrupt = -1;
-		mcu_ready = true;
-		write_mcuint_signals(false);
+		event_callback_delay_interrupt(true, false);
 		break;
 	case EVENT_DELAY_READY: // CALL READY TO ACCEPT COMMAND WITH STATUS
-		event_delay_ready = -1;
-		media_changed = false;
-		media_ejected = false;
-		if((req_off_execute_phase) || (extra_status <= 0)) {
-			command_execute_phase = false;
-			req_off_execute_phase = false;
-		}
-		stop_time_out();
-		send_mcu_ready(); // OK? 20230127 K.O
+		event_callback_delay_ready(false);
 		break;
 	case EVENT_DELAY_READY_FORCEINT: // CALL READY TO ACCEPT COMMAND WITH STATUS
-		event_delay_ready = -1;
-		media_changed = false;
-		media_ejected = false;
-		if((req_off_execute_phase) || (extra_status <= 0)) {
-			command_execute_phase = false;
-			req_off_execute_phase = false;
-		}
-		stop_time_out();
-		mcu_ready = true;
-		set_mcu_intr(true);
-		//stat_reply_intr = false;
+		event_callback_delay_ready(true);
 		break;
 	case EVENT_DELAY_NOT_READY: // CALL READY TO ACCEPT COMMAND WITH STATUS
-		event_delay_ready = -1;
-		stop_time_out();
-		media_changed = false;
-		media_ejected = false;
-		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		command_execute_phase = false;
-		req_off_execute_phase = false;
-		//}
-		mcu_ready = true;
-		if(stat_reply_intr) {
-			set_mcu_intr(true);
-		}
+		event_callback_not_ready(false);
 		break;
 	case EVENT_DELAY_NOT_READY_FORCEINT: // CALL READY TO ACCEPT COMMAND WITH STATUS
-		event_delay_ready = -1;
-		stop_time_out();
-		media_changed = false;
-		media_ejected = false;
-		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		command_execute_phase = false;
-		req_off_execute_phase = false;
-		//}
-		mcu_ready = true;
-		set_mcu_intr(true);
+		event_callback_not_ready(true);
 		break;
 	case EVENT_READY_EOT:  // CALL END-OF-TRANSFER FROM CDC.
-		event_delay_ready = -1;
-		stop_time_out();
-		dma_transfer = false;
-		pio_transfer = false;
-		status_seek = false;
-		write_signals(&outputs_eot, 0xffffffff);
-		status_read_done(false);
+		event_callback_eot(true, false);
 		break;
 	case EVENT_READY_EOT_FORCEINT:  // CALL END-OF-TRANSFER FROM CDC.
-		event_delay_ready = -1;
-		stop_time_out();
-		mcu_ready = true;
-		media_changed = false;
-		media_ejected = false;
-		//if((req_off_execute_phase) || (extra_status <= 0)) {
-		write_signals(&outputs_eot, 0xffffffff);
-		status_read_done(true);
+		event_callback_eot(true, true);
 		break;
 	case EVENT_DELAY_EOT_PIO:
-		event_delay_ready = -1;
-		media_changed = false;
-		media_ejected = false;
-		pio_transfer_epilogue();
+		event_callback_eot(false, false);
 		break;
 	case EVENT_CDDA_DELAY_PLAY: // DELAY STARTING TO PLAY CDDA
 		event_cdda_delay_play = -1;

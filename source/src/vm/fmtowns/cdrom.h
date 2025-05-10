@@ -52,86 +52,14 @@ class RINGBUFFER;
 class FILEIO;
 class DEBUGGER;
 
-namespace FMTOWNS {
-	#pragma pack(1)
-	typedef union SUBC_u {
-		struct {
-			uint8_t P:1;
-			uint8_t Q:1;
-			uint8_t R:1;
-			uint8_t S:1;
-			uint8_t T:1;
-			uint8_t U:1;
-			uint8_t V:1;
-			uint8_t W:1;
-		} bit;
-		uint8_t byte;
-	} SUBC_t;
-#pragma pack()
-	/*!
-	 * @note Belows are CD-ROM sector structuer.
-	 * @note See https://en.wikipedia.org/wiki/CD-ROM#Sector_structure .
-	 */
-#pragma pack(1)
-	typedef struct {
-		uint8_t sync[12];
-		uint8_t addr_m;
-		uint8_t addr_s;
-		uint8_t addr_f;
-		uint8_t sector_type; //! 1 = MODE1, 2=MODE2
-	} cd_data_head_t;
-#pragma pack()
-#pragma pack(1)
-	/*!
-	 * @note ToDo: Still not implement crc32 and ecc.
-	 * @note 20201116 K.O
-	 */
-	typedef struct {
-		cd_data_head_t header;
-		uint8_t data[2048];
-		uint8_t crc32[4]; //! CRC32 checksum.
-		uint8_t reserved[8];
-		uint8_t ecc[276]; //! ERROR CORRECTIOM DATA; by read solomon code.
-	} cd_data_mode1_t;
-#pragma pack()
-#pragma pack(1)
-	/*!
-	 *
-	 *
-	 */
-	typedef struct {
-		cd_data_head_t header;
-		uint8_t data[2336];
-	} cd_data_mode2_t;
-#pragma pack()
-#pragma pack(1)
-	typedef struct {
-		uint8_t data[2352];
-	} cd_audio_sector_t;
-#pragma pack()
-#pragma pack(1)
-	/*!
-	 * @note ToDo: Add fake header and crc and ecc.
-	 * @note 20201116 K.O
-	 */
-	typedef struct {
-		uint8_t data[2048];
-	} cd_data_iso_t;
-#pragma pack()
-#pragma pack(1)
-	/*!
-	 * @note
-	 * @note 20201116 K.O
-	 */
-	typedef union cdimage_buffer_s {
-		uint8_t rawdata[2352]; //!< @note OK?
-		cd_data_mode1_t mode1;
-		cd_data_mode2_t mode2;
-		cd_audio_sector_t audio;
-	} cdimage_buffer_t;
-#pragma pack()
+#include "./cdrom/cd_datadefs.h"
 
-// From Towns Linux : include/linux/towns_cd.h
+namespace FMTOWNS {
+
+/*!
+ * @brief ENUM DEFINITION of CD-ROM modes.
+ * @note From Towns Linux : include/linux/towns_cd.h
+ */
 typedef enum {
 	MODE_AUDIO = 0,
 	MODE1_2352,
@@ -145,6 +73,9 @@ typedef enum {
 	MODE_NONE
 } CDROM_MODE_t;
 
+/*!
+ * @brief Data definition of CDROM TOC TABLE (for one track).
+ */
 typedef struct CDROM_TOC_TABLE_t {
 	CDROM_MODE_t type;
 	int64_t index0, index1, pregap;
@@ -643,9 +574,21 @@ protected:
 	}
 	int __FASTCALL calculate_volume(int volume_db, int minus_offset_db);
 
+	/*!
+	 * Belows are called only from TOWNS_CDROM::evant_callback() .
+	 * See cdrom/event_callbacks.hpp .
+	 */
+	
+	_CONSTEXPR_FUNC void event_callback_delay_ready(const bool forceint);
+	inline void event_callback_not_ready(const bool forceint);
+	
+	_CONSTEXPR_FUNC void event_callback_delay_interrupt(const bool _set_mcu_ready, const bool interrupt_on);
+	_CONSTEXPR_FUNC void event_callback_eot(const bool is_dma, const bool forceint);
+
+protected:
 	bool __CDROM_DEBUG_LOG;
 	bool _USE_CDROM_PREFETCH;
-	bool force_logging;
+	bool force_logging;	
 public:
 	TOWNS_CDROM(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
