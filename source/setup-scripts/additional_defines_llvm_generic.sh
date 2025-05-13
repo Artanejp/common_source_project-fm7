@@ -56,6 +56,11 @@ fi
 #	DLL_LDOPTS+=(-flto=jobserver)
 #	EXE_LDOPTS+=(-flto=jobserver)
 #fi
+
+if [ ${REMOVE_UNUSED_SECTION} -ne 0 ] ; then
+    EXE_LDOPTS+=(-Wl,--gc-sections)
+fi
+
 if [ __x__${DEBUG_COMPRESSOR} != __x__ ] ; then
     #if [ __x__${DEBUG_COMPRESS_LEVEL} != __x__ ] ; then
     #   DEBUG_COMPRESS_LINKER="--compress-debug-sections=${DEBUG_COMPRESSOR}:${DEBUG_COMPRESS_LEVEL}"

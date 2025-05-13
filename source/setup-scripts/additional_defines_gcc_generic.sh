@@ -75,6 +75,10 @@ fi
 # ToDo: Determine SIMD TYPES
 . ${SCRIPTS_DIR}/additional_defines_simd_types_gcc.sh
 
+if [ ${REMOVE_UNUSED_SECTION} -ne 0 ] ; then
+    EXE_LDOPTS+=(-Wl,--gc-sections)
+fi
+
 case ${BUILD_TYPE} in
 	Relwithdebinfo | Debug)
 		if [ $C_MAJOR_VERSION -lt 8 ] ; then
@@ -95,3 +99,4 @@ case ${BUILD_TYPE} in
 		EXE_LDOPTS+=(-s)
 		;;
 esac
+
