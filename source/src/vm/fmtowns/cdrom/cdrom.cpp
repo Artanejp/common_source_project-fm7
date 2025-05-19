@@ -23,11 +23,12 @@
 //#include <utility>
 
 // SAME AS SCSI_CDROM:: , But add status porting from Tsugaru.
-#define CDDA_OFF		0
-#define CDDA_PLAYING	1
-#define CDDA_PAUSED		2
-#define CDDA_ENDED		3
-#define CDDA_STOPPING	4
+#define CDDA_OFF			0
+#define CDDA_PLAYING		1
+#define CDDA_PAUSED			2
+#define CDDA_ENDED			3
+#define CDDA_STOPPING		4
+#define CDDA_SEEK_TO_REPEAT	5
 
 // 0-99 is reserved for SCSI_DEV class
 #define EVENT_CDDA							100
@@ -740,7 +741,7 @@ void TOWNS_CDROM::status_accept3(int extra, uint8_t s2, uint8_t s3)
 		break;
 	case CDDA_ENDED:
 		playcode = ACCEPT_WAIT;
-		set_cdda_status(CDDA_OFF);
+//		set_cdda_status(CDDA_OFF); // OK?
 		break;
 	default:
 		break;
@@ -818,7 +819,7 @@ void TOWNS_CDROM::status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s
 	}
 }
 
-const _TCHAR* TOWNS_CDROM::get_cdda_status_name(int _status)
+const _TCHAR* TOWNS_CDROM::get_cdda_status_name(const int _status)
 {
 	const _TCHAR *playstatus = _T("UNKNOWN ");
 	switch(_status) {
@@ -837,11 +838,14 @@ const _TCHAR* TOWNS_CDROM::get_cdda_status_name(int _status)
 	case CDDA_STOPPING:
 		playstatus = _T("STOPPING");
 		break;
+	case CDDA_SEEK_TO_REPEAT:
+		playstatus = _T("SEEKING ");
+		break;
 	}
 	return playstatus;
 }
 
-const _TCHAR* TOWNS_CDROM::get_command_name_from_command(uint8_t cmd)
+const _TCHAR* TOWNS_CDROM::get_command_name_from_command(const uint8_t cmd)
 {
 	const _TCHAR *cmdname = _T("UNKNOWN COMMAND");
 	switch(cmd & 0x9f) {
@@ -1849,30 +1853,30 @@ bool TOWNS_CDROM::start_to_play_cdda()
 	data_in = false;
 	reset_buffer();
 
+	if(cdda_start_frame >= cdda_end_frame) {
+		return false;
+	}
 	current_track = get_track(cdda_start_frame);
 
 	if((current_track <= 0) || (current_track >= track_num)) {
-		set_cdda_status(CDDA_OFF);
 		return false; // SEEK ERROR;
 	}
 	if(!(toc_table[current_track].is_audio)) {
 		// NOT AUDIO
-		set_cdda_status(CDDA_OFF);
 		return false; //;
 	}
 
 	cdda_playing_frame = cdda_start_frame;
 
 	seek_relative_frame_in_image(cdda_playing_frame);
-	set_cdda_status(CDDA_PLAYING);
 	remain_sectors_in_buffer = prefetch_audio_sectors();
+	if(remain_sectors_in_buffer < 1) {
+		return false; // READ ERROR
+	}
+	set_cdda_status(CDDA_PLAYING);
 	touch_sound();
 	set_realtime_render(true);
 	set_subq(cdda_playing_frame);
-	if(remain_sectors_in_buffer < 1) {
-		set_cdda_status(CDDA_OFF);
-		return false; // READ ERROR
-	}
 	return true;
 }
 
@@ -1927,64 +1931,33 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		break;
 	case EVENT_CDDA_DELAY_PLAY: // DELAY STARTING TO PLAY CDDA
 		event_cdda_delay_play = -1;
-		if(cdda_start_frame <= cdda_end_frame) {
-			start_to_play_cdda();
+		if(start_to_play_cdda()) {
 			/*!
 			 * @note This may solve halt incident of Kyukyoku Tiger, but something are wrong.
 			 * @note 20201113 K.O
 			 */
-			data_in = false;
-			set_status_immediate(req_status, false, 1,
+			/*
+			set_status_immediate(req_status, stat_reply_intr, 1,
 								 STATUS_ACCEPT,
 								 ACCEPT_CDDA_PLAYING, 0, 0);
+			*/
+			set_status_cddareply(false, 1, 0x00, 0x00);
 		} else {
-			// Todo: CDDA Reply when wrong parameters.
-			data_in = false;
-			set_cdda_status(CDDA_STOPPING);
-			set_status_immediate(req_status, false, 1,
-								 STATUS_ACCEPT,
-								 ACCEPT_WAIT, 0, 0); // OK?
+			if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED)) {
+				set_cdda_status(CDDA_STOPPING);
+			}
+			set_status_cddareply(false, 0, 0x00, 0x00); // OK?
 		}
 		break;
 	case EVENT_CDDA_REPEAT: // DELAY STARTING TO PLAY CDDA
 		event_cdda_delay_play = -1;
-		clear_event(this, event_cdda);
-		if(cdda_status != CDDA_PLAYING) {
-			return;
-		}
-		{
-			cdda_buffer_ptr = 0;
-			access = false;
-			int track = get_track(cdda_start_frame);
-			if((track > 0) && (track < track_num)) {
-				cdda_playing_frame = cdda_start_frame;
-				current_track = track;
-				// ToDo: Re Seek.
-				seek_relative_frame_in_image(cdda_playing_frame);
-				cdda_stopped = false;
-				data_in = false;
-				if(event_cdda < 0) {
-					register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
-				}
-				set_subq(cdda_playing_frame);
-				remain_sectors_in_buffer = prefetch_audio_sectors();
-				if(remain_sectors_in_buffer >= 1) {
-					touch_sound();
-					set_realtime_render(true);
-					const _TCHAR *pp = get_cdda_status_name(cdda_status);
-					cdrom_debug_log(_T("REPEAT CDDA from %s.\n"), pp);
-					return;
-				}
+		if(start_to_play_cdda()) {
+			cdrom_debug_log(_T("REPEAT CDDA track %d."), current_track);
+		} else {
+			cdrom_debug_log(_T("REPEAT CDDA FAILED."));
+			if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED)) {
+				set_cdda_status(CDDA_STOPPING);
 			}
-			// ERROR
-			current_track = get_track(0);
-			cdda_playing_frame = 0;
-			read_sector = 0;
-			cdda_start_frame = 0;
-			cdda_end_frame = 0;
-			cdda_stopped = true;
-			data_in = false;
-			set_cdda_status(CDDA_ENDED);
 		}
 		break;
 	case EVENT_CDDA_PLAY_STATUS: // READY TO ACCEPT A COMMAND FROM CDC.
@@ -2520,10 +2493,7 @@ void TOWNS_CDROM::read_a_cdda_sample()
 			}
 		}
 		if(force_seek) {
-			double usec = get_seek_time(cdda_start_frame);
-			if(usec < 10.0) usec = 10.0;
-			force_register_event(this, EVENT_CDDA_REPEAT, usec, false, event_cdda_delay_play);
-			status_seek = true;
+			set_cdda_status(CDDA_SEEK_TO_REPEAT);
 			return;
 		}
 		remain_sectors_in_buffer--;
@@ -2621,11 +2591,14 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			} else {
 				cdda_stopped = false;
 			}
-			if((event_cdda < 0) && !(cdda_stopped)) {
-				register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
-			}
 			touch_sound();
-			set_realtime_render(true);
+			clear_event(this, event_cdda);
+			if(!(cdda_stopped)) {
+				register_event(this, EVENT_CDDA, 1.0e6 / 44100.0, true, &event_cdda);
+				set_realtime_render(true);
+			} else {
+				set_realtime_render(false);
+			}
 		}
 		break;
 	case CDDA_STOPPING: // Stop by reaching to the end of track.
@@ -2667,6 +2640,20 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			//seek_relative_frame_in_image(read_sector); // OK?
 			cdda_stopped = true;
 			set_realtime_render(false);
+		}
+		break;
+	case CDDA_SEEK_TO_REPEAT:
+		clear_event(this, event_cdda);
+		if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED)) { // OK?
+			//if((event_cdda_delay_stop >= 0) || (cdda_status == CDDA_OFF)) { // Now Stopping sequence.
+			//	break;
+			//}
+			cdda_status = CDDA_SEEK_TO_REPEAT;
+			double usec = get_seek_time(cdda_start_frame);
+			if(usec < 10.0) usec = 10.0;
+			force_register_event(this, EVENT_CDDA_REPEAT, usec, false, event_cdda_delay_play);
+			status_seek = true;
+			// ToDo: Check whether make intrrupt or reply.
 		}
 		break;
 	default:
@@ -2949,7 +2936,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			int track_tmp_e = get_track_noop(end_tmp);
 			// Workaround for Puyo Puyo, Interval stage.
 			if((track_tmp_s != current_track) || (track_tmp_e != current_track)) {
-				set_cdda_status(CDDA_ENDED);
+				set_cdda_status(CDDA_STOPPING);
 				if(!(toc_table[track_tmp_s].is_audio)) {
 					// If target LBA is not CDDA, reject command.
 					set_status_cddareply(false, 1, 0x00, 0x00);

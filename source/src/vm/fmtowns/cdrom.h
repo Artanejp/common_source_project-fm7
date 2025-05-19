@@ -559,8 +559,8 @@ protected:
 		write_signals(&outputs_pic, (val) ? 0xffffffff : 0x00000000);
 	}
 	void cdrom_debug_log(const char *fmt, ...);
-	virtual const _TCHAR* __FASTCALL get_cdda_status_name(int _status);
-	virtual const _TCHAR* __FASTCALL get_command_name_from_command(uint8_t cmd);
+	virtual const _TCHAR* __FASTCALL get_cdda_status_name(const int _status);
+	virtual const _TCHAR* __FASTCALL get_command_name_from_command(const uint8_t cmd);
 
 	inline void fetch_datareg_8()
 	{
