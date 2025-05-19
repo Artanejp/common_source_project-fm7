@@ -202,6 +202,8 @@ protected:
 	int event_cdda;
 	int event_cdda_delay_play;
 	int event_cdda_delay_stop;
+	int event_cd_data_delay_read;
+	
 	int event_delay_interrupt;
 	int event_delay_ready;
 	int event_halt;

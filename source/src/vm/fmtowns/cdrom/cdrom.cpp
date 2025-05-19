@@ -56,6 +56,7 @@
 #define EVENT_READ_PRE_SEEK					120
 #define EVENT_CDDA_END_OF_TRACK				121
 #define EVENT_CDDA_OFF						122
+#define EVENT_STOP_CDDA_TO_READ				123
 
 #define EVENT_DELAY_COMMAND					128
 #define EVENT_DELAY_READY_FORCEINT			129
@@ -153,6 +154,8 @@ void TOWNS_CDROM::initialize()
 	event_execute = -1;
 	event_cdda = -1;
 	event_cdda_delay_play = -1;
+	event_cd_data_delay_read = -1;
+	
 	event_delay_interrupt = -1;
 	event_drq = -1;
 
@@ -283,6 +286,8 @@ void TOWNS_CDROM::reset_device()
 	clear_event(this, event_cdda);
 	clear_event(this, event_cdda_delay_play);
 	clear_event(this, event_cdda_delay_stop);
+	clear_event(this, event_cd_data_delay_read);
+	
 	clear_event(this, event_delay_interrupt);
 	clear_event(this, event_next_sector);
 
@@ -1237,19 +1242,27 @@ void TOWNS_CDROM::write_dma_io16w(uint32_t addr, uint32_t data, int *wait)
 
 void TOWNS_CDROM::read_cdrom()
 {
-	if((cdda_status != CDDA_OFF) && (cdda_status != CDDA_ENDED)) {
-		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
-		// @note 20201110 K.O
-		set_cdda_status(CDDA_ENDED);
-	} else {
-		set_cdda_status(CDDA_OFF);
-	}
 	if(status_media_changed_or_not_ready(false)) {
 		set_subq(0);
 		return;
 	}
-
-	uint8_t m1, s1, f1;
+	// Polling if CDDA has used.
+	if(cdda_status != CDDA_OFF) {
+		// @note In SUPER REAL MAHJONG PIV, use PAUSE (A5h) command before reading.
+		// @note 20201110 K.O
+		if(event_cd_data_delay_read < 0) {
+			register_event(this, EVENT_STOP_CDDA_TO_READ, (1.0e6 / (75.0 * (double)physical_block_size())) * 50.0 , true, &event_cd_data_delay_read);
+		}
+		if((cdda_status != CDDA_STOPPING) && (cdda_status != CDDA_ENDED)) {
+			set_cdda_status(CDDA_STOPPING);
+		} else if(cdda_status == CDDA_ENDED) {
+			set_cdda_status(CDDA_OFF);
+		}
+		return;
+	}
+	clear_event(this, event_cd_data_delay_read);
+	
+ 	uint8_t m1, s1, f1;
 	uint8_t m2, s2, f2;
 //	uint8_t pad1, dcmd;
 
@@ -1982,6 +1995,9 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		event_cdda_delay_stop = -1;
 		data_in = false;
 		set_cdda_status(CDDA_OFF);
+		break;
+	case EVENT_STOP_CDDA_TO_READ:
+		read_cdrom();
 		break;
 	case EVENT_RESTORE: // Restore to LBA 0.
 		// Seek0
@@ -3608,7 +3624,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	67
+#define STATE_VERSION	68
 
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
@@ -3785,6 +3801,8 @@ bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(event_seek);
 	state_fio->StateValue(event_cdda);
 	state_fio->StateValue(event_cdda_delay_play);
+	state_fio->StateValue(event_cd_data_delay_read);
+	
 	state_fio->StateValue(event_delay_interrupt);
 	state_fio->StateValue(event_drq);
 	state_fio->StateValue(event_next_sector);
