@@ -1016,7 +1016,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		}
 		break;
 	case COMMAND_SET_STATE: // 80h
-		set_state_cmd(true);
+		set_state_cmd(false);
 		break;
 	case COMMAND_SET_CDDASET: // 81h
 		cdrom_debug_log(_T("%s(%02X)"), get_command_name_from_command(command), command);
@@ -1413,38 +1413,26 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 					exec_params[7]
 		);
 	uint8_t __s1 = STATUS_ACCEPT;
-	uint8_t __s2 = ACCEPT_DATA_TRACK;
+	uint8_t __s2 = (toc_table[current_track].is_audio) ? ACCEPT_NOERROR : ACCEPT_DATA_TRACK;
 	switch(cdda_status) {
 	case CDDA_PLAYING:
-		if(toc_table[current_track].is_audio) {
-			__s2 = ACCEPT_CDDA_PLAYING;
-		}
+	case CDDA_STOPPING:
+		__s2 = ACCEPT_CDDA_PLAYING;
 		break;
 	case CDDA_PAUSED:
-		if(toc_table[current_track].is_audio) {
-			__s2 = ACCEPT_CDDA_PAUSED;
-		}
+		__s2 = ACCEPT_CDDA_PAUSED;
 		break;
 	default:
-		//if(exec_params[0] == 0x04) {
-		//	__s2 = ACCEPT_04H_FOR_CMD_A0H;
-		//} else if(exec_params[0] == 0x08) {
-		//	__s2 = ACCEPT_08H_FOR_CMD_A0H;
-		//}
 		break;
 	}
 	switch(prev_command & 0x9f) {
 	case COMMAND_PLAY_TRACK:
 		/// @note RANCEIII (and maybe others) need reply to accept cdda_play_command.
 		/// @note 20201110 K.O
-		if(cdda_status == CDDA_PLAYING) {
+		if((cdda_status == CDDA_PLAYING)  && !(cdda_stopped)) {
 			__s1 = STATUS_PLAY_DONE;
 			prev_command = latest_command;
 		}
-		/*if(cdda_status == CDDA_ENDED) {
-			__s2 = ACCEPT_NOERROR; // OK?
-			prev_command = latest_command;
-		}*/
 		break;
 	case COMMAND_PAUSE_CDDA:
 		if((cdda_status == CDDA_PAUSED) && (cdda_stopped)) {
@@ -1453,7 +1441,7 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 		}
 		break;
 	case COMMAND_RESUME_CDDA:
-		if(cdda_status == CDDA_PLAYING) {
+		if((cdda_status == CDDA_PLAYING) && !(cdda_stopped)) {
 			__s1 = STATUS_RESUME_DONE;
 			prev_command = latest_command;
 		}
@@ -1461,19 +1449,15 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 	case COMMAND_STOP_CDDA:
 		// @note In SUPER REAL MAHJONG PIV, maybe check below.
 		// @note 20201110 K.O
-		if(cdda_status == CDDA_ENDED) {
+		if(cdda_status == CDDA_STOPPING) {
 			__s2 = ACCEPT_WAIT; // OK?
-		} else if(cdda_status == CDDA_OFF) {
+		} else if(cdda_status == CDDA_ENDED) {	
 			__s1 = STATUS_STOP_DONE; // OK?
 			//__s2 = ACCEPT_WAIT; // OK?
 			prev_command = latest_command;
 		}
 		break;
 	default:
-		// @note In SUPER REAL MAHJONG PIV, maybe check below.
-		// @note 20201110 K.O
-		//if((latest_command & 0x9f) != COMMAND_SET_STATE) { 
-		//}
 		break;
 	}
 	if(cdda_status == CDDA_ENDED) {
@@ -1492,8 +1476,12 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 		// 07 00 00 00 status after CDDA is done, but I cannot find it
 		//
 		// Maybe subsequent to CDDA Stop command?
+		//if(!(cdda_stopped)) {
+		//	__s1 = STATUS_PLAY_DONE;
+		//}
 		set_cdda_status(CDDA_OFF);
 	}
+
 	if(req_status) {
 		// ToDo: Check Seeking.
 		clear_status_queue(true);
@@ -2629,7 +2617,6 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		break;
 	case CDDA_ENDED:
 		clear_event(this, event_cdda);
-		cdda_stopped = true;
 		if((cdda_status != CDDA_ENDED) && (cdda_status != CDDA_OFF)) {
 			clear_event(this, event_cdda_delay_stop);
 			register_event(this, EVENT_CDDA_OFF, 1.0e6 / 75.0, false, &event_cdda_delay_stop);
@@ -2660,7 +2647,7 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 		break;
 	case CDDA_SEEK_TO_REPEAT:
 		clear_event(this, event_cdda);
-		if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED)) { // OK?
+		if((cdda_status != CDDA_SEEK_TO_REPEAT) && (cdda_status != CDDA_OFF)) { // OK?
 			//if((event_cdda_delay_stop >= 0) || (cdda_status == CDDA_OFF)) { // Now Stopping sequence.
 			//	break;
 			//}
@@ -2669,6 +2656,8 @@ void TOWNS_CDROM::set_cdda_status(uint8_t status)
 			if(usec < 10.0) usec = 10.0;
 			force_register_event(this, EVENT_CDDA_REPEAT, usec, false, event_cdda_delay_play);
 			status_seek = true;
+			cdda_stopped = true;
+			set_realtime_render(false);
 			// ToDo: Check whether make intrrupt or reply.
 		}
 		break;
