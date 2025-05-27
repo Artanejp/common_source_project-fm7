@@ -800,12 +800,13 @@ void TOWNS_CRTC::event_frame()
 
 void TOWNS_CRTC::event_vline(int v, int clock)
 {
-	__UNLIKELY_IF((v < 0)) {
+	__UNLIKELY_IF((v < 0) || (lines_per_frame <= 0)) {
 		for(int i = 0; i < 2; i++) {
 			frame_in[i] = false;
 		}
 		hsync = false;
 		reset_vsync();
+		display_linebuf = render_linebuf.load() & display_linebuf_mask;
 		return;
 	}
 	clear_event(this, event_hsync);
@@ -899,6 +900,9 @@ void TOWNS_CRTC::event_vline(int v, int clock)
 		register_event(this, EVENT_HSYNC_OFF, usec, false, &event_hsync);
 	} else {
 		hsync = false;
+	}
+	if((v + 1) == lines_per_frame) {
+		display_linebuf = render_linebuf.load() & display_linebuf_mask;
 	}
 }
 
