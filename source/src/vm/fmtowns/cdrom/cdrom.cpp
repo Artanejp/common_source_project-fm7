@@ -695,7 +695,7 @@ void TOWNS_CDROM::status_data_ready(const bool force_interrupt)
 void TOWNS_CDROM::status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3)
 {
 	cdrom_debug_log(_T("Error on reading (ILLGLBLKADDR): EXTRA=%d s1=%02X s2=%02X s3=%02X LBA=%d\n"), extra, s1, s2, s3, read_sector);
-	set_status(req_status, extra, STATUS_CMD_ABEND, s1, s2, s3, false);
+	set_status(req_status, false, extra, STATUS_CMD_ABEND, s1, s2, s3);
 }
 
 void TOWNS_CDROM::status_accept(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt)
@@ -926,7 +926,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 
 //	if(!(is_device_ready()) && ((command & 0xb0) != 0xa0)) { // From MAME 0.254 20230530 K.O
 //		command_execute_phase = false;
-//		set_status(req_status, 0, STATUS_DISC_NOT_READY, 0, 0, 0, false);
+//		set_status(req_status, false, 0, STATUS_DISC_NOT_READY, 0, 0, 0);
 //		stop_time_out();
 //		return;
 //	}
@@ -994,7 +994,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 			//status_accept(1, 0x00, 0x00, true, false);
 			status_accept(1, 0x00, 0x00, false, false); // OK?
 		} else {
-			set_status(true, 2, STATUS_TOC_ADDR, 0, 0xa0, 0, false);
+			set_status(true, false, 2, STATUS_TOC_ADDR, 0, 0xa0, 0);
 		}
 		// TOC READING
 		break;
@@ -1004,7 +1004,7 @@ void TOWNS_CDROM::execute_command(uint8_t command)
 		// Note: This command don't care req_status. - 20250430 K.O
 		cdrom_debug_log(_T("CMD READ CDDA STATE(%02X)"), command);
 		memcpy(subq_snapshot, subq_bytes, sizeof(subq_snapshot));
-		set_status(true, 1, STATUS_ACCEPT, ACCEPT_NOERROR, 0x00, 0x00, false);
+		set_status(true, false, 1, STATUS_ACCEPT, ACCEPT_NOERROR, 0x00, 0x00);
 		break;
 	case COMMAND_1Fh:
 		req_off_execute_phase = true;
@@ -1330,7 +1330,7 @@ void TOWNS_CDROM::read_cdrom()
 }
 
 
-void TOWNS_CDROM::set_status(const bool push_status, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool force_interrupt)
+void TOWNS_CDROM::set_status(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3)
 {
 	cdrom_debug_log(_T("SET STATUS: %02X %02X %02X %02X, EXTRA=%d REQ_STATUS=%s"),
 					s0, s1, s2, s3,
@@ -1491,7 +1491,7 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 		if(!(is_delay)) {
 			set_status_immediate(true, false, 0, __s1, __s2, 0x00, 0x00);
 		} else {
-			set_status(true, 0, __s1, __s2, 0x00, 0x00, false);
+			set_status(true, false, 0, __s1, __s2, 0x00, 0x00);
 		}
 	} else {
 		if(is_delay) {
@@ -2017,7 +2017,7 @@ void TOWNS_CDROM::event_callback(int event_id, int err)
 		stop_time_out();
 		cdrom_debug_log(_T("SEEK COMPLETED to SECTOR %d"), next_seek_lba);
 		req_off_execute_phase = true;
-		set_status(req_status, 1, STATUS_ACCEPT, 0x00, 0x00, 0x00, true);
+		set_status(req_status, true, 1, STATUS_ACCEPT, 0x00, 0x00, 0x00);
 		mcu_ready = true;
 		break;
 	case EVENT_TIMEOUT:  // CDC TIMEOUT (mostly READ BUFFER OVERRUN)
