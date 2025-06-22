@@ -88,6 +88,7 @@ void TOWNS_CRTC::transfer_line(int layer, int line)
 	//!   and FMR's address offset register effects every display mode at page0
 	//! - -- 20230715 K.O
 	uint32_t page_offset;
+
 	if(l == 0) {
 		page_offset = ((r50_pagesel != 0) ? 0x20000 : 0);
 	} else {
