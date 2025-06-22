@@ -268,6 +268,13 @@ protected:
 		}
 		return false;
 	}
+	inline bool is_audio_track(const int _trk)
+	{
+		if(!(check_invalid_track(_trk))) {
+			return toc_table[_trk].is_audio_track;
+		}
+		return false;
+	}
 	virtual int64_t get_logical_size_from_mode(CDROM_MODE_t type)
 	{
 		switch(type) {
