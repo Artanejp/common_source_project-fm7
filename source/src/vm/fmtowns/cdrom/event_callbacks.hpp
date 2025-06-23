@@ -71,17 +71,15 @@ _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_interrupt(const bool _set
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_eot(const bool is_dma, const bool forceint)
 {
 	event_delay_ready = -1;
+	stop_time_out();
+	dma_transfer = false;
+	pio_transfer = false;
+	status_seek = false;
 	if(is_dma) {
-		stop_time_out();
-		dma_transfer = false;
-		pio_transfer = false;
-		status_seek = false;
 		write_signals(&outputs_eot, 0xffffffff);
-		status_read_done(forceint);
-	} else {
-		media_changed = false; // OK?
-		media_ejected = false; // OK?
-		pio_transfer_epilogue();
 	}
+	media_changed = false; // OK?
+	media_ejected = false; // OK?
+	status_read_done(forceint);
 }
 //}

@@ -26,8 +26,6 @@
 #define SIG_TOWNS_CDROM_IS_MEDIA_INSERTED	0x12
 #define SIG_TOWNS_CDROM_REACHED_MAX_TRACK	0x13
 #define SIG_TOWNS_CDROM_CURRENT_TRACK		0x14
-#define SIG_TOWNS_CDROM_START_MSF			0x15
-#define SIG_TOWNS_CDROM_START_MSF_AA		0x16
 #define SIG_TOWNS_CDROM_GET_ADR				0x17
 #define SIG_TOWNS_CDROM_SET_STAT_TRACK		0x18
 #define SIG_TOWNS_CDROM_RELATIVE_MSF		0x20
@@ -153,7 +151,9 @@ protected:
 	CDROM_TOC_TABLE_t toc_table[101];
 	std::string track_data_path[101];
 	std::string track_data_type[101];
-	
+
+	int track_num_bak;
+	CDROM_TOC_TABLE_t toc_table_bak[101]; // for command TOC_READ (05h)
 	_TCHAR img_file_path_bak[_MAX_PATH];
 
 	uint32_t cdda_start_frame;
@@ -369,12 +369,17 @@ protected:
 
 	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
+	void __FASTCALL status_accept_even_not_req_status(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 
-	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_illegal_lba(uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready(const bool force_interrupt);
 	void set_delay_ready_eot(const bool force_interrupt);
-
-	uint32_t cdrom_get_adr(int trk);
+	void interrupt_with_status(const bool force);
+	void abort_mcu_by_req_off_execute();
+	
+	pair32_t cdrom_get_size_by_msf();
+	pair32_t __FASTCALL cdrom_get_start_by_msf(int trk);
+	uint8_t  __FASTCALL cdrom_get_adr(int trk);
 
 	void __FASTCALL set_dma_intr(bool val);
 	void __FASTCALL set_mcu_intr(bool val);
@@ -412,8 +417,8 @@ protected:
 	virtual void get_track_by_track_num(int track);
 	virtual uint32_t get_image_cur_position();
 
-	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
-	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
+	pair32_t __FASTCALL lba_to_msf(uint32_t lba);
+	pair32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
 	int __FASTCALL get_frames_from_msf(const char *s);
 	int64_t __FASTCALL hexatoi(const char *s);
 	int64_t __FASTCALL string_to_numeric(std::string s);
