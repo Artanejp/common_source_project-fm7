@@ -268,12 +268,16 @@ protected:
 		}
 		return false;
 	}
-	inline bool is_audio_track(const int _trk)
+	inline bool is_audio_track(CDROM_TOC_TABLE_t _tbl[], const int _trk)
 	{
 		if(!(check_invalid_track(_trk))) {
-			return toc_table[_trk].is_audio_track;
+			return _tbl[_trk].is_audio;
 		}
 		return false;
+	}
+	inline bool is_audio_track(const int _trk)
+	{
+		return is_audio_track(toc_table, _trk);
 	}
 	virtual int64_t get_logical_size_from_mode(CDROM_MODE_t type)
 	{
@@ -360,7 +364,7 @@ protected:
 	void __FASTCALL set_status(const bool push_status,  const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void __FASTCALL set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	
-	void __FASTCALL set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool is_immediate, const bool force_interrupt);
+	void __FASTCALL set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void  __FASTCALL set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
 	void  __FASTCALL set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
 

@@ -701,7 +701,7 @@ void TOWNS_CDROM::status_accept_even_not_req_status(int extra, uint8_t s2, uint8
 		if(immediate_interrupt) {
 			if((force_interrupt) || (stat_reply_intr)) {
 				mcu_intr = true;
-				write_mcu_signals(true);
+				write_mcuint_signals(true);
 			}
 		} else {
 			set_delay_ready(force_interrupt);
@@ -1100,13 +1100,13 @@ void TOWNS_CDROM::set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, ui
 
 void TOWNS_CDROM::set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	set_extra_status_values(STATUS_TOC_ADDR, s1, s2, s3, false, false); // OK?
+	set_extra_status_values(STATUS_TOC_ADDR, s1, s2, s3); // OK?
 	extra_status++;
 }
 
 void TOWNS_CDROM::set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3)
 {
-	set_extra_status_values(STATUS_TOC_DATA, s1, s2, s3, false, false); // OK?
+	set_extra_status_values(STATUS_TOC_DATA, s1, s2, s3); // OK?
 	extra_status++;
 }
 
@@ -3298,7 +3298,7 @@ void TOWNS_CDROM::open_from_cmd(const _TCHAR* file_path)
 								i,
 								idx0_msf.b.h2, idx0_msf.b.h, idx0_msf.b.l,
 								idx1_msf.b.h2, idx1_msf.b.h, idx1_msf.b.l,
-								pgap_msf.b.h2, pgap_msf.b.h, pgap_msf.b.l,
+								pgap_msf.b.h2, pgap_msf.b.h, pgap_msf.b.l);
 			}
 		}
 	}
