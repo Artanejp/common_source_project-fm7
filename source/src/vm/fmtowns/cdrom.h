@@ -11,6 +11,7 @@
 #include "../../common.h"
 #include "../device.h"
 #include <regex>
+#include <queue>
 
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
@@ -125,8 +126,8 @@ protected:
 	uint32_t fifo_multiply;
 
 	size_t datacount;
-	size_t readptr;
-	size_t writeptr;
+	uint32_t readptr;
+	uint32_t writeptr;
 
 	uint16_t cpu_id;
 	uint16_t machine_id;
@@ -224,6 +225,14 @@ protected:
 	int offset_volume_l;
 	int offset_volume_r;
 
+	typedef struct sector_data_pos_t {
+		uint32_t bufptr;
+		uint32_t dataptr;
+		size_t   logical_length;
+	} sector_data_pos_t;
+	
+	std::queue<sector_data_pos_t> sector_dat_pos;
+	
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
@@ -261,6 +270,22 @@ protected:
 	void reset_device();
 
 	// ToDo: RAW.
+	inline bool get_next_sector_attr(uint32_t& next_head, uint32_t& next_data, size_t& next_data_length)
+	{
+		if(!(sector_dat_pos.empty())) {
+			sector_data_pos_t __tmpparam;
+			__tmpparam = sector_dat_pos.front();
+			sector_dat_pos.pop();
+			next_head = __tmpparam.bufptr;
+			next_data = __tmpparam.dataptr;
+			next_data_length = __tmpparam.logical_length;
+			return true;
+		} else {
+			next_data_length = 0; // Reset to 0,
+			return false;
+		}
+	}
+		
 	inline bool check_invalid_track(const int _trk)
 	{
 		if((_trk <= 0) || (_trk >= track_num) || (_trk >= 100)) {
@@ -465,6 +490,9 @@ protected:
 	}
 	inline size_t buffer_left()
 	{
+		__UNLIKELY_IF(datacount <= 0) {
+			return fifo_length;
+		}
 		__UNLIKELY_IF(datacount >= fifo_length) {
 			return 0;
 		}
@@ -533,7 +561,7 @@ protected:
 	{
 		val_l.w = 0x00;
 		val_r.w = 0x00;
-		__UNLIKELY_IF((databuffer == NULL) || (datacount == 0)) {
+		__UNLIKELY_IF((databuffer == NULL) || (datacount <= 0)) {
 			datacount = 0;
 			return false;
 		}
@@ -565,6 +593,9 @@ protected:
 		datacount = 0;
 		readptr = 0;
 		writeptr = 0;
+		while(!(sector_dat_pos.empty())) {
+			sector_dat_pos.pop();
+		}
 		__UNLIKELY_IF(databuffer == NULL) {
 			return;
 		}

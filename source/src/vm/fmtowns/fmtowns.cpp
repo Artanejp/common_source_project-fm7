@@ -401,7 +401,8 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 	extra_dma->set_dmac_clock(16.0e6, 8);
 
 	//dma->set_context_tc1(scsi, SIG_SCSI_EOT, 0xffffffff);
-	dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
+	// 20250702 DMAC.TC3 don't notify itself to CDC? - K.O
+	//dma->set_context_tc3(cdrom, SIG_TOWNS_CDROM_DMAINT, 0xffffffff);
 
 	dma->set_context_ube(1, scsi_host, SIG_SCSI_16BIT_BUS, 0x02);
 	//dma->set_context_ack(1, scsi_host, SIG_SCSI_ACK, 0xffffffff);
