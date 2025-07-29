@@ -24,10 +24,11 @@ _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_ready(const bool forceint
 	stop_time_out();
 	media_changed = false;
 	media_ejected = false;
-	if((req_off_execute_phase) || (extra_status <= 0)) {
+	if(req_off_execute_phase) {
 		command_execute_phase = false;
 		req_off_execute_phase = false;
 	}
+	has_status = !(status_queue.isEmpty());
 
 	if(forceint) {
 		mcu_ready = true;
@@ -44,10 +45,11 @@ inline void TOWNS_CDROM::event_callback_not_ready(const bool forceint)
 	stop_time_out();
 	media_changed = false;
 	media_ejected = false;
-	//if((req_off_execute_phase) || (extra_status <= 0)) {
+
 	command_execute_phase = false;
 	req_off_execute_phase = false;
-	//}
+	has_status = !(status_queue.isEmpty());
+
 	bool kick_intr = ((stat_reply_intr) || (forceint));
 	mcu_ready = true;
 	if(kick_intr) {
@@ -58,6 +60,7 @@ inline void TOWNS_CDROM::event_callback_not_ready(const bool forceint)
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_interrupt(const bool _set_mcu_ready, const bool interrupt_on)
 {
 	event_delay_interrupt = -1;
+	has_status = !(status_queue.isEmpty());
 	if(_set_mcu_ready) {
 		mcu_ready = true;
 	}

@@ -91,6 +91,86 @@ typedef struct CDROM_TOC_TABLE_t {
 		- 2023-12-19 K.Ohta .
 */
 /*class TOWNS_CDROM : public SCSI_CDROM */
+
+class CDROM_STATUS_QUEUE {
+private:
+	size_t queue_size;
+
+	size_t start_pos;
+	size_t read_pos;
+	uint8_t local_position;
+	
+	size_t data_count;
+	
+	std::valarray<uint8_t> buffer;
+public:
+	CDROM_STATUS_QUEUE()
+	{
+		queue_size = 0;
+		reset();
+	}
+	~CDROM_STATUS_QUEUE() {}
+	
+	void initialize(const size_t lines)
+	{
+		if(lines == 0) return;
+		buffer = std::valarray<uint8_t>(lines * 4);
+		queue_size = lines;
+		reset();
+	}
+	inline uint8_t local_pos()
+	{
+		return local_position & 3;
+	}
+	inline size_t size()
+	{
+		return queue_size;
+	}
+	inline size_t count()
+	{
+		return data_count;
+	}
+	inline size_t left()
+	{
+		__UNLIKELY_IF(data_count >= queue_size) {
+			return 0;
+		}
+		return (queue_size - data_count);
+	}
+	
+	inline bool isEmpty()
+	{
+		__UNLIKELY_IF(size() == 0) {
+			return true;
+		}
+		if(count() == 0) {
+			return true;
+		}
+		return false;
+	}
+	inline bool isFull()
+	{
+		__UNLIKELY_IF(left() == 0) {
+			return true;
+		}
+		__UNLIKELY_IF((left() == 1) && (local_pos() != 0)) {
+			return true;
+		}
+		return false;
+	}
+	inline void reset()
+	{
+		local_position = 0;
+		data_count = 0;
+		start_pos = 0;
+		read_pos = 0;
+	}
+	void push(uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3);
+	uint8_t pop();
+	uint8_t read_not_remove(size_t offset, size_t col);
+	bool process_state(FILEIO* fp, bool loading);
+};
+	
 class TOWNS_CDROM: public DEVICE {
 protected:
 	enum {
@@ -110,7 +190,9 @@ protected:
 	outputs_t outputs_pic;
 
 	FILEIO* fio_img;
-	FIFO* status_queue;
+
+	int extra_status;
+	CDROM_STATUS_QUEUE status_queue;
 
 	uint8_t *databuffer;  // With FIFO
 	enum {
@@ -183,8 +265,9 @@ protected:
 	bool stat_reply_intr;
 	bool dma_transfer_phase;
 	bool pio_transfer_phase;
-	bool mcu_ready;
 	bool has_status;
+	bool mcu_ready;
+
 	bool dmac_running;
 
 
@@ -257,8 +340,6 @@ protected:
 	uint32_t read_lba;
 
 	bool cdrom_prefetch;
-
-	int extra_status;
 	
 	void play_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
@@ -351,9 +432,9 @@ protected:
 	virtual void read_a_cdda_sample();
 
 	void send_mcu_ready();
-	virtual void set_extra_status();
+	virtual int set_extra_status(int extra_status);
 
-	void __FASTCALL clear_status_queue(const bool is_clear_extra);
+	void __FASTCALL clear_status_queue();
 	void __FASTCALL push_status_queue(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 
 	virtual int __FASTCALL check_cdda_track_boundary(uint32_t frame_no);
@@ -390,8 +471,8 @@ protected:
 	void __FASTCALL set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	
 	void __FASTCALL set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void  __FASTCALL set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
-	void  __FASTCALL set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
+	void  __FASTCALL set_status_extra_toc_addr(int& extra_status, uint8_t s1, uint8_t s2, uint8_t s3);
+	void  __FASTCALL set_status_extra_toc_data(int& extra_status, uint8_t s1, uint8_t s2, uint8_t s3);
 
 	void __FASTCALL status_accept2(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
 	void __FASTCALL status_accept3(int extra, uint8_t s2, uint8_t s3);
@@ -647,7 +728,6 @@ public:
 		max_logical_block = 0;
 		access = false;
 		databuffer = NULL;
-		status_queue = NULL;
 		param_queue = NULL;
 		_decibel_l = 0;
 		_decibel_r = 0;
