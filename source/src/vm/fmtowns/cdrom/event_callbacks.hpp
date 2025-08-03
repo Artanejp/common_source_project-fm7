@@ -29,13 +29,10 @@ _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_ready(const bool forceint
 		req_off_execute_phase = false;
 	}
 	has_status = !(status_queue.isEmpty());
-
-	if(forceint) {
-		mcu_ready = true;
+	bool is_intr = ((forceint) || ((req_status) && (stat_reply_intr)));
+	mcu_ready = true;
+	if(is_intr) {
 		set_mcu_intr(true);
-		//stat_reply_intr = false;
-	} else {
-		send_mcu_ready(); // OK? 20230127 K.O
 	}
 }
 
@@ -48,11 +45,11 @@ inline void TOWNS_CDROM::event_callback_not_ready(const bool forceint)
 
 	command_execute_phase = false;
 	req_off_execute_phase = false;
-	has_status = !(status_queue.isEmpty());
 
-	bool kick_intr = ((stat_reply_intr) || (forceint));
+	has_status = !(status_queue.isEmpty());
+	bool is_intr = ((forceint) || ((req_status) && (stat_reply_intr)));
 	mcu_ready = true;
-	if(kick_intr) {
+	if(is_intr) {
 		set_mcu_intr(true);
 	}
 }
