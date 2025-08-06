@@ -465,7 +465,7 @@ protected:
 	void __FASTCALL status_data_ready(const bool force_interrupt);
 
 	void __FASTCALL set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
-	inline void __FASTCALL end_of_command(const bool send_ready, const bool send_interrupt, const  bool force_stop_execute const bool unmasked_interrupt = false);
+	inline void __FASTCALL end_of_command(const bool send_ready, const bool send_interrupt, const  bool force_stop_execute, const bool unmasked_interrupt = false);
 	
 	void __FASTCALL set_status(const bool push_status,  const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void __FASTCALL set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);

@@ -21,6 +21,10 @@
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_ready(const bool forceint)
 {
 	event_delay_ready = -1;
+	if((req_off_execute_phase) || (extra_status <= 0)) {
+		command_execute_phase = false;
+		req_off_execute_phase = false;
+	}
 	stop_time_out();
 	media_changed = false;
 	media_ejected = false;
@@ -46,12 +50,7 @@ _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_interrupt(const bool _set
 	if(_set_mcu_ready) {
 		mcu_ready = true;
 	}
-	if(interrupt_on) {
-		set_mcu_intr(true);
-	} else {
-		mcu_intr = false;
-		write_mcuint_signals(false);
-	}
+	set_mcu_intr(interrupt_on);
 }
 
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_eot(const bool is_dma, const bool forceint)
@@ -62,6 +61,20 @@ _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_eot(const bool is_dma, const bo
 	status_seek = false;
 	media_changed = false; // OK?
 	media_ejected = false; // OK?
-	status_read_done(forceint);
+
+	stop_time_out();
+	mcu_ready = true;
+	command_execute_phase = false;
+	req_off_execute_phase = false;
+	if(!(is_dma)) {
+		pio_transfer_epilogue();
+	} else {
+		if(req_status) {
+			mcu_intr = true;
+			if((stat_reply_intr) || (forceint)) {
+				set_mcu_intr(true);
+			}
+		}
+	}
 }
 //}
