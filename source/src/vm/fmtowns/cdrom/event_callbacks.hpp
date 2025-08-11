@@ -63,18 +63,11 @@ _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_eot(const bool is_dma, const bo
 	media_ejected = false; // OK?
 
 	stop_time_out();
-	mcu_ready = true;
-	command_execute_phase = false;
-	req_off_execute_phase = false;
-	if(!(is_dma)) {
-		pio_transfer_epilogue();
+	if(is_dma) {
+		write_signals(&outputs_eot, 0xffffffff);
+		status_read_done(forceint);
 	} else {
-		if(req_status) {
-			mcu_intr = true;
-			if((stat_reply_intr) || (forceint)) {
-				set_mcu_intr(true);
-			}
-		}
+		pio_transfer_epilogue();
 	}
 }
 //}
