@@ -21,15 +21,21 @@
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_ready(const bool forceint)
 {
 	event_delay_ready = -1;
+	stop_time_out();
+	media_changed = false;
+	media_ejected = false;
 	if((req_off_execute_phase) || (extra_status <= 0)) {
 		command_execute_phase = false;
 		req_off_execute_phase = false;
 	}
-	stop_time_out();
-	media_changed = false;
-	media_ejected = false;
-	bool is_intr = ((forceint) || ((req_status) && (stat_reply_intr)));
-	end_of_command(true, is_intr, false);
+
+	if(forceint) {
+		mcu_ready = true;
+		set_mcu_intr(true);
+		//stat_reply_intr = false;
+	} else {
+		send_mcu_ready(); // OK? 20230127 K.O
+	}
 }
 
 inline void TOWNS_CDROM::event_callback_not_ready(const bool forceint)
@@ -38,35 +44,43 @@ inline void TOWNS_CDROM::event_callback_not_ready(const bool forceint)
 	stop_time_out();
 	media_changed = false;
 	media_ejected = false;
-
-	bool is_intr = ((forceint) || ((req_status) && (stat_reply_intr)));
-	end_of_command(true, is_intr, true);
+	//if((req_off_execute_phase) || (extra_status <= 0)) {
+	command_execute_phase = false;
+	req_off_execute_phase = false;
+	//}
+	bool kick_intr = ((stat_reply_intr) || (forceint));
+	mcu_ready = true;
+	if(kick_intr) {
+		set_mcu_intr(true);
+	}
 }
 	
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_delay_interrupt(const bool _set_mcu_ready, const bool interrupt_on)
 {
 	event_delay_interrupt = -1;
-//	has_status = !(status_queue.isEmpty());
 	if(_set_mcu_ready) {
 		mcu_ready = true;
 	}
-	set_mcu_intr(interrupt_on);
+	if(interrupt_on) {
+		set_mcu_intr(true);
+	} else {
+		write_mcuint_signals(false);
+	}
 }
 
 _CONSTEXPR_FUNC void TOWNS_CDROM::event_callback_eot(const bool is_dma, const bool forceint)
 {
 	event_delay_ready = -1;
-	dma_transfer = false;
-	pio_transfer = false;
-	status_seek = false;
-	media_changed = false; // OK?
-	media_ejected = false; // OK?
-
-	stop_time_out();
 	if(is_dma) {
+		stop_time_out();
+		dma_transfer = false;
+		pio_transfer = false;
+		status_seek = false;
 		write_signals(&outputs_eot, 0xffffffff);
 		status_read_done(forceint);
 	} else {
+		media_changed = false; // OK?
+		media_ejected = false; // OK?
 		pio_transfer_epilogue();
 	}
 }

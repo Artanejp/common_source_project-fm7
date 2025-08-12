@@ -11,7 +11,6 @@
 #include "../../common.h"
 #include "../device.h"
 #include <regex>
-#include <queue>
 
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
@@ -27,6 +26,8 @@
 #define SIG_TOWNS_CDROM_IS_MEDIA_INSERTED	0x12
 #define SIG_TOWNS_CDROM_REACHED_MAX_TRACK	0x13
 #define SIG_TOWNS_CDROM_CURRENT_TRACK		0x14
+#define SIG_TOWNS_CDROM_START_MSF			0x15
+#define SIG_TOWNS_CDROM_START_MSF_AA		0x16
 #define SIG_TOWNS_CDROM_GET_ADR				0x17
 #define SIG_TOWNS_CDROM_SET_STAT_TRACK		0x18
 #define SIG_TOWNS_CDROM_RELATIVE_MSF		0x20
@@ -91,86 +92,6 @@ typedef struct CDROM_TOC_TABLE_t {
 		- 2023-12-19 K.Ohta .
 */
 /*class TOWNS_CDROM : public SCSI_CDROM */
-
-class CDROM_STATUS_QUEUE {
-private:
-	size_t queue_size;
-
-	size_t start_pos;
-	size_t read_pos;
-	uint8_t local_position;
-	
-	size_t data_count;
-	
-	std::valarray<uint8_t> buffer;
-public:
-	CDROM_STATUS_QUEUE()
-	{
-		queue_size = 0;
-		reset();
-	}
-	~CDROM_STATUS_QUEUE() {}
-	
-	void initialize(const size_t lines)
-	{
-		if(lines == 0) return;
-		buffer = std::valarray<uint8_t>(lines * 4);
-		queue_size = lines;
-		reset();
-	}
-	inline uint8_t local_pos()
-	{
-		return local_position & 3;
-	}
-	inline size_t size()
-	{
-		return queue_size;
-	}
-	inline size_t count()
-	{
-		return data_count;
-	}
-	inline size_t left()
-	{
-		__UNLIKELY_IF(data_count >= queue_size) {
-			return 0;
-		}
-		return (queue_size - data_count);
-	}
-	
-	inline bool isEmpty()
-	{
-		__UNLIKELY_IF(size() == 0) {
-			return true;
-		}
-		if(count() == 0) {
-			return true;
-		}
-		return false;
-	}
-	inline bool isFull()
-	{
-		__UNLIKELY_IF(left() == 0) {
-			return true;
-		}
-		__UNLIKELY_IF((left() == 1) && (local_pos() != 0)) {
-			return true;
-		}
-		return false;
-	}
-	inline void reset()
-	{
-		local_position = 0;
-		data_count = 0;
-		start_pos = 0;
-		read_pos = 0;
-	}
-	void push(uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3);
-	uint8_t pop();
-	uint8_t read_not_remove(size_t offset, size_t col);
-	bool process_state(FILEIO* fp, bool loading);
-};
-	
 class TOWNS_CDROM: public DEVICE {
 protected:
 	enum {
@@ -190,9 +111,7 @@ protected:
 	outputs_t outputs_pic;
 
 	FILEIO* fio_img;
-
-	int extra_status;
-	CDROM_STATUS_QUEUE status_queue;
+	FIFO* status_queue;
 
 	uint8_t *databuffer;  // With FIFO
 	enum {
@@ -208,8 +127,8 @@ protected:
 	uint32_t fifo_multiply;
 
 	size_t datacount;
-	uint32_t readptr;
-	uint32_t writeptr;
+	size_t readptr;
+	size_t writeptr;
 
 	uint16_t cpu_id;
 	uint16_t machine_id;
@@ -234,9 +153,7 @@ protected:
 	CDROM_TOC_TABLE_t toc_table[101];
 	std::string track_data_path[101];
 	std::string track_data_type[101];
-
-	int track_num_bak;
-	CDROM_TOC_TABLE_t toc_table_bak[101]; // for command TOC_READ (05h)
+	
 	_TCHAR img_file_path_bak[_MAX_PATH];
 
 	uint32_t cdda_start_frame;
@@ -265,9 +182,8 @@ protected:
 	bool stat_reply_intr;
 	bool dma_transfer_phase;
 	bool pio_transfer_phase;
-	bool has_status;
 	bool mcu_ready;
-
+	bool has_status;
 	bool dmac_running;
 
 
@@ -308,14 +224,6 @@ protected:
 	int offset_volume_l;
 	int offset_volume_r;
 
-	typedef struct sector_data_pos_t {
-		uint32_t bufptr;
-		uint32_t dataptr;
-		size_t   logical_length;
-	} sector_data_pos_t;
-	
-	std::queue<sector_data_pos_t> sector_dat_pos;
-	
 	uint8_t w_regs[16];
 	static const uint16_t crc_table[256];
 
@@ -340,6 +248,8 @@ protected:
 	uint32_t read_lba;
 
 	bool cdrom_prefetch;
+
+	int extra_status;
 	
 	void play_cdda_from_cmd();
 	void unpause_cdda_from_cmd();
@@ -351,39 +261,12 @@ protected:
 	void reset_device();
 
 	// ToDo: RAW.
-	inline bool get_next_sector_attr(uint32_t& next_head, uint32_t& next_data, size_t& next_data_length)
-	{
-		if(!(sector_dat_pos.empty())) {
-			sector_data_pos_t __tmpparam;
-			__tmpparam = sector_dat_pos.front();
-			sector_dat_pos.pop();
-			next_head = __tmpparam.bufptr;
-			next_data = __tmpparam.dataptr;
-			next_data_length = __tmpparam.logical_length;
-			return true;
-		} else {
-			next_data_length = 0; // Reset to 0,
-			return false;
-		}
-	}
-		
 	inline bool check_invalid_track(const int _trk)
 	{
 		if((_trk <= 0) || (_trk >= track_num) || (_trk >= 100)) {
 			return true;
 		}
 		return false;
-	}
-	inline bool is_audio_track(CDROM_TOC_TABLE_t _tbl[], const int _trk)
-	{
-		if(!(check_invalid_track(_trk))) {
-			return _tbl[_trk].is_audio;
-		}
-		return false;
-	}
-	inline bool is_audio_track(const int _trk)
-	{
-		return is_audio_track(toc_table, _trk);
 	}
 	virtual int64_t get_logical_size_from_mode(CDROM_MODE_t type)
 	{
@@ -432,9 +315,9 @@ protected:
 	virtual void read_a_cdda_sample();
 
 	void send_mcu_ready();
-	virtual int set_extra_status(int extra_status);
+	virtual void set_extra_status();
 
-	void __FASTCALL clear_status_queue();
+	void __FASTCALL clear_status_queue(const bool is_clear_extra);
 	void __FASTCALL push_status_queue(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 
 	virtual int __FASTCALL check_cdda_track_boundary(uint32_t frame_no);
@@ -465,31 +348,26 @@ protected:
 	void __FASTCALL status_data_ready(const bool force_interrupt);
 
 	void __FASTCALL set_status_cddareply(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
-	inline void __FASTCALL end_of_command(const bool send_ready, const bool send_interrupt, const  bool force_stop_execute, const bool unmasked_interrupt = false);
+	void __FASTCALL end_of_command(const bool send_ready, const bool send_interrupt);
 	
 	void __FASTCALL set_status(const bool push_status,  const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	void __FASTCALL set_status_immediate(const bool push_status, const bool force_interrupt, int extra, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
 	
-	void __FASTCALL set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3);
-	void  __FASTCALL set_status_extra_toc_addr(int& extra_status, uint8_t s1, uint8_t s2, uint8_t s3);
-	void  __FASTCALL set_status_extra_toc_data(int& extra_status, uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL set_extra_status_values(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, const bool is_immediate, const bool force_interrupt);
+	void  __FASTCALL set_status_extra_toc_addr(uint8_t s1, uint8_t s2, uint8_t s3);
+	void  __FASTCALL set_status_extra_toc_data(uint8_t s1, uint8_t s2, uint8_t s3);
 
 	void __FASTCALL status_accept2(const bool force_interrupt, int extra, uint8_t s2, uint8_t s3);
 	void __FASTCALL status_accept3(int extra, uint8_t s2, uint8_t s3);
 
 	void __FASTCALL status_accept(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 	void __FASTCALL status_not_accept(int extra, uint8_t s1, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
-	void __FASTCALL status_accept_even_not_req_status(int extra, uint8_t s2, uint8_t s3, bool immediate_interrupt, const bool force_interrupt);
 
-	void __FASTCALL status_illegal_lba(uint8_t s1, uint8_t s2, uint8_t s3);
+	void __FASTCALL status_illegal_lba(int extra, uint8_t s1, uint8_t s2, uint8_t s3);
 	void set_delay_ready(const bool force_interrupt);
 	void set_delay_ready_eot(const bool force_interrupt);
-	void interrupt_with_status(const bool force);
-	void abort_mcu_by_req_off_execute();
-	
-	pair32_t cdrom_get_size_by_msf();
-	pair32_t __FASTCALL cdrom_get_start_by_msf(int trk);
-	uint8_t  __FASTCALL cdrom_get_adr(int trk);
+
+	uint32_t cdrom_get_adr(int trk);
 
 	void __FASTCALL set_dma_intr(bool val);
 	void __FASTCALL set_mcu_intr(bool val);
@@ -527,8 +405,8 @@ protected:
 	virtual void get_track_by_track_num(int track);
 	virtual uint32_t get_image_cur_position();
 
-	pair32_t __FASTCALL lba_to_msf(uint32_t lba);
-	pair32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
+	uint32_t __FASTCALL lba_to_msf(uint32_t lba);
+	uint32_t __FASTCALL lba_to_msf_alt(uint32_t lba);
 	int __FASTCALL get_frames_from_msf(const char *s);
 	int64_t __FASTCALL hexatoi(const char *s);
 	int64_t __FASTCALL string_to_numeric(std::string s);
@@ -571,9 +449,6 @@ protected:
 	}
 	inline size_t buffer_left()
 	{
-		__UNLIKELY_IF(datacount <= 0) {
-			return fifo_length;
-		}
 		__UNLIKELY_IF(datacount >= fifo_length) {
 			return 0;
 		}
@@ -642,7 +517,7 @@ protected:
 	{
 		val_l.w = 0x00;
 		val_r.w = 0x00;
-		__UNLIKELY_IF((databuffer == NULL) || (datacount <= 0)) {
+		__UNLIKELY_IF((databuffer == NULL) || (datacount == 0)) {
 			datacount = 0;
 			return false;
 		}
@@ -674,9 +549,6 @@ protected:
 		datacount = 0;
 		readptr = 0;
 		writeptr = 0;
-		while(!(sector_dat_pos.empty())) {
-			sector_dat_pos.pop();
-		}
 		__UNLIKELY_IF(databuffer == NULL) {
 			return;
 		}
@@ -728,6 +600,7 @@ public:
 		max_logical_block = 0;
 		access = false;
 		databuffer = NULL;
+		status_queue = NULL;
 		param_queue = NULL;
 		_decibel_l = 0;
 		_decibel_r = 0;

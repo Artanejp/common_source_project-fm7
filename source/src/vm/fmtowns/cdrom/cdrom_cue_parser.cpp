@@ -23,7 +23,7 @@ enum {
 	CUE_PREGAP,
 };
 
-bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path)
+	bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path)
 {
 	if(pt == NULL) return false;
 	is_image_changed = false;
@@ -251,7 +251,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			is_valid_image = ((track_num > 1) && (track_num <= 100)) ? true : false;
 			for(int i = 1; (i < track_num) && (i < 100) ; i++) {
 				CDROM_TOC_TABLE_t *pt = &(toc_table_tmp[i]);
-				__UNLIKELY_IF(pt == NULL) {
+				if(pt == NULL) {
 					is_valid_image = false;
 					break; // NG.
 				}
@@ -270,22 +270,25 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				// - 20250223 K.O
 				// So, I decide below rule:
 				const int tmp_2sec = get_frames_from_msf(_T("00:02:00"));
-				if((tmp_index0 >= 0) && (tmp_index1 > 0) && (tmp_index1 > tmp_index0)) {
-					tmp_pregap = tmp_index1 - tmp_index0;
-				} else {
-					tmp_pregap = tmp_2sec;
+				if(tmp_index0 < 0) {
+					tmp_index0 = 0;
 				}
-				if(tmp_index1 <= 0) {
-					if(tmp_index0 >= 0) {
-						tmp_index1 = tmp_index0 + tmp_pregap;
-					} else {
-						tmp_index1 = tmp_pregap;
+				if(tmp_index1 < 0) {
+					tmp_index1 = 0;
+				}
+				if(tmp_pregap <= 0) {
+					tmp_pregap = tmp_2sec;
+					if((tmp_index1 > tmp_index0) && (tmp_index0 > 0)) {
+						tmp_pregap = tmp_index1 - tmp_index0;
 					}
 				}
-				if(tmp_index0 <= 0) {
-					if(tmp_index1 >= tmp_pregap) {
-						tmp_index0 = tmp_index1 - tmp_pregap;
-					} else {
+				// ToDo: if pregap < 2Sec.
+				if((tmp_index1 == 0) /*&& (tmp_index0 > 0) */) {
+					tmp_index1 = tmp_index0 + tmp_pregap;
+				}
+				if(tmp_index0 == 0) { // Maybe tmp_index1 != 0
+					tmp_index0 = tmp_index1 - tmp_pregap;
+					if(tmp_index0 < 0) {
 						tmp_index0 = 0;
 					}
 				}
@@ -301,10 +304,12 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 				bool is_image_changed = false;
 				uint32_t lba_begin = 0;
 				uint64_t base_sectors = 0;
+				uint64_t total_bytes = 0;
 				uint64_t total_sectors = 0;
 				int latest_changed = 1;
 				std::string __recent_path;
 				
+				is_valid_image = true;
 				// 1St. Trim index0, index1, pregap.
 				
 				for(int i = 1; (i < track_num) && (i < 100) ; i++) {
@@ -322,22 +327,72 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					}
 					toc_table_tmp[i].physical_size = tmp_sector_size;
 					toc_table_tmp[i].logical_size = get_logical_size_from_mode(toc_table_tmp[i].type);
-					// ToDo: Check for multiple image data.
-					int64_t __sectors;
-					if(i < (track_num - 1)) {
-						__sectors = toc_table_tmp[i + 1].index1 - toc_table_tmp[i].index1;
+
+					if(i == 1) {
+//						toc_table_tmp[i].lba_size = (__image_size - __offset_bytes) / tmp_sector_size; // TMP
+//						toc_table_tmp[i].bytes_offset = 0;
 					} else {
-						int64_t __tmp_size = __image_size - __offset_bytes;
-						__sectors = __tmp_size / tmp_sector_size;
+						int64_t old_sector_size = toc_table_tmp[i - 1].physical_size;
+						if(old_sector_size < 0) {
+							is_valid_image = false;
+							break;
+						}
+						uint64_t __sectors = 0;
+						if(is_image_changed) {
+							// Trim index0 and index1
+							base_sectors = total_sectors;
+							for(int j = latest_changed; j < i; j++) {
+								//toc_table_tmp[j].lba_offset = base_sectors;
+								toc_table_tmp[j].index0 += base_sectors;
+								toc_table_tmp[j].index1 += base_sectors;
+							}
+							latest_changed = i;
+							if(old_image_size >= old_offset) {
+								__sectors = (old_image_size - old_offset) / old_sector_size;
+								toc_table_tmp[i - 1].lba_size = __sectors;
+								toc_table_tmp[i].bytes_offset = 0;
+							} else {
+								is_valid_image = false;
+								break;
+							}
+							total_bytes += old_image_size;
+						} else { // Continue
+							uint64_t old_index0 = toc_table_tmp[i - 1].index0;
+							uint64_t old_index1 = toc_table_tmp[i - 1].index1;
+							uint64_t new_index0 = toc_table_tmp[i].index0;
+							uint64_t new_index1 = toc_table_tmp[i].index1;
+							if((new_index0 >= old_index0) && (new_index1 >= old_index1)) {
+								__sectors = new_index0 - old_index0;
+								uint64_t __size = __sectors * tmp_sector_size;
+								//if(__sectors == 0) {
+									// Eject?
+								//	is_valid_image = false;
+								//	break;
+								//}
+								//if(__image_size < (__size + __offset_bytes)) {
+									// Eject?
+								//	is_valid_image = false;
+								//	break;
+								//}
+								__offset_bytes += __size;
+								toc_table_tmp[i].bytes_offset = __offset_bytes;
+							} else {
+								__sectors = 0;
+							}
+						}
+						toc_table_tmp[i - 1].lba_size = __sectors;
+						total_sectors += __sectors;
 					}
-					toc_table_tmp[i].lba_size = __sectors;
-					toc_table_tmp[i].bytes_offset = __offset_bytes;
-					__offset_bytes += (__sectors * tmp_sector_size);
-					total_sectors += __sectors;
-					is_image_changed = false;
 				}
 				if(is_valid_image) {
 					// Trim remain INDEX 00 and INDEX 01 .
+					if((latest_changed < track_num) && (latest_changed > 1)) {
+						for(int j = latest_changed; j < track_num; j++) {
+							//toc_table_tmp[j].lba_offset = base_sectors;
+							toc_table_tmp[j].index0 += base_sectors;
+							toc_table_tmp[j].index1 += base_sectors;
+						}
+					}
 					// TRIM TRACK 00 .
 					toc_table_tmp[0].index0       = 0;
 					toc_table_tmp[0].index1       = 0;
@@ -348,18 +403,26 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					toc_table_tmp[0].bytes_offset = 0;
 					tmp_track_data_path[0] = std::string("");
 					tmp_track_data_type[0] = std::string("");
-
 				
 					// TRIM TRACN [track_num]
+					if((__image_size > 0) && (toc_table_tmp[track_num - 1].physical_size > 0)) {
+						if(__image_size > toc_table[track_num - 1].bytes_offset) {
+							uint64_t __last_sectors = (__image_size - toc_table[track_num - 1].bytes_offset) / toc_table_tmp[track_num - 1].physical_size;
+							toc_table_tmp[track_num - 1].lba_size = __last_sectors;
+							total_sectors += __last_sectors;
+						} else {
+							//	is_valid_image = false;
+						}
+					}
 					toc_table_tmp[track_num].index0       = total_sectors;
 					toc_table_tmp[track_num].index1		  = total_sectors;
 					toc_table_tmp[track_num].pregap       = get_frames_from_msf(_T("00:02:00"));
 					toc_table_tmp[track_num].lba_size     = 0;
-					toc_table_tmp[track_num].bytes_offset = toc_table_tmp[track_num - 1].bytes_offset + (toc_table_tmp[track_num - 1].lba_size * toc_table_tmp[track_num - 1].physical_size);
-					toc_table_tmp[track_num].physical_size = toc_table_tmp[track_num - 1].physical_size;
-					toc_table_tmp[track_num].logical_size =  toc_table_tmp[track_num - 1].logical_size;
-					tmp_track_data_path[track_num] = tmp_track_data_path[track_num - 1];
-					tmp_track_data_type[track_num] = tmp_track_data_type[track_num - 1] ;
+					toc_table_tmp[track_num].bytes_offset = total_bytes;
+					toc_table_tmp[track_num].physical_size = 2352;
+					toc_table_tmp[track_num].logical_size = 2048;
+					tmp_track_data_path[track_num] = std::string("");
+					tmp_track_data_type[track_num] = std::string("");
 
 					if(is_valid_image) {
 						// ToDo : Copy toc_table.
