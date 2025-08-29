@@ -387,8 +387,8 @@ protected:
 	// cdrom/cdrom_cue_parser.cpp
 	bool open_cue_file(const _TCHAR* file_path);
 	bool parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath, std::string& imgtype);
-	bool parse_cue_track(std::string &_arg2, CDROM_TOC_TABLE_t* toc_table_tmp, int& nr_current_track);
-	int parse_cue_index(std::string &_arg2, int nr_current_track, int& value);
+	bool parse_cue_track(std::string track_num_str, std::string track_type_str, CDROM_TOC_TABLE_t* toc_table_tmp, int& nr_current_track, int& max_track_num);
+	int parse_cue_index(std::string index_type, std::string time_msf, int nr_current_track, uint32_t& msf);
 
 	virtual bool check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path);
 
@@ -664,6 +664,13 @@ public:
 	virtual bool get_sectors(int sectors);
 
 	// unique functions
+	// string utilities
+	static std::string read_line_from_text(FILEIO* fio, bool& is_eof)
+	virtual static std::list<std::string> tokenize_a_line(std::string source, size_t& tokens);
+	static std::string sanitize_prev_space_tab(std::string source);
+	static std::string sanitize_eoln(std::string source);
+	static std::string to_upper(std::string source);
+
 	// Towns specified command
 	virtual void set_cdda_status(uint8_t status);
 	int get_track(uint32_t lba);
