@@ -23,7 +23,7 @@ enum {
 	CUE_PREGAP,
 };
 
-	bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path)
+bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path)
 {
 	if(pt == NULL) return false;
 	is_image_changed = false;
@@ -75,48 +75,50 @@ enum {
 	return true;
 }
 
-#if 1 /* New open_cue_file() */
-static std::string TOWNS_CDROM::read_line_from_text(FILEIO* fio, bool& is_eof)
+/* New open_cue_file() */
+std::string TOWNS_CDROM::read_line_from_text(FILEIO* fio, bool& is_eof)
 {
 	std::string retstr;
 	is_eof = false;
-	ret_str.clear();
+	retstr.clear();
 	if(fio == NULL) {
 		return retstr;
 	}
 	if(!(fio->IsOpened())) {
 		return retstr;
 	}
-	int _c;
+	bool is_eoln = false;
 	do {
-		_c = fio->Fgetc();
+		int _c = fio->Fgetc();
 		switch(_c) {
-		case '\0': /* OK? 20250829 K.O */
 		case EOF:
-			is_eof = true;
-			return retstr;
+			is_eof = true; 
 			break;
-		case '\n': /* END OF LINE */
-			return retstr;
+		case '\0': /* OK? */
+			is_eof = true;
+			break;
+		case '\n': /* LF */
+			is_eoln = true;
 			break;
 		case '\r': /* CR */
+			// ToDo: Process for Older MAC string, terminated by only CR .
 			break;
 		default:
-			retstr.push_back((unsigned char)_c);
+			retstr.push_back((char)_c);
 			break;
 		}
-	} while(1);
+	} while(!(is_eof) && !(is_eoln));
 	return retstr;
 }
 
-static std::string TOWNS_CDROM::to_upper(std::string source)
+std::string TOWNS_CDROM::to_upper(std::string source)
 {
 	std::transform(source.begin(), source.end(), source.begin(),
 				   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
 	return source;
 }
 
-static std::string TOWNS_CDROM::sanitize_eoln(std::string source)
+std::string TOWNS_CDROM::sanitize_eoln(std::string source)
 {
 	std::string retstr;
 	retstr.clear();
@@ -133,7 +135,7 @@ static std::string TOWNS_CDROM::sanitize_eoln(std::string source)
 	return retstr;
 }
 
-static std::string TOWNS_CDROM::sanitize_prev_space_tab(std::string source)
+std::string TOWNS_CDROM::sanitize_prev_space_tab(std::string source)
 {
 	std::string retstr;
 	retstr.clear();
@@ -151,9 +153,9 @@ static std::string TOWNS_CDROM::sanitize_prev_space_tab(std::string source)
 }
 	
 	
-static std::list<std::string> TOWNS_CDROM::tokenize_a_line(std::string source, size_t& tokens)
+std::vector<std::string> TOWNS_CDROM::tokenize_a_line(std::string source, size_t& tokens)
 {
-	std::list<std::string> tmplist;
+	std::vector<std::string> tmplist;
 	
 	tmplist.clear();
 	tokens = 0;
@@ -165,6 +167,7 @@ static std::list<std::string> TOWNS_CDROM::tokenize_a_line(std::string source, s
 		if(line1.empty()) { // Assume empty line.
 			return tmplist;
 		}
+		
 		// Check Quote
 		std::string _tmps;
 		bool within_quote = false;
@@ -191,7 +194,7 @@ static std::list<std::string> TOWNS_CDROM::tokenize_a_line(std::string source, s
 			case '\t':
 			case ' ': // Split token
 				if(within_quote) {
-					_tmps.append(*(_c));
+					_tmps.push_back((*_c));
 				} else {
 					if(!(_tmps.empty())) {
 						tmplist.push_back(_tmps);
@@ -200,21 +203,21 @@ static std::list<std::string> TOWNS_CDROM::tokenize_a_line(std::string source, s
 				}
 				break;
 			default:
-				_tmps.append(*(_c));
+				_tmps.push_back((*_c));
 				break;
 			}
 			if(need_break) {
-				if(!(_tmps.empty())) {
-					tmplist.push_back(_tmps);
-					_tmps.clear();
-				}
 				break;
 			}
+		}
+		if(!(_tmps.empty())) {
+			tmplist.push_back(_tmps);
+			_tmps.clear();
 		}
 		if(tmplist.empty()) { // Fallback
 			tmplist.push_back(line1);
 		}
-		tokens = (size_t)(tmplist.count());
+		tokens = (size_t)(tmplist.size());
 	}
 	return tmplist;
 }
@@ -261,7 +264,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		bool is_eof = false;
 		int sptr = 0;
 		bool have_filename = false;
-		std::list<string> _tokens;
+		std::vector<std::string> _tokens;
 		size_t tokens_count;
 		// Pass 1: Parse from cue file.
 		while(1) {
@@ -271,6 +274,9 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			if(!(line_buf.empty())) {
 				_tokens = tokenize_a_line(line_buf, tokens_count);
 			}
+			//for(auto p = _tokens.begin(); p != _tokens.end(); ++p) {
+			//	out_debug_log(_T("TOKEN: %s"), (*p).c_str());
+			//}
 			if(tokens_count > 0) {
 				// Extract command
 				std::string cmdstr = sanitize_eoln(_tokens[0]);
@@ -298,12 +304,14 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					break;
 				case CUE_FILE:
 					if(!(arg1str.empty())) {
-						std::string _fname = arg1str;
-						if(parse_cue_file_args(_fname, parent_dir, image_tmp_data_path, image_tmp_data_type)) {
-							
-							
+						std::string __prefix;
+						if(parent_dir != NULL) {
+							__prefix = (const char*)parent_dir;
 						}
-						//out_debug_log(_T("TRACK#%02d FILE:%s\n"),  nr_current_track, _fname.c_str());
+						image_tmp_data_path = __prefix;
+						image_tmp_data_path.append(arg1str);
+						image_tmp_data_type = arg2str;
+						out_debug_log(_T("TRACK#%02d FILE:\"%s\" TYPE=%s\n"),  nr_current_track, image_tmp_data_path.c_str(), image_tmp_data_type.c_str());
 					}
 					break;
 				case CUE_INDEX:
@@ -345,7 +353,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 							tmp_track_data_type[nr_current_track] = image_tmp_data_type;
 						}
 					}
-					out_debug_log(_T("TRACK#%02d TRACK:%s TYPE:%s\n"),  nr_current_track, arg1str.c_str() arg2str.c_str());
+					out_debug_log(_T("TRACK#%02d TRACK:%s TYPE:%s\n"),  nr_current_track, arg1str.c_str(), arg2str.c_str());
 					break;
 				case CUE_PREGAP:
 					if((nr_current_track > 0) && (nr_current_track < 100) && !(arg1str.empty())) {
@@ -372,11 +380,15 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		return false; // No means at this file or too much tracks.
 	}
 	// Pass2 : Index.
+	out_debug_log(_T("Pass 2: Index."));
 	max_logical_block = 0;
 	uint32_t lba_ptr = 0;
 	//toc_table[0].lba_offset = 0;
 	toc_table_tmp[0].lba_size = 0;
 	toc_table_tmp[0].index0 = toc_table_tmp[0].index1 = toc_table_tmp[0].pregap = 0;
+	toc_table_tmp[0].bytes_offset = 0;
+	toc_table_tmp[0].physical_size = 2352;
+	toc_table_tmp[0].logical_size = 2048;
 	
 	is_valid_image = true;
 	
@@ -435,6 +447,11 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		return false;
 	}
 	// Pass 3: Trim image.
+	out_debug_log(_T("Pass 3: Trim image."));
+	// Debug
+	for(int i = 0; (i <= tmp_track_num) && (i <= 100) ; i++) {
+		cdrom_debug_log(_T("TRACK %03d TYPE=%d INDEX0=%06x INDEX1=%06x PREGAP=%06x PHYS_SIZE=%d LOGI_SIZE=%d LBA_SIZE=%d BYTES_OFFSET=%d DATA=%s"), i, toc_table_tmp[i].type, lba_to_msf(toc_table_tmp[i].index0),  lba_to_msf(toc_table_tmp[i].index1),  lba_to_msf(toc_table_tmp[i].pregap),  toc_table_tmp[i].physical_size, toc_table_tmp[i].logical_size, toc_table_tmp[i].lba_size, toc_table_tmp[i].bytes_offset, tmp_track_data_path[i].c_str());
+	}
 	uint64_t __offset_bytes = 0;
 	uint64_t __image_size   = 0;
 	bool is_image_changed = false;
@@ -452,11 +469,13 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		if(!(check_toc_and_open_image_file(&(toc_table_tmp[i]), __image_size, __offset_bytes, is_image_changed, __recent_path, tmp_track_data_path[i]))) {
 			tmp_track_data_path[i].clear();
 			is_valid_image = false;
+			cdrom_debug_log(_T("INVALID IMAGE DETECTED at TRACK#%02d , LINE %d ."), i, __LINE__); 
 			break;
 		}
 		int64_t tmp_sector_size = get_sector_size_from_mode(toc_table_tmp[i].type);
 		if(tmp_sector_size <= 0) {
 			is_valid_image = false;
+			cdrom_debug_log(_T("INVALID IMAGE DETECTED at TRACK#%02d , LINE %d ."), i, __LINE__); 
 			break;
 		}
 		toc_table_tmp[i].physical_size = tmp_sector_size;
@@ -469,6 +488,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 			int64_t old_sector_size = toc_table_tmp[i - 1].physical_size;
 			if(old_sector_size < 0) {
 				is_valid_image = false;
+				cdrom_debug_log(_T("INVALID IMAGE DETECTED at TRACK#%02d , LINE %d ."), i, __LINE__); 
 				break;
 			}
 			uint64_t __sectors = 0;
@@ -487,6 +507,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 					toc_table_tmp[i].bytes_offset = 0;
 				} else {
 					is_valid_image = false;
+					cdrom_debug_log(_T("INVALID IMAGE DETECTED at TRACK#%02d , LINE %d ."), i, __LINE__); 
 					break;
 				}
 				total_bytes += old_image_size;
@@ -522,6 +543,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 		return false;
 	}
 	// Trim remain INDEX 00 and INDEX 01 .
+	out_debug_log(_T("Pass 4: Trim remain INDEX 00 and INDEX 01."));
 	if((latest_changed < tmp_track_num) && (latest_changed > 1)) {
 		for(int j = latest_changed; j < tmp_track_num; j++) {
 			//toc_table_tmp[j].lba_offset = base_sectors;
@@ -561,6 +583,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	tmp_track_data_type[tmp_track_num] = std::string("");
 
 	if(is_valid_image) {
+		out_debug_log(_T("Pass 5: Check Image Exists and seekable."));
 		// Check image exists and seekable.
 		for(int i = 1; (i < tmp_track_num) && (i < 100) ; i++) {
 			if(tmp_track_data_path[i].empty()) {
@@ -602,504 +625,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	}
 	return true;
 }
-#else /* Older open_cue_file() */
-		 
-bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
-{
-	std::string line_buf;
-	std::string image_tmp_data_path;
-	std::string image_tmp_data_type;
-
-	_TCHAR full_path_cue[_MAX_PATH];
-	size_t ptr;
-	int line_count = 0;
-	int slen;
-	int nr_current_track = 0;
-	bool is_valid_image = false;
-	FILEIO* fio = new FILEIO();
-	if(fio == NULL) return false;
-
-	memset(full_path_cue, 0x00, sizeof(full_path_cue));
-
-	get_long_full_path_name(file_path, full_path_cue, sizeof(full_path_cue));
-
-	const _TCHAR *parent_dir = get_parent_dir((const _TCHAR *)full_path_cue);
-
-	std::string tmp_track_data_path[101];
-	std::string tmp_track_data_type[101];
 	
-	std::map<std::string, int> cue_enum;
-
-	// Initialize
-	cue_enum.insert(std::make_pair("REM", CUE_REM));
-	cue_enum.insert(std::make_pair("FILE", CUE_FILE));
-	cue_enum.insert(std::make_pair("TRACK", CUE_TRACK));
-	cue_enum.insert(std::make_pair("INDEX", CUE_INDEX));
-	cue_enum.insert(std::make_pair("PREGAP", CUE_PREGAP));
-
-	CDROM_TOC_TABLE_t toc_table_tmp[101];
-	for(int i = 0; i < 101; i++) {
-		initialize_toc_table(&(toc_table_tmp[i]));
-	}
-	
-	if(fio->Fopen(full_path_cue, FILEIO_READ_ASCII)) { // ToDo: Support not ASCII cue file (i.e. SJIS/UTF8).20181118 K.O
-		int _c;
-		bool is_eof = false;
-		int sptr = 0;
-		bool have_filename = false;
-//		int _nr_num = 0;
-		while(1) {
-			line_buf.clear();
-			int _np = 0;
-			_c = EOF;
-			do {
-				_c = fio->Fgetc();
-				if((_c == '\0') || (_c == '\n') || (_c == EOF)) break;;
-				if(_c != '\r') line_buf.push_back((char)_c);
-			} while(1);
-			if(_c == EOF) is_eof = true;
-			slen = (int)line_buf.length();
-			if(slen > 0) {
-				const std::regex _ts1("^[ \t]*");
-				const std::regex _ts2("[ \t\n\r]+$");
-				const std::regex _ts3("[ \t\n\r]+");									  
-				std::smatch _sm1;
-				std::string line1;
-				// Split header.
-				if(std::regex_search(line_buf, _sm1, _ts1)) {
-					line1 = _sm1.suffix();
-				} else {
-					line1 = line_buf;
-				}
-				// Split footer.
-				std::string argstr;	
-				std::smatch _sm2;
-				if(std::regex_search(line1, _sm2, _ts2)) {
-					argstr = _sm2.prefix();
-				} else {
-					argstr = line1;
-				}
-				std::string cmdstr;
-				std::smatch _sm3;
-				if(std::regex_search(argstr, _sm3, _ts3)) {
-					cmdstr = _sm3.prefix();
-					argstr = _sm3.suffix();
-					std::smatch _sm4;
-					if(std::regex_search(argstr, _sm4, _ts1)) {
-						argstr = _sm4.suffix();
-					}
-				} else {
-					cmdstr = argstr;
-					argstr = std::string("");
-				}
-				std::transform(cmdstr.begin(), cmdstr.end(), cmdstr.begin(),
-							   [](unsigned char c) -> unsigned char{ return std::toupper(c); });
-				//out_debug_log(_T("%s : %s : %s"), line1.c_str(), cmdstr.c_str(), argstr.c_str());
-				int typeval;
-				try {
-					typeval = cue_enum.at(cmdstr);
-				} catch (std::out_of_range &e) {
-					typeval = CUE_NONE;
-				}
-				switch(typeval) {
-				case CUE_REM:
-					//out_debug_log(_T("TRACK#%02d REM:%s\n"),  nr_current_track, line_buf.c_str());
-					break;
-				case CUE_FILE:
-					if(!(argstr.empty())) {
-						std::string _fname = argstr;
-						if(parse_cue_file_args(_fname, parent_dir, image_tmp_data_path, image_tmp_data_type)) {
-							
-							
-						}
-						//out_debug_log(_T("TRACK#%02d FILE:%s\n"),  nr_current_track, _fname.c_str());
-					}
-					break;
-				case CUE_INDEX:
-					// By https://totalsonic.net/cuesheetsyntax.htm :
-					// " All index numbers must be between 0 and 99 inclusive.
-					//   The first index must be 0 or 1 with
-					//   all other indexes being sequential to the first one.
-					//   The first index of a file must start at 00:00:00.
-					//   INDEX 0 Specifies the starting time of the track “pregap”.
-					//   INDEX 1 Specifies the starting time of the track data.
-					//           This is the only index that is stored in the disc’s
-					//           table-of-contents.
-					//   INDEX > 1 Specifies a subindex within a track. "
-					// - 20250223 K.O
-					if(!(argstr.empty())) {
-						int _value = 0;
-						int _index = parse_cue_index(argstr, nr_current_track, _value);
-						switch(_index) {
-						case 0:
-							toc_table_tmp[nr_current_track].index0 = _value;
-							break;
-						case 1:
-							toc_table_tmp[nr_current_track].index1 = _value;
-							break;
-						default:
-							break;
-						}
-					}
-					out_debug_log(_T("TRACK#%02d INDEX:%s\n"),  nr_current_track, argstr.c_str());
-					break;
-				case CUE_TRACK:					
-					if(!(argstr.empty())) {
-						if(parse_cue_track(argstr, &(toc_table_tmp[0]), nr_current_track)) {
-							tmp_track_data_path[nr_current_track] = image_tmp_data_path;
-							tmp_track_data_type[nr_current_track] = image_tmp_data_type;
-						}
-					}
-					out_debug_log(_T("TRACK#%02d TRACK:%s\n"),  nr_current_track, argstr.c_str());
-					break;
-				case CUE_PREGAP:
-					if((nr_current_track > 0) && (nr_current_track < 100) && !(argstr.empty())) {
-						toc_table_tmp[nr_current_track].pregap = get_frames_from_msf(argstr.c_str());
-					}
-					out_debug_log(_T("TRACK#%02d PREGAP:%s\n"),  nr_current_track, argstr.c_str());
-					break;
-				default:
-					//out_debug_log(_T("TRACK#%02d ???:%s\n"),  nr_current_track, line_buf.c_str());
-					break;
-				}
-			}
-			if(is_eof) break;
-		}
-		// Finish
-		max_logical_block = 0;
-		uint32_t pt_lba_ptr = 0;
-		if(track_num > 0) {
-			//toc_table[0].lba_offset = 0;
-			toc_table[0].lba_size = 0;
-			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-			// P1: Calc
-			int _n = 0;
-			int vnptr = 0;
-			#if 1
-			is_valid_image = ((track_num > 1) && (track_num <= 100)) ? true : false;
-			for(int i = 1; (i < track_num) && (i < 100) ; i++) {
-				CDROM_TOC_TABLE_t *pt = &(toc_table_tmp[i]);
-				if(pt == NULL) {
-					is_valid_image = false;
-					break; // NG.
-				}
-				
-				int tmp_index0 = pt->index0;
-				int tmp_index1 = pt->index1;
-				int tmp_pregap = pt->pregap;
-				// From https://totalsonic.net/cuesheetsyntax.htm :
-				// PREGAP [mm:ss:ff]
-				// Parameters: mm:ss:ff – Specifies the pregap length
-				//             in minutes, seconds, and frames.
-				// Example: PREGAP 00:02:00
-				// Rules: The PREGAP command must appear after a TRACK command,
-				// but before any INDEX commands.
-				// Only one PREGAP command is allowed per track.
-				// - 20250223 K.O
-				// So, I decide below rule:
-				const int tmp_2sec = get_frames_from_msf(_T("00:02:00"));
-				if(tmp_index0 < 0) {
-					tmp_index0 = 0;
-				}
-				if(tmp_index1 < 0) {
-					tmp_index1 = 0;
-				}
-				if(tmp_pregap <= 0) {
-					tmp_pregap = tmp_2sec;
-					if((tmp_index1 > tmp_index0) && (tmp_index0 > 0)) {
-						tmp_pregap = tmp_index1 - tmp_index0;
-					}
-				}
-				// ToDo: if pregap < 2Sec.
-				if((tmp_index1 == 0) /*&& (tmp_index0 > 0) */) {
-					tmp_index1 = tmp_index0 + tmp_pregap;
-				}
-				if(tmp_index0 == 0) { // Maybe tmp_index1 != 0
-					tmp_index0 = tmp_index1 - tmp_pregap;
-					if(tmp_index0 < 0) {
-						tmp_index0 = 0;
-					}
-				}
-				pt->index0 = tmp_index0;
-				pt->index1 = tmp_index1;
-				pt->pregap = tmp_pregap;
-				
-			}
-			// Pass2
-			if(is_valid_image) {
-				uint64_t __offset_bytes = 0;
-				uint64_t __image_size   = 0;
-				bool is_image_changed = false;
-				uint32_t lba_begin = 0;
-				uint64_t base_sectors = 0;
-				uint64_t total_bytes = 0;
-				uint64_t total_sectors = 0;
-				int latest_changed = 1;
-				std::string __recent_path;
-				
-				is_valid_image = true;
-				// 1St. Trim index0, index1, pregap.
-				
-				for(int i = 1; (i < track_num) && (i < 100) ; i++) {
-					uint64_t old_image_size = __image_size;
-					uint64_t old_offset = __offset_bytes;
-					if(!(check_toc_and_open_image_file(&(toc_table_tmp[i]), __image_size, __offset_bytes, is_image_changed, __recent_path, tmp_track_data_path[i]))) {
-						tmp_track_data_path[i].clear();
-						is_valid_image = false;
-						break;
-					}
-					int64_t tmp_sector_size = get_sector_size_from_mode(toc_table_tmp[i].type);
-					if(tmp_sector_size <= 0) {
-						is_valid_image = false;
-						break;
-					}
-					toc_table_tmp[i].physical_size = tmp_sector_size;
-					toc_table_tmp[i].logical_size = get_logical_size_from_mode(toc_table_tmp[i].type);
-
-					if(i == 1) {
-//						toc_table_tmp[i].lba_size = (__image_size - __offset_bytes) / tmp_sector_size; // TMP
-//						toc_table_tmp[i].bytes_offset = 0;
-					} else {
-						int64_t old_sector_size = toc_table_tmp[i - 1].physical_size;
-						if(old_sector_size < 0) {
-							is_valid_image = false;
-							break;
-						}
-						uint64_t __sectors = 0;
-						if(is_image_changed) {
-							// Trim index0 and index1
-							base_sectors = total_sectors;
-							for(int j = latest_changed; j < i; j++) {
-								//toc_table_tmp[j].lba_offset = base_sectors;
-								toc_table_tmp[j].index0 += base_sectors;
-								toc_table_tmp[j].index1 += base_sectors;
-							}
-							latest_changed = i;
-							if(old_image_size >= old_offset) {
-								__sectors = (old_image_size - old_offset) / old_sector_size;
-								toc_table_tmp[i - 1].lba_size = __sectors;
-								toc_table_tmp[i].bytes_offset = 0;
-							} else {
-								is_valid_image = false;
-								break;
-							}
-							total_bytes += old_image_size;
-						} else { // Continue
-							uint64_t old_index0 = toc_table_tmp[i - 1].index0;
-							uint64_t old_index1 = toc_table_tmp[i - 1].index1;
-							uint64_t new_index0 = toc_table_tmp[i].index0;
-							uint64_t new_index1 = toc_table_tmp[i].index1;
-							if((new_index0 >= old_index0) && (new_index1 >= old_index1)) {
-								__sectors = new_index0 - old_index0;
-								uint64_t __size = __sectors * tmp_sector_size;
-								//if(__sectors == 0) {
-									// Eject?
-								//	is_valid_image = false;
-								//	break;
-								//}
-								//if(__image_size < (__size + __offset_bytes)) {
-									// Eject?
-								//	is_valid_image = false;
-								//	break;
-								//}
-								__offset_bytes += __size;
-								toc_table_tmp[i].bytes_offset = __offset_bytes;
-							} else {
-								__sectors = 0;
-							}
-						}
-						toc_table_tmp[i - 1].lba_size = __sectors;
-						total_sectors += __sectors;
-					}
-				}
-				if(is_valid_image) {
-					// Trim remain INDEX 00 and INDEX 01 .
-					if((latest_changed < track_num) && (latest_changed > 1)) {
-						for(int j = latest_changed; j < track_num; j++) {
-							//toc_table_tmp[j].lba_offset = base_sectors;
-							toc_table_tmp[j].index0 += base_sectors;
-							toc_table_tmp[j].index1 += base_sectors;
-						}
-					}
-					// TRIM TRACK 00 .
-					toc_table_tmp[0].index0       = 0;
-					toc_table_tmp[0].index1       = 0;
-					toc_table_tmp[0].pregap       = 0;
-					toc_table_tmp[0].lba_size     = 0;
-					toc_table_tmp[0].physical_size = 2352;
-					toc_table_tmp[0].logical_size = 2048;
-					toc_table_tmp[0].bytes_offset = 0;
-					tmp_track_data_path[0] = std::string("");
-					tmp_track_data_type[0] = std::string("");
-				
-					// TRIM TRACN [track_num]
-					if((__image_size > 0) && (toc_table_tmp[track_num - 1].physical_size > 0)) {
-						if(__image_size > toc_table[track_num - 1].bytes_offset) {
-							uint64_t __last_sectors = (__image_size - toc_table[track_num - 1].bytes_offset) / toc_table_tmp[track_num - 1].physical_size;
-							toc_table_tmp[track_num - 1].lba_size = __last_sectors;
-							total_sectors += __last_sectors;
-						} else {
-							//	is_valid_image = false;
-						}
-					}
-					toc_table_tmp[track_num].index0       = total_sectors;
-					toc_table_tmp[track_num].index1		  = total_sectors;
-					toc_table_tmp[track_num].pregap       = get_frames_from_msf(_T("00:02:00"));
-					toc_table_tmp[track_num].lba_size     = 0;
-					toc_table_tmp[track_num].bytes_offset = total_bytes;
-					toc_table_tmp[track_num].physical_size = 2352;
-					toc_table_tmp[track_num].logical_size = 2048;
-					tmp_track_data_path[track_num] = std::string("");
-					tmp_track_data_type[track_num] = std::string("");
-
-					if(is_valid_image) {
-						// ToDo : Copy toc_table.
-						for(int i = 0; i <= 100; i++) {
-							copy_toc_table_to_main(i, &(toc_table_tmp[i]), tmp_track_data_path[i], tmp_track_data_type[i]);
-						}
-						
-						if(fio_img->IsOpened()) { // OK?
-							fio_img->Fclose();
-						}
-						max_logical_block = 0;
-						is_valid_image = false;
-						if(!(tmp_track_data_path[1].empty())) {
-							if(fio_img->Fopen(tmp_track_data_path[1].c_str(), FILEIO_READ_BINARY)) {
-								if(fio_img->Fseek((long)(toc_table[1].bytes_offset), FILEIO_SEEK_SET) == 0) {
-									max_logical_block = total_sectors;
-									is_valid_image = true;
-								}
-							}
-						}
-					}
-				}
-			}
-			#else
-			
-			for(int i = 1; i < track_num; i++) {
-
-				if(fio_img->IsOpened()) {
-					fio_img->Fclose();
-				}
-				// Even...
-				//if(toc_table[i].pregap <= 0) {
-				//	toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
-				//}
-				if((strlen(track_data_path[i - 1]) > 0) && (with_filename[i])) {
-					if(toc_table[i].physical_size > 0) {
-					if(fio_img->Fopen(track_data_path[i - 1], FILEIO_READ_BINARY)) {
-						if((_n = fio_img->FileLength() / toc_table[i].physical_size) > 0) {
-							max_logical_block += _n;
-						} else {
-							_n = 0;
-						}
-						fio_img->Fclose();
-					}
-					}
-					toc_table[i].lba_size = _n;
-				}
-				//toc_table[i].lba_offset = max_logical_block - _n;
-				if(!(with_filename[i + 1]) && (toc_table[i + 1].index1 > toc_table[i].index1)) {
-					toc_table[i].lba_size = toc_table[i + 1].index1 - toc_table[i].index0;
-				}
-				if(toc_table[i].index0 == 0) {
-					toc_table[i].index0 = toc_table[i].index1;
-				}
-				if(toc_table[i].pregap == 0) {
-					toc_table[i].pregap = toc_table[i].index1 - toc_table[i].index0;
-				}
-				// Even...
-				if(toc_table[i].pregap <= 150) {
-					toc_table[i].pregap = 150; // Default PREGAP must be 2Sec. From OoTake.(Only with PCE? Not with FM-Towns?)
-				}
-			}
-			#endif
-		   	//if((track_num == 2) && (max_logical_block > 0)) {
-			//	toc_table[track_num - 1].lba_size -= 1;
-			//	max_logical_block--;
-			//}
-			for(int i = 1; i < track_num; i++) {
-				//toc_table[i].index0 += toc_table[i].lba_offset;
-				//toc_table[i].index1 += toc_table[i].lba_offset;
-				#if 1
-				out_debug_log(_T("TRACK#%02d TYPE=%s PREGAP=%d INDEX0=%d INDEX1=%d LBA_SIZE=%d BYTES_OFFSET=%d TYPE=\"%s\" PATH=\"%s\"\n"),
-							  i, (toc_table_tmp[i].is_audio) ? _T("AUDIO") : _T("MODE1/2352"),
-							  toc_table_tmp[i].pregap, toc_table_tmp[i].index0, toc_table_tmp[i].index1,
-							  toc_table_tmp[i].lba_size, toc_table_tmp[i].bytes_offset,
-							  tmp_track_data_type[i].c_str(), tmp_track_data_path[i].c_str());
-				#endif
-			}
-			#if 0
-			toc_table[0].index0 = toc_table[0].index1 = toc_table[0].pregap = 0;
-			toc_table[0].physical_size = 2352;
-			toc_table[0].logical_size = 2048;
-			toc_table[track_num].index0 = toc_table[track_num].index1 = max_logical_block;
-			toc_table[track_num].lba_offset = max_logical_block;
-			toc_table[track_num].lba_size = 0;
-			#endif
-		}
-
-		fio->Fclose();
-	}
-	delete fio;
-
-	// Not Cue FILE.
-	return is_valid_image;
-}
-#endif /* END Old */
-	
-// ToDo: Implement Image type.	
-bool TOWNS_CDROM::parse_cue_file_args(std::string& _arg2, const _TCHAR *parent_dir, std::string& imgpath, std::string& imgtype)
-{
-	size_t _arg2_ptr;
-	size_t _arg3_ptr;
-	std::string _arg3;
-	std::string _arg4;
-	_arg2_ptr = _arg2.find_first_of((const char *)"\"") + 1;
-	if(_arg2_ptr == std::string::npos) return false;
-
-	_arg2 = _arg2.substr(_arg2_ptr);
-	_arg3_ptr = _arg2.find_first_of((const char *)"\"");
-	if(_arg3_ptr == std::string::npos) return false;
-
-	try {
-		_arg3 = _arg2.substr(0, _arg3_ptr);
-	} catch (std::out_of_range &e) {
-		return false;
-	} 
-	imgpath = std::string(parent_dir);
-	imgpath.append(_arg3);
-
-	try {
-		_arg4 = _arg2.substr(_arg3_ptr + 1);
-	} catch (std::out_of_range &e) {
-		if(imgtype.empty()) {
-			_arg4 = std::string("BINARY");
-		} else {
-			_arg4 = imgtype;
-		}
-	}
-	const std::regex _ts1("^[ \t]*");
-	const std::regex _ts2("[ \t\n\r]+$");
-	std::smatch _sm1, _sm2;
-	if(_arg4.empty()) {
-		return true; // OK?
-	}
-	// Split header.
-	if(std::regex_search(_arg4, _sm1, _ts1)) {
-		_arg4 = _sm1.suffix();
-	}
-	// Split Footer
-	if(std::regex_search(_arg4, _sm2, _ts2)) {
-		_arg4 = _sm2.prefix();
-	}
-	if(!(_arg4.empty())) {
-		imgtype = _arg4;
-	}
-//	cdrom_debug_log(_T("**FILE %s\n"), imgpath.c_str());
-
-	return true;
-}
 
 // ToDo: Implement Image type.
 #if 1
@@ -1186,7 +712,7 @@ int TOWNS_CDROM::parse_cue_index(std::string index_type, std::string time_msf, i
 		if(!(_tmpindex.empty())) {
 			index = atoi(_tmpindex.c_str());
 			if((index >= 0) && !(_tmpmsf.empty())) {
-				msf = get_frames_from_msf(_tmpmsf);
+				msf = get_frames_from_msf((const char*)(_tmpmsf.c_str()));
 			} else {
 				index = -1;
 			}
