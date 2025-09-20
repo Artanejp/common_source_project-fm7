@@ -21,8 +21,9 @@ enum {
 	CUE_TRACK,
 	CUE_INDEX,
 	CUE_PREGAP,
+	CUE_POSTGAP,
 };
-
+ 
 bool TOWNS_CDROM::check_toc_and_open_image_file(CDROM_TOC_TABLE_t *pt, uint64_t& image_length, uint64_t& image_offset, bool& is_image_changed, std::string& recent_path, std::string current_data_path)
 {
 	if(pt == NULL) return false;
@@ -253,6 +254,7 @@ bool TOWNS_CDROM::open_cue_file(const _TCHAR* file_path)
 	cue_enum.insert(std::make_pair("TRACK", CUE_TRACK));
 	cue_enum.insert(std::make_pair("INDEX", CUE_INDEX));
 	cue_enum.insert(std::make_pair("PREGAP", CUE_PREGAP));
+	cue_enum.insert(std::make_pair("POSTGAP", CUE_POSTGAP));
 
 	CDROM_TOC_TABLE_t toc_table_tmp[101];
 	for(int i = 0; i < 101; i++) {
