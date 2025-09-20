@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "../datarec.h"
 #include "../../types/util_sound.h"
+#include "../../types/util_video.hpp"
 
 namespace BMJR {
 #define SET_BANK(s, e, w, r) { \
@@ -96,7 +97,7 @@ void MEMORY::initialize()
 		palette_pc[i] = RGB_COLOR((i & 2) ? 0xff : 0, (i & 4) ? 0xff : 0, (i & 1) ? 0xff : 0);
 	}
 
-	PrepareBitTransTableUint16(&bit_table, 0xff, 0x00);
+	PrepareBitTransTable(&bit_table, 0x00ff, 0x0000);
 
 	// register event
 	register_frame_event(this);

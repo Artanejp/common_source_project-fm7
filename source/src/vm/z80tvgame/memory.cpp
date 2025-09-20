@@ -41,7 +41,7 @@ void MEMORY::initialize()
 	
 	inserted = false;
 
-	PrepareReverseBitTransTableScrnType(&pixel_trans_table, RGB_COLOR(255, 255, 255), RGB_COLOR(0,0,0) );
+	PrepareReverseBitTransTable(&pixel_trans_table, RGB_COLOR(255, 255, 255), RGB_COLOR(0,0,0) );
 }
 
 void MEMORY::reset()
@@ -80,6 +80,8 @@ void MEMORY::close_cart()
 	inserted = false;
 }
 
+#include "../../types/util_video.hpp"
+	
 void MEMORY::draw_screen()
 {
 	// draw screen

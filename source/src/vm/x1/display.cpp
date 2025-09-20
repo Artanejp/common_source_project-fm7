@@ -16,6 +16,8 @@
 #include "../hd46505.h"
 #include "../i8255.h"
 
+#include "../../types/util_video.hpp"
+
 #ifdef _X1TURBO_FEATURE
 #define EVENT_AFTER_BLANK	0
 #endif
@@ -148,9 +150,9 @@ void DISPLAY::initialize()
 	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
 #endif
 
-	PrepareBitTransTableUint16(&bit_trans_table_b0, 0x01, 0x00);
-	PrepareBitTransTableUint16(&bit_trans_table_r0, 0x02, 0x00);
-	PrepareBitTransTableUint16(&bit_trans_table_g0, 0x04, 0x00);
+	PrepareBitTransTable(&bit_trans_table_b0, 0x01, 0x00);
+	PrepareBitTransTable(&bit_trans_table_r0, 0x02, 0x00);
+	PrepareBitTransTable(&bit_trans_table_g0, 0x04, 0x00);
 }
 
 void DISPLAY::reset()

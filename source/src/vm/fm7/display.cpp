@@ -20,6 +20,8 @@
 #include "./fm7_keyboard.h"
 #include "./kanjirom.h"
 
+#include "../../types/util_video.hpp"
+
 namespace FM7 {
 	
 DISPLAY::DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -3346,13 +3348,13 @@ void DISPLAY::initialize()
 	int i;
 
 #if 1
-	PrepareBitTransTableUint16((_bit_trans_table_t*)(&(bit_trans_table_0[0][0])), 0x0080, 0x0000);
-	PrepareBitTransTableUint16((_bit_trans_table_t*)(&(bit_trans_table_1[0][0])), 0x0040, 0x0000);
-	PrepareBitTransTableUint16((_bit_trans_table_t*)(&(bit_trans_table_2[0][0])), 0x0020, 0x0000);
-	PrepareBitTransTableUint16((_bit_trans_table_t*)(&(bit_trans_table_3[0][0])), 0x0010, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_0[0][0])), 0x0080, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_1[0][0])), 0x0040, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_2[0][0])), 0x0020, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_3[0][0])), 0x0010, 0x0000);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	PrepareBitTransTableUint16((_bit_trans_table_t*)(&(bit_trans_table_4[0][0])), 0x0008, 0x0000);
-	PrepareBitTransTableUint16((_bit_trans_table_t*)(&(bit_trans_table_5[0][0])), 0x0004, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_4[0][0])), 0x0008, 0x0000);
+	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_5[0][0])), 0x0004, 0x0000);
 #endif	
 #else
 	for(int i = 0; i < 256; i++) {
