@@ -4,121 +4,8 @@
 
 #pragma once
 
+#include "../util_rgbconvert.h"
 #include "../types/types_video.h"
-
-#if defined(_RGB555) || defined(_RGB565)
-	scrntype_t DLL_PREFIX  __FASTCALL RGB_COLOR(uint32_t r, uint32_t g, uint32_t b);
-	scrntype_t DLL_PREFIX  __FASTCALL RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a);
-	uint8_t DLL_PREFIX  __FASTCALL R_OF_COLOR(scrntype_t c);
-	uint8_t DLL_PREFIX  __FASTCALL G_OF_COLOR(scrntype_t c);
-	uint8_t DLL_PREFIX  __FASTCALL B_OF_COLOR(scrntype_t c);
-	uint8_t DLL_PREFIX  __FASTCALL A_OF_COLOR(scrntype_t c);
-	#if defined(_RGB565)
-inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
-{
-	#if !defined(__LITTLE_ENDIAN__)
-	n = swap_endian_u16(n);
-	#endif
-	scrntype r;
-	r = n & 0x7c00; // r
-	r = r | (n & 0x03e0); // g
-	r <<= 1;
-	r = r | (n & 0x001f); // b
-	return r;
-}
-	#else // RGB555
-inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
-{
-	#if !defined(__LITTLE_ENDIAN__)
-	n = swap_endian_u16(n);
-	#endif
-	return n;
-}
-	#endif
-
-inline scrntype_t __FASTCALL msb_to_mask_u16le(uint16_t n)
-{
-	// bit15: '0' = NOT TRANSPARENT
-	//        '1' = TRANSPARENT
-	#if !defined(__LITTLE_ENDIAN__)
-	n = swap_endian_u16(n);
-	#endif
-	scrntype_t _n = ((n & 0x8000) != 0) ? 0x0000 : 0xffff;
-	return _n;
-}
-
-inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
-{
-	// bit15: '0' = NOT TRANSPARENT
-	//        '1' = TRANSPARENT
-	#if !defined(__LITTLE_ENDIAN__)
-	n = swap_endian_u16(n);
-	#endif
-	scrntype_t _n = ((n & 0x8000) != 0) ? 0x0000 : 0xffff;
-	return _n; // Not ALPHA
-}
-
-#elif defined(_RGB888)
-#if defined(__LITTLE_ENDIAN__)
-	#define RGB_COLOR(r, g, b)	(((uint32_t)(b) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(r) << 0) | (0xff << 24))
-	#define RGBA_COLOR(r, g, b, a)	(((uint32_t)(b) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(r) << 0) | ((uint32_t)(a) << 24))
-	#define R_OF_COLOR(c)		(((c)      ) & 0xff)
-	#define G_OF_COLOR(c)		(((c) >>  8) & 0xff)
-	#define B_OF_COLOR(c)		(((c) >> 16) & 0xff)
-	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
-#else
-	#define RGB_COLOR(r, g, b)	(((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(b) << 0) | (0xff << 24))
-	#define RGBA_COLOR(r, g, b, a)	(((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | ((uint32_t)(b) << 0) | ((uint32_t)(a) << 24))
-	#define R_OF_COLOR(c)		(((c) >> 16) & 0xff)
-	#define G_OF_COLOR(c)		(((c) >>  8) & 0xff)
-	#define B_OF_COLOR(c)		(((c)      ) & 0xff)
-	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
-#endif
-
-inline scrntype_t __FASTCALL rgb555le_to_scrntype_t(uint16_t n)
-{
-	scrntype_t r, g, b;
-	#if defined(__LITTLE_ENDIAN__)
-	r = (n & 0x7c00) << (16 + 1);
-	g = (n & 0x03e0) << (8 + 4 + 2);
-	b = (n & 0x001f) << (8 + 3);
-	return (r | g | b | 0x000000ff);
-	#else
-	scrntype_t g2;
-	r = (n & 0x007c) << (16 + 1 + 8);
-	g = (n & 0x0e00) << (8 + 2)
-	g2= (n & 0x0030) << (8 + 4 + 2);
-	b = (n & 0x1f00) << 3;
-	return (r | g | g2 | b | 0x000000ff);
-	#endif
-}
-
-inline scrntype_t __FASTCALL msb_to_mask_u16le(uint16_t n)
-{
-	// bit15: '0' = NOT TRANSPARENT
-	//        '1' = TRANSPARENT
-	scrntype_t _n;
-	#if defined(__LITTLE_ENDIAN__)
-	_n = ((n & 0x8000) != 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
-	#else
-	_n = ((n & 0x0080) != 0) ? RGBA_COLOR(0, 0, 0, 0) : RGBA_COLOR(255, 255, 255, 255);
-	#endif
-	return _n;
-}
-
-inline scrntype_t __FASTCALL msb_to_alpha_mask_u16le(uint16_t n)
-{
-	// bit15: '0' = NOT TRANSPARENT
-	//        '1' = TRANSPARENT
-	scrntype_t _n;
-	#if defined(__LITTLE_ENDIAN__)
-	_n = ((n & 0x8000) != 0) ? RGBA_COLOR(255, 255, 255, 0) : RGBA_COLOR(255, 255, 255, 255);
-	#else
-	_n = ((n & 0x0080) != 0) ? RGBA_COLOR(255, 255, 255, 0) : RGBA_COLOR(255, 255, 255, 255);
-	#endif
-	return _n;
-}
-#endif
 
 inline scrntype_vec8_t ConvertByteToMonochromePackedPixel(uint8_t src, _bit_trans_table_t *tbl,scrntype_t on_val, scrntype_t off_val)
 {
@@ -419,10 +306,39 @@ __DECL_VECTORIZED_LOOP
 	}
 }
 
-void DLL_PREFIX PrepareBitTransTableUint16(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val);
-void DLL_PREFIX PrepareBitTransTableScrnType(_bit_trans_table_scrn_t *tbl, scrntype_t on_val, scrntype_t off_val);
-void DLL_PREFIX PrepareReverseBitTransTableUint16(_bit_trans_table_t *tbl, uint16_t on_val, uint16_t off_val);
-void DLL_PREFIX PrepareReverseBitTransTableScrnType(_bit_trans_table_scrn_t *tbl, scrntype_t on_val, scrntype_t off_val);
+
+// Note: table strongly recommend to be aligned by sizeof(uint16_vec8_t).
+// This is sizeof(uint16) * 8, some compilers may require to align 16bytes(128)
+// when using SIMD128 -- 20181105 K.O
+template <typename _TBL_T, typename _VAL_T>
+	void PrepareBitTransTable(_TBL_T *tbl, _VAL_T on_val, _VAL_T off_val)
+{
+	__UNLIKELY_IF(tbl == NULL) return;
+	for(_VAL_T i = 0; i < 256; i++) {
+		_VAL_T n = i;
+__DECL_VECTORIZED_LOOP
+		for(size_t j = 0; j < 8; j++) {
+			tbl->plane_table[i].w[j] = ((n & ((_VAL_T)0x80)) == 0) ? off_val : on_val;
+			n <<= 1;
+		}
+	}
+}
+
+// Prepare reverse byte-order table(s).
+template <typename _TBL_T, typename _VAL_T>
+	void PrepareReverseBitTransTableUint16(_TBL_T *tbl, _VAL_T on_val, _VAL_T off_val)
+{
+	__UNLIKELY_IF(tbl == NULL) return;
+	for(_TBL_T i = 0; i < 256; i++) {
+		_VAL_T n = i;
+__DECL_VECTORIZED_LOOP
+		for(size_t j = 0; j < 8; j++) {
+			tbl->plane_table[i].w[j] = ((n & 0x01) == 0) ? off_val : on_val;
+			n >>= 1;
+		}
+	}
+}
+
 
 void DLL_PREFIX Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t *dst2, bool scan_line);
 
