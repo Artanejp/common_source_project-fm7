@@ -25,6 +25,7 @@
 	#include <windows.h>
 #endif
 #include "fileio.h"
+#include "types/util_rgbconvert.h"
 
 #ifdef USE_ZLIB
 	#if defined(USE_QT)

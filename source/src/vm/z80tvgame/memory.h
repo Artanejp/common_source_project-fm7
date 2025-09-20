@@ -15,6 +15,7 @@
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+#include "../types/types_video.h"
 
 namespace Z80TVGAME {
 

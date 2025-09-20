@@ -10,6 +10,7 @@
 // http://w01.tp1.jp/~a571632211/z80tvgame/index.html
 
 #include "memory.h"
+#include "../../types/util_video.hpp"
 
 namespace Z80TVGAME {
 

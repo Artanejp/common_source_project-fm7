@@ -6,6 +6,7 @@
 
 #include "../common.h"
 #include "../types/types_video.h"
+//#include "../types/util_rgbconvert.h"
 
 // Note: table strongly recommend to be aligned by sizeof(uint16_vec8_t).
 // This is sizeof(uint16) * 8, some compilers may require to align 16bytes(128)
@@ -26,10 +27,10 @@ __DECL_VECTORIZED_LOOP
 
 // Prepare reverse byte-order table(s).
 template <typename _TBL_T, typename _VAL_T>
-	void PrepareReverseBitTransTableUint16(_TBL_T *tbl, _VAL_T on_val, _VAL_T off_val)
+	void PrepareReverseBitTransTable(_TBL_T *tbl, _VAL_T on_val, _VAL_T off_val)
 {
 	__UNLIKELY_IF(tbl == NULL) return;
-	for(_TBL_T i = 0; i < 256; i++) {
+	for(_VAL_T i = 0; i < 256; i++) {
 		_VAL_T n = i;
 __DECL_VECTORIZED_LOOP
 		for(size_t j = 0; j < 8; j++) {

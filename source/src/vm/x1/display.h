@@ -16,6 +16,7 @@
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+#include "../types/types_video.h"
 
 #define SIG_DISPLAY_VBLANK		0
 #define SIG_DISPLAY_COLUMN40		1

@@ -11,6 +11,7 @@
 #include "../hd46505.h"
 #endif
 #include "../../config.h"
+#include "../../types/util_video.hpp"
 
 //extern config_t config;
 
