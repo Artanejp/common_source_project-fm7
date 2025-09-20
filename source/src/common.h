@@ -91,7 +91,7 @@
 /*!
   @todo will move to another directory.
 */
-#include "./types/util_video.h"
+#include "./types/util_rgbconvert.h"
 /*!
  * @note You should include types/util_sound.h if you need to mix sounds.
  * see that header.
