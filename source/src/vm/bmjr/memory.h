@@ -13,6 +13,7 @@
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+#include "../../types/types_video.h"
 
 #define SIG_MEMORY_DATAREC_EAR	0
 
