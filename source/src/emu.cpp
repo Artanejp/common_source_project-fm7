@@ -2486,6 +2486,26 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 	common_initialize();
 
 #ifdef _DEBUG_LOG
+
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+	std::shared_ptr<CSP_Logger> lp = csp_logger;
+	__LIKELY_IF(lp.get() != NULL) {
+		va_list ap;
+		va_start(ap, format);
+		lp->vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, format, ap);
+		va_end(ap);
+	}
+
+//	_TCHAR buffer[2048];
+//	va_start(ap, format);
+//	my_vstprintf_s(buffer, 2048, format, ap);
+//	va_end(ap);
+//	if(_tcscmp(prev_buffer, buffer) == 0) {
+//		return;
+//	}
+//	my_tcscpy_s(prev_buffer, 2048, buffer);
+//	lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
+#else
 	va_list ap;
 	_TCHAR buffer[2048];
 
@@ -2497,11 +2517,6 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 		return;
 	}
 	my_tcscpy_s(prev_buffer, 2048, buffer);
-
-#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	std::shared_ptr<CSP_Logger> lp = csp_logger;
-	lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
-#else
 	if(debug_log) {
 		__UNLIKELY_IF(vm == NULL) {
 			_ftprintf(debug_log, _T("(unknown uS) %s"), buffer);
@@ -2522,6 +2537,24 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 void EMU::force_out_debug_log(const _TCHAR* format, ...)
 {
 #ifdef _DEBUG_LOG
+
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+	va_list ap;
+	std::shared_ptr<CSP_Logger> lp = csp_logger;
+	__LIKELY_IF(lp.get() != NULL) {
+		va_start(ap, format);
+		lp->vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, format, ap);
+		va_end(ap);
+	}
+//	_TCHAR buffer[1024];
+
+//	va_start(ap, format);
+//	my_vstprintf_s(buffer, 1024, format, ap);
+//	va_end(ap);
+//	my_tcscpy_s(prev_buffer, 1024, buffer);
+//	std::shared_ptr<CSP_Logger> lp = csp_logger;
+//  lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
+#else
 	va_list ap;
 	_TCHAR buffer[1024];
 
@@ -2529,11 +2562,6 @@ void EMU::force_out_debug_log(const _TCHAR* format, ...)
 	my_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	my_tcscpy_s(prev_buffer, 1024, buffer);
-
-#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	std::shared_ptr<CSP_Logger> lp = csp_logger;
-    lp->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", buffer);
-#else
 	if(debug_log) {
 		_ftprintf(debug_log, _T("%s"), buffer);
 		static int size = 0;
