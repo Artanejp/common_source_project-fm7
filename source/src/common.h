@@ -46,9 +46,9 @@
 	#include <mmsystem.h>
 	#include <process.h>
 #endif
-#ifdef __GNUC__
-	#include <stdarg.h>
-#endif
+
+	#include <cstdarg>
+
 #ifdef _USE_QT
 	#if defined(_USE_QT5) || defined(_USE_QT6)
 		#include <QString>

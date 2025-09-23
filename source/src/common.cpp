@@ -35,6 +35,9 @@
 	#define _USE_MATH_DEFINES
 #endif
 #include <math.h>
+#include <atomic>
+#include <mutex>
+
 #include "common.h"
 #include "fileio.h"
 
@@ -47,7 +50,6 @@
 	std::string DLL_PREFIX my_procname;
 	std::string DLL_PREFIX sRssDir;
 #endif
-
 
 // for disassedmbler
 uint32_t DLL_PREFIX get_relative_address_8bit(uint32_t base, uint32_t mask, int8_t offset)
@@ -435,9 +437,12 @@ static void _my_mkdir(std::string t_dir)
 }
 #endif
 
+static std::mutex string_lock;
+
 const _TCHAR *DLL_PREFIX get_application_path()
 {
-	static _TCHAR app_path[_MAX_PATH];
+	std::lock_guard<std::mutex> locker(string_lock);
+	static _TCHAR app_path[_MAX_PATH] = {0};
 	static bool initialized = false;
 
 	if(!initialized) {
@@ -468,7 +473,8 @@ const _TCHAR *DLL_PREFIX get_application_path()
 
 const _TCHAR *DLL_PREFIX get_initial_current_path()
 {
-	static _TCHAR current_path[_MAX_PATH];
+	std::lock_guard<std::mutex> locker(string_lock);
+	static _TCHAR current_path[_MAX_PATH] = {0};
 	static bool initialized = false;
 
 	if(!initialized) {
@@ -492,67 +498,88 @@ const _TCHAR *DLL_PREFIX get_initial_current_path()
 	return (const _TCHAR *)current_path;
 }
 
+// Make re-entrant
+// 20250923 K.O 
+static void __create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, va_list ap)
+{
+	__LIKELY_IF((file_path != NULL) && (format != NULL) && (length > 0)) {
+		_TCHAR file_name[_MAX_PATH];
+		file_name[0] = '\0';
+		my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+		my_stprintf_s(file_path, min(length, (int)_MAX_PATH), _T("%s%s"), get_application_path(), file_name);
+		return;
+	}
+	if((file_path != NULL) && (length > 0)) {
+		// No Format
+		file_path[0] = '\0';
+	}
+}
+
 const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...)
 {
-	static _TCHAR file_path[8][_MAX_PATH];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR file_path[16][_MAX_PATH] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 15;
 	_TCHAR file_name[_MAX_PATH];
 	//printf("%d %d\n", table_index, output_index);
 	va_list ap;
 
 	va_start(ap, format);
-	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+	__create_local_path(&(file_path[output_index][0]), _MAX_PATH, format, ap);
 	va_end(ap);
-	my_stprintf_s(file_path[output_index], _MAX_PATH, _T("%s%s"), get_application_path(), file_name);
 	return (const _TCHAR *)file_path[output_index];
 }
 
 void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...)
 {
-	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
 
 	va_start(ap, format);
-	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+	__create_local_path(file_path, _MAX_PATH, format, ap);
 	va_end(ap);
-	my_stprintf_s(file_path, length, _T("%s%s"), get_application_path(), file_name);
 }
 
+static void __create_absolute_path(_TCHAR *file_path, int length, const _TCHAR *format, va_list ap)
+{
+	__LIKELY_IF((file_path != NULL) && (format != NULL) && (length > 0)) {
+		_TCHAR file_name[_MAX_PATH];
+		file_name[0] = '\0';
+		my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+		if(is_absolute_path(file_name)) {
+			my_tcscpy_s(file_path, min(length, (int)_MAX_PATH), file_name);
+		} else {
+			my_stprintf_s(file_path, min(length, (int)_MAX_PATH), _T("%s%s"), get_initial_current_path(), file_name);
+		}
+		return;
+	}
+	if((file_path != NULL) && (length > 0)) {
+		// No Format
+		file_path[0] = '\0';
+	}
+}
+		
 const _TCHAR *DLL_PREFIX create_absolute_path(const _TCHAR *format, ...)
 {
-	static _TCHAR file_path[8][_MAX_PATH];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR file_path[16][_MAX_PATH] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 15;
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
 
 	va_start(ap, format);
-	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+	__create_absolute_path(&(file_path[output_index][0]), _MAX_PATH, format, ap);
 	va_end(ap);
 
-	if(is_absolute_path(file_name)) {
-		my_tcscpy_s(file_path[output_index], _MAX_PATH, file_name);
-	} else {
-		my_stprintf_s(file_path[output_index], _MAX_PATH, _T("%s%s"), get_initial_current_path(), file_name);
-	}
 	return (const _TCHAR *)file_path[output_index];
 }
 
 void DLL_PREFIX create_absolute_path(_TCHAR *file_path, int length, const _TCHAR *format, ...)
 {
-	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
 
 	va_start(ap, format);
-	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+	__create_absolute_path(file_path, length, format, ap);
 	va_end(ap);
-
-	if(is_absolute_path(file_name)) {
-		my_tcscpy_s(file_path, length, file_name);
-	} else {
-		my_stprintf_s(file_path, length, _T("%s%s"), get_initial_current_path(), file_name);
-	}
 }
 
 bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
@@ -580,9 +607,9 @@ void DLL_PREFIX create_date_file_path(_TCHAR *file_path, int length, const _TCHA
 
 const _TCHAR *DLL_PREFIX create_date_file_name(const _TCHAR *extension)
 {
-	static _TCHAR file_name[8][_MAX_PATH];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR file_name[16][_MAX_PATH] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 15;
 	cur_time_t cur_time;
 
 	get_host_time(&cur_time);
@@ -618,9 +645,9 @@ bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 
 const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path)
 {
-	static _TCHAR path[8][_MAX_PATH];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR path[32][_MAX_PATH] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 31;
 
 	my_tcscpy_s(path[output_index], _MAX_PATH, file_path);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -665,9 +692,9 @@ void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t d
 
 const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 {
-	static _TCHAR path[8][_MAX_PATH];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR path[32][_MAX_PATH] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 31;
 
 #ifdef _WIN32
 	_TCHAR *ptr;
@@ -700,27 +727,45 @@ const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
 const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
 {
 	// char to wchar_t
-	static wchar_t ws[4096];
+	__UNLIKELY_IF(cs == NULL) {
+		return (const wchar_t *)("");
+	}
+	size_t _len = strlen(cs);
+	__UNLIKELY_IF(_len == 0) {
+		return (const wchar_t *)("");
+	}
+	static wchar_t ws[32][4096] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 31;
 
 #if defined(_WIN32) || defined(_USE_QT)
-	mbstowcs(ws, cs, strlen(cs));
+	mbstowcs(&(ws[output_index][0]), cs, min(_len, (size_t)(4096 - 1)));
 #else
 	// write code for your environment
 #endif
-	return ws;
+	return (wchar_t *)(&(ws[output_index][0]));
 }
 
 const char *DLL_PREFIX wchar_to_char(const wchar_t *ws)
 {
 	// wchar_t to char
-	static char cs[4096];
+	__UNLIKELY_IF(ws == NULL) {
+		return (const char *)("");
+	}
+	size_t _len = wcslen(ws);
+	__UNLIKELY_IF(_len == 0) {
+		return (const char *)("");
+	}
+	static char cs[32][4096] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 31;
 
 #if defined(_WIN32) || defined(_USE_QT)
-	wcstombs(cs, ws, wcslen(ws));
+	wcstombs(&(cs[output_index][0]), ws, min(_len, (size_t)(4096 - 1)));
 #else
 	// write code for your environment
 #endif
-	return cs;
+	return &(cs[output_index][0]);
 }
 
 const _TCHAR *DLL_PREFIX char_to_tchar(const char *cs)
@@ -921,9 +966,9 @@ int DLL_PREFIX ucs4_kana_zenkaku_to_hankaku(const uint32_t in, uint32_t *buf, in
 
 const _TCHAR *DLL_PREFIX  create_string(const _TCHAR* format, ...)
 {
-	static _TCHAR buffer[8][1024];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR buffer[64][1024] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 63;
 	va_list ap;
 
 	va_start(ap, format);
@@ -1136,9 +1181,9 @@ bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
 
 const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 {
-	static _TCHAR name[8][1024];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR name[64][1024] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 63;
 
 	if(first_symbol != NULL) {
 		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
@@ -1153,9 +1198,9 @@ const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr)
 
 const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
-	static _TCHAR name[8][1024];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR name[64][1024] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 63;
 
 	if(first_symbol != NULL) {
 		for(symbol_t* symbol = first_symbol; symbol; symbol = symbol->next_symbol) {
@@ -1171,9 +1216,9 @@ const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHA
 
 const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr)
 {
-	static _TCHAR name[8][1024];
-	static unsigned int table_index = 0;
-	unsigned int output_index = (table_index++) & 7;
+	static _TCHAR name[64][1024] = {0};
+	static std::atomic<unsigned int> table_index = 0;
+	unsigned int output_index = (table_index++) & 63;
 
 	my_stprintf_s(name[output_index], 1024, format, addr);
 
