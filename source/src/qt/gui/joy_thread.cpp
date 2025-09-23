@@ -250,7 +250,8 @@ bool JoyThreadClass::replace_joydb_by_guid(QString guid, QString after)
 
 void JoyThreadClass::debug_log(int level, int domain_num, const char *fmt, ...)
 {
-	char strbuf[4096] = {0};
+	char strbuf[4096];
+	strbuf[0] = '\0'; // Fast Clear. 20250924 K.O
 
 	va_list ap;
 	va_start(ap, fmt);

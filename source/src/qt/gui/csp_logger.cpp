@@ -297,30 +297,38 @@ void CSP_Logger::open(bool b_syslog, bool cons, const char *devname)
 	this->debug_log(CSP_LOG_INFO, "Start logging.");
 }
 
+
 void CSP_Logger::debug_log(int level, const char *fmt, ...)
 {
-	QMutexLocker locker(lock_mutex);
-	char strbuf[4096];
 	va_list ap;
-
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
-	debug_log(level, 0, strbuf);
+	vdebug_log(level, 0, fmt, ap);
 	va_end(ap);
 }
-
 
 void CSP_Logger::debug_log(int level, int domain_num, const char *fmt, ...)
 {
-	QMutexLocker locker(lock_mutex);
-	char strbuf[4096];
 	va_list ap;
-
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
-	debug_log(level, domain_num, strbuf);
+	vdebug_log(level, domain_num, fmt, ap);
 	va_end(ap);
 }
+
+
+void CSP_Logger::vdebug_log(int level, const char *fmt, va_list ap)
+{
+	vdebug_log(level, 0, fmt, ap);
+}
+
+void CSP_Logger::vdebug_log(int level, int domain_num, const char *fmt, va_list ap)
+{
+	char strbuf[4096];
+	strbuf[0] = '\0';
+
+	vsnprintf(strbuf, 4096, fmt, ap);
+	debug_log(level, domain_num, strbuf);
+}
+
 
 void CSP_Logger::do_debug_log(int level, int domain_num, QString mes)
 {
@@ -677,12 +685,20 @@ void CSP_Logger::output_event_log(int device_id, int level, const char *fmt, ...
 {
 	char strbuf[4500];
 	char strbuf2[4096];
-	char *p = NULL;
-	p = (char *)(device_names.at(device_id).toLocal8Bit().constData());
-
+	strbuf[0] = '\0';
+	strbuf2[0] = '\0';
+	_TCHAR *p = NULL;
+	QString _tmps;
+	__LIKELY_IF((device_id >= 0) && (device_id < device_names.size())) {
+		p = (_TCHAR *)(device_names.at(device_id).toLocal8Bit().constData());
+	}
+	__UNLIKELY_IF(p == NULL) {
+		_tmps = QString::fromUtf8("Unknown DEV#%1").arg(device_id);
+		p = (_TCHAR *)(_tmps.toLocal8Bit().constData());
+	}
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(strbuf2, 4095, fmt, ap);
+	vsnprintf(strbuf2, 4096, fmt, ap);
 	snprintf(strbuf, 4500, "[%s] %s", p, strbuf2);
 	debug_log(level, CSP_LOG_TYPE_EVENT, strbuf);
 	va_end(ap);

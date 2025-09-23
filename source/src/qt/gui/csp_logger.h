@@ -186,9 +186,13 @@ public:
 	~CSP_Logger();
 	void set_osd(OSD_BASE *p) { p_osd = p; }
 	void open(bool b_syslog, bool cons, const char *devname);
-	void debug_log(int level, const char *fmt, ...);
-	void debug_log(int level, int domain_num, const char *fmt, ...);
-	void debug_log(int level, int domain_num, char *strbuf);
+	void __FASTCALL debug_log(int level, const char *fmt, ...);
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+
+	void __FASTCALL vdebug_log(int level, const char *fmt, va_list ap);
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list ap);
+	
+	void __FASTCALL debug_log(int level, int domain_num, char *strbuf);
 	void close(void);
 	void set_log_status(bool sw);
 	void set_log_syslog(int level, bool sw);
@@ -201,7 +205,7 @@ public:
 
 	void set_state_log(int to_output, bool flag);
 
-	void output_event_log(int device_id, int level, const char *fmt, ...);
+	void __FASTCALL output_event_log(int device_id, int level, const char *fmt, ...);
 	int64_t get_console_list(char *buffer, int64_t buf_size, bool utf8, char *domainname, bool forget, int64_t start = -1, int64_t end = -1, int64_t *end_line = 0);
 	void clear_log(void);
 	int64_t write_log(const _TCHAR *name, const char *domain_name = NULL, bool utf8 = true, bool forget = false);
