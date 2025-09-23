@@ -1173,13 +1173,11 @@ void DEVICE::out_debug_log(const char *fmt, ...)
 {
 #if defined(_USE_QT)
  	__UNLIKELY_IF(osd == nullptr) return;
-  	char strbuf[4096] = {0};
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
+	osd->vdebug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, fmt, ap);
 	va_end(ap);
-	osd->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0,  strbuf);
 #else
 	char strbuf[4096] = {0};
 	va_list ap;
@@ -1196,13 +1194,11 @@ void DEVICE::out_debug_log_with_switch(bool logging, const char *fmt, ...)
 	__UNLIKELY_IF(!(logging)) return;
 #if defined(_USE_QT)
 	__UNLIKELY_IF(osd == nullptr) return;
-   	char strbuf[4096] = {0};
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
+	osd->vdebug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, fmt, ap);
 	va_end(ap);
-	osd->debug_log(CSP_LOG_DEBUG, this_device_id + CSP_LOG_TYPE_VM_DEVICE_0, strbuf);
 
 #else
 	char strbuf[4096];

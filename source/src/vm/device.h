@@ -17,7 +17,7 @@
  * @date 2006.08.18-
  */
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <memory>
 
 #include "../common.h"
