@@ -929,30 +929,37 @@ _TCHAR *FILEIO::Fgetts(_TCHAR *str, int n)
 int FILEIO::Fprintf(const char* format, ...)
 {
 	va_list ap;
-	char buffer[1024];
+	int result = 0;
+//	char buffer[4096];
+//	buffer[0] = '\0';
 	
 	va_start(ap, format);
-	my_vsprintf_s(buffer, 1024, format, ap);
-	va_end(ap);
+//	my_vsprintf_s(buffer, 4096, format, ap);
+//	va_end(ap);
 	
 #ifdef USE_ZLIB
 	if(gz != NULL) {
-		return gzprintf(gz, "%s", buffer);
+//		return gzprintf(gz, "%s", buffer);
+		result = gzvprintf(gz, format, ap);
 	} else
 #endif
 	if(fp != NULL) {
-		return my_fprintf_s(fp, "%s", buffer);
+		// ToDo: Add my_vfprintf_s() . 20250924 K.O
+//		return my_fprintf_s(fp, "%s", buffer);
+		result = vfprintf(fp, format, ap);
 	}
+	va_end(ap);
 	return 0;
 }
 
 int FILEIO::Ftprintf(const _TCHAR* format, ...)
 {
 	va_list ap;
-	_TCHAR buffer[1024];
+	_TCHAR buffer[4096];
+	buffer[0] = '\0';
 	
 	va_start(ap, format);
-	my_vstprintf_s(buffer, 1024, format, ap);
+	my_vstprintf_s(buffer, 4096, format, ap);
 	va_end(ap);
 	
 #ifdef USE_ZLIB
@@ -961,7 +968,7 @@ int FILEIO::Ftprintf(const _TCHAR* format, ...)
 	} else
 #endif
 	if(fp != NULL) {
-		return my_ftprintf_s(fp, _T("%s"), buffer);
+		return my_ftprintf_s(fp, _T("%s"), tchar_to_char(buffer));
 	}
 	return 0;
 }
