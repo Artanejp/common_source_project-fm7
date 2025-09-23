@@ -173,25 +173,39 @@ void OSD_BASE::restore()
 }
 
 
-void OSD_BASE::debug_log(int level, const char *fmt, ...)
+
+void OSD_BASE::vdebug_log(int level, const char *fmt, va_list ap)
 {
 	char strbuf[4096];
+	strbuf[0] = '\0';
+	vsnprintf(strbuf, 4096, fmt, ap);
+	debug_log(level, 0, strbuf);
+}
+
+void OSD_BASE::vdebug_log(int level, int domain_num, const char *fmt, va_list ap)
+{
+	char strbuf[4096];
+	strbuf[0] = '\0';
+	vsnprintf(strbuf, 4096, fmt, ap);
+	debug_log(level, domain_num, strbuf);
+}
+
+
+void OSD_BASE::debug_log(int level, const char *fmt, ...)
+{
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
-	debug_log(level, 0, strbuf);
+	vdebug_log(level, 0, fmt, ap);
 	va_end(ap);
 }
 
 void OSD_BASE::debug_log(int level, int domain_num, const char *fmt, ...)
 {
-	char strbuf[4096];
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
-	debug_log(level, domain_num, strbuf);
+	vdebug_log(level, domain_num, fmt, ap);
 	va_end(ap);
 }
 

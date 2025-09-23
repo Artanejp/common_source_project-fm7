@@ -685,9 +685,11 @@ public:
 	uint16_t get_feature_uint16_value(const _TCHAR *key);
 	uint8_t get_feature_uint8_value(const _TCHAR *key);
 
+	void __FASTCALL vdebug_log(int level, const char *fmt, va_list ap);
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list ap);
 	void debug_log(int level, const char *fmt, ...);
 	void debug_log(int level, int domain_num, const char *fmt, ...);
-	void debug_log(int level, int domain_num, char *strbuf);
+	void __FASTCALL debug_log(int level, int domain_num, char *strbuf);
 	virtual double get_vm_current_usec() { return 0.0; }
 	virtual uint64_t get_vm_current_clock_uint64() { return 0;}
 

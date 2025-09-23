@@ -73,6 +73,7 @@ void OSD_BASE::sound_debug_log(const char *fmt, ...)
 {
 	if(m_sound_debug.load()) {
 		char strbuf[4096];
+		strbuf[0] = '\0';
 		va_list ap;
 		
 		va_start(ap, fmt);
