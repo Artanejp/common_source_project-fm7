@@ -61,22 +61,24 @@ namespace FMTOWNS {
  * @note From Towns Linux : include/linux/towns_cd.h
  */
 typedef enum {
-	MODE_AUDIO = 0,
-	MODE1_2352,
-	MODE1_2048,
-	CD_G,
-	MODE2_2336,
-	MODE2_2352,
-	CDI_2336,
-	CDI_2352,
-	MODE1_ISO,
-	MODE_NONE
+	TYPE_AUDIO
 } CDROM_MODE_t;
 
+typedef enum {
+	SIZE_NULL = 0,
+	SIZE_2048 = 2048,
+	SIZE_2336 = 2336,
+	SIZE_2352 = 2352,
+	SIZE_NODISC = 0,
+} CDROM_SIZE_t;
+	
 /*!
  * @brief Data definition of CDROM TOC TABLE (for one track).
  */
 typedef struct CDROM_TOC_TABLE_t {
+	uint8_t type; // 0 to 4?
+	
+	
 	CDROM_MODE_t type;
 	int64_t index0, index1, pregap;
 	uint32_t lba_size;
