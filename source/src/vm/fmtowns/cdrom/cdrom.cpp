@@ -235,7 +235,6 @@ void TOWNS_CDROM::initialize_toc_table(CDROM_TOC_TABLE_t *p)
 	p->pregap = 0;
 	p->lba_size = 0;
 	//p->lba_offset = 0;
-	p->is_audio = false;
 	p->physical_size = 2352;
 	p->logical_size  = 2048;
 	p->bytes_offset = 0;
@@ -252,7 +251,6 @@ void TOWNS_CDROM::copy_toc_table_to_main(int trk, CDROM_TOC_TABLE_t *p, std::str
 	toc_table[trk].pregap = p->pregap;
 	toc_table[trk].lba_size = p->lba_size;
 	//toc_table[trk].lba_offset = p->lba_offset;
-	toc_table[trk].is_audio = p->is_audio;
 	toc_table[trk].physical_size = p->physical_size;
 	toc_table[trk].logical_size  = p->logical_size;
 	toc_table[trk].bytes_offset  = p->bytes_offset;
@@ -1413,7 +1411,7 @@ void TOWNS_CDROM::set_state_cmd(const bool is_delay)
 					exec_params[7]
 		);
 	uint8_t __s1 = STATUS_ACCEPT;
-	uint8_t __s2 = (toc_table[current_track].is_audio) ? ACCEPT_NOERROR : ACCEPT_DATA_TRACK;
+	uint8_t __s2 = (is_audio_track(current_track)) ? ACCEPT_NOERROR : ACCEPT_DATA_TRACK;
 	switch(cdda_status) {
 	case CDDA_PLAYING:
 	case CDDA_STOPPING:
@@ -1725,7 +1723,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 		if(check_invalid_track(current_track)) {
 			return 0;
 		}
-		if(toc_table[current_track].is_audio) {
+		if(is_audio_track(current_track)) {
 //			uint32_t index1 = toc_table[current_track].index1;
 			uint32_t index1 = cdda_start_frame;
 			if(cdda_playing_frame <= cdda_start_frame) {
@@ -1771,7 +1769,7 @@ uint32_t TOWNS_CDROM::read_signal(int id)
 		}
 		{
 			uint32_t lba = 0;
-			if(toc_table[current_track].is_audio) {
+			if(is_audio_track(current_track)) {
 				if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED)) {
 					if(cdda_playing_frame >= max_logical_block) {
 						lba = max_logical_block;
@@ -1812,7 +1810,7 @@ uint32_t TOWNS_CDROM::cdrom_get_adr(int trk)
 	if(trk > track_num) {
 		return 0xffffffff; // OK?
 	}
-	if(toc_table[trk].is_audio) {
+	if(is_audio_track(trk)) {
 		return 0x10;
 	}
 	return 0x14; // return as data
@@ -1862,7 +1860,7 @@ bool TOWNS_CDROM::start_to_play_cdda()
 	if((current_track <= 0) || (current_track >= track_num)) {
 		return false; // SEEK ERROR;
 	}
-	if(!(toc_table[current_track].is_audio)) {
+	if(!(is_audio_track(current_track))) {
 		// NOT AUDIO
 		return false; //;
 	}
@@ -2526,7 +2524,7 @@ int TOWNS_CDROM::prefetch_audio_sectors()
 	if(check_invalid_track(current_track)) {
 		return 0;
 	}
-	if(!(toc_table[current_track].is_audio)) {
+	if(!(is_audio_track(current_track))) {
 //		status_parameter_error(false); // OK?
 		return 0;
 	}
@@ -2942,7 +2940,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 			// Workaround for Puyo Puyo, Interval stage.
 			if((track_tmp_s != current_track) || (track_tmp_e != current_track)) {
 				set_cdda_status(CDDA_STOPPING);
-				if(!(toc_table[track_tmp_s].is_audio)) {
+				if(!(is_audio_track(track_tmp_s))) {
 					// If target LBA is not CDDA, reject command.
 					set_status_cddareply(false, 1, 0x00, 0x00);
 					return;
@@ -2953,7 +2951,7 @@ void TOWNS_CDROM::play_cdda_from_cmd()
 		cdda_end_frame   = end_tmp;
 		// Check target track is *not* audio.
 		int track2 = get_track_noop(cdda_start_frame);
-		if(!(toc_table[track2].is_audio)) {
+		if(!(is_audio_track(track2))) {
 			if((cdda_status == CDDA_PLAYING) || (cdda_status == CDDA_PAUSED)) {
 				set_cdda_status(CDDA_ENDED);
 			}
@@ -3020,7 +3018,7 @@ void TOWNS_CDROM::set_subq(uint32_t lba)
 		uint32_t msf_abs;
 		uint32_t msf_rel;
 		// ToDo: Process when Foo.sub (for Foo.cue or Foo.ccd), this may be sub-channel data.
-		if(toc_table[track].is_audio) { // OK? (or force ERROR) 20181120 K.O
+		if(is_audio_track(track)) { // OK? (or force ERROR) 20181120 K.O
 			//frame = ((cdda_status == CDDA_OFF) || (cdda_status == CDDA_ENDED)) ? toc_table[track].index0 : lba;
 			frame = lba;
 		} else { // Data
@@ -3035,7 +3033,7 @@ void TOWNS_CDROM::set_subq(uint32_t lba)
 
 		// ToDo: POINT=0xA0-0xA2
 		{
-			subq_bytes[0] = ((toc_table[track].is_audio) ? 0x40 : 0x00) | 0x01;			// (CNT << 4) | ADR
+			subq_bytes[0] = ((is_audio_track(track)) ? 0x40 : 0x00) | 0x01;			// (CNT << 4) | ADR
 			subq_bytes[1] = 0x00;							// TNO
 			subq_bytes[2] = TO_BCD(track);					// POINT(Track)
 			subq_bytes[3] = TO_BCD((msf_abs >> 16) & 0xff);	// M (absolute)
@@ -3553,7 +3551,7 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	std::string tmp_path_name;
 	std::string tmp_data_type;
 	if(in_track) {
-		is_audio = toc_table[current_track].is_audio;
+		is_audio = is_audio_track(current_track);
 		index0 = toc_table[current_track].index0;
 		index1 = toc_table[current_track].index1;
 		pregap = toc_table[current_track].pregap;

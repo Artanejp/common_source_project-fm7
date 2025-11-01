@@ -11,6 +11,7 @@
 #include "../../common.h"
 #include "../device.h"
 #include <regex>
+#include <vector>
 
 // 0 - 9 : SCSI_CDROM::
 // 100 - : SCSI_DEV::
@@ -53,39 +54,47 @@ class FILEIO;
 class DEBUGGER;
 
 #include "./cdrom/cd_datadefs.h"
+#include "./cdrom/cd_typedefs.h"
 
 namespace FMTOWNS {
 
-/*!
- * @brief ENUM DEFINITION of CD-ROM modes.
- * @note From Towns Linux : include/linux/towns_cd.h
- */
-typedef enum {
-	TYPE_AUDIO
-} CDROM_MODE_t;
-
-typedef enum {
-	SIZE_NULL = 0,
-	SIZE_2048 = 2048,
-	SIZE_2336 = 2336,
-	SIZE_2352 = 2352,
-	SIZE_NODISC = 0,
-} CDROM_SIZE_t;
 	
 /*!
  * @brief Data definition of CDROM TOC TABLE (for one track).
  */
 typedef struct CDROM_TOC_TABLE_t {
-	uint8_t type; // 0 to 4?
+	uint8_t track_type;						// See cdrom_typedefs.h .
+	CDROM_DEFS::IMAGE_TYPE_t image_type;	// See cdrom_typedefs.h .
+	int sector_image_num;     // Number of sector image for this track.  <0 indicates don't have sector data.
+	int sub_image_num;        // Number of subQ image for this track. <0 indicates don't have sub data.
+
+	// Absolute values.
+	uint32_t index0_abs_lba;  // Also define pregap.
+	uint32_t index1_abs_lba;
+	std::vector<uint32_t> index2_99_abs_lba;
 	
+	// Relative values.
+	// Relative LBA position in image.
+	uint32_t index0_rel_lba; // Also define pregap
+	uint32_t index1_rel_lba;
+	std::vector<uint32_t> index2_99_rel_lba;
 	
-	CDROM_MODE_t type;
-	int64_t index0, index1, pregap;
-	uint32_t lba_size;
-	bool is_audio;
-	int physical_size;
-	int logical_size;
-	uint64_t bytes_offset;
+	// Relative *BYTES* position in image.
+	uint64_t index0_rel_bytes;
+	uint64_t index1_rel_bytes;
+	std::vector<uint64_t> index2_99_rel_bytes;
+
+	// Track size
+	uint32_t lba_count;
+	
+	size_t logical_bytes;
+	size_t physical_bytes;
+	
+	bool   is_subq_skew; // true is skewing both sector data and SUBQ data.Similar to Karaoke CD+G .
+	size_t data_offset;
+	size_t subq_offset;
+	
+	size_t track_toral_bytes;
 } CDROM_TOC_TABLE_t;
 	
 /*!<
@@ -270,50 +279,32 @@ protected:
 		}
 		return false;
 	}
-	virtual int64_t get_logical_size_from_mode(CDROM_MODE_t type)
+
+	virtual inline ssize_t get_logical_size_from_mode(unsigned int type)
 	{
-		switch(type) {
-		case MODE_AUDIO:
-			return 2352;
-			break;
-		case MODE2_2352:
-		case MODE2_2336:
-		case CDI_2352:
-		case CDI_2336:
-			return 2336;
-			break;
-		case CD_G:
-			return 2448; // OK?
-			break;
-		case MODE1_2352:
-		case MODE1_2048:
-		case MODE1_ISO:
-			return 2048;
-		default:
-			return 2048;
-			break;
+		size_t _s = CDROM_DEFS::get_logical_sector_size(type);
+		__LIKELY_IF(_s != 0) {
+			return (ssize_t)_s;
 		}
+		return -1;
 	}
-	virtual int64_t get_sector_size_from_mode(CDROM_MODE_t type)
+	
+	virtual inline ssize_t get_physical_size_from_mode(unsigned int type)
 	{
-		switch(type) {
-		case MODE_AUDIO:
-		case MODE1_2352:
-		case MODE2_2352:
-		case CDI_2352:
-			return 2352;
-			break;
-		case CD_G:
-			return 2448;
-			break;
-		case MODE1_2048:
-		case MODE1_ISO:
-			return 2048;
-		default:
-			return -1;
-			break;
+		size_t _s = CDROM_DEFS::get_physical_sector_size(type);
+		__LIKELY_IF(_s != 0) {
+			return (ssize_t)_s;
 		}
+		return -1;
 	}
+	virtual inline bool is_audio_track(int track)
+	{
+		__UNLIKELY_IF((track <= 0) || (track > 99)) {
+			return false;
+		}
+		return CDROM_DEFS::is_audio_track(toc_table[track].track_type);
+	}
+	
 	virtual void read_a_cdda_sample();
 
 	void send_mcu_ready();
