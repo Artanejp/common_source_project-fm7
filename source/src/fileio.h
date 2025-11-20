@@ -194,22 +194,39 @@ public:
 	void StateArray(char *buffer, size_t size, size_t count);
 	void StateArray(wchar_t *buffer, size_t size, size_t count);
 	void StateArrayScrnType_t(scrntype_t *buffer, size_t size, size_t count);
-	
-	void StateVector(std::vector<int8_t> datas);
-	void StateVector(std::vector<int16_t> datas);
-	void StateVector(std::vector<int32_t> datas);
-	void StateVector(std::vector<int64_t> datas);
-	void StateVector(std::vector<uint8_t> datas);
-	void StateVector(std::vector<uint16_t> datas);
-	void StateVector(std::vector<uint32_t> datas);
-	void StateVector(std::vector<uint64_t> datas);
-	void StateVector(std::vector<bool> datas);
-	void StateVector(std::vector<float> datas);
-	void StateVector(std::vector<double> datas);
-	void StateVector(std::vector<pair16_t> datas);
-	void StateVector(std::vector<pair32_t> datas);
-	void StateVector(std::vector<pair64_t> datas);
-	void StateVector(std::vector<_TCHAR> datas);
+
+	template <typename _T>
+	void StateVector(std::vector<_T>& datas)
+	{
+		if(fp == NULL) return;
+		bool _loading = ((open_mode & 1) != 0) ? true : false;
+		// Put members
+		uint32_t memb;
+		if(_loading) {
+			StateValue(memb);
+			if(memb > INT32_MAX) {
+				memb = INT32_MAX;
+			}
+			datas.clear();
+			for(uint32_t n = 0; n < memb; n++) {
+				_T tmp;
+				StateValue(tmp);
+				datas.push_back(tmp);
+			}
+		} else {
+			size_t _c = datas.size();
+			if(_c >= INT32_MAX) {
+				memb = INT32_MAX;
+			} else {
+				memb = (uint32_t)_c;
+			}
+			StateValue(memb);
+			for(uint32_t n = 0; n < memb; n++) {
+				_T tmp = datas[n];
+				StateValue(tmp);
+			}
+		}
+	}
 
 	// obsolete function
 	void StateBuffer(void *buffer, size_t size, size_t count);
