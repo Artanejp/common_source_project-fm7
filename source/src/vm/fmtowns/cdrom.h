@@ -63,38 +63,36 @@ namespace FMTOWNS {
  * @brief Data definition of CDROM TOC TABLE (for one track).
  */
 typedef struct CDROM_TOC_TABLE_t {
-	uint8_t track_type;						// See cdrom_typedefs.h .
-	CDROM_DEFS::IMAGE_TYPE_t image_type;	// See cdrom_typedefs.h .
-	int sector_image_num;     // Number of sector image for this track.  <0 indicates don't have sector data.
-	int sub_image_num;        // Number of subQ image for this track. <0 indicates don't have sub data.
-
+	uint8_t track_type;	// See cdrom_typedefs.h .
+	uint8_t image_type;	// See cdrom_typedefs.h .
+	bool is_subq_skew;  // true if skewing both sector data and SUBQ data.Similar to Karaoke CD+G .
+	bool have_sub_data; // true if sub data, this is mainly used for CCD, img + sub.
+	uint32_t pregap;
+	
+	size_t index_count;
 	// Absolute values.
 	uint32_t index0_abs_lba;  // Also define pregap.
 	uint32_t index1_abs_lba;
-	std::vector<uint32_t> index2_99_abs_lba;
+	uint32_t index2_99_abs_lba[99];
 	
 	// Relative values.
 	// Relative LBA position in image.
 	uint32_t index0_rel_lba; // Also define pregap
 	uint32_t index1_rel_lba;
-	std::vector<uint32_t> index2_99_rel_lba;
+	uint32_t index2_99_rel_lba[99];
 	
 	// Relative *BYTES* position in image.
 	uint64_t index0_rel_bytes;
 	uint64_t index1_rel_bytes;
-	std::vector<uint64_t> index2_99_rel_bytes;
+	uint64_t index2_99_rel_bytes[99];
 
 	// Track size
 	uint32_t lba_count;
+	uint64_t track_toral_bytes; // 
 	
-	size_t logical_bytes;
-	size_t physical_bytes;
-	
-	bool   is_subq_skew; // true is skewing both sector data and SUBQ data.Similar to Karaoke CD+G .
-	size_t data_offset;
-	size_t subq_offset;
-	
-	size_t track_toral_bytes;
+	uint32_t data_offset;  // data_offset position, normally 0 (without header) or header_size.
+	uint64_t subq_abs_offset; // Begin offset of SUBQ.
+	_TCHAR  image_path[_MAX_PATH];
 } CDROM_TOC_TABLE_t;
 	
 /*!<
@@ -578,6 +576,9 @@ protected:
 	
 	_CONSTEXPR_FUNC void event_callback_delay_interrupt(const bool _set_mcu_ready, const bool interrupt_on);
 	_CONSTEXPR_FUNC void event_callback_eot(const bool is_dma, const bool forceint);
+
+protected:
+	virtual bool process_state_toc_table(CDROM_TOC_TABLE_t *p, uint8_t num, FILEIO* state_fio, bool loading);
 
 protected:
 	bool __CDROM_DEBUG_LOG;

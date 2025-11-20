@@ -43,20 +43,23 @@ static const _TCHAR *_CUE_TRACK_IDENTS[] =
 	"TAIL",
 };
 
-typedef enum {
+enum {
 	IMG_NONE    = 0,			/* This indicates empty or unused. */
 	IMG_RAW     = 1,			/* RAW BINARY IMAGE ; maybe includes only IMG file with CCD. */
 	IMG_RAW_SUB = 3,			/* RAW BINARY IMAGE with SUBQ raw datas.
 								   (Reserved for future; similar to Karaoke CD+G) */
 	IMG_IMG_SUB,				/* foo.img + foo.sub ; mostly at CCD image. */
-	IMG_WAV     = 8,			/* WAVE image */
-	IMG_EXTERNAL_CODEC = 255,	/* Need external codec to decode data; reserved for future. */
-} IMAGE_TYPE_t;
+	IMG_MOTOROLA = 8,			/* This indicates to need to swap endian. */
+	IMG_WAV     = 16,			/* WAVE image */
+	IMG_MP3     = 17,			/* MP3 image */
+	IMG_AIFF    = 18,			/* AIFF image */
+	IMG_EXTERNAL_CODEC = 65536,	/* Need external codec to decode data; reserved for future. */
+};
 
 static const size_t _PHYSICAL_SECTOR_SIZE[] = {
 	2352, /* AUDIO */
 	2352, /* MODE1/2352 */
-	2048, /* MODE1/2352 */
+	2048, /* MODE1/2048 */
 	0,	  /* NOOP */
 	2336, /* MODE2/2336 */
 	2352, /* MODE2/2352 */

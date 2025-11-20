@@ -229,15 +229,33 @@ void TOWNS_CDROM::release()
 void TOWNS_CDROM::initialize_toc_table(CDROM_TOC_TABLE_t *p)
 {
 	if(p == NULL) return;
-	p->type = MODE_NONE;
-	p->index0 = 0;
-	p->index1 = 0;
-	p->pregap = 0;
-	p->lba_size = 0;
-	//p->lba_offset = 0;
-	p->physical_size = 2352;
-	p->logical_size  = 2048;
-	p->bytes_offset = 0;
+	p->track_type = CDROM_DEFS::TYPE_UNUSED;
+	p->image_type = CDROM_DEFS::IMG_NONE;
+	p->is_subq_skew = false;
+	p->have_sub_data = false;
+	p->index_count = 2;
+
+	// Initial LBA as empty.
+	p->pregap = get_frames_msf(_T("00:00:00"));
+	p->index0_abs_lba = 0;
+	p->index1_abs_lba = 0;
+	memset(&(p->index2_99_abs_lba[0]), 0x00, sizeof(p->index2_99_abs_lba));
+
+	p->index0_rel_lba = 0;
+	p->index1_rel_lba = 0;
+	memset(&(p->index2_99_rel_lba[0]), 0x00, sizeof(p->index2_99_rel_lba));
+
+
+	p->index0_rel_bytes = 0;
+	p->index1_rel_bytes = 0;
+	memset(&(p->index2_99_rel_bytes[0]), 0x00, sizeof(p->index2_99_rel_bytes));
+
+	p->lba_count = 0;
+	p->track_total_bytes = 0;
+
+	p->data_offset = 0;
+	p->subq_abs_offset = 0;
+	memset(&(p->image_name), 0x00, sizeof(p->image_name));
 }
 
 void TOWNS_CDROM::copy_toc_table_to_main(int trk, CDROM_TOC_TABLE_t *p, std::string data_path, std::string data_type)
@@ -3611,8 +3629,80 @@ bool TOWNS_CDROM::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 /*
  * Note: 20200428 K.O: DO NOT USE STATE SAVE, STILL don't implement completely yet.
  */
-#define STATE_VERSION	68
+#define STATE_VERSION	69
 
+
+bool TOWNS_CDROM::process_state_toc_table(CDROM_TOC_TABLE_t *p, uint8_t num, FILEIO* state_fio, bool loading)
+{
+	if((p == NULL) || (state_fio == NULL)) return false;
+	if(!(state_fio->IsOpened())) return false;
+
+	uint8_t _tmpnum;
+	if(loading) {
+		state_fio->StateValue(_tmpnum);
+		if(num != _tmpnum) {
+			return false;
+		}
+	} else {
+		_tmpnum = num;
+		state_fio->StateValue(_tmpnum);
+	}
+	state_fio->StateValue(p->track_type);
+	state_fio->StateValue(p->image_type);
+	
+	state_fio->StateValue(p->is_subq_skew);
+	state_fio->StateValue(p->have_sub_data);
+
+	state_fio->StateValue(p->index_count);
+	
+	state_fio->StateValue(p->index0_abs_lba);
+	state_fio->StateValue(p->index1_abs_lba);
+	state_fio->StateArray(&(p->index2_99_abs_lba), sizeof(p->index2_99_abs_lba), 1);
+
+	state_fio->StateValue(p->index0_rel_lba);
+	state_fio->StateValue(p->index1_rel_lba);
+	state_fio->StateArray(&(p->index2_99_rel_lba), sizeof(p->index2_99_rel_lba), 1);
+
+	state_fio->StateValue(p->index0_rel_bytes);
+	state_fio->StateValue(p->index1_rel_bytes);
+	state_fio->StateArray(&(p->index2_99_rel_bytes), sizeof(p->index2_99_rel_bytes), 1);
+	
+	state_fio->StateValue(p->lba_count);
+	state_fio->StateValue(p->track_total_bytes);
+	
+	state_fio->StateValue(p->data_offset);
+	state_fio->StateValue(p->subq_abs_offset);
+
+	_TCHAR dummy_path[_MAX_PATH] = {0};
+	uint32_t _slen = 0;
+	if(loading) {
+		state_fio->StateValue(_slen);
+		if(_slen >= _MAX_PATH) {
+			_slen = _MAX_PATH - 1;
+		}
+		if(_slen == 0) {
+			memset(&(p->image_path[0]), 0x00, sizeof(p->image_path));
+		} else {
+			state_fio->StateArray(dummy_path, 1, (size_t)_slen);
+			my_tcscpy_s(&(p->image_path[0]), _MAX_PATH - 1, dummy_path);
+		}
+	} else { // Saving
+		_slen = _tcslen(p->image_path); 
+		if(_slen >= _MAX_PATH) {
+			_slen = _MAX_PATH - 1;
+		}
+		if(_slen <= 0) {
+			_slen = 0;
+		}
+		state_fio->StateValue(_slen);
+		if(_slen > 0) {
+			state_fio->StateArray(&(p->image_path[0]), 1, (size_t)_slen);
+		}
+	}
+	return true;
+}
+	
+	
 bool TOWNS_CDROM::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
