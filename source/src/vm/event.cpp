@@ -18,6 +18,14 @@
 #define EVENT_MIX	0
 #define EVENT_VLINE	1
 
+/*!
+  @note 20251217 K.O,
+  Start to use simde ( https://github.com/simd-everywhere/simde )
+  instead of my original simd feature.
+*/
+#include <simde/simde-common.h>
+#include <simde/x86/avx2.h>
+
 void EVENT::initialize()
 {
 	DEVICE::initialize();
@@ -777,8 +785,16 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	}
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
-	__DECL_ALIGNED(32) int32_t tmpbuf[16];
 
+	union {
+		SIMDE_ALIGN_TO_16 simde__m128i m128[2];
+		SIMDE_ALIGN_TO_16 int32_t      i32[8];
+	} tmpbuf32;
+
+	union {
+		SIMDE_ALIGN_TO_16 simde__m128i m128;
+		SIMDE_ALIGN_TO_16 int16_t      i16[8];
+	} tmpbuf16;
 #ifdef LOW_PASS_FILTER
 	// low-pass filter
 	for(int i = 0; i < sound_samples - 1; i++) {
@@ -788,37 +804,46 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 #endif
 	// copy to buffer
 	int ii = 0;
+	int32_t* pw;
+	int16_t* np;
 	for(int i = 0; i < _total_div; i++) {
-		__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			tmpbuf[j] = sound_tmp[ii + j];
-		}
-		// Clipping
-		__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			if(tmpbuf[j] > INT16_MAX) tmpbuf[j] = INT16_MAX;
-		}
-		__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			if(tmpbuf[j] < INT16_MIN) tmpbuf[j] = INT16_MIN;
-		}
-		// Copy
-		int16_t* np = (int16_t*)(&sound_buffer[ii]);
-		__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			np[j] = tmpbuf[j];
-		}
+		pw = (int32_t*)(&(sound_tmp[ii]));
+		np = (int16_t*)(&(sound_buffer[ii]));
+		
+		tmpbuf32.m128[0] = simde_mm_loadu_si128(&(pw[0]));
+		tmpbuf32.m128[1] = simde_mm_loadu_si128(&(pw[4]));
+		// Clipping		
+		tmpbuf16.m128 = simde_mm_packs_epi32(tmpbuf32.m128[0], tmpbuf32.m128[1]);
+		// Store
+		simde_mm_storeu_si128(np, tmpbuf16.m128);
 		ii += 8;
 	}
 
-	int16_t* np = (int16_t*)(&sound_buffer[ii]);
+	// Mod Bytes.
+	#if 1
+	np = (int16_t*)(&(sound_buffer[ii]));
 	for(int i = 0; i < _total_mod; i++) {
 		int32_t dat = sound_tmp[ii + i];
 		if(dat > INT16_MAX) dat = INT16_MAX;
 		if(dat < INT16_MIN) dat = INT16_MIN;
 		np[i] = dat;
 	}
-
+	#else
+	pw = (int32_t*)(&(sound_tmp[ii]));
+	np = (int16_t*)(&(sound_buffer[ii]));
+	//tmpbuf32.m128[0] = simde_mm_setzero_ps();
+	//tmpbuf32.m128[1] = simde_mm_setzero_ps();
+	// Load
+	for(size_t i = 0; i < _total_mod; i++) {
+		tmpbuf32.i32[i] = pw[i];
+	}
+	// Clipping		
+	tmpbuf16.m128 = simde_mm_packs_epi32(tmpbuf32.m128[0], tmpbuf32.m128[1]);
+	// Store
+	for(size_t i = 0; i < _total_mod; i++) {
+		np[i] = tmpbuf16.i16[i];
+	}
+	#endif
 	// Move next datas to head.
 	if(buffer_ptr > sound_samples) {
 		buffer_ptr -= sound_samples;
