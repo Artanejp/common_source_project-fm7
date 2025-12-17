@@ -374,13 +374,35 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 	__UNLIKELY_IF(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
-	__DECL_ALIGNED(32)  scrntype_t apal256[256];
-	simd_copy(apal256, &(linebuffers[trans][y].palettes[0].pixels[0]), 256);
+	SIMDE_ALIGN_TO_32  scrntype_t apal256[256];
+	scrntype_t* __app = &(linebuffers[trans][y].palettes[0].pixels[0]);
+	
+	{
+	SIMDE_ALIGN_TO_32 simde__m128 __t128;
+	#if defined(_RGB555) || defined(_RGB565)
+		// 16bit per pixel.
+		for(size_t i = 0; i < 256; i += 16) {
+			__t128 = simde_mm_loadu_epi32(&(__app[i]));
+			simde_mm_store_epi32(&(apal256[i]));
+		}
+	#else /* _RGB888 */
+		// 32bit per pixel.
+		for(size_t i = 0; i < 256; i += 8) {
+			__t128 = simde_mm_loadu_epi32(&(__app[i]));
+			simde_mm_store_epi32(&(apal256[i]));
+		}
+	#endif
+	}
+
 
 //	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d pWIDTH=%d"), y, magx, width, pwidth);
 	__UNLIKELY_IF(pwidth < 1) pwidth = 1;
-	csp_vector8<uint8_t> pbuf;
-	csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	union {
+		SIMDE_ALIGN_TO_32 uint8_t u8[8];
+		SIMDE_ALIGN_TO_32 uint64_t u64;
+	} pbuf;
+	//csp_vector8<uint8_t> pbuf;
+	SIMDE_ALIGN_TO_32 csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
 
 	size_t rwidth = pwidth & 7;
 	size_t width_tmp1 = (hst[trans] > TOWNS_CRTC_MAX_PIXELS) ? TOWNS_CRTC_MAX_PIXELS : hst[trans];
@@ -393,16 +415,23 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 			break;
 		}
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
-			pbuf.clear();
+			pbuf.u64 = 0;
 			sbuf[xx].clear();
 			__LIKELY_IF(rwidth != 0) {
-				pbuf.load_limited(p, rwidth);
+				for(size_t _ii = 0; _ii < rwidth; _ii++) {
+					pbuf.u8[_ii] = p[_ii];
+				}
 				p += rwidth;
-				sbuf[xx].lookup(pbuf, apal256);
+				for(size_t _ii = 0; _ii < rwidth; _ii++) {
+					sbuf[xx].set(apal256[pbuf.u8[_ii]]);
+				}
 			}
 		} else {
-			pbuf.load(p);
-			sbuf[xx].lookup(pbuf, apal256);
+			pbuf.u64 = *((uint64_t*)p);
+			SIMDE_VECTORIZE
+			for(size_t _ii = 0; _ii < 8; _ii++) {
+				sbuf[xx].set(apal256[pbuf.u8[_ii]]);
+			}
 			p += 8;
 		}
 		words++;
