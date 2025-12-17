@@ -16,7 +16,18 @@ extern "C" {
 	#include "libavcodec/avcodec.h"
 }
 #if !defined(AVCODEC_UPPER_V56)
-	#if (LIBAVCODEC_VERSION_MAJOR > 56)
+	#if (LIBAVCODEC_VERSION_MAJOR > 56) /* FFMPeg 3.0 or later */
 	#define AVCODEC_UPPER_V56
 	#endif
 #endif
+#if !defined(AVCODEC_UPPER_V60) /* FFMpeg 7.0 or later */
+	#if (LIBAVCODEC_VERSION_MAJOR > 60) 
+	#define AVCODEC_UPPER_V60
+	#endif
+#endif
+#if !defined(AVCODEC_UPPER_V61) /* FFMpeg 8.0 or later */
+	#if (LIBAVCODEC_VERSION_MAJOR > 61) 
+	#define AVCODEC_UPPER_V61
+	#endif
+#endif
+

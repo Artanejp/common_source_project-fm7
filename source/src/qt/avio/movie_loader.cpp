@@ -557,11 +557,15 @@ _end:
 void MOVIE_LOADER::close(void)
 {
     if(video_dec_ctx != NULL) {
+		#if !defined(AVCODEC_UPPER_V60)
 		avcodec_close(video_dec_ctx);
+		#endif
 		avcodec_free_context(&video_dec_ctx);
 	}
     if(audio_dec_ctx != NULL) {
+		#if !defined(AVCODEC_UPPER_V60)
 		avcodec_close(audio_dec_ctx);
+		#endif
 		avcodec_free_context(&audio_dec_ctx);
 	}
 	if(fmt_ctx != nullptr) {

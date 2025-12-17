@@ -116,7 +116,9 @@ void MOVIE_SAVER::close_stream(void *_ost)
 #if defined(USE_LIBAV)
 	OutputStream *ost = (OutputStream *)_ost;
 	#ifdef AVCODEC_UPPER_V56
+	#ifndef AVCODEC_UPPER_V60
 	avcodec_close(ost->context);
+	#endif
 	while(avcodec_is_open(ost->context) != 0) { this->msleep(5);}
 	#else
 	avcodec_close(ost->st->codec);

@@ -354,7 +354,8 @@ void MOVIE_SAVER::setup_audio(AVCodecContext *codec_context, OutputStream *ost, 
 		return;
 	}
 	// Check support samplerate
-	std::list<int> samplerates;	
+	std::list<int> samplerates;
+	/* ToDo: Apply for deprecated methods. - 20251218 K.O */
 	if((*codec)->supported_samplerates != nullptr) {
 		const int* p = (*codec)->supported_samplerates;
 		auto itp = samplerates.begin();
@@ -383,6 +384,7 @@ void MOVIE_SAVER::setup_audio(AVCodecContext *codec_context, OutputStream *ost, 
 	} else {
 		cutoff = newrate / 2;
 	}
+	/* ToDo: Apply for deprecated methods. - 20251218 K.O */
 	c->sample_fmt  = (*codec)->sample_fmts ? (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
 	c->bit_rate	= audio_bit_rate;
 	c->sample_rate = newrate;
