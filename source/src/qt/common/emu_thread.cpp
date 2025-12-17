@@ -174,67 +174,80 @@ void EmuThreadClass::doWork()
 			run_frames = p_emu->run();
 			half_count = p_emu->is_half_event();
 			driven_by_half_of_frame = p_emu->is_driven_by_half_of_frame();
-			if((driven_by_half_of_frame) || !(half_count)) {
+			#if 0
+			if((driven_by_half_of_frame) && !(half_count)) {
 				if(run_frames <= 0) {
 					run_frames = 1;
 				}
-			} else {
-				if(run_frames < 0) {
-					run_frames = 0;
+			} else if(!(driven_by_half_of_frame)) {
+				if(run_frames <= 0) {
+					run_frames = 1;
 				}
 			}
-			
+			#endif
 			if(run_frames > 0) {
 				total_frames += run_frames;
 			}
 			
-			__UNLIKELY_IF(((prev_skip) && !(now_skip)) || (next_time <= 0))  {
-				next_time = get_current_tick_usec();
-			}
+
 			// After frame, delayed open
 			if(bRunThread.load() == false){
 				break;
 			}
-			set_led();
+//			set_led();
 			
-			__LIKELY_IF(!(half_count)) { // End of a frame.
-//				set_led();
+			__LIKELY_IF(!(half_count) || !(driven_by_half_of_frame)) { // End of a frame.
+				set_led();
 				sample_access_drv();
 				__LIKELY_IF(p_config != nullptr) {
 					full_speed = p_config->full_speed;
 				}
-				
+				now_skip = (((full_speed) || p_emu->is_frame_skippable()) && !(p_emu->is_video_recording())) ? true : false;
+				__UNLIKELY_IF(((prev_skip) && !(now_skip)) || (next_time <= 0)) {
+					next_time = get_current_tick_usec();
+				}				
 				double nd;
 				nd = get_emu_frame_rate();
 				if(nr_fps != nd) emit sig_set_draw_fps(nd);
 				nr_fps = nd;
 				prev_skip = now_skip;
 			}
+
 			if(!(now_skip)) {
 				interval = get_interval();
 				next_time += interval;
 			}
-			__LIKELY_IF(!(half_count)) { // End of a frame.
+			current_time = get_current_tick_usec();
+			sleep_period = 0;
+			__LIKELY_IF(!(half_count) || !(driven_by_half_of_frame)) { // End of a frame.
 				if(!(is_up_null) && (p_config != nullptr)) {
 					if((u_p->is_support_tv_render()) && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
 						req_draw = true;
 					}
 				}
 				if(!(req_draw)) {
-					if(next_time <= get_current_tick_usec()) { // Even draw
+					if(next_time <= current_time) { // Even draw
 						if(++skip_frames > MAX_SKIP_FRAMES) {
 							req_draw = true;
 							skip_frames = 0;
 							next_time = get_current_tick_usec();
 						}
+					} else {
+						if(next_time > (current_time + 1000)) { // Upper 1mSec.
+							sleep_period = next_time - current_time;
+						}
 					}
 				} else {
 					skip_frames = 0;
+					if(next_time > (current_time + 1000)) { // Upper 1mSec.
+						sleep_period = next_time - current_time;
+					}
 				}
 				//printf("DRAW %dmsec\n", get_current_tick_usec());
 				do_print_framerate(0);
 				//if(req_draw) {
-				p_emu->request_update_screen();
+					p_emu->request_update_screen();
+				//	req_draw = false;
 				//}
 				emit sig_draw_thread(req_draw); // Call offloading thread.
 				if(led_timer.hasExpired(100)) { // Update at least 100mSec.
@@ -247,6 +260,14 @@ void EmuThreadClass::doWork()
 				if(req_draw) {
 					yieldCurrentThread(); // Yield current thread;
 				}
+			} else {
+				// Middle of frame
+				__UNLIKELY_IF(next_time <= 0) {
+					next_time = get_current_tick_usec();
+				}				
+				if(next_time > (current_time + 1000)) { // Upper 4mSec.
+					sleep_period = next_time - current_time;
+				}
 			}
 		} else {
 			// Fallback for not setting EMU:: .
@@ -258,24 +279,21 @@ void EmuThreadClass::doWork()
 			msleep(10);
 			continue;
 		}
-		current_time = get_current_tick_usec();
-		sleep_period = 0;
-		if(next_time > current_time) {
-			sleep_period = next_time - current_time;
-		}
-#if 0
+#if 1
 		if(csp_logger.get() != nullptr) {
 			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_EMU,
-								  "EMU: Wait: %d uSec CURRENT=%d NEXT=%d", sleep_period, current_time, next_time);
+								  "EMU: POSITION=%s FRAMES:%d Wait: %d uSec INTERVAL=%d CURRENT=%d NEXT=%d", (half_count) ? _T("HALF") : _T("TOP ") , run_frames, sleep_period, interval, current_time, next_time);
 		}
 #endif
 		req_draw = false;
 		//if(bRunThread.load()) {
 		//	emit sig_timer_start(sleep_period / 1000);
 		//}
-		if(sleep_period >= 1000) {
-			usleep(sleep_period);
-		} else {
+		if(sleep_period >= 4000) {
+			//usleep(sleep_period);
+			msleep(sleep_period / 1000);
+		} else /*if(next_time <= current_time) */ {
+			//next_time = current_time + interval;
 			yieldCurrentThread();
 		}
 	} while(bRunThread.load());

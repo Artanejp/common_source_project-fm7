@@ -26,9 +26,10 @@
 
 qint64 EmuThreadClassBase::get_interval(void)
 {
+//	std::shared_ptr<USING_FLAGS> p_flags = using_flags;
+	#if 0
 	qint64 _interval = (qint64)(1.0e6 / 59.94);
 	qint64 _nsec;
-//	std::shared_ptr<USING_FLAGS> p_flags = using_flags;
 	__LIKELY_IF(p_emu != nullptr) {
 		_nsec = p_emu->get_next_period_nsec();
 		__UNLIKELY_IF(_nsec >= (2000 * 1000 * 1000)) { // Maximum 2 Sec.
@@ -42,7 +43,23 @@ qint64 EmuThreadClassBase::get_interval(void)
 		_interval = fps_accum >> 10;
 		fps_accum -= (_interval << 10);
 	}
-
+	#else
+	int64_t _frame_interval_us = (int64_t)((1.0e6 / 59.94) + 0.5);
+	__LIKELY_IF(p_emu != nullptr) {
+		_frame_interval_us = p_emu->get_frame_interval();
+	}
+	if(driven_by_half_of_frame) {
+		if(!(half_count)) { // TOP of FRAME
+			_frame_interval_us = _frame_interval_us / 2;
+		} else {
+			// MIDDLE of FRAME
+			_frame_interval_us = _frame_interval_us - (_frame_interval_us / 2);
+		}
+	}
+	fps_accum += _frame_interval_us;
+	qint64 _interval = (qint64)(fps_accum >> 10);
+	fps_accum -= (_interval << 10);
+	#endif
 	return _interval;
 }
 

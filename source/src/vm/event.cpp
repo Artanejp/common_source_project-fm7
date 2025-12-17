@@ -783,7 +783,9 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		 /* Use HALF Event */
-		if(!(drive())) frames++;
+//		if(!(drive())) frames++;
+		drive();
+		frames++;
 	}
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
