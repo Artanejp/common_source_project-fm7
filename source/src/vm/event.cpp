@@ -23,8 +23,10 @@
   Start to use simde ( https://github.com/simd-everywhere/simde )
   instead of my original simd feature.
 */
-#include <simde/simde-common.h>
-#include <simde/x86/avx2.h>
+extern "C" {
+	#include <simde/simde-common.h>
+	#include <simde/x86/avx2.h>
+}
 
 void EVENT::initialize()
 {
