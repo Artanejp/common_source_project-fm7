@@ -94,11 +94,13 @@ void Ui_MainWindowBase::do_unblock_task(void)
 void Ui_MainWindowBase::do_start_emu_thread(void)
 {
 	emit sig_start_emu_thread(QThread::TimeCriticalPriority);
+	//emit sig_start_emu_thread(QThread::HighPriority);
 }
 
 void Ui_MainWindowBase::do_start_draw_thread(void)
 {
-	emit sig_start_draw_thread(QThread::HighestPriority);
+	//emit sig_start_draw_thread(QThread::HighestPriority);
+	emit sig_start_draw_thread(QThread::NormalPriority);
 }
 
 void Ui_MainWindowBase::do_set_latency(void)
