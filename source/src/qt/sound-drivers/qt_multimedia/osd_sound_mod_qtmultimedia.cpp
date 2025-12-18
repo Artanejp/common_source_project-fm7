@@ -97,7 +97,7 @@ bool M_QT_MULTIMEDIA::initialize_driver(QObject* parent)
 bool M_QT_MULTIMEDIA::recalc_sink_buffer(int rate, int latency_ms, const bool force)
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	bool __need_restart = M_BASE::recalc_samples(rate, latency_ms, false);
+	bool __need_restart = M_BASE::recalc_samples(rate, latency_ms, force);
 
 	if((__need_restart) || (force)) {
 		std::shared_ptr<OutputSinkType> drv = m_audioOutputSink;

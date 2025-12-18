@@ -62,11 +62,15 @@ void OSD_BASE::do_sink_empty()
 void OSD_BASE::do_sink_started()
 {
 	m_sink_started = true;
+	//m_sink_empty = false;
+	//m_sink_timer.restart();
 }
 
 void OSD_BASE::do_sink_stopped()
 {
 	m_sink_started = false;
+	m_sink_empty = true;
+	m_sink_timer.invalidate();
 }
 
 void OSD_BASE::sound_debug_log(const char *fmt, ...)
@@ -113,53 +117,52 @@ void OSD_BASE::update_sound(int* extra_frames)
 
 	// ToDo: Count by frame(s).
 	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
+	
+	m_now_mute = false;
 	if((m_sound_initialized.load()) && (sound_drv.get() != nullptr)) {
 		// Get sound driver
 		__UNLIKELY_IF((m_sound_rate <= 0) || (m_sound_samples <= 0)) {
 			return; 
 		}
-		m_now_mute = false;
 		if(sound_drv->is_output_driver_stopped()) {
 			m_sink_empty = true;
 			sound_drv->start_sink();
-			m_sound_first_half = true;
 			return;
 		}
-		bool first_half = m_sound_first_half.load();
-		int64_t _wptr = sound_drv->get_sink_write_ptr();
-		if(_wptr > (m_sound_samples * 2)) {
-			//m_sound_first_half = true;
-			return; // Skip too fill.
-		}
-		if(m_sink_empty.load()) {
-			m_sound_first_half = true;
-			//first_half = true;
-			put_null_sound();
-			//_wptr = sound_drv->get_sink_write_ptr();
-			m_sink_empty = false;
+		if(!(m_sink_timer.isValid())) {
+			m_sink_timer.start();
 			return;
 		}
-		if(first_half) {
-			if(_wptr >= m_sound_samples) {
-				return;
-			}
-		} else {
-			if((_wptr < m_sound_samples) && !(m_sink_empty.load())) { 
-				return;
-			}
+		// Check sound buffer is enough to write.
+		double _frame_rate = vm_frame_rate();
+		qint64 _samples = (qint64)m_sound_samples;
+		__UNLIKELY_IF(_frame_rate > 500.0) { // !!
+			_frame_rate = 500.0;
 		}
-
-		
+		__UNLIKELY_IF(_frame_rate < 1.0) {
+			_frame_rate = 1.0;
+		}
+		qint64 _sample_usec = (_samples * 1000 * 1000) / m_sound_rate;
+		qint64 _jitter = (_sample_usec * 20) / 100; // 20% of samples
+		qint64 _frame_jitter = (qint64)((1.0e6 / _frame_rate) * 0.33); // 33% of frame_rate.
+		qint64 _expire_ref_usec = _sample_usec - std::min(_jitter, _frame_jitter);
+		//qint64 _expire_ref_usec = _sample_usec;
+		if(_expire_ref_usec < 1000) {
+			_expire_ref_usec = 1000;
+		}
+		if((m_sink_timer.nsecsElapsed() / 1000) < _expire_ref_usec) {
+			return;
+		}
+		m_sink_timer.restart();
 		int __extra_frames = 0;
 		int16_t* sound_buffer = (int16_t*)create_sound(&__extra_frames);
 		__LIKELY_IF(extra_frames != NULL) {
 			*extra_frames = __extra_frames;
 		}
-		m_sink_empty = false;
 		//sound_debug_log(_T("Render %d Samples , Extra frames = %d"), m_sound_samples, __extra_frames);
 		if((now_record_sound || now_record_video) && (sound_buffer != nullptr)) {
-			if(m_sound_samples > rec_sound_buffer_ptr) {
-				int samples = m_sound_samples - rec_sound_buffer_ptr;
+			if(_samples > rec_sound_buffer_ptr) {
+				int samples = _samples - rec_sound_buffer_ptr;
 				int length = samples * sizeof(int16_t) * 2; // stereo
 				rec_sound_bytes += length;
 				if(now_record_video) {
@@ -180,17 +183,20 @@ void OSD_BASE::update_sound(int* extra_frames)
 				//}
 				//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
 				rec_sound_buffer_ptr += samples;
-				if(rec_sound_buffer_ptr >= m_sound_samples) rec_sound_buffer_ptr = 0;
+				if(rec_sound_buffer_ptr >= _samples) rec_sound_buffer_ptr = 0;
 			}
 		}
 		// ToDo: Convert sound format.
 
 		if((sound_drv.get() != nullptr) && (sound_buffer != nullptr)) {
 			int64_t _result = 0;
-			int _samples = m_sound_samples;
-			_result = sound_drv->update_sound((void*)sound_buffer, _samples);
+			int __samples = _samples;
+			_result = sound_drv->update_sound((void*)sound_buffer, __samples);
+			__LIKELY_IF(_result > 0) {
+				m_sink_empty = false;
+			}
+			//sound_debug_log(_T("Render %d Samples , Extra frames = %d -> Wrote %d"), _samples, __extra_frames, _result);
 		}
-		m_sound_first_half = !(first_half);
 	}
 }
 
@@ -243,10 +249,9 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 
 		m_sound_initialized = false;
 		m_sink_started = false;
-		m_sink_empty = false; // OK?
+		m_sink_empty = true; // OK?
 		m_source_started = false;
 		m_source_empty = false; // OK?
-		m_sound_first_half = true;
 		if(m_sound_thread == nullptr) {
 			m_sound_thread = new QThread();
 		}
@@ -277,7 +282,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 				// I don't know why...But I decide.
 				// - 240909 K.O
 				#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				m_sound_thread->start(QThread::HighPriority);
+				m_sound_thread->start(QThread::LowestPriority);
 				//m_sound_thread->start(QThread::LowPriority);
 				#else
 				m_sound_thread->start(QThread::HighPriority);
@@ -347,7 +352,7 @@ void OSD_BASE::release_sound()
 	m_sound_exit = true;
 	m_sound_initialized = false;
 	m_sink_started = false;
-	m_sink_empty = false; // OK?
+	m_sink_empty = true; // OK?
 	m_source_started = false;
 	m_source_empty = false; // OK?
 
@@ -474,7 +479,7 @@ void OSD_BASE::put_null_sound()
 		__UNLIKELY_IF((m_sound_rate <= 0) || (m_sound_samples <= 0)) {
 			return; 
 		}
-		size_t samples = m_sound_samples;
+		size_t samples = m_sound_samples / 2;
 		size_t _bytes = (samples * sizeof(int16_t) * 2);
 		std::unique_ptr<uint8_t[]> buf(new uint8_t[_bytes]);
 		if(buf.get() != nullptr) {

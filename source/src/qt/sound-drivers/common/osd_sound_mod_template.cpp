@@ -143,7 +143,7 @@ bool M_BASE::recalc_samples(size_t rate, size_t latency_ms, bool force)
 	uint64_t _samples =
 		(((uint64_t)rate) * ((uint64_t)latency_ms)) / 1000;
 	size_t _chunk_bytes = (size_t)(_samples * (uint64_t)(m_sink_wordsize.load()) * (uint64_t)(m_sink_channels.load()));
-	size_t _buffer_bytes = _chunk_bytes * 2;
+	size_t _buffer_bytes = (_chunk_bytes * 25) / 10; // 2.5 times of sample.
 
 	if((m_sink_rate.load() == rate) && (m_sink_latency_ms.load() == latency_ms) && !(force)) {
 		return false;
@@ -772,15 +772,15 @@ size_t M_BASE::get_source_buffer_bytes()
 int64_t M_BASE::get_sink_write_ptr()
 {
 	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	//int64_t _size = get_sink_bytes_size();
+	int64_t _size = get_sink_bytes_size();
 	int64_t _left = get_sink_bytes_left();
 	int64_t _word_size = (int64_t)(m_sink_wordsize.load());
 	int64_t _channels = (int64_t)(m_sink_channels.load());
 	__UNLIKELY_IF((_channels <= 0) || (_word_size <= 0)) {
 		return 0;
 	}
-	//int64_t _ptr = _size - _left;
-	int64_t _ptr = _left;
+	int64_t _ptr = _size - _left;
+	//int64_t _ptr = _left;
 	__UNLIKELY_IF(_ptr < 0) {
 		return 0;
 	}

@@ -17,6 +17,7 @@
 #include <QString>
 #include <QStringList>
 #include <QImage>
+#include <QElapsedTimer>
 
 #include <SDL.h>
 
@@ -288,11 +289,12 @@ protected:
 	void put_null_sound();
 
 	int m_sound_rate, m_sound_samples;
-	std::atomic<bool> m_sound_first_half;
 	QStringList sound_output_devices_list;
 	
 	std::atomic<bool> m_sink_empty;
 	std::atomic<bool> m_sink_started;
+	QElapsedTimer     m_sink_timer;
+	QElapsedTimer     m_source_timer;
 	
 	_TCHAR sound_file_name[_MAX_PATH];
 	
