@@ -122,6 +122,7 @@ void EmuThreadClass::doWork()
 	
 	is_up_null = (u_p.get() == nullptr);
 	QElapsedTimer led_timer;
+	bool req_calc_sleep = false;
 	next_time = 0;
 
 	do {
@@ -170,19 +171,17 @@ void EmuThreadClass::doWork()
 				check_scanline_params(false);
 			}
 			
+			current_time = get_current_tick_usec();
 			process_key_input();
+
 			run_frames = p_emu->run();
 			half_count = p_emu->is_half_event();
 			driven_by_half_of_frame = p_emu->is_driven_by_half_of_frame();
-			#if 0
+			#if 1
 			if((driven_by_half_of_frame) && !(half_count)) {
-				if(run_frames <= 0) {
-					run_frames = 1;
-				}
+				total_frames++;
 			} else if(!(driven_by_half_of_frame)) {
-				if(run_frames <= 0) {
-					run_frames = 1;
-				}
+				total_frames++;
 			}
 			#endif
 			if(run_frames > 0) {
@@ -194,10 +193,10 @@ void EmuThreadClass::doWork()
 			if(bRunThread.load() == false){
 				break;
 			}
-//			set_led();
+			set_led();
 			
 			__LIKELY_IF(!(half_count) || !(driven_by_half_of_frame)) { // End of a frame.
-				set_led();
+//				set_led();
 				sample_access_drv();
 				__LIKELY_IF(p_config != nullptr) {
 					full_speed = p_config->full_speed;
@@ -212,13 +211,13 @@ void EmuThreadClass::doWork()
 				nr_fps = nd;
 				prev_skip = now_skip;
 			}
+			//if(!(now_skip)) {
+			//	interval = get_interval();
+			//	next_time += interval;
+			//}
 
-			if(!(now_skip)) {
-				interval = get_interval();
-				next_time += interval;
-			}
-			current_time = get_current_tick_usec();
 			sleep_period = 0;
+			//current_time = get_current_tick_usec();
 			__LIKELY_IF(!(half_count) || !(driven_by_half_of_frame)) { // End of a frame.
 				if(!(is_up_null) && (p_config != nullptr)) {
 					if((u_p->is_support_tv_render()) && (p_config->rendering_type == CONFIG_RENDER_TYPE_TV)) {
@@ -233,22 +232,17 @@ void EmuThreadClass::doWork()
 							next_time = get_current_tick_usec();
 						}
 					} else {
-						if(next_time > (current_time + 1000)) { // Upper 1mSec.
-							sleep_period = next_time - current_time;
-						}
+						req_calc_sleep = true;
 					}
 				} else {
 					skip_frames = 0;
-					if(next_time > (current_time + 1000)) { // Upper 1mSec.
-						sleep_period = next_time - current_time;
-					}
+					req_calc_sleep = true;
 				}
 				//printf("DRAW %dmsec\n", get_current_tick_usec());
 				do_print_framerate(0);
-				//if(req_draw) {
+				if(req_draw) {
 					p_emu->request_update_screen();
-				//	req_draw = false;
-				//}
+				}
 				emit sig_draw_thread(req_draw); // Call offloading thread.
 				if(led_timer.hasExpired(100)) { // Update at least 100mSec.
 					if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) {
@@ -257,17 +251,13 @@ void EmuThreadClass::doWork()
 					led_timer.restart();
 				}
 				
-				if(req_draw) {
-					yieldCurrentThread(); // Yield current thread;
-				}
+				//if(req_draw) {
+				//	yieldCurrentThread(); // Yield current thread;
+				//}
+				req_draw = false;
 			} else {
 				// Middle of frame
-				__UNLIKELY_IF(next_time <= 0) {
-					next_time = get_current_tick_usec();
-				}				
-				if(next_time > (current_time + 1000)) { // Upper 4mSec.
-					sleep_period = next_time - current_time;
-				}
+				req_calc_sleep = true;
 			}
 		} else {
 			// Fallback for not setting EMU:: .
@@ -276,10 +266,21 @@ void EmuThreadClass::doWork()
 			nr_fps = get_emu_frame_rate();
 			emit sig_set_draw_fps(nr_fps);
 			do_print_framerate(0);
-			msleep(10);
+			msleep((qint64)((1000.0 / nr_fps) * 8));
 			continue;
 		}
-#if 1
+		//current_time = get_current_tick_usec();
+		if(!(now_skip)) {
+			interval = get_interval();
+			next_time += interval;
+		}
+		if(req_calc_sleep) {
+			if(next_time > (current_time + 1000)) { // Upper 1mSec.
+				sleep_period = next_time - current_time;
+			}
+			req_calc_sleep = false;
+		}
+#if 0
 		if(csp_logger.get() != nullptr) {
 			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_EMU,
 								  "EMU: POSITION=%s FRAMES:%d Wait: %d uSec INTERVAL=%d CURRENT=%d NEXT=%d", (half_count) ? _T("HALF") : _T("TOP ") , run_frames, sleep_period, interval, current_time, next_time);
@@ -289,10 +290,10 @@ void EmuThreadClass::doWork()
 		//if(bRunThread.load()) {
 		//	emit sig_timer_start(sleep_period / 1000);
 		//}
-		if(sleep_period >= 4000) {
-			//usleep(sleep_period);
-			msleep(sleep_period / 1000);
-		} else /*if(next_time <= current_time) */ {
+		if(sleep_period >= 500) {
+			usleep(sleep_period);
+			//msleep(sleep_period / 1000);
+		} else {
 			//next_time = current_time + interval;
 			yieldCurrentThread();
 		}
