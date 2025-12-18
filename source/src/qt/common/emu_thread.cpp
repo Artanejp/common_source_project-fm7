@@ -308,9 +308,9 @@ void EmuThreadClass::doWork()
 		}
 	}
 	msleep(10);
-	emit sig_draw_finished();
 	emit sig_stop_sound_timer();
 	emit sig_sound_stop();
+	emit sig_draw_finished();
 	
 	quit();
 }
