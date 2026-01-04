@@ -12,10 +12,12 @@
 #include "fifo.h"
 #include "fileio.h"
 
+
 FIFO::FIFO(int s, int empty_warn, int fill_warn)
 {
 	size = s;
 	//buf = (int*)malloc(size * sizeof(int));
+
 	buf = new int[size];
 	cnt = rpt = wpt = 0;
 	empty_warn_val = empty_warn;
