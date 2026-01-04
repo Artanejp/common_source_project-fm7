@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <QIODevice>
-#include "../../fifo_templates.h"
+#include "../../ringbuffer.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -18,7 +18,7 @@ class DLL_PREFIX SOUND_BUFFER_QT : public QIODevice
 	using QIODevice::OpenMode;
 	using QIODevice::OpenModeFlag;
 #endif
-	using BUFFER_TYPE = FIFO_BASE::LOCKED_RINGBUFFER<uint8_t>;
+	using BUFFER_TYPE = RINGBUFFER;
 	//using BUFFER_TYPE = FIFO_BASE::LOCKED_FIFO<uint8_t>;
 protected:
 	std::shared_ptr<BUFFER_TYPE>m_buffer;

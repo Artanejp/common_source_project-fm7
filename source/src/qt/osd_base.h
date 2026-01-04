@@ -83,9 +83,14 @@ class USING_FLAGS;
 class CSP_logger;
 
 class QOpenGLContext;
-namespace SOUND_MODULE {
-	class M_BASE;
-}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+class QAudioSink;
+class QAudioSource;
+#else /* Qt5 */
+class QAudioOutput;
+class QAudioInput;
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -152,17 +157,28 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
-class SOUND_BUFFER_QT;
 
 class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
 private:
 	/* Note: Below are new sound driver. */
-	std::shared_ptr<SOUND_MODULE::M_BASE> m_sound_driver;
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioSink>   m_sound_sink;
+	std::shared_ptr<QAudioSource> m_sound_source;
+	#else /* Qt5.x */
+	std::shared_ptr<QAudioOutput> m_sound_sink;
+	std::shared_ptr<QAudioInput>  m_sound_source;
+	#endif
 	// Count factor; this multiplies by 2^32;
 	std::atomic<uint64_t>     m_sound_samples_count;
 	std::atomic<uint64_t>     m_sound_samples_factor;
+	
+	std::atomic<qint64>       m_sink_prev_elapsed_usec;
+	std::atomic<qint64>       m_source_prev_elapsed_usec;
+
+	std::shared_ptr<QIODevice> m_sound_sink_io;
+	std::shared_ptr<QIODevice> m_sound_source_io;
 
 protected:
 	EmuThreadClass						*parent_thread;

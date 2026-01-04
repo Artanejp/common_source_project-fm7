@@ -62,8 +62,8 @@ protected:
 	
 	std::atomic<bool>				m_mute;
 
-	std::atomic<size_t>				m_sink_chunk_bytes;
-	std::atomic<size_t>				m_sink_buffer_bytes;
+	std::atomic<size_t>				m_sink_chunk_samples;
+	std::atomic<size_t>				m_sink_buffer_samples;
 	std::atomic<size_t>				m_sink_before_rendered;
 	std::atomic<size_t>				m_sink_samples;
 	std::atomic<size_t>				m_sink_rate;
@@ -72,8 +72,8 @@ protected:
 	std::atomic<size_t>				m_sink_wordsize;
 	std::atomic<double>				m_sink_volume;
 	
-	std::atomic<size_t>				m_source_chunk_bytes;
-	std::atomic<size_t>				m_source_buffer_bytes;
+	std::atomic<size_t>				m_source_chunk_samples;
+	std::atomic<size_t>				m_source_buffer_samples;
 	std::atomic<size_t>				m_source_before_rendered;
 	std::atomic<size_t>				m_source_samples;
 	std::atomic<size_t>				m_source_rate;
@@ -159,6 +159,33 @@ public:
 
 	virtual int64_t update_sound(void* datasrc, int samples);
 
+	virtual size_t sinkBufferSize();
+	virtual size_t sourceBufferSize();
+	
+	virtual size_t sinkBytesRemain();
+	virtual size_t sourceBytesRemain();
+	
+	virtual size_t sinkBytesLeft()
+	{
+		size_t __size = sinkBufferSize();
+		size_t __remain = sinkBufferRemain();
+		
+		__UNLIKELY_IF(__remain >= __size) {
+			return 0;
+		}
+		return __size - __remain;
+	}
+	virtual size_t sourceBytesLeft()
+	{
+		size_t __size = sourceBufferSize();
+		size_t __remain = sourceBufferRemain();
+		
+		__UNLIKELY_IF(__remain >= __size) {
+			return 0;
+		}
+		return __size - __remain;
+	}
+	
 	QIODevice* get_sink_io_device()
 	{
 		return m_sink_fileio;
@@ -175,62 +202,6 @@ public:
 	{
 		return m_config_ok.load();
 	}
-
-	virtual size_t get_sink_buffer_bytes();
-	virtual size_t get_sink_chunk_bytes()
-	{
-		return m_sink_chunk_bytes.load();
-	}
-	inline size_t get_sink_sample_count()
-	{
-		return m_sink_samples.load();
-	}
-	inline size_t get_sink_latency_ms()
-	{
-		return m_sink_latency_ms.load();
-	}
-	inline size_t get_sink_channels()
-	{
-		return m_sink_channels.load();
-	}
-	inline size_t get_sink_sample_rate()
-	{
-		return m_sink_rate.load();
-	}
-	inline size_t get_sink_word_size()
-	{
-		return m_sink_wordsize.load();
-	}
-	
-	virtual size_t get_source_buffer_bytes();
-	virtual size_t get_source_chunk_bytes()
-	{
-		return m_source_chunk_bytes.load();
-	}
-	inline size_t get_source_sample_count()
-	{
-		return m_source_samples.load();
-	}
-	inline size_t get_source_latency_ms()
-	{
-		return m_source_latency_ms.load();
-	}
-	inline size_t get_source_channels()
-	{
-		return m_source_channels.load();
-	}
-	inline size_t get_source_sample_rate()
-	{
-		return m_source_rate.load();
-	}
-	inline size_t get_source_word_size()
-	{
-		return m_source_wordsize.load();
-	}
-	
-	virtual __FORMAT get_sink_sound_format();
-	virtual __FORMAT get_source_sound_format();
-
 	
 	void get_sink_parameters(int& channels, int& rate, int& latency_ms,
 							   size_t& word_size, int& chunk_bytes, int& buffer_bytes);
@@ -238,14 +209,7 @@ public:
 	void get_source_parameters(int& channels, int& rate, int& latency_ms,
 							   size_t& word_size, int& chunk_bytes, int& buffer_bytes);
 	
-	virtual int64_t get_sink_bytes_left();
-	virtual int64_t get_source_bytes_left();
-	virtual int64_t get_sink_bytes_size();
-	virtual int64_t get_source_bytes_size();
 
-	int64_t get_sink_write_ptr();
-	int64_t get_source_read_ptr();
-	
 	virtual M_BASE* get_real_driver()
 	{
 		return dynamic_cast<SOUND_MODULE::M_BASE*>(this);

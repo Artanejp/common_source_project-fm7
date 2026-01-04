@@ -131,13 +131,6 @@ public:
 	virtual void release_sink() override;
 	virtual void release_source() override;
 
-	size_t  get_sink_buffer_bytes() override;
-	int64_t get_sink_bytes_left() override;
-	int64_t get_sink_bytes_size() override;
-	
-	size_t  get_source_buffer_bytes() override;
-	int64_t get_source_bytes_left() override;
-	int64_t get_source_bytes_size() override;
 	
 	virtual bool is_output_driver_started() override;
 	virtual bool is_output_driver_stopped() override;

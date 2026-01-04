@@ -223,15 +223,6 @@ void M_BASE::do_about_to_quit()
 	emit sig_released(!(m_config_ok.load()));
 }
 
-__FORMAT M_BASE::get_sink_sound_format()
-{
-	return __FORMAT::Signed_Int;
-}
-
-__FORMAT M_BASE::get_source_sound_format()
-{
-	return __FORMAT::Signed_Int;
-}
 
 bool M_BASE::update_latency(size_t latency_ms, bool force)
 {
@@ -415,6 +406,52 @@ config_t* M_BASE::get_config_ptr()
 		_np = _cp->get_config_ptr();
 	}
 	return _np;
+}
+
+size_t M_BASE::sinkBufferSize()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	__LIKELY_IF(m_sink_fileio != nullptr) {
+		return (size_t)(m_sink_fileio->size());
+	}
+	return 0;
+}
+
+size_t M_BASE::sourceBufferSize()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	__LIKELY_IF(m_source_fileio != nullptr) {
+		return (size_t)(m_source_fileio->size());
+	}
+	return 0;
+}
+
+size_t M_BASE::sinkBytesLeft()
+{
+	size_t __size = sinkBufferSize();
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	__LIKELY_IF(m_sink_fileio != nullptr) {
+		return (__size - (size_t)(m_sink_fileio->bytesToWrite()));
+	}
+	return __size;
+}
+
+size_t M_BASE::sinkBytesRemain()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	__LIKELY_IF(m_sink_fileio != nullptr) {
+		return (size_t)(m_sink_fileio->bytesToWrite());
+	}
+	return0;
+}
+
+size_t M_BASE::sourceBytesRemain()
+{
+	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
+	__LIKELY_IF(m_source_fileio != nullptr) {
+		return (size_t)(m_source_fileio->bytesToWrite());
+	}
+	return 0;
 }
 
 
@@ -692,30 +729,6 @@ void M_BASE::get_sink_parameters(int& channels, int& rate,
 	buffer_bytes = (int)(m_sink_buffer_bytes.load());
 }
 
-int64_t M_BASE::get_sink_bytes_size()
-{
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	QIODevice* q = m_sink_fileio;
-	if(q != nullptr) {
-		int64_t n =  (int64_t)(q->size());
-		if(n < 0) n = 0;
-		return n;
-	}
-	return 0;
-}
-	
-int64_t M_BASE::get_sink_bytes_left()
-{
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	QIODevice* q = m_sink_fileio;
-	if(q != nullptr) {
-		//int64_t n =  (int64_t)(q->bytesAvailable());
-		int64_t n =  (int64_t)(q->bytesToWrite());
-		if(n < 0) n = 0;
-		return n;
-	}
-	return 0;
-}
 
 void M_BASE::get_source_parameters(int& channels, int& rate,
 													 int& latency_ms, size_t& word_size,
@@ -729,81 +742,6 @@ void M_BASE::get_source_parameters(int& channels, int& rate,
 	buffer_bytes = (int)(m_source_buffer_bytes.load());
 }
 
-int64_t M_BASE::get_source_bytes_size()
-{
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	QIODevice* q = m_source_fileio;
-	if(q != nullptr) {
-		int64_t n =  (int64_t)(q->size());
-		if(n < 0) n = 0;
-		return n;
-	}
-	return 0;
-}
-
-int64_t M_BASE::get_source_bytes_left()
-{
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	QIODevice* q = m_source_fileio;
-	if(q != nullptr) {
-		int64_t n =  (int64_t)(q->bytesAvailable());
-		if(n < 0) n = 0;
-		return n;
-	}
-	return 0;
-}
-
-size_t M_BASE::get_sink_buffer_bytes()
-{
-	if(m_sink_external_fileio.load()) {
-		return get_sink_bytes_size();
-	}
-	return m_sink_buffer_bytes.load();
-}
-
-size_t M_BASE::get_source_buffer_bytes()
-{
-	if(m_source_external_fileio.load()) {
-		return get_source_bytes_size();
-	}
-	return m_source_buffer_bytes.load();
-}
-
-int64_t M_BASE::get_sink_write_ptr()
-{
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	int64_t _size = get_sink_bytes_size();
-	int64_t _left = get_sink_bytes_left();
-	int64_t _word_size = (int64_t)(m_sink_wordsize.load());
-	int64_t _channels = (int64_t)(m_sink_channels.load());
-	__UNLIKELY_IF((_channels <= 0) || (_word_size <= 0)) {
-		return 0;
-	}
-	int64_t _ptr = _size - _left;
-	//int64_t _ptr = _left;
-	__UNLIKELY_IF(_ptr < 0) {
-		return 0;
-	}
-	return _ptr / (_word_size * _channels);
-}
-
-int64_t M_BASE::get_source_read_ptr()
-{
-	std::lock_guard<std::recursive_timed_mutex> locker(m_locker);
-	//int64_t _size = get_source_bytes_size();
-	int64_t _left = get_source_bytes_left();
-	int64_t _word_size = (int64_t)(m_source_wordsize.load());
-	int64_t _channels = (int64_t)(m_source_channels.load());
-	__UNLIKELY_IF((_channels <= 0) || (_word_size <= 0)) {
-		return 0;
-	}
-	//int64_t _ptr = _size - _left;
-	int64_t _ptr = _left;
-	__UNLIKELY_IF(_ptr < 0) {
-		return 0;
-	}
-	return _ptr / (_word_size * _channels);
-}
 
 /* SOUND_MODULE */
 }

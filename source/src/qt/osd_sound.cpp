@@ -116,8 +116,14 @@ void OSD_BASE::update_sound(int* extra_frames)
 	}
 
 	// ToDo: Count by frame(s).
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	
+	std::shared_ptr<QAudioSink>   m_sound_sink;
+	std::shared_ptr<QAudioSource> m_sound_source;
+
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioSink>   sound_drv = m_sound_sink;
+	#else /* Qt 5.x */
+	std::shared_ptr<QAudioOutput> sound_drv = m_sound_sink;
+	#endif
 	m_now_mute = false;
 	if((m_sound_initialized.load()) && (sound_drv.get() != nullptr)) {
 		// Get sound driver
