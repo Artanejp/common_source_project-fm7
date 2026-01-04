@@ -783,9 +783,9 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	// drive extra frames to fill the sound buffer
 	while(sound_samples > buffer_ptr) {
 		 /* Use HALF Event */
-//		if(!(drive())) frames++;
-		drive();
-		frames++;
+		if(!(drive())) frames++;
+//		drive();
+//		frames++;
 	}
 	int _total_div = (sound_samples * 2) >> 3;
 	int _total_mod = (sound_samples * 2) - (((sound_samples * 2) >> 3) << 3);
@@ -810,24 +810,26 @@ uint16_t* EVENT::create_sound(int* extra_frames)
 	int ii = 0;
 	int32_t* pw;
 	int16_t* np;
+	pw = (int32_t*)(&(sound_tmp[0]));
+	np = (int16_t*)(&(sound_buffer[0]));
 	for(int i = 0; i < _total_div; i++) {
-		pw = (int32_t*)(&(sound_tmp[ii]));
-		np = (int16_t*)(&(sound_buffer[ii]));
-		
 		tmpbuf32.m128[0] = simde_mm_loadu_si128(&(pw[0]));
 		tmpbuf32.m128[1] = simde_mm_loadu_si128(&(pw[4]));
 		// Clipping		
 		tmpbuf16.m128 = simde_mm_packs_epi32(tmpbuf32.m128[0], tmpbuf32.m128[1]);
 		// Store
 		simde_mm_storeu_si128(np, tmpbuf16.m128);
+		pw += 8;
+		np += 8;
 		ii += 8;
 	}
 
 	// Mod Bytes.
 	#if 1
+	pw = (int32_t*)(&(sound_tmp[ii]));
 	np = (int16_t*)(&(sound_buffer[ii]));
 	for(int i = 0; i < _total_mod; i++) {
-		int32_t dat = sound_tmp[ii + i];
+		int32_t dat = pw[i];
 		if(dat > INT16_MAX) dat = INT16_MAX;
 		if(dat < INT16_MIN) dat = INT16_MIN;
 		np[i] = dat;
