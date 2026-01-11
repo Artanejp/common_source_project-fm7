@@ -162,23 +162,6 @@ class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
 private:
-	/* Note: Below are new sound driver. */
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	std::shared_ptr<QAudioSink>   m_sound_sink;
-	std::shared_ptr<QAudioSource> m_sound_source;
-	#else /* Qt5.x */
-	std::shared_ptr<QAudioOutput> m_sound_sink;
-	std::shared_ptr<QAudioInput>  m_sound_source;
-	#endif
-	// Count factor; this multiplies by 2^32;
-	std::atomic<uint64_t>     m_sound_samples_count;
-	std::atomic<uint64_t>     m_sound_samples_factor;
-	
-	std::atomic<qint64>       m_sink_prev_elapsed_usec;
-	std::atomic<qint64>       m_source_prev_elapsed_usec;
-
-	std::shared_ptr<QIODevice> m_sound_sink_io;
-	std::shared_ptr<QIODevice> m_sound_source_io;
 
 protected:
 	EmuThreadClass						*parent_thread;
@@ -300,17 +283,35 @@ protected:
 	// sound
 	void release_sound();
 	void init_sound_device_list();
-	bool __FASTCALL calcurate_sample_factor(int rate, int samples, const bool force);
 	void __FASTCALL sound_debug_log(const char *fmt, ...);
-	void put_null_sound();
 
+	/* Note: Below are new sound driver. */
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioSink>   m_sound_sink;
+	std::shared_ptr<QAudioSource> m_sound_source;
+	#else /* Qt5.x */
+	std::shared_ptr<QAudioOutput> m_sound_sink;
+	std::shared_ptr<QAudioInput>  m_sound_source;
+	#endif
+	// Count factor; this multiplies by 2^32;
+	std::atomic<uint64_t>     m_sound_samples_count;
+	std::atomic<uint64_t>     m_sound_samples_factor;
+	
+	std::atomic<qint64>       m_sink_prev_elapsed_usec;
+	std::atomic<qint64>       m_source_prev_elapsed_usec;
+
+	std::shared_ptr<QIODevice> m_sound_sink_io;
+	std::shared_ptr<QIODevice> m_sound_source_io;
+
+	std::atomic<QAudio::State> m_sound_sink_state;
+	std::atomic<QAudio::State> m_sound_source_state;
+	
 	int m_sound_rate, m_sound_samples;
 	QStringList sound_output_devices_list;
 	
-	std::atomic<bool> m_sink_empty;
-	std::atomic<bool> m_sink_started;
-	QElapsedTimer     m_sink_timer;
-	QElapsedTimer     m_source_timer;
+	std::atomic<bool> m_sound_sink_empty;
+	std::atomic<bool> m_sound_sink_started;
+	std::atomic<bool> m_sound_sink_suspended;
 	
 	_TCHAR sound_file_name[_MAX_PATH];
 	
@@ -745,9 +746,8 @@ public slots:
 	void do_update_sound_capture_devices_list();
 
 	// sound state machine.
-	void do_sink_empty();
-	void do_sink_started();
-	void do_sink_stopped();
+	void do_sound_output_state_changed(QAudio::State state);
+	void do_sound_capture_state_changed(QAudio::State state);
 	
 	void enable_mouse();
 	void disable_mouse();
