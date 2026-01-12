@@ -43,10 +43,19 @@
 #include <QApplication>
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QMediaDevices>
+#include <QAudioDevice>
+#include <QAudioSink>
+#include <QAudioSource>
+#else
+/* Qt5.x */
+#include <QAudioOutput>
+#include <QAudioInput>
+#endif
+
 #include <cstdint>
 #include <cmath>
-#include "./sound-drivers/sound_buffer_qt.h"
-#include "./sound-drivers/osd_sound_mod_template.h"
 
 #include "emu_thread_tmpl.h"
 
@@ -554,6 +563,10 @@ QAudioDeviceInfo OSD_BASE::search_sound_sink(const _TCHAR *name, bool& found)
 	}
 	
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	if(_name == QString::fromUtf8("Default")) {
+		found = true;
+		return QMediaDevices::defaultAudioOutput();
+	}
 	QList<QAudioDevice> sink_list  = QMediaDevices::audioOutputs();
 	for(auto n = sink_list.begin(); n != sink_list.end(); ++n) {
 		if((*n).description().left(max_compare_length) == _name) {
@@ -564,7 +577,10 @@ QAudioDeviceInfo OSD_BASE::search_sound_sink(const _TCHAR *name, bool& found)
 	return QAudioDevice::defaultAudioOutput();
 	
 	#else
-	
+	if(_name == QString::fromUtf8("Default")) {
+		found = true;
+		return QAudioDeviceInfo::defaultOutputDevice();
+	}
 	QList<QAudioDeviceInfo> sink_list = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
 	for(auto n = sink_list.begin(); n != sink_list.end(); ++n) {
 		if((*n).deviceName().left(max_compare_length) == _name) {
@@ -576,7 +592,7 @@ QAudioDeviceInfo OSD_BASE::search_sound_sink(const _TCHAR *name, bool& found)
 	#endif
 }
 
-std::list<std::string> OSD_BASE::get_sound_sink_devices_list()
+std::list<std::string> OSD_BASE::get_sound_output_devices_list()
 {
 	std::list<std::string> _list;
 	_list.clear();
@@ -592,7 +608,16 @@ std::list<std::string> OSD_BASE::get_sound_sink_devices_list()
 		#else
 		_list.push_back(_sink_list.deviceName().toStdString());
 		#endif
-	}		
+	}
+	return _list;
+}
+
+std::list<std::string> OSD_BASE::get_sound_capture_devices_list()
+{
+	// ToDo: Implement capture devices list.
+	std::list<std::string> _l;
+
+	return _l;
 }
 
 bool OSD_BASE::check_sound_sink_list_has_changed()
@@ -624,6 +649,10 @@ QAudioDeviceInfo OSD_BASE::search_sound_source(const _TCHAR *name, bool& found)
 	}
 	
 	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	if(_name == QStrung::fromUtf8("Default")) {
+		found = true;
+		return QAudioDevice::defaultAudioInput();
+	}
 	QList<QAudioDevice> source_list  = QMediaDevices::audioInputs();
 	for(auto n = source_list.begin(); n != source_list.end(); ++n) {
 		if((*n).description().left(max_compare_length) == _name) {
@@ -635,6 +664,10 @@ QAudioDeviceInfo OSD_BASE::search_sound_source(const _TCHAR *name, bool& found)
 	
 	#else
 	
+	if(_name == QStrung::fromUtf8("Default")) {
+		found = true;
+		return QAudioDeviceInfo::defaultInputDevice();
+	}
 	QList<QAudioDeviceInfo> source_list = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
 	for(auto n = source_list.begin(); n != source_list.end(); ++n) {
 		if((*n).deviceName().left(max_compare_length) == _name) {
@@ -646,7 +679,7 @@ QAudioDeviceInfo OSD_BASE::search_sound_source(const _TCHAR *name, bool& found)
 	#endif
 }
 
-std::list<std::string> OSD_BASE::get_sound_sink_devices_list()
+std::list<std::string> OSD_BASE::get_sound_input_devices_list()
 {
 	std::list<std::string> _list;
 	_list.clear();
@@ -662,7 +695,8 @@ std::list<std::string> OSD_BASE::get_sound_sink_devices_list()
 		#else
 		_list.push_back(_source_list.deviceName().toStdString());
 		#endif
-	}		
+	}
+	return _list;
 }
 
 bool OSD_BASE::check_sound_source_list_has_changed()
@@ -680,6 +714,88 @@ bool OSD_BASE::check_sound_source_list_has_changed()
 	#endif
 }
 
+bool OSD_BASE::setup_sound_sink(QString device_name, int rate, int samples, int& presented_rate, int& presented_samples, bool force)
+{
+	if(device_name.isEmpty) {
+		device_name = QString::fromUtf8("Default");
+	}
+	QAudioFormat _fmt;
+	_fmt.setSampleRate(rate);
+	_fmt.setChannelCount(2);
+	_fmt.setChannelConfig(QAudioFormat::ChannelConfigStereo);
+	_fmt.setSampleFormat(QAudioFormat::Int16);
+
+	presented_rate = rate;
+	presented_samples = samples;
+	
+	bool found = false;
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	QAudioDevice _sink_dev = search_sound_sink(m_sound_default_sink_name, found);
+	
+	if(!(_sink_dev.isFomatSupported(_fmt))) {
+		// ToDo: Not support for Int16.
+		if(presented_rate > _fmt.maximumSampleRate()) {
+			presented_rate = _fmt.maximumSampleRate();
+		}
+		if(presented_rate < _fmt.minimumSampleRate()) {
+			presented_rate = _fmt.minimumSampleRate();
+		}
+	}
+	#else
+	QAudioDeviceInfo _sink_dev = search_sound_sink(m_sound_default_sink_name, found);
+	if(!(_sink_dev.isFomatSupported(_fmt))) {
+		// ToDo: Not support for Int16.
+		_fmt = _sink_dev.nearestFormat(_fmt);
+		presented_rate = _fmt.sampleRate();
+	}
+	#endif
+	
+	if(m_sound_sink.get() == nullptr) {
+		force = true;
+	} else {
+		if((*(m_sound_sink.get())) != _sink_drv) {
+			force = true;
+		} else if(m_sound_sink->format().sampleRate() != presented_rate) {
+			force = true;
+		}
+	}
+
+	if(presented_rate != rate) {
+		int64_t __samples = presented_samples;
+		int64_t __rate = rate * 10000;
+		__rate = __rate / ((int64_t)presented_rate);
+		__samples = (__samples * __rate) / 10000;
+		presented_samples = (int)__samples;
+		force = true;
+	}
+	if(force) {
+		_fmt.setSampleRate(presented_rate);
+		if(m_sound_sink.get() != nullptr) {
+			m_sound_sink->stop();
+		}
+		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		m_sound_sink.reset(new QAudioSink(_sink_dev, _fmt));
+		#else
+		m_sound_sink.reset(new QAudioOutput(_sink_dev, _fmt));
+		#endif
+		if(m_sound_sink.get() != nullptr) {
+			m_sound_initialized = true;
+
+			m_sound_sink->setBufferSize((((size_t)presented_samples) * 2 * sizeof(int16_t)) * 2);
+			connect(m_sound_sink.get(), SIGNAL(stateChanged(QAudio:State)), this, SLOT(do_sound_output_state_changed(QAudio::State)));
+			
+			commect(this, SIGNAL(sig_sound_sink_finished()), m_sound_sink.get(), SLOT(deleteLater()));
+			
+			m_sound_sink->start(); // GO!
+		} else {
+			m_sound_initialized = false;
+			presented_rate = 0;
+			presented_samples = 0;
+		}
+
+	}
+	return ((force) && (m_sound_sink.get() != nullptr));
+}
 
 void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
 {
@@ -704,70 +820,25 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		m_source_started = false;
 		m_source_empty = false; // OK?
 
-		// Read 
-		QAudioFormat _fmt;
-		_fmt.setSampleRate(rate);
-		_fmt.setChannelCount(2);
-		_fmt.setChannelConfig(QAudioFormat::ChannelConfigStereo);
-		_fmt.setSampleFormat(QAudioFormat::Int16);
-
-		bool found = false;
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		QAudioDevice _sink_dev = search_sound_sink(m_sound_default_sink_name, found);
-		if(!(_sink_dev.isFomatSupported(_fmt))) {
-			// ToDo: Not support for Int16.
-			if(rate > _fmt.maximumSampleRate()) {
-				rate = _fmt.maximumSampleRate();
-			}
-			if(rate < _fmt.minimumSampleRate()) {
-				rate = _fmt.minimumSampleRate();
-			}
-		}
-		#else
-		QAudioDeviceInfo _sink_dev = search_sound_sink(m_sound_default_sink_name, found);
-		if(!(_sink_dev.isFomatSupported(_fmt))) {
-			// ToDo: Not support for Int16.
-			_fmt = _sink_dev.nearestFormat(_fmt);
-			rate = _fmt.sampleRate();
-		}
-		#endif
-		
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		m_sound_sink.reset(new QAudioSink(_sink_dev, _fmt));
-		#else
-		m_sound_sink.reset(new QAudioOutput(_sink_dev, _fmt));
-		#endif
+		// Read
+		int prate, psamples;
+		setup_sound_sink(m_sound_default_sink_name, rate, samples, prate, psamples, true);
 		
 		emit sig_update_sound_outputs_list();
-		if(m_sound_sink.get() != nullptr) {
-			m_sound_initialized = true;
-
-			m_sound_sink->setBufferSize((((size_t)samples) * 2 * sizeof(int16_t)) * 2);
-			connect(m_sound_sink.get(), SIGNAL(stateChanged(QAudio:State)), this, SLOT(do_sound_output_state_changed(QAudio::State)));
-			
-			commect(this, SIGNAL(sig_sound_sink_finished()), m_sound_sink.get(), SLOT(deleteLater()));
-			
-			m_sound_sink->start(); // GO!
-		} else {
-			rate = 0;
-			samples = 0;
-		}
 		
 		if(presented_rate != nullptr) {
-			*presented_rate = rate;
+			*presented_rate = prate;
 		}
 		if(presented_samples != nullptr) {
-			*presented_samples = samples;
+			*presented_samples = psamples;
 		}
-		m_sound_rate = rate;
-		m_sound_samples = samples;
+		m_sound_rate = prate;
+		m_sound_samples = psamples;
 		m_sound_sink_prev_elapsed_usec = get_sound_elapsed_usecs(false);
 		m_sound_sink_prev_processed_usec = get_sound_processed_usecs(false);
 
 	}
-	sound_debug_log(_T("OSD::%s rate=%d samples=%d m_sound_driver=%llx"), __func__, rate, samples, (uintptr_t)(sound_drv.get()));
-	
-
+	sound_debug_log(_T("OSD::%s rate=%d samples=%d m_sound_driver=%llx"), __func__, prate, samples, (uintptr_t)(m_sound_sink.get()));
 }
 
 void OSD_BASE::release_sound()
@@ -796,27 +867,70 @@ void OSD_BASE::release_sound()
 
 void OSD_BASE::do_update_master_volume(int level)
 {
+	level = std::min(std::max(level, (int)INT16_MIN), (int)INT16_MAX);
 	if(p_config != nullptr) {
-		p_config->general_sound_level = level;;
+		p_config->general_sound_level = level;
 	}
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
-		sound_drv->set_sink_volume((int)(p_config->general_sound_level));
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	std::shared_ptr<QAudioSink>   sink_drv = m_sound_sink;
+	#else /* Qt 5.x */
+	std::shared_ptr<QAudioOutput> sink_drv = m_sound_sink;
+	#endif
+	if(sink_drv.get() != nullptr) {
+		double xlevel;
+		__UNLIKELY_IF(level <= (INT16_MIN + 128)) {
+			xlevel = 0.0;
+		} else if(level >= (INT16_MAX - 128)) {
+			xlevel = 1.0;
+		} else {
+			level += INT16_MAX;
+			level >>= 7;
+			xlevel = ((double)level) / ((double)(UINT16_MAX >> 7));
+		}
+		sink_drv->setVolume(xlevel);
 	}
 }
 
 void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 {
 	if(device_name.isEmpty()) return;
-	emit sig_set_sound_output_device(device_name);
+	bool fonud = false;
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	QAudioDevice drv = search_sound_sink((const _TCHAR*)(device_name.toLocal8Bit().constData()), found);
+	#else
+	QAudioDeviceInfo drv = search_sound_sink((const _TCHAR*)(device_name.toLocal8Bit().constData()), found);
+	#endif
+	int rate = m_sound_sink_rate.load();
+	int samples = m_sound_sink_samples.load();
+	int prate = rate;
+	int psamples = samples;
+	// ToDo: Need conversion.
+	setup_sound_sink(device_name, rate, samples, prate, psamples, false);
+	if((prate != rate) || (psamples != samples)) {
+		// ToDo: Force to reinitialize VM or stretch.
+		
+	}
+	m_sound_sink_rate = prate;
+	m_sound_sink_samples = psamples;
+	
 }
 
 const _TCHAR *OSD_BASE::get_sound_device_name(int num)
 {
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
-		return sound_drv->get_sound_device_name(num);
+	if(num <= 0) { // Special
+		return _T("Default");
 	}
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	QList<QAudioDevice> _l = QMediaDevices::audioOutputs();
+	if(_l.size() >= num) {
+		return (const _TCHAR *)(_l.at(num - 1).description().toLocal8Bit().constData());
+	}
+	#else /* Qt 5.x */
+	QList<QAudioDeviceInfo> _l = QAudioDeviceInfo::availableDevices(QAudio::AudioOutputName);
+	if(_l.size() >= num) {
+		return (const _TCHAR *)(_l.at(num - 1).deviceName().toLocal8Bit().constData());
+	}
+	#endif
 	return (const _TCHAR *)nullptr;
 }
 
@@ -836,54 +950,38 @@ void OSD_BASE::init_sound_device_list()
 
 void OSD_BASE::do_update_sound_output_devices_list()
 {
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
-		std::list<std::string> _l = sound_drv->get_sound_sink_devices_list();
-		bool __all_matched = true;
-		for(auto s = _l.begin(); s != _l.end(); ++s) {
-			QString _s = QString::fromStdString((*s));
-			if(!(sound_output_devices_list.contains(_s))) {
-				__all_matched = false;
-				break;
-			}
-		}
-		if((__all_matched) && (_l.size() == sound_output_devices_list.size()))return;
-		
-		sound_output_devices_list.clear(); // Re-Set device list
-		int _xi = 1;
-		for(auto s = _l.begin(); s != _l.end(); ++s) {
-			sound_output_devices_list.append(QString::fromStdString(*s));
+	#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	// For Qt5, You should poll to check output changed.
+	m_sound_output_devices_list = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput); // Re-Set device list
+	#endif
+	std::list<std::string> _l = get_sound_output_devices_list();
+	int _xi = 1;
+	for(auto s = _l.begin(); s != _l.end(); ++s) {
+		if(!((*s).empty())) {
+			sound_output_devices_list.append(QString::fromStdString((*s)));
 			sound_debug_log("SOUND OUTPUT DEVICE#%03d %s", _xi, (*s).c_str());
 			_xi++;
 		}
-		emit sig_update_sound_outputs_list();
 	}
+	emit sig_update_sound_outputs_list();
 }
 
 void OSD_BASE::do_update_sound_capture_devices_list()
 {
-	#if 0
-	std::shared_ptr<SOUND_MODULE::M_BASE>sound_drv = m_sound_driver;
-	if(sound_drv.get() != nullptr) {
-		std::list<std::string> _l = sound_drv->get_sound_source_devices_list();
-		bool __all_matched = true;
-		for(auto s = _l.begin(); s != _l.end(); ++s) {
-			QString _s = QString::fromStdString((*s));
-			if(!(sound_capture_devices_list.contains(_s))) {
-				__all_matched = false;
-				break;
-			}
-		}
-		if((__all_matched) && (_l.size() == sound_capture_devices_list.size()))return;
-		int _xi = 1;
-		for(auto s = _l.begin(); s != _l.end(); ++s) {
-			sound_capture_devices_list.append(QString::fromStdString(*s));
-			sound_debug_log("SOUND INPUT DEVICE#%03d %s", _xi, (*s).c_str());
+	#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	// For Qt5, You should poll to check output changed.
+	m_sound_capture_devices_list = QAudioDeviceInfo::availableDevices(QAudio::AudioInput); // Re-Set device list
+	#endif
+	std::list<std::string> _l = get_sound_capture_devices_list();
+	int _xi = 1;
+	for(auto s = _l.begin(); s != _l.end(); ++s) {
+		if(!((*s).empty())) {
+			sound_output_devices_list.append(QString::fromStdString((*s)));
+			sound_debug_log("SOUND CAPTURE DEVICE#%03d %s", _xi, (*s).c_str());
 			_xi++;
 		}
-		emit sig_update_sound_inputs_list();
 	}
-	#endif
+	emit sig_update_sound_inputs_list();
 }
 
 

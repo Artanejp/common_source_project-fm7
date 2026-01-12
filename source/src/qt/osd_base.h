@@ -15,9 +15,11 @@
 #include <QObject>
 #include <QThread>
 #include <QString>
-#include <QStringList>
 #include <QImage>
-#include <QElapsedTimer>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) /* Qt5.x */
+#include <QAudioDeviceInfo>
+#endif
 
 #include <SDL.h>
 
@@ -307,7 +309,10 @@ protected:
 	std::atomic<QAudio::State> m_sound_source_state;
 	
 	int m_sound_rate, m_sound_samples;
-	QStringList sound_output_devices_list;
+	#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	QList<QAudioDeviceInfo> m_sound_output_devices_list;
+	QList<QAudioDeviceInfo> m_sound_capture_devices_list;
+	#endif
 	
 	std::atomic<bool> m_sound_sink_empty;
 	std::atomic<bool> m_sound_sink_started;
@@ -325,7 +330,6 @@ protected:
 	std::atomic<bool> m_sound_initialized;
 
 	// sound capture
-	QStringList sound_capture_devices_list;
 	bool sound_capturing_emu[MAX_CAPTURE_SOUNDS];
 	osd_snd_capture_desc_t  sound_capture_desc[MAX_CAPTURE_SOUNDS]; // To EMU:: and VM::
 	bool capturing_sound[MAX_SOUND_CAPTURE_DEVICES];
@@ -523,14 +527,8 @@ public:
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
 	
-	QStringList  get_sound_output_devices_list()
-	{
-		return sound_output_devices_list;
-	}
-	QStringList  get_sound_capture_devices_list()
-	{
-		return sound_capture_devices_list;
-	}
+	virtual std::list<std::string>  get_sound_output_devices_list();
+	virtual std::list<std::string>  get_sound_capture_devices_list();
 
 	bool now_record_sound;
 	int get_sound_rate();
