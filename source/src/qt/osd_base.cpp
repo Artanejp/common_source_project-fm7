@@ -71,8 +71,6 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	m_sound_samples = -1;
 	m_sound_rate = -1;
 	m_fps = 0.0;
-	m_sound_samples_factor = 0;
-	m_sound_samples_count = 0;
 	rec_sound_fio = nullptr; // Must clear.
 	memset(sound_file_name, 0x00, sizeof(sound_file_name));
 	

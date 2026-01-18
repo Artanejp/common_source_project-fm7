@@ -16,7 +16,6 @@
 #include <QThread>
 #include <QString>
 #include <QImage>
-
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) /* Qt5.x */
 #include <QAudioDeviceInfo>
 #endif
@@ -89,9 +88,15 @@ class QOpenGLContext;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 class QAudioSink;
 class QAudioSource;
+using AudioSink    = QAudioSink;
+using AudioSource  = QAudioSource;
+using AudioDevivce = QAudioDevice;
 #else /* Qt5 */
 class QAudioOutput;
 class QAudioInput;
+using AudioSink   = QAudioOutput;
+using AudioSource = QAudioInput;
+using AudioDevivce = QAudioDeviceInfo;
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -288,17 +293,9 @@ protected:
 	void __FASTCALL sound_debug_log(const char *fmt, ...);
 
 	/* Note: Below are new sound driver. */
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	std::shared_ptr<QAudioSink>   m_sound_sink;
-	std::shared_ptr<QAudioSource> m_sound_source;
-	#else /* Qt5.x */
-	std::shared_ptr<QAudioOutput> m_sound_sink;
-	std::shared_ptr<QAudioInput>  m_sound_source;
-	#endif
+	std::shared_ptr<AudioSink>   m_sound_sink;
+	std::shared_ptr<AudioSource> m_sound_source;
 	// Count factor; this multiplies by 2^32;
-	std::atomic<uint64_t>     m_sound_samples_count;
-	std::atomic<uint64_t>     m_sound_samples_factor;
-	
 	std::atomic<qint64>       m_sink_prev_elapsed_usec;
 	std::atomic<qint64>       m_source_prev_elapsed_usec;
 
@@ -309,10 +306,8 @@ protected:
 	std::atomic<QAudio::State> m_sound_source_state;
 	
 	int m_sound_rate, m_sound_samples;
-	#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QList<QAudioDeviceInfo> m_sound_output_devices_list;
-	QList<QAudioDeviceInfo> m_sound_capture_devices_list;
-	#endif
+	QList<AudioDevice> m_sound_output_devices_list;
+	QList<AudioDevice> m_sound_capture_devices_list;
 	
 	std::atomic<bool> m_sound_sink_empty;
 	std::atomic<bool> m_sound_sink_started;
