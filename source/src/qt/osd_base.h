@@ -16,9 +16,7 @@
 #include <QThread>
 #include <QString>
 #include <QImage>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) /* Qt5.x */
-#include <QAudioDeviceInfo>
-#endif
+#include <QtAudio>
 
 #include <SDL.h>
 
@@ -86,17 +84,21 @@ class CSP_logger;
 class QOpenGLContext;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QAudioDevice>
 class QAudioSink;
 class QAudioSource;
+
 using AudioSink    = QAudioSink;
 using AudioSource  = QAudioSource;
-using AudioDevivce = QAudioDevice;
+using AudioDevice  = QAudioDevice;
 #else /* Qt5 */
+#include <QAudioDeviceInfo>
 class QAudioOutput;
 class QAudioInput;
+
 using AudioSink   = QAudioOutput;
 using AudioSource = QAudioInput;
-using AudioDevivce = QAudioDeviceInfo;
+using AudioDevice  = QAudioDeviceInfo;
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -172,7 +174,7 @@ private:
 
 protected:
 	EmuThreadClass						*parent_thread;
-	QThread								*m_sound_thread;
+
 	std::shared_ptr<DrawThreadClass>	m_draw_thread;
 	std::shared_ptr<USING_FLAGS>		using_flags;
 	config_t							*p_config;
@@ -291,23 +293,96 @@ protected:
 	void release_sound();
 	void init_sound_device_list();
 	void __FASTCALL sound_debug_log(const char *fmt, ...);
+	int64_t __FASTCALL get_sound_elapsed_usecs(bool is_in);
+	int64_t __FASTCALL get_sound_processed_usecs(bool is_in);
+	bool __FASTCALL check_sound_empty(bool is_in);
+	bool __FASTCALL check_sound_full(bool is_in);
 
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	inline const _TCHAR* get_sound_state_name(QtAudio::State state)
+	{
+		switch(state) {
+		case QtAudio::ActiveState:
+			return _T("ACTIVE");
+			break;
+		case QtAudio::StoppedState:
+			return _T("STOP");
+			break;
+		case QtAudio::IdleState:
+			return _T("IDLE");
+			break;
+		case QtAudio::SuspendedState:
+			return _T("SUSPENDED");
+			break;
+		default:
+			break;
+		}
+		return _T("UNKNOWN");
+	}
+	#else /* Qt 5.x */
+	inline const _TCHAR* get_sound_state_name(QAudio::State state)
+	{
+		switch(state) {
+		case QAudio::ActiveState:
+			return _T("ACTIVE");
+			break;
+		case QAudio::StoppedState:
+			return _T("STOP");
+			break;
+		case QAudio::IdleState:
+			return _T("IDLE");
+			break;
+		case QAudio::SuspendedState:
+			return _T("SUSPENDED");
+			break;
+		case QAudio::InterruptedState:
+			return _T("INTERRUPTED");
+			break;
+		default:
+			break;
+		}
+		return _T("UNKNOWN");
+	}
+	#endif
+	AudioDevice search_sound_sink(const _TCHAR *name, bool& found);
+	AudioDevice search_sound_source(const _TCHAR *name, bool& found);
+	virtual bool setup_sound_sink(QString device_name, int rate, int samples, int& presented_rate, int& presented_samples, bool force);
+	virtual bool setup_sound_source(QString device_name, int rate, int samples, int& presented_rate, int& presented_samples, bool force);
+	virtual std::list<std::string>  load_sound_output_devices_list();
+	virtual std::list<std::string>  load_sound_capture_devices_list();
+	
 	/* Note: Below are new sound driver. */
+	QString m_sound_default_sink_name;
+	QString m_sound_default_source_name;
+	
 	std::shared_ptr<AudioSink>   m_sound_sink;
 	std::shared_ptr<AudioSource> m_sound_source;
+	std::list<std::string> sound_output_devices_list;
+	std::list<std::string> sound_capture_devices_list;
+	
 	// Count factor; this multiplies by 2^32;
 	std::atomic<qint64>       m_sink_prev_elapsed_usec;
+	std::atomic<qint64>       m_sink_prev_processed_usec;
 	std::atomic<qint64>       m_source_prev_elapsed_usec;
-
-	std::shared_ptr<QIODevice> m_sound_sink_io;
-	std::shared_ptr<QIODevice> m_sound_source_io;
-
+	std::atomic<qint64>       m_source_prev_processed_usec;
+	QIODevice* m_sound_sink_io;
+	QIODevice* m_sound_source_io;
+	std::recursive_timed_mutex m_sound_sink_mutex;  // MUTEX for sound sink (pseudo file) I/O access.
+	std::recursive_timed_mutex m_sound_source_mutex; // MUTEX for sound source (pseudo file) I/O access.
+	std::atomic<int64_t> m_sound_vm_local_usec;
+	
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	std::atomic<QtAudio::State> m_sound_sink_state;
+	std::atomic<QtAudio::State> m_sound_source_state;
+	#else /* Qt 5.x */
 	std::atomic<QAudio::State> m_sound_sink_state;
 	std::atomic<QAudio::State> m_sound_source_state;
-	
-	int m_sound_rate, m_sound_samples;
-	QList<AudioDevice> m_sound_output_devices_list;
-	QList<AudioDevice> m_sound_capture_devices_list;
+	#endif
+
+	std::atomic<int> m_sound_sink_rate;
+	std::atomic<int> m_sound_sink_samples;
+	std::atomic<int> m_sound_source_rate;
+	std::atomic<int> m_sound_source_samples;
 	
 	std::atomic<bool> m_sound_sink_empty;
 	std::atomic<bool> m_sound_sink_started;
@@ -344,8 +419,9 @@ protected:
 	void enum_capture_devs();
 	bool connect_capture_dev(int index, bool pin);
 
-	std::atomic<bool> m_source_empty;
-	std::atomic<bool> m_source_started;
+	std::atomic<bool> m_sound_source_empty;
+	std::atomic<bool> m_sound_source_started;
+	std::atomic<bool> m_sound_source_suspended;
 	
 	int cur_capture_dev_index;
 	int num_capture_devs;
@@ -522,8 +598,15 @@ public:
 	const _TCHAR *get_vm_device_name();
 	const _TCHAR *get_sound_device_name(int num);
 	
-	virtual std::list<std::string>  get_sound_output_devices_list();
-	virtual std::list<std::string>  get_sound_capture_devices_list();
+	std::list<std::string>  get_sound_output_devices_list()
+	{
+		return sound_output_devices_list;
+	}
+	
+	std::list<std::string>  get_sound_capture_devices_list()
+	{
+		return sound_capture_devices_list;
+	}
 
 	bool now_record_sound;
 	int get_sound_rate();
@@ -739,9 +822,13 @@ public slots:
 	void do_update_sound_capture_devices_list();
 
 	// sound state machine.
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	void do_sound_output_state_changed(QtAudio::State state);
+	void do_sound_capture_state_changed(QtAudio::State state);
+	#else /* Qt 5.x */
 	void do_sound_output_state_changed(QAudio::State state);
 	void do_sound_capture_state_changed(QAudio::State state);
-	
+	#endif
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();
@@ -813,7 +900,7 @@ signals:
 	int sig_sound_start();
 	int sig_sound_stop();
 	int sig_sound_about_to_quit();
-	
+	int sig_sound_sink_finished();	
 
 	int sig_update_sound_outputs_list();
 	int sig_clear_sound_outputs_list();

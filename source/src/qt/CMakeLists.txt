@@ -1,13 +1,13 @@
 message("* qt/osd")
-SET(THIS_LIB_VERSION 11.9.0)
+SET(THIS_LIB_VERSION 12.0.0)
 
 set(s_qt_osd_headers
 	osd_base.h
 	osd_socket.h
 
-	sound-drivers/sound_buffer_qt.h
-	sound-drivers/osd_sound_mod_template.h
-	sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.h
+#	sound-drivers/sound_buffer_qt.h
+#	sound-drivers/osd_sound_mod_template.h
+#	sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.h
 )
 
 MAKE_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
@@ -25,9 +25,9 @@ SET(s_qt_osd_srcs
 	qudpsocket2.cpp
 	qtcpsocket2.cpp
 
-	sound-drivers/common/sound_buffer_qt.cpp
-	sound-drivers/common/osd_sound_mod_template.cpp
-	sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.cpp
+#	sound-drivers/common/sound_buffer_qt.cpp
+#	sound-drivers/common/osd_sound_mod_template.cpp
+#	sound-drivers/qt_multimedia/osd_sound_mod_qtmultimedia.cpp
 
 
 	${s_qt_osd_headers_MOC}

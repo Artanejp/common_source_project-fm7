@@ -101,7 +101,7 @@ void Ui_MainWindowBase::do_update_sound_outputs_list(void)
 		do_set_host_sound_name(0, QString::fromUtf8("Default"));
 		size_t ip = 1;
 		// Second, Update or append entries.
-		for(audo n = _l.begin(); n != _l.end(); ++n) {
+		for(auto n = _l.begin(); n != _l.end(); ++n) {
 			if(ip < xs) {
 				do_set_host_sound_name(ip, QString::fromStdString((*n)));
 			} else {

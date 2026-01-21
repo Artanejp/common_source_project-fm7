@@ -48,18 +48,14 @@ static const int numpad_table[256] = {
 
 void OSD_BASE::initialize_input()
 {
+	std::lock_guard<std::recursive_timed_mutex> n_j(joystick_mutex);
+	std::lock_guard<std::recursive_timed_mutex> n_m(mouse_mutex);
 	// initialize status
 	memset(key_status, 0, sizeof(key_status));
-	{
-		std::lock_guard<std::recursive_timed_mutex> n(joystick_mutex);
-		memset(joy_status, 0, sizeof(joy_status));
-	}
-	{
-		std::lock_guard<std::recursive_timed_mutex> n(mouse_mutex);
-		memset(mouse_status, 0, sizeof(mouse_status));
+	memset(joy_status, 0, sizeof(joy_status));
+	memset(mouse_status, 0, sizeof(mouse_status));
 		// mouse emulation is disenabled
-		mouse_enabled = false;
-	}
+	mouse_enabled = false;
 
 	mouse_ptrx = mouse_oldx = (double)(get_screen_width() / 2);
 	mouse_ptry = mouse_oldy = (double)(get_screen_height() / 2);

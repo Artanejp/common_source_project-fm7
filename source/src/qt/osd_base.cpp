@@ -68,19 +68,28 @@ OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> l
 	
 	__USE_AUTO_KEY = false;
 	
-	m_sound_samples = -1;
-	m_sound_rate = -1;
+	m_sound_sink_samples = -1;
+	m_sound_sink_rate = -1;
+	m_sound_source_samples = -1;
+	m_sound_source_rate = -1;
 	m_fps = 0.0;
 	rec_sound_fio = nullptr; // Must clear.
 	memset(sound_file_name, 0x00, sizeof(sound_file_name));
 	
-	m_sound_driver.reset();
-	m_sound_thread = nullptr;
+	m_sound_sink.reset();
+	m_sound_source.reset();
+	m_sound_sink_io = nullptr;
+	m_sound_source_io = nullptr;
 	
-	m_sink_empty = false;
-	m_sink_started = false;
-	m_source_empty = false;
-	m_source_started = false;
+	m_sound_sink_empty = false;
+	m_sound_sink_started = false;
+	m_sound_sink_suspended = false;
+	m_sound_source_empty = false;
+	m_sound_source_started = false;
+	m_sound_source_suspended = false;
+	m_sound_vm_local_usec = 0;
+	m_sound_default_sink_name.clear();
+	m_sound_default_source_name.clear();
 	
 	m_sound_initialized = false;
 	m_sound_exit = false;
