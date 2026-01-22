@@ -298,28 +298,7 @@ protected:
 	bool __FASTCALL check_sound_empty(bool is_in);
 	bool __FASTCALL check_sound_full(bool is_in);
 
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	inline const _TCHAR* get_sound_state_name(QtAudio::State state)
-	{
-		switch(state) {
-		case QtAudio::ActiveState:
-			return _T("ACTIVE");
-			break;
-		case QtAudio::StoppedState:
-			return _T("STOP");
-			break;
-		case QtAudio::IdleState:
-			return _T("IDLE");
-			break;
-		case QtAudio::SuspendedState:
-			return _T("SUSPENDED");
-			break;
-		default:
-			break;
-		}
-		return _T("UNKNOWN");
-	}
-	#else /* Qt 5.x */
+
 	inline const _TCHAR* get_sound_state_name(QAudio::State state)
 	{
 		switch(state) {
@@ -335,15 +314,16 @@ protected:
 		case QAudio::SuspendedState:
 			return _T("SUSPENDED");
 			break;
+		#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		case QAudio::InterruptedState:
 			return _T("INTERRUPTED");
 			break;
+		#endif
 		default:
 			break;
 		}
 		return _T("UNKNOWN");
 	}
-	#endif
 	AudioDevice search_sound_sink(const _TCHAR *name, bool& found);
 	AudioDevice search_sound_source(const _TCHAR *name, bool& found);
 	virtual bool setup_sound_sink(QString device_name, int rate, int samples, int& presented_rate, int& presented_samples, bool force);
@@ -371,13 +351,8 @@ protected:
 	std::recursive_timed_mutex m_sound_source_mutex; // MUTEX for sound source (pseudo file) I/O access.
 	std::atomic<int64_t> m_sound_vm_local_usec;
 	
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	std::atomic<QtAudio::State> m_sound_sink_state;
-	std::atomic<QtAudio::State> m_sound_source_state;
-	#else /* Qt 5.x */
 	std::atomic<QAudio::State> m_sound_sink_state;
 	std::atomic<QAudio::State> m_sound_source_state;
-	#endif
 
 	std::atomic<int> m_sound_sink_rate;
 	std::atomic<int> m_sound_sink_samples;
@@ -822,13 +797,8 @@ public slots:
 	void do_update_sound_capture_devices_list();
 
 	// sound state machine.
-	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	void do_sound_output_state_changed(QtAudio::State state);
-	void do_sound_capture_state_changed(QtAudio::State state);
-	#else /* Qt 5.x */
 	void do_sound_output_state_changed(QAudio::State state);
 	void do_sound_capture_state_changed(QAudio::State state);
-	#endif
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();
