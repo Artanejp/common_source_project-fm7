@@ -60,6 +60,89 @@
 
 #include "emu_thread_tmpl.h"
 
+
+void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
+{
+	// If sound driver hasn't initialized, initialize.
+	m_sound_exit = false;
+
+	if((m_sound_sink.get() == nullptr)  ||
+	   (m_sound_sink_rate.load() != rate) ||
+	   (m_sound_sink_samples.load() != samples)) {
+		//m_sound_ok = false;
+		reset_sound();
+		if(m_sound_sink.get() != nullptr) {
+			std::lock_guard<std::recursive_timed_mutex> _locker(m_sound_sink_mutex);
+			m_sound_sink->stop();
+			m_sound_sink->deleteLater();
+			m_sound_sink.reset();
+			m_sound_sink_io = nullptr;
+		}
+
+		m_sound_sink_started = false;
+		m_sound_source_started = false;
+		m_sound_initialized = false;
+		m_sound_sink_started = false;
+		m_sound_sink_empty = true; // OK?
+		m_sound_sink_suspended = false; // OK?
+		
+		m_sound_source_started = false;
+		m_sound_source_empty = false; // OK?
+		m_sound_source_suspended = false; // OK?
+
+		// Read
+		int prate, psamples;
+		setup_sound_sink(m_sound_default_sink_name, rate, samples, prate, psamples, true);
+		
+		emit sig_update_sound_outputs_list();
+		
+		if(presented_rate != nullptr) {
+			*presented_rate = prate;
+		}
+		if(presented_samples != nullptr) {
+			*presented_samples = psamples;
+		}
+		m_sound_sink_rate = prate;
+		m_sound_sink_samples = psamples;
+		m_sink_prev_elapsed_usec = get_sound_elapsed_usecs(false);
+		m_sink_prev_processed_usec = get_sound_processed_usecs(false);
+		sound_debug_log(_T("OSD::%s rate=%d samples=%d m_sound_driver=%llx"), __func__, prate, samples, (uintptr_t)(m_sound_sink.get()));
+	}
+}
+
+void OSD_BASE::release_sound()
+{
+	std::lock_guard<std::recursive_timed_mutex> _olocker(m_sound_sink_mutex);
+	std::lock_guard<std::recursive_timed_mutex> _ilocker(m_sound_source_mutex);
+	// ToDo: Sound Input
+	// release Qt Multimedia sound
+	m_sound_exit = true;
+	m_sound_initialized = false;
+	m_sound_sink_started = false;
+	m_sound_sink_empty = true; // OK?
+	m_sound_sink_suspended = false; // OK?
+	
+	m_sound_source_started = false;
+	m_sound_source_empty = false; // OK?
+	m_sound_source_suspended = false; // OK?
+
+	if(m_sound_sink.get() != nullptr) {
+		m_sound_sink->stop();
+	}
+	if(m_sound_source.get() != nullptr) {
+		m_sound_source->stop();
+	}
+	emit sig_sound_sink_finished();
+
+	m_sound_sink.reset();
+	m_sound_source.reset();
+	m_sound_sink_io = nullptr;
+	m_sound_source_io = nullptr;
+	m_sound_default_sink_name.clear();
+	m_sound_default_source_name.clear();
+}
+
+
 // ToDo: Implement for QAudio::State.
 void OSD_BASE::do_sound_output_state_changed(QAudio::State state)
 {
@@ -735,87 +818,6 @@ bool OSD_BASE::setup_sound_source(QString device_name, int rate, int samples, in
 		device_name = QString::fromUtf8("Default");
 	}
 	return false; // ToDo.
-}
-
-void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int* presented_samples)
-{
-	// If sound driver hasn't initialized, initialize.
-	m_sound_exit = false;
-
-	if((m_sound_sink.get() == nullptr)  ||
-	   (m_sound_sink_rate.load() != rate) ||
-	   (m_sound_sink_samples.load() != samples)) {
-		//m_sound_ok = false;
-		reset_sound();
-		if(m_sound_sink.get() != nullptr) {
-			std::lock_guard<std::recursive_timed_mutex> _locker(m_sound_sink_mutex);
-			m_sound_sink->stop();
-			m_sound_sink->deleteLater();
-			m_sound_sink.reset();
-			m_sound_sink_io = nullptr;
-		}
-
-		m_sound_sink_started = false;
-		m_sound_source_started = false;
-		m_sound_initialized = false;
-		m_sound_sink_started = false;
-		m_sound_sink_empty = true; // OK?
-		m_sound_sink_suspended = false; // OK?
-		
-		m_sound_source_started = false;
-		m_sound_source_empty = false; // OK?
-		m_sound_source_suspended = false; // OK?
-
-		// Read
-		int prate, psamples;
-		setup_sound_sink(m_sound_default_sink_name, rate, samples, prate, psamples, true);
-		
-		emit sig_update_sound_outputs_list();
-		
-		if(presented_rate != nullptr) {
-			*presented_rate = prate;
-		}
-		if(presented_samples != nullptr) {
-			*presented_samples = psamples;
-		}
-		m_sound_sink_rate = prate;
-		m_sound_sink_samples = psamples;
-		m_sink_prev_elapsed_usec = get_sound_elapsed_usecs(false);
-		m_sink_prev_processed_usec = get_sound_processed_usecs(false);
-		sound_debug_log(_T("OSD::%s rate=%d samples=%d m_sound_driver=%llx"), __func__, prate, samples, (uintptr_t)(m_sound_sink.get()));
-	}
-}
-
-void OSD_BASE::release_sound()
-{
-	std::lock_guard<std::recursive_timed_mutex> _olocker(m_sound_sink_mutex);
-	std::lock_guard<std::recursive_timed_mutex> _ilocker(m_sound_source_mutex);
-	// ToDo: Sound Input
-	// release Qt Multimedia sound
-	m_sound_exit = true;
-	m_sound_initialized = false;
-	m_sound_sink_started = false;
-	m_sound_sink_empty = true; // OK?
-	m_sound_sink_suspended = false; // OK?
-	
-	m_sound_source_started = false;
-	m_sound_source_empty = false; // OK?
-	m_sound_source_suspended = false; // OK?
-
-	if(m_sound_sink.get() != nullptr) {
-		m_sound_sink->stop();
-	}
-	if(m_sound_source.get() != nullptr) {
-		m_sound_source->stop();
-	}
-	emit sig_sound_sink_finished();
-
-	m_sound_sink.reset();
-	m_sound_source.reset();
-	m_sound_sink_io = nullptr;
-	m_sound_source_io = nullptr;
-	m_sound_default_sink_name.clear();
-	m_sound_default_source_name.clear();
 }
 
 
