@@ -11,8 +11,7 @@
 #define _QT_OSD_TYPES_H_
 
 
-//#include <QWidget>
-#include <QThread>
+
 #include <QPainter>
 #include <QElapsedTimer>
 #include <QString>

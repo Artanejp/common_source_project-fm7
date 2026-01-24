@@ -13,10 +13,8 @@
 
 #include <QList>
 #include <QObject>
-#include <QThread>
 #include <QString>
 #include <QImage>
-#include <QtAudio>
 
 #include <SDL.h>
 
