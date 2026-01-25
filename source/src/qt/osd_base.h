@@ -85,18 +85,10 @@ class QOpenGLContext;
 #include <QAudioDevice>
 class QAudioSink;
 class QAudioSource;
-
-using AudioSink    = QAudioSink;
-using AudioSource  = QAudioSource;
-using AudioDevice  = QAudioDevice;
 #else /* Qt5 */
 #include <QAudioDeviceInfo>
 class QAudioOutput;
 class QAudioInput;
-
-using AudioSink   = QAudioOutput;
-using AudioSource = QAudioInput;
-using AudioDevice  = QAudioDeviceInfo;
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -164,10 +156,20 @@ typedef struct {
 	uint8_t *out_buffer;
 } osd_snd_capture_desc_t;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	using AudioSink    = QAudioSink;
+	using AudioSource  = QAudioSource;
+	using AudioDevice  = QAudioDevice;
+#else /* Qt 5.x */
+	using AudioSink   = QAudioOutput;
+	using AudioSource = QAudioInput;
+	using AudioDevice  = QAudioDeviceInfo;
+#endif
 
 class DLL_PREFIX OSD_BASE : public  QObject
 {
 	Q_OBJECT
+
 private:
 
 protected:
@@ -323,7 +325,13 @@ protected:
 		return _T("UNKNOWN");
 	}
 	AudioDevice search_sound_sink(const _TCHAR *name, bool& found);
+	AudioDevice search_sound_sink(QString       name, bool& found);
+	AudioDevice search_sound_sink(std::string  _name, bool& found);
+
 	AudioDevice search_sound_source(const _TCHAR *name, bool& found);
+	AudioDevice search_sound_source(QString       name, bool& found);
+	AudioDevice search_sound_source(std::string  _name, bool& found);
+	
 	virtual bool setup_sound_sink(QString device_name, int rate, int samples, int& presented_rate, int& presented_samples, bool force);
 	virtual bool setup_sound_source(QString device_name, int rate, int samples, int& presented_rate, int& presented_samples, bool force);
 	virtual std::list<std::string>  load_sound_output_devices_list();
