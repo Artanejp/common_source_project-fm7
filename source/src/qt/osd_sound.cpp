@@ -425,6 +425,8 @@ void OSD_BASE::sound_debug_log(const char *fmt, ...)
 
 void OSD_BASE::reset_sound()
 {
+#if 0	/* Workaround for crash when calling, will fix. - 20260202 K.O */
+//	return;
 	if(m_sound_exit.load()) {
 		return;
 	}
@@ -466,6 +468,7 @@ void OSD_BASE::reset_sound()
 		m_sound_source_started = false;
 	}
 	m_sound_vm_local_usec = 0;
+#endif
 }
 
 	
