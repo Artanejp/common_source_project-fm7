@@ -13,11 +13,13 @@
 
 #include <atomic>
 #include <cmath>
+
+// Use SIMDE instead of csp_vector8 .
+#include <simde/x86/avx2.h>
+
 #include "device.h"
 #include "towns_common.h"
-#include "types/simd.h"
 #include "./crtc/crtc_types.h"
-
 
 /*
  * I/O Address :
@@ -83,7 +85,7 @@
  */
 /*
  * Around Video Out.
- *  I/O 044CH : Digital palette modified flags.
+*  I/O 044CH : Digital palette modified flags.
  *	I/O 0448H (WO) : Register Address.
  *	I/O 044AH (WO) : Register Data.
  *  Registers:
@@ -116,13 +118,36 @@ namespace FMTOWNS {
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
 
+#if defined(_RGB555) || defined(_RGB565)
+#define TOWNS_CRTC_SCRNTYPE8_ALIGN SIMDE_ALIGN_TO_16
+#else
+#define TOWNS_CRTC_SCRNTYPE8_ALIGN SIMDE_ALIGN_TO_32
+#endif
+	
 class TOWNS_CRTC : public DEVICE
 {
 protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 
-
+	#if defined(_RGB555) || defined(_RGB565)
+	typedef union {
+		scrntype_t s[8];
+		simde__m128 v;
+	} scentype8_t;
+	#else
+	typedef union {
+		scrntype_t s[8];
+		simde__m256 v;
+	} scentype8_t;
+	#endif
+	typedef union {
+		uint16_t u16[8];
+		int16_t  s16[8];
+		uint8_t  u8[16];
+		simde__m128 v;
+	} uint16_8_t;
+	
 	uint16_t machine_id;
 	uint8_t cpu_id;
 	bool is_compatible;
@@ -430,19 +455,35 @@ protected:
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
 	
 	// Primitives maybe around rendering... these are splitted to ./crtc_utils.h .
-	inline void simd_fill(scrntype_t* dst, csp_vector8<scrntype_t> data, size_t words);
+
+	inline bool is_align_scrntype8(void* p);
+	constexpr bool is_align_scrntype8_constexpr(const void* p);
+	inline scrntype8_t zero_scrntype8_t();
+	
+	inline void store8_aligned(scrntype_t* dst, scrntype8_t data);
+	inline void store8_unaligned(scrntype_t* dst, scrntype8_t data);
+	inline void store8_limited(scrntype_t* dst, scrntype8_t data, const size_t num);
+	inline void store8_pix(scrntype8_t *dst, scrntype8_t data);
+	inline void store_pix(scrntype8_t *dst, scrntype8_t data, const size_t words);
+
+	inline scrntype8_t load8_aligned(scrntype_t* src);
+	inline scrntype8_t load8_unaligned(scrntype_t* src);
+	inline scrntype8_t load8_limited(scrntype_t* src, size_t num);
+	inline scrntype8_t load8_pix(scrntype8_t *src);
+	inline scrntype8_t load_pix(scrntype8_t *src, const size_t words);
+	
+	inline void pix_multiply_x2(scrntype8_t dst[2], const scrntype8_t data);
+	inline void pix_multiply_x4(scrntype8_t dst[4], const scrntype8_t data);
+	inline size_t store_x1(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_x2(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_x3(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_n(scrntype_t *dst, scrntype8_t *src, const int mag, const size_t words, size_t& width);
+	
+	inline void simd_fill(scrntype_t* dst, scrntype8_t data, size_t words);
 	inline void simd_copy(scrntype_t* dst, scrntype_t* src, size_t words);
 	
-	inline size_t scaling_store(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
-	inline size_t scaling_store_by_map(scrntype_t *dst, csp_vector8<scrntype_t> *src, csp_vector8<uint16_t> magx_map, const size_t words, size_t& width);
-	
-	inline size_t store1_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
-	inline size_t store2_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
-	inline size_t store4_aligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
-	inline size_t store1_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
-	inline size_t store2_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
-	inline size_t store4_unaligned(scrntype_t *dst, csp_vector8<scrntype_t> *src, const size_t words, size_t& width);
-	inline size_t store_n_any(scrntype_t *dst, csp_vector8<scrntype_t> *src, const int mag, const size_t words, size_t& width);
+	inline size_t scaling_store(scrntype_t *dst, scrntype8_t *src, const int mag, const size_t words, size_t& width);
+	inline size_t scaling_store_by_map(scrntype_t *dst, scrntype8_t *src, uint16_8_t magx_map, const size_t words, size_t& width);
 
 public:
 	TOWNS_CRTC(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)

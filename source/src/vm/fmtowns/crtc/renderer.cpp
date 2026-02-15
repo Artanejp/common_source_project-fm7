@@ -17,10 +17,8 @@
 
 namespace FMTOWNS {
 
-/*
- * Below are renderer from VM's linebuffer to HOST's pixeldata.
- */
 
+	
 inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 {
 	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (w <= 0)) return;
@@ -374,24 +372,13 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 	__UNLIKELY_IF(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
-	SIMDE_ALIGN_TO_32  scrntype_t apal256[256];
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype_t apal256[256];
 	scrntype_t* __app = &(linebuffers[trans][y].palettes[0].pixels[0]);
 	
-	{
-	SIMDE_ALIGN_TO_32 simde__m128 __t128;
-	#if defined(_RGB555) || defined(_RGB565)
-		// 16bit per pixel.
-		for(size_t i = 0; i < 256; i += 16) {
-			__t128 = simde_mm_loadu_epi32(&(__app[i]));
-			simde_mm_store_epi32(&(apal256[i]));
-		}
-	#else /* _RGB888 */
-		// 32bit per pixel.
-		for(size_t i = 0; i < 256; i += 8) {
-			__t128 = simde_mm_loadu_epi32(&(__app[i]));
-			simde_mm_store_epi32(&(apal256[i]));
-		}
-	#endif
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t __t;
+	for(size_t i = 0; i < 256; i += 8) {
+		__t = load8_unaligned(&(__app[i]));
+		store8_aligned(&(apal256[i]), __t);
 	}
 
 
@@ -402,13 +389,16 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 		SIMDE_ALIGN_TO_32 uint64_t u64;
 	} pbuf;
 	//csp_vector8<uint8_t> pbuf;
-	SIMDE_ALIGN_TO_32 csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
-
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	
 	size_t rwidth = pwidth & 7;
 	size_t width_tmp1 = (hst[trans] > TOWNS_CRTC_MAX_PIXELS) ? TOWNS_CRTC_MAX_PIXELS : hst[trans];
 	__UNLIKELY_IF(width_tmp1 == 0) return false;
 
 	size_t words = 0;
+
+	TOWNS_CRTC_SCRNTYPE8_ALIGN const scrntype8_t zero_value = zero_scrntype8_t();
+	
 	for(size_t x = 0; x < pwidth; x += 8) {
 		size_t xx = x >> 3;
 		__UNLIKELY_IF(xx >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
@@ -416,21 +406,21 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 		}
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
 			pbuf.u64 = 0;
-			sbuf[xx].clear();
+			sbuf[xx].v = zero_value;
 			__LIKELY_IF(rwidth != 0) {
 				for(size_t _ii = 0; _ii < rwidth; _ii++) {
 					pbuf.u8[_ii] = p[_ii];
 				}
 				p += rwidth;
 				for(size_t _ii = 0; _ii < rwidth; _ii++) {
-					sbuf[xx].set(apal256[pbuf.u8[_ii]]);
+					sbuf[xx].s[_ii] = apal256[pbuf.u8[_ii]];
 				}
 			}
 		} else {
 			pbuf.u64 = *((uint64_t*)p);
 			SIMDE_VECTORIZE
 			for(size_t _ii = 0; _ii < 8; _ii++) {
-				sbuf[xx].set(apal256[pbuf.u8[_ii]]);
+				sbuf[xx].s[_ii] = apal256[pbuf.u8[_ii]]);
 			}
 			p += 8;
 		}
@@ -457,7 +447,7 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
-	__DECL_ALIGNED(32) static const scrntype_t maskdata_transparent[16] = {
+	TOWNS_CRTC_SCRNTYPE8_ALIGN static const scrntype_t maskdata_transparent[16] = {
 		RGBA_COLOR(0, 0, 0, 0),
 		RGBA_COLOR(255, 255, 255, 255),
 		RGBA_COLOR(255, 255, 255, 255),
@@ -486,10 +476,10 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
 	bool odd_mag = (((magx & 1) != 0) && (magx > 2)) ? true : false;
-	csp_vector8<uint16_t> magx_tmp;
-	__DECL_VECTORIZED_LOOP
+	SIMDE_ALIGN_TO_16 uint16_8_t magx_tmp;
+	SIMDE_VECTORIZE
 	for(size_t i = 0; i < 8; i++) {
-		magx_tmp.set(i, (magx + (i & 1)) / 2);
+		magx_tmp.u16[i] = (magx + (i & 1)) / 2;
 	}
 
 	const int width = ((hst[trans] * 2 + 16 * magx) > (TOWNS_CRTC_MAX_PIXELS * 2)) ? (TOWNS_CRTC_MAX_PIXELS * 2) : (hst[trans] * 2 + 16 * magx);
@@ -513,15 +503,18 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	__UNLIKELY_IF(magx < 1) return false;
 
 
-	csp_vector8<uint8_t> hlbuf[2];
-	csp_vector8<uint8_t> mbuf;
-	csp_vector8<scrntype_t> sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
-	csp_vector8<scrntype_t> abuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	SIMDE_ALIGN_TO_16 uint16_8_t hlbuf;
+	SIMDE_ALIGN_TO_8  uint16_8_t mbuf;
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	
-	__DECL_ALIGNED(32) scrntype_t palbuf[16];
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype_t palbuf[16];
 	
 	uint8_t pmask = linebuffers[trans][y].r50_planemask[layer] & 0x0f;
-	mbuf.fill(pmask);
+	SIMD_VECTORIZE
+	for(size_t n = 0; n < 8; n++) {
+		mbuf.u8[n] = pmask;
+	}
 
 	scrntype_t *pal = &(linebuffers[trans][y].palettes[layer].pixels[0]);
 	simd_copy(palbuf, pal, 16);
@@ -529,8 +522,14 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	if((do_alpha) && (is_transparent)) {
 		palbuf[0] &= RGBA_COLOR(255, 255, 255, 0); // OK?
 	} else if(!is_transparent) {
+		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _s;
+		SIMDE_VECTORIZE
+		for(size_t n = 0; n < 8; n++) {
+			_s.s[n] = RGBA_COLOR(255, 255, 255, 255;
+		}
+		SIMDE_VECTORIZE
 		for(size_t x = 0; x < (TOWNS_CRTC_MAX_PIXELS / 8); x++) {
-			abuf[x].fill(RGBA_COLOR(255, 255, 255, 255));
+			abuf[x] = _s;
 		}
 	}
 	int k = 0;
@@ -544,59 +543,80 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	size_t words = 0;
 	size_t pptr = 0;
 
-	csp_vector8<uint8_t> bytes_mask;
-	for(int i = 0; i < 8; i += 2) {
-		bytes_mask.set(i + 0, 0x0f);
-		bytes_mask.set(i + 1, 0xf0);
+	TOWNS_CRTC_SCRNTYPE8_ALIGN uint16_8_t bytes_mask;
+	for(int i = 0; i < 16; i += 2) {
+		bytes_mask.u8[i + 0] = 0x0f;
+		bytes_mask.u8[i + 1] = 0xf0;
 	}
-		
+	TOWNS_CRTC_SCRNTYPE8_ALIGN const scrntype8_t zero_value = zero_scrntype8_t();
+	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t white_value;
+	SIMDE_VECTORIZE
+	for(int n = 0; n < 8; n++) {	
+		white_value.s[n] = RGBA_COLOR(255, 255, 255, 255);
+	}
+	
 	for(int x = 0; x < pwidth ; x++) {
 		size_t xx = x >> 3;
 		__UNLIKELY_IF((pptr + 1) >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
 			break;
 		}
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
-			sbuf[pptr].clear();
-			sbuf[pptr + 1].clear();
-			__DECL_ALIGNED(16) uint8_t tmp[8] = {0};
-			size_t j;
-
-			for(int i = x; i < pwidth; i++, j++) {
-				tmp[j] = *p;
+//			sbuf[pptr] = zero_value;
+//			sbuf[pptr + 1] = zero_value;
+			SIMDE_VECTORIZE
+			for(int i = x; i < pwidth; i++, j += 2) {
+				hlbuf.u8[j + 0] = *p;
+				hlbuf.u8[j + 1] = *p;
 				p++;
 			}
-			hlbuf[0].load2(&(tmp[0]));
-			hlbuf[1].load2(&(tmp[4]));
 		} else {
-			hlbuf[0].load2(&(p[0]));
-			hlbuf[1].load2(&(p[4]));
+			SIMDE_VECTORIZE
+			for(int i = 0; i < 8; i++, j += 2) {
+				hlbuf.u8[j + 0] = p[i];
+				hlbuf.u8[j + 1] = p[i];
+			}
 			p += 8;
 		}
 
-		hlbuf[0] &= bytes_mask;
-		hlbuf[1] &= bytes_mask;
+		hlbuf.v = simde_mm_and_ps(bytes_mask.v, hlbuf.v);
 
-		for(int j = 0; j < 2; j++) {
-			for(size_t i = 1; i < 8; i += 2) {
-				hlbuf[j].rshift(i, 4);
+		SIMDE_VECTORIZE
+		for(int j = 1; j < 16; j+= 2) {
+			hlbuf.u8[j] >>= 4;
+		}
+		hlbuf.v = simde_mm_and_ps(mbuf.v, hlbuf.v);
+
+		sbuf[pptr] = zero_value;
+		SIMDE_VECTORIZE
+		for(size_t n = 0; n < 8; n++) {
+			sbuf[pptr].s[n] = palbuf[hlbuf.u8[n]];
+		}
+		
+		abuf[pptr].v = white_value.v;
+		if(!(do_alpha) && (is_transparent)) {
+			SIMDE_VECTORIZE
+			for(size_t n = 0; n < 8; n++) {
+				abuf[pptr].s[n] = maskdata_transparent[hlbuf.u8[n]];
 			}
 		}
-		hlbuf[0] &= mbuf;
-		hlbuf[1] &= mbuf;
-
-		sbuf[pptr].lookup(hlbuf[0], palbuf);
-		if(!(do_alpha) && (is_transparent)) {
-			abuf[pptr].lookup(hlbuf[0], (scrntype_t*)maskdata_transparent);
-		}		
 		words++;
 		pptr++;
 		__UNLIKELY_IF(pptr >= (width_tmp / 8)) {
 			break;
 		}
-		sbuf[pptr].lookup(hlbuf[1], palbuf);
+		sbuf[pptr] = zero_value;
+		SIMDE_VECTORIZE
+		for(size_t n = 0; n < 8; n++) {
+			sbuf[pptr].s[n] = palbuf[hlbuf.u8[n + 8]];
+		}
+		
+		abuf[pptr].v = white_value.v;
 		if(!(do_alpha) && (is_transparent)) {
-			abuf[pptr].lookup(hlbuf[1], (scrntype_t*)maskdata_transparent);
-		}		
+			SIMDE_VECTORIZE
+			for(size_t n = 0; n < 8; n++) {
+				abuf[pptr].s[n] = maskdata_transparent[hlbuf.u8[n + 8]];
+			}
+		}
 		words++;
 		pptr++;
 		__UNLIKELY_IF(pptr >= (width_tmp / 8)) {
@@ -656,8 +676,19 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			do_mix1 = false;
 		}
 		// Clear cache
-		csp_vector8<scrntype_t> blank(RGBA_COLOR(0, 0, 0, 255));
-		csp_vector8<scrntype_t> blank_alpha(RGBA_COLOR(0, 0, 0, 0));
+		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t blank;
+		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t blank_alpha;
+
+		SIMDE_VECTORIZE
+		for(size_t n = 0; n < 8; n++) {
+			blank.s[n] = RGBA_COLOR(0, 0, 0, 255);
+		}
+		SIMDE_VECTORIZE
+		for(size_t n = 0; n < 8; n++) {
+			blank_alpha.s[n] = RGBA_COLOR(0, 0, 0, 0);
+		}
+		//csp_vector8<scrntype_t> blank(RGBA_COLOR(0, 0, 0, 255));
+		//csp_vector8<scrntype_t> blank_alpha(RGBA_COLOR(0, 0, 0, 0));
 
 		if(do_mix1) {
 			simd_fill(pix_cache, blank, width);
@@ -817,35 +848,74 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			scrntype_t p1;
 			scrntype_t mf;
 			scrntype_t mb;
-			csp_vector8<scrntype_t> pix00;
-			csp_vector8<scrntype_t> pix01;
-			csp_vector8<scrntype_t> pix10;
-			csp_vector8<scrntype_t> pix11;
-			csp_vector8<scrntype_t> mask_front0;
-			csp_vector8<scrntype_t> mask_front1;
-			csp_vector8<scrntype_t> mask_back0;
-			csp_vector8<scrntype_t> mask_back1;
+			//csp_vector8<scrntype_t> pix00;
+			//csp_vector8<scrntype_t> pix01;
+			//csp_vector8<scrntype_t> pix10;
+			//csp_vector8<scrntype_t> pix11;
+			//csp_vector8<scrntype_t> mask_front0;
+			//csp_vector8<scrntype_t> mask_front1;
+			//csp_vector8<scrntype_t> mask_back0;
+			//csp_vector8<scrntype_t> mask_back1;
+
+			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t pix0[2];
+			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t pix1[2];
+			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t mask_front[2];
+			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t mask_back[2];
+
 			__LIKELY_IF(bitshift0 == 0) {
 				__LIKELY_IF(width > 15) {
 					for(size_t xx = 0; xx < width; xx += 16) {
-						pix00.load_aligned(&(lbuffer0[xx]));
-						pix01.load_aligned(&(lbuffer0[xx + 8]));
-						pix10.load_aligned(&(pix_cache[xx]));
-						pix11.load_aligned(&(pix_cache[xx + 8]));
-						mask_front0.load_aligned(&(abuffer0[xx]));
-						mask_front1.load_aligned(&(abuffer0[xx + 8]));
-						mask_back0 = mask_front0;
-						mask_back1 = mask_front1;
-						mask_back0.bitwise_not();
-						mask_back1.bitwise_not();
-						pix00 &= mask_front0;
-						pix01 &= mask_front1;
-						pix10 &= mask_back0;
-						pix11 &= mask_back1;
-						pix00 |= pix10;
-						pix01 |= pix11;
-						pix00.store(&(pp[xx]));
-						pix01.store(&(pp[xx + 8]));
+						//pix00.load_aligned(&(lbuffer0[xx]));
+						//pix01.load_aligned(&(lbuffer0[xx + 8]));
+						//pix10.load_aligned(&(pix_cache[xx]));
+						//pix11.load_aligned(&(pix_cache[xx + 8]));
+						pix0[0] = load8_aligned(&(lbuffer0[xx]));
+						pix0[1] = load8_aligned(&(lbuffer0[xx + 8]));
+						pix1[0] = load8_aligned(&(pix_cache[xx]));
+						pix1[1] = load8_aligned(&(pix_cache[xx + 8]));
+						
+						//mask_front0.load_aligned(&(abuffer0[xx]));
+						//mask_front1.load_aligned(&(abuffer0[xx + 8]));
+						//mask_back0 = mask_front0;
+						//mask_back1 = mask_front1;
+						mask_front[0] = load8_aligned(&(abuffer0[xx]));
+						mask_front[1] = load8_aligned(&(abuffer0[xx + 8]));
+						//mask_back[0].v = mask_front[0].v;
+						//mask_back[1].v = mask_front[1].v;
+						
+						//mask_back0.bitwise_not();
+						//mask_back1.bitwise_not();
+						//pix00 &= mask_front0;
+						//pix01 &= mask_front1;
+						//pix10 &= mask_back0;
+						//pix11 &= mask_back1;
+						#if defined(_RGB555) || defined(_RGB565)
+						pix0[0].v = simde_mm_and_ps(mask_front[0].v, pix0[0].v);
+						pix0[1].v = simde_mm_and_ps(mask_front[1].v, pix0[1].v);
+						
+						pix1[0].v = simde_mm_andnot_ps(mask_front[0].v, pix1[0].v);
+						pix1[1].v = simde_mm_andnot_ps(mask_front[1].v, pix1[1].v);
+						#else
+						pix0[0].v = simde_mm256_and_ps(mask_front[0].v, pix0[0].v);
+						pix0[1].v = simde_mm256_and_ps(mask_front[1].v, pix0[1].v);
+						
+						pix1[0].v = simde_mm256_andnot_ps(mask_front[0].v, pix1[0].v);
+						pix1[1].v = simde_mm256_andnot_ps(mask_front[1].v, pix1[1].v);
+						#endif
+						
+						//pix00 |= pix10;
+						//pix01 |= pix11;
+						//pix00.store(&(pp[xx]));
+						//pix01.store(&(pp[xx + 8]));
+						#if defined(_RGB555) || defined(_RGB565)
+						pix0[0].v = simde_mm_or_ps(pix0[0].v, pix1[0].v);
+						pix0[1].v = simde_mm_or_ps(pix0[1].v, pix1[1].v);
+						#else
+						pix0[0].v = simde_mm256_or_ps(pix0[0].v, pix1[0].v);
+						pix0[1].v = simde_mm256_or_ps(pix0[1].v, pix1[1].v);
+						#endif
+						store8_pix(&(pp[xx]), pix0[0]);
+						store8_pix(&(pp[xx + 8]), pix0[1]);
 					}
 				}
 				if((width & 15) != 0) {
@@ -863,24 +933,56 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			} else {
 				__LIKELY_IF(width > 15) {
 					for(size_t xx = 0; xx < width; xx += 16) {
-						pix00.load_aligned(&(pix_cache0[xx]));
-						pix01.load_aligned(&(pix_cache0[xx + 8]));
-						pix10.load_aligned(&(pix_cache[xx]));
-						pix11.load_aligned(&(pix_cache[xx + 8]));
-						mask_front0.load_aligned(&(alpha_cache[xx]));
-						mask_front1.load_aligned(&(alpha_cache[xx + 8]));
-						mask_back0 = mask_front0;
-						mask_back1 = mask_front1;
-						mask_back0.bitwise_not();
-						mask_back1.bitwise_not();
-						pix00 &= mask_front0;
-						pix01 &= mask_front1;
-						pix10 &= mask_back0;
-						pix11 &= mask_back1;
-						pix00 |= pix10;
-						pix01 |= pix11;
-						pix00.store(&(pp[xx]));
-						pix01.store(&(pp[xx + 8]));
+						//pix00.load_aligned(&(pix_cache0[xx]));
+						//pix01.load_aligned(&(pix_cache0[xx + 8]));
+						//pix10.load_aligned(&(pix_cache[xx]));
+						//pix11.load_aligned(&(pix_cache[xx + 8]));
+						
+						pix0[0] = load8_aligned(&(pix_cache0[xx]));
+						pix0[1] = load8_aligned(&(pix_cache0[xx + 1]));
+						pix1[0] = load8_aligned(&(pix_cache[xx]));
+						pix1[1] = load8_aligned(&(pix_cache[xx + 1]));
+						
+						//mask_front0.load_aligned(&(alpha_cache[xx]));
+						//mask_front1.load_aligned(&(alpha_cache[xx + 8]));
+						mask_front[0] = load8_aligned(&(alpha_cache[xx]));
+						mask_front[1] = load8_aligned(&(alpha_cache[xx + 1]));
+						
+						//mask_back0 = mask_front0;
+						//mask_back1 = mask_front1;
+						//mask_back0.bitwise_not();
+						//mask_back1.bitwise_not();
+						//pix00 &= mask_front0;
+						//pix01 &= mask_front1;
+						//pix10 &= mask_back0;
+						//pix11 &= mask_back1;
+						#if defined(_RGB555) || defined(_RGB565)
+						pix0[0].v = simde_mm_and_ps(mask_front[0].v, pix0[0].v);
+						pix0[1].v = simde_mm_and_ps(mask_front[1].v, pix0[1].v);
+						
+						pix1[0].v = simde_mm_andnot_ps(mask_front[0].v, pix1[0].v);
+						pix1[1].v = simde_mm_andnot_ps(mask_front[1].v, pix1[1].v);
+						#else
+						pix0[0].v = simde_mm256_and_ps(mask_front[0].v, pix0[0].v);
+						pix0[1].v = simde_mm256_and_ps(mask_front[1].v, pix0[1].v);
+						
+						pix1[0].v = simde_mm256_andnot_ps(mask_front[0].v, pix1[0].v);
+						pix1[1].v = simde_mm256_andnot_ps(mask_front[1].v, pix1[1].v);
+						#endif
+
+						//pix00 |= pix10;
+						//pix01 |= pix11;
+						//pix00.store(&(pp[xx]));
+						//pix01.store(&(pp[xx + 8]));
+						#if defined(_RGB555) || defined(_RGB565)
+						pix0[0].v = simde_mm_or_ps(pix0[0].v, pix1[0].v);
+						pix0[1].v = simde_mm_or_ps(pix0[1].v, pix1[1].v);
+						#else
+						pix0[0].v = simde_mm256_or_ps(pix0[0].v, pix1[0].v);
+						pix0[1].v = simde_mm256_or_ps(pix0[1].v, pix1[1].v);
+						#endif
+						store8_pix(&(pp[xx]), pix0[0]);
+						store8_pix(&(pp[xx + 8]), pix0[1]);
 					}
 				}
 				if((width & 15) != 0) {
@@ -908,7 +1010,11 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		} else {
 			// Clear ONLY
 			if((do_mix0) || (do_mix1)) {
-				csp_vector8<scrntype_t> pix(RGBA_COLOR(0, 0, 0, 255));
+				TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t pix;
+				SIMDE_VECTORIZE
+				for(size_t n = 0; n < 8; n++) {
+					pix.s[n] = RGBA_COLOR(0, 0, 0, 255);
+				}
 				simd_fill(pp, pix, width);
 			}
 		}
