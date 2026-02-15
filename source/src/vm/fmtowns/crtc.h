@@ -463,20 +463,20 @@ protected:
 	inline void store8_aligned(scrntype_t* dst, scrntype8_t data);
 	inline void store8_unaligned(scrntype_t* dst, scrntype8_t data);
 	inline void store8_limited(scrntype_t* dst, scrntype8_t data, const size_t num);
-	inline void store8_pix(scrntype8_t *dst, scrntype8_t data);
-	inline void store_pix(scrntype8_t *dst, scrntype8_t data, const size_t words);
+	inline void store8_pix(scrntype_t *dst, scrntype8_t data);
+	inline void store_pix(scrntype_t *dst, scrntype8_t data, const size_t words);
 
 	inline scrntype8_t load8_aligned(scrntype_t* src);
 	inline scrntype8_t load8_unaligned(scrntype_t* src);
 	inline scrntype8_t load8_limited(scrntype_t* src, size_t num);
-	inline scrntype8_t load8_pix(scrntype8_t *src);
-	inline scrntype8_t load_pix(scrntype8_t *src, const size_t words);
+	inline scrntype8_t load8_pix(scrntype_t *src);
+	inline scrntype8_t load_pix(scrntype_t *src, const size_t words);
 	
 	inline void pix_multiply_x2(scrntype8_t dst[2], const scrntype8_t data);
 	inline void pix_multiply_x4(scrntype8_t dst[4], const scrntype8_t data);
 	inline size_t store_x1(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
 	inline size_t store_x2(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
-	inline size_t store_x3(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_x4(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
 	inline size_t store_n(scrntype_t *dst, scrntype8_t *src, const int mag, const size_t words, size_t& width);
 	
 	inline void simd_fill(scrntype_t* dst, scrntype8_t data, size_t words);
