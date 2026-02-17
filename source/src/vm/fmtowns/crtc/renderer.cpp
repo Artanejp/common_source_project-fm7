@@ -607,7 +607,7 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	
 	uint8_t pmask = linebuffers[trans][y].r50_planemask[layer] & 0x0f;
 	SIMDE_VECTORIZE
-	for(size_t n = 0; n < 8; n++) {
+	for(size_t n = 0; n < 16; n++) {
 		mbuf.u8[n] = pmask;
 	}
 
@@ -678,7 +678,7 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 		}
 		hlbuf.v = simde_mm_and_ps(mbuf.v, hlbuf.v);
 
-		sbuf[pptr] = zero_value;
+		sbuf[pptr].v = zero_value.v;
 		__DECL_VECTORIZED_LOOP
 		for(size_t n = 0; n < 8; n++) {
 			sbuf[pptr].s[n] = palbuf[hlbuf.u8[n]];
@@ -696,7 +696,7 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 		__UNLIKELY_IF(pptr >= (width_tmp / 8)) {
 			break;
 		}
-		sbuf[pptr] = zero_value;
+		sbuf[pptr].v = zero_value.v;
 		__DECL_VECTORIZED_LOOP
 		for(size_t n = 0; n < 8; n++) {
 			sbuf[pptr].s[n] = palbuf[hlbuf.u8[n + 8]];
@@ -784,12 +784,12 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 
 		if(do_mix1) {
 			simd_fill(pix_cache, blank, width);
-			make_prefetch(pix_cache, sizeof(pix_cache));
+			//make_prefetch(pix_cache, sizeof(pix_cache));
 			pix_cached = true;
 		}
 		if((do_mix0) && (bitshift0 != 0)) {
 			simd_fill(pix_cache0, blank, width);
-			make_prefetch(pix_cache0, sizeof(pix_cache0));
+			//make_prefetch(pix_cache0, sizeof(pix_cache0));
 			pix0_cached = true;
 		}
 		bool got_0 = false;
@@ -863,14 +863,14 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		}
 		if((got_1) && (do_mix0)) {
 			simd_fill(alpha_cache, blank_alpha, width);
-			make_prefetch(alpha_cache, sizeof(alpha_cache));
+			//make_prefetch(alpha_cache, sizeof(alpha_cache));
 			alpha_cached = true;
 		}
 		__LIKELY_IF(do_mix0) {
 			__UNLIKELY_IF(words0 >= TOWNS_CRTC_MAX_PIXELS) {
 				words0 = TOWNS_CRTC_MAX_PIXELS;
 			}
-			make_prefetch(lbuffer0, sizeof(lbuffer0));
+			//make_prefetch(lbuffer0, sizeof(lbuffer0));
 			if((is_hloop0) && (bitshift0 != 0)) {
 				ssize_t of00 = 0;
 				ssize_t of01 = 0;
