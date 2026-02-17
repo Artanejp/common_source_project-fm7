@@ -235,14 +235,18 @@ void TOWNS_CRTC::clear_line(const int trans, int layer, const int y)
 		n.w = 0x0000;
 	}
 	//csp_vector8<uint16_t> clrdata(n.w);
-	SIMDE_ALIGN_TO_16 uint16_8_t clrdata;
-	SIMDE_VECTORIZE
-	for(size_t n = 0; n < 8; n++) {
-		clrdata.u16[n] = n.w;
-	}
-	for(size_t x = 0; x < TOWNS_CRTC_MAX_PIXELS; x += 8) {
-		//clrdata.store(&(q[x]));
-		simde_mm_storeu_ps(&(q[x]), clrdata.v);
+//	SIMDE_ALIGN_TO_16 uint16_8_t clrdata;
+//	SIMDE_VECTORIZE
+//	for(size_t i = 0; i < 8; i++) {
+//		clrdata.u16[i] = n.w;
+//	}
+//	for(size_t x = 0; x < TOWNS_CRTC_MAX_PIXELS; x += 8) {
+//		//clrdata.store(&(q[x]));
+//		simde_mm_storeu_si128(&(q[x]), clrdata.v);
+//	}
+	__DECL_VECTORIZED_LOOP
+	for(size_t x = 0; x < TOWNS_CRTC_MAX_PIXELS; x ++) {
+		p[x] = n.w;
 	}
 }
 

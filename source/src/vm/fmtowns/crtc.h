@@ -18,6 +18,25 @@
 #include <simde/x86/avx2.h>
 
 #include "device.h"
+
+#if defined(_RGB555) || defined(_RGB565)
+typedef union {
+	scrntype_t s[8];
+	simde__m128 v;
+} scrntype8_t;
+#else
+typedef union {
+	scrntype_t s[8];
+	simde__m256 v;
+} scrntype8_t;
+#endif
+typedef union {
+	uint16_t u16[8];
+	int16_t  s16[8];
+	uint8_t  u8[16];
+	simde__m128 v;
+} uint16_8_t;
+
 #include "towns_common.h"
 #include "./crtc/crtc_types.h"
 
@@ -114,6 +133,7 @@
 
 class DEBUGGER;
 
+
 namespace FMTOWNS {
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
@@ -130,23 +150,6 @@ protected:
 	TOWNS_VRAM* d_vram;
 	TOWNS_SPRITE* d_sprite;
 
-	#if defined(_RGB555) || defined(_RGB565)
-	typedef union {
-		scrntype_t s[8];
-		simde__m128 v;
-	} scentype8_t;
-	#else
-	typedef union {
-		scrntype_t s[8];
-		simde__m256 v;
-	} scentype8_t;
-	#endif
-	typedef union {
-		uint16_t u16[8];
-		int16_t  s16[8];
-		uint8_t  u8[16];
-		simde__m128 v;
-	} uint16_8_t;
 	
 	uint16_t machine_id;
 	uint8_t cpu_id;
@@ -457,27 +460,26 @@ protected:
 	// Primitives maybe around rendering... these are splitted to ./crtc_utils.h .
 
 	inline bool is_align_scrntype8(void* p);
-	constexpr bool is_align_scrntype8_constexpr(const void* p);
 	inline scrntype8_t zero_scrntype8_t();
 	
 	inline void store8_aligned(scrntype_t* dst, scrntype8_t data);
 	inline void store8_unaligned(scrntype_t* dst, scrntype8_t data);
 	inline void store8_limited(scrntype_t* dst, scrntype8_t data, const size_t num);
-	inline void store8_pix(scrntype_t *dst, scrntype8_t data);
+	inline void store8_pix(const scrntype_t *dst, scrntype8_t data);
 	inline void store_pix(scrntype_t *dst, scrntype8_t data, const size_t words);
 
 	inline scrntype8_t load8_aligned(scrntype_t* src);
 	inline scrntype8_t load8_unaligned(scrntype_t* src);
 	inline scrntype8_t load8_limited(scrntype_t* src, size_t num);
-	inline scrntype8_t load8_pix(scrntype_t *src);
+	inline scrntype8_t load8_pix(const scrntype_t *src);
 	inline scrntype8_t load_pix(scrntype_t *src, const size_t words);
 	
 	inline void pix_multiply_x2(scrntype8_t dst[2], const scrntype8_t data);
 	inline void pix_multiply_x4(scrntype8_t dst[4], const scrntype8_t data);
-	inline size_t store_x1(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
-	inline size_t store_x2(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
-	inline size_t store_x4(scrntype_t *dst, scrntype8_t *src, const size_t words, size_t& width);
-	inline size_t store_n(scrntype_t *dst, scrntype8_t *src, const int mag, const size_t words, size_t& width);
+	inline size_t store_x1(scrntype_t *dst, const scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_x2(scrntype_t *dst, const scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_x4(scrntype_t *dst, const scrntype8_t *src, const size_t words, size_t& width);
+	inline size_t store_n(scrntype_t *dst, const scrntype8_t *src, const int mag, const size_t words, size_t& width);
 	
 	inline void simd_fill(scrntype_t* dst, scrntype8_t data, size_t words);
 	inline void simd_copy(scrntype_t* dst, scrntype_t* src, size_t words);

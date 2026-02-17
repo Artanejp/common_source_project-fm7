@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../device.h"
+#include "../../types/simd.h"
 
 #define SIG_TOWNS_SPRITE_SET_LINES      257
 //#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
