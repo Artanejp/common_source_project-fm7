@@ -378,7 +378,7 @@ inline size_t TOWNS_CRTC::store_n(scrntype_t *dst, const scrntype8_t *src, const
 	
 	size_t dst_lp1 = 0;
 	size_t dst_lp2 = 0;
-	#if 1
+	#if 0
 	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
 		_s = load8_pix((const scrntype_t*)(&(src[x])));
 		for(size_t i = 0; (i < 8) && (width > 0) ; i++) {
