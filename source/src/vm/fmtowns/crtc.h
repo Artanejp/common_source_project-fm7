@@ -15,27 +15,10 @@
 #include <cmath>
 
 // Use SIMDE instead of csp_vector8 .
-#include <simde/x86/avx2.h>
+#include "../../types/simd.h"
 
 #include "device.h"
 
-#if defined(_RGB555) || defined(_RGB565)
-typedef union {
-	scrntype_t s[8];
-	simde__m128 v;
-} scrntype8_t;
-#else
-typedef union {
-	scrntype_t s[8];
-	simde__m256 v;
-} scrntype8_t;
-#endif
-typedef union {
-	uint16_t u16[8];
-	int16_t  s16[8];
-	uint8_t  u8[16];
-	simde__m128 v;
-} uint16_8_t;
 
 #include "towns_common.h"
 #include "./crtc/crtc_types.h"
