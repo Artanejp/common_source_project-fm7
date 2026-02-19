@@ -30,7 +30,7 @@
 /* FALLBACK and x86 */
 #if defined(USE_SIMD_X86) || defined(USE_SIMD_X86_FALLBACK)
 # if !defined(SIMDE_X86_AVX2_H)
-# include <simde/avx2.h>
+# include <simde/x86/avx2.h>
 # endif
 # if !defined(USE_SIMD_X86)
 # define USE_SIMD_X86
