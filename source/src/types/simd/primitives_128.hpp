@@ -13,6 +13,7 @@
 
 // #include "../simd_types.h"
 
+namespace simd_128bit {
 inline simde__m128 op_clear()
 {
 	return simde_mm_setzero_si128();
@@ -62,10 +63,10 @@ inline simde__m128 op_set64(const uint64_t __a)
 	return __r.v;
 }
 
-inline simde__m128 op_bswap16(const simde__m128 __a)
+inline simde__m128 op_bswap16(simde__m128 __a)
 {
 	__DECL_ALIGNED(16) uint16_8_t __r;
-	__r.v = = __a;
+	__r.v = __a;
 	pair16_t __tmp;
 	SIMDE_VECTORIZE
 	for(size_t n = 0; n < 8; n++) {
@@ -75,7 +76,7 @@ inline simde__m128 op_bswap16(const simde__m128 __a)
 	return __r.v;
 }
 
-inline simde__m128 op_bswap32(const simde__m128 __a)
+inline simde__m128 op_bswap32(simde__m128 __a)
 {
 	__DECL_ALIGNED(16) uint16_8_t __r;
 	__r.v = __a;
@@ -88,7 +89,7 @@ inline simde__m128 op_bswap32(const simde__m128 __a)
 	return __r.v;
 }
 
-inline simde__m128 op_bswap64(const simde__m128 __a)
+inline simde__m128 op_bswap64(simde__m128 __a)
 {
 	__DECL_ALIGNED(16) uint16_8_t __r;
 	__r.v = __a;
@@ -114,15 +115,17 @@ inline simde__m128 op_xor(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_xor_si128(__a, __b);
 }
 
-inline simde__m128 op_not(const simde__m128 __a);
+inline simde__m128 op_not(const simde__m128 __a)
 {
 	return simde_x_mm_not_ps(__a);
 }
+
 inline simde__m128 op_add_s8(const simde__m128 __a, const simde__m128 __b)
 {
 	return simde_mm_add_epi8(__a, __b);
 }
 
+// signed/unsigned saturation add.
 inline simde__m128 op_add_u8_sat(const simde__m128 __a, const simde__m128 __b)
 {
 	return simde_mm_adds_epu8(__a, __b);
@@ -153,7 +156,7 @@ inline simde__m128 op_add_s32(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_add_epi32(__a, __b);
 }
 
-inline simde__m128 op_add_s64(const simde__m128& __a, const simde__m128& __b)
+inline simde__m128 op_add_s64(const simde__m128 __a, const simde__m128 __b)
 {
 	return simde_mm_add_epi64(__a, __b);
 }
@@ -163,6 +166,7 @@ inline simde__m128 op_sub_s8(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_sub_epi8(__a, __b);
 }
 
+// signed/unsigned saturation add.
 inline simde__m128 op_sub_u8_sat(const simde__m128 __a, const simde__m128 __b)
 {
 	return simde_mm_subs_epu8(__a, __b);
@@ -198,90 +202,138 @@ inline simde__m128 op_sub_s64(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_sub_epi64(__a, __b);
 }
 
-// 16bit, signed saturation add.
-inline simde__m128& operator+(const simde__m128& __a, const simde__m128& __b)
+
+inline simde__m128 op_lshift16_fix(const simde__m128 __a, const int __shift)
 {
-	return op_add_s16_sat(__a, __b);
+	return simde_mm_slli_epi16(__a, __shift);
+}
+inline simde__m128 op_rshift16_fix(const simde__m128 __a, const int __shift)
+{
+	return simde_mm_srli_epi16(__a, __shift);
+}
+inline simde__m128 op_rshift16_sign_fix(const simde__m128i __a, const int __shift)
+{
+	return simde_mm_srai_epi16(__a, __shift);
 }
 
-inline simde__m128& operator-(const simde__m128& __a, const simde__m128& __b)
+inline simde__m128 op_lshift16(const simde__m128 __a, const simde__m128i __shift)
 {
-	return simde_mm_subs_epi16(__a, __b);
-}
-
-inline simde__m128& operator&(const simde__m128& __a, const simde__m128& __b)
-{
-	return simde_mm_and_si128(__a, __b);
-}
-
-inline simde__m128& operator|(const simde__m128& __a, const simde__m128& __b)
-{
-	return simde_mm_or_si128(__a, __b);
-}
-
-inline simde__m128& operator^(const simde__m128& __a, const simde__m128& __b)
-{
-	return simde_mm_xor_si128(__a, __b);
-}
-
-inline simde__m128& operator~(const simde__m128& __a)
-{
-	return simde_x_mm_not_ps(__a);
+	return simde_mm_sll_epi16(__a, __shift);
 }
 
 inline simde__m128 op_lshift16(const simde__m128 __a, const size_t __shift)
 {
-	const uint8_t _c = (__shift > 16) ? 16 : (uint8_t)__shift;
-	return simde_mm_slli_epi16(__a, __shift);
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_lshift16(__a, _s);
 }
+
+inline simde__m128 op_rshift16(const simde__m128 __a, const simde__m128i __shift)
+{
+	return simde_mm_srl_epi16(__a, __shift);
+}
+
 inline simde__m128 op_rshift16(const simde__m128 __a, const size_t __shift)
 {
-	const uint8_t _c = (__shift > 16) ? 16 : (uint8_t)__shift;
-	return simde_mm_srli_epi16(__a, __shift);
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_rshift16(__a, _s);
 }
+
+inline simde__m128 op_rshift16_sign(const simde__m128 __a, const simde__m128i __shift)
+{
+	return simde_mm_sra_epi16(__a, __shift);
+}
+
 inline simde__m128 op_rshift16_sign(const simde__m128 __a, const size_t __shift)
 {
-	const uint8_t _c = (__shift > 16) ? 16 : (uint8_t)__shift;
-	return simde_mm_srai_epi16(__a, __shift);
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_rshift16_sign(__a, _s);
 }
-inline simde__m128 op_lshift32(const simde__m128 __a, const size_t __shift)
+
+
+inline simde__m128 op_lshift32_fix(const simde__m128 __a, const int __shift)
 {
-	const uint8_t _c = (__shift > 32) ? 32 : (uint8_t)__shift;
 	return simde_mm_slli_epi32(__a, __shift);
 }
-inline simde__m128 op_rshift32(const simde__m128 __a, const size_t __shift)
+inline simde__m128 op_rshift32_fix(const simde__m128 __a, const int __shift)
 {
-	const uint8_t _c = (__shift > 32) ? 32 : (uint8_t)__shift;
 	return simde_mm_srli_epi32(__a, __shift);
 }
-inline simde__m128 op_rshift32_sign(const simde__m128 __a, const size_t __shift)
+inline simde__m128 op_rshift32_sign_fix(const simde__m128i __a, const int __shift)
 {
-	const uint8_t _c = (__shift > 32) ? 32 : (uint8_t)__shift;
 	return simde_mm_srai_epi32(__a, __shift);
 }
 
+inline simde__m128 op_lshift32(const simde__m128 __a, const simde__m128i __shift)
+{
+	return simde_mm_sll_epi32(__a, __shift);
+}
+
+inline simde__m128 op_lshift32(const simde__m128 __a, const size_t __shift)
+{
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_lshift32(__a, _s);
+}
+
+inline simde__m128 op_rshift32(const simde__m128 __a, const simde__m128i __shift)
+{
+	return simde_mm_srl_epi32(__a, __shift);
+}
+
+inline simde__m128 op_rshift32(const simde__m128 __a, const size_t __shift)
+{
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_rshift32(__a, _s);
+}
+
+inline simde__m128 op_rshift32_sign(const simde__m128 __a, const simde__m128i __shift)
+{
+	return simde_mm_sra_epi32(__a, __shift);
+}
+
+inline simde__m128 op_rshift32_sign(const simde__m128 __a, const size_t __shift)
+{
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_rshift32_sign(__a, _s);
+}
+
+inline simde__m128 op_lshift64_fix(const simde__m128 __a, const int __shift)
+{
+	return simde_mm_slli_epi64(__a, __shift);
+}
+inline simde__m128 op_rshift64_fix(const simde__m128 __a, const int __shift)
+{
+	return simde_mm_srli_epi64(__a, __shift);
+}
+inline simde__m128 op_lshift64(const simde__m128 __a, const simde__m128i __shift)
+{
+	return simde_mm_sll_epi64(__a, __shift);
+}
 
 inline simde__m128 op_lshift64(const simde__m128 __a, const size_t __shift)
 {
-	const uint8_t _c = (__shift > 64) ? 64 : (uint8_t)__shift;
-	return simde_mm_slli_epi64(__a, __shift);
-}
-inline simde__m128 op_rshift64(const simde__m128 __a, const size_t __shift)
-{
-	const uint8_t _c = (__shift > 64) ? 64 : (uint8_t)__shift;
-	return simde_mm_srli_epi64(__a, __shift);
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_lshift64(__a, _s);
 }
 
-inline simde__m128 op_byte_lshift(const simde__m128 __a, const size_t __bytes)
+inline simde__m128 op_rshift64(const simde__m128 __a, const simde__m128i __shift)
 {
-	const uint8_t _c = (__bytes > 16) ? 16 : (uint8_t)__bytes;
-	return simde_mm_slli_si128(__a, __shift);
+	return simde_mm_srl_epi64(__a, __shift);
 }
-inline simde__m128 op_byte_rshift(const simde__m128 __a, const size_t __bytes)
+
+inline simde__m128 op_rshift64(const simde__m128 __a, const size_t __shift)
 {
-	const uint8_t _c = (__bytes > 16) ? 16 : (uint8_t)__bytes;
-	return simde_mm_srli_si128(__a, __shift);
+	__DECL_ALIGNED(16) simde__m128i _s;
+	_s = simde_mm_cvtsi64_si128((int64_t)__shift);
+	return op_rshift64(__a, _s);
 }
+
 
 inline simde__m128 op_equals8(const simde__m128 __a, const simde__m128 __b)
 {
@@ -339,19 +391,10 @@ inline simde__m128 op_lesser64(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_cmpgt_epi64(__b, __a);
 }
 
-// Note 16bit x 8.
-inline simde__m128& operator<<(const simde__m128 __a, const size_t __shift)
-{
-	return op_lshift16(__a, __shift);
-}
-
-inline simde__m128& operator>>(const simde__m128 __a, const size_t __shift)
-{
-	return op_rshift16(__a, __shift);
-}
 
 // not(__a) and __b
-inline simde__m128& op_andnot(const simde__m128& __a, const simde__m128& __b)
+inline simde__m128 op_andnot(const simde__m128 __a, const simde__m128 __b)
 {
 	return simde_mm_andnot_si128(__a, __b);
 }
+} /* namespace simd_128bit */

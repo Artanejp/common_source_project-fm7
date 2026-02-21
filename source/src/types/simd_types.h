@@ -48,16 +48,17 @@
 
 #include "types/optimizer_utils.h"
 
-#include "../scrntype_t.h"
-#include "../pair16_t.h"
-#include "../pair32_t.h"
-#include "../pair64_t.h"
+#include "types/scrntype_t.h"
+#include "types/pair16_t.h"
+#include "types/pair32_t.h"
+#include "types/pair64_t.h"
 
 #if !defined(__MINIMUM_ALIGN_LENGTH)
 # if defined(SIMDE_ALIGN_PLATFORM_MAXIMUM) && (SIMDE_ALIGN_PLATFORM_MAXIMUM >= 16)
 # define __M__MINIMUM_ALIGN_LENGTH 16 /* OK? */
 # else
 # define __M__MINIMUM_ALIGN_LENGTH 8 /* OK? */
+# endif
 #else
 #define __M__MINIMUM_ALIGN_LENGTH __MINIMUM_ALIGN_LENGTH
 #endif
@@ -77,29 +78,29 @@ typedef union {
 #undef __TMP_V128_TYPE
 #undef __TMP_V256_TYPE
 
-#if defined(USE_X86)
+#if defined(USE_SIMD_X86)
 #define __TMP_V128_TYPE	simde__m128
 #define __TMP_V256_TYPE	simde__m256
-#elif defined(USE_WASM)
+#elif defined(USE_SIMD_WASM)
 #define __TMP_V128_TYPE	simde_v128_t
-#elif defined(USE_ARM_NEON)
+#elif defined(USE_SIMD_ARM_NEON)
 #define __TMP_V128_TYPE	simde_uint16x8_t
 #define __TMP_V256_TYPE	simde_uint16x8x2_t
-#elif defined(USE_MIPS)
+#elif defined(USE_SIMD_MIPS)
 #define __TMP_V128_TYPE	simde_v8u16
 #endif
 
 #if !defined(__TMP_V128_TYPE)
-typedef uint16_t __tmp_simd_v128 SIMDE_VECTOR(16)
-__TMP_V128_TYPE __tmp_simd_v128
+typedef uint16_t __tmp_simd_v128 SIMDE_VECTOR(16);
+#define __TMP_V128_TYPE __tmp_simd_v128;
 #else
-typedef __tmp_simd_v128 __TMP_V128_TYPE	
+typedef __TMP_V128_TYPE __tmp_simd_v128;
 #endif
 #if !defined(__TMP_V256_TYPE)
-typedef uint16_t __tmp_simd_v256 SIMDE_VECTOR(32)
-__TMP_V256_TYPE __tmp_simd_v256
+typedef uint16_t __tmp_simd_v256 SIMDE_VECTOR(32);
+#define __TMP_V256_TYPE __tmp_simd_v256
 #else
-typedef __tmp_simd_v256 __TMP_V256_TYPE	
+typedef __TMP_V256_TYPE __tmp_simd_v256;
 #endif
 
 typedef union {
@@ -109,8 +110,8 @@ typedef union {
 	int16_t  s16[8];
 	uint32_t u32[4];
 	int32_t  s32[4];
-	uint64_t d[2];
-	int64_t  sd[2];
+	uint64_t u64[2];
+	int64_t  s64[2];
 	union {
 		uint8_8_t array[2];
 		struct {
@@ -141,8 +142,8 @@ typedef union {
 	int16_t  s16[16];
 	uint32_t u32[8];
 	int32_t  s32[8];
-	uint64_t d[4];
-	int64_t  sd[4];
+	uint64_t u64[4];
+	int64_t  s64[4];
 	union {
 		uint8_8_t array[4];
 		struct {
@@ -186,10 +187,10 @@ typedef union {
 	__TMP_V256_TYPE v;
 } uint32_8_t;
 
-typedef simd64_t uint8_8_t;
-typedef simd128_t uint16_8_t;
-typedef simd256_t uint32_8_t;
-typedef uint16_16_t uint32_8_t;
+typedef uint8_8_t simd64_t;
+typedef uint16_8_t simd128_t;
+typedef uint32_8_t simd256_t;
+typedef uint32_8_t uint16_16_t;
 
 #undef SCRNTYPE8_T_WIDTH
 #undef SCRNTYPE8_T_ALIGN

@@ -13,13 +13,13 @@
 #include <type_traits>
 #include <utility>
 
-#include "./simd/macros.h"
-SIMD_CLEAR_INSN
 
 // Write primitives in simde_ AVX2 primitives,
 // but you can build/run without neither X86 or AVX2 feature.
 // i.e. i686 (without SIMD anymore),  (basic x86_64; SSE2) ,
 //      ARM , RIEC-V (with/without SIMD feature) and sny ARCHs.
+
+
 #define USE_SIMD_X86
 #include "./simd_types.h"
 
@@ -1320,9 +1320,9 @@ template <class T>
 
 }
 
-#include "./simd/simd_pri.h"
-#include "./simd/u16_8_t.hpp"
-#include "./simd/u32_8_t.hpp"
+//#include "./simd/simd_pri.h"
+#include "./simd/uint16_8_t.hpp"
+#include "./simd/uint32_8_t.hpp"
 
 
 
