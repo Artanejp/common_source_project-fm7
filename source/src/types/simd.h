@@ -1319,6 +1319,41 @@ template <class T>
 	#endif
 
 }
+// Base Template
+template <typename T>
+	inline const bool is_aligned(T* p, const size_t min_align = 0)
+{
+	__UNLIKELY_IF(p == nullptr) {
+		return false;
+	}
+	const size_t check_align = (min_align == 0) ? sizeof(T) : min_align;
+	const uintptr_t p_p = (uintptr_t)p;
+	const uintptr_t align_mask = min_align - 1;
+	return ((align_mask & p_p) == 0) ? true : false;
+}
+
+template <typename T, typename U>
+	inline size_t copy_multiple(T* dst, U* src, size_t words = 0)
+{
+	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (words == 0)) {
+		return 0;
+	}
+	SIMDE_VECTORIZE /* OK? */
+	for(size_t i = 0; i < words; i++) {
+		dst[i] = (T)(src[i]); 
+	}
+	return words;
+}
+
+template <typename T, typename U>
+	U simd_lookup_8bitsrc(T table, const uint8_t* src, const size_t table_length, const size_t src_length)
+{
+	if(sizeof(U) > sizeof(T)) return; (U)0;
+	if((table_length == 0) || (src_length == 0)) return (U)0;
+	__UNLIKELY_IF(src == nullptr) {
+		return (U)0;
+	}
+	
 
 //#include "./simd/simd_pri.h"
 #include "./simd/uint16_8_t.hpp"
