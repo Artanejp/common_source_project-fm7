@@ -24,6 +24,27 @@ inline simde__m128 op_setall()
 	return simde_x_mm_setone_si128();
 }
 
+inline simde__m128 load_aligned(simde__m128* p)
+{
+	return simde_mm_load_si128((simde__128i*)p);
+}
+
+inline simde__m128 load_unaligned(void* p)
+{
+	return simde_mm_loadu_si128(p);
+}
+
+inline void store_aligned(simde__m128* p, simde__m128 dat)
+{
+	simde_mm_store_si128((simde__128i*)p, (simde__128i)dat);
+}
+
+inline void store_unaligned(void* p, simde__m128 dat)
+{
+	simde_mm_storeu_si128((simde__128i*)p, (simde__128i)dat);
+}
+	
+	
 inline simde__m128 op_set8(const uint8_t __a)
 {
 	__DECL_ALIGNED(16) uint16_8_t __r;
@@ -397,4 +418,120 @@ inline simde__m128 op_andnot(const simde__m128 __a, const simde__m128 __b)
 {
 	return simde_mm_andnot_si128(__a, __b);
 }
+
+// Saturation ADD.
+inline void op_saturation_add8_vec16(int16_t* dst, int16_t* src, simde__m128i tmp_zero)
+{
+	__DECL_ALIGNED(16) simde__m128i tmp_high;
+	__DECL_ALIGNED(16) simde__m128i tmp_low;
+	__DECL_ALIGNED(16) simde__m128i tmp_calc;
+	__DECL_ALIGNED(16) simde__m128i dst_words_hi;
+	tmp_high = load_unaligned(src);
+	tmp_low  = load_unaligned(&(src[8]));
+	tmp_src  = simde_mm_packs_epi32(tmp_low, tmp_high);
+	
+	tmp_high = load_unaligned(dst);
+	tmp_low  = load_unaligned(&(dst[8]));
+	tmp_calc = simde_mm_packs_epi32(tmp_low, tmp_high);
+	tmp_low = op_add_s8_sat(tmp_calc, tmp_src);
+	
+	// 8bit -> 16bit
+	// See https://officedaytime.com/tips/simd.html#tip3 .
+	dst_words_hi = op_greater8(tmp_zero, tmp_calc);
+	tmp_high = simde_mm_unpackhi_epi16(tmp_calc, dst_words_hi);
+	tmp_low  = simde_mm_unpacklo_epi16(tmp_calc, dst_words_hi);
+	store_unaligned(dst, tmp_high);
+	store_unaligned(&(dst[8]), tmp_low);
+}
+	
+inline void op_saturation_add16_vec8(int32_t* dst, int32_t* src, simde__m128i tmp_zero)
+{
+	__DECL_ALIGNED(16) simde__m128i tmp_high;
+	__DECL_ALIGNED(16) simde__m128i tmp_low;
+	__DECL_ALIGNED(16) simde__m128i tmp_calc;
+	__DECL_ALIGNED(16) simde__m128i dst_words_hi;
+	tmp_high = load_unaligned(src);
+	tmp_low  = load_unaligned(&(src[4]));
+	tmp_src  = simde_mm_packs_epi32(tmp_low, tmp_high);
+	
+	tmp_high = load_unaligned(dst);
+	tmp_low  = load_unaligned(&(dst[4]));
+	tmp_calc = simde_mm_packs_epi32(tmp_low, tmp_high);
+	tmp_low = op_add_s16_sat(tmp_calc, tmp_src);
+	
+	// 16bit -> 32bit
+	// See https://officedaytime.com/tips/simd.html#tip3 .
+	dst_words_hi = op_greater16(tmp_zero, tmp_calc);
+	tmp_high = simde_mm_unpackhi_epi16(tmp_calc, dst_words_hi);
+	tmp_low  = simde_mm_unpacklo_epi16(tmp_calc, dst_words_hi);
+	store_unaligned(dst, tmp_high);
+	store_unaligned(&(dst[4]), tmp_low);
+}
+
+
 } /* namespace simd_128bit */
+
+inline size_t op_saturation_add8_multiple(int16_t* dst, int16_t* src, size_t words)
+{
+	__UNLIKELY_IF((words == 0) || (dst == nullptr) || (src == nullptr)) {
+		return 0;
+	}
+	size_t np;
+	__DECL_ALIGNED(16) simde__m128i tmp_zero;
+	tmp_zero = op_clear();
+	for(np = 0; np < words; np += 16) {
+		simd_128bit::op_saturation_add8_vec16(&(dst[np]), &(src[np]), tmp_zero);
+	}
+	if((words & 15) != 0) {
+		if(np < 16) {
+			np = 16;
+		}
+		int16_t* p = &(src[np - 16]);
+		int16_t* q = &(src[np - 16]);
+		size_t rwords = words & 7;
+		for(size_t n = 0; n < rwords; n++) {
+			int16_t tmp = p[n];
+			tmp += q[n];
+			__UNLIKELY_IF(tmp < -128) {
+				tmp = -128;
+			} else if(tmp > 127) {
+				tmp = 127;
+			}
+			q[n] = tmp;
+		}
+	}
+	return words;
+}
+
+inline size_t op_saturation_add16_multiple(int32_t* dst, int32_t* src, size_t words)
+{
+	__UNLIKELY_IF((words == 0) || (dst == nullptr) || (src == nullptr)) {
+		return 0;
+	}
+	size_t np;
+	__DECL_ALIGNED(16) simde__m128i tmp_zero;
+	tmp_zero = op_clear();
+	for(np = 0; np < words; np += 8) {
+		simd_128bit::op_saturation_add16_vec8(&(dst[np]), &(src[np]), tmp_zero);
+	}
+	if((words & 7) != 0) {
+		if(np < 8) {
+			np = 8;
+		}
+		int32_t* p = &(src[np - 8]);
+		int32_t* q = &(src[np - 8]);
+		size_t rwords = words & 7;
+		for(size_t n = 0; n < rwords; n++) {
+			int32_t tmp = p[n];
+			tmp += q[n];
+			__UNLIKELY_IF(tmp < -32768) {
+				tmp = -32768;
+			} else if(tmp > 32767) {
+				tmp = 32767;
+			}
+			q[n] = tmp;
+		}
+	}
+	return words;
+}
+
