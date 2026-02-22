@@ -24,6 +24,26 @@ inline simde__m256 op_setall()
 	return simde_x_mm256_setone_si256();
 }
 
+inline simde__m256 load_aligned(simde__m256* p)
+{
+	return simde_mm256_load_si256((simde__256i*)p);
+}
+
+inline simde__m256 load_unaligned(void* p)
+{
+	return simde_mm256_loadu_si256(p);
+}
+
+inline void store_aligned(simde__m256* p, simde__m256 dat)
+{
+	simde_mm256_store_si256((simde__256i*)p, (simde__256i)dat);
+}
+
+inline void store_unaligned(void* p, simde__m256 dat)
+{
+	simde_mm256_storeu_si256((simde__256i*)p, (simde__256i)dat);
+}
+	
 inline simde__m256 op_set8(const uint8_t __a)
 {
 	__DECL_ALIGNED(32) uint32_8_t __r;
@@ -392,5 +412,6 @@ inline simde__m256 op_andnot(const simde__m256 __a, const simde__m256 __b)
 {
 	return simde_mm256_andnot_si256(__a, __b);
 }
+
 
 } /* namespace simd_256bit */
