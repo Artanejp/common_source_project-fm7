@@ -28,19 +28,17 @@ public:
 	
 	inline const bool is_aligned(void *p)
 	{
-		const uintptr_t pd = (uintptr_t)p;
-		const uintptr_t mask = sizeof(uint16_8_t) - 1;  // ToDo: for not 2^n . 20260218 K.O
-		return ((pd & mask) == 0) ? true : false;
+		return simd_128bit::is_aligned(p);
 	}
 	
 	inline void align_load(void *p)
 	{
-		_d.v = simde_mm_load_si128((simde__m128i*)p);
+		_d.v = simd_128bit::load_aligned((simde__m128 *)p);
 		return; 
 	}
 	inline void unalign_load(void *p)
 	{
-		_d.v = simde_mm_loadu_si128(p);
+		_d.v = simd_128bit::load_unaligned(p);
 		return; 
 	}
 	inline void load(void *p)
@@ -94,12 +92,12 @@ public:
 	
 	inline void align_store(void *p)
 	{
-		simde_mm_store_si128((simde__m128i*)p, _d.v);
+		simd_128bit::store_aligned((simde__m128*)p, _d.v);
 		return; 
 	}
 	inline void unalign_store(void *p)
 	{
-		simde_mm_storeu_si128(p, _d.v);
+		simd_128bit::store_unaligned(p, _d.v);
 		return; 
 	}
 	inline void store(void *p)
@@ -151,63 +149,39 @@ public:
 	
 	inline void clear()
 	{
-		_d.v = simde_mm_setzero_ps();
+		_d.v = simd_128bit::op_clear();
 	}
 	inline void fill(uint8_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 16; i++) {
-			_d.u8[i] = val;
-		}
+		_d.v = simd_128bit::op_set8((const uint8_t)val);
 	}
 	inline void fill(int8_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 16; i++) {
-			_d.s8[i] = val;
-		}
+		_d.v = simd_128bit::op_set8((const uint8_t)val);
 	}
 	inline void fill(uint16_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			_d.u16[i] = val;
-		}
+		_d.v = simd_128bit::op_set16((const uint16_t)val);
 	}
 	inline void fill(int16_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			_d.s16[i] = val;
-		}
+		_d.v = simd_128bit::op_set16((const uint16_t)val);
 	}
 	inline void fill(uint32_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 4; i++) {
-			_d.u32[i] = val;
-		}
+		_d.v = simd_128bit::op_set32((const uint32_t)val);
 	}
 	inline void fill(int32_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 4; i++) {
-			_d.s32[i] = val;
-		}
+		_d.v = simd_128bit::op_set32((const uint32_t)val);
 	}
 	inline void fill(uint64_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 2; i++) {
-			_d.u32[i] = val;
-		}
+		_d.v = simd_128bit::op_set64((const uint32_t)val);
 	}
 	inline void fill(int64_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 2; i++) {
-			_d.s32[i] = val;
-		}
+		_d.v = simd_128bit::op_set64((const uint32_t)val);
 	}
 
 	inline void set(size_t pos, uint8_t val)
@@ -447,8 +421,7 @@ public:
 	}
 
 };
-
-
+	
 inline simd_uint16_8 operator+(const simd_uint16_8& __a, const simd_uint16_8& __b)
 {
 	__DECL_ALIGNED(16) simd_uint16_8 __d((simd_uint16_8)__a);
@@ -487,6 +460,12 @@ inline simd_uint16_8 operator^(const simd_uint16_8& __a, const simd_uint16_8& __
 	return __d;
 }
 
+inline simd_uint16_8 op_andnot(const simd_uint16_8 mask, const simd_uint16_8 src)
+{
+	__DECL_ALIGNED(16) simd_uint16_8 __d((simd_uint16_8)src);
+	__d._d.v = simd_128bit::op_andnot(mask._d.v, __d._d.v);
+	return __d;
+}
 
 inline simd_uint16_8 operator<<(const simd_uint16_8& __a, const size_t& __shift)
 {
@@ -502,241 +481,4 @@ inline simd_uint16_8 operator>>(const simd_uint16_8& __a, const size_t& __shift)
 	return __d;
 }
 
-inline simd_uint16_8 op_andnot(const simd_uint16_8& mask, const simd_uint16_8& src)
-{
-	__DECL_ALIGNED(16) simd_uint16_8 __d((simd_uint16_8)src);
-	__d._d.v = simd_128bit::op_andnot(mask._d.v, __d._d.v);
-	return __d;
-}
-
-inline size_t copy_multiple(uint16_8_t* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (words == 0)) {
-		return 0;
-	}
-	const bool src_aligned = is_aligned(src, sizeof(uint16_8_t));
-	const bool dst_aligned = is_aligned(dst, sizeof(uint16_8_t));
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128i tmp;
-	for(n = 0; n < words; n++) {
-		if(src_aligned) {
-			tmp = simd_128bit::load_aligned(&src[n]);
-		} else {
-			tmp = simd_128bit::store_aligned(&src[n]);
-		}
-		if(dst_aligned) {
-			simd_128bit::store_aligned(&dst[n], tmp);
-		} else {
-			simd_128bit::store_unaligned(&dst[n], tmp);
-		}
-	}
-	return words;
-}
-
-inline size_t copy_multiple(simd_uint16_8* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF(dst == nullptr) {
-		return 0;
-	}
-	return copy_multiple(__dst[0].dptr(), src, words);
-}
-
-inline size_t copy_multiple(uint16_8_t* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF(src == nullptr) {
-		return 0;
-	}
-	return copy_multiple(dst, src[0].dptr(), words);
-}
-
-inline size_t copy_multiple(simd_uint16_8* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF((src == nullptr) || (dst == nullptr)) {
-		return 0;
-	}
-	return copy_multiple(dst[0].dptr(), src[0].dptr(), words);
-}
-
-// __dst &= src
-inline size_t op_and_multiple(uint16_8_t* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (words == 0)) {
-		return 0;
-	}
-	constexpr bool src_aligned = is_aligned(src, sizeof(uint16_8_t));
-	constexpr bool dst_aligned = is_aligned(dst, sizeof(uint16_8_t));
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_src;
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_dst;
-	for(n = 0; n < words; n++) {
-		if(src_aligned) {
-			tmp_src = simd_128bit::load_aligned(&src[n]);
-		} else {
-			tmp_src = simd_128bit::store_aligned(&src[n]);
-		}
-		if(dst_aligned) {
-			tmp_dst = simd_128bit::load_aligned(&dst[n]);
-			simd_128bit::store_aligned(&dst[n], simd_128bit::op_and(tmp_src, tmp_dst));
-		} else {
-			tmp_dst = simd_128bit::load_unaligned(&dst[n]);
-			simd_128bit::store_unaligned(&dst[n], simd_128bit::op_and(tmp_src, tmp_dst));
-		}
-	}
-	return words;
-}
-
-inline size_t op_and_multiple(simd_uint16_8* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF(dst == nullptr) {
-		return 0;
-	}
-	return op_and_multiple(dst[0].dptr(), src, words);
-}
-
-inline size_t op_and_multiple(uint16_8_t* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF(src == nullptr) {
-		return 0;
-	}
-	return op_and_multiple(dst, src[0].dptr(), words);
-}
-
-inline size_t op_and_multiple(simd_uint16_8* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF((src == nullptr) || (dst == nullptr)) {
-		return 0;
-	}
-	return op_and_multiple(dst[0].dptr(), src[0].dptr(), words);
-}
-
-// __dst |= src
-inline size_t op_or_multiple(uint16_8_t* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (words == 0)) {
-		return 0;
-	}
-	constexpr bool src_aligned = is_aligned(src, sizeof(uint16_8_t));
-	constexpr bool dst_aligned = is_aligned(dst, sizeof(uint16_8_t));
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_src;
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_dst;
-	for(n = 0; n < words; n++) {
-		if(src_aligned) {
-			tmp_src = simd_128bit::load_aligned(&src[n]);
-		} else {
-			tmp_src = simd_128bit::store_aligned(&src[n]);
-		}
-		if(dst_aligned) {
-			tmp_dst = simd_128bit::load_aligned(&dst[n]);
-			simd_128bit::store_aligned(&dst[n], simd_128bit::op_or(tmp_src, tmp_dst));
-		} else {
-			tmp_dst = simd_128bit::load_unaligned(&dst[n]);
-			simd_128bit::store_unaligned(&dst[n], simd_128bit::op_or(tmp_src, tmp_dst));
-		}
-	}
-	return words;
-}
-
-inline size_t op_or_multiple(simd_uint16_8* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF(dst == nullptr) {
-		return 0;
-	}
-	return op_or_multiple(dst[0].dptr(), src, words);
-}
-
-inline size_t op_or_multiple(uint16_8_t* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF(src == nullptr) {
-		return 0;
-	}
-	return op_or_multiple(dst, src[0].dptr(), words);
-}
-
-inline size_t op_or_multiple(simd_uint16_8* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF((src == nullptr) || (dst == nullptr)) {
-		return 0;
-	}
-	return op_or_multiple(dst[0].dptr(), src[0].dptr(), words);
-}
-
-// __dst ^= src
-inline size_t op_xor_multiple(uint16_8_t* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (words == 0)) {
-		return 0;
-	}
-	constexpr bool src_aligned = is_aligned(src, sizeof(uint16_8_t));
-	constexpr bool dst_aligned = is_aligned(dst, sizeof(uint16_8_t));
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_src;
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_dst;
-	for(n = 0; n < words; n++) {
-		if(src_aligned) {
-			tmp_src = simd_128bit::load_aligned(&src[n]);
-		} else {
-			tmp_src = simd_128bit::store_aligned(&src[n]);
-		}
-		if(dst_aligned) {
-			tmp_dst = simd_128bit::load_aligned(&dst[n]);
-			simd_128bit::store_aligned(&dst[n], simd_128bit::op_xor(tmp_src, tmp_dst));
-		} else {
-			tmp_dst = simd_128bit::load_unaligned(&dst[n]);
-			simd_128bit::store_unaligned(&dst[n], simd_128bit::op_xor(tmp_src, tmp_dst));
-		}
-	}
-	return words;
-}
-
-inline size_t op_xor_multiple(simd_uint16_8* dst, uint16_8_t* src, size_t words = 1)
-{
-	__UNLIKELY_IF(dst == nullptr) {
-		return 0;
-	}
-	return op_xor_multiple(dst[0].dptr(), src, words);
-}
-
-inline size_t op_xor_multiple(uint16_8_t* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF(src == nullptr) {
-		return 0;
-	}
-	return op_xor_multiple(dst, src[0].dptr(), words);
-}
-
-inline size_t op_xor_multiple(simd_uint16_8* dst, simd_uint16_8* src, size_t words = 1)
-{
-	__UNLIKELY_IF((src == nullptr) || (dst == nullptr)) {
-		return 0;
-	}
-	return op_or_multiple(dst[0].dptr(), src[0].dptr(), words);
-}
-
-// __dst = src & not(mask)
-inline size_t op_andnot_multiple(uint16_8_t* dst, uint16_8_t* src, uint16_8_t* mask, size_t words = 1)
-{
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (mask == nullptr)  || (words == 0)) {
-		return 0;
-	}
-	constexpr bool src_aligned = is_aligned(src, sizeof(uint16_8_t));
-	constexpr bool dst_aligned = is_aligned(dst, sizeof(uint16_8_t));
-	constexpr bool mask_aligned = is_aligned(dst, sizeof(uint16_8_t));
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_src;
-	__DECL_ALIGNED(sizeof(uint16_8_t)) simde__m128 tmp_mask;
-	for(n = 0; n < words; n++) {
-		if(src_aligned) {
-			tmp_src = simd_128bit::load_aligned(&src[n]);
-		} else {
-			tmp_src = simd_128bit::store_aligned(&src[n]);
-		}
-		if(mask_aligned) {
-			tmp_mask = simd_128bit::load_aligned(&mask[n]);
-		} else {
-			tmp_mask = simd_128bit::store_aligned(&mask[n]);
-		}
-		if(dst_aligned) {
-			simd_128bit::store_aligned(&dst[n], simd_128bit::op_andnot(tmp_mask, tmp_src));
-		} else {
-			simd_128bit::store_unaligned(&dst[n], simd_128bit::op_andnotr(tmp_mask, tmp_src));
-		}
-	}
-	return words;
-}
 

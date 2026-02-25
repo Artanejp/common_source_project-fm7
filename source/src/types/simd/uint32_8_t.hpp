@@ -27,19 +27,17 @@ public:
 	
 	inline const bool is_aligned(void *p)
 	{
-		const uintptr_t pd = (uintptr_t)p;
-		const uintptr_t mask = sizeof(uint32_8_t) - 1;  // ToDo: for not 2^n . 20260218 K.O
-		return ((pd & mask) == 0) ? true : false;
+		return simd_256bit::is_aligned(p);
 	}
 	
 	inline void align_load(void *p)
 	{
-		_d.v = simde_mm256_load_si256((const simde__m256i*)p);
+		_d.v = simd_256bit::load_aligned((simde__m256 *)p);
 		return; 
 	}
 	inline void unalign_load(void *p)
 	{
-		_d.v = simde_mm256_loadu_si256(p);
+		_d.v = simd_256bit::load_unaligned(p);
 		return; 
 	}
 	inline void load(void *p)
@@ -93,12 +91,12 @@ public:
 	
 	inline void align_store(void *p)
 	{
-		simde_mm256_store_si256((simde__m256i*)p, _d.v);
+		simd_256bit::store_aligned((simde__m256*)p, _d.v);
 		return; 
 	}
 	inline void unalign_store(void *p)
 	{
-		simde_mm256_storeu_si256(p, _d.v);
+		simd_256bit::store_unaligned(p, _d.v);
 		return; 
 	}
 
@@ -152,63 +150,39 @@ public:
 	
 	inline void clear()
 	{
-		_d.v = simde_mm256_setzero_ps();
+		_d.v = simd_256bit::op_clear();
 	}
 	inline void fill(uint8_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 32; i++) {
-			_d.u8[i] = val;
-		}
+		_d.v = simd_256bit::op_set8((const uint8_t)val);
 	}
 	inline void fill(int8_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 32; i++) {
-			_d.s8[i] = val;
-		}
+		_d.v = simd_256bit::op_set8((const uint8_t)val);
 	}
 	inline void fill(uint16_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 16; i++) {
-			_d.u16[i] = val;
-		}
+		_d.v = simd_256bit::op_set16((const uint16_t)val);
 	}
 	inline void fill(int16_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 16; i++) {
-			_d.s16[i] = val;
-		}
+		_d.v = simd_256bit::op_set16((const uint16_t)val);
 	}
 	inline void fill(uint32_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			_d.u32[i] = val;
-		}
+		_d.v = simd_256bit::op_set32((const uint32_t)val);
 	}
 	inline void fill(int32_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 8; i++) {
-			_d.s32[i] = val;
-		}
+		_d.v = simd_256bit::op_set32((const uint32_t)val);
 	}
 	inline void fill(uint64_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 4; i++) {
-			_d.u64[i] = val;
-		}
+		_d.v = simd_256bit::op_set64((const uint32_t)val);
 	}
 	inline void fill(int64_t val)
 	{
-		__DECL_VECTORIZED_LOOP
-		for(size_t i = 0; i < 4; i++) {
-			_d.s64[i] = val;
-		}
+		_d.v = simd_256bit::op_set64((const uint32_t)val);
 	}
 	
 	inline void set(size_t pos, uint8_t val)
@@ -444,6 +418,7 @@ public:
 	
 };
 
+
 inline simd_uint32_8 operator+(const simd_uint32_8& __a, const simd_uint32_8& __b)
 {
 	__DECL_ALIGNED(32) simd_uint32_8 __d((simd_uint32_8)__a);
@@ -478,6 +453,12 @@ inline simd_uint32_8 operator^(const simd_uint32_8& __a, const simd_uint32_8& __
 	return __d;
 }
 
+inline simd_uint32_8 op_andnot(const simd_uint32_8 mask, const simd_uint32_8 src)
+{
+	__DECL_ALIGNED(32) simd_uint32_8 __d((simd_uint32_8)src);
+	__d._d.v = simd_256bit::op_andnot(mask._d.v, __d._d.v);
+	return __d;
+}
 
 inline simd_uint32_8 operator<<(const simd_uint32_8& __a, const size_t& __shift)
 {
@@ -492,3 +473,4 @@ inline simd_uint32_8 operator>>(const simd_uint32_8& __a, const size_t& __shift)
 	__d >>= __shift;
 	return __d;
 }
+
