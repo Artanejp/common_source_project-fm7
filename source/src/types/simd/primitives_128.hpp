@@ -14,6 +14,31 @@
 // #include "../simd_types.h"
 
 namespace simd_128bit {
+
+template <typename T>
+	inline const size_t vector_width(T _eval)
+{
+	__UNLIKELY_IF(sizeof(T) == 0) {
+		return 0;
+	}
+	return sizeof(simde__m128) / sizeof(T);
+}
+template <typename T>
+	inline const size_t vector_mod(T _eval)
+{
+	__UNLIKELY_IF(sizeof(T) == 0) {
+		return 0;
+	}
+	return sizeof(simde__m128) % sizeof(T);
+}
+	
+inline const bool is_aligned(void *p)
+{
+	const uintptr_t pd = (const uintptr_t)p;
+	const uintptr_t mask = sizeof(simde__m128) - 1;  // ToDo: for not 2^n . 20260218 K.O
+	return ((pd & mask) == 0) ? true : false;
+}
+
 inline simde__m128 op_clear()
 {
 	return simde_mm_setzero_si128();
@@ -26,7 +51,7 @@ inline simde__m128 op_setall()
 
 inline simde__m128 load_aligned(simde__m128* p)
 {
-	return simde_mm_load_si128((simde__128i*)p);
+	return simde_mm_load_si128((simde__m128i*)p);
 }
 
 inline simde__m128 load_unaligned(void* p)
@@ -36,12 +61,12 @@ inline simde__m128 load_unaligned(void* p)
 
 inline void store_aligned(simde__m128* p, simde__m128 dat)
 {
-	simde_mm_store_si128((simde__128i*)p, (simde__128i)dat);
+	simde_mm_store_si128((simde__m128i*)p, (simde__m128i)dat);
 }
 
 inline void store_unaligned(void* p, simde__m128 dat)
 {
-	simde_mm_storeu_si128((simde__128i*)p, (simde__128i)dat);
+	simde_mm_storeu_si128((simde__m128i*)p, (simde__m128i)dat);
 }
 	
 	
@@ -371,9 +396,24 @@ inline simde__m128 op_equals32(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_cmpeq_epi32(__a, __b);
 }
 
-inline simde__m128 op_equals64(const simde__m128 __a, const simde__m128 __b)
+inline simde__m128 op_not_equals8(const simde__m128 __a, const simde__m128 __b)
 {
-	return simde_mm_cmpeq_epi64(__a, __b);
+	return op_not(simde_mm_cmpeq_epi8(__a, __b));
+}
+
+inline simde__m128 op_not_equals16(const simde__m128 __a, const simde__m128 __b)
+{
+	return op_not(simde_mm_cmpeq_epi16(__a, __b));
+}
+
+inline simde__m128 op_not_equals32(const simde__m128 __a, const simde__m128 __b)
+{
+	return op_not(simde_mm_cmpeq_epi32(__a, __b));
+}
+
+inline simde__m128 op_not_equals64(const simde__m128 __a, const simde__m128 __b)
+{
+	return op_not(simde_mm_cmpeq_epi64(__a, __b));
 }
 
 // __a > __b (signed)
@@ -419,11 +459,1046 @@ inline simde__m128 op_andnot(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_andnot_si128(__a, __b);
 }
 
+constexpr size_t copy_multiple(const void* dst, const void* src, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool src_aligned = is_aligned((void *)src);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* src2 = (simde__m128*)src;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128i tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(src_aligned) {
+			tmp = load_aligned(&(src2[n]));
+		} else {
+			tmp = load_unaligned(&(src2[n]));
+		}
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+// __dst &= src
+constexpr size_t op_and_multiple(const void* dst, const void* src, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool src_aligned = is_aligned((void *)src);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* src2 = (simde__m128*)src;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_src;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_dst;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(src_aligned) {
+			tmp_src = load_aligned(&(src2[n]));
+		} else {
+			tmp_src = load_unaligned(&(src2[n]));
+		}
+		if(dst_aligned) {
+			tmp_dst = load_aligned(&(dst2[n]));
+			store_aligned(&(dst2[n]), op_and(tmp_src, tmp_dst));
+		} else {
+			tmp_dst = load_unaligned(&(dst2[n]));
+			store_unaligned(&(dst2[n]), op_and(tmp_src, tmp_dst));
+		}
+	}
+	return vec8_words;
+}
+	
+// __dst |= src
+constexpr size_t op_or_multiple(const void* dst, const void* src, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool src_aligned = is_aligned((void *)src);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* src2 = (simde__m128*)src;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_src;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_dst;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(src_aligned) {
+			tmp_src = load_aligned(&(src2[n]));
+		} else {
+			tmp_src = load_unaligned(&(src2[n]));
+		}
+		if(dst_aligned) {
+			tmp_dst = load_aligned(&(dst2[n]));
+			store_aligned(&(dst2[n]), op_or(tmp_src, tmp_dst));
+		} else {
+			tmp_dst = load_unaligned(&(dst2[n]));
+			store_unaligned(&(dst2[n]), op_or(tmp_src, tmp_dst));
+		}
+	}
+	return vec8_words;
+}
+
+// __dst ^= src
+constexpr size_t op_xor_multiple(const void* dst, const void* src, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool src_aligned = is_aligned((void *)src);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* src2 = (simde__m128*)src;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_src;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_dst;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(src_aligned) {
+			tmp_src = load_aligned(&(src2[n]));
+		} else {
+			tmp_src = load_unaligned(&(src2[n]));
+		}
+		if(dst_aligned) {
+			tmp_dst = load_aligned(&(dst2[n]));
+			store_aligned(&(dst2[n]), op_xor(tmp_src, tmp_dst));
+		} else {
+			tmp_dst = load_unaligned(&(dst2[n]));
+			store_unaligned(&(dst2[n]), op_xor(tmp_src, tmp_dst));
+		}
+	}
+	return vec8_words;
+}
+
+// __dst = src & not(mask)
+constexpr size_t op_andnot_multiple(const void* dst, const void* src, const void* mask, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (mask == nullptr)  || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool src_aligned = is_aligned((void *)src);
+	const bool dst_aligned = is_aligned((void *)dst);
+	const bool mask_aligned = is_aligned((void *)mask);
+	simde__m128* src2 = (simde__m128*)src;
+	simde__m128* dst2 = (simde__m128*)dst;
+	simde__m128* mask2 = (simde__m128*)mask;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_src;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_mask;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(src_aligned) {
+			tmp_src = load_aligned(&(src2[n]));
+		} else {
+			tmp_src = load_unaligned(&(src2[n]));
+		}
+		if(mask_aligned) {
+			tmp_mask = load_aligned(&(mask2[n]));
+		} else {
+			tmp_mask = load_unaligned(&(mask2[n]));
+		}
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), op_andnot(tmp_mask, tmp_src));
+		} else {
+			store_unaligned(&(dst2[n]), op_andnot(tmp_mask, tmp_src));
+		}
+	}
+	return vec8_words;
+}
+// __a == __b => dst
+constexpr size_t eval_equals8_multiple(const void* dst, const void* __a, const void* __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_equals8(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+
+constexpr size_t eval_not_equals8_multiple(const void* dst, const void* __a, const void* __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_not_equals8(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+
+constexpr size_t eval_equals8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_equals8(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+constexpr size_t eval_not_equals8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not_equals8(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+
+constexpr size_t eval_equals16_multiple(const void* dst, const void* __a, const void* __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_equals16(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_not_equals16_multiple(const void* dst, const void* __a, const void* __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_not_equals16(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_equals16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_equals16(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_not_equals16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not_equals16(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_equals32_multiple(const void* dst, const void* __a, const void* __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_equals32(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_not_equals32_multiple(const void* dst, const void* __a, const void* __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_not_equals32(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_equals32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_equals32(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_not_equals32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not_equals32(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+// __a > __b => dst [signed]
+constexpr size_t eval_greater8_multiple(const void* dst, const void* __a, const void* __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_greater8(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+constexpr size_t eval_greater8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_greater8(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+
+constexpr size_t eval_lesser8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_greater8(__b, tmp_a);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+	
+constexpr size_t eval_greater16_multiple(const void* dst, const void* __a, const void* __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_greater16(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_greater16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_greater16(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_lesser16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_greater16(__b, tmp_a);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+	
+constexpr size_t eval_greater32_multiple(const void* dst, const void* __a, const void* __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (__b == nullptr)  || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool __b_aligned = is_aligned((void *)__b);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* b2 = (simde__m128*)__b;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_b;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		if(__b_aligned) {
+			tmp_b = load_aligned(&(b2[n]));
+		} else {
+			tmp_b = load_unaligned(&(b2[n]));
+		}
+		tmp = op_greater32(tmp_a, tmp_b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_greater32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_greater32(tmp_a, __b);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_lesser32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_greater8(__b, tmp_a);
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_lesser_equals8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not(op_greater8(tmp_a, __b));
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+
+constexpr size_t eval_greater_equals8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec16_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec16_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not(op_greater8(__b, tmp_a));
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec16_words;
+}
+
+constexpr size_t eval_lesser_equals16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not(op_greater16(tmp_a, __b));
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_greater_equals16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec8_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec8_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not(op_greater16(__b, tmp_a));
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec8_words;
+}
+
+constexpr size_t eval_lesser_equals32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not(op_greater32(tmp_a, __b));
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+
+constexpr size_t eval_greater_equals32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	__UNLIKELY_IF((dst == nullptr) || (__a == nullptr) || (vec4_words == 0)) {
+		return 0;
+	}
+	const bool __a_aligned = is_aligned((void *)__a);
+	const bool dst_aligned = is_aligned((void *)dst);
+	simde__m128* a2 = (simde__m128*)__a;
+	simde__m128* dst2 = (simde__m128*)dst;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp_a;
+	__DECL_ALIGNED(sizeof(simde__m128)) simde__m128 tmp;
+	for(size_t n = 0; n < vec4_words; n++) {
+		if(__a_aligned) {
+			tmp_a = load_aligned(&(a2[n]));
+		} else {
+			tmp_a = load_unaligned(&(a2[n]));
+		}
+		tmp = op_not(op_greater32(__b, tmp_a));
+		if(dst_aligned) {
+			store_aligned(&(dst2[n]), tmp);
+		} else {
+			store_unaligned(&(dst2[n]), tmp);
+		}
+	}
+	return vec4_words;
+}
+	
+inline size_t eval_eq8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	return eval_equals8(dst, __a, __b, vec16_words);
+}
+
+inline size_t eval_eq16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	return eval_equals16(dst, __a, __b, vec8_words);
+}
+
+inline size_t eval_eq32(const void *dst, const void *__a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	return eval_equals32(dst, __a, __b, vec4_words);
+}
+inline size_t eval_ne8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	return eval_not_equals8(dst, __a, __b, vec16_words);
+}
+
+inline size_t eval_ne16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	return eval_not_equals16(dst, __a, __b, vec8_words);
+}
+
+inline size_t eval_ne32(const void *dst, const void *__a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	return eval_not_equals32(dst, __a, __b, vec4_words);
+}
+	
+inline size_t eval_gt8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	return eval_greater8(dst, __a, __b, vec16_words);
+}
+
+// __a < __b => dst	
+inline size_t eval_lt8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	return eval_lesser8(dst, __a, __b, vec16_words);
+}
+
+inline size_t eval_ge8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	return eval_greater_equals8(dst, __a, __b, vec16_words);
+}
+
+inline size_t eval_le8(const void* dst, const void* __a, const simde__m128 __b, const size_t vec16_words = 1)
+{
+	return eval_lesser_equals8(dst, __a, __b, vec16_words);
+}
+//
+inline size_t eval_gt16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	return eval_greater16(dst, __a, __b, vec8_words);
+}
+inline size_t eval_lt16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	return eval_lesser16(dst, __a, __b, vec8_words);
+}
+
+inline size_t eval_ge16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	return eval_greater_equals16(dst, __a, __b, vec8_words);
+}
+
+inline size_t eval_le16(const void* dst, const void* __a, const simde__m128 __b, const size_t vec8_words = 1)
+{
+	return eval_lesser_equals16(dst, __a, __b, vec8_words);
+}
+//
+inline size_t eval_gt32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	return eval_greater32(dst, __a, __b, vec4_words);
+}
+inline size_t eval_lt32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	return eval_lesser32(dst, __a, __b, vec4_words);
+}
+
+inline size_t eval_ge32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	return eval_greater_equals32(dst, __a, __b, vec4_words);
+}
+
+inline size_t eval_le32(const void* dst, const void* __a, const simde__m128 __b, const size_t vec4_words = 1)
+{
+	return eval_lesser_equals32(dst, __a, __b, vec4_words);
+}
+	
 // Saturation ADD.
 inline void op_saturation_add8_vec16(int16_t* dst, int16_t* src, simde__m128i tmp_zero)
 {
 	__DECL_ALIGNED(16) simde__m128i tmp_high;
 	__DECL_ALIGNED(16) simde__m128i tmp_low;
+	__DECL_ALIGNED(16) simde__m128i tmp_src;
 	__DECL_ALIGNED(16) simde__m128i tmp_calc;
 	__DECL_ALIGNED(16) simde__m128i dst_words_hi;
 	tmp_high = load_unaligned(src);
@@ -448,6 +1523,7 @@ inline void op_saturation_add16_vec8(int32_t* dst, int32_t* src, simde__m128i tm
 {
 	__DECL_ALIGNED(16) simde__m128i tmp_high;
 	__DECL_ALIGNED(16) simde__m128i tmp_low;
+	__DECL_ALIGNED(16) simde__m128i tmp_src;
 	__DECL_ALIGNED(16) simde__m128i tmp_calc;
 	__DECL_ALIGNED(16) simde__m128i dst_words_hi;
 	tmp_high = load_unaligned(src);
@@ -478,7 +1554,7 @@ inline size_t op_saturation_add8_multiple(int16_t* dst, int16_t* src, size_t wor
 	}
 	size_t np;
 	__DECL_ALIGNED(16) simde__m128i tmp_zero;
-	tmp_zero = op_clear();
+	tmp_zero = simd_128bit::op_clear();
 	for(np = 0; np < words; np += 16) {
 		simd_128bit::op_saturation_add8_vec16(&(dst[np]), &(src[np]), tmp_zero);
 	}
@@ -510,7 +1586,7 @@ inline size_t op_saturation_add16_multiple(int32_t* dst, int32_t* src, size_t wo
 	}
 	size_t np;
 	__DECL_ALIGNED(16) simde__m128i tmp_zero;
-	tmp_zero = op_clear();
+	tmp_zero = simd_128bit::op_clear();
 	for(np = 0; np < words; np += 8) {
 		simd_128bit::op_saturation_add16_vec8(&(dst[np]), &(src[np]), tmp_zero);
 	}
