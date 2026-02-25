@@ -107,6 +107,11 @@ inline simde__m256 op_set64(const uint64_t __a)
 	return __r.v;
 }
 
+inline simde__m256 op_set_scrntype(const scrntype_t __a)
+{
+	return op_set32((const uint32_t)__a);
+}
+	
 inline simde__m256 op_bswap16(simde__m256 __a)
 {
 	__DECL_ALIGNED(32) uint32_8_t __r;

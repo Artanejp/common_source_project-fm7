@@ -6,29 +6,21 @@
 
 namespace FMTOWNS {
 
+	
 inline bool TOWNS_CRTC::is_align_scrntype8(void* p)
 {
-	uintptr_t __p = (uintptr_t)p;
-	const uintptr_t __mask = alignof(scrntype8_t) - 1;
-	return ((__p & __mask) == 0);
+	return SCRNTYPE8_SIMD::is_aligned(p);
 }
 
 	
 inline void TOWNS_CRTC::store8_aligned(scrntype_t* dst, scrntype8_t data)
 {
-	#if defined(_RGB555) || defined(_RGB565)
-	simde_mm_store_ps((simde_float32*)dst, data.v);
-	#else
-	simde_mm256_store_ps((simde_float32*)dst, data.v);
-	#endif
+	SCRNTYPE8_SIMD::store_aligned((simd_scrntype8_t*)dst, data.v);
 }
 
 inline void TOWNS_CRTC::store8_unaligned(scrntype_t* dst, scrntype8_t data)
 {
-	SIMDE_VECTORIZE
-	for(size_t i = 0; i < 8; i++) {
-		dst[i] = data.s[i];
-	}
+	SCRNTYPE8_SIMD::store_unaligned((simd_scrntype8_t*)dst, data.v);
 }
 
 inline void TOWNS_CRTC::store8_limited(scrntype_t* dst, scrntype8_t data, const size_t num)
@@ -41,19 +33,15 @@ inline void TOWNS_CRTC::store8_limited(scrntype_t* dst, scrntype8_t data, const 
 		return;
 	}
 	for(size_t i = 0; i < num; i++) {
-		dst[i] = data.s[i];
+		dst[i] = simd_element(data, i);
 	}
 }
 
 inline scrntype8_t TOWNS_CRTC::zero_scrntype8_t()
 {
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _r;
-	#if defined(_RGB555) || defined(_RGB565)
-	_r.v = simde_mm_xor_ps(_r.v, _r.v);
-	#else
-	_r.v = simde_mm256_xor_ps(_r.v, _r.v);
-	#endif
-	return _r;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t r;
+	r.v = SCRNTYPE8_SIMD::op_clear();
+	return r;
 }
 
 	
@@ -73,46 +61,37 @@ inline void TOWNS_CRTC::store_pix(scrntype_t *dst, scrntype8_t data, const size_
 
 inline scrntype8_t TOWNS_CRTC::load8_aligned(scrntype_t* src)
 {
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _ret;
-	#if defined(_RGB555) || defined(_RGB565)
-	_ret.v =  simde_mm_load_ps((const float*)src);
-	#else
-	_ret.v = simde_mm256_load_ps((const float*)src);
-	#endif
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _ret;
+	_ret.v = SCRNTYPE8_SIMD::load_aligned((simd_scrntype8_t*)src);
 	return _ret;
 }
 
 inline scrntype8_t TOWNS_CRTC::load8_unaligned(scrntype_t* src)
 {
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _ret;
-	SIMDE_VECTORIZE
-	for(size_t i = 0; i < 8; i++) {
-		_ret.s[i] = src[i];
-	}
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _ret;
+	_ret.v = SCRNTYPE8_SIMD::load_unaligned((simd_scrntype8_t*)src);
 	return _ret;
 }
 
 inline scrntype8_t TOWNS_CRTC::load8_limited(scrntype_t* src, size_t num)
 {
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _ret;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _ret;
 	__UNLIKELY_IF(num == 0) {	
-		_ret = zero_scrntype8_t();
-		return _ret;
+		return zero_scrntype8_t();
 	}
 	__UNLIKELY_IF(num >= 8) {
 		return load8_unaligned(src);
 	}
 	_ret = zero_scrntype8_t();
 	for(size_t i = 0; i < num; i++) {
-		_ret.s[i] = src[i];
+		simd_element_raw(_ret, i) = (simd_element_cast)(src[i]);
 	}
 	return _ret;
 }
 
 inline scrntype8_t TOWNS_CRTC::load8_pix(const scrntype_t *src)
 {
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _ret;
-	
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _ret;
 	if(is_align_scrntype8((void *)src)) {
 		_ret = load8_aligned((scrntype_t*)src);
 	} else {
@@ -123,7 +102,7 @@ inline scrntype8_t TOWNS_CRTC::load8_pix(const scrntype_t *src)
 
 inline scrntype8_t TOWNS_CRTC::load_pix(scrntype_t *src, size_t words)
 {
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _ret;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _ret;
 	_ret = load8_limited(src, words);
 	return _ret;
 }
@@ -136,43 +115,25 @@ inline void TOWNS_CRTC::simd_fill(scrntype_t* dst, scrntype8_t data, size_t word
 	__UNLIKELY_IF(words == 0) {
 		return;
 	}
-	const uintptr_t pdst = (uintptr_t)dst;
-	const size_t width_8 = sizeof(scrntype_t) * 8;
-	const size_t mask_8 = width_8 - 1;
-
-	scrntype_t *p = dst;
-	size_t xx = 0;
-	size_t words2 = words & ~7;
-	__LIKELY_IF(words2 >= 8) {
-		for(size_t x = 0; x < words2; x += 8) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 8; j++) {
-				p[j] = data.s[j];
-			}
-			p += 8;
-			xx += 8;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _d;
+	_d.v = data.v;
+	size_t ptr = 0;
+	const bool __aligned = is_align_scrntype8((void *)dst);
+	for(size_t i = 0; i < words / 8; i++) {
+		if(__aligned) {
+			store8_aligned(&(dst[ptr]), _d);
+		} else {
+			store8_unaligned(&(dst[ptr]), _d);
 		}
+		ptr += 8;
 	}
-	__UNLIKELY_IF((words & 7) != 0) {
-		for(size_t j = 0; j < (words & 7); j++) {
-			p[j] = data.s[j];
+	if((words & 7) != 0) {
+		__UNLIKELY_IF(ptr < 8) {
+			ptr = 8;
 		}
+		ptr -= 8;
+		store8_limited(&(dst[ptr]), _d, words & 7);
 	}
-//	__LIKELY_IF(words > 7) {
-//		__LIKELY_IF((pdst & mask_8) == 0) {
-//			for(size_t xx = 0; xx < words; xx += 8) {
-//				store8_aligned(&(dst[xx]), data);
-//			}
-//		} else {
-//			for(size_t xx = 0; xx < words; xx += 8) {
-//				store8_unaligned(&(dst[xx]), data);
-//			}
-//		}
-//	}
-//	if((words & 7) != 0) {
-//		size_t xx = words & (~7);
-//		store8_limited(&(dst[xx]), data, words & 7);
-//	}
 }
 
 inline void TOWNS_CRTC::simd_copy(scrntype_t* dst, scrntype_t* src, size_t words)
@@ -192,7 +153,7 @@ inline size_t TOWNS_CRTC::store_x1(scrntype_t *dst, const scrntype8_t *src, cons
 {
 	size_t pixels_count = 0;
 	size_t xx = 0;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _tmp;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _tmp;
 	__LIKELY_IF(is_align_scrntype8(dst)) {
 		for(size_t x = 0; (x < words) && (width >= 8) ; x++) {
 			_tmp = load8_pix((const scrntype_t*)(&(src[x])));
@@ -215,7 +176,7 @@ inline size_t TOWNS_CRTC::store_x1(scrntype_t *dst, const scrntype8_t *src, cons
 	__UNLIKELY_IF((width > 0) && (xx < words)) {
 		_tmp = load8_pix((const scrntype_t*)(&(src[xx])));
 		for(size_t i = 0; (i < 8) && (width > 0); i++) {
-			dst[i] = _tmp.s[i];
+			dst[i] = simd_element(_tmp, i);
 			pixels_count++;
 			width--;
 		}
@@ -227,22 +188,21 @@ inline size_t TOWNS_CRTC::store_x1(scrntype_t *dst, const scrntype8_t *src, cons
 
 inline void TOWNS_CRTC::pix_multiply_x2(scrntype8_t dst[2], const scrntype8_t data)
 {
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t lx = 0; lx < 8; lx++) {
-		dst[0].s[lx] = data.s[lx >> 1]; 
+		simd_element_raw(dst[0], lx) = simd_element_raw(data, lx >> 1);
 	}
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t rx = 8; rx < 16; rx++) {
-		dst[1].s[rx - 8] = data.s[rx >> 1]; 
+		simd_element_raw(dst[1], rx - 8) = simd_element_raw(data, rx >> 1);
 	}
-	
 }
 
 inline size_t TOWNS_CRTC::store_x2(scrntype_t *dst, const scrntype8_t *src, const size_t words, size_t& width)
 {
 	size_t pixels_count = 0;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _s;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _tmp[2];
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _s;
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _tmp[2];
 	const bool is_dst_aligned = is_align_scrntype8(dst);
 	size_t xx = 0;
 	for(size_t x = 0; (x < words) && (width >=16) ; x++) {
@@ -265,14 +225,14 @@ inline size_t TOWNS_CRTC::store_x2(scrntype_t *dst, const scrntype8_t *src, cons
 		_s = load8_pix((const scrntype_t*)(&(src[xx])));
 		pix_multiply_x2(_tmp, _s);
 		for(size_t i = 0; (i < 8) && (width > 0); i++) {
-			dst[i] = _tmp[0].s[i];
+			dst[i] = simd_element(_tmp[0], i);
 			pixels_count++;
 			width--;
 		}
 		dst += 8;
 		if(width > 0) {
 			for(size_t i = 0; (i < 8) && (width > 0); i++) {
-				dst[i] = _tmp[1].s[i];
+				dst[i] = simd_element(_tmp[1], i);
 				pixels_count++;
 				width--;
 			}
@@ -293,30 +253,29 @@ inline size_t TOWNS_CRTC::store_x2(scrntype_t *dst, const scrntype8_t *src, cons
 
 inline void TOWNS_CRTC::pix_multiply_x4(scrntype8_t dst[4], const scrntype8_t data)
 {
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t lx = 0; lx < 8; lx++) {
-		dst[0].s[lx] = data.s[lx >> 2]; 
+		simd_element_raw(dst[0], lx) = simd_element_raw(data, lx >> 2);
 	}
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t x1 = 8; x1 < 16; x1++) {
-		dst[1].s[x1 - 8] = data.s[x1 >> 2]; 
+		simd_element_raw(dst[1], x1 - 8) = simd_element_raw(data, x1 >> 2);
 	}
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t x2 = 16; x2 < 24; x2++) {
-		dst[2].s[x2 - 16] = data.s[x2 >> 2]; 
+		simd_element_raw(dst[2], x2 - 16) = simd_element_raw(data, x2 >> 2);
 	}
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t x3 = 24; x3 < 32; x3++) {
-		dst[3].s[x3 - 24] = data.s[x3 >> 2]; 
+		simd_element_raw(dst[3], x3 - 24) = simd_element_raw(data, x3 >> 2);
 	}
-	
 }
 
 inline size_t TOWNS_CRTC::store_x4(scrntype_t *dst, const scrntype8_t *src, const size_t words, size_t& width)
 {
 	size_t pixels_count = 0;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _s;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _tmp[4];
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _s;
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _tmp[4];
 	size_t xx = 0;
 	const bool is_dst_aligned = is_align_scrntype8(dst);
 	
@@ -345,7 +304,7 @@ inline size_t TOWNS_CRTC::store_x4(scrntype_t *dst, const scrntype8_t *src, cons
 		pix_multiply_x4(_tmp, _s);
 		for(size_t x0 = 0; (width > 0) && (x0 < 4); x0++) {
 			for(size_t j = 0; (j < 8) && (width > 0); j++) {
-				dst[j] = _tmp[x0].s[j];
+				dst[j] = simd_element(_tmp[x0], j);
 				pixels_count++;
 				width--;
 			}
@@ -372,18 +331,18 @@ inline size_t TOWNS_CRTC::store_n(scrntype_t *dst, const scrntype8_t *src, const
 		return 0;
 	}
 	size_t pixels_count = 0;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _s;
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _s;
 	size_t xx = 0;
 	const bool is_dst_aligned = is_align_scrntype8(dst);
 	
 	size_t dst_lp1 = 0;
 	size_t dst_lp2 = 0;
-	#if 0
+	#if 1
 	for(size_t x = 0; (x < words) && (width > 0) ; x++) {
 		_s = load8_pix((const scrntype_t*)(&(src[x])));
 		for(size_t i = 0; (i < 8) && (width > 0) ; i++) {
 			for(size_t j = 0; (j < mag) && (width > 0); j++) {
-				dst[xx++] = _s.s[i];
+				dst[xx++] = simd_element(_s, i);
 				pixels_count++;
 				width--;
 			}
@@ -391,8 +350,8 @@ inline size_t TOWNS_CRTC::store_n(scrntype_t *dst, const scrntype8_t *src, const
 	}
 	#else
 	__LIKELY_IF(mag <= 16) {
-		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _tmp[16];
-		const TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _tmp_zero = zero_scrntype8_t();
+		__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _tmp[16];
+		__DECL_SCRNTYPE8_ALIGNED const scrntype8_t _tmp_zero = zero_scrntype8_t();
 		for(size_t x = 0; (x < words) && (width > 0) ; x++) {
 			_s = load8_pix((const scrntype_t*)(&(src[x])));
 			for(size_t n = 0; n < mag; n++) {
@@ -403,7 +362,7 @@ inline size_t TOWNS_CRTC::store_n(scrntype_t *dst, const scrntype8_t *src, const
 			dst_lp2 = 0;
 			for(size_t x2 = 0; x2 < 8; x2++) {
 				for(size_t n = 0; n < mag; n++) {
-					_tmp[dst_lp1].s[dst_lp2] = _s.s[x2];
+					simd_element_raw(_tmp[dst_lp1], dst_lp2) = simd_element_raw(_s, x2);
 					dst_lp2++;
 					__UNLIKELY_IF(dst_lp2 > 7) {
 						dst_lp1++;
@@ -430,7 +389,7 @@ inline size_t TOWNS_CRTC::store_n(scrntype_t *dst, const scrntype8_t *src, const
 			_s = load8_pix((const scrntype_t*)(&(src[x])));
 			for(size_t m = 0; m < 8; m++) {
 				for(size_t n = 0; n < mag; n++) {
-					*dst++ = _s.s[m];
+					*dst++ = simd_element(_s, m);
 					width--;
 					pixels_count++;
 					__UNLIKELY_IF(width == 0) {
@@ -476,7 +435,7 @@ inline size_t TOWNS_CRTC::scaling_store(scrntype_t *dst, scrntype8_t *src, const
 inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, scrntype8_t *src, uint16_8_t magx_map, const size_t words, size_t& width)
 {
 	if((words == 0) || (width == 0)) return 0;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _s;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _s;
 	size_t pixels_count = 0;
 	const size_t width_limit = width;
 	size_t rwidth = width & 7;
@@ -501,7 +460,7 @@ inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, scrntype8_t *src
 			_s = load8_pix((const scrntype_t*)(&(src[x])));
 			SIMDE_VECTORIZE
 			for(size_t i = 0; i < 8; i++) {
-				pix = _s.s[i];
+				pix = simd_element(_s, i);
 				for(size_t j = 0; j < magx_map.u16[i]; j++) {
 					dst[ptr++] = pix; 
 				}
@@ -514,7 +473,7 @@ inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, scrntype8_t *src
 			}
 			_s = load8_pix((const scrntype_t*)(&(src[x])));
 			for(size_t i = 0; (i < rwidth) && (width > 0); i++) {
-				pix = _s.s[i];
+				pix = simd_element(_s, i);
 				for(size_t j = 0; (j < magx_map.u16[i]) && (width > 0); j++) {
 					dst[ptr++] = pix;
 					pixels_count++;

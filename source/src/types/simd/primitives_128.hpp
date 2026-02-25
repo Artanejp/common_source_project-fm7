@@ -108,6 +108,10 @@ inline simde__m128 op_set64(const uint64_t __a)
 	}
 	return __r.v;
 }
+inline simde__m128 op_set_scrntype(const scrntype_t __a)
+{
+	return op_set16((const uint16_t)__a);
+}
 
 inline simde__m128 op_bswap16(simde__m128 __a)
 {

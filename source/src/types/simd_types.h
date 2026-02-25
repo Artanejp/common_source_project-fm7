@@ -70,8 +70,10 @@ typedef union {
 	int16_t  s16[4];
 	uint32_t u32[2];
 	int32_t  s32[2];
-	uint64_t d;
-	int64_t  sd;
+	uint32_t u64;
+	int32_t  s64;
+	uint64_t q;
+	int64_t  sq;
 	pair64_t pair;
 } uint8_8_t;
 
@@ -192,21 +194,25 @@ typedef uint16_8_t simd128_t;
 typedef uint32_8_t simd256_t;
 typedef uint32_8_t uint16_16_t;
 
-#undef SCRNTYPE8_T_WIDTH
-#undef SCRNTYPE8_T_ALIGN
-typedef union {
-	scrntype_t  s[8];
-	#if defined(_RGB555) || defined(RGB565)  /* 16bpp */
-	#define SCRNTYPE8_T_WIDTH 16
-	simd128_t   vp;
-	simde__m128 v;
-	#else
-	/* 32 (24) bpp */
-	#define SCRNTYPE8_T_WIDTH 32
-	simd256_t   vp;
-	simde__m256 v;
-	#endif
-} scrntype8_t;
-
-#undef __TMP_V128_TYPE
-#undef __TMP_V256_TYPE
+#if defined(_RGB555) || defined(_RGB565)
+typedef uint16_8_t scrntype8_t;
+typedef simde__m128 simd_scrntype8_t;
+#define SCRNTYPE8_ALIGN 16
+#define SCRNTYPE8_SIMD simd_128bit
+#define simd_element(arr, pos)  (scrntype_t)(arr.u16[pos])
+#define simd_element_p(aptr, pos)  (scrntype_t)(aptr->u16[pos])
+#define simd_element_raw(arr, pos)  arr.u16[pos]
+#define simd_element_raw_p(aptr, pos)  aptr->u16[pos]
+#define simd_element_cast uint16_t
+#else /* _RGB888 */
+typedef uint32_8_t scrntype8_t;
+typedef simde__m256 simd_scrntype8_t;
+#define SCRNTYPE8_ALIGN 32
+#define SCRNTYPE8_SIMD simd_256bit
+#define simd_element(arr, pos)  (scrntype_t)(arr.u32[pos])
+#define simd_element_p(aptr, pos)  (scrntype_t)(aptr->u32[pos])
+#define simd_element_raw(arr, pos)  arr.u32[pos]
+#define simd_element_raw_p(aptr, pos)  aptr->u32[pos]
+#define simd_element_cast uint32_t
+#endif
+#define __DECL_SCRNTYPE8_ALIGNED __DECL_ALIGNED(SCRNTYPE8_ALIGN)

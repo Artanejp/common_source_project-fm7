@@ -1361,7 +1361,32 @@ template <typename T, typename U, typename M>
 #include "./simd/uint32_8_t.hpp"
 
 
-
+inline scrntype8_t make_rgba_scrntype8(uint16_8_t r, uint16_8_t g, uint16_8_t b, uint16_8_t a)
+{
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		#if defined(_RGB555) || defined(_RGB565)
+		tmp.u16[i] = RGBA_COLOR((uint8_t)(r.u16[i]), (uint8_t)(g.u16[i]), (uint8_t)(b.u16[i]), (uint8_t)(a.u16[i]));
+		#else
+		tmp.u32[i] = RGBA_COLOR((uint8_t)(r.u16[i]), (uint8_t)(g.u16[i]), (uint8_t)(b.u16[i]), (uint8_t)(a.u16[i]));
+		#endif
+	}
+	return tmp;
+}
+inline scrntype8_t make_rgb_scrntype8(uint16_8_t r, uint16_8_t g, uint16_8_t b)
+{
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		#if defined(_RGB555) || defined(_RGB565)
+		tmp.u16[i] = RGBA_COLOR((uint8_t)(r.u16[i]), (uint8_t)(g.u16[i]), (uint8_t)(b.u16[i]), 255);
+		#else
+		tmp.u32[i] = RGBA_COLOR((uint8_t)(r.u16[i]), (uint8_t)(g.u16[i]), (uint8_t)(b.u16[i]), 255);
+		#endif
+	}
+	return tmp;
+}
 // Please include type specified (and MPU specified) templates.
 
 

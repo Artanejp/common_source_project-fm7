@@ -19,7 +19,6 @@
 
 #include "device.h"
 
-
 #include "towns_common.h"
 #include "./crtc/crtc_types.h"
 
@@ -121,11 +120,6 @@ namespace FMTOWNS {
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
 
-#if defined(_RGB555) || defined(_RGB565)
-#define TOWNS_CRTC_SCRNTYPE8_ALIGN SIMDE_ALIGN_TO_16
-#else
-#define TOWNS_CRTC_SCRNTYPE8_ALIGN SIMDE_ALIGN_TO_32
-#endif
 	
 class TOWNS_CRTC : public DEVICE
 {

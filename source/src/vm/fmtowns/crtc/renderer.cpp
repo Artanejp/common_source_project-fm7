@@ -240,10 +240,10 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 		picture_mask.u16[i] = 0x001f;
 	}
 	
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
-	__DECL_ALIGNED(16) uint16_8_t pix_transparent;
-	__DECL_ALIGNED(16) uint16_8_t a2buf;
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t pix_transparent;
+	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t a2buf;
 
 	pair16_t ptmp16;
 	int rwidth = pwidth & 7;
@@ -257,148 +257,98 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 	size_t words = 0;
 	for(int x = 0; x < pwidth ; x += 8) {
 		int xx = x >> 3;
-		pix_transparent.v = simde_mm_setzero_ps();
+		pix_transparent.v = SCRNTYPE8_SIMD::op_clear();
 		__UNLIKELY_IF(xx >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
 			break;
 		}
 
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				pbuf.u16[i] = 0x8000;
-			}
+			pbuf.v = simd_128bit::op_set16(0x8000);
 			size_t x0 = 0;
 			for(int i = x; (i < pwidth) && (x0 < 8); i++, x0++) {
-				#ifdef __BIG_ENDIAN__
-				pair16_t tmp;
-				tmp.read_2bytes_le_from(p);
-				pbuf.u16[x0] =  tmp.w;
-				#else /* Little endian */
 				pbuf.u16[x0] = *p;
-				#endif
 				p += 2;
 			}
 			
 		} else {
-			#ifdef __BIG_ENDIAN__
-			pair16_t tmp;
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				tmp.load_from_le(&(p[i]));
-				pbuf.u16[i] = tmp.u16;
-			}
-			#else
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				pbuf.u16[i] = p[i];
-			}
-			#endif
+			pbuf.v = simd_128bit::load_unaligned(p);
 			p += 16; // 8 * 2bytes.
 		}
-
-		//rbuf = pbuf;
-		//gbuf = pbuf;
-		//bbuf = pbuf;
-
-		//rbuf >>= 5;
-		//gbuf >>= 10;
-
-		rbuf.v = simde_mm_srli_epi16(pbuf.v , 5);
-		gbuf.v = simde_mm_srli_epi16(pbuf.v , 10);
-		// bbuf.v = pbuf.v;
+		#ifdef __BIG_ENDIAN__
+		pbuf.v = simd_128bit::op_bswap16(pbuf.v);
+		#endif
+		rbuf.v = simd_128bit::op_rshift16_fix(pbuf.v, 5);
+		rbuf.v = simd_128bit::op_and(rbuf.v, picture_mask.v);
 		
-		//rbuf &= pixture_mask;
-		//gbuf &= pixture_mask;
-		//bbuf &= pixture_mask;
-
-		rbuf.v = simde_mm_and_ps(rbuf.v, picture_mask.v);
-		gbuf.v = simde_mm_and_ps(gbuf.v, picture_mask.v);
-		//bbuf.v = simde_mm_and_ps(bbuf.v, picture_mask.v);
-		bbuf.v = simde_mm_and_ps(pbuf.v, picture_mask.v);
+		gbuf.v = simd_128bit::op_rshift16_fix(pbuf.v, 10);
+		gbuf.v = simd_128bit::op_and(gbuf.v, picture_mask.v);
+		
+		//bbuf.v = pbuf.v;
+		bbuf.v = simd_128bit::op_and(pbuf.v, picture_mask.v);
 
 		{
-			__DECL_ALIGNED(16) uint16_8_t tmpval;
 			__DECL_ALIGNED(16) uint16_8_t rmask;
 			__DECL_ALIGNED(16) uint16_8_t gmask;
 			__DECL_ALIGNED(16) uint16_8_t bmask;
-			tmpval.v = simde_mm_setzero_ps();
+			__DECL_ALIGNED(16) uint16_8_t tmpval;
+			tmpval.v = simd_128bit::op_clear();
 			// If non-zero Set 0xff
-			rmask.v = simde_mm_cmpgt_epi16(rbuf.v, tmpval.v);
-			gmask.v = simde_mm_cmpgt_epi16(gbuf.v, tmpval.v);
-			bmask.v = simde_mm_cmpgt_epi16(bbuf.v, tmpval.v);
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				tmpval.u16[i] = 0x07;
-			}
-			rmask.v = simde_mm_and_ps(rmask.v, tmpval.v);
-			gmask.v = simde_mm_and_ps(gmask.v, tmpval.v);
-			bmask.v = simde_mm_and_ps(bmask.v, tmpval.v);
+			rmask.v = simd_128bit::op_not(simd_128bit::op_equals16(rbuf.v, tmpval.v));
+			gmask.v = simd_128bit::op_not(simd_128bit::op_equals16(gbuf.v, tmpval.v));
+			bmask.v = simd_128bit::op_not(simd_128bit::op_equals16(bbuf.v, tmpval.v));
 
 			//rbuf <<= 3;
 			//gbuf <<= 3;
 			//bbuf <<= 3;
-			rbuf.v = simde_mm_slli_epi16(rbuf.v, 3);
-			gbuf.v = simde_mm_slli_epi16(gbuf.v, 3);
-			bbuf.v = simde_mm_slli_epi16(bbuf.v, 3);
+			rbuf.v = simd_128bit::op_lshift16_fix(rbuf.v, 3);
+			gbuf.v = simd_128bit::op_lshift16_fix(gbuf.v, 3);
+			bbuf.v = simd_128bit::op_lshift16_fix(bbuf.v, 3);
 
-			rbuf.v = simde_mm_or_ps(rbuf.v, rmask.v);
-			gbuf.v = simde_mm_or_ps(gbuf.v, gmask.v);
-			bbuf.v = simde_mm_or_ps(bbuf.v, bmask.v);
+			rbuf.v = simd_128bit::op_and(rbuf.v, rmask.v);
+			gbuf.v = simd_128bit::op_and(gbuf.v, gmask.v);
+			bbuf.v = simd_128bit::op_and(bbuf.v, bmask.v);
 		}
 
 		if(is_transparent) {
 			// Extract 
 			//pbuf.check_any_bits(pix_transparent, 0x8000);
-			__DECL_ALIGNED(16) uint16_8_t tmpval;
-			tmpval.v = simde_mm_setzero_ps();
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t cmpval;
+			#if defined(_RGB555) || defined(_RGB565)
+			cmpval.v = simd_128bit::op_set16(0xffff); // -1
 			// If Plus, Set 0xffff
-			pix_transparent.v = simde_mm_cmpgt_epi16(tmpval.v, pbuf.v);
+			pix_transparent.v = simd_128bit::op_greater16(pbuf.v, cmpval.v);
+			#else
+			__DECL_ALIGNED(16) uint16_8_t tmp_zero;
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmpval;
+			tmp_zero.v = simd_128bit::op_clear();
+			cmpval.v = simd_256bit::op_set32(0x00008000);
+			tmpval.v128.hl.h = simde_mm_unpackhi_epi32(tmp_zero.v, pbuf.v);
+			tmpval.v128.hl.l = simde_mm_unpacklo_epi32(tmp_zero.v, pbuf.v);
+			// If data < 0x8000, set 0xffffffff
+			pix_transparent.v = simd_256bit::op_greater32(cmpval.v, tmpval.v);
+			#endif
 		}
 		__UNLIKELY_IF(do_alpha) {
 			if(is_transparent) {
 				a2buf.v = pix_transparent.v;
 			} else {
-				a2buf.v = simde_x_mm_setone_ps();
+				a2buf.v = SCRNTYPE8_SIMD::op_setall();
 			}
 			//make_rgba_vec8(sbuf[xx], rbuf, gbuf, bbuf, a2buf);
-			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t __tmp;
-			#if defined(_RGB555) || defined(_RGB565)
-			__tmp.v = simde_mm_or_ps(rbuf.v, gbuf.v);
-			__tmp.v = simde_mm_or_ps(__tmp.v, bbuf.v);
-			__tmp.v = simde_mm_and_ps(__tmp.v, a2buf.v);
-			#else
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				__tmp.s[i] = RGBA_COLOR(rbuf.u16[i], gbuf.u16[i], bbuf.u16[i], a2buf.u16[i]);
-			}
-			#endif
-			sbuf[xx].v = __tmp.v;
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
+			tmp = make_rgb_scrntype8(rbuf, gbuf, bbuf);
+			tmp.v = SCRNTYPE8_SIMD::op_and(a2buf.v, tmp.v);
+			sbuf[xx].v = tmp.v;
 		} else {
-//			if(is_transparent) {
-//				abuf[xx].set_cond(pix_transparent, RGBA_COLOR(0, 0, 0, 0), RGBA_COLOR(255, 255, 255,255));
-//			} else {
-//				abuf[xx].fill(RGBA_COLOR(255, 255, 255, 255));
-//			}
-			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t __tmp;
-
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
 			if(is_transparent) {
-				__DECL_VECTORIZED_LOOP
-				for(size_t i = 0; i < 8; i++) {
-					__tmp.s[i] = RGBA_COLOR((uint8_t)(pix_transparent.u16[i]), (uint8_t)(pix_transparent.u16[i]), (uint8_t)(pix_transparent.u16[i]), (uint8_t)(pix_transparent.u16[i]));
-				}
+				a2buf.v = pix_transparent.v;
 			} else {
-				__DECL_VECTORIZED_LOOP
-				for(size_t i = 0; i < 8; i++) {
-					__tmp.s[i] = RGBA_COLOR(255, 255, 255, 255);
-				}
+				a2buf.v = SCRNTYPE8_SIMD::op_setall();
 			}
-			abuf[xx].v = __tmp.v;
-//			make_rgb_vec8(sbuf[xx], rbuf, gbuf, bbuf); // ToDo
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				__tmp.s[i] = RGBA_COLOR((uint8_t)(rbuf.u16[i]), (uint8_t)(gbuf.u16[i]), (uint8_t)(bbuf.u16[i]), 255);
-			}
-			sbuf[xx].v = __tmp.v;
+			abuf[xx].v = a2buf.v;
+			
+			sbuf[xx] = make_rgb_scrntype8(rbuf, gbuf, bbuf);
 		}
 		words++;
 	}
@@ -467,10 +417,10 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 	__UNLIKELY_IF(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(pwidth <= 0) return false;
 
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype_t apal256[256];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t apal256[256];
 	scrntype_t* __app = &(linebuffers[trans][y].palettes[0].pixels[0]);
 	
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t __t;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t __t;
 	for(size_t i = 0; i < 256; i += 8) {
 		__t = load8_unaligned(&(__app[i]));
 		store8_aligned(&(apal256[i]), __t);
@@ -479,12 +429,9 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 
 //	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d pWIDTH=%d"), y, magx, width, pwidth);
 	__UNLIKELY_IF(pwidth < 1) pwidth = 1;
-	union {
-		SIMDE_ALIGN_TO_32 uint8_t u8[8];
-		SIMDE_ALIGN_TO_32 uint64_t u64;
-	} pbuf;
+	__DECL_ALIGNED(16) uint8_8_t pbuf;
 	//csp_vector8<uint8_t> pbuf;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	
 	size_t rwidth = pwidth & 7;
 	size_t width_tmp1 = (hst[trans] > TOWNS_CRTC_MAX_PIXELS) ? TOWNS_CRTC_MAX_PIXELS : hst[trans];
@@ -492,7 +439,7 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 
 	size_t words = 0;
 
-	TOWNS_CRTC_SCRNTYPE8_ALIGN const scrntype8_t zero_value = zero_scrntype8_t();
+	__DECL_SCRNTYPE8_ALIGNED  const scrntype8_t zero_value = zero_scrntype8_t();
 	
 	for(size_t x = 0; x < pwidth; x += 8) {
 		size_t xx = x >> 3;
@@ -508,14 +455,14 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 				}
 				p += rwidth;
 				for(size_t _ii = 0; _ii < rwidth; _ii++) {
-					sbuf[xx].s[_ii] = apal256[pbuf.u8[_ii]];
+					simd_element_raw(sbuf[xx], _ii) = (simd_element_cast)(apal256[pbuf.u8[_ii]]);
 				}
 			}
 		} else {
 			pbuf.u64 = *((uint64_t*)p);
 			__DECL_VECTORIZED_LOOP
 			for(size_t _ii = 0; _ii < 8; _ii++) {
-				sbuf[xx].s[_ii] = apal256[pbuf.u8[_ii]];
+				simd_element_raw(sbuf[xx], _ii) = (simd_element_cast)(apal256[pbuf.u8[_ii]]);
 			}
 			p += 8;
 		}
@@ -542,7 +489,7 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 {
 	__UNLIKELY_IF(dst == nullptr) return false;
 
-	TOWNS_CRTC_SCRNTYPE8_ALIGN static const scrntype_t maskdata_transparent[16] = {
+	__DECL_SCRNTYPE8_ALIGNED static const scrntype_t maskdata_transparent[16] = {
 		RGBA_COLOR(0, 0, 0, 0),
 		RGBA_COLOR(255, 255, 255, 255),
 		RGBA_COLOR(255, 255, 255, 255),
@@ -599,14 +546,14 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 
 
 	__DECL_ALIGNED(16) uint16_8_t hlbuf;
-	SIMDE_ALIGN_TO_8  uint16_8_t mbuf;
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	__DECL_ALIGNED(16)  uint16_8_t mbuf;
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype_t palbuf[16];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t palbuf[16];
 	
 	uint8_t pmask = linebuffers[trans][y].r50_planemask[layer] & 0x0f;
-	SIMDE_VECTORIZE
+	__DECL_VECTORIZED_LOOP
 	for(size_t n = 0; n < 16; n++) {
 		mbuf.u8[n] = pmask;
 	}
@@ -617,11 +564,9 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	if((do_alpha) && (is_transparent)) {
 		palbuf[0] &= RGBA_COLOR(255, 255, 255, 0); // OK?
 	} else if(!is_transparent) {
-		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t _s;
+		__DECL_SCRNTYPE8_ALIGNED  scrntype8_t _s;
+		_s.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(255, 255, 255, 255));
 		__DECL_VECTORIZED_LOOP
-		for(size_t n = 0; n < 8; n++) {
-			_s.s[n] = RGBA_COLOR(255, 255, 255, 255);
-		}
 		for(size_t x = 0; x < (TOWNS_CRTC_MAX_PIXELS / 8); x++) {
 			abuf[x].v = _s.v;
 		}
@@ -637,58 +582,56 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 	size_t words = 0;
 	size_t pptr = 0;
 
-	TOWNS_CRTC_SCRNTYPE8_ALIGN uint16_8_t bytes_mask;
+	__DECL_SCRNTYPE8_ALIGNED uint16_8_t bytes_mask;
 	for(int i = 0; i < 16; i += 2) {
 		bytes_mask.u8[i + 0] = 0x0f;
 		bytes_mask.u8[i + 1] = 0xf0;
 	}
-	TOWNS_CRTC_SCRNTYPE8_ALIGN const scrntype8_t zero_value = zero_scrntype8_t();
-	TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t white_value;
-	__DECL_VECTORIZED_LOOP
-	for(int n = 0; n < 8; n++) {	
-		white_value.s[n] = RGBA_COLOR(255, 255, 255, 255);
-	}
+	__DECL_SCRNTYPE8_ALIGNED const scrntype8_t zero_value = zero_scrntype8_t();
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t white_value;
+	white_value.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(255, 255, 255, 255));
 	
 	for(int x = 0; x < pwidth ; x++) {
 		size_t xx = x >> 3;
 		__UNLIKELY_IF((pptr + 1) >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
 			break;
 		}
+		__DECL_ALIGNED(16) uint16_8_t tmp_hl;
+		__DECL_ALIGNED(16) uint16_8_t tmp_hl2;
+		tmp_hl.v = simd_128bit::op_clear();
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
-//			sbuf[pptr] = zero_value;
-//			sbuf[pptr + 1] = zero_value;
-			for(int i = x, j = 0; i < pwidth; i++, j += 2) {
-				hlbuf.u8[j + 0] = *p;
-				hlbuf.u8[j + 1] = *p;
+			for(int i = x, j = 0; i < pwidth; i++, j++) {
+				tmp_hl.u8[j] = *p;
 				p++;
 			}
 		} else {
-			for(int i = 0, j = 0; i < 8; i++, j += 2) {
-				hlbuf.u8[j + 0] = p[i];
-				hlbuf.u8[j + 1] = p[i];
+			__DECL_VECTORIZED_LOOP
+			for(int i = 0; i < 8; i++) {
+				tmp_hl.u8[i] = p[i];
 			}
 			p += 8;
 		}
-
-		hlbuf.v = simde_mm_and_ps(bytes_mask.v, hlbuf.v);
-
+		tmp_hl2.v = tmp_hl.v;
+		hlbuf.v = simde_mm_unpacklo_epi8(tmp_hl2.v, tmp_hl.v);
+		hlbuf.v = simd_128bit::op_and(bytes_mask.v, hlbuf.v);
 		__DECL_VECTORIZED_LOOP
-		for(int j = 1; j < 16; j+= 2) {
-			hlbuf.u8[j] >>= 4;
+		for(size_t i = 1; i < 16; i += 2) {
+			hlbuf.u8[i] >>= 4;
 		}
-		hlbuf.v = simde_mm_and_ps(mbuf.v, hlbuf.v);
+
+		hlbuf.v = simd_128bit::op_and(mbuf.v, hlbuf.v);
 
 		sbuf[pptr].v = zero_value.v;
 		__DECL_VECTORIZED_LOOP
 		for(size_t n = 0; n < 8; n++) {
-			sbuf[pptr].s[n] = palbuf[hlbuf.u8[n]];
+			simd_element_raw(sbuf[pptr], n) = (simd_element_cast)(palbuf[hlbuf.u8[n]]);
 		}
 		
 		abuf[pptr].v = white_value.v;
 		if(!(do_alpha) && (is_transparent)) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t n = 0; n < 8; n++) {
-				abuf[pptr].s[n] = maskdata_transparent[hlbuf.u8[n]];
+				simd_element_raw(abuf[pptr], n) = (simd_element_cast)(maskdata_transparent[hlbuf.u8[n]]);
 			}
 		}
 		words++;
@@ -699,14 +642,14 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 		sbuf[pptr].v = zero_value.v;
 		__DECL_VECTORIZED_LOOP
 		for(size_t n = 0; n < 8; n++) {
-			sbuf[pptr].s[n] = palbuf[hlbuf.u8[n + 8]];
+			simd_element_raw(sbuf[pptr], n) = (simd_element_cast)(palbuf[hlbuf.u8[n + 8]]);
 		}
 		
 		abuf[pptr].v = white_value.v;
 		if(!(do_alpha) && (is_transparent)) {
 			__DECL_VECTORIZED_LOOP
 			for(size_t n = 0; n < 8; n++) {
-				abuf[pptr].s[n] = maskdata_transparent[hlbuf.u8[n + 8]];
+				simd_element_raw(abuf[pptr], n) = (simd_element_cast)(maskdata_transparent[hlbuf.u8[n + 8]]);
 			}
 		}
 		words++;
@@ -768,19 +711,12 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			do_mix1 = false;
 		}
 		// Clear cache
-		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t blank;
-		TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t blank_alpha;
+		__DECL_SCRNTYPE8_ALIGNED scrntype8_t blank;
+		__DECL_SCRNTYPE8_ALIGNED scrntype8_t blank_alpha;
 
-		__DECL_VECTORIZED_LOOP
-		for(size_t n = 0; n < 8; n++) {
-			blank.s[n] = RGBA_COLOR(0, 0, 0, 255);
-		}
-		__DECL_VECTORIZED_LOOP
-		for(size_t n = 0; n < 8; n++) {
-			blank_alpha.s[n] = RGBA_COLOR(0, 0, 0, 0);
-		}
-		//csp_vector8<scrntype_t> blank(RGBA_COLOR(0, 0, 0, 255));
-		//csp_vector8<scrntype_t> blank_alpha(RGBA_COLOR(0, 0, 0, 0));
+		blank.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
+		blank_alpha.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 0));
+
 
 		if(do_mix1) {
 			simd_fill(pix_cache, blank, width);
@@ -949,64 +885,28 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			//csp_vector8<scrntype_t> mask_back0;
 			//csp_vector8<scrntype_t> mask_back1;
 
-			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t pix0[2];
-			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t pix1[2];
-			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t mask_front[2];
-			TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t mask_back[2];
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix0[2];
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix1[2];
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t mask_front[2];
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t mask_back[2];
 
 			__LIKELY_IF(bitshift0 == 0) {
 				__LIKELY_IF(width > 15) {
 					for(size_t xx = 0; xx < width; xx += 16) {
-						//pix00.load_aligned(&(lbuffer0[xx]));
-						//pix01.load_aligned(&(lbuffer0[xx + 8]));
-						//pix10.load_aligned(&(pix_cache[xx]));
-						//pix11.load_aligned(&(pix_cache[xx + 8]));
-						pix0[0] = load8_aligned(&(lbuffer0[xx]));
-						pix0[1] = load8_aligned(&(lbuffer0[xx + 8]));
-						pix1[0] = load8_aligned(&(pix_cache[xx]));
-						pix1[1] = load8_aligned(&(pix_cache[xx + 8]));
-						
-						//mask_front0.load_aligned(&(abuffer0[xx]));
-						//mask_front1.load_aligned(&(abuffer0[xx + 8]));
-						//mask_back0 = mask_front0;
-						//mask_back1 = mask_front1;
-						mask_front[0] = load8_aligned(&(abuffer0[xx]));
-						mask_front[1] = load8_aligned(&(abuffer0[xx + 8]));
-						//mask_back[0].v = mask_front[0].v;
-						//mask_back[1].v = mask_front[1].v;
-						
-						//mask_back0.bitwise_not();
-						//mask_back1.bitwise_not();
-						//pix00 &= mask_front0;
-						//pix01 &= mask_front1;
-						//pix10 &= mask_back0;
-						//pix11 &= mask_back1;
-						#if defined(_RGB555) || defined(_RGB565)
-						pix0[0].v = simde_mm_and_ps(mask_front[0].v, pix0[0].v);
-						pix0[1].v = simde_mm_and_ps(mask_front[1].v, pix0[1].v);
-						
-						pix1[0].v = simde_mm_andnot_ps(mask_front[0].v, pix1[0].v);
-						pix1[1].v = simde_mm_andnot_ps(mask_front[1].v, pix1[1].v);
-						#else
-						pix0[0].v = simde_mm256_and_ps(mask_front[0].v, pix0[0].v);
-						pix0[1].v = simde_mm256_and_ps(mask_front[1].v, pix0[1].v);
-						
-						pix1[0].v = simde_mm256_andnot_ps(mask_front[0].v, pix1[0].v);
-						pix1[1].v = simde_mm256_andnot_ps(mask_front[1].v, pix1[1].v);
-						#endif
-						
-						//pix00 |= pix10;
-						//pix01 |= pix11;
-						//pix00.store(&(pp[xx]));
-						//pix01.store(&(pp[xx + 8]));
-						#if defined(_RGB555) || defined(_RGB565)
-						pix0[0].v = simde_mm_or_ps(pix0[0].v, pix1[0].v);
-						pix0[1].v = simde_mm_or_ps(pix0[1].v, pix1[1].v);
-						#else
-						pix0[0].v = simde_mm256_or_ps(pix0[0].v, pix1[0].v);
-						pix0[1].v = simde_mm256_or_ps(pix0[1].v, pix1[1].v);
-						#endif
+						pix0[0] = load8_unaligned(&(lbuffer0[xx]));
+						pix1[0] = load8_unaligned(&(pix_cache[xx]));
+						mask_front[0] = load8_unaligned(&(abuffer0[xx]));
+						pix0[0].v = SCRNTYPE8_SIMD::op_and(mask_front[0].v, pix0[0].v);
+						pix1[0].v = SCRNTYPE8_SIMD::op_andnot(mask_front[0].v, pix1[0].v);
+						pix0[0].v = SCRNTYPE8_SIMD::op_or(pix0[0].v, pix1[0].v);
 						store8_pix(&(pp[xx]), pix0[0]);
+						
+						pix0[1] = load8_unaligned(&(lbuffer0[xx + 8]));
+						pix1[1] = load8_unaligned(&(pix_cache[xx + 8]));
+						mask_front[1] = load8_unaligned(&(abuffer0[xx + 8]));
+						pix0[1].v = SCRNTYPE8_SIMD::op_and(mask_front[1].v, pix0[1].v);
+						pix1[1].v = SCRNTYPE8_SIMD::op_andnot(mask_front[1].v, pix1[1].v);
+						pix0[1].v = SCRNTYPE8_SIMD::op_or(pix0[1].v, pix1[1].v);
 						store8_pix(&(pp[xx + 8]), pix0[1]);
 					}
 				}
@@ -1025,55 +925,21 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			} else {
 				__LIKELY_IF(width > 15) {
 					for(size_t xx = 0; xx < width; xx += 16) {
-						//pix00.load_aligned(&(pix_cache0[xx]));
-						//pix01.load_aligned(&(pix_cache0[xx + 8]));
-						//pix10.load_aligned(&(pix_cache[xx]));
-						//pix11.load_aligned(&(pix_cache[xx + 8]));
+						pix0[0] = load8_unaligned(&(pix_cache0[xx]));
+						pix0[1] = load8_unaligned(&(pix_cache0[xx + 8]));
+						pix1[0] = load8_unaligned(&(pix_cache[xx]));
+						pix1[1] = load8_unaligned(&(pix_cache[xx + 8]));
+						mask_front[0] = load8_unaligned(&(alpha_cache[xx]));
+						mask_front[1] = load8_unaligned(&(alpha_cache[xx + 8]));
 						
-						pix0[0] = load8_aligned(&(pix_cache0[xx]));
-						pix0[1] = load8_aligned(&(pix_cache0[xx + 1]));
-						pix1[0] = load8_aligned(&(pix_cache[xx]));
-						pix1[1] = load8_aligned(&(pix_cache[xx + 1]));
-						
-						//mask_front0.load_aligned(&(alpha_cache[xx]));
-						//mask_front1.load_aligned(&(alpha_cache[xx + 8]));
-						mask_front[0] = load8_aligned(&(alpha_cache[xx]));
-						mask_front[1] = load8_aligned(&(alpha_cache[xx + 1]));
-						
-						//mask_back0 = mask_front0;
-						//mask_back1 = mask_front1;
-						//mask_back0.bitwise_not();
-						//mask_back1.bitwise_not();
-						//pix00 &= mask_front0;
-						//pix01 &= mask_front1;
-						//pix10 &= mask_back0;
-						//pix11 &= mask_back1;
-						#if defined(_RGB555) || defined(_RGB565)
-						pix0[0].v = simde_mm_and_ps(mask_front[0].v, pix0[0].v);
-						pix0[1].v = simde_mm_and_ps(mask_front[1].v, pix0[1].v);
-						
-						pix1[0].v = simde_mm_andnot_ps(mask_front[0].v, pix1[0].v);
-						pix1[1].v = simde_mm_andnot_ps(mask_front[1].v, pix1[1].v);
-						#else
-						pix0[0].v = simde_mm256_and_ps(mask_front[0].v, pix0[0].v);
-						pix0[1].v = simde_mm256_and_ps(mask_front[1].v, pix0[1].v);
-						
-						pix1[0].v = simde_mm256_andnot_ps(mask_front[0].v, pix1[0].v);
-						pix1[1].v = simde_mm256_andnot_ps(mask_front[1].v, pix1[1].v);
-						#endif
-
-						//pix00 |= pix10;
-						//pix01 |= pix11;
-						//pix00.store(&(pp[xx]));
-						//pix01.store(&(pp[xx + 8]));
-						#if defined(_RGB555) || defined(_RGB565)
-						pix0[0].v = simde_mm_or_ps(pix0[0].v, pix1[0].v);
-						pix0[1].v = simde_mm_or_ps(pix0[1].v, pix1[1].v);
-						#else
-						pix0[0].v = simde_mm256_or_ps(pix0[0].v, pix1[0].v);
-						pix0[1].v = simde_mm256_or_ps(pix0[1].v, pix1[1].v);
-						#endif
+						pix0[0].v = SCRNTYPE8_SIMD::op_and(mask_front[0].v, pix0[0].v);
+						pix1[0].v = SCRNTYPE8_SIMD::op_andnot(mask_front[0].v, pix1[0].v);
+						pix0[0].v = SCRNTYPE8_SIMD::op_or(pix0[0].v, pix1[0].v);
 						store8_pix(&(pp[xx]), pix0[0]);
+						
+						pix0[1].v = SCRNTYPE8_SIMD::op_and(mask_front[1].v, pix0[1].v);
+						pix1[1].v = SCRNTYPE8_SIMD::op_andnot(mask_front[1].v, pix1[1].v);
+						pix0[1].v = SCRNTYPE8_SIMD::op_or(pix0[1].v, pix1[1].v);
 						store8_pix(&(pp[xx + 8]), pix0[1]);
 					}
 				}
@@ -1102,11 +968,8 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		} else {
 			// Clear ONLY
 			if((do_mix0) || (do_mix1)) {
-				TOWNS_CRTC_SCRNTYPE8_ALIGN scrntype8_t pix;
-				__DECL_VECTORIZED_LOOP
-				for(size_t n = 0; n < 8; n++) {
-					pix.s[n] = RGBA_COLOR(0, 0, 0, 255);
-				}
+				 __DECL_SCRNTYPE8_ALIGNED scrntype8_t pix;
+				 pix.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
 				simd_fill(pp, pix, width);
 			}
 		}
