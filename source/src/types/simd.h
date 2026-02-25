@@ -1345,15 +1345,16 @@ template <typename T, typename U>
 	return words;
 }
 
-template <typename T, typename U>
-	U simd_lookup_8bitsrc(T table, const uint8_t* src, const size_t table_length, const size_t src_length)
+template <typename T, typename U, typename M>
+	U simd_lookup(T* table, const M pos, const size_t table_length)
 {
-	if(sizeof(U) > sizeof(T)) return; (U)0;
-	if((table_length == 0) || (src_length == 0)) return (U)0;
-	__UNLIKELY_IF(src == nullptr) {
+	if(sizeof(U) > sizeof(T)) return (U)0;
+	__UNLIKELY_IF(table == nullptr) {
 		return (U)0;
 	}
-	
+	__UNLIKELY_IF((table_length == 0) || (pos >= table_length)) return (U)0;
+	return (U)(table[pos]);
+}
 
 //#include "./simd/simd_pri.h"
 #include "./simd/uint16_8_t.hpp"
