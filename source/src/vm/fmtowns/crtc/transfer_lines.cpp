@@ -226,27 +226,26 @@ void TOWNS_CRTC::clear_line(const int trans, int layer, const int y)
 		uint8_t b[2];
 	} n;
 
-	uint16_t *p = (uint16_t*)(&(linebuffers[trans][y].pixels_layer[layer][0]));
-	uint16_t *q = (uint16_t*)(___assume_aligned(p, 16));
+	uint16_8_t *p = (uint16_8_t*)(&(linebuffers[trans][y].pixels_layer[layer][0]));
 	if((linebuffers[trans][y].mode[layer] & ~(DISPMODE_DUP)) == DISPMODE_32768) {
 		n.b[0] = 0x00;
 		n.b[1] = 0x80;
 	} else {
 		n.w = 0x0000;
 	}
-	//csp_vector8<uint16_t> clrdata(n.w);
-//	SIMDE_ALIGN_TO_16 uint16_8_t clrdata;
-//	SIMDE_VECTORIZE
-//	for(size_t i = 0; i < 8; i++) {
-//		clrdata.u16[i] = n.w;
-//	}
-//	for(size_t x = 0; x < TOWNS_CRTC_MAX_PIXELS; x += 8) {
-//		//clrdata.store(&(q[x]));
-//		simde_mm_storeu_si128(&(q[x]), clrdata.v);
-//	}
-	__DECL_VECTORIZED_LOOP
-	for(size_t x = 0; x < TOWNS_CRTC_MAX_PIXELS; x ++) {
-		p[x] = n.w;
+	__DECL_ALIGNED(16) uint16_8_t clrdata;
+	clrdata.v = simd_128bit::op_set16(n.w);
+	const size_t vecs = simd_128bit::vector_width(n);
+	const bool __aligned = simd_128bit::is_aligned(p);
+	__UNLIKELY_IF(vecs == 0) {
+		return;
+	}
+	for(size_t i = 0; i < (TOWNS_CRTC_MAX_PIXELS / vecs); i++) {
+		if(__aligned) {
+			simd_128bit::store_aligned(&(p[i].v), clrdata.v);
+		} else {
+			simd_128bit::store_unaligned(&(p[i].v), clrdata.v);
+		}
 	}
 }
 
