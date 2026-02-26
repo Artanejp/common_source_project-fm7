@@ -496,7 +496,135 @@ inline size_t TOWNS_CRTC::scaling_store_by_map(scrntype_t *dst, scrntype8_t *src
 	width = 0;
 	return pixels_count;
 }
+	
+// Note: RGB range limits 0 to 31 (0x1f) .
+inline scrntype8_t TOWNS_CRTC::make_rgb_32768(const uint16_8_t r, const uint16_8_t g, const uint16_8_t b)
+{
+	__DECL_SCRNTYPE8_ALIGNED scrntype8_t _ret;
+	__DECL_ALIGNED(16) uint16_8_t rmask;
+	__DECL_ALIGNED(16) uint16_8_t gmask;
+	__DECL_ALIGNED(16) uint16_8_t bmask;
+	__DECL_ALIGNED(16) uint16_8_t rbuf;
+	__DECL_ALIGNED(16) uint16_8_t gbuf;
+	__DECL_ALIGNED(16) uint16_8_t bbuf;
+	
+	__DECL_ALIGNED(16) const simde__m128 tmp_zero = simd_128bit::op_clear();
 
+	__DECL_ALIGNED(16) const simde__m128 tmp_byte = simd_128bit::op_set16(0x00ff);
+//	__DECL_ALIGNED(16) const simde__m128 mask_0x1f = simd_128bit::op_set16(0x001f);
+	// If non-zero Set 0xff
+	//rbuf <<= 3;
+	//gbuf <<= 3;
+	//bbuf <<= 3;
+	rbuf.v = r.v;
+	gbuf.v = g.v;
+	bbuf.v = b.v;
+#if defined(_RGB555)
+//	rbuf = simd_128bit::op_and(r.v, mask_0x1f);
+//	gbuf = simd_128bit::op_and(g.v, mask_0x1f);
+//	bbuf = simd_128bit::op_and(b.v, mask_0x1f);
+	rmask.v = simd_128bit::op_greater16(rbuf.v, tmp_zero);
+	gmask.v = simd_128bit::op_greater16(gbuf.v, tmp_zero);
+	bmask.v = simd_128bit::op_greater16(bbuf.v, tmp_zero);
+
+	
+	_ret.v = simd_128bit::op_lshift16_fix(rbuf.v, 10);
+	_ret.v = simd_128bit::op_or(simd_128bit::op_lshift16_fix(gbuf.v, 5), _ret.v);
+	_ret.v = simd_128bit::op_or(bbuf.v, _ret.v);
+	#if defined(__BIG_ENDIAN__)
+	_ret.v = simd_128bit::op_bswap16(_ret.v);
+	#endif
+#elif defined(_RGB565)	
+//	__DECL_ALIGNED(16) const simde__m128 mask_0x3f = simd_128bit::op_set16(0x003f);
+	__DECL_ALIGNED(16) const simde__m128 g_lastbit = simd_128bit::op_set16((uint16_t)(1 << 5));
+//	rbuf = simd_128bit::op_and(rbuf, mask_0x1f);
+//	gbuf = simd_128bit::op_and(gbuf, mask_0x3f);
+//	bbuf = simd_128bit::op_and(bbuf, mask_0x1f);
+	rmask.v = simd_128bit::op_greater16(rbuf.v, tmp_zero);
+	gmask.v = simd_128bit::op_greater16(gbuf.v, tmp_zero);
+	bmask.v = simd_128bit::op_greater16(bbuf.v, tmp_zero);
+	gbuf.v = simd_128bit::op_or(simd_128bit::op_lshift16_fix(gbuf.v, 6), g_lastbit);	
+
+	rbuf = simd_128bit::op_and(rbuf, rmask);
+	gbuf = simd_128bit::op_and(gbuf, gmask);
+	bbuf = simd_128bit::op_and(bbuf, bmask);
+	_ret.v = simd_128bit::op_lshift16_fix(rbuf.v, 11);
+	_ret.v = simd_128bit::op_or(gbuf.v, _ret.v);
+	_ret.v = simd_128bit::op_or(bbuf.v, _ret.v);
+	#if defined(__BIG_ENDIAN__)
+	_ret.v = simd_128bit::op_bswap16(_ret.v);
+	#endif
+#else /* _RGB565 */
+	/* _RGB888 || _RGBA8888 */
+	__DECL_ALIGNED(32) const simde__m256 tmp_zero32 = simd_256bit::op_clear();
+	__DECL_ALIGNED(32) scrntype8_t rmask32;
+	__DECL_ALIGNED(32) scrntype8_t gmask32;
+	__DECL_ALIGNED(32) scrntype8_t bmask32;
+	__DECL_ALIGNED(32) scrntype8_t rbuf32;
+	__DECL_ALIGNED(32) scrntype8_t gbuf32;
+	__DECL_ALIGNED(32) scrntype8_t bbuf32;
+	__DECL_ALIGNED(32) simde__m256 mask32;
+
+	#if 0 /* Temporally Disabled */
+	// 16bit -> 32bit
+	rbuf32.v128.array[0] = simde_mm_unpacklo_epi16(tmp_zero, r.v);
+	rbuf32.v128.array[1] = simde_mm_unpackhi_epi16(tmp_zero, r.v);
+	gbuf32.v128.array[0] = simde_mm_unpacklo_epi16(tmp_zero, g.v);
+	gbuf32.v128.array[1] = simde_mm_unpackhi_epi16(tmp_zero, g.v);
+	bbuf32.v128.array[0] = simde_mm_unpacklo_epi16(tmp_zero, b.v);
+	bbuf32.v128.array[1] = simde_mm_unpackhi_epi16(tmp_zero, b.v);
+	rmask32.v = simd_256bit::op_greater16(rbuf32.v, tmp_zero32);
+	gmask32.v = simd_256bit::op_greater16(gbuf32.v, tmp_zero32);
+	bmask32.v = simd_256bit::op_greater16(bbuf32.v, tmp_zero32);
+
+	#if defined(__LITTLE_ENDIAN__)
+	__DECL_ALIGNED(32) const simde__m256 abyte = simd_256bit::op_set32(0xff000000);
+	__DECL_ALIGNED(32) const simde__m256 bytelow = simd_256bit::op_set32(0x00070707);
+	rmask32.v = simd_256bit::op_and(simd_256bit::op_set32(0x000000ff), rmask32.v);
+	gmask32.v = simd_256bit::op_and(simd_256bit::op_set32(0x0000ff00), gmask32.v);
+	bmask32.v = simd_256bit::op_and(simd_256bit::op_set32(0x00ff0000), bmask32.v);
+	
+	rbuf32.v = simd_256bit::op_lshift32_fix(rbuf32.v, 0+3);
+	gbuf32.v = simd_256bit::op_lshift32_fix(gbuf32.v, 8+3);
+	bbuf32.v = simd_256bit::op_lshift32_fix(bbuf32.v, 16+3);
+	#else
+	const __DECL_ALIGNED(32) simde__m256 abyte = simd_256bit::op_set32(0x000000ff);
+	__DECL_ALIGNED(32) const simde__m256 bytelow = simd_256bit::op_set32(0x07070700);
+	rmask32.v = simd_256bit::op_and(simd_256bit::op_set32(0xff000000), rmask32.v);
+	gmask32.v = simd_256bit::op_and(simd_256bit::op_set32(0x00ff0000), gmask32.v);
+	bmask32.v = simd_256bit::op_and(simd_256bit::op_set32(0x0000ff00), bmask32.v);
+	
+	rbuf32.v = simd_256bit::op_lshift32_fix(rbuf32.v, 24+3);
+	gbuf32.v = simd_256bit::op_lshift32_fix(gbuf32.v, 16+3);
+	bbuf32.v = simd_256bit::op_lshift32_fix(bbuf32.v, 8+3);
+	#endif
+
+	_ret.v = simd_256bit::op_or(rbuf32.v, gbuf32.v);
+	_ret.v = simd_256bit::op_or(_ret.v, bbuf32.v);
+	_ret.v = simd_256bit::op_or(_ret.v, bytelow);
+	
+	mask32 = simd_256bit::op_or(rmask32.v, gmask32.v);
+	mask32 = simd_256bit::op_or(mask32, bmask32.v);
+	_ret.v = simd_256bit::op_and(_ret.v, mask32);
+	_ret.v = simd_256bit::op_or(_ret.v, abyte);  // Add ALPHA
+	#else
+	__DECL_ALIGNED(32) scrntype8_t mask32_2;
+	rmask.v = simd_128bit::op_greater16(rbuf.v, tmp_zero);
+	gmask.v = simd_128bit::op_greater16(gbuf.v, tmp_zero);
+	bmask.v = simd_128bit::op_greater16(bbuf.v, tmp_zero);
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		mask32_2.u32[i] = RGBA_COLOR(rmask.u16[i] & 255 ,gmask.u16[i] & 255, bmask.u16[i] & 255, 255);
+	}
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		_ret.u32[i] = RGBA_COLOR((((rbuf.u16[i] << 3) & 0xf8) | 0x07), (((gbuf.u16[i] << 3) & 0xf8) | 0x07), (((bbuf.u16[i] << 3) & 0xf8) | 0x07), 255);
+	}
+	_ret.v = simd_256bit::op_and(_ret.v, mask32_2.v);
+	#endif
+#endif /* _RGB888 || _RGBA888 */
+	return _ret;
+}
 }
 #endif /* _TOWNS_CRTC_UTILS_H_ */
 #endif /* _TOWNS_CRTC_H_ */

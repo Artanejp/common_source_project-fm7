@@ -430,6 +430,7 @@ protected:
 	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
 	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
+	inline scrntype8_t __FASTCALL make_rgb_32768(const uint16_8_t r, const uint16_8_t g, const uint16_8_t b);
 
 	// Mix screens (already rendered) to one screen.
 	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);

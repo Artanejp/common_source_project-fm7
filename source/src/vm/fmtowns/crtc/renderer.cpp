@@ -17,8 +17,6 @@
 
 namespace FMTOWNS {
 
-
-	
 inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 {
 	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (w <= 0)) return;
@@ -234,11 +232,7 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 	__DECL_ALIGNED(16) uint16_8_t rbuf;
 	__DECL_ALIGNED(16) uint16_8_t gbuf;
     __DECL_ALIGNED(16) uint16_8_t bbuf;
-	__DECL_ALIGNED(16) uint16_8_t picture_mask;
-	__DECL_VECTORIZED_LOOP
-	for(size_t i = 0; i < 8; i++) {
-		picture_mask.u16[i] = 0x001f;
-	}
+	__DECL_ALIGNED(16) simde__m128 picture_mask = simd_128bit::op_set16(0x001f);
 	
 	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
@@ -263,7 +257,11 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 		}
 
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
+			#ifdef __BIG_ENDIAN__
+			pbuf.v = simd_128bit::op_set16(0x0080);
+			#else
 			pbuf.v = simd_128bit::op_set16(0x8000);
+			#endif
 			size_t x0 = 0;
 			for(int i = x; (i < pwidth) && (x0 < 8); i++, x0++) {
 				pbuf.u16[x0] = *p;
@@ -278,66 +276,57 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 		pbuf.v = simd_128bit::op_bswap16(pbuf.v);
 		#endif
 		rbuf.v = simd_128bit::op_rshift16_fix(pbuf.v, 5);
-		rbuf.v = simd_128bit::op_and(rbuf.v, picture_mask.v);
+		rbuf.v = simd_128bit::op_and(rbuf.v, picture_mask);
 		
 		gbuf.v = simd_128bit::op_rshift16_fix(pbuf.v, 10);
-		gbuf.v = simd_128bit::op_and(gbuf.v, picture_mask.v);
+		gbuf.v = simd_128bit::op_and(gbuf.v, picture_mask);
 		
 		//bbuf.v = pbuf.v;
-		bbuf.v = simd_128bit::op_and(pbuf.v, picture_mask.v);
+		bbuf.v = simd_128bit::op_and(pbuf.v, picture_mask);
 
-		{
-			__DECL_ALIGNED(16) uint16_8_t rmask;
-			__DECL_ALIGNED(16) uint16_8_t gmask;
-			__DECL_ALIGNED(16) uint16_8_t bmask;
-			__DECL_ALIGNED(16) uint16_8_t tmpval;
-			tmpval.v = simd_128bit::op_clear();
-			// If non-zero Set 0xff
-			rmask.v = simd_128bit::op_not(simd_128bit::op_equals16(rbuf.v, tmpval.v));
-			gmask.v = simd_128bit::op_not(simd_128bit::op_equals16(gbuf.v, tmpval.v));
-			bmask.v = simd_128bit::op_not(simd_128bit::op_equals16(bbuf.v, tmpval.v));
-
-			//rbuf <<= 3;
-			//gbuf <<= 3;
-			//bbuf <<= 3;
-			rbuf.v = simd_128bit::op_lshift16_fix(rbuf.v, 3);
-			gbuf.v = simd_128bit::op_lshift16_fix(gbuf.v, 3);
-			bbuf.v = simd_128bit::op_lshift16_fix(bbuf.v, 3);
-
-			rbuf.v = simd_128bit::op_and(rbuf.v, rmask.v);
-			gbuf.v = simd_128bit::op_and(gbuf.v, gmask.v);
-			bbuf.v = simd_128bit::op_and(bbuf.v, bmask.v);
-		}
 
 		if(is_transparent) {
 			// Extract 
 			//pbuf.check_any_bits(pix_transparent, 0x8000);
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t cmpval;
-			#if defined(_RGB555) || defined(_RGB565)
-			cmpval.v = simd_128bit::op_set16(0xffff); // -1
-			// If Plus, Set 0xffff
-			pix_transparent.v = simd_128bit::op_greater16(pbuf.v, cmpval.v);
-			#else
-			__DECL_ALIGNED(16) uint16_8_t tmp_zero;
+			__DECL_ALIGNED(16) simde__m128 tmpval2;
+			//__DECL_ALIGNED(16) const simde__m128 cmpval = simd_128bit::op_set16(0x8000); // -1
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmpval;
-			tmp_zero.v = simd_128bit::op_clear();
-			cmpval.v = simd_256bit::op_set32(0x00008000);
-			tmpval.v128.hl.h = simde_mm_unpackhi_epi32(tmp_zero.v, pbuf.v);
-			tmpval.v128.hl.l = simde_mm_unpacklo_epi32(tmp_zero.v, pbuf.v);
-			// If data < 0x8000, set 0xffffffff
-			pix_transparent.v = simd_256bit::op_greater32(cmpval.v, tmpval.v);
+			//tmpval2 = simd_128bit::op_greater16(cmpval, pbuf.v);
+			#if defined(_RGB555) || defined(_RGB565)
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 8; i++) {
+				// ToDo: Big Endian
+				tmpval2.u32[i] = ((pbuf.u16[i] & 0x8000) != 0) ? 0x00000000 : 0xffffffff;
+			}
+			pix_transparent.v = tmpval2;
+			#else
+			 // Minus = 0x0000, Plus or 0 = 0xffff
+			// 16bit -> 32bit
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 8; i++) {
+				// ToDo: Big Endian
+				pix_transparent.u32[i] = ((pbuf.u16[i] & 0x8000) != 0) ? 0x00000000 : 0xffffffff;
+			}
+			//pix_transparent.v128.array[0] = simde_mm_unpackhi_epi16(tmpval2, tmpval2);
+			//pix_transparent.v128.array[1] = simde_mm_unpacklo_epi16(tmpval2, tmpval2);
 			#endif
 		}
 		__UNLIKELY_IF(do_alpha) {
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t __alpha_mask;
+			__alpha_mask.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
+			__DECL_SCRNTYPE8_ALIGNED scrntype8_t __pix_mask;
+			__pix_mask.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(255, 255, 255, 0));
 			if(is_transparent) {
-				a2buf.v = pix_transparent.v;
+				a2buf.v = SCRNTYPE8_SIMD::op_and(pix_transparent.v, __alpha_mask.v);
 			} else {
-				a2buf.v = SCRNTYPE8_SIMD::op_setall();
+				a2buf.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
 			}
+			//abuf[xx].v = a2buf.v;
 			//make_rgba_vec8(sbuf[xx], rbuf, gbuf, bbuf, a2buf);
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
-			tmp = make_rgb_scrntype8(rbuf, gbuf, bbuf);
-			tmp.v = SCRNTYPE8_SIMD::op_and(a2buf.v, tmp.v);
+			tmp = make_rgb_32768(rbuf, gbuf, bbuf);
+			tmp.v = SCRNTYPE8_SIMD::op_and(__pix_mask.v, tmp.v);
+			tmp.v = SCRNTYPE8_SIMD::op_or(a2buf.v, tmp.v);
 			sbuf[xx].v = tmp.v;
 		} else {
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
@@ -347,8 +336,7 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 				a2buf.v = SCRNTYPE8_SIMD::op_setall();
 			}
 			abuf[xx].v = a2buf.v;
-			
-			sbuf[xx] = make_rgb_scrntype8(rbuf, gbuf, bbuf);
+			sbuf[xx] = make_rgb_32768(rbuf, gbuf, bbuf);
 		}
 		words++;
 	}
@@ -455,15 +443,27 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 				}
 				p += rwidth;
 				for(size_t _ii = 0; _ii < rwidth; _ii++) {
-					simd_element_raw(sbuf[xx], _ii) = (simd_element_cast)(apal256[pbuf.u8[_ii]]);
+				#if defined(_RGB555) || defined(_RGB565)
+					sbuf[xx].u16[_ii] = (uint16_t)(apal256[pbuf.u8[_ii]]);
+				#else
+					sbuf[xx].u32[_ii] = (uint32_t)(apal256[pbuf.u8[_ii]]);
+				#endif
 				}
 			}
 		} else {
-			pbuf.u64 = *((uint64_t*)p);
 			__DECL_VECTORIZED_LOOP
 			for(size_t _ii = 0; _ii < 8; _ii++) {
-				simd_element_raw(sbuf[xx], _ii) = (simd_element_cast)(apal256[pbuf.u8[_ii]]);
+				pbuf.u8[_ii] = p[_ii];
 			}
+			__DECL_VECTORIZED_LOOP
+			for(size_t _ii = 0; _ii < 8; _ii++) {
+				#if defined(_RGB555) || defined(_RGB565)
+					sbuf[xx].u16[_ii] = (uint16_t)(apal256[pbuf.u8[_ii]]);
+				#else
+					sbuf[xx].u32[_ii] = (uint32_t)(apal256[pbuf.u8[_ii]]);
+				#endif
+			}
+			//abuf[xx].v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(255, 255, 255, 255));
 			p += 8;
 		}
 		words++;
