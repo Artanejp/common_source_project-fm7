@@ -12,6 +12,7 @@
 #include "./sprite.h"
 #include "./crtc.h"
 #include "./fontroms.h"
+#include "../../types/simd/primitives_128.hpp"
 
 #define EVENT_RENDER				1
 #define EVENT_BUSY_OFF				2
@@ -204,59 +205,48 @@ uint32_t TOWNS_SPRITE::get_font_address(const uint16_t c, uint8_t &attr)
 	return romaddr;
 }
 
-#if !defined(__MINIMUM_ALIGN_LENGTH)
-#define __M__MINIMUM_ALIGN_LENGTH 16 /* OK? */
-#else
-#define __M__MINIMUM_ALIGN_LENGTH __MINIMUM_ALIGN_LENGTH
-#endif
 
-void TOWNS_SPRITE::shift_vector_data(size_t _xstart, size_t _xend, size_t _xshift, csp_vector8<uint16_t> _lbuf[])
+uint16_16_t TOWNS_SPRITE::shift_vector_data(int _xstart, int _xend, int _xshift, uint16_16_t _lbuf)
 {
 	__UNLIKELY_IF((_xshift < 0) || (_xshift > 1)) {
-		return; // NOP
+		return _lbuf; // NOP : OK?
 	}
-	size_t __lstart = _xstart << _xshift;
-	size_t __lend = _xend << _xshift;
+	__UNLIKELY_IF((_xstart < 0) || (_xend < 0)) {
+		return _lbuf; // NOP : OK?
+	}
+	size_t __lstart = (size_t)(_xstart) << _xshift;
+	size_t __lend = (size_t)(_xend) << _xshift;
 	size_t __lwidth;
-	csp_vector8<uint16_t> mask_transparent(0x8000);
-	__UNLIKELY_IF((__lstart >= 16) || (__lstart < 0) || (__lend < 0)) {
-		return; // NOP
+	__DECL_ALIGNED(32) uint16_16_t tmpbuf1;
+	//tmpbuf1.v = simd_256bit::op_set16(0x8000);
+	__UNLIKELY_IF(__lstart >= 16) {
+		return _lbuf; // NOP
 	}
 	__UNLIKELY_IF(__lend >= 16) {
 		__lend = 16;
 	}
-	__lwidth = __lend - __lstart;
-	__UNLIKELY_IF(__lwidth <= 0) {
-		return;
+	__UNLIKELY_IF(__lend <= __lstart) {
+		return _lbuf; // NOP
 	}
+	__lwidth = __lend - __lstart;
 	__UNLIKELY_IF(__lwidth > 16) {
 		__lwidth = 16;
 	}
+//	__UNLIKELY_IF((__lstart == 0) && (__lwidth == 16)) {
+//		// No Shift
+//		return _lbuf;
+//	}
+	tmpbuf1.v = _lbuf.v;
+	for(size_t xs = __lstart, xt = 0; xs < __lend; xs++, xt++) {
+		tmpbuf1.u16[xt] = tmpbuf1.u16[xs];
+	}
 	
-	if(__lstart > 0) {
-		__DECL_ALIGNED(__M__MINIMUM_ALIGN_LENGTH) uint16_t tmpbuf1[16];
-		_lbuf[0].store_aligned(&(tmpbuf1[0]));
-		_lbuf[1].store_aligned(&(tmpbuf1[8]));
-		for(size_t xs = __lstart, xt = 0; xs < __lend; xs++, xt++) {
-			tmpbuf1[xt] = tmpbuf1[xs];
-		}
-		_lbuf[0].load_aligned(&(tmpbuf1[0]));
-		_lbuf[1].load_aligned(&(tmpbuf1[8]));
-	}
-	// __lstart == 0
 	if(__lwidth < 16) {
-		if(__lwidth < 8) {
-			for(size_t xt = __lwidth; xt < 8; xt++) {
-				_lbuf[0].set(xt, 0x8000);
-			}
-			_lbuf[1] = mask_transparent;
-		} else {
-			for(size_t xt = (__lwidth - 8); xt < 8; xt++) {
-				_lbuf[1].set(xt, 0x8000);
-			}	
+		for(size_t xt = __lwidth; xt < 16; xt++) {
+			tmpbuf1.u16[xt] = 0x8000; // Clear
 		}
 	}
-	return;
+	return tmpbuf1;
 }
 
 #undef __M__MINIMUM_ALIGN_LENGTH
@@ -321,60 +311,52 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 		return;
 	}
 
-	__DECL_ALIGNED(32) uint16_t tbuf[16][16] = {0};
-	__DECL_ALIGNED(32) uint16_t sbuf[16][16] = {0};
-	__DECL_ALIGNED(16) uint16_t pixel_h[8];
-	__DECL_ALIGNED(16) uint16_t pixel_l[8];
-	__DECL_ALIGNED(16) uint16_t color_table[16] = {0};
+	__DECL_ALIGNED(32) uint16_16_t tbuf[16];
+	__DECL_ALIGNED(32) uint16_16_t sbuf[16];
+	__DECL_ALIGNED(32) uint16_16_t color_table;
+
+	for(size_t i = 0; i < 16; i++) {
+		tbuf[i].v = simd_256bit::op_clear();
+		sbuf[i].v = simd_256bit::op_clear();
+	}
+	color_table.v = simd_256bit::op_clear();
 	
+	__DECL_ALIGNED(32) uint16_16_t pixel_hl;
+	__DECL_ALIGNED(32) uint16_16_t nnw;
 	if(is_32768) {
-		csp_vector8<uint16_t> nnw[2];
 		for(int yy = 0; yy < 16; yy++) {
 			//uint32_t addr = (yy << 5) + ram_offset;
-			load_16words_from_pattern_ram(ram_offset, (uint32_t)yy, nnw);
+			load_16words_from_pattern_ram(ram_offset, (uint32_t)yy, &(nnw.u16[0]));
 			// P1 get data
-			nnw[0].store_aligned(&(tbuf[yy][0]));
-			nnw[1].store_aligned(&(tbuf[yy][8]));
+			tbuf[yy].v = nnw.v;
 		}
 	} else {
-		csp_vector8<uint16_t> nnw[2];
-		load_16words_from_pattern_ram((uint32_t)color_offset, 0, nnw);
-		csp_vector8<uint16_t> tmpmask(0x7fff);
-		nnw[0] &= tmpmask;
-		nnw[1] &= tmpmask;
-
-		nnw[0].store_aligned(&(color_table[0]));
-		nnw[1].store_aligned(&(color_table[8]));
+		load_16words_from_pattern_ram((uint32_t)color_offset, 0, &(nnw.u16[0]));
+		color_table.v = simd_256bit::op_and(nnw.v, simd_256bit::op_set16(0x7fff));
 		// Color[0] must be transparent.
 		// (Related by page 127 of technical manual.)
 		// 20250123 K.O
-		color_table[0] = 0x8000; 
+		color_table.u16[0] = 0x8000; 
 		for(int yy = 0; yy < 16; yy++) {
-			csp_vector8<uint8_t> nnl;
-			csp_vector8<uint8_t> nnh;
-			//csp_vector8<uint8_t> upper_mask(0x0f);
+			__DECL_ALIGNED(16) uint16_8_t nnhl;
+			__DECL_ALIGNED(8) uint8_8_t nnh;
 			
-			load_8bytes_from_pattern_ram(ram_offset, (uint32_t)yy, nnl);
-			nnh = nnl;
-			//nnh &= upper_mask;
-			nnh &= 0x0f;
-			nnl >>= 4;
-			//nnl &= upper_mask;
-			nnl &= 0x0f;
-			// Lookup
-		__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 8; xx++ ) {
-				pixel_h[xx] = color_table[nnh[xx]];
+			load_8bytes_from_pattern_ram(ram_offset, (uint32_t)yy, &(nnh.u8[0]));
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0, j = 0; i < 8; i++, j += 2) {
+				nnhl.u8[j]     = nnh.u8[i];
+				nnhl.u8[j + 1] = nnh.u8[i];
 			}
-		__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 8; xx++ ) {
-				pixel_l[xx] = color_table[nnl[xx]];
+			__DECL_VECTORIZED_LOOP
+			for(size_t j = 1; j < 16; j += 2) {
+				nnhl.u8[j] >>= 4;
 			}
-		__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx += 2 ) {
-				tbuf[yy][xx    ] = pixel_h[xx >> 1];
-				tbuf[yy][xx + 1] = pixel_l[xx >> 1];
+			nnhl.v = simd_128bit::op_and(nnhl.v, simd_128bit::op_set8(0x0f));
+			__DECL_VECTORIZED_LOOP
+			for(int xx = 0; xx < 16; xx++ ) {
+				pixel_hl.u16[xx] = color_table.u16[nnhl.u8[xx]];
 			}
+			tbuf[yy].v = pixel_hl.v;
 		}
 	}
 	// Rotate
@@ -382,98 +364,79 @@ void TOWNS_SPRITE::render_sprite(int num, int x, int y, uint16_t attr, uint16_t 
 	case 0:
 		// 0deg, not mirror
 		for(int yy = 0; yy < 16; yy++) {
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tbuf[yy][xx];
-			}
+			sbuf[yy].v = tbuf[yy].v;
 		}
 		break;
 	case 1:
 		// 180deg, mirror
 		for(int yy = 0; yy < 16; yy++) {
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tbuf[15 - yy][xx];
-			}
+			sbuf[yy].v = tbuf[15 - yy].v;
 		}
 		break;
 	case 2:
 		// 0deg, mirror
 		for(int yy = 0; yy < 16; yy++) {
-__DECL_VECTORIZED_LOOP
+			__DECL_ALIGNED(32) uint16_16_t tmpvec;
+			tmpvec.v = tbuf[yy].v;
+			__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tbuf[yy][15 - xx];
+				sbuf[yy].u16[xx] = tmpvec.u16[15 - xx];
 			}
 		}
 		break;
 	case 3:
 		// 180deg, not mirror
 		for(int yy = 0; yy < 16; yy++) {
-__DECL_VECTORIZED_LOOP
+			__DECL_ALIGNED(32) uint16_16_t tmpvec;
+			tmpvec.v = tbuf[15 - yy].v;
+			__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tbuf[15 - yy][15 - xx];
+				sbuf[yy].u16[xx] = tmpvec.u16[15 - xx];
 			}
 		}
 		break;
 	case 4:
 		// 270deg, mirror
-//__DECL_VECTORIZED_LOOP
 		for(int yy = 0; yy < 16; yy++) {
-			__DECL_ALIGNED(16) uint16_t tmpvec[16];
-__DECL_VECTORIZED_LOOP
+			__DECL_ALIGNED(32) uint16_16_t tmpvec;
+			__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx++) {
-				tmpvec[xx] = tbuf[xx][yy];
+				tmpvec.u16[xx] = tbuf[xx].u16[yy];
 			}
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tmpvec[xx];
-//				sbuf[yy][xx] = tbuf[xx][yy];
-			}
+			sbuf[yy].v = tmpvec.v;
 		}
 		break;
 	case 5:
 		// 90deg, not mirror
 		for(int yy = 0; yy < 16; yy++) {
-			__DECL_ALIGNED(16) uint16_t tmpvec[16];
-__DECL_VECTORIZED_LOOP
+			__DECL_ALIGNED(32) uint16_16_t tmpvec;
+			__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx++) {
-				tmpvec[xx] = tbuf[xx][15 - yy];
+				tmpvec.u16[xx] = tbuf[xx].u16[15 - yy];
 			}
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tmpvec[xx];
-//				sbuf[yy][xx] = tbuf[xx][15 - yy];
-			}
+			sbuf[yy].v = tmpvec.v;
 		}
 		break;
 	case 6:
 		// 270deg, not mirror
 		for(int yy = 0; yy < 16; yy++) {
-			__DECL_ALIGNED(16) uint16_t tmpvec[16];
-__DECL_VECTORIZED_LOOP
+			__DECL_ALIGNED(32) uint16_16_t tmpvec;
+			__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx++) {
-				tmpvec[xx] = tbuf[15 - xx][yy];
+				tmpvec.u16[xx] = tbuf[15 - xx].u16[yy];
 			}
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-				sbuf[yy][xx] = tmpvec[xx];
-//				sbuf[yy][xx] = tbuf[15 - xx][yy];
-			}
+			sbuf[yy].v = tmpvec.v;
 		}
 		break;
 	case 7:
 		// 90deg, mirror
 		for(int yy = 0; yy < 16; yy++) {
-			__DECL_ALIGNED(16) uint16_t tmpvec[16];
-__DECL_VECTORIZED_LOOP
+			__DECL_ALIGNED(32) uint16_16_t tmpvec;
+			__DECL_VECTORIZED_LOOP
 			for(int xx = 0; xx < 16; xx++) {
-				tmpvec[xx] = tbuf[15 - xx][15 - yy];
+				tmpvec.u16[xx] = tbuf[15 - xx].u16[15 - yy];
 			}
-__DECL_VECTORIZED_LOOP
-			for(int xx = 0; xx < 16; xx++) {
-//				sbuf[xx][yy] = tbuf[15 - yy][15 - xx];
-				sbuf[yy][xx] = tmpvec[xx];
-			}
+			sbuf[yy].v = tmpvec.v;
 		}
 		break;
 	}
@@ -482,29 +445,27 @@ __DECL_VECTORIZED_LOOP
 	__UNLIKELY_IF(d_vram == NULL) return; // Skip if VRAM not exists.
 	uint32_t noffset = (draw_page1) ? 0x40000 : 0x60000;
 	uint32_t vpaddr = ((rx + (ry * 256)) << 1) & 0x1ffff;
-	
-	csp_vector8<uint16_t> source[2];
-	csp_vector8<uint16_t> lbuf[2];						// Holizonal line buffer
-	csp_vector8<uint16_t> color_values[2];				// Pixel color values
-	csp_vector8<uint16_t> maskbuf_posi[2];				// Mask values; 0xffff when transparent.
-	csp_vector8<uint16_t> maskbuf_nega[2];				// Mask negative values; 0x00 when transparent.
-	csp_vector8<uint16_t> mask_transparent(0x8000);
-	csp_vector8<uint16_t> mask_value(0x7fff);
-	csp_vector8<bool>     is_transparent[2];
+
+	__DECL_ALIGNED(32) uint16_16_t source;
+	__DECL_ALIGNED(32) uint16_16_t lbuf;			// Holizonal line buffer
+	__DECL_ALIGNED(32) uint16_16_t color_values;	// Pixel color values
+	__DECL_ALIGNED(32) uint16_16_t maskbuf_posi;	// Mask values; 0xffff when transparent.
+	__DECL_ALIGNED(32) uint16_16_t maskbuf_nega;	// Mask negative values; 0x00 when transparent.
+	__DECL_ALIGNED(32) const simde__m256i mask_transparent = simd_256bit::op_set16(0x8000);
+	__DECL_ALIGNED(32) const simde__m256i mask_value = simd_256bit::op_set16(0x7fff);
+	__DECL_ALIGNED(32) const simde__m256i zero_value = simd_256bit::op_clear();
 	
 	/* Re-Implement new Logic */
 	// Get first line
 
 	// For second line.
-	csp_vector8<uint16_t> lbuf2[2];				// Holizonal line buffer
-	csp_vector8<uint16_t> color_values2[2];		// Pixel color values
-	csp_vector8<uint16_t> maskbuf_posi2[2];		// Mask values; 0xffff when transparent.
-	//csp_vector8<uint16_t> maskbuf_nega2[2];		// Mask negative values; 0x00 when transparent.
-	csp_vector8<bool>	  is_transparent2[2];
+	__DECL_ALIGNED(32) uint16_16_t lbuf2;				// Holizonal line buffer
+	__DECL_ALIGNED(32) uint16_16_t color_values2;		// Pixel color values
+	__DECL_ALIGNED(32) uint16_16_t maskbuf_posi2;		// Mask values; 0xffff when transparent.
 		
-	csp_vector8<uint16_t> zoomed_mask_posi;
-	csp_vector8<uint16_t> zoomed_mask_nega;
-	csp_vector8<uint16_t> zoomed_value;
+	__DECL_ALIGNED(16) uint16_8_t  zoomed_mask_posi;
+	__DECL_ALIGNED(16) uint16_8_t  zoomed_mask_nega;
+	__DECL_ALIGNED(16) uint16_8_t zoomed_value;
 
 	for(int yy = 0, yy2 = 0; yy < 16;  yy += __ystep, yy2++) {
 		int yoff = (yy2 + ry) & 0x1ff;
@@ -516,7 +477,7 @@ __DECL_VECTORIZED_LOOP
 			// Get From source VRAM
 			vpaddr = ((__xstart + (yoff << 8)) << 1) & 0x1ffff;
 			if(is_halfx) {
-				source[1].clear();
+				source.u16_8.array[1].v = simd_128bit::op_clear();
 			}
 			int _gwords = (is_halfx) ? 8 : 16;
 			if((vpaddr + (_gwords << 1)) > 0x20000) {
@@ -538,150 +499,82 @@ __DECL_VECTORIZED_LOOP
 					break;
 				}
 			}
-			d_vram->get_vram_to_buffer(vpaddr + noffset, source, _gwords);
+			d_vram->get_vram_to_buffer(vpaddr + noffset, &(source.u16[0]), _gwords);
 			// Get first line of SPRITE.
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				lbuf[rx1] = mask_transparent;
-				is_transparent[rx1].clear();
-			}
-
-			lbuf[0].load(&(sbuf[yy][0]));
-			lbuf[1].load(&(sbuf[yy][8]));
+			lbuf.v = mask_transparent;
+			lbuf.v = simd_256bit::load_aligned(&(sbuf[yy].v));
 			__UNLIKELY_IF((__xend != __max_width) || (__xstart2 != 0)) {
-				shift_vector_data(__xstart2, __xend, __xstep - 1, lbuf);
-			}
-			__UNLIKELY_IF(is_halfy) {
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					lbuf2[rx1] = mask_transparent;
-					is_transparent2[rx1].clear();
-				}
-				lbuf2[0].load(&(sbuf[yy + 1][0]));
-				lbuf2[1].load(&(sbuf[yy + 1][8]));
-				__UNLIKELY_IF((__xend != __max_width) || (__xstart2 != 0)) {
-					shift_vector_data(__xstart2, __xend, __xstep - 1, lbuf2);
-				}
+				lbuf = shift_vector_data(__xstart2, __xend, __xstep - 1, lbuf);
 			}
 			// Make MASK
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				maskbuf_posi[rx1] = lbuf[rx1];
-			}
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				//maskbuf_posi[rx1] &= mask_transparent;
-				maskbuf_posi[rx1] &= 0x8000;
-			}
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				maskbuf_posi[rx1].not_equals(is_transparent[rx1], 0x0000);
-			}
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				maskbuf_posi[rx1] = maskbuf_posi[rx1].set_cond(is_transparent[rx1], 0x0000, 0xffff);
-			}
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				color_values[rx1] = lbuf[rx1];
-			}
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				//color_values[rx1] &= mask_value;
-				color_values[rx1] &= 0x7fff;
-			}
-			for(int rx1 = 0; rx1 < 2; rx1++) {
-				color_values[rx1] &= maskbuf_posi[rx1];
-			}
+			// if lbuf.u16[foo] < 0x8000 (== plus), set 0xffff .
+//			maskbuf_posi.v = simd_256bit::op_greater16(lbuf.v, zero_value);
+			maskbuf_posi.v = lbuf.v;
+			maskbuf_posi.v = simd_256bit::op_and(maskbuf_posi.v, simd_256bit::op_set16(0x8000));
+			maskbuf_posi.v = simd_256bit::op_equals16(maskbuf_posi.v, simd_256bit::op_set16(0x0000));
+			
+			color_values.v = simd_256bit::op_and(lbuf.v, mask_value);
+			color_values.v = simd_256bit::op_and(color_values.v, maskbuf_posi.v);
 			if(is_halfy) {
-				// Make Mask 2nd line and zoom a data 
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					maskbuf_posi2[rx1] = lbuf2[rx1];
+				// Make Mask 2nd line and zoom a data
+				lbuf2.v = mask_transparent;
+				lbuf2.v = simd_256bit::load_aligned(&(sbuf[yy + 1].v));
+				__UNLIKELY_IF((__xend != __max_width) || (__xstart2 != 0)) {
+					lbuf2 = shift_vector_data(__xstart2, __xend, __xstep - 1, lbuf2);
 				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					//maskbuf_posi2[rx1] &= mask_transparent;
-					maskbuf_posi2[rx1] &= 0x8000;
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					maskbuf_posi2[rx1].not_equals(is_transparent2[rx1], 0x0000);
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					maskbuf_posi2[rx1] = maskbuf_posi2[rx1].set_cond(is_transparent2[rx1], 0x0000, 0xffff);
-				}
-				//for(int rx1 = 0; rx1 < 2; rx1++) {
-				//	maskbuf_nega2[rx1] = ~maskbuf_posi2[rx1];
-				//}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					color_values2[rx1] = lbuf2[rx1];
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					//color_values2[rx1] &= mask_value;
-					color_values2[rx1] &= 0x7fff;
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					color_values2[rx1] &= maskbuf_posi2[rx1];
-				}
+				//maskbuf_posi2.v = simd_256bit::op_greater16(lbuf2.v, zero_value);
+				maskbuf_posi2.v = lbuf2.v;
+				maskbuf_posi2.v = simd_256bit::op_and(maskbuf_posi2.v, simd_256bit::op_set16(0x8000));
+				maskbuf_posi2.v = simd_256bit::op_equals16(maskbuf_posi2.v, simd_256bit::op_set16(0x0000));
+				color_values2.v = simd_256bit::op_and(lbuf2.v, mask_value);
+				color_values2.v = simd_256bit::op_and(color_values2.v, maskbuf_posi2.v);
 				// Zoom to buffer1
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					maskbuf_posi[rx1] |= maskbuf_posi2[rx1];
+				maskbuf_posi.v = simd_256bit::op_or(maskbuf_posi.v, maskbuf_posi2.v);
+				__DECL_ALIGNED(32) uint16_16_t tmp_color; 
+				__DECL_VECTORIZED_LOOP
+				for(size_t rx1 = 0; rx1 < 16; rx1++) {
+					tmp_color.u16[rx1] = (color_values.u16[rx1] != 0) ? color_values.u16[rx1] : color_values2.u16[rx1]; 
 				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					__DECL_VECTORIZED_LOOP
-					for(size_t rx2 = 0; rx2 < 8; rx2++) {
-						color_values[rx1].set(rx2, (color_values[rx1].at(rx2) != 0) ? color_values[rx1].at(rx2) : color_values2[rx1].at(rx2)); 
-					}
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					color_values[rx1] &= maskbuf_posi[rx1];
-				}
+				color_values.v = simd_256bit::op_and(tmp_color.v, maskbuf_posi.v);
 			}
 			__LIKELY_IF(!(is_halfx)) {
 				// Store without Zoom
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					maskbuf_nega[rx1] = ~maskbuf_posi[rx1];
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					source[rx1] &= maskbuf_nega[rx1];
-				}
-				for(int rx1 = 0; rx1 < 2; rx1++) {
-					source[rx1] |= color_values[rx1];
-				}
+				maskbuf_nega.v = simd_256bit::op_not(maskbuf_posi.v);
+				source.v = simd_256bit::op_and(source.v, maskbuf_nega.v);
+				source.v = simd_256bit::op_or(source.v, color_values.v);
 				__UNLIKELY_IF(_gwords > 16) {
 					_gwords = 16;
 				}
 				__LIKELY_IF(_gwords > 0) {
-					d_vram->set_buffer_to_vram(vpaddr + noffset, source, _gwords);
+					d_vram->set_buffer_to_vram(vpaddr + noffset, &(source.u16[0]), _gwords);
 				}
 			} else { // Halfx
 				// Make Mask
-				zoomed_mask_posi.clear();
-				zoomed_value.clear();
+				zoomed_mask_posi.v = simd_128bit::op_clear();
+				zoomed_value.v = simd_128bit::op_clear();
 				__DECL_VECTORIZED_LOOP
-				for(size_t rx3 = 0, rx2 = 0; rx3 < 4; rx2 += 2, rx3++) {
-					uint16_t _lval = maskbuf_posi[0].at(rx2);
-					uint16_t _rval = maskbuf_posi[0].at(rx2 + 1);
-					zoomed_mask_posi.set(rx3, _lval | _rval);
+				for(size_t rx3 = 0, rx2 = 0; rx3 < 8; rx2 += 2, rx3++) {
+					uint16_t _lval = maskbuf_posi.u16[rx2];
+					uint16_t _rval = maskbuf_posi.u16[rx2 + 1];
+					zoomed_mask_posi.u16[rx3] = _lval | _rval;
 				}
 				__DECL_VECTORIZED_LOOP
-				for(size_t rx3 = 4, rx2 = 0; rx3 < 8; rx2 += 2, rx3++) {
-					uint16_t _lval = maskbuf_posi[1].at(rx2);
-					uint16_t _rval = maskbuf_posi[1].at(rx2 + 1);
-					zoomed_mask_posi.set(rx3, _lval | _rval);
-				}
-				__DECL_VECTORIZED_LOOP
-				for(size_t rx3 = 0, rx2 = 0; rx3 < 4; rx2 += 2, rx3++) {
-					uint16_t _lval = color_values[0].at(rx2);
-					uint16_t _rval = color_values[0].at(rx2 + 1);
-					zoomed_value.set(rx3, (_lval != 0) ? _lval : _rval);
-				}
-				__DECL_VECTORIZED_LOOP
-				for(size_t rx3 = 4, rx2 = 0; rx3 < 8; rx2 += 2, rx3++) {
-					uint16_t _lval = color_values[1].at(rx2);
-					uint16_t _rval = color_values[1].at(rx2 + 1);
-					zoomed_value.set(rx3, (_lval != 0) ? _lval : _rval);
+				for(size_t rx3 = 0, rx2 = 0; rx3 < 8; rx2 += 2, rx3++) {
+					uint16_t _lval = color_values.u16[rx2];
+					uint16_t _rval = color_values.u16[rx2 + 1];
+					zoomed_value.u16[rx3] =  (_lval != 0) ? _lval : _rval;
 				}
 				// Store with Zooming
-				zoomed_value &= zoomed_mask_posi;
-				zoomed_mask_nega = ~zoomed_mask_posi;
-				source[0] &= zoomed_mask_nega;
-				source[0] |= zoomed_value;
+				zoomed_value.v = simd_128bit::op_and(zoomed_value.v, zoomed_mask_posi.v);
+				zoomed_mask_nega.v = simd_128bit::op_not(zoomed_mask_posi.v);
+				source.u16_8.array[0].v = simd_128bit::op_and(source.u16_8.array[0].v, zoomed_mask_nega.v);
+				source.u16_8.array[0].v = simd_128bit::op_or(source.u16_8.array[0].v, zoomed_value.v);
+				
 				__UNLIKELY_IF(_gwords > 8) {
 					_gwords = 8;
 				}
 				__LIKELY_IF(_gwords > 0) {
-					d_vram->set_buffer_to_vram(vpaddr + noffset, source, _gwords);
+					d_vram->set_buffer_to_vram(vpaddr + noffset, &(source.u16[0]), _gwords);
 				}
 			}
 		}

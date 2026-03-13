@@ -418,7 +418,6 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 //	out_debug_log(_T("Y=%d MAGX=%d WIDTH=%d pWIDTH=%d"), y, magx, width, pwidth);
 	__UNLIKELY_IF(pwidth < 1) pwidth = 1;
 	__DECL_ALIGNED(16) uint8_8_t pbuf;
-	//csp_vector8<uint8_t> pbuf;
 	__DECL_SCRNTYPE8_ALIGNED scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	
 	size_t rwidth = pwidth & 7;
@@ -876,14 +875,6 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			scrntype_t p1;
 			scrntype_t mf;
 			scrntype_t mb;
-			//csp_vector8<scrntype_t> pix00;
-			//csp_vector8<scrntype_t> pix01;
-			//csp_vector8<scrntype_t> pix10;
-			//csp_vector8<scrntype_t> pix11;
-			//csp_vector8<scrntype_t> mask_front0;
-			//csp_vector8<scrntype_t> mask_front1;
-			//csp_vector8<scrntype_t> mask_back0;
-			//csp_vector8<scrntype_t> mask_back1;
 
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix0[2];
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix1[2];

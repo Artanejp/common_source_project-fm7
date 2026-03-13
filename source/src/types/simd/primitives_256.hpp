@@ -379,6 +379,7 @@ inline simde__m256 op_rshift64(const simde__m256 __a, const size_t __shift)
 	return op_rshift64(__a, _s);
 }
 
+	
 inline simde__m256 op_equals8(const simde__m256i __a, const simde__m256i __b)
 {
 	return simde_mm256_cmpeq_epi8(__a, __b);

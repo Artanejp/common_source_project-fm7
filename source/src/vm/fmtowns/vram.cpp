@@ -24,8 +24,7 @@ void TOWNS_VRAM::initialize()
 void TOWNS_VRAM::reset()
 {
 	lock();
-
-__DECL_VECTORIZED_LOOP
+	__DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
 		packed_pixel_mask_reg[i] = 0xff;
 	}

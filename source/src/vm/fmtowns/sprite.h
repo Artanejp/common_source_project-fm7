@@ -2,7 +2,8 @@
 #pragma once
 
 #include "../device.h"
-#include "../../types/simd.h"
+#include "../../types/simd_types.h"
+#include "../../types/simd/primitives_256.hpp"
 
 #define SIG_TOWNS_SPRITE_SET_LINES      257
 //#define SIG_TOWNS_SPRITE_TVRAM_ENABLED  258
@@ -67,8 +68,7 @@ protected:
 	
 	int event_busy;
 
-	virtual void __FASTCALL shift_vector_data(size_t _xstart, size_t _xend,
-									  size_t _xshift, csp_vector8<uint16_t> _lbuf[]);
+	virtual uint16_16_t __FASTCALL shift_vector_data(int _xstart, int _xend, int _xshift, uint16_16_t _lbuf);
 	virtual void __FASTCALL render_sprite(int num,  int x, int y, uint16_t attr, uint16_t color);
 	virtual void render_part();
 	virtual void __FASTCALL write_reg(uint32_t addr, uint32_t data);
@@ -112,39 +112,50 @@ protected:
 		tvram_enabled = false;
 		return v;
 	}
-	inline void __FASTCALL load_16words_from_pattern_ram(uint32_t bank, uint32_t yoffset, csp_vector8<uint16_t> dst[])
+	inline void __FASTCALL load_16words_from_pattern_ram(uint32_t bank, uint32_t yoffset, uint16_t *p)
 	{
+		__UNLIKELY_IF(p == NULL) {
+			return;
+		}
 		uint32_t addr = (((yoffset + bank) & 0x0fff) << 5) & 0x1ffe0;
+		__DECL_ALIGNED(32) uint16_16_t tmp;
+		
 		__LIKELY_IF(addr <= ((0x1ffff + 1) - (sizeof(uint16_t) * 16))) {
-			for(int i = 0; i < 2; i++) {
-				dst[i].load_from_le(&(pattern_ram[addr]));
-				addr += (sizeof(uint16_t) * 8);
-			}
+			tmp.v = simd_256bit::load_unaligned(&(pattern_ram[addr]));
+			#ifdef __BIG_ENDIAN__
+			tmp.v = simd_256bit::op_bswap16(tmp.v);
+			#endif
 		} else {
-			for(int i = 0; i < 2; i++) {
-				for(int j = 0; j < 8; j++) {
-					pair16_t tmp;
-					tmp.b.l = pattern_ram[addr];
-					addr = (addr + 1) & 0x1ffff;
-					tmp.b.h = pattern_ram[addr];
-					addr = (addr + 1) & 0x1ffff;
-					dst[i][j] = tmp.w;
-				}
+			addr &= 0x1ffff;
+			for(size_t i = 0; i < 16; i++) {
+				pair16_t tmp2;
+				tmp2.b.l = pattern_ram[addr];
+				addr = (addr + 1) & 0x1ffff;
+				tmp2.b.h = pattern_ram[addr];
+				addr = (addr + 1) & 0x1ffff;
+				tmp.u16[i] = tmp2.w;
 			}
 		}
+		simd_256bit::store_unaligned(p, tmp.v);	
+		return;
 	}
 	
-	inline void __FASTCALL load_8bytes_from_pattern_ram(uint32_t bank, uint32_t yoffset, csp_vector8<uint8_t>& dst)
+	inline void __FASTCALL load_8bytes_from_pattern_ram(uint32_t bank, uint32_t yoffset, uint8_t *p)
 	{
-		uint32_t addr = ((bank << 5) + (yoffset << 3)) & 0x1fff8;
-		__LIKELY_IF(addr <= ((0x1ffff + 1) - 8)) {
-			dst.load(&(pattern_ram[addr]));
-		} else {
-			for(int i = 0; i < 8; i++) {
-				dst[i] = pattern_ram[addr];
-				addr = (addr + 1) & 0x1ffff;
-			}
+		__UNLIKELY_IF(p == NULL) {
+			return;
 		}
+		__DECL_ALIGNED(16) uint8_8_t tmp;
+		uint32_t addr = ((bank << 5) + (yoffset << 3)) & 0x1fff8;
+		for(size_t i = 0; i < 8; i++) {
+			tmp.u8[i] = pattern_ram[addr];
+			addr = (addr + 1) & 0x1ffff;
+		}
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			p[i] = tmp.u8[i];
+		}
+		return;
 	}
 public:
 	TOWNS_SPRITE(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)

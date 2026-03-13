@@ -13,7 +13,9 @@
 
 #include "device.h"
 #include "../../common.h"
-#include "../../types/simd.h"
+#include "../../types/simd_types.h"
+#include "../../types/simd/primitives_128.hpp"
+#include "../../types/simd/primitives_256.hpp"
 #include "towns_common.h"
 
 #include <mutex>
@@ -66,8 +68,8 @@ protected:
 	// I/O 045AH (RW) : VRAM ACCESS CONTROLLER reg data (LOW).
 	// I/O 045BH (RW) : VRAM ACCESS CONTROLLER reg data (HIGH).
 	uint8_t vram_access_reg_addr;
-	__DECL_ALIGNED(16) uint8_t packed_pixel_mask_reg[8]; // '1' = Write. I/O 0458H - 045BH.
-	__DECL_ALIGNED(16) uint8_t vram[(1 << TOWNS_VRAM_ADDR_SHIFT) + 8]; // Related by machine.
+	__DECL_ALIGNED(32) uint8_t packed_pixel_mask_reg[8]; // '1' = Write. I/O 0458H - 045BH.
+	__DECL_ALIGNED(32) uint8_t vram[(1 << TOWNS_VRAM_ADDR_SHIFT) + 8]; // Related by machine.
 	// End.
 
 	// Flags related by host renderer. Not saved.
@@ -100,28 +102,42 @@ protected:
 	}
 	inline void transfer_data_from_double_pages(uint32_t offset, uint32_t bytes, uint8_t* dst)
 	{
-		const uint32_t bytes0 = bytes & (0xfffffff0 & TOWNS_VRAM_ADDR_MASK); // Align of 16.
-		const uint32_t bytes1 = bytes & 0x0000000f; // MOD  of 16.
+		//const uint32_t bytes0 = bytes & (0xfffffff0 & TOWNS_VRAM_ADDR_MASK); // Align of 16.
+		//const uint32_t bytes1 = bytes & 0x0000000f; // MOD  of 16.
+		const uint32_t bytes0 = bytes & (0xffffffe0 & TOWNS_VRAM_ADDR_MASK); // Align of 32.
+		const uint32_t bytes1 = bytes & 0x0000001f; // MOD  of 32.
 		uint8_t* p = dst;
-		__DECL_ALIGNED(32) uint8_t data_cache[32];
+		__DECL_ALIGNED(32) uint16_16_t data_cache;
 		for(uint32_t ar = 0; ar < bytes0; ar += 32) {
-			uint32_t ar2 = ar + offset;
-			for(uint32_t j = 0; j < 32; j++) {
-				data_cache[j] = vram[ar2 + j];
+			uint32_t ar2 = (ar + offset) & TOWNS_VRAM_ADDR_MASK;
+			//for(uint32_t j = 0; j < 32; j++) {
+			//	data_cache[j] = vram[ar2 + j];
+			//}
+			__LIKELY_IF(ar2 <= (TOWNS_VRAM_ADDR_MASK - 32)) { // Temp.
+				data_cache.v = simd_256bit::load_unaligned(&(vram[ar2]));
+			} else {
+				for(size_t i = 0; i < 32; i++) {
+					data_cache.u8[i] = vram[ar2];
+					ar2 = (ar2 + 1) & TOWNS_VRAM_ADDR_MASK;
+				}
 			}
-			__DECL_VECTORIZED_LOOP
-			for(size_t j = 0; j < 32; j++) {
-				p[j] = data_cache[j];
-			}
+			simd_256bit::store_unaligned(p, data_cache.v);
 			p += 32;
 		}
 		__UNLIKELY_IF(bytes1 != 0) {
-			uint32_t ar = offset + bytes0;
-			for(uint32_t j = 0; j < bytes1; j++) {
-				data_cache[j] = vram[ar + j];
+			uint32_t ar = (offset + bytes0) & TOWNS_VRAM_ADDR_MASK;
+			__LIKELY_IF(ar <= (TOWNS_VRAM_ADDR_MASK - bytes1)) { // Temp.
+				for(uint32_t j = 0; j < bytes1; j++) {
+					data_cache.u8[j] = vram[ar++];
+				}
+			} else {
+				for(uint32_t j = 0; j < bytes1; j++) {
+					data_cache.u8[j] = vram[ar];
+					ar = (ar + 1) & TOWNS_VRAM_ADDR_MASK;
+				}
 			}
 			for(uint32_t j = 0; j < bytes1; j++) {
-				p[j] = data_cache[j];
+				p[j] = data_cache.u8[j];
 			}
 		}
 	}
@@ -258,8 +274,8 @@ public:
 	}
 
 	
-	virtual inline bool __FASTCALL set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t>buf[], const int words);
-	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t>buf[], const int words);
+	virtual inline bool __FASTCALL set_buffer_to_vram(uint32_t offset, uint16_t* buf, const int words);
+	virtual inline bool __FASTCALL get_vram_to_buffer(uint32_t offset, uint16_t* buf, const int words);
 	virtual inline uint32_t __FASTCALL get_vram_size()
 	{
 		return TOWNS_VRAM_ADDR_MASK + 1; // ToDo
@@ -304,15 +320,20 @@ inline bool TOWNS_VRAM::try_lock() noexcept
 #endif
 }
 
-#if !defined(__MINIMUM_ALIGN_LENGTH)
-#define __M__MINIMUM_ALIGN_LENGTH 16 /* OK? */
-#else
-#define __M__MINIMUM_ALIGN_LENGTH __MINIMUM_ALIGN_LENGTH
+#if !defined(__M__MINIMUM_ALIGN_LENGTH)
+# if !defined(__MINIMUM_ALIGN_LENGTH)
+# define __M__MINIMUM_ALIGN_LENGTH 16 /* OK? */
+# else
+# define __M__MINIMUM_ALIGN_LENGTH __MINIMUM_ALIGN_LENGTH
+# endif
 #endif
 
-inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t>buf[], const int words)
+inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, uint16_t* buf, const int words)
 {	
 	__UNLIKELY_IF(vram == NULL) {
+		return false;
+	}
+	__UNLIKELY_IF(buf == NULL) {
 		return false;
 	}
 	lock();
@@ -322,19 +343,26 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 	int _bc = 0;
 	uint32_t rc = offset;
 	uint8_t* p = vram;
-	__DECL_ALIGNED(32) uint8_t tmpbuf[16];
+	__DECL_ALIGNED(16) uint16_8_t tmp;
 	for(int rx = 0; rx < cwords; rx++) {
-		buf[_bc].store_to_le(tmpbuf);
-		for(int rx2 = 0; rx2 < 16; rx2++) {
-			p[rc] = tmpbuf[rx2];
+		tmp.v = simd_128bit::load_unaligned(&(buf[_bc]));
+		for(int rx2 = 0; rx2 < 8; rx2++) {
+			pair16_t hl;
+			hl.w = tmp.u16[rx2];
+			p[rc] = hl.b.l;
+			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
+			p[rc] = hl.b.h;
 			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
 		}
-		_bc++;
+		_bc += 8;
 	}
 	if(mwords > 0) {
-		buf[_bc].store_to_le(tmpbuf);
-		for(int rx2 = 0; rx2 < (mwords << 1); rx2++) {
-			p[rc] = tmpbuf[rx2];
+		for(int rx2 = 0; rx2 < mwords; rx2++) {
+			pair16_t hl;
+			hl.w = buf[_bc++];
+			p[rc] = hl.b.l;
+			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
+			p[rc] = hl.b.h;
 			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
 		}
 	}
@@ -342,9 +370,12 @@ inline bool TOWNS_VRAM::set_buffer_to_vram(uint32_t offset, csp_vector8<uint16_t
 	return true;
 }
 
-inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t>buf[], const int words)
+inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, uint16_t* buf, const int words)
 {
 	__UNLIKELY_IF(vram == NULL) {
+		return false;
+	}
+	__UNLIKELY_IF(buf == NULL) {
 		return false;
 	}
 	lock();
@@ -354,25 +385,28 @@ inline bool TOWNS_VRAM::get_vram_to_buffer(uint32_t offset, csp_vector8<uint16_t
 	int _bc = 0;
 	uint32_t rc = offset;
 	uint8_t* p = vram;
-	__DECL_ALIGNED(32) uint8_t tmpbuf[16];
+	__DECL_ALIGNED(16) uint16_8_t tmpbuf;
 	for(int rx = 0; rx < cwords; rx++) {
-		for(int rx2 = 0; rx2 < 16; rx2++) {
-			tmpbuf[rx2] = p[rc];
+		for(int rx2 = 0; rx2 < 8; rx2++) {
+			pair16_t hl;
+			hl.b.l = p[rc];
 			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
+			hl.b.h = p[rc];
+			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
+			tmpbuf.u16[rx2] = hl.w;
 		}
-		buf[_bc].load_from_le(tmpbuf);
-		_bc++;
+		simd_128bit::store_unaligned(&(buf[_bc]), tmpbuf.v);
+		_bc += 8;
 	}
 	if(mwords > 0) {
-		__DECL_VECTORIZED_LOOP
-		for(int rx2 = 0; rx2 < 16; rx2++) {
-			tmpbuf[rx2] = 0;
-		}
-		for(int rx2 = 0; rx2 < (mwords << 1); rx2++) {
-			tmpbuf[rx2] = p[rc];
+		for(int rx2 = 0; rx2 < mwords; rx2++) {
+			pair16_t hl;
+			hl.b.l = p[rc];
 			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
+			hl.b.h = p[rc];
+			rc = (rc + 1) & TOWNS_VRAM_ADDR_MASK;
+			buf[_bc++] = hl.w;
 		}
-		buf[_bc].load_from_le(tmpbuf);
 	}
 	unlock();
 	return true;
