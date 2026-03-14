@@ -70,10 +70,13 @@ typedef union {
 	int16_t  s16[4];
 	uint32_t u32[2];
 	int32_t  s32[2];
-	uint32_t u64;
-	int32_t  s64;
+	float    _fp32[2];
+	uint64_t u64;
+	int64_t  s64;
 	uint64_t q;
 	int64_t  sq;
+	double  _fp64;
+	double  _dp64;
 	pair64_t pair;
 } uint8_8_t;
 
@@ -112,8 +115,11 @@ typedef union {
 	int16_t  s16[8];
 	uint32_t u32[4];
 	int32_t  s32[4];
+	float    _fp32[4];
 	uint64_t u64[2];
 	int64_t  s64[2];
+	double   _fp64[2];
+	double   _dp64[2];
 	union {
 		uint8_8_t array[2];
 		struct {
@@ -144,8 +150,12 @@ typedef union {
 	int16_t  s16[16];
 	uint32_t u32[8];
 	int32_t  s32[8];
+	float   _fp32[2];
+	
 	uint64_t u64[4];
 	int64_t  s64[4];
+	double   _fp64[4];
+	double   _dp64[4];
 	union {
 		uint8_8_t array[4];
 		struct {
