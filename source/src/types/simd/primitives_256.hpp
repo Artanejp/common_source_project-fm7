@@ -14,6 +14,10 @@
 // #include "../simd_types.h"
 
 namespace simd_256bit {
+
+/*
+ * Utilities
+ */
 template <typename T>
 	inline const size_t vector_width(T _eval)
 {
@@ -22,6 +26,7 @@ template <typename T>
 	}
 	return sizeof(simde__m256) / sizeof(T);
 }
+
 template <typename T>
 	inline const size_t vector_mod(T _eval)
 {
@@ -38,16 +43,25 @@ inline const bool is_aligned(void *p)
 	return ((pd & mask) == 0) ? true : false;
 }
 
+/*
+ * Zero ALL bits.
+ */
 inline simde__m256 op_clear()
 {
 	return simde_mm256_setzero_si256();
 }
 
+/*
+ * Set ALL bits.
+ */
 inline simde__m256 op_setall()
 {
 	return simde_x_mm256_setone_si256();
 }
 
+/*
+ * LOAD/STORE
+ */
 inline simde__m256 load_aligned(simde__m256* p)
 {
 	return simde_mm256_load_si256((simde__m256i*)p);
@@ -68,6 +82,9 @@ inline void store_unaligned(void* p, simde__m256 dat)
 	simde_mm256_storeu_si256((simde__m256i*)p, (simde__m256i)dat);
 }
 	
+/*
+ * Fill all cells by one value (int)
+ */	
 inline simde__m256 op_set8(const uint8_t __a)
 {
 	__DECL_ALIGNED(32) uint32_8_t __r;
@@ -111,7 +128,32 @@ inline simde__m256 op_set_scrntype(const scrntype_t __a)
 {
 	return op_set32((const uint32_t)__a);
 }
+/*
+ * Fill all cells by one value (float)
+ */
+inline simde__m256 op_set_float32(const float __a)
+{
+	__DECL_ALIGNED(32) uint16_16_t __r;
+	SIMDE_VECTORIZE
+	for(size_t n = 0; n < 8; n++) {
+		__r._fp32[n] = __a;
+	}
+	return __r.v;
+}
+
+inline simde__m256 op_set_float64(const double __a)
+{
+	__DECL_ALIGNED(32) uint16_16_t __r;
+	SIMDE_VECTORIZE
+	for(size_t n = 0; n < 4; n++) {
+		__r._fp64[n] = __a;
+	}
+	return __r.v;
+}
 	
+/*
+ * Byte (endian) SWAP OPs
+ */
 inline simde__m256 op_bswap16(simde__m256 __a)
 {
 	__DECL_ALIGNED(32) uint32_8_t __r;
@@ -151,7 +193,9 @@ inline simde__m256 op_bswap64(simde__m256 __a)
 	return __r.v;
 }
 
-// 256bit wide
+/*
+  Logical OPs
+*/
 inline simde__m256 op_and(const simde__m256 __a, const simde__m256 __b)
 {
 	return simde_mm256_and_si256(__a, __b);
@@ -169,11 +213,22 @@ inline simde__m256 op_not(const simde__m256 __a)
 {
 	return simde_x_mm256_not_ps(__a);
 }
+
+// not(__a) and __b
+inline simde__m256 op_andnot(const simde__m256 __a, const simde__m256 __b)
+{
+	return simde_mm256_andnot_si256(__a, __b);
+}
+
+/*
+  Integer arithmetical OPs
+*/
 inline simde__m256 op_add_s8(const simde__m256 __a, const simde__m256 __b)
 {
 	return simde_mm256_add_epi8(__a, __b);
 }
 
+// signed/unsigned saturation add.
 inline simde__m256 op_add_u8_sat(const simde__m256 __a, const simde__m256 __b)
 {
 	return simde_mm256_adds_epu8(__a, __b);
@@ -248,7 +303,10 @@ inline simde__m256 op_sub_s64(const simde__m256 __a, const simde__m256 __b)
 {
 	return simde_mm256_sub_epi64(__a, __b);
 }
-
+	
+/*
+ * Shift OPs
+ */
 inline simde__m256 op_lshift16(const simde__m256 __a, const simde__m128i __shift)
 {
 	return simde_mm256_sll_epi16(__a, __shift);
@@ -380,6 +438,32 @@ inline simde__m256 op_rshift64(const simde__m256 __a, const size_t __shift)
 }
 
 	
+/* For byte shift: You should call as template.
+   This seems to relation of clang ?
+   - 20260314 K.O */
+template <const int __bytes> 	
+	inline simde__m256 op_rshift_bytes(simde__m256 __a)
+{
+	return simde_mm256_srli_si256(__a, __bytes);
+}
+
+template <const int __bytes> 	
+	inline simde__m256 op_lshift_bytes(simde__m256 __a)
+{
+	return simde_mm256_slli_si256(__a, __bytes);
+}
+
+// SSSE3
+template <const int __bytes> 
+	inline simde__m256 op_rshift_packed_bytes(simde__m256 __hi, simde__m256 __lo)
+{
+	return simde_mm256_alignr_epi8(__hi, __lo, __bytes);
+}
+	
+
+/*
+  Compare (SIGNED INTEGER)
+*/
 inline simde__m256 op_equals8(const simde__m256i __a, const simde__m256i __b)
 {
 	return simde_mm256_cmpeq_epi8(__a, __b);
@@ -456,11 +540,6 @@ inline simde__m256 op_lesser64(const simde__m256i __a, const simde__m256 __b)
 }
 
 
-// not(__a) and __b
-inline simde__m256 op_andnot(const simde__m256 __a, const simde__m256 __b)
-{
-	return simde_mm256_andnot_si256(__a, __b);
-}
 
 constexpr size_t copy_multiple(const void* dst, const void* src, const size_t vec8_words = 1)
 {
@@ -1497,5 +1576,98 @@ inline size_t eval_le32(const void* dst, const void* __a, const simde__m256 __b,
 	return eval_lesser_equals32(dst, __a, __b, vec8_words);
 }
 	
+/*
+ * Lookup tables (a.k.a Gather) OPs.
+ */
+
+inline simde__m256i make_table32x4_from_uint8(uint8_t* p)
+{
+	__DECL_ALIGNED(32) uint16_16_t _tbl;
+	SIMDE_VECTORIZE
+	for(size_t i = 0; i < 8; i++) {
+		_tbl.u32[i] = p[i];
+	}
+	return _tbl.v;
+}
+
+inline simde__m256i make_table64x4_from_uint8(uint8_t* p)
+{
+	__DECL_ALIGNED(32) uint16_16_t _tbl;
+	SIMDE_VECTORIZE
+	for(size_t i = 0; i < 4; i++) {
+		_tbl.u64[i] = p[i];
+	}
+	return _tbl.v;
+}
+
+inline simde__m256i make_table32x8_from_uint16(uint16_t* p)
+{
+	__DECL_ALIGNED(32) uint16_16_t  _tbl;
+	SIMDE_VECTORIZE
+	for(size_t i = 0; i < 8; i++) {
+		_tbl.u32[i] = p[i];
+	}
+	return _tbl.v;
+}
+
+inline simde__m256i make_table64x4_from_uint16(uint16_t* p)
+{
+	__DECL_ALIGNED(32) uint16_16_t _tbl;
+	//_src.v = op_clear();
+	SIMDE_VECTORIZE
+	for(size_t i = 0; i < 4; i++) {
+		_tbl.u64[i] = p[i];
+	}
+	return _tbl.v;
+}
+
+// Get from 8x32bit elements from table.
+template <int tbl_scale>
+	inline simde__m256i op_lookup_int32(const int32_t* tbl, const simde__m256i __index)
+{
+	return simde_mm256_i32gather_epi32(tbl, __index, tbl_scale);
+}
+
+template <int tbl_scale>
+	inline simde__m256i op_lookup_selectable_int32(const simde__m256i src_vec, const int32_t* tbl, const simde__m256i __index, const simde__m256i mask_vec)
+{
+	return simde_mm256_mask_i32gather_epi32(src_vec, tbl, __index, mask_vec, tbl_scale);
+}
+
+template <int tbl_scale>
+	inline simde__m256i op_lookup_selectable_int32(const simde__m256i src_vec, const int32_t* tbl, const simde__m256i __index, const bool masks[8])
+{
+	__DECL_ALIGNED(32) uint16_16_t mask_vec;
+	SIMDE_VECTORIZE
+	for(size_t i = 0; i < 8; i++) {
+		mask_vec.u32[i] = (masks[i]) ? UINT32_MAX : 0;
+	}
+	return simde_mm256_mask_i32gather_epi32(src_vec, tbl, __index, mask_vec.v, tbl_scale);
+}
+
+// Get from 4x64bit elements from table.
+template <int tbl_scale>
+	inline simde__m256i op_lookup_int64(const int64_t* tbl, const simde__m128i __index)
+{
+	return simde_mm256_i32gather_epi64(tbl, __index, tbl_scale);
+}
+
+// Get from 4x64bit elements from table with selectable mask.
+template <int tbl_scale>
+	inline simde__m256i op_lookup_selectable_int64(const simde__m256i src_vec, const int64_t* tbl, const simde__m128i __index, const simde__m256i mask_vec)
+{
+	return simde_mm256_mask_i32gather_epi64(src_vec, tbl, __index, mask_vec, tbl_scale);
+}
+
+template <int tbl_scale>
+	inline simde__m256i op_lookup_selectable_int64(const simde__m256i src_vec, const int64_t* tbl, const simde__m128i __index, const bool masks[4])
+{
+	__DECL_ALIGNED(32) uint16_16_t mask_vec;
+	SIMDE_VECTORIZE
+	for(size_t i = 0; i < 4; i++) {
+		mask_vec.u64[i] = (masks[i]) ? UINT64_MAX : 0;
+	}
+	return simde_mm256_mask_i32gather_epi64(src_vec, tbl, __index, mask_vec.v, tbl_scale);
+}
 
 } /* namespace simd_256bit */
