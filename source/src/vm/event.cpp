@@ -187,8 +187,8 @@ void EVENT::reset()
 
 bool EVENT::drive()
 {
-	// Prefetch event table at first.
-	make_prefetch_volatile(event, sizeof(event_t) * MAX_EVENT); 
+	// Prefetch event table at first. -> STOP
+	//make_prefetch_volatile(event, sizeof(event_t) * MAX_EVENT); 
 	
 	// Update cache from config.drive_vm_in_opecode .
 	cache_drive_vm_in_opecode = config.drive_vm_in_opecode;
