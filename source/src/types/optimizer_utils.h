@@ -169,49 +169,49 @@
 		inline void make_prefetch(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes ; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]));
 			}
 		}
 		inline void make_prefetch_local(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes ; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]), 0, 2);
 			}
 		}
 		inline void make_prefetch_volatile(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes ; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]), 0, 0);
 			}
 		}
 		inline void make_prefetch_read_local(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes ; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]), 0, 2);
 			}
 		}
 		inline void make_prefetch_write_local(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes ; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]), 1, 2);
 			}
 		}
 		inline void make_prefetch_read_volatile(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]), 0, 2);
 			}
 		}
 		inline void make_prefetch_write_volatile(void *p, const size_t bytes)
 		{
 			uint8_t *q = (uint8_t*)p;
-			for(size_t i = 0; i <= (bytes / __TMP_CACHE_SIZE); i += __TMP_CACHE_SIZE) {
+			for(size_t i = 0; i <= bytes ; i += __TMP_CACHE_SIZE) {
 				__builtin_prefetch(&(q[i]), 1, 0);
 			}
 		}
