@@ -213,7 +213,16 @@ typedef simde__m128 simd_scrntype8_t;
 #define simd_element_p(aptr, pos)  (scrntype_t)(aptr->u16[pos])
 #define simd_element_raw(arr, pos)  arr.u16[pos]
 #define simd_element_raw_p(aptr, pos)  aptr->u16[pos]
+
 #define simd_element_cast uint16_t
+#define read_simd_element(dst, dst_pos, dat) {			\
+		dst.u16[dst_pos] = (simd_element_cast)(dat);	\
+	}
+
+#define read_simd_element_p(dst_p, dst_pos, dat) {		\
+		dst->u16[dst_pos] = (simd_element_cast)(dat);	\
+	}
+
 #else /* _RGB888 */
 typedef uint32_8_t scrntype8_t;
 typedef simde__m256 simd_scrntype8_t;
@@ -223,6 +232,16 @@ typedef simde__m256 simd_scrntype8_t;
 #define simd_element_p(aptr, pos)  (scrntype_t)(aptr->u32[pos])
 #define simd_element_raw(arr, pos)  arr.u32[pos]
 #define simd_element_raw_p(aptr, pos)  aptr->u32[pos]
+
 #define simd_element_cast uint32_t
+#define read_simd_element(dst, dst_pos, dat) {			\
+		dst.u32[dst_pos] = (simd_element_cast)(dat);	\
+	}
+
+#define read_simd_element_p(dst_p, dst_pos, dat) {		\
+		dst->u32[dst_pos] = (simd_element_cast)(dat);	\
+	}
+
+
 #endif
 #define __DECL_SCRNTYPE8_ALIGNED __DECL_ALIGNED(SCRNTYPE8_ALIGN)
