@@ -95,10 +95,7 @@ int OSD_BASE::draw_screen()
 
 int OSD_BASE::no_draw_screen()
 {
-	if(now_record_video) {
-		add_video_frames();
-	}
-	return 1;
+	return add_video_frames();
 }
 
 scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
@@ -110,9 +107,9 @@ scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 void OSD_BASE::do_draw(bool flag)
 {
 	int frames;
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+
 	do_decode_movie(1);
-#endif
+
 	if(flag) {
 		frames = draw_screen();
 	} else {
@@ -213,7 +210,7 @@ void OSD_BASE::stop_record_video()
 
 void OSD_BASE::restart_record_video()
 {
-	bool tmp = now_record_video;
+	bool tmp = now_record_video.load();
 	stop_record_video();
 	if(tmp) {
 		start_record_video(-1);

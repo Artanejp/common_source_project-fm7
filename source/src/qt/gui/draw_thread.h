@@ -50,16 +50,18 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	QScreen *screen;
 	int draw_frames;
 	bool bRunThread;
-	bool bDrawReq;
+	std::atomic<bool> m_draw_req;
 	bool bRecentRenderStatus;
 	bitmap_t *draw_screen_buffer;
 	std::shared_ptr<CSP_Logger> csp_logger;
 	int ncount;
 	double emu_frame_rate;
 
-	bool mapping_status;
-	bool mapped_drawn;
-	void doDrawMain(bool flag);
+	std::atomic<bool> m_vsync_happened;
+	std::atomic<bool> m_drawreq_from_host;
+	
+	std::atomic<bool> m_mapping_status;
+	std::atomic<bool> m_mapped_drawn;
 
 	QElapsedTimer tick_timer;
  public:
@@ -80,7 +82,7 @@ public slots:
 	void do_draw_one_turn(bool _req_draw);
 	void do_set_frames_per_second(double fps);
 
-	void do_render_to_texture();
+	void do_vsync();
 
 	void req_map_screen_texture();
 	void req_unmap_screen_texture();

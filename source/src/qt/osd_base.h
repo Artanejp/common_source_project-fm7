@@ -571,7 +571,7 @@ public:
 	void stop_record_video();
 	void restart_record_video();
 	void add_extra_frames(int extra_frames);
-	bool now_record_video;
+	std::atomic<bool> now_record_video;
 	bool screen_skip_line;
 	
 	// common sound : Moved to SLOT.
@@ -589,7 +589,7 @@ public:
 		return sound_capture_devices_list;
 	}
 
-	bool now_record_sound;
+	std::atomic<bool> now_record_sound;
 	int get_sound_rate();
 
 	// To VM:: and EMU::

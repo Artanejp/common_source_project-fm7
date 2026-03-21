@@ -2030,7 +2030,11 @@ void EMU::stop_record_video()
 
 bool EMU::is_video_recording()
 {
+	#if !defined(_USE_QT)
 	return osd->now_record_video;
+	#else
+	return (osd->now_record_video).load();
+	#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -2054,7 +2058,11 @@ void EMU::stop_record_sound()
 
 bool EMU::is_sound_recording()
 {
+	#if !defined(_USE_QT)
 	return osd->now_record_sound;
+	#else
+	return (osd->now_record_sound).load();
+	#endif
 }
 
 // ----------------------------------------------------------------------------

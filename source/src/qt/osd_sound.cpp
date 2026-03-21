@@ -557,13 +557,16 @@ void OSD_BASE::update_sound(int* extra_frames)
 		m_sound_vm_local_usec -= _sample_usec;
 
 		//sound_debug_log(_T("Render %d Samples , uSec=%lld Extra frames = %d"), _samples, m_sound_vm_local_usec.load(), __extra_frames);
-		if((now_record_sound || now_record_video) && (sound_buffer != nullptr) && (_buffer_bytes > 0)) {
-			if(now_record_video) {
+		bool _rs = now_record_sound.load();
+		bool _rv = now_record_video.load();
+		
+		if(((_rs) || (_rv)) && (sound_buffer != nullptr) && (_buffer_bytes > 0)) {
+			if(_rv) {
 				// ToDo: Change endian for Video?
 				int16_t* vwp = sound_buffer;
 				emit sig_enqueue_audio(vwp, _buffer_bytes);
 			}
-			if((now_record_sound) && (rec_sound_fio != nullptr)) {
+			if((_rs) && (rec_sound_fio != nullptr)) {
 				if(rec_sound_fio->IsOpened()) {
 					#if defined(__LITTLE_ENDIAN__)
 					int16_t* awp = sound_buffer;
@@ -1053,7 +1056,7 @@ void OSD_BASE::start_record_sound()
 		return;
 	}
 
-	if(!now_record_sound) {
+	if(!(now_record_sound.load())) {
 		//LockVM();
 		__UNLIKELY_IF(rec_sound_fio != nullptr) {
 			if(rec_sound_fio->IsOpened()) { // Fail safe.
@@ -1093,7 +1096,7 @@ void OSD_BASE::start_record_sound()
 
 void OSD_BASE::stop_record_sound()
 {
-	if(now_record_sound) {
+	if(now_record_sound.load()) {
 		int __rate = m_sound_sink_rate.load();
 		if((rec_sound_bytes == 0) || (__rate <= 0)) {
 			if(rec_sound_fio != nullptr) {
@@ -1136,7 +1139,7 @@ void OSD_BASE::stop_record_sound()
 
 void OSD_BASE::restart_record_sound()
 {
-	bool tmp = now_record_sound;
+	bool tmp = now_record_sound.load();
 	stop_record_sound();
 	if(tmp) {
 		start_record_sound();

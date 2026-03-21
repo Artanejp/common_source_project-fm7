@@ -1,5 +1,5 @@
 message("* vm/fmgen")
-SET(THIS_LIB_VERSION 11.2.1)
+SET(THIS_LIB_VERSION 11.3.0)
 add_compile_definitions(__LIBFMGEN_VERSION=\"libCSPfmgen.${THIS_LIB_VERSION}\")
 
 SET(s_vm_fmgen_srcs

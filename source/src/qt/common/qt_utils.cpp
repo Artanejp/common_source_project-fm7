@@ -523,9 +523,9 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 
 	connect((OSD*)p_osd, SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)), Qt::DirectConnection);
 	connect((OSD*)p_osd, SIGNAL(sig_enqueue_video(int, int, int, QImage *)),
-			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection);
-	connect(glv->extfunc, SIGNAL(sig_push_image_to_movie(int, int, int, QImage *)),
-			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection);
+			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection); // !!
+//	connect(glv->extfunc, SIGNAL(sig_push_image_to_movie(int, int, int, QImage *)),
+//			hSaveMovieThread, SLOT(enqueue_video(int, int, int, QImage *)), Qt::DirectConnection);
 	connect(this, SIGNAL(sig_quit_movie_thread()), hSaveMovieThread, SLOT(do_exit()));
 
 	objNameStr = QString("EmuMovieThread");
