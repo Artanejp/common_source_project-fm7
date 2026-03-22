@@ -12,6 +12,7 @@
 
 #include <QThread>
 #include <QElapsedTimer>
+#include <mutex>
 #include <memory>
 #include "qt_gldraw.h"
 
@@ -36,34 +37,38 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 
 	QOpenGLContext *glContext;
 	bool is_shared_glcontext;
-	
-	qreal refresh_rate;
-	qreal wait_refresh;
-	qreal wait_count;
-	int wait_factor;
-	int rec_frame_count;
-	int rec_frame_width;
-	int rec_frame_height;
+
+	std::atomic<bool>  m_about_to_quit;
+	std::atomic<qreal> m_refresh_rate;
+	std::atomic<qreal> m_wait_refresh;
+	std::atomic<qreal> m_wait_count;
+	std::atomic<int>   m_wait_factor;
+	std::atomic<int>   m_rec_frame_count;
+	std::atomic<int>   m_rec_frame_width;
+	std::atomic<int>   m_rec_frame_height;
 	
  protected:
+	std::recursive_mutex m_main_locker;
+	std::recursive_timed_mutex m_worker_locker;
 	std::shared_ptr<USING_FLAGS> using_flags;
 	QScreen *screen;
-	int draw_frames;
-	bool bRunThread;
-	std::atomic<bool> m_draw_req;
-	bool bRecentRenderStatus;
+
 	bitmap_t *draw_screen_buffer;
 	std::shared_ptr<CSP_Logger> csp_logger;
-	int ncount;
-	double emu_frame_rate;
+
+	std::atomic<bool>   m_req_draw;
+	std::atomic<double> m_emu_frame_rate;
 
 	std::atomic<bool> m_vsync_happened;
 	std::atomic<bool> m_drawreq_from_host;
-	
+	std::atomic<bool> m_update_req;	
 	std::atomic<bool> m_mapping_status;
 	std::atomic<bool> m_mapped_drawn;
 
-	QElapsedTimer tick_timer;
+	int m_draw_frames;
+	int m_ncount;
+	void run() override;
+	//QElapsedTimer tick_timer;
  public:
 	DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger, QObject *parent = 0);
 	~DrawThreadClass();
@@ -71,13 +76,12 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	
 	void SetEmu(EMU_TEMPLATE *p);
 public slots:
-	void do_start_draw_thread(QThread::Priority prio);
 	void do_exit_draw_thread(void);
 	void do_set_priority(QThread::Priority prio);
 	
 	void do_draw(bool flag);
 	void do_change_refresh_rate(qreal rate);
-	void do_update_screen(void *p, bool is_mapped);
+	void do_update_screen(void *p, bool is_mapped, bool already_drawn);
 	void do_req_encueue_video(int count, int width, int height);
 	void do_draw_one_turn(bool _req_draw);
 	void do_set_frames_per_second(double fps);
