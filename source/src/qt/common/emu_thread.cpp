@@ -243,12 +243,12 @@ void EmuThreadClass::doWork()
 				if(req_draw) {
 					p_emu->request_update_screen();
 				}
-				#if 1
+				#if 0
 				if(p_osd != nullptr) {
 					p_osd->do_draw(req_draw); // Call OSD , then off;pading by OSD to DRAW_THREAD.
 				}
 				#else
-				//	emit sig_draw_thread(req_draw); // Call offloading thread.
+					emit sig_draw_thread(req_draw); // Call offloading thread.
 				#endif
 				if(led_timer.hasExpired(100)) { // Update at least 100mSec.
 					if((u_p->get_use_led_devices() > 0) || (u_p->get_use_key_locked())) {
