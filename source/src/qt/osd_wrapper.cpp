@@ -95,7 +95,7 @@ void OSD::set_draw_thread(std::shared_ptr<DrawThreadClass> handler)
 
 	m_draw_thread = handler;
 	
-	connect(this, SIGNAL(sig_update_screen(void *, bool, bool)), m_draw_thread.get(), SLOT(do_update_screen(void *, bool, bool)));
+	connect(this, SIGNAL(sig_update_screen(void *, bool, bool)), m_draw_thread.get(), SLOT(do_update_screen(void *, bool, bool)), Qt::DirectConnection);
 	connect(this, SIGNAL(sig_save_screen(const char *)), p_glv, SLOT(do_save_frame_screen(const char *)));
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), p_glv, SLOT(do_set_texture_size(QImage *, int, int)));
 	connect(this, SIGNAL(sig_resize_vm_lines(int)), p_glv, SLOT(do_set_horiz_lines(int)));
@@ -638,19 +638,11 @@ int OSD::draw_screen()
 	bool mapped = false;
 	bool already_update = false;
 	
-	// screen size was changed in vm->draw_screen()
-	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		return 0;
-	}
 	if(now_record_video.load()) {
 		vm_screen_buffer.is_mapped = true;
 		mapped = false;
 		vm_screen_buffer.glv = nullptr;
 		draw_screen_buffer = &vm_screen_buffer;
-		
-//		vm_draw_screen();
-//		add_video_frames();
-//		already_update = true;
 	} else {
 		if(p_glv->is_ready_to_map_vram_texture()) {
 			vm_screen_buffer.is_mapped = true;
@@ -658,20 +650,32 @@ int OSD::draw_screen()
 			vm_screen_buffer.glv = p_glv;
 		} else {
 			vm_screen_buffer.is_mapped = false;
+			vm_screen_buffer.glv = nullptr;
 		}
 		draw_screen_buffer = &vm_screen_buffer;
+	}
+	vm_draw_screen();
+	// screen size was changed in vm->draw_screen()
+	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
+		return 0;
 	}
 
 	// calculate screen size
 	// invalidate window
 	// ToDo: Support MAX_DRAW_RANGES. 20221212 K.O
-	emit sig_update_screen((void *)draw_screen_buffer, mapped, already_update);
+	//emit sig_update_screen((void *)draw_screen_buffer, mapped, already_update);
 	// Direct call to DrawThread, because this function called from DrawThread. 20240212 K.O
-	//__LIKELY_IF(m_draw_thread.get() != nullptr) {
-	//	m_draw_thread->do_update_screen((void *)draw_screen_buffer, mapped);
-	//}
+	
+	std::shared_ptr<DrawThreadClass>	_dp = m_draw_thread;
+	__LIKELY_IF(_dp.get() != nullptr) {
+		_dp->do_update_screen((void *)draw_screen_buffer, mapped, already_update);
+	}
 	first_draw_screen = self_invalidate = true;
 
+		
+	if(now_record_video.load()) {
+		add_video_frames();
+	}
 	return 1;
 }
 
@@ -792,8 +796,8 @@ int OSD::add_video_frames()
 	} else {
 		//int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
-		std::shared_ptr<QImage> video_result;
-		video_result.reset(QImage(vm_screen_buffer.pImage));
+		QImage video_result;
+		video_result = QImage(vm_screen_buffer.pImage);
 		// Rescaling
 		if(i > 0) {
 			// Enqueue to frame.

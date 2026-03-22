@@ -261,7 +261,6 @@ protected:
 	virtual scrntype_t *get_buffer(bitmap_t *p, int y);
 
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
-	virtual int add_video_frames();
 
 	bitmap_t vm_screen_buffer;
 	bitmap_t video_screen_buffer;
@@ -428,7 +427,6 @@ protected:
 	// wrapper
 	int max_vm_nodes;
 	QList<device_node_t> device_node_list;
-	void vm_draw_screen(void);
 	Sint16* create_sound(int *extra_frames);
 
 	bool get_use_socket(void);
@@ -828,6 +826,8 @@ public slots:
 	void do_video_decoding_error(int num);
 	virtual void do_run_movie_audio_callback(uint8_t *data, long len);
 	virtual int draw_screen();
+	virtual void vm_draw_screen(void);
+	virtual int add_video_frames();
 
 	void do_draw(bool flag);
 
@@ -842,7 +842,7 @@ public slots:
 	void do_stop_sound_timer();
 	
 signals:
-	int sig_update_screen(void *, bool);
+	int sig_update_screen(void *, bool, bool);
 	int sig_save_screen(const char *);
 	int sig_draw_frames(int);
 	int sig_close_window(void);

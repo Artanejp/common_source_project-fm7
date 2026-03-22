@@ -55,7 +55,6 @@ protected:
 	void release_screen() override;
 	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode) override;
 	scrntype_t* get_buffer(bitmap_t *p, int y) override;
-	int add_video_frames() override;
 
 	// video device
 	void initialize_video() override;
@@ -135,6 +134,8 @@ public:
 
 public slots:
 	int draw_screen() override;
+	int add_video_frames() override;
+	
 	void do_run_movie_audio_callback(uint8_t *data, long len) override;
 	
 	void do_decode_movie(int frames) override;
