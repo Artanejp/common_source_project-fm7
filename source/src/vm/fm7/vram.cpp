@@ -110,14 +110,39 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 		cmd.begin_pos = begin;
 		cmd.shift = shift;
 	}
-	scrntype_t *p;
-	scrntype_t *pp;
+	scrntype_t *p = NULL;
+	scrntype_t *pp = NULL;
+
+	uint16_8_t* r_table = (uint16_8_t*)(&(bit_trans_table_1[0][0])); // R
+	uint16_8_t* g_table = (uint16_8_t*)(&(bit_trans_table_0[0][0])); // G
+	uint16_8_t* b_table = (uint16_8_t*)(&(bit_trans_table_2[0][0])); // B
+	const uint32_t base_address_b = (0 * _offset_base) + yoff_d;
+	const uint32_t base_address_r = (1 * _offset_base) + yoff_d;
+	const uint32_t base_address_g = (2 * _offset_base) + yoff_d;
+	const uint32_t voffset = y * width;
+	const uint32_t address_mask = _offset_base - 1;
+	const uint32_t offset_mask = _offset_base - 1;
+	const bool is_render_rgb[4] = { !(multimode_dispflags[1]), !(multimode_dispflags[2]), !(multimode_dispflags[0]), false };
+	scrntype8_t* palette_ptr = (scrntype8_t*) dpalette_pixel;
+	#if defined(USE_GREEN_DISPLAY)
+	if(use_green_monitor) {
+		palette_ptr = (scrntype8_t*)dpalette_pixel_green;
+	}
+	#endif
 	
 	if(dmode == DISPLAY_MODE_8_400L) {
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 		p = emu->get_screen_buffer(y);
 		if(p == NULL) return;
-		Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
+		//Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
+		Render8Colors_Line2(&(p[begin * 8]), NULL, gvram_shadow,
+							begin, width,
+							palette_ptr,
+							r_table, g_table, b_table,
+							/*scan_line*/ false,
+							base_address_r, base_address_g, base_address_b,
+							voffset, address_mask, offset_mask,
+							is_render_rgb, shift, bytes);
 #endif
 	} else {
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
@@ -131,11 +156,19 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 		switch(dmode) {
 		case DISPLAY_MODE_8_200L:
 			{
-				if(pp != NULL) {
-					Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(pp[cmd.begin_pos * 8]), scan_line);
-				} else {
-					Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-				}
+				Render8Colors_Line2(&(p[begin * 8]), (pp == NULL) ? NULL : &(pp[begin * 8]), gvram_shadow,
+									begin, width,
+									palette_ptr,
+									r_table, g_table, b_table,
+									(pp != NULL) ? scan_line : false,
+									base_address_r, base_address_g, base_address_b,
+									voffset, address_mask, offset_mask,
+									is_render_rgb, shift, bytes);
+//				if(pp != NULL) {
+//					Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), &(pp[cmd.begin_pos * 8]), scan_line);
+//				} else {
+//					Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
+//				}
 			}
 			break;
 #if defined(_FM77AV_VARIANTS)
