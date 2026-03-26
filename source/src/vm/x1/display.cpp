@@ -150,9 +150,13 @@ void DISPLAY::initialize()
 	zpalette_pc[8 + 7] = zpalette_pc[16 + 0xfff];
 #endif
 
-	PrepareBitTransTable(&bit_trans_table_b0, 0x01, 0x00);
-	PrepareBitTransTable(&bit_trans_table_r0, 0x02, 0x00);
-	PrepareBitTransTable(&bit_trans_table_g0, 0x04, 0x00);
+//	PrepareBitTransTable(&(bit_trans_table_b0[0]), 0x01, 0x00);
+//	PrepareBitTransTable(&(bit_trans_table_r0[0]), 0x02, 0x00);
+//	PrepareBitTransTable(&(bit_trans_table_g0[0]), 0x04, 0x00);
+	PrepareBitTransTable_16bit_8bitRange(bit_trans_table_b0, 0, true, false, 0, 256);
+	PrepareBitTransTable_16bit_8bitRange(bit_trans_table_r0, 1, true, false, 0, 256);
+	PrepareBitTransTable_16bit_8bitRange(bit_trans_table_g0, 2, true, false, 0, 256);
+
 }
 
 void DISPLAY::reset()
@@ -1214,7 +1218,7 @@ void DISPLAY::draw_text(int y)
 				d[ 4] = d[ 5] = ((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3);
 				d[ 6] = d[ 7] = ((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2);
 #else
-				ConvertRGBTo8ColorsUint8_Zoom2Left(r, g, b, d, &bit_trans_table_r0, &bit_trans_table_g0, &bit_trans_table_b0, 0);
+				ConvertRGBTo8ColorsUint8_Zoom2Left(r, g, b, d, bit_trans_table_r0, bit_trans_table_g0, bit_trans_table_b0, 0);
 #endif
 			} else {
 #if 0
@@ -1227,7 +1231,7 @@ void DISPLAY::draw_text(int y)
 				d[6] = ((b & 0x02) >> 1) | ((r & 0x02) >> 0) | ((g & 0x02) << 1);
 				d[7] = ((b & 0x01) >> 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 #else
-				ConvertRGBTo8ColorsUint8(r, g, b, d, &bit_trans_table_r0, &bit_trans_table_g0, &bit_trans_table_b0, 0);
+				ConvertRGBTo8ColorsUint8(r, g, b, d, bit_trans_table_r0, bit_trans_table_g0, bit_trans_table_b0, 0);
 #endif
 			}
 			prev_attr = attr;
@@ -1373,26 +1377,18 @@ void DISPLAY::draw_cg(int line, int plane)
 			d[7] = ((b & 0x01) >> 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 		}
 #else
-		_render_command_data_t cmd;
-		for(int i = 0; i < 3; i++) {
-			cmd.data[i] = vram_ptr;
-			cmd.baseaddress[i] = 0;
-		}
-		cmd.voffset[0] = ofs_b;
-		cmd.voffset[1] = ofs_r;
-		cmd.voffset[2] = ofs_g;
-		cmd.bit_trans_table[0] = &bit_trans_table_b0;
-		cmd.bit_trans_table[1] = &bit_trans_table_r0;
-		cmd.bit_trans_table[2] = &bit_trans_table_g0;
-		cmd.addrmask = 0xffffffff;
-		cmd.addrmask2 = 0x07ff;
-		cmd.begin_pos = src;
-		cmd.shift = 0;
 		int iwidth = (hz_disp > width) ? width : hz_disp;
 		uint8_t* d = &(cg[line][0]);
-		cmd.render_width = (iwidth <= 0) ? 0 : (uint32_t)iwidth;
-
-		Convert8ColorsToByte_Line(&cmd, d);
+		bool is_render_rgb[4] = { true, true, true, false };
+		Convert8ColorsToByte_Line(d, vram_ptr,
+								  src,  (iwidth <= 0) ? 0 : (uint32_t)iwidth,
+								  bit_trans_table_r0,
+								  bit_trans_table_g0,
+								  bit_trans_table_b0,
+								  ofs_r, ofs_g, ofs_b,
+								  0, 0xffffffff, 0x07ff,
+								  is_render_rgb, 0);
+							 
 #endif
 	}
 }

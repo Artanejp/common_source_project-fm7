@@ -17,6 +17,7 @@
 #include "../../emu.h"
 #include "../device.h"
 #include "../types/types_video.h"
+#include "../types/simd_types.h"
 
 #define SIG_DISPLAY_VBLANK		0
 #define SIG_DISPLAY_COLUMN40		1
@@ -154,9 +155,9 @@ private:
 
 	int tmp_kanji_ptr;
 
-	__DECL_ALIGNED(16) _bit_trans_table_t bit_trans_table_b0;
-	__DECL_ALIGNED(16) _bit_trans_table_t bit_trans_table_r0;
-	__DECL_ALIGNED(16) _bit_trans_table_t bit_trans_table_g0;
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_b0[256];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_r0[256];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_g0[256];
 public:
 	DISPLAY(VM_TEMPLATE* parent_vm, EMU_TEMPLATE* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
