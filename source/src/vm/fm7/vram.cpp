@@ -35,19 +35,18 @@ void DISPLAY::clear_display(int dmode, int w, int h)
 
 void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_inv, bool scan_line)
 {
-	_render_command_data_t cmd;
-	bool use_cmd = false;
+//	_render_command_data_t cmd;
+//	bool use_cmd = false;
 	int xzoom = 1;
 	uint32_t _offset_base = 0x4000;
 	int planes;
-	int shift;
+	const size_t shift = 5;
 	int width;
 	switch(dmode) {
 	case DISPLAY_MODE_8_200L:
 		_offset_base = 0x4000;
-		use_cmd = true;
+//		use_cmd = true;
 		planes = 3;
-		shift = 5;
 		width = 80;
 		break;
 #if defined(_FM77AV_VARIANTS)
@@ -55,15 +54,12 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 		_offset_base = 0x2000;
 		xzoom = 2;
 		planes = 12;
-		shift = 5;
 		width = 40;
 		break;
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 	case DISPLAY_MODE_8_400L:
 		_offset_base = 0x8000;
-		use_cmd = true;
 		planes = 3;
-		shift = 5;
 		width = 80;
 		break;
 #    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -71,7 +67,6 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 		_offset_base = 0x2000;
 		xzoom = 2;
 		planes = 20;
-		shift = 5;
 		width = 40;
 		break;
 #    endif
@@ -80,35 +75,6 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 	default:
 		return;
 		break;
-	}
-	if(use_cmd) {
-		memset(&cmd, 0x00, sizeof(_render_command_data_t));
-#if defined(USE_GREEN_DISPLAY)
-		if(use_green_monitor) {
-			cmd.palette = dpalette_pixel_green;
-		} else {
-			cmd.palette = dpalette_pixel;
-		}
-#else
-		cmd.palette = dpalette_pixel;
-#endif				
-		if(!multimode_dispflags[0]) cmd.is_render[0] = true;
-		if(!multimode_dispflags[1]) cmd.is_render[1] = true;
-		if(!multimode_dispflags[2]) cmd.is_render[2] = true;
-		cmd.bit_trans_table[0] = (_bit_trans_table_t*)(&(bit_trans_table_2[0][0])); // B
-		cmd.bit_trans_table[1] = (_bit_trans_table_t*)(&(bit_trans_table_1[0][0])); // R
-		cmd.bit_trans_table[2] = (_bit_trans_table_t*)(&(bit_trans_table_0[0][0])); // G
-		for(int i = 0; i < 3; i++) {
-			cmd.data[i] = gvram_shadow;
-			cmd.baseaddress[i] = (i * _offset_base) + yoff_d;
-			cmd.voffset[i] = y * width;
-		}
-		cmd.xzoom = xzoom;
-		cmd.addrmask = _offset_base - 1;
-		cmd.addrmask2 = _offset_base - 1;
-		cmd.render_width = bytes;
-		cmd.begin_pos = begin;
-		cmd.shift = shift;
 	}
 	scrntype_t *p = NULL;
 	scrntype_t *pp = NULL;
@@ -134,8 +100,7 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 		p = emu->get_screen_buffer(y);
 		if(p == NULL) return;
-		//Render8Colors_Line(&cmd, &(p[cmd.begin_pos * 8]), NULL, false);
-		Render8Colors_Line2(&(p[begin * 8]), NULL, gvram_shadow,
+		Render8Colors_Line<const size_t>(&(p[begin * 8]), NULL, gvram_shadow,
 							begin, width,
 							palette_ptr,
 							r_table, g_table, b_table,
@@ -156,7 +121,7 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 		switch(dmode) {
 		case DISPLAY_MODE_8_200L:
 			{
-				Render8Colors_Line2(&(p[begin * 8]), (pp == NULL) ? NULL : &(pp[begin * 8]), gvram_shadow,
+				Render8Colors_Line<const size_t>(&(p[begin * 8]), (pp == NULL) ? NULL : &(pp[begin * 8]), gvram_shadow,
 									begin, width,
 									palette_ptr,
 									r_table, g_table, b_table,
