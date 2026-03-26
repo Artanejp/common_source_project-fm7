@@ -6,12 +6,17 @@
 
 #include "../common.h"
 #include "../types/types_video.h"
-#include "../types/simd_types.h"
-#include "../types/simd/primitives_128.hpp"
-#include "../types/simd/primitives_256.hpp"
+#include "../types/simd/uint16_8_t.hpp"
+#include "../types/simd/uint32_8_t.hpp"
+//#include "../types/simd/primitives_128.hpp"
+//#include "../types/simd/primitives_256.hpp"
 
 //#include "../types/util_rgbconvert.h"
-
+#if defined(_RGB555) || defined(_RGBA565)
+using simd_scrntype8_class = simd_uint16_8;
+#else /* RGB888 || RGBA8888 */
+using simd_scrntype8_class = simd_uint32_8;
+#endif
 // Note: table strongly recommend to be aligned by sizeof(uint16_vec8_t).
 // This is sizeof(uint16) * 8, some compilers may require to align 16bytes(128)
 // when using SIMD128 -- 20181105 K.O
@@ -288,113 +293,103 @@ __DECL_VECTORIZED_LOOP
 	}
 }
 
-static inline void ConvertRGBTo8ColorsUint8(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+template <typename _St>
+	inline void ConvertRGBTo8ColorsUint8(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, uint16_8_t* rtbl, uint16_8_t* gtbl, uint16_8_t* btbl, _St shift)
 {
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	uint16_t*  rvt = (uint16_t*)___assume_aligned(&(rtbl->plane_table[r]), sizeof(uint16_vec8_t));
-	uint16_t*  gvt = (uint16_t*)___assume_aligned(&(gtbl->plane_table[g]), sizeof(uint16_vec8_t));
-	uint16_t*  bvt = (uint16_t*)___assume_aligned(&(btbl->plane_table[b]), sizeof(uint16_vec8_t));
-	
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpd[i] = rvt[i];
-	}
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpg(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpb(8);
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpg[i] = gvt[i];
-	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpb[i] = bvt[i];
-	}
-//	tmpd.v = rvt[r].v;
-	tmpd = tmpd | tmpg;
-	tmpd = tmpd | tmpb;
-	__LIKELY_IF(shift >= 0) {
-		tmpd = tmpd >> (uint16_t)shift;
-	} else {
-		tmpd = tmpd << (uint16_t)(-shift);
-	}
+	__DECL_ALIGNED(16) simd_uint16_8 tmpd;
+	//__DECL_ALIGNED(16) simd_uint16_8 tmpr;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpg;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpb;
+	uint16_8_t*  rvt = (uint16_8_t*)___assume_aligned(rtbl, sizeof(uint16_8_t));
+	uint16_8_t*  gvt = (uint16_8_t*)___assume_aligned(gtbl, sizeof(uint16_8_t));
+	uint16_8_t*  bvt = (uint16_8_t*)___assume_aligned(btbl, sizeof(uint16_8_t));
 
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		dst[i] = (uint8_t)(tmpd[i]);
+	tmpd.align_load(&(rvt[r]));
+//	tmpr.align_load(&(rvt[r]));
+	tmpg.align_load(&(gvt[g]));
+	tmpb.align_load(&(bvt[b]));
+	//tmpd = tmpr;
+	tmpd |= tmpg;
+	tmpd |= tmpb;
+
+	if(shift > 0) {
+		tmpd >>= shift;
+	} else if(shift < 0) {
+		tmpd <<= -shift;
+	}
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0; i < 8; i++) {
+		dst[i] = (uint8_t)(tmpd.at<uint16_t>(i));
 	}
 }
 
-static inline void ConvertRGBTo8ColorsUint8_Zoom2Left(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+template <typename _St>
+	inline void ConvertRGBTo8ColorsUint8_Zoom2Left(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, uint16_8_t* rtbl, uint16_8_t* gtbl,uint16_8_t* btbl, _St shift)
 {
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	uint16_t*  rvt = (uint16_t*)___assume_aligned(&(rtbl->plane_table[r]), sizeof(uint16_vec8_t));
-	uint16_t*  gvt = (uint16_t*)___assume_aligned(&(gtbl->plane_table[g]), sizeof(uint16_vec8_t));
-	uint16_t*  bvt = (uint16_t*)___assume_aligned(&(btbl->plane_table[b]), sizeof(uint16_vec8_t));
+//	__DECL_ALIGNED(16) simd_uint16_8 tmpr;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpg;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpb;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpd;
 	
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpd[i] = rvt[i];
-	}
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpg(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpb(8);
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpg[i] = gvt[i];
-	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpb[i] = bvt[i];
-	}
+	uint16_8_t*  rvt = (uint16_8_t*)___assume_aligned(rtbl, sizeof(uint16_8_t));
+	uint16_8_t*  gvt = (uint16_8_t*)___assume_aligned(gtbl, sizeof(uint16_8_t));
+	uint16_8_t*  bvt = (uint16_8_t*)___assume_aligned(btbl, sizeof(uint16_8_t));
 
-	tmpd = tmpd | tmpg;
-	tmpd = tmpd | tmpb;
-	__LIKELY_IF(shift >= 0) {
-		tmpd = tmpd >> (uint16_t)shift;
-	} else {
-		tmpd = tmpd << (uint16_t)(-shift);
-	}
+	tmpd.align_load(&(rvt[r]));
+//	tmpr.align_load(&(rvt[r]));
+	tmpg.align_load(&(gvt[g]));
+	tmpb.align_load(&(bvt[b]));
 
-__DECL_VECTORIZED_LOOP
-	for(int i = 0, j = 0; i < 8; i += 2, j++) {
-		dst[i]     = (uint8_t)(tmpd[j]);
-		dst[i + 1] = (uint8_t)(tmpd[j]);
+//	tmpd = tmpr;
+	tmpd |= tmpg;
+	tmpd |= tmpb;
+	
+	if(shift > 0) {
+		tmpd >>= shift;
+	} else if(shift < 0) {
+		tmpd <<= -shift;
+	}
+	
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0, j = 0; i < 8; i += 2, j++) {
+		uint8_t __tmp = (uint8_t)(tmpd.at<uint16_t>(j));
+		dst[i    ] = __tmp;
+		dst[i + 1] = __tmp;
 	}
 }
 
-static inline void ConvertRGBTo8ColorsUint8_Zoom2Right(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, _bit_trans_table_t* rtbl, _bit_trans_table_t* gtbl, _bit_trans_table_t* btbl, int shift)
+template <typename _St>
+	inline void ConvertRGBTo8ColorsUint8_Zoom2Right(uint8_t r, uint8_t g, uint8_t b, uint8_t* dst, uint16_8_t* rtbl, uint16_8_t* gtbl,uint16_8_t* btbl, _St shift)
 {
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	uint16_t*  rvt = (uint16_t*)___assume_aligned(&(rtbl->plane_table[r]), sizeof(uint16_vec8_t));
-	uint16_t*  gvt = (uint16_t*)___assume_aligned(&(gtbl->plane_table[g]), sizeof(uint16_vec8_t));
-	uint16_t*  bvt = (uint16_t*)___assume_aligned(&(btbl->plane_table[b]), sizeof(uint16_vec8_t));
+//	__DECL_ALIGNED(16) simd_uint16_8 tmpr;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpg;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpb;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpd;
+	
+	uint16_8_t*  rvt = (uint16_8_t*)___assume_aligned(rtbl, sizeof(uint16_8_t));
+	uint16_8_t*  gvt = (uint16_8_t*)___assume_aligned(gtbl, sizeof(uint16_8_t));
+	uint16_8_t*  bvt = (uint16_8_t*)___assume_aligned(btbl, sizeof(uint16_8_t));
 
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpd[i] = rvt[i];
-	}
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpg(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpb(8);
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpg[i] = gvt[i];
-	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmpb[i] = bvt[i];
-	}
+	tmpd.align_load(&(rvt[r]));
+//	tmpr.align_load(&(rvt[r]));
+	tmpg.align_load(&(gvt[g]));
+	tmpb.align_load(&(bvt[b]));
 
-	tmpd = tmpd | tmpg;
-	tmpd = tmpd | tmpb;
-	__LIKELY_IF(shift >= 0) {
-		tmpd = tmpd >> (uint16_t)shift;
-	} else {
-		tmpd = tmpd << (uint16_t)(-shift);
+//	tmpd = tmpr;
+	tmpd |= tmpg;
+	tmpd |= tmpb;
+	
+	if(shift > 0) {
+		tmpd >>= shift;
+	} else if(shift < 0) {
+		tmpd <<= -shift;
 	}
 	
-__DECL_VECTORIZED_LOOP
-	for(int i = 0, j = 4; i < 8; i += 2, j++) {
-		dst[i]     = (uint8_t)(tmpd[j]);
-		dst[i + 1] = (uint8_t)(tmpd[j]);
+	__DECL_VECTORIZED_LOOP
+	for(size_t i = 0, j = 4; i < 8; i += 2, j++) {
+		uint8_t __tmp = (uint8_t)(tmpd.at<uint16_t>(j));
+		dst[i    ] = __tmp;
+		dst[i + 1] = __tmp;
 	}
 }
 
@@ -422,10 +417,10 @@ __DECL_VECTORIZED_LOOP
 
 	tmpd = tmpd | tmpg;
 	tmpd = tmpd | tmpb;
-	__LIKELY_IF(shift >= 0) {
-		tmpd = tmpd >> (uint16_t)shift;
-	} else {
-		tmpd = tmpd << (uint16_t)(-shift);
+	if(shift > 0) {
+		tmpd >>= shift;
+	} else if(shift < 0) {
+		tmpd <<= -shift;
 	}
 
 __DECL_VECTORIZED_LOOP
@@ -492,166 +487,41 @@ __DECL_VECTORIZED_LOOP
 
 
 
-static void Render8Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t* dst2, bool scan_line)
-{
-	__UNLIKELY_IF(src == NULL) return;
-	__UNLIKELY_IF(dst == NULL) return;
 
-//__DECL_VECTORIZED_LOOP
-//	for(int i = 0; i < 3; i++) {
-//		if(src->bit_trans_table[i] == NULL) return;
-//		if(src->data[i] == NULL) return;
-//	}
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> palette(8); // fallback
-	uint16_vec8_t *vpb = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[0], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpr = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[1], sizeof(uint16_vec8_t));
-	uint16_vec8_t *vpg = (uint16_vec8_t*)___assume_aligned(src->bit_trans_table[2], sizeof(uint16_vec8_t));
-
-	uint32_t x;
-	__DECL_ALIGNED(16) std::valarray<uint32_t> offset(src->voffset, 4);
-	const uint32_t mask = src->addrmask;
-	const uint32_t offsetmask = src->addrmask2;
-
-	__UNLIKELY_IF(src->palette == NULL) {
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			palette[i] = RGB_COLOR(((i & 2) << 5) | 0x1f,
-										 ((i & 4) << 5) | 0x1f,
-										 ((i & 1) << 5) | 0x1f);
-		}
-	} else {
-		palette = std::valarray<scrntype_t>(src->palette, 8);
-	}
-	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
-	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
-	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
-
-	__DECL_ALIGNED(8) std::valarray<uint8_t> brg(4);
-	__DECL_ALIGNED(8) std::valarray<uint8_t> rmask((const uint8_t)0, 4);
-	__DECL_VECTORIZED_LOOP
-		for(int ii = 0; ii < 3; ii++) {
-			if(src->is_render[ii]) rmask[ii] = 0xff;
-		}
-	enum {
-		_b = 0,
-		_r,
-		_g,
-		_n
-	};
-
-	const int shift = src->shift;
-
-	x = src->begin_pos;
-	uint32_t n = x;
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> sline(RGBA_COLOR(31, 31, 31, 255), 8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vtmpb(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vtmpr(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> vtmpg(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmpdd(8);
-	for(uint32_t xx = 0; xx < src->render_width; xx++) {
-		brg[_b] =  bp[(offset[0] + n) & mask];
-		brg[_r] =  rp[(offset[1] + n) & mask];
-		brg[_g] =  gp[(offset[2] + n) & mask];
-
-		brg &= rmask;
-		// Note: Should pre-allocate valarrays to improbe speed.
-
-		uint16_t *ppb = (uint16_t*) ___assume_aligned(vpb[brg[_b]].w, sizeof(uint16_t) * 8);
-	__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			vtmpb[i] = ppb[i];
-		}
-		uint16_t *ppr = (uint16_t*) ___assume_aligned(vpr[brg[_r]].w, sizeof(uint16_t) * 8);
-	__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			vtmpr[i] = ppr[i];
-		}
-		uint16_t *ppg = (uint16_t*) ___assume_aligned(vpg[brg[_g]].w, sizeof(uint16_t) * 8);
-	__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			vtmpg[i] = ppg[i];
-		}
-		tmpd = vtmpb | vtmpr | vtmpg;
-		__LIKELY_IF(shift >= 0) {
-			tmpd = tmpd >> (uint16_t)shift;
-		} else {
-			tmpd = tmpd << (uint16_t)(-shift);
-		}
-
-		n = (n + 1) & offsetmask;
-
-	__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			tmpdd[i] = palette[tmpd[i]];
-		}
-	__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			dst[i] = tmpdd[i];
-		}
-		dst += 8;
-		__LIKELY_IF(dst2 != nullptr) {
-			if(scan_line) {
-#if defined(_RGB555) || defined(_RGBA565)
-				tmpdd >>= (scrntype_t)2;
-#else // 24bit
-				tmpdd >>= (scrntype_t)3;
-#endif
-				tmpdd = tmpdd & sline;
-			}
-		__DECL_VECTORIZED_LOOP
-			for(int i = 0; i < 8; i++) {
-				dst2[i] = tmpdd[i];
-			}
-			dst2 += 8;
-		}
-	}
-}
-
-
-static void __FASTCALL Render8Colors_Line2(scrntype_t *dst, scrntype_t *dst2, uint8_t *src,
+template <typename _St>
+	void __FASTCALL Render8Colors_Line(scrntype_t *dst, scrntype_t *dst2, uint8_t *src,
 										   uint32_t startx, uint32_t x_width,
 										   scrntype8_t* palette,
 										   uint16_8_t *r_table, uint16_8_t *g_table, uint16_8_t* b_table,
 										   const bool scan_line,
 										   uint32_t base_address_r, uint32_t base_address_g, uint32_t base_address_b,
 										   uint32_t voffset, const uint32_t address_mask, const uint32_t offset_mask,
-										   const bool is_render_rgb[4], const int bitshift, size_t bytes)
+										   const bool is_render_rgb[4], _St bitshift, size_t bytes)
 {
 	__UNLIKELY_IF(src == NULL) return;
 	__UNLIKELY_IF(dst == NULL) return;
 
-//	__UNLIKELY_IF(r_table == NULL) return;
-//	__UNLIKELY_IF(g_table == NULL) return;
-//	__UNLIKELY_IF(b_table == NULL) return;
+	__UNLIKELY_IF(r_table == NULL) return;
+	__UNLIKELY_IF(g_table == NULL) return;
+	__UNLIKELY_IF(b_table == NULL) return;
 
-//__DECL_VECTORIZED_LOOP
-//	for(int i = 0; i < 3; i++) {
-//		if(src->bit_trans_table[i] == NULL) return;
-//		if(src->data[i] == NULL) return;
-//	}
 
-	__DECL_SCRNTYPE8_ALIGNED scrntype8_t palette_cache;
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class palette_cache;
 	__UNLIKELY_IF(palette == NULL) {
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			read_simd_element(palette_cache, i,
-				RGBA_COLOR(((i & 2) << 5) | 0x1f,
-						   ((i & 4) << 5) | 0x1f,
-						   ((i & 1) << 5) | 0x1f,
-						   255)
-				);
+			palette_cache.set(i, 
+							  (scrntype_t)(RGBA_COLOR(((i & 2) != 0) ? 0xff : 0, 
+													  ((i & 4) != 0) ? 0xff : 0,
+													  ((i & 1) != 0) ? 0xff : 0,
+													  255)));
 		}
-		read_simd_element(palette_cache, 0, RGBA_COLOR(0, 0, 0, 0)); // OK?
+		palette_cache.set(0, RGBA_COLOR(0, 0, 0, 0)); // OK?
 	} else {
-		palette_cache.v = SCRNTYPE8_SIMD::load_unaligned(palette);
+		palette_cache.unalign_load(palette);
 	}
 
    
-	uint16_8_t *vpb = (uint16_8_t*)___assume_aligned(b_table, sizeof(uint16_8_t));
-	uint16_8_t *vpr = (uint16_8_t*)___assume_aligned(r_table, sizeof(uint16_8_t));
-	uint16_8_t *vpg = (uint16_8_t*)___assume_aligned(g_table, sizeof(uint16_8_t));
-
 	uint32_t x = startx;
 
 	uint8_t *rp = &(src[base_address_r]);
@@ -664,11 +534,18 @@ static void __FASTCALL Render8Colors_Line2(scrntype_t *dst, scrntype_t *dst2, ui
 
 
 	uint32_t n = x;
-	__DECL_SCRNTYPE8_ALIGNED scrntype8_t sline;
-	__DECL_VECTORIZED_LOOP
-	for(size_t i = 0; i < 8; i++) {
-		read_simd_element(sline, i,  RGBA_COLOR(31, 31, 31, 255));
-	}
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class sline;
+	sline.fill((scrntype_t)RGBA_COLOR(31, 31, 31, 255));
+
+	__DECL_ALIGNED(16) simd_uint16_8 r_array;
+	__DECL_ALIGNED(16) simd_uint16_8 g_array;
+	__DECL_ALIGNED(16) simd_uint16_8 b_array;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpd;
+	__DECL_ALIGNED(16) simd_uint16_8 shiftd;
+	
+	uint16_8_t *vpb = (uint16_8_t*)___assume_aligned(b_table, sizeof(uint16_8_t));
+	uint16_8_t *vpr = (uint16_8_t*)___assume_aligned(r_table, sizeof(uint16_8_t));
+	uint16_8_t *vpg = (uint16_8_t*)___assume_aligned(g_table, sizeof(uint16_8_t));
 
 	for(uint32_t xx = 0; xx < bytes; xx++) {
 		const uint32_t abs_offset = (voffset + n) & address_mask;
@@ -677,58 +554,162 @@ static void __FASTCALL Render8Colors_Line2(scrntype_t *dst, scrntype_t *dst2, ui
 		uint8_t _b = (is_render_b) ? bp[abs_offset] : 0;
 
 		// Note: Should pre-allocate valarrays to improbe speed.
-		__DECL_ALIGNED(16) uint16_8_t r_array;
-		__DECL_ALIGNED(16) uint16_8_t g_array;
-		__DECL_ALIGNED(16) uint16_8_t b_array;
-
-		r_array.v = simd_128bit::load_aligned(&(vpr[_r].v));
-		g_array.v = simd_128bit::load_aligned(&(vpg[_g].v));
-		b_array.v = simd_128bit::load_aligned(&(vpb[_b].v));
-		__DECL_ALIGNED(16) uint16_8_t tmpd;
-		__DECL_ALIGNED(16) uint16_8_t shiftd;
+		r_array.align_load(&(vpr[_r]));
+		g_array.align_load(&(vpg[_g]));
+		b_array.align_load(&(vpb[_b]));
 		
-		tmpd.v = simd_128bit::op_or(r_array.v, g_array.v);
-		tmpd.v = simd_128bit::op_or(tmpd.v, b_array.v);
+		tmpd = r_array;
+		tmpd |= g_array;
+		tmpd |= b_array;
 	   
 		__LIKELY_IF(bitshift > 0) {
-			tmpd.v = simd_128bit::op_rshift16(tmpd.v, (const size_t)bitshift);
+			tmpd >>= bitshift;
 		} else if(bitshift < 0) {
-			tmpd.v = simd_128bit::op_lshift16(tmpd.v, (const size_t)(-bitshift));
+			tmpd <<= -bitshift;
 		}
 
 //		tmpd.v = simd_128bit::op_and(tmpd.v, simd_128bit::op_set16(0x0007));
 		
-		__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmpdd;
+		__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmpdd;
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			read_simd_element(tmpdd, i, simd_element(palette_cache, tmpd.u16[i]));
+			tmpdd.set_unsafe(i, palette_cache.at<scrntype_t>(tmpd.at<uint16_t>(i))); 
 		}
-		if(SCRNTYPE8_SIMD::is_aligned(dst)) {
-			SCRNTYPE8_SIMD::store_aligned((simd_scrntype8_t *)dst, tmpdd.v);
-		} else {
-			SCRNTYPE8_SIMD::store_unaligned((simd_scrntype8_t *)dst, tmpdd.v);
-		}
+		tmpdd.store(dst);
 		dst += 8;
 		__LIKELY_IF(dst2 != nullptr) {
 			if(scan_line) {
 #if defined(_RGB555) || defined(_RGBA565)
-				tmpdd.v = simd_128bit::op_rshift16_fix(tmpdd.v, 2);
+				tmpdd >>= 2;
 #else // 24bit
-				tmpdd.v = simd_256bit::op_rshift16_fix(tmpdd.v, 3);
+				tmpdd >>= 3;
 #endif
-				tmpdd.v = SCRNTYPE8_SIMD::op_and(tmpdd.v, sline.v);
+				tmpdd &= sline;
 			}
-			if(SCRNTYPE8_SIMD::is_aligned(dst2)) {
-				SCRNTYPE8_SIMD::store_aligned((simd_scrntype8_t *)dst2, tmpdd.v);
-			} else {
-				SCRNTYPE8_SIMD::store_unaligned((simd_scrntype8_t *)dst2, tmpdd.v);
-			}
+			tmpdd.store(dst2);
 			dst2 += 8;
 		}
 		n = (n + 1) & offset_mask;
 	}
 }
 
+
+template <typename _St>
+	void __FASTCALL Render16Colors_Line2(scrntype_t *dst, scrntype_t *dst2, uint8_t *src,
+										 uint32_t startx, uint32_t x_width,
+										 scrntype8_t* palette,
+										 uint16_8_t *r_table, uint16_8_t *g_table, uint16_8_t* b_table, uint16_8_t* i_table,
+										 const bool scan_line,
+										 uint32_t base_address_r, uint32_t base_address_g,
+										 uint32_t base_address_b, uint32_t base_address_i,
+										 uint32_t voffset, const uint32_t address_mask, const uint32_t offset_mask,
+										 const bool is_render_rgb[4], _St bitshift, size_t bytes)
+{
+	__UNLIKELY_IF(src == NULL) return;
+	__UNLIKELY_IF(dst == NULL) return;
+
+	__UNLIKELY_IF(r_table == NULL) return;
+	__UNLIKELY_IF(g_table == NULL) return;
+	__UNLIKELY_IF(b_table == NULL) return;
+	__UNLIKELY_IF(i_table == NULL) return;
+
+
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t palette_cache[16];
+	__UNLIKELY_IF(palette == NULL) {
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 16; i++) {
+			scrntype_t boost_val = (i < 8) ? 0 : RGBA_COLOR(0x80, 0x80, 0x80, 255);
+			palette_cache[i] =  (scrntype_t)(RGBA_COLOR(((i & 2) != 0) ? 0x7f : 0, 
+														((i & 4) != 0) ? 0x7f : 0,
+														((i & 1) != 0) ? 0x7f : 0,
+														255)) | boost_val;
+		}
+		palette_cache[0] = RGBA_COLOR(0, 0, 0, 0); // OK?
+	} else {
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 16; i++) {
+			palette_cache[i] = simd_element(palette[i >> 3], i & 7);
+		}
+	}
+
+   
+	uint32_t x = startx;
+
+	uint8_t *rp = &(src[base_address_r]);
+	uint8_t *gp = &(src[base_address_g]);
+	uint8_t *bp = &(src[base_address_b]);
+	uint8_t *ip = &(src[base_address_i]);
+
+	bool is_render_r = is_render_rgb[0];
+	bool is_render_g = is_render_rgb[1];
+	bool is_render_b = is_render_rgb[2];
+	bool is_render_i = is_render_rgb[3];
+
+	uint32_t n = x;
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class sline;
+	sline.fill((scrntype_t)RGBA_COLOR(31, 31, 31, 255));
+
+	__DECL_ALIGNED(16) simd_uint16_8 r_array;
+	__DECL_ALIGNED(16) simd_uint16_8 g_array;
+	__DECL_ALIGNED(16) simd_uint16_8 b_array;
+	__DECL_ALIGNED(16) simd_uint16_8 i_array;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpd;
+	__DECL_ALIGNED(16) simd_uint16_8 shiftd;
+	
+	uint16_8_t *vpb = (uint16_8_t*)___assume_aligned(b_table, sizeof(uint16_8_t));
+	uint16_8_t *vpr = (uint16_8_t*)___assume_aligned(r_table, sizeof(uint16_8_t));
+	uint16_8_t *vpg = (uint16_8_t*)___assume_aligned(g_table, sizeof(uint16_8_t));
+	uint16_8_t *vpi = (uint16_8_t*)___assume_aligned(i_table, sizeof(uint16_8_t));
+
+	for(uint32_t xx = 0; xx < bytes; xx++) {
+		const uint32_t abs_offset = (voffset + n) & address_mask;
+		uint8_t _r = (is_render_r) ? rp[abs_offset] : 0;
+		uint8_t _g = (is_render_g) ? gp[abs_offset] : 0;
+		uint8_t _b = (is_render_b) ? bp[abs_offset] : 0;
+		uint8_t _i = (is_render_i) ? ip[abs_offset] : 0;
+
+		// Note: Should pre-allocate valarrays to improbe speed.
+		
+		r_array.align_load(&(vpr[_r]));
+		g_array.align_load(&(vpg[_g]));
+		b_array.align_load(&(vpb[_b]));
+		i_array.align_load(&(vpi[_i]));
+		
+		tmpd = r_array;
+		tmpd |= g_array;
+		tmpd |= b_array;
+		tmpd |= i_array;
+	   
+		__LIKELY_IF(bitshift > 0) {
+			tmpd >>= bitshift;
+		} else if(bitshift < 0) {
+			tmpd <<= -bitshift;
+		}
+
+//		tmpd.v = simd_128bit::op_and(tmpd.v, simd_128bit::op_set16(0x0007));
+		
+		__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmpdd;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			tmpdd.set_unsafe(i, palette_cache[(tmpd.at<uint16_t>(i)) & 15]); 
+		}
+		tmpdd.store(dst);
+		dst += 8;
+		__LIKELY_IF(dst2 != nullptr) {
+			if(scan_line) {
+#if defined(_RGB555) || defined(_RGBA565)
+				tmpdd >>= 2;
+#else // 24bit
+				tmpdd >>= 3;
+#endif
+				tmpdd &= sline;
+			}
+			tmpdd.store(dst2);
+			dst2 += 8;
+		}
+		n = (n + 1) & offset_mask;
+	}
+}
 
 static void Render16Colors_Line(_render_command_data_t *src, scrntype_t *dst, scrntype_t* dst2, bool scan_line)
 {
@@ -818,9 +799,9 @@ __DECL_VECTORIZED_LOOP
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
 			tmpd = tmpd | vn;
-			__LIKELY_IF(shift >= 0) {
+			__LIKELY_IF(shift > 0) {
 				tmpd = tmpd >> (uint16_t)shift;
-			} else {
+			} else if(shift < 0) {
 				tmpd = tmpd << (uint16_t)(-shift);
 			}
 			xn = (xn + 1) & offsetmask;
@@ -858,9 +839,9 @@ __DECL_VECTORIZED_LOOP
 			tmpd = tmpd | vr;
 			tmpd = tmpd | vg;
 			tmpd = tmpd | vn;
-			__LIKELY_IF(shift >= 0) {
+			__LIKELY_IF(shift > 0) {
 				tmpd = tmpd >> (uint16_t)shift;
-			} else {
+			} else if(shift < 0) {
 				tmpd = tmpd << (uint16_t)(-shift);
 			}
 			xn = (xn + 1) & offsetmask;
@@ -951,9 +932,9 @@ __DECL_VECTORIZED_LOOP
 			}
 
 			n = (n + 1) & offsetmask;
-			__LIKELY_IF(shift >= 0) {
+			__LIKELY_IF(shift > 0) {
 				tmpd = tmpd >> (uint16_t)shift;
-			} else {
+			} else if(shift < 0) {
 				tmpd = tmpd << (uint16_t)(-shift);
 			}
 	__DECL_VECTORIZED_LOOP
@@ -991,9 +972,9 @@ __DECL_VECTORIZED_LOOP
 				tmpd |= tmpr;
 			}
 			n = (n + 1) & offsetmask;
-			__LIKELY_IF(shift >= 0) {
+			__LIKELY_IF(shift > 0) {
 				tmpd = tmpd >> (uint16_t)shift;
-			} else {
+			} else if(shift < 0){
 				tmpd = tmpd << (uint16_t)(-shift);
 			}
 	__DECL_VECTORIZED_LOOP
@@ -1055,9 +1036,9 @@ __DECL_VECTORIZED_LOOP
 			__DECL_ALIGNED(16) std::valarray<uint16_t> _bd(bp[i][td[i]].w, 8);
 			dat |= _bd;
 		}
-		__LIKELY_IF(shift >= 0) {
+		__LIKELY_IF(shift > 0) {
 			dat = dat >> (uint16_t)shift;
-		} else {
+		} else if(shift < 0) {
 			dat = dat << (uint16_t)(-shift);
 		}
 
@@ -1108,9 +1089,9 @@ __DECL_VECTORIZED_LOOP
 			dat |= _bd;
 		}
 		noffset = (noffset + 1) & offsetmask;
-		__LIKELY_IF(shift >= 0) {
+		__LIKELY_IF(shift > 0) {
 			dat = dat >> (uint16_t)shift;
-		} else {
+		} else if (shift < 0){
 			dat = dat << (uint16_t)(-shift);
 		}
 
@@ -1123,59 +1104,52 @@ __DECL_VECTORIZED_LOOP
 	}
 }
 
-static void Convert8ColorsToByte_Line(_render_command_data_t *src, uint8_t *dst)
+template <typename _St>
+	void __FASTCALL Convert8ColorsToByte_Line(uint8_t *dst, uint8_t *src,
+										   uint32_t startx, uint32_t x_width,
+										   uint16_8_t *r_table, uint16_8_t *g_table, uint16_8_t* b_table,
+										   uint32_t base_address_r, uint32_t base_address_g, uint32_t base_address_b,
+										   uint32_t voffset, const uint32_t address_mask, const uint32_t offset_mask,
+										   const bool is_render_rgb[4], _St bitshift)
 {
-	uint8_t *bp = &(src->data[0][src->baseaddress[0]]);
-	uint8_t *rp = &(src->data[1][src->baseaddress[1]]);
-	uint8_t *gp = &(src->data[2][src->baseaddress[2]]);
-	__DECL_ALIGNED(16) uint32_t offset[4] = {0};
+	__DECL_ALIGNED(16) simd_uint16_8 rdat;
+	__DECL_ALIGNED(16) simd_uint16_8 gdat;
+	__DECL_ALIGNED(16) simd_uint16_8 bdat;
+	__DECL_ALIGNED(16) simd_uint16_8 tmpd;
 
-	__DECL_ALIGNED(16) std::valarray<uint16_t> rdat(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> gdat(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> bdat(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmpd(8);
+	uint16_8_t* bpb = (uint16_8_t*)___assume_aligned(b_table, sizeof(uint16_8_t));
+	uint16_8_t* bpr = (uint16_8_t*)___assume_aligned(r_table, sizeof(uint16_8_t));
+	uint16_8_t* bpg = (uint16_8_t*)___assume_aligned(g_table, sizeof(uint16_8_t));
 
-	uint16_vec8_t* bpb = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[0]->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t* bpr = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[1]->plane_table[0]), sizeof(uint16_vec8_t));
-	uint16_vec8_t* bpg = (uint16_vec8_t*)___assume_aligned(&(src->bit_trans_table[2]->plane_table[0]), sizeof(uint16_vec8_t));
 
-	uint32_t addrmask = src->addrmask;
-	uint32_t offsetmask = src->addrmask2;
-	int shift = src->shift;
-
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 3; i++) {
-		offset[i] = src->voffset[i];
-	}
-
-	uint32_t noffset = src->begin_pos & offsetmask;
+	uint32_t noffset = startx & offset_mask;
 	uint8_t b, r, g;
+	uint8_t *bp = &(src[base_address_b]);
+	uint8_t *rp = &(src[base_address_r]);
+	uint8_t *gp = &(src[base_address_g]);
 
-	for(int x = 0; x < src->render_width; x++) {
-		b = bp[(noffset + offset[0]) & addrmask];
-		r = rp[(noffset + offset[1]) & addrmask];
-		g = gp[(noffset + offset[2]) & addrmask];
+	for(int x = 0; x < x_width; x++) {
+		b = (is_render_rgb[2]) ? bp[(noffset + voffset) & address_mask] : 0;
+		r = (is_render_rgb[0]) ? rp[(noffset + voffset) & address_mask] : 0;
+		g = (is_render_rgb[1]) ? gp[(noffset + voffset) & address_mask] : 0;
 
-		noffset = (noffset + 1) & offsetmask;
-__DECL_VECTORIZED_LOOP
-		for(int j = 0; j < 8; j++) {
-			bdat[j] = bpb[b].w[j];
-			rdat[j] = bpr[r].w[j];
-			gdat[j] = bpg[g].w[j];
-		}
+		noffset = (noffset + 1) & offset_mask;
+		bdat.align_load(&(bpb[b]));
+		rdat.align_load(&(bpr[r]));
+		gdat.align_load(&(bpg[g]));
 
 		tmpd = bdat;
 		tmpd = tmpd | rdat;
 		tmpd = tmpd | gdat;
-		__LIKELY_IF(shift >= 0) {
-			tmpd = tmpd >> (uint16_t)shift;
-		} else {
-			tmpd = tmpd << (uint16_t)(-shift);
+		if(bitshift > 0) {
+			tmpd = tmpd >> bitshift;
+		} else if(bitshift < 0) {
+			tmpd = tmpd << -bitshift;
 		}
 
-__DECL_VECTORIZED_LOOP
-		for(int i = 0; i < 8; i++) {
-			dst[i] = (uint8_t)(tmpd[i]);
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			dst[i] = (uint8_t)(tmpd.at<uint16_t>(i));
 		}
 		dst += 8;
 	}
