@@ -13,7 +13,6 @@
 #include <type_traits>
 #include <utility>
 
-
 // Write primitives in simde_ AVX2 primitives,
 // but you can build/run without neither X86 or AVX2 feature.
 // i.e. i686 (without SIMD anymore),  (basic x86_64; SSE2) ,
@@ -27,44 +26,6 @@
 // See https://github.com/simd-everywhere/simde .
 //#include "./simd/primitives_128.hpp"
 //#include "./simd/primitives_256.hpp"
-
-
-// Base Template
-template <typename T>
-	inline const bool is_aligned(T* p, const size_t min_align = 0)
-{
-	__UNLIKELY_IF(p == nullptr) {
-		return false;
-	}
-	const size_t check_align = (min_align == 0) ? sizeof(T) : min_align;
-	const uintptr_t p_p = (uintptr_t)p;
-	const uintptr_t align_mask = min_align - 1;
-	return ((align_mask & p_p) == 0) ? true : false;
-}
-
-template <typename T, typename U>
-	inline size_t copy_multiple(T* dst, U* src, size_t words = 0)
-{
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (words == 0)) {
-		return 0;
-	}
-	SIMDE_VECTORIZE /* OK? */
-	for(size_t i = 0; i < words; i++) {
-		dst[i] = (T)(src[i]); 
-	}
-	return words;
-}
-
-template <typename T, typename U, typename M>
-	U simd_lookup(T* table, const M pos, const size_t table_length)
-{
-	if(sizeof(U) > sizeof(T)) return (U)0;
-	__UNLIKELY_IF(table == nullptr) {
-		return (U)0;
-	}
-	__UNLIKELY_IF((table_length == 0) || (pos >= table_length)) return (U)0;
-	return (U)(table[pos]);
-}
 
 //#include "./simd/simd_pri.h"
 #include "./simd/uint16_8_t.hpp"

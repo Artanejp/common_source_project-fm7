@@ -4,13 +4,13 @@
 
 // Belows are using SIMD Everywhere.
 // See https://github.com/simd-everywhere/simde .
+#include "../simd_types.h"
 #include "../simd/primitives_128.hpp"
 
 class simd_uint16_8 : public csp_simd_pri
 {
 public:
-	
-	uint16_8_t _d;
+	__DECL_ALIGNED(16) uint16_8_t _d;
 	simd_uint16_8(uint16_t n = 0)
 	{
 		fill(n);
@@ -50,44 +50,37 @@ public:
 		}
 	}
 
-	template <typename Y>
-		size_t load_left(Y *p, const size_t num)
+	template <typename __T>
+		inline ssize_t load_left_unsafe(__T* src, const size_t num)
 	{
-		__UNLIKELY_IF((sizeof(Y) > sizeof(uint16_8_t)) || (p == nullptr)) {
-			return 0;
-		}
-		size_t off = 0;
-		size_t i = 0;
-		Y* pp = (Y*)p;
-		uint8_t* q = (uint8_t*)(&_d);
-		Y* qq = (Y*)(&(q[off]));
-		for(; (off < sizeof(uint16_8_t)) && (i < num); off += sizeof(Y), i++) {
-			Y _t = pp[i];
-			qq[i] = _t;
-		}
-		return i;
+		return __load_left_unsafe(src, &(_d), num);
 	}
 	
-	template <typename Y>
-		size_t load_right(Y *p, const size_t num)
+	template <typename __T>
+		inline ssize_t load_left_safe(__T* src, const size_t num)
 	{
-		__UNLIKELY_IF((sizeof(Y) > sizeof(uint16_8_t)) || (p == nullptr)) {
-			return 0;
-		}
-		size_t __num = num;
-		__UNLIKELY_IF((sizeof(uint16_8_t) / sizeof(Y)) > __num) {
-			__num = sizeof(uint16_8_t) / sizeof(Y);
-		}
-		size_t off = (sizeof(uint16_8_t) / sizeof(Y) - __num) * sizeof(Y);
-		size_t i = 0;
-		Y* pp = (Y*)p;
-		uint8_t* q = (uint8_t*)(&_d);
-		Y* qq = (Y*)(&(q[off]));
-		for(; ((off + sizeof(Y)) <= sizeof(uint16_8_t)) && (i < __num); off += sizeof(Y), i++) {
-			Y _t = pp[i];
-			qq[i] = _t;
-		}
-		return i;
+		return __load_left_safe(src, &(_d), num);
+	}
+	template <typename __T>
+		inline ssize_t load_left(__T* src, const size_t num)
+	{
+		return __load_left_unsafe(src, &(_d), num);
+	}
+		
+	template <typename __T>
+		inline ssize_t load_right_unsafe(__T* src, const size_t num)
+	{
+		return __load_right_unsafe(src, &(_d), num);
+	}
+	template <typename __T>
+		inline ssize_t load_right_safe(__T* src, const size_t num)
+	{
+		return __load_right_safe(src, &(_d), num);
+	}
+	template <typename __T>
+		inline ssize_t load_right(__T* src, const size_t num)
+	{
+		return __load_right_unsafe(src, &(_d), num);
 	}
 	
 	inline void align_store(void *p)
@@ -108,43 +101,38 @@ public:
 			unalign_store(p);
 		}
 	}	
-	template <typename Y>
-		size_t store_left(Y *p, const size_t num)
+	
+	template <typename __T>
+		inline ssize_t store_left_unsafe(__T* dst, const size_t num)
 	{
-		__UNLIKELY_IF((sizeof(Y) > sizeof(uint16_8_t)) || (p == nullptr)) {
-			return 0;
-		}
-		size_t off = 0;
-		size_t i = 0;
-		Y* pp = p;
-		uint8_t* q = (uint8_t*)(&_d);
-		Y* qq = (Y*)(&(q[off]));
-		for(; (off < sizeof(uint16_8_t)) && (i < num); off += sizeof(Y), i++) {
-			Y _t = qq[i];
-			pp[i] = _t;
-		}
-		return i;
+		return __store_left_unsafe(dst, &(_d), num);
 	}
-	template <typename Y>
-		inline size_t store_right(Y *p, const size_t num)
+	
+	template <typename __T>
+		inline ssize_t store_left_safe(__T* dst, const size_t num)
 	{
-		__UNLIKELY_IF((sizeof(Y) > sizeof(uint16_8_t)) || (p == nullptr)) {
-			return 0;
-		}
-		size_t __num = num;
-		__UNLIKELY_IF((sizeof(uint16_8_t) / sizeof(Y)) > __num) {
-			__num = sizeof(uint16_8_t) / sizeof(Y);
-		}
-		size_t off = (sizeof(uint16_8_t) / sizeof(Y) - __num) * sizeof(Y);
-		size_t i = 0;
-		Y* pp = p;
-		uint8_t* q = (uint8_t*)(&_d);
-		Y* qq = (Y*)(&(q[off]));
-		for(; ((off + sizeof(Y)) <= sizeof(uint16_8_t)) && (i < __num); off += sizeof(Y), i++) {
-			Y _t = qq[i];
-			pp[i] = _t;
-		}
-		return i;
+		return __store_left_unsafe(dst, &(_d), num);
+	}
+	template <typename __T>
+		inline ssize_t store_left(__T* dst, const size_t num)
+	{
+		return __store_left_safe(dst, &(_d), num);
+	}
+		
+	template <typename __T>
+		inline ssize_t store_right_unsafe(__T* dst, const size_t num)
+	{
+		return __store_right_unsafe(dst, &(_d), num);
+	}
+	template <typename __T>
+		inline ssize_t store_right_safe(__T* dst, const size_t num)
+	{
+		return __store_right_safe(dst, &(_d), num);
+	}
+	template <typename __T>
+		inline ssize_t store_right(__T* dst, const size_t num)
+	{
+		return __store_right_safe(dst, &(_d), num);
 	}
 	
 	inline void clear()
@@ -184,77 +172,36 @@ public:
 		_d.v = simd_128bit::op_set64((const uint32_t)val);
 	}
 
-	inline void set(size_t pos, uint8_t val)
+	template <typename __T>
+		inline __T at_unsafe(size_t pos)
 	{
-		__UNLIKELY_IF(pos >= 16) {
-			return;
-		}
-		_d.u8[pos] = val;
+		return __at_unsafe<__T, uint16_8_t>(pos, &(_d));
 	}
-	inline void set(size_t pos, int8_t val)
+	template <typename __T>
+		inline __T at_safe(size_t pos)
 	{
-		__UNLIKELY_IF(pos >= 16) {
-			return;
-		}
-		_d.s8[pos] = val;
+		return __at_safe<__T, uint16_8_t>(pos, &(_d));
 	}
-	inline void set(size_t pos, uint16_t val)
+	template <typename __T>
+		inline __T at(size_t pos)
 	{
-		__UNLIKELY_IF(pos >= 8) {
-			return;
-		}
-		_d.u16[pos] = val;
+		return __at_unsafe<__T, uint16_8_t>(pos, &(_d));
 	}
-	inline void set(size_t pos, int16_t val)
+	
+	template <typename __T>
+		inline void set_unsafe(size_t pos, __T data)
 	{
-		__UNLIKELY_IF(pos >= 16) {
-			return;
-		}
-		_d.s16[pos] = val;
+		__set_unsafe(pos, (uint16_8_t*)(&(_d)), data);
 	}
-	inline void set(size_t pos, uint32_t val)
+	template <typename __T>
+		inline void set_safe(size_t pos, __T data)
 	{
-		__UNLIKELY_IF(pos >= 4) {
-			return;
-		}
-		_d.u32[pos] = val;
+		__set_safe(pos, (uint16_8_t*)(&(_d)), data);
 	}
-	inline void set(size_t pos, int32_t val)
+	template <typename __T>
+		inline void set(size_t pos, __T data)
 	{
-		__UNLIKELY_IF(pos >= 4) {
-			return;
-		}
-		_d.s32[pos] = val;
-	}
-	inline void set(size_t pos, uint64_t val)
-	{
-		__UNLIKELY_IF(pos >= 2) {
-			return;
-		}
-		_d.u64[pos] = val;
-	}
-	inline void set(size_t pos, int64_t val)
-	{
-		__UNLIKELY_IF(pos >= 2) {
-			return;
-		}
-		_d.s64[pos] = val;
-	}
-
-	template <typename T>
-		T at(size_t pos)
-	{
-		if(sizeof(T) > sizeof(_d)) {
-			return (T)0;
-		}
-		__UNLIKELY_IF(pos >= (sizeof(T) / sizeof(_d))) {
-			return (T)0;
-		}
-		uint8_t *p = (uint8_t*)(&_d);
-		size_t rpos = sizeof(T) * pos;
-		p = &(p[rpos]);
-		T* q = (T*)p;
-		return *q;
+		__set_unsafe(pos, (uint16_8_t*)(&(_d)), data);
 	}
 	
 	virtual inline uint16_8_t data()
@@ -399,6 +346,94 @@ public:
 		return *this;
 	}
 
+	template <typename _St>
+		inline simd_uint16_8& op_lshift16(_St __shift)
+	{
+		if((std::is_integral<_St>::value) && (std::is_arithmetic<_St>::value)) {
+			constexpr bool __is_constant = (std::is_const<_St>::value);
+			if(__is_constant) {
+				_d.v = simd_128bit::op_lshift16_fix(_d.v, (const int)__shift);
+			} else {
+				_d.v = simd_128bit::op_lshift16(_d.v, (const size_t)__shift);
+			}
+		}
+		return *this;
+	}
+	template <typename _St>
+		inline simd_uint16_8& op_rshift16(_St __shift)
+	{
+		if((std::is_integral<_St>::value) && (std::is_arithmetic<_St>::value)) {
+			constexpr bool __is_constant = (std::is_const<_St>::value);
+			if(__is_constant) {
+				_d.v = simd_128bit::op_rshift16_fix(_d.v, (const int)__shift);
+			} else {
+				_d.v = simd_128bit::op_rshift16(_d.v, (const size_t)__shift);
+			}
+		}
+		return *this;
+	}
+	template <typename _St>
+		inline simd_uint16_8& op_rshift16_sign(_St __shift)
+	{
+		if((std::is_integral<_St>::value) && (std::is_arithmetic<_St>::value)) {
+			constexpr bool __is_constant = (std::is_const<_St>::value);
+			if(__is_constant) {
+				_d.v = simd_128bit::op_rshift16_sign_fix(_d.v, (const int)__shift);
+			} else {
+				_d.v = simd_128bit::op_rshift16_sign(_d.v, (const size_t)__shift);
+			}
+		}
+		return *this;
+	}
+	template <typename _St>
+		inline simd_uint16_8& op_lshift32(_St __shift)
+	{
+		if((std::is_integral<_St>::value) && (std::is_arithmetic<_St>::value)) {
+			constexpr bool __is_constant = (std::is_const<_St>::value);
+			if(__is_constant) {
+				_d.v = simd_128bit::op_lshift32_fix(_d.v, (const int)__shift);
+			} else {
+				_d.v = simd_128bit::op_lshift32(_d.v, (const size_t)__shift);
+			}
+		}
+		return *this;
+	}
+	template <typename _St>
+		inline simd_uint16_8& op_rshift32(_St __shift)
+	{
+		if((std::is_integral<_St>::value) && (std::is_arithmetic<_St>::value)) {
+			constexpr bool __is_constant = (std::is_const<_St>::value);
+			if(__is_constant) {
+				_d.v = simd_128bit::op_rshift32_fix(_d.v, (const int)__shift);
+			} else {
+				_d.v = simd_128bit::op_rshift32(_d.v, (const size_t)__shift);
+			}
+		}
+		return *this;
+	}
+	template <typename _St>
+		inline simd_uint16_8& op_rshift32_sign(_St __shift)
+	{
+		if((std::is_integral<_St>::value) && (std::is_arithmetic<_St>::value)) {
+			constexpr bool __is_constant = (std::is_const<_St>::value);
+			if(__is_constant) {
+				_d.v = simd_128bit::op_rshift32_sign_fix(_d.v, (const int)__shift);
+			} else {
+				_d.v = simd_128bit::op_rshift32_sign(_d.v, (const size_t)__shift);
+			}
+		}
+		return *this;
+	}
+	template <typename _St>
+		inline simd_uint16_8& operator<<=(_St __shift)
+	{
+		return op_lshift16(__shift);
+	}
+	template <typename _St>
+		inline simd_uint16_8& operator>>=(_St __shift)
+	{
+		return op_rshift16(__shift);
+	}
 	
 	inline simd_uint16_8& operator<<=(const size_t __shift)
 	{
