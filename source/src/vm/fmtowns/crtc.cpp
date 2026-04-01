@@ -9,13 +9,13 @@
 */
 #include "../vm.h"
 #include "../../common.h"
-#include "../../types/simd.h"
 
 #include "./crtc.h"
 #include "./crtc/crtc_eventnum.h"
 
 #include "./sprite.h"
 #include "../debugger.h"
+#include "../../types/simd.h"
 
 namespace FMTOWNS {
 

@@ -10,7 +10,6 @@
 
 #include "../../vm.h"
 #include "../../../common.h"
-#include "../../../types/simd.h"
 
 #include "../crtc.h"
 #include "./crtc_utils.h"

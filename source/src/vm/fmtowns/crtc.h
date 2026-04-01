@@ -14,13 +14,13 @@
 #include <atomic>
 #include <cmath>
 
-// Use SIMDE instead of csp_vector8 .
-#include "../../types/simd.h"
-
 #include "device.h"
 
 #include "towns_common.h"
 #include "./crtc/crtc_types.h"
+// Use SIMDE instead of csp_vector8 .
+#include "../../types/simd_types.h"
+
 
 /*
  * I/O Address :

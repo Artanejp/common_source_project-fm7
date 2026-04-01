@@ -3,6 +3,9 @@
 #define _TOWNS_CRTC_UTILS_H_ 
 
 #include "../../../common.h"
+#include "../../../types/simd_types.h"
+#include "../../../types/simd/primitives_128.hpp"
+#include "../../../types/simd/primitives_256.hpp"
 
 namespace FMTOWNS {
 
