@@ -14,11 +14,17 @@
 #include "../crtc.h"
 #include "./crtc_utils.h"
 
+#if defined(_RGB555) || defined(_RGBA565)
+using simd_scrntype8_class = simd_uint16_8;
+#else /* RGB888 || RGBA8888 */
+using simd_scrntype8_class = simd_uint32_8;
+#endif
+
 namespace FMTOWNS {
 
 inline void TOWNS_CRTC::transfer_pixels(scrntype_t* dst, scrntype_t* src, int w)
 {
-	__UNLIKELY_IF((dst == nullptr) || (src == nullptr) || (w <= 0)) return;
+	__UNLIKELY_IF((dst == NULL) || (src == NULL) || (w <= 0)) return;
 //	for(int i = 0; i < w; i++) {
 //		dst[i] = src[i];
 //	}
@@ -31,7 +37,7 @@ void TOWNS_CRTC::draw_screen()
 	
 	bool do_alpha = false; // ToDo: Hardware alpha rendaring.
 	// Don't need Locking because Already locking from OSD::doDraw() .
-	__UNLIKELY_IF(d_vram == nullptr) {
+	__UNLIKELY_IF(d_vram == NULL) {
 		return;
 	}
 	int lines = vst[trans];
@@ -80,6 +86,11 @@ void TOWNS_CRTC::draw_screen()
 				ycount[l]++;
 			}
 		}
+		// Move from crtc.h : Make line buffer per line.
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
 		if((do_render[0]) || (do_render[1])) {
 			disp_y++;
 			memset(lbuffer1, 0x00, sizeof(lbuffer1));
@@ -145,32 +156,23 @@ void TOWNS_CRTC::draw_screen()
 //			__UNLIKELY_IF(is_transparent[1]) {
 //				memset(abuffer1, 0xff, sizeof(abuffer1));
 //			}
-			//__LIKELY_IF((rendered_words[0] > 0)) {
-			//	make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
-			//	make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
-			//}
-			//__LIKELY_IF((rendered_words[1] > 0)) {
-			//	make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
-			//	make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
-			//}
-			mix_screen(y, width, do_mix[0], do_mix[1], bitshift[0], bitshift[1], rendered_words[0], rendered_words[1], is_hloop[0], is_hloop[1]);
 		} else {
 			__LIKELY_IF(do_mix[0]) {
-				//memset(abuffer0, 0xff, sizeof(abuffer0));
-				//__LIKELY_IF((rendered_words[0] > 0)) {
-				//	make_prefetch(lbuffer0, sizeof(scrntype_t) * rendered_words[0]);
-				//	//make_prefetch(abuffer0, sizeof(scrntype_t) * rendered_words[0]);
-				//}
-				mix_screen(y, width, do_mix[0], false, bitshift[0], 0, rendered_words[0], 0, is_hloop[0], false);
+				//do_mix[1] = false;
+				bitshift[1] = 0;
+				rendered_words[1] = 0;
+				is_hloop[1] = false;
 			} else if(do_mix[1]) {
-				//memset(abuffer1, 0xff, sizeof(abuffer1));
-				//__LIKELY_IF((rendered_words[1] > 0)) {
-				//	make_prefetch(lbuffer1, sizeof(scrntype_t) * rendered_words[1]);
-				//	//make_prefetch(abuffer1, sizeof(scrntype_t) * rendered_words[1]);
-				//}
-				mix_screen(y, width, false, do_mix[1], 0, bitshift[1], 0, rendered_words[1], false, is_hloop[1]);
+				//do_mix[0] = false;
+				bitshift[0] = 0;
+				rendered_words[0] = 0;
+				is_hloop[0] = false;
+
 			}
 			// ToDo: Clear VRAM?
+		}
+		if(do_mix[0] || do_mix[1]) {
+			mix_screen(y, width, do_mix, bitshift, rendered_words, is_hloop, pix_array, alpha_array);
 		}
 
 
@@ -181,7 +183,7 @@ void TOWNS_CRTC::draw_screen()
 
 bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels)
 {
-	__UNLIKELY_IF(dst == nullptr) return false;
+	__UNLIKELY_IF(dst == NULL) return false;
 
 	int magx = linebuffers[trans][y].mag[layer];
 	int pwidth = linebuffers[trans][y].pixels[layer];
@@ -224,9 +226,9 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 	__UNLIKELY_IF(magx < 1) return false;
 	__UNLIKELY_IF(pwidth > TOWNS_CRTC_MAX_PIXELS) pwidth = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(pwidth <= 0) return false;
-	if(y == 128) {
-		//out_debug_log("RENDER_32768 Y=%d LAYER=%d PWIDTH=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, width, dst, mask, do_alpha);
-	}
+//	if(y == 128) {
+//		out_debug_log("RENDER_32768 Y=%d LAYER=%d PWIDTH=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, width, dst, mask, do_alpha);
+//	}
 	__DECL_ALIGNED(16) uint16_8_t pbuf;
 	__DECL_ALIGNED(16) uint16_8_t rbuf;
 	__DECL_ALIGNED(16) uint16_8_t gbuf;
@@ -370,7 +372,7 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels)
 {
 	// 256 colors
-	__UNLIKELY_IF(dst == nullptr) return false;
+	__UNLIKELY_IF(dst == NULL) return false;
 	int magx = linebuffers[trans][y].mag[0];
 	int pwidth = linebuffers[trans][y].pixels[0];
 	uint8_t *p = linebuffers[trans][y].pixels_layer[0];
@@ -485,7 +487,7 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 
 bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels)
 {
-	__UNLIKELY_IF(dst == nullptr) return false;
+	__UNLIKELY_IF(dst == NULL) return false;
 
 	__DECL_SCRNTYPE8_ALIGNED static const scrntype_t maskdata_transparent[16] = {
 		RGBA_COLOR(0, 0, 0, 0),
@@ -686,32 +688,54 @@ bool TOWNS_CRTC::render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, 
 // This function does alpha-blending.
 // If CSP support hardware-accelalations, will support.
 // (i.e: Hardware Alpha blending, Hardware rendaring...)
-void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1)
+void TOWNS_CRTC::mix_screen(const int y, int width, bool do_mix[2], int bitshift[2], int words[2], bool is_hloop[2], scrntype_t* pix_array[2], scrntype_t* alpha_array[2])
 {
+	__UNLIKELY_IF(y < 0) return;
+	__UNLIKELY_IF(y >= TOWNS_CRTC_MAX_LINES) return;
 	__UNLIKELY_IF(width > TOWNS_CRTC_MAX_PIXELS) width = TOWNS_CRTC_MAX_PIXELS;
 	__UNLIKELY_IF(width <= 0) return;
 
 	scrntype_t *pp = osd->get_vm_screen_buffer(y);
-	if(y == 128) {
-		//out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d DST=%08X"), y, width, pp);
-	}
 
 	bool pix1_cached = false;
 	bool alpha_cached = false;
 	bool pix0_cached = false;
-	__LIKELY_IF(pp != nullptr) {
-		int left0 = words0;
+	bool do_mix0 = do_mix[0];
+	bool do_mix1 = do_mix[1];
+	int bitshift0 = bitshift[0];
+	int bitshift1 = bitshift[1];
+	int words0 = words[0];
+	int words1 = words[1];
+	bool is_hloop0 = is_hloop[0];
+	bool is_hloop1 = is_hloop[1];
+	
+	__UNLIKELY_IF(words0 >= TOWNS_CRTC_MAX_PIXELS) {
+		words0 = TOWNS_CRTC_MAX_PIXELS;
+	}
+	__UNLIKELY_IF(words1 >= TOWNS_CRTC_MAX_PIXELS) {
+		words1 = TOWNS_CRTC_MAX_PIXELS;
+	}
+	__UNLIKELY_IF(words0 <= 0) {
+		do_mix0 = false;
+	}
+	__UNLIKELY_IF(words1 <= 0) {
+		do_mix1 = false;
+	}
+	__LIKELY_IF(pp != NULL) {
 		int left1 = words1;
-		__UNLIKELY_IF(words0 <= 0) {
-			do_mix0 = false;
-		}
-		__UNLIKELY_IF(words1 <= 0) {
-			do_mix1 = false;
-		}
 		// Clear cache
 		__DECL_SCRNTYPE8_ALIGNED scrntype8_t blank;
 		__DECL_SCRNTYPE8_ALIGNED scrntype8_t blank_alpha;
+		// Move from crtc.h : Make cache per line.
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t pix_cache1[TOWNS_CRTC_MAX_PIXELS + 16];
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t pix_cache0[TOWNS_CRTC_MAX_PIXELS + 16];
+		__DECL_SCRNTYPE8_ALIGNED scrntype_t alpha_cache[TOWNS_CRTC_MAX_PIXELS + 16];
 
+		scrntype_t* lbuffer0 = ___assume_aligned(pix_array[0], sizeof(scrntype8_t));
+		scrntype_t* lbuffer1 = ___assume_aligned(pix_array[1], sizeof(scrntype8_t));
+		scrntype_t* abuffer0 = ___assume_aligned(alpha_array[0], sizeof(scrntype8_t));
+		scrntype_t* abuffer1 = ___assume_aligned(alpha_array[1], sizeof(scrntype8_t));
+		
 		blank.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
 		blank_alpha.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 0));
 
@@ -728,10 +752,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 		}
 		bool got_0 = false;
 		bool got_1 = false;
-		__LIKELY_IF(do_mix1) {
-			__UNLIKELY_IF(words1 >= TOWNS_CRTC_MAX_PIXELS) {
-				words1 = TOWNS_CRTC_MAX_PIXELS;
-			}
+		__LIKELY_IF((do_mix1) && (lbuffer1 != NULL)) {
 			if(is_hloop1) {
 				// COPY 0 to (words)
 				if(bitshift1 == 0) {
@@ -800,7 +821,7 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			//make_prefetch(alpha_cache, sizeof(alpha_cache));
 			alpha_cached = true;
 		}
-		__LIKELY_IF(do_mix0) {
+		__LIKELY_IF((do_mix0) && (lbuffer0 != NULL)) {
 			__UNLIKELY_IF(words0 >= TOWNS_CRTC_MAX_PIXELS) {
 				words0 = TOWNS_CRTC_MAX_PIXELS;
 			}
@@ -821,20 +842,20 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				__LIKELY_IF((of00 < width) && (of01 < width)) {
 					__LIKELY_IF(w00 > 0) {
 						simd_copy(&(pix_cache0[of00]), &(lbuffer0[of01]), w00);
-						if(got_1) {
+						if((got_1) && (abuffer0 != NULL)) {
 							simd_copy(&(alpha_cache[of00]), &(abuffer0[of01]), w00);
 						}
 						got_0 = true;
 					}
 					__LIKELY_IF(w01 > 0) {
 					    simd_copy(&(pix_cache0[of01]), &(lbuffer0[of00]), w01);
-						if(got_1) {
+						if((got_1) && (abuffer0 != NULL)) {
 							simd_copy(&(alpha_cache[of01]), &(abuffer0[of00]), w01);
 						}
 						got_0 = true;
 					}
 				}
-			} else if(bitshift0 != 0) {
+			} else if(bitshift0 != 0) { // (!(is_hloop0) && (bitshift0 != 0)) 
 				ssize_t of00 = 0;
 				ssize_t of01 = 0;
 				ssize_t w00 = words0;
@@ -855,16 +876,50 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				__LIKELY_IF((of00 < width) && (of01 < width)) {
 					__LIKELY_IF(w00 > 0) {
 						simd_copy(&(pix_cache0[of00]), &(lbuffer0[of01]), w00);
-						if(got_1) {
+						if((got_1) && (abuffer0 != NULL)) {
 							simd_copy(&(alpha_cache[of00]), &(abuffer0[of01]), w00);
 						}
 						words0 = w00;
 						got_0 = true;
 					}
 				}
-			} else {
+			} else if(is_hloop0) { // ((is_hloop0) && (bitshift0 == 0))
 				__LIKELY_IF(words0 > 0) {
-					got_0 = true;
+					if(words0 >= width) {
+						__LIKELY_IF(lbuffer0 != NULL) {
+							simd_copy(pix_cache0, lbuffer0, width);
+							got_0 = true;
+						}
+						if((got_1) && (abuffer0 != NULL)) {
+							simd_copy(alpha_cache, abuffer0, width);
+						}
+					} else { // words0 < width
+						int w00 = width - words0;
+						__LIKELY_IF(lbuffer0 != NULL) {
+							simd_copy(pix_cache0, lbuffer0, words0);
+							simd_copy(&(pix_cache0[words0]), lbuffer0, w00);
+							got_0 = true;
+						}
+						if((got_1) && (abuffer0 != NULL)) {
+							simd_copy(alpha_cache, abuffer0, words0);
+							simd_copy(&(alpha_cache[words0]), abuffer0, w00);
+						}
+
+					}
+				}
+			} else { // (!(is_hloop0) && (bitshift0 == 0))
+				//if(words0 > width) {
+				//	words0 = width;
+				//}
+				__LIKELY_IF(words0 > 0) {
+					
+					__LIKELY_IF(lbuffer0 != NULL) {
+						simd_copy(pix_cache0, lbuffer0, words0);
+						got_0 = true;
+					}
+					if((got_1) && (abuffer0 != NULL)) {
+						simd_copy(alpha_cache, abuffer0, words0);
+					}
 				}
 			}
 		}
@@ -880,38 +935,6 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t mask_front;
 			__DECL_SCRNTYPE8_ALIGNED scrntype8_t mask_back;
 
-			__LIKELY_IF(bitshift0 == 0) {
-				__LIKELY_IF(width >= 8) {
-					for(size_t xx = 0; xx < width; xx += 8) {
-						pix0 = load8_unaligned(&(lbuffer0[xx]));
-						pix1 = load8_aligned(&(pix_cache1[xx]));
-						mask_front = load8_unaligned(&(abuffer0[xx]));
-						
-						pix0.v = SCRNTYPE8_SIMD::op_and(mask_front.v, pix0.v);
-						pix1.v = SCRNTYPE8_SIMD::op_andnot(mask_front.v, pix1.v);
-						pix0.v = SCRNTYPE8_SIMD::op_or(pix0.v, pix1.v);
-						store8_pix(&(pp[xx]), pix0);
-					}
-				}
-				if((width & 7) != 0) {
-					pix0.v = SCRNTYPE8_SIMD::op_clear();
-					pix1.v = SCRNTYPE8_SIMD::op_clear();
-					mask_front.v = SCRNTYPE8_SIMD::op_clear();
-					__DECL_VECTORIZED_LOOP					
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
-						read_simd_element(pix0, xx,   lbuffer0[xx]);
-						read_simd_element(pix1, xx,   pix_cache1[xx]);
-						read_simd_element(mask_front, xx, alpha_cache[xx]);
-					}
-					pix0.v = SCRNTYPE8_SIMD::op_and(mask_front.v, pix0.v);
-					pix1.v = SCRNTYPE8_SIMD::op_andnot(mask_front.v, pix1.v);
-					pix0.v = SCRNTYPE8_SIMD::op_or(pix0.v, pix1.v);
-					__DECL_VECTORIZED_LOOP
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
-						pp[xx] = simd_element(pix0, xx);
-					}
-				}
-			} else {
 				__LIKELY_IF(width >= 8) {
 					for(size_t xx = 0; xx < width; xx += 8) {
 						pix0 = load8_aligned(&(pix_cache0[xx]));
@@ -942,16 +965,10 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 						pp[xx] = simd_element(pix0, xx);
 					}
 				}
-			}
-			
 		} else if(got_1) {
 			simd_copy(pp, pix_cache1, width);
 		} else if(got_0) {
-			if(bitshift0 == 0) {
-				simd_copy(pp, lbuffer0, width);
-			} else {
-				simd_copy(pp, pix_cache0, width);
-			}
+			simd_copy(pp, pix_cache0, width);
 		} else {
 			// Clear ONLY
 			if((do_mix0) || (do_mix1)) {
@@ -960,18 +977,9 @@ void TOWNS_CRTC::mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bi
 				simd_fill(pp, pix, width);
 			}
 		}
-		if(do_mix0) {
-			flush_cache(lbuffer0, sizeof(lbuffer0));
-		}			
-		if(pix1_cached) {
-			flush_cache(pix_cache1, sizeof(pix_cache1));
-		}
-		if(pix0_cached) {
-			flush_cache(pix_cache0, sizeof(pix_cache0));
-		}
-		if(alpha_cached) {
-			flush_cache(alpha_cache, sizeof(alpha_cache));
-		}
+		//if(((y % 256) == 0) && (y > 0)) {
+		//	out_debug_log(_T("MIX_SCREEN Y=%d WIDTH=%d MIX=(%s, %s), WORDS=(%04d, %04d) DST=%08X"), y, width, (got_0) ? _T("Y") : _T("N"), (got_1) ? _T("Y") : _T("N"), words0, words1, pp);
+		//}
 	}
 }
 

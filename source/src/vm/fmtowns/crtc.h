@@ -291,19 +291,12 @@ protected:
 	bool odd_field;
 	bool req_update_cr1;
 
-	__DECL_ALIGNED(32) linebuffer_t linebuffers[FMTOWNS::CRTC_BUFFER_NUM][TOWNS_CRTC_MAX_LINES];
+	__DECL_SCRNTYPE8_ALIGNED linebuffer_t linebuffers[FMTOWNS::CRTC_BUFFER_NUM][TOWNS_CRTC_MAX_LINES];
 
 	// Render buffer
 	// ToDo: faster alpha blending.
 	bool this_layer_is_interlaced[FMTOWNS::CRTC_BUFFER_NUM][2];
 	
-	__DECL_ALIGNED(16) scrntype_t lbuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(16) scrntype_t lbuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(16) scrntype_t abuffer0[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(16) scrntype_t abuffer1[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(16) scrntype_t pix_cache1[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(16) scrntype_t pix_cache0[TOWNS_CRTC_MAX_PIXELS + 16];
-	__DECL_ALIGNED(16) scrntype_t alpha_cache[TOWNS_CRTC_MAX_PIXELS + 16];
 
 	virtual void copy_regs_v();
 	virtual void copy_regs_h();
@@ -433,7 +426,7 @@ protected:
 	inline scrntype8_t __FASTCALL make_rgb_32768(const uint16_8_t r, const uint16_8_t g, const uint16_8_t b);
 
 	// Mix screens (already rendered) to one screen.
-	virtual void __FASTCALL mix_screen(int y, int width, bool do_mix0, bool do_mix1, int bitshift0, int bitshift1, int words0, int words1, bool is_hloop0, bool is_hloop1);
+	virtual void __FASTCALL mix_screen(const int y, int width, bool do_mix[2], int bitshift[2], int words[2], bool is_hloop[2], scrntype_t* pix_array[2], scrntype_t* alpha_array[2]);
 	
 	// Primitives maybe around rendering... these are splitted to ./crtc_utils.h .
 
