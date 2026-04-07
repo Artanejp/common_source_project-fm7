@@ -925,44 +925,39 @@ void TOWNS_CRTC::mix_screen(const int y, int width, bool do_mix[2], int bitshift
 		}
 		
 		if((got_0) && (got_1)) {
-			scrntype_t p0;
-			scrntype_t p1;
-			scrntype_t mf;
-			scrntype_t mb;
-
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix0;
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix1;
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t mask_front;
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t mask_back;
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class pix0;
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class pix1;
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class mask_front;
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class mask_back;
 
 				__LIKELY_IF(width >= 8) {
 					for(size_t xx = 0; xx < width; xx += 8) {
-						pix0 = load8_aligned(&(pix_cache0[xx]));
-						pix1 = load8_aligned(&(pix_cache1[xx]));
-						mask_front = load8_aligned(&(alpha_cache[xx]));
+						pix0.align_load(&(pix_cache0[xx]));
+						pix1.align_load(&(pix_cache1[xx]));
+						mask_front.align_load(&(alpha_cache[xx]));
 						
-						pix0.v = SCRNTYPE8_SIMD::op_and(mask_front.v, pix0.v);
-						pix1.v = SCRNTYPE8_SIMD::op_andnot(mask_front.v, pix1.v);
-						pix0.v = SCRNTYPE8_SIMD::op_or(pix0.v, pix1.v);
-						store8_pix(&(pp[xx]), pix0);
+						pix0 &= mask_front;
+						pix1.op_andnot(mask_front);
+						pix0 |= pix1;
+						pix0.unalign_store(&(pp[xx]));
 					}
 				}
 				if((width & 7) != 0) {
-					pix0.v = SCRNTYPE8_SIMD::op_clear();
-					pix1.v = SCRNTYPE8_SIMD::op_clear();
-					mask_front.v = SCRNTYPE8_SIMD::op_clear();
+					pix0.clear();
+					pix1.clear();
+					mask_front.clear();
 					__DECL_VECTORIZED_LOOP					
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
-						read_simd_element(pix0, xx,   pix_cache0[xx]);
-						read_simd_element(pix1, xx,   pix_cache1[xx]);
-						read_simd_element(mask_front, xx, alpha_cache[xx]);
+					for(size_t i = 0, xx = (width & ~(7)); xx < width; i++, xx++) {
+						pix0.set(i, pix_cache0[xx]);
+						pix1.set(i, pix_cache1[xx]);
+						mask_front.set(i, alpha_cache[xx]);
 					}
-					pix0.v = SCRNTYPE8_SIMD::op_and(mask_front.v, pix0.v);
-					pix1.v = SCRNTYPE8_SIMD::op_andnot(mask_front.v, pix1.v);
-					pix0.v = SCRNTYPE8_SIMD::op_or(pix0.v, pix1.v);
+					pix0 &= mask_front;
+					pix1.op_andnot(mask_front);
+					pix0 |= pix1;
 					__DECL_VECTORIZED_LOOP
-					for(size_t xx = (width & ~(7)); xx < width; xx++) {
-						pp[xx] = simd_element(pix0, xx);
+					for(size_t i = 0, xx = (width & ~(7)); xx < width; i++, xx++) {
+						pp[xx] = pix0.at<scrntype_t>(i);
 					}
 				}
 		} else if(got_1) {
@@ -972,8 +967,8 @@ void TOWNS_CRTC::mix_screen(const int y, int width, bool do_mix[2], int bitshift
 		} else {
 			// Clear ONLY
 			if((do_mix0) || (do_mix1)) {
-				 __DECL_SCRNTYPE8_ALIGNED scrntype8_t pix;
-				 pix.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
+				__DECL_SCRNTYPE8_ALIGNED scrntype8_t pix;
+				pix.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
 				simd_fill(pp, pix, width);
 			}
 		}
