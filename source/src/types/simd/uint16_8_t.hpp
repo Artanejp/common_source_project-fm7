@@ -449,10 +449,178 @@ public:
 		_d.v = _r;
 		return *this;
 	}
+	
+	// Special logic OPs
 	inline simd_uint16_8& op_andnot(const simd_uint16_8& mask)
 	{
-		_d.v = simd_128bit::op_andnot(mask._d.v,_d.v);
+		_d.v = simd_128bit::op_andnot(mask._d.v, _d.v);
 		return *this;
+	}
+	inline simd_uint16_8& op_not()
+	{
+		_d.v = simd_128bit::op_not(_d.v);
+		return *this;
+	}
+	// Compare ops.
+	// per 8bits.
+	// this == b
+	inline simd_uint16_8& equals_i8(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_equals8(_d.v, b._d.v);
+		return *this;
+	}
+	// this != b
+	inline simd_uint16_8& not_equals_i8(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not_equals8(_d.v, b._d.v);
+		return *this;
+	}
+	// this > b
+	inline simd_uint16_8& greater_i8(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_greater8(_d.v, b._d.v);
+		return *this;
+	}
+	inline simd_uint16_8& greater_equals_i8(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_lesser8(_d.v, b._d.v));
+		return *this;
+	}
+	// this < b
+	inline simd_uint16_8& lesser_i8(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_lesser8(_d.v, b._d.v);
+		return *this;
+	}
+	// this <= b
+	inline simd_uint16_8& lesser_equals_i8(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_greater8(_d.v, b._d.v));
+		return *this;
+	}
+	
+	// per 16bits.
+	// this == b
+	inline simd_uint16_8& equals_i16(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_equals16(_d.v, b._d.v);
+		return *this;
+	}
+	// this != b
+	inline simd_uint16_8& not_equals_i16(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not_equals16(_d.v, b._d.v);
+		return *this;
+	}
+	// this > b
+	inline simd_uint16_8& greater_i16(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_greater16(_d.v, b._d.v);
+		return *this;
+	}
+	inline simd_uint16_8& greater_equals_i16(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_lesser16(_d.v, b._d.v));
+		return *this;
+	}
+	// this < b
+	inline simd_uint16_8& lesser_i16(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_lesser16(_d.v, b._d.v);
+		return *this;
+	}
+	// this <= b
+	inline simd_uint16_8& lesser_equals_i16(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_greater16(_d.v, b._d.v));
+		return *this;
+	}
+	// per 32bits.
+	inline simd_uint16_8& equals_i32(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_equals32(_d.v, b._d.v);
+		return *this;
+	}
+	// this != b
+	inline simd_uint16_8& not_equals_i32(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not_equals32(_d.v, b._d.v);
+		return *this;
+	}
+	// this > b
+	inline simd_uint16_8& greater_i32(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_greater32(_d.v, b._d.v);
+		return *this;
+	}
+	inline simd_uint16_8& greater_equals_i32(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_lesser32(_d.v, b._d.v));
+		return *this;
+	}
+	// this < b
+	inline simd_uint16_8& lesser_i32(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_lesser32(_d.v, b._d.v);
+		return *this;
+	}
+	// this <= b
+	inline simd_uint16_8& lesser_equals_i32(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_greater32(_d.v, b._d.v));
+		return *this;
+	}
+	// per 64bits.
+	inline simd_uint16_8& equals_i64(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_equals64(_d.v, b._d.v);
+		return *this;
+	}
+	// this != b
+	inline simd_uint16_8& not_equals_i64(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not_equals64(_d.v, b._d.v);
+		return *this;
+	}
+	// this > b
+	inline simd_uint16_8& greater_i64(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_greater64(_d.v, b._d.v);
+		return *this;
+	}
+	inline simd_uint16_8& greater_equals_i64(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_lesser64(_d.v, b._d.v));
+		return *this;
+	}
+	// this < b
+	inline simd_uint16_8& lesser_i64(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_lesser64(_d.v, b._d.v);
+		return *this;
+	}
+	// this <= b
+	inline simd_uint16_8& lesser_equals_i64(const simd_uint16_8& b)
+	{
+		_d.v = simd_128bit::op_not(simd_128bit::op_greater64(_d.v, b._d.v));
+		return *this;
+	}
+
+	// Test bits.
+	inline bool test_zero(const simd_uint16_8& mask)
+	{
+		int _r = simd_128bit::test_zero(mask._d.v, _d.v);
+		return (_r != 0);
+	}
+	inline bool test_c(const simd_uint16_8& mask)
+	{
+		int _r = simd_128bit::test_c(mask._d.v, _d.v);
+		return (_r != 0);
+	}
+	inline bool test_nzc(const simd_uint16_8& mask)
+	{
+		int _r = simd_128bit::test_nzc(mask._d.v, _d.v);
+		return (_r != 0);
 	}
 
 };
@@ -516,4 +684,150 @@ inline simd_uint16_8 operator>>(const simd_uint16_8& __a, const size_t& __shift)
 	return __d;
 }
 
+inline simd_uint16_8 cmp_equals_i8(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.equals_i8(b);
+}
+
+inline simd_uint16_8 cmp_not_equals_i8(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.not_equals_i8(b);
+}
+
+inline simd_uint16_8 cmp_greater_i8(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_i8(b);
+}
+
+inline simd_uint16_8 cmp_greater_equals_i8(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_equals_i8(b);
+}
+
+inline simd_uint16_8 cmp_lesser_i8(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_i8(b);
+}
+
+inline simd_uint16_8 cmp_lesser_equals_i8(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_equals_i8(b);
+}
+
+// 16bit compare OPs
+inline simd_uint16_8 cmp_equals_i16(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.equals_i16(b);
+}
+
+inline simd_uint16_8 cmp_not_equals_i16(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.not_equals_i16(b);
+}
+
+inline simd_uint16_8 cmp_greater_i16(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_i16(b);
+}
+
+inline simd_uint16_8 cmp_greater_equals_i16(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_equals_i16(b);
+}
+
+inline simd_uint16_8 cmp_lesser_i16(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_i16(b);
+}
+
+inline simd_uint16_8 cmp_lesser_equals_i16(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_equals_i16(b);
+}
+
+// 32bit cmps.
+inline simd_uint16_8 cmp_equals_i32(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.equals_i32(b);
+}
+
+inline simd_uint16_8 cmp_not_equals_i32(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.not_equals_i32(b);
+}
+
+inline simd_uint16_8 cmp_greater_i32(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_i32(b);
+}
+
+inline simd_uint16_8 cmp_greater_equals_i32(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_equals_i32(b);
+}
+
+inline simd_uint16_8 cmp_lesser_i32(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_i32(b);
+}
+
+inline simd_uint16_8 cmp_lesser_equals_i32(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_equals_i32(b);
+}
+
+// 64bit cmps
+inline simd_uint16_8 cmp_equals_i64(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.equals_i64(b);
+}
+
+inline simd_uint16_8 cmp_not_equals_i64(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.not_equals_i64(b);
+}
+
+inline simd_uint16_8 cmp_greater_i64(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_i64(b);
+}
+
+inline simd_uint16_8 cmp_greater_equals_i64(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.greater_equals_i64(b);
+}
+
+inline simd_uint16_8 cmp_lesser_i64(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_i64(b);
+}
+
+inline simd_uint16_8 cmp_lesser_equals_i64(simd_uint16_8& a, simd_uint16_8& b)
+{
+	__DECL_ALIGNED(32) simd_uint16_8  _r(a);
+	return _r.lesser_equals_i64(b);
+}
 
