@@ -521,6 +521,7 @@ inline simde__m256 op_greater64(const simde__m256i __a, const simde__m256i __b)
 	return simde_mm256_cmpgt_epi8(__a, __b);
 }
 
+
 // __a < __b (signed)
 inline simde__m256 op_lesser8(const simde__m256i __a, const simde__m256i __b)
 {
@@ -1575,7 +1576,26 @@ inline size_t eval_le32(const void* dst, const void* __a, const simde__m256 __b,
 {
 	return eval_lesser_equals32(dst, __a, __b, vec8_words);
 }
-	
+
+// Test bits OPs. (SSE4.1 or after)
+// Return 0 if all bits of (_a & _b) is '0'. 
+inline int test_zero(const simde__m256 _a, const simde__m256 _b)
+{
+	return simde_mm256_testz_si256((simde__m256i)_a, (simde__m256i)_b);
+}
+
+// Return 0 if all bits of (~(_a) & _b) is '1'. 
+inline int test_c(const simde__m256 _a, const simde__m256 _b)
+{
+	return simde_mm256_testc_si256((simde__m256i)_a, (simde__m256i)_b);
+}
+
+// Return 0 if (all bits of (_a & _b) is '0') && (all bits of (~(_a) & _b) is '1'). 
+inline int test_nzc(const simde__m256 _a, const simde__m256 _b)
+{
+	return simde_mm256_testnzc_si256((simde__m256i)_a, (simde__m256i)_b);
+}
+
 /*
  * Lookup tables (a.k.a Gather) OPs.
  */

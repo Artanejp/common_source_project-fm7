@@ -479,6 +479,11 @@ inline simde__m128 op_equals32(const simde__m128 __a, const simde__m128 __b)
 	return simde_mm_cmpeq_epi32(__a, __b);
 }
 
+inline simde__m128 op_equals64(const simde__m128 __a, const simde__m128 __b)
+{
+	return simde_mm_cmpeq_epi64(__a, __b);
+}
+
 inline simde__m128 op_not_equals8(const simde__m128 __a, const simde__m128 __b)
 {
 	return op_not(simde_mm_cmpeq_epi8(__a, __b));
@@ -1625,6 +1630,24 @@ inline void op_saturation_add16_vec8(int32_t* dst, int32_t* src, simde__m128i tm
  * Note: Using simde/x86/avx2.h .
  */
 
+// Test bits OPs. (SSE4.1 or later)
+// Return 0 if all bits of (_a & _b) is '0'. 
+inline int test_zero(const simde__m128 _a, const simde__m128 _b)
+{
+	return simde_mm_testz_si128((simde__m128i)_a, (simde__m128i)_b);
+}
+
+// Return 0 if all bits of (~(_a) & _b) is '1'. 
+inline int test_c(const simde__m128 _a, const simde__m128 _b)
+{
+	return simde_mm_testc_si128((simde__m128i)_a, (simde__m128i)_b);
+}
+
+// Return 0 if (all bits of (_a & _b) is '0') && (all bits of (~(_a) & _b) is '1'). 
+inline int test_nzc(const simde__m128 _a, const simde__m128 _b)
+{
+	return simde_mm_testnzc_si128((simde__m128i)_a, (simde__m128i)_b);
+}
 
 // Get from 8x32bit elements from table with selectable mask.
 inline simde__m128i make_table32x4_from_uint8(uint8_t* p)
