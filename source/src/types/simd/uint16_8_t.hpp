@@ -139,6 +139,10 @@ public:
 	{
 		_d.v = simd_128bit::op_clear();
 	}
+	inline void setall()
+	{
+		_d.v = simd_128bit::op_setall();
+	}
 	inline void fill(uint8_t val)
 	{
 		_d.v = simd_128bit::op_set8((const uint8_t)val);

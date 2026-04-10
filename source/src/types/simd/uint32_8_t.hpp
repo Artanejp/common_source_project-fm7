@@ -141,6 +141,10 @@ public:
 	{
 		_d.v = simd_256bit::op_clear();
 	}
+	inline void setall()
+	{
+		_d.v = simd_256bit::op_setall();
+	}
 	inline void fill(uint8_t val)
 	{
 		_d.v = simd_256bit::op_set8((const uint8_t)val);
@@ -240,7 +244,166 @@ public:
 	{
 		_d = bswap(_d, __size);
 	}
-	
+	template <typename _Styp, typename _Dtyp>
+		inline simd_uint32_8& from_uint16_8(const simd_uint16_8 src)
+	{
+		if(std::is_signed<_Styp>::value) {
+			switch(sizeof(_Styp)) {
+			case 1:
+				switch(sizeof(_Dtyp)) {
+				case 1:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 16; ii++) {
+						_d.s8[ii] = src._d.s8[ii];
+					}
+					break;
+				case 2:
+					_d.v = simd_256bit::op_convert_8bit_to_16bit_signed(src._d.v);
+					break;
+				case 4:
+					_d.v = simd_256bit::op_convert_8bit_to_32bit_signed(src._d.v);
+					break;
+				case 8:
+					_d.v = simd_256bit::op_convert_8bit_to_64bit_signed(src._d.v);
+					break;
+				default: /* NOP */
+					break; 
+				}
+				break;
+			case 2: /* 16bit */
+				switch(sizeof(_Dtyp)) {
+				case 1:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 8; ii++) {
+						_d.s8[ii] = (int8_t)(src._d.s16[ii]);
+					}
+					break;
+				case 2:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 8; ii++) {
+						_d.s16[ii] = src._d.s16[ii];
+					}
+					break;
+				case 4:
+					_d.v = simd_256bit::op_convert_16bit_to_32bit_signed(src._d.v);
+					break;
+				case 8:
+					_d.v = simd_256bit::op_convert_16bit_to_64bit_signed(src._d.v);
+					break;
+				default: /* NOP */
+					break; 
+				}
+				break;
+			case 4: /* 32bit */
+				switch(sizeof(_Dtyp)) {
+				case 1:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 8; ii++) {
+						_d.s8[ii] = (int8_t)(src._d.s32[ii]);
+					}
+					break;
+				case 2:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 4; ii++) {
+						_d.s16[ii] = (int16_t)(src._d.s32[ii]);
+					}
+					break;
+				case 4:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 4; ii++) {
+						_d.s32[ii] = src._d.s32[ii];
+					}
+					break;
+				case 8:
+					_d.v = simd_256bit::op_convert_32bit_to_64bit_signed(src._d.v);
+					break;
+				default: /* NOP */
+					break; 
+				}
+				break;
+			default:
+				break;
+			}
+		} else { /* Unsigned */
+			switch(sizeof(_Styp)) {
+			case 1:
+				switch(sizeof(_Dtyp)) {
+				case 1:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 16; ii++) {
+						_d.u8[ii] = src._d.u8[ii];
+					}
+					break;
+				case 2:
+					_d.v = simd_256bit::op_convert_8bit_to_16bit_unsigned(src._d.v);
+					break;
+				case 4:
+					_d.v = simd_256bit::op_convert_8bit_to_32bit_unsigned(src._d.v);
+					break;
+				case 8:
+					_d.v = simd_256bit::op_convert_8bit_to_64bit_unsigned(src._d.v);
+					break;
+				default: /* NOP */
+					break; 
+				}
+				break;
+			case 2: /* 16bit */
+				switch(sizeof(_Dtyp)) {
+				case 1:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 8; ii++) {
+						_d.u8[ii] = src._d.u16[ii];
+					}
+					break;
+				case 2:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 8; ii++) {
+						_d.u16[ii] = src._d.u16[ii];
+					}
+					break;
+				case 4:
+					_d.v = simd_256bit::op_convert_16bit_to_32bit_unsigned(src._d.v);
+					break;
+				case 8:
+					_d.v = simd_256bit::op_convert_16bit_to_64bit_unsigned(src._d.v);
+					break;
+				default: /* NOP */
+					break; 
+				}
+				break;
+			case 4: /* 32bit */
+				switch(sizeof(_Dtyp)) {
+				case 1:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 4; ii++) {
+						_d.u8[ii] = (uint8_t)(src._d.u32[ii]);
+					}
+					break;
+				case 2:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 4; ii++) {
+						_d.u16[ii] = (uint16_t)(src._d.u32[ii]);
+					}
+					break;
+				case 4:
+					__DECL_VECTORIZED_LOOP
+					for(size_t ii = 0; ii < 4; ii++) {
+						_d.u32[ii] = src._d.u32[ii];
+					}
+					break;
+				case 8:
+					_d.v = simd_256bit::op_convert_32bit_to_64bit_unsigned(src._d.v);
+					break;
+				default: /* NOP */
+					break; 
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		return *this;
+	}
 	inline simd_uint32_8& operator+()
 	{
 		return *this;
