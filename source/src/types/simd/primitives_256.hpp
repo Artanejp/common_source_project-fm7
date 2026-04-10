@@ -1595,7 +1595,62 @@ inline int test_nzc(const simde__m256 _a, const simde__m256 _b)
 {
 	return simde_mm256_testnzc_si256((simde__m256i)_a, (simde__m256i)_b);
 }
+/*
+ * Convert 128bit <-> 256bit
+ */
+inline simde__m256i op_convert_8bit_to_16bit_signed(simde__m128i a)
+{
+	return simde_mm256_cvtepi8_epi16(a);
+}
+inline simde__m256i op_convert_8bit_to_32bit_signed(simde__m128i a)
+{
+	return simde_mm256_cvtepi8_epi32(a);
+}
+inline simde__m256i op_convert_8bit_to_64bit_signed(simde__m128i a)
+{
+	return simde_mm256_cvtepi8_epi64(a);
+}
 
+inline simde__m256i op_convert_8bit_to_16bit_unsigned(simde__m128i a)
+{
+	return simde_mm256_cvtepu8_epi16(a);
+}
+inline simde__m256i op_convert_8bit_to_32bit_unsigned(simde__m128i a)
+{
+	return simde_mm256_cvtepu8_epi32(a);
+}
+inline simde__m256i op_convert_8bit_to_64bit_unsigned(simde__m128i a)
+{
+	return simde_mm256_cvtepu8_epi64(a);
+}
+
+
+inline simde__m256i op_convert_16bit_to_32bit_signed(simde__m128i a)
+{
+	return simde_mm256_cvtepi16_epi32(a);
+}
+inline simde__m256i op_convert_16bit_to_64bit_signed(simde__m128i a)
+{
+	return simde_mm256_cvtepi16_epi64(a);
+}
+
+inline simde__m256i op_convert_16bit_to_32bit_unsigned(simde__m128i a)
+{
+	return simde_mm256_cvtepu16_epi32(a);
+}
+inline simde__m256i op_convert_16bit_to_64bit_unsigned(simde__m128i a)
+{
+	return simde_mm256_cvtepu16_epi64(a);
+}
+
+inline simde__m256i op_convert_32bit_to_64bit_signed(simde__m128i a)
+{
+	return simde_mm256_cvtepi32_epi64(a);
+}
+inline simde__m256i op_convert_32bit_to_64bit_unsigned(simde__m128i a)
+{
+	return simde_mm256_cvtepu32_epi64(a);
+}
 /*
  * Lookup tables (a.k.a Gather) OPs.
  */
