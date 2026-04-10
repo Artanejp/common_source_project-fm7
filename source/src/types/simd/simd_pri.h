@@ -19,7 +19,7 @@ protected:
 	{
 		__T *q = (__T*)__dp;
 
-		__DECL_VECTORIZED_LOOP
+		//__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < num; i++) {
 			q[i] = src[i];
 		}
@@ -47,7 +47,7 @@ protected:
 	{
 		const size_t num_limit = sizeof(__D) / sizeof(__T);
 		__T *q = (__T*)__dp;
-		__DECL_VECTORIZED_LOOP
+		//__DECL_VECTORIZED_LOOP
 		for(size_t i = num; i < num_limit; i++) {
 			q[i] = src[i];
 		}
@@ -117,7 +117,7 @@ protected:
 	{
 		__T *q = (__T*)__sp;
 		
-		__DECL_VECTORIZED_LOOP
+		//__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < num; i++) {
 			dst[i] = q[i];
 		}
@@ -145,7 +145,7 @@ protected:
 	{
 		const size_t num_limit = sizeof(__D) / sizeof(__T);
 		__T *q = (__T*)__sp;
-		__DECL_VECTORIZED_LOOP
+		//__DECL_VECTORIZED_LOOP
 		for(size_t i = num; i < num_limit; i++) {
 			dst[i] = q[i];
 		}
@@ -182,6 +182,7 @@ public:
 	virtual inline void store(void *p) = 0;
 
 	virtual inline void clear() = 0;
+	virtual inline void setall() = 0;
 	virtual inline void fill(uint8_t val) = 0;
 	virtual inline void fill(int8_t val) = 0;
 	virtual inline void fill(uint16_t val) = 0;
