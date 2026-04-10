@@ -14,11 +14,6 @@
 #include "../crtc.h"
 #include "./crtc_utils.h"
 
-#if defined(_RGB555) || defined(_RGBA565)
-using simd_scrntype8_class = simd_uint16_8;
-#else /* RGB888 || RGBA8888 */
-using simd_scrntype8_class = simd_uint32_8;
-#endif
 
 namespace FMTOWNS {
 
@@ -229,16 +224,16 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 //	if(y == 128) {
 //		out_debug_log("RENDER_32768 Y=%d LAYER=%d PWIDTH=%d WIDTH=%d DST=%08X MASK=%08X ALPHA=%d", y, layer, pwidth, width, dst, mask, do_alpha);
 //	}
-	__DECL_ALIGNED(16) uint16_8_t pbuf;
-	__DECL_ALIGNED(16) uint16_8_t rbuf;
-	__DECL_ALIGNED(16) uint16_8_t gbuf;
-    __DECL_ALIGNED(16) uint16_8_t bbuf;
-	__DECL_ALIGNED(16) simde__m128 picture_mask = simd_128bit::op_set16(0x001f);
+	__DECL_ALIGNED(16) simd_uint16_8 pbuf;
+	__DECL_ALIGNED(16) simd_uint16_8 rbuf;
+	__DECL_ALIGNED(16) simd_uint16_8 gbuf;
+    __DECL_ALIGNED(16) simd_uint16_8 bbuf;
+	__DECL_ALIGNED(16) simd_uint16_8 picture_mask(0x001f);
 	
 	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t sbuf[TOWNS_CRTC_MAX_PIXELS / 8];
 	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t abuf[TOWNS_CRTC_MAX_PIXELS / 8];
-	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t pix_transparent;
-	__DECL_SCRNTYPE8_ALIGNED  scrntype8_t a2buf;
+	__DECL_SCRNTYPE8_ALIGNED  simd_scrntype8_class pix_transparent;
+	__DECL_SCRNTYPE8_ALIGNED  simd_scrntype8_class a2buf;
 
 	pair16_t ptmp16;
 	int rwidth = pwidth & 7;
@@ -252,92 +247,79 @@ bool TOWNS_CRTC::render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int 
 	size_t words = 0;
 	for(int x = 0; x < pwidth ; x += 8) {
 		int xx = x >> 3;
-		pix_transparent.v = SCRNTYPE8_SIMD::op_clear();
+		pix_transparent.clear();
 		__UNLIKELY_IF(xx >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
 			break;
 		}
 
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
-			#ifdef __BIG_ENDIAN__
-			pbuf.v = simd_128bit::op_set16(0x0080);
-			#else
-			pbuf.v = simd_128bit::op_set16(0x8000);
-			#endif
-			size_t x0 = 0;
-			for(int i = x; (i < pwidth) && (x0 < 8); i++, x0++) {
-				pbuf.u16[x0] = *p;
-				p += 2;
+			pbuf.fill((uint16_t)0x8000);
+			__LIKELY_IF(x < pwidth) {
+				size_t __width = (size_t)(pwidth - x);
+				__UNLIKELY_IF(__width > 8) {
+					__width = 8;
+				}
+				pbuf.load_left<uint16_t>((uint16_t*)p, (const size_t)__width);
+				p = &(p[__width * 2]);
 			}
-			
 		} else {
-			pbuf.v = simd_128bit::load_unaligned(p);
+			pbuf.unalign_load(p);
 			p += 16; // 8 * 2bytes.
 		}
 		#ifdef __BIG_ENDIAN__
-		pbuf.v = simd_128bit::op_bswap16(pbuf.v);
+		pbuf.bswap_self(sizeof(uint16_t));
 		#endif
-		rbuf.v = simd_128bit::op_rshift16_fix(pbuf.v, 5);
-		rbuf.v = simd_128bit::op_and(rbuf.v, picture_mask);
-		
-		gbuf.v = simd_128bit::op_rshift16_fix(pbuf.v, 10);
-		gbuf.v = simd_128bit::op_and(gbuf.v, picture_mask);
-		
-		//bbuf.v = pbuf.v;
-		bbuf.v = simd_128bit::op_and(pbuf.v, picture_mask);
+		rbuf = pbuf;
+		rbuf >>= 5;
+		rbuf &= picture_mask;
 
+		gbuf = pbuf;
+		gbuf >>= 10;
+		gbuf &= picture_mask;
+		
+		bbuf = pbuf;
+		bbuf &= picture_mask;
 
 		if(is_transparent) {
 			// Extract 
 			//pbuf.check_any_bits(pix_transparent, 0x8000);
-			__DECL_ALIGNED(16) simde__m128 tmpval2;
-			//__DECL_ALIGNED(16) const simde__m128 cmpval = simd_128bit::op_set16(0x8000); // -1
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmpval;
 			//tmpval2 = simd_128bit::op_greater16(cmpval, pbuf.v);
-			#if defined(_RGB555) || defined(_RGB565)
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				// ToDo: Big Endian
-				tmpval2.u32[i] = ((pbuf.u16[i] & 0x8000) != 0) ? 0x00000000 : 0xffffffff;
-			}
-			pix_transparent.v = tmpval2;
+			__DECL_ALIGNED(16) simd_uint16_8 __zero_val((uint16_t)0x0000);
+			__DECL_ALIGNED(16) simd_uint16_8 __tmpval;
+			__tmpval = pbuf.greater_equals_i16(__zero_val);
+			#if defined(_RGB555) || defined(_RGB565) /* 16 bpp /15 bpp */
+			pix_transparent = __tmpval;
 			#else
-			 // Minus = 0x0000, Plus or 0 = 0xffff
-			// 16bit -> 32bit
-			__DECL_VECTORIZED_LOOP
-			for(size_t i = 0; i < 8; i++) {
-				// ToDo: Big Endian
-				pix_transparent.u32[i] = ((pbuf.u16[i] & 0x8000) != 0) ? 0x00000000 : 0xffffffff;
-			}
-			//pix_transparent.v128.array[0] = simde_mm_unpackhi_epi16(tmpval2, tmpval2);
-			//pix_transparent.v128.array[1] = simde_mm_unpacklo_epi16(tmpval2, tmpval2);
+			pix_transparent.from_uint16_8<int16_t, scrntype_t>(__tmpval);
 			#endif
 		}
 		__UNLIKELY_IF(do_alpha) {
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t __alpha_mask;
-			__alpha_mask.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t __pix_mask;
-			__pix_mask.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(255, 255, 255, 0));
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class __alpha_mask;
+			__alpha_mask.fill((scrntype_t)(RGBA_COLOR(0, 0, 0, 255)));
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class __pix_mask;
+			__pix_mask.fill((scrntype_t)(RGBA_COLOR(255, 255, 255, 0)));
 			if(is_transparent) {
-				a2buf.v = SCRNTYPE8_SIMD::op_and(pix_transparent.v, __alpha_mask.v);
+				a2buf = pix_transparent & __alpha_mask;
 			} else {
-				a2buf.v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(0, 0, 0, 255));
+				a2buf.fill((scrntype_t)RGBA_COLOR(0, 0, 0, 255));
 			}
 			//abuf[xx].v = a2buf.v;
 			//make_rgba_vec8(sbuf[xx], rbuf, gbuf, bbuf, a2buf);
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmp;
 			tmp = make_rgb_32768(rbuf, gbuf, bbuf);
-			tmp.v = SCRNTYPE8_SIMD::op_and(__pix_mask.v, tmp.v);
-			tmp.v = SCRNTYPE8_SIMD::op_or(a2buf.v, tmp.v);
-			sbuf[xx].v = tmp.v;
+			tmp &= __pix_mask;
+			tmp |= a2buf;
+			sbuf[xx] = tmp.data();
 		} else {
-			__DECL_SCRNTYPE8_ALIGNED scrntype8_t tmp;
+			__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmp;
 			if(is_transparent) {
-				a2buf.v = pix_transparent.v;
+				a2buf = pix_transparent;
 			} else {
-				a2buf.v = SCRNTYPE8_SIMD::op_setall();
+				a2buf.setall();
 			}
-			abuf[xx].v = a2buf.v;
-			sbuf[xx] = make_rgb_32768(rbuf, gbuf, bbuf);
+			tmp = make_rgb_32768(rbuf, gbuf, bbuf);
+			abuf[xx] = a2buf.data();
+			sbuf[xx] = tmp.data();
 		}
 		words++;
 	}

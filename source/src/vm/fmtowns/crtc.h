@@ -19,7 +19,10 @@
 #include "towns_common.h"
 #include "./crtc/crtc_types.h"
 // Use SIMDE instead of csp_vector8 .
-#include "../../types/simd_types.h"
+//#include "../../types/simd_types.h"
+#include "../types/types_video.h"
+#include "../types/simd/uint16_8_t.hpp"
+#include "../types/simd/uint32_8_t.hpp"
 
 
 /*
@@ -120,6 +123,11 @@ namespace FMTOWNS {
 class TOWNS_VRAM;
 class TOWNS_SPRITE;
 
+#if defined(_RGB555) || defined(_RGBA565)
+using simd_scrntype8_class = simd_uint16_8;
+#else /* RGB888 || RGBA8888 */
+using simd_scrntype8_class = simd_uint32_8;
+#endif
 	
 class TOWNS_CRTC : public DEVICE
 {
@@ -423,7 +431,7 @@ protected:
 	bool __FASTCALL render_16(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
 	bool __FASTCALL render_256(int trans, scrntype_t* dst, int y, int& rendered_pixels);
 	bool __FASTCALL render_32768(int trans, scrntype_t* dst, scrntype_t *mask, int y, int layer, bool is_transparent, bool do_alpha, int& rendered_pixels);
-	inline scrntype8_t __FASTCALL make_rgb_32768(const uint16_8_t r, const uint16_8_t g, const uint16_8_t b);
+	inline simd_scrntype8_class __FASTCALL make_rgb_32768(const simd_uint16_8 r, const simd_uint16_8 g, const simd_uint16_8 b);
 
 	// Mix screens (already rendered) to one screen.
 	virtual void __FASTCALL mix_screen(const int y, int width, bool do_mix[2], int bitshift[2], int words[2], bool is_hloop[2], scrntype_t* pix_array[2], scrntype_t* alpha_array[2]);
