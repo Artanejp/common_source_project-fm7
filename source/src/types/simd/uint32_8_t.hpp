@@ -761,6 +761,95 @@ public:
 		return (_r != 0);
 	}
 	
+	template <typename _T>
+		inline simd_uint32_8 lookup_from_8bitVals(void* srctbl, const uint8_t* srcdat, _T scale)
+	{
+		__DECL_ALIGNED(32) simd_uint32_8 sd;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			sd._d.u32[i] = srcdat[i];
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint32_8)sd, scale);
+	}
+	template <typename _T>
+		inline simd_uint32_8 lookup_from_8bitVals(void* srctbl, const uint8_t* srcdat, _T scale, const size_t num)
+	{
+		__DECL_ALIGNED(32) simd_uint32_8 sd;
+		size_t _n = (num > 8) ? 8 : num;
+		sd.clear();
+		__LIKELY_IF(_n > 0) {
+			for(size_t i = 0; i < _n; i++) {
+				sd._d.u32[i] = srcdat[i];
+			}
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint32_8)sd, scale, _n);
+	}
+	template <typename _T>
+		inline simd_uint32_8 lookup_from_8bitVals(void* srctbl, const uint8_8_t srcdat, _T scale)
+	{
+		__DECL_ALIGNED(32) simd_uint32_8 sd;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			sd._d.u32[i] = srcdat.u8[i];
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint32_8)sd, scale);
+	}
+	template <typename _T>
+		inline simd_uint32_8 lookup_from_8bitVals(void* srctbl, const uint8_8_t srcdat, _T scale, const size_t num)
+	{
+		__DECL_ALIGNED(32) simd_uint32_8 sd;
+		size_t _n = (num > 8) ? 8 : num;
+		sd.clear();
+		__LIKELY_IF(_n > 0) {
+			for(size_t i = 0; i < _n; i++) {
+				sd._d.u32[i] = srcdat.u8[i];
+			}
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint32_8)sd, scale, _n);
+	}
+	template <typename _T>
+		inline simd_uint32_8& lookup_from_8bitVals(void* srctbl, const simd_uint32_8 srcdat, _T scale)
+	{
+		uint8_t* p = (uint8_t *)srctbl;
+		switch(scale) {
+		case 1:
+			_d.v = simde_mm256_i32gather_epi32((const int32_t*)srctbl, srcdat._d.v, 1);
+			break;
+		case 2:
+			_d.v = simde_mm256_i32gather_epi32((const int32_t*)srctbl, srcdat._d.v, 2);
+			break;
+		case 4:
+			_d.v = simde_mm256_i32gather_epi32((const int32_t*)srctbl, srcdat._d.v, 4);
+			break;
+		case 8:
+			_d.v = simde_mm256_i32gather_epi32((const int32_t*)srctbl, srcdat._d.v, 8);
+			break;
+		default:
+			__DECL_VECTORIZED_LOOP
+			for(size_t i = 0; i < 8; i++) {
+				ssize_t n = (ssize_t)(srcdat._d.s32[i] * scale);
+				_d.u32[i] = *((uint32_t*)(&(p[n])));
+			}
+			break;
+		}
+		return *this;
+	}
+	template <typename _T>
+		inline simd_uint32_8& lookup_from_8bitVals(void* srctbl, const simd_uint32_8 srcdat, _T scale, const size_t num)
+	{
+		
+		uint8_t* p = (uint8_t* )srctbl;
+		size_t __num = (num >= 8) ? 8 : num;
+		clear();
+		__LIKELY_IF(__num > 0)  {
+			for(size_t i = 0; i < __num; i++) {
+				ssize_t n = (ssize_t)(srcdat._d.s32[i] * scale);
+				_d.u32[i] = *((uint32_t*)(&(p[n])));
+			}
+		}
+		return *this;
+	}
+	
 };
 
 

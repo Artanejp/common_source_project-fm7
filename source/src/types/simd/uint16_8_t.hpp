@@ -626,7 +626,81 @@ public:
 		int _r = simd_128bit::test_nzc(mask._d.v, _d.v);
 		return (_r != 0);
 	}
+	template <typename _T>
+		inline simd_uint16_8 lookup_from_8bitVals(void* srctbl, const uint8_t* srcdat, _T scale)
+	{
+		__DECL_ALIGNED(16) simd_uint16_8 sd;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			sd._d.u16[i] = srcdat[i];
+		}
+		return  lookup_from_8bitVals<_T>(srctbl, (const simd_uint16_8)sd, scale);
+	}
+	
+	template <typename _T>
+		inline simd_uint16_8 lookup_from_8bitVals(void* srctbl, const uint8_t* srcdat, _T scale, const size_t num)
+	{
+		__DECL_ALIGNED(16) simd_uint16_8 sd;
+		size_t _n = (num > 8) ? 8 : num;
+		sd.clear();
+		if(_n > 0) {
+			for(size_t i = 0; i < _n; i++) {
+				sd._d.u16[i] = srcdat[i];
+			}
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint16_8)sd, scale, _n);
+	}
+	
+	template <typename _T>
+		inline simd_uint16_8 lookup_from_8bitVals(void* srctbl, const uint8_8_t srcdat, _T scale)
+	{
+		__DECL_ALIGNED(16) simd_uint16_8 sd;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			sd._d.u16[i] = srcdat.u8[i];
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint16_8)sd, scale);
+	}
+	template <typename _T>
+		inline simd_uint16_8 lookup_from_8bitVals(void* srctbl, const uint8_8_t srcdat, _T scale, const size_t num)
+	{
+		__DECL_ALIGNED(16) simd_uint16_8 sd;
+		size_t _n = (num > 8) ? 8 : num;
+		sd.clear();
+		__LIKELY_IF(_n > 0) {
+			for(size_t i = 0; i < _n; i++) {
+				sd._d.u16[i] = srcdat.u8[i];
+			}
+		}
+		return lookup_from_8bitVals<_T>(srctbl, (const simd_uint16_8)sd, scale, _n);
+	}
 
+	template <typename _T>
+		inline simd_uint16_8& lookup_from_8bitVals(void* srctbl, const simd_uint16_8 srcdat, _T scale)
+	{
+		uint8_t* p = (uint8_t *)srctbl;
+		__DECL_VECTORIZED_LOOP
+		for(size_t i = 0; i < 8; i++) {
+			ssize_t n = (ssize_t)(srcdat._d.s16[i] * scale);
+			_d.u16[i] = *((uint16_t*)(&(p[n])));
+		}
+		return *this;
+	}
+	template <typename _T>
+		inline simd_uint16_8& lookup_from_8bitVals(void* srctbl, const simd_uint16_8 srcdat, _T scale, const size_t num)
+	{
+		
+		uint8_t* p = (uint8_t* )srctbl;
+		size_t __num = (num >= 8) ? 8 : num;
+		clear();
+		__LIKELY_IF(__num > 0)  {
+			for(size_t i = 0; i < __num; i++) {
+				ssize_t n = (ssize_t)(srcdat._d.s16[i] * scale);
+				_d.u16[i] = *((uint16_t*)(&(p[n])));
+			}
+		}
+		return *this;
+	}
 };
 	
 inline simd_uint16_8 operator+(const simd_uint16_8& __a, const simd_uint16_8& __b)
