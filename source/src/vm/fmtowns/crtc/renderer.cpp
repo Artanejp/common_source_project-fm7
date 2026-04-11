@@ -409,42 +409,22 @@ bool TOWNS_CRTC::render_256(int trans, scrntype_t* dst, int y, int& rendered_pix
 
 	size_t words = 0;
 
-	__DECL_SCRNTYPE8_ALIGNED  const scrntype8_t zero_value = zero_scrntype8_t();
 	
 	for(size_t x = 0; x < pwidth; x += 8) {
 		size_t xx = x >> 3;
 		__UNLIKELY_IF(xx >= (TOWNS_CRTC_MAX_PIXELS / 8)) {
 			break;
 		}
+		__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class __tmppix;
 		__UNLIKELY_IF(xx == (pwidth >> 3)) {
-			pbuf.u64 = 0;
-			sbuf[xx].v = zero_value.v;
 			__LIKELY_IF(rwidth != 0) {
-				for(size_t _ii = 0; _ii < rwidth; _ii++) {
-					pbuf.u8[_ii] = p[_ii];
-				}
+				__tmppix.lookup_from_8bitVals<const int32_t>(apal256, p, sizeof(scrntype_t), rwidth);
 				p += rwidth;
-				for(size_t _ii = 0; _ii < rwidth; _ii++) {
-				#if defined(_RGB555) || defined(_RGB565)
-					sbuf[xx].u16[_ii] = (uint16_t)(apal256[pbuf.u8[_ii]]);
-				#else
-					sbuf[xx].u32[_ii] = (uint32_t)(apal256[pbuf.u8[_ii]]);
-				#endif
-				}
+				__tmppix.store_left<scrntype_t>((scrntype_t *)(&(sbuf[xx])), rwidth);
 			}
 		} else {
-			__DECL_VECTORIZED_LOOP
-			for(size_t _ii = 0; _ii < 8; _ii++) {
-				pbuf.u8[_ii] = p[_ii];
-			}
-			__DECL_VECTORIZED_LOOP
-			for(size_t _ii = 0; _ii < 8; _ii++) {
-				#if defined(_RGB555) || defined(_RGB565)
-					sbuf[xx].u16[_ii] = (uint16_t)(apal256[pbuf.u8[_ii]]);
-				#else
-					sbuf[xx].u32[_ii] = (uint32_t)(apal256[pbuf.u8[_ii]]);
-				#endif
-			}
+			__tmppix.lookup_from_8bitVals<const int32_t>(apal256, p, sizeof(scrntype_t));
+			__tmppix.unalign_store((void *)(&(sbuf[xx])));
 			//abuf[xx].v = SCRNTYPE8_SIMD::op_set_scrntype(RGBA_COLOR(255, 255, 255, 255));
 			p += 8;
 		}
