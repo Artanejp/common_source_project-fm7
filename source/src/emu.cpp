@@ -168,9 +168,8 @@ EMU::~EMU()
 	release_debugger();
 #endif
 	if(osd != NULL) {
+		osd->stop_sound();
 		osd->lock_vm();
-	}
-	if(osd != NULL) {
 		osd->vm = nullptr;
 		osd->force_unlock_vm();
 	}
@@ -560,6 +559,10 @@ void EMU::reset()
 	if(reinitialize) {
 		// stop sound
 		osd->stop_sound();
+#if defined(_USE_QT)
+		// Lock Screen Thread.
+		osd->lock_draw_thread();
+#endif
 		// reinitialize virtual machine
 		osd->vm = nullptr;
 		osd->force_unlock_vm();
@@ -604,6 +607,9 @@ void EMU::reset()
 		restore_media();
 		vm->reset();
 		osd->unlock_vm();
+#if defined(_USE_QT)
+		osd->unlock_draw_thread();
+#endif
 	} else {
 		// reset virtual machine
 		osd->lock_vm();
@@ -4158,6 +4164,10 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					//osd->lock_vm();
 					// reinitialize virtual machine
 					osd->stop_sound();
+					#if defined(_USE_QT)
+					// Lock Screen Thread.
+					osd->lock_draw_thread();
+					#endif
 					osd->vm = nullptr;
 					osd->force_unlock_vm();
 					delete vm;
@@ -4200,6 +4210,10 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					#endif
 						restore_media();
 						vm->reset();
+						osd->unlock_vm();
+						#if defined(_USE_QT)
+						osd->unlock_draw_thread();
+						#endif
 					}
 					//osd->unlock_vm();
 				} else {

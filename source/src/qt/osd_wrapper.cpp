@@ -110,7 +110,7 @@ void OSD::initialize_screen()
 	host_window_width = base_window_width = WINDOW_WIDTH;
 	host_window_height = base_window_height = WINDOW_HEIGHT;
 	host_window_mode = true;
-
+	m_screen_reset = false;
 	vm_screen_width = SCREEN_WIDTH;
 	vm_screen_height = SCREEN_HEIGHT;
 	vm_window_width = WINDOW_WIDTH;
@@ -631,15 +631,40 @@ scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
 }
 
 
+bool OSD::lock_draw_thread(void)
+{
+	std::shared_ptr<DrawThreadClass> p = m_draw_thread;
+	if(p.get() == nullptr) {
+		return false;
+	}
+	p->lock_draw_thread();
+	//screen_mutex.lock();
+	return true;
+}
+
+bool OSD::unlock_draw_thread(void)
+{
+	std::shared_ptr<DrawThreadClass> p = m_draw_thread;
+	if(p.get() == nullptr) {
+		return false;
+	}
+	p->unlock_draw_thread();
+	//screen_mutex.lock();
+	return true;
+}
 int OSD::draw_screen()
 {
 	// draw screen
 	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	bool mapped = false;
 	bool already_update = false;
+	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height || m_screen_reset.load()) {
+		set_vm_screen_size(vm_screen_width, vm_screen_height, -1, -1, -1, -1);
+		return 0;
+	}
 	
 	if(now_record_video.load()) {
-		vm_screen_buffer.is_mapped = true;
+		vm_screen_buffer.is_mapped = false;
 		mapped = false;
 		vm_screen_buffer.glv = nullptr;
 		draw_screen_buffer = &vm_screen_buffer;
@@ -656,9 +681,6 @@ int OSD::draw_screen()
 	}
 	vm_draw_screen();
 	// screen size was changed in vm->draw_screen()
-	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		return 0;
-	}
 
 	// calculate screen size
 	// invalidate window

@@ -78,6 +78,8 @@ DrawThreadClass::DrawThreadClass(OSD_BASE *o, std::shared_ptr<CSP_Logger> logger
 	m_about_to_quit = false;
 	m_ncount = 0;
 	m_req_draw = false;
+	m_ack_lock = false;
+	m_req_lock = false;
 	//tick_timer.start();
 }
 
@@ -104,7 +106,12 @@ void DrawThreadClass::run()
 
 		std::chrono::microseconds wait_us(_us);
 		if(m_worker_locker.try_lock_for(wait_us)) {
-			if((m_update_req.load()) && (p_osd != nullptr) && !(m_about_to_quit.load())) {
+			if(m_req_lock.load())
+			{
+				m_ack_lock = true;
+				m_req_lock = false;
+			}
+			if((m_update_req.load()) && (p_osd != nullptr) && !(m_about_to_quit.load()) && !(m_ack_lock.load())) {
 				std::lock_guard<std::recursive_mutex> locker(m_main_locker);
 				p_osd->do_decode_movie(1);
 				if(m_req_draw.load()) {
@@ -160,6 +167,8 @@ void DrawThreadClass::do_exit_draw_thread(void)
 {
 	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
 						  "DrawThread : Exit.");
+	m_ack_lock = false;
+	m_req_lock = false;
 	m_about_to_quit = true;	
 	m_worker_locker.unlock();
 	//quit();

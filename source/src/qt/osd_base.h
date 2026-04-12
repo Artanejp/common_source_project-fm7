@@ -262,6 +262,8 @@ protected:
 
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 
+	std::atomic<bool> m_screen_reset;
+
 	bitmap_t vm_screen_buffer;
 	bitmap_t video_screen_buffer;
 	bitmap_t* draw_screen_buffer;
@@ -559,6 +561,7 @@ public:
 	void reset_screen_buffer()
 	{
 		// It's ugly hack for screen.
+		m_screen_reset = true;
 		emit sig_resize_vm_screen((QImage*)NULL, -1, -1);
 	}
 	//int draw_screen();
@@ -773,6 +776,14 @@ public:
 	virtual bool set_glview(GLDrawClass *glv) { /* Dummy */ return false;}
 	QOpenGLContext *get_gl_context();
 	virtual GLDrawClass *get_gl_view() { return NULL; }
+	virtual bool lock_draw_thread(void)
+	{
+		return true;
+	}
+	virtual bool unlock_draw_thread(void)
+	{
+		return true;
+	}
 
 	// common debugger
 	void start_waiting_in_debugger();

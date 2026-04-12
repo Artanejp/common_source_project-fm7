@@ -70,6 +70,8 @@ protected:
 	int get_screen_width(void) override;
 	int get_screen_height(void) override;
 	int get_vm_buttons_code(int num) override;
+	bool lock_draw_thread(void) override;
+	bool unlock_draw_thread(void) override;
 	
 	// Messaging.
 	// ToDo.

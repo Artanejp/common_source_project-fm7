@@ -67,6 +67,9 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 
 	int m_draw_frames;
 	int m_ncount;
+	std::atomic<bool> m_req_lock;
+	std::atomic<bool> m_ack_lock;
+	
 	void run() override;
 	//QElapsedTimer tick_timer;
  public:
@@ -75,6 +78,22 @@ class DLL_PREFIX DrawThreadClass : public QThread {
 	QSemaphore *textureMappingSemaphore;
 	
 	void SetEmu(EMU_TEMPLATE *p);
+	inline void lock_draw_thread()
+	{
+		m_ack_lock = false;
+		m_req_lock = true;
+		m_main_locker.lock();
+		while(!(m_ack_lock.load())) {
+			msleep(1);
+		}
+	}
+	inline void unlock_draw_thread()
+	{
+		m_ack_lock = false;
+		m_req_lock = false;
+		m_main_locker.unlock();
+	}
+								
 public slots:
 	void do_exit_draw_thread(void);
 	void do_set_priority(QThread::Priority prio);

@@ -50,7 +50,7 @@ void OSD_BASE::set_vm_screen_lines(int lines)
 void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
 	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
-	if(vm_screen_width != screen_width || vm_screen_height != screen_height) {
+	if(vm_screen_width != screen_width || vm_screen_height != screen_height || m_screen_reset.load()) {
 		if(window_width == -1) {
 			window_width = screen_width;
 		}
@@ -72,6 +72,7 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 
 		//emit sig_movie_set_width(vm_screen_width);
 		//emit sig_movie_set_height(vm_screen_height);
+		m_screen_reset = false;
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 		
 		// change the window size
