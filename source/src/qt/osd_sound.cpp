@@ -90,7 +90,7 @@ void OSD_BASE::initialize_sound(int rate, int samples, int* presented_rate, int*
 		// Read
 		int prate, psamples;
 		//stop_sound();
-		setup_sound_sink(m_sound_default_sink_name, rate, samples, prate, psamples, false);
+		setup_sound_sink(m_sound_default_sink_name, rate, samples, prate, psamples, ((m_sound_sink_rate.load() != rate) || (m_sound_sink_samples.load() != samples)));
 		if(presented_rate != nullptr) {
 			*presented_rate = prate;
 		}
@@ -513,11 +513,13 @@ void OSD_BASE::update_sound(int* extra_frames)
 		
 		if(sink_drv.get() != nullptr) {
 			_sink_state = sink_drv->state();
-			if((_sink_state == QAudio::StoppedState) && !(m_sound_sink_started.load())) {
-				std::lock_guard<std::recursive_timed_mutex> _locker(m_sound_sink_mutex);
-				// Stopped, but initialize completed.
-				m_sound_sink_io = sink_drv->start();
-				m_sound_sink_started = true;
+			if(_sink_state == QAudio::StoppedState) {
+				if(!(m_sound_sink_started.load())) {
+					std::lock_guard<std::recursive_timed_mutex> _locker(m_sound_sink_mutex);
+					// Stopped, but initialize completed.
+					m_sound_sink_io = sink_drv->start();
+					m_sound_sink_started = true;
+				}
 				return;
 			}
 		}
@@ -821,6 +823,9 @@ bool OSD_BASE::setup_sound_sink(QString device_name, int rate, int samples, int&
 		std::lock_guard<std::recursive_timed_mutex> _locker(m_sound_sink_mutex);
 		m_sound_initialized = false;
 		_fmt.setSampleRate(presented_rate);
+		if(m_sound_sink.get() != nullptr) {
+			m_sound_sink->stop();
+		}
 		m_sound_sink_io = nullptr;
 		m_sound_sink.reset(new AudioSink(_sink_dev, _fmt));
 		if(m_sound_sink.get() != nullptr) {
@@ -830,9 +835,10 @@ bool OSD_BASE::setup_sound_sink(QString device_name, int rate, int samples, int&
 			connect(this, SIGNAL(sig_sound_sink_finished()), m_sound_sink.get(), SLOT(deleteLater()));
 			m_sound_default_sink_name = device_name;
 		} else {
+			// Fallback
 			m_sound_initialized = false;
-			presented_rate = 0;
-			presented_samples = 0;
+			presented_rate = 48000;
+			presented_samples = (int)((double)presented_rate * 0.1 + 0.5); // 100mSec
 			m_sound_sink_io = nullptr;
 			m_sound_sink_started = false;
 			m_sound_default_sink_name = device_name;
@@ -898,7 +904,7 @@ void OSD_BASE::do_set_host_sound_output_device(QString device_name)
 	sound_debug_log(_T("OSD::%s DEV=%s rate=%d samples=%d m_sound_driver=%llx"), __func__, m_sound_default_sink_name.toLocal8Bit().constData(), prate, samples, (uintptr_t)(m_sound_sink.get()));
 	std::shared_ptr<AudioSink> _drv = m_sound_sink;
 	if(_drv.get() != nullptr) {
-		m_sound_sink_io = m_sound_sink->start(); // GO!
+		m_sound_sink_io = _drv->start(); // GO!
 		m_sound_initialized = true;
 	}
 //	}
