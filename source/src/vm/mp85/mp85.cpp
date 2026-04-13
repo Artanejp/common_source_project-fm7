@@ -112,14 +112,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 VM::~VM()
 {
-	// delete all devices
-	release_devices();
-//	for(DEVICE* device = first_device; device;) {
-//		DEVICE *next_device = device->next_device;
-//		device->release();
-//		delete device;
-//		device = next_device;
-//	}
 }
 
 DEVICE* VM::get_device(int id)

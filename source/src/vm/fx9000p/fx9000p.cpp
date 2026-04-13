@@ -109,13 +109,6 @@ VM::~VM()
 {
 	memory->write_bios(_T("RAM.BIN"), cmos, sizeof(cmos));
 
-	// delete all devices
-	for(DEVICE* device = first_device; device;) {
-		DEVICE *next_device = device->next_device;
-		device->release();
-		delete device;
-		device = next_device;
-	}
 }
 
 

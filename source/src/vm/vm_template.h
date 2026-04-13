@@ -36,7 +36,7 @@ protected:
 	virtual void release_devices();
 public:
 	VM_TEMPLATE(EMU_TEMPLATE* parent_emu);
-	virtual ~VM_TEMPLATE() {} // OK?
+	~VM_TEMPLATE();
 	// drive virtual machine
 	virtual void reset();
 	virtual void special_reset(int num);

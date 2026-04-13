@@ -77,8 +77,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 VM::~VM()
 {
-	// delete all devices
-	release_devices();
 }
 
 // ----------------------------------------------------------------------------

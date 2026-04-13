@@ -821,8 +821,6 @@ VM::VM(EMU_TEMPLATE* parent_emu) : VM_TEMPLATE(parent_emu)
 
 VM::~VM()
 {
-	// delete all devices
-	release_devices();
 }
 
 void VM::set_machine_type(uint16_t machine_id, uint16_t cpu_id)

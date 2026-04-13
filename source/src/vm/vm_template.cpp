@@ -21,6 +21,12 @@ VM_TEMPLATE::VM_TEMPLATE(EMU_TEMPLATE* parent_emu) :
 	m_git_revision.clear();
 }
 
+VM_TEMPLATE::~VM_TEMPLATE()
+{
+	// delete all devices
+	release_devices();
+}
+
 // drive virtual machine
 void VM_TEMPLATE::reset()
 {
@@ -96,12 +102,18 @@ void VM_TEMPLATE::initialize_devices()
 
 void VM_TEMPLATE::release_devices()
 {
+	if(emu != NULL) {
+		emu->force_unlock_vm();
+	}
 	for(DEVICE* device = first_device; device;) {
 		DEVICE *next_device = device->next_device;
 		device->release();
 		delete device;
 		device = next_device;
 	}
+	first_device = NULL; // 20260413 K.O
+	last_device = NULL; // 20260413 K.O
+	dummy = NULL; // 20260413 K.O
 }
 
 void VM_TEMPLATE::update_dipswitch()
