@@ -174,6 +174,7 @@ private:
 
 protected:
 	EmuThreadClass						*parent_thread;
+	GLDrawClass							*p_glv;
 
 	std::shared_ptr<DrawThreadClass>	m_draw_thread;
 	std::shared_ptr<USING_FLAGS>		using_flags;
@@ -773,9 +774,14 @@ public:
 	std::shared_ptr<USING_FLAGS> get_config_flags(void) { return using_flags; }
 	// Special
 	std::shared_ptr<CSP_Logger> get_logger(void) { return p_logger; }
-	virtual bool set_glview(GLDrawClass *glv) { /* Dummy */ return false;}
+	bool set_glview(GLDrawClass *glv);
+	GLDrawClass *get_glview()
+	{
+		return p_glv;
+	}
+	
 	QOpenGLContext *get_gl_context();
-	virtual GLDrawClass *get_gl_view() { return NULL; }
+	
 	virtual bool lock_draw_thread(void)
 	{
 		return true;

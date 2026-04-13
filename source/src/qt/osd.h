@@ -14,7 +14,6 @@
 #include "gui/qt_input.h" // Key code table (VK_foo).
 #include "../vm/vm.h"
 
-class GLDrawClass;
 class EmuThreadClass;
 class DrawThreadClass;
 class Ui_MainWindow;
@@ -34,7 +33,6 @@ class OSD : public OSD_BASE
 {
 	Q_OBJECT
 private:
-	GLDrawClass *p_glv;
 	MOVIE_LOADER *movie_loader;
 
 	QTcpSocket2 *tcp_socket[SOCKET_MAX];
@@ -53,7 +51,6 @@ protected:
 	// screen
 	void initialize_screen() override;
 	void release_screen() override;
-	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode) override;
 	scrntype_t* get_buffer(bitmap_t *p, int y) override;
 
 	// video device
@@ -131,8 +128,6 @@ public:
 	uint64_t get_vm_current_clock_uint64() override;
 
 	// Special
-	bool set_glview(GLDrawClass *glv) override;
-	GLDrawClass *get_gl_view() override { return p_glv; }
 
 public slots:
 	int draw_screen() override;

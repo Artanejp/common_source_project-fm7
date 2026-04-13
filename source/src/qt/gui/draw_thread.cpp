@@ -155,7 +155,7 @@ void DrawThreadClass::do_set_frames_per_second(double fps)
 
 void DrawThreadClass::do_vsync()
 {
-	std::lock_guard<std::recursive_mutex> locker(m_main_locker);
+//	std::lock_guard<std::recursive_mutex> locker(m_main_locker);
 	// ToDo: Swapping buffer.
 //	if(m_update_req.load()) {
 //		do_draw_one_turn(true);
@@ -214,7 +214,7 @@ void DrawThreadClass::do_change_refresh_rate(qreal rate)
 
 void DrawThreadClass::do_draw(bool flag)
 {
-	std::lock_guard<std::recursive_mutex> locker(m_main_locker);
+//	std::lock_guard<std::recursive_mutex> locker(m_main_locker);
 	m_update_req = true;
 	m_req_draw   = flag;
 	m_worker_locker.unlock();

@@ -50,7 +50,9 @@ void OSD_BASE::set_vm_screen_lines(int lines)
 void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
 	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
-	if(vm_screen_width != screen_width || vm_screen_height != screen_height || m_screen_reset.load()) {
+	if(vm_screen_width != screen_width || vm_screen_height != screen_height ||
+	   m_screen_reset.load() || vm_screen_buffer.pImage.isNull() ||
+	   vm_screen_buffer.pImage.width() <= 0 || vm_screen_buffer.pImage.height() <= 0) {
 		if(window_width == -1) {
 			window_width = screen_width;
 		}
@@ -74,6 +76,7 @@ void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int windo
 		//emit sig_movie_set_height(vm_screen_height);
 		m_screen_reset = false;
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
+		vm_screen_buffer.glv = p_glv;
 		
 		// change the window size
 		//emit sig_movie_set_width(screen_width);
@@ -130,29 +133,30 @@ void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height,
 {
 	// Dummy
 	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
+	if(buffer == NULL) return;
 	release_screen_buffer(buffer);
-	buffer->width = width;
-	buffer->height = height;
-	if((width > buffer->pImage.width()) || (height > buffer->pImage.height())) {
+	if((width > buffer->pImage.width()) || (height > buffer->pImage.height()) ||
+	   (buffer->pImage.isNull()) || (buffer->pImage.width() <= 0) || (buffer->pImage.height() <= 0)) {
 		QColor col(0, 0, 0, 255);
 		buffer->pImage = QImage(width, height, QImage::Format_ARGB32);
 		buffer->pImage.fill(col);
+		buffer->width = buffer->pImage.width();
+		buffer->height = buffer->pImage.height();
 	}
 //	printf("%dx%d NULL=%d\n", buffer->pImage.width(), buffer->pImage.height(), buffer->pImage.isNull() ? 1 : 0);
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 255);
 	buffer->pImage.fill(fillcolor);
 	buffer->is_mapped = false;
-
+	buffer->glv = NULL;
 }
 void OSD_BASE::release_screen_buffer(bitmap_t *buffer)
 {
 	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
-	if(!(buffer->width == 0 && buffer->height == 0)) {
-		//if(buffer->hPainter == NULL) delete buffer->hPainter;
-	}
-	buffer->width = 0;
-	buffer->height = 0;
+	if(buffer == NULL) return;
+	buffer->pImage = QImage(); // De-Allocate previous buffer. 20260412 K.O
+	buffer->width = buffer->pImage.width();
+	buffer->height = buffer->pImage.height() ;
 	buffer->is_mapped = false;
 	buffer->glv = NULL;
 	//memset(buffer, 0, sizeof(bitmap_t));
@@ -292,6 +296,7 @@ int OSD_BASE::add_video_frames()
 void OSD_BASE::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
 //	QRect rect;
+	if(bitmap == nullptr) return;
 	QColor col = QColor(0, 0, 0, 255);
 	initialize_screen_buffer(bitmap, width, height, 0); // HALFTONE
 	bitmap->hPainter.begin(&(bitmap->pImage));

@@ -49,6 +49,7 @@
 #include "gui/menu_flags.h"
 
 #include "../vm/vm_template.h"
+#include "qt_gldraw.h"
 
 OSD_BASE::OSD_BASE(std::shared_ptr<USING_FLAGS> p, std::shared_ptr<CSP_Logger> logger) : QObject(0)
 {
@@ -121,6 +122,40 @@ const _TCHAR *OSD_BASE::get_lib_osd_version()
 	return (const _TCHAR *)__LIBOSD_VERSION;
 #endif
 	return p;
+}
+
+bool OSD_BASE::set_glview(GLDrawClass *glv)
+{
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
+	if(glv == NULL) return false;
+	if((p_glv == glv) && (glContext != NULL)) {
+		if(glContext->isValid()) {
+			return true;
+		}
+		if(glv->context() == NULL) {
+			return false;
+		}
+		glContext->setShareContext(glv->context());
+		glContext->create();
+		return true;
+	}
+	if(glContext != NULL) {
+		delete glContext;
+		glContext = NULL;
+	}
+	is_glcontext_shared = false;
+	p_glv = glv;
+
+	glContext = new QOpenGLContext();
+	if(glContext != NULL) {
+		glContext->setShareContext(glv->context());
+		glContext->create();
+	}
+	if(glContext->isValid()) {
+		is_glcontext_shared = true;
+		return true;
+	}
+	return false;
 }
 
 QOpenGLContext *OSD_BASE::get_gl_context()

@@ -84,6 +84,14 @@ EMU::EMU() : EMU()
 		sound_samples = (int)(sound_rate * 0.1 + 0.5); // 100mSec
 	}
 	#endif
+	if(!(0 <= config.sound_frequency && config.sound_frequency < 8)) {
+		config.sound_frequency = 6;	// default: 48KHz
+	}
+	if(!(0 <= config.sound_latency && config.sound_latency < 5)) {
+		config.sound_latency = 1;	// default: 100msec
+	}
+	sound_frequency = config.sound_frequency;
+	sound_latency = config.sound_latency;
 	
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
@@ -171,7 +179,6 @@ EMU::~EMU()
 		osd->stop_sound();
 		osd->lock_vm();
 		osd->vm = nullptr;
-		osd->force_unlock_vm();
 	}
 	if(vm != NULL) {
 		delete vm;
@@ -451,7 +458,7 @@ const bool EMU::is_use_state()
  */
 int EMU::run()
 {
-	__UNLIKELY_IF(vm == NULL) {
+	__UNLIKELY_IF((vm == NULL) || (osd == NULL)) {
 		return (is_half_event()) ? 0 : 1; // Dummy.
 	}
 
@@ -513,7 +520,7 @@ int EMU::run()
 	bool is_half;
 	bool is_driven_by_half = is_driven_by_half_of_frame();
 	// drive virtual machine
-	osd->lock_vm();
+	lock_vm();
 	is_half = vm->run();
 	if(!(is_half) || !(is_driven_by_half)) {
 		osd->update_sound(&extra_frames);
@@ -523,7 +530,7 @@ int EMU::run()
 			osd->add_extra_frames(extra_frames);
 		}
 	}
-	osd->unlock_vm();
+	unlock_vm();
 	return extra_frames;
 }
 
@@ -556,17 +563,30 @@ void EMU::reset()
 	reinitialize |= (serial_type != config.serial_type);
 	serial_type = config.serial_type;
 #endif
+	if(!(0 <= config.sound_frequency && config.sound_frequency < 8)) {
+		config.sound_frequency = 6;	// default: 48KHz
+	}
+	if(!(0 <= config.sound_latency && config.sound_latency < 5)) {
+		config.sound_latency = 1;	// default: 100msec
+	}
+	reinitialize |= (sound_frequency != config.sound_frequency);
+	reinitialize |= (sound_latency != config.sound_latency);
+	sound_frequency = config.sound_frequency;
+	sound_latency = config.sound_latency;
+	
 	if(reinitialize) {
+		lock_vm();
 		// stop sound
 		osd->stop_sound();
 #if defined(_USE_QT)
 		// Lock Screen Thread.
 		osd->lock_draw_thread();
+		osd->reset_screen_buffer();
 #endif
 		// reinitialize virtual machine
 		osd->vm = nullptr;
-		osd->force_unlock_vm();
 		delete vm;
+		lock_vm(); // Re-Lock after deleted VM ASAP. - 20260413 K.O
 		vm = nullptr;
 		vm = new VM(this);
  		osd->vm = vm;
@@ -574,7 +594,7 @@ void EMU::reset()
 		osd->vm_has_set();
 		osd->reset_vm_node();
 		osd->update_keyname_table();
-		osd->reset_screen_buffer();
+		//osd->reset_screen_buffer();
 #endif
 		int presented_rate;
 		int presented_samples;
@@ -584,19 +604,19 @@ void EMU::reset()
 		#else
 		if(using_flags.get() != nullptr) {
 			sound_rate = using_flags->get_sound_sample_rate(config.sound_frequency);
-			sound_samples = (int)(sound_rate * using_flags->get_sound_latency(config.sound_latency) + 0.5);
+			sound_samples = (int)((double)sound_rate * using_flags->get_sound_latency(config.sound_latency) + 0.5);
 		} else {
 			// Fallback
 			sound_rate = 48000;
-			sound_samples = (int)(sound_rate * 0.1 + 0.5); // 100mSec
+			sound_samples = (int)((double)sound_rate * 0.1 + 0.5); // 100mSec
 		}
 		#endif
 		osd->initialize_sound(sound_rate, sound_samples, &presented_rate, &presented_samples);
-		if((sound_rate != presented_rate) ||
-		   (sound_samples != presented_samples)) {
-			sound_rate = presented_rate;
-			sound_samples = presented_samples;
-		}
+		//if((sound_rate != presented_rate) ||
+		//  / (sound_samples != presented_samples)) {
+		//	sound_rate = presented_rate;
+		//	sound_samples = presented_samples;
+		//}
 		vm->initialize_sound(sound_rate, sound_samples);
 #ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
@@ -606,15 +626,15 @@ void EMU::reset()
 		// restore inserted medias
 		restore_media();
 		vm->reset();
-		osd->unlock_vm();
+		unlock_vm();
 #if defined(_USE_QT)
 		osd->unlock_draw_thread();
 #endif
 	} else {
 		// reset virtual machine
-		osd->lock_vm();
+		lock_vm();
 		vm->reset();
-		osd->unlock_vm();
+		unlock_vm();
 	}
 #if defined(_USE_QT) // Temporally
 	osd->sync_some_devices();
@@ -637,9 +657,9 @@ void EMU::special_reset(int num)
 #endif
 
 	// reset virtual machine
-	osd->lock_vm();
+	lock_vm();
 	vm->special_reset(num);
-	osd->unlock_vm();
+	unlock_vm();
 	// restart recording
 #if !defined(_USE_QT) // Temporally
 	restart_record_sound();
@@ -673,21 +693,25 @@ void EMU::suspend()
 
 void EMU::lock_vm()
 {
+	if(osd == NULL) return;
 	osd->lock_vm();
 }
 
 void EMU::unlock_vm()
 {
+	if(osd == NULL) return;
 	osd->unlock_vm();
 }
 
 void EMU::force_unlock_vm()
 {
+	if(osd == NULL) return;
 	osd->force_unlock_vm();
 }
 
 bool EMU::is_vm_locked()
 {
+	if(osd == NULL) return false;
 	return osd->is_vm_locked();
 }
 
@@ -2714,6 +2738,7 @@ void EMU::update_media()
 	__UNLIKELY_IF(vm == NULL) {
 		return;
 	}
+	lock_vm();
 #ifdef USE_FLOPPY_DISK
 	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
 		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
@@ -2829,6 +2854,7 @@ void EMU::update_media()
 		}
 	}
 #endif
+	unlock_vm();
 }
 
 void EMU::restore_media()
@@ -2836,6 +2862,7 @@ void EMU::restore_media()
 	__UNLIKELY_IF(vm == NULL) {
 		return;
 	}
+	lock_vm();
 #ifdef USE_CART
 	for(int drv = 0; drv < USE_CART; drv++) {
 		if(cart_status[drv].path[0] != _T('\0')) {
@@ -2930,6 +2957,7 @@ void EMU::restore_media()
 		}
 	}
 #endif
+	unlock_vm();
 }
 
 #ifdef USE_CART
@@ -4013,7 +4041,7 @@ void EMU::update_config()
 void EMU::save_state(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
-	osd->lock_vm();
+	lock_vm();
 #ifdef USE_ZLIB
 	if(config.compress_state) {
 		fio->Gzopen(file_path, FILEIO_WRITE_BINARY);
@@ -4061,7 +4089,7 @@ void EMU::save_state(const _TCHAR* file_path)
 		fio->FputInt32_LE(-1);
 		fio->Fclose();
 	}
-	osd->unlock_vm();
+	unlock_vm();
 	delete fio;
 }
 
@@ -4086,7 +4114,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 {
 	bool result = false;
 	FILEIO* fio = new FILEIO();
-	osd->lock_vm();
+	lock_vm();
 #ifdef USE_ZLIB
 	if(config.compress_state) {
 		fio->Gzopen(file_path, FILEIO_READ_BINARY);
@@ -4161,16 +4189,19 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 
 				if(reinitialize) {
 					// stop sound
-					//osd->lock_vm();
+					//lock_vm();
 					// reinitialize virtual machine
+					// DON't need do lock_vm() because calling this at top of function - 20260413 K.O
 					osd->stop_sound();
 					#if defined(_USE_QT)
 					// Lock Screen Thread.
 					osd->lock_draw_thread();
+					osd->reset_screen_buffer();
 					#endif
 					osd->vm = nullptr;
-					osd->force_unlock_vm();
 					delete vm;
+					lock_vm(); // Re-Lock after deleted VM ASAP. - 20260413 K.O
+					vm = nullptr;
 					vm = new VM(this);
 					osd->vm = vm;
 					#if defined(_USE_QT)
@@ -4210,12 +4241,11 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					#endif
 						restore_media();
 						vm->reset();
-						osd->unlock_vm();
-						#if defined(_USE_QT)
-						osd->unlock_draw_thread();
-						#endif
 					}
-					//osd->unlock_vm();
+					//unlock_vm();
+					#if defined(_USE_QT)
+					osd->unlock_draw_thread();
+					#endif
 				} else {
 					// restore inserted medias
 					restore_media();
@@ -4233,7 +4263,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 		}
 		fio->Fclose();
 	}
-	osd->unlock_vm();
+	unlock_vm();
 	delete fio;
 	return result;
 }

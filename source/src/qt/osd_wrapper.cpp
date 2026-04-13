@@ -633,6 +633,7 @@ scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
 
 bool OSD::lock_draw_thread(void)
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	std::shared_ptr<DrawThreadClass> p = m_draw_thread;
 	if(p.get() == nullptr) {
 		return false;
@@ -644,6 +645,7 @@ bool OSD::lock_draw_thread(void)
 
 bool OSD::unlock_draw_thread(void)
 {
+	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
 	std::shared_ptr<DrawThreadClass> p = m_draw_thread;
 	if(p.get() == nullptr) {
 		return false;
@@ -701,36 +703,7 @@ int OSD::draw_screen()
 	return 1;
 }
 
-void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
-{
-	std::lock_guard<std::recursive_timed_mutex> Locker_S(screen_mutex);
-	OSD_BASE::initialize_screen_buffer(buffer, width, height, mode);
-	buffer->glv = p_glv;
-	//emit sig_movie_set_width(width);
-	//emit sig_movie_set_height(height);
-	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
-}
 
-bool OSD::set_glview(GLDrawClass *glv)
-{
-	if(glv == NULL) return false;
-	if(glContext != NULL) {
-		if(glContext->isValid()) return true;
-		return false;
-	}
-	p_glv = glv;
-
-	glContext = new QOpenGLContext();
-	if(glContext != NULL) {
-		glContext->setShareContext(glv->context());
-		glContext->create();
-	}
-	if(glContext->isValid()) {
-		is_glcontext_shared = true;
-		return true;
-	}
-	return false;
-}
 
 int OSD::add_video_frames()
 {
