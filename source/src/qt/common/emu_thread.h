@@ -44,10 +44,10 @@ QT_BEGIN_NAMESPACE
 class EmuThreadClass : public EmuThreadClassBase {
 	Q_OBJECT
 private:
-	int64_t interval;
-	int64_t sleep_period;
-	int run_frames;
-	bool first;
+	int64_t m_interval;
+	int64_t m_sleep_period;
+	int m_run_frames;
+	bool m_first;
 	// LED
 protected:
 	const _TCHAR *get_device_name(void) override;

@@ -34,58 +34,58 @@
 EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::shared_ptr<USING_FLAGS> p, QObject *parent) : QThread(parent)
 {
 	MainWindow = rootWindow;
-	bBlockTask = true;
+	m_block_task = true;
 	using_flags = p;
 	p_config = p->get_config_ptr();
 	p_emu = nullptr;
 	p_osd = nullptr;
-	poweroff_notified = false; // OK?
-	thread_id = (Qt::HANDLE)nullptr;
+	m_poweroff_notified = false; // OK?
+	m_now_skip = false;
+	m_thread_id = (Qt::HANDLE)nullptr;
 	
 	is_shared_glcontext = false;
-	glContext = nullptr;
-	glContext = new QOpenGLContext(this);
+	m_glContext = nullptr;
+	m_glContext = new QOpenGLContext(this);
 
-	if(glContext != nullptr) {
-		glContext->setShareContext(rootWindow->getGraphicsView()->context());
-		glContext->create();
+	if(m_glContext != nullptr) {
+		m_glContext->setShareContext(rootWindow->getGraphicsView()->context());
+		m_glContext->create();
 	}
-	if(glContext->isValid()) {
+	if(m_glContext->isValid()) {
 		is_shared_glcontext = true;
-//		printf("Context sharing succeeded.ADDR=%08x GLES=%s\n", glContext, (glContext->isOpenGLES()) ? "YES" : "NO");
+//		printf("Context sharing succeeded.ADDR=%08x GLES=%s\n", m_glContext, (m_glContext->isOpenGLES()) ? "YES" : "NO");
 	}
 
-	bRunThread = true;
+	m_run_thread = true;
 
-	queue_cpu_affinities.clear();
-	prev_skip = false;
-	update_fps_time = 0;
+	m_queue_cpu_affinities.clear();
+	m_prev_skip = false;
+	m_update_fps_time = 0;
 
-	total_frames = 0;
-	draw_frames = 0;
-	skip_frames = 0;
-	mouse_flag = false;
-	fps_accum = 0;
+	m_total_frames = 0;
+	m_draw_frames = 0;
+	m_skip_frames = 0;
+	m_fps_accum = 0;
 
-//	keyMutex = new QMutex(QMutex::Recursive);
+//	m_keyMutex = new QMutex(QMutex::Recursive);
 
-	mouse_x = 0;
-	mouse_y = 0;
+	m_mouse_x = 0;
+	m_mouse_y = 0;
 	std::shared_ptr<USING_FLAGS> up = using_flags;
 	if((p.get() != nullptr) && (p_config != nullptr)) {
 		if(up->is_use_tape() && !(up->is_tape_binary_only())) {
-			tape_play_flag = false;
-			tape_rec_flag = false;
-			tape_pos = 0;
+			m_tape_play_flag = false;
+			m_tape_rec_flag = false;
+			m_tape_pos = 0;
 		}
 
 		if(up->get_use_sound_volume() > 0) {
 			for(int i = 0; i < up->get_use_sound_volume(); i++) {
-				bUpdateVolumeReq[i] = true;
-				volume_avg[i] = (p_config->sound_volume_l[i] +
-								 p_config->sound_volume_r[i]) / 2;
-				volume_balance[i] = (p_config->sound_volume_r[i] -
-									 p_config->sound_volume_l[i]) / 2;
+				m_update_volume_req[i] = true;
+				m_volume_avg[i] = (p_config->sound_volume_l[i] +
+								   p_config->sound_volume_r[i]) / 2;
+				m_volume_balance[i] = (p_config->sound_volume_r[i] -
+									   p_config->sound_volume_l[i]) / 2;
 			}
 		}
 	}
@@ -97,11 +97,11 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 	connect(this, SIGNAL(sig_draw_finished()), rootWindow->getGraphicsView(), SLOT(do_quit()), Qt::QueuedConnection);
 	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 
-	call_timer = nullptr;
+	m_call_timer = nullptr;
 	
-	virtualMediaList.clear();
+	m_virtualMediaList.clear();
 
-	QMutexLocker _n(&keyMutex);
+	QMutexLocker _n(&m_keyMutex);
 
 	key_fifo = new FIFO(512 * 6);
 	key_fifo->clear();
@@ -110,8 +110,8 @@ EmuThreadClassBase::EmuThreadClassBase(Ui_MainWindowBase *rootWindow, std::share
 EmuThreadClassBase::~EmuThreadClassBase()
 {
 	emit sig_timer_stop();
-	if(call_timer != nullptr) {
-		delete call_timer;
+	if(m_call_timer != nullptr) {
+		delete m_call_timer;
 	}
 	key_fifo->release();
 	delete key_fifo;
@@ -125,7 +125,7 @@ void EmuThreadClassBase::do_start(QThread::Priority prio)
 
 void EmuThreadClassBase::doExit(void)
 {
-	bRunThread = false;
+	m_run_thread = false;
 //	check_power_off();
 //	emit sig_timer_stop();
 //	if(p_osd != nullptr) {
@@ -144,31 +144,31 @@ void EmuThreadClassBase::doExit(void)
 
 void EmuThreadClassBase::initialize_variables()
 {
-	bResetReq = false;
-	bSpecialResetReq = false;
-	bLoadStateReq = false;
-	bSaveStateReq = false;
-	bUpdateConfigReq = false;
-	bStartRecordSoundReq = false;
-	bStopRecordSoundReq = false;
-	bStartRecordMovieReq = false;
-	specialResetNum = 0;
-	sStateFile.clear();
-	lStateFile.clear();
-	prevRecordReq = false;
-	nr_fps = get_emu_frame_rate();
+	m_reset_req = false;
+	m_special_reset_req = false;
+	m_load_state_req = false;
+	m_save_state_req = false;
+	m_update_config_req = false;
+	m_start_record_sound_req = false;
+	m_stop_record_sound_req = false;
+	m_start_record_movie_req = false;
+	m_special_reset_num = 0;
+	m_save_state_file_name.clear();
+	m_load_state_file_name.clear();
+	m_prev_record_req = false;
+	m_nr_fps = get_emu_frame_rate();
 	
-	record_fps = -1;
+	m_record_fps = -1;
 
-	state_power_off = false;
-	next_time = 0;
+	m_state_power_off = false;
+	m_next_time = 0;
 
-	tick_timer.restart();
-	update_fps_time = get_current_tick_usec() + (1000 * 1000);
-	mouse_flag = false;
+	m_tick_timer.restart();
+	m_update_fps_time = get_current_tick_usec() + (1000 * 1000);
+	m_fps_accum = 0;
 
-	key_mod = 0;
-
+	m_key_mod = 0;
+	
 	std::shared_ptr<USING_FLAGS> u_p = using_flags;
 	bool is_up_null = (u_p.get() == nullptr);
 	if(is_up_null) {
@@ -193,9 +193,17 @@ void EmuThreadClassBase::initialize_variables()
 		for(int i = 0; i < u_p->get_max_bubble(); i++) bubble_text[i].clear();
 	}
 
-	full_speed = config.full_speed;
-	half_count = false;
-	driven_by_half_of_frame = false;
+	if(p_config != nullptr) {
+		m_full_speed = p_config->full_speed;
+	} else {
+		m_full_speed = false;
+	}
+	if(p_emu != NULL) {
+		m_driven_by_half_of_frame = p_emu->is_driven_by_half_of_frame();
+	} else {
+		m_driven_by_half_of_frame = false;
+	}
+	m_half_count = false;
 }
 
 bool EmuThreadClassBase::initialize_messages()
@@ -222,67 +230,67 @@ int EmuThreadClassBase::process_command_queue()
 	if((u_p.get() == nullptr) || (p_config == nullptr) || (p_emu == nullptr)) {
 		return -1;
 	}
-	int count = parse_command_queue(virtualMediaList);
+	int count = parse_command_queue(m_virtualMediaList);
 	
-	virtualMediaList.clear();
+	m_virtualMediaList.clear();
 	bool req_sound_restart = false;
 	bool req_redraw_leds = false;
-	if(bLoadStateReq.load() != false) {
+	if(m_load_state_req.load() != false) {
 		loadState();
-		bLoadStateReq = false;
+		m_load_state_req = false;
 		req_sound_restart = true;	
 		req_redraw_leds = true;
 	}
-	if(bResetReq.load() != false) {
+	if(m_reset_req.load() != false) {
 		resetEmu();
-		bResetReq = false;
+		m_reset_req = false;
 		req_sound_restart = true;
 		req_redraw_leds = true;
 	}
-	if(bSpecialResetReq.load() != false) {
-		specialResetEmu(specialResetNum);
-		bSpecialResetReq = false;
+	if(m_special_reset_req.load() != false) {
+		specialResetEmu(m_special_reset_num.load());
+		m_special_reset_req = false;
 		req_sound_restart = true;
 		req_redraw_leds = true;
 	}
 	if(req_sound_restart) {
 		emit sig_restart_sound_timer();
 	}
-	if(bSaveStateReq.load() != false) {
+	if(m_save_state_req.load() != false) {
 		saveState();
-		bSaveStateReq = false;
+		m_save_state_req = false;
 	}
-	if(bStartRecordSoundReq.load() != false) {
+	if(m_start_record_sound_req.load() != false) {
 		p_emu->start_record_sound();
-		bStartRecordSoundReq = false;
+		m_start_record_sound_req = false;
 	}
-	if(bStopRecordSoundReq.load() != false) {
+	if(m_stop_record_sound_req.load() != false) {
 		p_emu->stop_record_sound();
-		bStopRecordSoundReq = false;
+		m_stop_record_sound_req = false;
 	}
-	if(bUpdateConfigReq != false) {
+	if(m_update_config_req != false) {
 		p_emu->update_config();
-		bUpdateConfigReq = false;
+		m_update_config_req = false;
 		req_redraw_leds = true;
 	}
-	if(bStartRecordMovieReq.load() != false) {
-		int rfps = record_fps.load();
-		if(!prevRecordReq && (rfps > 0) && (rfps < 75)) {
+	if(m_start_record_movie_req.load() != false) {
+		int rfps = m_record_fps.load();
+		if(!m_prev_record_req && (rfps > 0) && (rfps < 75)) {
 			p_emu->start_record_video(rfps);
-			prevRecordReq = true;
+			m_prev_record_req = true;
 		}
 	} else {
-		if(prevRecordReq) {
+		if(m_prev_record_req) {
 			p_emu->stop_record_video();
-			record_fps = -1;
-			prevRecordReq = false;
+			m_record_fps = -1;
+			m_prev_record_req = false;
 		}
 	}
 	if(u_p->get_use_sound_volume() > 0) {
 		for(int ii = 0; ii < u_p->get_use_sound_volume(); ii++) {
-			if(bUpdateVolumeReq[ii].load()) {
+			if(m_update_volume_req[ii].load()) {
 				p_emu->set_sound_device_volume(ii, p_config->sound_volume_l[ii], p_config->sound_volume_r[ii]);
-				bUpdateVolumeReq[ii] = false;
+				m_update_volume_req[ii] = false;
 			}
 		}
 	}
@@ -299,9 +307,9 @@ bool EmuThreadClassBase::check_power_off()
 	std::shared_ptr<USING_FLAGS> u_p = using_flags;
 	if(u_p.get() != nullptr) {
 		if(u_p->is_use_notify_power_off()) {
-			if((poweroff_notified) && !(state_power_off) && (p_emu != nullptr))  {
+			if((m_poweroff_notified.load()) && !(m_state_power_off.load()) && (p_emu != nullptr))  {
 				p_emu->notify_power_off();
-				state_power_off = true;
+				m_state_power_off = true;
 				return true;
 			}
 		}
@@ -323,9 +331,9 @@ bool EmuThreadClassBase::set_led()
 	_key_lock = u_p->get_use_key_locked();
 	_led_shift = u_p->get_use_led_devices();
 	if(u_p->is_use_minimum_rendering()) {
-		req_draw |= p_emu->is_screen_changed();
+		m_req_draw |= p_emu->is_screen_changed();
 	} else {
-		req_draw = true;
+		m_req_draw = true;
 	}
 	if((_key_lock) && !(_ind_caps_kana)) {
 		led_data |= ((p_emu->get_caps_locked()) ? 0x01 : 0x00);
@@ -338,7 +346,7 @@ bool EmuThreadClassBase::set_led()
 
 	if((_led_shift > 0) || (_key_lock)) {
 		emit sig_send_data_led((quint32)led_data);
-		led_data_old = led_data;
+		m_led_data_old = led_data;
 		return true;
 	}
 	return false;
@@ -356,7 +364,7 @@ int EmuThreadClassBase::process_key_input()
 		//printf("%08x %04x %08x %d\n", sp.type, sp.code, sp.mod, sp.repeat);
 		switch(sp.type) {
 		case KEY_QUEUE_UP:
-			key_mod = sp.mod;
+			m_key_mod = sp.mod;
 			p_osd->key_modifiers(sp.mod);
 			p_emu->key_up(sp.code, true); // need decicion of extend.
 			count++;
@@ -387,29 +395,29 @@ bool EmuThreadClassBase::check_scanline_params(bool force)
 	bool need_update = false;
 	if(u_p.get() != nullptr) {
 		if(u_p->is_use_minimum_rendering()) {
-			if((vert_line_bak != p_config->opengl_scanline_vert) ||
-			   (horiz_line_bak != p_config->opengl_scanline_horiz) ||
-			   (gl_crt_filter_bak != p_config->use_opengl_filters) ||
-			   (opengl_filter_num_bak != p_config->opengl_filter_num)) {
+			if((m_vert_line_bak != p_config->opengl_scanline_vert) ||
+			   (m_horiz_line_bak != p_config->opengl_scanline_horiz) ||
+			   (m_gl_crt_filter_bak != p_config->use_opengl_filters) ||
+			   (m_opengl_filter_num_bak != p_config->opengl_filter_num)) {
 				need_update = true;
 				if(!(force)) {
-					req_draw = true;
+					m_req_draw = true;
 				}
 			}
 		}
 	}
 	if((need_update) || (force)) {
-		vert_line_bak = p_config->opengl_scanline_vert;
-		horiz_line_bak = p_config->opengl_scanline_horiz;
-		gl_crt_filter_bak = p_config->use_opengl_filters;
-		opengl_filter_num_bak = p_config->opengl_filter_num;
+		m_vert_line_bak = p_config->opengl_scanline_vert;
+		m_horiz_line_bak = p_config->opengl_scanline_horiz;
+		m_gl_crt_filter_bak = p_config->use_opengl_filters;
+		m_opengl_filter_num_bak = p_config->opengl_filter_num;
 	}
 	return ((need_update) || (force));
 }
 											   
 void EmuThreadClassBase::set_tape_play(bool flag)
 {
-	tape_play_flag = flag;
+	m_tape_play_flag = flag;
 }
 
 void EmuThreadClassBase::resize_screen(int screen_width, int screen_height, int stretched_width, int stretched_height)
@@ -420,32 +428,32 @@ void EmuThreadClassBase::resize_screen(int screen_width, int screen_height, int 
 
 void EmuThreadClassBase::do_update_config()
 {
-	bUpdateConfigReq = true;
+	m_update_config_req = true;
 }
 
 void EmuThreadClassBase::do_start_record_sound()
 {
-	bStartRecordSoundReq = true;
+	m_start_record_sound_req = true;
 }
 
 void EmuThreadClassBase::do_stop_record_sound()
 {
-	bStopRecordSoundReq = true;
+	m_stop_record_sound_req = true;
 }
 
 void EmuThreadClassBase::do_reset()
 {
-	bResetReq = true;
+	m_reset_req = true;
 }
 
 void EmuThreadClassBase::do_unblock()
 {
-	bBlockTask = false;
+	m_block_task = false;
 }
 
 void EmuThreadClassBase::do_block()
 {
-	bBlockTask = true;
+	m_block_task = true;
 }
 
 void EmuThreadClassBase::do_special_reset(void)
@@ -460,8 +468,8 @@ void EmuThreadClassBase::do_special_reset(void)
 	if(up.get() != nullptr) {
 		if(num >= up->get_use_special_reset_num()) return;
 	}
-	bSpecialResetReq = true;
-	specialResetNum = num;
+	m_special_reset_req = true;
+	m_special_reset_num = num;
 }
 
 void EmuThreadClassBase::do_load_state(void)
@@ -470,8 +478,8 @@ void EmuThreadClassBase::do_load_state(void)
 	if(cp == nullptr) return;
 	QString s = cp->data().toString();
 
-	lStateFile = s;
-	bLoadStateReq = true;
+	m_load_state_file_name = s;
+	m_load_state_req = true;
 }
 
 void EmuThreadClassBase::do_save_state(void)
@@ -480,21 +488,21 @@ void EmuThreadClassBase::do_save_state(void)
 	if(cp == nullptr) return;
 	QString s = cp->data().toString();
 
-	sStateFile = s;
-	bSaveStateReq = true;
+	m_save_state_file_name = s;
+	m_save_state_req = true;
 }
 
 void EmuThreadClassBase::do_start_record_video()
 {
 	if(p_config == nullptr) return;
 	int fps = p_config->video_frame_rate;
-	record_fps = fps;
-	bStartRecordMovieReq = true;
+	m_record_fps = fps;
+	m_start_record_movie_req = true;
 }
 
 void EmuThreadClassBase::do_stop_record_video()
 {
-	bStartRecordMovieReq = false;
+	m_start_record_movie_req = false;
 }
 
 void EmuThreadClassBase::do_update_volume_level(int num, int level)
@@ -504,7 +512,7 @@ void EmuThreadClassBase::do_update_volume_level(int num, int level)
 	if(up->get_use_sound_volume() > 0) {
 		if((num < up->get_use_sound_volume()) && (num >= 0)) {
 			calc_volume_from_level(num, level);
-			bUpdateVolumeReq[num] = true;
+			m_update_volume_req[num] = true;
 		}
 	}
 }
@@ -516,7 +524,7 @@ void EmuThreadClassBase::do_update_volume_balance(int num, int level)
 	if(up->get_use_sound_volume() > 0) {
 		if((num < up->get_use_sound_volume()) && (num >= 0)) {
 			calc_volume_from_balance(num, level);
-			bUpdateVolumeReq[num] = true;
+			m_update_volume_req[num] = true;
 		}
 	}
 }
@@ -686,21 +694,21 @@ int EmuThreadClassBase::parse_command_queue(QMap<QString, QString> __list)
 
 void EmuThreadClassBase::do_print_framerate(int frames)
 {
-	if(frames >= 0) draw_frames += frames;
+	if(frames >= 0) m_draw_frames += frames;
 	qint64 __current_time = (qint64)get_current_tick_usec();
 	//qint64	current_time = SDL_GetTicks();
 
-	if((update_fps_time <= __current_time) && (update_fps_time != 0)) {
+	if((m_update_fps_time <= __current_time) && (m_update_fps_time != 0)) {
 		_TCHAR buf[256];
 		QString message;
-		//int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+		//int ratio = (int)(100.0 * (double)m_draw_frames / (double)m_total_frames + 0.5);
 
-		if((poweroff_notified) || (p_emu == nullptr)) {
+		if((m_poweroff_notified) || (p_emu == nullptr)) {
 			my_stprintf_s(buf, 255, _T("*Power OFF*"));
-		} else if(now_skip) {
+		} else if(m_now_skip) {
 			int ratio = 100;
-			__LIKELY_IF(nr_fps > 0.0) {
-				ratio = (int)(100.0 * (((double)draw_frames / nr_fps)  * 2.0) + 0.5);
+			__LIKELY_IF(m_nr_fps > 0.0) {
+				ratio = (int)(100.0 * (((double)m_draw_frames / m_nr_fps)  * 2.0) + 0.5);
 			}
 			my_stprintf_s(buf, 255, _T("%s - Skip Frames (%d %%)"), get_device_name(), ratio);
 		} else {
@@ -709,10 +717,13 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 				dec_message_count();
 			} else {
 				int ratio = 100;
-				double real_frames = (double)draw_frames;
-				real_frames = real_frames /  ((double)(__current_time - update_fps_time + (1000 * 1000)) / 1.0e6);
-				__LIKELY_IF(nr_fps > 0.0) {
-					ratio = lrint(100.0 * (real_frames / nr_fps));
+				double real_frames = (double)m_draw_frames;
+				double __tmp_ratio = (double)(__current_time - m_update_fps_time + (1000 * 1000)) / 1.0e6;
+				__LIKELY_IF(__tmp_ratio > 0.0) {
+					real_frames = real_frames / __tmp_ratio;
+				}
+				__LIKELY_IF(m_nr_fps > 0.0) {
+					ratio = lrint(100.0 * (real_frames / m_nr_fps));
 				}
 				snprintf(buf, 255, _T("%s - %.3ffps (%d%%)"), get_device_name(), real_frames, ratio);
 			}
@@ -725,12 +736,12 @@ void EmuThreadClassBase::do_print_framerate(int frames)
 		}
 		emit message_changed(message);
 		emit window_title_changed(message);
-		update_fps_time = __current_time + (1000 * 1000);
-		//update_fps_time += (1000 * 1000);
-		total_frames = draw_frames = 0;
+		m_update_fps_time = __current_time + (1000 * 1000);
+		//m_update_fps_time += (1000 * 1000);
+		m_total_frames = m_draw_frames = 0;
 	}
-	if(update_fps_time <= 0) {
-		update_fps_time = __current_time + (1000 * 1000);
+	if(m_update_fps_time <= 0) {
+		m_update_fps_time = __current_time + (1000 * 1000);
 	}
 }
 
@@ -744,7 +755,7 @@ int EmuThreadClassBase::get_d88_file_cur_bank(int drive)
 	if(!(p->is_use_fd())) return -1;
 
 	if((drive < p->get_max_drive()) && (p_emu != nullptr)) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		int bank_num = p_emu->d88_file[drive].bank_num;
 		int cur_bank = p_emu->d88_file[drive].cur_bank;
 		if((bank_num > 0) && (cur_bank < bank_num)) {
@@ -765,7 +776,7 @@ int EmuThreadClassBase::get_d88_file_bank_num(int drive)
 	if(!(p->is_use_fd())) return -1;
 
 	if(drive < p->get_max_drive()) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		return p_emu->d88_file[drive].bank_num;
 	}
 
@@ -783,7 +794,7 @@ QString EmuThreadClassBase::get_d88_file_disk_name(int drive, int banknum)
 	if(!(p->is_use_fd())) return QString::fromUtf8("");
 
 	if((drive < p->get_max_drive()) && (banknum < get_d88_file_bank_num(drive))) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].disk_name[banknum][0])));
 		return _n;
 	}
@@ -801,7 +812,7 @@ bool EmuThreadClassBase::is_floppy_disk_protected(int drive)
 	if(p.get() == nullptr) return false;
 	if(!(p->is_use_fd())) return false;
 
-//	QMutexLocker _locker(&uiMutex);
+//	QMutexLocker _locker(&m_uiMutex);
 	bool _b = p_emu->is_floppy_disk_protected(drive);
 	return _b;
 }
@@ -817,7 +828,7 @@ QString EmuThreadClassBase::get_d88_file_path(int drive)
 	if(!(p->is_use_fd())) return QString::fromUtf8("");
 
 	if(drive < p->get_max_drive()) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->d88_file[drive].path)));
 		return _n;
 	}
@@ -832,7 +843,7 @@ void EmuThreadClassBase::set_floppy_disk_protected(int drive, bool flag)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_fd())) return;
-//	QMutexLocker _locker(&uiMutex);
+//	QMutexLocker _locker(&m_uiMutex);
 	p_emu->is_floppy_disk_protected(drive, flag);
 }
 
@@ -846,7 +857,7 @@ int EmuThreadClassBase::get_b77_file_cur_bank(int drive)
 	if(!(p->is_use_bubble())) return -1;
 
 	if((drive < p->get_max_bubble()) && (p_emu != nullptr)) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		int bank_num = p_emu->b77_file[drive].bank_num;
 		int cur_bank = p_emu->b77_file[drive].cur_bank;
 		if((bank_num > 0) && (cur_bank < bank_num)) {
@@ -863,7 +874,7 @@ int EmuThreadClassBase::get_b77_file_bank_num(int drive)
 	if(!(p->is_use_bubble())) return -1;
 
 	if((drive < p->get_max_bubble()) && (p_emu != nullptr)) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		return p_emu->b77_file[drive].bank_num;
 	}
 	return -1;
@@ -880,7 +891,7 @@ QString EmuThreadClassBase::get_b77_file_media_name(int drive, int banknum)
 	if(!(p->is_use_bubble())) return QString::fromUtf8("");
 
 	if((drive < p->get_max_bubble()) && (banknum < get_b77_file_bank_num(drive))) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->b77_file[drive].bubble_name[banknum][0])));
 		return _n;
 	}
@@ -898,7 +909,7 @@ bool EmuThreadClassBase::is_bubble_casette_protected(int drive)
 	if(p.get() == nullptr) return false;
 	if(!(p->is_use_bubble())) return false;
 
-//	QMutexLocker _locker(&uiMutex);
+//	QMutexLocker _locker(&m_uiMutex);
 	bool _b = p_emu->is_floppy_disk_protected(drive);
 	return _b;
 }
@@ -911,7 +922,7 @@ void EmuThreadClassBase::set_bubble_casette_protected(int drive, bool flag)
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
 	if(!(p->is_use_bubble())) return;
-//	QMutexLocker _locker(&uiMutex);
+//	QMutexLocker _locker(&m_uiMutex);
 	p_emu->is_bubble_casette_protected(drive, flag);
 }
 
@@ -925,7 +936,7 @@ QString EmuThreadClassBase::get_b77_file_path(int drive)
 	if(!(p->is_use_bubble())) return QString::fromUtf8("");
 
 	if(drive < p->get_max_bubble()) {
-//		QMutexLocker _locker(&uiMutex);
+//		QMutexLocker _locker(&m_uiMutex);
 		QString _n = QString::fromLocal8Bit((const char *)(&(p_emu->b77_file[drive].path)));
 		return _n;
 	}

@@ -24,10 +24,10 @@
 
 void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
 {
-	int level = volume_avg[num].load();
+	int level = m_volume_avg[num].load();
 	int right;
 	int left;
-	volume_balance[num] = balance;
+	m_volume_balance[num] = balance;
 	right = level + balance;
 	left  = level - balance;
 	p_config->sound_volume_l[num] = left;
@@ -36,9 +36,9 @@ void EmuThreadClassBase::calc_volume_from_balance(int num, int balance)
 
 void EmuThreadClassBase::calc_volume_from_level(int num, int level)
 {
-	int balance = volume_balance[num].load();
+	int balance = m_volume_balance[num].load();
 	int right,left;
-	volume_avg[num] = level;
+	m_volume_avg[num] = level;
 	right = level + balance;
 	left  = level - balance;
 	p_config->sound_volume_l[num] = left;
@@ -69,7 +69,7 @@ void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu_from_action(void)
 
 void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu(int cpunum)
 {
-	if(thread_id == (Qt::HANDLE)nullptr) {
+	if(m_thread_id == (Qt::HANDLE)nullptr) {
 		return;
 	}
 #if defined(Q_OS_LINUX)
@@ -92,14 +92,14 @@ void EmuThreadClassBase::do_set_emu_thread_to_fixed_cpu(int cpunum)
 	} else {
 		CPU_SET_S(cpunum, bytes , mask);
 	}
-	pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
+	pthread_setaffinity_np(*((pthread_t*)m_thread_id), bytes, (const cpu_set_t *)mask);
 	CPU_FREE(mask);
 #endif
 }
 
 void EmuThreadClassBase::do_append_cpu_to_emu_thread(unsigned int cpunum)
 {
-	if(thread_id == (Qt::HANDLE)nullptr) {
+	if(m_thread_id == (Qt::HANDLE)nullptr) {
 		return;
 	}
 #if defined(Q_OS_LINUX)
@@ -118,10 +118,10 @@ void EmuThreadClassBase::do_append_cpu_to_emu_thread(unsigned int cpunum)
 	mask = CPU_ALLOC(cpus);
 	size_t bytes = CPU_ALLOC_SIZE(cpus);
 	
-	pthread_getaffinity_np(*((pthread_t*)thread_id), bytes, mask);
+	pthread_getaffinity_np(*((pthread_t*)m_thread_id), bytes, mask);
 	if(CPU_ISSET_S(cpunum, bytes, mask) == 0) {
 		CPU_SET_S(cpunum, bytes, mask);
-		pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
+		pthread_setaffinity_np(*((pthread_t*)m_thread_id), bytes, (const cpu_set_t *)mask);
 	}
 	CPU_FREE(mask);
 #endif
@@ -129,7 +129,7 @@ void EmuThreadClassBase::do_append_cpu_to_emu_thread(unsigned int cpunum)
 
 void EmuThreadClassBase::do_remove_cpu_to_emu_thread(unsigned int cpunum)
 {
-	if(thread_id == (Qt::HANDLE)nullptr) {
+	if(m_thread_id == (Qt::HANDLE)nullptr) {
 		return;
 	}
 #if defined(Q_OS_LINUX)
@@ -147,7 +147,7 @@ void EmuThreadClassBase::do_remove_cpu_to_emu_thread(unsigned int cpunum)
 	mask = CPU_ALLOC(cpus);
 	size_t bytes = CPU_ALLOC_SIZE(cpus);
 	
-	pthread_getaffinity_np(*((pthread_t*)thread_id), bytes, mask);
+	pthread_getaffinity_np(*((pthread_t*)m_thread_id), bytes, mask);
 	if(CPU_COUNT(mask) <= 1) {
 		// At least one CPU. 
 		CPU_FREE(mask);
@@ -156,7 +156,7 @@ void EmuThreadClassBase::do_remove_cpu_to_emu_thread(unsigned int cpunum)
 
 	if(CPU_ISSET_S(cpunum, bytes, mask) != 0) {
 		CPU_CLR_S(cpunum, bytes, mask);
-		pthread_setaffinity_np(*((pthread_t*)thread_id), bytes, (const cpu_set_t *)mask);
+		pthread_setaffinity_np(*((pthread_t*)m_thread_id), bytes, (const cpu_set_t *)mask);
 	}
 	CPU_FREE(mask);
 #endif
@@ -164,22 +164,22 @@ void EmuThreadClassBase::do_remove_cpu_to_emu_thread(unsigned int cpunum)
 
 void EmuThreadClassBase::do_apply_cpu_affinities_to_emu_thread()
 {
-	if(queue_cpu_affinities.empty()) {
+	if(m_queue_cpu_affinities.empty()) {
 		return;
 	}
-	if(thread_id == (Qt::HANDLE)nullptr) {
+	if(m_thread_id == (Qt::HANDLE)nullptr) {
 		return;
 	}
 	
 #if defined(Q_OS_LINUX)
 	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
 	if(cpus <= 0) {
-		queue_cpu_affinities.clear();
+		m_queue_cpu_affinities.clear();
 		return;
 	}
 #endif
 	// ToDo: Set one operation.
-	for(auto p = queue_cpu_affinities.begin(); p != queue_cpu_affinities.end(); ++p) {
+	for(auto p = m_queue_cpu_affinities.begin(); p != m_queue_cpu_affinities.end(); ++p) {
 		__UNLIKELY_IF((*p).first == CPU_SET_ALL) {
 			do_set_emu_thread_to_fixed_cpu(INT_MIN);
 		} else if((*p).first == CPU_SET_BIT) {
@@ -192,6 +192,6 @@ void EmuThreadClassBase::do_apply_cpu_affinities_to_emu_thread()
 			}
 		}
 	}
-	queue_cpu_affinities.clear();
+	m_queue_cpu_affinities.clear();
 
 }

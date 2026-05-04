@@ -83,93 +83,93 @@ protected:
 	EMU_TEMPLATE *p_emu;
 	OSD_BASE *p_osd;
 
-	QMap<QString, QString> virtualMediaList;
+	Ui_MainWindowBase *MainWindow;
 
-	bool poweroff_notified;
-
-	bool now_skip;
-	bool tape_play_flag;
-	bool tape_rec_flag;
-	int tape_pos;
-	bool mouse_flag;
-	int mouse_x;
-	int mouse_y;
-	std::list<std::pair<enum emu_cpu_affinity_cmd_t, unsigned int>> queue_cpu_affinities;
-	
-	bool prevRecordReq;
-	
-	double nr_fps;
-	std::atomic<uint32_t> led_data_old;
-	int turn_count;
-	bool req_draw;
-	bool vert_line_bak;
-	bool horiz_line_bak;
-	bool gl_crt_filter_bak;
-	int opengl_filter_num_bak;
-	int no_draw_count;
-
-    FIFO *key_fifo;
-	QOpenGLContext *glContext;
-	bool is_shared_glcontext;
-
-	uint32_t key_mod;
-	Qt::HANDLE thread_id;
-	QTimer* call_timer;
 	std::shared_ptr<USING_FLAGS> using_flags;
 	config_t *p_config;
 
+    FIFO *key_fifo;
+	
 #if QT_VERSION >= 0x051400
-	QRecursiveMutex keyMutex;
-	QRecursiveMutex mouseMutex;
+	QRecursiveMutex m_keyMutex;
+//	QRecursiveMutex m_mouseMutex;
+	QRecursiveMutex m_uiMutex;
 #else
-	QMutex keyMutex;
-	QMutex mouseMutex;
+	QMutex m_keyMutex;
+//	QMutex m_mouseMutex;
+	QMutex m_uiMutex;
 #endif
-	//class META_MainWindow *MainWindow;
-	Ui_MainWindowBase *MainWindow;
-	QElapsedTimer tick_timer;
+	
+	QOpenGLContext *m_glContext;
+	std::atomic<bool> is_shared_glcontext;
 
-	std::atomic<bool> bBlockTask;
-	std::atomic<bool> bRunThread;
-	std::atomic<bool> bResetReq;
-	std::atomic<bool> bSpecialResetReq;
-	std::atomic<bool> bLoadStateReq;
-	std::atomic<bool> bSaveStateReq;
-	std::atomic<bool> bUpdateConfigReq;
-	std::atomic<bool> bStartRecordSoundReq;
-	std::atomic<bool> bStopRecordSoundReq;
-	std::atomic<bool> bStartRecordMovieReq;
-	QString sStateFile;
-	QString lStateFile;
+	QMap<QString, QString> m_virtualMediaList;
 
-#if QT_VERSION >= 0x051400
-	QRecursiveMutex uiMutex;
-#else
-	QMutex uiMutex;
-#endif
-	char dbg_prev_command[MAX_COMMAND_LEN];
+	std::atomic<bool> m_poweroff_notified;
+
+	bool m_now_skip;
+	
+	std::atomic<bool> m_tape_play_flag;
+	std::atomic<bool> m_tape_rec_flag;
+	std::atomic<int>  m_tape_pos;
+	std::atomic<int> m_mouse_x;
+	std::atomic<int> m_mouse_y;
+	std::list<std::pair<enum emu_cpu_affinity_cmd_t, unsigned int>> m_queue_cpu_affinities;
+	
+	bool m_prev_record_req;
+	
+	double m_nr_fps;
+	std::atomic<uint32_t> m_led_data_old;
+	bool m_req_draw;
+	bool m_vert_line_bak;
+	bool m_horiz_line_bak;
+	bool m_gl_crt_filter_bak;
+	int  m_opengl_filter_num_bak;
+
+
+	std::atomic<uint32_t> m_key_mod;
+	Qt::HANDLE m_thread_id;
+	QTimer*    m_call_timer;
+
+	QElapsedTimer m_tick_timer;
+
+	std::atomic<bool> m_block_task;
+	std::atomic<bool> m_run_thread;
+	std::atomic<bool> m_reset_req;
+	std::atomic<bool> m_special_reset_req;
+	std::atomic<bool> m_load_state_req;
+	std::atomic<bool> m_save_state_req;
+	std::atomic<bool> m_update_config_req;
+	std::atomic<bool> m_start_record_sound_req;
+	std::atomic<bool> m_stop_record_sound_req;
+	std::atomic<bool> m_start_record_movie_req;
+	QString m_save_state_file_name;
+	QString m_load_state_file_name;
+
+//	char dbg_prev_command[MAX_COMMAND_LEN];
 
 //	bool draw_timing;
-	std::atomic<bool> bUpdateVolumeReq[32];
-	std::atomic<int>  volume_balance[32];
-	std::atomic<int>  volume_avg[32];
-	std::atomic<int>  record_fps;
-	std::atomic<int>  specialResetNum;
-	std::atomic<bool> state_power_off;
+	std::atomic<bool> m_update_volume_req[32];
+	std::atomic<int>  m_volume_balance[32];
+	std::atomic<int>  m_volume_avg[32];
+	std::atomic<int>  m_record_fps;
+	std::atomic<int>  m_special_reset_num;
+	std::atomic<bool> m_state_power_off;
 
-	bool half_count;
-	bool driven_by_half_of_frame;
+	bool m_half_count;
+	bool m_driven_by_half_of_frame;
 	
-	bool full_speed;
-	int64_t fps_accum;
+	bool m_full_speed;
+	int64_t m_fps_accum;
 	
-	qint64 current_time;
-	qint64 next_time;
-	qint64 update_fps_time;
-	bool prev_skip;
-	int total_frames;
-	int draw_frames;
-	int skip_frames;
+	int64_t m_current_time;
+	int64_t m_next_time;
+	int64_t m_update_fps_time;
+	bool m_prev_skip;
+	int m_total_frames;
+	int m_draw_frames;
+	int m_skip_frames;
+	
 	QString qd_text[4];
 	QString fd_text[8];
 	QString fd_lamp[8];
@@ -180,7 +180,7 @@ protected:
 	QString laserdisc_text[4];
 	QString bubble_text[16];
 
-	QString clipBoardText;
+	QString m_clipBoardText;
 
 	// Standard 8 files.
 	void calc_volume_from_balance(int num, int balance);
@@ -240,8 +240,8 @@ protected:
 
 	inline int64_t get_current_tick_usec() const
 	{
-		__LIKELY_IF(tick_timer.isValid()) {
-			return tick_timer.nsecsElapsed() / 1000;
+		__LIKELY_IF(m_tick_timer.isValid()) {
+			return m_tick_timer.nsecsElapsed() / 1000;
 		}
 		return 0;
 	}
@@ -257,15 +257,15 @@ public:
 	EMU_TEMPLATE *get_emu() { return p_emu; }
 	void addVirtualMediaList(const QString key, const QString value)
 	{
-		virtualMediaList.insert(key, value);
+		m_virtualMediaList.insert(key, value);
 	}
 	ssize_t setVirtualMediaList(const QMap<QString, QString>value)
 	{
-		virtualMediaList.clear();
+		m_virtualMediaList.clear();
 		for(auto _i = value.constBegin(); _i != value.constEnd(); ++_i) {
-			virtualMediaList.insert(_i.key(), _i.value());
+			m_virtualMediaList.insert(_i.key(), _i.value());
 		}
-		return virtualMediaList.count();
+		return m_virtualMediaList.count();
 	}
 	int get_d88_file_cur_bank(int drive);
 	int get_d88_file_bank_num(int drive);

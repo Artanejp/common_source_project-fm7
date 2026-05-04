@@ -32,7 +32,7 @@ void EmuThreadClassBase::enqueue_key_up(key_queue_t s)
 	__UNLIKELY_IF(key_fifo == nullptr) {
 		return;
 	}
-	QMutexLocker n(&keyMutex);
+	QMutexLocker n(&m_keyMutex);
 	key_fifo->write(KEY_QUEUE_UP);
 	key_fifo->write(s.code);
 	key_fifo->write(s.mod);
@@ -43,7 +43,7 @@ void EmuThreadClassBase::enqueue_key_down(key_queue_t s)
 	__UNLIKELY_IF(key_fifo == nullptr) {
 		return;
 	}
-	QMutexLocker n(&keyMutex);
+	QMutexLocker n(&m_keyMutex);
 	key_fifo->write(KEY_QUEUE_DOWN);
 	key_fifo->write(s.code);
 	key_fifo->write(s.mod);
@@ -54,7 +54,7 @@ void EmuThreadClassBase::dequeue_key(key_queue_t *s)
 	__UNLIKELY_IF((s == nullptr) || (key_fifo == nullptr)) {
 		return;
 	}
-	QMutexLocker n(&keyMutex);
+	QMutexLocker n(&m_keyMutex);
 	uint32_t _type = (uint32_t)key_fifo->read();
 	if(_type == 	KEY_QUEUE_DOWN) {
 		s->type = _type;
@@ -80,13 +80,13 @@ void EmuThreadClassBase::dequeue_key(key_queue_t *s)
 }
 bool EmuThreadClassBase::is_empty_key()
 {
-	QMutexLocker n(&keyMutex);
+	QMutexLocker n(&m_keyMutex);
 	bool f = key_fifo->empty();
 	return f;
 }
 void EmuThreadClassBase::clear_key_queue()
 {
-	QMutexLocker n(&keyMutex);
+	QMutexLocker n(&m_keyMutex);
 	key_fifo->clear();
 }
 
@@ -98,23 +98,23 @@ void EmuThreadClassBase::do_move_mouse(double x, double y, double globalx, doubl
 	if(p.get() == nullptr) return;
 
 	if(p->is_use_one_board_computer() || (p->get_max_button() > 0)) {
-		mouse_x = x;
-		mouse_y = y;
+		m_mouse_x = x;
+		m_mouse_y = y;
 //		bool flag = p_osd->is_mouse_enabled();
 //		if(!flag) return;
 //		printf("Mouse Moved: %g, %g\n", x, y);
 //		p_osd->set_mouse_pointer(floor(x), floor(y));
 	} else if(p->is_use_mouse()) {
 //		double factor = (double)(p_config->mouse_sensitivity & ((1 << 16) - 1));
-//		mouse_x = (int)(floor((globalx * factor) / 8192.0));
-//		mouse_y = (int)(floor((globaly * factor) / 8192.0));
-		mouse_x = globalx;
-		mouse_y = globaly;
+//		m_mouse_x = (int)(floor((globalx * factor) / 8192.0));
+//		m_mouse_y = (int)(floor((globaly * factor) / 8192.0));
+		m_mouse_x = globalx;
+		m_mouse_y = globaly;
 		//printf("Moved Mouse %d, %d\n", x, y);
 		bool flag = p_osd->is_mouse_enabled();
 		if(!flag) return;
 		//printf("Mouse Moved: %d, %d\n", x, y);
-		p_osd->set_mouse_pointer(mouse_x, mouse_y);
+		p_osd->set_mouse_pointer(m_mouse_x.load(), m_mouse_y.load());
 	}
 }
 
@@ -184,8 +184,8 @@ void EmuThreadClassBase::do_press_button_mouse(Qt::MouseButton button)
 		if(up->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = up->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
-			int _x = (int)rint(mouse_x);
-			int _y = (int)rint(mouse_y);
+			int _x = (int)rint(m_mouse_x.load());
+			int _y = (int)rint(m_mouse_y.load());
 			switch(button) {
 			case Qt::LeftButton:
 //			case Qt::RightButton:
@@ -197,11 +197,11 @@ void EmuThreadClassBase::do_press_button_mouse(Qt::MouseButton button)
 							if(vm_buttons_d[i].code != 0x00) {
 								key_queue_t sp;
 								sp.code = vm_buttons_d[i].code;
-								sp.mod = key_mod;
+								sp.mod = m_key_mod.load();
 								sp.repeat = false;
 								enqueue_key_down(sp);
 							} else {
-								bResetReq = true;
+								m_reset_req = true;
 							}
 						}
 					}
@@ -224,8 +224,8 @@ void EmuThreadClassBase::do_release_button_mouse(Qt::MouseButton button)
 		if(up->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = up->get_vm_buttons();
 			if(vm_buttons_d == NULL) return;
-			int _x = (int)rint(mouse_x);
-			int _y = (int)rint(mouse_y);
+			int _x = (int)rint(m_mouse_x.load());
+			int _y = (int)rint(m_mouse_y.load());
 			switch(button) {
 			case Qt::LeftButton:
 //			case Qt::RightButton:
@@ -237,7 +237,7 @@ void EmuThreadClassBase::do_release_button_mouse(Qt::MouseButton button)
 							if(vm_buttons_d[i].code != 0x00) {
 								key_queue_t sp;
 								sp.code = vm_buttons_d[i].code;
-								sp.mod = key_mod;
+								sp.mod = m_key_mod.load();
 								sp.repeat = false;
 								enqueue_key_up(sp);
 							}
@@ -261,7 +261,7 @@ void EmuThreadClassBase::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 	sp.repeat = repeat;
 	//key_changed = true;
 	enqueue_key_down(sp);
-	key_mod = mod;
+	m_key_mod = mod;
 }
 
 void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
@@ -271,12 +271,12 @@ void EmuThreadClassBase::do_key_up(uint32_t vk, uint32_t mod)
 	sp.mod = mod;
 	sp.repeat = false;
 	enqueue_key_up(sp);
-	key_mod = mod;
+	m_key_mod = mod;
 }
 
 void EmuThreadClassBase::do_start_auto_key(QString ctext)
 {
-	//QMutexLocker _locker(&uiMutex);
+	//QMutexLocker _locker(&m_uiMutex);
 	if(p_emu == nullptr) return;
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;
@@ -299,15 +299,15 @@ void EmuThreadClassBase::do_start_auto_key(QString ctext)
 		#endif
 			}
 		}
-		clipBoardText = dst;
-		//printf("%s\n", clipBoardText.toLocal8Bit().constData());
-		array = codec->fromUnicode(clipBoardText);
+		m_clipBoardText = dst;
+		//printf("%s\n", m_clipBoardText.toLocal8Bit().constData());
+		array = codec->fromUnicode(m_clipBoardText);
 		//printf("Array is:");
 		//for(int l = 0; l < array.size(); l++) {
 		//	printf("%02X ", array.at(l));
 		//}
 		//printf("\n");
-		if(clipBoardText.size() > 0) {
+		if(m_clipBoardText.size() > 0) {
 			int size = array.size();
 			const char *buf = (char *)(array.constData());
 			p_emu->stop_auto_key();
@@ -320,7 +320,7 @@ void EmuThreadClassBase::do_start_auto_key(QString ctext)
 
 void EmuThreadClassBase::do_stop_auto_key(void)
 {
-	//QMutexLocker _locker(&uiMutex);
+	//QMutexLocker _locker(&m_uiMutex);
 	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,
 	//					  "AutoKey: stop\n");
 	if(p_emu == nullptr) return;

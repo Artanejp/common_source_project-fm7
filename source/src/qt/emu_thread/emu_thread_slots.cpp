@@ -748,7 +748,7 @@ void EmuThreadClassBase::do_close_debugger(void)
 
 void EmuThreadClassBase::do_notify_power_off()
 {
-	poweroff_notified = true;
+	m_poweroff_notified = true;
 }
 
 void EmuThreadClassBase::do_set_display_size(int w, int h, int ww, int wh)
