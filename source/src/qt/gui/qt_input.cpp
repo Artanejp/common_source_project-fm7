@@ -289,7 +289,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
 
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_KEYBOARD, "Key_DOWN_CONV: VK=%d SCAN=%04x MOD=%08x", vk, scan, mod);
+	//debug_log(CSP_LOG_TYPE_KEYBOARD, "Key_DOWN_CONV: VK=%d SCAN=%04x MOD=%08x", vk, scan, mod);
 	if(using_flags->is_use_mouse()) {
 		if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 			emit sig_toggle_mouse();

@@ -236,8 +236,23 @@ protected:
 	virtual bool check_power_off();
 	bool set_led();
 	virtual int process_key_input();
-	bool check_scanline_params(bool force);
+	bool __FASTCALL check_scanline_params(bool force);
+	
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list __args);
+	
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(int level, const char *fmt, ...);
+	void __FASTCALL debug_log(const char *fmt, ...);
 
+	void __FASTCALL info_log(int level, const char *fmt, ...);
+	void __FASTCALL info_log(const char *fmt, ...);
+	
+	void __FASTCALL warn_log(int level, const char *fmt, ...);
+	void __FASTCALL warn_log(const char *fmt, ...);
+	
+	void __FASTCALL debug2_log(int level, const char *fmt, ...);
+	void __FASTCALL debug2_log(const char *fmt, ...);
+	
 	inline int64_t get_current_tick_usec() const
 	{
 		__LIKELY_IF(m_tick_timer.isValid()) {

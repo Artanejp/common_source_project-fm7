@@ -123,18 +123,105 @@ void EmuThreadClassBase::do_start(QThread::Priority prio)
 	emit sig_call_initialize();
 }
 
+void EmuThreadClassBase::debug_log(int level, int domain_num, const char *fmt, ...)
+{
+	__LIKELY_IF(fmt != nullptr) {
+		va_list __args;
+		va_start(__args, fmt);
+		vdebug_log(level, domain_num, fmt, __args);
+		va_end(__args);
+	}
+}
+
+void EmuThreadClassBase::debug_log(int domain_num, const char *fmt, ...)
+{
+	__LIKELY_IF(fmt != nullptr) {
+		va_list __args;
+		va_start(__args, fmt);
+		vdebug_log(CSP_LOG_DEBUG, domain_num, fmt, __args);
+		va_end(__args);
+	}
+}
+
+void EmuThreadClassBase::debug_log(const char *fmt, ...)
+{
+	__LIKELY_IF(fmt != nullptr) {
+		va_list __args;
+		va_start(__args, fmt);
+		vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, fmt, __args);
+		va_end(__args);
+	}
+}
+
+void EmuThreadClassBase::info_log(int domain_num, const char *fmt, ...)
+{
+	__LIKELY_IF(fmt != nullptr) {
+		va_list __args;
+		va_start(__args, fmt);
+		vdebug_log(CSP_LOG_INFO, domain_num, fmt, __args);
+		va_end(__args);
+	}
+}
+
+void EmuThreadClassBase::info_log(const char *fmt, ...)
+{
+	__LIKELY_IF(fmt != nullptr) {
+		va_list __args;
+		va_start(__args, fmt);
+		vdebug_log(CSP_LOG_INFO, CSP_LOG_TYPE_EMU, fmt, __args);
+		va_end(__args);
+	}
+}
+
+
+void EmuThreadClassBase::warn_log(int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_WARN, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void EmuThreadClassBase::warn_log(const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_WARN, CSP_LOG_TYPE_EMU, fmt, __args);
+	va_end(__args);
+}
+
+void EmuThreadClassBase::debug2_log(int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_DEBUG2, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void EmuThreadClassBase::debug2_log(const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_EMU, fmt, __args);
+	va_end(__args);
+}
+
+void EmuThreadClassBase::vdebug_log(int level, int domain_num, const char *fmt, va_list __args)
+{
+	__LIKELY_IF((p_osd != nullptr) && (fmt != nullptr)) {
+		std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
+		__LIKELY_IF(csp_logger.get() != nullptr) {
+			csp_logger->vdebug_log(level, domain_num, fmt, __args);
+		}
+	}
+}
+
 void EmuThreadClassBase::doExit(void)
 {
 	m_run_thread = false;
 //	check_power_off();
 //	emit sig_timer_stop();
-//	if(p_osd != nullptr) {
-//		std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
-//		if(csp_logger.get() != NULL) {
-//			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
-//								  "EmuThread : EXIT");
-//		}
-//	}
+//	info_log(CSP_LOG_TYPE_GENERAL, "EmuThread : EXIT");
 //	emit sig_draw_finished();
 //	emit sig_sound_stop();
 //	

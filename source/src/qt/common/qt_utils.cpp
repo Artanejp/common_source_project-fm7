@@ -432,7 +432,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	connect(this, SIGNAL(sig_set_roma_kana(bool)), hRunEmu.get(), SLOT(do_set_roma_kana(bool)), Qt::QueuedConnection);
 #endif
 
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Start.");
+	info_log("EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 	//hRunEmu->start(QThread::HighestPriority);
@@ -453,7 +453,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	p_osd->set_buttons();
 #endif
 
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Start.");
+	info_log("DrawThread : Start.");
 
 	//connect((OSD*)p_osd, SIGNAL(sig_draw_frames(int)), hRunEmu.get(), SLOT(do_print_framerate(int)));
 	connect(hDrawEmu.get(), SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
@@ -493,7 +493,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 			hDrawEmu.get(), SLOT(do_req_encueue_video(int, int, int)));
 
 
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
+	info_log(CSP_LOG_TYPE_GENERAL, "DrawThread : Launch done.");
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, (OSD*)p_osd, &config);
 
@@ -527,7 +527,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	objNameStr = QString("EmuMovieThread");
 	hSaveMovieThread->setObjectName(objNameStr);
 	hSaveMovieThread->start();
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "MovieThread : Launch done.");
+	info_log(CSP_LOG_TYPE_GENERAL, "MovieThread : Launch done.");
 
 	connect(action_SetupMovie, SIGNAL(triggered()), this, SLOT(rise_movie_dialog()));
 	connect(hRunEmu.get(), SIGNAL(sig_change_access_lamp(int, int, QString)), driveData, SLOT(updateLabel(int, int, QString)), Qt::QueuedConnection);
@@ -555,7 +555,7 @@ bool Ui_MainWindow::LaunchEmuThread(std::shared_ptr<EmuThreadClassBase> m)
 	emit sig_movie_set_width(SCREEN_WIDTH);
 	emit sig_movie_set_height(SCREEN_HEIGHT);
 
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
+	info_log(CSP_LOG_TYPE_GENERAL, "EmuThread : Launch done.");
 	return true;
 }
 

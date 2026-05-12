@@ -151,10 +151,10 @@ void Ui_MainWindowBase::do_open_write_cmt(int drive, QString path)
 	if(!(FILEIO::IsFileExisting(path_shadow))) return;
 
 	if(menu_CMT[drive]->getWriteProtect() != false) {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ : filename = %s", path_shadow);
+		info_log(CSP_LOG_TYPE_VFILE_CMT + 0, "Open READ : filename = %s", path_shadow);
 		emit sig_play_tape(drive, path);
 	} else {
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_VFILE_CMT + 0, "Open Write : filename = %s", path_shadow);
+		info_log(CSP_LOG_TYPE_VFILE_CMT + 0, "Open Write : filename = %s", path_shadow);
 		emit sig_rec_tape(drive, path);
 	}
 //	menu_CMT[drive]->do_update_histories(listCMT[drive]);

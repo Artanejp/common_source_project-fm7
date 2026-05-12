@@ -129,7 +129,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 		gyy = gypos * (double)d_hh;
 	}
 
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) : (%f,%f) -> (%g, %g)(%g, %g)", pos.x(), pos.y(), xpos, ypos, xx, yy, gxx, gyy);
+	//debug_log(CSP_LOG_TYPE_GENERAL, "Mouse Move: (%f,%f) : (%f,%f) -> (%g, %g)(%g, %g)", pos.x(), pos.y(), xpos, ypos, xx, yy, gxx, gyy);
 	emit sig_notify_move_mouse(xx, yy, gxx, gyy);
 
 }

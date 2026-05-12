@@ -767,6 +767,22 @@ public:
 	void set_screen_aspect(int num);
 	void update_screen_size(int num);
 
+	// Logging
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list __args);
+	
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(const char *fmt, ...);
+
+	void __FASTCALL info_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL info_log(const char *fmt, ...);
+										
+	void __FASTCALL warn_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL warn_log(const char *fmt, ...);
+	
+	void __FASTCALL debug2_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug2_log(const char *fmt, ...);
+	
 	// Basic slots
 public slots:
 	void delete_emu_thread(void);

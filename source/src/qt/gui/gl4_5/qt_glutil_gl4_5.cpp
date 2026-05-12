@@ -238,17 +238,17 @@ void GLDraw_4_5::initPackedGLObject(GLScreenPack **p,
 			pp->initialize(_width, _height, vertex_shader, fragment_shader);
 			s = pp->getShaderLog();
 			if(s.size() > 0) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
 			}
 			s = pp->getGLLog();
 			if(s.size() > 0) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
 			}
 			pp->clearGLLog();
 		}
@@ -1266,7 +1266,7 @@ void GLDraw_4_5::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %dx%d (IMGPTR=%08x)\n", w, h, (int)iw, (int)ih, (uintptr_t)p);
+	info_log(CSP_LOG_TYPE_SCREEN, "%dx%d -> %dx%d (IMGPTR=%08x)\n", w, h, (int)iw, (int)ih, (uintptr_t)p);
 	if((p_wid != NULL) &&
 	   ((screen_texture_width != w) || (screen_texture_height != h)) &&
 	   (w > 0) && (h > 0)) {
@@ -1477,7 +1477,7 @@ bool GLDraw_4_5::map_vram_texture(void)
 	extfunc->glDeleteSync(sync_fence);
 	sync_fence = extfunc->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,  0);
 	
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
+	info_log(CSP_LOG_TYPE_SCREEN, "MAPPED SCREEN TO PHYSICAL ADDRESS:%0llx\n", (uintptr_t)map_base_address);
 	extfunc->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	if(map_base_address == NULL) return false;
 	

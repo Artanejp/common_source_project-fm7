@@ -47,6 +47,7 @@ protected:
 	QString vertex_shader_name;
 	QString fragment_shader_name;
 	QString description;
+	
 public:	
 	ShaderDesc(QString _vname = QString::fromUtf8(""), QString _fname = QString::fromUtf8(""), QString _desc = QString::fromUtf8("")) {
 		vertex_shader_name = _vname;
@@ -452,6 +453,22 @@ public:
 	virtual bool map_vram_texture(void) { return false; }
 	virtual bool unmap_vram_texture(void) { return false; }
 	virtual void resizeGL_Pre(int width, int height);
+
+	// Logging
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list __args);
+	
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(const char *fmt, ...);
+
+	void __FASTCALL info_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL info_log(const char *fmt, ...);
+										
+	void __FASTCALL warn_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL warn_log(const char *fmt, ...);
+	
+	void __FASTCALL debug2_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug2_log(const char *fmt, ...);
 
 public slots:
 	virtual void paintGL(void) { }

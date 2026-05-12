@@ -321,8 +321,7 @@ void EmuThreadClassBase::do_start_auto_key(QString ctext)
 void EmuThreadClassBase::do_stop_auto_key(void)
 {
 	//QMutexLocker _locker(&m_uiMutex);
-	//csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL,
-	//					  "AutoKey: stop\n");
+	//debug_log("AutoKey: stop\n");
 	if(p_emu == nullptr) return;
 	std::shared_ptr<USING_FLAGS> p = using_flags;
 	if(p.get() == nullptr) return;

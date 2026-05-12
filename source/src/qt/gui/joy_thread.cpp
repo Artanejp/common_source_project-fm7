@@ -54,7 +54,7 @@ JoyThreadClass::JoyThreadClass(std::shared_ptr<EmuThreadClassBase> p, std::share
 		int result = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_EVENTS);
 		read_joydb();
 		//int result = 0;
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Joystick/Game controller subsystem was %s.", (result == 0) ? "initialized" : "not initialized");
+		info_log("Joystick/Game controller subsystem was %s.", (result == 0) ? "initialized" : "not initialized");
 		for(i = 0; i < 16; i++) {
 			controller_table[i] = NULL;
 		}
@@ -77,16 +77,16 @@ JoyThreadClass::JoyThreadClass(std::shared_ptr<EmuThreadClassBase> p, std::share
 				joystick_plugged(i);
 			}
 # endif
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Start.");
+			info_log(CSP_LOG_TYPE_GENERAL, "JoyThread : Start.");
 		} else {
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : Any joysticks were not connected.");
+			info_log(CSP_LOG_TYPE_GENERAL, "JoyThread : Any joysticks were not connected.");
 		}
 	} else {
 		for(i = 0; i < 16; i++) {
 			joyhandle[i] = NULL;
 			names[i] = QString::fromUtf8("None");
 		}
-	    debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : None launched because this VM has not supported joystick.");
+	    info_log(CSP_LOG_TYPE_GENERAL, "JoyThread : None launched because this VM has not supported joystick.");
 	}
 	// GO.
 }
@@ -118,7 +118,7 @@ JoyThreadClass::~JoyThreadClass()
 		//if(!(joydb.isEmpty())) {
 		//	write_joydb();
 		//}
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "JoyThread : EXIT");
+		info_log(CSP_LOG_TYPE_GENERAL, "JoyThread : EXIT");
 	}
 }
 
@@ -145,6 +145,16 @@ void JoyThreadClass::SetEmu(std::shared_ptr<EmuThreadClassBase> p)
 
 void JoyThreadClass::debug_log(int level, int domain_num, QString msg)
 {
+	emit sig_debug_log(level, domain_num, msg);
+}
+
+void JoyThreadClass::vdebug_log(int level, int domain_num, const char *fmt, va_list __args)
+{
+	char strbuf[4096];
+	strbuf[0] = '\0';
+	vsnprintf(strbuf, sizeof(strbuf) / sizeof(char) - 1, fmt, ap);
+	QString msg = QString::fromUtf8(strbuf);
+	
 	emit sig_debug_log(level, domain_num, msg);
 }
 
@@ -250,15 +260,76 @@ bool JoyThreadClass::replace_joydb_by_guid(QString guid, QString after)
 
 void JoyThreadClass::debug_log(int level, int domain_num, const char *fmt, ...)
 {
-	char strbuf[4096];
-	strbuf[0] = '\0'; // Fast Clear. 20250924 K.O
-
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(strbuf, 4095, fmt, ap);
+	vdebug_log(level, domain_num, ap);
 	va_end(ap);
 
-	emit sig_debug_log(level, domain_num, QString::fromUtf8(strbuf));
+}
+
+void JoyThreadClass::debug_log(int domain_num, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_DEBUG, domain_num, ap);
+	va_end(ap);
+}
+
+void JoyThreadClass::debug_log(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_JOYSTICK, ap);
+	va_end(ap);
+}
+
+void JoyThreadClass::info_log(int domain_num, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_INFO, domain_num, fmt, ap);
+	va_end(ap);
+}
+
+void JoyThreadClass::info_log(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, ap);
+	va_end(ap);
+}
+
+
+void JoyThreadClass::warn_log(int domain_num, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_WARN, domain_num, fmt, ap);
+	va_end(ap);
+}
+
+void JoyThreadClass::warn_log(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_WARN, CSP_LOG_TYPE_JOYSTICK, ap);
+	va_end(ap);
+}
+
+void JoyThreadClass::debug2_log(int domain_num, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_DEBUG2, domain_num, fmt, ap);
+	va_end(ap);
+}
+
+void JoyThreadClass::debug2_log(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vdebug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_JOYSTICK, ap);
+	va_end(ap);
 }
 
 QString JoyThreadClass::default_joyassign()
@@ -329,7 +400,7 @@ void JoyThreadClass::joystick_plugged(int num)
 	}
 	if(!(answer.isEmpty())) {
 		if(SDL_GameControllerAddMapping(answer.toLocal8Bit().constData()) >= 0) {
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "MAP JOYSTICK%d to: %s", num, answer.toLocal8Bit().constData());
+			info_log("MAP JOYSTICK%d to: %s", num, answer.toLocal8Bit().constData());
 			replace_joydb(answer);
 		}
 	}
@@ -340,7 +411,7 @@ void JoyThreadClass::joystick_plugged(int num)
 		joyhandle[num] = SDL_GameControllerGetJoystick(controller_table[num]);
 		if(controller_table[num] != NULL) {
 			names[num] = QString::fromLocal8Bit(SDL_GameControllerNameForIndex(num));
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Controller %d : %s : is plugged.", num, names[num].toUtf8().constData());
+			info_log("JoyThread : Controller %d : %s : is plugged.", num, names[num].toUtf8().constData());
 			strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(),
 					(sizeof(p_config->assigned_joystick_name[num])  / sizeof(char)) - 1);
 			joy_num[num] = num;
@@ -373,7 +444,7 @@ void JoyThreadClass::joystick_plugged(int num)
 						}
 					}
 					names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(num));
-					debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Joystick %d : %s : is plugged.", num, names[i].toUtf8().data());
+					info_log("JoyThread : Joystick %d : %s : is plugged.", num, names[i].toUtf8().data());
 					strncpy(p_config->assigned_joystick_name[num], names[num].toUtf8().constData(),
 							(sizeof(p_config->assigned_joystick_name[num])  / sizeof(char)) - 1);
 					break;
@@ -392,7 +463,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 	if(controller_table[num] != NULL) {
 		SDL_GameControllerClose(controller_table[num]);
 		controller_table[num] = NULL;
-		debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Controller %d : %s : is removed.", num, names[num].toUtf8().data());
+		info_log("JoyThread : Controller %d : %s : is removed.", num, names[num].toUtf8().data());
 		joy_num[num] = -1;
 		is_controller[num] = false;
 		joyhandle[num] = NULL;
@@ -404,7 +475,7 @@ void JoyThreadClass::joystick_unplugged(int num)
 			is_controller[joy_num[num]] = false;
 			SDL_JoystickClose(joyhandle[num]);
 			joyhandle[num] = NULL;
-			debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "JoyThread : Joystick %d : %s : is removed.", num, names[num].toUtf8().data());
+			info_log("JoyThread : Joystick %d : %s : is removed.", num, names[num].toUtf8().data());
 			joy_num[num] = -1;
 		}
 	}
@@ -425,7 +496,7 @@ void JoyThreadClass::x_axis_changed(int idx, int type, int value)
 
 	if((true_index < 0) || (true_index >= 4)) return;
 
-	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "X AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
+	//debug_log("X AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	{
 		switch(type) {
 		case JS_AXIS_TYPE_LEFT:
@@ -455,7 +526,7 @@ void JoyThreadClass::y_axis_changed(int idx, int type, int value)
 
 	if((true_index < 0) || (true_index >= 4)) return;
 
-	//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Y AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
+	//debug_log("Y AXIS Changed #%d/%d, TYPE=%d VAL=%d", idx, true_index, type, value);
 	{
 		switch(type) {
 		case JS_AXIS_TYPE_LEFT:
@@ -491,7 +562,7 @@ void JoyThreadClass::button_down(int idx, unsigned int button)
 		default:
 			if(button < 24) {
 				joy_status[true_index] |= (1 << (button + 4));
-				//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "BUTTON DOWN #%d/%d, NUM=%d", idx, true_index, button);
+				//debug_log("BUTTON DOWN #%d/%d, NUM=%d", idx, true_index, button);
 			}
 			break;
 		}
@@ -511,22 +582,22 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 		case SDL_CONTROLLER_BUTTON_DPAD_UP:
 			joy_status[true_index] |= 0x01;
 			joy_status[true_index + 20] |= 0x01; // DPAD DIR
-			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "DPAD UP #%d", true_index);
+			//debug_log("DPAD UP #%d", true_index);
 			break;
 		case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
 			joy_status[true_index] |= 0x02;
 			joy_status[true_index + 20] |= 0x02; // DPAD DIR
-			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "DPAD DOWN #%d", true_index);
+			//debug_log("DPAD DOWN #%d", true_index);
 			break;
 		case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
 			joy_status[true_index] |= 0x04;
 			joy_status[true_index + 20] |= 0x04; // DPAD DIR
-			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "DPAD LEFT #%d", true_index);
+			//debug_log("DPAD LEFT #%d", true_index);
 			break;
 		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
 			joy_status[true_index] |= 0x08;
 			joy_status[true_index + 20] |= 0x08; // DPAD DIR
-			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "DPAD RIGHT #%d", true_index);
+			//debug_log("DPAD RIGHT #%d", true_index);
 			break;
 		case SDL_CONTROLLER_BUTTON_A:
 			joy_status[true_index] |= 0x10;
@@ -561,7 +632,7 @@ void JoyThreadClass::controller_button_down(int idx, unsigned int button)
 		default:
 			if(button < 24) {
 				joy_status[true_index] |= (1 << (button + 4));
-				//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "BUTTON DOWN #%d, NUM=%d", true_index, button);
+				//debug_log("BUTTON DOWN #%d, NUM=%d", true_index, button);
 			}
 			break;
 		}
@@ -724,7 +795,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 			id = eventQueue->cbutton.which;
 			i = get_joyid_from_instanceID(id);
 			//button = SDL_GameControllerGetButton(controller_table[i], cont_button);
-			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "Press button: %d", cont_button);
+			//debug_log("Press button: %d", cont_button);
 			controller_button_down(i, cont_button);
 			break;
 		case SDL_CONTROLLERBUTTONUP:
@@ -756,7 +827,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 			} else if(eventQueue->jaxis.axis == 3) { // Y
 				y_axis_changed(i, JS_AXIS_TYPE_RIGHT, value);
 			}
-			//debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "AXIS_CHANGED NUM=%d, AXIS=%d VAL=%d", i, eventQueue->jaxis.axis, value);
+			//debug_log("AXIS_CHANGED NUM=%d, AXIS=%d VAL=%d", i, eventQueue->jaxis.axis, value);
 			break;
 		case SDL_JOYBUTTONDOWN:
 			button = eventQueue->jbutton.button;
@@ -825,7 +896,7 @@ void JoyThreadClass::do_map_joy_num(int num, int assign)
 {
 	if((num < 0) || (num >= 16)) return;
 	if(assign >= 16) return;
-	debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, "ASSIGN %d to %d", assign - 1, num);
+	info_log("ASSIGN %d to %d", assign - 1, num);
 	joy_assign[num] = assign - 1;
 	p_config->assigned_joystick_num[num] = assign - 1;
 }

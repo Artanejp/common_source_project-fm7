@@ -338,7 +338,7 @@ Ui_MainWindowBase::Ui_MainWindowBase(std::shared_ptr<USING_FLAGS> p, std::shared
 	createContextMenu();
 	max_vm_nodes = 0;
 	ui_retranslate_completed = false;
-	//csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GUI OK");
+	//info_log(CSP_LOG_TYPE_GENERAL, "GUI OK");
 	phys_key_name_map.clear();
 	hRunJoy = NULL;
 	about_to_close = false;
@@ -757,21 +757,21 @@ void Ui_MainWindowBase::setupUi(void)
 					if(p_config->render_minor_version > 1) p_config->render_minor_version = 1;
 				}
 				fmt.setVersion(p_config->render_major_version , p_config->render_minor_version ); // Requires >=Qt-4.8.0
-				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES(v%d.%d).", p_config->render_major_version, p_config->render_minor_version);
+				debug_log( CSP_LOG_TYPE_GENERAL, "Try to use OpenGL ES(v%d.%d).", p_config->render_major_version, p_config->render_minor_version);
 			} else if(render_type == CONFIG_RENDER_PLATFORM_OPENGL_CORE) {
 				fmt.setProfile(QSurfaceFormat::CoreProfile); // Requires >=Qt-4.8.0
 				fmt.setVersion(4, 7); // Requires >=Qt-4.8.0
-				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
+				debug_log( CSP_LOG_TYPE_GENERAL, "Try to use OpenGL CORE profile.");
 			} else { // Fallback
 				fmt.setProfile(QSurfaceFormat::CompatibilityProfile); // Requires >=Qt-4.8.0
-				csp_logger->debug_log(CSP_LOG_DEBUG,  CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
+				debug_log( CSP_LOG_TYPE_GENERAL, "Try to use OpenGL Compatible(MAIN) profile.");
 			}
 		}
 		graphicsView = new GLDrawClass(using_flags, csp_logger, this, fmt);
 		graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 		graphicsView->setMaximumSize(2560, 2560); // ?
 		graphicsView->setMinimumSize(240, 192); // ?
-		csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "GraphicsView OK");
+		info_log(CSP_LOG_TYPE_GENERAL, "GraphicsView OK");
 		graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
 		graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false);
 		graphicsView->setAttribute(Qt::WA_KeyCompression, false);
@@ -1139,7 +1139,7 @@ void Ui_MainWindowBase::setupUi(void)
 	connect(action_LogToSyslog, SIGNAL(toggled(bool)), this, SLOT(do_set_syslog(bool)));
 #endif
 	connect(action_LogToConsole, SIGNAL(toggled(bool)), this, SLOT(do_set_conslog(bool)));
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "Menu OK");
+	info_log(CSP_LOG_TYPE_GENERAL, "Menu OK");
 
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
@@ -1162,7 +1162,7 @@ void Ui_MainWindowBase::setupUi(void)
 	MainWindow->adjustSize();
 
 	initHouseKeeper();
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL, "setupUI() OK");
+	info_log(CSP_LOG_TYPE_GENERAL, "setupUI() OK");
 
 	
 } // setupUi

@@ -2621,11 +2621,6 @@ void EMU::out_message(const _TCHAR* format, ...)
 	va_list ap;
 	va_start(ap, format);
 	my_vstprintf_s(message, 1024, format, ap); // Security for MSVC:C6386.
-//#if defined(_USE_QT)
-//	memset(mes_buf, 0x00, sizeof(mes_buf));
-//	my_vstprintf_s(mes_buf, 1024, format, ap); // Security for MSVC:C6386.
-//	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_EMU, "%s", mes_buf);
-//#endif
 	va_end(ap);
 	message_count = 4; // 4sec
 }

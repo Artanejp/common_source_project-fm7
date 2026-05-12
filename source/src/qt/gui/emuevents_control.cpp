@@ -14,7 +14,7 @@
 
 void Ui_MainWindowBase::do_on_reset(void)
 {
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GUI, "Reset");
+	info_log(CSP_LOG_TYPE_GUI, "Reset");
 	emit sig_vm_reset();
 }
 

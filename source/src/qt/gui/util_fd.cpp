@@ -13,7 +13,7 @@
 #include "dock_disks.h"
 
 #include "qt_dialogs.h"
-#include "csp_logger.h"
+//#include "csp_logger.h"
 
 #include "menu_flags.h"
 

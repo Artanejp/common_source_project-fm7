@@ -120,14 +120,14 @@ void GLDraw_3_0::initPackedGLObject(GLScreenPack **p,
 			pp->initialize(_width, _height, vertex_shader, fragment_shader);
 			s = pp->getShaderLog();
 			if(s.size() > 0) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "In shader of %s ", _name.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "Vertex: %s ",  vertex_shader.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "Fragment: %s ", fragment_shader.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
 			}
 			s = pp->getGLLog();
 			if(s.size() > 0) {
-				csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
+				info_log(CSP_LOG_TYPE_GL_SHADER, "%s", s.toLocal8Bit().constData());
 				pp->clearGLLog();
 			}
 		}
@@ -1020,7 +1020,7 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)using_flags->get_real_screen_width();
 		ih = (float)using_flags->get_real_screen_height();
 	}
-	csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f (IMGPTR=%08x)\n", w, h, iw, ih, (uintptr_t)p);
+	info_log(CSP_LOG_TYPE_SCREEN, "%dx%d -> %fx%f (IMGPTR=%08x)\n", w, h, iw, ih, (uintptr_t)p);
 	//if((w == screen_texture_width) && (h == screen_texture_height)) return;
 	//printf("%dx%d -> %fx%f\n", w, h, iw, ih);
 	if(p_wid != NULL) {

@@ -293,7 +293,7 @@ void GLDrawClass::InitFBO(void)
 	//QSurfaceFormat::RenderableType capability = _fmt.renderableType();
 #if !defined(Q_OS_WIN)
 	QString tmps = logGLString(false);
-	csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "%s", tmps.toLocal8Bit().constData());
+	info_log(CSP_LOG_TYPE_GENERAL, "%s", tmps.toLocal8Bit().constData());
 #endif
 	if((render_type == CONFIG_RENDER_PLATFORM_OPENGL_ES) || (glContext->isOpenGLES())){
 		QPair<int, int> _glversion = _fmt.version();
@@ -304,7 +304,7 @@ void GLDrawClass::InitFBO(void)
 					extfunc = new GLDraw_ES_2(this, using_flags, csp_logger);
 					if(extfunc != NULL) {
 						_major_version = 3;
-						csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v3.1) Renderer");
+						info_log(CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v3.1) Renderer");
 						goto _nr_end;
 					}
 				}
@@ -317,7 +317,7 @@ void GLDrawClass::InitFBO(void)
 			if(extfunc != NULL) {
 				_major_version = 2;
 				_minor_version = 0;
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v2.0) Renderer");
+				info_log(CSP_LOG_TYPE_GENERAL, "Use OpenGL ES(v2.0) Renderer");
 				goto _nr_end;
 			}
 		}
@@ -332,7 +332,7 @@ void GLDrawClass::InitFBO(void)
 				_major_version = 4;
 				_minor_version = 5;
 				render_type = CONFIG_RENDER_PLATFORM_OPENGL_CORE;
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v4.5(CORE) Renderer");
+				info_log(CSP_LOG_TYPE_GENERAL, "Use OpenGL v4.5(CORE) Renderer");
 				goto _nr_end;
 			}
 		}
@@ -345,20 +345,20 @@ void GLDrawClass::InitFBO(void)
 			if(extfunc != NULL) {
 				_major_version = 3;
 				_minor_version = 0;
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
+				info_log(CSP_LOG_TYPE_GENERAL, "Use OpenGL v3.0 Renderer");
 				render_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 				goto _nr_end;
 			}
 		}
 		if(extfunc == NULL) { // Fallback
 			if((_major_version >= 3) || ((_major_version == 2) && (_minor_version >= 1)))  {
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Try to use fallback: OpenGL 2.0");
+				info_log(CSP_LOG_TYPE_GENERAL, "Try to use fallback: OpenGL 2.0");
 			}				
 			extfunc = new GLDraw_2_0(this, using_flags, csp_logger);
 			if(extfunc != NULL) {
 				_major_version = 2;
 				_minor_version = 0;
-				csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
+				info_log(CSP_LOG_TYPE_GENERAL, "Use OpenGL v2.0 Renderer");
 				render_type = CONFIG_RENDER_PLATFORM_OPENGL_MAIN;
 				goto _nr_end;
 			}
@@ -391,7 +391,7 @@ _nr_end:
 		connect(this, SIGNAL(sig_display_osd_leds(int, bool)), extfunc, SLOT(do_display_osd_leds(int, bool)));
 		
 	} else {
-		csp_logger->debug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, "None using OpenGL.Sorry.");
+		info_log(CSP_LOG_TYPE_GENERAL, "None using OpenGL.Sorry.");
 	}
 }
 

@@ -70,7 +70,24 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 # if defined(USE_SDL2)
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
- public:
+
+	void __FASTCALL debug_log(int level, int domain_num, QString msg);
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list __args);
+	
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(const char *fmt, ...);
+
+	void __FASTCALL info_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL info_log(const char *fmt, ...);
+										
+	void __FASTCALL warn_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL warn_log(const char *fmt, ...);
+	
+	void __FASTCALL debug2_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug2_log(const char *fmt, ...);
+
+public:
 	JoyThreadClass(std::shared_ptr<EmuThreadClassBase>  p, std::shared_ptr<USING_FLAGS> pflags, config_t *cfg, QObject *parent = 0);
 	~JoyThreadClass();
 	void SetEmu(std::shared_ptr<EmuThreadClassBase>  p);
@@ -80,9 +97,6 @@ class DLL_PREFIX JoyThreadClass : public QThread {
 	QString joystick_guid(int num);
 	QString joystick_name(int num);
 	QString default_joyassign();
-	
-	void debug_log(int level, int domain_num, const char *fmt, ...);
-	void debug_log(int level, int domain_num, QString msg);
 	
 public slots:
 	void do_reset_joystick();

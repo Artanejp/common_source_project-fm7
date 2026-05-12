@@ -299,10 +299,7 @@ void EmuThreadClass::doWork()
 			req_calc_sleep = false;
 		}
 #if 0
-		if(csp_logger.get() != nullptr) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_EMU,
-								  "EMU: POSITION=%s FRAMES:%d Wait: %d uSec INTERVAL=%d CURRENT=%d NEXT=%d", (m_half_count) ? _T("HALF") : _T("TOP ") , run_frames, m_sleep_period, m_interval, m_current_time, next_time);
-		}
+		info_log("EMU: POSITION=%s FRAMES:%d Wait: %d uSec INTERVAL=%d CURRENT=%d NEXT=%d", (m_half_count) ? _T("HALF") : _T("TOP ") , run_frames, m_sleep_period, m_interval, m_current_time, next_time);
 #endif
 		m_req_draw = false;
 		//if(m_run_thread.load()) {
@@ -321,13 +318,7 @@ void EmuThreadClass::doWork()
 	emit sig_timer_stop();
 	emit sig_sound_stop();
 	emit sig_stop_sound_timer();
-	if(p_osd != nullptr) {
-		std::shared_ptr<CSP_Logger> csp_logger = p_osd->get_logger();
-		if(csp_logger.get() != NULL) {
-			csp_logger->debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_GENERAL,
-								  "EmuThread : EXIT");
-		}
-	}
+	info_log(CSP_LOG_TYPE_GENERAL, "EmuThread : EXIT");
 	msleep(10);
 	emit sig_draw_finished();
 	

@@ -11,7 +11,7 @@
 
 #include "mainwidget_base.h"
 #include "qt_dialogs.h"
-#include "csp_logger.h"
+//#include "csp_logger.h"
 
 #include "menu_compactdisc.h"
 #include "dock_disks.h"
