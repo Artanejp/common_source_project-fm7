@@ -514,20 +514,24 @@ void DISPLAY::GETVRAM_1_400L(int yoff, scrntype_t *p)
 	__UNLIKELY_IF(p == NULL) return;
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
-	uint16_t *ppx = (uint16_t *)___assume_aligned(&(bit_trans_table_0[pixel][0]), sizeof(uint16_vec8_t));
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_d(ppx, 8);
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
+	uint16_8_t *ppx = (uint16_t *)___assume_aligned(&(bit_trans_table_0[0][0]), sizeof(uint16_vec8_t));
+	
+	__DECL_ALIGNED(16) simd_uint16_8 tmp_dl;
+	__DECL_ALIGNED(16) simd_uint16_8 tmp_dr;
+	__DECL_ALIGNED(16) const simd_uint16_8 mask((uint16_t)0x0001);
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmpdd;
+	tmp_dl.load_aligned(&(ppx[pixel >> 4]));
+	tmp_dr.load_aligned(&(ppx[pixel & 0x0f]));	
 
-	tmp_d >>= 5;
+	tmp_dl.v = simd_128bit::op_lshift_bytes<8>(tmp_dl.v);
+	tmp_dl |= tmp_dr;
+	tmp_dl >>= 5;
+	tmp_dl &= mask;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_dd[i] = dpalette_pixel[tmp_d[i]];
+		tmpdd.set_unsafe(i, dpalette_pixel[tmp_dl.at<uint16_t>(i)]); 
 	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		p[i] = tmp_dd[i];
-	}
-
+	tmpdd.store(p);
 }
 
 void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
@@ -536,19 +540,24 @@ void DISPLAY::GETVRAM_1_400L_GREEN(int yoff, scrntype_t *p)
 	__UNLIKELY_IF(p == NULL) return;
 	yoff_d = yoff & 0x7fff;
 	pixel = gvram_shadow[yoff_d];
-	uint16_t *ppx = (uint16_t *)___assume_aligned(&(bit_trans_table_0[pixel][0]), sizeof(uint16_vec8_t));
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_d(ppx, 8);
-	__DECL_ALIGNED(32) std::valarray<scrntype_t> tmp_dd(8);
+	uint16_8_t *ppx = (uint16_t *)___assume_aligned(&(bit_trans_table_0[0][0]), sizeof(uint16_vec8_t));
+	
+	__DECL_ALIGNED(16) simd_uint16_8 tmp_dl;
+	__DECL_ALIGNED(16) simd_uint16_8 tmp_dr;
+	__DECL_ALIGNED(16) const simd_uint16_8 mask((uint16_t)0x0001);
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmpdd;
+	tmp_dl.load_aligned(&(ppx[pixel >> 4]));
+	tmp_dr.load_aligned(&(ppx[pixel & 0x0f]));	
 
-	tmp_d >>= 5;
+	tmp_dl.v = simd_128bit::op_lshift_bytes<8>(tmp_dl.v);
+	tmp_dl |= tmp_dr;
+	tmp_dl >>= 5;
+	tmp_dl &= mask;
 __DECL_VECTORIZED_LOOP
 	for(int i = 0; i < 8; i++) {
-		tmp_dd[i] = dpalette_pixel_green[tmp_d[i]];
+		tmpdd.set_unsafe(i, dpalette_pixel_green[tmp_dl.at<uint16_t>(i)]); 
 	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		p[i] = tmp_dd[i];
-	}
+	tmpdd.store(p);
 
 }
 #endif
@@ -562,9 +571,9 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 {
 	uint32_t b3, r3, g3;
 	__DECL_ALIGNED(16) uint8_t  bb[4], rr[4], gg[4];
-	__DECL_ALIGNED(16) std::valarray<uint16_t> pixels(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> __masks(8);
-	__masks = (uint16_t)mask;
+	
+	__DECL_ALIGNED(16) simd_uint16_8 pixels;
+	__DECL_ALIGNED(16) simd_uint16_8 __masks((uint16_t)mask);
 
 	scrntype_t b, r, g;
 	uint32_t idx;;
@@ -604,121 +613,134 @@ void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px,
 	gg[3] = gvram_shadow[yoff_d2 + 0x16000];
 
 	uint16_t *p0, *p1, *p2, *p3;
-#if !defined(FIXED_FRAMEBUFFER_SIZE)
-	__DECL_ALIGNED(sizeof(scrntype_vec8_t)) std::valarray<scrntype_t> tmp_dd(8);
-#else
-	__DECL_ALIGNED(sizeof(scrntype_vec16_t)) std::valarray<scrntype_t> tmp_dd(16);
-#endif
-
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_r(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_g(8);
-	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_b(8);
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmp_dd;
+	
+//	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_r(8);
+//	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_g(8);
+//	__DECL_ALIGNED(16) std::valarray<uint16_t> tmp_b(8);
+	__DECL_AILGNED(16) simd_uint16_8 tmp_r;
+	__DECL_AILGNED(16) simd_uint16_8 tmp_g;
+	__DECL_AILGNED(16) simd_uint16_8 tmp_b;
 
 	{
-		uint16_t *vp0 = (uint16_t*)___assume_aligned(&(bit_trans_table_0[gg[0]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp1 = (uint16_t*)___assume_aligned(&(bit_trans_table_1[gg[1]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp2 = (uint16_t*)___assume_aligned(&(bit_trans_table_2[gg[2]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp3 = (uint16_t*)___assume_aligned(&(bit_trans_table_3[gg[3]][0]), sizeof(uint16_vec8_t));
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp0(vp0, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp1(vp1, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp2(vp2, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp3(vp3, 8);
+//		uint16_t *vp0 = (uint16_t*)___assume_aligned(&(bit_trans_table_0[gg[0]][0]), sizeof(uint16_vec8_t));
+//		uint16_t *vp1 = (uint16_t*)___assume_aligned(&(bit_trans_table_1[gg[1]][0]), sizeof(uint16_vec8_t));
+//		uint16_t *vp2 = (uint16_t*)___assume_aligned(&(bit_trans_table_2[gg[2]][0]), sizeof(uint16_vec8_t));
+//		uint16_t *vp3 = (uint16_t*)___assume_aligned(&(bit_trans_table_3[gg[3]][0]), sizeof(uint16_vec8_t));
+		uint16_8_t *vp0 = (uint16_8_t*)(&(bit_trans_table_0[0][0]));
+		uint16_8_t *vp1 = (uint16_8_t*)(&(bit_trans_table_1[0][0]));
+		uint16_8_t *vp2 = (uint16_8_t*)(&(bit_trans_table_2[0][0]));
+		uint16_8_t *vp3 = (uint16_8_t*)(&(bit_trans_table_3[0][0]));
 
-//__DECL_VECTORIZED_LOOP
-//	for(int i = 0; i < 8; i++) {
-//		vpp0[i] = vp0[i];
-//		vpp1[i] = vp1[i];
-//	}
-//__DECL_VECTORIZED_LOOP
-//	for(int i = 0; i < 8; i++) {
-//		vpp2[i] = vp2[i];
-//		vpp3[i] = vp3[i];
-//	}
-		tmp_g = vpp0;
-		tmp_g = tmp_g | vpp1;
-		tmp_g = tmp_g | vpp2;
-		tmp_g = tmp_g | vpp3;
+		
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp0(vp0, 8);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp1(vp1, 8);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp2(vp2, 8);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp3(vp3, 8);
+
+//		tmp_g = vpp0;
+//		tmp_g = tmp_g | vpp1;
+//		tmp_g = tmp_g | vpp2;
+//		tmp_g = tmp_g | vpp3;
+		tmp_g =  Get4PixelsFromRGBI(gg[0], gg[1], gg[2], gg[3], vp0, vp1, vp2, vp3, true);
+		tmp_g |= Get4PixelsFromRGBI(gg[0], gg[1], gg[2], gg[3], vp0, vp1, vp2, vp3, false);
 	}
 	// R
 	{
-		uint16_t *vp0 = (uint16_t*)___assume_aligned(&(bit_trans_table_0[rr[0]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp1 = (uint16_t*)___assume_aligned(&(bit_trans_table_1[rr[1]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp2 = (uint16_t*)___assume_aligned(&(bit_trans_table_2[rr[2]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp3 = (uint16_t*)___assume_aligned(&(bit_trans_table_3[rr[3]][0]), sizeof(uint16_vec8_t));
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp0(vp0, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp1(vp1, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp2(vp2, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp3(vp3, 8);
+//		uint16_t *vp0 = (uint16_t*)___assume_aligned(&(bit_trans_table_0[rr[0]][0]), sizeof(uint16_vec8_t));
+//		uint16_t *vp1 = (uint16_t*)___assume_aligned(&(bit_trans_table_1[rr[1]][0]), sizeof(uint16_vec8_t));
+//		uint16_t *vp2 = (uint16_t*)___assume_aligned(&(bit_trans_table_2[rr[2]][0]), sizeof(uint16_vec8_t));
+//		uint16_t *vp3 = (uint16_t*)___assume_aligned(&(bit_trans_table_3[rr[3]][0]), sizeof(uint16_vec8_t));
+		uint16_8_t *vp0 = (uint16_8_t*)(&(bit_trans_table_0[0][0]));
+		uint16_8_t *vp1 = (uint16_8_t*)(&(bit_trans_table_1[0][0]));
+		uint16_8_t *vp2 = (uint16_8_t*)(&(bit_trans_table_2[0][0]));
+		uint16_8_t *vp3 = (uint16_8_t*)(&(bit_trans_table_3[0][0]));
+		tmp_r =  Get4PixelsFromRGBI(rr[0], rr[1], rr[2], rr[3], vp0, vp1, vp2, vp3, true);
+		tmp_r |= Get4PixelsFromRGBI(rr[0], rr[1], rr[2], rr[3], vp0, vp1, vp2, vp3, false);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp0(vp0, 8);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp1(vp1, 8);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp2(vp2, 8);
+//		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp3(vp3, 8);
 
-		tmp_r = vpp0;
-		tmp_r = tmp_r | vpp1;
-		tmp_r = tmp_r | vpp2;
-		tmp_r = tmp_r | vpp3;
+//		tmp_r = vpp0;
+//		tmp_r = tmp_r | vpp1;
+//		tmp_r = tmp_r | vpp2;
+//		tmp_r = tmp_r | vpp3;
 	}
 	
 	// B
 	{
-		uint16_t *vp0 = (uint16_t*)___assume_aligned(&(bit_trans_table_0[bb[0]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp1 = (uint16_t*)___assume_aligned(&(bit_trans_table_1[bb[1]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp2 = (uint16_t*)___assume_aligned(&(bit_trans_table_2[bb[2]][0]), sizeof(uint16_vec8_t));
-		uint16_t *vp3 = (uint16_t*)___assume_aligned(&(bit_trans_table_3[bb[3]][0]), sizeof(uint16_vec8_t));
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp0(vp0, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp1(vp1, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp2(vp2, 8);
-		__DECL_ALIGNED(16) std::valarray<uint16_t> vpp3(vp3, 8);
-		tmp_b = vpp0;
-		tmp_b = tmp_b | vpp1;
-		tmp_b = tmp_b | vpp2;
-		tmp_b = tmp_b | vpp3;
+		uint16_8_t *vp0 = (uint16_8_t*)(&(bit_trans_table_0[0][0]));
+		uint16_8_t *vp1 = (uint16_8_t*)(&(bit_trans_table_1[0][0]));
+		uint16_8_t *vp2 = (uint16_8_t*)(&(bit_trans_table_2[0][0]));
+		uint16_8_t *vp3 = (uint16_8_t*)(&(bit_trans_table_3[0][0]));
+		tmp_b =  Get4PixelsFromRGBI(bb[0], bb[1], bb[2], bb[3], vp0, vp1, vp2, vp3, true);
+		tmp_b |= Get4PixelsFromRGBI(bb[0], bb[1], bb[2], bb[3], vp0, vp1, vp2, vp3, false);
+		//uint16_t *vp0 = (uint16_t*)___assume_aligned(&(bit_trans_table_0[bb[0]][0]), sizeof(uint16_vec8_t));
+		//uint16_t *vp1 = (uint16_t*)___assume_aligned(&(bit_trans_table_1[bb[1]][0]), sizeof(uint16_vec8_t));
+		//uint16_t *vp2 = (uint16_t*)___assume_aligned(&(bit_trans_table_2[bb[2]][0]), sizeof(uint16_vec8_t));
+		//uint16_t *vp3 = (uint16_t*)___assume_aligned(&(bit_trans_table_3[bb[3]][0]), sizeof(uint16_vec8_t));
+		//__DECL_ALIGNED(16) std::valarray<uint16_t> vpp0(vp0, 8);
+		//__DECL_ALIGNED(16) std::valarray<uint16_t> vpp1(vp1, 8);
+		//__DECL_ALIGNED(16) std::valarray<uint16_t> vpp2(vp2, 8);
+		//__DECL_ALIGNED(16) std::valarray<uint16_t> vpp3(vp3, 8);
+		//tmp_b = vpp0;
+		//tmp_b = tmp_b | vpp1;
+		//tmp_b = tmp_b | vpp2;
+		//tmp_b = tmp_b | vpp3;
 		tmp_g <<= 4;
 		tmp_b >>= 4;
 	}
 	
-	pixels = tmp_b;
-	pixels = pixels | tmp_r;
-	pixels = pixels | tmp_g;
-	pixels = pixels & __masks;
+	pixels  = tmp_b;
+	pixels |= tmp_r;
+	pixels |= tmp_g;
+	pixels &= __masks;
 
 //	scrntype_vec8_t *dp = (scrntype_vec8_t*)tmp_dd;
+__DECL_VECTORIZED_LOOP
+	for(int i = 0; i < 8; i++) {
+		tmp_dd.set_unsafe(i, analog_palette_pixel[pixels.at<uint16_t>(i)]);
+	}
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		tmp_dd[i] = analog_palette_pixel[pixels[i]];
-	}
-__DECL_VECTORIZED_LOOP
-	for(int i = 0; i < 8; i++) {
-		p[i] = tmp_dd[i];
-	}
+	tmp_dd.store(p);
 #else
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmp_dd2[2];
+	// Zoom Horiz.
 __DECL_VECTORIZED_LOOP
-	for(int i = 0, j = 0; i < 16; i += 2, j++) {
-		tmp_dd[i    ] = analog_palette_pixel[pixels[j]];;
-		tmp_dd[i + 1] = tmp_dd[i];
+	for(int i = 0, j = 0; i < 8; i += 2, j++) {
+		scrntype_t __tmp = tmp_dd.at<scrntype_t>(j);
+		tmp_dd2[0].set_unsafe(    i, __tmp);
+		tmp_dd2[0].set_unsafe(i + 1, __tmp);
 	}
 __DECL_VECTORIZED_LOOP
-	for(int ii = 0 ; ii < 16; ii++) {
-		p[ii] = tmp_dd[ii];
+	for(int i = 0, j = 4; i < 8; i += 2, j++) {
+		scrntype_t __tmp = tmp_dd.at<scrntype_t>(j);
+		tmp_dd2[1].set_unsafe(    i, __tmp);
+		tmp_dd2[1].set_unsafe(i + 1, __tmp);
 	}
-	
+	tmp_dd2[0].store(&(p[0]));
+	tmp_dd2[1].store(&(p[8]));
 	if(scan_line) {
 /* Fancy scanline */
 #if defined(_RGB888) || defined(_RGBA888)
-		tmp_dd >>= 3;
+		tmp_dd2[0] >>= 3;
+		tmp_dd2[1] >>= 3;
 #else
-		tmp_dd >>= 2;
+		tmp_dd2[0] >>= 2;
+		tmp_dd2[1] >>= 2;
 #endif
-
-		__DECL_ALIGNED(32) std::valarray<scrntype_t> vmask(RGBA_COLOR(31, 31, 31, 255), 16);
-		tmp_dd &= vmask;
+		__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class vmask(RGBA_COLOR(31, 31, 31, 255));
+		tmp_dd2[0] &= vmask;
+		tmp_dd2[1] &= vmask;
 	}
-__DECL_VECTORIZED_LOOP
-	for(int ii = 0; ii < 16; ii++) {
-		px[ii] = tmp_dd[ii];
-	}
+	tmp_dd2[0].store(&(px[0]));
+	tmp_dd2[1].store(&(px[8]));
 #endif	
 }
 #endif
 
+/* ToDo: Support 16bytes table. */
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 
 void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_line)
