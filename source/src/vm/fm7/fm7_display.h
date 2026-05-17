@@ -14,6 +14,7 @@
 #include "../mc6809.h"
 #include "fm7_common.h"
 
+#include "../../types/simd_types.h"
 
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 #define __FM7_GVRAM_PAG_SIZE (0x2000 * 24)
@@ -44,13 +45,13 @@ namespace FM7 {
 class DISPLAY: public DEVICE
 {
 private:
-	__DECL_ALIGNED(16) uint16_t bit_trans_table_0[256][8];
-	__DECL_ALIGNED(16) uint16_t bit_trans_table_1[256][8];
-	__DECL_ALIGNED(16) uint16_t bit_trans_table_2[256][8];
-	__DECL_ALIGNED(16) uint16_t bit_trans_table_3[256][8];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_0[16];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_1[16];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_2[16];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_3[16];
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	__DECL_ALIGNED(16) uint16_t bit_trans_table_4[256][8];
-	__DECL_ALIGNED(16) uint16_t bit_trans_table_5[256][8];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_4[16];
+	__DECL_ALIGNED(16) uint16_8_t bit_trans_table_5[16];
 #endif
 
 	uint32_t yoff_d1, yoff_d2;
@@ -95,6 +96,12 @@ protected:
 	void reset_subcpu(bool _check_firq);
 	void setup_400linemode(uint8_t val);
    
+	enum {
+		__offset_b = 0x00000,
+		__offset_r = 0x04000,
+		__offset_g = 0x08000
+	};
+	
 #if defined(_FM77AV_VARIANTS)
 	void __FASTCALL alu_write_cmdreg(uint32_t val);
 	void __FASTCALL alu_write_logical_color(uint8_t val);
@@ -211,11 +218,11 @@ protected:
 #endif
 	bool diag_load_subrom_c;
 
-	scrntype_t dpalette_pixel[8];
-	scrntype_t dpalette_pixel_tmp[8];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t dpalette_pixel[8];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t dpalette_pixel_tmp[8];
 #if defined(USE_GREEN_DISPLAY)
-	scrntype_t dpalette_pixel_green[8];
-	scrntype_t dpalette_green_tmp[8];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t dpalette_pixel_green[8];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t dpalette_green_tmp[8];
 	bool use_green_monitor;
 #endif
 	
@@ -225,8 +232,8 @@ protected:
 	uint8_t analog_palette_r[4096];
 	uint8_t analog_palette_g[4096];
 	uint8_t analog_palette_b[4096];
-	scrntype_t analog_palette_pixel[4096];
-	scrntype_t analog_palette_pixel_tmp[4096];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t analog_palette_pixel[4096];
+	__DECL_SCRNTYPE8_ALIGNED scrntype_t analog_palette_pixel_tmp[4096];
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8_t io_w_latch[0x40];
@@ -344,10 +351,12 @@ protected:
 #endif
 	
 #if defined(_FM77AV_VARIANTS)	
-	void GETVRAM_4096(int yoff, scrntype_t *p, scrntype_t *px, uint32_t rgbmask, bool window_inv = false, bool scan_line = false);
+	inline uint16_8_t GETVRAM_4bit_from_vram(uint32_t base);
+	void GETVRAM_4096(const uint32_t yoff, scrntype_t *p, scrntype_t *px, const bool window_inv = false, const bool scan_line = false);
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	void GETVRAM_256k(int yoff, scrntype_t *p, scrntype_t *px, bool scan_line = false);
+	inline uint16_8_t GETVRAM_6bit_from_vram(uint32_t base);
+	void GETVRAM_256k(const uint32_t yoff, scrntype_t *p, scrntype_t *px, const bool scan_line = false);
 #endif   
 	uint32_t __FASTCALL read_mmio(uint32_t addr);
 	
@@ -419,6 +428,7 @@ protected:
 		//T *nnp = static_cast<T *>(np);
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
+	inline void __FASTCALL zoomed_store(SCRNTYPE8_SIMD data, scrntype_t* p, scrntype_t* px, const bool scan_line);
 
 #if defined(_FM77L4)
 	void __FASTCALL draw_77l4_400l(bool ff);

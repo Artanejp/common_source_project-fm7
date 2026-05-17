@@ -3348,25 +3348,32 @@ void DISPLAY::initialize()
 	int i;
 
 #if 1
-	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_0[0][0])), 0x0080, 0x0000);
-	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_1[0][0])), 0x0040, 0x0000);
-	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_2[0][0])), 0x0020, 0x0000);
-	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_3[0][0])), 0x0010, 0x0000);
+	PrepareBitTransTable16_4bitRange((&(bit_trans_table_0[0])), 7);
+	PrepareBitTransTable16_4bitRange((&(bit_trans_table_1[0])), 6);
+	PrepareBitTransTable16_4bitRange((&(bit_trans_table_2[0])), 5);
+	PrepareBitTransTable16_4bitRange((&(bit_trans_table_3[0])), 4);
+		
+//	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_0[0])), 0x0080, 0x0000);
+//	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_1[0])), 0x0040, 0x0000);
+//	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_2[0])), 0x0020, 0x0000);
+//	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_3[0])), 0x0010, 0x0000);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_4[0][0])), 0x0008, 0x0000);
-	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_5[0][0])), 0x0004, 0x0000);
+	PrepareBitTransTable16_4bitRange((&(bit_trans_table_4[0])), 3);
+	PrepareBitTransTable16_4bitRange((&(bit_trans_table_5[0])), 2);
+//	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_4[0])), 0x0008, 0x0000);
+//	PrepareBitTransTable((_bit_trans_table_t*)(&(bit_trans_table_5[0])), 0x0004, 0x0000);
 #endif	
 #else
 	for(int i = 0; i < 256; i++) {
 		uint16_t n = (uint16_t)i;
 		for(int j = 0; j < 8; j++) {
-			bit_trans_table_0[i][j] = n & 0x80;
-			bit_trans_table_1[i][j] = ((n & 0x80) != 0) ? 0x40 : 0;
-			bit_trans_table_2[i][j] = ((n & 0x80) != 0) ? 0x20 : 0;
-			bit_trans_table_3[i][j] = ((n & 0x80) != 0) ? 0x10 : 0;
+			bit_trans_table_0[i].u16[j] = n & 0x80;
+			bit_trans_table_1[i].u16[j] = ((n & 0x80) != 0) ? 0x40 : 0;
+			bit_trans_table_2[i].u16[j] = ((n & 0x80) != 0) ? 0x20 : 0;
+			bit_trans_table_3[i].u16[j] = ((n & 0x80) != 0) ? 0x10 : 0;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			bit_trans_table_4[i][j] = ((n & 0x80) != 0) ? 0x08 : 0;
-			bit_trans_table_5[i][j] = ((n & 0x80) != 0) ? 0x04 : 0;
+			bit_trans_table_4[i].u16[j] = ((n & 0x80) != 0) ? 0x08 : 0;
+			bit_trans_table_5[i].u16[j] = ((n & 0x80) != 0) ? 0x04 : 0;
 #endif			
 			n <<= 1;
 		}
