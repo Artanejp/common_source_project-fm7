@@ -152,7 +152,7 @@ void JoyThreadClass::vdebug_log(int level, int domain_num, const char *fmt, va_l
 {
 	char strbuf[4096];
 	strbuf[0] = '\0';
-	vsnprintf(strbuf, sizeof(strbuf) / sizeof(char) - 1, fmt, ap);
+	vsnprintf(strbuf, sizeof(strbuf) / sizeof(char) - 1, fmt, __args);
 	QString msg = QString::fromUtf8(strbuf);
 	
 	emit sig_debug_log(level, domain_num, msg);
@@ -262,7 +262,7 @@ void JoyThreadClass::debug_log(int level, int domain_num, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vdebug_log(level, domain_num, ap);
+	vdebug_log(level, domain_num, fmt, ap);
 	va_end(ap);
 
 }
@@ -271,7 +271,7 @@ void JoyThreadClass::debug_log(int domain_num, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vdebug_log(CSP_LOG_DEBUG, domain_num, ap);
+	vdebug_log(CSP_LOG_DEBUG, domain_num, fmt, ap);
 	va_end(ap);
 }
 
@@ -279,7 +279,7 @@ void JoyThreadClass::debug_log(const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_JOYSTICK, ap);
+	vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_JOYSTICK, fmt, ap);
 	va_end(ap);
 }
 
@@ -295,7 +295,7 @@ void JoyThreadClass::info_log(const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vdebug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, ap);
+	vdebug_log(CSP_LOG_INFO, CSP_LOG_TYPE_JOYSTICK, fmt, ap);
 	va_end(ap);
 }
 
@@ -312,7 +312,7 @@ void JoyThreadClass::warn_log(const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vdebug_log(CSP_LOG_WARN, CSP_LOG_TYPE_JOYSTICK, ap);
+	vdebug_log(CSP_LOG_WARN, CSP_LOG_TYPE_JOYSTICK, fmt, ap);
 	va_end(ap);
 }
 
@@ -328,7 +328,7 @@ void JoyThreadClass::debug2_log(const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vdebug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_JOYSTICK, ap);
+	vdebug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_JOYSTICK, fmt, ap);
 	va_end(ap);
 }
 
