@@ -164,42 +164,42 @@ inline void PrepareBitTransTable_16bit_8bitRange(void* tbl, const uint8_t bitshi
 
 inline void PrepareBitTransTable16_4bitRange(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, true, 0, 16);
+	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, false, 0, 16);
 }
 
 inline void PrepareBitTransTable16_4bitRange_Reverse(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, false, 0, 16);
+	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, true, 0, 16);
 }
 
 inline void PrepareBitTransTable16_8bitRange(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, true, 0, 256);
+	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, false, 0, 256);
 }
 
 inline void PrepareBitTransTable16_8bitRange_Reverse(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, false, 0, 256);
+	PrepareBitTransTable_16bit_8bitRange(tbl, bitshift, true, true, 0, 256);
 }
 
 inline void PrepareBitTransTable8_4bitRange(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, true, 0, 16);
+	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, false, 0, 16);
 }
 
 inline void PrepareBitTransTable8_4bitRange_Reverse(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, false, 0, 16);
+	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, true, 0, 16);
 }
 
 inline void PrepareBitTransTable8_8bitRange(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, true, 0, 256);
+	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, false, 0, 256);
 }
 
 inline void PrepareBitTransTable8_8bitRange_Reverse(void* tbl, const uint8_t bitshift)
 {
-	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, false, 0, 256);
+	PrepareBitTransTable_8bit_8bitRange(tbl, bitshift, true, true, 0, 256);
 }
 
 static inline scrntype_vec8_t ConvertByteToMonochromePackedPixel(uint8_t src, _bit_trans_table_t *tbl,scrntype_t on_val, scrntype_t off_val)
@@ -232,7 +232,7 @@ __DECL_VECTORIZED_LOOP
 	return tmpdd;
 }
 
-inline simd_uint16_8 Get4PixelsFromRGB(uint8_t r, uint8_t g, uint8_t b, uint16_8_t* rtbl, uint16_8_t* gtbl, uint16_8_t* btbl, constexpr bool is_left)
+inline simd_uint16_8 Get4PixelsFromRGB(uint8_t r, uint8_t g, uint8_t b, uint16_8_t* rtbl, uint16_8_t* gtbl, uint16_8_t* btbl, const bool is_left)
 {
 	__DECL_ALIGNED(16) simd_uint16_8 tmpr;
 	__DECL_ALIGNED(16) simd_uint16_8 tmpg;
@@ -241,11 +241,11 @@ inline simd_uint16_8 Get4PixelsFromRGB(uint8_t r, uint8_t g, uint8_t b, uint16_8
 	uint16_8_t*  gvt = (uint16_8_t*)___assume_aligned(gtbl, sizeof(uint16_8_t));
 	uint16_8_t*  bvt = (uint16_8_t*)___assume_aligned(btbl, sizeof(uint16_8_t));
 
-	if(is_left) { // Bit7 to 4
+	if(is_left) { // Bit3 to 0 (Reversed order)
 		r >>= 4;
 		g >>= 4;
 		b >>= 4;
-	} else {
+	} else { // Bit7 to 4 (Reversed order)
 		r &= 0x0f;
 		g &= 0x0f;
 		b &= 0x0f;
@@ -256,12 +256,13 @@ inline simd_uint16_8 Get4PixelsFromRGB(uint8_t r, uint8_t g, uint8_t b, uint16_8
 	tmpr |= tmpg;
 	tmpr |= tmpb;
 	if(is_left) { // Bit7 to 4
-		tmpr.v = simd_128bit::op_lshift_bytes<8>(tmpr.v);
+		// Note: SSE2 OPs is for LITTLE ENDIAN, not for BIG ENDIAN. - 20260518 K.O
+		tmpr = simd_128bit::op_rshift_bytes<8>(tmpr.data().v);
 	}
 	return tmpr;
 }
 
-inline simd_uint16_8 Get4PixelsFromRGBI(uint8_t r, uint8_t g, uint8_t b, uint8_t i, uint16_8_t* rtbl, uint16_8_t* gtbl, uint16_8_t* btbl, uint16_8_t* itbl, constexpr bool is_left)
+inline simd_uint16_8 Get4PixelsFromRGBI(uint8_t r, uint8_t g, uint8_t b, uint8_t i, uint16_8_t* rtbl, uint16_8_t* gtbl, uint16_8_t* btbl, uint16_8_t* itbl, const bool is_left)
 {
 	__DECL_ALIGNED(16) simd_uint16_8 tmpr;
 	__DECL_ALIGNED(16) simd_uint16_8 tmpg;
@@ -291,7 +292,8 @@ inline simd_uint16_8 Get4PixelsFromRGBI(uint8_t r, uint8_t g, uint8_t b, uint8_t
 	tmpr |= tmpb;
 	tmpr |= tmpi;
 	if(is_left) { // Bit7 to 4
-		tmpr.v = simd_128bit::op_lshift_bytes<8>(tmpr.v);
+		// Note: SSE2 OPs is for LITTLE ENDIAN, not for BIG ENDIAN. - 20260518 K.O
+		tmpr = simd_128bit::op_rshift_bytes<8>(tmpr.data().v);
 	}
 	return tmpr;
 }
@@ -311,11 +313,11 @@ template <typename _St>
 	__DECL_ALIGNED(8) uint8_8_t tmpdd;
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
-		tmpdd.b[i] = (uint8_t)(tmpd.at<uint16_t>(i));
+		tmpdd.u8[i] = (uint8_t)(tmpd.at<uint16_t>(i));
 	}
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
-		dst[i] = tmpdd.b[i];
+		dst[i] = tmpdd.u8[i];
 	}
 }
 
@@ -336,12 +338,12 @@ template <typename _St>
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0, j = 0; i < 8; i += 2, j++) {
 		uint8_t __tmp = (uint8_t)(tmpd.at<uint16_t>(j));
-		tmpdd.b[i    ] = __tmp;
-		tmpdd.b[i + 1] = __tmp;
+		tmpdd.u8[i    ] = __tmp;
+		tmpdd.u8[i + 1] = __tmp;
 	}
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
-		dst[i] = tmpdd.b[i];
+		dst[i] = tmpdd.u8[i];
 	}
 }
 
@@ -361,12 +363,12 @@ template <typename _St>
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0, j = 0; i < 8; i += 2, j++) {
 		uint8_t __tmp = (uint8_t)(tmpd.at<uint16_t>(j));
-		tmpdd.b[i    ] = __tmp;
-		tmpdd.b[i + 1] = __tmp;
+		tmpdd.u8[i    ] = __tmp;
+		tmpdd.u8[i + 1] = __tmp;
 	}
 	__DECL_VECTORIZED_LOOP
 	for(size_t i = 0; i < 8; i++) {
-		dst[i] = tmpdd.b[i];
+		dst[i] = tmpdd.u8[i];
 	}
 }
 
@@ -610,14 +612,14 @@ template <typename _St>
 		}
 		tmpd &= maskd;
 		
-		__DECL_ALIGNED(8) uint8_t_t tmpdd;
+		__DECL_ALIGNED(8) uint8_8_t tmpdd;
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			tmpdd.b[i] = (uint8_t)(tmpd.at<uint16_t>(i));
+			tmpdd.u8[i] = (uint8_t)(tmpd.at<uint16_t>(i));
 		}
 		__DECL_VECTORIZED_LOOP
 		for(size_t i = 0; i < 8; i++) {
-			dst[i] = tmpdd.b[i];
+			dst[i] = tmpdd.u8[i];
 		}
 		dst += 8;
 	}
