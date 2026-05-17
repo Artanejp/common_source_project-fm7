@@ -12,7 +12,7 @@ private:
 public:
 	__DECL_ALIGNED(32) uint32_8_t _d;
 	
-	simd_uint32_8(uint16_t n = 0)
+	simd_uint32_8(uint32_t n = 0)
 	{
 		fill(n);
 	}
