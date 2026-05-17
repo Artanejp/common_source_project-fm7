@@ -161,6 +161,85 @@ GLDrawClass::~GLDrawClass()
 
 }
 
+void GLDrawClass::vdebug_log(int level, int domain_num, const char* fmt, va_list __args)
+{
+	__LIKELY_IF((csp_logger.get() != nullptr) && (fmt != nullptr)) {
+		csp_logger->vdebug_log(level, domain_num, fmt, __args);
+	}
+}
+
+void GLDrawClass::debug_log(int level, int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(level, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::debug_log(int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_DEBUG, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::debug_log(const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_DEBUG, CSP_LOG_TYPE_GENERAL, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::info_log(int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_INFO, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::info_log(const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_WARN, CSP_LOG_TYPE_GENERAL, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::warn_log(int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_WARN, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::warn_log(const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_WARN, CSP_LOG_TYPE_GENERAL, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::debug2_log(int domain_num, const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_DEBUG2, domain_num, fmt, __args);
+	va_end(__args);
+}
+
+void GLDrawClass::debug2_log(const char* fmt, ...)
+{
+	va_list __args;
+	va_start(__args, fmt);
+	vdebug_log(CSP_LOG_DEBUG2, CSP_LOG_TYPE_GENERAL, fmt, __args);
+	va_end(__args);
+}
+
 void GLDrawClass::do_set_led_width(int bitwidth)
 {
 	if(extfunc != NULL) {

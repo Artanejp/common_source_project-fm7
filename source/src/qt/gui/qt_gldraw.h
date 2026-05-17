@@ -125,6 +125,22 @@ public:
 
 	virtual QString getRenderString();
 								 
+	// Logging
+	void __FASTCALL vdebug_log(int level, int domain_num, const char *fmt, va_list __args);
+	
+	void __FASTCALL debug_log(int level, int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug_log(const char *fmt, ...);
+
+	void __FASTCALL info_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL info_log(const char *fmt, ...);
+										
+	void __FASTCALL warn_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL warn_log(const char *fmt, ...);
+	
+	void __FASTCALL debug2_log(int domain_num, const char *fmt, ...);
+	void __FASTCALL debug2_log(const char *fmt, ...);
+												
 public slots:
 	void do_quit(void);
 	void initKeyCode(void);
