@@ -428,7 +428,7 @@ protected:
 		//T *nnp = static_cast<T *>(np);
 		return static_cast<T *>(np)->read_dma_data8(addr);
 	}
-	inline void __FASTCALL zoomed_store(SCRNTYPE8_SIMD data, scrntype_t* p, scrntype_t* px, const bool scan_line);
+	inline void __FASTCALL zoomed_store(scrntype8_t data, scrntype_t* p, scrntype_t* px, const bool scan_line);
 
 #if defined(_FM77L4)
 	void __FASTCALL draw_77l4_400l(bool ff);

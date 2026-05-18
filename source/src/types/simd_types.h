@@ -208,7 +208,7 @@ typedef uint32_8_t uint16_16_t;
 typedef uint16_8_t scrntype8_t;
 typedef simde__m128 simd_scrntype8_t;
 #define SCRNTYPE8_ALIGN 16
-#define SCRNTYPE8_SIMD simde__m128 
+#define SCRNTYPE8_SIMD simd_128bit
 #define simd_element(arr, pos)  (scrntype_t)(arr.u16[pos])
 #define simd_element_p(aptr, pos)  (scrntype_t)(aptr->u16[pos])
 #define simd_element_raw(arr, pos)  arr.u16[pos]
@@ -227,7 +227,7 @@ typedef simde__m128 simd_scrntype8_t;
 typedef uint32_8_t scrntype8_t;
 typedef simde__m256 simd_scrntype8_t;
 #define SCRNTYPE8_ALIGN 32
-#define SCRNTYPE8_SIMD simde__m256 
+#define SCRNTYPE8_SIMD simd_256bit
 #define simd_element(arr, pos)  (scrntype_t)(arr.u32[pos])
 #define simd_element_p(aptr, pos)  (scrntype_t)(aptr->u32[pos])
 #define simd_element_raw(arr, pos)  arr.u32[pos]

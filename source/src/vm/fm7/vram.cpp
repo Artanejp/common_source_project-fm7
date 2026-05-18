@@ -174,12 +174,12 @@ void DISPLAY::draw_window(int dmode, int y, int begin, int bytes, bool window_in
 	}			
 }
 
-inline void DISPLAY::zoomed_store(SCRNTYPE8_SIMD data, scrntype_t* p, scrntype_t* px, const bool scan_line)
+inline void DISPLAY::zoomed_store(scrntype8_t data, scrntype_t* p, scrntype_t* px, const bool scan_line)
 {
 	__UNLIKELY_IF(p == NULL) return;
-	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class _d;
+	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class _d(data);
 	__DECL_SCRNTYPE8_ALIGNED simd_scrntype8_class tmp_dd2[2];
-	_d = data;
+	
 	// Zoom Horiz.
 	__DECL_VECTORIZED_LOOP
 	for(int i = 0, j = 0; i < 8; i += 2, j++) {
@@ -680,7 +680,7 @@ __DECL_VECTORIZED_LOOP
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 	tmp_dd.unalign_store(p);
 #else
-	zoomed_store(tmp_dd.data().v, p, px, scan_line);
+	zoomed_store(tmp_dd.data(), p, px, scan_line);
 #endif	
 }
 #endif
@@ -785,7 +785,7 @@ void DISPLAY::GETVRAM_256k(const uint32_t yoff, scrntype_t *p, scrntype_t *px, c
 #if !defined(FIXED_FRAMEBUFFER_SIZE)
 	tmp_dd.unlign_store(p);
 #else	
-	zoomed_store(tmp_dd.data().v, p, px, scan_line);
+	zoomed_store(tmp_dd.data(), p, px, scan_line);
 #endif	
 }
 #endif
