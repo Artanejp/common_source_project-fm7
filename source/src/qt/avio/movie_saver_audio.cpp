@@ -105,9 +105,28 @@ bool MOVIE_SAVER::open_audio(void)
 	av_opt_set_int	   (ost->swr_ctx, "out_channel_count",  channels,	   0);
 	av_opt_set_int	   (ost->swr_ctx, "out_sample_rate",	c->sample_rate,	0);
 	av_opt_set_sample_fmt(ost->swr_ctx, "out_sample_fmt",	 c->sample_fmt,	 0);
-	
+	#ifdef AVCODEC_UPPER_V60
+	AVChannelLayout _in_chlayout;
+	AVChannelLayout _out_chlayout;
+	if(av_channel_layout_custom_init(&_in_chlayout, 2) != 0) {
+		swr_free(&(ost->swr_ctx));
+		avcodec_free_context(&(ost->context));
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not set input layout for resampler. \n");
+		return false;
+	}
+	if(av_channel_layout_custom_init(&_out_chlayout, channels) != 0) {
+		swr_free(&(ost->swr_ctx));
+		avcodec_free_context(&(ost->context));
+		out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER, "Could not set output layout for resampler. \n");
+		return false;
+	}
+	av_opt_set_chlayout(ost->swr_ctx, "in_chlayout", (AVChannelLayout *)(&_in_chlayout), 0);
+	av_opt_set_chlayout(ost->swr_ctx, "out_chlayout", (AVChannelLayout *)(&_out_chlayout), 0);
+	#endif
+
 	/* initialize the resampling context */
 	if ((ret = swr_init(ost->swr_ctx)) < 0) {
+		swr_free(&(ost->swr_ctx));
 	#ifdef AVCODEC_UPPER_V56 
 		avcodec_free_context(&(ost->context));
 	#endif
@@ -355,15 +374,36 @@ void MOVIE_SAVER::setup_audio(AVCodecContext *codec_context, OutputStream *ost, 
 	}
 	// Check support samplerate
 	std::list<int> samplerates;
+	samplerates.clear();
+	// Fix for marked as attribute_deprecated . - 20260924 K.O
+	#if defined(AVCODEC_UPPER_V61)
+	const void *return_list;
+	int return_list_size;
+	unsigned query_flags = 0;
+	#endif
 	/* ToDo: Apply for deprecated methods. - 20251218 K.O */
+	#if !defined(AVCODEC_UPPER_V61)
 	if((*codec)->supported_samplerates != nullptr) {
 		const int* p = (*codec)->supported_samplerates;
 		auto itp = samplerates.begin();
 		for(size_t i = 0; p[i] != 0; i++) {
 			samplerates.insert(itp, (int)(p[i]));
 		}
-		samplerates.sort();
 	}
+	#else /* After 7.x */
+	if(avcodec_get_supported_config(c, *codec,
+									AV_CODEC_CONFIG_SAMPLE_RATE, query_flags,
+									&return_list, &return_list_size) >= 0) {
+		if(return_list != nullptr) {
+			const int *p = (const int*)return_list;
+			auto itp = samplerates.begin();
+			for(int i = 0; i < return_list_size; i++) {
+				samplerates.insert(itp, (int)(p[i]));
+			}
+		}
+	}
+	#endif /* supportes_samplerales */
+	samplerates.sort();
 	int newrate = -1;
 	for(auto _v = samplerates.begin(); _v != samplerates.end(); ++_v) {
 		if((*_v) == audio_sample_rate) {
@@ -385,14 +425,30 @@ void MOVIE_SAVER::setup_audio(AVCodecContext *codec_context, OutputStream *ost, 
 		cutoff = newrate / 2;
 	}
 	/* ToDo: Apply for deprecated methods. - 20251218 K.O */
-	c->sample_fmt  = (*codec)->sample_fmts ? (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+	c->sample_fmt =  AV_SAMPLE_FMT_NONE;
 	c->bit_rate	= audio_bit_rate;
 	c->sample_rate = newrate;
 	c->codec_id = codec_id;
 	c->cutoff = cutoff;
 	
-	#ifndef AVCODEC_UPPER_V56
+	#if !defined(AVCODEC_UPPER_V61)
+	if((*codec)->sample_fmts != nullptr) {
+		c->sample_fmt  = (*codec)->sample_fmts[0];
+	}
+	#else
+	query_flags = 0;
+	if(avcodec_get_supported_config(c, *codec,
+									AV_CODEC_CONFIG_SAMPLE_FORMAT, query_flags,
+									&return_list, &return_list_size) >= 0) {
+		if((return_list != nullptr) && (return_list_size > 0)) {
+			const enum AVSampleFormat *p = (const enum AVSampleFormat *)return_list;
+			c->sample_fmt = p[0]; // OK?
+		}
+	}
+	#endif
 	
+	
+	#if !defined(AVCODEC_UPPER_V56)
 	if(codec_id == AV_CODEC_ID_AAC) {
 		c->strict_std_compliance = -2; // For internal AAC
 		c->global_quality = 100;
@@ -467,7 +523,7 @@ void MOVIE_SAVER::setup_audio(AVCodecContext *codec_context, OutputStream *ost, 
 	default:
 		break;
 	}
-	c->cutoff = cutoff;
+
 	AVChannelLayout a_layout;
 	av_channel_layout_default(&a_layout, 2);
 	if(av_channel_layout_copy(&(c->ch_layout), &a_layout) < 0) {
