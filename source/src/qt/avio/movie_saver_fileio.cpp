@@ -214,7 +214,11 @@ bool MOVIE_SAVER::do_open_main()
 
 //	fmt->video_codec = vcodec;
 //	fmt->audio_codec = acodec;
-	
+	out_debug_log(CSP_LOG_INFO, CSP_LOG_TYPE_MOVIE_SAVER,
+				  _T("Video Codec=%s Audio Codec=%s"),
+				  (_TCHAR *)avcodec_get_name((enum AVCodecID)vcodec), 
+				  (_TCHAR *)avcodec_get_name((enum AVCodecID)acodec) 
+				  );
 	/* Add the audio and video streams using the default format codecs
 	 * and initialize the codecs. */
 	if (vcodec != AV_CODEC_ID_NONE) {
