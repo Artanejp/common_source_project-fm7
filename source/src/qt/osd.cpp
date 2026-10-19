@@ -1433,13 +1433,13 @@ void OSD::initialize(int rate, int samples, int* presented_rate, int* presented_
 
 void OSD::release()
 {
+	release_sound();
 	release_console();
 	release_input();
 	release_printer();
 	release_screen();
 	release_midi();
 
-	release_sound();
 	if(get_use_movie_player() || get_use_video_capture()) release_video();
 	if(get_use_socket()) release_socket();
 }
